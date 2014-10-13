@@ -18,6 +18,6 @@ void RazorAnalyzer::DummyAnalysis()
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
         //Dummy example: print out the MET and the number of jets
-        //cout << "MET = " << metPt << "; Number of jets = " << nJets << endl;
+        cout << "MET = " << metPt << "; Number of jets = " << nJets << endl;
     }
 }
