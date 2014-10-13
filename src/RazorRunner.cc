@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
     string analysisType(argv[2]);
 
     //build the TChain
-    TChain *theChain = new TChain("ntuples/outputTree");
+    TChain *theChain = new TChain("ntuples/RazorEvents");
     string curFileName;
     ifstream *inputFile = new ifstream(inputFileName.c_str());
     while(getline(*inputFile, curFileName)){
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
 
     RazorAnalyzer analyzer(theChain);
     
-    //enable desired branches and execute analysis
+    //------ EXECUTE YOUR ANALYSIS ------//
     if(analysisType == "dummy"){
         cout << "Executing dummy analysis..." << endl;
         analyzer.EnableJets();
