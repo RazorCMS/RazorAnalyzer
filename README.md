@@ -15,7 +15,7 @@ In the future, the simple compile script should be replaced with a Makefile.
 
 Defining a new analysis
 -------------
-1) Copy src/DummyAnalysis.cc and modify it to define your analyzer's behavior.  Be sure to change the name of the DummyAnalysis() function.
+1) Copy src/analyses/DummyAnalysis.cc and modify it to define your analyzer's behavior.  Be sure to change the name of the DummyAnalysis() function.
 
 2) Add your analysis under "LIST OF ANALYSES" in include/RazorAnalyzer.h.
 
