@@ -19,14 +19,14 @@ Defining a new analysis
 
 2) Add your analysis under "LIST OF ANALYSES" in include/RazorAnalyzer.h.
 
-3) In src/RazorRunner.cc, under "EXECUTE YOUR ANALYSIS" add the option to execute your analysis code.
+3) In src/RazorRun.cc, under "EXECUTE YOUR ANALYSIS" add the option to execute your analysis code.
 
 Running
 ------------
 After compiling, 
 
-    ./RazorRunner <list of input files> <analysis type>
+    ./RazorRun <list of input files> <analysis type>
   
 Example: to execute a dummy analysis that does nothing,
 
-    ./RazorRunner lists/TTJets_List_Test.txt dummy
+    ./RazorRun lists/TTJets_List_Test.txt dummy

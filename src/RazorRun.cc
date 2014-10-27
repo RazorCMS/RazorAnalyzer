@@ -19,8 +19,8 @@ int main(int argc, char* argv[]){
 
     //get input files and analysis type from command line
     if(argc < 3){
-        cerr << "Usage: RazorRunner <input list> <analysis type>" << endl;
-        cerr << "Analyses available: " << endl << "dummy   --   do nothing useful" << endl;
+        cerr << "Usage: RazorRun <input list> <analysis type>" << endl;
+        cerr << "Analyses available: " << endl << "razor   --   inclusive razor analysis" << endl << "dummy   --   do nothing useful" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
@@ -43,6 +43,15 @@ int main(int argc, char* argv[]){
         analyzer.EnableJets();
         analyzer.EnableMet();
         analyzer.DummyAnalysis();
+    }
+    else if(analysisType == "razor"){
+        cout << "Executing razor inclusive analysis..." << endl;
+        analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+        analyzer.EnableTaus();
+        analyzer.RazorInclusive();
     }
     else{ //analysis not found
         cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;

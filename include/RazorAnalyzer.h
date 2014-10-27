@@ -5,11 +5,19 @@
 #ifndef RazorAnalyzer_h
 #define RazorAnalyzer_h
 
-#include <TROOT.h>
-#include <TChain.h>
-#include <TFile.h>
 #include <RazorEvents.h> //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
 
+//ROOT includes
+#include <TROOT.h>
+#include <TChain.h>
+#include <TTree.h>
+#include <TFile.h>
+#include "TLorentzVector.h"
+
+//C++ includes
+#include <map>
+#include <string>
+#include <vector>
 #include <iostream>
 using namespace std;
 
@@ -35,7 +43,30 @@ class RazorAnalyzer: public RazorEvents {
 
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
+        virtual void RazorInclusive();
 
+
+        //functions in RazorAuxMuon.cc
+        bool isLooseMuon(int i);
+        bool isTightMuon(int i);
+
+        //functions in RazorAuxElectron.cc
+        bool isLooseElectron(int i);
+        bool isTightElectron(int i);
+        
+        //functions in RazorAuxTau.cc
+        bool isSelectedTau(int i);
+
+        //functions in RazorAuxJet.cc
+        bool isCSVL(int i);
+        bool isCSVM(int i);
+        bool isCSVT(int i);
+
+        //functions in RazorAuxMisc.cc
+        TLorentzVector makeTLorentzVector(double pt, double eta, double phi, double energy);
+        vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
+        double computeMR(TLorentzVector hem1, TLorentzVector hem2);
+        double computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector met);
 };
 
 #endif
