@@ -1,0 +1,23 @@
+include ../Makefile.inc
+
+INCLUDEDIR= src
+SHARED = libRazorRun2.so
+INCLUDELIST= RooRazor2DTail_SYS.h Linkdef.h
+
+all: $(SHARED) 
+
+$(INCLUDEDIR)/rootdict.cc: 
+	$(ROOTSYS)/bin/rootcint -f $@ -c $(CINTINCLUDES) -I$(INCLUDEDIR) $(INCLUDELIST) 
+
+$(INCLUDEDIR)/RooRazor2DTail_SYS.o:
+	$(CXX) $(INCLUDEDIR)/RooRazor2DTail_SYS.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
+
+$(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o 
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^
+	mv $(SHARED) lib
+
+clean:
+	@rm -f $(INCLUDEDIR)/*.o
+	@rm -f $(INCLUDEDIR)/rootdict.*
+	@rm -f $(SHARED) 
+	@rm -f lib/$(SHARED)
