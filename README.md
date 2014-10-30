@@ -9,10 +9,8 @@ From t3-higgs:
 
     git clone https://github.com/RazorCMS/RazorAnalyzer.git
     cd RazorAnalyzer
-    source compile.sh
+    make
   
-In the future, the simple compile script should be replaced with a Makefile.  
-
 Defining a new analysis
 -------------
 1) Copy src/analyses/DummyAnalysis.cc and modify it to define your analyzer's behavior.  Be sure to change the name of the DummyAnalysis() function.

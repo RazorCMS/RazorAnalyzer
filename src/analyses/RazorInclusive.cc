@@ -29,7 +29,7 @@ void RazorAnalyzer::RazorInclusive()
     boxNames.push_back("2BJet");
     boxNames.push_back("1BJet");
     boxNames.push_back("0BJet");
-    for(int i = 0; i < boxNames.size(); i++){
+    for(size_t i = 0; i < boxNames.size(); i++){
         razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
     }
 
@@ -222,14 +222,15 @@ void RazorAnalyzer::RazorInclusive()
 
 bool passesHadronicRazorBaseline(double MR, double Rsq){
     bool passes = true;
-    if(MR < 400 || Rsq < 0.25) passes = false;
-    if(MR < 550 && Rsq < 0.3) passes = false;
+    //temporarily disable these
+    //if(MR < 400 || Rsq < 0.25) passes = false;
+    //if(MR < 450 && Rsq < 0.3) passes = false;
     return passes;
 }
 
 bool passesLeptonicRazorBaseline(double MR, double Rsq){
     bool passes = true;
     if(MR < 300 || Rsq < 0.15) passes = false;
-    if(MR < 450 && Rsq < 0.2) passes = false;
+    if(MR < 350 && Rsq < 0.2) passes = false;
     return passes;
 }
