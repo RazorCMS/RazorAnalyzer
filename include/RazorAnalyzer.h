@@ -51,6 +51,7 @@ class RazorAnalyzer: public RazorEvents {
         bool isTightMuon(int i);
 
         //functions in RazorAuxElectron.cc
+        bool isVetoElectron(int i);
         bool isLooseElectron(int i);
         bool isTightElectron(int i);
         
