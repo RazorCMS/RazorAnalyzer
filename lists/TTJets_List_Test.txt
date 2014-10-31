@@ -1,3 +1,0 @@
-/mnt/tier2/store/user/cpena/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/crab_TT_25nsPU20/141007_055853/0000/razorNtupleAna_1.root
-/mnt/tier2/store/user/cpena/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/crab_TT_25nsPU20/141007_055853/0000/razorNtupleAna_2.root
-/mnt/tier2/store/user/cpena/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/crab_TT_25nsPU20/141007_055853/0000/razorNtupleAna_3.root
