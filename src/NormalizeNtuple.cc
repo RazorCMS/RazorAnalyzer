@@ -120,7 +120,9 @@ int main(int argc, char* argv[]) {
             normalizedTree->Write();
             inputFile.cd();
         }
+        inputFile.Close();
         cout << "Closing output file." << endl;
         outputFile->Close();
+        delete outputFile;
     }
 }
