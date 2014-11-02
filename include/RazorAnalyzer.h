@@ -43,8 +43,7 @@ class RazorAnalyzer: public RazorEvents {
 
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
-        virtual void RazorInclusive();
-
+        virtual void RazorInclusive(bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
         bool isLooseMuon(int i);

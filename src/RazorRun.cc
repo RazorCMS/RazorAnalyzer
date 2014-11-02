@@ -51,7 +51,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableElectrons();
         analyzer.EnableMuons();
         analyzer.EnableTaus();
-        analyzer.RazorInclusive();
+        analyzer.RazorInclusive(false); //change to true if you want all analysis boxes combined in one tree
     }
     else{ //analysis not found
         cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;

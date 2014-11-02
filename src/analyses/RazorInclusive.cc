@@ -4,33 +4,57 @@
 //C++ includes
 
 //ROOT includes
+#include "TH1F.h"
 
 using namespace std;
 
 enum RazorBox {
-    MUELE, 
-    MUMU,
-    ELEELE,
-    MUMULTIJET,
-    MUJET,
-    ELEMULTIJET,
-    ELEJET,
-    MULTIJET,
-    TWOBJET,
-    ONEBJET,
-    ZEROBJET,
+    MuEle, 
+    MuMu,
+    EleEle,
+    MuMultiJet,
+    MuJet,
+    EleMultiJet,
+    EleJet,
+    MultiJet,
+    TwoBJet,
+    OneBJet,
+    ZeroBJet,
     NONE
 };
 
 bool passesHadronicRazorBaseline(double MR, double Rsq);
 bool passesLeptonicRazorBaseline(double MR, double Rsq);
 
-void RazorAnalyzer::RazorInclusive()
+void RazorAnalyzer::RazorInclusive(bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
     TFile outFile("RazorInclusive.root", "RECREATE");
+    
+    //one tree to hold all events
     TTree *razorTree = new TTree("RazorInclusive", "Info on selected razor inclusive events");
+    
+    //separate trees for individual boxes
+    map<string, TTree*> razorBoxes;
+    vector<string> boxNames;
+    boxNames.push_back("MuEle");
+    boxNames.push_back("MuMu");
+    boxNames.push_back("EleEle");
+    boxNames.push_back("MuMultiJet");
+    boxNames.push_back("MuJet");
+    boxNames.push_back("EleMultiJet");
+    boxNames.push_back("EleJet");
+    boxNames.push_back("MultiJet");
+    boxNames.push_back("2BJet");
+    boxNames.push_back("1BJet");
+    boxNames.push_back("0BJet");
+    for(size_t i = 0; i < boxNames.size(); i++){
+        razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
+    }
+
+    //histogram containing total number of processed events (for normalization)
+    TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
     //tree variables
     int nSelectedJets, nBTaggedJets;
@@ -38,16 +62,34 @@ void RazorAnalyzer::RazorInclusive()
     float theMR;
     float theRsq;
     RazorBox box;
-    razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
-    razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
-    razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
-    razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
-    razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
-    razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-    razorTree->Branch("nSelectedTaus", &nSelectedTaus, "nSelectedTaus/I");
-    razorTree->Branch("MR", &theMR, "MR/F");
-    razorTree->Branch("Rsq", &theRsq, "Rsq/F");
-    razorTree->Branch("box", &box, "box/I");
+
+    //set branches on big tree
+    if(combineTrees){
+        razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
+        razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
+        razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+        razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+        razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+        razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+        razorTree->Branch("nSelectedTaus", &nSelectedTaus, "nSelectedTaus/I");
+        razorTree->Branch("MR", &theMR, "MR/F");
+        razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+        razorTree->Branch("box", &box, "box/I");
+    }
+    //set branches on all trees
+    else{ 
+        for(auto& box : razorBoxes){
+            box.second->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
+            box.second->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
+            box.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+            box.second->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+            box.second->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+            box.second->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+            box.second->Branch("nSelectedTaus", &nSelectedTaus, "nSelectedTaus/I");
+            box.second->Branch("MR", &theMR, "MR/F");
+            box.second->Branch("Rsq", &theRsq, "Rsq/F");
+        }
+    }
 
     //begin loop
     if (fChain == 0) return;
@@ -60,6 +102,9 @@ void RazorAnalyzer::RazorInclusive()
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
+        //fill normalization histogram
+        NEvents->Fill(1.0);
+
         //reset tree variables
         nSelectedJets = 0;
         nBTaggedJets = 0;
@@ -70,7 +115,7 @@ void RazorAnalyzer::RazorInclusive()
         nSelectedTaus = 0;
         theMR = -1;
         theRsq = -1;
-        box = NONE;
+        if(combineTrees) box = NONE;
 
         //TODO: triggers!
         bool passedLeptonicTrigger = true;
@@ -147,84 +192,119 @@ void RazorAnalyzer::RazorInclusive()
         //MuEle Box
         if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseMuons > 0 && nBTaggedJets > 0){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = MUELE;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = MuEle;
+                    razorTree->Fill();
+                }
+                else razorBoxes["MuEle"]->Fill();
             }
         }
         //MuMu Box
         else if(passedLeptonicTrigger && nTightMuons > 0 && nLooseMuons > 1 && nBTaggedJets > 0){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = MUMU;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = MuMu;
+                    razorTree->Fill();
+                }
+                else razorBoxes["MuMu"]->Fill();
             }
         }
         //EleEle Box
         else if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseElectrons > 1 && nBTaggedJets > 0){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = ELEELE;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = EleEle;
+                    razorTree->Fill();
+                }
+                else razorBoxes["EleEle"]->Fill();
             }
         }
         //MuMultiJet Box
         else if(passedLeptonicTrigger && nTightMuons > 0 && nBTaggedJets > 0 && nSelectedJets > 3){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = MUMULTIJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = MuMultiJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["MuMultiJet"]->Fill();
             }
         }
         //MuJet Box
         else if(passedLeptonicTrigger && nTightMuons > 0 && nBTaggedJets > 0){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = MUJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = MuJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["MuJet"]->Fill();
             }
         }
         //EleMultiJet Box
         else if(passedLeptonicTrigger && nTightElectrons > 0 && nBTaggedJets > 0 && nSelectedJets > 3){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = ELEMULTIJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = EleMultiJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["EleMultiJet"]->Fill();
             }
         }
         //EleJet Box
         else if(passedLeptonicTrigger && nTightElectrons > 0 && nBTaggedJets > 0){
             if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
-                box = ELEJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = EleJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["EleJet"]->Fill();
             }
         }
         //MultiJet Box
         else if(passedHadronicTrigger && nBTaggedJets > 0 && nSelectedJets > 3){
             if(passesHadronicRazorBaseline(theMR, theRsq)){  
-                box = MULTIJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = MultiJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["MultiJet"]->Fill();
             }
         }
         //2BJet Box
         else if(passedHadronicTrigger && nBTaggedJets > 1){
             if(passesHadronicRazorBaseline(theMR, theRsq)){ 
-                box = TWOBJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = TwoBJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["2BJet"]->Fill();
             }
         }
         //1BJet Box
         else if(passedHadronicTrigger && nBTaggedJets > 0){
             if(passesHadronicRazorBaseline(theMR, theRsq)){ 
-                box = ONEBJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = OneBJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["1BJet"]->Fill();
             }
         }
         //0BJetBox
         else if(passedHadronicTrigger){
             if(passesHadronicRazorBaseline(theMR, theRsq)){ 
-                box = ZEROBJET;
-                razorTree->Fill();
+                if(combineTrees){
+                    box = ZeroBJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["0BJet"]->Fill();
             }
         }
     }//end of event loop
 
     cout << "Writing output trees..." << endl;
-    razorTree->Write();
+    if(combineTrees) razorTree->Write();
+    else for(auto& box : razorBoxes) box.second->Write();
+    NEvents->Write();
 
     outFile.Close();
 }
