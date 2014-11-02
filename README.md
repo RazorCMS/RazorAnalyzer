@@ -28,3 +28,11 @@ After compiling,
 Example: to execute a dummy analysis that does nothing,
 
     ./RazorRun lists/TTJets_List_Test.txt dummy
+
+Normalizing the processed ntuples
+------------
+The NormalizeNtuple macro opens a specified set of files and adds a 'weight' branch to each TTree in each file.  The value of 'weight' is the same for all events in a tree and is equal to CrossSection/NEvents, where NEvents is the total number of events processed for the given dataset.  The cross sections can be found in the file data/xSections.dat.  To run NormalizeNtuple:
+
+    ./NormalizeNtuple <input file>
+
+See lists/filestonormalize/smBackgrounds.txt for an example input file to be used with NormalizeNtuple.
