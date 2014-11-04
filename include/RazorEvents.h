@@ -46,16 +46,15 @@ public :
    Float_t         muon_ip3d[7];   //[nMuons]
    Float_t         muon_ip3dSignificance[7];   //[nMuons]
    UShort_t        muonType[7];   //[nMuons]
-   Float_t         muon_sumChargedHadronPt[7];   //[nMuons]
-   Float_t         muon_sumChargedParticlePt[7];   //[nMuons]
-   Float_t         muon_sumNeutralHadronEt[7];   //[nMuons]
-   Float_t         muon_sumPhotonEt[7];   //[nMuons]
+   UInt_t          muonQuality[7];   //[nMuons]
+   Float_t         muon_relIso04DBetaCorr[7];   //[nMuons]
    Int_t           nElectrons;
    Float_t         eleE[6];   //[nElectrons]
    Float_t         elePt[6];   //[nElectrons]
    Float_t         eleEta[6];   //[nElectrons]
    Float_t         elePhi[6];   //[nElectrons]
    Float_t         eleCharge[6];   //[nElectrons]
+   Float_t         eleEta_SC[6];   //[nElectrons]
    Float_t         eleSigmaIetaIeta[6];   //[nElectrons]
    Float_t         eleFull5x5SigmaIetaIeta[6];   //[nElectrons]
    Float_t         eleR9[6];   //[nElectrons]
@@ -64,12 +63,12 @@ public :
    Float_t         ele_HoverE[6];   //[nElectrons]
    Float_t         ele_d0[6];   //[nElectrons]
    Float_t         ele_dZ[6];   //[nElectrons]
-   Float_t         ele_sumChargedHadronPt[6];   //[nElectrons]
-   Float_t         ele_sumNeutralHadronEt[6];   //[nElectrons]
-   Float_t         ele_sumPhotonEt[6];   //[nElectrons]
+   Float_t         ele_relIsoDBetaCorr[6];   //[nElectrons]
    Int_t           ele_MissHits[6];   //[nElectrons]
-   Int_t           ele_ConvRejec[6];   //[nElectrons]
+   Bool_t          ele_PassConvVeto[6];   //[nElectrons]
    Float_t         ele_OneOverEminusOneOverP[6];   //[nElectrons]
+   Float_t         ele_IDMVATrig[6];   //[nElectrons]
+   Float_t         ele_IDMVANonTrig[6];   //[nElectrons]
    Float_t         ele_RegressionE[6];   //[nElectrons]
    Float_t         ele_CombineP4[6];   //[nElectrons]
    Int_t           nTaus;
@@ -121,7 +120,8 @@ public :
    Float_t         genMetPt;
    Float_t         genMetPhi;
    UShort_t        nGenParticle;
-   Int_t           motherIndex[158];   //[nGenParticle]
+   Int_t           gParticleMotherId[40];   //[nGenParticle]
+   Int_t           gParticleMotherIndex[40];   //[nGenParticle]
    Int_t           gParticleId[158];   //[nGenParticle]
    Int_t           gParticleStatus[158];   //[nGenParticle]
    Float_t         gParticleE[158];   //[nGenParticle]
@@ -154,16 +154,15 @@ public :
    TBranch        *b_muon_ip3d;   //!
    TBranch        *b_muon_ip3dSignificance;   //!
    TBranch        *b_muonType;   //!
-   TBranch        *b_muon_sumChargedHadronPt;   //!
-   TBranch        *b_muon_sumChargedParticlePt;   //!
-   TBranch        *b_muon_sumNeutralHadronEt;   //!
-   TBranch        *b_muon_sumPhotonEt;   //!
+   TBranch        *b_muonQuality;   //!
+   TBranch        *b_muon_relIso04DBetaCorr;   //!
    TBranch        *b_nElectrons;   //!
    TBranch        *b_eleE;   //!
    TBranch        *b_elePt;   //!
    TBranch        *b_eleEta;   //!
    TBranch        *b_elePhi;   //!
    TBranch        *b_eleCharge;   //!
+   TBranch        *b_eleEta_SC;   //!
    TBranch        *b_eleSigmaIetaIeta;   //!
    TBranch        *b_eleFull5x5SigmaIetaIeta;   //!
    TBranch        *b_eleR9;   //!
@@ -172,12 +171,12 @@ public :
    TBranch        *b_ele_HoverE;   //!
    TBranch        *b_ele_d0;   //!
    TBranch        *b_ele_dZ;   //!
-   TBranch        *b_ele_sumChargedHadronPt;   //!
-   TBranch        *b_ele_sumNeutralHadronEt;   //!
-   TBranch        *b_ele_sumPhotonEt;   //!
+   TBranch        *b_ele_relIsoDBetaCorr;   //!
    TBranch        *b_ele_MissHits;   //!
-   TBranch        *b_ele_ConvRejec;   //!
+   TBranch        *b_ele_PassConvVeto;   //!
    TBranch        *b_ele_OneOverEminusOneOverP;   //!
+   TBranch        *b_ele_IDMVATrig;   //!
+   TBranch        *b_ele_IDMVANonTrig;   //!
    TBranch        *b_ele_RegressionE;   //!
    TBranch        *b_ele_CombineP4;   //!
    TBranch        *b_nTaus;   //!
@@ -229,7 +228,8 @@ public :
    TBranch        *b_genMetPt;   //!
    TBranch        *b_genMetPhi;   //!
    TBranch        *b_nGenParticle;   //!
-   TBranch        *b_motherIndex;   //!
+   TBranch        *b_gParticleMotherId;   //!
+   TBranch        *b_gParticleMotherIndex;   //!
    TBranch        *b_gParticleId;   //!
    TBranch        *b_gParticleStatus;   //!
    TBranch        *b_gParticleE;   //!
@@ -332,16 +332,15 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("muon_ip3d", muon_ip3d, &b_muon_ip3d);
    fChain->SetBranchAddress("muon_ip3dSignificance", muon_ip3dSignificance, &b_muon_ip3dSignificance);
    fChain->SetBranchAddress("muonType", muonType, &b_muonType);
-   fChain->SetBranchAddress("muon_sumChargedHadronPt", muon_sumChargedHadronPt, &b_muon_sumChargedHadronPt);
-   fChain->SetBranchAddress("muon_sumChargedParticlePt", muon_sumChargedParticlePt, &b_muon_sumChargedParticlePt);
-   fChain->SetBranchAddress("muon_sumNeutralHadronEt", muon_sumNeutralHadronEt, &b_muon_sumNeutralHadronEt);
-   fChain->SetBranchAddress("muon_sumPhotonEt", muon_sumPhotonEt, &b_muon_sumPhotonEt);
+   fChain->SetBranchAddress("muonQuality", muonQuality, &b_muonQuality);
+   fChain->SetBranchAddress("muon_relIso04DBetaCorr", muon_relIso04DBetaCorr, &b_muon_relIso04DBetaCorr);
    fChain->SetBranchAddress("nElectrons", &nElectrons, &b_nElectrons);
    fChain->SetBranchAddress("eleE", eleE, &b_eleE);
    fChain->SetBranchAddress("elePt", elePt, &b_elePt);
    fChain->SetBranchAddress("eleEta", eleEta, &b_eleEta);
    fChain->SetBranchAddress("elePhi", elePhi, &b_elePhi);
    fChain->SetBranchAddress("eleCharge", eleCharge, &b_eleCharge);
+   fChain->SetBranchAddress("eleEta_SC", eleEta_SC, &b_eleEta_SC);
    fChain->SetBranchAddress("eleSigmaIetaIeta", eleSigmaIetaIeta, &b_eleSigmaIetaIeta);
    fChain->SetBranchAddress("eleFull5x5SigmaIetaIeta", eleFull5x5SigmaIetaIeta, &b_eleFull5x5SigmaIetaIeta);
    fChain->SetBranchAddress("eleR9", eleR9, &b_eleR9);
@@ -350,12 +349,12 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("ele_HoverE", ele_HoverE, &b_ele_HoverE);
    fChain->SetBranchAddress("ele_d0", ele_d0, &b_ele_d0);
    fChain->SetBranchAddress("ele_dZ", ele_dZ, &b_ele_dZ);
-   fChain->SetBranchAddress("ele_sumChargedHadronPt", ele_sumChargedHadronPt, &b_ele_sumChargedHadronPt);
-   fChain->SetBranchAddress("ele_sumNeutralHadronEt", ele_sumNeutralHadronEt, &b_ele_sumNeutralHadronEt);
-   fChain->SetBranchAddress("ele_sumPhotonEt", ele_sumPhotonEt, &b_ele_sumPhotonEt);
+   fChain->SetBranchAddress("ele_relIsoDBetaCorr", ele_relIsoDBetaCorr, &b_ele_relIsoDBetaCorr);
    fChain->SetBranchAddress("ele_MissHits", ele_MissHits, &b_ele_MissHits);
-   fChain->SetBranchAddress("ele_ConvRejec", ele_ConvRejec, &b_ele_ConvRejec);
+   fChain->SetBranchAddress("ele_PassConvVeto", ele_PassConvVeto, &b_ele_PassConvVeto);
    fChain->SetBranchAddress("ele_OneOverEminusOneOverP", ele_OneOverEminusOneOverP, &b_ele_OneOverEminusOneOverP);
+   fChain->SetBranchAddress("ele_IDMVATrig", ele_IDMVATrig, &b_ele_IDMVATrig);
+   fChain->SetBranchAddress("ele_IDMVANonTrig", ele_IDMVANonTrig, &b_ele_IDMVANonTrig);
    fChain->SetBranchAddress("ele_RegressionE", ele_RegressionE, &b_ele_RegressionE);
    fChain->SetBranchAddress("ele_CombineP4", ele_CombineP4, &b_ele_CombineP4);
    fChain->SetBranchAddress("nTaus", &nTaus, &b_nTaus);
@@ -407,7 +406,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genMetPt", &genMetPt, &b_genMetPt);
    fChain->SetBranchAddress("genMetPhi", &genMetPhi, &b_genMetPhi);
    fChain->SetBranchAddress("nGenParticle", &nGenParticle, &b_nGenParticle);
-   fChain->SetBranchAddress("motherIndex", motherIndex, &b_motherIndex);
+   fChain->SetBranchAddress("gParticleMotherId", gParticleMotherId, &b_gParticleMotherId);
+   fChain->SetBranchAddress("gParticleMotherIndex", gParticleMotherIndex, &b_gParticleMotherIndex);
    fChain->SetBranchAddress("gParticleId", gParticleId, &b_gParticleId);
    fChain->SetBranchAddress("gParticleStatus", gParticleStatus, &b_gParticleStatus);
    fChain->SetBranchAddress("gParticleE", gParticleE, &b_gParticleE);

@@ -61,10 +61,8 @@ void RazorAnalyzer::EnableMuons(){
     fChain->SetBranchStatus("muon_ip3d", 1);
     fChain->SetBranchStatus("muon_ip3dSignificance", 1);
     fChain->SetBranchStatus("muonType", 1);
-    fChain->SetBranchStatus("muon_sumChargedHadronPt", 1);
-    fChain->SetBranchStatus("muon_sumChargedParticlePt", 1);
-    fChain->SetBranchStatus("muon_sumNeutralHadronEt", 1);
-    fChain->SetBranchStatus("muon_sumPhotonEt", 1);
+    fChain->SetBranchStatus("muonQuality", 1);
+    fChain->SetBranchStatus("muon_relIso04DBetaCorr", 1);
 }
 
 void RazorAnalyzer::EnableElectrons(){
@@ -74,6 +72,7 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("eleEta", 1);
     fChain->SetBranchStatus("elePhi", 1);
     fChain->SetBranchStatus("eleCharge", 1);
+    fChain->SetBranchStatus("eleEta_SC", 1);
     fChain->SetBranchStatus("eleSigmaIetaIeta", 1);
     fChain->SetBranchStatus("eleFull5x5SigmaIetaIeta", 1);
     fChain->SetBranchStatus("eleR9", 1);
@@ -82,12 +81,12 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_HoverE", 1);
     fChain->SetBranchStatus("ele_d0", 1);
     fChain->SetBranchStatus("ele_dZ", 1);
-    fChain->SetBranchStatus("ele_sumChargedHadronPt", 1);
-    fChain->SetBranchStatus("ele_sumNeutralHadronEt", 1);
-    fChain->SetBranchStatus("ele_sumPhotonEt", 1);
+    fChain->SetBranchStatus("ele_relIsoDBetaCorr", 1);
     fChain->SetBranchStatus("ele_MissHits", 1);
-    fChain->SetBranchStatus("ele_ConvRejec", 1);
+    fChain->SetBranchStatus("ele_PassConvVeto", 1);
     fChain->SetBranchStatus("ele_OneOverEminusOneOverP", 1);
+    fChain->SetBranchStatus("ele_IDMVATrig", 1);
+    fChain->SetBranchStatus("ele_IDMVANonTrig", 1);
     fChain->SetBranchStatus("ele_RegressionE", 1);
     fChain->SetBranchStatus("ele_CombineP4", 1);
 }
@@ -163,9 +162,10 @@ void RazorAnalyzer::EnableMC(){
 
 void RazorAnalyzer::EnableGenParticles(){
     fChain->SetBranchStatus("nGenParticle", 1);
-    fChain->SetBranchStatus("motherIndex", 1);
-    fChain->SetBranchStatus("gParticleStatus", 1);
+    fChain->SetBranchStatus("gParticleMotherId", 1);
+    fChain->SetBranchStatus("gParticleMotherIndex", 1);
     fChain->SetBranchStatus("gParticleId", 1);
+    fChain->SetBranchStatus("gParticleStatus", 1);
     fChain->SetBranchStatus("gParticleE", 1);
     fChain->SetBranchStatus("gParticlePt", 1);
     fChain->SetBranchStatus("gParticleEta", 1);

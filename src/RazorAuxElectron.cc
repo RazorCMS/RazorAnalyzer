@@ -14,8 +14,8 @@ bool RazorAnalyzer::isTightElectron(int i){
 	 && fabs(ele_d0[i]) < 0.0126
 	 && fabs(ele_dZ[i]) < 0.0116
 	 && ele_OneOverEminusOneOverP[i] < 0.0609
-	 && (ele_sumChargedHadronPt[i]+ele_sumNeutralHadronEt[i]+ele_sumPhotonEt[i])/elePt[i] < 0.1649
-	 //&& ele_ConvRejec[i]
+	 && ele_relIsoDBetaCorr[i] < 0.1649
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
@@ -28,8 +28,8 @@ bool RazorAnalyzer::isTightElectron(int i){
 	 && fabs(ele_d0[i]) < 0.0163
 	 && fabs(ele_dZ[i]) < 0.5999
 	 && ele_OneOverEminusOneOverP[i] < 0.1126
-	 && (ele_sumChargedHadronPt[i]+ele_sumNeutralHadronEt[i]+ele_sumPhotonEt[i])/elePt[i] < 0.2075
-	 //&& ele_ConvRejec[i]
+	 && ele_relIsoDBetaCorr[i] < 0.2075
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
@@ -49,8 +49,8 @@ bool RazorAnalyzer::isVetoElectron(int i){
 	 && fabs(ele_d0[i]) < 0.025
 	 && fabs(ele_dZ[i]) < 0.5863
 	 && ele_OneOverEminusOneOverP[i] < 0.1508
-	 && (ele_sumChargedHadronPt[i]+ele_sumNeutralHadronEt[i]+ele_sumPhotonEt[i])/elePt[i] < 0.3313
-	 //&& ele_ConvRejec[i]
+	 && ele_relIsoDBetaCorr[i] < 0.3313
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 2
 	) {
       pass = true;
@@ -63,8 +63,8 @@ bool RazorAnalyzer::isVetoElectron(int i){
 	 && fabs(ele_d0[i]) < 0.2232
 	 && fabs(ele_dZ[i]) < 0.9513
 	 && ele_OneOverEminusOneOverP[i] < 0.1542
-	 && (ele_sumChargedHadronPt[i]+ele_sumNeutralHadronEt[i]+ele_sumPhotonEt[i])/elePt[i] < 0.3816
-	 //&& ele_ConvRejec[i]
+	 && ele_relIsoDBetaCorr[i] < 0.3816
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 3
 	) {
       pass = true;
