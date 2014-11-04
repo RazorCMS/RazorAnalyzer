@@ -49,15 +49,14 @@ razorBoxes = dict((box, f.Get(box)) for box in boxNames)
 ##create RooDataSets with the MR and Rsq values of events in each tree
 
 #set number of bins for MR and Rsq
-MRBinWidth = 20
-RsqBinWidth = 0.05
+MRBinWidth = 25
+RsqBinWidth = 0.025
 MRMax = 1000
 RsqMax = 0.8
 MR = rt.RooRealVar("MR", "MR", 300, MRMax) 
 Rsq = rt.RooRealVar("Rsq", "Rsq", 0.15, RsqMax)
-box = rt.RooRealVar("box", "box", 0, 100)
-MR.setBins(int(MRMax/MRBinWidth))
-Rsq.setBins(int(RsqMax/RsqBinWidth))
+MR.setBins(int((MRMax-300)/MRBinWidth))
+Rsq.setBins(int((RsqMax-0.15)/RsqBinWidth))
 
 #create several test fit regions
 MRMins = [300, 350, 400, 450]
@@ -87,7 +86,7 @@ for MRMin, RsqMin, MRSideband, RsqSideband in itertools.product(MRMins, RsqMins,
     Rsq.setRange("full"+regionName, RsqMin, RsqMax)
 
 #create RooDataSets
-args = rt.RooArgSet(MR, Rsq, box)
+args = rt.RooArgSet(MR, Rsq)
 razorDataSets = dict((box, rt.RooDataSet(box, box, razorBoxes[box], args)) for box in boxNames)
 razorDataHists = dict((box, rt.RooDataHist(box, box, args, razorDataSets[box])) for box in boxNames)
 
@@ -120,17 +119,14 @@ for box in boxNames:
         c = rt.TCanvas("c"+box, "c"+box, 1024, 768)
         #c.SetLogy()
         mRFrame = MR.frame()
-        #razorDataSets[box].plotOn(mRFrame)  
-        #create dummy dataset to calculate correct normalization
+
         cutString = "MR > "+str(MRMin)+" && Rsq > "+str(RsqMin)
-        normData = rt.RooDataSet("dummy", "dummy", razorDataSets[box], args, cutString)
         razorDataSets[box].plotOn(mRFrame, rt.RooFit.Cut(cutString))  
-        razorFunction.plotOn(mRFrame, rt.RooFit.Normalization(normData.sumEntries(), rt.RooFit.RooDataSet.NumEvent), rt.RooFit.Range("full"+regionName), rt.RooFit.LineStyle(2))
+        razorFunction.plotOn(mRFrame, rt.RooFit.Normalization(razorDataSets[box].sumEntries(cutString), rt.RooAbsReal.NumEvent), rt.RooFit.NormRange("full"+regionName), rt.RooFit.ProjectionRange("full"+regionName), rt.RooFit.Range("full"+regionName), rt.RooFit.LineStyle(2))
         #razorFunction.plotOn(mRFrame, rt.RooFit.ProjectionRange("lowMR"+regionName+",lowRsq"+regionName), rt.RooFit.NormRange("lowMR"+regionName+",lowRsq"+regionName), rt.RooFit.Range("full"+regionName), rt.RooFit.LineStyle(2))
         r2Frame = Rsq.frame()
-        #razorDataSets[box].plotOn(r2Frame)
-        razorDataSets[box].plotOn(r2Frame, rt.RooFit.Cut("MR > "+str(MRMin)))
-        razorFunction.plotOn(r2Frame, rt.RooFit.Normalization(normData.sumEntries(), rt.RooFit.RooDataSet.NumEvent), rt.RooFit.Range("full"+regionName), rt.RooFit.LineStyle(2))
+        razorDataSets[box].plotOn(r2Frame, rt.RooFit.Cut(cutString))
+        razorFunction.plotOn(r2Frame, rt.RooFit.Normalization(razorDataSets[box].sumEntries(cutString), rt.RooAbsReal.NumEvent), rt.RooFit.NormRange("full"+regionName), rt.RooFit.ProjectionRange("full"+regionName), rt.RooFit.Range("full"+regionName), rt.RooFit.LineStyle(2))
         #razorFunction.plotOn(r2Frame, rt.RooFit.ProjectionRange("lowMR"+regionName+",lowRsq"+regionName), rt.RooFit.NormRange("lowMR"+regionName+",lowRsq"+regionName), rt.RooFit.Range("full"+regionName), rt.RooFit.LineStyle(2))
 
         #draw and print
