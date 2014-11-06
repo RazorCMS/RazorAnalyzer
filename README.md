@@ -36,3 +36,11 @@ The NormalizeNtuple macro opens a specified set of files and adds a 'weight' bra
     ./NormalizeNtuple <input file>
 
 See lists/filestonormalize/testTTJets.txt for an example input file to be used with NormalizeNtuple.
+
+Running over many samples at once
+-----------
+The script 'runEverything' takes as input the name of a directory containing lists of files to process.  Ex:
+
+    ./runEverything lists/27Oct2014/
+
+The script will (locally) run the RazorInclusive analysis on each sample listed in the given directory, run NormalizeNtuple to add event weights, and add all of the output files together.
