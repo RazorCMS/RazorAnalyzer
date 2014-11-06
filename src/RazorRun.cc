@@ -29,8 +29,12 @@ int main(int argc, char* argv[]){
     //build the TChain
     TChain *theChain = new TChain("ntuples/RazorEvents");
     string curFileName;
-    ifstream *inputFile = new ifstream(inputFileName.c_str());
-    while(getline(*inputFile, curFileName)){
+    ifstream inputFile(inputFileName.c_str());
+    if(!inputFile){
+        cerr << "Error: input file not found!" << endl; 
+        return -1;
+    }
+    while(getline(inputFile, curFileName)){
         theChain->Add(curFileName.c_str());
         std::cout << "chaining " << curFileName << std::endl;
     }

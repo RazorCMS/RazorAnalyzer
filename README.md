@@ -35,4 +35,4 @@ The NormalizeNtuple macro opens a specified set of files and adds a 'weight' bra
 
     ./NormalizeNtuple <input file>
 
-See lists/filestonormalize/smBackgrounds.txt for an example input file to be used with NormalizeNtuple.
+See lists/filestonormalize/testTTJets.txt for an example input file to be used with NormalizeNtuple.

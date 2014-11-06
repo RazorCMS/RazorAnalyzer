@@ -1,6 +1,6 @@
 include Makefile.inc
 
-DIRS = postprocessing
+DIRS = python
 SRCDIR = src
 INCLUDEDIR = include
 INCLUDELIST= SimpleTable.h Linkdef.h

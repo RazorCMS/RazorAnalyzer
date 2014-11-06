@@ -61,7 +61,8 @@ int main(int argc, char* argv[]) {
     string curFilename;
     vector<string> inputLines;
     while(getline(filein, curFilename)){
-        inputLines.push_back(curFilename);
+        if(((string)curFilename).at(0) != '#') inputLines.push_back(curFilename); //'#' denotes a comment
+        else cout << "(Skipping commented line in input)" << endl;
     }
 
     //open each ROOT file and add the normalization branch

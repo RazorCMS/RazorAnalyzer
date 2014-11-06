@@ -46,9 +46,9 @@ void RazorAnalyzer::RazorInclusive(bool combineTrees)
     boxNames.push_back("EleMultiJet");
     boxNames.push_back("EleJet");
     boxNames.push_back("MultiJet");
-    boxNames.push_back("2BJet");
-    boxNames.push_back("1BJet");
-    boxNames.push_back("0BJet");
+    boxNames.push_back("TwoBJet");
+    boxNames.push_back("OneBJet");
+    boxNames.push_back("ZeroBJet");
     for(size_t i = 0; i < boxNames.size(); i++){
         razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
     }
@@ -269,34 +269,34 @@ void RazorAnalyzer::RazorInclusive(bool combineTrees)
                 else razorBoxes["MultiJet"]->Fill();
             }
         }
-        //2BJet Box
+        //TwoBJet Box
         else if(passedHadronicTrigger && nBTaggedJets > 1){
             if(passesHadronicRazorBaseline(theMR, theRsq)){ 
                 if(combineTrees){
                     box = TwoBJet;
                     razorTree->Fill();
                 }
-                else razorBoxes["2BJet"]->Fill();
+                else razorBoxes["TwoBJet"]->Fill();
             }
         }
-        //1BJet Box
+        //OneBJet Box
         else if(passedHadronicTrigger && nBTaggedJets > 0){
             if(passesHadronicRazorBaseline(theMR, theRsq)){ 
                 if(combineTrees){
                     box = OneBJet;
                     razorTree->Fill();
                 }
-                else razorBoxes["1BJet"]->Fill();
+                else razorBoxes["OneBJet"]->Fill();
             }
         }
-        //0BJetBox
+        //ZeroBJetBox
         else if(passedHadronicTrigger){
             if(passesHadronicRazorBaseline(theMR, theRsq)){ 
                 if(combineTrees){
                     box = ZeroBJet;
                     razorTree->Fill();
                 }
-                else razorBoxes["0BJet"]->Fill();
+                else razorBoxes["ZeroBJet"]->Fill();
             }
         }
     }//end of event loop
