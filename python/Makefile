@@ -2,7 +2,7 @@ include ../Makefile.inc
 
 INCLUDEDIR= src
 SHARED = libRazorRun2.so
-INCLUDELIST= RooRazor2DTail_SYS.h Linkdef.h
+INCLUDELIST= RooRazor2DTail_SYS.h MLMixedSample.h Linkdef.h
 
 all: $(SHARED) 
 
@@ -12,7 +12,10 @@ $(INCLUDEDIR)/rootdict.cc:
 $(INCLUDEDIR)/RooRazor2DTail_SYS.o:
 	$(CXX) $(INCLUDEDIR)/RooRazor2DTail_SYS.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
 
-$(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o 
+$(INCLUDEDIR)/MLMixedSample.o:
+	$(CXX) $(INCLUDEDIR)/MLMixedSample.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
+
+$(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/MLMixedSample.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^
 	mv $(SHARED) lib
 

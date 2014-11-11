@@ -121,8 +121,8 @@ razorFunction = rt.RooRazor2DTail_SYS("razorFunction", "razorFunction", MR, Rsq,
 #fit in several different regions and test the reliability of the fit in each region
 for box in boxNames:
     #for now only look at hadronic boxes
-    #if box not in ['MultiJet', '2BJet', '1BJet', '0BJet']: continue
-    if box != '2BJet': continue
+    if box not in ['MultiJet', '2BJet', '1BJet', '0BJet']: continue
+    #if box != '2BJet': continue
 
     #test the fit for each sideband region
     for MRMin, RsqMin, MRSideband, RsqSideband in itertools.product(MRMins, RsqMins, MRSidebandSizes, RsqSidebandSizes):
@@ -145,7 +145,7 @@ for box in boxNames:
 
         #plot the data and plot the pdf in MR,Rsq
         c = rt.TCanvas("c"+box, "c"+box, 1024, 768)
-        #c.SetLogy()
+        c.SetLogy()
         MRFrame = MR.frame()
         cutString = "MR > "+str(MRMin)+" && Rsq > "+str(RsqMin)
         razorDataSets[box].plotOn(MRFrame, rt.RooFit.Cut(cutString), rt.RooFit.Binning(MRBinning))  
@@ -173,7 +173,8 @@ for box in boxNames:
         #vary fit function according to the fit covariance matrix and compute the variance of each fit yield
         nToys = 100
         fitArgs = fitResult.floatParsFinal()
-        binCorners = [[[MRBinMin,RsqBinMin], [MRBinMax, RsqBinMax]] for [(MRBinMin,RsqBinMin), (MRBinMax,RsqBinMax)] in itertools.product(zip(MRBinLowEdges,MRBinHighEdges), zip(RsqBinLowEdges,RsqBinHighEdges)) if MRBinMin+1 >= fitMRMax or RsqBinMin+0.01 >= fitRsqMax or (MRBinMin+1 >= MRMin+MRSideband and RsqBinMin+0.01 >= RsqMin+RsqSideband)] #list of all bins in the extrapolation region
+        bestFitArgs = 
+        binCorners = [[[MRBinMin,MRBinMax], [RsqBinMin, RsqBinMax]] for [(MRBinMin,MRBinMax), (RsqBinMin,RsqBinMax)] in itertools.product(zip(MRBinLowEdges,MRBinHighEdges), zip(RsqBinLowEdges,RsqBinHighEdges)) if MRBinMin+1 >= fitMRMax or RsqBinMin+0.01 >= fitRsqMax or (MRBinMin+1 >= MRMin+MRSideband and RsqBinMin+0.01 >= RsqMin+RsqSideband)] #list of all bins in the extrapolation region
         binEvents = []
         NTOT = razorDataSets[box].sumEntries(cutString) #total number of events in fit range + extrapolation region
         for toy in range(nToys):
@@ -186,20 +187,15 @@ for box in boxNames:
             Y0 = pars['Rsq0'].getVal()
 
             #check if the fit function is sane by integrating it over the whole range
-            print('Integrating razor function with parameters '+str(B)+', '+str(N)+', '+str(X0)+', '+str(Y0)+'.  Integrating from ('+str(MRMin)+', '+str(RsqMin)+') to ('+str(MRMax)+', '+str(RsqMax)+')')
             total_integral = RazorIntegral(B, N, X0, Y0, MRMin, MRMax, RsqMin, RsqMax)
             if total_integral <= 0: #razor function is not well defined
-                print "\nERROR: total razor pdf integral =", total_integral
+                print("\nERROR: total razor pdf integral ="+str(total_integral))
                 continue
-            else: print "Total integral: ",total_integral
 
             #in each bin in the extrapolation region, integrate the function to get the expected number of events
-            integrals = [RazorIntegral(B, N, X0, Y0, MRBinMin, MRBinMax, RsqBinMin, RsqBinMax) for [[MRBinMin,RsqBinMin],[MRBinMax,RsqBinMax]] in binCorners]
-            print "Printing the integrals bin by bin"
-            for [[MRBinMin,RsqBinMin],[MRBinMax,RsqBinMax]] in binCorners: print(str([[MRBinMin,RsqBinMin],[MRBinMax,RsqBinMax]])+" "+str(RazorIntegral(B,N,X0,Y0,MRBinMin,MRBinMax,RsqBinMin,RsqBinMax)))
+            integrals = [RazorIntegral(B, N, X0, Y0, MRBinMin, MRBinMax, RsqBinMin, RsqBinMax) for [[MRBinMin,MRBinMax],[RsqBinMin,RsqBinMax]] in binCorners]
             theseBinEvents = [NTOT*integral/total_integral for integral in integrals]
             binEvents.append(theseBinEvents)
-            for i in range(len(binCorners)): print(str(binCorners[i])+" "+str(theseBinEvents[i]))
 
             #perturb fit (assumes a gaussian likelihood!) and set fit params equal to the perturbed values
             perturbedArgs = fitResult.randomizePars()
@@ -212,14 +208,14 @@ for box in boxNames:
 
         #get the number of data points in each bin
         binWeights = []
-        for [[MRBinMin, RsqBinMin],[MRBinMax,RsqBinMax]] in binCorners:
+        for [[MRBinMin,MRBinMax],[RsqBinMin,RsqBinMax]] in binCorners:
             MR.setVal((MRBinMin+MRBinMax)/2.0) #input coordinates of a point in the bin
             Rsq.setVal((RsqBinMin+RsqBinMax)/2.0)
             binWeight = razorDataHists[box].weight(args, 0) #0 -> no interpolation
             binWeights.append(binWeight)
 
         #compute the pull in each bin
-        pulls = rt.TH1F("pulls"+regionName, "Pull distribution, "+regionName+"; (data - fit)/#sigma_{fit}", 20, -4, 4)
+        pulls = rt.TH1F("pulls"+regionName, "Pull distribution, "+box+" Box, "+regionName+"; (data - fit)/#sigma_{fit}", 20, -4, 4)
         for bin in range(len(binCorners)): pulls.Fill((binWeights[bin] - binContentsFit[bin])/sigmaFit[bin])
 
         #plot the distribution of pulls, fit with a gaussian, and print to pdf
@@ -228,3 +224,35 @@ for box in boxNames:
         pulls.Fit("gaus")
         pulls.Draw()
         cPull.Print(outpath+"/razorInclusivePulls_"+(filename.split("/")[-1]).split(".")[0]+"_"+box+regionName+".pdf")
+
+        ###validation 2: mixed-sample test
+
+        n_k = 10
+
+        #our dataset, restricted to extrapolation region
+        extrRegionString = "MR > "+fitMRMax+" || Rsq > "+fitRsqMax+" || (MR > "+MRMin+MRSideband+" && Rsq > "+RsqMin+RsqSideband+")"
+        razorDataExtr = rt.RooDataSet("razorDataExtr", "razorDataExtr", razorDataSets[box], args, extrRegionString)
+        nExtr = razorDataExtr.sumEntries()
+
+        #we need to create a sample of size genSampleSize whose events are all in the signal region.
+        for p in rootTools.RootIterator.RootIterator(fitArgs): pars[p.GetName()].setVal(p.getVal())
+        genSpec = razorFunction.prepareMultiGen(args, rt.RooFit.NumEvent(1)) #prepare pdf for generation
+        genSampleSize = 10*nExtr #size of the toy dataset used to compute the test statistic
+        genSample = rt.RooDataSet("genSample", "genSample", args) #empty dataset
+        while genSample.sumEntries() < genSampleSize:
+            genDataPoint = razorFunction.generate(genSpec)
+            genArgs = genDataPoint.get(0)
+            if genArgs.getRealValue("MR") > fitMRMax or genArgs.getRealValue("Rsq") > fitRsqMax or (genArgs.getRealValue("MR") > MRMin + MRSideband and genArgs.getRealValue("Rsq") > RsqMin + RsqSideband): genSample.append(genDataPoint)
+
+        #use the MLMixedSample object to get the test statistic value
+        mlMixed = rt.MLMixedSample(n_k);
+        testStat = mlMixed.testStatistic(razorDataExtr, genSample, args)
+
+        #compute the p-value associated with the test statistic
+        n_a = nExtr
+        n_b = genSampleSize
+        mu_T = (n_a*(n_a-1) + n_b*(n_b-1))*1.0/((n_a+n_b)*(n_a+n_b-1))
+        #limiting form of the variance; should be accurate for large sample sizes
+        var_T = 1.0/((n_a+n_b)*n_k)*(n_a*n_b*1.0/((n_a+n_b)*(n_a+n_b))+4*n_a*n_a*n_b*n_b*1.0/((n_a+n_b)*(n_a+n_b)*(n_a+n_b)*(n_a+n_b)))
+        pValue = 0.5*(1 - erf((testStat - mu_T)/(var_T*sqrt(2))))
+        print("The mixed-sample test statistic is "+str(testStat)+".  The mean is "+str(mu_T)+" and the variance is "+str(var_T)+".  This measurement thus yields a p-value of "+str(pValue))
