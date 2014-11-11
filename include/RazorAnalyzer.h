@@ -46,7 +46,8 @@ class RazorAnalyzer: public RazorEvents {
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
-        bool isLooseMuon(int i);
+	bool isVetoMuon(int i);
+	bool isLooseMuon(int i);
         bool isTightMuon(int i);
 
         //functions in RazorAuxElectron.cc
@@ -63,6 +64,8 @@ class RazorAnalyzer: public RazorEvents {
         bool isCSVT(int i);
 
         //functions in RazorAuxMisc.cc
+	double deltaPhi(double phi1, double phi2);
+	double deltaR(double eta1, double phi1, double eta2, double phi2);
         TLorentzVector makeTLorentzVector(double pt, double eta, double phi, double energy);
         vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
         double computeMR(TLorentzVector hem1, TLorentzVector hem2);

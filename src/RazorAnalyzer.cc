@@ -97,6 +97,26 @@ void RazorAnalyzer::EnableTaus(){
     fChain->SetBranchStatus("tauPt", 1);
     fChain->SetBranchStatus("tauEta", 1);
     fChain->SetBranchStatus("tauPhi", 1);
+    fChain->SetBranchStatus("tau_IsLoose", 1);
+    fChain->SetBranchStatus("tau_isMedium", 1);
+    fChain->SetBranchStatus("tau_isTight", 1);
+    fChain->SetBranchStatus("tau_passEleVetoLoose", 1);
+    fChain->SetBranchStatus("tau_passEleVetoMedium", 1);
+    fChain->SetBranchStatus("tau_passEleVetoTight", 1);
+    fChain->SetBranchStatus("tau_passMuVetoLoose", 1);
+    fChain->SetBranchStatus("tau_passMuVetoMedium", 1);
+    fChain->SetBranchStatus("tau_passMuVetoTight", 1);
+    fChain->SetBranchStatus("tau_ID", 1);
+    fChain->SetBranchStatus("tau_combinedIsoDeltaBetaCorr3Hits", 1);
+    fChain->SetBranchStatus("tau_eleVetoMVA", 1);
+    fChain->SetBranchStatus("tau_eleVetoCategory", 1);
+    fChain->SetBranchStatus("tau_muonVetoMVA", 1);
+    fChain->SetBranchStatus("tau_isoMVAnewDMwLT", 1);
+    fChain->SetBranchStatus("tau_isoMVAnewDMwoLT", 1);
+    fChain->SetBranchStatus("tau_leadCandPt", 1);
+    fChain->SetBranchStatus("tau_leadCandID", 1);
+    fChain->SetBranchStatus("tau_leadChargedHadrCandPt", 1);
+    fChain->SetBranchStatus("tau_leadChargedHadrCandID", 1);
 }
 
 void RazorAnalyzer::EnablePhotons(){
