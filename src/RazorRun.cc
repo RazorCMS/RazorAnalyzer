@@ -19,12 +19,18 @@ int main(int argc, char* argv[]){
 
     //get input files and analysis type from command line
     if(argc < 3){
-        cerr << "Usage: RazorRun <input list> <analysis type>" << endl;
-        cerr << "Analyses available: " << endl << "razor   --   inclusive razor analysis" << endl << "dummy   --   do nothing useful" << endl;
+        cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)>" << endl;
+        cerr << "Analyses available: " << endl 
+            << "razor   --   inclusive razor analysis" << endl 
+            << "dummy   --   do nothing useful" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
     string analysisType(argv[2]);
+
+    //get output filename, if any
+    string outFileName = "RazorAnalyzed.root";
+    if(argc >= 4) outFileName = string(argv[3]);
 
     //build the TChain
     TChain *theChain = new TChain("ntuples/RazorEvents");
@@ -55,7 +61,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableElectrons();
         analyzer.EnableMuons();
         analyzer.EnableTaus();
-        analyzer.RazorInclusive(false); //change to true if you want all analysis boxes combined in one tree
+        analyzer.RazorInclusive(outFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else{ //analysis not found
         cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
