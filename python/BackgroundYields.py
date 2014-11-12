@@ -26,7 +26,7 @@ def draw1D(boxName, box, files, titleString, plotString, cutString, binning, out
     for hist in hists: 
         for bin in range(1, len(binning)): hist.SetBinContent(bin, hist.GetBinContent(bin)/hist.GetBinWidth(bin)) #divide each histogram bin by its width
         stack.Add(hist)
-        leg.AddEntry(hist, hist.GetName())
+        if(hist.Integral() > 0) leg.AddEntry(hist, hist.GetName())
 
     #plot and print
     c = rt.TCanvas("c", titleString, 1000, 1000)
