@@ -9,6 +9,7 @@ import sys
 analysis = 'razor'
 isData = False;
 scramArch = "slc5_amd64_gcc462"
+cmsswVersion = "CMSSW_5_3_8"
 
 #get the location of this script
 pathname = os.path.dirname(sys.argv[0]) 
@@ -68,8 +69,10 @@ for index, inputlist in enumerate(inputlists):
         outputfile.write('export SCRAM_ARCH='+scramArch+'\n')
         outputfile.write('export PATH=/cms/sw/bin:/cms/swslc5/bin:${PATH}\n')
         outputfile.write('export CMS_PATH=/cms/sw\n')
-        outputfile.write('cd '+fullpath+'\n')
         outputfile.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
+        outputfile.write('cmsrel '+cmsswVersion+' --dir $PWD\n')
+        outputfile.write('cp -r '+fullpath+' $PWD/'+cmsswVersion+'/src\n')
+        outputfile.write('cd $PWD/'+cmsswVersion+'/src/RazorAnalyzer\n')
         outputfile.write('cmsenv\n')
         outputfile.write('make clean\n')
         outputfile.write('make\n')

@@ -9,11 +9,16 @@ from array import *
 def draw1D(boxName, box, files, titleString, plotString, cutString, binning, outpath = ""):
     #create histograms to stack
     histNames = ["TTJets","WJets","ZJetsToNuNu","DYJetsToLL","QCD"]
+    sigName = "SMS"
     colors = [8,2,7,4,1]
     hists = [rt.TH1F(name, titleString, len(binning)-1, binning) for name in histNames]
+    sigHist = rt.TH1F(sigName, titleString, len(binning) - 1, binning)
     for index, hist in enumerate(hists): 
         hist.SetFillColor(colors[index])
         hist.SetLineColor(1)
+    #transparent fill for signal histogram
+    sigHist.SetLineStyle(2)
+    sigHist.SetLineColor(3)
 
     stack = rt.THStack("stack", titleString)
     leg = rt.TLegend(0.7, 0.7, 0.9, 0.9)
@@ -22,18 +27,22 @@ def draw1D(boxName, box, files, titleString, plotString, cutString, binning, out
         for name in histNames:
             if name in files[index]:
                 tree.Draw(plotString+">>"+name, "weight*("+cutString+")")
+        if sigName in files[index]:
+            tree.Draw(plotString+">>"+sigName, "weight*("+cutString+")")
     hists.sort(key = lambda h: h.Integral()) #sort by histogram integral
     for hist in hists: 
         for bin in range(1, len(binning)): hist.SetBinContent(bin, hist.GetBinContent(bin)/hist.GetBinWidth(bin)) #divide each histogram bin by its width
         stack.Add(hist)
-        if(hist.Integral() > 0) leg.AddEntry(hist, hist.GetName())
+        if hist.Integral() > 0: leg.AddEntry(hist, hist.GetName())
+    for bin in range(1, len(binning)): sigHist.SetBinContent(bin, sigHist.GetBinContent(bin)/sigHist.GetBinWidth(bin))
 
     #plot and print
     c = rt.TCanvas("c", titleString, 1000, 1000)
     c.SetLogy()
     stack.SetTitle(titleString+", "+boxName+" Box")
-    stack.Draw()
+    stack.Draw("h")
     stack.GetHistogram().GetXaxis().SetTitle(titleString)
+    sigHist.Draw("same")
     leg.Draw()
     c.Print(outpath+"/Background"+titleString.replace(" ","").replace("{","").replace("}","").replace("^","").replace("_","")+boxName+".pdf")
 
