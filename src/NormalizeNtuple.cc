@@ -21,7 +21,7 @@ double getNormalizationWeight(string filename, string datasetName) {
 
   TH1F *hist = (TH1F*) file->Get("NEvents");
   if (!hist) {
-    cout << "Could not find histogram NEvents in file "
+    cout << "Could not find histogram NEvents"
          << " in file " << filename << endl;
     file->Close();
     delete file;
