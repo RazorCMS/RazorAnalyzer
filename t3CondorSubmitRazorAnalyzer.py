@@ -9,7 +9,7 @@ import sys
 analysis = 'razor'
 isData = False;
 scramArch = "slc5_amd64_gcc462"
-cmsswVersion = "CMSSW_5_3_8"
+cmsswVersion = "CMSSW_5_3_9"
 
 #get the location of this script
 pathname = os.path.dirname(sys.argv[0]) 
@@ -19,8 +19,11 @@ process = "condor"
 inputlists =  [sys.argv[i] for i in range(1, len(sys.argv))]
 datasets = [sys.argv[i].split("/")[-1].replace(".txt","") for i in range(1, len(sys.argv))]
 
-submitScript = open("submitTheCondorJobs.sh", 'w')
-submitScript.write('#!/bin/sh\n')
+submitScript = open("submitTheCondorJobs.condor", 'w')
+submitScript.write('Universe = vanilla\n')
+submitScript.write('requirements = Name != "slot1@t3-higgs.ultralight.org" && Name != "slot2@t3-higgs.ultralight.org" && Name != "slot3@t3-higgs.ultralight.org" && Name != "slot4@t3-higgs.ultralight.org" && Name != "slot5@t3-higgs.ultralight.org" && Name != "slot6@t3-higgs.ultralight.org" && Name != "slot7@t3-higgs.ultralight.org" && Name != "slot8@t3-higgs.ultralight.org"\n')
+submitScript.write('getenv = True\n\n')
+
 filesperjob = 5
 for index, inputlist in enumerate(inputlists):
     output = datasets[index]
@@ -28,6 +31,7 @@ for index, inputlist in enumerate(inputlists):
     #count lines in file
     with open(inputlist) as f:
         numfiles = sum(1 for _ in f)
+    if numfiles == 0: continue
     ijobmax = numfiles/filesperjob + (numfiles % filesperjob > 0)
     extrafiles  = numfiles%ijobmax
 
@@ -38,7 +42,6 @@ for index, inputlist in enumerate(inputlists):
     os.system("mkdir -p "+process+"/"+output+"/input/")
     os.system("mkdir -p "+process+"/"+output+"/src/")
     os.system("mkdir -p "+process+"/"+output+"/out/")
-    os.system("mkdir -p "+process+"/"+output+"/condor/")
     #######################################
     input = open(inputlist)
     ######################################
@@ -67,25 +70,21 @@ for index, inputlist in enumerate(inputlists):
         outputfile = open(outputname,'w')
         outputfile.write('#!/bin/sh\n')
         outputfile.write('export SCRAM_ARCH='+scramArch+'\n')
-        outputfile.write('export PATH=/cms/sw/bin:/cms/swslc5/bin:${PATH}\n')
-        outputfile.write('export CMS_PATH=/cms/sw\n')
         outputfile.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
-        outputfile.write('cmsrel '+cmsswVersion+' --dir $PWD\n')
-        outputfile.write('cp -r '+fullpath+' $PWD/'+cmsswVersion+'/src\n')
-        outputfile.write('cd $PWD/'+cmsswVersion+'/src/RazorAnalyzer\n')
-        outputfile.write('cmsenv\n')
+        outputfile.write('cd /home/djanders/'+cmsswVersion+'/src\n')
+        outputfile.write('eval `scramv1 runtime -sh`\n')
+        outputfile.write('cd - 1>/dev/null 2>/dev/null\n')
+        outputfile.write('echo $HOSTNAME\n')
+        outputfile.write('echo "Current PWD = `pwd`"\n')
+        outputfile.write('cp -r '+fullpath+' $PWD/\n')
+        outputfile.write('cd $PWD/RazorAnalyzer\n')
         outputfile.write('make clean\n')
         outputfile.write('make\n')
-        outputfile.write('./RazorRun '+inputfilename+' '+analysis+' '+process+'/'+output+'/out/'+output+'_'+str(ijob)+'.root \n')
+        outputfile.write('./RazorRun '+inputfilename+' '+analysis+' '+fullpath+'/'+process+'/'+output+'/out/'+output+'_'+str(ijob)+'.root\n')
         outputfile.close()
-    #    Condor modification
-        submitScript.write("sleep 0.5; condor_submit "+process+"/"+output+"/condor/condor_"+str(ijob)+".sh\n")
-        condorScript = open(process+"/"+output+"/condor/condor_"+str(ijob)+".sh", 'w')
-        condorScript.write('Executable = '+fullpath+'/'+outputname+'\n')
-        condorScript.write('Universe = vanilla\n')
-        condorScript.write('Output = '+process+"/"+output+"/out/"+output+str(ijob)+'.out.$(Process)\n')
-        condorScript.write('Log = '+process+"/"+output+"/log/"+str(ijob)+'.log\n')
-        condorScript.write('Error = '+process+"/"+output+"/log/"+str(ijob)+'.err\n')
-        condorScript.write('getenv = True\n\n')
-        condorScript.write('Queue\n')
-        condorScript.close()
+    #    Condor job
+        submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
+        submitScript.write('Output = '+process+"/"+output+"/log/"+output+str(ijob)+'.out.$(Process)\n')
+        submitScript.write('Log = '+process+"/"+output+"/log/"+str(ijob)+'.log\n')
+        submitScript.write('Error = '+process+"/"+output+"/log/"+str(ijob)+'.err\n')
+        submitScript.write('Queue\n')
