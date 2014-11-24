@@ -26,11 +26,13 @@ enum RazorBox {
 bool passesHadronicRazorBaseline(double MR, double Rsq);
 bool passesLeptonicRazorBaseline(double MR, double Rsq);
 
-void RazorAnalyzer::RazorInclusive(bool combineTrees)
+void RazorAnalyzer::RazorInclusive(bool combineTrees, string outputfilename)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
-    TFile outFile("RazorInclusive.root", "RECREATE");
+    string outfilename = outputfilename;
+    if (outfilename == "") outfilename = "RazorInclusive.root";
+    TFile outFile(outfilename.c_str(), "RECREATE");
     
     //one tree to hold all events
     TTree *razorTree = new TTree("RazorInclusive", "Info on selected razor inclusive events");
@@ -95,6 +97,7 @@ void RazorAnalyzer::RazorInclusive(bool combineTrees)
     if (fChain == 0) return;
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
+    nentries = 100000;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         //begin event
         if(jentry % 10000 == 0) cout << "Processing entry " << jentry << endl;
@@ -149,7 +152,7 @@ void RazorAnalyzer::RazorInclusive(bool combineTrees)
             }
         }
         for(int i = 0; i < nTaus; i++){
-            if(!isSelectedTau(i)) continue; 
+            if(!isTightTau(i)) continue; 
 
             nSelectedTaus++;
         }
@@ -177,6 +180,7 @@ void RazorAnalyzer::RazorInclusive(bool combineTrees)
                 nBTaggedJets++;
             }
         }
+
         if(numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets
 
         //Compute the razor variables using the selected jets and possibly leptons
@@ -266,7 +270,7 @@ void RazorAnalyzer::RazorInclusive(bool combineTrees)
                     box = MultiJet;
                     razorTree->Fill();
                 }
-                else razorBoxes["MultiJet"]->Fill();
+                else { razorBoxes["MultiJet"]->Fill(); }
             }
         }
         //TwoBJet Box
