@@ -97,7 +97,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     if (fChain == 0) return;
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
-    nentries = 100000;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         //begin event
         if(jentry % 10000 == 0) cout << "Processing entry " << jentry << endl;
