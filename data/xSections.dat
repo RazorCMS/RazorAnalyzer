@@ -18,7 +18,9 @@ QCD_Pt-600to800_Tune4C_13TeV_pythia8                            167
 QCD_Pt-800to1000_Tune4C_13TeV_pythia8                           28.25
 QCD_Pt-1000to1400_Tune4C_13TeV_pythia8                          8.195
 QCD_Pt-1400to1800_Tune4C_13TeV_pythia8                          0.7346
-QCD_Pt-1800_Tune4C_13TeV_pythia8                                0.1091
+QCD_Pt-1800to2400_Tune4C_13TeV_pythia8                          0.102
+QCD_Pt-2400to3200_Tune4C_13TeV_pythia8                          0.00644
+QCD_Pt-3200_Tune4C_13TeV_pythia8                                0.000163
 DYJetsToLL_M-50_HT-100to200_Tune4C_13TeV-madgraph-tauola        194.3
 DYJetsToLL_M-50_HT-200to400_Tune4C_13TeV-madgraph-tauola        52.24
 DYJetsToLL_M-50_HT-400to600_Tune4C_13TeV-madgraph-tauola        6.546
