@@ -56,7 +56,9 @@ class RazorAnalyzer: public RazorEvents {
         bool isTightElectron(int i);
         
         //functions in RazorAuxTau.cc
-        bool isSelectedTau(int i);
+        bool isLooseTau(int i);
+        bool isMediumTau(int i);
+        bool isTightTau(int i);
 
         //functions in RazorAuxJet.cc
         bool isCSVL(int i);

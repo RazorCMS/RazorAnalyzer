@@ -77,8 +77,8 @@ public :
    Float_t         tauEta[9];   //[nTaus]
    Float_t         tauPhi[9];   //[nTaus]
    Bool_t          tau_IsLoose[9];   //[nTaus]
-   Bool_t          tau_isMedium[9];   //[nTaus]
-   Bool_t          tau_isTight[9];   //[nTaus]
+   Bool_t          tau_IsMedium[9];   //[nTaus]
+   Bool_t          tau_IsTight[9];   //[nTaus]
    Bool_t          tau_passEleVetoLoose[9];   //[nTaus]
    Bool_t          tau_passEleVetoMedium[9];   //[nTaus]
    Bool_t          tau_passEleVetoTight[9];   //[nTaus]
@@ -205,8 +205,8 @@ public :
    TBranch        *b_tauEta;   //!
    TBranch        *b_tauPhi;   //!
    TBranch        *b_tau_IsLoose;   //!
-   TBranch        *b_tau_isMedium;   //!
-   TBranch        *b_tau_isTight;   //!
+   TBranch        *b_tau_IsMedium;   //!
+   TBranch        *b_tau_IsTight;   //!
    TBranch        *b_tau_passEleVetoLoose;   //!
    TBranch        *b_tau_passEleVetoMedium;   //!
    TBranch        *b_tau_passEleVetoTight;   //!
@@ -403,8 +403,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("tauEta", tauEta, &b_tauEta);
    fChain->SetBranchAddress("tauPhi", tauPhi, &b_tauPhi);
    fChain->SetBranchAddress("tau_IsLoose", tau_IsLoose, &b_tau_IsLoose);
-   fChain->SetBranchAddress("tau_isMedium", tau_isMedium, &b_tau_isMedium);
-   fChain->SetBranchAddress("tau_isTight", tau_isTight, &b_tau_isTight);
+   fChain->SetBranchAddress("tau_isMedium", tau_IsMedium, &b_tau_IsMedium);
+   fChain->SetBranchAddress("tau_isTight", tau_IsTight, &b_tau_IsTight);
    fChain->SetBranchAddress("tau_passEleVetoLoose", tau_passEleVetoLoose, &b_tau_passEleVetoLoose);
    fChain->SetBranchAddress("tau_passEleVetoMedium", tau_passEleVetoMedium, &b_tau_passEleVetoMedium);
    fChain->SetBranchAddress("tau_passEleVetoTight", tau_passEleVetoTight, &b_tau_passEleVetoTight);

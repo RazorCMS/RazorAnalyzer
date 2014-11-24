@@ -30,6 +30,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
+    string outfilename = outFileName;
+    if (outFileName == "") outfilename = "RazorInclusive.root";
     TFile outFile(outFileName.c_str(), "RECREATE");
     
     //one tree to hold all events
@@ -149,7 +151,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
             }
         }
         for(int i = 0; i < nTaus; i++){
-            if(!isSelectedTau(i)) continue; 
+            if(!isTightTau(i)) continue; 
 
             nSelectedTaus++;
         }
@@ -177,6 +179,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
                 nBTaggedJets++;
             }
         }
+
         if(numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets
 
         //Compute the razor variables using the selected jets and possibly leptons
@@ -266,7 +269,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
                     box = MultiJet;
                     razorTree->Fill();
                 }
-                else razorBoxes["MultiJet"]->Fill();
+                else { razorBoxes["MultiJet"]->Fill(); }
             }
         }
         //TwoBJet Box
