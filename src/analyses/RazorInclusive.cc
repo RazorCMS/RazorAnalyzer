@@ -26,13 +26,13 @@ enum RazorBox {
 bool passesHadronicRazorBaseline(double MR, double Rsq);
 bool passesLeptonicRazorBaseline(double MR, double Rsq);
 
-void RazorAnalyzer::RazorInclusive(bool combineTrees, string outputfilename)
+void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
-    string outfilename = outputfilename;
-    if (outfilename == "") outfilename = "RazorInclusive.root";
-    TFile outFile(outfilename.c_str(), "RECREATE");
+    string outfilename = outFileName;
+    if (outFileName == "") outfilename = "RazorInclusive.root";
+    TFile outFile(outFileName.c_str(), "RECREATE");
     
     //one tree to hold all events
     TTree *razorTree = new TTree("RazorInclusive", "Info on selected razor inclusive events");

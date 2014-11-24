@@ -43,7 +43,7 @@ class RazorAnalyzer: public RazorEvents {
 
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
-        virtual void RazorInclusive(bool combineTrees = false, string outputfilename = "");
+        virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);

@@ -7,33 +7,49 @@ import rootTools
 from array import * 
 
 def draw1D(boxName, box, files, titleString, plotString, cutString, binning, outpath = ""):
+    #signal SMS info
+    sigXSec = 0.002 #in picobarns
+    nSig = 105964 #number of processed events in signal sample
+    sigWeight = sigXSec / nSig
+    
     #create histograms to stack
     histNames = ["TTJets","WJets","ZJetsToNuNu","DYJetsToLL","QCD"]
+    sigName = "T1bbbb_2J_mGl-1500_mLSP-100"
     colors = [8,2,7,4,1]
     hists = [rt.TH1F(name, titleString, len(binning)-1, binning) for name in histNames]
+    sigHist = rt.TH1F(sigName, titleString, len(binning) - 1, binning)
     for index, hist in enumerate(hists): 
         hist.SetFillColor(colors[index])
         hist.SetLineColor(1)
+    #transparent fill for signal histogram
+    sigHist.SetLineStyle(2)
+    sigHist.SetLineColor(6)
+    sigHist.SetLineWidth(4)
 
     stack = rt.THStack("stack", titleString)
-    leg = rt.TLegend(0.7, 0.7, 0.9, 0.9)
+    leg = rt.TLegend(0.6, 0.6, 0.9, 0.9)
     for index, tree in enumerate(box): 
         #determine which histogram to fill
         for name in histNames:
             if name in files[index]:
                 tree.Draw(plotString+">>"+name, "weight*("+cutString+")")
+        if sigName in files[index]:
+            tree.Draw(plotString+">>"+sigName, str(sigWeight)+"*("+cutString+")")
     hists.sort(key = lambda h: h.Integral()) #sort by histogram integral
     for hist in hists: 
         for bin in range(1, len(binning)): hist.SetBinContent(bin, hist.GetBinContent(bin)/hist.GetBinWidth(bin)) #divide each histogram bin by its width
         stack.Add(hist)
-        leg.AddEntry(hist, hist.GetName())
+        if hist.Integral() > 0: leg.AddEntry(hist, hist.GetName())
+    for bin in range(1, len(binning)): sigHist.SetBinContent(bin, sigHist.GetBinContent(bin)/sigHist.GetBinWidth(bin))
+    if sigHist.Integral() > 0: leg.AddEntry(sigHist, sigHist.GetName())
 
     #plot and print
     c = rt.TCanvas("c", titleString, 1000, 1000)
     c.SetLogy()
     stack.SetTitle(titleString+", "+boxName+" Box")
-    stack.Draw()
+    stack.Draw("h")
     stack.GetHistogram().GetXaxis().SetTitle(titleString)
+    sigHist.Draw("same")
     leg.Draw()
     c.Print(outpath+"/Background"+titleString.replace(" ","").replace("{","").replace("}","").replace("^","").replace("_","")+boxName+".pdf")
 
@@ -56,7 +72,7 @@ rt.gSystem.Load(libpath+"/libRazorRun2.so")
 
 print 'Will create yield histograms for standard model background events in the chosen file(s)'
 
-#load the TTrees from the input file
+#load the TTrees from the input files
 boxNames = [
         'MuEle',
         'MuMu',
