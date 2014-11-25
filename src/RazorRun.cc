@@ -81,6 +81,9 @@ int main(int argc, char* argv[]){
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
     }
+
+    cout << "Process completed!" << endl;
+    cerr << "------------------------------" << endl; //present so that an empty .err file corresponds to a failed job
     
     return 0;
 }
