@@ -44,6 +44,7 @@ class RazorAnalyzer: public RazorEvents {
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
+        virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -72,6 +73,25 @@ class RazorAnalyzer: public RazorEvents {
         vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
         double computeMR(TLorentzVector hem1, TLorentzVector hem2);
         double computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector met);
+
+        bool passesHadronicRazorBaseline(double MR, double Rsq);
+        bool passesLeptonicRazorBaseline(double MR, double Rsq);
+
+        //enums
+        enum RazorBox { //boxes for razor inclusive analysis
+            MuEle, 
+            MuMu,
+            EleEle,
+            MuMultiJet,
+            MuJet,
+            EleMultiJet,
+            EleJet,
+            MultiJet,
+            TwoBJet,
+            OneBJet,
+            ZeroBJet,
+            NONE
+        };
 };
 
 #endif

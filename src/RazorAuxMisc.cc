@@ -92,3 +92,19 @@ double RazorAnalyzer::computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLore
     return (mTR / mR) * (mTR / mR);
 }
 
+//auxiliary functions for RazorInclusive and MatchedRazorInclusive analyses
+bool RazorAnalyzer::passesHadronicRazorBaseline(double MR, double Rsq){
+    bool passes = true;
+    //temporarily disable these
+    //if(MR < 400 || Rsq < 0.25) passes = false;
+    //if(MR < 450 && Rsq < 0.3) passes = false;
+    return passes;
+}
+
+bool RazorAnalyzer::passesLeptonicRazorBaseline(double MR, double Rsq){
+    bool passes = true;
+    if(MR < 300 || Rsq < 0.15) passes = false;
+    if(MR < 350 && Rsq < 0.2) passes = false;
+    return passes;
+}
+
