@@ -1,0 +1,13 @@
+RazorRun
+NormalizeNtuple
+*.o
+*.root
+*.so
+*.pdf
+*.pyc
+rootdict.*
+condor/*
+submitTheCondorJobs.sh
+*.swp
+makeTheLists
+runEverythingMatched
