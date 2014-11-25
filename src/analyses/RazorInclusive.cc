@@ -12,8 +12,10 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
-    string outfilename = outFileName;
-    if (outFileName == "") outfilename = "RazorInclusive.root";
+    if (outFileName.empty()){
+        cout << "RazorInclusive: Output filename not specified!" << endl << "Using default output name RazorInclusive.root" << endl;
+        outFileName = "RazorInclusive.root";
+    }
     TFile outFile(outFileName.c_str(), "RECREATE");
     
     //one tree to hold all events
