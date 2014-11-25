@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import os
 import sys
-import RazorProduction.task2files
 # set parameters to use cmst3 batch 
 #######################################
 ### usage  t3CondorSubmitRazorAnalzyer.py list1.txt ...
@@ -15,10 +14,17 @@ cmsswVersion = "CMSSW_5_3_9"
 #get the location of this script
 pathname = os.path.dirname(sys.argv[0]) 
 fullpath = os.path.abspath(pathname)
+#add RazorProduction to the path and import task2files
+razorProductionPath = fullpath+"/../RazorProduction"
+if not razorProductionPath in sys.path:
+    sys.path.insert(1, razorProductionPath)
+import task2files
 
 process = "condor"
-inputlists =  [sys.argv[i] for i in range(1, len(sys.argv))]
-datasets = [sys.argv[i].split("/")[-1].replace(".txt","") for i in range(1, len(sys.argv))]
+datasets = [sys.argv[i] for i in range(1, len(sys.argv))]
+
+#initialize connection to the DB
+t2f = task2files.task2files(localdir="/store/group/phys_susy/razor/")
 
 submitScript = open("submitTheCondorJobs.condor", 'w')
 submitScript.write('Universe = vanilla\n')
@@ -26,8 +32,8 @@ submitScript.write('requirements = Name != "slot1@t3-higgs.ultralight.org" && Na
 submitScript.write('getenv = True\n\n')
 
 filesperjob = 5
-for index, inputlist in enumerate(inputlists):
-    output = datasets[index]
+for dataset in datasets:
+    output = dataset
 
     #count lines in file
     with open(inputlist) as f:
