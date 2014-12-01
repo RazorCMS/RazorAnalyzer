@@ -32,9 +32,9 @@ def draw1D(boxName, box, files, titleString, plotString, cutString, binning, out
         #determine which histogram to fill
         for name in histNames:
             if name in files[index]:
-                tree.Draw(plotString+">>"+name, "weight*("+cutString+")")
+                tree.Draw(plotString+">>+"+name, "weight*("+cutString+")")
         if sigName in files[index]:
-            tree.Draw(plotString+">>"+sigName, str(sigWeight)+"*("+cutString+")")
+            tree.Draw(plotString+">>+"+sigName, str(sigWeight)+"*("+cutString+")")
     hists.sort(key = lambda h: h.Integral()) #sort by histogram integral
     for hist in hists: 
         for bin in range(1, len(binning)): hist.SetBinContent(bin, hist.GetBinContent(bin)/hist.GetBinWidth(bin)) #divide each histogram bin by its width
@@ -91,17 +91,21 @@ files = [rt.TFile(filename) for filename in filenames]
 razorBoxes = dict((box, [file.Get(box) for file in files]) for box in boxNames)
 
 ##MR yields, Rsq > 0.15
-MRBins = [300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000]
+#MRBins = [300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000]
+MRBins = [400, 450, 550, 700, 900, 1200, 1600, 2500, 4000]
 MRBinArray = array('d',MRBins)
 MRTitle = "M_{R}"
 MRPlot = "MR"
-MRCut = "Rsq > 0.15"
+#MRCut = "Rsq > 0.15"
+MRCut = "Rsq > 0.25"
 for key in razorBoxes: draw1D(key, razorBoxes[key], filenames, MRTitle, MRPlot, MRCut, MRBinArray, outpath)
 
 ##Rsq yields, MR > 300
-RsqBins = [0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 0.80, 1.5]
+#RsqBins = [0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 0.80, 1.5]
+RsqBins = [0.25, 0.3, 0.41, 0.52, 0.64, 0.80, 1.5]
 RsqBinArray = array('d', RsqBins)
 RsqTitle = "R^{2}"
 RsqPlot = "Rsq"
-RsqCut = "MR > 300"
+#RsqCut = "MR > 300"
+RsqCut = "MR > 400"
 for key in razorBoxes: draw1D(key, razorBoxes[key], filenames, RsqTitle, RsqPlot, RsqCut, RsqBinArray, outpath)

@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import os
 import sys
-import RazorProduction.task2files
 # set parameters to use cmst3 batch 
 #######################################
 ### usage  t3CondorSubmitRazorAnalzyer.py list1.txt ...

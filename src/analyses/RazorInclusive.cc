@@ -44,7 +44,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
 
     //tree variables
     int nSelectedJets, nBTaggedJets;
-    int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nSelectedTaus;
+    int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
     float theMR;
     float theRsq;
     RazorBox box;
@@ -57,7 +57,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
         razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
         razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-        razorTree->Branch("nSelectedTaus", &nSelectedTaus, "nSelectedTaus/I");
+        razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
         razorTree->Branch("MR", &theMR, "MR/F");
         razorTree->Branch("Rsq", &theRsq, "Rsq/F");
         razorTree->Branch("box", &box, "box/I");
@@ -71,7 +71,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
             box.second->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
             box.second->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
             box.second->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-            box.second->Branch("nSelectedTaus", &nSelectedTaus, "nSelectedTaus/I");
+            box.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
             box.second->Branch("MR", &theMR, "MR/F");
             box.second->Branch("Rsq", &theRsq, "Rsq/F");
         }
@@ -98,7 +98,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         nTightMuons = 0;
         nLooseElectrons = 0;
         nTightElectrons = 0;
-        nSelectedTaus = 0;
+        nTightTaus = 0;
         theMR = -1;
         theRsq = -1;
         if(combineTrees) box = NONE;
@@ -137,7 +137,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         for(int i = 0; i < nTaus; i++){
             if(!isTightTau(i)) continue; 
 
-            nSelectedTaus++;
+            nTightTaus++;
         }
         
         vector<TLorentzVector> GoodJets;

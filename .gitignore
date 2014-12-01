@@ -7,7 +7,7 @@ NormalizeNtuple
 *.pyc
 rootdict.*
 condor/*
-submitTheCondorJobs.sh
+*.condor
 *.swp
 makeTheLists
 runEverythingMatched
