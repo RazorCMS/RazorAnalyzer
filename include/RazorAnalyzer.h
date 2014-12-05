@@ -44,6 +44,7 @@ class RazorAnalyzer: public RazorEvents {
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
+        virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
@@ -60,6 +61,13 @@ class RazorAnalyzer: public RazorEvents {
         bool isLooseTau(int i);
         bool isMediumTau(int i);
         bool isTightTau(int i);
+
+        //functions in RazorAuxPhoton.cc
+        bool photonPassesElectronVeto(int i);
+        bool passesCutsBasedPhotonID(int i, double HoverECut, double SigmaIetaIetaCut, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
+        bool isLoosePhoton(int i);
+        bool isMediumPhoton(int i);
+        bool isTightPhoton(int i);
 
         //functions in RazorAuxJet.cc
         bool isCSVL(int i);

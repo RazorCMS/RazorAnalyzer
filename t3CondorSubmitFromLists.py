@@ -22,6 +22,7 @@ datasets = [sys.argv[i].split("/")[-1].replace(".txt","") for i in range(1, len(
 submitScript = open("submitTheCondorJobs.condor", 'w')
 submitScript.write('Universe = vanilla\n')
 submitScript.write('requirements = Name != "slot1@t3-higgs.ultralight.org" && Name != "slot2@t3-higgs.ultralight.org" && Name != "slot3@t3-higgs.ultralight.org" && Name != "slot4@t3-higgs.ultralight.org" && Name != "slot5@t3-higgs.ultralight.org" && Name != "slot6@t3-higgs.ultralight.org" && Name != "slot7@t3-higgs.ultralight.org" && Name != "slot8@t3-higgs.ultralight.org"\n')
+submitScript.write('request_memory = 2048\n')
 submitScript.write('getenv = True\n\n')
 
 filesperjob = 5
@@ -71,8 +72,9 @@ for index, inputlist in enumerate(inputlists):
         outputfile.write('#!/bin/sh\n')
         outputfile.write('export SCRAM_ARCH='+scramArch+'\n')
         outputfile.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
-        outputfile.write('cd /home/djanders/'+cmsswVersion+'/src\n')
-        outputfile.write('eval `scramv1 runtime -sh`\n')
+        outputfile.write('cmsrel CMSSW_5_3_9\n')
+        outputfile.write('cd '+cmsswVersion+'/src\n')
+        outputfile.write('cmsenv\n')
         outputfile.write('cd - 1>/dev/null 2>/dev/null\n')
         outputfile.write('echo $HOSTNAME\n')
         outputfile.write('echo "Current PWD = `pwd`"\n')
@@ -80,7 +82,8 @@ for index, inputlist in enumerate(inputlists):
         outputfile.write('cd $PWD/RazorAnalyzer\n')
         outputfile.write('make clean\n')
         outputfile.write('make\n')
-        outputfile.write('./RazorRun '+inputfilename+' '+analysis+' '+fullpath+'/'+process+'/'+output+'/out/'+output+'_'+str(ijob)+'.root\n')
+        outputfile.write('./RazorRun '+inputfilename+' '+analysis+' output'+str(ijob)+'.root\n')
+        outputfile.write('cp output'+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\n')
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')

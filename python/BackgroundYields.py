@@ -7,6 +7,8 @@ import rootTools
 from array import * 
 
 def draw1D(boxName, box, files, titleString, plotString, cutString, binning, outpath = ""):
+    print("Producing yield plot for box "+boxName)
+
     #signal SMS info
     sigXSec = 0.002 #in picobarns
     nSig = 105964 #number of processed events in signal sample
@@ -36,6 +38,8 @@ def draw1D(boxName, box, files, titleString, plotString, cutString, binning, out
         if sigName in files[index]:
             tree.Draw(plotString+">>+"+sigName, str(sigWeight)+"*("+cutString+")")
     hists.sort(key = lambda h: h.Integral()) #sort by histogram integral
+    #print out histogram yields
+    for hist in hists: hist.Print("all")
     for hist in hists: 
         for bin in range(1, len(binning)): hist.SetBinContent(bin, hist.GetBinContent(bin)/hist.GetBinWidth(bin)) #divide each histogram bin by its width
         stack.Add(hist)
