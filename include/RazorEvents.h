@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Nov 11 17:22:56 2014 by ROOT version 5.34/10
+// Fri Dec  5 14:48:57 2014 by ROOT version 5.32/00
 // from TTree RazorEvents/selected miniAOD information
-// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/user/sixie/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/crab_TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola__Spring14miniaod-PU20bx25_POSTLS170_V5-v1_RazorNtupleV1p2_10Nov2014_V1/141111_015750/0000/razorNtupleAna_1.root
+// found on file: razorNtupleAna.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -29,6 +29,7 @@ public :
    Float_t         pvX;
    Float_t         pvY;
    Float_t         pvZ;
+   Float_t         fixedGridRhoFastjetAll;
    Int_t           nBunchXing;
    Int_t           BunchXing[20];   //[nBunchXing]
    Int_t           nPU[20];   //[nBunchXing]
@@ -110,7 +111,10 @@ public :
    Float_t         pho_sumPhotonEt[40];   //[nPhotons]
    Int_t           pho_isConversion[40];   //[nPhotons]
    Float_t         pho_RegressionE[40];   //[nPhotons]
+   Float_t         pho_RegressionEUncertainty[40];   //[nPhotons]
    Float_t         pho_IDMVA[40];   //[nPhotons]
+   Float_t         pho_superClusterEta[40];   //[nPhotons]
+   Float_t         pho_hasPixelSeed[40];   //[nPhotons]
    Int_t           nJets;
    Float_t         jetE[50];   //[nJets]
    Float_t         jetPt[50];   //[nJets]
@@ -157,6 +161,7 @@ public :
    TBranch        *b_pvX;   //!
    TBranch        *b_pvY;   //!
    TBranch        *b_pvZ;   //!
+   TBranch        *b_fixedGridRhoFastjetAll;   //!
    TBranch        *b_nBunchXing;   //!
    TBranch        *b_BunchXing;   //!
    TBranch        *b_nPU;   //!
@@ -238,7 +243,10 @@ public :
    TBranch        *b_pho_sumPhotonEt;   //!
    TBranch        *b_pho_isConversion;   //!
    TBranch        *b_pho_RegressionE;   //!
+   TBranch        *b_pho_RegressionEUncertainty;   //!
    TBranch        *b_pho_IDMVA;   //!
+   TBranch        *b_pho_superClusterEta;   //!
+   TBranch        *b_pho_hasPixelSeed;   //!
    TBranch        *b_nJets;   //!
    TBranch        *b_jetE;   //!
    TBranch        *b_jetPt;   //!
@@ -355,6 +363,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pvX", &pvX, &b_pvX);
    fChain->SetBranchAddress("pvY", &pvY, &b_pvY);
    fChain->SetBranchAddress("pvZ", &pvZ, &b_pvZ);
+   fChain->SetBranchAddress("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
    fChain->SetBranchAddress("nBunchXing", &nBunchXing, &b_nBunchXing);
    fChain->SetBranchAddress("BunchXing", BunchXing, &b_BunchXing);
    fChain->SetBranchAddress("nPU", nPU, &b_nPU);
@@ -403,8 +412,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("tauEta", tauEta, &b_tauEta);
    fChain->SetBranchAddress("tauPhi", tauPhi, &b_tauPhi);
    fChain->SetBranchAddress("tau_IsLoose", tau_IsLoose, &b_tau_IsLoose);
-   fChain->SetBranchAddress("tau_isMedium", tau_IsMedium, &b_tau_IsMedium);
-   fChain->SetBranchAddress("tau_isTight", tau_IsTight, &b_tau_IsTight);
+   fChain->SetBranchAddress("tau_IsMedium", tau_IsMedium, &b_tau_IsMedium);
+   fChain->SetBranchAddress("tau_IsTight", tau_IsTight, &b_tau_IsTight);
    fChain->SetBranchAddress("tau_passEleVetoLoose", tau_passEleVetoLoose, &b_tau_passEleVetoLoose);
    fChain->SetBranchAddress("tau_passEleVetoMedium", tau_passEleVetoMedium, &b_tau_passEleVetoMedium);
    fChain->SetBranchAddress("tau_passEleVetoTight", tau_passEleVetoTight, &b_tau_passEleVetoTight);
@@ -436,7 +445,10 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_sumPhotonEt", pho_sumPhotonEt, &b_pho_sumPhotonEt);
    fChain->SetBranchAddress("pho_isConversion", pho_isConversion, &b_pho_isConversion);
    fChain->SetBranchAddress("pho_RegressionE", pho_RegressionE, &b_pho_RegressionE);
+   fChain->SetBranchAddress("pho_RegressionEUncertainty", pho_RegressionEUncertainty, &b_pho_RegressionEUncertainty);
    fChain->SetBranchAddress("pho_IDMVA", pho_IDMVA, &b_pho_IDMVA);
+   fChain->SetBranchAddress("pho_superClusterEta", pho_superClusterEta, &b_pho_superClusterEta);
+   fChain->SetBranchAddress("pho_hasPixelSeed", pho_hasPixelSeed, &b_pho_hasPixelSeed);
    fChain->SetBranchAddress("nJets", &nJets, &b_nJets);
    fChain->SetBranchAddress("jetE", jetE, &b_jetE);
    fChain->SetBranchAddress("jetPt", jetPt, &b_jetPt);
