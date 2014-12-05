@@ -9,6 +9,4 @@ rootdict.*
 condor/*
 *.condor
 *.swp
-makeTheLists
-runEverythingMatched
-backgroundYields
+dustinScripts
