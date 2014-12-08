@@ -49,6 +49,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
     float theMR;
     float theRsq;
+    int nSelectedPhotons;
     float mGammaGamma, pTGammaGamma;
     float mbbZ, mbbH;
     float sigmaEOverE1, sigmaEOverE2;
@@ -66,6 +67,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
         razorTree->Branch("MR", &theMR, "MR/F");
         razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+        razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
         razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
         razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
         razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
@@ -87,6 +89,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             box.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
             box.second->Branch("MR", &theMR, "MR/F");
             box.second->Branch("Rsq", &theRsq, "Rsq/F");
+            box.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
             box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
             box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
             box.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
@@ -121,6 +124,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         nTightTaus = 0;
         theMR = -1;
         theRsq = -1;
+        nSelectedPhotons = 0;
         mGammaGamma = -1;
         pTGammaGamma = -1;
         mbbZ = 0;
@@ -146,6 +150,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 nTightMuons++;
             }
         }
+        //electron selection
         for(int i = 0; i < nElectrons; i++){
             if(!isLooseElectron(i)) continue; 
             if(elePt[i] < 10) continue;
@@ -156,47 +161,122 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 nTightElectrons++;
             }
         }
+        //tau selection
         for(int i = 0; i < nTaus; i++){
             if(!isTightTau(i)) continue; 
 
             nTightTaus++;
         }
 
+        //photon selection
+        vector<TLorentzVector> GoodPhotons;
+        vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
+        int nPhotonsAbove40GeV = 0;
+        for(int i = 0; i < nPhotons; i++){
+            if(!isMediumPhoton(i)) continue;
+
+            if(phoPt[i] < 25) continue;
+            if(fabs(phoEta[i]) > 1.479) continue;
+
+            if(phoPt[i] > 40) nPhotonsAbove40GeV++;
+            TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
+            GoodPhotons.push_back(thisPhoton);
+            GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
+            nSelectedPhotons++;
+        }
+        //if there is no photon with pT above 40 GeV, reject the event
+        if(nPhotonsAbove40GeV == 0) continue;
+
+        //find the "best" photon pair
+        TLorentzVector HiggsCandidate(0,0,0,0);
+        int goodPhoIndex1 = -1;
+        int goodPhoIndex2 = -1;
+        double bestSumPt = 0;
+        for(size_t i = 0; i < GoodPhotons.size(); i++){
+            for(int j = 0; j < i; j++){
+                TLorentzVector pho1 = GoodPhotons[i];
+                TLorentzVector pho2 = GoodPhotons[j];
+                
+                //need one photon in the pair to have pt > 40 GeV
+                if(pho1.Pt() < 40 && pho2.Pt() < 40) continue;
+                //need diphoton mass between 100 and 180 GeV
+                double diphotonMass = (pho1 + pho2).M();
+                if(diphotonMass < 100 || diphotonMass > 180) continue;
+                
+                //if the sum of the photon pT's is larger than the current Higgs candidate, make this the Higgs candidate
+                if(pho1.Pt() + pho2.Pt() > bestSumPt){
+                    bestSumPt = pho1.Pt() + pho2.Pt();
+                    HiggsCandidate = pho1 + pho2;
+                    goodPhoIndex1 = i;
+                    goodPhoIndex2 = j;  
+                }
+            }
+        }   
+        //if the best candidate pair has pT < 20 GeV, reject the event
+        if(HiggsCandidate.Pt() < 20) continue;
+        mGammaGamma = HiggsCandidate.M();
+        pTGammaGamma = HiggsCandidate.Pt();
+        sigmaEOverE1 = GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E();
+        sigmaEOverE2 = GoodPhotonSigmaE[goodPhoIndex2]/GoodPhotons[goodPhoIndex2].E();
+
         vector<TLorentzVector> GoodJets;
+        vector<pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
         for(int i = 0; i < nJets; i++){
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
 
-            //TODO: exclude selected photons from the jet collection
-
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
+            //exclude selected photons from the jet collection
+            double deltaRJetPhoton = min(thisJet.DeltaR(GoodPhotons[goodPhoIndex1]), thisJet.DeltaR(GoodPhotons[goodPhoIndex2]));
+            if(deltaRJetPhoton < 0.4) continue;
+
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 
             if(isCSVL(i)){
                 nLooseBTaggedJets++;
-            }
-            if(isCSVM(i)){ 
-                nMediumBTaggedJets++;
+                if(isCSVM(i)){ 
+                    nMediumBTaggedJets++;
+                    GoodCSVLJets.push_back(make_pair(thisJet, true));
+                }
+                else{
+                    GoodCSVLJets.push_back(make_pair(thisJet, false));
+                }
             }
         }
-        //TODO: if there are two loose bjets and one medium bjet, compute mbbH, mbbZ
-
-        //TODO: photon selection
+        //if there are no good jets, reject the event
+        if(nSelectedJets == 0) continue;
 
         //Compute the razor variables using the selected jets and the diphoton system
-        vector<TLorentzVector> GoodPFObjects;
-        for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
-        //TODO: add photons
+        vector<TLorentzVector> JetsPlusHiggsCandidate;
+        for(auto& jet : GoodJets) JetsPlusHiggsCandidate.push_back(jet);
+        JetsPlusHiggsCandidate.push_back(HiggsCandidate);
+
         TLorentzVector PFMET = makeTLorentzVector(metPt, 0, metPhi, 0);
 
-        vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
+        vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
         theMR = computeMR(hemispheres[0], hemispheres[1]); 
         theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+        //if MR < 200, reject the event
+        if(theMR < 200) continue;
 
-        //TODO: sort events into boxes
+        //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
+        if(nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0){
+            for(int i = 0; i < nLooseBTaggedJets; i++){
+                for(int j = 0; j < i; j++){
+                    //if neither of the b-jets passes CSVM, continue
+                    if(!GoodCSVLJets[i].second && !GoodCSVLJets[j].second) continue;
+                    double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
+                    //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+                    if(fabs(mbbH - 125) > fabs(mbb - 125)) mbbH = mbb;
+                    //same for mbbZ
+                    if(fabs(mbbZ - 91.2) > fabs(mbb - 91.2)) mbbZ = mbb;
+                }
+            }
+        }
+
         //HighPt Box
-        if(true){
+        if(pTGammaGamma > 110){
             if(combineTrees){
                 box = HighPt;
                 razorTree->Fill();
@@ -204,15 +284,37 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             else razorBoxes["HighPt"]->Fill();
         }
         //Hbb Box
-        else if(true){
+        else if(mbbH > 110 && mbbH < 140){
             if(combineTrees){
                 box = Hbb;
                 razorTree->Fill();
             }
             else razorBoxes["Hbb"]->Fill();
         }
-
-        //TODO: everything else
+        //Zbb Box
+        else if(mbbZ > 76 && mbbZ < 106){
+            if(combineTrees){
+                box = Zbb;
+                razorTree->Fill();
+            }
+            else razorBoxes["Zbb"]->Fill();
+        }
+        //HighRes Box
+        else if(sigmaEOverE1 < 0.015 && sigmaEOverE2 < 0.015){
+            if(combineTrees){
+                box = HighRes;
+                razorTree->Fill();
+            }
+            else razorBoxes["HighRes"]->Fill();
+        }
+        //LowRes Box
+        else{
+            if(combineTrees){
+                box = LowRes;
+                razorTree->Fill();
+            }
+            else razorBoxes["LowRes"]->Fill();
+        }
 
     }//end of event loop
 
