@@ -193,7 +193,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         int goodPhoIndex2 = -1;
         double bestSumPt = 0;
         for(size_t i = 0; i < GoodPhotons.size(); i++){
-            for(int j = 0; j < i; j++){
+            for(size_t j = 0; j < i; j++){
                 TLorentzVector pho1 = GoodPhotons[i];
                 TLorentzVector pho2 = GoodPhotons[j];
                 
