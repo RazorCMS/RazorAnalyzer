@@ -21,6 +21,9 @@ QCD_Pt-1400to1800_Tune4C_13TeV_pythia8                          0.7346
 QCD_Pt-1800to2400_Tune4C_13TeV_pythia8                          0.102
 QCD_Pt-2400to3200_Tune4C_13TeV_pythia8                          0.00644
 QCD_Pt-3200_Tune4C_13TeV_pythia8                                0.000163
+QCD_HT_250To500_13TeV-madgraph					670500
+QCD_HT_500To1000_13TeV-madgraph					26740
+QCD_HT_1000ToInf_13TeV-madgraph					769.7
 DYJetsToLL_M-50_HT-100to200_Tune4C_13TeV-madgraph-tauola        194.3
 DYJetsToLL_M-50_HT-200to400_Tune4C_13TeV-madgraph-tauola        52.24
 DYJetsToLL_M-50_HT-400to600_Tune4C_13TeV-madgraph-tauola        6.546
@@ -36,11 +39,11 @@ WJetsToLNu_HT-600toInf_Tune4C_13TeV-madgraph-tauola             18.81
 
 #SUSY SMSs -- dummy cross sections
 SMS-T1bbbb_2J_mGl-1000_mLSP-900_Tune4C_13TeV-madgraph-tauola    1
-SMS-T1bbbb_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola    1
+SMS-T1bbbb_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola    0.014
 SMS-T1qqqq_2J_mGl-1000_mLSP-800_Tune4C_13TeV-madgraph-tauola    1
 SMS-T1qqqq_2J_mGl-1400_mLSP-100_Tune4C_13TeV-madgraph-tauola    1
 SMS-T1tttt_2J_mGl-1200_mLSP-800_Tune4C_13TeV-madgraph-tauola    1
-SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola    1
+SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola    0.014
 SMS-T2bb_2J_mStop-900_mLSP-100_Tune4C_13TeV-madgraph-tauola     1
 SMS-T2qq_2J_mStop-1200_mLSP-100_Tune4C_13TeV-madgraph-tauola    1
 SMS-T2qq_2J_mStop-600_mLSP-550_Tune4C_13TeV-madgraph-tauola     1
@@ -48,3 +51,4 @@ SMS-T2tt_2J_mStop-425_mLSP-325_Tune4C_13TeV-madgraph-tauola     1
 SMS-T2tt_2J_mStop-500_mLSP-325_Tune4C_13TeV-madgraph-tauola     1
 SMS-T2tt_2J_mStop-650_mLSP-325_Tune4C_13TeV-madgraph-tauola     1
 SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola     1
+
