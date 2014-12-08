@@ -107,6 +107,20 @@ int main(int argc, char* argv[]){
 	analyzer.RazorVetoLeptonStudy(outputFileName, false);
       }
     }
+    else if(analysisType == "electronNtupler"){
+      cout << "Executing electron ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableElectrons();
+      analyzer.EnableGenParticles();
+      analyzer.ElectronNtupler(outputFileName, option);
+    }
+    else if(analysisType == "muonNtupler"){
+      cout << "Executing muon ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableMuons();
+      analyzer.EnableGenParticles();
+      analyzer.MuonNtupler(outputFileName, option);
+    }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
     }

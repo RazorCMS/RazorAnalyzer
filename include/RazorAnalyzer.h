@@ -48,6 +48,8 @@ class RazorAnalyzer: public RazorEvents {
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
+	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
+	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
