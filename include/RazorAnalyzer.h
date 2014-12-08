@@ -30,6 +30,7 @@ class RazorAnalyzer: public RazorEvents {
         void EnableMuons();
         void EnableElectrons();
         void EnableTaus();
+        void EnableIsoPFCandidates();
         void EnablePhotons();
         void EnableJets();
         void EnableFatJets();

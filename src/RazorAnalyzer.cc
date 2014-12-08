@@ -38,6 +38,12 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("runNum", 1);
     fChain->SetBranchStatus("lumiNum", 1);
     fChain->SetBranchStatus("eventNum", 1);
+    fChain->SetBranchStatus("fixedGridRhoAll", 1);
+    fChain->SetBranchStatus("fixedGridRhoFastjetAll", 1);
+    fChain->SetBranchStatus("fixedGridRhoFastjetAllCalo", 1);
+    fChain->SetBranchStatus("fixedGridRhoFastjetCentralCalo", 1);
+    fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
+    fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
 }
 
 void RazorAnalyzer::EnablePileup(){
@@ -98,8 +104,8 @@ void RazorAnalyzer::EnableTaus(){
     fChain->SetBranchStatus("tauEta", 1);
     fChain->SetBranchStatus("tauPhi", 1);
     fChain->SetBranchStatus("tau_IsLoose", 1);
-    fChain->SetBranchStatus("tau_isMedium", 1);
-    fChain->SetBranchStatus("tau_isTight", 1);
+    fChain->SetBranchStatus("tau_IsMedium", 1);
+    fChain->SetBranchStatus("tau_IsTight", 1);
     fChain->SetBranchStatus("tau_passEleVetoLoose", 1);
     fChain->SetBranchStatus("tau_passEleVetoMedium", 1);
     fChain->SetBranchStatus("tau_passEleVetoTight", 1);
@@ -119,6 +125,16 @@ void RazorAnalyzer::EnableTaus(){
     fChain->SetBranchStatus("tau_leadChargedHadrCandID", 1);
 }
 
+void RazorAnalyzer::EnableIsoPFCandidates(){
+    fChain->SetBranchStatus("nIsoPFCandidates", 1);
+    fChain->SetBranchStatus("isoPFCandidatePt", 1);
+    fChain->SetBranchStatus("isoPFCandidateEta", 1);
+    fChain->SetBranchStatus("isoPFCandidatePhi", 1);
+    fChain->SetBranchStatus("isoPFCandidateIso04", 1);
+    fChain->SetBranchStatus("isoPFCandidateD0", 1);
+    fChain->SetBranchStatus("isoPFCandidatePdgId", 1);  
+}
+
 void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("nPhotons", 1);
     fChain->SetBranchStatus("phoE", 1);
@@ -133,8 +149,12 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
     fChain->SetBranchStatus("pho_isConversion", 1);
+    fChain->SetBranchStatus("pho_passEleVeto", 1);
     fChain->SetBranchStatus("pho_RegressionE", 1);
+    fChain->SetBranchStatus("pho_RegressionEUncertainty", 1);
     fChain->SetBranchStatus("pho_IDMVA", 1);
+    fChain->SetBranchStatus("pho_superClusterEta", 1);
+    fChain->SetBranchStatus("pho_hasPixelSeed", 1);
 }
 
 void RazorAnalyzer::EnableJets(){
@@ -149,6 +169,8 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetJetArea", 1);
     fChain->SetBranchStatus("jetPileupE", 1);
     fChain->SetBranchStatus("jetPileupId", 1);
+    fChain->SetBranchStatus("jetPartonFlavor", 1);
+    fChain->SetBranchStatus("jetHadronFlavor", 1);
 }
 
 void RazorAnalyzer::EnableFatJets(){
@@ -178,6 +200,7 @@ void RazorAnalyzer::EnableMC(){
     fChain->SetBranchStatus("genJetPhi", 1);
     fChain->SetBranchStatus("genMetPt", 1);
     fChain->SetBranchStatus("genMetPhi", 1);
+    fChain->SetBranchStatus("genVertexZ", 1);
 }
 
 void RazorAnalyzer::EnableGenParticles(){
