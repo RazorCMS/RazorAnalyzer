@@ -91,6 +91,22 @@ int main(int argc, char* argv[]){
         analyzer.EnableMC();
         analyzer.MatchedRazorInclusive(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
+    else if(analysisType == "razorVetoLeptonStudy"){
+      cout << "Executing razorVetoLeptonStudy..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      if (option == 1) {
+	analyzer.RazorVetoLeptonStudy(outputFileName, true);
+      } else {
+	analyzer.RazorVetoLeptonStudy(outputFileName, false);
+      }
+    }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
     }

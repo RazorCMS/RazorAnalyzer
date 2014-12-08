@@ -47,6 +47,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
+	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -57,7 +58,8 @@ class RazorAnalyzer: public RazorEvents {
         bool isVetoElectron(int i);
         bool isLooseElectron(int i);
         bool isTightElectron(int i);
-        
+	bool isMVANonTrigVetoElectron(int i);
+
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);
         bool isMediumTau(int i);
@@ -95,6 +97,7 @@ class RazorAnalyzer: public RazorEvents {
             MuJet,
             EleMultiJet,
             EleJet,
+	    SoftLeptonMultiJet,
             MultiJet,
             TwoBJet,
             OneBJet,
