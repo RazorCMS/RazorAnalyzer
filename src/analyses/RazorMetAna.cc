@@ -249,30 +249,30 @@ void RazorAnalyzer::RazorMetAna(string outFileName)
 	  ZMuons.push_back(thisMuon);	  
         }
 	
-	if(ZMuons.size()==2)
-	  {
-	    TLorentzVector m1 = makeTLorentzVector(ZMuons[0].Pt(), ZMuons[0].Eta(), ZMuons[0].Phi(), ZMuons[0].E()); 
-	    TLorentzVector m2 = makeTLorentzVector(ZMuons[1].Pt(), ZMuons[1].Eta(), ZMuons[1].Phi(), ZMuons[1].E()); 
+	// if(ZMuons.size()==2)
+	//   {
+	//     TLorentzVector m1 = makeTLorentzVector(ZMuons[0].Pt(), ZMuons[0].Eta(), ZMuons[0].Phi(), ZMuons[0].E()); 
+	//     TLorentzVector m2 = makeTLorentzVector(ZMuons[1].Pt(), ZMuons[1].Eta(), ZMuons[1].Phi(), ZMuons[1].E()); 
 
-	    TLorentzVector theZ = m1+m2;
-	    h_ZMass->Fill(theZ.M());
+	//     TLorentzVector theZ = m1+m2;
+	//     h_ZMass->Fill(theZ.M());
 
-	    TLorentzVector qT = theZ.Perp();
-	    TLorentzVector met = makeTLorentzVector(metPt, 0, metPhi, 0);
-	    TLorentzVector uT = -(qT + met);
+	//     TLorentzVector qT = theZ.Perp();
+	//     TLorentzVector met = makeTLorentzVector(metPt, 0, metPhi, 0);
+	//     TLorentzVector uT = -(qT + met);
 	    
-	    Float_t u_par   = - (uT.Vect()).Dot(qT.Vect().Unit());
-	    TVector3 u_Vec_perp = - (uT.Vect()).Cross(qT.Vect().Unit());
+	//     Float_t u_par   = - (uT.Vect()).Dot(qT.Vect().Unit());
+	//     TVector3 u_Vec_perp = - (uT.Vect()).Cross(qT.Vect().Unit());
 
-	    Float_t sign = TMath::Sin(qT.Vect().DeltaPhi(uT.Vect()));
-	    Float_t u_perp = (sign>0) ? u_Vec_perp.Mag() : - u_Vec_perp.Mag();
+	//     Float_t sign = TMath::Sin(qT.Vect().DeltaPhi(uT.Vect()));
+	//     Float_t u_perp = (sign>0) ? u_Vec_perp.Mag() : - u_Vec_perp.Mag();
 
-	    h_upar->Fill(u_par+qT.Mag());
-	    h_uperp->Fill(u_perp);
+	//     h_upar->Fill(u_par+qT.Mag());
+	//     h_uperp->Fill(u_perp);
 
-	    h_upar_NVtx->Fill(nPV, u_par+qT.Mag());
-	    h_uperp_NVtx->Fill(nPV, u_perp);
-	  }
+	//     h_upar_NVtx->Fill(nPV, u_par+qT.Mag());
+	//     h_uperp_NVtx->Fill(nPV, u_perp);
+	//   }
 
     }//end of event loop
 
