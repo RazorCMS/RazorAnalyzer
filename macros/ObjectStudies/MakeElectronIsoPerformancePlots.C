@@ -773,6 +773,21 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   
   cv->SaveAs(("ROCGraphs_" + plotname + ".gif").c_str());
 
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open(("ElectronIsoROCCurves"+Label+".root").c_str(), "RECREATE");
+  file->cd();
+  file->WriteTObject(ROC_PFRelIso, ("ROC_PFRelIso" + Label).c_str(), "WriteDelete");
+  file->WriteTObject(ROC_PFIso, ("ROC_PFIso" + Label).c_str(), "WriteDelete");
+  
+  file->Close();
+  delete file;       
+
+  
+
+
   gBenchmark->Show("WWTemplate");       
 } 
 

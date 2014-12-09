@@ -1,4 +1,4 @@
-//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/ObjectStudies/MakeMuonIsoPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
+//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/ObjectStudies/MakeMuonIsoPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
 //================================================================================================
 //
 // HWW selection macro
@@ -682,6 +682,20 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
   legend->Draw();
   
   cv->SaveAs(("ROCGraphs_" + plotname + ".gif").c_str());
+
+
+
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open(("MuonIsoROCCurves"+Label+".root").c_str(), "RECREATE");
+  file->cd();
+  file->WriteTObject(ROC_PFRelIso, ("ROC_PFRelIso" + Label).c_str(), "WriteDelete");
+  file->WriteTObject(ROC_PFIso, ("ROC_PFIso" + Label).c_str(), "WriteDelete");
+  
+  file->Close();
+  delete file;       
 
   gBenchmark->Show("WWTemplate");       
 } 
