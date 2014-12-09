@@ -6,6 +6,7 @@
 #define RazorAnalyzer_h
 
 #include <RazorEvents.h> //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
+#include "FactorizedJetCorrector.h"
 
 //ROOT includes
 #include <TROOT.h>
@@ -75,10 +76,15 @@ class RazorAnalyzer: public RazorEvents {
         bool isTightPhoton(int i);
 
         //functions in RazorAuxJet.cc
+	
         bool isCSVL(int i);
         bool isCSVM(int i);
         bool isCSVT(int i);
-
+	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
+					  double rho, double jetArea,
+					  FactorizedJetCorrector *jetcorrector,  
+					  bool printDebug = false);
+	  
         //functions in RazorAuxMisc.cc
 	double deltaPhi(double phi1, double phi2);
 	double deltaR(double eta1, double phi1, double eta2, double phi2);
