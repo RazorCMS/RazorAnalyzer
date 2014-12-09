@@ -10,3 +10,4 @@ condor/*
 *.condor
 *.swp
 dustinScripts
+python/lib/*
