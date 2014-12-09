@@ -121,6 +121,15 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.MuonNtupler(outputFileName, option);
     }
+    else if(analysisType == "met"){ // met analyzer to plot some histograms
+        cout << "Executing razor MET analysis..." << endl;
+        analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+	analyzer.EnableEventInfo();
+        analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
+    }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
     }
