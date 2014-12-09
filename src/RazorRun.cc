@@ -21,10 +21,10 @@ int main(int argc, char* argv[]){
     if(argc < 3){
         cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)> [option number]" << endl;
         cerr << "Analyses available: " << endl 
-            << "razor   --   inclusive razor analysis" << endl 
-            << "hggrazor   --   higgs->diphoton razor analysis" << endl
+            << "razor          --   inclusive razor analysis" << endl 
+            << "hggrazor       --   higgs->diphoton razor analysis" << endl
             << "matchedrazor   --   inclusive razor analysis using only jets matched to genjets" << endl 
-            << "dummy   --   do nothing useful" << endl;
+            << "dummy          --   do nothing useful" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
