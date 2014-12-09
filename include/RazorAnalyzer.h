@@ -51,6 +51,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
 	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
 	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
+        virtual void RazorMetAna(string outFileName = "RazorMET.root");
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
