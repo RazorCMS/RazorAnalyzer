@@ -5,7 +5,7 @@ SRCDIR = src
 INCLUDEDIR = include
 INCLUDELIST= SimpleTable.h Linkdef.h
 
-SCRATCHDIR = /tmp/sixie/
+SCRATCHDIR = /tmp/
 
 AUX = $(wildcard $(SRCDIR)/RazorAux*.cc)
 ANALYSES = $(wildcard $(SRCDIR)/analyses/*.cc)
