@@ -1,5 +1,6 @@
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
+#include "JetCorrectorParameters.h"
 
 //C++ includes
 
@@ -21,6 +22,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     //one tree to hold all events
     TTree *razorTree = new TTree("RazorInclusive", "Info on selected razor inclusive events");
     
+    //initialize jet energy corrections
+    std::vector<JetCorrectorParameters> correctionParameters;
+    // correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L1FastJet_AK4PFchs.txt"));
+    // correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L2Relative_AK4PFchs.txt"));
+    // correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L3Absolute_AK4PFchs.txt"));    
+
+    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+
     //separate trees for individual boxes
     map<string, TTree*> razorBoxes;
     vector<string> boxNames;
@@ -143,12 +152,19 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;
         for(int i = 0; i < nJets; i++){
-            if(jetPt[i] < 40) continue;
-            if(fabs(jetEta[i]) > 3.0) continue;
+
+	    double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+						   fixedGridRhoFastjetAll, jetJetArea[i], 
+						   JetCorrector);   
+	    double jetCorrPt = jetPt[i]*JEC;
+	    double jetCorrE = jetE[i]*JEC;
+
+	    if(jetCorrPt < 40) continue;
+    	    if(fabs(jetEta[i]) > 3.0) continue;
 
             //exclude selected muons and electrons from the jet collection
             double deltaR = -1;
-            TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
+            TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
             for(auto& lep : GoodLeptons){
                 double thisDR = thisJet.DeltaR(lep);
                 if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
