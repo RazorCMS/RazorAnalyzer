@@ -81,7 +81,7 @@ for index, inputlist in enumerate(inputlists):
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
-        submitScript.write('Output = '+process+"/"+output+"/log/"+output+str(ijob)+'.out.$(Process)\n')
+        submitScript.write('Output = '+process+"/"+output+"/log/"+str(ijob)+'.out.$(Process)\n')
         submitScript.write('Log = '+process+"/"+output+"/log/"+str(ijob)+'.log\n')
         submitScript.write('Error = '+process+"/"+output+"/log/"+str(ijob)+'.err\n')
         submitScript.write('Queue\n')
