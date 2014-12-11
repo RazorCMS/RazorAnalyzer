@@ -8,7 +8,7 @@ INCLUDELIST= SimpleTable.h Linkdef.h
 SCRATCHDIR = /tmp/
 
 AUX = $(wildcard $(SRCDIR)/RazorAux*.cc)
-ANALYSES = $(wildcard $(SRCDIR)/analyses/*.cc)
+ANALYSES = $(wildcard analyses/*.cc)
 JETCORR = $(SRCDIR)/JetCorrectorParameters.cc $(SRCDIR)/SimpleJetCorrectionUncertainty.cc  $(SRCDIR)/JetCorrectionUncertainty.cc $(SRCDIR)/SimpleJetCorrector.cc $(SRCDIR)/FactorizedJetCorrector.cc 
 EXECUTABLES = RazorRun NormalizeNtuple
 
