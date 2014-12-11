@@ -176,7 +176,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             if(!isMediumPhoton(i)) continue;
 
             if(phoPt[i] < 25) continue;
-            if(fabs(phoEta[i]) > 1.479) continue;
+            if(fabs(phoEta[i]) > 2.5) continue; //allow photons in the endcap, but if one of the two leading photons is in the endcap, reject the event
 
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
             TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
@@ -214,6 +214,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         }   
         //if the best candidate pair has pT < 20 GeV, reject the event
         if(HiggsCandidate.Pt() < 20) continue;
+        //if the best candidate pair has a photon in the endcap, reject the event
+        if(fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.479 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.479) continue;
+        //record higgs candidate info
         mGammaGamma = HiggsCandidate.M();
         pTGammaGamma = HiggsCandidate.Pt();
         sigmaEOverE1 = GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E();
