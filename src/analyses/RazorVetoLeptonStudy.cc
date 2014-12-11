@@ -1,6 +1,7 @@
 
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
+#include "JetCorrectorParameters.h"
 
 //C++ includes
 
@@ -32,6 +33,12 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
+    std::vector<JetCorrectorParameters> correctionParameters;
+    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L1FastJet_AK4PFchs.txt"));
+    //correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L2Relative_AK4PFchs.txt"));
+    //correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L3Absolute_AK4PFchs.txt"));    
+    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+
     string outfilename = outputfilename;
     if (outfilename == "") outfilename = "RazorVetoLeptonStudy.root";
     TFile outFile(outfilename.c_str(), "RECREATE");
@@ -323,19 +330,37 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;
         for(int i = 0; i < nJets; i++){
-            if(jetPt[i] < 40) continue;
+
+	  double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+						 fixedGridRhoFastjetAll, jetJetArea[i], 
+						 JetCorrector);   
+	  
+	  if(jetPt[i]*JEC < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
 
             //exclude selected muons and electrons from the jet collection
-            double deltaR = -1;
-            TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
+            double dR = -1;
+            TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC);
             for(auto& lep : GoodLeptons){
                 double thisDR = thisJet.DeltaR(lep);
-                if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
+                if(dR < 0 || thisDR < dR) dR = thisDR;
             }
-            if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
-            
-            if(jetPt[i] > 80) numJetsAbove80GeV++;
+            if(dR > 0 && dR < 0.4) continue; //jet matches a selected lepton
+
+
+	    // //exclude jet if it doesn't match a selected genjet
+            // bool matchedGenJet = false;
+	    // for(int j = 0; j < nGenJets; j++){
+	    //   double thisDR = deltaR(genJetEta[j],genJetPhi[j],jetEta[i],jetPhi[i]);
+	    //   if(thisDR < 0.4 && fabs(jetPt[i]-genJetPt[j])/genJetPt[j] < 0.5 ){
+	    // 	  matchedGenJet = true;
+	    // 	  break;
+            //     }
+            // }
+            // if(!matchedGenJet) continue;
+
+        
+            if(jetPt[i]*JEC > 80) numJetsAbove80GeV++;
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 
