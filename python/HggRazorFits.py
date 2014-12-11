@@ -151,7 +151,7 @@ for box in boxNames:
     smMCDataSets[box].plotOn(frame)
     extBackgroundPdf.plotOn(frame)
     frame.Draw()
-    c.Print("HggBackgroundFit"+box+".pdf")
+    c.Print(outpath+"/HggBackgroundFit"+box+".pdf")
 
     #compute background prediction scale factor: integral of background pdf in sig region / actual num in sideband
     #background region: 103 < mGammaGamma < 120 or 131 < mGammaGamma < 160
@@ -176,10 +176,10 @@ MRMaxValue = 3000
 for box in boxNames:
     backgroundHist = smMCDataSet[box].createHistogram(vars["MR"], vars["Rsq"], backgroundCutString)
     backgroundHist.Draw("colz")
-    c.Print("HggRazorBackgroundDistribution"+box+".pdf")
+    c.Print(outpath+"/HggRazorBackgroundDistribution"+box+".pdf")
     hggHist = higgsMCDataSet[box].createHistogram(vars["MR"], vars["Rsq"])
     hggHist.Draw("colz")
-    c.Print("HggRazorHiggsDistribution"+box+".pdf")
+    c.Print(outpath+"/HggRazorHiggsDistribution"+box+".pdf")
     combinedMCDataSets[box] = smMCDataSets[box]
     combinedMCDataSets[box].append(higgsMCDataSets[box])
     #create signal regions in the MR-Rsq plane
