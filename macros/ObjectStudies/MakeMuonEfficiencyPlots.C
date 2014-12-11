@@ -2,7 +2,7 @@
 //
 // Simple Example
 //
-//root -l RazorAnalyzer/ObjectStudies/MakeMuonEfficiencyPlots.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_25ns.root",-1,"Muon")'
+//root -l RazorAnalyzer/macros/ObjectStudies/MakeMuonEfficiencyPlots.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_25ns.root",-1,"Muon")'
 //
 //________________________________________________________________________________________________
 
@@ -22,7 +22,7 @@
 #include <TCanvas.h>                
 #include <TGraphAsymmErrors.h>                
 
-#include "RazorAnalyzer/ObjectStudies/EfficiencyUtils.hh"
+#include "RazorAnalyzer/macros/ObjectStudies/EfficiencyUtils.hh"
 #include "RazorAnalyzer/include/MuonTree.h"
 
 #endif

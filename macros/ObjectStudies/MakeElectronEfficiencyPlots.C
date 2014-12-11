@@ -2,7 +2,7 @@
 //
 // Simple Example
 //
-//root -l RazorAnalyzer/ObjectStudies/MakeElectronEfficiencyPlots.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_25ns.root",-1,"Electron")'
+//root -l RazorAnalyzer/macros/ObjectStudies/MakeElectronEfficiencyPlots.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_25ns.root",-1,"Electron")'
 //
 //________________________________________________________________________________________________
 
@@ -22,7 +22,7 @@
 #include <TCanvas.h>                
 #include <TGraphAsymmErrors.h>                
 
-#include "RazorAnalyzer/ObjectStudies/EfficiencyUtils.hh"
+#include "RazorAnalyzer/macros/ObjectStudies/EfficiencyUtils.hh"
 #include "RazorAnalyzer/include/ElectronTree.h"
 
 #endif
