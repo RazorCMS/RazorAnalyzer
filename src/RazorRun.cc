@@ -121,6 +121,14 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.MuonNtupler(outputFileName, option);
     }
+    else if(analysisType == "jetNtupler"){
+      cout << "Executing jet ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableGenParticles();
+      analyzer.EnableMC();
+      analyzer.JetNtupler(outputFileName, option);
+    }
     else if(analysisType == "met"){ // met analyzer to plot some histograms
         cout << "Executing razor MET analysis..." << endl;
         analyzer.EnableJets();
