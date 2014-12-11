@@ -65,6 +65,9 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fMuPFIso04 = muon_relIso04DBetaCorr[i];
 	  muTree->fMuIsLoose = muonIsLoose[i];
 	  muTree->fMuIsTight = muonIsTight[i];
+	  muTree->fPassVetoSelection = isVetoMuon(i);
+	  muTree->fPassLooseSelection = isLooseMuon(i);
+	  muTree->fPassTightSelection = isTightMuon(i);
 
 	  //Match to Gen particle
 	  int matchedIndex = -1;

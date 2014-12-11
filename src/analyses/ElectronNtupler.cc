@@ -74,6 +74,11 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fElePFIso04 = ele_relIsoDBetaCorr[i];
 	    eleTree->fIDMVATrig = ele_IDMVATrig[i];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[i];
+	    eleTree->fPassVetoSelection = isVetoElectron(i);
+	    eleTree->fPassLooseSelection = isLooseElectron(i);
+	    eleTree->fPassTightSelection = isTightElectron(i);
+	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(i);
+
 
 	    //Match to Gen particle
 	    int matchedIndex = -1;

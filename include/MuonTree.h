@@ -37,6 +37,11 @@
       Bool_t                  fMuIsTight;
       Bool_t                  fMuIsLoose;
 
+      // Typical Selection Working Points
+      Bool_t                  fPassVetoSelection;
+      Bool_t                  fPassLooseSelection;
+      Bool_t                  fPassTightSelection;
+
       //additional variables      
       UInt_t  	              fMuTypeBits;
       Bool_t  		      fIsAllArbitrated;
@@ -117,6 +122,9 @@
 	fDRToClosestParton         = 9999;
 	fMuIsTight                 = false;
 	fMuIsLoose                 = false;
+	fPassVetoSelection         = false;
+	fPassLooseSelection         = false;
+	fPassTightSelection         = false;
         fMuTypeBits		   = 0.0;
         fIsAllArbitrated	   = 0.0;
         fMuTkNchi2 		   = 0.0;
@@ -194,6 +202,9 @@
         tree_->Branch("DRToClosestParton",&fDRToClosestParton,"DRToClosestParton/F"); 
 	tree_->Branch("IsTight",&fMuIsTight,"IsTight/O"); 
 	tree_->Branch("IsLoose",&fMuIsLoose,"IsLoose/O"); 
+	tree_->Branch("PassVetoSelection",&fPassVetoSelection,"PassVetoSelection/O"); 
+	tree_->Branch("PassLooseSelection",&fPassLooseSelection,"PassLooseSelection/O"); 	
+	tree_->Branch("PassTightSelection",&fPassTightSelection,"PassTightSelection/O"); 
 	tree_->Branch("PFIso04",&fMuPFIso04,"PFIso04/F"); 
 	tree_->Branch("D0",&fMuD0,"D0/F"); 
 	tree_->Branch("IP3d",&fMuIP3d,"IP3d/F"); 
@@ -270,6 +281,9 @@
         tree_->SetBranchAddress("DRToClosestParton",&fDRToClosestParton);
 	tree_->SetBranchAddress("IsTight",&fMuIsTight); 
 	tree_->SetBranchAddress("IsLoose",&fMuIsLoose); 
+	tree_->SetBranchAddress("PassVetoSelection",&fPassVetoSelection); 
+	tree_->SetBranchAddress("PassLooseSelection",&fPassLooseSelection); 
+	tree_->SetBranchAddress("PassTightSelection",&fPassTightSelection); 
 	tree_->SetBranchAddress("PFIso04",&fMuPFIso04);
 	tree_->SetBranchAddress("D0",&fMuD0);
 	tree_->SetBranchAddress("IP3d",&fMuIP3d);

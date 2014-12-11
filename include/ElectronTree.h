@@ -49,6 +49,12 @@ class ElectronTree {
   Int_t                   fPdgId;
   Float_t                 fDRToClosestParton;
 
+  // Typical Selection Working Points
+  Bool_t                  fPassVetoSelection;
+  Bool_t                  fPassLooseSelection;
+  Bool_t                  fPassTightSelection;
+  Bool_t                  fPassMVANonTrigVetoSelection;
+
   // Conversion and IP
   Float_t                 fEleD0; 
   Float_t                 fEleDZ; 
@@ -202,6 +208,10 @@ class ElectronTree {
     fNVertices 		       = 0.0;
     fPdgId    		       = 11;
     fDRToClosestParton         = 9999;
+    fPassVetoSelection                 = false;
+    fPassLooseSelection                = false;
+    fPassTightSelection                = false;
+    fPassMVANonTrigVetoSelection       = false;
     fEleD0 			       = 0.0;
     fEleDZ 			       = 0.0;
     fEleIP3d 		       = 0.0;
@@ -345,6 +355,10 @@ class ElectronTree {
     tree_->Branch("IDMVATrig",&fIDMVATrig,"IDMVATrig/F");
     tree_->Branch("IDMVANonTrig",&fIDMVANonTrig,"IDMVANonTrig/F");
     tree_->Branch("vertices",&fNVertices,"vertices/F"); 
+    tree_->Branch("PassVetoSelection",&fPassVetoSelection,"PassVetoSelection/O"); 
+    tree_->Branch("PassLooseSelection",&fPassLooseSelection,"PassLooseSelection/O"); 
+    tree_->Branch("PassTightSelection",&fPassTightSelection,"PassTightSelection/O"); 
+    tree_->Branch("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection,"PassMVANonTrigVetoSelection/O"); 
 
     if (version == kEleTreeStd ) {
       tree_->Branch("scEt",&fEleSCEt,"scEt/F"); 
@@ -479,6 +493,10 @@ class ElectronTree {
     tree_->SetBranchAddress("pfIso04",&fElePFIso04);
     tree_->SetBranchAddress("IDMVATrig",&fIDMVATrig);
     tree_->SetBranchAddress("IDMVANonTrig",&fIDMVANonTrig);
+    tree_->SetBranchAddress("PassVetoSelection",&fPassVetoSelection);
+    tree_->SetBranchAddress("PassLooseSelection",&fPassLooseSelection);
+    tree_->SetBranchAddress("PassTightSelection",&fPassTightSelection);
+    tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection);
     
     if (version == kEleTreeStd ) {
       tree_->SetBranchAddress("scEt",&fEleSCEt);
