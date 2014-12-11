@@ -91,7 +91,7 @@
     
       /// create a JetTree
       void CreateTree(){
-        tree_ = new TTree("Jets","Jettons");
+        tree_ = new TTree("Jets","Jets");
         f_ = 0;
 
         //book the branches
