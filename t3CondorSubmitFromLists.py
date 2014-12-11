@@ -8,8 +8,8 @@ import sys
 
 analysis = 'razor'
 isData = False;
-scramArch = "slc5_amd64_gcc462"
-cmsswVersion = "CMSSW_5_3_9"
+scramArch = "slc5_amd64_gcc481"
+cmsswVersion = "CMSSW_7_3_0_pre1"
 
 #get the location of this script
 pathname = os.path.dirname(sys.argv[0]) 
@@ -69,19 +69,22 @@ for index, inputlist in enumerate(inputlists):
         basedir = fullpath+"/"+process+"/"+output+"/log/";
         outputfile = open(outputname,'w')
         outputfile.write('#!/bin/sh\n')
+        outputfile.write('export JOBDIR=$PWD\n')
+        outputfile.write('echo $JOBDIR\n')
         outputfile.write('export SCRAM_ARCH='+scramArch+'\n')
         outputfile.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
         outputfile.write('cmsrel '+cmsswVersion+'\n')
         outputfile.write('cd '+cmsswVersion+'/src\n')
         outputfile.write('cmsenv\n')
-        outputfile.write('cd - 1>/dev/null 2>/dev/null\n')
+        outputfile.write('cd - \n')
         outputfile.write('echo $HOSTNAME\n')
-        outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' output'+str(ijob)+'.root\n')
-        outputfile.write('cp output'+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\n')
+        outputfile.write('echo '+fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/output'+str(ijob)+'.root\n')
+        outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/output'+str(ijob)+'.root\n')
+        outputfile.write('cp $JOBDIR/output'+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\n')
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
-        submitScript.write('Output = '+process+"/"+output+"/log/"+str(ijob)+'.out.$(Process)\n')
+        submitScript.write('Output = '+process+"/"+output+"/log/"+str(ijob)+'.out\n')
         submitScript.write('Log = '+process+"/"+output+"/log/"+str(ijob)+'.log\n')
         submitScript.write('Error = '+process+"/"+output+"/log/"+str(ijob)+'.err\n')
         submitScript.write('Queue\n')

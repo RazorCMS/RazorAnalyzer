@@ -21,10 +21,10 @@ int main(int argc, char* argv[]){
     if(argc < 3){
         cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)> [option number]" << endl;
         cerr << "Analyses available: " << endl 
-            << "razor   --   inclusive razor analysis" << endl 
-            << "hggrazor   --   higgs->diphoton razor analysis" << endl
+            << "razor          --   inclusive razor analysis" << endl 
+            << "hggrazor       --   higgs->diphoton razor analysis" << endl
             << "matchedrazor   --   inclusive razor analysis using only jets matched to genjets" << endl 
-            << "dummy   --   do nothing useful" << endl;
+            << "dummy          --   do nothing useful" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
@@ -90,6 +90,53 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
         analyzer.EnableMC();
         analyzer.MatchedRazorInclusive(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "razorVetoLeptonStudy"){
+      cout << "Executing razorVetoLeptonStudy..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      if (option == 1) {
+	analyzer.RazorVetoLeptonStudy(outputFileName, true);
+      } else {
+	analyzer.RazorVetoLeptonStudy(outputFileName, false);
+      }
+    }
+    else if(analysisType == "electronNtupler"){
+      cout << "Executing electron ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableElectrons();
+      analyzer.EnableGenParticles();
+      analyzer.ElectronNtupler(outputFileName, option);
+    }
+    else if(analysisType == "muonNtupler"){
+      cout << "Executing muon ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableMuons();
+      analyzer.EnableGenParticles();
+      analyzer.MuonNtupler(outputFileName, option);
+    }
+    else if(analysisType == "jetNtupler"){
+      cout << "Executing jet ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableGenParticles();
+      analyzer.EnableMC();
+      analyzer.JetNtupler(outputFileName, option);
+    }
+    else if(analysisType == "met"){ // met analyzer to plot some histograms
+        cout << "Executing razor MET analysis..." << endl;
+        analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+	analyzer.EnableEventInfo();
+        analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
     }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;

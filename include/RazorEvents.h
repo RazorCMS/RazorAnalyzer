@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Dec  5 14:48:57 2014 by ROOT version 5.32/00
+// Mon Dec  8 21:16:49 2014 by ROOT version 5.34/20
 // from TTree RazorEvents/selected miniAOD information
-// found on file: razorNtupleAna.root
+// found on file: SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p4_PHYS14_25ns_v1_v1/141208_042312/0000/razorNtupleAna_1.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -29,7 +29,12 @@ public :
    Float_t         pvX;
    Float_t         pvY;
    Float_t         pvZ;
+   Float_t         fixedGridRhoAll;
    Float_t         fixedGridRhoFastjetAll;
+   Float_t         fixedGridRhoFastjetAllCalo;
+   Float_t         fixedGridRhoFastjetCentralCalo;
+   Float_t         fixedGridRhoFastjetCentralChargedPileUp;
+   Float_t         fixedGridRhoFastjetCentralNeutral;
    Int_t           nBunchXing;
    Int_t           BunchXing[20];   //[nBunchXing]
    Int_t           nPU[20];   //[nBunchXing]
@@ -97,6 +102,13 @@ public :
    Int_t           tau_leadCandID[40];   //[nTaus]
    Float_t         tau_leadChargedHadrCandPt[40];   //[nTaus]
    Int_t           tau_leadChargedHadrCandID[40];   //[nTaus]
+   UInt_t          nIsoPFCandidates;
+   Float_t         isoPFCandidatePt[13];   //[nIsoPFCandidates]
+   Float_t         isoPFCandidateEta[13];   //[nIsoPFCandidates]
+   Float_t         isoPFCandidatePhi[13];   //[nIsoPFCandidates]
+   Float_t         isoPFCandidateIso04[13];   //[nIsoPFCandidates]
+   Float_t         isoPFCandidateD0[13];   //[nIsoPFCandidates]
+   Int_t           isoPFCandidatePdgId[13];   //[nIsoPFCandidates]
    Int_t           nPhotons;
    Float_t         phoE[40];   //[nPhotons]
    Float_t         phoPt[40];   //[nPhotons]
@@ -109,12 +121,13 @@ public :
    Float_t         pho_sumChargedHadronPt[40];   //[nPhotons]
    Float_t         pho_sumNeutralHadronEt[40];   //[nPhotons]
    Float_t         pho_sumPhotonEt[40];   //[nPhotons]
-   Int_t           pho_isConversion[40];   //[nPhotons]
+   Bool_t          pho_isConversion[40];   //[nPhotons]
+   Bool_t          pho_passEleVeto[40];   //[nPhotons]
    Float_t         pho_RegressionE[40];   //[nPhotons]
    Float_t         pho_RegressionEUncertainty[40];   //[nPhotons]
    Float_t         pho_IDMVA[40];   //[nPhotons]
    Float_t         pho_superClusterEta[40];   //[nPhotons]
-   Float_t         pho_hasPixelSeed[40];   //[nPhotons]
+   Bool_t          pho_hasPixelSeed[40];   //[nPhotons]
    Int_t           nJets;
    Float_t         jetE[50];   //[nJets]
    Float_t         jetPt[50];   //[nJets]
@@ -126,6 +139,8 @@ public :
    Float_t         jetJetArea[50];   //[nJets]
    Float_t         jetPileupE[50];   //[nJets]
    Float_t         jetPileupId[50];   //[nJets]
+   Int_t           jetPartonFlavor[50];   //[nJets]
+   Int_t           jetHadronFlavor[50];   //[nJets]
    Int_t           nFatJets;
    Float_t         fatJetE[40];   //[nFatJets]
    Float_t         fatJetPt[40];   //[nFatJets]
@@ -143,6 +158,7 @@ public :
    Float_t         genJetPhi[50];   //[nGenJets]
    Float_t         genMetPt;
    Float_t         genMetPhi;
+   Float_t         genVertexZ;
    UShort_t        nGenParticle;
    Int_t           gParticleMotherId[200];   //[nGenParticle]
    Int_t           gParticleMotherIndex[200];   //[nGenParticle]
@@ -161,7 +177,12 @@ public :
    TBranch        *b_pvX;   //!
    TBranch        *b_pvY;   //!
    TBranch        *b_pvZ;   //!
+   TBranch        *b_fixedGridRhoAll;   //!
    TBranch        *b_fixedGridRhoFastjetAll;   //!
+   TBranch        *b_fixedGridRhoFastjetAllCalo;   //!
+   TBranch        *b_fixedGridRhoFastjetCentralCalo;   //!
+   TBranch        *b_fixedGridRhoFastjetCentralChargedPileUp;   //!
+   TBranch        *b_fixedGridRhoFastjetCentralNeutral;   //!
    TBranch        *b_nBunchXing;   //!
    TBranch        *b_BunchXing;   //!
    TBranch        *b_nPU;   //!
@@ -229,6 +250,13 @@ public :
    TBranch        *b_tau_leadCandID;   //!
    TBranch        *b_tau_leadChargedHadrCandPt;   //!
    TBranch        *b_tau_leadChargedHadrCandID;   //!
+   TBranch        *b_nIsoPFCandidates;   //!
+   TBranch        *b_isoPFCandidatePt;   //!
+   TBranch        *b_isoPFCandidateEta;   //!
+   TBranch        *b_isoPFCandidatePhi;   //!
+   TBranch        *b_isoPFCandidateIso04;   //!
+   TBranch        *b_isoPFCandidateD0;   //!
+   TBranch        *b_isoPFCandidatePdgId;   //!
    TBranch        *b_nPhotons;   //!
    TBranch        *b_phoE;   //!
    TBranch        *b_phoPt;   //!
@@ -242,6 +270,7 @@ public :
    TBranch        *b_pho_sumNeutralHadronEt;   //!
    TBranch        *b_pho_sumPhotonEt;   //!
    TBranch        *b_pho_isConversion;   //!
+   TBranch        *b_pho_passEleVeto;   //!
    TBranch        *b_pho_RegressionE;   //!
    TBranch        *b_pho_RegressionEUncertainty;   //!
    TBranch        *b_pho_IDMVA;   //!
@@ -258,6 +287,8 @@ public :
    TBranch        *b_jetJetArea;   //!
    TBranch        *b_jetPileupE;   //!
    TBranch        *b_jetPileupId;   //!
+   TBranch        *b_jetPartonFlavor;   //!
+   TBranch        *b_jetHadronFlavor;   //!
    TBranch        *b_nFatJets;   //!
    TBranch        *b_fatJetE;   //!
    TBranch        *b_fatJetPt;   //!
@@ -275,6 +306,7 @@ public :
    TBranch        *b_genJetPhi;   //!
    TBranch        *b_genMetPt;   //!
    TBranch        *b_genMetPhi;   //!
+   TBranch        *b_genVertexZ;   //!
    TBranch        *b_nGenParticle;   //!
    TBranch        *b_gParticleMotherId;   //!
    TBranch        *b_gParticleMotherIndex;   //!
@@ -304,11 +336,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("razorNtupleAna.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p4_PHYS14_25ns_v1_v1/141208_042312/0000/razorNtupleAna_1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("razorNtupleAna.root");
+         f = new TFile("SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p4_PHYS14_25ns_v1_v1/141208_042312/0000/razorNtupleAna_1.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("razorNtupleAna.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p4_PHYS14_25ns_v1_v1/141208_042312/0000/razorNtupleAna_1.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -363,7 +395,12 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pvX", &pvX, &b_pvX);
    fChain->SetBranchAddress("pvY", &pvY, &b_pvY);
    fChain->SetBranchAddress("pvZ", &pvZ, &b_pvZ);
+   fChain->SetBranchAddress("fixedGridRhoAll", &fixedGridRhoAll, &b_fixedGridRhoAll);
    fChain->SetBranchAddress("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
+   fChain->SetBranchAddress("fixedGridRhoFastjetAllCalo", &fixedGridRhoFastjetAllCalo, &b_fixedGridRhoFastjetAllCalo);
+   fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
+   fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
+   fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
    fChain->SetBranchAddress("nBunchXing", &nBunchXing, &b_nBunchXing);
    fChain->SetBranchAddress("BunchXing", BunchXing, &b_BunchXing);
    fChain->SetBranchAddress("nPU", nPU, &b_nPU);
@@ -431,6 +468,13 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("tau_leadCandID", tau_leadCandID, &b_tau_leadCandID);
    fChain->SetBranchAddress("tau_leadChargedHadrCandPt", tau_leadChargedHadrCandPt, &b_tau_leadChargedHadrCandPt);
    fChain->SetBranchAddress("tau_leadChargedHadrCandID", tau_leadChargedHadrCandID, &b_tau_leadChargedHadrCandID);
+   fChain->SetBranchAddress("nIsoPFCandidates", &nIsoPFCandidates, &b_nIsoPFCandidates);
+   fChain->SetBranchAddress("isoPFCandidatePt", isoPFCandidatePt, &b_isoPFCandidatePt);
+   fChain->SetBranchAddress("isoPFCandidateEta", isoPFCandidateEta, &b_isoPFCandidateEta);
+   fChain->SetBranchAddress("isoPFCandidatePhi", isoPFCandidatePhi, &b_isoPFCandidatePhi);
+   fChain->SetBranchAddress("isoPFCandidateIso04", isoPFCandidateIso04, &b_isoPFCandidateIso04);
+   fChain->SetBranchAddress("isoPFCandidateD0", isoPFCandidateD0, &b_isoPFCandidateD0);
+   fChain->SetBranchAddress("isoPFCandidatePdgId", isoPFCandidatePdgId, &b_isoPFCandidatePdgId);
    fChain->SetBranchAddress("nPhotons", &nPhotons, &b_nPhotons);
    fChain->SetBranchAddress("phoE", phoE, &b_phoE);
    fChain->SetBranchAddress("phoPt", phoPt, &b_phoPt);
@@ -444,6 +488,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_sumNeutralHadronEt", pho_sumNeutralHadronEt, &b_pho_sumNeutralHadronEt);
    fChain->SetBranchAddress("pho_sumPhotonEt", pho_sumPhotonEt, &b_pho_sumPhotonEt);
    fChain->SetBranchAddress("pho_isConversion", pho_isConversion, &b_pho_isConversion);
+   fChain->SetBranchAddress("pho_passEleVeto", pho_passEleVeto, &b_pho_passEleVeto);
    fChain->SetBranchAddress("pho_RegressionE", pho_RegressionE, &b_pho_RegressionE);
    fChain->SetBranchAddress("pho_RegressionEUncertainty", pho_RegressionEUncertainty, &b_pho_RegressionEUncertainty);
    fChain->SetBranchAddress("pho_IDMVA", pho_IDMVA, &b_pho_IDMVA);
@@ -460,6 +505,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("jetJetArea", jetJetArea, &b_jetJetArea);
    fChain->SetBranchAddress("jetPileupE", jetPileupE, &b_jetPileupE);
    fChain->SetBranchAddress("jetPileupId", jetPileupId, &b_jetPileupId);
+   fChain->SetBranchAddress("jetPartonFlavor", jetPartonFlavor, &b_jetPartonFlavor);
+   fChain->SetBranchAddress("jetHadronFlavor", jetHadronFlavor, &b_jetHadronFlavor);
    fChain->SetBranchAddress("nFatJets", &nFatJets, &b_nFatJets);
    fChain->SetBranchAddress("fatJetE", fatJetE, &b_fatJetE);
    fChain->SetBranchAddress("fatJetPt", fatJetPt, &b_fatJetPt);
@@ -477,6 +524,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genJetPhi", genJetPhi, &b_genJetPhi);
    fChain->SetBranchAddress("genMetPt", &genMetPt, &b_genMetPt);
    fChain->SetBranchAddress("genMetPhi", &genMetPhi, &b_genMetPhi);
+   fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
    fChain->SetBranchAddress("nGenParticle", &nGenParticle, &b_nGenParticle);
    fChain->SetBranchAddress("gParticleMotherId", gParticleMotherId, &b_gParticleMotherId);
    fChain->SetBranchAddress("gParticleMotherIndex", gParticleMotherIndex, &b_gParticleMotherIndex);

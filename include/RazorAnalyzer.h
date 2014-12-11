@@ -6,6 +6,7 @@
 #define RazorAnalyzer_h
 
 #include <RazorEvents.h> //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
+#include "FactorizedJetCorrector.h"
 
 //ROOT includes
 #include <TROOT.h>
@@ -30,6 +31,7 @@ class RazorAnalyzer: public RazorEvents {
         void EnableMuons();
         void EnableElectrons();
         void EnableTaus();
+        void EnableIsoPFCandidates();
         void EnablePhotons();
         void EnableJets();
         void EnableFatJets();
@@ -46,6 +48,11 @@ class RazorAnalyzer: public RazorEvents {
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
+	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
+	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
+	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
+	virtual void JetNtupler(string outputfilename = "", int Option = -1);
+        virtual void RazorMetAna(string outFileName = "RazorMET.root");
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -56,7 +63,8 @@ class RazorAnalyzer: public RazorEvents {
         bool isVetoElectron(int i);
         bool isLooseElectron(int i);
         bool isTightElectron(int i);
-        
+	bool isMVANonTrigVetoElectron(int i);
+
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);
         bool isMediumTau(int i);
@@ -70,10 +78,18 @@ class RazorAnalyzer: public RazorEvents {
         bool isTightPhoton(int i);
 
         //functions in RazorAuxJet.cc
+	
+        bool isOldCSVL(int i);
+        bool isOldCSVM(int i);
+        bool isOldCSVT(int i);
         bool isCSVL(int i);
         bool isCSVM(int i);
         bool isCSVT(int i);
-
+	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
+					  double rho, double jetArea,
+					  FactorizedJetCorrector *jetcorrector,  
+					  bool printDebug = false);
+	  
         //functions in RazorAuxMisc.cc
 	double deltaPhi(double phi1, double phi2);
 	double deltaR(double eta1, double phi1, double eta2, double phi2);
@@ -94,6 +110,7 @@ class RazorAnalyzer: public RazorEvents {
             MuJet,
             EleMultiJet,
             EleJet,
+	    SoftLeptonMultiJet,
             MultiJet,
             TwoBJet,
             OneBJet,
