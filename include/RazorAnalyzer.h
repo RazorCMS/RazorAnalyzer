@@ -53,7 +53,8 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
 	virtual void JetNtupler(string outputfilename = "", int Option = -1);
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
-
+	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
+	
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
 	bool isLooseMuon(int i);
