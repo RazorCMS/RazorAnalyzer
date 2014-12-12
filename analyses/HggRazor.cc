@@ -171,21 +171,36 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         //photon selection
         vector<TLorentzVector> GoodPhotons;
         vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
+        vector<double> GoodPhotonSCEta; //supercluster eta of selected photons
+        vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
-            if(!isMediumPhoton(i)) continue;
+            //ID cuts -- apply isolation after candidate pair selection
+            if(!isMediumPhotonNoIsoCuts(i)){
+                continue;
+            }
 
-            if(phoPt[i] < 25) continue;
-            if(fabs(phoEta[i]) > 2.5) continue; //allow photons in the endcap, but if one of the two leading photons is in the endcap, reject the event
+            if(phoPt[i] < 25){
+                continue;
+            }
+            if(fabs(phoEta[i]) > 2.5){
+                //allow photons in the endcap, but if one of the two leading photons is in the endcap, reject the event
+                continue; 
+            }
 
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
             TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
             GoodPhotons.push_back(thisPhoton);
             GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
+            GoodPhotonSCEta.push_back(pho_superClusterEta[i]);
+            GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
             nSelectedPhotons++;
+
         }
         //if there is no photon with pT above 40 GeV, reject the event
-        if(nPhotonsAbove40GeV == 0) continue;
+        if(nPhotonsAbove40GeV == 0){
+            continue;
+        }
 
         //find the "best" photon pair
         TLorentzVector HiggsCandidate(0,0,0,0);
@@ -198,10 +213,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 TLorentzVector pho2 = GoodPhotons[j];
                 
                 //need one photon in the pair to have pt > 40 GeV
-                if(pho1.Pt() < 40 && pho2.Pt() < 40) continue;
+                if(pho1.Pt() < 40 && pho2.Pt() < 40){
+                    continue;
+                }
                 //need diphoton mass between 100 and 180 GeV
                 double diphotonMass = (pho1 + pho2).M();
-                if(diphotonMass < 100 || diphotonMass > 180) continue;
+                if(diphotonMass < 100 || diphotonMass > 180){
+                    continue;
+                }
                 
                 //if the sum of the photon pT's is larger than the current Higgs candidate, make this the Higgs candidate
                 if(pho1.Pt() + pho2.Pt() > bestSumPt){
@@ -213,9 +232,18 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             }
         }   
         //if the best candidate pair has pT < 20 GeV, reject the event
-        if(HiggsCandidate.Pt() < 20) continue;
+        if(HiggsCandidate.Pt() < 20){
+            continue;
+        }
         //if the best candidate pair has a photon in the endcap, reject the event
-        if(fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.479 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.479) continue;
+        if(fabs(GoodPhotonSCEta[goodPhoIndex1]) > 1.479 || fabs(GoodPhotonSCEta[goodPhoIndex2]) > 1.479){
+            continue;
+        }
+        //if the best candidate pair has a non-isolated photon, reject the event
+        if(!GoodPhotonPassesIso[goodPhoIndex1] || !GoodPhotonPassesIso[goodPhoIndex2]){
+            continue;
+        }
+
         //record higgs candidate info
         mGammaGamma = HiggsCandidate.M();
         pTGammaGamma = HiggsCandidate.Pt();
@@ -248,20 +276,24 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             }
         }
         //if there are no good jets, reject the event
-        if(nSelectedJets == 0) continue;
+        if(nSelectedJets == 0){
+            continue;
+        }
 
         //Compute the razor variables using the selected jets and the diphoton system
         vector<TLorentzVector> JetsPlusHiggsCandidate;
         for(auto& jet : GoodJets) JetsPlusHiggsCandidate.push_back(jet);
         JetsPlusHiggsCandidate.push_back(HiggsCandidate);
 
-        TLorentzVector PFMET = makeTLorentzVector(metPt, 0, metPhi, 0);
+        TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 
         vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
         theMR = computeMR(hemispheres[0], hemispheres[1]); 
         theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
         //if MR < 200, reject the event
-        if(theMR < 200) continue;
+        if(theMR < 200){
+            continue;
+        }
 
         //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
         if(nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0){
