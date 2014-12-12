@@ -374,7 +374,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         vector<TLorentzVector> GoodPFObjects;
         for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
-        TLorentzVector PFMET = makeTLorentzVector(metPt, 0, metPhi, 0);
+        TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 
 
 	if (GoodPFObjects.size() > 20) {

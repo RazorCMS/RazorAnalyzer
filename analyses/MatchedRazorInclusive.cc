@@ -196,7 +196,7 @@ void RazorAnalyzer::MatchedRazorInclusive(string outFileName, bool combineTrees)
         vector<TLorentzVector> GoodPFObjects;
         for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
-        TLorentzVector PFMET = makeTLorentzVector(metPt, 0, metPhi, 0);
+        TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 
         vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
         theMR = computeMR(hemispheres[0], hemispheres[1]); 
