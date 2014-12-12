@@ -8,7 +8,7 @@ import rootTools
 ##initialization
 
 #important values
-integratedLumi = 5000 #in /pb
+integratedLumi = 19700 #in /pb
 mu = 1.11 #best-fit signal strength for Higgs from Run 1
 
 #check that the input files were specified
@@ -29,9 +29,9 @@ libpath = fullpath+"/lib"
 rt.gSystem.Load(libpath+"/libRazorRun2.so")
 
 #suppress info messages from RooFit
-#rt.RooMsgService.instance().setStreamStatus(1,False)
+rt.RooMsgService.instance().setStreamStatus(1,False)
 
-print('Will compute H->gg analysis signal regions and compute signal yields in each box')
+print('Will compute H->gg analysis signal regions and find signal yields in each box')
 
 #load the TTrees from the input files
 boxNames = [
@@ -42,11 +42,11 @@ boxNames = [
         'LowRes'
         ]
 filenames = [sys.argv[i] for i in range(1, len(sys.argv))]
-files = [rt.TFile(filename) for filename in filenames]
+files = dict((filename, rt.TFile(filename)) for filename in filenames)
 #divide inputs into SM Higgs MC, signal MC, and data
-higgsMCBoxes = dict((box, [file.Get(box) for file in files]) for box in boxNames if 'HToGG' in box)
-signalMCBoxes = dict((box, [file.Get(box) for file in files]) for box in boxNames if 'SMS' in box)
-smMCBoxes = dict((box, [file.Get(box) for file in files]) for box in boxNames if 'SMS' not in box and 'HToGG' not in box)
+higgsMCBoxes = dict((box, [file.Get(box) for filename, file in files.iteritems() if 'HToGammaGamma' in filename]) for box in boxNames)
+signalMCBoxes = dict((box, [file.Get(box) for filename, file in files.iteritems() if 'SMS' in filename]) for box in boxNames)
+smMCBoxes = dict((box, [file.Get(box) for filename, file in files.iteritems() if 'HToGammaGamma' not in filename and 'SMS' not in filename]) for box in boxNames)
 
 #create RooDataSets
 vars = {}
@@ -56,27 +56,27 @@ vars['Rsq'] = rt.RooRealVar("Rsq", "Rsq", 0.0, 2.0)
 weight = rt.RooRealVar("weight", "weight", 0.0, 10000000.0)
 args = rt.RooArgSet()
 argsWeighted = rt.RooArgSet()
-for var in vars: 
+for key, var in vars.iteritems(): 
     args.add(var)
     argsWeighted.add(var)
 argsWeighted.add(weight)
 
 #higgs datasets
-higgsMCDataSetsOld = dict((box, rt.RooDataSet("higgsMCDataSetOld"+box, "Combined Higgs MC, Box "+box, argsWeighted, "weight")) for box in boxNames if 'HToGG' in box)
-higgsMCDataSets = dict((box, rt.RooDataSet("higgsMCDataSet"+box, "Combined Higgs MC, Box "+box, argsWeighted, "weight")) for box in boxNames if 'HToGG' in box) #with weights multiplied by integrated lumi * mu
-for (box, trees) in higgsMCBoxes: 
+higgsMCDataSetsOld = dict((box, rt.RooDataSet("higgsMCDataSetsOld"+box, "Combined Higgs MC, Box "+box, argsWeighted, "weight")) for box in boxNames)
+higgsMCDataSets = dict((box, rt.RooDataSet("higgsMCDataSet"+box, "Combined Higgs MC, Box "+box, argsWeighted, "weight")) for box in boxNames) #with weights multiplied by integrated lumi * mu
+for box, trees in higgsMCBoxes.iteritems(): 
     for index, tree in enumerate(trees):
         higgsMCDataSetsOld[box].append(rt.RooDataSet("higgsMC"+box+str(index), "higgsMC"+box+str(index), tree, argsWeighted, "", "weight"))
     #rescale weights
     for i in range(0, higgsMCDataSetsOld[box].numEntries()):
-        theseArgs = higgsMCDataSetOld[box].get(i)
+        theseArgs = higgsMCDataSetsOld[box].get(i)
         theseArgs.setRealValue("weight", theseArgs.getRealValue("weight")*integratedLumi*mu)
         higgsMCDataSets[box].add(theseArgs)
     
 #signal datasets
-signalMCDataSets = dict((box, rt.RooDataSet("signalMCDataSet"+box, "Combined Signal MC, Box "+box, argsWeighted, "weight")) for box in boxNames if 'SMS' in box)
-signalMCDataSetsOld = dict((box, rt.RooDataSet("signalMCDataSetOld"+box, "Combined Signal MC, Box "+box, argsWeighted, "weight")) for box in boxNames if 'SMS' in box)
-for (box, trees) in signalMCBoxes:
+signalMCDataSets = dict((box, rt.RooDataSet("signalMCDataSet"+box, "Combined Signal MC, Box "+box, argsWeighted, "weight")) for box in boxNames)
+signalMCDataSetsOld = dict((box, rt.RooDataSet("signalMCDataSetOld"+box, "Combined Signal MC, Box "+box, argsWeighted, "weight")) for box in boxNames)
+for box, trees in signalMCBoxes.iteritems():
     for index, tree in enumerate(trees):
         signalMCDataSetsOld[box].append(rt.RooDataSet("signalMC"+box+str(index), "signalMC"+box+str(index), tree, argsWeighted, "", "weight"))
     #rescale weights
@@ -86,16 +86,23 @@ for (box, trees) in signalMCBoxes:
         signalMCDataSets[box].add(theseArgs)
 
 #SM datasets
-smMCDataSetsOld = dict((box, rt.RooDataSet("smMCDataSetOld"+box, "Combined Data, Box "+box, argsWeighted, "weight")) for box in boxNames if 'HToGG' not in box and 'SMS' not in box)
-smMCDataSets = dict((box, rt.RooDataSet("smMCDataSet"+box, "Combined Data, Box "+box, argsWeighted, "weight")) for box in boxNames if 'HToGG' not in box and 'SMS' not in box)
-for (box, trees) in smMCBoxes:
+smMCDataSetsOld = dict((box, rt.RooDataSet("smMCDataSetOld"+box, "Combined Data, Box "+box, argsWeighted, "weight")) for box in boxNames)
+smMCDataSets = dict((box, rt.RooDataSet("smMCDataSet"+box, "Combined Data, Box "+box, argsWeighted, "weight")) for box in boxNames)
+for box, trees in smMCBoxes.iteritems():
     for index, tree in enumerate(trees):
         smMCDataSetsOld[box].append(rt.RooDataSet("smMC"+box+str(index), "smMC"+box+str(index), tree, argsWeighted, "", "weight"))
     #rescale weights
     for i in range(0, smMCDataSetsOld[box].numEntries()):
-        theseArgs = smMCDataSetOld[box].get(i)
+        theseArgs = smMCDataSetsOld[box].get(i)
         theseArgs.setRealValue("weight", theseArgs.getRealValue("weight")*integratedLumi)
         smMCDataSets[box].add(theseArgs)
+
+#print out event yields in each box
+for box in boxNames:
+    print("Yields in box "+box+":")
+    print("     SM MC:     "+str(smMCDataSets[box].sumEntries()))
+    print("     Higgs MC:  "+str(higgsMCDataSets[box].sumEntries()))
+    print("     Signal MC: "+str(signalMCDataSets[box].sumEntries()))
 
 ##step 1: use the SM Higgs MC to compute the size of the signal region
 print("Determining effective Higgs peak width in each box...")
@@ -103,21 +110,22 @@ sigmaEff = dict((box, 0.0) for box in boxNames)
 higgsMCSignalRegionYield = {}
 higgsMCBackgroundRegionYield = {}
 for box in boxNames:
+    print("Finding width in "+box+" box")
     fractionHiggsEventsInSignalRegion = 0.0
     stepSize = 0.001 #step size used to widen window until 68.2% of higgs events are within
     while fractionHiggsEventsInSignalRegion < 0.682:
         sigmaEff[box] += stepSize
         fractionHiggsEventsInSignalRegion = higgsMCDataSets[box].sumEntries("mGammaGamma > "+str(125-sigmaEff[box])+" && mGammaGamma < "+str(125+sigmaEff[box]))/higgsMCDataSets[box].sumEntries()
     print("sigmaEff in box "+box+" = "+str(sigmaEff[box]))
-    higgsMCSignalRegionYield[box] = higgsMCDataSets[box].sumEntries("mGammaGamma > "str(125-2*sigmaEff[box])+" && mGammaGamma < "+str(126+2*sigmaEff[box]))
+    higgsMCSignalRegionYield[box] = higgsMCDataSets[box].sumEntries("mGammaGamma > "+str(125-2*sigmaEff[box])+" && mGammaGamma < "+str(126+2*sigmaEff[box]))
     higgsMCBackgroundRegionYield[box] = higgsMCDataSets[box].sumEntries("(mGammaGamma > 103 && mGammaGamma < 120) || (mGammaGamma > 131 && mGammaGamma < 160)")
 
 ##step 2: perform a fit in the full region 103 < mGammaGamma < 160 to extract the background yields in the signal regions
 
 #create background PDF (sum of two exponentials)
 pars = {}
-pars["alpha1"] = rt.RooRealVar("alpha1", "alpha1", -1.0, 0.0)
-pars["alpha2"] = rt.RooRealVar("alpha2", "alpha2", -1.0, 0.0)
+pars["alpha1"] = rt.RooRealVar("alpha1", "alpha1", -0.02, -1.0, 0.0)
+pars["alpha2"] = rt.RooRealVar("alpha2", "alpha2", -0.0004, -1.0, 0.0)
 pars["f"] = rt.RooRealVar("f", "f", 0.005, 0.995)
 pars["nEvents"] = rt.RooRealVar("N", "N", 0.0, 10000000)
 expo1 = rt.RooExponential("expo1", "expo1", vars["mGammaGamma"], pars["alpha1"])
@@ -137,13 +145,13 @@ for box in boxNames:
     pars["alpha1"].setVal(0.3)
     pars["alpha2"].setVal(0.6)
     pars["f"].setVal(0.2)
-    nEvents.setVal(smMCDataSets[box].sumEntries())
-    fitResult = extBackgroundPdf.fitTo(smMCDataSets[box], rt.RooFit.Extended(rt.kTRUE), rt.RooFit.SumW2Errors(rt.kTRUE))
+    pars["nEvents"].setVal(smMCDataSets[box].sumEntries())
+    fitResult = extBackgroundPdf.fitTo(smMCDataSets[box], rt.RooFit.Save(), rt.RooFit.Extended(rt.kTRUE), rt.RooFit.SumW2Error(rt.kTRUE))
     fitResult.Print("v")
     vars["mGammaGamma"].setRange("signal"+box, 125-2*sigmaEff[box], 126+2*sigmaEff[box])
-    signalRegionIntegralObj = extBackgroundPdf.createIntegral(vars['mGammaGamma'], rt.RooFit.Range('signal'+box))
+    signalRegionIntegralObj = extBackgroundPdf.createIntegral(rt.RooArgSet(vars['mGammaGamma']), rt.RooFit.Range('signal'+box))
     signalRegionIntegral[box] = signalRegionIntegralObj.getVal()
-    signalRegionIntegralErr[box] = signalRegionIntegralObj.getErr()
+    signalRegionIntegralErr[box] = 0 #TODO: find out how to get this error
     print("Integral of background pdf in box "+box+" from "+str(125-2*sigmaEff[box])+" to "+str(126+2*sigmaEff[box])+" = "+str(signalRegionIntegral[box]))
 
     #plot the fit result
@@ -156,15 +164,20 @@ for box in boxNames:
     #compute background prediction scale factor: integral of background pdf in sig region / actual num in sideband
     #background region: 103 < mGammaGamma < 120 or 131 < mGammaGamma < 160
     numInSideband = smMCDataSets[box].sumEntries(backgroundCutString)
-    scaleFactor[box] = signalRegionIntegral[box]/numInSideband
-    scaleFactorErr[box] = signalRegionIntegralErr[box]/numInSideband #TODO: include error on sideband yield
+    if numInSideband > 0: 
+        scaleFactor[box] = signalRegionIntegral[box]/numInSideband
+        scaleFactorErr[box] = signalRegionIntegralErr[box]/numInSideband #TODO: include error on sideband yield
+    else: 
+        print("Number of events in sideband is zero!  Setting scale factor for box "+box+" to 0.0.")
+        scaleFactor[box] = 0.0
+        scaleFactorErr[box] = 0.0
     print("Scale factor in box "+box+" = "+str(scaleFactor[box])+" +/- "+str(scaleFactorErr[box]))
 
 ##print out signal region yields from signal MC
 signalMCSignalRegionYield = {}
 signalMCBackgroundRegionYield = {}
 for box in boxNames:
-    signalMCSignalRegionYield[box] = signalMCDataSets[box].sumEntries("mGammaGamma > "str(125-2*sigmaEff[box])+" && mGammaGamma < "+str(126+2*sigmaEff[box]))
+    signalMCSignalRegionYield[box] = signalMCDataSets[box].sumEntries("mGammaGamma > "+str(125-2*sigmaEff[box])+" && mGammaGamma < "+str(126+2*sigmaEff[box]))
     signalMCBackgroundRegionYield[box] = signalMCDataSets[box].sumEntries(backgroundCutString)
     print("Box "+box)
     print("Events in signal region: Higgs MC "+str(higgsMCSignalRegionYield[box])+", Signal MC "+str(signalMCSignalRegionYield[box]))
@@ -174,10 +187,11 @@ for box in boxNames:
 combinedMCDataSets = {}
 MRMaxValue = 3000
 for box in boxNames:
-    backgroundHist = smMCDataSet[box].createHistogram(vars["MR"], vars["Rsq"], backgroundCutString)
+    print("\nComputing signal regions for box "+box)
+    backgroundHist = smMCDataSets[box].createHistogram(vars["MR"], vars["Rsq"], backgroundCutString)
     backgroundHist.Draw("colz")
     c.Print(outpath+"/HggRazorBackgroundDistribution"+box+".pdf")
-    hggHist = higgsMCDataSet[box].createHistogram(vars["MR"], vars["Rsq"])
+    hggHist = higgsMCDataSets[box].createHistogram(vars["MR"], vars["Rsq"])
     hggHist.Draw("colz")
     c.Print(outpath+"/HggRazorHiggsDistribution"+box+".pdf")
     combinedMCDataSets[box] = smMCDataSets[box]
@@ -187,7 +201,7 @@ for box in boxNames:
     MRCut = MRMaxValue
     MREdges = [MRMaxValue]
     done = False
-    while(!done):
+    while not done:
         #compute number of expected events in the region [MRCut, minMREdge]x[RsqCut, 1]
         Integral = combinedMCDataSets[box].sumEntries("Rsq < 1 && Rsq > "+str(RsqCut)+" && MR > "+str(MRCut)+" && MR < "+str(min(MREdges)))
         #if there is at least one event, make a new MR edge and increment the Rsq cut
@@ -200,7 +214,7 @@ for box in boxNames:
             MREdges.append(MRCut)
         #decrease the MR cut for the next round
         if MRCut < 500: MRCut = MRCut - 50
-        else if MRCut < 1000: MRCut = MRCut - 100
+        elif MRCut < 1000: MRCut = MRCut - 100
         else: MRCut = MRCut - 200
     MREdges.remove(MRMaxValue) #for convenience in creating the bins 
     print("MR bin edges: "+str(MREdges)+" and 3000")
@@ -219,7 +233,6 @@ for box in boxNames:
         signalBinCorners.append([[MRLow, MRHigh], [RsqHigh, 1.0]])
         #set max MR for next bin
         MRHigh = MRLow
-    print("Signal region bins created using the algorithm: "+str(signalBinCorners))
     #print out yields in each signal region
     print("Yields by signal region: ")
     signalRegionYieldsMC = []
