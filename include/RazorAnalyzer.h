@@ -94,7 +94,8 @@ class RazorAnalyzer: public RazorEvents {
 	double deltaPhi(double phi1, double phi2);
 	double deltaR(double eta1, double phi1, double eta2, double phi2);
         TLorentzVector makeTLorentzVector(double pt, double eta, double phi, double energy);
-        vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
+	TLorentzVector makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass);
+	vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
         double computeMR(TLorentzVector hem1, TLorentzVector hem2);
         double computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector met);
 

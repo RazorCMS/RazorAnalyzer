@@ -25,6 +25,12 @@ TLorentzVector RazorAnalyzer::makeTLorentzVector(double pt, double eta, double p
     return vec;
 }
 
+TLorentzVector RazorAnalyzer::makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass){
+    TLorentzVector vec;
+    vec.SetPtEtaPhiM(pt, eta, phi, mass);
+    return vec;
+}
+
 vector<TLorentzVector> RazorAnalyzer::getHemispheres(vector<TLorentzVector> jets){
     int nJets = jets.size();
     vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
