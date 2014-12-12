@@ -14,9 +14,9 @@ void RazorAnalyzer::JetNtupler(string outputfilename , int Option)
 {
     //initialization: create one TTree for each analysis box 
     std::vector<JetCorrectorParameters> correctionParameters;
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L1FastJet_AK4PFchs.txt"));
-    //correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L2Relative_AK4PFchs.txt"));
-    //correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V1_MC_L3Absolute_AK4PFchs.txt"));    
+    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
 
     cout << "Initializing..." << endl;
