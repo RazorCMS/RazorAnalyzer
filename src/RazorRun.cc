@@ -138,6 +138,15 @@ int main(int argc, char* argv[]){
 	analyzer.EnableEventInfo();
         analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
     }
+    else if(analysisType == "RazorDM"){
+      cout << "Executing RazorDM analysis..." << endl;
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.RazorDM(outputFileName);
+    }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
     }
