@@ -10,6 +10,7 @@ analysis = 'razor'
 isData = False;
 scramArch = "slc5_amd64_gcc481"
 cmsswVersion = "CMSSW_7_3_0_pre1"
+user = os.environ['USER']
 
 #get the location of this script
 pathname = os.path.dirname(sys.argv[0]) 
@@ -32,8 +33,8 @@ for index, inputlist in enumerate(inputlists):
     with open(inputlist) as f:
         numfiles = sum(1 for _ in f)
     if numfiles == 0: continue
-    ijobmax = numfiles/filesperjob + (numfiles % filesperjob > 0)
-    extrafiles  = numfiles%ijobmax
+    ijobmax = 1 #each dataset is a single job 
+    #ijobmax = numfiles/filesperjob + (numfiles % filesperjob > 0)
 
     #create directories
     ################################################
@@ -80,7 +81,9 @@ for index, inputlist in enumerate(inputlists):
         outputfile.write('echo $HOSTNAME\n')
         outputfile.write('echo '+fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/output'+str(ijob)+'.root\n')
         outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/output'+str(ijob)+'.root\n')
-        outputfile.write('cp $JOBDIR/output'+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\n')
+        #check whether we are on t3-higgs
+        outputfile.write('ls /mnt/hadoop/store/user/'+user+' 1>/dev/null 2>/dev/null\n')
+        outputfile.write('if [ $? -eq 0 ]\nthen\n   echo "Copying file to hadoop under /store/user/'+user+'/'+process+'/'+output+'"\n   mkdir -p /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\n   cp $JOBDIR/output'+str(ijob)+'.root /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\nelse\n   echo "Copying file to the working directory"\n   cp $JOBDIR/output'+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\nfi\n')
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
