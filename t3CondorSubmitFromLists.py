@@ -65,7 +65,7 @@ for index, inputlist in enumerate(inputlists):
         inputfile.close()
 
         # prepare the script to run
-        outputname = process+"/"+output+"/src/submit_"+str(ijob)+".sh"
+        outputname = process+"/"+output+"/src/submit_"+output+str(ijob)+".sh"
         print "OUTPUTFILE: ", outputname
         basedir = fullpath+"/"+process+"/"+output+"/log/";
         outputfile = open(outputname,'w')
@@ -86,7 +86,7 @@ for index, inputlist in enumerate(inputlists):
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
-        submitScript.write('Output = '+process+"/"+output+"/log/"+str(ijob)+'.out\n')
-        submitScript.write('Log = '+process+"/"+output+"/log/"+str(ijob)+'.log\n')
-        submitScript.write('Error = '+process+"/"+output+"/log/"+str(ijob)+'.err\n')
+        submitScript.write('Output = '+process+"/"+output+"/log/"+output+str(ijob)+'.out\n')
+        submitScript.write('Log = '+process+"/"+output+"/log/"+output+str(ijob)+'.log\n')
+        submitScript.write('Error = '+process+"/"+output+"/log/"+output+str(ijob)+'.err\n')
         submitScript.write('Queue\n')
