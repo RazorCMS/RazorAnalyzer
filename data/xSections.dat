@@ -36,6 +36,16 @@ WJetsToLNu_HT-100to200_Tune4C_13TeV-madgraph-tauola             1817
 WJetsToLNu_HT-200to400_Tune4C_13TeV-madgraph-tauola             471.6
 WJetsToLNu_HT-400to600_Tune4C_13TeV-madgraph-tauola             55.61
 WJetsToLNu_HT-600toInf_Tune4C_13TeV-madgraph-tauola             18.81
+GJet_Pt40_doubleEMEnriched_TuneZ2star_13TeV-pythia6             17180
+
+#Higgs production -- cross sections assuming a higgs mass of 125.5 GeV, 
+#from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageAt1314TeV
+#Higgs branching fraction to gamma gamma taken from 
+#https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR3
+GluGluToHToGG_M-125_13TeV-powheg-pythia6                        0.0994536
+VBF_HToGG_M-125_13TeV-powheg-pythia6                            0.00849756
+WH_ZH_HToGG_M-125_13TeV_pythia6                                 0.005064792
+TTbarH_HToGG_M-125_13TeV_amcatnlo-pythia8-tauola                0.001146156
 
 #SUSY SMSs -- dummy cross sections
 SMS-T1bbbb_2J_mGl-1000_mLSP-900_Tune4C_13TeV-madgraph-tauola    1
