@@ -121,6 +121,13 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.MuonNtupler(outputFileName, option);
     }
+    else if(analysisType == "tauNtupler"){
+      cout << "Executing tau ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableTaus();
+      analyzer.EnableGenParticles();
+      analyzer.TauNtupler(outputFileName, option);
+    }
     else if(analysisType == "jetNtupler"){
       cout << "Executing jet ntupler..." << endl;
       analyzer.EnableEventInfo();

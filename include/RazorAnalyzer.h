@@ -51,6 +51,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
 	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
 	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
+	virtual void TauNtupler(string outputfilename = "", int Option = -1);
 	virtual void JetNtupler(string outputfilename = "", int Option = -1);
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
@@ -102,7 +103,14 @@ class RazorAnalyzer: public RazorEvents {
 
         bool passesHadronicRazorBaseline(double MR, double Rsq);
         bool passesLeptonicRazorBaseline(double MR, double Rsq);
-
+	
+	//functions in src/RazorAuxGenLevel.cc
+	bool isGenTau(int index);
+	int findClosestGenTau(double eta, double phi);
+	int findClosestRecoTau(double eta, double phi);
+	int GetTauMatchedID(double eta, double phi);
+	int findClosestParton(float eta, float phi);
+	
         //enums
         enum RazorBox { //boxes for razor inclusive analysis
             MuEle, 
