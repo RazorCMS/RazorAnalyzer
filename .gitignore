@@ -12,3 +12,4 @@ condor/*
 dustinScripts
 python/lib/*
 tmp.txt
+*.*~
