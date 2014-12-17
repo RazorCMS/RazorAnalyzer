@@ -52,6 +52,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
 	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
 	virtual void JetNtupler(string outputfilename = "", int Option = -1);
+        virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root");
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 	
@@ -79,7 +80,9 @@ class RazorAnalyzer: public RazorEvents {
         bool isLoosePhoton(int i);
         bool isMediumPhoton(int i);
         bool isMediumPhotonNoIsoCuts(int i);
+        bool photonPassesLooseIsoCuts(int i);
         bool photonPassesMediumIsoCuts(int i);
+        bool photonPassesTightIsoCuts(int i);
         bool isTightPhoton(int i);
 
         //functions in RazorAuxJet.cc
