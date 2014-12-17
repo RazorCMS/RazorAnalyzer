@@ -171,7 +171,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         //photon selection
         vector<TLorentzVector> GoodPhotons;
         vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
-        vector<double> GoodPhotonSCEta; //supercluster eta of selected photons
         vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
@@ -183,16 +182,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             if(phoPt[i] < 25){
                 continue;
             }
-            if(fabs(phoEta[i]) > 2.5){
+            if(fabs(pho_superClusterEta[i]) > 2.5){
                 //allow photons in the endcap, but if one of the two leading photons is in the endcap, reject the event
                 continue; 
             }
 
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
-            TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
+            TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i]);
             GoodPhotons.push_back(thisPhoton);
             GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
-            GoodPhotonSCEta.push_back(pho_superClusterEta[i]);
             GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
             nSelectedPhotons++;
 
@@ -236,7 +234,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             continue;
         }
         //if the best candidate pair has a photon in the endcap, reject the event
-        if(fabs(GoodPhotonSCEta[goodPhoIndex1]) > 1.479 || fabs(GoodPhotonSCEta[goodPhoIndex2]) > 1.479){
+        if(fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.479 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.479){
             continue;
         }
         //if the best candidate pair has a non-isolated photon, reject the event
