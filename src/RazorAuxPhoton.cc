@@ -122,6 +122,15 @@ bool RazorAnalyzer::isMediumPhotonNoIsoCuts(int i){
     return passesCutsBasedPhotonIDNoIsoCuts(i, 0.020, 0.0268);
 }
 
+bool RazorAnalyzer::photonPassesLooseIsoCuts(int i){
+    //barrel photons
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+        return photonPassesIsolation(i, 2.49, 15.43+0.007*phoPt[i], 9.42+0.0033*phoPt[i] );
+    }
+    //endcap photons
+    return photonPassesIsolation(i, 1.04, 19.71+0.0129*phoPt[i], 11.88+0.0108*phoPt[i]);
+}
+
 bool RazorAnalyzer::photonPassesMediumIsoCuts(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
@@ -129,6 +138,15 @@ bool RazorAnalyzer::photonPassesMediumIsoCuts(int i){
     }
     //endcap photons
     return photonPassesIsolation(i, 0.82, 14.65+0.0129*phoPt[i], 4.06+0.0108*phoPt[i]);
+}
+
+bool RazorAnalyzer::photonPassesTightIsoCuts(int i){
+    //barrel photons
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+        return photonPassesIsolation(i, 1.61, 3.98+0.007*phoPt[i], 3.01+0.0033*phoPt[i]);
+    }
+    //endcap photons
+    return photonPassesIsolation(i, 0.69, 4.52+0.0129*phoPt[i], 3.61+0.0108*phoPt[i]);
 }
 
 bool RazorAnalyzer::isTightPhoton(int i){

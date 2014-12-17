@@ -33,8 +33,8 @@ for index, inputlist in enumerate(inputlists):
     with open(inputlist) as f:
         numfiles = sum(1 for _ in f)
     if numfiles == 0: continue
-    ijobmax = 1 #each dataset is a single job 
-    #ijobmax = numfiles/filesperjob + (numfiles % filesperjob > 0)
+    #ijobmax = 1 #each dataset is a single job 
+    ijobmax = numfiles/filesperjob + (numfiles % filesperjob > 0)
 
     #create directories
     ################################################
