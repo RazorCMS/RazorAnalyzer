@@ -42,6 +42,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename)
     PhotonNtuple->Branch("genPhotonE", genPhotonE, "genPhotonE[nGenPhotons]/F");
 
     bool phoMatchesGen[40];
+    int nMatchingGenPhotons[40];
     int phoMatchingGenPhotonIndex[40];
     float deltaEOverEBest[40];
     bool phoIsLoose[40];
@@ -55,6 +56,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename)
     float phoNeuHadIsolation[40];
     float phoPhotIsolation[40];
     PhotonNtuple->Branch("phoMatchesGen", phoMatchesGen, "phoMatchesGen[nPhotons]/O");
+    PhotonNtuple->Branch("nMatchingGenPhotons", nMatchingGenPhotons, "nMatchingGenPhotons[nPhotons]/I");
     PhotonNtuple->Branch("phoMatchingGenPhotonIndex", phoMatchingGenPhotonIndex, "phoMatchingGenPhotonIndex[nPhotons]/I");
     PhotonNtuple->Branch("deltaEOverEBest", deltaEOverEBest, "deltaEOverEBest[nPhotons]/F");
     PhotonNtuple->Branch("phoIsLoose", phoIsLoose, "phoIsLoose[nPhotons]/O");
@@ -82,6 +84,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename)
 
         //reset tree variables
         for(int i = 0; i < 40; i++){
+            nMatchingGenPhotons[i] = 0;
             phoChHadIsolation[i] = -1;
             phoNeuHadIsolation[i] = -1;
             phoPhotIsolation[i] = -1;
@@ -119,6 +122,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename)
                 if(deltaEOverE > 1.) continue;
 
                 phoMatchesGen[i] = true;
+                nMatchingGenPhotons[i]++;
 
                 if(deltaEOverE < deltaEOverEBest[i]){
                     deltaEOverEBest[i] = deltaEOverE;

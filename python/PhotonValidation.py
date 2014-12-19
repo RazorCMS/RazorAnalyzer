@@ -30,20 +30,28 @@ print('Will compute photon selection efficiencies and validate the photon ID')
 inFile = rt.TFile(sys.argv[1])
 events = inFile.Get("PhotonNtuple")
 
+#drawPhoton =False
+drawPhoton =True 
 #plot photon efficiency as a function of pT, eta
 c = rt.TCanvas("c", "c", 800, 600)
 for level in ['Loose', 'Medium', 'Tight']:
+    if not drawPhoton: break
     for ptCut in [0, 25, 40, 100]:
         #photon efficiency
         numerator = rt.TH1F("numerator", level+" Photon efficiency vs #eta, p_{T} > "+str(ptCut)+"; #eta; #epsilon", 50, -2.5, 2.5)
         denominator = rt.TH1F("denominator", level+" Photon efficiency vs #eta; #eta; #epsilon", 50, -2.5, 2.5)
-        events.Draw("phoEta>>numerator", "phoMatchesGen && phoIs"+level+" && phoPt > "+str(ptCut))
-        events.Draw("phoEta>>denominator", "phoMatchesGen && phoPt > "+str(ptCut))
+        num = events.Draw("pho_superClusterEta>>numerator", "phoMatchesGen && phoIs"+level+" && phoPt > "+str(ptCut))
+        denom = events.Draw("pho_superClusterEta>>denominator", "phoMatchesGen && phoPt > "+str(ptCut))
         numerator.Divide(denominator)
         numerator.SetStats(0)
         numerator.SetMarkerStyle(20)
         numerator.Draw("pc")
         c.Print(outpath+"/Photon"+level+"EfficiencyVsEtaForPt"+str(ptCut)+".pdf")
+        print("\nOverall efficiency for "+level+" photons with pT > "+str(ptCut)+" is "+str(num*1.0/denom)+"\n")
+        #check barrel only
+        num = events.Draw("", "phoMatchesGen && phoIs"+level+" && phoPt > "+str(ptCut)+" && abs(pho_superClusterEta) < 1.479")
+        denom = events.Draw("", "phoMatchesGen && phoPt > "+str(ptCut)+" && abs(pho_superClusterEta) < 1.479")
+        print("\nOverall efficiency for "+level+" barrel photons with pT > "+str(ptCut)+" is "+str(num*1.0/denom)+"\n")
         #photon energy resolution
         c.SetLogy()
         EnergyResolution = rt.TH1F("EnergyResolution", level+" photon energy resolution in the barrel, p_{T} > "+str(ptCut)+"; #Delta E/E_{gen}", 50, 0., 1)
@@ -55,8 +63,8 @@ for level in ['Loose', 'Medium', 'Tight']:
         #photon isolation efficiency
         numerator = rt.TH1F("numerator", level+" Photon isolation efficiency vs #eta, p_{T} > "+str(ptCut)+"; #eta; #epsilon", 50, -2.5, 2.5)
         denominator = rt.TH1F("denominator", level+" Photon isolation efficiency vs #eta; #eta; #epsilon", 50, -2.5, 2.5)
-        events.Draw("phoEta>>numerator", "phoMatchesGen && phoIsIsolated"+level+" && phoPt > "+str(ptCut))
-        events.Draw("phoEta>>denominator", "phoMatchesGen && phoPt > "+str(ptCut))
+        events.Draw("pho_superClusterEta>>numerator", "phoMatchesGen && phoIsIsolated"+level+" && phoPt > "+str(ptCut))
+        events.Draw("pho_superClusterEta>>denominator", "phoMatchesGen && phoPt > "+str(ptCut))
         numerator.Divide(denominator)
         numerator.SetStats(0)
         numerator.SetMarkerStyle(20)
@@ -66,8 +74,8 @@ for level in ['Loose', 'Medium', 'Tight']:
         #photon efficiency
         numerator = rt.TH1F("numerator", level+" Photon efficiency vs p_{T}, |#eta| < "+str(etaCut)+"; p_{T}; #epsilon", 50, 0, 400)
         denominator = rt.TH1F("denominator", level+" Photon efficiency vs p_{T}, |#eta| < "+str(etaCut)+"; p_{T}; #epsilon", 50, 0, 400)
-        events.Draw("phoPt>>numerator", "phoMatchesGen && phoIs"+level+" && fabs(phoEta) < "+str(etaCut))
-        events.Draw("phoPt>>denominator", "phoMatchesGen && fabs(phoEta) < "+str(etaCut))
+        events.Draw("phoPt>>numerator", "phoMatchesGen && phoIs"+level+" && abs(pho_superClusterEta) < "+str(etaCut))
+        events.Draw("phoPt>>denominator", "phoMatchesGen && abs(pho_superClusterEta) < "+str(etaCut))
         numerator.Divide(denominator)
         numerator.SetStats(0)
         numerator.SetMarkerStyle(20)
@@ -76,10 +84,37 @@ for level in ['Loose', 'Medium', 'Tight']:
         #photon isolation efficiency
         numerator = rt.TH1F("numerator", level+" Photon isolation efficiency vs p_{T}, |#eta| < "+str(etaCut)+"; p_{T}; #epsilon", 50, 0, 400)
         denominator = rt.TH1F("denominator", level+" Photon isolation efficiency vs p_{T}, |#eta| < "+str(etaCut)+"; p_{T}; #epsilon", 50, 0, 400)
-        events.Draw("phoPt>>numerator", "phoMatchesGen && phoIsIsolated"+level+" && fabs(phoEta) < "+str(etaCut))
-        events.Draw("phoPt>>denominator", "phoMatchesGen && fabs(phoEta) < "+str(etaCut))
+        events.Draw("phoPt>>numerator", "phoMatchesGen && phoIsIsolated"+level+" && abs(pho_superClusterEta) < "+str(etaCut))
+        events.Draw("phoPt>>denominator", "phoMatchesGen && abs(pho_superClusterEta) < "+str(etaCut))
         numerator.Divide(denominator)
         numerator.SetStats(0)
         numerator.SetMarkerStyle(20)
         numerator.Draw("pc")
         c.Print(outpath+"/Photon"+level+"IsoEfficiencyVsPtForEta"+str(etaCut)+".pdf")
+
+##make distributions of photon variables with cut levels drawn in
+c.SetLogy()
+maxes = [0.15, 0.05, 20.0, 30.0, 50.0]
+loose = [0.553, 0.0099, 2.49, 15.43, 9.42]
+medium = [0.058, 0.0099, 1.91, 4.66, 4.29]
+tight = [0.019, 0.0099, 1.61, 3.98, 3.01]
+titles = ['H/E', '#sigma_{i#eta i#eta}', 'Charged hadron isolation', 'Neutral hadron isolation', 'Photon energy isolation']
+for index, var in enumerate(['pho_HoverE', 'phoFull5x5SigmaIetaIeta', 'phoChHadIsolation', 'phoNeuHadIsolation', 'phoPhotIsolation-phoPt']):
+    hist = rt.TH1F("hist", titles[index], 100, 0.0, maxes[index])
+    events.Draw(var+">>hist", "phoMatchesGen && abs(pho_superClusterEta) < 1.479 && phoPt > 40")
+    hist.SetStats(0)
+    hist.SetLineWidth(2)
+    hist.Draw()
+    looseLine = rt.TLine(loose[index], 0, loose[index], hist.GetMaximum())
+    looseLine.SetLineColor(rt.kGreen)
+    looseLine.SetLineWidth(2)
+    looseLine.Draw("lsame")
+    mediumLine = rt.TLine(medium[index], 0, medium[index], hist.GetMaximum())
+    mediumLine.SetLineColor(rt.kOrange)
+    mediumLine.SetLineWidth(2)
+    mediumLine.Draw("lsame")
+    tightLine = rt.TLine(tight[index], 0, tight[index], hist.GetMaximum())
+    tightLine.SetLineColor(rt.kRed)
+    tightLine.SetLineWidth(2)
+    tightLine.Draw("lsame")
+    c.Print(outpath+"/Photon"+var+"barrel.pdf")

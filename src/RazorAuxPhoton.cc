@@ -56,7 +56,7 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
     
     //Rho corrected PF photon isolation
-    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - phoPt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
 
     //photon passed all cuts
