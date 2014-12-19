@@ -4,6 +4,10 @@ import numpy as np
 import itertools
 import ROOT as rt
 import rootTools
+import math
+
+def mGGBackgroundIntegral(m1, m2, a1, a2, f):
+    return f/a1*(math.exp(a1*m2) - math.exp(a1*m1)) + (1-f)/a2*(math.exp(a2*m2) - math.exp(a2*m1))
 
 ##initialization
 
@@ -32,7 +36,7 @@ rt.gSystem.Load(libpath+"/libRazorRun2.so")
 rt.RooMsgService.instance().setStreamStatus(1,False)
 rt.gErrorIgnoreLevel = rt.kWarning
 
-print('Will compute H->gg analysis signal regions and find signal yields in each box')
+print('Will compute H->gg analysis signal regions and find signal yields in each box\n')
 
 #load the TTrees from the input files
 boxNames = [
@@ -46,12 +50,28 @@ filenames = [sys.argv[i] for i in range(1, len(sys.argv))]
 files = dict((filename, rt.TFile(filename)) for filename in filenames)
 #divide inputs into SM Higgs MC, signal MC, and data
 higgsMCBoxes = dict((box, [file.Get(box) for filename, file in files.iteritems() if 'HToGammaGamma' in filename]) for box in boxNames)
+print("Higgs MC samples to run on:")
+for filename in filenames: 
+    if 'HToGammaGamma' in filename: print filename
+if len(higgsMCBoxes[boxNames[0]]) == 0:
+    print("Error: please supply at least one HToGammaGamma sample.")
+    exit()
 signalMCBoxes = dict((box, [file.Get(box) for filename, file in files.iteritems() if 'SMS' in filename]) for box in boxNames)
 smMCBoxes = dict((box, [file.Get(box) for filename, file in files.iteritems() if 'HToGammaGamma' not in filename and 'SMS' not in filename]) for box in boxNames)
+print("")
+print("SM MC samples to run on:")
+for filename in filenames: 
+    if 'HToGammaGamma' not in filename and 'SMS' not in filename: print filename
+if len(smMCBoxes[boxNames[0]]) == 0:
+    print("Error: please supply at least one SM background samples.")
+    exit()
+print("")
 
 #create RooDataSets
 vars = {}
-vars['mGammaGamma'] = rt.RooRealVar("mGammaGamma", "mGammaGamma", 100, 180)
+mGGMin = 103
+mGGMax = 160
+vars['mGammaGamma'] = rt.RooRealVar("mGammaGamma", "mGammaGamma", mGGMin, mGGMax)
 vars['MR'] = rt.RooRealVar("MR", "MR", 200, 3000)
 vars['Rsq'] = rt.RooRealVar("Rsq", "Rsq", 0.0, 1.0)
 weight = rt.RooRealVar("weight", "weight", 0.0, 10000000.0)
@@ -124,8 +144,7 @@ for box in boxNames:
     fitResult = extBackgroundPdf.fitTo(smMCDataSets[box], rt.RooFit.Save(), rt.RooFit.Extended(rt.kTRUE), rt.RooFit.SumW2Error(rt.kTRUE))
     fitResult.Print("v")
     vars["mGammaGamma"].setRange("signal"+box, 125-2*sigmaEff[box], 126+2*sigmaEff[box])
-    signalRegionIntegralObj = extBackgroundPdf.createIntegral(rt.RooArgSet(vars['mGammaGamma']), rt.RooFit.Range('signal'+box))
-    signalRegionIntegral[box] = signalRegionIntegralObj.getVal()
+    signalRegionIntegral[box] = pars["nEvents"].getVal()*mGGBackgroundIntegral(125-2*sigmaEff[box], 126+2*sigmaEff[box], pars["alpha1"].getVal(), pars["alpha2"].getVal(), pars["f"].getVal())/mGGBackgroundIntegral(mGGMin, mGGMax, pars["alpha1"].getVal(), pars["alpha2"].getVal(), pars["f"].getVal())
     signalRegionIntegralErr[box] = 0 #TODO: find out how to get this error
 
     #plot the fit result
@@ -163,7 +182,7 @@ for box in boxNames:
     backgroundHist.GetXaxis().SetRangeUser(200, 1000)
     backgroundHist.GetYaxis().SetRangeUser(0.0, 0.2)
     backgroundHist.GetZaxis().SetRangeUser(0.0, 200)
-    backgroundHist.SetTitle("Nonresonant background distribution in "+box+" box")
+    backgroundHist.SetTitle("Nonresonant background distribution in "+box+" box; M_{R} (GeV); R^{2}")
     backgroundHist.SetStats(0)
     backgroundHist.Draw("colz")
     c.Print(outpath+"/HggRazorBackgroundDistribution"+box+".pdf")
@@ -171,7 +190,7 @@ for box in boxNames:
     hggHist.GetXaxis().SetRangeUser(200, 3000)
     hggHist.GetYaxis().SetRangeUser(0.0, 1)
     hggHist.GetZaxis().SetRangeUser(0.0, 1.0)
-    hggHist.SetTitle("Higgs background distribution in "+box+" box")
+    hggHist.SetTitle("Higgs background distribution in "+box+" box; M_{R} (GeV); R^{2}")
     hggHist.SetStats(0)
     hggHist.Draw("colz")
     c.Print(outpath+"/HggRazorHiggsDistribution"+box+".pdf")

@@ -135,7 +135,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 
         //TODO: triggers!
         bool passedDiphotonTrigger = true;
-
         if(!passedDiphotonTrigger) continue;
 
         //muon selection
@@ -154,6 +153,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         for(int i = 0; i < nElectrons; i++){
             if(!isLooseElectron(i)) continue; 
             if(elePt[i] < 10) continue;
+            if(abs(eleEta[i]) > 2.5) continue;
 
             nLooseElectrons++;
 
@@ -178,22 +178,21 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             if(!isMediumPhotonNoIsoCuts(i)){
                 continue;
             }
-
             if(phoPt[i] < 25){
                 continue;
             }
             if(fabs(pho_superClusterEta[i]) > 2.5){
-                //allow photons in the endcap, but if one of the two leading photons is in the endcap, reject the event
+                //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
                 continue; 
             }
 
+            //photon passes
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
             TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i]);
             GoodPhotons.push_back(thisPhoton);
             GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
             GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
             nSelectedPhotons++;
-
         }
         //if there is no photon with pT above 40 GeV, reject the event
         if(nPhotonsAbove40GeV == 0){
@@ -220,7 +219,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                     continue;
                 }
                 
-                //if the sum of the photon pT's is larger than the current Higgs candidate, make this the Higgs candidate
+                //if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
                 if(pho1.Pt() + pho2.Pt() > bestSumPt){
                     bestSumPt = pho1.Pt() + pho2.Pt();
                     HiggsCandidate = pho1 + pho2;
