@@ -2,7 +2,7 @@
 
 bool RazorAnalyzer::isVetoElectron(int i){
   bool pass = false;
-  if(eleEta_SC[i] < 1.479) {
+  if(fabs(eleEta_SC[i]) < 1.479) {
     if ( fabs(ele_dEta[i]) < 0.02
 	 && fabs(ele_dPhi[i]) < 0.2579
 	 && eleFull5x5SigmaIetaIeta[i] < 0.0125
@@ -36,7 +36,7 @@ bool RazorAnalyzer::isVetoElectron(int i){
 
 bool RazorAnalyzer::isLooseElectron(int i){
   bool pass = false;
-  if(eleEta_SC[i] < 1.479) {
+  if(fabs(eleEta_SC[i]) < 1.479) {
     if ( fabs(ele_dEta[i]) < 0.0181
 	 && fabs(ele_dPhi[i]) < 0.0936
 	 && eleFull5x5SigmaIetaIeta[i] < 0.0123
@@ -70,7 +70,7 @@ bool RazorAnalyzer::isLooseElectron(int i){
 
 bool RazorAnalyzer::isTightElectron(int i){
   bool pass = false;
-  if(eleEta_SC[i] < 1.479) {
+  if(fabs(eleEta_SC[i]) < 1.479) {
     if ( fabs(ele_dEta[i]) < 0.0091
 	 && fabs(ele_dPhi[i]) < 0.031
 	 && eleFull5x5SigmaIetaIeta[i] < 0.0106
@@ -112,15 +112,15 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
 
   Double_t MVACut = -999;
   if (subdet == 0 && ptBin == 0) MVACut = 0.0;
-  if (subdet == 1 && ptBin == 0) MVACut = 0.3;
+  if (subdet == 1 && ptBin == 0) MVACut = 0.6;
   if (subdet == 0 && ptBin == 1) MVACut = -0.3;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.3;
+  if (subdet == 1 && ptBin == 1) MVACut = 0.5;
 
   bool pass = false;
   if (ele_IDMVANonTrig[i] > MVACut 
-      && ( (elePt[i] > 20 && ele_relIsoDBetaCorr[i] < 0.4)
+      && ( (elePt[i] > 20 && ele_relIsoDBetaCorr[i] < 0.3)
 	   ||
-	   (elePt[i] <= 20 && ele_relIsoDBetaCorr[i]*elePt[i] < 8)
+	   (elePt[i] <= 20 && ele_relIsoDBetaCorr[i]*elePt[i] < 5)
 	   )
       ) {
     pass = true;
