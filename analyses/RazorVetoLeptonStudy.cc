@@ -81,6 +81,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
     float leadingGenMuonPt, leadingGenElectronPt;
     float leadingGenMuonEta, leadingGenElectronEta;
     float minDRGenLeptonToGenParton;
+    int npu;
     // RazorVetoLeptonStudy_RazorBox box;
     RazorBox box;
 
@@ -112,6 +113,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         razorTree->Branch("Rsq", &theRsq, "Rsq/F");
         razorTree->Branch("met", &met, "met/F");
         razorTree->Branch("box", &box, "box/I");
+        razorTree->Branch("npu", &npu, "npu/I");
     }
     //set branches on all trees
     else{ 
@@ -141,6 +143,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
             box.second->Branch("MR", &theMR, "MR/F");
 	    box.second->Branch("met", &met, "met/F");
             box.second->Branch("Rsq", &theRsq, "Rsq/F");
+	    box.second->Branch("npu", &npu, "npu/I");
         }
     }
 
@@ -181,6 +184,14 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         theRsq = -1;
 	minDRGenLeptonToGenParton = 9999;
         if(combineTrees) box = NONE;
+	npu = -1;
+
+	//get NPU
+	for (int i=0; i < nBunchXing; ++i) {
+	  if (BunchXing[i] == 0) {
+	    npu = nPU[i];
+	  }
+	}
 
         //TODO: triggers!
         bool passedLeptonicTrigger = true;
@@ -304,7 +315,9 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
             if(fabs(eleEta[i]) > 2.5) continue;
 
 	    if(isMVANonTrigVetoElectron(i)) nVetoMVAElectrons++;
-            if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
+            if(isMVANonTrigVetoElectron(i)) {
+	      nVetoElectrons++;
+	    }
             if(isLooseElectron(i) && elePt[i] > 10 ) nLooseElectrons++;
             if(isTightElectron(i) && elePt[i] > 10 ) nTightElectrons++;
 
