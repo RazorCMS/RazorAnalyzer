@@ -154,6 +154,7 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_RegressionEUncertainty", 1);
     fChain->SetBranchStatus("pho_IDMVA", 1);
     fChain->SetBranchStatus("pho_superClusterEta", 1);
+    fChain->SetBranchStatus("pho_superClusterPhi", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
 }
 

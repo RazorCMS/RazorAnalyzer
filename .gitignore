@@ -11,3 +11,5 @@ condor/*
 *.swp
 dustinScripts
 python/lib/*
+tmp.txt
+*.*~

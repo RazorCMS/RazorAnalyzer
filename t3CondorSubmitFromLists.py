@@ -10,6 +10,7 @@ analysis = 'razor'
 isData = False;
 scramArch = "slc5_amd64_gcc481"
 cmsswVersion = "CMSSW_7_3_0_pre1"
+user = os.environ['USER']
 
 #get the location of this script
 pathname = os.path.dirname(sys.argv[0]) 
@@ -32,8 +33,8 @@ for index, inputlist in enumerate(inputlists):
     with open(inputlist) as f:
         numfiles = sum(1 for _ in f)
     if numfiles == 0: continue
+    #ijobmax = 1 #each dataset is a single job 
     ijobmax = numfiles/filesperjob + (numfiles % filesperjob > 0)
-    extrafiles  = numfiles%ijobmax
 
     #create directories
     ################################################
@@ -64,7 +65,7 @@ for index, inputlist in enumerate(inputlists):
         inputfile.close()
 
         # prepare the script to run
-        outputname = process+"/"+output+"/src/submit_"+str(ijob)+".sh"
+        outputname = process+"/"+output+"/src/submit_"+output+str(ijob)+".sh"
         print "OUTPUTFILE: ", outputname
         basedir = fullpath+"/"+process+"/"+output+"/log/";
         outputfile = open(outputname,'w')
@@ -73,18 +74,21 @@ for index, inputlist in enumerate(inputlists):
         outputfile.write('echo $JOBDIR\n')
         outputfile.write('export SCRAM_ARCH='+scramArch+'\n')
         outputfile.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
-        outputfile.write('cmsrel '+cmsswVersion+'\n')
-        outputfile.write('cd '+cmsswVersion+'/src\n')
+        #outputfile.write('cmsrel '+cmsswVersion+'\n')
+        #outputfile.write('cd '+cmsswVersion+'/src\n')
+        #outputfile.write('cmsenv\n')
+        outputfile.write('cd '+fullpath+'\n')
         outputfile.write('cmsenv\n')
         outputfile.write('cd - \n')
         outputfile.write('echo $HOSTNAME\n')
-        outputfile.write('echo '+fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/output'+str(ijob)+'.root\n')
-        outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/output'+str(ijob)+'.root\n')
-        outputfile.write('cp $JOBDIR/output'+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\n')
+        outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/'+output+str(ijob)+'.root\n')
+        #check whether we are on t3-higgs
+        outputfile.write('ls /mnt/hadoop/store/user/'+user+' 1>/dev/null 2>/dev/null\n')
+        outputfile.write('if [ $? -eq 0 ]\nthen\n   echo "Copying file to hadoop under /store/user/'+user+'/'+process+'/'+output+'"\n   mkdir -p /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\n   cp $JOBDIR/'+output+str(ijob)+'.root /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\nelse\n   echo "Copying file to the working directory"\n   cp $JOBDIR/'+output+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\nfi\n')
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
-        submitScript.write('Output = '+process+"/"+output+"/log/"+str(ijob)+'.out\n')
-        submitScript.write('Log = '+process+"/"+output+"/log/"+str(ijob)+'.log\n')
-        submitScript.write('Error = '+process+"/"+output+"/log/"+str(ijob)+'.err\n')
+        submitScript.write('Output = '+process+"/"+output+"/log/"+output+str(ijob)+'.out\n')
+        submitScript.write('Log = '+process+"/"+output+"/log/"+output+str(ijob)+'.log\n')
+        submitScript.write('Error = '+process+"/"+output+"/log/"+output+str(ijob)+'.err\n')
         submitScript.write('Queue\n')

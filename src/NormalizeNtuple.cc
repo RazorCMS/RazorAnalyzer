@@ -10,7 +10,7 @@
 using namespace std;
 
 // Get total number of events in the sample and determine normalization weight factor
-double getNormalizationWeight(string filename, string datasetName) {
+double getNormalizationWeight(string filename, string datasetName, double intLumi) {
 
   //Get Number of Events in the Sample
   TFile *file = new TFile(filename.c_str(),"READ");
@@ -33,7 +33,7 @@ double getNormalizationWeight(string filename, string datasetName) {
   //Get CrossSection
   SimpleTable xstab("data/xSections.dat");
   double CrossSection = xstab.Get(datasetName.c_str());  
-  double Weight = CrossSection / NEvents;
+  double Weight = CrossSection * intLumi / NEvents;
   // weight for data is always 1 (-1 to make a trick for fakes)
   if(CrossSection < 0) Weight = -1.0;
 
@@ -52,10 +52,17 @@ int main(int argc, char* argv[]) {
 
     //parse input list to get names of ROOT files
     if(argc < 2){
-        cerr << "usage NormalizeNtuple inputList.txt" << endl;
+        cerr << "usage NormalizeNtuple inputList.txt <integrated lumi in /pb>" << endl;
         return -1;
     }
     string inputList(argv[1]);
+
+    float intLumi = 1.0; //in pb
+    if(argc >= 3){
+        intLumi = atof(argv[2]);
+        cout << "Using an integrated luminosity of " << intLumi << " pb" << endl;
+    }
+    else cout << "No integrated luminosity specified; normalizing to 1/pb" << endl;
 
     ifstream filein(inputList.c_str());
     string curFilename;
@@ -76,7 +83,7 @@ int main(int argc, char* argv[]) {
         string fileName = inputs[1];
 
         //get the weight to be applied to this dataset
-        double normalizationWeight = getNormalizationWeight(fileName, datasetName);
+        double normalizationWeight = getNormalizationWeight(fileName, datasetName, intLumi);
 
         //create output file
         TFile *outputFile = new TFile(Form("%s_weighted.root", (fileName.substr(0, fileName.find_last_of("."))).c_str()), "RECREATE");

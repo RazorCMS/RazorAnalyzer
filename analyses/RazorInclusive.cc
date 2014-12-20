@@ -3,6 +3,7 @@
 #include "JetCorrectorParameters.h"
 
 //C++ includes
+#include <sys/stat.h>
 
 //ROOT includes
 #include "TH1F.h"
@@ -24,9 +25,20 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     
     //initialize jet energy corrections
     std::vector<JetCorrectorParameters> correctionParameters;
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
+    //get correct directory for JEC files (different for lxplus and t3-higgs)
+    struct stat sb;
+    string dir;
+    if(stat("/afs/cern.ch/work/s/sixie/public", &sb) == 0 && S_ISDIR(sb.st_mode)){ //check if Si's directory exists
+        dir = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data";
+        cout << "Getting JEC parameters from " << dir << endl;
+    }
+    else{ //we are on t3-higgs (for running locally on your laptop we need a separate solution)
+        dir = Form("%s/src/RazorAnalyzer/data/", getenv("CMSSW_BASE"));
+        cout << "Getting JEC parameters from " << dir << endl;
+    }
+    correctionParameters.push_back(JetCorrectorParameters(Form("%sPHYS14_V2_MC_L1FastJet_AK4PFchs.txt", dir.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%sPHYS14_V2_MC_L2Relative_AK4PFchs.txt", dir.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%sPHYS14_V2_MC_L3Absolute_AK4PFchs.txt", dir.c_str())));    
 
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
 

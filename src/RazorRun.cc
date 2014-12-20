@@ -21,10 +21,15 @@ int main(int argc, char* argv[]){
     if(argc < 3){
         cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)> [option number]" << endl;
         cerr << "Analyses available: " << endl 
-            << "razor          --   inclusive razor analysis" << endl 
-            << "hggrazor       --   higgs->diphoton razor analysis" << endl
-            << "matchedrazor   --   inclusive razor analysis using only jets matched to genjets" << endl 
-            << "dummy          --   do nothing useful" << endl;
+            << "razor                --   inclusive razor analysis" << endl 
+            << "hggrazor             --   higgs->diphoton razor analysis" << endl
+            << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
+            << "razorVetoLeptonStudy --   study lepton veto" << endl
+            << "electronNtupler      --   study electron variables" << endl
+            << "muonNtupler          --   study muon variables" << endl
+            << "jetNtupler           --   study jet variables" << endl
+            << "photonntupler        --   study photon variables" << endl
+            << "dummy                --   do nothing useful" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
@@ -122,6 +127,13 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.MuonNtupler(outputFileName, option);
     }
+    else if(analysisType == "tauNtupler"){
+      cout << "Executing tau ntupler..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableTaus();
+      analyzer.EnableGenParticles();
+      analyzer.TauNtupler(outputFileName, option);
+    }
     else if(analysisType == "jetNtupler"){
       cout << "Executing jet ntupler..." << endl;
       analyzer.EnableEventInfo();
@@ -129,6 +141,13 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.EnableMC();
       analyzer.JetNtupler(outputFileName, option);
+    }
+    else if(analysisType == "photonntupler"){
+        cout << "Running photon ntupler..." << endl;
+        analyzer.EnableEventInfo();
+        analyzer.EnablePhotons();
+        analyzer.EnableGenParticles();
+        analyzer.PhotonNtupler();
     }
     else if(analysisType == "met"){ // met analyzer to plot some histograms
         cout << "Executing razor MET analysis..." << endl;
@@ -138,6 +157,15 @@ int main(int argc, char* argv[]){
         analyzer.EnableMuons();
 	analyzer.EnableEventInfo();
         analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "RazorDM"){
+      cout << "Executing RazorDM analysis..." << endl;
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.RazorDM(outputFileName);
     }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
