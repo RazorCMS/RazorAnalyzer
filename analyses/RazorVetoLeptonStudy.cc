@@ -56,7 +56,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
     boxNames.push_back("MuJet");
     boxNames.push_back("EleMultiJet");
     boxNames.push_back("EleJet");
-    boxNames.push_back("SoftLeptonMultiJet");
+    boxNames.push_back("LooseLeptonMultiJet");
     boxNames.push_back("MultiJet");
     boxNames.push_back("TwoBJet");
     boxNames.push_back("OneBJet");
@@ -476,14 +476,14 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
             }
         }
 
-	//Soft Lepton + MultiJet Box
-        else if(passedHadronicTrigger && nVetoElectrons + nVetoMuons > 0 && nBTaggedJets > 0 && nSelectedJets > 3){
+	//Loose Lepton + MultiJet Box
+        else if(passedHadronicTrigger && nLooseTaus + nVetoElectrons + nVetoMuons > 0 && nBTaggedJets > 0 && nSelectedJets > 3){
             if(RazorVetoLeptonStudy_PassesHadronicRazorBaseline(theMR, theRsq)){  
                 if(combineTrees){
-                    box = SoftLeptonMultiJet;
+                    box = LooseLeptonMultiJet;
                     razorTree->Fill();
                 }
-                else razorBoxes["SoftLeptonMultiJet"]->Fill();
+                else razorBoxes["LooseLeptonMultiJet"]->Fill();
             }
         }
         //MultiJet Box

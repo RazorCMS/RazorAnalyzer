@@ -127,7 +127,7 @@ class RazorAnalyzer: public RazorEvents {
             MuJet,
             EleMultiJet,
             EleJet,
-	    SoftLeptonMultiJet,
+	    LooseLeptonMultiJet,
             MultiJet,
             TwoBJet,
             OneBJet,

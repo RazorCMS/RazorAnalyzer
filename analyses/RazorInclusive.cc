@@ -52,6 +52,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     boxNames.push_back("MuJet");
     boxNames.push_back("EleMultiJet");
     boxNames.push_back("EleJet");
+    boxNames.push_back("LooseLeptonMultiJet");
     boxNames.push_back("MultiJet");
     boxNames.push_back("TwoBJet");
     boxNames.push_back("OneBJet");
@@ -66,6 +67,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     //tree variables
     int nSelectedJets, nBTaggedJets;
     int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
+    int nVetoMuons, nVetoElectrons, nLooseTaus;
     float theMR;
     float theRsq;
     RazorBox box;
@@ -115,10 +117,13 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         //reset tree variables
         nSelectedJets = 0;
         nBTaggedJets = 0;
+	nVetoMuons = 0;
         nLooseMuons = 0;
         nTightMuons = 0;
+	nVetoElectrons = 0;
         nLooseElectrons = 0;
         nTightElectrons = 0;
+	nLooseTaus = 0;
         nTightTaus = 0;
         theMR = -1;
         theRsq = -1;
@@ -131,34 +136,32 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         
         vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
         for(int i = 0; i < nMuons; i++){
-            if(!isLooseMuon(i)) continue;  
-            if(muonPt[i] < 10) continue;
+
+            if(muonPt[i] < 5) continue;
             if(abs(muonEta[i]) > 2.4) continue;
 
-            nLooseMuons++;
-            TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
-            GoodLeptons.push_back(thisMuon);
+	    if(isVetoMuon(i)) nVetoMuons++;
+            if(isLooseMuon(i) && muonPt[i] >= 10 ) nLooseMuons++;
+            if(isTightMuon(i) && muonPt[i] >= 10) nTightMuons++;
 
-            if(isTightMuon(i)){ 
-                nTightMuons++;
-            }
+	    if(!isVetoMuon(i)) continue;  
+	    TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
+            GoodLeptons.push_back(thisMuon);           
         }
         for(int i = 0; i < nElectrons; i++){
-            if(!isLooseElectron(i)) continue; 
-            if(elePt[i] < 10) continue;
+            if(elePt[i] < 5) continue;
+	    if(fabs(eleEta[i]) > 2.5) continue;
+	    if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
+	    if(isLooseElectron(i) && elePt[i] > 10 ) nLooseElectrons++;
+            if(isTightElectron(i) && elePt[i] > 10 ) nTightElectrons++;
 
-            nLooseElectrons++;
-            TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-            GoodLeptons.push_back(thisElectron);
-
-            if(isTightElectron(i)){ 
-                nTightElectrons++;
-            }
+            if(!isMVANonTrigVetoElectron(i)) continue; 
+	    TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+            GoodLeptons.push_back(thisElectron);            
         }
         for(int i = 0; i < nTaus; i++){
-            if(!isTightTau(i)) continue; 
-
-            nTightTaus++;
+          if(isLooseTau(i)) nLooseTaus++;
+	  if(isTightTau(i)) nTightTaus++;
         }
         
         vector<TLorentzVector> GoodJets;
@@ -183,7 +186,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
             }
             if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
             
-            if(jetPt[i] > 80) numJetsAbove80GeV++;
+            if(jetCorrPt > 80) numJetsAbove80GeV++;
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 
@@ -272,6 +275,16 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
                     razorTree->Fill();
                 }
                 else razorBoxes["EleJet"]->Fill();
+            }
+        }
+	//Soft Lepton + MultiJet Box
+        else if(passedHadronicTrigger && nLooseTaus + nVetoElectrons + nVetoMuons > 0 && nBTaggedJets > 0 && nSelectedJets > 3){
+            if(passesHadronicRazorBaseline(theMR, theRsq)){  
+                if(combineTrees){
+                    box = LooseLeptonMultiJet;
+                    razorTree->Fill();
+                }
+                else razorBoxes["LooseLeptonMultiJet"]->Fill();
             }
         }
         //MultiJet Box
