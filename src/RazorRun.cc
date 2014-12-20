@@ -101,6 +101,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableTaus();
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
+      analyzer.EnablePileup();
       if (option == 1) {
 	analyzer.RazorVetoLeptonStudy(outputFileName, true);
       } else {
