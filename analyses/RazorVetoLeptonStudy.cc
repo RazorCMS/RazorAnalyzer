@@ -240,7 +240,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 	
 	for(int j = 0; j < nGenParticle; j++){
 	  float minDRToGenLepton = 9999;
-	  int closestLeptonIndex = -1;
+	  //int closestLeptonIndex = -1;
 
 	  //only look for outgoing partons
 	  if  (!( ((abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21) 
@@ -267,7 +267,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 	      double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], gParticleEta[k], gParticlePhi[k]);
 	      if ( tmpDR < minDRToGenLepton ) {
 		minDRToGenLepton = tmpDR;
-		closestLeptonIndex = k;
+		//closestLeptonIndex = k;
 	      }
 	    }
 	  }
@@ -538,6 +538,7 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 
 bool RazorVetoLeptonStudy_PassesHadronicRazorBaseline(double MR, double Rsq){
     bool passes = true;
+    if(MR < 0 || Rsq < 0) passes = false;
     //temporarily disable these
     // if(MR < 400 || Rsq < 0.25) passes = false;
     // if(MR < 450 && Rsq < 0.3) passes = false;
@@ -546,6 +547,7 @@ bool RazorVetoLeptonStudy_PassesHadronicRazorBaseline(double MR, double Rsq){
 
 bool RazorVetoLeptonStudy_PassesLeptonicRazorBaseline(double MR, double Rsq){
     bool passes = true;
+    if(MR < 0 || Rsq < 0) passes = false;
     // if(MR < 300 || Rsq < 0.15) passes = false;
     // if(MR < 350 && Rsq < 0.2) passes = false;
     return passes;

@@ -27,7 +27,7 @@ void RazorAnalyzer::RazorMetAna(string outFileName)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
     // histograms
-    TH1F *h_CaloMET     = new TH1F ("h_CaloMET","h_CaloMET",100,0,200);
+    //TH1F *h_CaloMET     = new TH1F ("h_CaloMET","h_CaloMET",100,0,200);
 
     TH1F *h_MR_MultiJet = new TH1F ("h_MR_MultiJet","h_MR_MultiJet",100,0,4000);
     TH1F *h_Rsq_MultiJet = new TH1F ("h_Rsq_MultiJet","h_Rsq_MultiJet",50,0,1.5);
@@ -123,11 +123,11 @@ void RazorAnalyzer::RazorMetAna(string outFileName)
                 nTightElectrons++;
             }
         }
-        // for(int i = 0; i < nTaus; i++){
-        //     if(!isTightTau(i)) continue; 
+        for(int i = 0; i < nTaus; i++){
+            if(!isTightTau(i)) continue; 
 
-        //     nSelectedTaus++;
-        // }
+            nSelectedTaus++;
+        }
 	
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;
@@ -317,6 +317,7 @@ void RazorAnalyzer::RazorMetAna(string outFileName)
 
 bool passesHadronicRazorBaselineCopy(double MR, double Rsq){
     bool passes = true;
+    if(MR < 0 || Rsq < 0) passes = false;
     //temporarily disable these
     //if(MR < 400 || Rsq < 0.25) passes = false;
     //if(MR < 450 && Rsq < 0.3) passes = false;

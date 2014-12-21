@@ -79,7 +79,7 @@ Double_t SimpleTable::Has(const char *name) const
 void SimpleTable::Print(Option_t *opt) const
 {
   // Print content of table.
-
+  cout << "Printing table (option " << opt << ")" << endl;
   TIter iter(fTable.MakeIterator());
   const MyParameter *p = dynamic_cast<const MyParameter*>(iter.Next());
   while (p) {

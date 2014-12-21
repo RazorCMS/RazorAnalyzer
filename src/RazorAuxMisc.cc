@@ -101,6 +101,7 @@ double RazorAnalyzer::computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLore
 //auxiliary functions for RazorInclusive and MatchedRazorInclusive analyses
 bool RazorAnalyzer::passesHadronicRazorBaseline(double MR, double Rsq){
     bool passes = true;
+    if(MR < 0 || Rsq < 0) passes = false;
     //temporarily disable these
     //if(MR < 400 || Rsq < 0.25) passes = false;
     //if(MR < 450 && Rsq < 0.3) passes = false;

@@ -102,10 +102,11 @@ double MLMixedSample::confidence(const double x, const double mu, const double s
 }
 
 std::auto_ptr<MLMixedSample::neighbours> MLMixedSample::nearest_neighbour(const RooDataSet& mixed, RooArgSet vars, const unsigned int i) const{
+        std::cout << "Warning: variable vars (" << vars << ") is ignored in the nearest neighbor calculation." << std::endl;
 
         const unsigned int entries = mixed.numEntries();
 
-        double sum = 0;
+        //double sum = 0;
         unsigned int nameIndex = 0;
 
         //calculate the distance metric used in the index
@@ -150,13 +151,13 @@ std::auto_ptr<MLMixedSample::neighbours> MLMixedSample::nearest_neighbour(const 
                 unsigned int nameIndex = 0;
                 for(rms_map::iterator it = rms_->begin(); it != rms_->end(); ++it){
 
-                        const double x_i = data_->at(nameIndex*entries + i);
-            const double x_j = data_->at(nameIndex*entries + j);
+                    const double x_i = data_->at(nameIndex*entries + i);
+                    const double x_j = data_->at(nameIndex*entries + j);
 
-            const double nn = (x_i - x_j)/it->second;
-            sum += (nn*nn);
+                    const double nn = (x_i - x_j)/it->second;
+                    sum += (nn*nn);
 
-            nameIndex++;
+                    nameIndex++;
                 }
                 const unsigned int same = (cat_i == cat_j) ? 1 : 0;
                 nearest.push_back(std::make_pair(sum,same));
