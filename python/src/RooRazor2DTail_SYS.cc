@@ -52,6 +52,7 @@ Double_t RooRazor2DTail_SYS::evaluate() const
 
 // //---------------------------------------------------------------------------
 Int_t RooRazor2DTail_SYS::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
+  if(rangeName != 0) cout << "Warning: rangeName not used in calculation of integral" << endl;
   // integral on both X and Y
   if (matchArgs(allVars, analVars, X, Y)) return 1;
   // integral over X
