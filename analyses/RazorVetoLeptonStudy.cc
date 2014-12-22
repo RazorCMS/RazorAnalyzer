@@ -73,13 +73,14 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
     int nVetoMuons, nLooseMuons, nTightMuons;
     int nVetoElectrons, nLooseElectrons, nTightElectrons;
     int nLooseTaus, nMediumTaus, nTightTaus;
+    int nIsoChargedPFCandidate;
     int nVetoMVAElectrons;
-    int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenTaus;
+    int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenHadTaus, nGenTaus;
     float theMR;
     float theRsq;
     float met;
-    float leadingGenMuonPt, leadingGenElectronPt;
-    float leadingGenMuonEta, leadingGenElectronEta;
+    float leadingGenMuonPt, leadingGenElectronPt, leadingGenTauPt;
+    float leadingGenMuonEta, leadingGenElectronEta, leadingGenTauEta;
     float minDRGenLeptonToGenParton;
     int npu;
     // RazorVetoLeptonStudy_RazorBox box;
@@ -99,15 +100,19 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         razorTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
         razorTree->Branch("nMediumTaus", &nMediumTaus, "nMediumTaus/I");
         razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
+        razorTree->Branch("nIsoChargedPFCandidate", &nIsoChargedPFCandidate, "nIsoChargedPFCandidate/I");
         razorTree->Branch("nGenMuons", &nGenMuons, "nGenMuons/I");
         razorTree->Branch("nGenElectrons", &nGenElectrons, "nGenElectrons/I");
         razorTree->Branch("nGenTauMuons", &nGenTauMuons, "nGenTauMuons/I");
         razorTree->Branch("nGenTauElectrons", &nGenTauElectrons, "nGenTauElectrons/I");
+        razorTree->Branch("nGenHadTaus", &nGenHadTaus, "nGenHadTaus/I");
         razorTree->Branch("nGenTaus", &nGenTaus, "nGenTaus/I");
         razorTree->Branch("leadingGenMuonPt", &leadingGenMuonPt, "leadingGenMuonPt/F");
         razorTree->Branch("leadingGenElectronPt", &leadingGenElectronPt, "leadingGenElectronPt/F");
+        razorTree->Branch("leadingGenTauPt", &leadingGenTauPt, "leadingGenTauPt/F");
         razorTree->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
         razorTree->Branch("leadingGenElectronEta", &leadingGenElectronEta, "leadingGenElectronEta/F");
+        razorTree->Branch("leadingGenTauEta", &leadingGenTauEta, "leadingGenTauEta/F");
         razorTree->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
         razorTree->Branch("MR", &theMR, "MR/F");
         razorTree->Branch("Rsq", &theRsq, "Rsq/F");
@@ -130,15 +135,19 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
             box.second->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
             box.second->Branch("nMediumTaus", &nMediumTaus, "nMediumTaus/I");
             box.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
+	    box.second->Branch("nIsoChargedPFCandidate", &nIsoChargedPFCandidate, "nIsoChargedPFCandidate/I");
 	    box.second->Branch("nGenMuons", &nGenMuons, "nGenMuons/I");
 	    box.second->Branch("nGenElectrons", &nGenElectrons, "nGenElectrons/I");
 	    box.second->Branch("nGenTauMuons", &nGenTauMuons, "nGenTauMuons/I");
 	    box.second->Branch("nGenTauElectrons", &nGenTauElectrons, "nGenTauElectrons/I");
+	    box.second->Branch("nGenHadTaus", &nGenHadTaus, "nGenHadTaus/I");
 	    box.second->Branch("nGenTaus", &nGenTaus, "nGenTaus/I");
 	    box.second->Branch("leadingGenMuonPt", &leadingGenMuonPt, "leadingGenMuonPt/F");
 	    box.second->Branch("leadingGenElectronPt", &leadingGenElectronPt, "leadingGenElectronPt/F");
+	    box.second->Branch("leadingGenTauPt", &leadingGenTauPt, "leadingGenTauPt/F");
 	    box.second->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
 	    box.second->Branch("leadingGenElectronEta", &leadingGenElectronEta, "leadingGenElectronEta/F");
+	    box.second->Branch("leadingGenTauEta", &leadingGenTauEta, "leadingGenTauEta/F");
 	    box.second->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
             box.second->Branch("MR", &theMR, "MR/F");
 	    box.second->Branch("met", &met, "met/F");
@@ -174,10 +183,12 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         nLooseTaus = 0;
         nMediumTaus = 0;
         nTightTaus = 0;
+        nIsoChargedPFCandidate = 0;
 	nGenMuons = 0;
 	nGenElectrons = 0;
 	nGenTauMuons = 0;
 	nGenTauElectrons = 0;
+	nGenHadTaus = 0;
 	nGenTaus = 0;
         theMR = -1;
 	met = metPt;
@@ -201,8 +212,10 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 	//count generated leptons
 	leadingGenMuonPt = 0;
 	leadingGenElectronPt = 0;
+	leadingGenTauPt = 0;
 	leadingGenMuonEta = -999;
 	leadingGenElectronEta = -999;
+	leadingGenTauEta = -999;
 	for(int j = 0; j < nGenParticle; j++){
 	  if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
 	      && abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5
@@ -235,7 +248,22 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 	  if (abs(gParticleId[j]) == 15 && gParticleStatus[j] == 2 
 	      && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)
 	      && abs(gParticleEta[j]) < 2.4 && gParticlePt[j] > 20
-	      ) nGenTaus++;
+	      ) {
+	    nGenTaus++;
+	    bool isLeptonicTau = false;
+	    for(int k = 0; k < nGenParticle; k++){
+	      if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == j) {
+		isLeptonicTau = true;
+		break;
+	      }
+	    }
+	    if (!isLeptonicTau) nGenHadTaus++;
+	    if (!isLeptonicTau && gParticlePt[j] > leadingGenTauPt) {
+		leadingGenTauPt = gParticlePt[j];
+		leadingGenTauEta = gParticleEta[j];
+	    }
+	   
+	  }
 	}
 	
 	for(int j = 0; j < nGenParticle; j++){
@@ -327,7 +355,6 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         }
 
         for(int i = 0; i < nTaus; i++){
-
 	  if(isLooseTau(i)){
 	    nLooseTaus++;
 	  }
@@ -337,9 +364,16 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
 	  if(isTightTau(i)){
 	    nTightTaus++;
 	  }
-	    
         }
         
+	for(int i = 0; i < nIsoPFCandidates; i++){
+	  if (isoPFCandidatePt[i] > 20 && fabs(isoPFCandidateEta[i]) < 2.4 
+	      //&& fabs(isoPFCandidateD0[i]) < 0.025 
+	      && isoPFCandidateIso04[i] / isoPFCandidatePt[i] < 0.4) {
+	    nIsoChargedPFCandidate++;
+	  }
+	}
+
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;
         for(int i = 0; i < nJets; i++){
