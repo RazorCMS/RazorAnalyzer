@@ -1,13 +1,12 @@
 
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_Bkg_25ns_weighted.root","Bkg_SoftLeptonMultiJet",7)'
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_Bkg_25ns_weighted.root","Bkg_MultiJet",8)'
-
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_TTJets_25ns_weighted.root","TTJets_MultiJet",7)'
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_ZJetsToNuNu_25ns_weighted.root","ZToNuNu_MultiJet",7)'
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_DYJetsToLL_25ns_weighted.root","DYToLL_MultiJet",7)'
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_WJetsToLNu_25ns_weighted.root","WToLNu_MultiJet",7)'
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_SMS-T1tttt_2J_mGl-1500_mLSP-100_25ns_weighted.root","T1tttt_MultiJet",7)'
-// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/analysis/PlotBackgrounds.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_SMS-T1bbbb_2J_mGl-1500_mLSP-100_25ns_weighted.root","T1bbbb_MultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_Bkg_25ns_weighted.root","Bkg_SoftLeptonMultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_Bkg_25ns_weighted.root","Bkg_MultiJet",8)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_TTJets_25ns_weighted.root","TTJets_MultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_ZJetsToNuNu_25ns_weighted.root","ZToNuNu_MultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_DYJetsToLL_25ns_weighted.root","DYToLL_MultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_WJetsToLNu_25ns_weighted.root","WToLNu_MultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_SMS-T1tttt_2J_mGl-1500_mLSP-100_25ns_weighted.root","T1tttt_MultiJet",7)'
+// root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/BackgroundStudies/PlotSoftLeptonStudy.C+'("/afs/cern.ch/work/s/sixie/public/Run2SUSY/VetoLeptonStudy/VetoLeptonStudy_SMS-T1bbbb_2J_mGl-1500_mLSP-100_25ns_weighted.root","T1bbbb_MultiJet",7)'
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -47,7 +46,7 @@ TH1F* NormalizeHist(TH1F *originalHist) {
 //------------------------------------------------------------------------------
 // PlotHiggsRes_LP
 //------------------------------------------------------------------------------
-void PlotBackgrounds ( string inputfilemame, string Label, Int_t Option)
+void PlotSoftLeptonStudy ( string inputfilemame, string Label, Int_t Option)
 {
 
   double intLumi = 5000; //in units of pb^-1
