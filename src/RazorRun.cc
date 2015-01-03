@@ -107,6 +107,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();
+      analyzer.EnableIsoPFCandidates();
       if (option == 1) {
 	analyzer.RazorVetoLeptonStudy(outputFileName, true);
       } else {
@@ -166,6 +167,19 @@ int main(int argc, char* argv[]){
       analyzer.EnableMuons();
       analyzer.EnableTaus();
       analyzer.RazorDM(outputFileName);
+    }
+    else if(analysisType == "RazorControlRegions"){
+      cout << "Executing RazorControlRegions analysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();      
+      analyzer.RazorControlRegions(outputFileName, option);
     }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;

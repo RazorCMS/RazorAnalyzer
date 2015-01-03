@@ -56,7 +56,8 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root");
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
-	
+	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999);	
+
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
 	bool isLooseMuon(int i);
