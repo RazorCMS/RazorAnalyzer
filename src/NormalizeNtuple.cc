@@ -111,8 +111,13 @@ int main(int argc, char* argv[]) {
             cout << "Events in the ntuple: " << inputTree->GetEntries() << endl;
 
             //add weight branch
-            double weight = 1;
-            normalizedTree->Branch("weight", &weight, "weight/D");
+            float weight = 1;
+	    if (!normalizedTree->GetBranch("weight")) {
+	      normalizedTree->Branch("weight", &weight, "weight/F");
+	    } else {
+	      cout << "Found weight Branch already.\n";
+	      normalizedTree->SetBranchAddress("weight", &weight);
+	    }
 
             //store the weights
             for (int n=0;n<inputTree->GetEntries();n++) { 
