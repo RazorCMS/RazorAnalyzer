@@ -21,6 +21,7 @@ QCD_Pt-1400to1800_Tune4C_13TeV_pythia8                          0.7346
 QCD_Pt-1800to2400_Tune4C_13TeV_pythia8                          0.102
 QCD_Pt-2400to3200_Tune4C_13TeV_pythia8                          0.00644
 QCD_Pt-3200_Tune4C_13TeV_pythia8                                0.000163
+QCD_HT_100To250_13TeV-madgraph					670500
 QCD_HT_250To500_13TeV-madgraph					670500
 QCD_HT_500To1000_13TeV-madgraph					26740
 QCD_HT_1000ToInf_13TeV-madgraph					769.7
@@ -37,6 +38,15 @@ WJetsToLNu_HT-200to400_Tune4C_13TeV-madgraph-tauola             471.6
 WJetsToLNu_HT-400to600_Tune4C_13TeV-madgraph-tauola             55.61
 WJetsToLNu_HT-600toInf_Tune4C_13TeV-madgraph-tauola             18.81
 GJet_Pt40_doubleEMEnriched_TuneZ2star_13TeV-pythia6             17180
+T_tW-channel-DR_Tune4C_13TeV-powheg-tauola                      35.0
+Tbar_tW-channel-DR_Tune4C_13TeV-powheg-tauola                   35.0
+TToLeptons_t-channel_Tune4C_13TeV-aMCatNLO-tauola               103.4
+TBarToLeptons_t-channel_Tune4C_13TeV-aMCatNLO-tauola            61.6
+TToLeptons_s-channel_Tune4C_13TeV-aMCatNLO-tauola               2.0
+TBarToLeptons_s-channel_Tune4C_13TeV-aMCatNLO-tauola            1.0
+WZJetsTo3LNu_Tune4C_13TeV-madgraph-tauola                       1.634
+TTWJets_Tune4C_13TeV-madgraph-tauola                            1.152
+TTZJets_Tune4C_13TeV-madgraph-tauola                            2.232
 
 #Higgs production -- cross sections assuming a higgs mass of 125.0 GeV, 
 #from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageAt1314TeV
