@@ -140,15 +140,30 @@ end
 foreach sample( \
 #T1bbbb_1500 \
 #T1tttt_1500 \
-TTJets \
-DYJetsToLL_HT100To200 \
-DYJetsToLL_HT200To400 \
-DYJetsToLL_HT400To600 \
-DYJetsToLL_HT600ToInf \
-WJetsToLNu_HT100To200 \
-WJetsToLNu_HT200To400 \
-WJetsToLNu_HT400To600 \
-WJetsToLNu_HT600ToInf \
+#TTJets \
+#DYJetsToLL_HT100To200 \
+#DYJetsToLL_HT200To400 \
+#DYJetsToLL_HT400To600 \
+#DYJetsToLL_HT600ToInf \
+#WJetsToLNu_HT100To200 \
+#WJetsToLNu_HT200To400 \
+#WJetsToLNu_HT400To600 \
+#WJetsToLNu_HT600ToInf \
+#DYJetsToLL \
+#WJetsToLNu \
+#T_tW \
+#TBar_tW \
+#TToLeptons_s \
+#TBarToLeptons_s \
+#TToLeptons_t \
+#TBarToLeptons_t \
+WZJetsTo3LNu \
+#TTWJets \
+#TTZJets \
+#QCDHT100To250 \
+#QCDHT250To500 \
+#QCDHT500To1000 \
+#QCDHT1000ToInf \
 ) 
   set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/lists/razorNtuplerV1p4-25ns_v1_v1/${sample}_20bx25.cern.txt"
   set filesPerJob = 1

@@ -28,7 +28,7 @@
 
 #endif
 
-int color[5] = {kRed, kGreen+2, kBlue, kMagenta, kBlack};
+int color[10] = {kRed, kGreen+2, kBlue, kMagenta, kBlack, kBlack, kBlack, kBlack, kBlack, kBlack};
 //=== MAIN MACRO ================================================================================================= 
 
 
@@ -309,16 +309,20 @@ void SelectTTBarControlSample( int option = -1, string label = "") {
   vector<string> processLabels;
 
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_DileptonSkim_TTJets_25ns_weighted.root");  
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_DileptonSkim_DYJetsToLL_25ns_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_DileptonSkim_WJetsToLNu_25ns_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_DileptonSkim_DYJetsToLL_HT100ToInf_25ns_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_DileptonSkim_WJetsToLNu_HT100ToInf_25ns_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_DileptonSkim_SingleTop_25ns_weighted.root"); 
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_Multiboson_25ns_weighted.root");
 
   processLabels.push_back("TTJets");
   processLabels.push_back("DYJetsToLL");
   processLabels.push_back("WJetsToLNu");
+  processLabels.push_back("SingleTop");
+  processLabels.push_back("Multiboson");
 
   RunSelectTTBarControlSample(inputfiles,processLabels,-1,"all");
-  //RunSelectTTBarControlSample(inputfiles,processLabels,0,"emu");
-  //RunSelectTTBarControlSample(inputfiles,processLabels,1,"eemumu");
+  // RunSelectTTBarControlSample(inputfiles,processLabels,0,"emu");
+  // RunSelectTTBarControlSample(inputfiles,processLabels,1,"eemumu");
   //RunSelectTTBarControlSample(inputfiles,processLabels,2,"ee");
   //RunSelectTTBarControlSample(inputfiles,processLabels,3,"mumu");
 
