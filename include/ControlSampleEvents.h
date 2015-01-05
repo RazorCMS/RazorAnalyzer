@@ -68,6 +68,9 @@
       Float_t                 Rsq;
       Float_t                 MET;
       UInt_t                  NJets40;
+      UInt_t                  NBJetsLoose;
+      UInt_t                  NBJetsMedium;
+      UInt_t                  NBJetsTight;
       Float_t                 HT;
       Float_t                 lep1MT;
       
@@ -133,6 +136,9 @@
 	Rsq                  = 0.0;
 	MET                  = 0.0;
 	NJets40              = 0.0;
+	NBJetsLoose          = 0.0;
+	NBJetsMedium         = 0.0;
+	NBJetsTight          = 0.0;
 	HT                   = 0.0;      
 	lep1MT               = 0.0;      
       }
@@ -182,6 +188,9 @@
 	tree_->Branch("Rsq",&Rsq,"Rsq/F");
 	tree_->Branch("MET",&MET,"MET/F");
 	tree_->Branch("NJets40",&NJets40,"NJets40/i");
+	tree_->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
+	tree_->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
+	tree_->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
 	tree_->Branch("HT",&HT,"HT/F");
 	tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
 	tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
@@ -231,6 +240,9 @@
 	tree_->SetBranchAddress("Rsq",&Rsq);
 	tree_->SetBranchAddress("MET",&MET);
 	tree_->SetBranchAddress("NJets40",&NJets40);
+	tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);
+	tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
+	tree_->SetBranchAddress("NBJetsTight",&NBJetsTight);
 	tree_->SetBranchAddress("HT",&HT);
 	tree_->SetBranchAddress("lep1MT",&lep1MT);	
 	tree_->SetBranchAddress("genlep1",&genlep1Ptr);

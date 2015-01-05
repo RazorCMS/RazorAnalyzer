@@ -645,8 +645,18 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;
 	int numJetsAbove40GeV = 0;
+	int nBJetsLoose20GeV = 0;
+	int nBJetsMedium20GeV = 0;
+	int nBJetsTight20GeV = 0;
 	events->bjet1.SetPtEtaPhiM(0,0,0,0);
 	events->bjet2.SetPtEtaPhiM(0,0,0,0);
+	events->bjet1PassLoose = false;
+	events->bjet1PassMedium = false;
+	events->bjet1PassTight = false;
+	events->bjet2PassLoose = false;
+	events->bjet2PassMedium = false;
+	events->bjet2PassTight = false;       
+
 
         for(int i = 0; i < nJets; i++){
 
@@ -713,6 +723,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 	  } //if it's a bjet
 
+	  if (jetPt[i]*JEC > 20 && isCSVL(i)) nBJetsLoose20GeV++;
+	  if (jetPt[i]*JEC > 20 && isCSVM(i)) nBJetsMedium20GeV++;
+	  if (jetPt[i]*JEC > 20 && isCSVT(i)) nBJetsTight20GeV++;
 
 	  if(jetPt[i]*JEC < 40) continue;
 	  if(fabs(jetEta[i]) > 3.0) continue;
@@ -744,12 +757,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	}
 	events->MET = metPt;
 	events->NJets40 = numJetsAbove40GeV;
+	events->NBJetsLoose = nBJetsLoose20GeV;
+	events->NBJetsMedium = nBJetsMedium20GeV;
+	events->NBJetsTight = nBJetsTight20GeV;
 
 	events->HT = 0;
 	for(auto& pfobj : GoodPFObjects) events->HT += pfobj.Pt();
 	
 	//compute M_T for lep1 and MET
-	//events->lep1MT = (PFMET+events->lep1).Mt();
 	events->lep1MT = sqrt(events->lep1.M2() + 2*metPt*events->lep1.Pt()*(1 - cos(deltaPhi(metPhi,events->lep1.Phi()))));
 	
 
