@@ -656,7 +656,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	events->bjet2PassLoose = false;
 	events->bjet2PassMedium = false;
 	events->bjet2PassTight = false;       
-
+	events->minDPhi = 9999;
+	events->minDPhiN = 9999;
 
         for(int i = 0; i < nJets; i++){
 
@@ -732,20 +733,92 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  
 	  numJetsAbove40GeV++;
 	  if(jetPt[i]*JEC > 80) numJetsAbove80GeV++;
-	  GoodJets.push_back(thisJet);
+
 	  
+	  GoodJets.push_back(thisJet);	  
 	  
         } //loop over jets
 
-	//cout << "\n";
+	//*****************************************************
+	//sort good jets
+	//*****************************************************
+	TLorentzVector tmpjet;
+	for (int i=0;i<int(GoodJets.size());i++) {
+	  for (int j=0;j<int(GoodJets.size()-1);j++) {
+	    if (GoodJets[j+1].Pt() > GoodJets[j].Pt()) {
+	      tmpjet = GoodJets[j]; //swap elements
+	      GoodJets[j] = GoodJets[j+1];
+	      GoodJets[j+1] = tmpjet;
+	    }
+	  }
+	}
 
+	//Fill two leading jets
+	events->jet1.SetPtEtaPhiM(0,0,0,0);
+	events->jet2.SetPtEtaPhiM(0,0,0,0);
+	events->jet1PassCSVLoose = false;
+	events->jet1PassCSVMedium = false;
+	events->jet1PassCSVTight = false;
+	events->jet2PassCSVLoose = false;
+	events->jet2PassCSVMedium = false;
+	events->jet2PassCSVTight = false;       
+	for (int i=0;i<int(GoodJets.size());i++) {
+	  if (i==0) {
+	    events->jet1.SetPtEtaPhiM(GoodJets[i].Pt(), GoodJets[i].Eta(),GoodJets[i].Phi(),GoodJets[i].M());
+	    if(isCSVL(i)) events->jet1PassCSVLoose = true;	      
+	    if(isCSVM(i)) events->jet1PassCSVMedium = true;
+	    if(isCSVT(i)) events->jet1PassCSVTight = true;	
+	  }
+	  if (i==1) {
+	    events->jet2.SetPtEtaPhiM(GoodJets[i].Pt(), GoodJets[i].Eta(),GoodJets[i].Phi(),GoodJets[i].M());
+	    if(isCSVL(i)) events->jet2PassCSVLoose = true;	      
+	    if(isCSVM(i)) events->jet2PassCSVMedium = true;
+	    if(isCSVT(i)) events->jet2PassCSVTight = true;	
+	  }
+	}
+
+	//compute minDPhi variables
+	double JER = 0.1; //average jet energy resolution
+	for (int i=0;i<int(GoodJets.size());i++) {
+	  if (i>2) continue; //only consider first 3 jets for minDPhi 	  
+	  double dPhi = fmin( fabs(deltaPhi(metPhi,GoodJets[i].Phi())) , fabs( 3.1415926 - fabs(deltaPhi(metPhi,GoodJets[i].Phi()))));
+	  if (dPhi < events->minDPhi) events->minDPhi = dPhi;
+	  double deltaT = 0;
+	  for(auto& jet2 : GoodJets) {
+	    deltaT += pow(JER*jet2.Pt()*sin(fabs(deltaPhi(GoodJets[i].Phi(),jet2.Phi()))),2);
+	  }
+	  double dPhiN = dPhi / atan2( sqrt(deltaT) , metPt);
+	  if (dPhiN < events->minDPhiN) events->minDPhiN = dPhiN;
+	}
+
+	//Make Good Jet Collection, excluding the leading jet
+	vector<TLorentzVector> GoodJets_NoLeadJet;
+	int leadJetIndex = -1;
+	double leadJetPt = 0;
+	for (int i=0;i<int(GoodJets.size());i++) {
+	  if (GoodJets[i].Pt() > leadJetPt) {
+	    leadJetIndex = i;
+	    leadJetPt = GoodJets[i].Pt();
+	  }
+	}
+	int numJetsAbove80GeV_NoLeadJet = 0;
+	for (int i=0;i<int(GoodJets.size());i++) {
+	  if (i != leadJetIndex) {
+	    GoodJets_NoLeadJet.push_back(GoodJets[i]);
+	    if (GoodJets[i].Pt() > 80) numJetsAbove80GeV_NoLeadJet++;
+	  }
+	}
 
         //Compute the razor variables using the selected jets and possibly leptons
         vector<TLorentzVector> GoodPFObjects;
+        vector<TLorentzVector> GoodPFObjects_NoLeadJet;
         for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
+        for(auto& jet : GoodJets_NoLeadJet) GoodPFObjects_NoLeadJet.push_back(jet);
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
+        if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects_NoLeadJet.push_back(lep);
         TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
-		
+        TLorentzVector PFMET_NoLeadJet = PFMET; if (leadJetIndex >= 0) PFMET_NoLeadJet = PFMET + GoodJets[leadJetIndex];
+
 	events->MR = 0;
 	events->Rsq = 0;
 
@@ -755,7 +828,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  events->MR = computeMR(hemispheres[0], hemispheres[1]); 
 	  events->Rsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	}
+	if (numJetsAbove80GeV_NoLeadJet >= 2) {
+	  vector<TLorentzVector> hemispheres_NoLeadJet = getHemispheres(GoodPFObjects_NoLeadJet);
+	  events->MR_NoLeadJet = computeMR(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1]); 
+	  events->Rsq_NoLeadJet = computeRsq(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1], PFMET_NoLeadJet);
+	}
 	events->MET = metPt;
+	events->MET_NoLeadJet = PFMET_NoLeadJet.Pt();
 	events->NJets40 = numJetsAbove40GeV;
 	events->NBJetsLoose = nBJetsLoose20GeV;
 	events->NBJetsMedium = nBJetsMedium20GeV;

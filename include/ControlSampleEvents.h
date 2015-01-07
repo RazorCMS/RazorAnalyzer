@@ -64,16 +64,32 @@
       Bool_t                  bjet2PassLoose;
       Bool_t                  bjet2PassMedium;
       Bool_t                  bjet2PassTight;
+      TLorentzVector          jet1;
+      TLorentzVector          jet2;      
+      Bool_t                  jet1PassCSVLoose;
+      Bool_t                  jet1PassCSVMedium;
+      Bool_t                  jet1PassCSVTight;
+      Bool_t                  jet2PassCSVLoose;
+      Bool_t                  jet2PassCSVMedium;
+      Bool_t                  jet2PassCSVTight;
       Float_t                 MR;
       Float_t                 Rsq;
+      Float_t                 MR_NoDilepton;
+      Float_t                 Rsq_NoDilepton;
+      Float_t                 MR_NoLeadJet;
+      Float_t                 Rsq_NoLeadJet;
       Float_t                 MET;
+      Float_t                 MET_NoDilepton;
+      Float_t                 MET_NoLeadJet;
+      Float_t                 minDPhi;
+      Float_t                 minDPhiN;
       UInt_t                  NJets40;
       UInt_t                  NBJetsLoose;
       UInt_t                  NBJetsMedium;
       UInt_t                  NBJetsTight;
       Float_t                 HT;
       Float_t                 lep1MT;
-      
+     
 
     public:
       /// this is the main element
@@ -91,6 +107,8 @@
 	lep2Ptr     = &lep2;
 	bjet1Ptr    = &bjet1;
 	bjet2Ptr    = &bjet2;       
+	jet1Ptr     = &jet1;
+	jet2Ptr     = &jet2;       
       };
 
       /// default destructor
@@ -132,9 +150,25 @@
 	bjet2PassLoose       = 0.0;
 	bjet2PassMedium      = 0.0;
 	bjet2PassTight       = 0.0;
+	jet1                 = TLorentzVector();
+	jet2                 = TLorentzVector();
+	jet1PassCSVLoose     = 0.0;
+	jet1PassCSVMedium    = 0.0;
+	jet1PassCSVTight     = 0.0;
+	jet2PassCSVLoose     = 0.0;
+	jet2PassCSVMedium    = 0.0;
+	jet2PassCSVTight     = 0.0;
 	MR                   = 0.0;
 	Rsq                  = 0.0;
+	MR_NoDilepton        = 0.0;
+	Rsq_NoDilepton       = 0.0;
+	MR_NoLeadJet         = 0.0;
+	Rsq_NoLeadJet        = 0.0;
 	MET                  = 0.0;
+	MET_NoDilepton       = 0.0;
+	MET_NoLeadJet        = 0.0;
+	minDPhi              = 0.0;
+	minDPhiN             = 0.0;
 	NJets40              = 0.0;
 	NBJetsLoose          = 0.0;
 	NBJetsMedium         = 0.0;
@@ -184,9 +218,23 @@
 	tree_->Branch("bjet2PassLoose",&bjet2PassLoose,"bjet2PassLoose/O");
 	tree_->Branch("bjet2PassMedium",&bjet2PassMedium,"bjet2PassMedium/O");
 	tree_->Branch("bjet2PassTight",&bjet2PassTight,"bjet2PassTight/O");
+	tree_->Branch("jet1PassCSVLoose",&jet1PassCSVLoose,"jet1PassCSVLoose/O");
+	tree_->Branch("jet1PassCSVMedium",&jet1PassCSVMedium,"jet1PassCSVMedium/O");
+	tree_->Branch("jet1PassCSVTight",&jet1PassCSVTight,"jet1PassCSVTight/O");
+	tree_->Branch("jet2PassCSVLoose",&jet2PassCSVLoose,"jet2PassCSVLoose/O");
+	tree_->Branch("jet2PassCSVMedium",&jet2PassCSVMedium,"jet2PassCSVMedium/O");
+	tree_->Branch("jet2PassCSVTight",&jet2PassCSVTight,"jet2PassCSVTight/O");
 	tree_->Branch("MR",&MR,"MR/F");
 	tree_->Branch("Rsq",&Rsq,"Rsq/F");
+	tree_->Branch("MR_NoDilepton",&MR_NoDilepton,"MR_NoDilepton/F");
+	tree_->Branch("Rsq_NoDilepton",&Rsq_NoDilepton,"Rsq_NoDilepton/F");
+	tree_->Branch("MR_NoLeadJet",&MR_NoLeadJet,"MR_NoLeadJet/F");
+	tree_->Branch("Rsq_NoLeadJet",&Rsq_NoLeadJet,"Rsq_NoLeadJet/F");
 	tree_->Branch("MET",&MET,"MET/F");
+	tree_->Branch("MET_NoDilepton",&MET_NoDilepton,"MET_NoDilepton/F");
+	tree_->Branch("MET_NoLeadJet",&MET_NoLeadJet,"MET_NoLeadJet/F");
+	tree_->Branch("minDPhi",&minDPhi,"minDPhi/F");
+	tree_->Branch("minDPhiN",&minDPhiN,"minDPhiN/F");
 	tree_->Branch("NJets40",&NJets40,"NJets40/i");
 	tree_->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
 	tree_->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
@@ -199,6 +247,8 @@
 	tree_->Branch("lep2",    "TLorentzVector", &lep2Ptr);
 	tree_->Branch("bjet1",   "TLorentzVector", &bjet1Ptr);
 	tree_->Branch("bjet2",   "TLorentzVector", &bjet2Ptr);
+	tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
+	tree_->Branch("jet2",    "TLorentzVector", &jet2Ptr);
       } 
 
       // initialze a ControlSampleEvents
@@ -236,9 +286,23 @@
 	tree_->SetBranchAddress("bjet2PassLoose",&bjet2PassLoose);
 	tree_->SetBranchAddress("bjet2PassMedium",&bjet2PassMedium);
 	tree_->SetBranchAddress("bjet2PassTight",&bjet2PassTight);
+	tree_->SetBranchAddress("jet1PassCSVLoose",&jet1PassCSVLoose);
+	tree_->SetBranchAddress("jet1PassCSVMedium",&jet1PassCSVMedium);
+	tree_->SetBranchAddress("jet1PassCSVTight",&jet1PassCSVTight);
+	tree_->SetBranchAddress("jet2PassCSVLoose",&jet2PassCSVLoose);
+	tree_->SetBranchAddress("jet2PassCSVMedium",&jet2PassCSVMedium);
+	tree_->SetBranchAddress("jet2PassCSVTight",&jet2PassCSVTight);
 	tree_->SetBranchAddress("MR",&MR);
 	tree_->SetBranchAddress("Rsq",&Rsq);
+	tree_->SetBranchAddress("MR_NoDilepton",&MR_NoDilepton);
+	tree_->SetBranchAddress("Rsq_NoDilepton",&Rsq_NoDilepton);
+	tree_->SetBranchAddress("MR_NoLeadJet",&MR_NoLeadJet);
+	tree_->SetBranchAddress("Rsq_NoLeadJet",&Rsq_NoLeadJet);
 	tree_->SetBranchAddress("MET",&MET);
+	tree_->SetBranchAddress("MET_NoDilepton",&MET_NoDilepton);
+	tree_->SetBranchAddress("MET_NoLeadJet",&MET_NoLeadJet);
+	tree_->SetBranchAddress("minDPhi",&minDPhi);
+	tree_->SetBranchAddress("minDPhiN",&minDPhiN);
 	tree_->SetBranchAddress("NJets40",&NJets40);
 	tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);
 	tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
@@ -251,6 +315,8 @@
 	tree_->SetBranchAddress("lep2",&lep2Ptr);
 	tree_->SetBranchAddress("bjet1",&bjet1Ptr);
 	tree_->SetBranchAddress("bjet2",&bjet2Ptr);
+	tree_->SetBranchAddress("jet1",&jet1Ptr);
+	tree_->SetBranchAddress("jet2",&jet2Ptr);
 	
         gErrorIgnoreLevel = currentState;
       }
@@ -262,6 +328,8 @@
       TLorentzVector* lep2Ptr;
       TLorentzVector* bjet1Ptr;
       TLorentzVector* bjet2Ptr;
+      TLorentzVector* jet1Ptr;
+      TLorentzVector* jet2Ptr;
       
   }; 
 
