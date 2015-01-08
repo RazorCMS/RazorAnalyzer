@@ -26,11 +26,11 @@
 
 #endif
 
-int color[5] = {kRed, kGreen+2, kBlue, kMagenta, kBlack};
+int color[6] = {kRed, kGreen+2, kBlue, kMagenta, kBlack, kCyan};
 //=== MAIN MACRO ================================================================================================= 
 
 
-void RunSelectWJetsControlSample( vector<string> inputfiles, vector<string> processLabels, int option = -1, string label = "") {
+void RunSelectWJetsControlSample( vector<string> inputfiles, vector<string> processLabels, int option = -1, int finalState = -1, string label = "") {
   
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -100,24 +100,38 @@ void RunSelectWJetsControlSample( vector<string> inputfiles, vector<string> proc
       //MT cuts
       if (!(events->lep1MT > 30 && events->lep1MT < 100)) continue;
 
-      //Veto Events with a CSV Medium Btag
-      if (events->NBJetsMedium > 0) continue;
-
       //Razor signal region cuts
       if (!(events->MR > 300 && events->Rsq > 0.1)) continue;
     
       //******************************
-      //Options
+      //Final States
       //******************************
       //e only
-      if (option == 0 &&
+      if (finalState == 0 &&
 	  !(abs(events->lep1Type) == 11)
 	  ) continue;
       
-      if (option == 1 &&
+      if (finalState == 1 &&
 	  !(abs(events->lep1Type) == 13)
 	  ) continue;
             
+      //******************************
+      //Options
+      //******************************
+      //Default Control Region: No CSV Medium B-tags
+      if (option == 0 &&
+	  events->NBJetsMedium > 0
+	  ) continue;
+
+      //1 or less CSV Loose B-tags
+      if (option == 1 &&
+	  events->NBJetsLoose > 1)
+	continue;
+
+      //inclusive in b-tags
+      if (option == 2) {
+      }
+
 
       //******************************
       //Fill histograms
@@ -366,15 +380,22 @@ void SelectWJetsControlSample( int option = -1, string label = "") {
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_LeptonPlusMTCutSkim_TTJets_25ns_weighted.root");  
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_LeptonPlusMTCutSkim_DYJetsToLL_HT100ToInf_25ns_weighted.root");
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_LeptonPlusMTCutSkim_QCDHT100ToInf_25ns_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_LeptonPlusMTCutSkim_SingleTop_25ns_weighted.root"); 
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorControlRegions/RazorControlRegions_Multiboson_25ns_weighted.root");
 
   processLabels.push_back("WJetsToLNu");
   processLabels.push_back("TTJets");
   processLabels.push_back("DYJetsToLL");
   processLabels.push_back("QCD");
+  processLabels.push_back("SingleTop");
+  processLabels.push_back("Multiboson");
 
-  RunSelectWJetsControlSample(inputfiles,processLabels,-1,"all");
-  // RunSelectWJetsControlSample(inputfiles,processLabels,0,"e");
-  // RunSelectWJetsControlSample(inputfiles,processLabels,1,"mu");
+  RunSelectWJetsControlSample(inputfiles,processLabels,0,-1,"ZeroMediumBTags_all");
+  // RunSelectWJetsControlSample(inputfiles,processLabels,0,0,"ZeroMediumBTags_e");
+  // RunSelectWJetsControlSample(inputfiles,processLabels,0,1,"ZeroMediumBTags_mu");
 
+  RunSelectWJetsControlSample(inputfiles,processLabels,1,-1,"OneOrZeroLooseBTags_all");
+
+  RunSelectWJetsControlSample(inputfiles,processLabels,2,-1,"InclusiveBTags_all");
 
 }
