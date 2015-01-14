@@ -57,17 +57,30 @@ class RazorAnalyzer: public RazorEvents {
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999);	
+	virtual void VetoLeptonEfficencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
 	bool isLooseMuon(int i);
         bool isTightMuon(int i);
+	bool passVetoMuonID(int i);
+	bool passLooseMuonID(int i);
+        bool passTightMuonID(int i);
+	bool passVetoMuonIso(int i);
+	bool passLooseMuonIso(int i);
+        bool passTightMuonIso(int i);
 
         //functions in RazorAuxElectron.cc
         bool isVetoElectron(int i);
         bool isLooseElectron(int i);
         bool isTightElectron(int i);
 	bool isMVANonTrigVetoElectron(int i);
+        bool passTightElectronID(int i);
+        bool passLooseElectronID(int i);
+	bool passMVANonTrigVetoElectronID(int i);
+        bool passTightElectronIso(int i);
+        bool passLooseElectronIso(int i);
+	bool passMVANonTrigVetoElectronIso(int i);
 
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);
@@ -121,19 +134,20 @@ class RazorAnalyzer: public RazorEvents {
 	
         //enums
         enum RazorBox { //boxes for razor inclusive analysis
-            MuEle, 
-            MuMu,
-            EleEle,
-            MuMultiJet,
-            MuJet,
-            EleMultiJet,
-            EleJet,
-	    LooseLeptonMultiJet,
-            MultiJet,
-            TwoBJet,
-            OneBJet,
-            ZeroBJet,
-            NONE
+	  MuEle, 
+	  MuMu,
+	  EleEle,
+	  MuMultiJet,
+	  MuJet,
+	  EleMultiJet,
+	  EleJet,
+	  LooseLeptonMultiJet,
+	  MultiJet,
+	  DiJet,
+	  TwoBJet,
+	  OneBJet,
+	  ZeroBJet,
+	  NONE
         };
 };
 
