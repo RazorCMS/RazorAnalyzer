@@ -10,7 +10,38 @@
 # Baseline Razor Analysis
 ##########################
 foreach sample( \
+SMS-T1tttt_2J_mGl-1500_mLSP-100\
+SMS-T1bbbb_2J_mGl-1500_mLSP-100\
+SMS-T1tttt_2J_mGl-1200_mLSP-800\
+SMS-T1bbbb_2J_mGl-1000_mLSP-900\
+SMS-T1qqqq_2J_mGl-1400_mLSP-100\
+SMS-T1qqqq_2J_mGl-1000_mLSP-800\
 TTJets \
+QCDHT100To250 \
+QCDHT250To500 \
+QCDHT500To1000 \
+QCDHT1000ToInf \
+WJetsToLNu_HT100To200 \
+WJetsToLNu_HT200To400 \
+WJetsToLNu_HT400To600 \
+WJetsToLNu_HT600ToInf \
+DYJetsToLL_HT100To200 \
+DYJetsToLL_HT200To400 \
+DYJetsToLL_HT400To600 \
+DYJetsToLL_HT600ToInf \
+ZJetsToNuNu_HT100To200 \
+ZJetsToNuNu_HT200To400 \
+ZJetsToNuNu_HT400To600 \
+ZJetsToNuNu_HT600ToInf \
+T_tW \
+TBar_tW \
+TToLeptons_s \
+TBarToLeptons_s \
+TToLeptons_t \
+TBarToLeptons_t \
+WZJetsTo3LNu \
+TTWJets \
+TTZJets \
 ) 
   echo "Sample " $sample
   set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/lists/razorNtuplerV1p4-25ns_v1_v1/${sample}_20bx25.cern.txt"
@@ -138,32 +169,34 @@ end
 # Control Region Study
 ##########################
 foreach sample( \
-#T1bbbb_1500 \
-#T1tttt_1500 \
-#TTJets \
-#DYJetsToLL_HT100To200 \
-#DYJetsToLL_HT200To400 \
-#DYJetsToLL_HT400To600 \
-#DYJetsToLL_HT600ToInf \
-#WJetsToLNu_HT100To200 \
-#WJetsToLNu_HT200To400 \
-#WJetsToLNu_HT400To600 \
-#WJetsToLNu_HT600ToInf \
-#DYJetsToLL \
-#WJetsToLNu \
-#T_tW \
-#TBar_tW \
-#TToLeptons_s \
-#TBarToLeptons_s \
-#TToLeptons_t \
-#TBarToLeptons_t \
+SMS-T1tttt_2J_mGl-1500_mLSP-100\
+SMS-T1bbbb_2J_mGl-1500_mLSP-100\
+SMS-T1tttt_2J_mGl-1200_mLSP-800\
+SMS-T1bbbb_2J_mGl-1000_mLSP-900\
+SMS-T1qqqq_2J_mGl-1400_mLSP-100\
+SMS-T1qqqq_2J_mGl-1000_mLSP-800\
+TTJets \
+WJetsToLNu_HT100To200 \
+WJetsToLNu_HT200To400 \
+WJetsToLNu_HT400To600 \
+WJetsToLNu_HT600ToInf \
+DYJetsToLL_HT100To200 \
+DYJetsToLL_HT200To400 \
+DYJetsToLL_HT400To600 \
+DYJetsToLL_HT600ToInf \
+T_tW \
+TBar_tW \
+TToLeptons_s \
+TBarToLeptons_s \
+TToLeptons_t \
+TBarToLeptons_t \
 WZJetsTo3LNu \
-#TTWJets \
-#TTZJets \
-#QCDHT100To250 \
-#QCDHT250To500 \
-#QCDHT500To1000 \
-#QCDHT1000ToInf \
+TTWJets \
+TTZJets \
+QCDHT100To250 \
+QCDHT250To500 \
+QCDHT500To1000 \
+QCDHT1000ToInf \
 ) 
   set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/lists/razorNtuplerV1p4-25ns_v1_v1/${sample}_20bx25.cern.txt"
   set filesPerJob = 1
@@ -174,6 +207,16 @@ WZJetsTo3LNu \
   foreach jobnumber(`seq 0 1 $maxjob`)
     echo "job " $jobnumber " out of " $maxjob
     bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh RazorControlRegions $inputfilelist 4 $filesPerJob $jobnumber RazorControlRegions_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RazorControlRegions/jobs/
+    sleep 0.1
+  end
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/VetoLeptonEfficiencyDileptonControlRegion_${jobnumber}.out -J RazorAnalysis_VetoLeptonEfficiencyDileptonControlRegion_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh VetoLeptonEfficiencyControlRegion $inputfilelist 0 $filesPerJob $jobnumber VetoLeptonEfficiencyDileptonControlRegion_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/VetoLeptonEfficiencyDileptonControlRegion/jobs/
+    sleep 0.1
+  end
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/VetoLeptonEfficiencySingleLeptonControlRegion_${jobnumber}.out -J RazorAnalysis_VetoLeptonEfficiencySingleLeptonControlRegion_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh VetoLeptonEfficiencyControlRegion $inputfilelist 1 $filesPerJob $jobnumber VetoLeptonEfficiencySingleLeptonControlRegion_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/VetoLeptonEfficiencySingleLeptonControlRegion/jobs/
     sleep 0.1
   end
 
