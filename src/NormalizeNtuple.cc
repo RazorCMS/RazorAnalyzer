@@ -121,6 +121,7 @@ int main(int argc, char* argv[]) {
 
             //store the weights
             for (int n=0;n<inputTree->GetEntries();n++) { 
+	      if (n%1000000==0) cout << "Processed Event " << n << "\n";
                 inputTree->GetEntry(n);
                 weight = 1.0;
                 if(normalizationWeight >= 0){
