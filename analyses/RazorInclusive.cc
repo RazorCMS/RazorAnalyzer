@@ -290,7 +290,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     }
     //Soft Lepton + MultiJet Box
     else if(passedHadronicTrigger && nLooseTaus + nVetoElectrons + nVetoMuons > 0 && nSelectedJets > 3){
-      if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
+      if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = LooseLeptonMultiJet;
 	  razorTree->Fill();
@@ -300,7 +300,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     }
     //MultiJet Box
     else if(passedHadronicTrigger && nSelectedJets > 3){
-      if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
+      if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = MultiJet;
 	  razorTree->Fill();
@@ -308,7 +308,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
 	else razorBoxes["MultiJet"]->Fill();
       }     
     } else {
-      if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
+      if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = DiJet;
 	  razorTree->Fill();
