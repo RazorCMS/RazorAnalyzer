@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableElectrons();
         analyzer.EnableMuons();
         analyzer.EnableTaus();
-        analyzer.RazorInclusive(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
+        analyzer.RazorInclusive(outputFileName, true); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "hggrazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;
@@ -180,6 +180,19 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
       analyzer.RazorControlRegions(outputFileName, option);
+    }
+    else if(analysisType == "VetoLeptonEfficiencyControlRegion"){
+      cout << "Executing VetoLeptonEfficiencyDileptonControlRegion analysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();      
+      analyzer.VetoLeptonEfficiencyControlRegion(outputFileName, option);
     }
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;

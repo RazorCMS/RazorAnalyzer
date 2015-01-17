@@ -57,7 +57,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999);	
-	virtual void VetoLeptonEfficencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
+	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -134,20 +134,20 @@ class RazorAnalyzer: public RazorEvents {
 	
         //enums
         enum RazorBox { //boxes for razor inclusive analysis
-	  MuEle, 
-	  MuMu,
-	  EleEle,
-	  MuMultiJet,
-	  MuJet,
-	  EleMultiJet,
-	  EleJet,
-	  LooseLeptonMultiJet,
-	  MultiJet,
-	  DiJet,
-	  TwoBJet,
-	  OneBJet,
-	  ZeroBJet,
-	  NONE
+	  MuEle = 0, 
+	  MuMu = 1,
+	  EleEle = 2,
+	  MuMultiJet = 3,
+	  MuJet = 4,
+	  EleMultiJet = 5,
+	  EleJet = 6,
+	  LooseLeptonMultiJet = 7,
+	  MultiJet = 8,
+	  DiJet = 9,
+	  TwoBJet = 10,
+	  OneBJet = 11,
+	  ZeroBJet = 12,
+	  NONE = 999
         };
 };
 
