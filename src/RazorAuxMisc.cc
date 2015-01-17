@@ -110,8 +110,10 @@ bool RazorAnalyzer::passesHadronicRazorBaseline(double MR, double Rsq){
 
 bool RazorAnalyzer::passesLeptonicRazorBaseline(double MR, double Rsq){
     bool passes = true;
-    if(MR < 300 || Rsq < 0.15) passes = false;
-    if(MR < 350 && Rsq < 0.2) passes = false;
+    if(MR < 0 || Rsq < 0) passes = false;
+    //temporarily disable these
+    // if(MR < 300 || Rsq < 0.15) passes = false;
+    // if(MR < 350 && Rsq < 0.2) passes = false;
     return passes;
 }
 
