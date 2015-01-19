@@ -1,5 +1,5 @@
-//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/ObjectStudies/MakeElectronIDMVAPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple.TTJets.25ns.root","All",-1)'
-//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/ObjectStudies/MakeElectronIDMVAPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple.DYJetsToLLReal_TTJetsFake.25ns.root","All",-1)'
+//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/ObjectStudies/MakeElectronIDMVAPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple.TTJets.25ns.root","All",-1)'
+//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/macros/ObjectStudies/MakeElectronIDMVAPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
 //================================================================================================
 //
 // HWW selection macro
@@ -473,7 +473,7 @@ Bool_t passCSA14Tight( ElectronTree *eleTree) {
 	   && fabs(eleTree->fEleD0) < 0.0126
 	   && fabs(eleTree->fEleDZ) < 0.0116
 	   && eleTree->fEleOneOverEMinusOneOverP < 0.0609
-	   && eleTree->fElePFIso04 < 0.1649
+	   //&& eleTree->fElePFIso04 < 0.1649
 	   && eleTree->fElePassConversion
 	   && eleTree->fEleNMissHits < 1
 	   ) {
@@ -484,10 +484,10 @@ Bool_t passCSA14Tight( ElectronTree *eleTree) {
 	   && fabs(eleTree->fEleDPhiIn) < 0.0359
 	   && eleTree->fEleSigmaIEtaIEta < 0.0305 
 	   && eleTree->fEleHoverE < 0.0835 
-	   && fabs(eleTree->fEleD0) < 0.0163 
+	  && fabs(eleTree->fEleD0) < 0.0163 
 	   && fabs(eleTree->fEleDZ) <  0.5999
 	   && eleTree->fEleOneOverEMinusOneOverP <  0.1126
-	    && eleTree->fElePFIso04 < 0.2075
+	  // && eleTree->fElePFIso04 < 0.2075
 	   && eleTree->fElePassConversion
 	   && eleTree->fEleNMissHits < 1
 	  ) {
@@ -508,7 +508,7 @@ Bool_t passCSA14Loose( ElectronTree *eleTree) {
 	   && fabs(eleTree->fEleD0) < 0.0166
 	   && fabs(eleTree->fEleDZ) < 0.54342
 	   && eleTree->fEleOneOverEMinusOneOverP < 0.1353
-	    && eleTree->fElePFIso04 < 0.24
+	   // && eleTree->fElePFIso04 < 0.24
 	   && eleTree->fElePassConversion
 	   && eleTree->fEleNMissHits < 1
 	   ) {
@@ -519,10 +519,10 @@ Bool_t passCSA14Loose( ElectronTree *eleTree) {
 	   && fabs(eleTree->fEleDPhiIn) < 0.0642
 	   && eleTree->fEleSigmaIEtaIEta < 0.035 
 	   && eleTree->fEleHoverE < 0.1115 
-	   && fabs(eleTree->fEleD0) < 0.098 
+	  && fabs(eleTree->fEleD0) < 0.098 
 	   && fabs(eleTree->fEleDZ) <  0.9187
 	   && eleTree->fEleOneOverEMinusOneOverP <  0.1443
-	    && eleTree->fElePFIso04 < 0.3529
+	  //&& eleTree->fElePFIso04 < 0.3529
 	   && eleTree->fElePassConversion
 	   && eleTree->fEleNMissHits < 1
 	  ) {
@@ -540,12 +540,12 @@ Bool_t passCSA14Veto( ElectronTree *eleTree) {
 	   && fabs(eleTree->fEleDPhiIn) < 0.2579
 	   && eleTree->fEleSigmaIEtaIEta < 0.0125
 	   && eleTree->fEleHoverE < 0.2564
-	   //&& fabs(eleTree->fEleD0) < 0.025
+	   && fabs(eleTree->fEleD0) < 0.025
 	   && fabs(eleTree->fEleDZ) < 0.5863
 	   && eleTree->fEleOneOverEMinusOneOverP < 0.1508
-	   //&& eleTree->fElePFIso04 < 0.3313 
-	   //&& eleTree->fElePassConversion
-	   //&& eleTree->fEleNMissHits < 2
+	   // && eleTree->fElePFIso04 < 0.3313 
+	   && eleTree->fElePassConversion
+	   && eleTree->fEleNMissHits < 2
 	   ) {
 	pass = true;
       }
@@ -554,12 +554,12 @@ Bool_t passCSA14Veto( ElectronTree *eleTree) {
 	   && fabs(eleTree->fEleDPhiIn) < 0.2591
 	   && eleTree->fEleSigmaIEtaIEta < 0.0371 
 	   && eleTree->fEleHoverE < 0.1335 
-	  //&& fabs(eleTree->fEleD0) < 0.2232
+	  && fabs(eleTree->fEleD0) < 0.2232
 	   && fabs(eleTree->fEleDZ) <  0.9513
 	   && eleTree->fEleOneOverEMinusOneOverP <  0.1542
 	  //&& eleTree->fElePFIso04 < 0.3816
-	  //&& eleTree->fElePassConversion
-	  //&& eleTree->fEleNMissHits < 3
+	  && eleTree->fElePassConversion
+	  && eleTree->fEleNMissHits < 3
 	  ) {
 	pass = true;
       }
@@ -571,32 +571,32 @@ Bool_t passCSA14Veto( ElectronTree *eleTree) {
 
 Bool_t passIDMVANonTrigVeto( ElectronTree *eleTree) {
 
-  Int_t subdet = 0;
-  if (fabs(eleTree->fEleSCEta) < 0.8) subdet = 0;
-  else if (fabs(eleTree->fEleSCEta) < 1.479) subdet = 1;
-  else subdet = 2;
+  Int_t subdet = 0;  
+  if (fabs(eleTree->fEleSCEta) < 1.479) subdet = 0;
+  else subdet = 1;
   Int_t ptBin = 0;
   if (eleTree->fElePt > 10.0) ptBin = 1;
 
   Int_t MVABin = -1;
   if (subdet == 0 && ptBin == 0) MVABin = 0;
   if (subdet == 1 && ptBin == 0) MVABin = 1;
-  if (subdet == 2 && ptBin == 0) MVABin = 2;
-  if (subdet == 0 && ptBin == 1) MVABin = 3;
-  if (subdet == 1 && ptBin == 1) MVABin = 4;
-  if (subdet == 2 && ptBin == 1) MVABin = 5;
+  if (subdet == 0 && ptBin == 1) MVABin = 2;
+  if (subdet == 1 && ptBin == 1) MVABin = 3;
 
   Double_t MVACut = -999;
   if (MVABin == 0) MVACut = 0.0;
-  if (MVABin == 1) MVACut = 0.0;
-  if (MVABin == 2) MVACut = 0.3; 
-  if (MVABin == 3) MVACut = -0.3;
-  if (MVABin == 4) MVACut = -0.3;
-  if (MVABin == 5) MVACut = -0.3;  
+  if (MVABin == 1) MVACut = 0.6; 
+  if (MVABin == 2) MVACut = -0.3;
+  if (MVABin == 3) MVACut = 0.5;  
 
     bool pass = false;
     if (eleTree->fIDMVANonTrig > MVACut 
-	// && eleTree->fElePFIso04 < 0.4
+
+	&& ( (fabs(eleTree->fEleSCEta) < 1.479 && fabs(eleTree->fEleD0) < 0.0166)
+	     ||
+	     (fabs(eleTree->fEleSCEta) >= 1.479 && fabs(eleTree->fEleD0) < 0.098)
+	     )
+	//&& eleTree->fElePFIso04 < 0.4
 	) {
       pass = true;
     }   
@@ -622,35 +622,35 @@ Bool_t passIDMVATrigTight( ElectronTree *eleTree) {
 
 
 
-Bool_t passIDMVA( Double_t fElePt, Double_t fEleSCEta, Double_t MVAValue) {
+// Bool_t passIDMVA( Double_t fElePt, Double_t fEleSCEta, Double_t MVAValue) {
 
-  Int_t subdet = 0;
-  if (fabs(fEleSCEta) < 0.8) subdet = 0;
-  else if (fabs(fEleSCEta) < 1.479) subdet = 1;
-  else subdet = 2;
-  Int_t ptBin = 0;
-  if (fElePt > 10.0) ptBin = 1;
+//   Int_t subdet = 0;
+//   if (fabs(fEleSCEta) < 0.8) subdet = 0;
+//   else if (fabs(fEleSCEta) < 1.479) subdet = 1;
+//   else subdet = 2;
+//   Int_t ptBin = 0;
+//   if (fElePt > 10.0) ptBin = 1;
 
-  Int_t MVABin = -1;
-  if (subdet == 0 && ptBin == 0) MVABin = 0;
-  if (subdet == 1 && ptBin == 0) MVABin = 1;
-  if (subdet == 2 && ptBin == 0) MVABin = 2;
-  if (subdet == 0 && ptBin == 1) MVABin = 3;
-  if (subdet == 1 && ptBin == 1) MVABin = 4;
-  if (subdet == 2 && ptBin == 1) MVABin = 5;
+//   Int_t MVABin = -1;
+//   if (subdet == 0 && ptBin == 0) MVABin = 0;
+//   if (subdet == 1 && ptBin == 0) MVABin = 1;
+//   if (subdet == 2 && ptBin == 0) MVABin = 2;
+//   if (subdet == 0 && ptBin == 1) MVABin = 3;
+//   if (subdet == 1 && ptBin == 1) MVABin = 4;
+//   if (subdet == 2 && ptBin == 1) MVABin = 5;
 
-  Double_t MVACut = -999;
-  if (MVABin == 0) MVACut = 0.5094;
-  if (MVABin == 1) MVACut = -0.0394;
-  if (MVABin == 2) MVACut = 0.1902; 
-  if (MVABin == 3) MVACut = 0.839;
-  if (MVABin == 4) MVACut = 0.673;
-  if (MVABin == 5) MVACut = 0.8078;  
+//   Double_t MVACut = -999;
+//   if (MVABin == 0) MVACut = 0.5094;
+//   if (MVABin == 1) MVACut = -0.0394;
+//   if (MVABin == 2) MVACut = 0.1902; 
+//   if (MVABin == 3) MVACut = 0.839;
+//   if (MVABin == 4) MVACut = 0.673;
+//   if (MVABin == 5) MVACut = 0.8078;  
 
 
-  if (MVAValue > MVACut) return kTRUE;
-  return kFALSE;
-}
+//   if (MVAValue > MVACut) return kTRUE;
+//   return kFALSE;
+// }
 
 
 
@@ -665,6 +665,38 @@ Bool_t passCutBasedIsoOnly(Double_t fElePt,
   if (fElePt >= 20) passIsoCuts = ( fElePFIso  < 0.13 ); 
 
   return passIsoCuts;
+}
+
+
+Bool_t passImprovedIso( ElectronTree *eleTree) {
+
+    bool pass = false;
+    if(fabs(eleTree->fEleSCEta) < 1.479) {
+      if ( eleTree->fElePt > 20) {
+	if ( 
+	    eleTree->fElePFIso04 < 0.3 
+	     ) {
+	pass = true;
+	}
+      } else {
+	if ( eleTree->fElePFIso04*eleTree->fElePt < 5 ) {
+	  pass = true;
+	}
+      }
+    } else {
+      if ( eleTree->fElePt > 20) {
+        if (
+            eleTree->fElePFIso04 < 0.3
+	    ) {
+	  pass = true;
+        }
+      } else {
+	if ( eleTree->fElePFIso04*eleTree->fElePt < 5 ) {
+          pass = true;
+	}
+      }
+    } 
+    return pass;
 }
 
 
@@ -741,14 +773,12 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
 
     //don't evaluate performance using training events
     if (EleTree->fElePt < 5) continue;
-    //if (EleTree->fElePt < 25) continue;
-    //if (!(fabs(EleTree->fEleEta) < 1.5)) continue;
+
 
     //classify by eta and pt bins
     Int_t subdet = 0;
-    if (fabs(EleTree->fEleEta) < 0.8) subdet = 0;
-    else if (fabs(EleTree->fEleEta) < 1.485) subdet = 1;
-    else subdet = 2;
+    if (fabs(EleTree->fEleEta) < 1.485) subdet = 0;
+    else subdet = 1;
 
     Int_t ptBin = 0;
     if (EleTree->fElePt > 10.0) ptBin = 1;
@@ -757,13 +787,10 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
     Bool_t passCuts = kFALSE;
     if (Option == 0) passCuts = (subdet == 0 && ptBin == 0);
     if (Option == 1) passCuts = (subdet == 1 && ptBin == 0);
-    if (Option == 2) passCuts = (subdet == 2 && ptBin == 0);
-    if (Option == 3) passCuts = (subdet == 0 && ptBin == 1);
-    if (Option == 4) passCuts = (subdet == 1 && ptBin == 1);
-    if (Option == 5) passCuts = (subdet == 2 && ptBin == 1);    
-    if (Option == 6) passCuts = (subdet == 0 && ptBin == 2);
-    if (Option == 7) passCuts = (subdet == 1 && ptBin == 2);
-    if (Option == 8) passCuts = (subdet == 2 && ptBin == 2);    
+    if (Option == 2) passCuts = (subdet == 0 && ptBin == 1);
+    if (Option == 3) passCuts = (subdet == 1 && ptBin == 1);    
+    if (Option == 4) passCuts = (subdet == 0 && ptBin == 2);
+    if (Option == 5) passCuts = (subdet == 1 && ptBin == 2);    
     if (Option == 10) passCuts = (ptBin == 0 );
 
     if (Option == -1) passCuts = kTRUE;
@@ -774,8 +801,9 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
     //if (!passCSA14Preselection(EleTree)) continue;
     //if (!EleTree->fElePassConversion) continue;
     if (!(fabs(EleTree->fEleDZ) < 1)) continue;
-    //if (!(EleTree->fElePFIso04 < 0.4)) continue;
-
+    //if (!(EleTree->fElePFIso04 < 0.2)) continue;
+    if (!passImprovedIso(EleTree)) continue;
+    //if (!(fabs(EleTree->fEleD0) < 0.0166)) continue;
 
     //Real Electron
     if (abs(EleTree->fPdgId) == 11) {
@@ -792,7 +820,12 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
 	EleIDMVATrig_Real->Fill(-1, EleTree->fWeight);
       }
 
-      if ( EleTree->fElePFIso04 < 99 ) {
+      if ( EleTree->fElePFIso04 < 99 &&  
+	   ( (fabs(EleTree->fEleSCEta) < 1.479 && fabs(EleTree->fEleD0) < 0.0166)
+	     ||
+	     (fabs(EleTree->fEleSCEta) >= 1.479 && fabs(EleTree->fEleD0) < 0.098)
+	     )
+	   ) {
 	EleIDMVANonTrig_Real->Fill(EleTree->fIDMVANonTrig, EleTree->fWeight);
       } else {
 	EleIDMVANonTrig_Real->Fill(-1, EleTree->fWeight);
@@ -814,7 +847,12 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
 	EleIDMVATrig_Real->Fill(-1, EleTree->fWeight);
       }
 
-      if ( EleTree->fElePFIso04 < 99 ) {
+      if ( EleTree->fElePFIso04 < 99 &&  
+	   ( (fabs(EleTree->fEleSCEta) < 1.479 && fabs(EleTree->fEleD0) < 0.0166)
+	     ||
+	     (fabs(EleTree->fEleSCEta) >= 1.479 && fabs(EleTree->fEleD0) < 0.098)
+	     )
+	   ) {
 	EleIDMVANonTrig_Fake->Fill(EleTree->fIDMVANonTrig, EleTree->fWeight);
       } else {
 	EleIDMVANonTrig_Fake->Fill(-1, EleTree->fWeight);
@@ -874,12 +912,12 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
 
 
   cout << "IDMVANonTrig Veto Real Electron Efficiency : " << RealElectronPassIDMVANonTrigVeto << " / " << RealElectrons << " = " << RealElectronPassIDMVANonTrigVeto/RealElectrons << endl;
-  cout << "CSA14 Veto Fake Electron Efficiency : " << FakeElectronPassIDMVANonTrigVeto << " / " << FakeElectrons << " = " << FakeElectronPassIDMVANonTrigVeto/FakeElectrons << endl;
+  cout << "IDMVANonTrig Veto Fake Electron Efficiency : " << FakeElectronPassIDMVANonTrigVeto << " / " << FakeElectrons << " = " << FakeElectronPassIDMVANonTrigVeto/FakeElectrons << endl;
   TGraphAsymmErrors* ROC_IDMVANonTrigVetoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassIDMVANonTrigVeto/RealElectrons , FakeElectronPassIDMVANonTrigVeto/FakeElectrons, "ROC_IDMVANonTrigVetoWP"+label);
 
 
-  cout << "CSA14 Veto Real Electron Efficiency : " << RealElectronPassIDMVATrigTight << " / " << RealElectrons << " = " << RealElectronPassIDMVATrigTight/RealElectrons << endl;
-  cout << "CSA14 Veto Fake Electron Efficiency : " << FakeElectronPassIDMVATrigTight << " / " << FakeElectrons << " = " << FakeElectronPassIDMVATrigTight/FakeElectrons << endl;
+  cout << "IDMVATrig Tight Real Electron Efficiency : " << RealElectronPassIDMVATrigTight << " / " << RealElectrons << " = " << RealElectronPassIDMVATrigTight/RealElectrons << endl;
+  cout << "IDMVATrig Tight Veto Fake Electron Efficiency : " << FakeElectronPassIDMVATrigTight << " / " << FakeElectrons << " = " << FakeElectronPassIDMVATrigTight/FakeElectrons << endl;
   TGraphAsymmErrors* ROC_IDMVATrigTightWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassIDMVATrigTight/RealElectrons , FakeElectronPassIDMVATrigTight/FakeElectrons, "ROC_IDMVATrigTightWP"+label);
 
 
@@ -903,6 +941,9 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
   Double_t CutValue_IDMVANonTrig_SameBkg = FindCutValueAtFixedEfficiency(EleIDMVANonTrig_Fake, BkgEffCSA14Veto );
   cout << "IDMVANonTrig Cut Value @ Same Cut-Based Veto Sig Eff: " << CutValue_IDMVANonTrig_SameSig << endl;
   cout << "IDMVANonTrig Cut Value @ Same Cut-Based Veto Bkg Eff: " << CutValue_IDMVANonTrig_SameBkg << endl;
+
+  Double_t CutValue_IDMVANonTrig_HalfBkg = FindCutValueAtFixedEfficiency(EleIDMVANonTrig_Fake, 0.5*FakeElectronPassIDMVANonTrigVeto/FakeElectrons );
+  cout << "IDMVANonTrig Cut Value @ 50% IDMVA NonTrig Veto Bkg Eff: " << CutValue_IDMVANonTrig_HalfBkg << endl;
 
   TLegend* legend;
   TCanvas* cv;
@@ -939,12 +980,14 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
 
 
 
+
   cv = new TCanvas("cv", "cv", 800, 600);
 
 //    legend = new TLegend(0.45,0.20,0.75,0.50);
   legend = new TLegend(0.54,0.14,0.94,0.44);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
   for (UInt_t i=0; i<GraphLabels.size(); ++i) {
     legend->AddEntry(ROCGraphs[i],GraphLabels[i].c_str(), "LP");
 
@@ -961,16 +1004,16 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
     }
   }
 
-  legend->AddEntry(ROC_CSA14TightWP, "CSA14Tight WP", "P");
-  ROC_CSA14TightWP->SetFillColor(kGreen+3);
-  ROC_CSA14TightWP->SetMarkerColor(kGreen+3);
-  ROC_CSA14TightWP->SetMarkerStyle(34);
-  ROC_CSA14TightWP->SetMarkerSize(2.5);
-  ROC_CSA14TightWP->Draw("Psame");
+  // legend->AddEntry(ROC_CSA14TightWP, "CSA14Tight WP", "P");
+  // ROC_CSA14TightWP->SetFillColor(kRed);
+  // ROC_CSA14TightWP->SetMarkerColor(kRed);
+  // ROC_CSA14TightWP->SetMarkerStyle(34);
+  // ROC_CSA14TightWP->SetMarkerSize(2.5);
+  // ROC_CSA14TightWP->Draw("Psame");
 
   legend->AddEntry(ROC_CSA14LooseWP, "CSA14Loose WP", "P");
-  ROC_CSA14LooseWP->SetFillColor(kGreen+3);
-  ROC_CSA14LooseWP->SetMarkerColor(kGreen+3);
+  ROC_CSA14LooseWP->SetFillColor(kBlue);
+  ROC_CSA14LooseWP->SetMarkerColor(kBlue);
   ROC_CSA14LooseWP->SetMarkerStyle(34);
   ROC_CSA14LooseWP->SetMarkerSize(2.5);
   ROC_CSA14LooseWP->Draw("Psame");
@@ -982,12 +1025,12 @@ void MakeElectronIDMVAPerformancePlots(string InputFile, string Label, Int_t Opt
   ROC_CSA14VetoWP->SetMarkerSize(2.5);
   ROC_CSA14VetoWP->Draw("Psame");
 
-  legend->AddEntry(ROC_IDMVANonTrigVetoWP, "IDMVANonTrigVeto WP", "P");
-  ROC_IDMVANonTrigVetoWP->SetFillColor(kRed);
-  ROC_IDMVANonTrigVetoWP->SetMarkerColor(kRed);
-  ROC_IDMVANonTrigVetoWP->SetMarkerStyle(34);
-  ROC_IDMVANonTrigVetoWP->SetMarkerSize(2.5);
-  ROC_IDMVANonTrigVetoWP->Draw("Psame");
+   legend->AddEntry(ROC_IDMVANonTrigVetoWP, "IDMVANonTrigVeto WP", "P");
+   ROC_IDMVANonTrigVetoWP->SetFillColor(kBlack);
+   ROC_IDMVANonTrigVetoWP->SetMarkerColor(kBlack);
+   ROC_IDMVANonTrigVetoWP->SetMarkerStyle(34);
+   ROC_IDMVANonTrigVetoWP->SetMarkerSize(2.5);
+   ROC_IDMVANonTrigVetoWP->Draw("Psame");
 
   // legend->AddEntry(ROC_IDMVATrigTightWP, "IDMVATrigTight WP", "P");
   // ROC_IDMVATrigTightWP->SetFillColor(kRed);
