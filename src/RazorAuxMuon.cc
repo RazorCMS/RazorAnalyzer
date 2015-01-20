@@ -32,7 +32,7 @@ bool RazorAnalyzer::isTightMuon(int i){
   if (
       muonIsTight[i] 
       && fabs(muon_ip3dSignificance[i]) < 4
-      && abs(muon_d0[i]) < 0.2
+      && fabs(muon_d0[i]) < 0.2
       && muon_relIso04DBetaCorr[i] < 0.12     
       ) {
     pass = true;
