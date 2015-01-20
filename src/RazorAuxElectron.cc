@@ -117,7 +117,12 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
   if (subdet == 1 && ptBin == 1) MVACut = 0.5;
 
   bool pass = false;
-  if (ele_IDMVANonTrig[i] > MVACut 
+  if (ele_IDMVANonTrig[i] > MVACut
+      &&
+      ( (fabs(eleEta_SC[i]) < 1.479 && fabs(ele_d0[i]) < 0.0166)
+	||
+	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
+	)
       && ( (elePt[i] > 20 && ele_relIsoDBetaCorr[i] < 0.3)
 	   ||
 	   (elePt[i] <= 20 && ele_relIsoDBetaCorr[i]*elePt[i] < 5)
@@ -213,7 +218,13 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
   if (subdet == 1 && ptBin == 1) MVACut = 0.5;
 
   bool pass = false;
-  if (ele_IDMVANonTrig[i] > MVACut) {
+  if (ele_IDMVANonTrig[i] > MVACut
+      &&
+      ( (fabs(eleEta_SC[i]) < 1.479 && fabs(ele_d0[i]) < 0.0166)
+	||
+	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
+	)
+      ) {
     pass = true;
   }
 
