@@ -60,17 +60,18 @@ WH_ZH_HToGG_M-125_13TeV_pythia6                                 0.005129088
 TTbarH_HToGG_M-125_13TeV_amcatnlo-pythia8-tauola                0.00115938
 
 #SUSY SMSs -- dummy cross sections
-SMS-T1bbbb_2J_mGl-1000_mLSP-900_Tune4C_13TeV-madgraph-tauola    1
+SMS-T1bbbb_2J_mGl-1000_mLSP-900_Tune4C_13TeV-madgraph-tauola    0.325388
 SMS-T1bbbb_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola    0.0141903
-SMS-T1qqqq_2J_mGl-1000_mLSP-800_Tune4C_13TeV-madgraph-tauola    1
+SMS-T1qqqq_2J_mGl-1000_mLSP-800_Tune4C_13TeV-madgraph-tauola    0.325388
 SMS-T1qqqq_2J_mGl-1400_mLSP-100_Tune4C_13TeV-madgraph-tauola    0.0252977
-SMS-T1tttt_2J_mGl-1200_mLSP-800_Tune4C_13TeV-madgraph-tauola    1
+SMS-T1tttt_2J_mGl-1200_mLSP-800_Tune4C_13TeV-madgraph-tauola    0.0856418
 SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola    0.0141903
-SMS-T2bb_2J_mStop-900_mLSP-100_Tune4C_13TeV-madgraph-tauola     1
-SMS-T2qq_2J_mStop-1200_mLSP-100_Tune4C_13TeV-madgraph-tauola    1
-SMS-T2qq_2J_mStop-600_mLSP-550_Tune4C_13TeV-madgraph-tauola     1
-SMS-T2tt_2J_mStop-425_mLSP-325_Tune4C_13TeV-madgraph-tauola     1
-SMS-T2tt_2J_mStop-500_mLSP-325_Tune4C_13TeV-madgraph-tauola     1
-SMS-T2tt_2J_mStop-650_mLSP-325_Tune4C_13TeV-madgraph-tauola     1
-SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola     1
+SMS-T2bb_2J_mStop-600_mLSP-580_Tune4C_13TeV-madgraph-tauola     0.174599
+SMS-T2bb_2J_mStop-900_mLSP-100_Tune4C_13TeV-madgraph-tauola     0.0128895
+SMS-T2qq_2J_mStop-1200_mLSP-100_Tune4C_13TeV-madgraph-tauola    0.00159844
+SMS-T2qq_2J_mStop-600_mLSP-550_Tune4C_13TeV-madgraph-tauola     0.174599
+SMS-T2tt_2J_mStop-425_mLSP-325_Tune4C_13TeV-madgraph-tauola     1.31169
+SMS-T2tt_2J_mStop-500_mLSP-325_Tune4C_13TeV-madgraph-tauola     0.51848
+SMS-T2tt_2J_mStop-650_mLSP-325_Tune4C_13TeV-madgraph-tauola     0.107045
+SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola     0.0189612
 
