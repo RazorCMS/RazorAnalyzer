@@ -621,40 +621,6 @@ Bool_t passIDMVATrigTight( ElectronTree *eleTree) {
 }
 
 
-
-// Bool_t passIDMVA( Double_t fElePt, Double_t fEleSCEta, Double_t MVAValue) {
-
-//   Int_t subdet = 0;
-//   if (fabs(fEleSCEta) < 0.8) subdet = 0;
-//   else if (fabs(fEleSCEta) < 1.479) subdet = 1;
-//   else subdet = 2;
-//   Int_t ptBin = 0;
-//   if (fElePt > 10.0) ptBin = 1;
-
-//   Int_t MVABin = -1;
-//   if (subdet == 0 && ptBin == 0) MVABin = 0;
-//   if (subdet == 1 && ptBin == 0) MVABin = 1;
-//   if (subdet == 2 && ptBin == 0) MVABin = 2;
-//   if (subdet == 0 && ptBin == 1) MVABin = 3;
-//   if (subdet == 1 && ptBin == 1) MVABin = 4;
-//   if (subdet == 2 && ptBin == 1) MVABin = 5;
-
-//   Double_t MVACut = -999;
-//   if (MVABin == 0) MVACut = 0.5094;
-//   if (MVABin == 1) MVACut = -0.0394;
-//   if (MVABin == 2) MVACut = 0.1902; 
-//   if (MVABin == 3) MVACut = 0.839;
-//   if (MVABin == 4) MVACut = 0.673;
-//   if (MVABin == 5) MVACut = 0.8078;  
-
-
-//   if (MVAValue > MVACut) return kTRUE;
-//   return kFALSE;
-// }
-
-
-
-
 Bool_t passCutBasedIsoOnly(Double_t fElePt, 
                     Double_t fEleEta, 
                     Double_t fElePFIso ) {
