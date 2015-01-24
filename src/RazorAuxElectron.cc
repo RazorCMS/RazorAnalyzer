@@ -120,9 +120,9 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
   if (ele_IDMVANonTrig[i] > MVACut
       &&
       ( (fabs(eleEta_SC[i]) < 1.479 && fabs(ele_d0[i]) < 0.0166)
-	||
-	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
-	)
+      	||
+      	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
+      	)
       && ( (elePt[i] > 20 && ele_relIsoDBetaCorr[i] < 0.3)
 	   ||
 	   (elePt[i] <= 20 && ele_relIsoDBetaCorr[i]*elePt[i] < 5)
