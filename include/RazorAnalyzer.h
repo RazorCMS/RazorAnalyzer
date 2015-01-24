@@ -127,6 +127,9 @@ class RazorAnalyzer: public RazorEvents {
 	
 	//functions in src/RazorAuxGenLevel.cc
 	bool isGenTau(int index);
+	bool isGenLeptonicTau(int index);
+	int findClosestGenElectron(double eta, double phi);
+	int findClosestGenMuon(double eta, double phi);
 	int findClosestGenTau(double eta, double phi);
 	int findClosestRecoTau(double eta, double phi);
 	int GetTauMatchedID(double eta, double phi);
