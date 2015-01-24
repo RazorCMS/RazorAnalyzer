@@ -27,6 +27,30 @@
 #include "RazorAnalyzer/include/ElectronTree.h"
 
 #endif
+
+Bool_t passPreselection( ElectronTree *eleTree) {
+
+    bool pass = false;
+    if(fabs(eleTree->fEleSCEta) < 1.479) {
+      if ( fabs(eleTree->fEleDEtaIn) < 0.02
+	   && fabs(eleTree->fEleDPhiIn) < 0.15
+	   && eleTree->fEleHoverE < 0.15
+	   ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(eleTree->fEleDEtaIn) < 0.02
+	  && fabs(eleTree->fEleDPhiIn) < 0.15
+	  && eleTree->fEleHoverE < 0.15
+	  ) {
+	pass = true;
+      }
+    } 
+    return pass;
+}
+
+
+
 Bool_t passCSA14Tight( ElectronTree *eleTree) {
 
     bool pass = false;
@@ -262,7 +286,7 @@ void plotElectronEfficiency() {
 
   effPtVeto->SetLineWidth(3);
   effPtVeto->SetLineColor(kBlack);
-  effPtVeto->GetXaxis()->SetTitle("Electron p_{T} [Gev/C]");
+  effPtVeto->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
   effPtVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effPtVeto->GetYaxis()->SetTitleOffset(1.2);
 
@@ -294,7 +318,7 @@ void plotElectronEfficiency() {
 
   effEtaVeto->SetLineWidth(3);
   effEtaVeto->SetLineColor(kBlack);
-  effEtaVeto->GetXaxis()->SetTitle("Electron p_{T} [Gev/C]");
+  effEtaVeto->GetXaxis()->SetTitle("Electron #eta");
   effEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effEtaVeto->GetYaxis()->SetTitleOffset(1.2);
 
@@ -325,7 +349,7 @@ void plotElectronEfficiency() {
 
   effNpvVeto->SetLineWidth(3);
   effNpvVeto->SetLineColor(kBlack);
-  effNpvVeto->GetXaxis()->SetTitle("Electron p_{T} [Gev/C]");
+  effNpvVeto->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
   effNpvVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effNpvVeto->GetYaxis()->SetTitleOffset(1.2);
   effNpvVeto->GetXaxis()->SetRangeUser(5,35);
@@ -361,10 +385,10 @@ void plotElectronEfficiency() {
 
   effFakePtVeto->SetLineWidth(3);
   effFakePtVeto->SetLineColor(kBlack);
-  effFakePtVeto->GetXaxis()->SetTitle("Electron p_{T} [Gev/C]");
+  effFakePtVeto->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
   effFakePtVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakePtVeto->GetYaxis()->SetTitleOffset(1.35);
-  effFakePtVeto->GetYaxis()->SetRangeUser(0,0.05);
+  effFakePtVeto->GetYaxis()->SetRangeUser(0,0.20);
 
   effFakePtLoose->SetLineWidth(3);
   effFakePtLoose->SetLineColor(kBlue);
@@ -392,10 +416,10 @@ void plotElectronEfficiency() {
 
   effFakeEtaVeto->SetLineWidth(3);
   effFakeEtaVeto->SetLineColor(kBlack);
-  effFakeEtaVeto->GetXaxis()->SetTitle("Electron p_{T} [Gev/C]");
+  effFakeEtaVeto->GetXaxis()->SetTitle("Electron #eta");
   effFakeEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakeEtaVeto->GetYaxis()->SetTitleOffset(1.35);
-  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.05);
+  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.10);
 
   effFakeEtaLoose->SetLineWidth(3);
   effFakeEtaLoose->SetLineColor(kBlue);
@@ -425,11 +449,11 @@ void plotElectronEfficiency() {
 
   effFakeNpvVeto->SetLineWidth(3);
   effFakeNpvVeto->SetLineColor(kBlack);
-  effFakeNpvVeto->GetXaxis()->SetTitle("Electron p_{T} [Gev/C]");
+  effFakeNpvVeto->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
   effFakeNpvVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakeNpvVeto->GetYaxis()->SetTitleOffset(1.35);
   effFakeNpvVeto->GetXaxis()->SetRangeUser(5,35);
-  effFakeNpvVeto->GetYaxis()->SetRangeUser(0,0.05);
+  effFakeNpvVeto->GetYaxis()->SetRangeUser(0,0.07);
 
   effFakeNpvLoose->SetLineWidth(3);
   effFakeNpvLoose->SetLineColor(kBlue);
@@ -454,8 +478,8 @@ void plotElectronEfficiency() {
 //=== MAIN MACRO ================================================================================================= 
 
 void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string label = "") {
-   // plotElectronEfficiency();
-   // return;
+  plotElectronEfficiency();
+  return;
 
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -504,17 +528,19 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
     if (abs(EleTree->fEleGenEta) > 2.4) continue;
 
     if (!(EleTree->fElePt > 5)) continue;
+    //if (option == 1 && !passPreselection(EleTree)) continue;
     // if (!passIDMVANonTrigVeto(EleTree)) continue;
 
 
-    //**** PT - ETA ****
-    histDenominatorPtEta->Fill(EleTree->fEleGenPt,EleTree->fEleGenEta);
-    if(PassSelection(EleTree)) {
-      histNumeratorPtEta->Fill(EleTree->fEleGenPt,EleTree->fEleGenEta);
-    }
+    if (option == 0) {
+      //**** PT - ETA ****
+      histDenominatorPtEta->Fill(EleTree->fEleGenPt,EleTree->fEleGenEta);
+      if(PassSelection(EleTree)) {
+	histNumeratorPtEta->Fill(EleTree->fEleGenPt,EleTree->fEleGenEta);
+      }
 
 
-    //**** PT ****
+      //**** PT ****
       histDenominatorPt->Fill(EleTree->fEleGenPt);
 
       //Numerator
@@ -523,59 +549,132 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
       }
 
 
-    //**** Eta ****
-    if (fabs(EleTree->fEleGenPt) > 30) {
-      histDenominatorEta->Fill(EleTree->fEleGenEta);
+      //**** Eta ****
+      if (fabs(EleTree->fEleGenPt) > 30) {
+	histDenominatorEta->Fill(EleTree->fEleGenEta);
+
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorEta->Fill(EleTree->fEleGenEta);        
+	}
+
+      }
+
+      //**** Phi ****
+      if (fabs(EleTree->fEleGenEta) < 2.4) {
+	histDenominatorPhi->Fill(EleTree->fEleGenPhi);
+
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorPhi->Fill(EleTree->fEleGenPhi);        
+	}
+
+      }
+
+      //**** Rho ****
+      if (fabs(EleTree->fEleGenEta) < 2.4) {
+	histDenominatorRho->Fill(EleTree->fRho);
+
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorRho->Fill(EleTree->fRho);        
+	}
+
+      }
+      //**** Npv ****
+      if (fabs(EleTree->fEleGenEta) < 2.4) {
+	histDenominatorNpv->Fill(EleTree->fNVertices);
+
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorNpv->Fill(EleTree->fNVertices);        
+	}
+
+      }
+
+      // //**** Npu ****
+      // if (fabs(EleTree->fEleGenEta) < 2.4) {
+      //   histDenominatorNpu->Fill(EleTree->);
+
+      //   //Numerator
+      //   if(PassSelection(EleTree)) {
+      //     histNumeratorNpu->Fill(EleTree->);        
+      //   }
+
+      // }
+    }
+
+    if (option == 1) {
+      //**** PT - ETA ****
+      histDenominatorPtEta->Fill(EleTree->fElePt,EleTree->fEleEta);
+      if(PassSelection(EleTree)) {
+	histNumeratorPtEta->Fill(EleTree->fElePt,EleTree->fEleEta);
+      }
+
+
+      //**** PT ****
+      histDenominatorPt->Fill(EleTree->fElePt);
 
       //Numerator
       if(PassSelection(EleTree)) {
-        histNumeratorEta->Fill(EleTree->fEleGenEta);        
+        histNumeratorPt->Fill(EleTree->fElePt);        
       }
 
-    }
 
-    //**** Phi ****
-    if (fabs(EleTree->fEleGenEta) < 2.4) {
-      histDenominatorPhi->Fill(EleTree->fEleGenPhi);
+      //**** Eta ****
+      if (fabs(EleTree->fElePt) > 30) {
+	histDenominatorEta->Fill(EleTree->fEleEta);
 
-      //Numerator
-      if(PassSelection(EleTree)) {
-        histNumeratorPhi->Fill(EleTree->fEleGenPhi);        
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorEta->Fill(EleTree->fEleEta);        
+	}
+
       }
 
-    }
+      //**** Phi ****
+      if (fabs(EleTree->fEleEta) < 2.4) {
+	histDenominatorPhi->Fill(EleTree->fElePhi);
 
-    //**** Rho ****
-    if (fabs(EleTree->fEleGenEta) < 2.4) {
-      histDenominatorRho->Fill(EleTree->fRho);
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorPhi->Fill(EleTree->fElePhi);        
+	}
 
-      //Numerator
-      if(PassSelection(EleTree)) {
-        histNumeratorRho->Fill(EleTree->fRho);        
       }
 
-    }
-    //**** Npv ****
-    if (fabs(EleTree->fEleGenEta) < 2.4) {
-      histDenominatorNpv->Fill(EleTree->fNVertices);
+      //**** Rho ****
+      if (fabs(EleTree->fEleEta) < 2.4) {
+	histDenominatorRho->Fill(EleTree->fRho);
 
-      //Numerator
-      if(PassSelection(EleTree)) {
-        histNumeratorNpv->Fill(EleTree->fNVertices);        
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorRho->Fill(EleTree->fRho);        
+	}
+
+      }
+      //**** Npv ****
+      if (fabs(EleTree->fEleEta) < 2.4) {
+	histDenominatorNpv->Fill(EleTree->fNVertices);
+
+	//Numerator
+	if(PassSelection(EleTree)) {
+	  histNumeratorNpv->Fill(EleTree->fNVertices);        
+	}
+
       }
 
+      // //**** Npu ****
+      // if (fabs(EleTree->fEleEta) < 2.4) {
+      //   histDenominatorNpu->Fill(EleTree->);
+
+      //   //Numerator
+      //   if(PassSelection(EleTree)) {
+      //     histNumeratorNpu->Fill(EleTree->);        
+      //   }
+
+      // }
     }
-
-    // //**** Npu ****
-    // if (fabs(EleTree->fEleGenEta) < 2.4) {
-    //   histDenominatorNpu->Fill(EleTree->);
-
-    //   //Numerator
-    //   if(PassSelection(EleTree)) {
-    //     histNumeratorNpu->Fill(EleTree->);        
-    //   }
-
-    // }
 
 
   }

@@ -44,13 +44,13 @@ bool PassSelection( MuonTree* MuTree ) {
   // //**********************************
   // //Tight Selection
   // //**********************************
-  // if (MuTree->fMuPt > 0 && MuTree->fMuIsTight && fabs(MuTree->fMuIP3dSig)<4 && fabs(MuTree->fMuD0) < 0.2 && MuTree->fMuPFIso04 < 0.12) {
-  //   pass = true;
-  // }
+   if (MuTree->fMuPt > 0 && MuTree->fMuIsTight && fabs(MuTree->fMuIP3dSig)<4 && fabs(MuTree->fMuD0) < 0.2 && MuTree->fMuPFIso04 < 0.12) {
+     pass = true;
+   }
  
-  // //**********************************
-  // //Loose Selection
-  // //**********************************
+  //**********************************
+  //Loose Selection
+  //**********************************
   // if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.2) {
   //   pass = true;
   // }
@@ -127,7 +127,7 @@ void plotMuonEfficiency() {
 
   effPtRelIso->SetLineWidth(3);
   effPtRelIso->SetLineColor(kBlack);
-  effPtRelIso->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effPtRelIso->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
   effPtRelIso->GetYaxis()->SetTitle("Isolation Efficiency");
   effPtRelIso->GetYaxis()->SetTitleOffset(1.2);
 
@@ -158,7 +158,7 @@ void plotMuonEfficiency() {
 
   effPtVeto->SetLineWidth(3);
   effPtVeto->SetLineColor(kBlack);
-  effPtVeto->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effPtVeto->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
   effPtVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effPtVeto->GetYaxis()->SetTitleOffset(1.2);
 
@@ -189,7 +189,7 @@ void plotMuonEfficiency() {
 
   effEtaVeto->SetLineWidth(3);
   effEtaVeto->SetLineColor(kBlack);
-  effEtaVeto->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effEtaVeto->GetXaxis()->SetTitle("Muon #eta ");
   effEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effEtaVeto->GetYaxis()->SetTitleOffset(1.2);
 
@@ -221,7 +221,7 @@ void plotMuonEfficiency() {
 
   effNpvVeto->SetLineWidth(3);
   effNpvVeto->SetLineColor(kBlack);
-  effNpvVeto->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effNpvVeto->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
   effNpvVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effNpvVeto->GetYaxis()->SetTitleOffset(1.2);
   effNpvVeto->GetXaxis()->SetRangeUser(5,35);
@@ -250,7 +250,7 @@ void plotMuonEfficiency() {
   //***************************************************************
   cv = new TCanvas("cv","cv", 800,600);
 
-  legend = new TLegend(0.50,0.34,0.90,0.54);
+  legend = new TLegend(0.50,0.70,0.90,0.90);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -260,7 +260,7 @@ void plotMuonEfficiency() {
 
   effFakePtVeto->SetLineWidth(3);
   effFakePtVeto->SetLineColor(kBlack);
-  effFakePtVeto->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effFakePtVeto->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
   effFakePtVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakePtVeto->GetYaxis()->SetTitleOffset(1.35);
 
@@ -292,7 +292,7 @@ void plotMuonEfficiency() {
 
   effFakeEtaVeto->SetLineWidth(3);
   effFakeEtaVeto->SetLineColor(kBlack);
-  effFakeEtaVeto->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effFakeEtaVeto->GetXaxis()->SetTitle("Muon #eta");
   effFakeEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakeEtaVeto->GetYaxis()->SetTitleOffset(1.35);
 
@@ -301,7 +301,7 @@ void plotMuonEfficiency() {
   effFakeEtaTight->SetLineWidth(3);
   effFakeEtaTight->SetLineColor(kRed);
 
-  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.025);
+  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.04);
 
   effFakeEtaVeto->Draw("AP");
   effFakeEtaLoose->Draw("Psame");
@@ -326,7 +326,7 @@ void plotMuonEfficiency() {
 
   effFakeNpvVeto->SetLineWidth(3);
   effFakeNpvVeto->SetLineColor(kBlack);
-  effFakeNpvVeto->GetXaxis()->SetTitle("Muon p_{T} [Gev/C]");
+  effFakeNpvVeto->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
   effFakeNpvVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakeNpvVeto->GetYaxis()->SetTitleOffset(1.35);
   effFakeNpvVeto->GetXaxis()->SetRangeUser(5,35);
@@ -359,8 +359,8 @@ void plotMuonEfficiency() {
 
 void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string label = "") {
 
-  // plotMuonEfficiency();
-  // return;
+   plotMuonEfficiency();
+   return;
 
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -413,15 +413,15 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
     //Pass ID cuts   
     // if (!(MuTree->fMuPt > 0 && MuTree->fMuIsLoose  && fabs(MuTree->fMuIP3dSig)<4)) continue;
 
+    if (option==0) {
+      //**** PT - ETA ****
+      histDenominatorPtEta->Fill(MuTree->fMuGenPt,MuTree->fMuGenEta);
+      if(PassSelection(MuTree)) {
+	histNumeratorPtEta->Fill(MuTree->fMuGenPt,MuTree->fMuGenEta);
+      }
 
-    //**** PT - ETA ****
-    histDenominatorPtEta->Fill(MuTree->fMuGenPt,MuTree->fMuGenEta);
-    if(PassSelection(MuTree)) {
-      histNumeratorPtEta->Fill(MuTree->fMuGenPt,MuTree->fMuGenEta);
-    }
 
-
-    //**** PT ****
+      //**** PT ****
       histDenominatorPt->Fill(MuTree->fMuGenPt);
 
       //Numerator
@@ -430,59 +430,123 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
       }
 
 
-    //**** Eta ****
-    if (fabs(MuTree->fMuGenPt) > 30) {
-      histDenominatorEta->Fill(MuTree->fMuGenEta);
+      //**** Eta ****
+      if (fabs(MuTree->fMuGenPt) > 30) {
+	histDenominatorEta->Fill(MuTree->fMuGenEta);
+
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorEta->Fill(MuTree->fMuGenEta);        
+	}
+
+      }
+
+      //**** Phi ****
+      if (fabs(MuTree->fMuGenEta) < 2.4) {
+	histDenominatorPhi->Fill(MuTree->fMuGenPhi);
+
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorPhi->Fill(MuTree->fMuGenPhi);        
+	}
+
+      }
+
+      //**** Rho ****
+      if (fabs(MuTree->fMuGenEta) < 2.4) {
+	histDenominatorRho->Fill(MuTree->fRho);
+
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorRho->Fill(MuTree->fRho);        
+	}
+
+      }
+      //**** Npv ****
+      if (fabs(MuTree->fMuGenEta) < 2.4) {
+	histDenominatorNpv->Fill(MuTree->fNVertices);
+
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorNpv->Fill(MuTree->fNVertices);        
+	}
+
+      }
+
+      // //**** Npu ****
+      // if (fabs(MuTree->fMuGenEta) < 2.4) {
+      //   histDenominatorNpu->Fill(MuTree->);
+
+      //   //Numerator
+      //   if(PassSelection(MuTree)) {
+      //     histNumeratorNpu->Fill(MuTree->);        
+      //   }
+
+      // }
+    }
+    if (option==1) {
+      //**** PT - ETA ****
+      histDenominatorPtEta->Fill(MuTree->fMuPt,MuTree->fMuEta);
+      if(PassSelection(MuTree)) {
+	histNumeratorPtEta->Fill(MuTree->fMuPt,MuTree->fMuEta);
+      }
+
+
+      //**** PT ****
+      histDenominatorPt->Fill(MuTree->fMuPt);
 
       //Numerator
       if(PassSelection(MuTree)) {
-        histNumeratorEta->Fill(MuTree->fMuGenEta);        
+        histNumeratorPt->Fill(MuTree->fMuPt);        
       }
 
-    }
 
-    //**** Phi ****
-    if (fabs(MuTree->fMuGenEta) < 2.4) {
-      histDenominatorPhi->Fill(MuTree->fMuGenPhi);
+      //**** Eta ****
+      if (fabs(MuTree->fMuPt) > 30) {
+	histDenominatorEta->Fill(MuTree->fMuEta);
 
-      //Numerator
-      if(PassSelection(MuTree)) {
-        histNumeratorPhi->Fill(MuTree->fMuGenPhi);        
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorEta->Fill(MuTree->fMuEta);        
+	}
+
       }
 
-    }
+      //**** Phi ****
+      if (fabs(MuTree->fMuEta) < 2.4) {
+	histDenominatorPhi->Fill(MuTree->fMuPhi);
 
-    //**** Rho ****
-    if (fabs(MuTree->fMuGenEta) < 2.4) {
-      histDenominatorRho->Fill(MuTree->fRho);
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorPhi->Fill(MuTree->fMuPhi);        
+	}
 
-      //Numerator
-      if(PassSelection(MuTree)) {
-        histNumeratorRho->Fill(MuTree->fRho);        
       }
 
-    }
-    //**** Npv ****
-    if (fabs(MuTree->fMuGenEta) < 2.4) {
-      histDenominatorNpv->Fill(MuTree->fNVertices);
+      //**** Rho ****
+      if (fabs(MuTree->fMuEta) < 2.4) {
+	histDenominatorRho->Fill(MuTree->fRho);
 
-      //Numerator
-      if(PassSelection(MuTree)) {
-        histNumeratorNpv->Fill(MuTree->fNVertices);        
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorRho->Fill(MuTree->fRho);        
+	}
+
+      }
+      //**** Npv ****
+      if (fabs(MuTree->fMuEta) < 2.4) {
+	histDenominatorNpv->Fill(MuTree->fNVertices);
+
+	//Numerator
+	if(PassSelection(MuTree)) {
+	  histNumeratorNpv->Fill(MuTree->fNVertices);        
+	}
+
       }
 
+    
     }
 
-    // //**** Npu ****
-    // if (fabs(MuTree->fMuGenEta) < 2.4) {
-    //   histDenominatorNpu->Fill(MuTree->);
-
-    //   //Numerator
-    //   if(PassSelection(MuTree)) {
-    //     histNumeratorNpu->Fill(MuTree->);        
-    //   }
-
-    // }
 
 
   }
