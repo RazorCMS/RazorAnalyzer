@@ -16,6 +16,14 @@ SMS-T1tttt_2J_mGl-1200_mLSP-800\
 SMS-T1bbbb_2J_mGl-1000_mLSP-900\
 SMS-T1qqqq_2J_mGl-1400_mLSP-100\
 SMS-T1qqqq_2J_mGl-1000_mLSP-800\
+SMS-T2bb_2J_mStop-600_mLSP-580\
+SMS-T2bb_2J_mStop-900_mLSP-100\
+SMS-T2qq_2J_mStop-1200_mLSP-100\
+SMS-T2qq_2J_mStop-600_mLSP-550\
+SMS-T2tt_2J_mStop-425_mLSP-325\
+SMS-T2tt_2J_mStop-500_mLSP-325\
+SMS-T2tt_2J_mStop-650_mLSP-325\
+SMS-T2tt_2J_mStop-850_mLSP-100\
 TTJets \
 QCDHT100To250 \
 QCDHT250To500 \
@@ -86,8 +94,7 @@ end
 # Electron Ntupler
 ##########################
 foreach sample( \
-T1bbbb_1500
-T1tttt_1500
+SMS-T1bbbb_2J_mGl-1500_mLSP-100\
 TTJets \
 DYJetsToLL \
 )
@@ -116,8 +123,7 @@ end
 # Muon Ntupler
 ##########################
 foreach sample( \
-T1bbbb_1500
-T1tttt_1500
+SMS-T1bbbb_2J_mGl-1500_mLSP-100\
 TTJets \
 DYJetsToLL \
 )
@@ -164,6 +170,39 @@ TTJets \
   end
 
 end
+
+
+
+
+##########################
+# Tau Ntupler
+##########################
+foreach sample( \
+SMS-T1tttt_2J_mGl-1500_mLSP-100\
+SMS-T1bbbb_2J_mGl-1500_mLSP-100\
+TTJets \
+DYJetsToLL \
+)
+
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/lists/razorNtuplerV1p4-25ns_v1_v1/${sample}_20bx25.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TauNtupler_${jobnumber}.out -J RazorAnalysis_TauNtupler_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh tauNtupler $inputfilelist 1 $filesPerJob $jobnumber TauNtuple_Prompt_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/TauNtuple/jobs/
+    sleep 0.1
+    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TauNtupler_${jobnumber}.out -J RazorAnalysis_TauNtupler_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh tauNtupler $inputfilelist 0 $filesPerJob $jobnumber TauNtuple_Fake_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/TauNtuple/jobs/
+    sleep 0.1
+    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TauNtupler_${jobnumber}.out -J RazorAnalysis_TauNtupler_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh tauNtupler $inputfilelist 11 $filesPerJob $jobnumber TauNtuple_PromptGenLevel_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/TauNtuple/jobs/
+    sleep 0.1
+  end
+
+end
+
+
 
 ##########################
 # Control Region Study
