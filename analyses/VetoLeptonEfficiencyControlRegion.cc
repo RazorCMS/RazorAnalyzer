@@ -3,7 +3,6 @@
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.h"
-#include "TagAndProbeEvents.h"
 
 //C++ includes
 
