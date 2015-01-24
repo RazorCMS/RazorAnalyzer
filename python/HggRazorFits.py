@@ -105,6 +105,7 @@ print("Determining effective Higgs peak width in each box...")
 sigmaEff = dict((box, 0.0) for box in boxNames)
 higgsMCSignalRegionYield = {}
 higgsMCBackgroundRegionYield = {}
+c = rt.TCanvas("c", "c", 800, 600)
 for box in boxNames:
     print("Finding width in "+box+" box")
     fractionHiggsEventsInSignalRegion = 0.0
@@ -114,6 +115,12 @@ for box in boxNames:
         fractionHiggsEventsInSignalRegion = higgsMCDataSets[box].sumEntries("mGammaGamma > "+str(125-sigmaEff[box])+" && mGammaGamma < "+str(125+sigmaEff[box]))/higgsMCDataSets[box].sumEntries()
     higgsMCSignalRegionYield[box] = higgsMCDataSets[box].sumEntries("mGammaGamma > "+str(125-2*sigmaEff[box])+" && mGammaGamma < "+str(126+2*sigmaEff[box]))
     higgsMCBackgroundRegionYield[box] = higgsMCDataSets[box].sumEntries("(mGammaGamma > 103 && mGammaGamma < 120) || (mGammaGamma > 131 && mGammaGamma < 160)")
+    #plot the mGammaGamma distribution for Higgs MC 
+    frame = vars["mGammaGamma"].frame()
+    higgsMCDataSets[box].plotOn(frame)
+    frame.SetTitle("Higgs MC in "+box+" box")
+    frame.Draw()
+    c.Print(outpath+"/HggHiggsMass"+box+".pdf")
 
 ##step 2: perform a fit in the full region 103 < mGammaGamma < 160 to extract the background yields in the signal regions
 
@@ -135,7 +142,6 @@ signalRegionIntegralErr = {}
 scaleFactor = {}
 scaleFactorErr = {}
 backgroundCutString = "(mGammaGamma > 103 && mGammaGamma < 120) || (mGammaGamma > 131 && mGammaGamma < 160)"
-c = rt.TCanvas("c", "c", 800, 600)
 for box in boxNames:
     pars["alpha1"].setVal(0.3)
     pars["alpha2"].setVal(0.6)

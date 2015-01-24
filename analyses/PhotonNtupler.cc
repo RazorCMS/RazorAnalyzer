@@ -101,6 +101,19 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename)
            if(gParticleStatus[g] != 1) continue;
            if(gParticleId[g] != 22) continue;
            if(gParticleE[g] < 1.) continue;
+           
+           //check if this particle is descended from a Higgs
+           bool isFromHiggs = false;
+           int mothIndex = gParticleMotherIndex[g];
+           while(gParticleMotherIndex[mothIndex] >= 0){
+               if(gParticleId[mothIndex] == 25){ //if it's a Higgs 
+                   isFromHiggs = true;
+                   break;
+               }
+               mothIndex = gParticleMotherIndex[mothIndex];
+           }
+           //require photon to descend from a Higgs
+           if(!isFromHiggs) continue;
 
            //fill gen photon info
            genPhotonPt[nGenPhotons] = gParticlePt[g];
