@@ -60,6 +60,8 @@ void RazorAnalyzer::TauNtupler(string outputfilename , int Option){
 	  tauTree->fRho = 0; 
 	  tauTree->fNVertices = nPV; 
 	  
+	  tauTree->fTauIsLoose = isLooseTau(i);
+	  tauTree->fTauIsTight = isTightTau(i);
 	  tauTree->fPassLooseSelection = isLooseTau(i);
 	  tauTree->fPassTightSelection = isTightTau(i);
 
@@ -76,7 +78,8 @@ void RazorAnalyzer::TauNtupler(string outputfilename , int Option){
 
 	  //select only fakes
 	  if (Option == 0) {
-	    if (!(matchedID == 0 || abs(matchedID) > 50)) continue;
+	    //if (!(matchedID == 0 || abs(matchedID) > 50)) continue;
+	    if (abs(matchedID) == 15) continue;
 	  }
 	  //select only real prompt
 	  if (Option == 1) {
@@ -103,9 +106,9 @@ void RazorAnalyzer::TauNtupler(string outputfilename , int Option){
       else if (Option >= 10 && Option < 20) {
 	
 	for(int i = 0; i < nGenParticle; i++){
-	  //select prompt taus
+	  //select prompt hadronic taus
 	  if (Option == 11) {
-	    if (!isGenTau(i)) continue;	      
+	    if (!( isGenTau(i) && !isGenLeptonicTau(i))) continue;
 	  }
 	  
 	  if(gParticlePt[i] < tauTree->GetMinPt()) continue;
@@ -137,12 +140,18 @@ void RazorAnalyzer::TauNtupler(string outputfilename , int Option){
 	    tauTree->fTauPt = tauPt[matchedIndex]; 
 	    tauTree->fTauEta = tauEta[matchedIndex]; 
 	    tauTree->fTauPhi = tauPhi[matchedIndex]; 
+	    tauTree->fTauIsLoose = isLooseTau(matchedIndex);
+	    tauTree->fTauIsTight = isTightTau(matchedIndex);
+	    tauTree->fPassLooseSelection = isLooseTau(matchedIndex);
+	    tauTree->fPassTightSelection = isTightTau(matchedIndex);
 	  } else {
 	    tauTree->fTauPt = 0;
 	    tauTree->fTauEta = 0;
 	    tauTree->fTauPhi = 0;
 	    tauTree->fTauIsLoose = false;
 	    tauTree->fTauIsTight = false;
+	    tauTree->fPassLooseSelection = false;
+	    tauTree->fPassTightSelection = false;
 	  }
 	  
 	  //***********************
