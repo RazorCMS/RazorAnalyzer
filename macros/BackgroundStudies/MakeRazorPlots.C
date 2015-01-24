@@ -6,12 +6,14 @@
 #include <THStack.h>
 #include <TLegend.h>
 #include <TCanvas.h>
+#include <TLatex.h>
 #include <vector>
 #include <map>
 #include <iostream>
 
 const Int_t NComponents = 10;
-int color[NComponents] = {kRed, kGreen+2, kBlue, kMagenta, kCyan, kBlack, kOrange, kGray, kBlack, kBlack};
+int color[NComponents] = {kRed, kGreen+2, kBlue, kViolet, kAzure+10, kBlack, kOrange+1, kGray, kBlack, kBlack};
+
 
 //*************************************************************************************************
 //Normalize Hist
@@ -35,7 +37,7 @@ TH1F* NormalizeHist(TH1F *originalHist) {
 //------------------------------------------------------------------------------
 // PlotHiggsRes_LP
 //------------------------------------------------------------------------------
-void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> bkgfiles,vector<string> bkgLabels, int boxOption = 0, int option = -1, string label = "") {
+void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> bkgfiles,vector<string> bkgLabels, int boxOption = 0, int option = -1, string label = "", string latexlabel = "") {
 
   //--------------------------------------------------------------------------------------------------------------
   // Settings 
@@ -83,6 +85,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     if (hasSignal && i==0) histMR[i]->SetLineWidth(3);
     histMR[i]->SetLineColor(color[i]);    
     histMR[i]->SetStats(false);    
+    histMR[i]->Sumw2();
 
     histRsq.push_back( new TH1F( Form("Rsq_%s",processLabels[i].c_str()), ";R^{2} ;Number of Events", 50, 0, 1.5));
     if (!hasSignal || i != 0) histRsq[i]->SetFillColor(color[i]);
@@ -90,7 +93,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     histRsq[i]->SetLineColor(color[i]);
     histRsq[i]->SetStats(false);     
 
-    histDPhiRazor.push_back( new TH1F( Form("DPhiRazor_%s",processLabels[i].c_str()), ";R^{2} ;Number of Events", 50, 0, 3.2));
+    histDPhiRazor.push_back( new TH1F( Form("DPhiRazor_%s",processLabels[i].c_str()), ";#Delta#phi Hemispheres ;Number of Events", 50, 0, 3.14));
     if (!hasSignal || i != 0) histDPhiRazor[i]->SetFillColor(color[i]);
     if (hasSignal && i==0) histDPhiRazor[i]->SetLineWidth(3);
     histDPhiRazor[i]->SetLineColor(color[i]);
@@ -177,14 +180,15 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 	}
       }
 
-      if (Rsq > 0.25 && MR > 1000
+      if (
+	  //Rsq > 0.1 && MR > 500
+	  Rsq > 0.25 && MR > 1000
 	  ) {
 	histDPhiRazor[i]->Fill(dPhiRazor, intLumi*weight);	
-
+	
 	if (fabs(dPhiRazor) < 2.7) {
 	  histMR[i]->Fill(MR, intLumi*weight);
-	  histRsq[i]->Fill(Rsq, intLumi*weight);
-	 
+	  histRsq[i]->Fill(Rsq, intLumi*weight);	  
 	}
       }
   
@@ -204,7 +208,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   TCanvas *cv = 0;
   TLegend *legend = 0;
   bool firstdrawn = false;
-
+  TLatex *tex = 0;
 
   //*******************************************************************************************
   //MR
@@ -219,14 +223,22 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
   if (hasSignal) {
     for (Int_t i = histMR.size()-1; i >= 1; i--) {
-      cout << processLabels[i] << " : " << histMR[i]->GetSumOfWeights() << "\n";
+      double intError = 0;
+      for(int j=1; j < histMR[i]->GetNbinsX()+1; j++) {
+	intError += histMR[i]->GetBinError(j);
+      }
+      cout << processLabels[i] << " : " << histMR[i]->GetSumOfWeights() << " +/- " << intError << "\n";
       if ( histMR[i]->Integral() > 0) {
 	stackMR->Add(histMR[i]);
       }
     }    
   } else {
     for (Int_t i = histMR.size()-1; i >= 0; i--) {
-      cout << processLabels[i] << " : " << histMR[i]->GetSumOfWeights() << "\n";
+      double intError = 0;
+      for(int j=1; j < histMR[i]->GetNbinsX()+1; j++) {
+	intError += histMR[i]->GetBinError(j);
+      }
+      cout << processLabels[i] << " : " << histMR[i]->GetSumOfWeights() << " +/- " << intError << "\n";
       if ( histMR[i]->Integral() > 0) {
 	stackMR->Add(histMR[i]);
       }
@@ -241,16 +253,25 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   }
   
 
-  stackMR->Draw();
+  stackMR->Draw("hist");
   stackMR->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackMR->GetHists()->At(0)))->GetXaxis()->GetTitle());
   stackMR->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackMR->GetHists()->At(0)))->GetYaxis()->GetTitle());
 
   if (hasSignal) {
-    histMR[0]->Draw("sameL");
+    histMR[0]->Draw("histsame");
     cout << processLabels[0] << " : " << histMR[0]->GetSumOfWeights() << "\n";
   }
 
   legend->Draw();
+
+  tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.030);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 13 TeV, #int L = %d fb^{-1}, %s",int(intLumi/1000), latexlabel.c_str()));
+  tex->Draw();
+  
   cv->SaveAs(Form("MR%s.gif",Label.c_str()));
 
  
@@ -341,6 +362,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   // stackDPhiRazor->Draw();
   // stackDPhiRazor->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackDPhiRazor->GetHists()->At(0)))->GetXaxis()->GetTitle());
   // stackDPhiRazor->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackDPhiRazor->GetHists()->At(0)))->GetYaxis()->GetTitle());
+  // stackDPhiRazor->GetHistogram()->GetYaxis()->SetTitleOffset(1.35);
 
   // if (hasSignal) {
   //   histDPhiRazor[0]->Draw("sameL");
@@ -350,33 +372,33 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   // cv->SaveAs(Form("DPhiRazor%s.gif",Label.c_str()));
 
  
-  //*******************************************************************************************
-  //MR Before and After DPhi Cut
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.50,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
+  // //*******************************************************************************************
+  // //MR Before and After DPhi Cut
+  // //*******************************************************************************************
+  // cv = new TCanvas("cv","cv", 800,600);
+  // legend = new TLegend(0.50,0.54,0.90,0.84);
+  // legend->SetTextSize(0.03);
+  // legend->SetBorderSize(0);
+  // legend->SetFillStyle(0);
 
-  histMRAllBkg = NormalizeHist(histMRAllBkg);
-  histMRAllBkg_AfterDPhiCut = NormalizeHist(histMRAllBkg_AfterDPhiCut);
+  // histMRAllBkg = NormalizeHist(histMRAllBkg);
+  // histMRAllBkg_AfterDPhiCut = NormalizeHist(histMRAllBkg_AfterDPhiCut);
 
-  histMRAllBkg->SetLineColor(kBlue);
-  histMRAllBkg_AfterDPhiCut->SetLineColor(kRed);
-  histMRAllBkg->GetYaxis()->SetTitle("Fraction of Events");
-  histMRAllBkg->GetYaxis()->SetTitleOffset(1.2);
-  histMRAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
+  // histMRAllBkg->SetLineColor(kBlue);
+  // histMRAllBkg_AfterDPhiCut->SetLineColor(kRed);
+  // histMRAllBkg->GetYaxis()->SetTitle("Fraction of Events");
+  // histMRAllBkg->GetYaxis()->SetTitleOffset(1.2);
+  // histMRAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
 
-  legend->AddEntry(histMRAllBkg, "No #Delta#phi_{Razor} cut", "L");
-  legend->AddEntry(histMRAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.7 cut", "L");
+  // legend->AddEntry(histMRAllBkg, "No #Delta#phi_{Razor} cut", "L");
+  // legend->AddEntry(histMRAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.7 cut", "L");
 
-  histMRAllBkg->Draw("hist");
-  histMRAllBkg_AfterDPhiCut->Draw("histsame");
+  // histMRAllBkg->Draw("hist");
+  // histMRAllBkg_AfterDPhiCut->Draw("histsame");
 
-  legend->Draw();
-  cv->SetLogy();
-  cv->SaveAs(Form("MRBeforeAfterDPhiCut.gif",Label.c_str()));
+  // legend->Draw();
+  // cv->SetLogy();
+  // cv->SaveAs(Form("MRBeforeAfterDPhiCut.gif",Label.c_str()));
 
   // //*******************************************************************************************
   // //Rsq Before and After DPhi Cut
@@ -432,39 +454,42 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
  void MakeRazorPlots() {
 
-     // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_SMS-T1bbbb_2J_mGl-1500_mLSP-100_25ns_weighted.root";  
-     // string signalLabel = "T1bbbb m_{G}=1500 m_{LSP}=100";
-   // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_SMS-T1qqqq_2J_mGl-1400_mLSP-100_25ns_weighted.root";  
-   // string signalLabel = "T1qqqq m_{G}=1400 m_{LSP}=100";
-   string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_SMS-T1tttt_2J_mGl-1500_mLSP-100_25ns_weighted.root";  
-    string signalLabel = "T1tttt m_{G}=1500 m_{LSP}=100";
+    // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/newWithElectronD0Cut/Inclusive/RazorAnalysis_SMS-T1qqqq_2J_mGl-1400_mLSP-100_25ns_weighted.root";  
+    // string signalLabel = "T1qqqq m_{G}=1400 m_{LSP}=100";
+   // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/newWithElectronD0Cut/Inclusive/RazorAnalysis_SMS-T1bbbb_2J_mGl-1500_mLSP-100_25ns_weighted.root";  
+   // string signalLabel = "T1bbbb m_{G}=1500 m_{LSP}=100";
+     string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/newWithElectronD0Cut/Inclusive/RazorAnalysis_SMS-T1tttt_2J_mGl-1500_mLSP-100_25ns_weighted.root";  
+      string signalLabel = "T1tttt m_{G}=1500 m_{LSP}=100";
    
    vector<string> bkgfiles;
    vector<string> bkgLabels;
    
-   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_TTJets_25ns_weighted.root");  
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_DYJetsToLL_HT100ToInf_25ns_weighted.root");
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_WJetsToLNu_HT100ToInf_25ns_weighted.root");
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_ZJetsToNuNu_HT100ToInf_25ns_weighted.root");
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_QCDHT100ToInf_25ns_weighted.root"); 
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_SingleTop_25ns_weighted.root"); 
-   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/RazorAnalysis_Multiboson_25ns_weighted.root"); 
+   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_TTJets_25ns_weighted.root");  
+   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_DYJetsToLL_HT100ToInf_25ns_weighted.root");
+    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_WJetsToLNu_HT100ToInf_25ns_weighted.root");
+    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_ZJetsToNuNu_HT100ToInf_25ns_weighted.root");
+    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_QCDHT100ToInf_25ns_weighted.root"); 
+    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_SingleTop_25ns_weighted.root"); 
+   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_Multiboson_25ns_weighted.root"); 
     
    bkgLabels.push_back("TTJets");
    bkgLabels.push_back("DYJetsToLL");
-    bkgLabels.push_back("WJetsToLNu");
+   bkgLabels.push_back("WJetsToLNu");
    bkgLabels.push_back("ZJetsToNuNu");
    bkgLabels.push_back("QCD");
    bkgLabels.push_back("SingleTop");
    bkgLabels.push_back("Other");
    
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"T1bbbb_OneOrMoreBTags");
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,0,"T1qqqq_ZeroBTags");
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"T1tttt_MultiJet_OneOrMoreBTags");
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,1,1,"T1tttt_LooseLeptonMultiJet_OneOrMoreBTags");
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,2,1,"T1tttt_MuMultiJet_OneOrMoreBTags");
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,3,1,"T1tttt_EleMultiJet_OneOrMoreBTags");
-   RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,11,1,"T1tttt_LeptonMultiJet_OneOrMoreBTags");
-  
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,0,"T1qqqq_MultiJet_ZeroBTags", "MultiJet Box 0 b-tag");
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"T1bbbb_MultiJet_OneOrMoreBTags","MultiJet Box #geq 1 b-tag");
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"T1tttt_MultiJet_OneOrMoreBTags","MultiJet Box #geq 1 b-tag");
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,1,1,"T1tttt_LooseLeptonMultiJet_OneOrMoreBTags","LooseLeptonMultiJet Box #geq 1 b-tag" );
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,2,1,"T1tttt_MuMultiJet_OneOrMoreBTags","MuMultiJet Box #geq 1 b-tag");
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,3,1,"T1tttt_EleMultiJet_OneOrMoreBTags","EleMultiJet Box #geq 1 b-tag");
+   RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,11,1,"T1tttt_LeptonMultiJet_OneOrMoreBTags","Lepton+MultiJet Box #geq 1 b-tag");
+ 
+   //RunMakeRazorPlots("","",bkgfiles,bkgLabels,8,0,"QCD_MultiJet_ZeroBTag");
+   //RunMakeRazorPlots("","",bkgfiles,bkgLabels,8,1,"QCD_MultiJet_OneOrMoreBTag");
+ 
  }
  
