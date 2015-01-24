@@ -351,6 +351,7 @@ class ElectronTree {
     tree_->Branch("see",&fEleSigmaIEtaIEta,"see/F"); 
     tree_->Branch("IoEmIoP",&fEleOneOverEMinusOneOverP,"IoEmIoP/F");  
     tree_->Branch("R9",&fEleR9,"R9/F"); 
+    tree_->Branch("HoE",&fEleHoverE,"HoE/F"); 
     tree_->Branch("pfIso04",&fElePFIso04,"pfIso04/F"); 
     tree_->Branch("IDMVATrig",&fIDMVATrig,"IDMVATrig/F");
     tree_->Branch("IDMVANonTrig",&fIDMVANonTrig,"IDMVANonTrig/F");
@@ -384,7 +385,6 @@ class ElectronTree {
       tree_->Branch("etawidth",&fEleSCEtaWidth,"etawidth/F"); 
       tree_->Branch("phiwidth",&fEleSCPhiWidth,"phiwidth/F"); 
       tree_->Branch("PreShowerOverRaw",&fElePreShowerOverRaw,"PreShowerOverRaw/F"); 
-      tree_->Branch("HoE",&fEleHoverE,"HoE/F"); 
       tree_->Branch("gsfchi2",&fEleGsfTrackChi2OverNdof,"gsfchi2/F"); 
       tree_->Branch("kfchi2",&fEleKFTrackChi2OverNDoF,"kfchi2/F"); 
       tree_->Branch("kfhits",&fEleKFTrackNHits,"kfhits/F"); 
@@ -490,6 +490,7 @@ class ElectronTree {
     tree_->SetBranchAddress("dphi",&fEleDPhiIn);
     tree_->SetBranchAddress("see",&fEleSigmaIEtaIEta);
     tree_->SetBranchAddress("R9",&fEleR9);
+    tree_->SetBranchAddress("HoE",&fEleHoverE);
     tree_->SetBranchAddress("pfIso04",&fElePFIso04);
     tree_->SetBranchAddress("IDMVATrig",&fIDMVATrig);
     tree_->SetBranchAddress("IDMVANonTrig",&fIDMVANonTrig);
@@ -522,7 +523,6 @@ class ElectronTree {
       tree_->SetBranchAddress("etawidth",&fEleSCEtaWidth);
       tree_->SetBranchAddress("phiwidth",&fEleSCPhiWidth);
       tree_->SetBranchAddress("PreShowerOverRaw",&fElePreShowerOverRaw);
-      tree_->SetBranchAddress("HoE",&fEleHoverE);
       tree_->SetBranchAddress("gsfchi2",&fEleGsfTrackChi2OverNdof);
       tree_->SetBranchAddress("kfchi2",&fEleKFTrackChi2OverNDoF);
       tree_->SetBranchAddress("kfhits",&fEleKFTrackNHits);
