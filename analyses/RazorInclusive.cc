@@ -158,6 +158,13 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
       if(isLooseElectron(i) && elePt[i] > 10 ) nLooseElectrons++;
       if(isTightElectron(i) && elePt[i] > 10 ) nTightElectrons++;
 
+      //remove overlaps
+      bool overlap = false;
+      for(auto& lep : GoodLeptons){
+	if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
+      }
+      if(overlap) continue;
+
       if(!isMVANonTrigVetoElectron(i)) continue; 
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       GoodLeptons.push_back(thisElectron);            
@@ -169,6 +176,13 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
       if(isLooseTau(i)) nLooseTaus++;
       if(isTightTau(i)) nTightTaus++;
 
+      //remove overlaps
+      bool overlap = false;
+      for(auto& lep : GoodLeptons){
+	if (RazorAnalyzer::deltaR(tauEta[i],tauPhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
+      }
+      if(overlap) continue;
+
       if (!isLooseTau(i)) continue;
       TLorentzVector thisTau; thisTau.SetPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
       GoodLeptons.push_back(thisTau);  
@@ -176,11 +190,15 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
         
     vector<TLorentzVector> GoodJets;
     int numJetsAbove80GeV = 0;
+
+    //***********************************************
+    //Select Jets
+    //***********************************************
     for(int i = 0; i < nJets; i++){
 
       double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-					     fixedGridRhoFastjetAll, jetJetArea[i], 
-					     JetCorrector);   
+    					     fixedGridRhoFastjetAll, jetJetArea[i], 
+    					     JetCorrector);   
       double jetCorrPt = jetPt[i]*JEC;
       double jetCorrE = jetE[i]*JEC;
 
@@ -191,8 +209,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
       double deltaR = -1;
       TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
       for(auto& lep : GoodLeptons){
-	double thisDR = thisJet.DeltaR(lep);
-	if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
+    	double thisDR = thisJet.DeltaR(lep);
+    	if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
       }
       if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
             
@@ -201,7 +219,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
       nSelectedJets++;
 
       if(isCSVM(i)){ 
-	nBTaggedJets++;
+    	nBTaggedJets++;
       }
     }
 
