@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
         double normalizationWeight = getNormalizationWeight(fileName, datasetName, intLumi);
 
         //create output file
-        TFile *outputFile = new TFile(Form("%s_weighted.root", (fileName.substr(0, fileName.find_last_of("."))).c_str()), "RECREATE");
+        TFile *outputFile = new TFile(Form("%s_%.0fpb_weighted.root", (fileName.substr(0, fileName.find_last_of("."))).c_str(), intLumi), "RECREATE");
 
         //loop over all TTrees in the file and add the weight branch to each of them
         TFile inputFile(fileName.c_str(), "UPDATE");

@@ -182,16 +182,9 @@ weight = rt.RooRealVar("weight", "weight", 0.0, 100000.0)
 args2D = rt.RooArgSet(MR, Rsq)
 args = rt.RooArgSet(MR, Rsq, nBTaggedJets)
 argsWeighted = rt.RooArgSet(MR, Rsq, nBTaggedJets, weight)
-importedBackgroundDataSet = rt.RooDataSet("importedBackgroundDataSet", "Combined razor background", argsWeighted, "weight")
-for f in range(len(filenames)): 
-    if 'SMS' not in filenames[f]: importedBackgroundDataSet.append(rt.RooDataSet(filenames[f], filenames[f], backgroundTrees[f], argsWeighted, "", "weight"))
-importedBackgroundDataSet.Print("v")
-#rescale weights according to the desired integrated lumi
 weightedBackgroundDataSet = rt.RooDataSet("weightedBackgroundDataSet", "Combined razor background", argsWeighted, "weight")
-for i in range(0,importedBackgroundDataSet.numEntries()):
-   theseArgs = importedBackgroundDataSet.get(i)
-   theseArgs.setRealValue("weight", theseArgs.getRealValue("weight")*intLuminosity)
-   weightedBackgroundDataSet.add(theseArgs)
+for f in range(len(filenames)): 
+    if 'SMS' not in filenames[f]: weightedBackgroundDataSet.append(rt.RooDataSet(filenames[f], filenames[f], backgroundTrees[f], argsWeighted, "", "weight"))
 weightedBackgroundDataSet.Print("v")
 backgroundDataSet3D = convertDataset2Unweighted(weightedBackgroundDataSet, boxName)
 bTagString = ""
