@@ -14,7 +14,7 @@ class TauTree {
   //******************************************* 
   //=== tree versions ===
   //*******************************************
-  enum class TauTreeVersion {kTauTreeStd, kTauTreeLight};
+  enum TauTreeVersion {kTauTreeStd, kTauTreeLight};
   
   /// variables
   Float_t                 fWeight;
@@ -192,7 +192,7 @@ class TauTree {
   }
   
   /// create a TauTree
-  void CreateTree(TauTreeVersion version = TauTreeVersion::kTauTreeStd){
+  void CreateTree(TauTreeVersion version = kTauTreeStd){
     tree_ = new TTree("Taus","Taus");
     f_ = 0;
     
@@ -221,7 +221,7 @@ class TauTree {
     tree_->Branch("D0",&fTauD0,"D0/F"); 
     tree_->Branch("IP3d",&fTauIP3d,"IP3d/F"); 
     tree_->Branch("IP3dSig",&fTauIP3dSig,"IP3dSig/F"); 
-    if (version == TauTreeVersion::kTauTreeStd ) {
+    if (version == kTauTreeStd ) {
       tree_->Branch("typeBits",&fTauTypeBits,"typeBits/i"); 
       tree_->Branch("isAllArbitrated",&fIsAllArbitrated,"isAllArbitrated/i"); 
       tree_->Branch("TkNchi2",&fTauTkNchi2,"TkNchi2/F"); 
@@ -266,7 +266,7 @@ class TauTree {
   } 
   
   // initialze a TauTree
-  void InitTree(TauTreeVersion version = TauTreeVersion::kTauTreeStd){
+  void InitTree(TauTreeVersion version = kTauTreeStd){
     assert(tree_);
     // don't forget to set pointers to zero before you set address
     // or you will fully appreciate that "ROOT sucks" :)
@@ -301,7 +301,7 @@ class TauTree {
     tree_->SetBranchAddress("IP3d",&fTauIP3d);
     tree_->SetBranchAddress("IP3dSig",&fTauIP3dSig);
     
-    if (version == TauTreeVersion::kTauTreeStd ) {
+    if (version == kTauTreeStd ) {
       tree_->SetBranchAddress("typeBits",&fTauTypeBits);
       tree_->SetBranchAddress("isAllArbitrated",&fIsAllArbitrated);
       tree_->SetBranchAddress("TkNchi2",&fTauTkNchi2);
