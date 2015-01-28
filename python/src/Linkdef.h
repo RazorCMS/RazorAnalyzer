@@ -9,6 +9,8 @@
 #pragma link C++ nestedclasses;
 
 #pragma link C++ defined_in "RooRazor2DTail_SYS.h";
+#pragma link C++ defined_in "RooRazor3DBinPdf.h";
+#pragma link C++ defined_in "RooBTagMult.h";
 #pragma link C++ defined_in "MLMixedSample.h";
 
 #endif
