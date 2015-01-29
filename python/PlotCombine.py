@@ -20,6 +20,8 @@ if __name__ == '__main__':
                   help="mass of LSP")
     parser.add_option('--lumi-array',dest="lumi_array", default="0.2,4,10",type="string",
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
+    parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
+                  help="Output directory to store plots")
 
     (options,args) = parser.parse_args()
 
@@ -70,11 +72,11 @@ if __name__ == '__main__':
             limit.GetEntry(entry)
             limits.append(limit.limit)
             entry = elist.Next()
-        expArray.append(limits[2]*refXsec)
-        expp2sigmaArray.append((limits[4]-limits[2])*refXsec)
-        expp1sigmaArray.append((limits[3]-limits[2])*refXsec)
-        expm1sigmaArray.append((limits[2]-limits[1])*refXsec)
-        expm2sigmaArray.append((limits[2]-limits[0])*refXsec)
+        expArray.append(limits[2]*thyXsec)
+        expp2sigmaArray.append((limits[4]-limits[2])*thyXsec)
+        expp1sigmaArray.append((limits[3]-limits[2])*thyXsec)
+        expm1sigmaArray.append((limits[2]-limits[1])*thyXsec)
+        expm2sigmaArray.append((limits[2]-limits[0])*thyXsec)
 
     print expp1sigmaArray
     print expm1sigmaArray
@@ -154,8 +156,8 @@ if __name__ == '__main__':
     leg.Draw()
     
     if model.find("T1")!=-1:
-        c.Print("%s/limit_%s_%i_%i.pdf"%(outDir,model,mGluino,mLSP))
-        c.Print("%s/limit_%s_%i_%i.C"%(outDir,model,mGluino,mLSP))
+        c.Print("%s/limit_%s_%i_%i_%s.pdf"%(options.outDir,model,mGluino,mLSP,box))
+        c.Print("%s/limit_%s_%i_%i_%s.C"%(options.outDir,model,mGluino,mLSP,box))
     elif model.find("T2")!=-1:
-        c.Print("%s/limit_%s_%i_%i.pdf"%(outDir,model,mStop,mLSP))
-        c.Print("%s/limit_%s_%i_%i.C"%(outDir,model,mStop,mLSP))
+        c.Print("%s/limit_%s_%i_%i_%s.pdf"%(options.outDir,model,mStop,mLSP,box))
+        c.Print("%s/limit_%s_%i_%i_%s.C"%(options.outDir,model,mStop,mLSP,box))
