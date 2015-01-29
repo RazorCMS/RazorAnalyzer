@@ -3,13 +3,14 @@ import os
 import ROOT as rt
 from array import *
 import sys
+import re
 
 if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
-    parser.add_option('-m','--model',dest="box", default="T1bbbb",type="string",
+    parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
                   help="signal model name")
     parser.add_option('--mGluino',dest="mGluino", default=-1,type="float",
                   help="mass of gluino")
@@ -17,7 +18,7 @@ if __name__ == '__main__':
                   help="mass of stop")
     parser.add_option('--mLSP',dest="mLSP", default=-1,type="float",
                   help="mass of LSP")
-    parser.add_option('--lumi-array',dest="lumi_array", default="4",type="string",
+    parser.add_option('--lumi-array',dest="lumi_array", default="0.2,4,10",type="string",
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
 
     (options,args) = parser.parse_args()
@@ -29,12 +30,25 @@ if __name__ == '__main__':
     mGluino = options.mGluino
     mLSP = options.mLSP
     mStop = options.mStop
+
+    thyXsec = -1
+    thyXsecErr = -1
     
     if mGluino!=-1:
         massPoint = "mGl-%i_mLSP-%i"%(mGluino,mLSP)
+        for line in open('data/gluino13TeV.txt','r'):
+            line = line.replace('\n','')
+            if re.search(str(int(mGluino)),line.split(',')[0]):
+                thyXsec = float(line.split(',')[1])
+                thyXsecErr = 0.01*float(line.split(',')[2])
     if mStop!=-1:
         massPoint = "mStop-%i_mLSP-%i"%(mStop,mLSP)
-    
+        for line in open('data/stop13TeV.txt','r'):
+            line = line.replace('\n','')
+            if re.search(str(int(mStop)),line.split(',')[0]):
+                thyXsec = float(line.split(',')[1])
+                thyXsecErr = 0.01*float(line.split(',')[2])
+
     expArray = array('d')
     expp1sigmaArray = array('d')
     expm1sigmaArray = array('d')
@@ -99,12 +113,14 @@ if __name__ == '__main__':
     h_limit.Add(exp1sigmaGraph)
     h_limit.Add(xsecGraphErr)
     h_limit.Draw("a3")
-    h_limit.GetXaxis().SetLimits(0.2,5.)
+    h_limit.GetXaxis().SetLimits(lumiArray[0],lumiArray[-1])
     h_limit.GetXaxis().SetTitle("Integrated Luminosity [fb^{-1}]")
     h_limit.GetYaxis().SetTitle("95% C.L. Upper Limit Cross Section [fb]")
-    h_limit.SetMaximum(1.e3)
+    #h_limit.SetMaximum(1.e3)
     #h_limit.SetMaximum(1.e4)
-    h_limit.SetMinimum(2.)
+    h_limit.SetMaximum(10*max(xsecArray))
+    h_limit.SetMinimum(0.1*min(xsecArray))
+    #h_limit.SetMinimum(2.)
     #h_limit.SetMinimum(50.)
     h_limit.Draw("a3")
     
