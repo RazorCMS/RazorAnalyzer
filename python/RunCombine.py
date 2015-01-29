@@ -11,7 +11,7 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
-    parser.add_option('--lumi-array',dest="lumi_array", default="4",type="string",
+    parser.add_option('--lumi-array',dest="lumi_array", default="0.2,4,10",type="string",
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
 
 
