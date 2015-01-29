@@ -111,7 +111,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
                       w.data("data_obs").sumEntries())
         txtfile.write("------------------------------------------------------------\n")
         txtfile.write("shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%
-                      (txtfileName.split('/')[-1].replace('.txt','.root'),box,box))
+                      (txtfileName.replace('.txt','.root'),box,box))
         txtfile.write("------------------------------------------------------------\n")
         txtfile.write("bin		%s			%s			%s			%s\n"%(box,box,box,box))
         txtfile.write("process		%s_%s 	%s_%s	%s_%s	%s_%s\n"%
@@ -134,8 +134,6 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
-    parser.add_option('-m','--model',dest="model",default="T1bbbb",type="string",
-                  help="signal model name")
     parser.add_option('-l','--lumi',dest="lumi", default=4000.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
@@ -146,7 +144,6 @@ if __name__ == '__main__':
     cfg = Config.Config(options.config)
 
     box = options.box
-    model = options.model
     lumi = options.lumi
     
     for f in args:
@@ -157,8 +154,6 @@ if __name__ == '__main__':
                 signalDs = workspace.data('RMRTree')
                 model = f.split('-')[1].split('_')[0]
                 massPoint = '_'.join(f.split('_')[3:5])
-                print model
-                print massPoint
             else:
                 data = workspace.data('RMRTree')
 

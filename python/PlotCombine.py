@@ -17,9 +17,13 @@ if __name__ == '__main__':
                   help="mass of stop")
     parser.add_option('--mLSP',dest="mLSP", default=-1,type="string",
                   help="mass of LSP")
+    parser.add_option('--lumi-array',dest="lumi_array", default="4",type="string",
+                  help="lumi array in fb^-1, e.g.: 0.2,4,10")
 
     (options,args) = parser.parse_args()
 
+
+    lumiArray = array('d',[float(lumi) for lumi in options.lumi_array.split(',')])
     box = options.box
     model = options.model
     mGluino = options.mGluino
@@ -30,8 +34,6 @@ if __name__ == '__main__':
         massPoint = "mGl-%i_mLSP-%i"%(mGluino,mLSP)
     if mStop!=-1:
         massPoint = "mStop-%i_mLSP-%i"%(mStop,mLSP)
-    
-    lumiArray = array('d',[4])
     
     expArray = array('d')
     expp1sigmaArray = array('d')

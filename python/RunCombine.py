@@ -42,6 +42,5 @@ if __name__ == '__main__':
         signalDsName = signalFileName.replace('.root','_lumi-%.1f_%s.root'%(lumi,box)).replace('Signals/','Datasets/')
         backgroundDsName = 'Datasets/RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%s.root'%(lumi,box)
         os.system('python python/WriteDataCard.py -l %f -c %s -b %s -d cards/ %s %s'%(1000*lumi,cfg,box,signalDsName,backgroundDsName))
-        os.system('cd cards/')
-        os.system('combine -M Asymptotic razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(model,massPoint,lumi,box,model,massPoint,lumi,box))
-        os.system('cd ../')
+        os.system('combine -M Asymptotic cards/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(model,massPoint,lumi,box,model,massPoint,lumi,box))
+        os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root cards/'%(model,massPoint,lumi,box,model,massPoint,lumi,box))
