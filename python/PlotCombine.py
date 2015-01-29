@@ -11,11 +11,11 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('-m','--model',dest="box", default="T1bbbb",type="string",
                   help="signal model name")
-    parser.add_option('--mGluino',dest="mGluino", default=-1,type="string",
+    parser.add_option('--mGluino',dest="mGluino", default=-1,type="float",
                   help="mass of gluino")
-    parser.add_option('--mGluino',dest="mStop", default=-1,type="string",
+    parser.add_option('--mStop',dest="mStop", default=-1,type="float",
                   help="mass of stop")
-    parser.add_option('--mLSP',dest="mLSP", default=-1,type="string",
+    parser.add_option('--mLSP',dest="mLSP", default=-1,type="float",
                   help="mass of LSP")
     parser.add_option('--lumi-array',dest="lumi_array", default="4",type="string",
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     xsecm1sigmaArray = array('d',[thyXsec*(thyXsecErr)/2. for lumi in lumiArray])
     
     for lumi in lumiArray:
-        tfile = rt.TFile.Open('higgsCombine%s_%s_lumi-%s_%s.Asymptotic.mH120.root'%(model,massPoint,lumi,box))
+        tfile = rt.TFile.Open('cards/higgsCombine%s_%s_lumi-%s_%s.Asymptotic.mH120.root'%(model,massPoint,lumi,box))
         limit = tfile.Get('limit')
         limit.Draw('>>elist','','entrylist')
         elist = rt.gDirectory.Get('elist')
