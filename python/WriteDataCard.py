@@ -54,6 +54,28 @@ def initializeWorkspace(w,cfg,box):
 
     return paramNames
 
+
+def initializeWorkspace_noFit(w,cfg,box):
+    parameters = cfg.getVariables(box, "combine_parameters")
+    paramNames = []
+    for parameter in parameters:
+        w.factory(parameter)
+        paramName = parameter.split('[')[0]
+        if paramName.find("Cut")==-1:
+            paramNames.append(paramName)
+            w.var(paramName).setConstant(False)
+        else:
+            w.var(paramName).setConstant(True)
+    
+    x = array('d', cfg.getBinning(box)[0]) # MR binning
+    y = array('d', cfg.getBinning(box)[1]) # Rsq binning
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    
+    w.factory('th1x[0,0,%i]'%nBins)
+
+    return paramNames
+
 def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
     """Get the cocktail dataset from the file"""
     
@@ -126,6 +148,35 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
                 txtfile.write("%s  	flatParam\n"%
                               (paramName))
         txtfile.close()
+
+        
+def writeDataCard_noFit(box,model,txtfileName,bkgs,paramNames,w):
+        txtfile = open(txtfileName,"w")
+        txtfile.write("imax 1 number of channels\n")
+        nBkgd = 3
+        txtfile.write("jmax %i number of backgrounds\n"%nBkgd)
+        txtfile.write("kmax * number of nuisance parameters\n")
+        txtfile.write("------------------------------------------------------------\n")
+        txtfile.write("observation	%.3f\n"%
+                      w.data("data_obs").sumEntries())
+        txtfile.write("------------------------------------------------------------\n")
+        txtfile.write("shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%
+                      (txtfileName.replace('.txt','.root'),box,box))
+        txtfile.write("------------------------------------------------------------\n")
+        txtfile.write("bin		%s			%s			%s			%s\n"%(box,box,box,box))
+        txtfile.write("process		%s_%s 	%s_%s	%s_%s	%s_%s\n"%
+                        (box,model,box,bkgs[0],box,bkgs[1],box,bkgs[2]))
+        txtfile.write("process        	0          		1			2			3\n")
+        txtfile.write("rate            %.3f		%.3f		%.3f		%.3f\n"%
+                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("RMRTree").sumEntries("nBtag==1")*lumi/lumi_in,
+                        w.data("RMRTree").sumEntries("nBtag==2")*lumi/lumi_in,w.data("RMRTree").sumEntries("nBtag==3")*lumi/lumi_in))
+        
+        txtfile.write("------------------------------------------------------------\n")
+        txtfile.write("lumi			lnN	%.3f       1.00	1.00 1.00\n"%(1.05))
+        txtfile.write("ttj1b			lnN	1.00       %.3f	1.00 1.00\n"%(1.1))
+        txtfile.write("ttj2b			lnN	1.00       1.00	%.3f 1.00\n"%(1.1))
+        txtfile.write("ttj3b			lnN	1.00       1.00	1.00 %.3f\n"%(1.1))
+        txtfile.close()
         
 if __name__ == '__main__':
     parser = OptionParser()
@@ -137,6 +188,8 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
+    parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
+                  help="Turn off fit (use MC directly)")
 
     (options,args) = parser.parse_args()
     
@@ -144,6 +197,7 @@ if __name__ == '__main__':
 
     box = options.box
     lumi = options.lumi
+    noFit = options.noFit
 
     lumi_in = 0.
     for f in args:
@@ -160,7 +214,11 @@ if __name__ == '__main__':
 
   
     w = rt.RooWorkspace("w"+box)
-    paramNames = initializeWorkspace(w,cfg,box)
+    
+    if noFit:
+        paramNames = initializeWorkspace_noFit(w,cfg,box)
+    else:
+        paramNames = initializeWorkspace(w,cfg,box)
     
     rootTools.Utils.importToWS(w,data)
     
@@ -171,19 +229,39 @@ if __name__ == '__main__':
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
     rootTools.Utils.importToWS(w,dataHist)
 
+    if noFit:
+        data1b = data.reduce("nBtag==1")
+        myTH11b = convertDataset2TH1(data1b, cfg, box, w)
+        myTH11b.Scale(lumi/lumi_in)
+        dataHist1b = rt.RooDataHist("%s_%s"%(box,"TTj1b"),"%s_%s"%(box,"TTj1b"),rt.RooArgList(th1x), myTH11b)
+        rootTools.Utils.importToWS(w,dataHist1b)
+        
+        data2b = data.reduce("nBtag==2")
+        myTH12b = convertDataset2TH1(data2b, cfg, box, w)
+        myTH12b.Scale(lumi/lumi_in)
+        dataHist2b = rt.RooDataHist("%s_%s"%(box,"TTj2b"),"%s_%s"%(box,"TTj2b"),rt.RooArgList(th1x), myTH12b)
+        rootTools.Utils.importToWS(w,dataHist2b)
+        
+        data3b = data.reduce("nBtag==3")
+        myTH13b = convertDataset2TH1(data3b, cfg, box, w)
+        myTH13b.Scale(lumi/lumi_in)
+        dataHist3b = rt.RooDataHist("%s_%s"%(box,"TTj3b"),"%s_%s"%(box,"TTj3b"),rt.RooArgList(th1x), myTH13b)
+        rootTools.Utils.importToWS(w,dataHist3b)
+    
+    
     sigTH1 = convertDataset2TH1(signalDs, cfg, box, w,"signal")
     sigTH1.Scale(lumi/lumi_in)
     sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
     rootTools.Utils.importToWS(w,sigDataHist)
 
-
     w.Print('v')
-
             
     outFile = 'razor_combine_%s_%s_lumi-%.1f_%s.root'%(model,massPoint,lumi/1000.,box)
-        
     
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     w.Write()
-    writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
+    if noFit:
+        writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
+    else:
+        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))
