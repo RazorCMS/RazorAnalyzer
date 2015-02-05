@@ -2,7 +2,8 @@ from optparse import OptionParser
 import ROOT as rt
 import rootTools
 from framework import Config
-
+from array import *
+import sys
 
 def initializeWorkspace(w,cfg):
     variables = cfg.getVariablesRange(box,"variables",w)
@@ -27,6 +28,10 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store fit results")
+    parser.add_option('--fit-region',dest="fitRegion",default="Full",type="string",
+                  help="Fit region")
+    parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
+                  help="Turn off fit (useful for visualizing initial parameters)")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
 
@@ -48,36 +53,66 @@ if __name__ == '__main__':
     rootTools.Utils.importToWS(w,data)
     
     w.Print('v')
+  
 
     pdf = w.pdf('extRazorPdf')
+    
+    #force numeical integrals and set precision
+    #pdf.forceNumInt(True)
+    #rt.RooAbsReal.defaultIntegratorConfig().Print("v")
+    rt.RooAbsReal.defaultIntegratorConfig().setEpsAbs(1e-13) 
+    rt.RooAbsReal.defaultIntegratorConfig().setEpsRel(1e-13) 
+    
+    #if options.fitRegion == "Full":
+    #    fitResult = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.PrintEvalErrors(0),rt.RooFit.EvalErrorWall(False))
+    #else:
+    #    fitResult = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Range(options.fitRegion))
 
-    fitResult = pdf.fitTo(data,rt.RooFit.Save())
-    fitResult.Print('v')
+    if options.noFit:
+        fitResult = rt.RooFitResult()
+    else:
+        if options.fitRegion == "Full":
+            nll = pdf.createNLL(data)
+        else:
+            nll = pdf.createNLL(data,rt.RooFit.Range(options.fitRegion))
+        m = rt.RooMinuit(nll)
+        m.migrad()
+        m.hesse()
+        fitResult = m.save()
+
+        fitResult.Print('v')
+    
+        rootTools.Utils.importToWS(w,fitResult)
     
     mr = w.var('MR')
     rsq = w.var('Rsq')
+    nbtag = w.var('nBtag')
+    
 
+    x = array('d', cfg.getBinning(box)[0]) # MR binning
+    y = array('d', cfg.getBinning(box)[1]) # Rsq binning
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    
     c = rt.TCanvas("c","c",600,400)
     c.SetLogy()
-    mrFrame = mr.frame(400,2000,50)
+    mrFrame = mr.frame(x[0],x[-1],50)
     mrFrame.SetTitle("")
     mrFrame.SetXTitle("M_{R}")
-    rsqFrame = rsq.frame(0.25,1.2,50)
+    rsqFrame = rsq.frame(y[0],y[-1],50)
     rsqFrame.SetTitle("")
     rsqFrame.SetXTitle("R^{2}")
-    
-    rootTools.Utils.importToWS(w,fitResult)
+
     
     def plot1d(data,pdf,var,frame,c):
         data.plotOn(frame,rt.RooFit.Name("Data"),rt.RooFit.Invisible())
-        pdf.plotOn(frame,rt.RooFit.VisualizeError(fitResult,0.4),rt.RooFit.FillColor(rt.kBlue-10))
-        pdf.plotOn(frame,rt.RooFit.Name("Total"),rt.RooFit.FillColor(rt.kBlue-10))
-        pdf.plotOn(frame,rt.RooFit.Name("TTj1b"),rt.RooFit.Components('razor3dPdf_TTj1b'),rt.RooFit.LineColor(rt.kViolet),rt.RooFit.LineStyle(rt.kDashed))
-        pdf.plotOn(frame,rt.RooFit.Name("TTj2b"),rt.RooFit.Components('razor3dPdf_TTj2b'),rt.RooFit.LineColor(rt.kRed),rt.RooFit.LineStyle(rt.kDashed))
-        pdf.plotOn(frame,rt.RooFit.Name("TTj3b"),rt.RooFit.Components('razor3dPdf_TTj3b'),rt.RooFit.LineColor(rt.kGreen),rt.RooFit.LineStyle(rt.kDashed))
+        #pdf.plotOn(frame,rt.RooFit.VisualizeError(fitResult,0.25),rt.RooFit.FillColor(rt.kBlue-10),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"))
+        pdf.plotOn(frame,rt.RooFit.Name("Total"),rt.RooFit.FillColor(rt.kBlue-10),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(pdf.expectedEvents(w.set('variables')),rt.RooAbsReal.NumEvent))
+        pdf.plotOn(frame,rt.RooFit.Name("TTj1b"),rt.RooFit.Components('razor3dPdf_TTj1b'),rt.RooFit.LineColor(rt.kViolet),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj1b').getVal(),rt.RooAbsReal.NumEvent))
+        pdf.plotOn(frame,rt.RooFit.Name("TTj2b"),rt.RooFit.Components('razor3dPdf_TTj2b'),rt.RooFit.LineColor(rt.kRed),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj2b').getVal(),rt.RooAbsReal.NumEvent))
+        pdf.plotOn(frame,rt.RooFit.Name("TTj3b"),rt.RooFit.Components('razor3dPdf_TTj3b'),rt.RooFit.LineColor(rt.kGreen),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj3b').getVal(),rt.RooAbsReal.NumEvent))
         data.plotOn(frame,rt.RooFit.Name("Data"))
-        frame.SetMaximum(1000)
-        frame.SetMinimum(0.5)
+        frame.SetMinimum(0.01)
+        frame.SetMaximum(data.sumEntries()*2)
         frame.Draw()
 
         l = rt.TLatex()
@@ -85,8 +120,14 @@ if __name__ == '__main__':
         l.SetTextSize(0.05)
         l.SetTextFont(42)
         l.SetNDC()
-        l.DrawLatex(0.15,0.85,"CMS Simulation 4 fb^{-1} (13 TeV)")
-        l.DrawLatex(0.15,0.80,"Razor %s Box"%box)
+        l.DrawLatex(0.72,0.92,"4 fb^{-1} (13 TeV)")
+        l.DrawLatex(0.15,0.85,"CMS simulation")
+        l.SetTextFont(52)
+        if options.fitRegion=="Full":
+            fitRegion = "full fit"
+        else:
+            fitRegion = "sideband fit"
+        l.DrawLatex(0.15,0.80,"razor %s %s"%(box,fitRegion))
         leg = rt.TLegend(0.7,0.59,0.89,0.88)
         leg.SetTextFont(42)
         leg.SetFillColor(rt.kWhite)
@@ -98,8 +139,8 @@ if __name__ == '__main__':
         leg.AddEntry(frame.findObject("TTj3b"),"3b-tag","l")
         leg.Draw()
     
-        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+box+".pdf")
-        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+box+".C")
+        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+options.fitRegion.replace(',','_')+"_"+box+".pdf")
+        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+options.fitRegion.replace(',','_')+"_"+box+".C")
 
     plot1d(data,pdf,mr,mrFrame,c)
     plot1d(data,pdf,rsq,rsqFrame,c)
@@ -107,7 +148,7 @@ if __name__ == '__main__':
     inFiles = [f for f in args if f.lower().endswith('.root')]
             
     if len(inFiles)==1:
-        outFile = inFiles[0].split('/')[-1].replace('RazorAnalysis','FitResult')
+        outFile = inFiles[0].split('/')[-1].replace('RazorAnalysis','FitResult').replace(box,options.fitRegion.replace(',','_')+"_"+box)
 
     outFile = rt.TFile.Open(options.outDir+"/"+outFile,'recreate')
     outFile.cd()
