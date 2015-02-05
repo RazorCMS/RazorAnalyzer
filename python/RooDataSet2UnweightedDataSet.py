@@ -121,8 +121,8 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     myTH2Toy.GetXaxis().SetNoExponent()
     myTH2Toy.GetYaxis().SetNoExponent()
     myTH2Toy.Draw("colz")
-    c.Print("TH2D_SMCocktail_unweighted_%s.pdf"%box)
-    c.Print("TH2D_SMCocktail_unweighted_%s.C"%box)
+    c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%s.pdf"%box)
+    c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%s.C"%box)
 
     return uwdata
 

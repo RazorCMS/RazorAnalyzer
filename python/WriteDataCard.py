@@ -86,7 +86,6 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
     # fills automatically with weight
     data.fillHistogram(myTH3, varList,"MR>0")
     data.fillHistogram(myTH2, varList2D,"MR>0")
-
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",nBins,0,nBins)
@@ -118,8 +117,8 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
                         (box,model,box,bkgs[0],box,bkgs[1],box,bkgs[2]))
         txtfile.write("process        	0          		1			2			3\n")
         txtfile.write("rate            %.3f		%.3f		%.3f		%.3f\n"%
-                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("RMRTree").sumEntries("nBtag==1"),
-                        w.data("RMRTree").sumEntries("nBtag==2"),w.data("RMRTree").sumEntries("nBtag==3")))
+                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("RMRTree").sumEntries("nBtag==1")*lumi/lumi_in,
+                        w.data("RMRTree").sumEntries("nBtag==2")*lumi/lumi_in,w.data("RMRTree").sumEntries("nBtag==3")*lumi/lumi_in))
         
         txtfile.write("------------------------------------------------------------\n")
         txtfile.write("lumi			lnN	%.3f       1.00	1.00 1.00\n"%(1.05))
@@ -145,7 +144,8 @@ if __name__ == '__main__':
 
     box = options.box
     lumi = options.lumi
-    
+
+    lumi_in = 0.
     for f in args:
         if f.lower().endswith('.root'):
             rootFile = rt.TFile(f)
@@ -156,9 +156,9 @@ if __name__ == '__main__':
                 massPoint = '_'.join(f.split('_')[3:5])
             else:
                 data = workspace.data('RMRTree')
+            lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
 
-                
-                
+  
     w = rt.RooWorkspace("w"+box)
     paramNames = initializeWorkspace(w,cfg,box)
     
@@ -167,17 +167,18 @@ if __name__ == '__main__':
     th1x = w.var('th1x')
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
+    myTH1.Scale(lumi/lumi_in)
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
     rootTools.Utils.importToWS(w,dataHist)
 
     sigTH1 = convertDataset2TH1(signalDs, cfg, box, w,"signal")
+    sigTH1.Scale(lumi/lumi_in)
     sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
     rootTools.Utils.importToWS(w,sigDataHist)
 
 
     w.Print('v')
 
-    
             
     outFile = 'razor_combine_%s_%s_lumi-%.1f_%s.root'%(model,massPoint,lumi/1000.,box)
         

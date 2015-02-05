@@ -8,7 +8,14 @@ k_Z = 3.*2008.4/5482.
 k_W = 3.*20508.9/50100.0
 k_QCD = {'MultiJet': 1.2,
          'LooseLeptonMultiJet': 1.0,
-         'DiJet': 1.2}
+         'DiJet': 1.2,
+         'EleMultiJet':1.0,
+         'MuMultiJet':1.0,
+         'EleJet':1.0,
+         'MuJet':1.0,
+         'MuEle':1.0,
+         'EleEle':1.0,
+         'MuMu':1.0}
 
 boxes = {'MuEle':0,
          'MuMu':1,
