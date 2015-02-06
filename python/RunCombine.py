@@ -23,6 +23,8 @@ if __name__ == '__main__':
                   help="mass of LSP")
     parser.add_option('--lumi-array',dest="lumi_array", default="0.2,4,10",type="string",
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
+    parser.add_option('--signif',dest="signif",default=False,action='store_true',
+                  help="Turn off fit (use MC directly)")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
@@ -32,6 +34,8 @@ if __name__ == '__main__':
     (options,args) = parser.parse_args()
 
     boxes = options.box.split('_')
+
+    signif = options.signif
     
     lumiArray = array('d',[float(lumi) for lumi in options.lumi_array.split(',')])
     cfg = options.config
@@ -54,14 +58,22 @@ if __name__ == '__main__':
             signalDsName = 'Datasets/RazorAnalysis_SMS-%s_2J_%s_25ns_weighted_lumi-%.1f_%s.root'%(model,massPoint,lumi_in/1000,box)
             backgroundDsName = 'Datasets/RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%s.root'%(lumi_in/1000,box)
             os.system('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s'%(1000*lumi,cfg,box,options.outDir,noFit,signalDsName,backgroundDsName))
-            os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box))
-            os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir))
+            if signif:
+                os.system('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box))
+                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir))
+            else:
+                os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box))
+                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir))
         if len(boxes)>1:
             for box in boxes: os.system('cp %s/razor_combine_%s_%s_lumi-%.1f_%s.txt .'%(options.outDir,model,massPoint,lumi,box))
             cmds = ['%s=razor_combine_%s_%s_lumi-%.1f_%s.txt'%(box,model,massPoint,lumi,box) for box in boxes]
             os.system('combineCards.py %s > %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(' '.join(cmds),options.outDir,model,massPoint,lumi,options.box))
             os.system('cat %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(options.outDir,model,massPoint,lumi,options.box))
-            os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,options.box))
-            os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,options.box,options.outDir))
+            if signif:
+                os.system('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,options.box))
+                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,options.box,options.outDir))
+            else:
+                os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,options.box))
+                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,options.box,options.outDir))
             for box in boxes: os.system('rm razor_combine_%s_%s_lumi-%.1f_%s.txt'%(model,massPoint,lumi,box))
  
