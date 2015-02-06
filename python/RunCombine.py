@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
         for lumi in lumiArray:
             os.system('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s'%(1000*lumi,cfg,box,options.outDir,noFit,signalDsName,backgroundDsName))
-            os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,Dmodel,massPoint,lumi,box,model,massPoint,lumi,box))
+            os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box))
             os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir))
     if len(boxes)>1:
         for box in boxes: os.system('cp %s/razor_combine_%s_%s_lumi-%.1f_%s.txt .'%(options.outDir,model,massPoint,lumi,box))
@@ -65,5 +65,5 @@ if __name__ == '__main__':
         os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,options.box))
         os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,options.box,options.outDir))
         
-        for box in boxes: os.system('rm %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(options.outDir,model,massPoint,lumi,box))
+        for box in boxes: os.system('rm razor_combine_%s_%s_lumi-%.1f_%s.txt'%(model,massPoint,lumi,box))
  
