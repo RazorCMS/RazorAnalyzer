@@ -40,7 +40,7 @@ if __name__ == '__main__':
     if options.mGluino>-1:
         massPoint = 'mGl-%i_mLSP-%i'%(options.mGluino,options.mLSP)
     elif options.mStop>-1:
-        massPoint = 'mStop-%i_mLSP-%i'%(options.mGluino,options.mLSP)
+        massPoint = 'mStop-%i_mLSP-%i'%(options.mStop,options.mLSP)
         
     lumi_in = 4000.
 
