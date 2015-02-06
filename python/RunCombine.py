@@ -62,6 +62,7 @@ if __name__ == '__main__':
         
         cmds = ['%s=razor_combine_%s_%s_lumi-%.1f_%s.txt'%(box,model,massPoint,lumi,box) for box in boxes]
         os.system('combineCards.py %s > %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(' '.join(cmds),options.outDir,model,massPoint,lumi,options.box))
+        os.system('cat %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(options.outDir,model,massPoint,lumi,options.box))
         os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,options.box))
         os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,options.box,options.outDir))
         
