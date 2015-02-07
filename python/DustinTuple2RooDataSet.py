@@ -16,7 +16,7 @@ k_QCD = {'MultiJet': 1.2,
          'MuEle':1.0,
          'EleEle':1.0,
          'MuMu':1.0}
-
+    
 boxes = {'MuEle':0,
          'MuMu':1,
          'EleEle':2,

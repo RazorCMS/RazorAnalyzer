@@ -24,7 +24,7 @@ if __name__ == '__main__':
     parser.add_option('--lumi-array',dest="lumi_array", default="0.2,4,10",type="string",
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
     parser.add_option('--signif',dest="signif",default=False,action='store_true',
-                  help="Turn off fit (use MC directly)")
+                  help="calculate significance instead of limit")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
@@ -70,7 +70,7 @@ if __name__ == '__main__':
             os.system('combineCards.py %s > %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(' '.join(cmds),options.outDir,model,massPoint,lumi,options.box))
             os.system('cat %s/razor_combine_%s_%s_lumi-%.1f_%s.txt'%(options.outDir,model,massPoint,lumi,options.box))
             if signif:
-                os.system('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,options.box))
+                os.system('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,options.box))
                 os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,options.box,options.outDir))
             else:
                 os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,options.box))
