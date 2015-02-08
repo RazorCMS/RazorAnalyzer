@@ -173,9 +173,9 @@ def writeDataCard_noFit(box,model,txtfileName,bkgs,paramNames,w):
         
         txtfile.write("------------------------------------------------------------\n")
         txtfile.write("lumi			lnN	%.3f       1.00	1.00 1.00\n"%(1.05))
-        txtfile.write("ttj1b			lnN	1.00       %.3f	1.00 1.00\n"%(1.1))
-        txtfile.write("ttj2b			lnN	1.00       1.00	%.3f 1.00\n"%(1.1))
-        txtfile.write("ttj3b			lnN	1.00       1.00	1.00 %.3f\n"%(1.1))
+        txtfile.write("ttj1b_%s			lnN	1.00       %.3f	1.00 1.00\n"%(box,1.1))
+        txtfile.write("ttj2b_%s			lnN	1.00       1.00	%.3f 1.00\n"%(box,1.1))
+        txtfile.write("ttj3b_%s			lnN	1.00       1.00	1.00 %.3f\n"%(box,1.1))
         txtfile.close()
         
 if __name__ == '__main__':
