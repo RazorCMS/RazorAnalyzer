@@ -92,23 +92,28 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     
     c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%s.pdf"%box)
     c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%s.C"%box)
-    
+
     print wdata.weight()
     Nev = myTH3.Integral()
     Nent = myTH3.GetEntries()
     print "weighted events %.1f"% Nev
     print "entries  %d"% Nent
     Npois = rt.RooRandom.randomGenerator().Poisson(Nev)
-    for i in range(0,Npois):
-       myMR = rt.Double()
-       myRsq = rt.Double()
-       mynBtag = rt.Double()
-       myTH3.GetRandom3(myMR,myRsq,mynBtag)
-       mynBtag = int(mynBtag)
-       varSet.setRealValue('MR',myMR)
-       varSet.setRealValue('Rsq',myRsq)
-       varSet.setRealValue('nBtag',mynBtag)
-       uwdata.add(varSet)
+    
+    #wdata2d = wdata.reduce(rt.RooArgSet(MR,Rsq),"MR>500&&Rsq>0.3&&nBtag==3")
+    rookeys = rt.RooNDKeysPdf("rookeys", "rookeys", rt.RooArgList(MR,Rsq), wdata2d, "am")
+    uwdata = rookeys.generate(rt.RooArgSet(MR,Rsq),Npois)
+    
+    # for i in range(0,Npois):
+    #    myMR = rt.Double()
+    #    myRsq = rt.Double()
+    #    mynBtag = rt.Double()
+    #    myTH3.GetRandom3(myMR,myRsq,mynBtag)
+    #    mynBtag = int(mynBtag)
+    #    varSet.setRealValue('MR',myMR)
+    #    varSet.setRealValue('Rsq',myRsq)
+    #    varSet.setRealValue('nBtag',mynBtag)
+    #    uwdata.add(varSet)
     
 
     myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
