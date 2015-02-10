@@ -101,19 +101,19 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     Npois = rt.RooRandom.randomGenerator().Poisson(Nev)
     
     #wdata2d = wdata.reduce(rt.RooArgSet(MR,Rsq),"MR>500&&Rsq>0.3&&nBtag==3")
-    rookeys = rt.RooNDKeysPdf("rookeys", "rookeys", rt.RooArgList(MR,Rsq), wdata2d, "am")
-    uwdata = rookeys.generate(rt.RooArgSet(MR,Rsq),Npois)
+    #rookeys = rt.RooNDKeysPdf("rookeys", "rookeys", rt.RooArgList(MR,Rsq), wdata2d, "am")
+    #uwdata = rookeys.generate(rt.RooArgSet(MR,Rsq),Npois)
     
-    # for i in range(0,Npois):
-    #    myMR = rt.Double()
-    #    myRsq = rt.Double()
-    #    mynBtag = rt.Double()
-    #    myTH3.GetRandom3(myMR,myRsq,mynBtag)
-    #    mynBtag = int(mynBtag)
-    #    varSet.setRealValue('MR',myMR)
-    #    varSet.setRealValue('Rsq',myRsq)
-    #    varSet.setRealValue('nBtag',mynBtag)
-    #    uwdata.add(varSet)
+    for i in range(0,Npois):
+       myMR = rt.Double()
+       myRsq = rt.Double()
+       mynBtag = rt.Double()
+       myTH3.GetRandom3(myMR,myRsq,mynBtag)
+       mynBtag = int(mynBtag)
+       varSet.setRealValue('MR',myMR)
+       varSet.setRealValue('Rsq',myRsq)
+       varSet.setRealValue('nBtag',mynBtag)
+       uwdata.add(varSet)
     
 
     myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
