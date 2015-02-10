@@ -44,3 +44,21 @@ The script 'runEverything' takes as input the name of a directory containing lis
     ./runEverything lists/27Oct2014/
 
 The script will (locally) run the RazorInclusive analysis on each sample listed in the given directory, run NormalizeNtuple to add event weights, and add all of the output files together.
+
+Fitting samples
+-----------
+Make directories
+
+	mkdir Backgrounds; mkdir Signals; mkdir Datasets
+
+Copy background trees
+RazorAnalysis\_*\_25ns\_1pb_weighted.root to Backgrounds/ and signal
+trees to Signal/
+
+	mkdir Backgrounds; mkdir Signals; mkdir Datasets python
+	python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2.config
+	Backgrounds/RazorAnalysis_TTJets_25ns_1pb-1_weighted.root -d Datasets/
+	
+
+
+The script will (locally) run the RazorInclusive analysis on each sample listed in the given directory, run NormalizeNtuple to add event weights, and add all of the output files together.
