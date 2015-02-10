@@ -22,6 +22,8 @@ if __name__ == '__main__':
                   help="lumi array in fb^-1, e.g.: 0.2,4,10")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store plots")
+    parser.add_option('-i','--indir',dest="inDir",default="./",type="string",
+                  help="Input directory")
     parser.add_option('--signif',dest="signif",default=False,action='store_true',
                   help="plot significance instead of limit")
 
@@ -29,6 +31,7 @@ if __name__ == '__main__':
 
     signif = options.signif
 
+    inDir = options.inDir
     lumiArray = array('d',[float(lumi) for lumi in options.lumi_array.split(',')])
     box = options.box
     model = options.model
@@ -44,14 +47,14 @@ if __name__ == '__main__':
         for line in open('data/gluino13TeV.txt','r'):
             line = line.replace('\n','')
             if str(int(mGluino))==line.split(',')[0]:
-                thyXsec = float(line.split(',')[1])
+                thyXsec = float(line.split(',')[1])*1000 # convert pb to fb
                 thyXsecErr = 0.01*float(line.split(',')[2])
     if mStop!=-1:
         massPoint = "mStop-%i_mLSP-%i"%(mStop,mLSP)
         for line in open('data/stop13TeV.txt','r'):
             line = line.replace('\n','')
             if str(int(mStop))==line.split(',')[0]:
-                thyXsec = float(line.split(',')[1])
+                thyXsec = float(line.split(',')[1])*1000 # convert pb to fb
                 thyXsecErr = 0.01*float(line.split(',')[2])
 
     expArray = array('d')
@@ -68,7 +71,7 @@ if __name__ == '__main__':
     
     if signif:
         for lumi in lumiArray:
-            tfile = rt.TFile.Open('cards/higgsCombine%s_%s_lumi-%s_%s.ProfileLikelihood.mH120.root'%(model,massPoint,lumi,box))
+            tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s.ProfileLikelihood.mH120.root'%(inDir,model,massPoint,lumi,box))
             
             limit = tfile.Get('limit')
             limit.Draw('>>elist','','entrylist')
@@ -86,7 +89,7 @@ if __name__ == '__main__':
         
         for lumi in lumiArray:
 
-            tfile = rt.TFile.Open('cards/higgsCombine%s_%s_lumi-%s_%s.Asymptotic.mH120.root'%(model,massPoint,lumi,box))
+            tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s.Asymptotic.mH120.root'%(inDir,model,massPoint,lumi,box))
 
             limit = tfile.Get('limit')
             limit.Draw('>>elist','','entrylist')
@@ -133,6 +136,15 @@ if __name__ == '__main__':
         xsecGraph.SetLineColor(rt.kOrange)
 
     if signif:
+        i=0
+        while i < len(sigArray):
+            if sigArray[i]>10000:
+                sigArray.pop(i)
+                lumiArray.pop(i)
+            i+=1
+
+        print lumiArray
+        print sigArray
         sigGraph = rt.TGraph(len(sigArray),lumiArray,sigArray)
         sigGraph.SetLineStyle(1)
         threeSigGraph = rt.TGraph(len(sigArray),lumiArray,array('d',[3. for sig in sigArray]))
@@ -203,16 +215,16 @@ if __name__ == '__main__':
     l.SetTextFont(42)
     if model=="T1bbbb":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")
-        l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m  _{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
+        l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
     elif model=="T1tttt":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowt#bar{t}#tilde{#chi}^{0}_{1}")
-        l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m  _{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
+        l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
     elif model=="T2tt":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{t}#tilde{t},  #tilde{t}#rightarrowt#tilde{#chi}^{0}_{1}")
-        l.DrawLatex(0.52,0.77,"m_{#tilde{t}} = %i GeV, m  _{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
+        l.DrawLatex(0.52,0.77,"m_{#tilde{t}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
     elif model=="T2bb":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{b}#tilde{b},  #tilde{b}#rightarrowb#tilde{#chi}^{0}_{1}")
-        l.DrawLatex(0.52,0.77,"m_{#tilde{b}} = %i GeV, m  _{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
+        l.DrawLatex(0.52,0.77,"m_{#tilde{b}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
 
     if signif:
         leg = rt.TLegend(0.52,0.64,0.89,0.74)
