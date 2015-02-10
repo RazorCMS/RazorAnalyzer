@@ -55,9 +55,9 @@ Copy background trees
 RazorAnalysis\_*\_25ns\_1pb_weighted.root to Backgrounds/ and signal
 trees to Signal/
 
-	mkdir Backgrounds; mkdir Signals; mkdir Datasets python
-	python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2.config
-	Backgrounds/RazorAnalysis_TTJets_25ns_1pb-1_weighted.root -d Datasets/
+	mkdir Backgrounds; mkdir Signals; mkdir Datasets python\
+	python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2.config\
+	Backgrounds/RazorAnalysis_TTJets_25ns_1pb-1_weighted.root -d Datasets\
 	
 
 
