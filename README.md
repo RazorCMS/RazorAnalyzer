@@ -70,7 +70,7 @@ Make output directories to make workflow easier
 
 Copy background trees such as RazorAnalysis\_TTJets\_25ns\_weighted.root to Backgrounds/ and signal
 trees such as RazorAnalysis\_SMS-T1bbbb\_2J_mGl-1500\_mLSP-100\_\_weighted.root
-to Signals/. Note scripts assume no QCD and scale up all backgrounds
+to Signals/. Note the script assumes no QCD and scales up all backgrounds
 by hard-coded factors per box. The following commands will (locally)
 produce the weighted and "unweighted" datasets, run the fit, and make the 1D fit projections in MR and Rsq. 
 
@@ -78,11 +78,11 @@ produce the weighted and "unweighted" datasets, run the fit, and make the 1D fit
 	python python/RooDataSet2UnweightedDataSet.py -b MultiJet -c config/run2.config -d Datasets Datasets/RazorAnalysis_SMCocktail_weighted_lumi-4.0_MultiJet.root
 	python python/Fit.py -b MultiJet -c config/run2.config -d FitResults Datasets/RazorAnalysis_SMCocktail_unweighted_lumi-4.0_MultiJet.root
 	
-Next, to produce the datacards and run combine (on lxplus, let's say)
-execute the following:
+Next, to produce the datacards, run combine, and make the fit
+projection plots (on lxplus), execute the following:
 
 	python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2.config -w -l 4000 -d Datasets Signals/RazorAnalysis_SMS-T1bbbb_2J_mGl-1500_mLSP-100_weighted.root 
-	python python/RunCombine.py -b MultiJet -c config/run2.config -d cards --lumi-array 0.2,4,10 -m T1bbbb --mGluino 1500 --mLSP 100
-	python python/PlotCombine.py -b MultiJet -c config/run2.config -d FitProjections -i cards --lumi-array 0.2,4,10 -m T1bbbb --mGluino 1500 --mLSP 100 
+	python python/RunCombine.py -b MultiJet -c config/run2.config -d cards --lumi-array 0.2,1,2,4,7,10 -m T1bbbb --mGluino 1500 --mLSP 100
+	python python/PlotCombine.py -b MultiJet -c config/run2.config -d FitProjections -i cards --lumi-array 0.2,1,2,4,7,10 -m T1bbbb --mGluino 1500 --mLSP 100 
 	
-which should make the appropriate plots in the directory FitProjections.
+which should produce the plots in the directory FitProjections/.
