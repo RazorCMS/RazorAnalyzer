@@ -106,8 +106,8 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
     myTH2.Sumw2()
 
     # fills automatically with weight
-    data.fillHistogram(myTH3, varList,"MR>0")
-    data.fillHistogram(myTH2, varList2D,"MR>0")
+    data.fillHistogram(myTH3, varList,"MR>%f && MR<%f && Rsq>%f && Rsq<%f && nBtag >= %f && nBtag <= %f"%(x[0],x[-1],y[0],y[-1],z[0],z[-1]))
+    data.fillHistogram(myTH2, varList2D,"MR>%f && MR<%f && Rsq>%f && Rsq<%f && nBtag >= %f && nBtag <= %f"%(x[0],x[-1],y[0],y[-1],z[0],z[-1]))
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",nBins,0,nBins)
@@ -168,8 +168,8 @@ def writeDataCard_noFit(box,model,txtfileName,bkgs,paramNames,w):
                         (box,model,box,bkgs[0],box,bkgs[1],box,bkgs[2]))
         txtfile.write("process        	0          		1			2			3\n")
         txtfile.write("rate            %.3f		%.3f		%.3f		%.3f\n"%
-                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("RMRTree").sumEntries("nBtag==1")*lumi/lumi_in,
-                        w.data("RMRTree").sumEntries("nBtag==2")*lumi/lumi_in,w.data("RMRTree").sumEntries("nBtag==3")*lumi/lumi_in))
+                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("%s_%s"%(box,"TTj1b")).sumEntries(),
+                        w.data("%s_%s"%(box,"TTj2b")).sumEntries(), w.data("%s_%s"%(box,"TTj3b")).sumEntries()))
         
         txtfile.write("------------------------------------------------------------\n")
         txtfile.write("lumi			lnN	%.3f       1.00	1.00 1.00\n"%(1.05))
