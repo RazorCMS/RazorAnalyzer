@@ -114,6 +114,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
         razorTree->Branch("leadingMuonPhi", &leadingMuonPhi, "leadingMuonPhi/F");
         razorTree->Branch("leadingGenElectronPt", &leadingGenElectronPt, "leadingGenElectronPt/F");
         razorTree->Branch("leadingGenPhotonPt", &leadingGenPhotonPt, "leadingGenPhotonPt/F");
+        razorTree->Branch("leadingGenPhotonEta", &leadingGenPhotonEta, "leadingGenPhotonEta/F");
         razorTree->Branch("leadingPhotonPt", &leadingPhotonPt, "leadingPhotonPt/F");
         razorTree->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
         razorTree->Branch("genZpt", &genZpt, "genZpt/F");
@@ -167,6 +168,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	    box.second->Branch("leadingGenMuonPt", &leadingGenMuonPt, "leadingGenMuonPt/F");
 	    box.second->Branch("leadingGenElectronPt", &leadingGenElectronPt, "leadingGenElectronPt/F");
 	    box.second->Branch("leadingGenPhotonPt", &leadingGenPhotonPt, "leadingGenPhotonPt/F");
+	    box.second->Branch("leadingGenPhotonEta", &leadingGenPhotonEta, "leadingGenPhotonEta/F");
 	    box.second->Branch("leadingPhotonPt", &leadingPhotonPt, "leadingPhotonPt/F");
 	    box.second->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
 	    box.second->Branch("genZpt", &genZpt, "genZpt/F");
@@ -305,7 +307,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	
 	for(int j = 0; j < nGenParticle; j++){
 	  float minDRToGenLepton = 9999;
-	  int closestLeptonIndex = -1;
+	  //int closestLeptonIndex = -1;
 
 	  //only look for outgoing partons
 	  if  (!( ((abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21) 
@@ -332,7 +334,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	      double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], gParticleEta[k], gParticlePhi[k]);
 	      if ( tmpDR < minDRToGenLepton ) {
 		minDRToGenLepton = tmpDR;
-		closestLeptonIndex = k;
+		//closestLeptonIndex = k;
 	      }
 	    }
 	  }
@@ -459,7 +461,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	// found good reco photon
 	if(GoodPhotons.size()>0){
 	  sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
-	  //if there is no photon with pT above 40 GeV, reject the event
 	  leadingPhotonPt = GoodPhotons.at(0).Pt();
 
 	  // calculate met with removed photon
@@ -469,7 +470,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	  Double_t met_py = metPt*sin(metPhi);
 	  
 	  met_nopho = TMath::Sqrt(pow(met_px + pho_px ,2) + pow(met_py + pho_py,2));
-	  Double_t metPhi_nopho = atan2( -(met_py+pho_py), -(met_px+pho_px) );
+	  Double_t metPhi_nopho = atan2( met_py+pho_py, met_px+pho_px );
 	  
 	  TLorentzVector PFMET_NOPHO = makeTLorentzVectorPtEtaPhiM(met_nopho, 0, metPhi_nopho, 0);
 	  theRsq_nopho = computeRsq(hemispheres[0], hemispheres[1], PFMET_NOPHO);
@@ -495,6 +496,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	  
 	  if (matchedIndex >= 0) {
 	    leadingGenPhotonPt = gParticlePt[matchedIndex];
+            leadingGenPhotonEta = gParticleEta[matchedIndex];
 	  }	  
 	}
 	// Zll stuff
@@ -513,14 +515,13 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	  {
 	    TLorentzVector m1 = makeTLorentzVector(ZMuons[0].Pt(), ZMuons[0].Eta(), ZMuons[0].Phi(), ZMuons[0].E()); 
 	    TLorentzVector m2 = makeTLorentzVector(ZMuons[1].Pt(), ZMuons[1].Eta(), ZMuons[1].Phi(), ZMuons[1].E()); 		
-	    TLorentzVector theZ_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).E());
+	    TLorentzVector theZ_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).M());
 	    
 	    Double_t met_px = metPt*cos(metPhi) + theZ_perp.Px();
 	    Double_t met_py = metPt*sin(metPhi) + theZ_perp.Py();
 
-
 	    met_noZ = TMath::Sqrt( pow(met_px, 2) + pow(met_py, 2) );
-	    Double_t metPhi_noZ = atan2( -met_py, -met_px );
+	    Double_t metPhi_noZ = atan2( met_py, met_px );
 	    metphi_noZ = metPhi_noZ;
 	    
 	    vector<TLorentzVector> GoodPFObjectsNoZ;
@@ -706,8 +707,9 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 bool RazorPhotonStudy_PassesHadronicRazorBaseline(double MR, double Rsq){
     bool passes = true;
     //temporarily disable these
-    // if(MR < 400 || Rsq < 0.25) passes = false;
-    // if(MR < 450 && Rsq < 0.3) passes = false;
+    //if(MR < 400 || Rsq < 0.25) passes = false;
+    //if(MR < 450 && Rsq < 0.3) passes = false;
+    if(MR < 0 || Rsq < 0) passes = false;
     return passes;
 }
 
@@ -715,5 +717,6 @@ bool RazorPhotonStudy_PassesLeptonicRazorBaseline(double MR, double Rsq){
     bool passes = true;
     // if(MR < 300 || Rsq < 0.15) passes = false;
     // if(MR < 350 && Rsq < 0.2) passes = false;
+    if(MR < 0 || Rsq < 0) passes = false;
     return passes;
 }
