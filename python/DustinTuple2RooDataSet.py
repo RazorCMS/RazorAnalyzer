@@ -48,8 +48,9 @@ def initializeWorkspace(w,cfg):
 
 def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName='RMRTree'):
     """This defines the format of the RooDataSet"""
-    
-    if f.find('TTJets')!=-1:
+    if f.find('SMS')!=-1:
+        k = 1.
+    elif f.find('TTJets')!=-1:
         k = k_T*k_QCD[box]
     elif f.find('DYJets')!=-1 or f.find('ZJets')!=-1:
         k = k_Z*k_QCD[box]
