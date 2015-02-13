@@ -425,16 +425,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
         TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 	metphi = metPhi;
-
-	if (GoodPFObjects.size() > 20) {
-	  cout << "More than 20 objects : " <<GoodPFObjects.size() << " " << nVetoElectrons << " " << nVetoMuons << "\n"; 
-
-	  if (nVetoMuons > 5) {
-	    for(int i = 0; i < nMuons; i++){
-	      cout << "Muon " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << muonIsLoose[i] << " " << muon_ip3dSignificance[i] << " " << muon_relIso04DBetaCorr[i] << " : " << isVetoMuon(i) << " \n";	      
-	    }
-	  }
-	}
 	
 	// compute R and MR
 	vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
