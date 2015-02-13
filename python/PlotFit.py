@@ -89,6 +89,13 @@ if __name__ == '__main__':
     
     cfg = Config.Config(options.config)
     
+    try: 
+        os.environ['CMSSW_BASE']
+        loadVal = rt.gSystem.Load("${CMSSW_BASE}/lib/${SCRAM_ARCH}/libHiggsAnalysisCombinedLimit.so")
+        if loadVal == -1:
+            print "WARNING: NO HIGGS LIBRARY"
+            sys.exit()
+    
     model = options.model
     if options.mGluino>-1:
         massPoint = 'mGl-%i_mLSP-%i'%(options.mGluino,options.mLSP)
