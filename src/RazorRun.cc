@@ -198,6 +198,19 @@ int main(int argc, char* argv[]){
       analyzer.EnablePileup();      
       analyzer.VetoLeptonEfficiencyControlRegion(outputFileName, option);
     }
+    else if(analysisType == "razorPhotonStudy"){
+      cout << "Executing razorPhotonStudy..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnablePhotons();
+      analyzer.EnableGenParticles();
+      analyzer.RazorPhotonStudy(outputFileName, true);
+    }    
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
     }

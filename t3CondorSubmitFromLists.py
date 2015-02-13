@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 import os
-import sys
+import sys, getopt
 # set parameters to use cmst3 batch 
 #######################################
 ### usage  t3CondorSubmitRazorAnalzyer.py list1.txt ...
 #######################################
 
-analysis = 'razor'
 isData = False;
 scramArch = "slc5_amd64_gcc481"
 cmsswVersion = "CMSSW_7_3_0_pre1"
@@ -16,9 +15,15 @@ user = os.environ['USER']
 pathname = os.path.dirname(sys.argv[0]) 
 fullpath = os.path.abspath(pathname)
 
+if len(sys.argv) < 3:
+    print("Usage: t3CondorSubmitFromLists.py analysisName inputList1 inputList2 ...")
+    sys.exit()
+
+analysis = sys.argv[1]
+
 process = "condor"
-inputlists =  [sys.argv[i] for i in range(1, len(sys.argv))]
-datasets = [sys.argv[i].split("/")[-1].replace(".txt","") for i in range(1, len(sys.argv))]
+inputlists =  [sys.argv[i] for i in range(2, len(sys.argv))]
+datasets = [sys.argv[i].split("/")[-1].replace(".txt","") for i in range(2, len(sys.argv))]
 
 submitScript = open("submitTheCondorJobs.condor", 'w')
 submitScript.write('Universe = vanilla\n')
@@ -66,7 +71,7 @@ for index, inputlist in enumerate(inputlists):
 
         # prepare the script to run
         outputname = process+"/"+output+"/src/submit_"+output+str(ijob)+".sh"
-        print "OUTPUTFILE: ", outputname
+        print outputname
         basedir = fullpath+"/"+process+"/"+output+"/log/";
         outputfile = open(outputname,'w')
         outputfile.write('#!/bin/sh\n')
@@ -81,10 +86,10 @@ for index, inputlist in enumerate(inputlists):
         outputfile.write('cmsenv\n')
         outputfile.write('cd - \n')
         outputfile.write('echo $HOSTNAME\n')
-        outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/'+output+str(ijob)+'.root\n')
+        outputfile.write(fullpath+'/RazorRun '+inputfilename+' '+analysis+' $JOBDIR/'+analysis+output+str(ijob)+'.root\n')
         #check whether we are on t3-higgs
         outputfile.write('ls /mnt/hadoop/store/user/'+user+' 1>/dev/null 2>/dev/null\n')
-        outputfile.write('if [ $? -eq 0 ]\nthen\n   echo "Copying file to hadoop under /store/user/'+user+'/'+process+'/'+output+'"\n   mkdir -p /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\n   cp $JOBDIR/'+output+str(ijob)+'.root /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\nelse\n   echo "Copying file to the working directory"\n   cp $JOBDIR/'+output+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\nfi\n')
+        outputfile.write('if [ $? -eq 0 ]\nthen\n   echo "Copying file to hadoop under /store/user/'+user+'/'+process+'/'+output+'"\n   mkdir -p /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\n   cp $JOBDIR/'+analysis+output+str(ijob)+'.root /mnt/hadoop/store/user/'+user+'/'+process+'/'+output+'\nelse\n   echo "Copying file to the working directory"\n   cp $JOBDIR/'+analysis+output+str(ijob)+'.root '+fullpath+'/'+process+'/'+output+'/out/\nfi\n')
         outputfile.close()
     #    Condor job
         submitScript.write('\nExecutable = '+fullpath+'/'+outputname+'\n')
