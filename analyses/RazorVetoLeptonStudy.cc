@@ -424,17 +424,6 @@ void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTre
         TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 
 
-	if (GoodPFObjects.size() > 20) {
-	  cout << "More than 20 objects : " <<GoodPFObjects.size() << " " << nVetoElectrons << " " << nVetoMuons << "\n"; 
-
-	  if (nVetoMuons > 5) {
-	    for(int i = 0; i < nMuons; i++){
-	      cout << "Muon " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << muonIsLoose[i] << " " << muon_ip3dSignificance[i] << " " << muon_relIso04DBetaCorr[i] << " : " << isVetoMuon(i) << " \n";	      
-	    }
-	  }
-
-	}
-
 	vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
 	theMR = computeMR(hemispheres[0], hemispheres[1]); 
 	theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
