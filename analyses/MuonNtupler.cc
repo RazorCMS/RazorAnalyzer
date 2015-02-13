@@ -36,7 +36,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       
-      
+      bool printDecay = false;
       //****************************************
       //Tree entries based on reco objects
       //****************************************
@@ -62,7 +62,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fMuD0 = muon_d0[i]; 
 	  muTree->fMuIP3d = muon_ip3d[i];
 	  muTree->fMuIP3dSig = muon_ip3dSignificance[i];
-	  muTree->fMuPFIso04 = muon_relIso04DBetaCorr[i];
+	  muTree->fMuPFIso04 = (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i];
 	  muTree->fMuIsLoose = muonIsLoose[i];
 	  muTree->fMuIsTight = muonIsTight[i];
 	  muTree->fPassVetoSelection = isVetoMuon(i);
@@ -109,6 +109,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 
 	  //Find Closest Parton
 	  float minDRToParton = 9999;
+	  int closestPartonIndex = -1;
 	  for(int j = 0; j < nGenParticle; j++){
 	      
 	    //only look for outgoing partons
@@ -117,17 +118,33 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 		 ) continue;
 	      
 	    double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], muonEta[i], muonPhi[i]);
-	    if ( tmpDR < minDRToParton ) minDRToParton = tmpDR;
+	    if ( tmpDR < minDRToParton ) {
+	      closestPartonIndex = j;
+	      minDRToParton = tmpDR;
+	    }
 	  }
 	  muTree->fDRToClosestParton = minDRToParton;
 
-
+	  if (minDRToParton < 0.4) {
+	    printDecay = true;
+	    cout << "Muon Close to Parton : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " --> " << gParticleId[closestPartonIndex] << " " << gParticlePt[closestPartonIndex] << " " << gParticleEta[closestPartonIndex] << " " << gParticlePhi[closestPartonIndex] << "\n";
+	  }
 	  //***********************
 	  //Fill Muon
 	  //***********************
 	  NMuonsFilled++;
 	  muTree->tree_->Fill();
 	}
+
+	if (printDecay) {
+	  cout << "Print Decay Table\n";
+	  for(int j = 0; j < nGenParticle; j++){
+	    cout << j << " " <<  gParticleId[j] << " " <<  gParticleStatus[j] << " | " <<  gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " | " << gParticleMotherId[j] << " " << gParticleMotherIndex[j] << "\n";
+	  }
+	  cout << "\n\n";
+	}
+
+
       }
 
 
@@ -198,7 +215,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fMuD0 = muon_d0[matchedIndex]; 
 	    muTree->fMuIP3d = muon_ip3d[matchedIndex];
 	    muTree->fMuIP3dSig = muon_ip3dSignificance[matchedIndex];
-	    muTree->fMuPFIso04 = muon_relIso04DBetaCorr[matchedIndex];
+	    muTree->fMuPFIso04 = (muon_chargedIso[matchedIndex] + fmax(0.0,  muon_photonIso[matchedIndex] + muon_neutralHadIso[matchedIndex] - 0.5*muon_pileupIso[matchedIndex])) / muonPt[matchedIndex];
 	    muTree->fMuIsLoose = muonIsLoose[matchedIndex];
 	    muTree->fMuIsTight = muonIsTight[matchedIndex];
 	  } else {

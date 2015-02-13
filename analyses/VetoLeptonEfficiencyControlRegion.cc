@@ -428,7 +428,7 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	    events->lep2PassTightIso = passTightMuonIso(i);
 	    events->lep2PassLooseIso = passLooseMuonIso(i);
 	    events->lep2PassVetoIso = passVetoMuonIso(i);
-	    lep2Iso = muon_relIso04DBetaCorr[i];
+	    lep2Iso = (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i];
 	  }		  
         }
 
