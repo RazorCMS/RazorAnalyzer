@@ -13,3 +13,4 @@ dustinScripts
 python/lib/*
 tmp.txt
 *.*~
+output/*

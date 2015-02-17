@@ -73,15 +73,15 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
     int nLooseTaus, nMediumTaus, nTightTaus;
     int nVetoMVAElectrons;
     int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenTaus;
-    float theMR, theMR_noZ;
-    float theRsq, theRsq_nopho, theRsq_noZ;
-    float met,genmet,met_nopho, met_noZ, genHt, genZmass;
+    float theMR, MR_noPho, MR_noZ, MR_noW;
+    float theRsq, Rsq_noPho, Rsq_noZ, Rsq_noW; 
+    float met,genmet,met_noPho, met_noZ, met_noW, genHt, genZmass;
     float leadingGenMuonPt, leadingGenElectronPt, leadingGenPhotonPt;
     float leadingGenMuonEta, leadingGenElectronEta, leadingGenPhotonEta;
     float leadingMuonEta, leadingMuonPhi, leadingMuonPt;
     float j1pt, j2pt, j1eta, j2eta, j1phi, j2phi;
-    float metphi, metphi_noZ;
-    float genZpt, recoZpt, genZeta, recoZeta;
+    float metphi, metphi_noZ, metphi_noW, metphi_noPho;
+    float genZpt, recoZpt, genZeta, recoZeta, recoWpt, recoWeta;
     float minDRGenLeptonToGenParton;
     float leadingPhotonPt;
     int nSelectedPhotons;    
@@ -123,18 +123,26 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
         razorTree->Branch("genHt", &genHt, "genHt/F");
         razorTree->Branch("recoZpt", &recoZpt, "recoZpt/F");
         razorTree->Branch("recoZeta", &recoZeta, "recoZeta/F");
+        razorTree->Branch("recoWpt", &recoWpt, "recoWpt/F");
+        razorTree->Branch("recoWeta", &recoWeta, "recoWeta/F");
         razorTree->Branch("leadingGenElectronEta", &leadingGenElectronEta, "leadingGenElectronEta/F");
         razorTree->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
         razorTree->Branch("MR", &theMR, "MR/F");
-        razorTree->Branch("MR_noZ", &theMR_noZ, "MR_noZ/F");
+        razorTree->Branch("MR_noZ", &MR_noZ, "MR_noZ/F");
+        razorTree->Branch("MR_noW", &MR_noW, "MR_noW/F");
+        razorTree->Branch("MR_noPho", &MR_noPho, "MR_noPho/F");
         razorTree->Branch("Rsq", &theRsq, "Rsq/F");
-        razorTree->Branch("Rsq_nopho", &theRsq_nopho, "Rsq_nopho/F");
-        razorTree->Branch("Rsq_noZ", &theRsq_noZ, "Rsq_noZ/F");
+        razorTree->Branch("Rsq_noPho", &Rsq_noPho, "Rsq_noPho/F");
+        razorTree->Branch("Rsq_noZ", &Rsq_noZ, "Rsq_noZ/F");
+        razorTree->Branch("Rsq_noW", &Rsq_noW, "Rsq_noW/F");
         razorTree->Branch("met", &met, "met/F");
         razorTree->Branch("metphi", &metphi, "metphi/F");
-        razorTree->Branch("met_nopho", &met_nopho, "met_nopho/F");
+        razorTree->Branch("met_noPho", &met_noPho, "met_noPho/F");
         razorTree->Branch("met_noZ", &met_noZ, "met_noZ/F");
+        razorTree->Branch("met_noW", &met_noW, "met_noW/F");
         razorTree->Branch("metphi_noZ", &metphi_noZ, "metphi_noZ/F");
+        razorTree->Branch("metphi_noW", &metphi_noW, "metphi_noW/F");
+        razorTree->Branch("metphi_noPho", &metphi_noPho, "metphi_noPho/F");
         razorTree->Branch("genmet", &genmet, "genmet/F");
         razorTree->Branch("box", &box, "box/I");
         razorTree->Branch("j1pt", &j1pt, "j1pt/F");
@@ -176,20 +184,28 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	    box.second->Branch("genZmass", &genZmass, "genZmass/F");
 	    box.second->Branch("genHt", &genHt, "genHt/F");
 	    box.second->Branch("recoZpt", &recoZpt, "recoZpt/F");
+	    box.second->Branch("recoWpt", &recoWpt, "recoWpt/F");
 	    box.second->Branch("recoZeta", &recoZeta, "recoZeta/F");
+	    box.second->Branch("recoWeta", &recoWeta, "recoWeta/F");
 	    box.second->Branch("leadingGenElectronEta", &leadingGenElectronEta, "leadingGenElectronEta/F");
 	    box.second->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
             box.second->Branch("MR", &theMR, "MR/F");
-            box.second->Branch("MR_noZ", &theMR_noZ, "MR_noZ/F");
+            box.second->Branch("MR_noZ", &MR_noZ, "MR_noZ/F");
+            box.second->Branch("MR_noW", &MR_noW, "MR_noW/F");
+            box.second->Branch("MR_noPho", &MR_noPho, "MR_noPho/F");
 	    box.second->Branch("met", &met, "met/F");
 	    box.second->Branch("metphi", &metphi, "metphi/F");
 	    box.second->Branch("genmet", &genmet, "genmet/F");
-	    box.second->Branch("met_nopho", &met_nopho, "met_nopho/F");
+	    box.second->Branch("met_noPho", &met_noPho, "met_noPho/F");
 	    box.second->Branch("met_noZ", &met_noZ, "met_noZ/F");
 	    box.second->Branch("metphi_noZ", &metphi_noZ, "metphi_noZ/F");
+	    box.second->Branch("met_noW", &met_noW, "met_noW/F");
+	    box.second->Branch("metphi_noW", &metphi_noW, "metphi_noW/F");
+	    box.second->Branch("metphi_noPho", &metphi_noPho, "metphi_noPho/F");
             box.second->Branch("Rsq", &theRsq, "Rsq/F");
-	    box.second->Branch("Rsq_noZ", &theRsq_noZ, "Rsq_noZ/F");
-            box.second->Branch("Rsq_nopho", &theRsq_nopho, "Rsq_nopho/F");
+	    box.second->Branch("Rsq_noZ", &Rsq_noZ, "Rsq_noZ/F");
+	    box.second->Branch("Rsq_noW", &Rsq_noW, "Rsq_noW/F");
+            box.second->Branch("Rsq_noPho", &Rsq_noPho, "Rsq_noPho/F");
 	    box.second->Branch("j1pt", &j1pt, "j1pt/F");
 	    box.second->Branch("j2pt", &j2pt, "j2pt/F");
 	    box.second->Branch("j1eta", &j1eta, "j1eta/F");
@@ -233,23 +249,31 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	nGenTaus = 0;
         nSelectedPhotons = 0;
         theMR = -1;
-        theMR_noZ = -1;
+        MR_noZ = -1;
+        MR_noW = -1;
+        MR_noPho = -1;
 	genZpt = -1;
 	genZeta = -99;
 	genZmass = -1;
 	genHt = -1;
 	recoZpt = -1;
 	recoZeta = -999;
+        recoWpt = -1;
+        recoWeta = -999;
 	met = metPt;
-	met_nopho = -1.;
+	met_noPho = -1.;
 	met_noZ = -1.;
+	met_noW = -1.;
 	metphi_noZ = -99.;
+	metphi_noW = -99.;
+	metphi_noPho = -99.;
 	metphi = -99.;
 	leadingPhotonPt = -1;
 	genmet = genMetPt;
         theRsq = -1;
-        theRsq_nopho = -1;
-        theRsq_noZ = -1;
+        Rsq_noPho = -1;
+        Rsq_noZ = -1;
+        Rsq_noW = -1;
 	j1pt=-1.;
 	j2pt=-1.;
 	j1eta=-99.;
@@ -425,16 +449,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
         TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 	metphi = metPhi;
-
-	if (GoodPFObjects.size() > 20) {
-	  cout << "More than 20 objects : " <<GoodPFObjects.size() << " " << nVetoElectrons << " " << nVetoMuons << "\n"; 
-
-	  if (nVetoMuons > 5) {
-	    for(int i = 0; i < nMuons; i++){
-	      cout << "Muon " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << muonIsLoose[i] << " " << muon_ip3dSignificance[i] << " " << muon_relIso04DBetaCorr[i] << " : " << isVetoMuon(i) << " \n";	      
-	    }
-	  }
-	}
 	
 	// compute R and MR
 	vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
@@ -469,12 +483,24 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	  Double_t met_px = metPt*cos(metPhi);
 	  Double_t met_py = metPt*sin(metPhi);
 	  
-	  met_nopho = TMath::Sqrt(pow(met_px + pho_px ,2) + pow(met_py + pho_py,2));
-	  Double_t metPhi_nopho = atan2( met_py+pho_py, met_px+pho_px );
+	  met_noPho = TMath::Sqrt(pow(met_px + pho_px ,2) + pow(met_py + pho_py,2));
+	  metphi_noPho = atan2( met_py+pho_py, met_px+pho_px );
 	  
-	  TLorentzVector PFMET_NOPHO = makeTLorentzVectorPtEtaPhiM(met_nopho, 0, metPhi_nopho, 0);
-	  theRsq_nopho = computeRsq(hemispheres[0], hemispheres[1], PFMET_NOPHO);
-	
+          //remove leading photon from jet collection
+          vector<TLorentzVector> GoodPFObjectsNoLeadPhoton;
+          for(auto& pf : GoodPFObjects){
+              //get DR between jet and leading photon
+              double thisDR = pf.DeltaR(GoodPhotons[0]);
+              if(thisDR < 0.4) continue;
+              
+              GoodPFObjectsNoLeadPhoton.push_back(pf);
+          }
+          //remake the hemispheres using the new jet collection
+          vector<TLorentzVector> hemispheresNoLeadPhoton = getHemispheres(GoodPFObjectsNoLeadPhoton);
+	  TLorentzVector PFMET_NOPHO = makeTLorentzVectorPtEtaPhiM(met_noPho, 0, metphi_noPho, 0);
+          MR_noPho = computeMR(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1]); 
+          Rsq_noPho = computeRsq(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1], PFMET_NOPHO);
+
 	  // find gen photon matching to leading reco photon
 	  int matchedIndex = -1;
 	  float minDR = 9999;
@@ -501,6 +527,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	}
 	// Zll stuff
 	vector<TLorentzVector> ZMuons; //leptons used to emulate Z->nn
+        vector<TLorentzVector> WMuons; //leptons used to emulate W->ln
 	for(int i = 0; i < nMuons; i++){
 	  if(!isLooseMuon(i)) continue;  
 	  if(muonPt[i] < 10) continue;
@@ -508,41 +535,131 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename, bool combineTrees)
 	  
 	  TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
 	  ZMuons.push_back(thisMuon);
+
+          if(!isTightMuon(i)) continue;
+          WMuons.push_back(thisMuon);
 	}
+        //do the same for electrons
+        vector<TLorentzVector> ZElectrons;
+        vector<TLorentzVector> WElectrons;
+        for(int i = 0; i < nElectrons; i++){
+            if(!isLooseElectron(i)) continue;
+            if(elePt[i] < 10) continue;
+            if(abs(eleEta[i]) > 2.5) continue;
+
+            TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+            ZElectrons.push_back(thisElectron);
+
+            if(!isTightElectron(i)) continue;
+            WElectrons.push_back(thisElectron);
+        }
 
 	// reco level Z pt
-	if(ZMuons.size()==2)
+	if(ZElectrons.size() == 0 && ZMuons.size()==2)
 	  {
-	    TLorentzVector m1 = makeTLorentzVector(ZMuons[0].Pt(), ZMuons[0].Eta(), ZMuons[0].Phi(), ZMuons[0].E()); 
-	    TLorentzVector m2 = makeTLorentzVector(ZMuons[1].Pt(), ZMuons[1].Eta(), ZMuons[1].Phi(), ZMuons[1].E()); 		
-	    TLorentzVector theZ_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).M());
+              TLorentzVector m1 = ZMuons[0];
+              TLorentzVector m2 = ZMuons[1];
+              TLorentzVector theZ_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).M());
 	    
 	    Double_t met_px = metPt*cos(metPhi) + theZ_perp.Px();
 	    Double_t met_py = metPt*sin(metPhi) + theZ_perp.Py();
 
 	    met_noZ = TMath::Sqrt( pow(met_px, 2) + pow(met_py, 2) );
-	    Double_t metPhi_noZ = atan2( met_py, met_px );
-	    metphi_noZ = metPhi_noZ;
+	    metphi_noZ = atan2( met_py, met_px );
 	    
 	    vector<TLorentzVector> GoodPFObjectsNoZ;
 	    for(auto& jet : GoodJets) GoodPFObjectsNoZ.push_back(jet);
-	    // if(passedLeptonicTrigger) for(auto& lep : GoodLeptons)
-	    // 				{
-	    // 				  if(lep.Pt()==ZMuons[0].Pt()) continue;
-	    // 				  if(lep.Pt()==ZMuons[1].Pt()) continue;
-
-	    // 				  GoodPFObjectsNoZ.push_back(lep);
-	    // 				}
 
 	    vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodPFObjectsNoZ);
 
-	    TLorentzVector PFMET_NOZ = makeTLorentzVectorPtEtaPhiM(met_noZ, 0, metPhi_noZ, 0);
-	    theRsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], PFMET_NOZ);
-	    theMR_noZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
+	    TLorentzVector PFMET_NOZ = makeTLorentzVectorPtEtaPhiM(met_noZ, 0, metphi_noZ, 0);
+	    Rsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], PFMET_NOZ);
+	    MR_noZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
 	    
 	    recoZpt = (m1+m2).Pt();
 	    recoZeta = (m1+m2).Eta();
 	  }
+        else if(ZElectrons.size()==2 && ZMuons.size() == 0)
+        {
+            TLorentzVector m1 = ZElectrons[0];
+            TLorentzVector m2 = ZElectrons[1];
+            TLorentzVector theZ_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).M());
+
+            Double_t met_px = metPt*cos(metPhi) + theZ_perp.Px();
+            Double_t met_py = metPt*sin(metPhi) + theZ_perp.Py();
+
+            met_noZ = TMath::Sqrt( pow(met_px, 2) + pow(met_py, 2) );
+            metphi_noZ = atan2( met_py, met_px );
+
+            vector<TLorentzVector> GoodPFObjectsNoZ;
+            for(auto& jet : GoodJets) GoodPFObjectsNoZ.push_back(jet);
+
+            vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodPFObjectsNoZ);
+
+            TLorentzVector PFMET_NOZ = makeTLorentzVectorPtEtaPhiM(met_noZ, 0, metphi_noZ, 0);
+            Rsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], PFMET_NOZ);
+            MR_noZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
+
+            recoZpt = (m1+m2).Pt();
+            recoZeta = (m1+m2).Eta();
+        }
+	// reco level W pt
+        else if(WMuons.size() == 1 && ZElectrons.size() == 0 && ZMuons.size() == 1) //one tight muon, no extra loose muons, and no loose electrons
+        {
+            TLorentzVector m1 = WMuons[0];
+            TLorentzVector m2 = PFMET;
+            double deltaPhiLepMet = m1.DeltaPhi(m2);
+            double mTLepMet = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) );
+            if(mTLepMet > 30 && mTLepMet < 100){
+                TLorentzVector theW_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).M());
+
+                Double_t met_px = theW_perp.Px();
+                Double_t met_py = theW_perp.Py();
+
+                met_noW = TMath::Sqrt( pow(met_px, 2) + pow(met_py, 2) );
+                metphi_noW = atan2( met_py, met_px );
+
+                vector<TLorentzVector> GoodPFObjectsNoW;
+                for(auto& jet : GoodJets) GoodPFObjectsNoW.push_back(jet);
+
+                vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodPFObjectsNoW);
+                TLorentzVector PFMET_NOW = makeTLorentzVectorPtEtaPhiM(met_noW, 0, metphi_noW, 0);
+                Rsq_noW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], PFMET_NOW);
+                MR_noW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
+
+                recoWpt = (m1+m2).Pt();
+                recoWeta = (m1+m2).Eta();
+            }
+        }
+        else if(WElectrons.size() == 1 && ZElectrons.size()==1 && ZMuons.size() == 0) //one tight ele, no extra loose eles,and no loose muons
+        {
+            TLorentzVector m1 = WElectrons[0];
+            TLorentzVector m2 = PFMET;
+            double deltaPhiLepMet = m1.DeltaPhi(m2);
+            double mTLepMet = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) );
+            if(mTLepMet > 30 && mTLepMet < 100){
+                TLorentzVector theW_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), (m1+m2).M());
+
+                Double_t met_px = theW_perp.Px();
+                Double_t met_py = theW_perp.Py();
+
+                met_noW = TMath::Sqrt( pow(met_px, 2) + pow(met_py, 2) );
+                metphi_noW = atan2( met_py, met_px );
+
+                vector<TLorentzVector> GoodPFObjectsNoW;
+                for(auto& jet : GoodJets) GoodPFObjectsNoW.push_back(jet);
+
+                vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodPFObjectsNoW);
+
+                TLorentzVector PFMET_NOW = makeTLorentzVectorPtEtaPhiM(met_noW, 0, metphi_noW, 0);
+                Rsq_noW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], PFMET_NOW);
+                MR_noW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
+
+                recoWpt = (m1+m2).Pt();
+                recoWeta = (m1+m2).Eta();
+            }
+        }
+
 
 	// lepton efficiency
 	

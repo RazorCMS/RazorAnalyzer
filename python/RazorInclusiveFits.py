@@ -1,3 +1,4 @@
+#Early test of the razor sideband fits -- tries the fit for a number of sideband regions and evaluates the performance
 import sys, os
 import string
 import numpy as np

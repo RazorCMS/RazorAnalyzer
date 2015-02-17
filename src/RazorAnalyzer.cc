@@ -68,7 +68,12 @@ void RazorAnalyzer::EnableMuons(){
     fChain->SetBranchStatus("muon_ip3dSignificance", 1);
     fChain->SetBranchStatus("muonType", 1);
     fChain->SetBranchStatus("muonQuality", 1);
-    fChain->SetBranchStatus("muon_relIso04DBetaCorr", 1);
+    fChain->SetBranchStatus("muon_pileupIso", 1);
+    fChain->SetBranchStatus("muon_chargedIso", 1);
+    fChain->SetBranchStatus("muon_photonIso", 1);
+    fChain->SetBranchStatus("muon_neutralHadIso", 1);
+    fChain->SetBranchStatus("muon_ptrel", 1);
+    fChain->SetBranchStatus("muon_miniiso", 1);
 }
 
 void RazorAnalyzer::EnableElectrons(){
@@ -87,7 +92,10 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_HoverE", 1);
     fChain->SetBranchStatus("ele_d0", 1);
     fChain->SetBranchStatus("ele_dZ", 1);
-    fChain->SetBranchStatus("ele_relIsoDBetaCorr", 1);
+    fChain->SetBranchStatus("ele_pileupIso", 1);
+    fChain->SetBranchStatus("ele_chargedIso", 1);
+    fChain->SetBranchStatus("ele_photonIso", 1);
+    fChain->SetBranchStatus("ele_neutralHadIso", 1);
     fChain->SetBranchStatus("ele_MissHits", 1);
     fChain->SetBranchStatus("ele_PassConvVeto", 1);
     fChain->SetBranchStatus("ele_OneOverEminusOneOverP", 1);
@@ -95,6 +103,8 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_IDMVANonTrig", 1);
     fChain->SetBranchStatus("ele_RegressionE", 1);
     fChain->SetBranchStatus("ele_CombineP4", 1);
+    fChain->SetBranchStatus("ele_ptrel", 1);
+    fChain->SetBranchStatus("ele_miniiso", 1); 
 }
 
 void RazorAnalyzer::EnableTaus(){
@@ -186,6 +196,19 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metPt", 1);
     fChain->SetBranchStatus("metPhi", 1);
     fChain->SetBranchStatus("sumMET", 1);
+    fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
+    fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
+    fChain->SetBranchStatus("Flag_hcalLaserEventFilter", 1);
+    fChain->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1);
+    fChain->SetBranchStatus("Flag_goodVertices", 1);
+    fChain->SetBranchStatus("Flag_trackingFailureFilter", 1);
+    fChain->SetBranchStatus("Flag_eeBadScFilter", 1);
+    fChain->SetBranchStatus("Flag_ecalLaserCorrFilter", 1);
+    fChain->SetBranchStatus("Flag_trkPOGFilters", 1);
+    fChain->SetBranchStatus("Flag_trkPOG_manystripclus53X", 1);
+    fChain->SetBranchStatus("Flag_trkPOG_toomanystripclus53X", 1);
+    fChain->SetBranchStatus("Flag_trkPOG_logErrorTooManyClusters", 1);
+    fChain->SetBranchStatus("Flag_METFilters", 1);    
 }
 
 void RazorAnalyzer::EnableRazor(){
@@ -202,6 +225,11 @@ void RazorAnalyzer::EnableMC(){
     fChain->SetBranchStatus("genMetPt", 1);
     fChain->SetBranchStatus("genMetPhi", 1);
     fChain->SetBranchStatus("genVertexZ", 1);
+    fChain->SetBranchStatus("genWeight", 1);
+    fChain->SetBranchStatus("genSignalProcessID", 1);
+    fChain->SetBranchStatus("genQScale", 1);
+    fChain->SetBranchStatus("genAlphaQCD", 1);
+    fChain->SetBranchStatus("genAlphaQED", 1);
 }
 
 void RazorAnalyzer::EnableGenParticles(){

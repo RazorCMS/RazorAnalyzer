@@ -10,7 +10,7 @@ bool RazorAnalyzer::isVetoElectron(int i){
 	 && fabs(ele_d0[i]) < 0.025
 	 && fabs(ele_dZ[i]) < 0.5863
 	 && ele_OneOverEminusOneOverP[i] < 0.1508
-	 && ele_relIsoDBetaCorr[i] < 0.3313
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3313	 
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 2
 	) {
@@ -24,7 +24,7 @@ bool RazorAnalyzer::isVetoElectron(int i){
 	 && fabs(ele_d0[i]) < 0.2232
 	 && fabs(ele_dZ[i]) < 0.9513
 	 && ele_OneOverEminusOneOverP[i] < 0.1542
-	 && ele_relIsoDBetaCorr[i] < 0.3816
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3816
 	&& ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 3
 	) {
@@ -44,7 +44,7 @@ bool RazorAnalyzer::isLooseElectron(int i){
 	 && fabs(ele_d0[i]) < 0.0166
 	 && fabs(ele_dZ[i]) < 0.54342
 	 && ele_OneOverEminusOneOverP[i] < 0.1353
-	 && ele_relIsoDBetaCorr[i] < 0.24
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.24
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
@@ -58,7 +58,7 @@ bool RazorAnalyzer::isLooseElectron(int i){
 	 && fabs(ele_d0[i]) < 0.098
 	 && fabs(ele_dZ[i]) < 0.9187
 	 && ele_OneOverEminusOneOverP[i] < 0.1443
-	 && ele_relIsoDBetaCorr[i] < 0.3529
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3529
 	&& ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
@@ -78,7 +78,7 @@ bool RazorAnalyzer::isTightElectron(int i){
 	 && fabs(ele_d0[i]) < 0.0126
 	 && fabs(ele_dZ[i]) < 0.0116
 	 && ele_OneOverEminusOneOverP[i] < 0.0609
-	 && ele_relIsoDBetaCorr[i] < 0.1649
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.1649
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
@@ -92,7 +92,7 @@ bool RazorAnalyzer::isTightElectron(int i){
 	 && fabs(ele_d0[i]) < 0.0163
 	 && fabs(ele_dZ[i]) < 0.5999
 	 && ele_OneOverEminusOneOverP[i] < 0.1126
-	 && ele_relIsoDBetaCorr[i] < 0.2075
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.2075
 	&& ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
@@ -123,9 +123,9 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
       	||
       	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
       	)
-      && ( (elePt[i] > 20 && ele_relIsoDBetaCorr[i] < 0.3)
+      && ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
 	   ||
-	   (elePt[i] <= 20 && ele_relIsoDBetaCorr[i]*elePt[i] < 5)
+	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i]))  < 5)
 	   )
       ) {
     pass = true;
@@ -237,12 +237,12 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 bool RazorAnalyzer::passLooseElectronIso(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( ele_relIsoDBetaCorr[i] < 0.24	
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.24	
 	) {
       pass = true;
     }
   } else {
-    if ( ele_relIsoDBetaCorr[i] < 0.3529
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3529
 	) {
       pass = true;
     }
@@ -253,12 +253,12 @@ bool RazorAnalyzer::passLooseElectronIso(int i){
 bool RazorAnalyzer::passTightElectronIso(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( ele_relIsoDBetaCorr[i] < 0.1649
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.1649
 	) {
       pass = true;
     }
   } else {
-    if ( ele_relIsoDBetaCorr[i] < 0.2075
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.2075
 	) {
       pass = true;
     }
@@ -269,9 +269,9 @@ bool RazorAnalyzer::passTightElectronIso(int i){
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
  
   bool pass = false;
-  if (  ( (elePt[i] > 20 && ele_relIsoDBetaCorr[i] < 0.3)
+  if (  ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
 	  ||
-	  (elePt[i] <= 20 && ele_relIsoDBetaCorr[i]*elePt[i] < 5)
+	  (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) < 5)
 	  )
 	) {
     pass = true;

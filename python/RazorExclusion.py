@@ -1,3 +1,4 @@
+#experimental procedure for performing razor sideband fits and setting limits using a Bayesian approach.  UNFINISHED!
 import sys, os
 import string
 import numpy as np

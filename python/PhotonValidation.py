@@ -1,3 +1,4 @@
+#Computes photon selection efficiencies (input: the ntuples produced by the photon ntupler in RazorAnalyzer) as a function of pt and eta
 import sys, os
 import string
 import numpy as np

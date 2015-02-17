@@ -1,3 +1,4 @@
+#Plotting script to visualize the yields from each background MC sample for a number of kinematic distributions
 import sys, os
 import string
 import numpy as np
