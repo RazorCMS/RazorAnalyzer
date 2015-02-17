@@ -70,7 +70,10 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
   int nVetoMuons, nVetoElectrons, nLooseTaus;
   float dPhiRazor;
   float theMR;
-  float theRsq;
+  float theRsq;  
+  float met;
+  float HT;
+
   RazorBox box;
 
   //set branches on big tree
@@ -85,6 +88,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     razorTree->Branch("MR", &theMR, "MR/F");
     razorTree->Branch("dPhiRazor", &dPhiRazor, "dPhiRazor/F");
     razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+    razorTree->Branch("met", &met, "met/F");
+    razorTree->Branch("HT", &HT, "HT/F");
     razorTree->Branch("box", &box, "box/I");
   }
   //set branches on all trees
@@ -99,6 +104,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
       box.second->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
       box.second->Branch("dPhiRazor", &dPhiRazor, "dPhiRazor/F");
       box.second->Branch("MR", &theMR, "MR/F");
+      box.second->Branch("met", &met, "met/F");
+      box.second->Branch("HT", &HT, "HT/F");
       box.second->Branch("Rsq", &theRsq, "Rsq/F");
     }
   }
@@ -191,6 +198,36 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     vector<TLorentzVector> GoodJets;
     int numJetsAbove80GeV = 0;
 
+    // //***********************************************
+    // //use genjets instead , for debugging
+    // //***********************************************
+    // for(int j = 0; j < nGenJets; j++){
+
+    //   if(genJetPt[j] < 40) continue;
+    //   if(fabs(genJetEta[j]) > 3.0) continue;
+
+    //   //exclude selected muons and electrons from the jet collection
+    //   double deltaR = -1;
+    //   TLorentzVector thisJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+    //   for(auto& lep : GoodLeptons){
+    // 	double thisDR = thisJet.DeltaR(lep);
+    // 	if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
+    //   }
+    //   if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
+
+    //   if(genJetPt[j] > 80) numJetsAbove80GeV++;
+    //   GoodJets.push_back(thisJet);
+    //   nSelectedJets++;
+
+    //   bool isBJet = false;
+    //   for(int i = 0; i < nJets; i++){
+    // 	double tmpDR = RazorAnalyzer::deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i] );
+    // 	if ( tmpDR < 0.4 && abs(jetPartonFlavor[i]) == 5) isBJet = true;
+    //   }
+    //   if(isBJet) nBTaggedJets++;
+     
+    // }
+
     //***********************************************
     //Select Jets
     //***********************************************
@@ -231,10 +268,119 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 
+    HT = 0;
+    for(auto& obj : GoodPFObjects) HT += obj.Pt();
+
+    // //Add leptons to the MET
+    // double METx = PFMET.Px();
+    // double METy = PFMET.Py();
+    // // cout << "original PFMET: " << PFMET.Pt() << " " << PFMET.Eta() << " " << PFMET.Phi() << "\n";
+    // // cout << "NLep: " << GoodLeptons.size() << "\n";
+    // for(auto& lep : GoodLeptons) {
+    //   //cout << "lep: " << lep.Pt() << " " << lep.Eta() << " " << lep.Phi() << "\n";
+    //   PFMET = PFMET + lep;      
+    //   METx += lep.Px();
+    //   METy += lep.Py();
+    // }
+    // // cout << "final MET: " << PFMET.Pt() << " " << PFMET.Eta() << " " << PFMET.Phi() << "\n";
+    // PFMET.SetPxPyPzE(METx,METy,0,sqrt(METx*METx+METy*METy));
+    // // cout << "final2 MET: " << PFMET.Pt() << " " << PFMET.Eta() << " " << PFMET.Phi() << "\n";
+
     vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
     theMR = computeMR(hemispheres[0], hemispheres[1]); 
     theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
     dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+    met = metPt;
+
+    //cout << "Check: " << eventNum << " : " << theMR << " " << theRsq << " " << dPhiRazor << "\n";
+
+
+    //**********************************************************************
+    //Apply ECAL Dead Cells Filter
+    //**********************************************************************
+    if (Flag_EcalDeadCellTriggerPrimitiveFilter == false) continue;
+
+
+    // // if (nSelectedJets > 2 && theRsq > 0.15) {
+    // if (theMR > 1000 && theRsq > 0.25) {
+
+    //   for(auto& lep : GoodLeptons) cout << "lepton " << lep.Pt() << " " << lep.Eta() << " " << lep.Phi() << "\n";
+    //   for(auto& jet : GoodJets) cout << "jet " << jet.Pt() << " " << jet.Eta() << " " << jet.Phi() << "\n";
+
+    //   for(int i = 0; i < nJets; i++){
+	
+    // 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+    // 					       fixedGridRhoFastjetAll, jetJetArea[i], 
+    // 					       JetCorrector);   
+    // 	double jetCorrPt = jetPt[i]*JEC;
+    // 	double jetCorrE = jetE[i]*JEC;
+	
+    // 	if(jetCorrPt < 40) continue;
+    // 	if(fabs(jetEta[i]) > 3.0) continue;
+
+    // 	//exclude selected muons and electrons from the jet collection
+    // 	double deltaR = -1;
+    // 	TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
+    // 	for(auto& lep : GoodLeptons){
+    // 	  double thisDR = thisJet.DeltaR(lep);
+    // 	  if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
+    // 	}
+    // 	if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
+            
+    // 	cout << "JET " << i << " : " << jetCorrPt << " " << jetEta[i] << " " << jetPhi[i] << " : " << jetPt[i] << " : ";
+    // 	if(isCSVM(i)) cout << "Btagged ";
+    // 	cout << "\n";
+
+    //   }
+
+
+    //   for(int j = 0; j < nGenJets; j++){
+    // 	if(genJetPt[j] < 40) continue;
+    // 	if(fabs(genJetEta[j]) > 3.0) continue;
+
+    // 	//exclude selected muons and electrons from the jet collection
+    // 	double deltaR = -1;
+    // 	TLorentzVector thisJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+    // 	for(auto& lep : GoodLeptons){
+    // 	  double thisDR = thisJet.DeltaR(lep);
+    // 	  if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
+    // 	}
+    // 	if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
+
+    // 	bool isBJet = false;
+    // 	for(int i = 0; i < nJets; i++){
+    // 	  double tmpDR = RazorAnalyzer::deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i] );
+    // 	  if ( tmpDR < 0.4 && abs(jetPartonFlavor[i]) == 5) isBJet = true;
+    // 	}
+
+    // 	cout << "genjet " << j << " : " << genJetPt[j] << " " << genJetEta[j] << " " << genJetPhi[j] << " ";
+    // 	if (isBJet) cout << " BJET";
+    // 	cout << "\n";
+    
+    //   }
+
+    //   cout << "hemisphere 1: " << hemispheres[0].Pt() << " " << hemispheres[0].Eta() << " " << hemispheres[0].Phi() << " \n";
+    //   cout << "hemisphere 2: " << hemispheres[1].Pt() << " " << hemispheres[1].Eta() << " " << hemispheres[1].Phi() << " \n";
+    //   cout << " MR Rsq : " << theMR << " " << theRsq << "\n";
+    //   cout << "dPhiRazor : " << dPhiRazor << "\n";
+      
+    //   for(int j = 0; j < nGenParticle; j++){
+    // 	cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " | "
+    // 	     << gParticlePt[j] << " "
+    // 	     << gParticleEta[j] << " "
+    // 	     << gParticlePhi[j] << " "
+    // 	     << " | " << gParticleMotherId[j] << " , " << gParticleMotherIndex[j] 
+    // 	     << "\n";	 
+    //   }
+    //   cout << "\n\n\n";	    	     
+    // }
+
+
+  
+
+
+  
+
 
     //MuEle Box
     if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
@@ -324,8 +470,17 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
 	  razorTree->Fill();
 	}
 	else razorBoxes["MultiJet"]->Fill();
+      }   
+    //Loose Lepton + DiJet Box
+    } else if(passedHadronicTrigger && nLooseTaus + nVetoElectrons + nVetoMuons > 0){
+      if(passesHadronicRazorBaseline(theMR, theRsq)){ 
+	if(combineTrees){
+	  box = LooseLeptonDiJet;
+	  razorTree->Fill();
+	}
+	else razorBoxes["LooseLeptonDiJet"]->Fill();
       }     
-    } else {
+    } else if (passedHadronicTrigger) {
       if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = DiJet;
@@ -335,7 +490,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
       }     
     }
   }//end of event loop
-
+  
   cout << "Writing output trees..." << endl;
   if(combineTrees) razorTree->Write();
   else for(auto& box : razorBoxes) box.second->Write();

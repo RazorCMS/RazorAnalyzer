@@ -71,7 +71,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fEleSigmaIEtaIEta = eleFull5x5SigmaIetaIeta[i];
 	    eleTree->fEleR9 = eleR9[i];
 	    eleTree->fEleHoverE = ele_HoverE[i];
-	    eleTree->fElePFIso04 = ele_relIsoDBetaCorr[i];
+	    eleTree->fElePFIso04 = (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i];
 	    eleTree->fIDMVATrig = ele_IDMVATrig[i];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[i];
 	    eleTree->fPassVetoSelection = isVetoElectron(i);
@@ -111,6 +111,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    //select only fakes
 	    if (Option == 0) {
 	      if (!(matchedID == 0 || abs(matchedID) > 50)) continue;
+	      //if (abs(matchedID) == 11) continue;
 	    }
 	    //select only real prompt
 	    if (Option == 1) {
@@ -218,7 +219,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fEleSigmaIEtaIEta = eleFull5x5SigmaIetaIeta[matchedIndex];
 	    eleTree->fEleR9 = eleR9[matchedIndex];
 	    eleTree->fEleHoverE = ele_HoverE[matchedIndex];
-	    eleTree->fElePFIso04 = ele_relIsoDBetaCorr[matchedIndex];
+	    eleTree->fElePFIso04 = (ele_chargedIso[matchedIndex] + fmax(0.0,  ele_photonIso[matchedIndex] + ele_neutralHadIso[matchedIndex] - 0.5*ele_pileupIso[matchedIndex])) / elePt[matchedIndex];
 	    eleTree->fIDMVATrig = ele_IDMVATrig[matchedIndex];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[matchedIndex];
 	  } else {
