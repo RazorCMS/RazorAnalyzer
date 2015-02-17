@@ -1,3 +1,4 @@
+#Script to analyze the H->diphoton razor ntuples: computes expected Higgs and signal SMS yields in each analysis box, and performs a fit to estimate the contribution in the signal region from non-resonant backgrounds.
 import sys, os
 import string
 import numpy as np
