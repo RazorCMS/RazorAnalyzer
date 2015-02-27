@@ -36,6 +36,14 @@ vector<TLorentzVector> RazorAnalyzer::getHemispheres(vector<TLorentzVector> jets
     vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
     vector<TLorentzVector> possibleHem2s;
 
+    if(nJets < 2){ //return empty hemispheres if there are fewer than 2 jets provided
+        TLorentzVector emptyHem1, emptyHem2;
+        vector<TLorentzVector> emptyHemsOut;
+        emptyHemsOut.push_back(emptyHem1);
+        emptyHemsOut.push_back(emptyHem2);
+        return emptyHemsOut;
+    }
+
     //stolen from https://github.com/pierinim/BSMatLHC/blob/master/BSMApp/src/CMS/CMSHemisphere.cc
     int nComb = pow(2, nJets);
 
