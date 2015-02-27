@@ -125,3 +125,32 @@ bool RazorAnalyzer::passesLeptonicRazorBaseline(double MR, double Rsq){
     return passes;
 }
 
+//Checks if ToSubtract matches any particles in Collection, and subtracts the momentum of ToSubtract from the closest one
+int RazorAnalyzer::SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch){
+    //if Collection has any elements within R<deltaRMatch of the vector ToSubtract, find the closest such element
+    //otherwise, return -1
+    double closestDR = -1;
+    int closestDRIndex = -1;
+    for(uint i = 0; i < Collection.size(); i++){
+        double thisDR = Collection[i].DeltaR(ToSubtract);
+        if(closestDR < 0 || thisDR < closestDR){
+            closestDR = thisDR;
+            closestDRIndex = i;
+        }
+    }
+    if(closestDR < 0 || closestDR > deltaRMatch){ //if we didn't look at any objects or we didn't get one within 0.4, return -1
+        return -1;
+    }
+    
+    //subtract the momentum (magnitude) of ToSubtract from that of the closest vector in Collection
+
+    //if we're subtracting away everything, just set the vector to 0 and return the index of the changed vector
+    if(ToSubtract.P() >= Collection[closestDRIndex].P()){ 
+        Collection[closestDRIndex].SetPtEtaPhiE(0.0, 0.0, 0.0, 0.0);
+        return closestDRIndex;
+    }
+    //otherwise, scale the 4-momentum by the appropriate factor
+    double scalePFactor = (Collection[closestDRIndex].P() - ToSubtract.P())/Collection[closestDRIndex].P(); // = new P / old P
+    Collection[closestDRIndex].SetPxPyPzE(Collection[closestDRIndex].Px()*scalePFactor, Collection[closestDRIndex].Py()*scalePFactor, Collection[closestDRIndex].Pz()*scalePFactor, Collection[closestDRIndex].E()*scalePFactor);
+    return closestDRIndex;
+}

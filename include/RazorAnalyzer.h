@@ -58,7 +58,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999);	
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
-        virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool combineTrees = false);
+        virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root");
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -125,6 +125,7 @@ class RazorAnalyzer: public RazorEvents {
 
         bool passesHadronicRazorBaseline(double MR, double Rsq);
         bool passesLeptonicRazorBaseline(double MR, double Rsq);
+        int SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch=0.4);
 	
 	//functions in src/RazorAuxGenLevel.cc
 	bool isGenTau(int index);
