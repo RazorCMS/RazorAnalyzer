@@ -63,6 +63,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     float metphi, genmetphi, metphi_noZ, metphi_noW, metphi_noPho, metphi_noGenZ;
     float HT, HT_noZ, HT_noW, HT_noPho, HT_noGenZ;
     int numJets, numJets_noZ, numJets_noW, numJets_noPho, numJets_noGenZ; 
+    int numJets80, numJets80_noZ, numJets80_noW, numJets80_noPho, numJets80_noGenZ; 
     float genZpt, recoZpt, genZeta, recoZeta, genZphi, recoZphi, recoZmass, genWpt, recoWpt, genWeta, recoWeta, genWphi, recoWphi;
     float minDRGenLeptonToGenParton;
     bool leadGenMuonIsFound, leadGenElectronIsFound, leadGenPhotonIsFound;
@@ -196,6 +197,11 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     razorTree->Branch("numJets_noGenZ", &numJets_noGenZ, "numJets_noGenZ/I");
     razorTree->Branch("numJets_noW", &numJets_noW, "numJets_noW/I");
     razorTree->Branch("numJets_noPho", &numJets_noPho, "numJets_noPho/I");
+    razorTree->Branch("numJets80", &numJets80, "numJets80/I");
+    razorTree->Branch("numJets80_noZ", &numJets80_noZ, "numJets80_noZ/I");
+    razorTree->Branch("numJets80_noGenZ", &numJets80_noGenZ, "numJets80_noGenZ/I");
+    razorTree->Branch("numJets80_noW", &numJets80_noW, "numJets80_noW/I");
+    razorTree->Branch("numJets80_noPho", &numJets80_noPho, "numJets80_noPho/I");
     razorTree->Branch("box", &box, "box/I");
     razorTree->Branch("j1pt", &j1pt, "j1pt/F");
     razorTree->Branch("j2pt", &j2pt, "j2pt/F");
@@ -323,6 +329,11 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         numJets_noZ = 0;
         numJets_noGenZ = 0;
         numJets_noW = 0;
+        numJets80 = 0;
+        numJets80_noPho = 0;
+        numJets80_noZ = 0;
+        numJets80_noGenZ = 0;
+        numJets80_noW = 0;
         j1pt=-1.;
         j2pt=-1.;
         j1eta=-99.;
@@ -629,13 +640,12 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         //               Select jets                          //
         //****************************************************//
         vector<TLorentzVector> GoodJets; //will contain leptons
-        int numJetsAbove80GeV = 0;
         for(int i = 0; i < nJets; i++){
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
 
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
-            if(jetPt[i] > 80) numJetsAbove80GeV++;
+            if(jetPt[i] > 80) numJets80++;
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 
@@ -643,7 +653,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                 nBTaggedJets++;
             }
         }
-        if(numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets
+        if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
 
         //****************************************************//
         //               Store leading jet info               //
@@ -768,6 +778,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         //****************************************************//
         //    Compute razor vars for DY, W, Gamma samples     //
         //****************************************************//
+        //photons
         if(GoodPhotons.size()>0){
             sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
 
@@ -786,6 +797,10 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                 if(GoodJetsNoLeadPhoton[subtractedIndex].Pt() < 40){ //erase this jet
                     GoodJetsNoLeadPhoton.erase(GoodJetsNoLeadPhoton.begin()+subtractedIndex);
                 }
+            }
+            //count the number of jets above 80 GeV now
+            for(auto& jet : GoodJetsNoLeadPhoton){
+                if(jet.Pt() > 80) numJets80_noPho++;
             }
             
             //count jets and compute HT
@@ -828,6 +843,10 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                     }
                 }
             }
+            //count the number of jets above 80 GeV now
+            for(auto& jet : GoodJetsNoMuons){
+                if(jet.Pt() > 80) numJets80_noZ++;
+            }
 
             vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoMuons);
 
@@ -859,6 +878,10 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                         GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
                     }
                 }
+            }
+            //count the number of jets above 80 GeV now
+            for(auto& jet : GoodJetsNoMuons){
+                if(jet.Pt() > 80) numJets80_noGenZ++;
             }
 
             vector<TLorentzVector> hemispheresNoGenZ = getHemispheres(GoodJetsNoMuons);
@@ -898,6 +921,10 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                             GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
                         }
                     }
+                }
+                //count the number of jets above 80 GeV now
+                for(auto& jet : GoodJetsNoMuons){
+                    if(jet.Pt() > 80) numJets80_noW++;
                 }
 
                 //count jets and compute HT
