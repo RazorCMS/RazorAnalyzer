@@ -209,7 +209,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnablePhotons();
       analyzer.EnableGenParticles();
-      analyzer.RazorPhotonStudy(outputFileName, true);
+      analyzer.RazorPhotonStudy(outputFileName);
     }    
     else { //analysis not found
       cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
