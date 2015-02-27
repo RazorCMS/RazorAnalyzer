@@ -190,6 +190,8 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
                   help="Turn off fit (use MC directly)")
+    parser.add_option('--asimov',dest="asimov",default=False,action='store_true',
+                  help="use asimov dataset derived from fit")
 
     (options,args) = parser.parse_args()
     
@@ -224,11 +226,13 @@ if __name__ == '__main__':
     
     th1x = w.var('th1x')
     
+
     myTH1 = convertDataset2TH1(data, cfg, box, w)
     myTH1.Scale(lumi/lumi_in)
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
-    rootTools.Utils.importToWS(w,dataHist)
-
+    if not options.asimov:
+        rootTools.Utils.importToWS(w,dataHist)
+    
     if noFit:
         data1b = data.reduce("nBtag==1")
         myTH11b = convertDataset2TH1(data1b, cfg, box, w)
@@ -247,6 +251,24 @@ if __name__ == '__main__':
         myTH13b.Scale(lumi/lumi_in)
         dataHist3b = rt.RooDataHist("%s_%s"%(box,"TTj3b"),"%s_%s"%(box,"TTj3b"),rt.RooArgList(th1x), myTH13b)
         rootTools.Utils.importToWS(w,dataHist3b)
+
+    elif options.asimov:
+        ntot_ttj1b = rt.RooRealVar('Ntot_TTj1b','Ntot_TTj1b',data.sumEntries("nBtag==1"),0,10000)
+        ntot_ttj2b = rt.RooRealVar('Ntot_TTj2b','Ntot_TTj2b',data.sumEntries("nBtag==2"),0,10000)
+        ntot_ttj3b = rt.RooRealVar('Ntot_TTj3b','Ntot_TTj3b',data.sumEntries("nBtag==3"),0,10000)
+        coefList = rt.RooArgList()
+        coefList.add(ntot_ttj1b)
+        coefList.add(ntot_ttj2b)
+        coefList.add(ntot_ttj3b)
+        pdfList = rt.RooArgList()
+        pdfList.add(w.pdf('%s_%s'%(box,'TTj1b')))
+        pdfList.add(w.pdf('%s_%s'%(box,'TTj2b')))
+        pdfList.add(w.pdf('%s_%s'%(box,'TTj3b')))
+        extRazorPdf = rt.RooAddPdf('extRazorPdf','extRazorPdf',pdfList,coefList)
+        fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Miniuit2','migrad'),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1))
+        fr.Print('v')
+        asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov(),rt.RooFit.Name('data_obs'))
+        rootTools.Utils.importToWS(w,asimov)
     
     
     sigTH1 = convertDataset2TH1(signalDs, cfg, box, w,"signal")
