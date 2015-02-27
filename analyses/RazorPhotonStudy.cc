@@ -38,7 +38,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     int nVetoMuons, nLooseMuons, nTightMuons;
     int nVetoElectrons, nLooseElectrons, nTightElectrons;
     int nLooseTaus, nMediumTaus, nTightTaus;
-    int nVetoMVAElectrons;
     int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenTaus, nGenPhotons, nGenNeutrinos;
     float theMR, MR_noPho, MR_noZ, MR_noW, MR_noGenZ;
     float theRsq, Rsq_noPho, Rsq_noZ, Rsq_noW, Rsq_noGenZ; 
@@ -82,7 +81,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     razorTree->Branch("nVetoElectrons", &nVetoElectrons, "nVetoElectrons/I");
     razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
     razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-    razorTree->Branch("nVetoMVAElectrons", &nVetoMVAElectrons, "nVetoMVAElectrons/I");
     razorTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
     razorTree->Branch("nMediumTaus", &nMediumTaus, "nMediumTaus/I");
     razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
@@ -244,7 +242,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         nVetoMuons = 0;
         nLooseMuons = 0;
         nTightMuons = 0;
-        nVetoMVAElectrons = 0;
         nVetoElectrons = 0;
         nLooseElectrons = 0;
         nTightElectrons = 0;
@@ -533,19 +530,17 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         vector<TLorentzVector> GoodMuonsTight, GoodElectronsTight;
         for(int i = 0; i < nMuons; i++){
 
-            if(muonPt[i] < 5) continue;
+            if(!isLooseMuon(i)) continue;
+            if(muonPt[i] < 10) continue;
             if(abs(muonEta[i]) > 2.4) continue;
             TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
 
             if(isVetoMuon(i)) nVetoMuons++;
-            if(isTightMuon(i) && muonPt[i] >= 10){
+            if(isTightMuon(i)){
                 nTightMuons++;
                 GoodMuonsTight.push_back(thisMuon);
             }
-            if(isLooseMuon(i) && muonPt[i] >= 10 ){
-                nLooseMuons++;
-            }
-            else continue; //for this study, only care about loose/tight muons with >10 GeV of pt
+            nLooseMuons++;
             
             GoodLeptons.push_back(thisMuon);
             GoodMuons.push_back(thisMuon);
@@ -578,20 +573,18 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         //****************************************************//
         for(int i = 0; i < nElectrons; i++){
 
-            if(elePt[i] < 5) continue;
+            if(!isLooseElectron(i)) continue;
+            if(elePt[i] < 10) continue;
             if(fabs(eleEta[i]) > 2.5) continue;
             TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
 
-            if(isMVANonTrigVetoElectron(i)) nVetoMVAElectrons++;
             if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
-            if(isTightElectron(i) && elePt[i] > 10 ){
+            if(isTightElectron(i)){
                 nTightElectrons++;
                 GoodElectronsTight.push_back(thisElectron);
             }
-            if(isLooseElectron(i) && elePt[i] > 10 ){
-                nLooseElectrons++;
-            }
-            else continue; //for this study, we don't care about veto electrons, only loose/tight with 10 GeV of pt
+
+            nLooseElectrons++;
 
             GoodLeptons.push_back(thisElectron);        
             GoodElectrons.push_back(thisElectron);
@@ -639,7 +632,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         //****************************************************//
         //               Select jets                          //
         //****************************************************//
-        vector<TLorentzVector> GoodJets; //will contain leptons
+        vector<TLorentzVector> GoodJets; //will contain leptons above 40 GeV
         for(int i = 0; i < nJets; i++){
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
@@ -653,7 +646,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                 nBTaggedJets++;
             }
         }
-        if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
+        //if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
 
         //****************************************************//
         //               Store leading jet info               //
@@ -689,7 +682,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
             if(!isMediumPhoton(i)) continue;
-
             if(phoPt[i] < 10) continue;
             if(fabs(phoEta[i]) > 2.5) continue;
 
