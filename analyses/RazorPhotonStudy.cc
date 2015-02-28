@@ -386,8 +386,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         vector<TLorentzVector> GoodGenMuons; //for removing gen muons from jet collection later
         for(int j = 0; j < nGenParticle; j++){
             //electrons
-            if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
-                    && gParticlePt[j] > 1) {
+            if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1) {
                 if (  (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23) ) {
                     nGenElectrons++;
                     if (gParticlePt[j] > leadingGenElectronPt) {
@@ -415,9 +414,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                 }
             }
             //muons
-            if (abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1  
-                    && gParticlePt[j] > 1
-               ) {
+            if (abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1) {
                 if ( (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)) {
                     nGenMuons++;
                     TLorentzVector thisGenMuon = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);
@@ -448,7 +445,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
             }
             //neutrinos
             if (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16){
-                if(gParticleStatus[j] == 1 && gParticlePt[j] > 1 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)){
+                if(gParticleStatus[j] == 1 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)){
                     nGenNeutrinos++;
                     if (gParticlePt[j] > leadingGenNeutrinoPt) {
                         //make leading gen neutrino into subleading
@@ -475,13 +472,12 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
             //taus
             if (abs(gParticleId[j]) == 15 && gParticleStatus[j] == 2 
                     && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)
-                    && abs(gParticleEta[j]) < 2.4 && gParticlePt[j] > 20
                ) nGenTaus++;
             //photons
             if (abs(gParticleId[j]) == 22 && 
                     ( (abs(gParticleMotherId[j]) >= 1 && abs(gParticleMotherId[j]) <= 5) || 
                       (abs(gParticleMotherId[j]) == 21) || (abs(gParticleMotherId[j]) == 2212) ) && 
-                    abs(gParticleStatus[j]) == 1 && gParticlePt[j] > 1){	     
+                    abs(gParticleStatus[j]) == 1){	     
                nGenPhotons++; 
                if(gParticlePt[j] > leadingGenPhotonPt){
                    //make leading gen photon into subleading
@@ -525,7 +521,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         //****************************************************//
         //               Select muons                         //
         //****************************************************//
-        vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
         vector<TLorentzVector> GoodMuons, GoodElectrons; 
         vector<TLorentzVector> GoodMuonsTight, GoodElectronsTight;
         for(int i = 0; i < nMuons; i++){
@@ -542,7 +537,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
             }
             nLooseMuons++;
             
-            GoodLeptons.push_back(thisMuon);
             GoodMuons.push_back(thisMuon);
 
             //check if this muon is leading or subleading
@@ -586,7 +580,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
 
             nLooseElectrons++;
 
-            GoodLeptons.push_back(thisElectron);        
             GoodElectrons.push_back(thisElectron);
 
             //check if this electron is leading or subleading
@@ -652,12 +645,16 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         //               Store leading jet info               //
         //****************************************************//
         sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
-        j1pt=GoodJets[0].Pt();
-        j2pt=GoodJets[1].Pt();
-        j1eta=GoodJets[0].Eta();
-        j2eta=GoodJets[1].Eta();
-        j1phi=GoodJets[0].Phi();
-        j2phi=GoodJets[1].Phi();
+        if(GoodJets.size() > 0){
+            j1pt=GoodJets[0].Pt();
+            j1eta=GoodJets[0].Eta();
+            j1phi=GoodJets[0].Phi();
+        }
+        if(GoodJets.size() > 1){
+            j2pt=GoodJets[1].Pt();
+            j2eta=GoodJets[1].Eta();
+            j2phi=GoodJets[1].Phi();
+        }
 
         //****************************************************//
         //     Compute the razor variables and HT, nJets      //
@@ -670,9 +667,11 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         for(auto& pf : GoodJets) HT += pf.Pt();
 
         // compute R and MR
-        vector<TLorentzVector> hemispheres = getHemispheres(GoodJets);
-        theMR = computeMR(hemispheres[0], hemispheres[1]); 
-        theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+        if(GoodJets.size() >= 2){
+            vector<TLorentzVector> hemispheres = getHemispheres(GoodJets);
+            theMR = computeMR(hemispheres[0], hemispheres[1]); 
+            theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+        }
 
         //****************************************************//
         //             Select photons                         //
