@@ -17,11 +17,8 @@ double RazorAnalyzer::deltaR(double eta1, double phi1, double eta2, double phi2)
 }
 
 TLorentzVector RazorAnalyzer::makeTLorentzVector(double pt, double eta, double phi, double energy){
-    double px = pt*cos(phi);
-    double py = pt*sin(phi);
-    double pz = pt*sinh(eta);
-
-    TLorentzVector vec(px, py, pz, energy);
+    TLorentzVector vec;
+    vec.SetPtEtaPhiE(pt, eta, phi, energy);
     return vec;
 }
 
