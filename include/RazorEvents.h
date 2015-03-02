@@ -198,14 +198,14 @@ public :
    Float_t         genAlphaQCD;
    Float_t         genAlphaQED;
    Int_t           nGenParticle;
-   Int_t           gParticleMotherId[200];   //[nGenParticle]
-   Int_t           gParticleMotherIndex[200];   //[nGenParticle]
-   Int_t           gParticleId[200];   //[nGenParticle]
-   Int_t           gParticleStatus[200];   //[nGenParticle]
-   Float_t         gParticleE[200];   //[nGenParticle]
-   Float_t         gParticlePt[200];   //[nGenParticle]
-   Float_t         gParticleEta[200];   //[nGenParticle]
-   Float_t         gParticlePhi[200];   //[nGenParticle]
+   Int_t           gParticleMotherId[4000];   //[nGenParticle]
+   Int_t           gParticleMotherIndex[4000];   //[nGenParticle]
+   Int_t           gParticleId[4000];   //[nGenParticle]
+   Int_t           gParticleStatus[4000];   //[nGenParticle]
+   Float_t         gParticleE[4000];   //[nGenParticle]
+   Float_t         gParticlePt[4000];   //[nGenParticle]
+   Float_t         gParticleEta[4000];   //[nGenParticle]
+   Float_t         gParticlePhi[4000];   //[nGenParticle]
 
    // List of branches
    TBranch        *b_nPV;   //!
