@@ -63,12 +63,13 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     float HT, HT_noZ, HT_noW, HT_noPho, HT_noGenZ;
     int numJets, numJets_noZ, numJets_noW, numJets_noPho, numJets_noGenZ; 
     int numJets80, numJets80_noZ, numJets80_noW, numJets80_noPho, numJets80_noGenZ; 
-    float genZpt, recoZpt, genZeta, recoZeta, genZphi, recoZphi, recoZmass, genWpt, recoWpt, genWeta, recoWeta, genWphi, recoWphi;
+    float genZpt, recoZpt, genZeta, recoZeta, genZphi, recoZphi, recoZmass, genWpt, recoWpt, genWeta, genWphi, recoWphi;
     float minDRGenLeptonToGenParton;
     bool leadGenMuonIsFound, leadGenElectronIsFound, leadGenPhotonIsFound;
     bool leadGenMuonIsFoundTight, leadGenElectronIsFoundTight;
     float ptMatchingLeadGenMuon, ptMatchingLeadGenElectron, ptMatchingLeadGenPhoton; //pt of the object matching the gen particle
     int nSelectedPhotons;    
+    float mTLepMet;
     // RazorPhotonStudy_RazorBox box;
     RazorBox box;
 
@@ -157,7 +158,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     razorTree->Branch("recoZphi", &recoZphi, "recoZphi/F");
     razorTree->Branch("recoZmass", &recoZmass, "recoZmass/F");
     razorTree->Branch("recoWpt", &recoWpt, "recoWpt/F");
-    razorTree->Branch("recoWeta", &recoWeta, "recoWeta/F");
     razorTree->Branch("recoWphi", &recoWphi, "recoWphi/F");
     razorTree->Branch("genWpt", &genWpt, "genWpt/F");
     razorTree->Branch("genWeta", &genWeta, "genWeta/F");
@@ -215,6 +215,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
     razorTree->Branch("ptMatchingLeadGenMuon", &ptMatchingLeadGenMuon, "ptMatchingLeadGenMuon/F");
     razorTree->Branch("ptMatchingLeadGenElectron", &ptMatchingLeadGenElectron, "ptMatchingLeadGenElectron/F");
     razorTree->Branch("ptMatchingLeadGenPhoton", &ptMatchingLeadGenPhoton, "ptMatchingLeadGenPhoton/F");
+    razorTree->Branch("mTLepMet", &mTLepMet, "mTLepMet/F");
 
     //****************************************************//
     //            Begin the event loop                    //
@@ -270,7 +271,6 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         recoZphi = -999;
         recoZmass = -1;
         recoWpt = -1;
-        recoWeta = -999;
         recoWphi = -999;
         genWpt = -1;
         genWeta = -999;
@@ -379,6 +379,7 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
         subleadingGenElectronE = 0;
         subleadingGenPhotonE = 0;
         subleadingGenNeutrinoE = 0;
+        mTLepMet = -1;
 
         //****************************************************//
         //               Select gen particles                 //
@@ -805,128 +806,126 @@ void RazorAnalyzer::RazorPhotonStudy( string outputfilename)
                 MR_noPho = computeMR(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1]); 
                 Rsq_noPho = computeRsq(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1], PFMET_NOPHO);
             }
-        } //end photons
+        } 
+        else{ //save some info even if no photons are found
+            numJets_noPho = numJets;
+            numJets80_noPho = numJets80;
+            met_noPho = met;
+            metphi_noPho = metphi;
+            HT_noPho = HT;
+        }
 
         // Muons for Z
-        if(GoodMuons.size()==2)
-        {
-            TLorentzVector m1 = GoodMuons[0];
-            TLorentzVector m2 = GoodMuons[1];
-            TLorentzVector m3 = PFMET;
-            TLorentzVector ZPlusMet_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2 + m3).Pt(), 0., (m1 + m2 + m3).Phi(), 0.);
 
-            //get reco Z information
-            recoZpt = (m1+m2).Pt();
-            recoZeta = (m1+m2).Eta();
-            recoZphi = (m1+m2).Phi();
-            recoZmass = (m1+m2).M();
-
-            met_noZ = ZPlusMet_perp.Pt();
-            metphi_noZ = ZPlusMet_perp.Phi();
-
-            //remove selected muons from collection of selected jets
-            vector<TLorentzVector> GoodJetsNoMuons = GoodJets;
-            for(auto& mu : GoodMuons){
-                int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoMuons);
-                if(subtractedIndex >= 0){
-                    if(GoodJetsNoMuons[subtractedIndex].Pt() < 40){ //erase this jet
-                        GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
-                    }
+        //remove selected muons from collection of selected jets and add them to the MET
+        vector<TLorentzVector> GoodJetsNoMuons = GoodJets;
+        TLorentzVector TotalMuonVec;
+        for(auto& mu : GoodMuons){
+            TotalMuonVec = TotalMuonVec + mu; //add this muon's momentum to the sum
+            int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoMuons);
+            if(subtractedIndex >= 0){
+                if(GoodJetsNoMuons[subtractedIndex].Pt() < 40){ //erase this jet
+                    GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
                 }
             }
-            //count the number of jets above 80 GeV now
-            for(auto& jet : GoodJetsNoMuons){
-                if(jet.Pt() > 80) numJets80_noZ++;
+        }
+        //remove selected TIGHT muons from collection of selected jets and add them to the MET
+        vector<TLorentzVector> GoodJetsNoTightMuons = GoodJets;
+        TLorentzVector TotalTightMuonVec;
+        for(auto& mu : GoodMuonsTight){
+            TotalTightMuonVec = TotalTightMuonVec + mu; //add this muon's momentum to the sum
+            int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoTightMuons);
+            if(subtractedIndex >= 0){
+                if(GoodJetsNoTightMuons[subtractedIndex].Pt() < 40){ //erase this jet
+                    GoodJetsNoTightMuons.erase(GoodJetsNoTightMuons.begin()+subtractedIndex);
+                }
             }
+        }
 
+        //do the same for GEN muons
+        vector<TLorentzVector> GoodJetsNoGenMuons = GoodJets;
+        TLorentzVector TotalGenMuonVec;
+        for(auto& mu : GoodGenMuons){
+            TotalGenMuonVec = TotalGenMuonVec + mu;
+            int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoGenMuons);
+            if(subtractedIndex >= 0){
+                if(GoodJetsNoGenMuons[subtractedIndex].Pt() < 40){ //erase this jet
+                    GoodJetsNoGenMuons.erase(GoodJetsNoGenMuons.begin()+subtractedIndex);
+                }
+            }
+        }
+
+        //make the MET vector with the muons (or gen muons) added
+        TLorentzVector ZPlusMet_perp = makeTLorentzVector((TotalMuonVec + PFMET).Pt(), 0., (TotalMuonVec + PFMET).Phi(), 0.);
+        met_noZ = ZPlusMet_perp.Pt();
+        metphi_noZ = ZPlusMet_perp.Phi();
+
+        TLorentzVector WPlusMet_perp = makeTLorentzVector((TotalTightMuonVec + PFMET).Pt(), 0., (TotalTightMuonVec + PFMET).Phi(), 0.);
+        met_noW = WPlusMet_perp.Pt();
+        metphi_noW = WPlusMet_perp.Phi(); 
+
+        TLorentzVector ZPlusMetGen_perp = makeTLorentzVectorPtEtaPhiM((TotalGenMuonVec + PFMET).Pt(), 0., (TotalGenMuonVec + PFMET).Phi(), 0.);
+        met_noGenZ = ZPlusMetGen_perp.Pt();
+        metphi_noGenZ = ZPlusMetGen_perp.Phi();
+
+        //count jets and compute HT
+        //Z
+        numJets_noZ = GoodJetsNoMuons.size();
+        for(auto& jet : GoodJetsNoMuons){
+            HT_noZ += jet.Pt();
+            if(jet.Pt() > 80) numJets80_noZ++;
+        }
+        //W
+        numJets_noW = GoodJetsNoTightMuons.size();
+        for(auto& jet : GoodJetsNoTightMuons){
+            HT_noW += jet.Pt();
+            if(jet.Pt() > 80) numJets80_noW++;
+        }
+        //Gen Z
+        numJets_noGenZ = GoodJetsNoGenMuons.size();
+        for(auto& jet : GoodJetsNoGenMuons){
+            HT_noGenZ += jet.Pt();
+            if(jet.Pt() > 80) numJets80_noGenZ++;
+        }
+
+        //get reco Z information
+        recoZpt = TotalMuonVec.Pt();
+        recoZeta = TotalMuonVec.Eta();
+        recoZphi = TotalMuonVec.Phi();
+        recoZmass = TotalMuonVec.M();
+
+        //compute reco Z information and razor variables for DY
+        if(numJets_noZ > 1)
+        {
             vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoMuons);
-
-            //count jets and compute HT
-            numJets_noZ = GoodJetsNoMuons.size();
-            for(auto& pf : GoodJetsNoMuons) HT_noZ += pf.Pt();
-
-            TLorentzVector PFMET_NOZ = makeTLorentzVectorPtEtaPhiM(met_noZ, 0, metphi_noZ, 0);
-            Rsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], PFMET_NOZ);
+            Rsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], ZPlusMet_perp);
             MR_noZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
         }
-        // Muons for Z (subtracting gen instead of reco muons)
-        if(GoodGenMuons.size()==2)
+        //razor variables using GEN muons
+        if(numJets_noGenZ > 1)
         {
-            TLorentzVector m1 = GoodGenMuons[0];
-            TLorentzVector m2 = GoodGenMuons[1];
-            TLorentzVector m3 = PFMET;
-            TLorentzVector ZPlusMet_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2 + m3).Pt(), 0., (m1 + m2 + m3).Phi(), 0.);
-
-            met_noGenZ = ZPlusMet_perp.Pt();
-            metphi_noGenZ = ZPlusMet_perp.Phi();
-
-            //remove selected muons from collection of selected jets
-            vector<TLorentzVector> GoodJetsNoMuons = GoodJets;
-            for(auto& mu : GoodGenMuons){
-                int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoMuons);
-                if(subtractedIndex >= 0){
-                    if(GoodJetsNoMuons[subtractedIndex].Pt() < 40){ //erase this jet
-                        GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
-                    }
-                }
-            }
-            //count the number of jets above 80 GeV now
-            for(auto& jet : GoodJetsNoMuons){
-                if(jet.Pt() > 80) numJets80_noGenZ++;
-            }
-
-            vector<TLorentzVector> hemispheresNoGenZ = getHemispheres(GoodJetsNoMuons);
-
-            //count jets and compute HT
-            numJets_noGenZ = GoodJetsNoMuons.size();
-            for(auto& pf : GoodJetsNoMuons) HT_noGenZ += pf.Pt();
-
-            TLorentzVector PFMET_NOGENZ = makeTLorentzVectorPtEtaPhiM(met_noGenZ, 0, metphi_noGenZ, 0);
-            Rsq_noGenZ = computeRsq(hemispheresNoGenZ[0], hemispheresNoGenZ[1], PFMET_NOGENZ);
+            vector<TLorentzVector> hemispheresNoGenZ = getHemispheres(GoodJetsNoGenMuons);
+            Rsq_noGenZ = computeRsq(hemispheresNoGenZ[0], hemispheresNoGenZ[1], ZPlusMetGen_perp);
             MR_noGenZ = computeMR(hemispheresNoGenZ[0], hemispheresNoGenZ[1]); 
         }
-        //Muons for W
-        else if(GoodMuonsTight.size() == 1 && GoodMuons.size() == 1) //one tight muon, no extra loose muons
+        //razor variables using tight muons (for W)
+        if(numJets_noW > 1){
+            vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoTightMuons);
+            Rsq_noW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], WPlusMet_perp);
+            MR_noW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
+        }
+
+        //for W, also get the transverse mass of the first tight muon and the MET
+        if(GoodMuonsTight.size() > 0) 
         {
             TLorentzVector m1 = GoodMuonsTight[0];
             TLorentzVector m2 = PFMET;
             double deltaPhiLepMet = m1.DeltaPhi(m2);
-            double mTLepMet = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) );
-            if(mTLepMet > 30 && mTLepMet < 100){
-                TLorentzVector theW_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), 0.);
+            mTLepMet = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); //transverse mass calculation
 
-                met_noW = theW_perp.Pt();
-                metphi_noW = theW_perp.Phi();
-
-                //store reco W information
-                recoWpt = (m1+m2).Pt();
-                recoWeta = (m1+m2).Eta();
-                recoWphi = (m1+m2).Phi();
-
-                //remove selected muons from collection of selected jets
-                vector<TLorentzVector> GoodJetsNoMuons = GoodJets;
-                for(auto& mu : GoodMuonsTight){
-                    int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoMuons);
-                    if(subtractedIndex >= 0){
-                        if(GoodJetsNoMuons[subtractedIndex].Pt() < 40){ //erase this jet
-                            GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
-                        }
-                    }
-                }
-                //count the number of jets above 80 GeV now
-                for(auto& jet : GoodJetsNoMuons){
-                    if(jet.Pt() > 80) numJets80_noW++;
-                }
-
-                //count jets and compute HT
-                numJets_noW = GoodJetsNoMuons.size();
-                for(auto& pf : GoodJetsNoMuons) HT_noW += pf.Pt();
-
-                vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoMuons);
-                TLorentzVector PFMET_NOW = makeTLorentzVectorPtEtaPhiM(met_noW, 0, metphi_noW, 0);
-                Rsq_noW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], PFMET_NOW);
-                MR_noW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
-            }
+            //store reco W information
+            recoWpt = (m1+m2).Pt();
+            recoWphi = (m1+m2).Phi();
         }
 
         razorTree->Fill();
