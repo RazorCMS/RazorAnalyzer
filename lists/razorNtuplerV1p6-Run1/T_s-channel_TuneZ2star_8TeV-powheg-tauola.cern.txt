@@ -1,0 +1,4 @@
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/T_s-channel_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v1/150310_044825/0000/razorNtuple_1.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/T_s-channel_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v1/150310_044825/0000/razorNtuple_2.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/T_s-channel_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v1/150310_044825/0000/razorNtuple_3.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/T_s-channel_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v1/150310_044825/0000/razorNtuple_4.root
