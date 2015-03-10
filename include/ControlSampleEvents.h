@@ -44,6 +44,7 @@
       TLorentzVector          genlep2;
       Int_t                   genlep1Type;
       Int_t                   genlep2Type;
+      Bool_t                  HLTDecision[100];
       TLorentzVector          lep1;
       TLorentzVector          lep2;
       Int_t                   lep1Type;
@@ -145,6 +146,7 @@
 	genlep2              = TLorentzVector();
 	genlep1Type          = 0.0;
 	genlep2Type          = 0.0;
+	for(int i=0;i<100;++i) HLTDecision[i] = false;
 	lep1                 = TLorentzVector();
 	lep2                 = TLorentzVector();
 	lep1Type             = 0.0;
@@ -230,6 +232,7 @@
 	tree_->Branch("NPU_0",&NPU_0,"NPU_0/i");
 	tree_->Branch("NPU_Minus1",&NPU_Minus1,"NPU_Minus1/i");
 	tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
+	tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[100]/O");
 	tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
 	tree_->Branch("genlep2Type",&genlep2Type,"genlep2Type/I");
 	tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
@@ -315,6 +318,7 @@
 	tree_->SetBranchAddress("NPU_Plus1",&NPU_Plus1);
 	tree_->SetBranchAddress("genlep1Type",&genlep1Type);
 	tree_->SetBranchAddress("genlep2Type",&genlep2Type);
+	tree_->SetBranchAddress("HLTDecision",&HLTDecision);
 	tree_->SetBranchAddress("lep1Type",&lep1Type);
 	tree_->SetBranchAddress("lep2Type",&lep2Type);
 	tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
