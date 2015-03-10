@@ -183,7 +183,7 @@ public :
    Float_t         RSQ;
    Float_t         MR_AK8;
    Float_t         RSQ_AK8;
-   Bool_t          HLTDecision[50];
+   Bool_t          HLTDecision[100];
    Int_t           nGenJets;
    Float_t         genJetE[50];   //[nGenJets]
    Float_t         genJetPt[50];   //[nGenJets]
