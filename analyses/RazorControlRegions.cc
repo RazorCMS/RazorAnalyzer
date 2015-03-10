@@ -11,15 +11,22 @@
 
 using namespace std;
 
-
-void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
+ 
+void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, bool isRunOne, string skim)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
     std::vector<JetCorrectorParameters> correctionParameters;
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
+
+    if (isRunOne) {
+      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/FT_53_V6_AN1_L1FastJet_AK5PF.txt"));
+      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/FT_53_V6_AN1_L2Relative_AK5PF.txt"));
+      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/FT_53_V6_AN1_L3Absolute_AK5PF.txt")); 
+    } else {
+      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
+      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
+      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
+    }
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
 
     string outfilename = outputfilename;
@@ -35,7 +42,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
     //begin loop
     if (fChain == 0) return;
 
+    cout << "Total Events: " << fChain->GetEntries() << "\n";
     Long64_t nbytes = 0, nb = 0;
+
+    //for (Long64_t jentry=36834; jentry<fChain->GetEntries();jentry++) {
     for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
 
       //begin event
@@ -74,7 +84,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
         bool passedHadronicTrigger= true;
         if(!(passedLeptonicTrigger || passedHadronicTrigger)) continue; //ensure event passed a trigger
         
-
 	//******************************************
 	//find generated leptons
 	//******************************************
@@ -144,7 +153,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	} //loop over gen particles
 	
 
-
 	//******************************************
 	//sort gen leptons by pt
 	//******************************************
@@ -160,7 +168,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	}
 
 
-
 	// for (int i=0;i<genLeptonIndex.size();i++) cout << "Lepton " << i << " : " << gParticleId[genLeptonIndex[i]] << " | " 
 	// 					       << gParticlePt[genLeptonIndex[i]] << " "
 	// 					       << gParticleEta[genLeptonIndex[i]] << " "
@@ -169,7 +176,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	// cout << "\n";
 
 
-	// if (genLeptonIndex.size() >= 3) {
+	// if (genLeptonIndex.size() != 2) {
 	//   cout << "\n";
 	//   cout << "\n";
 	//   for (int i=0;i<genLeptonIndex.size();i++) cout << "Lepton " << i << " : " << gParticleId[genLeptonIndex[i]] << " | " 
@@ -211,7 +218,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  }				      
 	}
 
-
 	vector<int> VetoLeptonIndex; 
 	vector<int> VetoLeptonType;
 	vector<int> VetoLeptonPt;
@@ -223,10 +229,20 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	vector<int> TightLeptonPt;
 	vector<TLorentzVector> GoodLeptons;//leptons used to compute hemispheres
 
+
+
         for(int i = 0; i < nMuons; i++){
 
             if(muonPt[i] < 5) continue;
-            if(abs(muonEta[i]) > 2.4) continue;
+            if(fabs(muonEta[i]) > 2.4) continue;
+
+	    // if (muonPt[i] > 20 && fabs(muonEta[i]) < 2.4
+	    // 	&& muon_ip3dSignificance[i] < 4
+	    // 	//&& (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] > 0.4
+	    // 	) 
+	    //   {
+	    // 	cout << eventNum << " : muon " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << muonCharge[i] << " " << muonIsTight[i] << " " << muonIsLoose[i] <<  " : " << muon_chargedIso[i] << " " <<  muon_photonIso[i] << " " <<  muon_neutralHadIso[i] << " " << muon_pileupIso[i] << " : " <<  (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] <<  " " << muon_ip3dSignificance[i] << "\n";
+	    // }
 
             if(isTightMuon(i) && muonPt[i] >= 10) {
 	      TightLeptonType.push_back(13 * -1 * muonCharge[i]);
@@ -249,7 +265,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
             GoodLeptons.push_back(thisMuon);
         }
 
-        for(int i = 0; i < nElectrons; i++){
+	for(int i = 0; i < nElectrons; i++){
 
             if(elePt[i] < 5) continue;
             if(fabs(eleEta[i]) > 2.5) continue;
@@ -261,12 +277,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 	    if (alreadySelected) continue;
 
-	    if(isTightElectron(i) && elePt[i] > 10 ) {
+	    if( ( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) )
+		&& elePt[i] > 10 ) {
 	      TightLeptonType.push_back(11 * -1 * eleCharge[i]);
 	      TightLeptonIndex.push_back(i);
 	      TightLeptonPt.push_back(elePt[i]);
 	    }
-	    else if(isLooseElectron(i) && elePt[i] > 10 ) {
+	    else if( ( (!isRunOne && isLooseElectron(i)) || (isRunOne && isRunOneLooseElectron(i)) )
+		     && elePt[i] > 10 ) {
 	      LooseLeptonType.push_back(11 * -1 * eleCharge[i]);
 	      LooseLeptonIndex.push_back(i);
 	      LooseLeptonPt.push_back(elePt[i]);
@@ -282,10 +300,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
             GoodLeptons.push_back(thisElectron);        
         }
 
-        for(int i = 0; i < nTaus; i++){
+	for(int i = 0; i < nTaus; i++){
+
+	  if (isRunOne) continue;
 
 	  if (tauPt[i] < 20) continue;
-	  if (abs(tauEta[i]) > 2.4) continue;
+	  if (fabs(tauEta[i]) > 2.4) continue;
 
 	  //don't count taus that were already selected as muons or electrons
 	  bool alreadySelected = false;
@@ -306,7 +326,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  }	 
 	  
         }
-        
+
+
 	//********************************
 	//Sort Leptons
 	//********************************
@@ -365,7 +386,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  }
 	}
 	
-
 	
 	//********************************
 	//Fill Leptons
@@ -408,13 +428,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 
 	    events->lep1MatchedGenLepIndex = -1;
-	    if (deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		&& abs(TightLeptonType[i]) == abs(events->genlep1Type)
+	    if ( abs(TightLeptonType[i]) == abs(events->genlep1Type) &&
+		 deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		) {
 	      events->lep1MatchedGenLepIndex = 1;
 	    }
-	    if (deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		&& abs(TightLeptonType[i]) == abs(events->genlep2Type)
+	    if (abs(TightLeptonType[i]) == abs(events->genlep2Type)
+		&& deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		) {
 	      events->lep1MatchedGenLepIndex = 2;
 	    }
@@ -437,7 +457,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 		events->lep2.SetPtEtaPhiM(muonPt[TightLeptonIndex[i]], muonEta[TightLeptonIndex[i]], muonPhi[TightLeptonIndex[i]],mass);
 		tmpEta = muonEta[TightLeptonIndex[i]];
 		tmpPhi = muonPhi[TightLeptonIndex[i]];
-	      } else if (abs(TightLeptonType[i]) == 15) {
+	      } else if (abs(TightLeptonType[i]) == 15) {		
 		mass = 1.777;
 		events->lep2.SetPtEtaPhiM(tauPt[TightLeptonIndex[i]], tauEta[TightLeptonIndex[i]], tauPhi[TightLeptonIndex[i]],mass);
 		tmpEta = tauEta[TightLeptonIndex[i]];
@@ -445,13 +465,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	      }
 
 	      events->lep2MatchedGenLepIndex = -1;
-	      if (deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		  && abs(TightLeptonType[i]) == abs(events->genlep1Type)
+	      if (abs(TightLeptonType[i]) == abs(events->genlep1Type)
+		  && deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		  ) {
 		events->lep2MatchedGenLepIndex = 1;
 	      }
-	      if (deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		  && abs(TightLeptonType[i]) == abs(events->genlep2Type)
+	      if (abs(TightLeptonType[i]) == abs(events->genlep2Type)
+		  && deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		  ) {
 		events->lep2MatchedGenLepIndex = 2;
 	      }
@@ -462,6 +482,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 	  }
 	} //loop over Tight leptons	
+
 
 	for (uint i=0; i<LooseLeptonType.size(); i++) {
 	  if (!lep1Found) {
@@ -486,13 +507,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 
 	    events->lep1MatchedGenLepIndex = -1;
-	    if (deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		&& abs(LooseLeptonType[i]) == abs(events->genlep1Type)
+	    if (abs(LooseLeptonType[i]) == abs(events->genlep1Type)
+		&& deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		) {
 	      events->lep1MatchedGenLepIndex = 1;
 	    }
-	    if (deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		&& abs(LooseLeptonType[i]) == abs(events->genlep2Type)
+	    if (abs(LooseLeptonType[i]) == abs(events->genlep2Type)
+		&& deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		) {
 	      events->lep1MatchedGenLepIndex = 2;
 	    }
@@ -523,13 +544,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	      }
 
 	      events->lep2MatchedGenLepIndex = -1;
-	      if (deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		  && abs(LooseLeptonType[i]) == abs(events->genlep1Type)
+	      if (abs(LooseLeptonType[i]) == abs(events->genlep1Type)
+		  && deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		  ) {
 		events->lep2MatchedGenLepIndex = 1;
 	      }
-	      if (deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		  && abs(LooseLeptonType[i]) == abs(events->genlep2Type)
+	      if (abs(LooseLeptonType[i]) == abs(events->genlep2Type)
+		  && deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		  ) {
 		events->lep2MatchedGenLepIndex = 2;
 	      }
@@ -564,13 +585,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 
 	    events->lep1MatchedGenLepIndex = -1;
-	    if (deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		&& abs(VetoLeptonType[i]) == abs(events->genlep1Type)
+	    if ( abs(VetoLeptonType[i]) == abs(events->genlep1Type)
+		 && deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		) {
 	      events->lep1MatchedGenLepIndex = 1;
 	    }
-	    if (deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		&& abs(VetoLeptonType[i]) == abs(events->genlep2Type)
+	    if (abs(VetoLeptonType[i]) == abs(events->genlep2Type)
+		&& deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		) {
 	      events->lep1MatchedGenLepIndex = 2;
 	    }
@@ -601,13 +622,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	      }
 
 	      events->lep2MatchedGenLepIndex = -1;
-	      if (deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		  && abs(VetoLeptonType[i]) == abs(events->genlep1Type)
+	      if (abs(VetoLeptonType[i]) == abs(events->genlep1Type)
+		  && deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		  ) {
 		events->lep2MatchedGenLepIndex = 1;
 	      }
-	      if (deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		  && abs(VetoLeptonType[i]) == abs(events->genlep2Type)
+	      if (abs(VetoLeptonType[i]) == abs(events->genlep2Type)
+		  && deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		  ) {
 		events->lep2MatchedGenLepIndex = 2;
 	      }
@@ -618,6 +639,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	    }
 	  }
 	} //loop over Veto leptons
+
 
 
 	//if ((events->lep1.Pt() > 0 && events->lep1MatchedGenLepIndex < 0) || (events->lep2.Pt() > 0 && events->lep2MatchedGenLepIndex < 0)) {
@@ -659,6 +681,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	events->minDPhi = 9999;
 	events->minDPhiN = 9999;
 
+
         for(int i = 0; i < nJets; i++){
 
 	  //exclude selected muons and electrons from the jet collection
@@ -685,7 +708,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 						 fixedGridRhoFastjetAll, jetJetArea[i], 
 						 JetCorrector);   
 	  TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC);
-	  
+
 	  if (abs(jetPartonFlavor[i]) == 5) {
 	    if (!bjet1Found) {
 	      bjet1Found = true;
@@ -693,9 +716,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	      events->bjet1PassLoose = false;
 	      events->bjet1PassMedium = false;
 	      events->bjet1PassTight = false;
-	      if(isCSVL(i)) events->bjet1PassLoose = true;	      
-	      if(isCSVM(i)) events->bjet1PassMedium = true;
-	      if(isCSVT(i)) events->bjet1PassTight = true;	      
+	      if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) events->bjet1PassLoose = true;	      
+	      if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) events->bjet1PassMedium = true;
+	      if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet1PassTight = true;	      
 	    } else if ( thisJet.Pt() > events->bjet1.Pt() ) {
 	      events->bjet2.SetPtEtaPhiM(events->bjet1.Pt(), events->bjet1.Eta(), events->bjet1.Phi(), events->bjet1.M());
 	      events->bjet2PassLoose = events->bjet1PassLoose;
@@ -706,9 +729,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	      events->bjet1PassLoose = false;
 	      events->bjet1PassMedium = false;
 	      events->bjet1PassTight = false;
-	      if(isCSVL(i)) events->bjet1PassLoose = true;	      
-	      if(isCSVM(i)) events->bjet1PassMedium = true;
-	      if(isCSVT(i)) events->bjet1PassTight = true;
+	      if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) events->bjet1PassLoose = true;	      
+	      if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) events->bjet1PassMedium = true;
+	      if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet1PassTight = true;	      
 	    } else {
 	      if (!bjet2Found || thisJet.Pt() > events->bjet2.Pt() ) {
 		//cout << "jet " << i << " " << jetPartonFlavor[i] << " | " << bjet1Found << " " << bjet2Found << " : " << thisJet.Pt() << "\n";
@@ -717,16 +740,17 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 		events->bjet2PassLoose = false;
 		events->bjet2PassMedium = false;
 		events->bjet2PassTight = false;
-		if(isCSVL(i)) events->bjet2PassLoose = true;	      
-		if(isCSVM(i)) events->bjet2PassMedium = true;
-		if(isCSVT(i)) events->bjet2PassTight = true;	      
+		if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) events->bjet2PassLoose = true;	      
+		if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) events->bjet2PassMedium = true;
+		if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet2PassTight = true;	   	    
 	      }
 	    }
 	  } //if it's a bjet
 
-	  if (jetPt[i]*JEC > 20 && isCSVL(i)) nBJetsLoose20GeV++;
-	  if (jetPt[i]*JEC > 20 && isCSVM(i)) nBJetsMedium20GeV++;
-	  if (jetPt[i]*JEC > 20 && isCSVT(i)) nBJetsTight20GeV++;
+	  if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) nBJetsLoose20GeV++;
+	  if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) nBJetsMedium20GeV++;
+	  if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) nBJetsTight20GeV++;
+
 
 	  if(jetPt[i]*JEC < 40) continue;
 	  if(fabs(jetEta[i]) > 3.0) continue;
@@ -738,6 +762,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  GoodJets.push_back(thisJet);	  
 	  
         } //loop over jets
+
 
 	//*****************************************************
 	//sort good jets
@@ -765,15 +790,15 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	for (int i=0;i<int(GoodJets.size());i++) {
 	  if (i==0) {
 	    events->jet1.SetPtEtaPhiM(GoodJets[i].Pt(), GoodJets[i].Eta(),GoodJets[i].Phi(),GoodJets[i].M());
-	    if(isCSVL(i)) events->jet1PassCSVLoose = true;	      
-	    if(isCSVM(i)) events->jet1PassCSVMedium = true;
-	    if(isCSVT(i)) events->jet1PassCSVTight = true;	
+	    if(((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) events->jet1PassCSVLoose = true;	      
+	    if(((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) events->jet1PassCSVMedium = true;
+	    if(((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) events->jet1PassCSVTight = true;	
 	  }
 	  if (i==1) {
 	    events->jet2.SetPtEtaPhiM(GoodJets[i].Pt(), GoodJets[i].Eta(),GoodJets[i].Phi(),GoodJets[i].M());
-	    if(isCSVL(i)) events->jet2PassCSVLoose = true;	      
-	    if(isCSVM(i)) events->jet2PassCSVMedium = true;
-	    if(isCSVT(i)) events->jet2PassCSVTight = true;	
+	    if(((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) events->jet2PassCSVLoose = true;	      
+	    if(((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) events->jet2PassCSVMedium = true;
+	    if(((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) events->jet2PassCSVTight = true; 	   	
 	  }
 	}
 
@@ -809,6 +834,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	  }
 	}
 
+
         //Compute the razor variables using the selected jets and possibly leptons
         vector<TLorentzVector> GoodPFObjects;
         vector<TLorentzVector> GoodPFObjects_NoLeadJet;
@@ -821,18 +847,24 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 
 	events->MR = 0;
 	events->Rsq = 0;
+	
+
+	//cout << "debug: " << numJetsAbove80GeV << " " << GoodJets.size() << " " << GoodLeptons.size() << " : " << GoodPFObjects.size() << "\n";
 
 	//only compute razor variables if we have 2 jets above 80 GeV
-	if (numJetsAbove80GeV >= 2) {
+	if (numJetsAbove80GeV >= 2 && GoodJets.size() < 20) {
 	  vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
 	  events->MR = computeMR(hemispheres[0], hemispheres[1]); 
 	  events->Rsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	}
-	if (numJetsAbove80GeV_NoLeadJet >= 2) {
+
+	if (numJetsAbove80GeV_NoLeadJet >= 2 && GoodJets.size() < 20) {
 	  vector<TLorentzVector> hemispheres_NoLeadJet = getHemispheres(GoodPFObjects_NoLeadJet);
 	  events->MR_NoLeadJet = computeMR(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1]); 
 	  events->Rsq_NoLeadJet = computeRsq(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1], PFMET_NoLeadJet);
 	}
+
+
 	events->MET = metPt;
 	events->MET_NoLeadJet = PFMET_NoLeadJet.Pt();
 	events->NJets40 = numJetsAbove40GeV;
@@ -846,10 +878,23 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID)
 	//compute M_T for lep1 and MET
 	events->lep1MT = sqrt(events->lep1.M2() + 2*metPt*events->lep1.Pt()*(1 - cos(deltaPhi(metPhi,events->lep1.Phi()))));
 	
+	//save HLT Decisions
+	for(int k=0; k<100; ++k) {
+	  events->HLTDecision[k] = HLTDecision[k];
+	}
+
+
+	//skim events
+	bool passSkim = true;
+	if (skim == "dimuon") {
+	  if (!(abs(events->lep1Type) == 13 && abs(events->lep2Type) == 13 && events->lep1PassLoose && events->lep2PassLoose
+		&& events->lep1.Pt() > 20 && events->lep2.Pt() > 20)) passSkim = false;	  
+	}
 
 	//fill event 
-	events->tree_->Fill();
-
+	if (passSkim) {
+	  events->tree_->Fill();
+	}
 
     }//end of event loop
 

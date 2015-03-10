@@ -56,9 +56,10 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root");
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
-	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999);	
+	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999, bool isRunOne = false, string skim = "");	
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
         virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root");
+        virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -82,6 +83,8 @@ class RazorAnalyzer: public RazorEvents {
         bool passTightElectronIso(int i);
         bool passLooseElectronIso(int i);
 	bool passMVANonTrigVetoElectronIso(int i);
+        bool isRunOneLooseElectron(int i);
+        bool isRunOneTightElectron(int i);
 
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);
