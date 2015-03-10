@@ -44,6 +44,7 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralCalo", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
+    fChain->SetBranchStatus("HLTDecision", 1);
 }
 
 void RazorAnalyzer::EnablePileup(){
