@@ -79,3 +79,8 @@ SMS-T2tt_2J_mStop-500_mLSP-325_Tune4C_13TeV-madgraph-tauola     0.51848
 SMS-T2tt_2J_mStop-650_mLSP-325_Tune4C_13TeV-madgraph-tauola     0.107045
 SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola     0.0189612
 
+
+#Run1 8TeV MC Samples
+DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6               1666.0*1.15906
+DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6                 1666.0*1.15906
+DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball                1177.6*3
