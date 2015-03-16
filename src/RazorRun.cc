@@ -232,7 +232,12 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnablePhotons();
       analyzer.EnableGenParticles();
-      analyzer.RazorPhotonStudy(outputFileName);
+      if(option == 1){ 
+          analyzer.RazorPhotonStudy(outputFileName, true); //run with data
+      }
+      else{
+          analyzer.RazorPhotonStudy(outputFileName, false); //run with MC 
+      }
     }    
     else if(analysisType == "MakeMCPileupDistribution"){
       cout << "Executing MakeMCPileupDistribution..." << endl;
