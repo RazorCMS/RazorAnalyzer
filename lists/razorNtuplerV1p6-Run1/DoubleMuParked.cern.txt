@@ -100,6 +100,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_112.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_113.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_114.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_115.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_116.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_117.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000046/0000/razorNtuple_118.root
@@ -810,6 +811,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_342.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_343.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_344.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_345.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_346.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_347.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_348.root
@@ -940,6 +942,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_460.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_461.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_462.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_463.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_464.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_465.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_466.root
@@ -948,11 +951,14 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_469.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_47.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_470.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_471.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_472.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_473.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_474.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_475.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_476.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_477.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_478.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_479.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_48.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000143/0000/razorNtuple_480.root
@@ -1494,6 +1500,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_437.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_438.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_439.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_44.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_440.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_441.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_442.root
@@ -1570,6 +1577,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_506.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_507.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_508.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_509.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_51.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_510.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_511.root
@@ -1593,6 +1601,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_528.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_529.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_53.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_530.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_531.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_532.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_533.root
@@ -1649,6 +1658,7 @@ root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/R
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_58.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_580.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_581.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_582.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_583.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_584.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/Data/v4/apresyan/DoubleMuParked/runOneRazorNtuplerV1p6_Data_v4_v1/150311_000219/0000/razorNtuple_585.root
