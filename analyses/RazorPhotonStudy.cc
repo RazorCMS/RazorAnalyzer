@@ -38,40 +38,36 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
     int nVetoMuons, nLooseMuons, nTightMuons;
     int nVetoElectrons, nLooseElectrons, nTightElectrons;
     int nLooseTaus, nMediumTaus, nTightTaus;
-    int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenTaus, nGenPhotons, nGenNeutrinos;
+    int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenTaus, nGenPhotons;
     float theMR, MR_noPho, MR_noZ, MR_noW, MR_noGenZ;
     float theRsq, Rsq_noPho, Rsq_noZ, Rsq_noW, Rsq_noGenZ; 
     float met,genmet,met_noPho, met_noZ, met_noW, genZmass, met_noGenZ;
-    float leadingGenMuonPt, leadingGenElectronPt, leadingGenPhotonPt, leadingGenNeutrinoPt;
-    float leadingGenMuonEta, leadingGenElectronEta, leadingGenPhotonEta, leadingGenNeutrinoEta;
-    float leadingGenMuonPhi, leadingGenElectronPhi, leadingGenPhotonPhi, leadingGenNeutrinoPhi;
-    float leadingGenMuonE, leadingGenElectronE, leadingGenPhotonE, leadingGenNeutrinoE;
-    float subleadingGenMuonPt, subleadingGenElectronPt, subleadingGenPhotonPt, subleadingGenNeutrinoPt;
-    float subleadingGenMuonEta, subleadingGenElectronEta, subleadingGenPhotonEta, subleadingGenNeutrinoEta;
-    float subleadingGenMuonPhi, subleadingGenElectronPhi, subleadingGenPhotonPhi, subleadingGenNeutrinoPhi;
-    float subleadingGenMuonE, subleadingGenElectronE, subleadingGenPhotonE, subleadingGenNeutrinoE;
-    float leadingMuonPt, leadingElectronPt, leadingPhotonPt;
-    float leadingMuonEta, leadingElectronEta, leadingPhotonEta;
-    float leadingMuonPhi, leadingElectronPhi, leadingPhotonPhi;
-    float leadingMuonE, leadingElectronE, leadingPhotonE;
-    float subleadingMuonPt, subleadingElectronPt, subleadingPhotonPt;
-    float subleadingMuonEta, subleadingElectronEta, subleadingPhotonEta;
-    float subleadingMuonPhi, subleadingElectronPhi, subleadingPhotonPhi;
-    float subleadingMuonE, subleadingElectronE, subleadingPhotonE;
-    float j1pt, j2pt, j1eta, j2eta, j1phi, j2phi;
+    float leadingGenMuonPt, leadingGenPhotonPt;
+    float leadingGenMuonEta, leadingGenPhotonEta;
+    float leadingGenMuonPhi, leadingGenPhotonPhi;
+    float leadingGenMuonE, leadingGenPhotonE;
+    float subleadingGenMuonPt, subleadingGenPhotonPt;
+    float subleadingGenMuonEta, subleadingGenPhotonEta;
+    float subleadingGenMuonPhi, subleadingGenPhotonPhi;
+    float subleadingGenMuonE, subleadingGenPhotonE;
+    float leadingMuonPt, leadingPhotonPt;
+    float leadingMuonEta, leadingPhotonEta;
+    float leadingMuonPhi, leadingPhotonPhi;
+    float leadingMuonE, leadingPhotonE;
+    float subleadingMuonPt, subleadingPhotonPt;
+    float subleadingMuonEta, subleadingPhotonEta;
+    float subleadingMuonPhi, subleadingPhotonPhi;
+    float subleadingMuonE, subleadingPhotonE;
     float metphi, genmetphi, metphi_noZ, metphi_noW, metphi_noPho, metphi_noGenZ;
     float HT, HT_noZ, HT_noW, HT_noPho, HT_noGenZ;
     int numJets, numJets_noZ, numJets_noW, numJets_noPho, numJets_noGenZ; 
     int numJets80, numJets80_noZ, numJets80_noW, numJets80_noPho, numJets80_noGenZ; 
     float genZpt, recoZpt, genZeta, recoZeta, genZphi, recoZphi, recoZmass, genWpt, recoWpt, genWeta, genWphi, recoWphi;
-    float minDRGenLeptonToGenParton;
-    bool leadGenMuonIsFound, leadGenElectronIsFound, leadGenPhotonIsFound;
-    bool leadGenMuonIsFoundTight, leadGenElectronIsFoundTight;
-    float ptMatchingLeadGenMuon, ptMatchingLeadGenElectron, ptMatchingLeadGenPhoton; //pt of the object matching the gen particle
+    bool leadGenMuonIsFound, leadGenPhotonIsFound;
+    bool leadGenMuonIsFoundTight;
+    float ptMatchingLeadGenMuon, ptMatchingLeadGenPhoton; //pt of the object matching the gen particle
     int nSelectedPhotons;    
     float mTLepMet;
-    // RazorPhotonStudy_RazorBox box;
-    RazorBox box;
 
     //set branches on big tree
     if(!isData){
@@ -81,40 +77,23 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         razorTree->Branch("nGenTauElectrons", &nGenTauElectrons, "nGenTauElectrons/I");
         razorTree->Branch("nGenTaus", &nGenTaus, "nGenTaus/I");
         razorTree->Branch("nGenPhotons", &nGenPhotons, "nGenPhotons/I");
-        razorTree->Branch("nGenNeutrinos", &nGenNeutrinos, "nGenNeutrinos/I");
         razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
         razorTree->Branch("leadingGenMuonPt", &leadingGenMuonPt, "leadingGenMuonPt/F");
         razorTree->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
         razorTree->Branch("leadingGenMuonPhi", &leadingGenMuonPhi, "leadingGenMuonPhi/F");
         razorTree->Branch("leadingGenMuonE", &leadingGenMuonE, "leadingGenMuonE/F");
-        razorTree->Branch("leadingGenElectronPt", &leadingGenElectronPt, "leadingGenElectronPt/F");
-        razorTree->Branch("leadingGenElectronEta", &leadingGenElectronEta, "leadingGenElectronEta/F");
-        razorTree->Branch("leadingGenElectronPhi", &leadingGenElectronPhi, "leadingGenElectronPhi/F");
-        razorTree->Branch("leadingGenElectronE", &leadingGenElectronE, "leadingGenElectronE/F");
         razorTree->Branch("leadingGenPhotonPt", &leadingGenPhotonPt, "leadingGenPhotonPt/F");
         razorTree->Branch("leadingGenPhotonEta", &leadingGenPhotonEta, "leadingGenPhotonEta/F");
         razorTree->Branch("leadingGenPhotonPhi", &leadingGenPhotonPhi, "leadingGenPhotonPhi/F");
         razorTree->Branch("leadingGenPhotonE", &leadingGenPhotonE, "leadingGenPhotonE/F");
-        razorTree->Branch("leadingGenNeutrinoPt", &leadingGenNeutrinoPt, "leadingGenNeutrinoPt/F");
-        razorTree->Branch("leadingGenNeutrinoEta", &leadingGenNeutrinoEta, "leadingGenNeutrinoEta/F");
-        razorTree->Branch("leadingGenNeutrinoPhi", &leadingGenNeutrinoPhi, "leadingGenNeutrinoPhi/F");
-        razorTree->Branch("leadingGenNeutrinoE", &leadingGenNeutrinoE, "leadingGenNeutrinoE/F");
         razorTree->Branch("subleadingGenMuonPt", &subleadingGenMuonPt, "subleadingGenMuonPt/F");
         razorTree->Branch("subleadingGenMuonEta", &subleadingGenMuonEta, "subleadingGenMuonEta/F");
         razorTree->Branch("subleadingGenMuonPhi", &subleadingGenMuonPhi, "subleadingGenMuonPhi/F");
         razorTree->Branch("subleadingGenMuonE", &subleadingGenMuonE, "subleadingGenMuonE/F");
-        razorTree->Branch("subleadingGenElectronPt", &subleadingGenElectronPt, "subleadingGenElectronPt/F");
-        razorTree->Branch("subleadingGenElectronEta", &subleadingGenElectronEta, "subleadingGenElectronEta/F");
-        razorTree->Branch("subleadingGenElectronPhi", &subleadingGenElectronPhi, "subleadingGenElectronPhi/F");
-        razorTree->Branch("subleadingGenElectronE", &subleadingGenElectronE, "subleadingGenElectronE/F");
         razorTree->Branch("subleadingGenPhotonPt", &subleadingGenPhotonPt, "subleadingGenPhotonPt/F");
         razorTree->Branch("subleadingGenPhotonEta", &subleadingGenPhotonEta, "subleadingGenPhotonEta/F");
         razorTree->Branch("subleadingGenPhotonPhi", &subleadingGenPhotonPhi, "subleadingGenPhotonPhi/F");
         razorTree->Branch("subleadingGenPhotonE", &subleadingGenPhotonE, "subleadingGenPhotonE/F");
-        razorTree->Branch("subleadingGenNeutrinoPt", &subleadingGenNeutrinoPt, "subleadingGenNeutrinoPt/F");
-        razorTree->Branch("subleadingGenNeutrinoEta", &subleadingGenNeutrinoEta, "subleadingGenNeutrinoEta/F");
-        razorTree->Branch("subleadingGenNeutrinoPhi", &subleadingGenNeutrinoPhi, "subleadingGenNeutrinoPhi/F");
-        razorTree->Branch("subleadingGenNeutrinoE", &subleadingGenNeutrinoE, "subleadingGenNeutrinoE/F");
         razorTree->Branch("genZpt", &genZpt, "genZpt/F");
         razorTree->Branch("genZeta", &genZeta, "genZeta/F");
         razorTree->Branch("genZphi", &genZphi, "genZphi/F");
@@ -122,7 +101,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         razorTree->Branch("genWpt", &genWpt, "genWpt/F");
         razorTree->Branch("genWeta", &genWeta, "genWeta/F");
         razorTree->Branch("genWphi", &genWphi, "genWphi/F");
-        razorTree->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
         razorTree->Branch("MR_noGenZ", &MR_noGenZ, "MR_noGenZ/F");
         razorTree->Branch("Rsq_noGenZ", &Rsq_noGenZ, "Rsq_noGenZ/F");
         razorTree->Branch("met_noGenZ", &met_noGenZ, "met_noGenZ/F");
@@ -133,12 +111,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         razorTree->Branch("numJets_noGenZ", &numJets_noGenZ, "numJets_noGenZ/I");
         razorTree->Branch("numJets80_noGenZ", &numJets80_noGenZ, "numJets80_noGenZ/I");
         razorTree->Branch("leadGenMuonIsFound", &leadGenMuonIsFound, "leadGenMuonIsFound/O");
-        razorTree->Branch("leadGenElectronIsFound", &leadGenElectronIsFound, "leadGenElectronIsFound/O");
         razorTree->Branch("leadGenPhotonIsFound", &leadGenPhotonIsFound, "leadGenPhotonIsFound/O");
         razorTree->Branch("leadGenMuonIsFoundTight", &leadGenMuonIsFoundTight, "leadGenMuonIsFoundTight/O");
-        razorTree->Branch("leadGenElectronIsFoundTight", &leadGenElectronIsFoundTight, "leadGenElectronIsFoundTight/O");
         razorTree->Branch("ptMatchingLeadGenMuon", &ptMatchingLeadGenMuon, "ptMatchingLeadGenMuon/F");
-        razorTree->Branch("ptMatchingLeadGenElectron", &ptMatchingLeadGenElectron, "ptMatchingLeadGenElectron/F");
         razorTree->Branch("ptMatchingLeadGenPhoton", &ptMatchingLeadGenPhoton, "ptMatchingLeadGenPhoton/F");
     }
     razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
@@ -156,10 +131,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
     razorTree->Branch("leadingMuonEta", &leadingMuonEta, "leadingMuonEta/F");
     razorTree->Branch("leadingMuonPhi", &leadingMuonPhi, "leadingMuonPhi/F");
     razorTree->Branch("leadingMuonE", &leadingMuonE, "leadingMuonE/F");
-    razorTree->Branch("leadingElectronPt", &leadingElectronPt, "leadingElectronPt/F");
-    razorTree->Branch("leadingElectronEta", &leadingElectronEta, "leadingElectronEta/F");
-    razorTree->Branch("leadingElectronPhi", &leadingElectronPhi, "leadingElectronPhi/F");
-    razorTree->Branch("leadingElectronE", &leadingElectronE, "leadingElectronE/F");
     razorTree->Branch("leadingPhotonPt", &leadingPhotonPt, "leadingPhotonPt/F");
     razorTree->Branch("leadingPhotonEta", &leadingPhotonEta, "leadingPhotonEta/F");
     razorTree->Branch("leadingPhotonPhi", &leadingPhotonPhi, "leadingPhotonPhi/F");
@@ -172,10 +143,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
     razorTree->Branch("subleadingMuonEta", &subleadingMuonEta, "subleadingMuonEta/F");
     razorTree->Branch("subleadingMuonPhi", &subleadingMuonPhi, "subleadingMuonPhi/F");
     razorTree->Branch("subleadingMuonE", &subleadingMuonE, "subleadingMuonE/F");
-    razorTree->Branch("subleadingElectronPt", &subleadingElectronPt, "subleadingElectronPt/F");
-    razorTree->Branch("subleadingElectronEta", &subleadingElectronEta, "subleadingElectronEta/F");
-    razorTree->Branch("subleadingElectronPhi", &subleadingElectronPhi, "subleadingElectronPhi/F");
-    razorTree->Branch("subleadingElectronE", &subleadingElectronE, "subleadingElectronE/F");
     razorTree->Branch("recoZpt", &recoZpt, "recoZpt/F");
     razorTree->Branch("recoZeta", &recoZeta, "recoZeta/F");
     razorTree->Branch("recoZphi", &recoZphi, "recoZphi/F");
@@ -210,13 +177,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
     razorTree->Branch("numJets80_noZ", &numJets80_noZ, "numJets80_noZ/I");
     razorTree->Branch("numJets80_noW", &numJets80_noW, "numJets80_noW/I");
     razorTree->Branch("numJets80_noPho", &numJets80_noPho, "numJets80_noPho/I");
-    razorTree->Branch("box", &box, "box/I");
-    razorTree->Branch("j1pt", &j1pt, "j1pt/F");
-    razorTree->Branch("j2pt", &j2pt, "j2pt/F");
-    razorTree->Branch("j1eta", &j1eta, "j1eta/F");
-    razorTree->Branch("j2eta", &j2eta, "j2eta/F");
-    razorTree->Branch("j1phi", &j1phi, "j1phi/F");
-    razorTree->Branch("j2phi", &j2phi, "j2phi/F");
     razorTree->Branch("mTLepMet", &mTLepMet, "mTLepMet/F");
 
     //****************************************************//
@@ -247,7 +207,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             nGenTauElectrons = 0;
             nGenTaus = 0;
             nGenPhotons = 0;
-            nGenNeutrinos = 0;
             MR_noGenZ = -1;
             genZpt = -1;
             genZeta = -99;
@@ -265,46 +224,26 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             numJets_noGenZ = 0;
             numJets80_noGenZ = 0;
             leadGenMuonIsFound = false;
-            leadGenElectronIsFound = false;
             leadGenPhotonIsFound = false;
             leadGenMuonIsFoundTight = false;
-            leadGenElectronIsFoundTight = false;
             ptMatchingLeadGenMuon = -1;
-            ptMatchingLeadGenElectron = -1;
             ptMatchingLeadGenPhoton = -1;
-            minDRGenLeptonToGenParton = 9999;
             leadingGenMuonPt = 0;
-            leadingGenElectronPt = 0;
             leadingGenPhotonPt = 0;
-            leadingGenNeutrinoPt = 0;
             leadingGenMuonEta = -999;
-            leadingGenElectronEta = -999;
             leadingGenPhotonEta = -999;
-            leadingGenNeutrinoEta = -999;
             leadingGenMuonPhi = -999;
-            leadingGenElectronPhi = -999;
             leadingGenPhotonPhi = -999;
-            leadingGenNeutrinoPhi = -999;
             leadingGenMuonE = 0;
-            leadingGenElectronE = 0;
             leadingGenPhotonE = 0;
-            leadingGenNeutrinoE = 0;
             subleadingGenMuonPt = 0;
-            subleadingGenElectronPt = 0;
             subleadingGenPhotonPt = 0;
-            subleadingGenNeutrinoPt = 0;
             subleadingGenMuonEta = -999;
-            subleadingGenElectronEta = -999;
             subleadingGenPhotonEta = -999;
-            subleadingGenNeutrinoEta = -999;
             subleadingGenMuonPhi = -999;
-            subleadingGenElectronPhi = -999;
             subleadingGenPhotonPhi = -999;
-            subleadingGenNeutrinoPhi = -999;
             subleadingGenMuonE = 0;
-            subleadingGenElectronE = 0;
             subleadingGenPhotonE = 0;
-            subleadingGenNeutrinoE = 0;
         }
         nSelectedJets = 0;
         nBTaggedJets = 0;
@@ -340,10 +279,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         leadingMuonEta = -999;
         leadingMuonPhi = -999;
         leadingMuonE = -999;
-        leadingElectronPt = -1;
-        leadingElectronEta = -999;
-        leadingElectronPhi = -999;
-        leadingElectronE = -999;
         leadingPhotonPt = -1;
         leadingPhotonEta = -999;
         leadingPhotonPhi = -999;
@@ -352,10 +287,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         subleadingMuonEta = -999;
         subleadingMuonPhi = -999;
         subleadingMuonE = -999;
-        subleadingElectronPt = -1;
-        subleadingElectronEta = -999;
-        subleadingElectronPhi = -999;
-        subleadingElectronE = -999;
         subleadingPhotonPt = -1;
         subleadingPhotonEta = -999;
         subleadingPhotonPhi = -999;
@@ -376,12 +307,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         numJets80_noPho = 0;
         numJets80_noZ = 0;
         numJets80_noW = 0;
-        j1pt=-1.;
-        j2pt=-1.;
-        j1eta=-99.;
-        j2eta=-99.;
-        j1phi=-99.;
-        j2phi=-99.;
         mTLepMet = -1;
 
         //****************************************************//
@@ -394,25 +319,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
                 if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1) {
                     if (  (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23) ) {
                         nGenElectrons++;
-                        if (gParticlePt[j] > leadingGenElectronPt) {
-                            //make leading gen electron into subleading
-                            subleadingGenElectronPt = leadingGenElectronPt;
-                            subleadingGenElectronEta = leadingGenElectronEta;
-                            subleadingGenElectronPhi = leadingGenElectronPhi;
-                            subleadingGenElectronE = leadingGenElectronE;
-                            //make this the leading gen electron
-                            leadingGenElectronPt = gParticlePt[j];
-                            leadingGenElectronEta = gParticleEta[j];
-                            leadingGenElectronPhi = gParticlePhi[j];
-                            leadingGenElectronE = gParticleE[j];
-                        }
-                        else if(gParticlePt[j] > subleadingGenElectronPt){
-                            //make this the subleading gen electron
-                            subleadingGenElectronPt = gParticlePt[j];
-                            subleadingGenElectronEta = gParticleEta[j];
-                            subleadingGenElectronPhi = gParticlePhi[j];
-                            subleadingGenElectronE = gParticleE[j];
-                        }
                     }
                     if ( abs(gParticleMotherId[j]) == 15) {
                         nGenTauElectrons++;
@@ -446,32 +352,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
                     }
                     if ( abs(gParticleMotherId[j]) == 15) {
                         nGenTauMuons++;
-                    }
-                }
-                //neutrinos
-                if (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16){
-                    if(gParticleStatus[j] == 1 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)){
-                        nGenNeutrinos++;
-                        if (gParticlePt[j] > leadingGenNeutrinoPt) {
-                            //make leading gen neutrino into subleading
-                            subleadingGenNeutrinoPt = leadingGenNeutrinoPt;
-                            subleadingGenNeutrinoEta = leadingGenNeutrinoEta;
-                            subleadingGenNeutrinoPhi = leadingGenNeutrinoPhi;
-                            subleadingGenNeutrinoE = leadingGenNeutrinoE; 
-                            //make this the leading gen neutrino
-                            leadingGenNeutrinoPt = gParticlePt[j];
-                            leadingGenNeutrinoEta = gParticleEta[j];
-                            leadingGenNeutrinoPhi = gParticlePhi[j];
-                            leadingGenNeutrinoE = gParticleE[j];
-                        }
-                        else if(gParticlePt[j] > subleadingGenNeutrinoPt){
-                            //make this the subleading gen neutrino
-                            subleadingGenNeutrinoPt = gParticlePt[j];
-                            subleadingGenNeutrinoEta = gParticleEta[j];
-                            subleadingGenNeutrinoPhi = gParticlePhi[j];
-                            subleadingGenNeutrinoE = gParticleE[j];
-                        }
-
                     }
                 }
                 //taus
@@ -527,8 +407,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         //****************************************************//
         //               Select muons                         //
         //****************************************************//
-        vector<TLorentzVector> GoodMuons, GoodElectrons; 
-        vector<TLorentzVector> GoodMuonsTight, GoodElectronsTight;
+        vector<TLorentzVector> GoodMuons; 
+        vector<TLorentzVector> GoodMuonsTight;
         for(int i = 0; i < nMuons; i++){
 
             if(!isLooseMuon(i)) continue;
@@ -581,34 +461,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
             if(isTightElectron(i)){
                 nTightElectrons++;
-                GoodElectronsTight.push_back(thisElectron);
             }
-
             nLooseElectrons++;
-
-            GoodElectrons.push_back(thisElectron);
-
-            //check if this electron is leading or subleading
-            if(elePt[i] > leadingElectronPt){
-                //make leading electron into subleading
-                subleadingElectronPt = leadingElectronPt;
-                subleadingElectronEta = leadingElectronEta;
-                subleadingElectronPhi = leadingElectronPhi;
-                subleadingElectronE = leadingElectronE;
-                //make this the leading electron
-                leadingElectronPt = elePt[i];
-                leadingElectronEta = eleEta[i];
-                leadingElectronPhi = elePhi[i];
-                leadingElectronE = eleE[i];
-            }
-            else if(elePt[i] > subleadingElectronPt){
-                //make this the subleading electron
-                subleadingElectronPt = elePt[i];
-                subleadingElectronEta = eleEta[i];
-                subleadingElectronPhi = elePhi[i];
-                subleadingElectronE = eleE[i];
-            }
-
         }
 
         //****************************************************//
@@ -631,7 +485,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         //****************************************************//
         //               Select jets                          //
         //****************************************************//
-        vector<TLorentzVector> GoodJets; //will contain leptons above 40 GeV
+        vector<TLorentzVector> GoodJets; //will contain leptons above 40 GeV in addition to jets
         for(int i = 0; i < nJets; i++){
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
@@ -645,22 +499,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
                 nBTaggedJets++;
             }
         }
-        //if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-
-        //****************************************************//
-        //               Store leading jet info               //
-        //****************************************************//
         sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
-        if(GoodJets.size() > 0){
-            j1pt=GoodJets[0].Pt();
-            j1eta=GoodJets[0].Eta();
-            j1phi=GoodJets[0].Phi();
-        }
-        if(GoodJets.size() > 1){
-            j2pt=GoodJets[1].Pt();
-            j2eta=GoodJets[1].Eta();
-            j2phi=GoodJets[1].Phi();
-        }
+
+        if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
+        if(GoodJets.size() > 15) continue; //TODO: instead do jet ID
 
         //****************************************************//
         //     Compute the razor variables and HT, nJets      //
@@ -718,6 +560,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             }
         }
 
+        if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
+
         //****************************************************//
         //        Match gen-level and reco objects            //
         //****************************************************//
@@ -737,25 +581,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
                     float thisDeltaR = mu.DeltaR(leadGenMuon);
                     if(thisDeltaR < 0.1){ //muon matches leading gen muon
                         leadGenMuonIsFoundTight = true;
-                        break;
-                    }
-                }
-            }
-            if(nGenElectrons > 0){
-                //see if we selected a electron matching the leading gen electron
-                TLorentzVector leadGenElectron = makeTLorentzVector(leadingGenElectronPt, leadingGenElectronEta, leadingGenElectronPhi, leadingGenElectronE);
-                for(auto& ele : GoodElectrons){
-                    float thisDeltaR = ele.DeltaR(leadGenElectron);
-                    if(thisDeltaR < 0.1){ //electron matches leading gen electron
-                        leadGenElectronIsFound = true;
-                        ptMatchingLeadGenElectron = ele.Pt(); //fill pt of the electron matching the gen electron
-                        break;
-                    }
-                }
-                for(auto& ele : GoodElectronsTight){
-                    float thisDeltaR = ele.DeltaR(leadGenElectron);
-                    if(thisDeltaR < 0.1){ //electron matches leading gen electron
-                        leadGenElectronIsFoundTight = true;
                         break;
                     }
                 }
@@ -895,10 +720,12 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         }
 
         //get reco Z information
-        recoZpt = TotalMuonVec.Pt();
-        recoZeta = TotalMuonVec.Eta();
-        recoZphi = TotalMuonVec.Phi();
-        recoZmass = TotalMuonVec.M();
+        if(GoodMuons.size() >= 1){
+            recoZpt = TotalMuonVec.Pt();
+            recoZeta = TotalMuonVec.Eta();
+            recoZphi = TotalMuonVec.Phi();
+            recoZmass = TotalMuonVec.M();
+        }
 
         //compute reco Z information and razor variables for DY
         if(numJets_noZ > 1)
