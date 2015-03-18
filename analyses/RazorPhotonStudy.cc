@@ -489,6 +489,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         for(int i = 0; i < nJets; i++){
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
+            //apply jet iD --DISABLE for 13 TeV ntuples
+            //int level = 2; //loose jet ID
+            //if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+            //if (!jetPassIDTight[i]) continue;
 
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             if(jetPt[i] > 80) numJets80++;
@@ -502,7 +506,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
 
         if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-        if(GoodJets.size() > 15) continue; //TODO: instead do jet ID
+        if(numJets > 15) continue; //TODO : remove this when able
 
         //****************************************************//
         //     Compute the razor variables and HT, nJets      //
