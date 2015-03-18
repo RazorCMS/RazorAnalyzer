@@ -81,6 +81,33 @@ SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola     0.0189612
 
 
 #Run1 8TeV MC Samples
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph                  381.2
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph                 160.3
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph                 41.49
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph                 5.274
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph                 19.73*1.1973
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph                 2.826*1.1973
+WJetsToLNu_HT-200To250_8TeV-madgraph                            90.27*1.2401
+WJetsToLNu_HT-250To300_8TeV-madgraph                            48.01*1.2401
+WJetsToLNu_HT-300To400_8TeV-madgraph                            38.3*1.2401
+WJetsToLNu_HT-400ToInf_8TeV-madgraph                            25.22*1.2401
 DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6               1666.0*1.15906
 DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6                 1666.0*1.15906
 DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball                1177.6*3
+TTJets_FullLeptMGDecays_8TeV-madgraph-tauola                    14.3115*1.8034
+TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola                    59.6994*1.8034
+TTJets_HadronicMGDecays_8TeV-madgraph                           62.2891*1.8034
+TTWJets_8TeV-madgraph                                           0.232
+TTWWJets_8TeV-madgraph                                          0.002037
+TTZJets_8TeV-madgraph                                           0.208
+T_s-channel_TuneZ2star_8TeV-powheg-tauola                       2.82*1.3439716312
+T_t-channel_TuneZ2star_8TeV-powheg-tauola                       47.0*1.1674468085
+T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola                   10.7*1.0373831776
+Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola                    1.57*1.1210191083
+Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola                    25.0*1.1896 
+Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola                10.7*1.0373831776
+WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   47.0*(1-0.0305)*(0.1080*3)*(0.1080*3)*1.2151 
+WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola                    26.2*(0.1080*3)*0.101*1.23344
+ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   0.364791
+ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    2.448690
+TTTT_TuneZ2star_8TeV-madgraph-tauola                            9.144e-04
