@@ -34,6 +34,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
     //tree variables
+    int nVtx, nPU_mean;
+    int run, lumi;
+    int hlt_dimuon;
     int nSelectedJets, nBTaggedJets;
     int nVetoMuons, nLooseMuons, nTightMuons;
     int nVetoElectrons, nLooseElectrons, nTightElectrons;
@@ -116,6 +119,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         razorTree->Branch("ptMatchingLeadGenMuon", &ptMatchingLeadGenMuon, "ptMatchingLeadGenMuon/F");
         razorTree->Branch("ptMatchingLeadGenPhoton", &ptMatchingLeadGenPhoton, "ptMatchingLeadGenPhoton/F");
     }
+    razorTree->Branch("run", &run, "run/I");
+    razorTree->Branch("lumi", &lumi, "lumi/I");
+    razorTree->Branch("nVtx", &nVtx, "nVtx/I");
+    razorTree->Branch("hlt_dimuon", &hlt_dimuon, "hlt_dimuon/I");
+    razorTree->Branch("nPU_mean", &nPU_mean, "nPU_mean/I");
     razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
     razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
     razorTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
@@ -245,7 +253,12 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             subleadingGenMuonE = 0;
             subleadingGenPhotonE = 0;
         }
-        nSelectedJets = 0;
+	run = 0;
+	lumi = 0;
+ 	nVtx = 0;
+	nPU_mean = 0;
+	hlt_dimuon = -1;
+	nSelectedJets = 0;
         nBTaggedJets = 0;
         nVetoMuons = 0;
         nLooseMuons = 0;
@@ -309,6 +322,20 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         numJets80_noW = 0;
         mTLepMet = -1;
 
+        //****************************************************//
+        //               Select PU and trigger                //
+        //****************************************************//
+	nVtx = nPV;
+        if(!isData)
+	  for(int i=0; i<nBunchXing; i++)
+	    if(BunchXing[i]==0) nPU_mean = nPUmean[i];
+
+	if(HLTDecision[3] == 1 || HLTDecision[4] == 1 )
+	  hlt_dimuon = 1;
+
+	run = runNum;
+	lumi = lumiNum;
+	
         //****************************************************//
         //               Select gen particles                 //
         //****************************************************//
@@ -490,9 +517,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
             //apply jet iD --DISABLE for 13 TeV ntuples
-            //int level = 2; //loose jet ID
-            //if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
-            //if (!jetPassIDTight[i]) continue;
+            int level = 2; //loose jet ID
+            if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+            if (!jetPassIDTight[i]) continue;
 
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             if(jetPt[i] > 80) numJets80++;
@@ -506,8 +533,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
 
         if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-        if(numJets > 15) continue; //TODO : remove this when able
-
+        // if(numJets > 15) continue; //TODO : remove this when able
+	
         //****************************************************//
         //     Compute the razor variables and HT, nJets      //
         //****************************************************//
@@ -519,7 +546,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         for(auto& pf : GoodJets) HT += pf.Pt();
 
         // compute R and MR
-        if(GoodJets.size() >= 2){
+        if(GoodJets.size() >= 2 && GoodJets.size() < 20){
             vector<TLorentzVector> hemispheres = getHemispheres(GoodJets);
             theMR = computeMR(hemispheres[0], hemispheres[1]); 
             theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
@@ -635,7 +662,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             numJets_noPho = GoodJetsNoLeadPhoton.size();
             for(auto& pf : GoodJetsNoLeadPhoton) HT_noPho += pf.Pt();
 
-            if(GoodJetsNoLeadPhoton.size() >= 2){
+            if(GoodJetsNoLeadPhoton.size() >= 2 && GoodJetsNoLeadPhoton.size() <20){
                 //remake the hemispheres using the new jet collection
                 vector<TLorentzVector> hemispheresNoLeadPhoton = getHemispheres(GoodJetsNoLeadPhoton);
                 TLorentzVector PFMET_NOPHO = makeTLorentzVectorPtEtaPhiM(met_noPho, 0, metphi_noPho, 0);
@@ -732,7 +759,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         }
 
         //compute reco Z information and razor variables for DY
-        if(numJets_noZ > 1)
+        if(numJets_noZ > 1 && GoodJets.size()<20)
         {
             vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoMuons);
             Rsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], ZPlusMet_perp);
@@ -746,7 +773,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
                 if(jet.Pt() > 80) numJets80_noGenZ++;
             }
             //razor variables using GEN muons
-            if(numJets_noGenZ > 1)
+            if(numJets_noGenZ > 1 && GoodJets.size()<20)
             {
                 vector<TLorentzVector> hemispheresNoGenZ = getHemispheres(GoodJetsNoGenMuons);
                 Rsq_noGenZ = computeRsq(hemispheresNoGenZ[0], hemispheresNoGenZ[1], ZPlusMetGen_perp);
@@ -754,7 +781,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             }
         }
         //razor variables using tight muons (for W)
-        if(numJets_noW > 1){
+        if(numJets_noW > 1 && GoodJets.size()<20){
             vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoTightMuons);
             Rsq_noW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], WPlusMet_perp);
             MR_noW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
@@ -773,8 +800,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             recoWphi = (m1+m2).Phi();
         }
 
-        if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
-        if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
+        // if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
+        // if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
 
         razorTree->Fill();
     }//end of event loop
