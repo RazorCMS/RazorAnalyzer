@@ -192,30 +192,23 @@ void RunSelectTTBarDileptonControlSample( string datafile, vector<string> bkgfil
 
 
       // //Razor signal region cuts
-     if (option == "TwoJet80") {
-       if (!(events->MR > 0 )) continue;
-     }
-
-     if (option == "MR400Rsq0p10" || option == "BumpRegion") {
-       if (!(events->MR > 400 && events->Rsq > 0.1 )) continue;
-     }
-
-     if (option == "LooserBumpRegion") {
-       if (!(events->MR > 400 && events->Rsq > 0.075 )) continue;
-     }
-
-      //if (!(events->MR > 300 && events->Rsq > 0.06 )) continue;
-      //if (!(events->MR > 300 && events->Rsq > 0.075 )) continue;
-
-      // if (!(events->MR > 0 )) continue;
-      //if (!(events->MR > 400 && events->Rsq > 0.15 )) continue;
-    
-
-      //isolate the e-mu bump
-     if (option == "BumpRegion" || option == "LooserBumpRegion" ) {
-       if (!( (events->lep1+events->lep2).M() > 260 && (events->lep1+events->lep2).M() < 290)) continue;
-     }
-
+      if (option == "TwoJet80") {
+	if (!(events->MR > 0 )) continue;
+      }
+      
+      if (option == "MR400Rsq0p10" || option == "BumpRegion") {
+	if (!(events->MR > 400 && events->Rsq > 0.1 )) continue;
+      }
+      
+      if (option == "LooserBumpRegion") {
+	if (!(events->MR > 400 && events->Rsq > 0.075 )) continue;
+      }
+      
+     //isolate the e-mu bump
+      if (option == "BumpRegion" || option == "LooserBumpRegion" ) {
+	if (!( (events->lep1+events->lep2).M() > 260 && (events->lep1+events->lep2).M() < 290)) continue;
+      }
+      
 
 
       //******************************
@@ -265,7 +258,11 @@ void RunSelectTTBarDileptonControlSample( string datafile, vector<string> bkgfil
 	weight = weight * triggerEffScaleFactor;
 	//cout << weight << " " << leptonEffScaleFactor << " " << triggerEffScaleFactor << " " <<  events->weight << " " << puWeight << "\n";
 
-	weight = weight * (6465 / 7527.79); //scale factor 
+	if ((abs(events->lep1Type) == 11 && abs(events->lep2Type) == 13) ||
+	    (abs(events->lep1Type) == 13 && abs(events->lep2Type) == 11)) weight = weight * (733.0 / 902.0);
+	if (abs(events->lep1Type) == abs(events->lep2Type) && abs(events->lep1Type) == 13) weight = weight * (302.0 / 409.0);
+	if (abs(events->lep1Type) == abs(events->lep2Type) && abs(events->lep1Type) == 11) weight = weight * (263.0 / 318.0);
+
 
       }
 
@@ -1156,7 +1153,7 @@ void RunSelectTTBarDileptonControlSample( string datafile, vector<string> bkgfil
 void WeirdEMuBumpStudy( int option = -1, string label = "") {
 
   string datafile = "";
-  //string datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkim/RunOneRazorControlRegions_DileptonSkimRazorSkim_DoubleMuParked_GoodLumi.root";
+  //datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_DoubleMuParked_GoodLumi.root";
   //string datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkim/RunOneRazorControlRegions_DileptonSkimRazorSkim_DoubleElectron_GoodLumi.root";
   //string datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkim/RunOneRazorControlRegions_DileptonSkimRazorSkim_MuEG_GoodLumi.root";
 
@@ -1168,7 +1165,8 @@ void WeirdEMuBumpStudy( int option = -1, string label = "") {
   vector<int> colors;
 
   //No Skims
-  // datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_MuEG_GoodLumi.root";
+  //datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_MuEG_GoodLumi.root";
+  //datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/old/RunOneRazorControlRegions_DileptonSkim_DoubleMuParked_GoodLumi.root";
   // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_VV_1pb_weighted.root");
   // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_TTJets_FullLeptMGDecays_8TeV-madgraph-tauola_1pb_weighted.root");
   // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_SingleTop_1pb_weighted.root");
@@ -1176,7 +1174,9 @@ void WeirdEMuBumpStudy( int option = -1, string label = "") {
   // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
 
   //MR300 Skim
-  datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RunOneRazorControlRegions_DileptonSkim_MuEG_GoodLumi.root";
+  //datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_MuEG_GoodLumi.root";
+  //datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_DoubleMuParked_GoodLumi.root";
+  datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_DoubleElectron_GoodLumi.root";
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_VV_1pb_weighted.root");
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_TTJets_FullLeptMGDecays_8TeV-madgraph-tauola_1pb_weighted.root");
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_SingleTop_1pb_weighted.root");
@@ -1184,11 +1184,6 @@ void WeirdEMuBumpStudy( int option = -1, string label = "") {
   inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300/RunOneRazorControlRegions_DileptonSkimRazorSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
   
 
-  // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300Rsq0p10/RunOneRazorControlRegions_DileptonSkimRazorSkim_VV_1pb_weighted.root");
-  // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300Rsq0p10/RunOneRazorControlRegions_DileptonSkimRazorSkim_TTJets_FullLeptMGDecays_8TeV-madgraph-tauola_1pb_weighted.root");
-  // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300Rsq0p10/RunOneRazorControlRegions_DileptonSkimRazorSkim_SingleTop_1pb_weighted.root");
-  // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300Rsq0p10/RunOneRazorControlRegions_DileptonSkimRazorSkim_TTV_1pb_weighted.root");
-  // inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/RazorSkimMR300Rsq0p10/RunOneRazorControlRegions_DileptonSkimRazorSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
 
 
   processLabels.push_back("VV");
@@ -1205,31 +1200,46 @@ void WeirdEMuBumpStudy( int option = -1, string label = "") {
  
 
   //*********************************************************************
-  //Dilepton Control Region
+  //E-Mu Control Region
   //*********************************************************************
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"Inclusive",0,"Inclusive_emu");
-
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"Met>40",0,"MetGreaterThan40_emu");
-
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"topEnhanced",0,"TopEnhanced_emu");
-
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"TwoJet80",0,"TwoJet80_emu");
-
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"MR400Rsq0p10",0,"MR400Rsq0p10_emu");
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"BumpRegion",0,"BumpRegion_emu");
-  RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"LooserBumpRegion",0,"LooserBumpRegion_emu");
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"LooserBumpRegion",0,"LooserBumpRegion_emu");
+
+
+  //*********************************************************************
+  //MuMu Control Region
+  //*********************************************************************
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19751,"Inclusive",3,"Inclusive_mumu");
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19751,"TwoJet80",3,"TwoJet80_mumu");
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19751,"MR400Rsq0p10",3,"MR400Rsq0p10_mumu");
+
+  //*********************************************************************
+  //E-E Control Region
+  //*********************************************************************
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19789,"Inclusive",2,"Inclusive_ee");
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19789,"TwoJet80",2,"TwoJet80_ee");
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19789,"MR400Rsq0p10",2,"MR400Rsq0p10_ee");
 
 
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"",0,"emu");
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels,colors, 19789, "",1,"eemumu");
   //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels,colors, 19789,"", 2,"ee");
-  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19751, "", 3,"mumu");
+  //RunSelectTTBarDileptonControlSample(datafile, inputfiles,processLabels, colors, 19751, "TwoJet80", 3,"mumu");
 
   
 
 
 }
 
+
+//**********************
+//E-Mu Yields
+//**********************
 //Inclusive
 // Data: 80236
 // MC: 77872.1
@@ -1245,6 +1255,20 @@ void WeirdEMuBumpStudy( int option = -1, string label = "") {
 //TwoJet80
 //Data: 6465
 //MC: 7527.79
+
+
+//**********************
+//Mu-Mu Yields
+//**********************
+
+//TwoJet80
+//Data: 5731
+//MC: 6126.44
+
+//**********************
+//E-E Yields
+//**********************
+
 
 // Z->MM
 // Data: 7.47318e+06
