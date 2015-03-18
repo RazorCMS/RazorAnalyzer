@@ -56,10 +56,11 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root");
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
-	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int process = 999, bool isRunOne = false, string skim = "");	
+	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isRunOne = false);
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
         virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false);
         virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
+	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);

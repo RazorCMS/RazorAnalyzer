@@ -14,9 +14,9 @@ compareJSON.py --and DoubleMu.json DoubleElectron.json output1.json
 compareJSON.py --and MuEG.json output1.json CombinedPDs.json
 
 # and now do the OR with the certification json and calc the lumi
-lumiCalc.py -c frontier://LumiCalc/CMS_LUMI_PROD -i CombinedPDs.json --nowarning overview >& CombinedPDs.lumi &
+lumiCalc2.py -c frontier://LumiCalc/CMS_LUMI_PROD -i CombinedPDs.json --nowarning overview >& CombinedPDs.lumi &
 compareJSON.py --and $certjson CombinedPDs.json CombinedPDs_Good.json
-lumiCalc.py -c frontier://LumiCalc/CMS_LUMI_PROD -i CombinedPDs_Good.json --nowarning overview >& CombinedPDs_Good.lumi &
+lumiCalc2.py -c frontier://LumiCalc/CMS_LUMI_PROD -i CombinedPDs_Good.json --nowarning overview >& CombinedPDs_Good.lumi &
 
 echo "END. Final jsons are:"
 echo "---> from crab report CombinedPDs.json (lumi = CombinedPDs.lumi)"

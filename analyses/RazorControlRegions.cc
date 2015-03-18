@@ -12,7 +12,7 @@
 using namespace std;
 
  
-void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, bool isRunOne, string skim)
+void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isRunOne)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
@@ -62,19 +62,19 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
 	events->run = runNum;
 	events->lumi = lumiNum;
 	events->event = eventNum;
-	events->processID = processID;
+	events->processID = 0;
 
  
 	//get NPU
 	for (int i=0; i < nBunchXing; ++i) {
 	  if (BunchXing[i] == 0) {
-	    events->NPU_0 = nPU[i];
+	    events->NPU_0 = nPUmean[i];
 	  }
 	  if (BunchXing[i] == -1) {
-	    events->NPU_Minus1 = nPU[i];
+	    events->NPU_Minus1 = nPUmean[i];
 	  }
 	  if (BunchXing[i] == 1) {
-	    events->NPU_Plus1 = nPU[i];
+	    events->NPU_Plus1 = nPUmean[i];
 	  }	  
 	}
 
@@ -236,13 +236,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
             if(muonPt[i] < 5) continue;
             if(fabs(muonEta[i]) > 2.4) continue;
 
-	    // if (muonPt[i] > 20 && fabs(muonEta[i]) < 2.4
-	    // 	&& muon_ip3dSignificance[i] < 4
-	    // 	//&& (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] > 0.4
-	    // 	) 
-	    //   {
-	    // 	cout << eventNum << " : muon " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << muonCharge[i] << " " << muonIsTight[i] << " " << muonIsLoose[i] <<  " : " << muon_chargedIso[i] << " " <<  muon_photonIso[i] << " " <<  muon_neutralHadIso[i] << " " << muon_pileupIso[i] << " : " <<  (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] <<  " " << muon_ip3dSignificance[i] << "\n";
-	    // }
+	    //don't count duplicate muons 
+	    bool alreadySelected = false;
+	    for (uint j=0; j<GoodLeptons.size(); j++) {
+	      if ( deltaR(GoodLeptons[j].Eta(), GoodLeptons[j].Phi(), muonEta[i],muonPhi[i]) < 0.1) alreadySelected = true;
+	    }
+	    if (alreadySelected) continue;
 
             if(isTightMuon(i) && muonPt[i] >= 10) {
 	      TightLeptonType.push_back(13 * -1 * muonCharge[i]);
@@ -264,6 +263,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
 	    TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
             GoodLeptons.push_back(thisMuon);
         }
+
 
 	for(int i = 0; i < nElectrons; i++){
 
@@ -703,6 +703,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
 	  // }
 	  // if(!matchedGenJet) continue;
 	  
+	  //*******************************************************
+	  //apply jet iD
+	  //*******************************************************
+	  int level = 2; //loose jet ID
+	  if (!jetPassIDTight[i]) continue;
+	  if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+
 
 	  double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
 						 fixedGridRhoFastjetAll, jetJetArea[i], 
@@ -755,6 +762,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
 	  if(jetPt[i]*JEC < 40) continue;
 	  if(fabs(jetEta[i]) > 3.0) continue;
 	  
+
 	  numJetsAbove40GeV++;
 	  if(jetPt[i]*JEC > 80) numJetsAbove80GeV++;
 
@@ -864,7 +872,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
 	  events->Rsq_NoLeadJet = computeRsq(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1], PFMET_NoLeadJet);
 	}
 
-
 	events->MET = metPt;
 	events->MET_NoLeadJet = PFMET_NoLeadJet.Pt();
 	events->NJets40 = numJetsAbove40GeV;
@@ -882,13 +889,34 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int processID, b
 	for(int k=0; k<100; ++k) {
 	  events->HLTDecision[k] = HLTDecision[k];
 	}
-
+	
+	//MET Filter
+	events->Flag_HBHENoiseFilter = Flag_HBHENoiseFilter;
+	events->Flag_CSCTightHaloFilter = Flag_CSCTightHaloFilter;
+	events->Flag_hcalLaserEventFilter = Flag_hcalLaserEventFilter;
+	events->Flag_EcalDeadCellTriggerPrimitiveFilter = Flag_EcalDeadCellTriggerPrimitiveFilter;
+	events->Flag_goodVertices = Flag_goodVertices;
+	events->Flag_trackingFailureFilter = Flag_trackingFailureFilter;
+	events->Flag_eeBadScFilter = Flag_eeBadScFilter;
+	events->Flag_ecalLaserCorrFilter = Flag_ecalLaserCorrFilter;
+	events->Flag_trkPOGFilters = Flag_trkPOGFilters;
+	events->Flag_trkPOG_manystripclus53X = Flag_trkPOG_manystripclus53X;
+	events->Flag_trkPOG_toomanystripclus53X = true;
+	events->Flag_trkPOG_logErrorTooManyClusters = Flag_trkPOG_logErrorTooManyClusters;
+	events->Flag_METFilters = Flag_METFilters;
+	
 
 	//skim events
-	bool passSkim = true;
-	if (skim == "dimuon") {
-	  if (!(abs(events->lep1Type) == 13 && abs(events->lep2Type) == 13 && events->lep1PassLoose && events->lep2PassLoose
-		&& events->lep1.Pt() > 20 && events->lep2.Pt() > 20)) passSkim = false;	  
+	bool passSkim = false;
+	if (option == -1) passSkim = true;
+	if (option == 1) {
+	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
+	       && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
+	      && events->lep1PassLoose && events->lep2PassLoose
+	      && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
+	}
+	if (option == 10) {
+	  if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
 	}
 
 	//fill event 
