@@ -128,6 +128,19 @@ int main(int argc, char* argv[]){
 	analyzer.RazorVetoLeptonStudy(outputFileName, false);
       }
     }
+    else if(analysisType == "razorZAnalysis"){
+      cout << "Executing razorZAnalysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();
+      analyzer.EnableIsoPFCandidates();
+      analyzer.RazorZAnalysis(outputFileName, true);
+    }
     else if(analysisType == "electronNtupler"){
       cout << "Executing electron ntupler..." << endl;
       analyzer.EnableEventInfo();
@@ -193,7 +206,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option, false, "");
+      analyzer.RazorControlRegions(outputFileName, option, false);
     }
     else if(analysisType == "RunOneRazorControlRegions"){
       cout << "Executing RunOneRazorControlRegions analysis..." << endl;
@@ -206,7 +219,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option, true, "dimuon");
+      analyzer.RazorControlRegions(outputFileName, option, true);
     }
     else if(analysisType == "VetoLeptonEfficiencyControlRegion"){
       cout << "Executing VetoLeptonEfficiencyDileptonControlRegion analysis..." << endl;

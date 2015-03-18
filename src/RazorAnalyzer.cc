@@ -181,6 +181,9 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetJetArea", 1);
     fChain->SetBranchStatus("jetPileupE", 1);
     fChain->SetBranchStatus("jetPileupId", 1);
+    fChain->SetBranchStatus("jetPileupIdFlag", 1);
+    fChain->SetBranchStatus("jetPassIDLoose", 1);
+    fChain->SetBranchStatus("jetPassIDTight", 1);
     fChain->SetBranchStatus("jetPartonFlavor", 1);
     fChain->SetBranchStatus("jetHadronFlavor", 1);
 }
