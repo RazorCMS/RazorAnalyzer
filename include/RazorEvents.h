@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Feb 13 16:29:43 2015 by ROOT version 5.34/18
+// Wed Mar 11 17:53:23 2015 by ROOT version 5.32/00
 // from TTree RazorEvents/selected miniAOD information
-// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/RazorNtupleV1.5/PHYS14_25ns/v7/sixie/SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p5_PHYS14_25ns_v7_v1/150212_174324/0000/razorNtuple_1.root
+// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -150,6 +150,9 @@ public :
    Float_t         jetJetArea[50];   //[nJets]
    Float_t         jetPileupE[50];   //[nJets]
    Float_t         jetPileupId[50];   //[nJets]
+   Int_t           jetPileupIdFlag[50];   //[nJets]
+   Bool_t          jetPassIDLoose[50];   //[nJets]
+   Bool_t          jetPassIDTight[50];   //[nJets]
    Int_t           jetPartonFlavor[50];   //[nJets]
    Int_t           jetHadronFlavor[50];   //[nJets]
    UInt_t          nFatJets;
@@ -168,13 +171,13 @@ public :
    Float_t         sumMET;
    Bool_t          Flag_HBHENoiseFilter;
    Bool_t          Flag_CSCTightHaloFilter;
-   Bool_t          Flag_hcalLaserEventFilter;
-   Bool_t          Flag_EcalDeadCellTriggerPrimitiveFilter;
+   Bool_t          Flag_hcalLaserEventFilter; 
+   Bool_t          Flag_EcalDeadCellTriggerPrimitiveFilter; 
    Bool_t          Flag_goodVertices;
    Bool_t          Flag_trackingFailureFilter;
-   Bool_t          Flag_eeBadScFilter;
+   Bool_t          Flag_eeBadScFilter; 
    Bool_t          Flag_ecalLaserCorrFilter;
-   Bool_t          Flag_trkPOGFilters;
+   Bool_t          Flag_trkPOGFilters; 
    Bool_t          Flag_trkPOG_manystripclus53X;
    Bool_t          Flag_trkPOG_toomanystripclus53X;
    Bool_t          Flag_trkPOG_logErrorTooManyClusters;
@@ -336,6 +339,9 @@ public :
    TBranch        *b_jetJetArea;   //!
    TBranch        *b_jetPileupE;   //!
    TBranch        *b_jetPileupId;   //!
+   TBranch        *b_jetPileupIdFlag;   //!
+   TBranch        *b_jetPassIDLoose;   //!
+   TBranch        *b_jetPassIDTight;   //!
    TBranch        *b_jetPartonFlavor;   //!
    TBranch        *b_jetHadronFlavor;   //!
    TBranch        *b_nFatJets;   //!
@@ -412,11 +418,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/RazorNtupleV1.5/PHYS14_25ns/v7/sixie/SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p5_PHYS14_25ns_v7_v1/150212_174324/0000/razorNtuple_1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/RazorNtupleV1.5/PHYS14_25ns/v7/sixie/SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p5_PHYS14_25ns_v7_v1/150212_174324/0000/razorNtuple_1.root");
+         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/RazorNtupleV1.5/PHYS14_25ns/v7/sixie/SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola/razorNtuplerV1p5_PHYS14_25ns_v7_v1/150212_174324/0000/razorNtuple_1.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -478,9 +484,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
    fChain->SetBranchAddress("nBunchXing", &nBunchXing, &b_nBunchXing);
-   fChain->SetBranchAddress("BunchXing", BunchXing, &b_BunchXing);
-   fChain->SetBranchAddress("nPU", nPU, &b_nPU);
-   fChain->SetBranchAddress("nPUmean", nPUmean, &b_nPUmean);
+   fChain->SetBranchAddress("BunchXing", &BunchXing, &b_BunchXing);
+   fChain->SetBranchAddress("nPU", &nPU, &b_nPU);
+   fChain->SetBranchAddress("nPUmean", &nPUmean, &b_nPUmean);
    fChain->SetBranchAddress("nMuons", &nMuons, &b_nMuons);
    fChain->SetBranchAddress("muonE", muonE, &b_muonE);
    fChain->SetBranchAddress("muonPt", muonPt, &b_muonPt);
@@ -530,30 +536,30 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("ele_ptrel", ele_ptrel, &b_ele_ptrel);
    fChain->SetBranchAddress("ele_miniiso", ele_miniiso, &b_ele_miniiso);
    fChain->SetBranchAddress("nTaus", &nTaus, &b_nTaus);
-   fChain->SetBranchAddress("tauE", tauE, &b_tauE);
-   fChain->SetBranchAddress("tauPt", tauPt, &b_tauPt);
-   fChain->SetBranchAddress("tauEta", tauEta, &b_tauEta);
-   fChain->SetBranchAddress("tauPhi", tauPhi, &b_tauPhi);
-   fChain->SetBranchAddress("tau_IsLoose", tau_IsLoose, &b_tau_IsLoose);
-   fChain->SetBranchAddress("tau_IsMedium", tau_IsMedium, &b_tau_IsMedium);
-   fChain->SetBranchAddress("tau_IsTight", tau_IsTight, &b_tau_IsTight);
-   fChain->SetBranchAddress("tau_passEleVetoLoose", tau_passEleVetoLoose, &b_tau_passEleVetoLoose);
-   fChain->SetBranchAddress("tau_passEleVetoMedium", tau_passEleVetoMedium, &b_tau_passEleVetoMedium);
-   fChain->SetBranchAddress("tau_passEleVetoTight", tau_passEleVetoTight, &b_tau_passEleVetoTight);
-   fChain->SetBranchAddress("tau_passMuVetoLoose", tau_passMuVetoLoose, &b_tau_passMuVetoLoose);
-   fChain->SetBranchAddress("tau_passMuVetoMedium", tau_passMuVetoMedium, &b_tau_passMuVetoMedium);
-   fChain->SetBranchAddress("tau_passMuVetoTight", tau_passMuVetoTight, &b_tau_passMuVetoTight);
-   fChain->SetBranchAddress("tau_ID", tau_ID, &b_tau_ID);
-   fChain->SetBranchAddress("tau_combinedIsoDeltaBetaCorr3Hits", tau_combinedIsoDeltaBetaCorr3Hits, &b_tau_combinedIsoDeltaBetaCorr3Hits);
-   fChain->SetBranchAddress("tau_eleVetoMVA", tau_eleVetoMVA, &b_tau_eleVetoMVA);
-   fChain->SetBranchAddress("tau_eleVetoCategory", tau_eleVetoCategory, &b_tau_eleVetoCategory);
-   fChain->SetBranchAddress("tau_muonVetoMVA", tau_muonVetoMVA, &b_tau_muonVetoMVA);
-   fChain->SetBranchAddress("tau_isoMVAnewDMwLT", tau_isoMVAnewDMwLT, &b_tau_isoMVAnewDMwLT);
-   fChain->SetBranchAddress("tau_isoMVAnewDMwoLT", tau_isoMVAnewDMwoLT, &b_tau_isoMVAnewDMwoLT);
-   fChain->SetBranchAddress("tau_leadCandPt", tau_leadCandPt, &b_tau_leadCandPt);
-   fChain->SetBranchAddress("tau_leadCandID", tau_leadCandID, &b_tau_leadCandID);
-   fChain->SetBranchAddress("tau_leadChargedHadrCandPt", tau_leadChargedHadrCandPt, &b_tau_leadChargedHadrCandPt);
-   fChain->SetBranchAddress("tau_leadChargedHadrCandID", tau_leadChargedHadrCandID, &b_tau_leadChargedHadrCandID);
+   fChain->SetBranchAddress("tauE", &tauE, &b_tauE);
+   fChain->SetBranchAddress("tauPt", &tauPt, &b_tauPt);
+   fChain->SetBranchAddress("tauEta", &tauEta, &b_tauEta);
+   fChain->SetBranchAddress("tauPhi", &tauPhi, &b_tauPhi);
+   fChain->SetBranchAddress("tau_IsLoose", &tau_IsLoose, &b_tau_IsLoose);
+   fChain->SetBranchAddress("tau_IsMedium", &tau_IsMedium, &b_tau_IsMedium);
+   fChain->SetBranchAddress("tau_IsTight", &tau_IsTight, &b_tau_IsTight);
+   fChain->SetBranchAddress("tau_passEleVetoLoose", &tau_passEleVetoLoose, &b_tau_passEleVetoLoose);
+   fChain->SetBranchAddress("tau_passEleVetoMedium", &tau_passEleVetoMedium, &b_tau_passEleVetoMedium);
+   fChain->SetBranchAddress("tau_passEleVetoTight", &tau_passEleVetoTight, &b_tau_passEleVetoTight);
+   fChain->SetBranchAddress("tau_passMuVetoLoose", &tau_passMuVetoLoose, &b_tau_passMuVetoLoose);
+   fChain->SetBranchAddress("tau_passMuVetoMedium", &tau_passMuVetoMedium, &b_tau_passMuVetoMedium);
+   fChain->SetBranchAddress("tau_passMuVetoTight", &tau_passMuVetoTight, &b_tau_passMuVetoTight);
+   fChain->SetBranchAddress("tau_ID", &tau_ID, &b_tau_ID);
+   fChain->SetBranchAddress("tau_combinedIsoDeltaBetaCorr3Hits", &tau_combinedIsoDeltaBetaCorr3Hits, &b_tau_combinedIsoDeltaBetaCorr3Hits);
+   fChain->SetBranchAddress("tau_eleVetoMVA", &tau_eleVetoMVA, &b_tau_eleVetoMVA);
+   fChain->SetBranchAddress("tau_eleVetoCategory", &tau_eleVetoCategory, &b_tau_eleVetoCategory);
+   fChain->SetBranchAddress("tau_muonVetoMVA", &tau_muonVetoMVA, &b_tau_muonVetoMVA);
+   fChain->SetBranchAddress("tau_isoMVAnewDMwLT", &tau_isoMVAnewDMwLT, &b_tau_isoMVAnewDMwLT);
+   fChain->SetBranchAddress("tau_isoMVAnewDMwoLT", &tau_isoMVAnewDMwoLT, &b_tau_isoMVAnewDMwoLT);
+   fChain->SetBranchAddress("tau_leadCandPt", &tau_leadCandPt, &b_tau_leadCandPt);
+   fChain->SetBranchAddress("tau_leadCandID", &tau_leadCandID, &b_tau_leadCandID);
+   fChain->SetBranchAddress("tau_leadChargedHadrCandPt", &tau_leadChargedHadrCandPt, &b_tau_leadChargedHadrCandPt);
+   fChain->SetBranchAddress("tau_leadChargedHadrCandID", &tau_leadChargedHadrCandID, &b_tau_leadChargedHadrCandID);
    fChain->SetBranchAddress("nIsoPFCandidates", &nIsoPFCandidates, &b_nIsoPFCandidates);
    fChain->SetBranchAddress("isoPFCandidatePt", isoPFCandidatePt, &b_isoPFCandidatePt);
    fChain->SetBranchAddress("isoPFCandidateEta", isoPFCandidateEta, &b_isoPFCandidateEta);
@@ -592,19 +598,22 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("jetJetArea", jetJetArea, &b_jetJetArea);
    fChain->SetBranchAddress("jetPileupE", jetPileupE, &b_jetPileupE);
    fChain->SetBranchAddress("jetPileupId", jetPileupId, &b_jetPileupId);
+   fChain->SetBranchAddress("jetPileupIdFlag", jetPileupIdFlag, &b_jetPileupIdFlag);
+   fChain->SetBranchAddress("jetPassIDLoose", jetPassIDLoose, &b_jetPassIDLoose);
+   fChain->SetBranchAddress("jetPassIDTight", jetPassIDTight, &b_jetPassIDTight);
    fChain->SetBranchAddress("jetPartonFlavor", jetPartonFlavor, &b_jetPartonFlavor);
    fChain->SetBranchAddress("jetHadronFlavor", jetHadronFlavor, &b_jetHadronFlavor);
    fChain->SetBranchAddress("nFatJets", &nFatJets, &b_nFatJets);
-   fChain->SetBranchAddress("fatJetE", fatJetE, &b_fatJetE);
-   fChain->SetBranchAddress("fatJetPt", fatJetPt, &b_fatJetPt);
-   fChain->SetBranchAddress("fatJetEta", fatJetEta, &b_fatJetEta);
-   fChain->SetBranchAddress("fatJetPhi", fatJetPhi, &b_fatJetPhi);
-   fChain->SetBranchAddress("fatJetPrunedM", fatJetPrunedM, &b_fatJetPrunedM);
-   fChain->SetBranchAddress("fatJetTrimmedM", fatJetTrimmedM, &b_fatJetTrimmedM);
-   fChain->SetBranchAddress("fatJetFilteredM", fatJetFilteredM, &b_fatJetFilteredM);
-   fChain->SetBranchAddress("fatJetTau1", fatJetTau1, &b_fatJetTau1);
-   fChain->SetBranchAddress("fatJetTau2", fatJetTau2, &b_fatJetTau2);
-   fChain->SetBranchAddress("fatJetTau3", fatJetTau3, &b_fatJetTau3);
+   fChain->SetBranchAddress("fatJetE", &fatJetE, &b_fatJetE);
+   fChain->SetBranchAddress("fatJetPt", &fatJetPt, &b_fatJetPt);
+   fChain->SetBranchAddress("fatJetEta", &fatJetEta, &b_fatJetEta);
+   fChain->SetBranchAddress("fatJetPhi", &fatJetPhi, &b_fatJetPhi);
+   fChain->SetBranchAddress("fatJetPrunedM", &fatJetPrunedM, &b_fatJetPrunedM);
+   fChain->SetBranchAddress("fatJetTrimmedM", &fatJetTrimmedM, &b_fatJetTrimmedM);
+   fChain->SetBranchAddress("fatJetFilteredM", &fatJetFilteredM, &b_fatJetFilteredM);
+   fChain->SetBranchAddress("fatJetTau1", &fatJetTau1, &b_fatJetTau1);
+   fChain->SetBranchAddress("fatJetTau2", &fatJetTau2, &b_fatJetTau2);
+   fChain->SetBranchAddress("fatJetTau3", &fatJetTau3, &b_fatJetTau3);
    fChain->SetBranchAddress("metPt", &metPt, &b_metPt);
    fChain->SetBranchAddress("metPhi", &metPhi, &b_metPhi);
    fChain->SetBranchAddress("sumMET", &sumMET, &b_sumMET);
@@ -627,10 +636,10 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("RSQ_AK8", &RSQ_AK8, &b_RSQ_AK8);
    fChain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
    fChain->SetBranchAddress("nGenJets", &nGenJets, &b_nGenJets);
-   fChain->SetBranchAddress("genJetE", genJetE, &b_genJetE);
-   fChain->SetBranchAddress("genJetPt", genJetPt, &b_genJetPt);
-   fChain->SetBranchAddress("genJetEta", genJetEta, &b_genJetEta);
-   fChain->SetBranchAddress("genJetPhi", genJetPhi, &b_genJetPhi);
+   fChain->SetBranchAddress("genJetE", &genJetE, &b_genJetE);
+   fChain->SetBranchAddress("genJetPt", &genJetPt, &b_genJetPt);
+   fChain->SetBranchAddress("genJetEta", &genJetEta, &b_genJetEta);
+   fChain->SetBranchAddress("genJetPhi", &genJetPhi, &b_genJetPhi);
    fChain->SetBranchAddress("genMetPt", &genMetPt, &b_genMetPt);
    fChain->SetBranchAddress("genMetPhi", &genMetPhi, &b_genMetPhi);
    fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
@@ -640,14 +649,14 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genAlphaQCD", &genAlphaQCD, &b_genAlphaQCD);
    fChain->SetBranchAddress("genAlphaQED", &genAlphaQED, &b_genAlphaQED);
    fChain->SetBranchAddress("nGenParticle", &nGenParticle, &b_nGenParticle);
-   fChain->SetBranchAddress("gParticleMotherId", gParticleMotherId, &b_gParticleMotherId);
-   fChain->SetBranchAddress("gParticleMotherIndex", gParticleMotherIndex, &b_gParticleMotherIndex);
-   fChain->SetBranchAddress("gParticleId", gParticleId, &b_gParticleId);
-   fChain->SetBranchAddress("gParticleStatus", gParticleStatus, &b_gParticleStatus);
-   fChain->SetBranchAddress("gParticleE", gParticleE, &b_gParticleE);
-   fChain->SetBranchAddress("gParticlePt", gParticlePt, &b_gParticlePt);
-   fChain->SetBranchAddress("gParticleEta", gParticleEta, &b_gParticleEta);
-   fChain->SetBranchAddress("gParticlePhi", gParticlePhi, &b_gParticlePhi);
+   fChain->SetBranchAddress("gParticleMotherId", &gParticleMotherId, &b_gParticleMotherId);
+   fChain->SetBranchAddress("gParticleMotherIndex", &gParticleMotherIndex, &b_gParticleMotherIndex);
+   fChain->SetBranchAddress("gParticleId", &gParticleId, &b_gParticleId);
+   fChain->SetBranchAddress("gParticleStatus", &gParticleStatus, &b_gParticleStatus);
+   fChain->SetBranchAddress("gParticleE", &gParticleE, &b_gParticleE);
+   fChain->SetBranchAddress("gParticlePt", &gParticlePt, &b_gParticlePt);
+   fChain->SetBranchAddress("gParticleEta", &gParticleEta, &b_gParticleEta);
+   fChain->SetBranchAddress("gParticlePhi", &gParticlePhi, &b_gParticlePhi);
    Notify();
 }
 
