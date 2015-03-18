@@ -769,6 +769,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             recoWphi = (m1+m2).Phi();
         }
 
+        if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
+        if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
+
         razorTree->Fill();
     }//end of event loop
 
