@@ -44,6 +44,7 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralCalo", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
+    fChain->SetBranchStatus("HLTDecision", 1);
 }
 
 void RazorAnalyzer::EnablePileup(){
@@ -180,6 +181,9 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetJetArea", 1);
     fChain->SetBranchStatus("jetPileupE", 1);
     fChain->SetBranchStatus("jetPileupId", 1);
+    fChain->SetBranchStatus("jetPileupIdFlag", 1);
+    fChain->SetBranchStatus("jetPassIDLoose", 1);
+    fChain->SetBranchStatus("jetPassIDTight", 1);
     fChain->SetBranchStatus("jetPartonFlavor", 1);
     fChain->SetBranchStatus("jetHadronFlavor", 1);
 }

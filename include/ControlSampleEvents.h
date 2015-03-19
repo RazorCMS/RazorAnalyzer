@@ -44,6 +44,7 @@
       TLorentzVector          genlep2;
       Int_t                   genlep1Type;
       Int_t                   genlep2Type;
+      Bool_t                  HLTDecision[100];
       TLorentzVector          lep1;
       TLorentzVector          lep2;
       Int_t                   lep1Type;
@@ -104,6 +105,19 @@
       UInt_t                  NBJetsTight;
       Float_t                 HT;
       Float_t                 lep1MT;
+      Bool_t                  Flag_HBHENoiseFilter;//
+      Bool_t                  Flag_CSCTightHaloFilter;
+      Bool_t                  Flag_hcalLaserEventFilter; //
+      Bool_t                  Flag_EcalDeadCellTriggerPrimitiveFilter; //
+      Bool_t                  Flag_goodVertices;
+      Bool_t                  Flag_trackingFailureFilter;//
+      Bool_t                  Flag_eeBadScFilter; //
+      Bool_t                  Flag_ecalLaserCorrFilter;
+      Bool_t                  Flag_trkPOGFilters; //
+      Bool_t                  Flag_trkPOG_manystripclus53X;
+      Bool_t                  Flag_trkPOG_toomanystripclus53X;
+      Bool_t                  Flag_trkPOG_logErrorTooManyClusters;
+      Bool_t                  Flag_METFilters;
      
 
     public:
@@ -145,6 +159,7 @@
 	genlep2              = TLorentzVector();
 	genlep1Type          = 0.0;
 	genlep2Type          = 0.0;
+	for(int i=0;i<100;++i) HLTDecision[i] = false;
 	lep1                 = TLorentzVector();
 	lep2                 = TLorentzVector();
 	lep1Type             = 0.0;
@@ -204,7 +219,20 @@
 	NBJetsMedium         = 0.0;
 	NBJetsTight          = 0.0;
 	HT                   = 0.0;      
-	lep1MT               = 0.0;      
+	lep1MT               = 0.0;  
+	Flag_HBHENoiseFilter = 0.0;//
+	Flag_CSCTightHaloFilter = 0.0;
+	Flag_hcalLaserEventFilter = 0.0; //
+	Flag_EcalDeadCellTriggerPrimitiveFilter = 0.0; //
+	Flag_goodVertices = 0.0;
+	Flag_trackingFailureFilter = 0.0;//
+	Flag_eeBadScFilter = 0.0; //
+	Flag_ecalLaserCorrFilter = 0.0;
+	Flag_trkPOGFilters = 0.0; //
+	Flag_trkPOG_manystripclus53X = 0.0;
+	Flag_trkPOG_toomanystripclus53X = 0.0;
+	Flag_trkPOG_logErrorTooManyClusters = 0.0;
+	Flag_METFilters = 0.0;
       }
     
       /// load a ControlSampleEvents
@@ -230,6 +258,7 @@
 	tree_->Branch("NPU_0",&NPU_0,"NPU_0/i");
 	tree_->Branch("NPU_Minus1",&NPU_Minus1,"NPU_Minus1/i");
 	tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
+	tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[100]/O");
 	tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
 	tree_->Branch("genlep2Type",&genlep2Type,"genlep2Type/I");
 	tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
@@ -294,6 +323,19 @@
 	tree_->Branch("bjet2",   "TLorentzVector", &bjet2Ptr);
 	tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
 	tree_->Branch("jet2",    "TLorentzVector", &jet2Ptr);
+	tree_->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
+	tree_->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
+	tree_->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
+	tree_->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter,"Flag_EcalDeadCellTriggerPrimitiveFilter/O");
+	tree_->Branch("Flag_goodVertices", &Flag_goodVertices,"Flag_goodVertices/O");
+	tree_->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter,"Flag_trackingFailureFilter/O");
+	tree_->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter,"Flag_eeBadScFilter/O");
+	tree_->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter,"Flag_ecalLaserCorrFilter/O");
+	tree_->Branch("Flag_trkPOGFilters", &Flag_trkPOGFilters,"Flag_trkPOGFilters/O");
+	tree_->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X,"Flag_trkPOG_manystripclus53X/O");
+	tree_->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X,"Flag_trkPOG_toomanystripclus53X/O");
+	tree_->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters,"Flag_trkPOG_logErrorTooManyClusters/O");
+	tree_->Branch("Flag_METFilters", &Flag_METFilters,"Flag_METFilters/O");	
       } 
 
       // initialze a ControlSampleEvents
@@ -315,6 +357,7 @@
 	tree_->SetBranchAddress("NPU_Plus1",&NPU_Plus1);
 	tree_->SetBranchAddress("genlep1Type",&genlep1Type);
 	tree_->SetBranchAddress("genlep2Type",&genlep2Type);
+	tree_->SetBranchAddress("HLTDecision",&HLTDecision);
 	tree_->SetBranchAddress("lep1Type",&lep1Type);
 	tree_->SetBranchAddress("lep2Type",&lep2Type);
 	tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
@@ -377,6 +420,19 @@
 	tree_->SetBranchAddress("bjet2",&bjet2Ptr);
 	tree_->SetBranchAddress("jet1",&jet1Ptr);
 	tree_->SetBranchAddress("jet2",&jet2Ptr);
+	tree_->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
+	tree_->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter);
+	tree_->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter);
+	tree_->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
+	tree_->SetBranchAddress("Flag_goodVertices", &Flag_goodVertices);
+	tree_->SetBranchAddress("Flag_trackingFailureFilter", &Flag_trackingFailureFilter);
+	tree_->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter);
+	tree_->SetBranchAddress("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter);
+	tree_->SetBranchAddress("Flag_trkPOGFilters", &Flag_trkPOGFilters);
+	tree_->SetBranchAddress("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X);
+	tree_->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X);
+	tree_->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters);
+	tree_->SetBranchAddress("Flag_METFilters", &Flag_METFilters);
 	
         gErrorIgnoreLevel = currentState;
       }

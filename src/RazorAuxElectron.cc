@@ -280,3 +280,72 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
   return pass;
 
 }
+
+
+bool RazorAnalyzer::isRunOneLooseElectron(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.007
+	 && fabs(ele_dPhi[i]) < 0.15
+	 && eleSigmaIetaIeta[i] < 0.01
+	 && ele_HoverE[i] < 0.12
+	 && fabs(ele_d0[i]) < 0.02
+	 && fabs(ele_dZ[i]) < 0.2
+	 && ele_OneOverEminusOneOverP[i] < 0.05
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.15
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] <= 1
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.009
+	 && fabs(ele_dPhi[i]) < 0.10
+	 && eleSigmaIetaIeta[i] < 0.03
+	 && ele_HoverE[i] < 0.10
+	 && fabs(ele_d0[i]) < 0.02
+	 && fabs(ele_dZ[i]) < 0.2
+	 && ele_OneOverEminusOneOverP[i] < 0.05
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.15
+	&& ele_PassConvVeto[i]
+	 && ele_MissHits[i] <= 1
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
+bool RazorAnalyzer::isRunOneTightElectron(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.004
+	 && fabs(ele_dPhi[i]) < 0.03
+	 && eleSigmaIetaIeta[i] < 0.01
+	 && ele_HoverE[i] < 0.12
+	 && fabs(ele_d0[i]) < 0.02
+	 && fabs(ele_dZ[i]) < 0.2
+	 && ele_OneOverEminusOneOverP[i] < 0.05
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.10
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] <= 0
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.005
+	 && fabs(ele_dPhi[i]) < 0.02
+	 && eleFull5x5SigmaIetaIeta[i] < 0.03
+	 && ele_HoverE[i] < 0.10
+	 && fabs(ele_d0[i]) < 0.02
+	 && fabs(ele_dZ[i]) < 0.1
+	 && ele_OneOverEminusOneOverP[i] < 0.05
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.10
+	&& ele_PassConvVeto[i]
+	 && ele_MissHits[i] <= 0
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
