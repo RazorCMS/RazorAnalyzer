@@ -532,9 +532,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         }
         sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
 
-        if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-        // if(numJets > 15) continue; //TODO : remove this when able
-	
         //****************************************************//
         //     Compute the razor variables and HT, nJets      //
         //****************************************************//
@@ -590,8 +587,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
                 subleadingPhotonE = phoE[i];
             }
         }
-
-        if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
 
         //****************************************************//
         //        Match gen-level and reco objects            //
@@ -800,8 +795,13 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             recoWphi = (m1+m2).Phi();
         }
 
-        // if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
-        // if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
+        //************************//
+        //*****Filter events******//
+        //************************//
+        if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
+        //if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
+        if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
+        if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
 
         razorTree->Fill();
     }//end of event loop
