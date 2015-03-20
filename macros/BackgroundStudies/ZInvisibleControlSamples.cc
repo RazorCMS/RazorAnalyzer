@@ -21,9 +21,6 @@ void ZInvisibleControlSamples(){
     suffixes["DYJets"] = "_noZ";
     suffixes["WJets"] = "_noW";
     suffixes["GJets"] = "_noGamma";
-    map<string, float> normFactors; //normalize DYJets and WJets to Z->nu nu cross section
-    normFactors["DYJets"] = 0.03366/0.2;
-    normFactors["WJets"] = 2363.02/489.503*10.57/32.57;
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
@@ -82,7 +79,7 @@ void ZInvisibleControlSamples(){
         uint nEntries = tree.second->GetEntries();
         for(uint i = 0; i < nEntries; i++){
             tree.second->GetEntry(i); 
-            float eventWeight = weight/normFactors[tree.first];
+            float eventWeight = weight;
             //reweigh according to selection efficiency and acceptance
             /*if(tree.first == "GJets"){
                 eventWeight *= photonEffHisto.GetBinContent(photonEffHisto.FindBin(leadingPhotonPt, leadingPhotonEta));
