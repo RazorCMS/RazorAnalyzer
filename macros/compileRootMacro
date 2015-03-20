@@ -1,0 +1,3 @@
+#!/bin/bash
+g++ $1.cc -o $1 `root-config --cflags` `root-config --glibs` -lRooFitCore -lRooFit -lMinuit -lFoam -lRooStats -I$ROOFITSYS/include -L$ROOFITSYS/lib/ -std=c++11
+exit
