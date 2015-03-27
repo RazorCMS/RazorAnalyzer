@@ -10,12 +10,20 @@
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TTreeFormula.h"
+#include "TStyle.h"
 
 using namespace std;
 
 void ZInvisibleControlSamples(){
+    //for plots
     float MRMax = 2000;
     float RsqMax = 1.0;
+
+    //upper bounds of reweighing histograms
+    float maxPhotonPt = 999; 
+    float maxMuonPt = 999;
+    float maxZPt = 2999;
+
     //decide to reweigh by MET or by MR and Rsq
     //(reweighByRazor = false to reweigh by MET, true to reweigh by MR and Rsq)
     bool reweighByRazor = true; 
@@ -114,15 +122,15 @@ void ZInvisibleControlSamples(){
             float eventWeight = weight;
             //reweigh according to selection efficiency and acceptance
             if(tree.first == "GJets"){
-                eventWeight *= photonEffHisto.GetBinContent(photonEffHisto.FindBin(leadingPhotonPt, leadingPhotonEta));
+                eventWeight *= photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
             }
             else if(tree.first == "WJets"){
-                eventWeight *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(leadingMuonPt, leadingMuonEta));
+                eventWeight *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
             }
             else if(tree.first == "DYJets"){
-                eventWeight *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(leadingMuonPt, leadingMuonEta));
-                eventWeight *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(subleadingMuonPt, subleadingMuonEta));
-                eventWeight *= zAccHisto.GetBinContent(zAccHisto.FindBin(recoZpt, recoZeta));
+                eventWeight *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                eventWeight *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                eventWeight *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
             }
             else{
                 cout << "Error in efficiency reweighing; check the code" << endl;
@@ -152,29 +160,29 @@ void ZInvisibleControlSamples(){
             float reweighFactor = 1.0;
             //reweigh by efficiency and acceptance
             if(tree.first == "GJets"){
-                reweighFactor *= photonEffHisto.GetBinContent(photonEffHisto.FindBin(leadingPhotonPt, leadingPhotonEta));
+                reweighFactor *= photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
             }
             else if(tree.first == "WJets"){
-                reweighFactor *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(leadingMuonPt, leadingMuonEta));
+                reweighFactor *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
             }
             else if(tree.first == "DYJets"){
-                reweighFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(leadingMuonPt, leadingMuonEta));
-                reweighFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(subleadingMuonPt, subleadingMuonEta));
-                reweighFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(recoZpt, recoZeta));
+                reweighFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                reweighFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                reweighFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
             }
 
             if(reweighByRazor){ //reweigh by MR and Rsq
                 //get the factor to reweigh by
-                float numerator = razorHistosForReweighing[tree.first].GetBinContent(razorHistosForReweighing[tree.first].FindBin(mrs[tree.first], rsqs[tree.first]));
-                float denominator = razorHistosForReweighing["DYJets"].GetBinContent(razorHistosForReweighing["DYJets"].FindBin(mrs[tree.first], rsqs[tree.first]));
+                float denominator = razorHistosForReweighing[tree.first].GetBinContent(razorHistosForReweighing[tree.first].FindBin(mrs[tree.first], rsqs[tree.first]));
+                float numerator = razorHistosForReweighing["DYJets"].GetBinContent(razorHistosForReweighing["DYJets"].FindBin(mrs[tree.first], rsqs[tree.first]));
                 if(denominator > 0){
                     reweighFactor = numerator / denominator;
                 }
             } 
             else{ //reweigh by MET
                 //get the factor to reweigh by
-                float numerator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
-                float denominator = metHistosForReweighing["DYJets"].GetBinContent(metHistosForReweighing["DYJets"].FindBin(mets[tree.first]));
+                float denominator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
+                float numerator = metHistosForReweighing["DYJets"].GetBinContent(metHistosForReweighing["DYJets"].FindBin(mets[tree.first]));
                 if(denominator > 0){
                     reweighFactor = numerator / denominator;    
                 }
@@ -197,6 +205,7 @@ void ZInvisibleControlSamples(){
     }
 
     //quantify agreement between DYJets and WJets predictions
+    gStyle->SetPaintTextFormat("4.1f m");
     TH2F *DYWComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWComparisonHist");
     for(int i = 0; i < DYWComparisonHist->GetNbinsX()*DYWComparisonHist->GetNbinsY(); i++){
         //set bin content to (DYJets - WJets)/DYJets
@@ -206,6 +215,7 @@ void ZInvisibleControlSamples(){
     DYWComparisonHist->GetXaxis()->SetTitle("MR");
     DYWComparisonHist->GetYaxis()->SetTitle("Rsq");
     DYWComparisonHist->SetStats(0);
+    DYWComparisonHist->SetMaximum(3);
     DYWComparisonHist->Draw("colz");
     c.Print("controlSampleHistogramComparisonDYW.pdf");
     c.Print("controlSampleHistogramComparisonDYW.root");
