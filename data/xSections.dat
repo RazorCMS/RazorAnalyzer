@@ -87,6 +87,7 @@ ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph                 41.49
 ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph                 5.274
 DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph                 19.73*1.1973
 DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph                 2.826*1.1973
+WJetsToLNu_HT-150To200_8TeV-madgraph                            235.6*1.2401
 WJetsToLNu_HT-200To250_8TeV-madgraph                            90.27*1.2401
 WJetsToLNu_HT-250To300_8TeV-madgraph                            48.01*1.2401
 WJetsToLNu_HT-300To400_8TeV-madgraph                            38.3*1.2401
@@ -111,3 +112,8 @@ WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola                    26.2*(0.1080*3)*
 ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   0.364791
 ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    2.448690
 TTTT_TuneZ2star_8TeV-madgraph-tauola                            9.144e-04
+#Gamma+jets samples -- tentative!
+GJets_HT-40To100_8TeV-madgraph                                  2.093e4
+GJets_HT-100To200_8TeV-madgraph                                 5.212e3
+GJets_HT-200To400_8TeV-madgraph                                 9.605e2
+GJets_HT-400ToInf_8TeV-madgraph                                 1.075e2
