@@ -16,7 +16,7 @@ struct greater_than_pt{
     }
 };
 
-void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
+void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool filterEvents)
 {
     //****************************************************//
     //            Initialization of the tree              //
@@ -415,7 +415,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
 
             // gen level Z pt
             for(int j = 0; j < nGenParticle; j++){
-                if(gParticleStatus[j] != 22) continue; //gen-level Z and W have pythia8 status 22
+                if(gParticleStatus[j] != 22 && gParticleStatus[j] != 3) continue; //gen-level Z and W have pythia8 status 22 in Run 2 ntuples, status 3 in Run 1 ntuples
                 TLorentzVector boson = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]); 
                 if(abs(gParticleId[j]) == 23){ //Z boson
                     genZpt = gParticlePt[j];
@@ -517,18 +517,25 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
             //apply jet iD --DISABLE for 13 TeV ntuples
+            //////////////////////////////
             int level = 2; //loose jet ID
             if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
             if (!jetPassIDTight[i]) continue;
+            if(isOldCSVM(i)) nBTaggedJets++;
+            //////////////////////////////
+
+            //ENABLE for 13 TeV ntuples
+            //////////////////////////////
+            //if(isCSVM(i)){ 
+            //    nBTaggedJets++;
+            //}
+            //////////////////////////////
 
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             if(jetPt[i] > 80) numJets80++;
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 
-            if(isCSVM(i)){ 
-                nBTaggedJets++;
-            }
         }
         sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
 
@@ -798,10 +805,12 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData)
         //************************//
         //*****Filter events******//
         //************************//
-        if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-        //if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
-        if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
-        if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
+        if(filterEvents){
+            if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
+            //if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
+            if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
+            if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
+        }
 
         razorTree->Fill();
     }//end of event loop
