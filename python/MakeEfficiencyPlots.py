@@ -41,15 +41,6 @@ def makeAcceptanceHistos(trees, particleType, ptBins, etaBins):
     efficiency.Divide(denominator)
     return efficiency
 
-def checkNeutrinoPts(trees):
-    """Make a histogram of the leading and subleading neutrino pts for events that have subleading neutrino pt < 10"""
-    for tree in trees:
-        hist1 = rt.TH1F("neutrinoHist1", "Leading neutrino pt for subleading pt < 10 GeV", 40, 0.0, 500)
-        hist2 = rt.TH1F("neutrinoHist2", "Subleading neutrino pt for subleading pt < 10 GeV", 20, 0.0, 10)
-        tree.Draw("leadingGenNeutrinoPt>>+"+hist1.GetName(), "weight*(subleadingGenNeutrinoPt < 10 && MR > 300 && Rsq > 0.15)")
-        tree.Draw("subleadingGenNeutrinoPt>>+"+hist2.GetName(), "weight*(subleadingGenNeutrinoPt < 10 && MR > 300 && Rsq > 0.15)")
-        return (hist1, hist2)
-
 ##begin main program
 
 #set root to batch mode
@@ -95,24 +86,12 @@ results = []
 print("Computing efficiency for muons...")
 results.append(makeEfficiencyHistos(wtrees, "Muon", muonPtBins, muonEtaBins))
 results.append(makeEfficiencyHistos(wtrees, "Muon", muonPtBins, muonEtaBins, tight=True))
-#efficiency for electrons
-print("Computing efficiency for electrons...")
-results.append(makeEfficiencyHistos(wtrees, "Electron", electronPtBins, electronEtaBins))
-results.append(makeEfficiencyHistos(wtrees, "Electron", electronPtBins, electronEtaBins, tight=True))
 #efficiency for photons
 print("Computing efficiency for photons...")
 results.append(makeEfficiencyHistos(gtrees, "Photon", photonPtBins, photonEtaBins))
 #acceptance for muons
 print("Creating acceptance histograms for muons...")
 results.append(makeAcceptanceHistos(dytrees, "Muon", acceptancePtBins, acceptanceEtaBins))
-#acceptance for electrons
-print("Creating acceptance histograms for electrons...")
-results.append(makeAcceptanceHistos(dytrees, "Electron", acceptancePtBins, acceptanceEtaBins))
-
-#check neutrino pts in Z->nu nu
-neutrinoHists = checkNeutrinoPts(ztrees)
-results.append(neutrinoHists[0])
-results.append(neutrinoHists[1])
 
 for result in results: 
     result.Write()
