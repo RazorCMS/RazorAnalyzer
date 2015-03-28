@@ -57,7 +57,8 @@ void ZInvisibleControlSamples(){
     map<string, float> mrs;
     map<string, float> rsqs;
     float weight;
-    float leadingMuonPt, leadingMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
+    //NOTE: not using leadingTightMuon variables yet -- commented out these lines for now
+    float leadingMuonPt, leadingMuonEta, leadingTightMuonPt, leadingTightMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
     for(auto &file : mcfiles){
         mets[file.first] = 0.;
         mrs[file.first] = 0.;
@@ -69,6 +70,8 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
         mctrees[file.first]->SetBranchAddress("leadingMuonEta", &leadingMuonEta);
+        //mctrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
+        //mctrees[file.first]->SetBranchAddress("leadingTightMuonEta", &leadingTightMuonEta);
         mctrees[file.first]->SetBranchAddress("subleadingMuonPt", &subleadingMuonPt);
         mctrees[file.first]->SetBranchAddress("subleadingMuonEta", &subleadingMuonEta);
         mctrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
@@ -85,6 +88,8 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), &rsqs[file.first]);
         datatrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
         datatrees[file.first]->SetBranchAddress("leadingMuonEta", &leadingMuonEta);
+        //datatrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
+        //datatrees[file.first]->SetBranchAddress("leadingTightMuonEta", &leadingTightMuonEta);
         datatrees[file.first]->SetBranchAddress("subleadingMuonPt", &subleadingMuonPt);
         datatrees[file.first]->SetBranchAddress("subleadingMuonEta", &subleadingMuonEta);
         datatrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
@@ -129,6 +134,7 @@ void ZInvisibleControlSamples(){
             }
             else if(tree.first == "WJets"){
                 eventWeight *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //eventWeight *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
             }
             else if(tree.first == "DYJets"){
                 eventWeight *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
@@ -167,6 +173,7 @@ void ZInvisibleControlSamples(){
             }
             else if(tree.first == "WJets"){
                 reweighFactor *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //reweighFactor *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
             }
             else if(tree.first == "DYJets"){
                 reweighFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
@@ -217,6 +224,7 @@ void ZInvisibleControlSamples(){
             }
             else if(tree.first == "WJets"){
                 reweighFactor *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //reweighFactor *= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
             }
             else if(tree.first == "DYJets"){
                 reweighFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));

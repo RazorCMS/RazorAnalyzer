@@ -16,7 +16,7 @@ struct greater_than_pt{
     }
 };
 
-void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool filterEvents)
+void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool filterEvents, bool isRunOne)
 {
     //****************************************************//
     //            Initialization of the tree              //
@@ -53,10 +53,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     float subleadingGenMuonEta, subleadingGenPhotonEta;
     float subleadingGenMuonPhi, subleadingGenPhotonPhi;
     float subleadingGenMuonE, subleadingGenPhotonE;
-    float leadingMuonPt, leadingPhotonPt;
-    float leadingMuonEta, leadingPhotonEta;
-    float leadingMuonPhi, leadingPhotonPhi;
-    float leadingMuonE, leadingPhotonE;
+    float leadingMuonPt, leadingTightMuonPt, leadingPhotonPt;
+    float leadingMuonEta, leadingTightMuonEta, leadingPhotonEta;
+    float leadingMuonPhi, leadingTightMuonPhi, leadingPhotonPhi;
+    float leadingMuonE, leadingTightMuonE, leadingPhotonE;
     float subleadingMuonPt, subleadingPhotonPt;
     float subleadingMuonEta, subleadingPhotonEta;
     float subleadingMuonPhi, subleadingPhotonPhi;
@@ -139,6 +139,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     razorTree->Branch("leadingMuonEta", &leadingMuonEta, "leadingMuonEta/F");
     razorTree->Branch("leadingMuonPhi", &leadingMuonPhi, "leadingMuonPhi/F");
     razorTree->Branch("leadingMuonE", &leadingMuonE, "leadingMuonE/F");
+    razorTree->Branch("leadingTightMuonPt", &leadingTightMuonPt, "leadingTightMuonPt/F");
+    razorTree->Branch("leadingTightMuonEta", &leadingTightMuonEta, "leadingTightMuonEta/F");
+    razorTree->Branch("leadingTightMuonPhi", &leadingTightMuonPhi, "leadingTightMuonPhi/F");
+    razorTree->Branch("leadingTightMuonE", &leadingTightMuonE, "leadingTightMuonE/F");
     razorTree->Branch("leadingPhotonPt", &leadingPhotonPt, "leadingPhotonPt/F");
     razorTree->Branch("leadingPhotonEta", &leadingPhotonEta, "leadingPhotonEta/F");
     razorTree->Branch("leadingPhotonPhi", &leadingPhotonPhi, "leadingPhotonPhi/F");
@@ -292,6 +296,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         leadingMuonEta = -999;
         leadingMuonPhi = -999;
         leadingMuonE = -999;
+        leadingTightMuonPt = -1;
+        leadingTightMuonEta = -999;
+        leadingTightMuonPhi = -999;
+        leadingTightMuonE = -999;
         leadingPhotonPt = -1;
         leadingPhotonEta = -999;
         leadingPhotonPhi = -999;
@@ -447,6 +455,14 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(isTightMuon(i)){
                 nTightMuons++;
                 GoodMuonsTight.push_back(thisMuon);
+
+                //check if leading tight muon
+                if(muonPt[i] > leadingTightMuonPt){
+                    leadingTightMuonPt = muonPt[i];
+                    leadingTightMuonEta = muonEta[i];
+                    leadingTightMuonPhi = muonPhi[i];
+                    leadingTightMuonE = muonE[i];
+                }
             }
             nLooseMuons++;
             
@@ -479,16 +495,20 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //               Select electrons                     //
         //****************************************************//
         for(int i = 0; i < nElectrons; i++){
-
-            if(!isLooseElectron(i)) continue;
             if(elePt[i] < 10) continue;
             if(fabs(eleEta[i]) > 2.5) continue;
-            TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-
             if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
-            if(isTightElectron(i)){
-                nTightElectrons++;
+
+            if(isRunOne){
+                if(!isRunOneLooseElectron(i)) continue;
+                if(isRunOneTightElectron(i)) nTightElectrons++;
             }
+            else{
+                if(!isLooseElectron(i)) continue;
+                if(isTightElectron(i)) nTightElectrons++;
+            }
+
+            TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
             nLooseElectrons++;
         }
 
@@ -516,20 +536,18 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         for(int i = 0; i < nJets; i++){
             if(jetPt[i] < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
-            //apply jet iD --DISABLE for 13 TeV ntuples
-            //////////////////////////////
-            int level = 2; //loose jet ID
-            if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
-            if (!jetPassIDTight[i]) continue;
-            if(isOldCSVM(i)) nBTaggedJets++;
-            //////////////////////////////
-
-            //ENABLE for 13 TeV ntuples
-            //////////////////////////////
-            //if(isCSVM(i)){ 
-            //    nBTaggedJets++;
-            //}
-            //////////////////////////////
+            //apply jet iD
+            if(isRunOne){
+                int level = 2; //loose jet ID
+                if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+                if (!jetPassIDTight[i]) continue;
+                if(isOldCSVM(i)) nBTaggedJets++;
+            }
+            else{
+                if(isCSVM(i)){ 
+                    nBTaggedJets++;
+                }
+            }
 
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             if(jetPt[i] > 80) numJets80++;

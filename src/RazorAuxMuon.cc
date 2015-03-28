@@ -1,7 +1,5 @@
 #include "RazorAnalyzer.h"
 
-//TODO: implement these!
-
 bool RazorAnalyzer::isVetoMuon(int i){
   bool pass = false;
   if (muonIsLoose[i] 

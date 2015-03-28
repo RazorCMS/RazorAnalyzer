@@ -249,10 +249,10 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();
       if(option == 1){ 
-          analyzer.RazorPhotonStudy(outputFileName, true, true); //run with data
+          analyzer.RazorPhotonStudy(outputFileName, true, true, true); //run with data (Run 1)
       }
       else{
-          analyzer.RazorPhotonStudy(outputFileName, false, true); //run with MC 
+          analyzer.RazorPhotonStudy(outputFileName, false, true, true); //run with MC (Run 1)
       }
     }    
     else if(analysisType == "razorPhotonStudyEff"){
@@ -268,10 +268,10 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();
       if(option == 1){ 
-          analyzer.RazorPhotonStudy(outputFileName, true, false); //run with data -- don't filter events
+          analyzer.RazorPhotonStudy(outputFileName, true, false, true); //run with data -- don't filter events (Run 1)
       }
       else{
-          analyzer.RazorPhotonStudy(outputFileName, false, false); //run with MC -- don't filter events
+          analyzer.RazorPhotonStudy(outputFileName, false, false, true); //run with MC -- don't filter events (Run 1)
       }
     } 
     else if(analysisType == "MakeMCPileupDistribution"){
