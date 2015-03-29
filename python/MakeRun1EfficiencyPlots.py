@@ -1,4 +1,5 @@
 #Script to create efficiency and acceptance histograms for DY+Jets, W+Jets, and G+Jets 
+#Runs on the output of the RazorPhotonStudy analyzer
 import sys, os
 import string
 import ROOT as rt
@@ -20,7 +21,16 @@ def makeEfficiencyHistos(trees, particleType, ptBins, etaBins, tight=False):
 
     #divide to get the efficiency in each bin
     efficiency = numerator.Clone()
-    efficiency.Divide(denominator)
+    for i in range(efficiency.GetNbinsX()+1):
+        for j in range(efficiency.GetNbinsY()+1):
+            if denominator.GetBinContent(i, j) > 0:
+                efficiency.SetBinContent(i, j, numerator.GetBinContent(i, j)*1.0/denominator.GetBinContent(i, j))
+                errorLow = efficiency.GetBinContent(i, j) - rt.TEfficiency.ClopperPearson(int(denominator.GetBinContent(i, j)), int(numerator.GetBinContent(i, j)), 0.68269, rt.kFALSE)
+                errorHigh = rt.TEfficiency.ClopperPearson(int(denominator.GetBinContent(i, j)), int(numerator.GetBinContent(i, j)), 0.68269, rt.kTRUE) - efficiency.GetBinContent(i, j)
+                efficiency.SetBinError(i, j, abs((errorHigh - errorLow)/2))
+            else:
+                efficiency.SetBinContent(i, j, 0.0)
+                efficiency.SetBinError(i, j, 0.0)
     return efficiency
 
 def makeAcceptanceHistos(trees, particleType, ptBins, etaBins):
@@ -36,9 +46,20 @@ def makeAcceptanceHistos(trees, particleType, ptBins, etaBins):
     for tree in trees:
         tree.Draw("genZeta:genZpt>>+"+denominator.GetName(), "weight*(nGen"+particleType+"s == 2 && leadingGen"+particleType+"Pt > 10 && subleadingGen"+particleType+"Pt > 10)") #denominator: all events with two gen-leptons having pt above 10 GeV
         tree.Draw("genZeta:genZpt>>+"+numerator.GetName(), "weight*(nGen"+particleType+"s == 2 && leadingGen"+particleType+"Pt > 10 && subleadingGen"+particleType+"Pt > 10 && abs(leadingGen"+particleType+"Eta) < "+str(acceptanceRange[particleType])+" && abs(subleadingGen"+particleType+"Eta) < "+str(acceptanceRange[particleType])+")") #numerator: all events with two gen-leptons having pt above 10 GeV and eta within the desired acceptance 
+
     #divide to get the efficiency in each bin
     efficiency = numerator.Clone()
-    efficiency.Divide(denominator)
+    for i in range(efficiency.GetNbinsX()+1):
+        for j in range(efficiency.GetNbinsY()+1):
+            if denominator.GetBinContent(i,j) > 0:
+                efficiency.SetBinContent(i,j, numerator.GetBinContent(i,j)*1.0/denominator.GetBinContent(i,j))
+                errorLow = efficiency.GetBinContent(i,j) - rt.TEfficiency.ClopperPearson(int(denominator.GetBinContent(i,j)), int(numerator.GetBinContent(i,j)), 0.68269, rt.kFALSE)
+                errorHigh = rt.TEfficiency.ClopperPearson(int(denominator.GetBinContent(i,j)), int(numerator.GetBinContent(i,j)), 0.68269, rt.kTRUE) - efficiency.GetBinContent(i,j)
+                efficiency.SetBinError(i,j, abs((errorHigh - errorLow)/2))
+            else:
+                efficiency.SetBinContent(i,j, 0.0)
+                efficiency.SetBinError(i,j, 0.0)
+
     return efficiency
 
 ##begin main program
@@ -47,24 +68,21 @@ def makeAcceptanceHistos(trees, particleType, ptBins, etaBins):
 rt.gROOT.SetBatch()
 
 #get the files
-prefix = "control"
-postfix = "_4000pb_weighted.root"
+prefix = ""
+postfix = "Run1Eff_19700pb.root"
 
-wnames = ["WJets100", "WJets200", "WJets400", "WJets600"]
-gnames = ["GJets100", "GJets200", "GJets400", "GJets600"]
-dynames = ["DYJets100", "DYJets200", "DYJets400", "DYJets600"]
-znames = ["ZJets100", "ZJets200", "ZJets400", "ZJets600"]
+wnames = ["WJets"]
+gnames = ["/tmp/duanders/GJets"]
+dynames = ["DYJets"]
 
 wfiles = [rt.TFile(prefix+name+postfix) for name in wnames]
 gfiles = [rt.TFile(prefix+name+postfix) for name in gnames]
 dyfiles = [rt.TFile(prefix+name+postfix) for name in dynames]
-zfiles = [rt.TFile(prefix+name+postfix) for name in znames]
 
 #get the trees
 wtrees = [tfile.Get("RazorInclusive") for tfile in wfiles]
 gtrees = [tfile.Get("RazorInclusive") for tfile in gfiles]
 dytrees = [tfile.Get("RazorInclusive") for tfile in dyfiles]
-ztrees = [tfile.Get("RazorInclusive") for tfile in zfiles]
 
 #set bins in pt and eta for each particle type
 muonPtBins = [10, 20, 30, 40, 60, 80, 100, 300, 500, 1000]
@@ -79,7 +97,7 @@ photonEtaBins = copy.copy(electronEtaBins)
 acceptancePtBins = [0.0, 10, 20, 40, 60, 80, 100, 150, 200, 300, 400, 600, 800, 3000]
 acceptanceEtaBins = [0.0, 0.4, 0.8, 1.2, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 4.0, 6.0]
 
-outfile = rt.TFile("Phys14LeptonPhotonEfficiencyNoteIncorrectErrors.root", "recreate")
+outfile = rt.TFile("Run1LeptonPhotonEfficiency.root", "recreate")
 outfile.cd()
 results = []
 #efficiency for muons

@@ -25,6 +25,8 @@ int main(int argc, char* argv[]){
             << "hggrazor             --   higgs->diphoton razor analysis" << endl
             << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
             << "razorVetoLeptonStudy --   study lepton veto" << endl
+            << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
+            << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events" << endl
             << "electronNtupler      --   study electron variables" << endl
             << "muonNtupler          --   study muon variables" << endl
             << "jetNtupler           --   study jet variables" << endl
@@ -247,12 +249,31 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();
       if(option == 1){ 
-          analyzer.RazorPhotonStudy(outputFileName, true); //run with data
+          analyzer.RazorPhotonStudy(outputFileName, true, true, true); //run with data (Run 1)
       }
       else{
-          analyzer.RazorPhotonStudy(outputFileName, false); //run with MC 
+          analyzer.RazorPhotonStudy(outputFileName, false, true, true); //run with MC (Run 1)
       }
     }    
+    else if(analysisType == "razorPhotonStudyEff"){
+      cout << "Executing razorPhotonStudy, keeping all events for efficiency calculation..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnablePhotons();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();
+      if(option == 1){ 
+          analyzer.RazorPhotonStudy(outputFileName, true, false, true); //run with data -- don't filter events (Run 1)
+      }
+      else{
+          analyzer.RazorPhotonStudy(outputFileName, false, false, true); //run with MC -- don't filter events (Run 1)
+      }
+    } 
     else if(analysisType == "MakeMCPileupDistribution"){
       cout << "Executing MakeMCPileupDistribution..." << endl;
       analyzer.EnablePileup();     

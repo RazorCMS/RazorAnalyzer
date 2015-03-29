@@ -58,7 +58,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isRunOne = false);
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
-        virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false);
+        virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false, bool filterEvents = true, bool isRunOne = true);
         virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
 	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
 

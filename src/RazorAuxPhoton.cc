@@ -12,39 +12,39 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     double effAreaNeutralHadrons = 0.0;
     double effAreaPhotons = 0.0;
     if(fabs(pho_superClusterEta[i]) < 1.0){
-        effAreaChargedHadrons = 0.0080;
-        effAreaNeutralHadrons = 0.0126;
-        effAreaPhotons = 0.0982;
+        effAreaChargedHadrons = 0.0130;
+        effAreaNeutralHadrons = 0.0056;
+        effAreaPhotons = 0.0896;
     }
     else if(fabs(pho_superClusterEta[i]) < 1.479){
-        effAreaChargedHadrons = 0.0079;
-        effAreaNeutralHadrons = 0.0237;
-        effAreaPhotons = 0.0857;
+        effAreaChargedHadrons = 0.0096;
+        effAreaNeutralHadrons = 0.0107;
+        effAreaPhotons = 0.0762;
     }
     else if(fabs(pho_superClusterEta[i]) < 2.0){
-        effAreaChargedHadrons = 0.0080;
-        effAreaNeutralHadrons = 0.0;
-        effAreaPhotons = 0.0484;
+        effAreaChargedHadrons = 0.0107;
+        effAreaNeutralHadrons = 0.0019;
+        effAreaPhotons = 0.0383;
     }
     else if(fabs(pho_superClusterEta[i]) < 2.2){
-        effAreaChargedHadrons = 0.0048;
-        effAreaNeutralHadrons = 0.0;
-        effAreaPhotons = 0.0668;
+        effAreaChargedHadrons = 0.0077;
+        effAreaNeutralHadrons = 0.0011;
+        effAreaPhotons = 0.0534;
     }
     else if(fabs(pho_superClusterEta[i]) < 2.3){
-        effAreaChargedHadrons = 0.0029;
-        effAreaNeutralHadrons = 0.0;
-        effAreaPhotons = 0.0868;
+        effAreaChargedHadrons = 0.0088;
+        effAreaNeutralHadrons = 0.0077;
+        effAreaPhotons = 0.0846;
     }
     else if(fabs(pho_superClusterEta[i]) < 2.4){
-        effAreaChargedHadrons = 0.0036;
-        effAreaNeutralHadrons = 0.0;
-        effAreaPhotons = 0.0982;
+        effAreaChargedHadrons = 0.0065;
+        effAreaNeutralHadrons = 0.0178;
+        effAreaPhotons = 0.1032;
     }
     else{
-        effAreaChargedHadrons = 0.0016;
-        effAreaNeutralHadrons = 0.0769;
-        effAreaPhotons = 0.1337;
+        effAreaChargedHadrons = 0.0030;
+        effAreaNeutralHadrons = 0.1675;
+        effAreaPhotons = 0.1598;
     }
 
     //Rho corrected PF charged hadron isolation
@@ -97,63 +97,63 @@ bool RazorAnalyzer::passesCutsBasedPhotonIDNoIsoCuts(int i, double HoverECut, do
 bool RazorAnalyzer::isLoosePhoton(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return passesCutsBasedPhotonID(i, 0.553, 0.0099, 2.49, 15.43+0.007*phoPt[i], 9.42+0.0033*phoPt[i]);
+        return passesCutsBasedPhotonID(i, 0.048, 0.0106, 2.56, 3.74+0.0025*phoPt[i], 2.68+0.001*phoPt[i]);
     }
     //endcap photons
-    return passesCutsBasedPhotonID(i, 0.062, 0.0284, 1.04, 19.71+0.0129*phoPt[i], 11.88+0.0108*phoPt[i]);
+    return passesCutsBasedPhotonID(i, 0.069, 0.0266, 3.12, 17.11+0.0118*phoPt[i], 2.70+0.0059*phoPt[i]);
 }
 
 bool RazorAnalyzer::isMediumPhoton(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return passesCutsBasedPhotonID(i, 0.058, 0.0099, 1.91, 4.66+0.007*phoPt[i], 4.29+0.0033*phoPt[i]);
+        return passesCutsBasedPhotonID(i, 0.032, 0.0101, 1.90, 2.96+0.0025*phoPt[i], 1.39+0.001*phoPt[i]);
     }
     //endcap photons
-    return passesCutsBasedPhotonID(i, 0.020, 0.0268, 0.82, 14.65+0.0129*phoPt[i], 4.06+0.0108*phoPt[i]);
+    return passesCutsBasedPhotonID(i, 0.0166, 0.0264, 1.95, 4.42+0.0118*phoPt[i], 1.89+0.0059*phoPt[i]);
 }
 
 //photon ID with electron veto and HoverE and sigmaIetaIeta cuts only
 bool RazorAnalyzer::isMediumPhotonNoIsoCuts(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return passesCutsBasedPhotonIDNoIsoCuts(i, 0.058, 0.0099);
+        return passesCutsBasedPhotonIDNoIsoCuts(i, 0.032, 0.0101);
     }
     //endcap photons
-    return passesCutsBasedPhotonIDNoIsoCuts(i, 0.020, 0.0268);
+    return passesCutsBasedPhotonIDNoIsoCuts(i, 0.0166,0.0264);
 }
 
 bool RazorAnalyzer::photonPassesLooseIsoCuts(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 2.49, 15.43+0.007*phoPt[i], 9.42+0.0033*phoPt[i] );
+        return photonPassesIsolation(i, 2.56, 3.74+0.0025*phoPt[i], 2.68+0.001*phoPt[i] );
     }
     //endcap photons
-    return photonPassesIsolation(i, 1.04, 19.71+0.0129*phoPt[i], 11.88+0.0108*phoPt[i]);
+    return photonPassesIsolation(i, 3.12, 17.11+0.0118*phoPt[i], 2.70+0.0059*phoPt[i]);
 }
 
 bool RazorAnalyzer::photonPassesMediumIsoCuts(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 1.91, 4.66+0.007*phoPt[i], 4.29+0.0033*phoPt[i]);
+        return photonPassesIsolation(i, 1.90, 2.96+0.0025*phoPt[i], 1.39+0.001*phoPt[i]);
     }
     //endcap photons
-    return photonPassesIsolation(i, 0.82, 14.65+0.0129*phoPt[i], 4.06+0.0108*phoPt[i]);
+    return photonPassesIsolation(i, 1.95, 4.42+0.0118*phoPt[i], 1.89+0.0059*phoPt[i]);
 }
 
 bool RazorAnalyzer::photonPassesTightIsoCuts(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 1.61, 3.98+0.007*phoPt[i], 3.01+0.0033*phoPt[i]);
+        return photonPassesIsolation(i, 1.86, 2.64+0.0025*phoPt[i], 1.20+0.001*phoPt[i]);
     }
     //endcap photons
-    return photonPassesIsolation(i, 0.69, 4.52+0.0129*phoPt[i], 3.61+0.0108*phoPt[i]);
+    return photonPassesIsolation(i, 1.68, 4.42+0.0118*phoPt[i], 1.03+0.0059*phoPt[i]);
 }
 
 bool RazorAnalyzer::isTightPhoton(int i){
     //barrel photons
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return passesCutsBasedPhotonID(i, 0.019, 0.0099, 1.61, 3.98+0.007*phoPt[i], 3.01+0.0033*phoPt[i]);
+        return passesCutsBasedPhotonID(i, 0.011, 0.0099, 1.86, 2.64+0.0025*phoPt[i], 1.20+0.001*phoPt[i]);
     }
     //endcap photons
-    return passesCutsBasedPhotonID(i, 0.016, 0.0263, 0.69, 4.52+0.0129*phoPt[i], 3.61+0.0108*phoPt[i]);
+    return passesCutsBasedPhotonID(i, 0.015, 0.0263, 1.68, 4.42+0.0118*phoPt[i], 1.03+0.0059*phoPt[i]);
 }
