@@ -103,25 +103,18 @@ bool RazorAnalyzer::photonPassesRunOneIsolation(int i, double PFChHadIsoCut, dou
         effAreaNeutralHadrons = 0.072;
         effAreaPhotons = 0.266;
     }
-    cout << "Photon areas: " << effAreaChargedHadrons << " " << effAreaNeutralHadrons << " " << effAreaPhotons << endl;
 
     //Rho corrected PF charged hadron isolation
     double PFIsoCorrected_ChHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
-    cout << "charged " << PFIsoCorrected_ChHad << endl;
     if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
-    cout << "passed charged" << endl;
     
     //Rho corrected PF neutral hadron isolation
     double PFIsoCorrected_NeuHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoAll*effAreaNeutralHadrons, 0.);
-    cout << "neutral " << PFIsoCorrected_NeuHad << endl;
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
-    cout << "passed neutral had" << endl;
     
     //Rho corrected PF photon isolation
     double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - fixedGridRhoAll*effAreaPhotons, 0.);
-    cout << "pho " << PFIsoCorrected_Photons << endl;
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
-    cout << "passed photon" << endl;
 
     //photon passed all cuts
     return true;
