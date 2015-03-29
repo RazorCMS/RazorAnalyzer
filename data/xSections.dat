@@ -108,6 +108,7 @@ Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola                    1.57*1.121019108
 Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola                    25.0*1.1896 
 Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola                10.7*1.0373831776
 WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   47.0*(1-0.0305)*(0.1080*3)*(0.1080*3)*1.2151 
+WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    26.2*(0.6760)*0.101*1.23344
 WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola                    26.2*(0.1080*3)*0.101*1.23344
 ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   0.364791
 ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    2.448690
