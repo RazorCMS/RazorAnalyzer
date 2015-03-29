@@ -578,17 +578,21 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //             Select photons                         //
         //****************************************************//
         vector<TLorentzVector> GoodPhotons;
-        vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
-            if(!isMediumPhoton(i)) continue;
             if(phoPt[i] < 10) continue;
             if(fabs(phoEta[i]) > 2.5) continue;
+
+            if(isRunOne){
+                if(!isMediumRunOnePhoton(i)) continue;
+            }
+            else{
+                if(!isMediumPhoton(i)) continue;
+            }
 
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
             TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
             GoodPhotons.push_back(thisPhoton);
-            GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
             nSelectedPhotons++;
 
             //check if this photon is leading or subleading

@@ -95,10 +95,13 @@ class RazorAnalyzer: public RazorEvents {
         //functions in RazorAuxPhoton.cc
         bool photonPassesElectronVeto(int i);
         bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
+        bool photonPassesRunOneIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
         bool passesCutsBasedPhotonID(int i, double HoverECut, double SigmaIetaIetaCut, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
+        bool passesRunOneCutsBasedPhotonID(int i, double HoverECut, double SigmaIetaIetaCut, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
         bool passesCutsBasedPhotonIDNoIsoCuts(int i, double HoverECut, double SigmaIetaIetaCut);
         bool isLoosePhoton(int i);
         bool isMediumPhoton(int i);
+        bool isMediumRunOnePhoton(int i);
         bool isMediumPhotonNoIsoCuts(int i);
         bool photonPassesLooseIsoCuts(int i);
         bool photonPassesMediumIsoCuts(int i);

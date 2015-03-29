@@ -56,8 +56,72 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
     
     //Rho corrected PF photon isolation
-    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - phoPt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
+
+    //photon passed all cuts
+    return true;
+}
+
+bool RazorAnalyzer::photonPassesRunOneIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut){
+    //get effective area for isolation calculations
+    double effAreaChargedHadrons = 0.0;
+    double effAreaNeutralHadrons = 0.0;
+    double effAreaPhotons = 0.0;
+    if(fabs(pho_superClusterEta[i]) < 1.0){
+        effAreaChargedHadrons = 0.012;
+        effAreaNeutralHadrons = 0.030;
+        effAreaPhotons = 0.148;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 1.479){
+        effAreaChargedHadrons = 0.010;
+        effAreaNeutralHadrons = 0.057;
+        effAreaPhotons = 0.130;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.0){
+        effAreaChargedHadrons = 0.014;
+        effAreaNeutralHadrons = 0.039;
+        effAreaPhotons = 0.112;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.2){
+        effAreaChargedHadrons = 0.012;
+        effAreaNeutralHadrons = 0.015;
+        effAreaPhotons = 0.216;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.3){
+        effAreaChargedHadrons = 0.016;
+        effAreaNeutralHadrons = 0.024;
+        effAreaPhotons = 0.262;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.4){
+        effAreaChargedHadrons = 0.020;
+        effAreaNeutralHadrons = 0.039;
+        effAreaPhotons = 0.260;
+    }
+    else{
+        effAreaChargedHadrons = 0.012;
+        effAreaNeutralHadrons = 0.072;
+        effAreaPhotons = 0.266;
+    }
+    cout << "Photon areas: " << effAreaChargedHadrons << " " << effAreaNeutralHadrons << " " << effAreaPhotons << endl;
+
+    //Rho corrected PF charged hadron isolation
+    double PFIsoCorrected_ChHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
+    cout << "charged " << PFIsoCorrected_ChHad << endl;
+    if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
+    cout << "passed charged" << endl;
+    
+    //Rho corrected PF neutral hadron isolation
+    double PFIsoCorrected_NeuHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoAll*effAreaNeutralHadrons, 0.);
+    cout << "neutral " << PFIsoCorrected_NeuHad << endl;
+    if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
+    cout << "passed neutral had" << endl;
+    
+    //Rho corrected PF photon isolation
+    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - fixedGridRhoAll*effAreaPhotons, 0.);
+    cout << "pho " << PFIsoCorrected_Photons << endl;
+    if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
+    cout << "passed photon" << endl;
 
     //photon passed all cuts
     return true;
@@ -75,6 +139,23 @@ bool RazorAnalyzer::passesCutsBasedPhotonID(int i, double HoverECut, double Sigm
 
     //Isolation
     if(!photonPassesIsolation(i, PFChHadIsoCut, PFNeuHadIsoCut, PFPhotIsoCut)) return false;
+
+    //photon passed all cuts
+    return true;
+}
+
+bool RazorAnalyzer::passesRunOneCutsBasedPhotonID(int i, double HoverECut, double SigmaIetaIetaCut, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut){
+    //electron veto
+    if(!photonPassesElectronVeto(i)) return false;
+
+    //HoverE
+    if(pho_HoverE[i] > HoverECut) return false;
+    
+    //SigmaIetaIeta
+    if(phoSigmaIetaIeta[i] > SigmaIetaIetaCut) return false;
+
+    //Isolation
+    if(!photonPassesRunOneIsolation(i, PFChHadIsoCut, PFNeuHadIsoCut, PFPhotIsoCut)) return false;
 
     //photon passed all cuts
     return true;
@@ -156,4 +237,13 @@ bool RazorAnalyzer::isTightPhoton(int i){
     }
     //endcap photons
     return passesCutsBasedPhotonID(i, 0.015, 0.0263, 1.68, 4.42+0.0118*phoPt[i], 1.03+0.0059*phoPt[i]);
+}
+
+bool RazorAnalyzer::isMediumRunOnePhoton(int i){
+    //barrel photons
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+        return passesRunOneCutsBasedPhotonID(i, 0.05, 0.011, 1.5, 1.0+0.04*phoPt[i], 0.7*0.005*phoPt[i]);
+    }
+    //endcap photons
+    return passesRunOneCutsBasedPhotonID(i, 0.05, 0.033, 1.2, 1.5+0.04*phoPt[i], 1.0+0.005*phoPt[i]);
 }

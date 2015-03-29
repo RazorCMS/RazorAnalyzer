@@ -381,7 +381,7 @@ void ZInvisibleControlSamples(){
     DYWComparisonHist->GetXaxis()->SetTitle("MR");
     DYWComparisonHist->GetYaxis()->SetTitle("Rsq");
     DYWComparisonHist->SetStats(0);
-    DYWComparisonHist->SetMaximum(3);
+    DYWComparisonHist->SetMaximum(0);
     DYWComparisonHist->Draw("colz");
     c.Print("controlSampleHistogramComparisonDYW.pdf");
     c.Print("controlSampleHistogramComparisonDYW.root");
