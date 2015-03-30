@@ -72,7 +72,7 @@ prefix = ""
 postfix = "Run1Eff_19700pb.root"
 
 wnames = ["WJets"]
-gnames = ["/tmp/duanders/GJets"]
+gnames = ["GJets"]
 dynames = ["DYJets"]
 
 wfiles = [rt.TFile(prefix+name+postfix) for name in wnames]

@@ -36,7 +36,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     //tree variables
     int nVtx, nPU_mean;
     int run, lumi;
-    bool hlt_dimuon, hlt_singlemu, hlt_photon;
+    bool hlt_dimuon, hlt_singlemu, hlt_photon, hlt_razor;
     int nSelectedJets, nBTaggedJets;
     int nVetoMuons, nLooseMuons, nTightMuons;
     int nVetoElectrons, nLooseElectrons, nTightElectrons;
@@ -125,6 +125,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     razorTree->Branch("hlt_dimuon", &hlt_dimuon, "hlt_dimuon/O");
     razorTree->Branch("hlt_singlemu", &hlt_singlemu, "hlt_singlemu/O");
     razorTree->Branch("hlt_photon", &hlt_photon, "hlt_photon/O");
+    razorTree->Branch("hlt_razor", &hlt_razor, "hlt_razor/O");
     razorTree->Branch("nPU_mean", &nPU_mean, "nPU_mean/I");
     razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
     razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
@@ -266,6 +267,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 	hlt_dimuon = false;
         hlt_singlemu = false;
         hlt_photon = false;
+        hlt_razor = false;
 	nSelectedJets = 0;
         nBTaggedJets = 0;
         nVetoMuons = 0;
@@ -352,7 +354,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(HLTDecision[i] == 1) hlt_photon = true;
         }
 
-        if(filterEvents && !hlt_dimuon && !hlt_singlemu && !hlt_photon) continue;
+        for(int i = 46; i <= 50; i++){
+            if(HLTDecision[i] == 1) hlt_razor = true;
+        }
+
+        if(filterEvents && !hlt_dimuon && !hlt_singlemu && !hlt_photon && !hlt_razor) continue;
 
 	run = runNum;
 	lumi = lumiNum;

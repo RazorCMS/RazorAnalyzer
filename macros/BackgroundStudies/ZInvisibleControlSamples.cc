@@ -18,9 +18,22 @@ using namespace std;
 void ZInvisibleControlSamples(){
     gROOT->SetBatch();
 
+    //set color palette 
+    const Int_t NCont = 100;
+    gStyle->SetNumberContours(NCont);
+    gStyle->SetPaintTextFormat("1.2f");
+
+    //choose which sample to normalize to
+    string normalizeTo = "ZJets";
+
     //for plots
-    float MRMax = 2000;
-    float RsqMax = 1.0;
+    float MetMin = 0.;
+    float MetMax = 1000;
+    float nMetBins = 20;
+    float nMRBins = 10;
+    float nRsqBins = 8;
+    float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
+    float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.80, 1.5};
 
     //upper bounds of reweighing histograms
     float maxPhotonPt = 999; 
@@ -35,11 +48,13 @@ void ZInvisibleControlSamples(){
     suffixes["DYJets"] = "_noZ";
     suffixes["WJets"] = "_noW";
     suffixes["GJets"] = "_noPho";
+    suffixes["ZJets"] = "";
 
     map<string, string> cuts;
-    cuts["DYJets"] = "recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
-    cuts["WJets"] = "MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
-    cuts["GJets"] = "MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
+    cuts["DYJets"] = "hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
+    cuts["WJets"] = "hlt_singlemu && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
+    cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
+    cuts["ZJets"] = "hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -47,9 +62,10 @@ void ZInvisibleControlSamples(){
     mcfiles["DYJets"] = new TFile("DYJetsRun1_19700pb.root");
     mcfiles["WJets"] = new TFile("WJetsRun1_19700pb.root");
     mcfiles["GJets"] = new TFile("GJetsRun1_19700pb.root");
-    datafiles["DYJets"] = new TFile("DoubleMu.root");
-    datafiles["WJets"] = new TFile("SingleMu.root");
-    datafiles["GJets"] = new TFile("Photon.root");
+    mcfiles["ZJets"] = new TFile("ZJetsRun1_19700pb.root");
+    datafiles["DYJets"] = new TFile("DoubleMuRun1.root");
+    datafiles["WJets"] = new TFile("SingleMuRun1.root");
+    datafiles["GJets"] = new TFile("PhotonRun1.root");
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -58,8 +74,7 @@ void ZInvisibleControlSamples(){
     map<string, float> rsqs;
     float weight;
     float leadingMuonPt, leadingMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
-    //NOTE: not using leadingTightMuon variables yet -- commented out these lines for now
-    //float leadingTightMuonPt, leadingTightMuonEta;
+    float leadingTightMuonPt, leadingTightMuonEta;
     for(auto &file : mcfiles){
         mets[file.first] = 0.;
         mrs[file.first] = 0.;
@@ -71,8 +86,8 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
         mctrees[file.first]->SetBranchAddress("leadingMuonEta", &leadingMuonEta);
-        //mctrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
-        //mctrees[file.first]->SetBranchAddress("leadingTightMuonEta", &leadingTightMuonEta);
+        mctrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
+        mctrees[file.first]->SetBranchAddress("leadingTightMuonEta", &leadingTightMuonEta);
         mctrees[file.first]->SetBranchAddress("subleadingMuonPt", &subleadingMuonPt);
         mctrees[file.first]->SetBranchAddress("subleadingMuonEta", &subleadingMuonEta);
         mctrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
@@ -89,8 +104,8 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), &rsqs[file.first]);
         datatrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
         datatrees[file.first]->SetBranchAddress("leadingMuonEta", &leadingMuonEta);
-        //datatrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
-        //datatrees[file.first]->SetBranchAddress("leadingTightMuonEta", &leadingTightMuonEta);
+        datatrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
+        datatrees[file.first]->SetBranchAddress("leadingTightMuonEta", &leadingTightMuonEta);
         datatrees[file.first]->SetBranchAddress("subleadingMuonPt", &subleadingMuonPt);
         datatrees[file.first]->SetBranchAddress("subleadingMuonEta", &subleadingMuonEta);
         datatrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
@@ -113,8 +128,8 @@ void ZInvisibleControlSamples(){
     map<string, TH2F> razorHistosForReweighing;
     for(auto &tree : mctrees){
         cout << "Filling MC histograms: " << tree.first << endl;
-        metHistosForReweighing[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", 25, 0., 1000);
-        razorHistosForReweighing[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", 25, 300., MRMax, 25, 0.15, RsqMax);
+        metHistosForReweighing[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", nMetBins, MetMin, MetMax);
+        razorHistosForReweighing[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
         uint nEntries = tree.second->GetEntries();
         //make TTreeFormula for selection cuts
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
@@ -139,13 +154,12 @@ void ZInvisibleControlSamples(){
                 }
             }
             else if(tree.first == "WJets"){
-                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
                     eventWeight = 0;
                     cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
                 }
-                //eventWeight /= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
             }
             else if(tree.first == "DYJets"){
                 double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
@@ -157,9 +171,6 @@ void ZInvisibleControlSamples(){
                     eventWeight = 0;
                 }
             }
-            else{
-                cout << "Error in efficiency reweighing; check the code" << endl;
-            }
             //fill each quantity
             metHistosForReweighing[tree.first].Fill(mets[tree.first], eventWeight);
             razorHistosForReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], eventWeight);
@@ -170,7 +181,7 @@ void ZInvisibleControlSamples(){
     map<string, TH2F> razorHistosMC;
     for(auto &tree : mctrees){
         cout << "Filling reweighed MC histograms: " << tree.first << endl;
-        razorHistosMC[tree.first] = TH2F(Form("razorMCReweighed%s", tree.first.c_str()), "; MR (GeV); Rsq", 25, 300., MRMax, 25, 0.15, RsqMax);
+        razorHistosMC[tree.first] = TH2F(Form("razorMCReweighed%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
         uint nEntries = tree.second->GetEntries();
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
         cutsFormula.GetNdata();
@@ -193,13 +204,12 @@ void ZInvisibleControlSamples(){
                 }
             }
             else if(tree.first == "WJets"){
-                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
                     cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
                 }
-                //reweighFactor /= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
             }
             else if(tree.first == "DYJets"){
                 double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
@@ -211,14 +221,11 @@ void ZInvisibleControlSamples(){
                     reweighFactor = 0;
                 }
             }
-            else{
-                cout << "Error in efficiency reweighing; check the code" << endl;
-            }
 
             if(reweighByRazor){ //reweigh by MR and Rsq
                 //get the factor to reweigh by
                 float denominator = razorHistosForReweighing[tree.first].GetBinContent(razorHistosForReweighing[tree.first].FindBin(mrs[tree.first], rsqs[tree.first]));
-                float numerator = razorHistosForReweighing["DYJets"].GetBinContent(razorHistosForReweighing["DYJets"].FindBin(mrs[tree.first], rsqs[tree.first]));
+                float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(razorHistosForReweighing[normalizeTo].FindBin(mrs[tree.first], rsqs[tree.first]));
                 if(denominator > 0){
                     reweighFactor *= numerator / denominator;
                 }
@@ -226,7 +233,7 @@ void ZInvisibleControlSamples(){
             else{ //reweigh by MET
                 //get the factor to reweigh by
                 float denominator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
-                float numerator = metHistosForReweighing["DYJets"].GetBinContent(metHistosForReweighing["DYJets"].FindBin(mets[tree.first]));
+                float numerator = metHistosForReweighing[normalizeTo].GetBinContent(metHistosForReweighing[normalizeTo].FindBin(mets[tree.first]));
                 if(denominator > 0){
                     reweighFactor *= numerator / denominator;    
                 }
@@ -240,8 +247,8 @@ void ZInvisibleControlSamples(){
     map<string, TH2F> razorHistosDataBeforeReweighing; //apply only efficiency and acceptance corrections
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
-        razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", 25, 300., MRMax, 25, 0.15, RsqMax);
-        razorHistosDataBeforeReweighing[tree.first] = TH2F(Form("razordatabeforereweighing%s", tree.first.c_str()), "; MR (GeV); Rsq", 25, 300., MRMax, 25, 0.15, RsqMax);
+        razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        razorHistosDataBeforeReweighing[tree.first] = TH2F(Form("razordatabeforereweighing%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
         uint nEntries = tree.second->GetEntries();
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
         cutsFormula.GetNdata();
@@ -264,13 +271,12 @@ void ZInvisibleControlSamples(){
                 }
             }
             else if(tree.first == "WJets"){
-                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
                     cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
                 }
-                //reweighFactor /= muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
             }
             else if(tree.first == "DYJets"){
                 double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
@@ -282,15 +288,12 @@ void ZInvisibleControlSamples(){
                     reweighFactor = 0;
                 }
             }
-            else {
-                cerr << "Error in reweighing.  Check the code!" << endl;
-            }
             razorHistosDataBeforeReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
 
             if(reweighByRazor){ //reweigh by MR and Rsq
                 //get the factor to reweigh by
                 float denominator = razorHistosForReweighing[tree.first].GetBinContent(razorHistosForReweighing[tree.first].FindBin(mrs[tree.first], rsqs[tree.first]));
-                float numerator = razorHistosForReweighing["DYJets"].GetBinContent(razorHistosForReweighing["DYJets"].FindBin(mrs[tree.first], rsqs[tree.first]));
+                float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(razorHistosForReweighing[normalizeTo].FindBin(mrs[tree.first], rsqs[tree.first]));
                 if(denominator > 0){
                     reweighFactor *= numerator / denominator;
                 }
@@ -298,7 +301,7 @@ void ZInvisibleControlSamples(){
             else{ //reweigh by MET
                 //get the factor to reweigh by
                 float denominator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
-                float numerator = metHistosForReweighing["DYJets"].GetBinContent(metHistosForReweighing["DYJets"].FindBin(mets[tree.first]));
+                float numerator = metHistosForReweighing[normalizeTo].GetBinContent(metHistosForReweighing[normalizeTo].FindBin(mets[tree.first]));
                 if(denominator > 0){
                     reweighFactor *= numerator / denominator;    
                 }
@@ -369,7 +372,6 @@ void ZInvisibleControlSamples(){
 
     //quantify agreement between DYJets and WJets predictions
     c.SetLogz(false);
-    gStyle->SetPaintTextFormat("1.1f");
     TH2F *DYWComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWComparisonHist");
     for(int i = 0; i < DYWComparisonHist->GetNbinsX()+1; i++){
         for(int j = 0; j < DYWComparisonHist->GetNbinsY()+1; j++){
@@ -381,8 +383,8 @@ void ZInvisibleControlSamples(){
     DYWComparisonHist->GetXaxis()->SetTitle("MR");
     DYWComparisonHist->GetYaxis()->SetTitle("Rsq");
     DYWComparisonHist->SetStats(0);
-    DYWComparisonHist->SetMaximum(0);
     DYWComparisonHist->Draw("colz");
+    DYWComparisonHist->Draw("same,text");
     c.Print("controlSampleHistogramComparisonDYW.pdf");
     c.Print("controlSampleHistogramComparisonDYW.root");
     DYWComparisonHist->Write();
@@ -399,8 +401,8 @@ void ZInvisibleControlSamples(){
     DYGComparisonHist->GetXaxis()->SetTitle("MR");
     DYGComparisonHist->GetYaxis()->SetTitle("Rsq");
     DYGComparisonHist->SetStats(0);
-    DYGComparisonHist->SetMaximum(-0.7);
     DYGComparisonHist->Draw("colz");
+    DYGComparisonHist->Draw("same,text");
     c.Print("controlSampleHistogramComparisonDYG.pdf");
     c.Print("controlSampleHistogramComparisonDYG.root");
     DYGComparisonHist->Write();
@@ -417,8 +419,8 @@ void ZInvisibleControlSamples(){
     WGComparisonHist->GetXaxis()->SetTitle("MR");
     WGComparisonHist->GetYaxis()->SetTitle("Rsq");
     WGComparisonHist->SetStats(0);
-    WGComparisonHist->SetMaximum(-0.7);
     WGComparisonHist->Draw("colz");
+    WGComparisonHist->Draw("same,text");
     c.Print("controlSampleHistogramComparisonWG.pdf");
     c.Print("controlSampleHistogramComparisonWG.root");
     WGComparisonHist->Write();
