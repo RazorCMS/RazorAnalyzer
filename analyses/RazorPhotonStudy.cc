@@ -37,6 +37,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     int nVtx, nPU_mean;
     int run, lumi;
     bool hlt_dimuon, hlt_singlemu, hlt_photon, hlt_razor;
+    float hlt_photon_weight;
     int nSelectedJets, nBTaggedJets;
     int nVetoMuons, nLooseMuons, nTightMuons;
     int nVetoElectrons, nLooseElectrons, nTightElectrons;
@@ -125,6 +126,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     razorTree->Branch("hlt_dimuon", &hlt_dimuon, "hlt_dimuon/O");
     razorTree->Branch("hlt_singlemu", &hlt_singlemu, "hlt_singlemu/O");
     razorTree->Branch("hlt_photon", &hlt_photon, "hlt_photon/O");
+    razorTree->Branch("hlt_photon_weight", &hlt_photon_weight, "hlt_photon_weight/F");
     razorTree->Branch("hlt_razor", &hlt_razor, "hlt_razor/O");
     razorTree->Branch("nPU_mean", &nPU_mean, "nPU_mean/I");
     razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
@@ -268,6 +270,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         hlt_singlemu = false;
         hlt_photon = false;
         hlt_razor = false;
+        hlt_photon_weight = 0.;
 	nSelectedJets = 0;
         nBTaggedJets = 0;
         nVetoMuons = 0;
@@ -344,14 +347,56 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 	  for(int i=0; i<nBunchXing; i++)
 	    if(BunchXing[i]==0) nPU_mean = nPUmean[i];
 
+        //dimuon trigger
+        //3 HLT_Mu17_Mu8
+        //4 HLT_Mu17_TkMu8
 	if(HLTDecision[3] == 1 || HLTDecision[4] == 1 )
 	  hlt_dimuon = true;
 
+        //single muon trigger
+        //0 HLT_IsoMu24
+        //1 HLT_IsoMu24_eta2p1
         if(HLTDecision[0] == 1 || HLTDecision[1] == 1)
             hlt_singlemu = true;
 
-        for(int i = 29; i <= 35; i++){
+        //photon trigger: 
+        //29 HLT_Photon50_CaloIdVL
+        //30 HLT_Photon75_CaloIdVL
+        //31 HLT_Photon90_CaloIdVL
+        //32 HLT_Photon135
+        //33 HLT_Photon150
+        //34 HLT_Photon160
+        for(int i = 29; i <= 34; i++){
             if(HLTDecision[i] == 1) hlt_photon = true;
+        }
+        float lumi_HLTPhoton150 = 8.893e2 + 4.414e3 + 7.152e3 + 7.257e3;
+        float lumi_HLTPhoton135 = 8.893e2 + 1.471e2 + 5.429e3 + 7.257e3;
+        float lumi_HLTPhoton90  = 1.622e1 + 6.384e1 + 1.010e2 + 9.881e1;
+        float lumi_HLTPhoton75  = 8.111e0 + 2.943e1 + 4.768e1 + 4.838e1;
+        float lumi_HLTPhoton50  = 1.353e0 + 4.905e0 + 7.947e0 + 8.064e0;
+        //data -- all events passing the trigger get weight 1
+        if(isData && hlt_photon){
+            hlt_photon_weight = 1.0;
+        }
+        //MC -- find the highest photon trigger passed
+        //and apply a weight to the event based on the prescale of that trigger
+        //(see AN_2013_373 for estimates of the luminosities collected by each trigger)
+        else if(hlt_photon){
+            if(HLTDecision[33] == 1 || HLTDecision[34] == 1){ 
+                hlt_photon_weight = 1.0;
+            }
+            else if(HLTDecision[32] == 1){
+                hlt_photon_weight = lumi_HLTPhoton135/lumi_HLTPhoton150;
+            }
+            else if(HLTDecision[31] == 1){
+                hlt_photon_weight = lumi_HLTPhoton90/lumi_HLTPhoton150;
+            }
+            else if(HLTDecision[30] == 1){
+                hlt_photon_weight = lumi_HLTPhoton75/lumi_HLTPhoton150; 
+            }
+            else if(HLTDecision[29] == 1){
+                hlt_photon_weight = lumi_HLTPhoton50/lumi_HLTPhoton150;
+            }
         }
 
         for(int i = 46; i <= 50; i++){
