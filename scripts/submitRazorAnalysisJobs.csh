@@ -268,6 +268,7 @@ ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
   echo "Sample " $sample
   set inputfilelist="/afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
   set njobs = `cat $inputfilelist | wc | awk '{print $1}' `
+  set anatype = razorPhotonStudy
 
   sed "s/sampleName/$sample/" crab_runRazorRun.py > crab_tmp.py
   sed -i "s/runRazorCrab/tmp_runRazorCrab/" crab_tmp.py
@@ -278,6 +279,7 @@ ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
 
   sed "s/listfile.txt/${sample}.cern.txt/" runRazorCrab.sh > tmp_runRazorCrab.sh
   sed -i "s/ntupleName.root/RazorAnalysis_$sample.root/" tmp_runRazorCrab.sh
+  sed -i "s/Analyses/$anatype/" tmp_runRazorCrab.sh
 
   crab submit -c crab_tmp.py
   rm crab_tmp.py tmp_runRazorCrab.sh
