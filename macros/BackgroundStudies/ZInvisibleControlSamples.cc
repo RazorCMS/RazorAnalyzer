@@ -51,10 +51,10 @@ void ZInvisibleControlSamples(){
     suffixes["ZJets"] = "";
 
     map<string, string> cuts;
-    cuts["DYJets"] = "hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
-    cuts["WJets"] = "hlt_singlemu && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
+    cuts["DYJets"] = "nLooseMuons == 2 && hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
+    cuts["WJets"] = "nTightMuons == 1 && nLooseMuons == 1 && hlt_singlemu && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
     cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
-    cuts["ZJets"] = "hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
+    cuts["ZJets"] = "nLooseMuons == 0 && nLooseElectrons == 0 && hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -150,7 +150,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
                     eventWeight = 0;
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "WJets"){
@@ -158,7 +158,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
                     eventWeight = 0;
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "DYJets"){
@@ -167,7 +167,7 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
                     eventWeight = 0;
                 }
             }
@@ -200,7 +200,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "WJets"){
@@ -208,7 +208,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "DYJets"){
@@ -217,7 +217,7 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
                     reweighFactor = 0;
                 }
             }
@@ -267,7 +267,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "WJets"){
@@ -275,7 +275,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "DYJets"){
@@ -284,7 +284,7 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
-                    cout << "Warning: efficiency histogram gives 0; setting event weight to 0" << endl;
+                    cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
                     reweighFactor = 0;
                 }
             }
