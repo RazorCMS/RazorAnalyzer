@@ -261,3 +261,27 @@ QCDHT1000ToInf \
 
 end
 
+## CRAB submit    
+foreach sample( \
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
+)
+  echo "Sample " $sample
+  set inputfilelist="/afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set njobs = `cat $inputfilelist | wc | awk '{print $1}' `
+
+  sed "s/sampleName/$sample/" crab_runRazorRun.py > crab_tmp.py
+  sed -i "s/runRazorCrab/tmp_runRazorCrab/" crab_tmp.py
+  sed -i "s/ntupleName.root/RazorAnalysis_$sample.root/" crab_tmp.py 
+  sed -i "s|listfile.txt|$inputfilelist|" crab_tmp.py 
+  sed -i "s/999/$njobs/" crab_tmp.py
+  sed -i "s/999/$njobs/" crab_tmp.py
+
+  sed "s/listfile.txt/${sample}.cern.txt/" runRazorCrab.sh > tmp_runRazorCrab.sh
+  sed -i "s/ntupleName.root/RazorAnalysis_$sample.root/" tmp_runRazorCrab.sh
+
+  crab submit -c crab_tmp.py
+  rm crab_tmp.py tmp_runRazorCrab.sh
+
+end
+
+
