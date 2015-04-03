@@ -21,7 +21,7 @@ void ZInvisibleControlSamples(){
     //set color palette 
     const Int_t NCont = 100;
     gStyle->SetNumberContours(NCont);
-    gStyle->SetPaintTextFormat("1.2f");
+    gStyle->SetPaintTextFormat("1.0f");
 
     //choose which sample to normalize to
     string normalizeTo = "ZJets";
@@ -49,12 +49,14 @@ void ZInvisibleControlSamples(){
     suffixes["WJets"] = "_noW";
     suffixes["GJets"] = "_noPho";
     suffixes["ZJets"] = "";
+    suffixes["Top"] = "_noW";
 
     map<string, string> cuts;
     cuts["DYJets"] = "nLooseMuons == 2 && hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
-    cuts["WJets"] = "nTightMuons == 1 && nLooseMuons == 1 && hlt_singlemu && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
+    cuts["WJets"] = "nBTaggedJets == 0 && nTightMuons == 1 && nLooseMuons == 1 && hlt_singlemu && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
     cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
     cuts["ZJets"] = "nLooseMuons == 0 && nLooseElectrons == 0 && hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
+    cuts["Top"] = cuts["WJets"];
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -63,6 +65,7 @@ void ZInvisibleControlSamples(){
     mcfiles["WJets"] = new TFile("WJetsRun1_19700pb.root");
     mcfiles["GJets"] = new TFile("GJetsRun1_19700pb.root");
     mcfiles["ZJets"] = new TFile("ZJetsRun1_19700pb.root");
+    mcfiles["Top"] = new TFile("TopBackgroundsRun1_19700pb.root");
     datafiles["DYJets"] = new TFile("DoubleMuRun1.root");
     datafiles["WJets"] = new TFile("SingleMuRun1.root");
     datafiles["GJets"] = new TFile("PhotonRun1.root");
@@ -75,6 +78,7 @@ void ZInvisibleControlSamples(){
     float weight;
     float leadingMuonPt, leadingMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
     float leadingTightMuonPt, leadingTightMuonEta;
+    float hlt_photon_weight;
     for(auto &file : mcfiles){
         mets[file.first] = 0.;
         mrs[file.first] = 0.;
@@ -97,6 +101,7 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
         mctrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
     }
+    //mctrees["GJets"]->SetBranchAddress("hlt_photon_weight", &hlt_photon_weight);
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
         datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
@@ -115,6 +120,7 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
         datatrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
     }
+        datatrees["GJets"]->SetBranchAddress("hlt_photon_weight", &hlt_photon_weight);
 
     //load efficiency/acceptance histograms
     TFile effFile("Run1LeptonPhotonEfficiency.root");
@@ -126,6 +132,7 @@ void ZInvisibleControlSamples(){
     //Step 1: Get the distributions to reweigh by: MET, MR, Rsq
     map<string, TH1F> metHistosForReweighing;
     map<string, TH2F> razorHistosForReweighing;
+    TH1F mcPhotonPt("mcPhotonPt", "Photon Pt; photon pt", 100, 0, 1000);
     for(auto &tree : mctrees){
         cout << "Filling MC histograms: " << tree.first << endl;
         metHistosForReweighing[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", nMetBins, MetMin, MetMax);
@@ -150,15 +157,16 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
                     eventWeight = 0;
-                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
+                mcPhotonPt.Fill(leadingPhotonPt, eventWeight);
             }
             else if(tree.first == "WJets"){
                 double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
                     eventWeight = 0;
-                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "DYJets"){
@@ -167,7 +175,7 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{
-                    cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
                     eventWeight = 0;
                 }
             }
@@ -200,7 +208,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "WJets"){
@@ -208,7 +216,7 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "DYJets"){
@@ -217,7 +225,7 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
-                    cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
                     reweighFactor = 0;
                 }
             }
@@ -242,12 +250,11 @@ void ZInvisibleControlSamples(){
         }
     }
 
-    //Step 3: Apply the reweighing factors to data
-    map<string, TH2F> razorHistosData;
+    //Step 3: make data distributions
     map<string, TH2F> razorHistosDataBeforeReweighing; //apply only efficiency and acceptance corrections
+    TH1F dataPhotonPt("dataPhotonPt", "Photon Pt; photon pt", 100, 0, 1000);
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
-        razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
         razorHistosDataBeforeReweighing[tree.first] = TH2F(Form("razordatabeforereweighing%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
         uint nEntries = tree.second->GetEntries();
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
@@ -267,15 +274,18 @@ void ZInvisibleControlSamples(){
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
+                //multiply by trigger weight
+                reweighFactor *= hlt_photon_weight;
+                dataPhotonPt.Fill(leadingPhotonPt, reweighFactor);
             }
             else if(tree.first == "WJets"){
                 double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
-                    cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
             else if(tree.first == "DYJets"){
@@ -284,31 +294,97 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
-                    cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                    //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
                     reweighFactor = 0;
                 }
             }
             razorHistosDataBeforeReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
+        }
+    }
+    //subtract the top background from the WJets histogram
+    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"];
+    map<string, TH2F> razorHistosData;
+    //rescale the WJets MC histogram to the WJets data histogram
+    razorHistosForReweighing["WJets"].Scale(razorHistosDataBeforeReweighing["WJets"].Integral()*1.0/razorHistosForReweighing["WJets"].Integral());
 
-            if(reweighByRazor){ //reweigh by MR and Rsq
-                //get the factor to reweigh by
-                float denominator = razorHistosForReweighing[tree.first].GetBinContent(razorHistosForReweighing[tree.first].FindBin(mrs[tree.first], rsqs[tree.first]));
-                float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(razorHistosForReweighing[normalizeTo].FindBin(mrs[tree.first], rsqs[tree.first]));
-                if(denominator > 0){
-                    reweighFactor *= numerator / denominator;
+    //Step 4: apply reweighing factors to data
+    if(reweighByRazor){
+        for(auto &tree : datatrees){
+            cout << "Making weighted data histograms: " << tree.first << endl;
+            razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            for(int i = 0; i < razorHistosData[tree.first].GetNbinsX()+1; i++){
+                for(int j = 0; j < razorHistosData[tree.first].GetNbinsY()+1; j++){
+                    float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(i, j);
+                    float denominator = razorHistosForReweighing[tree.first].GetBinContent(i, j);
+                    if(denominator > 0){
+                        razorHistosData[tree.first].SetBinContent(i, j, razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numerator/denominator);
+                    }
+                    else{
+                        razorHistosData[tree.first].SetBinContent(i, j, 0.);
+                    }
                 }
-            } 
-            else{ //reweigh by MET
+            }   
+        }
+    }
+    else{ 
+        for(auto &tree : datatrees){
+            cout << "Making weighted data histograms: " << tree.first << endl;
+            razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+
+            uint nEntries = tree.second->GetEntries();
+            TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
+            cutsFormula.GetNdata();
+            for(uint i = 0; i < nEntries; i++){
+                //get entry
+                tree.second->GetEntry(i);
+
+                //apply selection cuts
+                bool passesSelection = cutsFormula.EvalInstance();
+                if(!passesSelection) continue;
+
+                float reweighFactor = 1.0;
+                //reweigh by efficiency and acceptance
+                if(tree.first == "GJets"){
+                    double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+                    if(effFactor > 1e-5) reweighFactor /= effFactor;
+                    else{ 
+                        reweighFactor = 0;
+                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    }
+                    //multiply by trigger weight
+                    reweighFactor *= hlt_photon_weight;
+                }
+                else if(tree.first == "WJets"){
+                    double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                    if(effFactor > 1e-5) reweighFactor /= effFactor;
+                    else{ 
+                        reweighFactor = 0;
+                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                    }
+                }
+                else if(tree.first == "DYJets"){
+                    double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                    effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                    effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+                    if(effFactor > 1e-5) reweighFactor /= effFactor;
+                    else{
+                        //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                        reweighFactor = 0;
+                    }
+                }
+                //reweigh by MET
                 //get the factor to reweigh by
                 float denominator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
                 float numerator = metHistosForReweighing[normalizeTo].GetBinContent(metHistosForReweighing[normalizeTo].FindBin(mets[tree.first]));
                 if(denominator > 0){
                     reweighFactor *= numerator / denominator;    
                 }
+
+                razorHistosData[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
             }
-            razorHistosData[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
         }
     }
+
     TFile outfile("controlSampleHistograms.root", "recreate");
     TCanvas c("c", "c", 800, 600);
     c.SetLogx();
@@ -332,6 +408,7 @@ void ZInvisibleControlSamples(){
         hist.second.GetYaxis()->SetTitle("Rsq");
         hist.second.SetStats(0);
         hist.second.Draw("colz");
+        hist.second.Draw("same,text");
         c.Print(Form("controlSampleMCHistogram%s.pdf", hist.first.c_str()));
         c.Print(Form("controlSampleMCHistogram%s.root", hist.first.c_str()));
         hist.second.Write();
@@ -343,6 +420,7 @@ void ZInvisibleControlSamples(){
         hist.second.GetYaxis()->SetTitle("Rsq");
         hist.second.SetStats(0);
         hist.second.Draw("colz");
+        hist.second.Draw("same,text");
         c.Print(Form("controlSampleReweighedMCHistogram%s.pdf", hist.first.c_str()));
         c.Print(Form("controlSampleReweighedMCHistogram%s.root", hist.first.c_str()));
         hist.second.Write();
@@ -354,6 +432,7 @@ void ZInvisibleControlSamples(){
         hist.second.GetYaxis()->SetTitle("Rsq");
         hist.second.SetStats(0);
         hist.second.Draw("colz");
+        hist.second.Draw("same,text");
         c.Print(Form("controlSampleHistogram%s.pdf", hist.first.c_str()));
         c.Print(Form("controlSampleHistogram%s.root", hist.first.c_str()));
         hist.second.Write();
@@ -365,6 +444,7 @@ void ZInvisibleControlSamples(){
         hist.second.GetYaxis()->SetTitle("Rsq");
         hist.second.SetStats(0);
         hist.second.Draw("colz");
+        hist.second.Draw("same,text");
         c.Print(Form("controlSampleHistogramBeforeReweighing%s.pdf", hist.first.c_str()));
         c.Print(Form("controlSampleHistogramBeforeReweighing%s.root", hist.first.c_str()));
         hist.second.Write();
@@ -372,6 +452,7 @@ void ZInvisibleControlSamples(){
 
     //quantify agreement between DYJets and WJets predictions
     c.SetLogz(false);
+    gStyle->SetPaintTextFormat("1.2f");
     TH2F *DYWComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWComparisonHist");
     for(int i = 0; i < DYWComparisonHist->GetNbinsX()+1; i++){
         for(int j = 0; j < DYWComparisonHist->GetNbinsY()+1; j++){
@@ -424,6 +505,15 @@ void ZInvisibleControlSamples(){
     c.Print("controlSampleHistogramComparisonWG.pdf");
     c.Print("controlSampleHistogramComparisonWG.root");
     WGComparisonHist->Write();
+
+    //plot the photon pt distribution in data and MC
+    mcPhotonPt.SetStats(0);
+    mcPhotonPt.SetLineColor(kViolet);
+    dataPhotonPt.SetStats(0);
+    mcPhotonPt.Draw();
+    dataPhotonPt.Draw("pesame");
+    c.Print("controlSamplePhotonPt.pdf");
+    c.Print("controlSamplePhotonPt.root");
 }
 
 int main(){

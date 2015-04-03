@@ -369,18 +369,33 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         for(int i = 29; i <= 34; i++){
             if(HLTDecision[i] == 1) hlt_photon = true;
         }
+        //see AN_2013_373 for estimates of the luminosities collected by each trigger
         float lumi_HLTPhoton150 = 8.893e2 + 4.414e3 + 7.152e3 + 7.257e3;
         float lumi_HLTPhoton135 = 8.893e2 + 1.471e2 + 5.429e3 + 7.257e3;
         float lumi_HLTPhoton90  = 1.622e1 + 6.384e1 + 1.010e2 + 9.881e1;
         float lumi_HLTPhoton75  = 8.111e0 + 2.943e1 + 4.768e1 + 4.838e1;
         float lumi_HLTPhoton50  = 1.353e0 + 4.905e0 + 7.947e0 + 8.064e0;
-        //data -- all events passing the trigger get weight 1
+        //data -- scale each event up according to the prescale of the tightest trigger it passed
+        //(apply trigger weights EITHER to data OR MC -- not both!)
         if(isData && hlt_photon){
-            hlt_photon_weight = 1.0;
+            if(HLTDecision[33] == 1 || HLTDecision[34] == 1){ 
+                hlt_photon_weight = 1.0;
+            }
+            else if(HLTDecision[32] == 1){
+                hlt_photon_weight = lumi_HLTPhoton150/lumi_HLTPhoton135;
+            }
+            else if(HLTDecision[31] == 1){
+                hlt_photon_weight = lumi_HLTPhoton150/lumi_HLTPhoton90;
+            }
+            else if(HLTDecision[30] == 1){
+                hlt_photon_weight = lumi_HLTPhoton150/lumi_HLTPhoton75; 
+            }
+            else if(HLTDecision[29] == 1){
+                hlt_photon_weight = lumi_HLTPhoton150/lumi_HLTPhoton50;
+            }
         }
-        //MC -- find the highest photon trigger passed
-        //and apply a weight to the event based on the prescale of that trigger
-        //(see AN_2013_373 for estimates of the luminosities collected by each trigger)
+        //MC -- scale each event down according to the prescale of the tightest trigger it passed
+        //(apply trigger weights EITHER to data OR  MC -- not both!)
         else if(hlt_photon){
             if(HLTDecision[33] == 1 || HLTDecision[34] == 1){ 
                 hlt_photon_weight = 1.0;
