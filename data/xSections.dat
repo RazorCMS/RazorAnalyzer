@@ -98,6 +98,7 @@ DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball                1177.6*3
 TTJets_FullLeptMGDecays_8TeV-madgraph-tauola                    14.3115*1.8034
 TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola                    59.6994*1.8034
 TTJets_HadronicMGDecays_8TeV-madgraph                           62.2891*1.8034
+TTGJets_8TeV-madgraph                                           14.0
 TTWJets_8TeV-madgraph                                           0.232
 TTWWJets_8TeV-madgraph                                          0.002037
 TTZJets_8TeV-madgraph                                           0.208
@@ -118,3 +119,13 @@ GJets_HT-40To100_8TeV-madgraph                                  2.093e4
 GJets_HT-100To200_8TeV-madgraph                                 5.212e3
 GJets_HT-200To400_8TeV-madgraph                                 9.605e2
 GJets_HT-400ToInf_8TeV-madgraph                                 1.075e2
+GJet_Pt-20to40_doubleEMEnriched_TuneZ2star_8TeV-pythia6         8.19e+04*1.84e-03
+GJet_Pt40_doubleEMEnriched_TuneZ2star_8TeV-pythia6              8.84e+03*5.39e-02
+QCD_Pt-30to40_doubleEMEnriched_TuneZ2star_8TeV-pythia6          5.20e+07*2.35e-04
+QCD_Pt-40_doubleEMEnriched_TuneZ2star_8TeV-pythia6              2.37e+07*2.18e-03
+QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6                 2.886e+08*0.0101
+QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6                 7.433e+07*0.0621
+QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6                1.19e+06*0.1539
+QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6               3.10e+04*0.148
+QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6               4.25e+03*0.131
+QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6                   810*0.11
