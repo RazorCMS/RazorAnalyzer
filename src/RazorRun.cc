@@ -19,12 +19,14 @@ int main(int argc, char* argv[]){
 
     //get input files and analysis type from command line
     if(argc < 3){
-        cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)> [option number]" << endl;
+        cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)> [option number] [optional label]" << endl;
         cerr << "Analyses available: " << endl 
             << "razor                --   inclusive razor analysis" << endl 
             << "hggrazor             --   higgs->diphoton razor analysis" << endl
             << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
             << "razorVetoLeptonStudy --   study lepton veto" << endl
+            << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
+            << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events" << endl
             << "electronNtupler      --   study electron variables" << endl
             << "muonNtupler          --   study muon variables" << endl
             << "jetNtupler           --   study jet variables" << endl
@@ -43,18 +45,28 @@ int main(int argc, char* argv[]){
       option = atoi(argv[4]);
     }
     
+    string label = "";
+    if (argc >= 6) {
+      label = argv[5];
+    }
+    
     //build the TChain
     TChain *theChain = new TChain("ntuples/RazorEvents");
     string curFileName;
     ifstream inputFile(inputFileName.c_str());
+    int NFilesLoaded = 0;
     if(!inputFile){
         cerr << "Error: input file not found!" << endl; 
         return -1;
     }
     while(getline(inputFile, curFileName)){
         theChain->Add(curFileName.c_str());
-        std::cout << "chaining " << curFileName << std::endl;
+	if (analysisType != "MakeMCPileupDistribution") {
+	  std::cout << "chaining " << curFileName << std::endl;
+	}
+	NFilesLoaded++;
     }
+    std::cout << "Loaded Total of " << NFilesLoaded << " files\n";
 
     RazorAnalyzer analyzer(theChain);
     
@@ -117,6 +129,19 @@ int main(int argc, char* argv[]){
       } else {
 	analyzer.RazorVetoLeptonStudy(outputFileName, false);
       }
+    }
+    else if(analysisType == "razorZAnalysis"){
+      cout << "Executing razorZAnalysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();
+      analyzer.EnableIsoPFCandidates();
+      analyzer.RazorZAnalysis(outputFileName, true);
     }
     else if(analysisType == "electronNtupler"){
       cout << "Executing electron ntupler..." << endl;
@@ -183,11 +208,24 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option);
+      analyzer.RazorControlRegions(outputFileName, option, false);
+    }
+    else if(analysisType == "RunOneRazorControlRegions"){
+      cout << "Executing RunOneRazorControlRegions analysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();      
+      analyzer.RazorControlRegions(outputFileName, option, true);
     }
     else if(analysisType == "VetoLeptonEfficiencyControlRegion"){
       cout << "Executing VetoLeptonEfficiencyDileptonControlRegion analysis..." << endl;
-      analyzer.EnableEventInfo();
+      analyzer.EnableEventInfo(); 
       analyzer.EnableJets();
       analyzer.EnableMet();
       analyzer.EnableElectrons();
@@ -209,10 +247,43 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnablePhotons();
       analyzer.EnableGenParticles();
-      analyzer.RazorPhotonStudy(outputFileName);
+      analyzer.EnablePileup();
+      if(option == 1){ 
+          analyzer.RazorPhotonStudy(outputFileName, true, true, true); //run with data (Run 1)
+      }
+      else{
+          analyzer.RazorPhotonStudy(outputFileName, false, true, true); //run with MC (Run 1)
+      }
     }    
+    else if(analysisType == "razorPhotonStudyEff"){
+      cout << "Executing razorPhotonStudy, keeping all events for efficiency calculation..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnablePhotons();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();
+      if(option == 1){ 
+          analyzer.RazorPhotonStudy(outputFileName, true, false, true); //run with data -- don't filter events (Run 1)
+      }
+      else{
+          analyzer.RazorPhotonStudy(outputFileName, false, false, true); //run with MC -- don't filter events (Run 1)
+      }
+    } 
+    else if(analysisType == "MakeMCPileupDistribution"){
+      cout << "Executing MakeMCPileupDistribution..." << endl;
+      analyzer.EnablePileup();     
+      analyzer.MakeMCPileupDistribution(outputFileName,label);
+    }    
+
+
+
     else { //analysis not found
-      cerr << "Error: the given analysis type is not defined in RazorTestAnalysis.cc!" << endl;
+      cerr << "Error: the given analysis type is not defined in RazorRun.cc!" << endl;
     }
 
     cout << "Process completed!" << endl;

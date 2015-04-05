@@ -79,3 +79,53 @@ SMS-T2tt_2J_mStop-500_mLSP-325_Tune4C_13TeV-madgraph-tauola     0.51848
 SMS-T2tt_2J_mStop-650_mLSP-325_Tune4C_13TeV-madgraph-tauola     0.107045
 SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola     0.0189612
 
+
+#Run1 8TeV MC Samples
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph                  381.2
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph                 160.3
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph                 41.49
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph                 5.274
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph                 19.73*1.1973
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph                 2.826*1.1973
+WJetsToLNu_HT-150To200_8TeV-madgraph                            235.6*1.2401
+WJetsToLNu_HT-200To250_8TeV-madgraph                            90.27*1.2401
+WJetsToLNu_HT-250To300_8TeV-madgraph                            48.01*1.2401
+WJetsToLNu_HT-300To400_8TeV-madgraph                            38.3*1.2401
+WJetsToLNu_HT-400ToInf_8TeV-madgraph                            25.22*1.2401
+DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6               1666.0*1.15906
+DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6                 1666.0*1.15906
+DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball                1177.6*3
+TTJets_FullLeptMGDecays_8TeV-madgraph-tauola                    14.3115*1.8034
+TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola                    59.6994*1.8034
+TTJets_HadronicMGDecays_8TeV-madgraph                           62.2891*1.8034
+TTGJets_8TeV-madgraph                                           14.0
+TTWJets_8TeV-madgraph                                           0.232
+TTWWJets_8TeV-madgraph                                          0.002037
+TTZJets_8TeV-madgraph                                           0.208
+T_s-channel_TuneZ2star_8TeV-powheg-tauola                       2.82*1.3439716312
+T_t-channel_TuneZ2star_8TeV-powheg-tauola                       47.0*1.1674468085
+T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola                   10.7*1.0373831776
+Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola                    1.57*1.1210191083
+Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola                    25.0*1.1896 
+Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola                10.7*1.0373831776
+WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   47.0*(1-0.0305)*(0.1080*3)*(0.1080*3)*1.2151 
+WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    26.2*(0.6760)*0.101*1.23344
+WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola                    26.2*(0.1080*3)*0.101*1.23344
+ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   0.364791
+ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    2.448690
+TTTT_TuneZ2star_8TeV-madgraph-tauola                            9.144e-04
+#Gamma+jets samples -- tentative!
+GJets_HT-40To100_8TeV-madgraph                                  2.093e4
+GJets_HT-100To200_8TeV-madgraph                                 5.212e3
+GJets_HT-200To400_8TeV-madgraph                                 9.605e2
+GJets_HT-400ToInf_8TeV-madgraph                                 1.075e2
+GJet_Pt-20to40_doubleEMEnriched_TuneZ2star_8TeV-pythia6         8.19e+04*1.84e-03
+GJet_Pt40_doubleEMEnriched_TuneZ2star_8TeV-pythia6              8.84e+03*5.39e-02
+QCD_Pt-30to40_doubleEMEnriched_TuneZ2star_8TeV-pythia6          5.20e+07*2.35e-04
+QCD_Pt-40_doubleEMEnriched_TuneZ2star_8TeV-pythia6              2.37e+07*2.18e-03
+QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6                 2.886e+08*0.0101
+QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6                 7.433e+07*0.0621
+QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6                1.19e+06*0.1539
+QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6               3.10e+04*0.148
+QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6               4.25e+03*0.131
+QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6                   810*0.11
