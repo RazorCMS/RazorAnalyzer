@@ -346,6 +346,18 @@ WJetsToLNu_HT-300To400_8TeV-madgraph \
 WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
 WJetsToLNu_HT-400ToInf_8TeV-madgraph \
 WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
+QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
+GJets_HT-40To100_8TeV-madgraph \
+GJets_HT-100To200_8TeV-madgraph \
+GJets_HT-200To400_8TeV-madgraph_v2 \
+GJets_HT-400ToInf_8TeV-madgraph_v3 \
+TTGJets_8TeV-madgraph \	
 DoubleMuParked \
 SingleMu \
 Photon \
@@ -357,7 +369,7 @@ Data_SinglePhotonParked_Run2012D \
   set inputfilelist="/afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
   set njobs = `cat $inputfilelist | wc | awk '{print $1}' `
   set anatype = razorPhotonStudy
-  set option = 0  
+  set option = 0
 
   sed "s/sampleName/$sample/" crab_runRazorRun.py > crab_tmp.py
   sed -i "s/runRazorCrab/tmp_runRazorCrab/" crab_tmp.py
@@ -375,3 +387,21 @@ Data_SinglePhotonParked_Run2012D \
   rm crab_tmp.py tmp_runRazorCrab.sh
 
 end
+
+    
+
+foreach sample ( \
+Data_SinglePhotonParked_Run2012D \
+)
+    set inputfilelist = tmp/cms/store/group/phys_susy/razor/run2/RazorNtupleV1.6/Run1/Test/MinBias/crab_$sample/
+    set stringList = ""
+    foreach dir(`find $inputfilelist -type f -name '*root*' | sed -r 's|/[^/]+$||' | sort | uniq`)
+    set root = "/root"
+    set stringList = "$stringList $dir$root"
+    end
+
+echo $stringList | sed  "s/\/root/\/*root/g" > tmp.txt 
+set files = `cat tmp.txt`
+hadd $sample.root $files && rm tmp.txt
+end
+    
