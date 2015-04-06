@@ -261,14 +261,115 @@ QCDHT1000ToInf \
 
 end
 
+##########################
+# MC for ZInv
+##########################
+foreach sample( \
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph_ext \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
+WJetsToLNu_HT-150To200_8TeV-madgraph \
+WJetsToLNu_HT-200To250_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
+WJetsToLNu_HT-300To400_8TeV-madgraph \
+WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
+) 
+  set inputfilelist="/afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/RazorControlRegions_${jobnumber}.out -J RazorAnalysis_RazorPhoton_${jobnumber} /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh razorPhotonStudy $inputfilelist 0 $filesPerJob $jobnumber RazorControlRegions_${sample}.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/jobs/
+    sleep 0.1
+  end
+
+end
+
+# DATA for ZInv
+foreach sample( \
+DoubleMuParked \
+SingleMu \
+Photon \
+Data_SinglePhoton_Run2012C \
+Data_SinglePhoton_Run2012B \
+Data_SinglePhotonParked_Run2012D \
+) 
+  set inputfilelist="/afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/RazorControlRegions_${jobnumber}.out -J RazorAnalysis_RazorPhoton_${jobnumber} /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh razorPhotonStudy $inputfilelist 1 $filesPerJob $jobnumber RazorControlRegions_${sample}.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/jobs/
+    sleep 0.1
+  end
+
+end
+
+
 ## CRAB submit    
 foreach sample( \
 ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph_ext \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
+WJetsToLNu_HT-150To200_8TeV-madgraph \
+WJetsToLNu_HT-200To250_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
+WJetsToLNu_HT-300To400_8TeV-madgraph \
+WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
+QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
+QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
+GJets_HT-40To100_8TeV-madgraph \
+GJets_HT-100To200_8TeV-madgraph \
+GJets_HT-200To400_8TeV-madgraph_v2 \
+GJets_HT-400ToInf_8TeV-madgraph_v3 \
+TTGJets_8TeV-madgraph \	
+DoubleMuParked \
+SingleMu \
+Photon \
+Data_SinglePhoton_Run2012B \
+Data_SinglePhoton_Run2012C \
+Data_SinglePhotonParked_Run2012D \
 )
   echo "Sample " $sample
   set inputfilelist="/afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
   set njobs = `cat $inputfilelist | wc | awk '{print $1}' `
   set anatype = razorPhotonStudy
+  set option = 0
 
   sed "s/sampleName/$sample/" crab_runRazorRun.py > crab_tmp.py
   sed -i "s/runRazorCrab/tmp_runRazorCrab/" crab_tmp.py
@@ -280,10 +381,27 @@ ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
   sed "s/listfile.txt/${sample}.cern.txt/" runRazorCrab.sh > tmp_runRazorCrab.sh
   sed -i "s/ntupleName.root/RazorAnalysis_$sample.root/" tmp_runRazorCrab.sh
   sed -i "s/Analyses/$anatype/" tmp_runRazorCrab.sh
+  sed -i "s/Option/$option/" tmp_runRazorCrab.sh
 
   crab submit -c crab_tmp.py
   rm crab_tmp.py tmp_runRazorCrab.sh
 
 end
 
+    
 
+foreach sample ( \
+Data_SinglePhotonParked_Run2012D \
+)
+    set inputfilelist = tmp/cms/store/group/phys_susy/razor/run2/RazorNtupleV1.6/Run1/Test/MinBias/crab_$sample/
+    set stringList = ""
+    foreach dir(`find $inputfilelist -type f -name '*root*' | sed -r 's|/[^/]+$||' | sort | uniq`)
+    set root = "/root"
+    set stringList = "$stringList $dir$root"
+    end
+
+echo $stringList | sed  "s/\/root/\/*root/g" > tmp.txt 
+set files = `cat tmp.txt`
+hadd $sample.root $files && rm tmp.txt
+end
+    

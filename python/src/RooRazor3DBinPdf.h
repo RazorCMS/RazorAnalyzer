@@ -24,10 +24,11 @@ public:
 		    RooAbsReal& _th1x,
 		    RooAbsReal& _x0, RooAbsReal& _y0,
 		    RooAbsReal& _b, RooAbsReal& _n,
-		    RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut,
-		    TH3* _Hnominal);
+		    RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut);
+     //TH3* _Hnominal);
    RooRazor3DBinPdf(const RooRazor3DBinPdf& other,
       const char* name = 0);
+   void setTH3Binning(TH3* _Hnominal);
    virtual TObject* clone(const char* newname) const { return new RooRazor3DBinPdf(*this,newname); }
    inline virtual ~RooRazor3DBinPdf() { }
 
