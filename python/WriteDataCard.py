@@ -25,32 +25,39 @@ def initializeWorkspace(w,cfg,box):
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     
     w.factory('th1x[0,0,%i]'%nBins)
+    w.var('th1x').setBins(nBins)
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
     #rootTools.Utils.importToWS(w,emptyHist3D)
     #combine = cfg.getPdfs(box, "combine_pdfs",w)
-
+    
     w.Print('v')
+    
+    #w.pdf('MultiJet_TTj1b').setTH3Binning(emptyHist3D)
+    #w.pdf('MultiJet_TTj2b').setTH3Binning(emptyHist3D)
+    #w.pdf('MultiJet_TTj3b').setTH3Binning(emptyHist3D)
+    
     razorPdf_TTj1b = rt.RooRazor3DBinPdf("%s_%s"%(box,"TTj1b"),"razorPdf_%s_%s"%(box,"TTj1b"),
                                              w.var("th1x"),
                                              w.var("MR0_%s_%s"%("TTj1b",box)),w.var("R0_%s_%s"%("TTj1b",box)),
                                              w.var("b_%s_%s"%("TTj1b",box)),w.var("n_%s_%s"%("TTj1b",box)),
-                                             w.var("MRCut_%s"%box),w.var("RCut_%s"%box),w.var("BtagCut_%s"%("TTj1b")),
-                                             emptyHist3D)
+                                             w.var("MRCut_%s"%box),w.var("RCut_%s"%box),w.var("BtagCut_%s"%("TTj1b")))
+    razorPdf_TTj1b.setTH3Binning(emptyHist3D)
     razorPdf_TTj2b = rt.RooRazor3DBinPdf("%s_%s"%(box,"TTj2b"),"razorPdf_%s_%s"%(box,"TTj2b"),
                                              w.var("th1x"),
                                              w.var("MR0_%s_%s"%("TTj2b",box)),w.var("R0_%s_%s"%("TTj2b",box)),
                                              w.var("b_%s_%s"%("TTj2b",box)),w.var("n_%s_%s"%("TTj2b",box)),
-                                             w.var("MRCut_%s"%box),w.var("RCut_%s"%box),w.var("BtagCut_%s"%("TTj2b")),
-                                             emptyHist3D)
+                                             w.var("MRCut_%s"%box),w.var("RCut_%s"%box),w.var("BtagCut_%s"%("TTj2b")))
+    razorPdf_TTj2b.setTH3Binning(emptyHist3D)
     razorPdf_TTj3b = rt.RooRazor3DBinPdf("%s_%s"%(box,"TTj3b"),"razorPdf_%s_%s"%(box,"TTj3b"),
                                              w.var("th1x"),
                                              w.var("MR0_%s_%s"%("TTj2b",box)),w.var("R0_%s_%s"%("TTj2b",box)),
                                              w.var("b_%s_%s"%("TTj2b",box)),w.var("n_%s_%s"%("TTj2b",box)),
-                                             w.var("MRCut_%s"%box),w.var("RCut_%s"%box),w.var("BtagCut_%s"%("TTj3b")),
-                                             emptyHist3D)
+                                             w.var("MRCut_%s"%box),w.var("RCut_%s"%box),w.var("BtagCut_%s"%("TTj3b")))
+    razorPdf_TTj3b.setTH3Binning(emptyHist3D)
     rootTools.Utils.importToWS(w,razorPdf_TTj1b)
     rootTools.Utils.importToWS(w,razorPdf_TTj2b)
     rootTools.Utils.importToWS(w,razorPdf_TTj3b)
+    combine = cfg.getPdfs(box, "combine_pdfs",w)
 
     return paramNames
 
