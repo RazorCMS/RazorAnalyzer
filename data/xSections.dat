@@ -87,6 +87,7 @@ ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph                 41.49
 ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph                 5.274
 DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph                 19.73*1.1973
 DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph                 2.826*1.1973
+WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball                     (7322.0+5181.0)*3.0
 WJetsToLNu_HT-150To200_8TeV-madgraph                            235.6*1.2401
 WJetsToLNu_HT-200To250_8TeV-madgraph                            90.27*1.2401
 WJetsToLNu_HT-250To300_8TeV-madgraph                            48.01*1.2401
