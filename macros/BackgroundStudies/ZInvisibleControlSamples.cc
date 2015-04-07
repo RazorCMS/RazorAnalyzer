@@ -12,8 +12,13 @@
 #include "TTreeFormula.h"
 #include "TStyle.h"
 #include "TROOT.h"
+#include "THStack.h"
+#include "TLegend.h"
+#include "TPad.h"
 
 using namespace std;
+
+void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
 void ZInvisibleControlSamples(){
     gROOT->SetBatch();
@@ -50,6 +55,8 @@ void ZInvisibleControlSamples(){
     suffixes["GJets"] = "_noPho";
     suffixes["ZJets"] = "";
     suffixes["Top"] = "_noW";
+    suffixes["TopForDY"] = "_noZ";
+    suffixes["EMQCD"] = "_noPho";
 
     map<string, string> cuts;
     cuts["DYJets"] = "nLooseMuons == 2 && hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
@@ -57,6 +64,8 @@ void ZInvisibleControlSamples(){
     cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
     cuts["ZJets"] = "nLooseMuons == 0 && nLooseElectrons == 0 && hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
     cuts["Top"] = cuts["WJets"];
+    cuts["TopForDY"] = cuts["DYJets"];
+    cuts["EMQCD"] = cuts["GJets"];
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -66,6 +75,8 @@ void ZInvisibleControlSamples(){
     mcfiles["GJets"] = new TFile("GJetsRun1_19700pb.root");
     mcfiles["ZJets"] = new TFile("ZJetsRun1_19700pb.root");
     mcfiles["Top"] = new TFile("TopBackgroundsRun1_19700pb.root");
+    mcfiles["TopForDY"] = mcfiles["Top"];
+    mcfiles["EMQCD"] = new TFile("PhotonBackgroundsRun1_19700pb.root");
     datafiles["DYJets"] = new TFile("DoubleMuRun1.root");
     datafiles["WJets"] = new TFile("SingleMuRun1.root");
     datafiles["GJets"] = new TFile("PhotonRun1.root");
@@ -132,11 +143,19 @@ void ZInvisibleControlSamples(){
     //Step 1: Get the distributions to reweigh by: MET, MR, Rsq
     map<string, TH1F> metHistosForReweighing;
     map<string, TH2F> razorHistosForReweighing;
+    map<string, TH1F> MRHistosBeforeReweighing;
+    map<string, TH1F> RsqHistosBeforeReweighing;
     TH1F mcPhotonPt("mcPhotonPt", "Photon Pt; photon pt", 100, 0, 1000);
+    mcPhotonPt.Sumw2();
     for(auto &tree : mctrees){
         cout << "Filling MC histograms: " << tree.first << endl;
         metHistosForReweighing[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", nMetBins, MetMin, MetMax);
         razorHistosForReweighing[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        MRHistosBeforeReweighing[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        RsqHistosBeforeReweighing[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
+        MRHistosBeforeReweighing[tree.first].Sumw2();
+        RsqHistosBeforeReweighing[tree.first].Sumw2();
+        razorHistosForReweighing[tree.first].Sumw2();
         uint nEntries = tree.second->GetEntries();
         //make TTreeFormula for selection cuts
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
@@ -182,6 +201,8 @@ void ZInvisibleControlSamples(){
             //fill each quantity
             metHistosForReweighing[tree.first].Fill(mets[tree.first], eventWeight);
             razorHistosForReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], eventWeight);
+            MRHistosBeforeReweighing[tree.first].Fill(mrs[tree.first], eventWeight);
+            RsqHistosBeforeReweighing[tree.first].Fill(rsqs[tree.first], eventWeight);
         }
     }
 
@@ -190,6 +211,7 @@ void ZInvisibleControlSamples(){
     for(auto &tree : mctrees){
         cout << "Filling reweighed MC histograms: " << tree.first << endl;
         razorHistosMC[tree.first] = TH2F(Form("razorMCReweighed%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        razorHistosMC[tree.first].Sumw2();
         uint nEntries = tree.second->GetEntries();
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
         cutsFormula.GetNdata();
@@ -252,10 +274,18 @@ void ZInvisibleControlSamples(){
 
     //Step 3: make data distributions
     map<string, TH2F> razorHistosDataBeforeReweighing; //apply only efficiency and acceptance corrections
+    map<string, TH1F> MRHistosDataBeforeReweighing;
+    map<string, TH1F> RsqHistosDataBeforeReweighing;
     TH1F dataPhotonPt("dataPhotonPt", "Photon Pt; photon pt", 100, 0, 1000);
+    dataPhotonPt.Sumw2();
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
         razorHistosDataBeforeReweighing[tree.first] = TH2F(Form("razordatabeforereweighing%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        MRHistosDataBeforeReweighing[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        RsqHistosDataBeforeReweighing[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
+        razorHistosDataBeforeReweighing[tree.first].Sumw2();
+        MRHistosDataBeforeReweighing[tree.first].Sumw2();
+        RsqHistosDataBeforeReweighing[tree.first].Sumw2();
         uint nEntries = tree.second->GetEntries();
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
         cutsFormula.GetNdata();
@@ -299,10 +329,16 @@ void ZInvisibleControlSamples(){
                 }
             }
             razorHistosDataBeforeReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
+            MRHistosDataBeforeReweighing[tree.first].Fill(mrs[tree.first], reweighFactor);
+            RsqHistosDataBeforeReweighing[tree.first].Fill(rsqs[tree.first], reweighFactor);
         }
     }
     //subtract the top background from the WJets histogram
     razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"];
+    //subtract the top background from the DYJets histogram
+    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TopForDY"];
+    //subtract the QCD background from the photon+jets histogram
+    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["EMQCD"];
     map<string, TH2F> razorHistosData;
     //rescale the WJets MC histogram to the WJets data histogram
     razorHistosForReweighing["WJets"].Scale(razorHistosDataBeforeReweighing["WJets"].Integral()*1.0/razorHistosForReweighing["WJets"].Integral());
@@ -312,15 +348,21 @@ void ZInvisibleControlSamples(){
         for(auto &tree : datatrees){
             cout << "Making weighted data histograms: " << tree.first << endl;
             razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorHistosData[tree.first].Sumw2();
             for(int i = 0; i < razorHistosData[tree.first].GetNbinsX()+1; i++){
                 for(int j = 0; j < razorHistosData[tree.first].GetNbinsY()+1; j++){
                     float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(i, j);
                     float denominator = razorHistosForReweighing[tree.first].GetBinContent(i, j);
+                    float numeratorError = razorHistosForReweighing[normalizeTo].GetBinError(i, j);
+                    float denominatorError = razorHistosForReweighing[tree.first].GetBinError(i, j);
                     if(denominator > 0){
                         razorHistosData[tree.first].SetBinContent(i, j, razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numerator/denominator);
+                        //compute the uncertainty on the bin, folding in uncertainties on the scale factor numerator/denominator
+                        razorHistosData[tree.first].SetBinError(i, j, sqrt(pow(razorHistosDataBeforeReweighing[tree.first].GetBinError(i, j)*numerator/denominator, 2) + pow(razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numeratorError/denominator, 2) + pow(razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numerator*denominatorError/(denominator*denominator), 2)));
                     }
                     else{
                         razorHistosData[tree.first].SetBinContent(i, j, 0.);
+                        razorHistosData[tree.first].SetBinError(i, j, 0.);
                     }
                 }
             }   
@@ -330,6 +372,7 @@ void ZInvisibleControlSamples(){
         for(auto &tree : datatrees){
             cout << "Making weighted data histograms: " << tree.first << endl;
             razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorHistosData[tree.first].Sumw2();
 
             uint nEntries = tree.second->GetEntries();
             TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
@@ -449,62 +492,203 @@ void ZInvisibleControlSamples(){
         c.Print(Form("controlSampleHistogramBeforeReweighing%s.root", hist.first.c_str()));
         hist.second.Write();
     }
+    //print MR histograms, comparing data to MC
+    c.SetLogy();
+    //WJets
+    THStack SingleMuonMC("SingleMuonMC", "MR in 1-muon control sample");
+    MRHistosBeforeReweighing["WJets"].SetLineColor(kOrange+10);
+    MRHistosBeforeReweighing["WJets"].SetFillColor(kOrange+10);
+    MRHistosBeforeReweighing["Top"].SetLineColor(kViolet-5);
+    MRHistosBeforeReweighing["Top"].SetFillColor(kViolet-5);
+    SingleMuonMC.Add(&MRHistosBeforeReweighing["Top"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighing["WJets"]);
+    MRHistosDataBeforeReweighing["WJets"].SetMarkerStyle(20);
+    MRHistosDataBeforeReweighing["WJets"].SetMarkerSize(1);
+    TLegend *SingleMuonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["WJets"], "WJets MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["Top"], "Top MC (ttbar and single top)");
+    SingleMuonLegend->AddEntry(&MRHistosDataBeforeReweighing["WJets"], "2012 Data, Single Muon CS");
+    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["WJets"], &SingleMuonMC, SingleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundSingleMuon", true);
+    //DYJets
+    THStack DoubleMuonMC("DoubleMuonMC", "MR in 2-muon control sample");
+    MRHistosBeforeReweighing["DYJets"].SetLineColor(kAzure);
+    MRHistosBeforeReweighing["DYJets"].SetFillColor(kAzure);
+    MRHistosBeforeReweighing["TopForDY"].SetLineColor(kViolet-5);
+    MRHistosBeforeReweighing["TopForDY"].SetFillColor(kViolet-5);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TopForDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighing["DYJets"]);
+    MRHistosDataBeforeReweighing["DYJets"].SetMarkerStyle(20);
+    MRHistosDataBeforeReweighing["DYJets"].SetMarkerSize(1);
+    TLegend *DoubleMuonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["DYJets"], "DYJets MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TopForDY"], "Top MC (ttbar and single top)");
+    DoubleMuonLegend->AddEntry(&MRHistosDataBeforeReweighing["DYJets"], "2012 Data, Double Muon CS");
+    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["DYJets"], &DoubleMuonMC, DoubleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundDoubleMuon", true);
+    //Gamma+Jets
+    THStack PhotonMC("PhotonMC", "MR in photon control sample");
+    MRHistosBeforeReweighing["GJets"].SetLineColor(kTeal+10);
+    MRHistosBeforeReweighing["GJets"].SetFillColor(kTeal+10);
+    MRHistosBeforeReweighing["EMQCD"].SetLineColor(kGreen+3);
+    MRHistosBeforeReweighing["EMQCD"].SetFillColor(kGreen+3);
+    PhotonMC.Add(&MRHistosBeforeReweighing["EMQCD"]);
+    PhotonMC.Add(&MRHistosBeforeReweighing["GJets"]);
+    MRHistosDataBeforeReweighing["GJets"].SetMarkerStyle(20);
+    MRHistosDataBeforeReweighing["GJets"].SetMarkerSize(1);
+    TLegend *PhotonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["GJets"], "GJets MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["EMQCD"], "QCD MC (EM enriched)");
+    PhotonLegend->AddEntry(&MRHistosDataBeforeReweighing["GJets"], "2012 Data, Photon CS");
+    PhotonLegend->Draw();
+    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["GJets"], &PhotonMC, PhotonLegend, "MR (GeV)", "controlSampleMRBackgroundPhoton", true);
+
+    //print Rsq histograms, comparing data to MC
+    c.SetLogy();
+    c.SetLogx(kFALSE);
+    //WJets
+    THStack SingleMuonRsqMC("SingleMuonMC", "Rsq in 1-muon control sample");
+    RsqHistosBeforeReweighing["WJets"].SetLineColor(kOrange+10);
+    RsqHistosBeforeReweighing["WJets"].SetFillColor(kOrange+10);
+    RsqHistosBeforeReweighing["Top"].SetLineColor(kViolet-5);
+    RsqHistosBeforeReweighing["Top"].SetFillColor(kViolet-5);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["Top"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["WJets"]);
+    RsqHistosDataBeforeReweighing["WJets"].SetMarkerStyle(20);
+    RsqHistosDataBeforeReweighing["WJets"].SetMarkerSize(1);
+    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["WJets"], &SingleMuonRsqMC, SingleMuonLegend, "Rsq", "controlSampleRsqBackgroundSingleMuon", false);
+    //DYJets
+    THStack DoubleMuonRsqMC("DoubleMuonMC", "Rsq in 2-muon control sample");
+    RsqHistosBeforeReweighing["DYJets"].SetLineColor(kAzure);
+    RsqHistosBeforeReweighing["DYJets"].SetFillColor(kAzure);
+    RsqHistosBeforeReweighing["TopForDY"].SetLineColor(kViolet-5);
+    RsqHistosBeforeReweighing["TopForDY"].SetFillColor(kViolet-5);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TopForDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["DYJets"]);
+    RsqHistosDataBeforeReweighing["DYJets"].SetMarkerStyle(20);
+    RsqHistosDataBeforeReweighing["DYJets"].SetMarkerSize(1);
+    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["DYJets"], &DoubleMuonRsqMC, DoubleMuonLegend, "Rsq", "controlSampleRsqBackgroundDoubleMuon", false);
+    //Gamma+Jets
+    THStack PhotonRsqMC("PhotonMC", "Rsq in photon control sample");
+    RsqHistosBeforeReweighing["GJets"].SetLineColor(kTeal+10);
+    RsqHistosBeforeReweighing["GJets"].SetFillColor(kTeal+10);
+    RsqHistosBeforeReweighing["EMQCD"].SetLineColor(kGreen+3);
+    RsqHistosBeforeReweighing["EMQCD"].SetFillColor(kGreen+3);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["EMQCD"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["GJets"]);
+    RsqHistosDataBeforeReweighing["GJets"].SetMarkerStyle(20);
+    RsqHistosDataBeforeReweighing["GJets"].SetMarkerSize(1);
+    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["GJets"], &PhotonRsqMC, PhotonLegend, "Rsq", "controlSampleRsqBackgroundPhoton", false);
 
     //quantify agreement between DYJets and WJets predictions
+    c.SetLogy(false);
     c.SetLogz(false);
+    c.SetLogx();
     gStyle->SetPaintTextFormat("1.2f");
     TH2F *DYWComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWComparisonHist");
+    TH2F *DYWSigmaComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWSigmaComparisonHist");
     for(int i = 0; i < DYWComparisonHist->GetNbinsX()+1; i++){
         for(int j = 0; j < DYWComparisonHist->GetNbinsY()+1; j++){
             //set bin content to (WJets - DYJets)/DYJets
             DYWComparisonHist->SetBinContent(i, j, (razorHistosData["WJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/razorHistosData["DYJets"].GetBinContent(i, j));
+            //set bin content to (WJets - DYJets)/(error on difference)
+            float sigma1 = razorHistosData["WJets"].GetBinError(i, j);
+            float sigma2 = razorHistosData["DYJets"].GetBinError(i, j);
+            DYWSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["WJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
         }
     }
     DYWComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/DYJets Prediction");
     DYWComparisonHist->GetXaxis()->SetTitle("MR");
     DYWComparisonHist->GetYaxis()->SetTitle("Rsq");
     DYWComparisonHist->SetStats(0);
+    DYWComparisonHist->SetMinimum(-1.0);
+    DYWComparisonHist->SetMaximum(1.0);
     DYWComparisonHist->Draw("colz");
     DYWComparisonHist->Draw("same,text");
     c.Print("controlSampleHistogramComparisonDYW.pdf");
     c.Print("controlSampleHistogramComparisonDYW.root");
     DYWComparisonHist->Write();
+    DYWSigmaComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/#sigma_{W - DY}");
+    DYWSigmaComparisonHist->GetXaxis()->SetTitle("MR");
+    DYWSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
+    DYWSigmaComparisonHist->SetStats(0);
+    DYWSigmaComparisonHist->SetMinimum(-3);
+    DYWSigmaComparisonHist->SetMaximum(3);
+    DYWSigmaComparisonHist->Draw("colz");
+    DYWSigmaComparisonHist->Draw("same,text");
+    c.Print("controlSampleSigmaHistogramComparisonDYW.pdf");
+    c.Print("controlSampleSigmaHistogramComparisonDYW.root");
+    DYWSigmaComparisonHist->Write();
 
     //do the same for DYJets vs GJets
     TH2F *DYGComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGComparisonHist");
+    TH2F *DYGSigmaComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGSigmaComparisonHist");
     for(int i = 0; i < DYGComparisonHist->GetNbinsX()+1; i++){
         for(int j = 0; j < DYGComparisonHist->GetNbinsY()+1; j++){
             //set bin content to (GJets - DYJets)/DYJets
             DYGComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/razorHistosData["DYJets"].GetBinContent(i, j));
+            //set bin content to (GJets - DYJets)/(error on difference)
+            float sigma1 = razorHistosData["GJets"].GetBinError(i, j);
+            float sigma2 = razorHistosData["DYJets"].GetBinError(i, j);
+            DYGSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
         }
     }
     DYGComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/DYJets Prediction");
     DYGComparisonHist->GetXaxis()->SetTitle("MR");
     DYGComparisonHist->GetYaxis()->SetTitle("Rsq");
     DYGComparisonHist->SetStats(0);
+    DYGComparisonHist->SetMinimum(-1.0);
+    DYGComparisonHist->SetMaximum(1.0);
     DYGComparisonHist->Draw("colz");
     DYGComparisonHist->Draw("same,text");
     c.Print("controlSampleHistogramComparisonDYG.pdf");
     c.Print("controlSampleHistogramComparisonDYG.root");
     DYGComparisonHist->Write();
+    DYGSigmaComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/#sigma_{G - DY}");
+    DYGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
+    DYGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
+    DYGSigmaComparisonHist->SetStats(0);
+    DYGSigmaComparisonHist->SetMinimum(-3);
+    DYGSigmaComparisonHist->SetMaximum(3);
+    DYGSigmaComparisonHist->Draw("colz");
+    DYGSigmaComparisonHist->Draw("same,text");
+    c.Print("controlSampleSigmaHistogramComparisonDYG.pdf");
+    c.Print("controlSampleSigmaHistogramComparisonDYG.root");
+    DYGSigmaComparisonHist->Write();
 
     //and for WJets vs GJets
     TH2F *WGComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGComparisonHist");
+    TH2F *WGSigmaComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGSigmaComparisonHist");
     for(int i = 0; i < WGComparisonHist->GetNbinsX()+1; i++){
         for(int j = 0; j < WGComparisonHist->GetNbinsY()+1; j++){
             //set bin content to (GJets - WJets)/WJets
             WGComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["WJets"].GetBinContent(i, j))/razorHistosData["WJets"].GetBinContent(i, j));
+            //set bin content to (GJets - WJets)/(error on difference)
+            float sigma1 = razorHistosData["GJets"].GetBinError(i, j);
+            float sigma2 = razorHistosData["WJets"].GetBinError(i, j);
+            WGSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["WJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
         }
     }
     WGComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/WJets Prediction");
     WGComparisonHist->GetXaxis()->SetTitle("MR");
     WGComparisonHist->GetYaxis()->SetTitle("Rsq");
     WGComparisonHist->SetStats(0);
+    WGComparisonHist->SetMinimum(-1.0);
+    WGComparisonHist->SetMaximum(1.0);
     WGComparisonHist->Draw("colz");
     WGComparisonHist->Draw("same,text");
     c.Print("controlSampleHistogramComparisonWG.pdf");
     c.Print("controlSampleHistogramComparisonWG.root");
     WGComparisonHist->Write();
+    WGSigmaComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/#sigma_{G - W}");
+    WGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
+    WGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
+    WGSigmaComparisonHist->SetStats(0);
+    WGSigmaComparisonHist->SetMinimum(-3);
+    WGSigmaComparisonHist->SetMaximum(3);
+    WGSigmaComparisonHist->Draw("colz");
+    WGSigmaComparisonHist->Draw("same,text");
+    c.Print("controlSampleSigmaHistogramComparisonWG.pdf");
+    c.Print("controlSampleSigmaHistogramComparisonWG.root");
+    WGSigmaComparisonHist->Write();
 
     //plot the photon pt distribution in data and MC
     mcPhotonPt.SetStats(0);
@@ -519,4 +703,67 @@ void ZInvisibleControlSamples(){
 int main(){
     ZInvisibleControlSamples();
     return 0;
+}
+
+void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX){
+    TCanvas c("c", "c", 800, 600);
+    c.Clear();
+    c.cd();
+    TPad pad1("pad1","pad1",0,0.4,1,1);
+    pad1.SetBottomMargin(0);
+    pad1.SetLogy();
+    if(logX) pad1.SetLogx();
+    pad1.Draw();
+    pad1.cd();
+    mcStack->Draw("hist");
+    mcStack->GetYaxis()->SetTitle("Number of events in 19.7/fb");
+    mcStack->GetYaxis()->SetLabelSize(0.03);
+    mcStack->GetYaxis()->SetTitleOffset(0.45);
+    mcStack->GetYaxis()->SetTitleSize(0.05);
+    dataHist->SetMarkerStyle(20);
+    dataHist->SetMarkerSize(1);
+    dataHist->GetYaxis()->SetTitle("Number of events in 19.7/fb");
+    dataHist->Draw("pesame");
+    pad1.Modified();
+    gPad->Update();
+    //make ratio histogram
+    TList * histList = (TList*)mcStack->GetHists();
+    TIter next(histList);
+    TH1 *mcTotal = (TH1*) histList->First()->Clone();
+    mcTotal->Sumw2();
+    TObject *obj;
+    while((obj = next())){
+        if(obj == histList->First()) continue;
+        mcTotal->Add((TH1*)obj);
+    }
+    TH1F *dataOverMC = (TH1F*)dataHist->Clone();
+    dataOverMC->Sumw2();
+    dataOverMC->Divide(mcTotal);
+    dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
+    dataOverMC->GetYaxis()->SetTitle("Data / MC");
+    //dataOverMC->SetMinimum(0.7);
+    //dataOverMC->SetMaximum(1.3);
+    dataOverMC->GetXaxis()->SetLabelSize(0.1);
+    dataOverMC->GetYaxis()->SetLabelSize(0.08);
+    dataOverMC->GetYaxis()->SetTitleOffset(0.35);
+    dataOverMC->GetXaxis()->SetTitleOffset(1.00);
+    dataOverMC->GetYaxis()->SetTitleSize(0.08);
+    dataOverMC->GetXaxis()->SetTitleSize(0.08);
+    dataOverMC->SetStats(0);
+    leg->Draw();
+    c.cd();
+    TPad pad2("pad2","pad2",0,0.0,1,0.4);
+    pad2.SetTopMargin(0);
+    pad2.SetTopMargin(0.008);
+    pad2.SetBottomMargin(0.25);
+    pad2.SetGridy();
+    if(logX) pad2.SetLogx();
+    pad2.Draw();
+    pad2.cd();
+    dataOverMC->Draw("pe");
+    for(int i = 0; i < dataOverMC->GetNbinsX()+1; i++) cout << dataOverMC->GetBinContent(i) << endl;
+    pad2.Modified();
+    gPad->Update();
+    c.Print(Form("%s.pdf", printString.c_str()));
+    c.Print(Form("%s.root", printString.c_str()));
 }
