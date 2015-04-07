@@ -16,8 +16,8 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _x0, RooAbsReal& _y0, 
 				   RooAbsReal& _b, RooAbsReal& _n,
-				   RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut,
-				   TH3* _Hnominal) : RooAbsPdf(name, title), 
+				   RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut) : RooAbsPdf(name, title), 
+//TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
   X0("X0", "X Offset", this, _x0),
   Y0("Y0", "Y Offset", this, _y0),
@@ -36,27 +36,9 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,
   yMin(0),
   zMin(0)
 {
-  xBins = _Hnominal->GetXaxis()->GetNbins();
-  yBins = _Hnominal->GetYaxis()->GetNbins();
-  zBins = _Hnominal->GetZaxis()->GetNbins();
-  xMin = _Hnominal->GetXaxis()->GetBinLowEdge(1);
-  yMin = _Hnominal->GetYaxis()->GetBinLowEdge(1);
-  zMin = _Hnominal->GetZaxis()->GetBinLowEdge(1);
-  xMax = _Hnominal->GetXaxis()->GetBinUpEdge(xBins);
-  yMax = _Hnominal->GetYaxis()->GetBinUpEdge(yBins);
-  zMax = _Hnominal->GetZaxis()->GetBinUpEdge(zBins);
   memset(&xArray, 0, sizeof(xArray));
   memset(&yArray, 0, sizeof(yArray));
   memset(&zArray, 0, sizeof(zArray));
-  for (Int_t i=0; i<xBins+1; i++){
-    xArray[i] =  _Hnominal->GetXaxis()->GetBinLowEdge(i+1);
-  }
-  for (Int_t j=0; j<yBins+1; j++){
-    yArray[j] =  _Hnominal->GetYaxis()->GetBinLowEdge(j+1);
-  }
-  for (Int_t k=0; k<zBins+1; k++){
-    zArray[k] =  _Hnominal->GetZaxis()->GetBinLowEdge(k+1);
-  }
 }
 //---------------------------------------------------------------------------
 RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* name) :
@@ -90,6 +72,30 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* na
   }
   for (Int_t k=0; k<zBins+1; k++){
     zArray[k] =  other.zArray[k];
+  }
+}
+//---------------------------------------------------------------------------
+void RooRazor3DBinPdf::setTH3Binning(TH3* _Hnominal){
+  xBins = _Hnominal->GetXaxis()->GetNbins();
+  yBins = _Hnominal->GetYaxis()->GetNbins();
+  zBins = _Hnominal->GetZaxis()->GetNbins();
+  xMin = _Hnominal->GetXaxis()->GetBinLowEdge(1);
+  yMin = _Hnominal->GetYaxis()->GetBinLowEdge(1);
+  zMin = _Hnominal->GetZaxis()->GetBinLowEdge(1);
+  xMax = _Hnominal->GetXaxis()->GetBinUpEdge(xBins);
+  yMax = _Hnominal->GetYaxis()->GetBinUpEdge(yBins);
+  zMax = _Hnominal->GetZaxis()->GetBinUpEdge(zBins);
+  memset(&xArray, 0, sizeof(xArray));
+  memset(&yArray, 0, sizeof(yArray));
+  memset(&zArray, 0, sizeof(zArray));
+  for (Int_t i=0; i<xBins+1; i++){
+    xArray[i] =  _Hnominal->GetXaxis()->GetBinLowEdge(i+1);
+  }
+  for (Int_t j=0; j<yBins+1; j++){
+    yArray[j] =  _Hnominal->GetYaxis()->GetBinLowEdge(j+1);
+  }
+  for (Int_t k=0; k<zBins+1; k++){
+    zArray[k] =  _Hnominal->GetZaxis()->GetBinLowEdge(k+1);
   }
 }
 //---------------------------------------------------------------------------
