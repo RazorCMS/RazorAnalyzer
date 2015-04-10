@@ -167,7 +167,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 
             nTightTaus++;
         }
-
+	
         //photon selection
         vector<TLorentzVector> GoodPhotons;
         vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
@@ -191,14 +191,25 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i]);
             GoodPhotons.push_back(thisPhoton);
             GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
-            GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
+            //GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
+	    if( fabs(pho_superClusterEta[i]) < 1.479 )
+	      {
+		GoodPhotonPassesIso.push_back( passesRunOneCutsBasedPhotonID( i, 0.05, 0.012,
+									      2.6, 3.5+0.04*phoPt[i], 1.3+0.005*phoPt[i] ) );
+	      }
+	    else
+	      {
+		GoodPhotonPassesIso.push_back( passesRunOneCutsBasedPhotonID( i, 0.05, 0.034,
+                                                                              2.3, 2.9+0.04*phoPt[i], 999.0 ) );
+	      }
             nSelectedPhotons++;
         }
         //if there is no photon with pT above 40 GeV, reject the event
         if(nPhotonsAbove40GeV == 0){
-            continue;
+	  continue;
         }
 
+	//std::cout << "[INFO]: Pass Photon 40 GeV Cut" << std::endl;
         //find the "best" photon pair
         TLorentzVector HiggsCandidate(0,0,0,0);
         int goodPhoIndex1 = -1;
@@ -233,15 +244,18 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         if(HiggsCandidate.Pt() < 20){
             continue;
         }
+
+	//std::cout << "[INFO]: passing higg pt cut" << std::endl;
         //if the best candidate pair has a photon in the endcap, reject the event
         if(fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.479 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.479){
             continue;
         }
+	//std::cout << "[INFO]: Pass EB Cut" << std::endl;
         //if the best candidate pair has a non-isolated photon, reject the event
         if(!GoodPhotonPassesIso[goodPhoIndex1] || !GoodPhotonPassesIso[goodPhoIndex2]){
             continue;
         }
-
+	//std::cout << "[INFO]: Pass Good Photon" << std::endl; 
         //record higgs candidate info
         mGammaGamma = HiggsCandidate.M();
         pTGammaGamma = HiggsCandidate.Pt();
