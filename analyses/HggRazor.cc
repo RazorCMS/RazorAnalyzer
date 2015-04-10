@@ -175,12 +175,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
             //ID cuts -- apply isolation after candidate pair selection
-            if(!isMediumPhotonNoIsoCuts(i)){
-                continue;
-            }
-            if(phoPt[i] < 25){
-                continue;
-            }
+	  //if(!isMediumPhotonNoIsoCuts(i)){
+	  if ( !isGoodPhotonRun1( i , false ) )
+	    {
+	      continue;
+	    }
+
+	  double pho_pt = pho_RegressionE[i]/cosh( pho_superClusterEta[i] );//regressed PT	  
+	  //if(phoPt[i] < 25){
+	  if ( pho_pt < 25.0 )
+	    {
+	      continue;
+	    }
+	  
             if(fabs(pho_superClusterEta[i]) > 2.5){
                 //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
                 continue; 
@@ -188,20 +195,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 
             //photon passes
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
-            TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i]);
-            GoodPhotons.push_back(thisPhoton);
-            GoodPhotonSigmaE.push_back(pho_RegressionEUncertainty[i]);
+            TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i] );
+            GoodPhotons.push_back( thisPhoton );
+            GoodPhotonSigmaE.push_back( pho_RegressionEUncertainty[i] );
             //GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
-	    if( fabs(pho_superClusterEta[i]) < 1.479 )
-	      {
-		GoodPhotonPassesIso.push_back( passesRunOneCutsBasedPhotonID( i, 0.05, 0.012,
-									      2.6, 3.5+0.04*phoPt[i], 1.3+0.005*phoPt[i] ) );
-	      }
-	    else
-	      {
-		GoodPhotonPassesIso.push_back( passesRunOneCutsBasedPhotonID( i, 0.05, 0.034,
-                                                                              2.3, 2.9+0.04*phoPt[i], 999.0 ) );
-	      }
+	    GoodPhotonPassesIso.push_back( isGoodPhotonRun1( i , true ) );
             nSelectedPhotons++;
         }
         //if there is no photon with pT above 40 GeV, reject the event
@@ -216,15 +214,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         int goodPhoIndex2 = -1;
         double bestSumPt = 0;
         for(size_t i = 0; i < GoodPhotons.size(); i++){
-            for(size_t j = 0; j < i; j++){
+	  for(size_t j = i+1; j < GoodPhotons.size(); j++){//I like this logic better, I find it easier to understand
                 TLorentzVector pho1 = GoodPhotons[i];
                 TLorentzVector pho2 = GoodPhotons[j];
                 
                 //need one photon in the pair to have pt > 40 GeV
                 if(pho1.Pt() < 40 && pho2.Pt() < 40){
-                    continue;
+		  continue;
                 }
-                //need diphoton mass between 100 and 180 GeV
+                //need diphoton mass between > 100 GeV as in AN (April 1st)
                 double diphotonMass = (pho1 + pho2).M();
                 //if(diphotonMass < 100 || diphotonMass > 180){
 		if( diphotonMass < 100 ){
@@ -261,7 +259,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         pTGammaGamma = HiggsCandidate.Pt();
         sigmaEOverE1 = GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E();
         sigmaEOverE2 = GoodPhotonSigmaE[goodPhoIndex2]/GoodPhotons[goodPhoIndex2].E();
-
+	if ( sigmaEOverE1 < 0.015 || sigmaEOverE2 < 0.015 ) std::cout << "[INFO]: SigmaEoverE1: " << sigmaEOverE1 << " SigmaEoverE2: " << sigmaEOverE2 << std::endl;
+	
         vector<TLorentzVector> GoodJets;
         vector<pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
         for(int i = 0; i < nJets; i++){
@@ -324,6 +323,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             }
         }
 
+	//if ( sigmaEOverE1 < 0.015 || sigmaEOverE2 < 0.015 ) std::cout << "[INFO]: SigmaEoverE1: " << sigmaEOverE1 << " SigmaEoverE2: " << sigmaEOverE2 << std::endl;
         //HighPt Box
         if(pTGammaGamma > 110){
             if(combineTrees){
