@@ -215,8 +215,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 }
                 //need diphoton mass between 100 and 180 GeV
                 double diphotonMass = (pho1 + pho2).M();
-                if(diphotonMass < 100 || diphotonMass > 180){
-                    continue;
+                //if(diphotonMass < 100 || diphotonMass > 180){
+		if( diphotonMass < 100 ){
+		  continue;
                 }
                 
                 //if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
@@ -250,13 +251,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         vector<TLorentzVector> GoodJets;
         vector<pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
         for(int i = 0; i < nJets; i++){
-            if(jetPt[i] < 40) continue;
-            if(fabs(jetEta[i]) > 3.0) continue;
+	  //if(jetPt[i] < 40) continue;
+	  if(jetPt[i] < 30.0) continue;//According to the April 1st 2015 AN
+	  if(fabs(jetEta[i]) >= 3.0) continue;
 
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             //exclude selected photons from the jet collection
             double deltaRJetPhoton = min(thisJet.DeltaR(GoodPhotons[goodPhoIndex1]), thisJet.DeltaR(GoodPhotons[goodPhoIndex2]));
-            if(deltaRJetPhoton < 0.4) continue;
+            //if(deltaRJetPhoton < 0.4) continue;
+	    if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
 
             GoodJets.push_back(thisJet);
             nSelectedJets++;
