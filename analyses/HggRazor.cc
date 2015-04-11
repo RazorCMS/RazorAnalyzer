@@ -178,6 +178,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //if(!isMediumPhotonNoIsoCuts(i)){
 	  if ( !isGoodPhotonRun1( i , false ) )
 	    {
+	      std::cout << "[INFO]: Failed photon ID" << std::endl;
 	      continue;
 	    }
 
