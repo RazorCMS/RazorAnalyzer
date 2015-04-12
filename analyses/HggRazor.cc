@@ -178,7 +178,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //if(!isMediumPhotonNoIsoCuts(i)){
 	  if ( !isGoodPhotonRun1( i , false ) )
 	    {
-	      std::cout << "[INFO]: Failed photon ID" << std::endl;
+	      //std::cout << "[INFO]: Failed photon ID" << std::endl;
 	      continue;
 	    }
 
@@ -265,7 +265,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //if(jetPt[i] < 40) continue;
 	  if( jetPt[i] < 30.0 ) continue;//According to the April 1st 2015 AN
 	  if( fabs(jetEta[i]) >= 3.0 ) continue;
-
+	  //if ( !jetPassIDLoose[i] ) continue;
+	  if ( !jetPassIDTight[i] ) continue;
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             //exclude selected photons from the jet collection
             double deltaRJetPhoton = min(thisJet.DeltaR(GoodPhotons[goodPhoIndex1]), thisJet.DeltaR(GoodPhotons[goodPhoIndex2]));
