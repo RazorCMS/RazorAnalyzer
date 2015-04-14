@@ -261,12 +261,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	//Jets
 	vector<TLorentzVector> GoodJets;
         vector<pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
+
+	//I think I am selecting too many jets!
+	//is the jet ID applied correctly
+	//???
         for(int i = 0; i < nJets; i++){
 	  //if(jetPt[i] < 40) continue;
 	  if( jetPt[i] < 30.0 ) continue;//According to the April 1st 2015 AN
 	  if( fabs(jetEta[i]) >= 3.0 ) continue;
-	  //if ( !jetPassIDLoose[i] ) continue;
-	  if ( !jetPassIDTight[i] ) continue;
+	  if ( !jetPassIDLoose[i] ) continue;
+	  //if ( !jetPassIDTight[i] ) continue;
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             //exclude selected photons from the jet collection
             double deltaRJetPhoton = min(thisJet.DeltaR(GoodPhotons[goodPhoIndex1]), thisJet.DeltaR(GoodPhotons[goodPhoIndex2]));
