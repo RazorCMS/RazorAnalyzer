@@ -1,3 +1,5 @@
+//LOCAL INCLUDES
+#include "RazorAuxPhoton.hh"
 #include "RazorAnalyzer.h"
 
 bool RazorAnalyzer::photonPassesElectronVeto(int i){
@@ -62,6 +64,116 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     //photon passed all cuts
     return true;
 }
+
+void RazorAnalyzer::getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+  if( fabs( eta ) < 1.0 )
+    {
+      effAreaChHad = 0.012;
+      effAreaNHad  = 0.030;
+      effAreaPho   = 0.148;
+    }
+  else if( fabs( eta ) < 1.479 )
+    {
+      effAreaChHad = 0.010;
+      effAreaNHad  = 0.057;
+      effAreaPho   = 0.130;
+    }
+  else if( fabs( eta ) < 2.0 )
+    {
+      effAreaChHad = 0.014;
+      effAreaNHad  = 0.039;
+      effAreaPho   = 0.112;
+    }
+  else if( fabs( eta ) < 2.2 )
+    {
+      effAreaChHad = 0.012;
+      effAreaNHad  = 0.015;
+      effAreaPho   = 0.216;
+    }
+  else if( fabs( eta ) < 2.3 )
+    {
+      effAreaChHad = 0.016;
+      effAreaNHad  = 0.024;
+      effAreaPho   = 0.262;
+    }
+  else if( fabs( eta ) < 2.4 )
+    {
+      effAreaChHad = 0.020;
+      effAreaNHad  = 0.039;
+      effAreaPho   = 0.260;
+    }
+  else
+    {
+      effAreaChHad = 0.012;
+      effAreaNHad  = 0.072;
+      effAreaPho   = 0.266;
+    }
+};
+
+bool RazorAnalyzer::photonPassIsoRun1( int i )
+{
+  //Define variables
+  float pt = pho_superClusterEta[i];
+  bool _isEB = false;
+  if ( fabs( pt ) < 1.44 ) _isEB = true;
+  
+  //get effective area for isolation calculations                                                                                                                                                  
+  double effAreaChargedHadrons = 0.0;
+  double effAreaNeutralHadrons = 0.0;
+  double effAreaPhotons = 0.0;
+  getPhotonEffAreaRun1( pt, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
+  
+  //Compute Photon Isolation
+  //Rho corrected PF charged hadron isolation                                                                                                                                                      
+  double PFIsoCorrected_chHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+  //Rho corrected PF neutral hadron isolation                                                                                                                                                      
+  double PFIsoCorrected_nHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+  //Rho corrected PF photon isolation                                                                                                                                                              
+  double PFIsoCorrected_pho = max(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+  
+  //Apply Isolation
+  if ( _isEB )
+    {
+      if ( PFIsoCorrected_chHad > EB_GetPFchHadIsoCut() ) return false;
+      if ( PFIsoCorrected_nHad > EB_GetPFnHadIsoCut( pt ) ) return false;
+      if ( PFIsoCorrected_pho > EB_GetPFphoIsoCut( pt ) ) return false;
+    }
+  else
+    {
+      if ( PFIsoCorrected_chHad > EE_GetPFchHadIsoCut() ) return false;
+      if ( PFIsoCorrected_nHad > EE_GetPFnHadIsoCut( pt ) ) return false;
+      //No Photn Isolation requirement;
+    }
+  
+  return true;
+};
+
+//Cut Based Photon ID WP 90/85 (EB/EE) recommendation from EGamma: https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonID2012
+bool RazorAnalyzer::isGoodPhotonRun1( int i, bool _iso = false)
+{
+  bool _isEB = false;
+  if ( fabs( pho_superClusterEta[i] ) < 1.44 ) _isEB = true;
+  if ( _isEB )
+    {
+      //EB
+      if ( EB_EleVeto && !photonPassesElectronVeto( i ) ) return false;//Conversion Safe Electron Veto
+      if ( pho_HoverE[i] > EB_HoverECut ) return false;// HoverE Cut
+      if ( pho_HoverE[i] > EB_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
+      if ( _iso && photonPassIsoRun1( i ) ) return false;//Apply Isolation if flag (_iso) is true
+    }
+  else
+    {
+      //EE
+      if ( EE_EleVeto && !photonPassesElectronVeto( i ) ) return false;//Conversion Safe Electron Veto                                                                                              
+      if ( pho_HoverE[i] > EE_HoverECut ) return false;// HoverE Cut 
+      if ( pho_HoverE[i] > EE_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
+      if ( _iso && photonPassIsoRun1( i ) ) return false;//Apply Isolation if flag (_iso) is true
+    }
+
+  return true;
+};
+
 
 bool RazorAnalyzer::photonPassesRunOneIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut){
     //get effective area for isolation calculations

@@ -107,6 +107,10 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesMediumIsoCuts(int i);
         bool photonPassesTightIsoCuts(int i);
         bool isTightPhoton(int i);
+	//Run1 Cut Based ID
+	bool isGoodPhotonRun1( int i, bool _iso );
+	bool photonPassIsoRun1( int i );
+	void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 
         //functions in RazorAuxJet.cc
 	
