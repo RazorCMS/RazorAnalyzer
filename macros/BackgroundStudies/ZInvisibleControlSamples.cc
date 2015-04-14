@@ -77,9 +77,9 @@ void ZInvisibleControlSamples(){
     mcfiles["Top"] = new TFile("TopBackgroundsRun1_19700pb.root");
     mcfiles["TopForDY"] = mcfiles["Top"];
     mcfiles["EMQCD"] = new TFile("PhotonBackgroundsRun1_19700pb.root");
-    datafiles["DYJets"] = new TFile("DoubleMuRun1.root");
-    datafiles["WJets"] = new TFile("SingleMuRun1.root");
-    datafiles["GJets"] = new TFile("PhotonRun1.root");
+    datafiles["DYJets"] = new TFile("DoubleMuRun1_goodlumi.root");
+    datafiles["WJets"] = new TFile("SingleMuRun1_goodlumi.root");
+    datafiles["GJets"] = new TFile("PhotonRun1_goodlumi.root");
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -90,6 +90,7 @@ void ZInvisibleControlSamples(){
     float leadingMuonPt, leadingMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
     float leadingTightMuonPt, leadingTightMuonEta;
     float hlt_photon_weight;
+    int nPU_mean;
     for(auto &file : mcfiles){
         mets[file.first] = 0.;
         mrs[file.first] = 0.;
@@ -111,6 +112,7 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress("recoZeta", &recoZeta);
         mctrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
         mctrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
+        mctrees[file.first]->SetBranchAddress("nPU_mean", &nPU_mean);
     }
     //mctrees["GJets"]->SetBranchAddress("hlt_photon_weight", &hlt_photon_weight);
     for(auto &file : datafiles){
@@ -139,6 +141,11 @@ void ZInvisibleControlSamples(){
     TH2F muonTightEffHisto = *(TH2F *)effFile.Get("MuonEfficiencyTight");
     TH2F photonEffHisto = *(TH2F *)effFile.Get("PhotonEfficiency");
     TH2F zAccHisto = *(TH2F *)effFile.Get("MuonAcceptance");
+
+    //load pileup reweighting histogram
+    TFile *pileupWeightFile = new TFile("data/Run1PileupWeights.root", "READ");
+    TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PUWeight_Run1");
+    assert(pileupWeightHist);
     
     //Step 1: Get the distributions to reweigh by: MET, MR, Rsq
     map<string, TH1F> metHistosForReweighing;
@@ -170,6 +177,8 @@ void ZInvisibleControlSamples(){
             if(!passesSelection) continue;
 
             float eventWeight = weight;
+            eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
+
             //reweigh according to selection efficiency and acceptance
             if(tree.first == "GJets"){
                 double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
@@ -224,6 +233,7 @@ void ZInvisibleControlSamples(){
             if(!passesSelection) continue;
 
             float reweighFactor = weight;
+            reweighFactor *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
             //reweigh by efficiency and acceptance
             if(tree.first == "GJets"){
                 double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
@@ -341,7 +351,7 @@ void ZInvisibleControlSamples(){
     razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["EMQCD"];
     map<string, TH2F> razorHistosData;
     //rescale the WJets MC histogram to the WJets data histogram
-    razorHistosForReweighing["WJets"].Scale(razorHistosDataBeforeReweighing["WJets"].Integral()*1.0/razorHistosForReweighing["WJets"].Integral());
+    //razorHistosForReweighing["WJets"].Scale(razorHistosDataBeforeReweighing["WJets"].Integral()*1.0/razorHistosForReweighing["WJets"].Integral());
 
     //Step 4: apply reweighing factors to data
     if(reweighByRazor){
@@ -761,7 +771,6 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     pad2.Draw();
     pad2.cd();
     dataOverMC->Draw("pe");
-    for(int i = 0; i < dataOverMC->GetNbinsX()+1; i++) cout << dataOverMC->GetBinContent(i) << endl;
     pad2.Modified();
     gPad->Update();
     c.Print(Form("%s.pdf", printString.c_str()));
