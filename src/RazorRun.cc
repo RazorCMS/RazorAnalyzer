@@ -51,7 +51,8 @@ int main(int argc, char* argv[]){
     }
     
     //build the TChain
-    TChain *theChain = new TChain("ntuples/RazorEvents");
+    //TChain *theChain = new TChain("ntuples/RazorEvents");
+    TChain* theChain = new TChain("RazorEvents"); 
     string curFileName;
     ifstream inputFile(inputFileName.c_str());
     int NFilesLoaded = 0;

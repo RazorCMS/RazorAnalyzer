@@ -54,6 +54,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     float mbbZ, mbbH;
     float sigmaEOverE1, sigmaEOverE2;
     HggRazorBox box;
+    int run, event;
 
     //set branches on big tree
     if(combineTrees){
@@ -79,6 +80,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     //set branches on all trees
     else{ 
         for(auto& box : razorBoxes){
+	  box.second->Branch("run", &run, "run/I");
+	  box.second->Branch("event", &event, "event/I");
             box.second->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
             box.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
             box.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
@@ -131,8 +134,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         mbbH = 0;
         sigmaEOverE1 = -1;
         sigmaEOverE2 = -1;
+	run = runNum;
+	event = eventNum;
         if(combineTrees) box = LowRes;
-
+	
+	std::cout << "=================================" << std::endl;
+	std::cout << jentry << "--> run: " << run << " evt: " << event << std::endl;
+	std::cout << "=================================" << std::endl;
+	
         //TODO: triggers!
         bool passedDiphotonTrigger = true;
         if(!passedDiphotonTrigger) continue;
@@ -186,6 +195,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //if(phoPt[i] < 25){
 	  if ( pho_pt < 25.0 )
 	    {
+	      //std::cout << "[INFO]: Photon PT < 25.0" << std::endl;
 	      continue;
 	    }
 	  
@@ -205,6 +215,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         }
         //if there is no photon with pT above 40 GeV, reject the event
         if( nPhotonsAbove40GeV == 0 ){
+	  std::cout << "[INFO]: Failed to have at least one Photon PT > 40.0 GeV" << std::endl;
+	  for ( auto& tmp : GoodPhotons ) std::cout << "pho pt: " << tmp.Pt() << std::endl;
 	  continue;
         }
 	
@@ -240,17 +252,20 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         }   
         //if the best candidate pair has pT < 20 GeV, reject the event
         if( HiggsCandidate.Pt() < 20.0 ){
+	  std::cout << "[INFO]: Higgs Candidate PT < 20 GeV" << std::endl;
             continue;
         }
 
 	//if the best candidate pair has a photon in the endcap, reject the event
 	//Reject gap photons
         if( fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.44 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.44 ){
-            continue;
+	  std::cout << "[INFO]: pho1 or pho2, Eta > 1.44" << std::endl;
+	  continue;
         }
 	//if the best candidate pair has a non-isolated photon, reject the event
         if( !GoodPhotonPassesIso[goodPhoIndex1] || !GoodPhotonPassesIso[goodPhoIndex2] ){
-            continue;
+	  std::cout << "[INFO]: One/both photon/s failed isolation" << std::endl;
+	  continue;
         }
 	//record higgs candidate info
         mGammaGamma = HiggsCandidate.M();
@@ -269,7 +284,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //if(jetPt[i] < 40) continue;
 	  if( jetPt[i] < 30.0 ) continue;//According to the April 1st 2015 AN
 	  if( fabs(jetEta[i]) >= 3.0 ) continue;
-	  if ( !jetPassIDLoose[i] ) continue;
+	  //if ( !jetPassIDLoose[i] ) continue;
 	  //if ( !jetPassIDTight[i] ) continue;
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             //exclude selected photons from the jet collection
@@ -294,7 +309,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	
         //if there are no good jets, reject the event
         if( nSelectedJets == 0 ){
-            continue;
+	  std::cout << "[INFO]: No Identified Jet" << std::endl;
+	  continue;
         }
 
         //Compute the razor variables using the selected jets and the diphoton system
@@ -309,7 +325,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
         //if MR < 200, reject the event
         if ( theMR < 150.0 ){
-            continue;
+	  std::cout << "[INFO]: Failed baseline MR cut" << std::endl;
+	  continue;
         }
 
         //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
