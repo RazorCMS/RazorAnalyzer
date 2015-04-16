@@ -191,7 +191,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	      continue;
 	    }
 
-	  double pho_pt = pho_RegressionE[i]/cosh( pho_superClusterEta[i] );//regressed PT	  
+	  //double pho_pt = pho_RegressionE[i]/cosh( pho_superClusterEta[i] );//regressed PT	  
+	  double pho_pt = pho_RegressionE[i]/cosh( phoEta[i] );//regressed PT
 	  //if(phoPt[i] < 25){
 	  if ( pho_pt < 25.0 )
 	    {
@@ -206,7 +207,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 
             //photon passes
             if( pho_pt > 40.0 ) nPhotonsAbove40GeV++;
-            TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i] );
+            //TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i] );
+	    TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, phoEta[i], phoPhi[i], pho_RegressionE[i] );
             GoodPhotons.push_back( thisPhoton );
             GoodPhotonSigmaE.push_back( pho_RegressionEUncertainty[i] );
             //GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
@@ -220,25 +222,30 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  continue;
         }
 	
+	if ( GoodPhotons.size() < 2 )
+	  {
+	    std::cout << "[INFO]: Less than two photons" << std::endl;
+	    //continue;
+	  }
 	//find the "best" photon pair
         TLorentzVector HiggsCandidate(0,0,0,0);
         int goodPhoIndex1 = -1;
         int goodPhoIndex2 = -1;
-        double bestSumPt = 0;
-        for(size_t i = 0; i < GoodPhotons.size(); i++){
+        double bestSumPt = -99.;
+	for(size_t i = 0; i < GoodPhotons.size(); i++){
 	  for(size_t j = i+1; j < GoodPhotons.size(); j++){//I like this logic better, I find it easier to understand
                 TLorentzVector pho1 = GoodPhotons[i];
                 TLorentzVector pho2 = GoodPhotons[j];
                 
                 //need one photon in the pair to have pt > 40 GeV
                 if( pho1.Pt() < 40.0 && pho2.Pt() < 40.0 ){
-		  continue;
+		  //continue;
                 }
                 //need diphoton mass between > 100 GeV as in AN (April 1st)
                 double diphotonMass = (pho1 + pho2).M();
                 //if(diphotonMass < 100 || diphotonMass > 180){
 		if( diphotonMass < 100.0 ){
-		  continue;
+		  //continue;
                 }
                 
                 //if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
@@ -250,16 +257,24 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 }
             }
         }   
+	
+	std::cout << run << " " << event << " " << HiggsCandidate.M() << " " << HiggsCandidate.Pt() << " " 
+		  << GoodPhotons[goodPhoIndex1].Pt() << " " << GoodPhotons[goodPhoIndex1].Eta() << " "
+		  << GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E() << " "
+		  << GoodPhotons[goodPhoIndex2].Pt() << " " << GoodPhotons[goodPhoIndex2].Eta() << " "
+		  << GoodPhotonSigmaE[goodPhoIndex2]/GoodPhotons[goodPhoIndex2].E() << std::endl;
         //if the best candidate pair has pT < 20 GeV, reject the event
         if( HiggsCandidate.Pt() < 20.0 ){
 	  std::cout << "[INFO]: Higgs Candidate PT < 20 GeV" << std::endl;
-            continue;
+	  std::cout << "H Pt: " << HiggsCandidate.Pt() << std::endl;
+	  continue;
         }
 
 	//if the best candidate pair has a photon in the endcap, reject the event
 	//Reject gap photons
         if( fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.44 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.44 ){
 	  std::cout << "[INFO]: pho1 or pho2, Eta > 1.44" << std::endl;
+	  std::cout << "Pho1 Eta: " << GoodPhotons[goodPhoIndex1].Eta() << " Pho2 Eta: " << GoodPhotons[goodPhoIndex2].Eta() << std::endl;
 	  continue;
         }
 	//if the best candidate pair has a non-isolated photon, reject the event
@@ -284,7 +299,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //if(jetPt[i] < 40) continue;
 	  if( jetPt[i] < 30.0 ) continue;//According to the April 1st 2015 AN
 	  if( fabs(jetEta[i]) >= 3.0 ) continue;
-	  //if ( !jetPassIDLoose[i] ) continue;
+	  if ( !jetPassIDLoose[i] ) continue;
 	  //if ( !jetPassIDTight[i] ) continue;
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
             //exclude selected photons from the jet collection
@@ -326,6 +341,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         //if MR < 200, reject the event
         if ( theMR < 150.0 ){
 	  std::cout << "[INFO]: Failed baseline MR cut" << std::endl;
+	  std::cout << "MR: " << theMR << " Rsq: " << theRsq << std::endl;
 	  continue;
         }
 
