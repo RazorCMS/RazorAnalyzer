@@ -35,7 +35,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 
     //tree variables
     int nVtx, nPU_mean;
-    int run, lumi;
+    int run, lumi, event;
     bool hlt_dimuon, hlt_singlemu, hlt_photon, hlt_razor;
     float hlt_photon_weight;
     int nSelectedJets, nBTaggedJets;
@@ -72,6 +72,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     float ptMatchingLeadGenMuon, ptMatchingLeadGenPhoton; //pt of the object matching the gen particle
     int nSelectedPhotons;    
     float mTLepMet;
+    bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150, passedHLTPhoton160;
 
     //set branches on big tree
     if(!isData){
@@ -97,8 +98,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         razorTree->Branch("leadGenMuonIsFound", &leadGenMuonIsFound, "leadGenMuonIsFound/O");
         razorTree->Branch("leadGenPhotonIsFound", &leadGenPhotonIsFound, "leadGenPhotonIsFound/O");
         razorTree->Branch("leadGenMuonIsFoundTight", &leadGenMuonIsFoundTight, "leadGenMuonIsFoundTight/O");
-            razorTree->Branch("ptMatchingLeadGenMuon", &ptMatchingLeadGenMuon, "ptMatchingLeadGenMuon/F");
-            razorTree->Branch("ptMatchingLeadGenPhoton", &ptMatchingLeadGenPhoton, "ptMatchingLeadGenPhoton/F");
         if(filterEvents){
             razorTree->Branch("nGenElectrons", &nGenElectrons, "nGenElectrons/I");
             razorTree->Branch("nGenTauMuons", &nGenTauMuons, "nGenTauMuons/I");
@@ -120,12 +119,25 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             razorTree->Branch("genWpt", &genWpt, "genWpt/F");
             razorTree->Branch("genWeta", &genWeta, "genWeta/F");
             razorTree->Branch("genWphi", &genWphi, "genWphi/F");
+            razorTree->Branch("ptMatchingLeadGenMuon", &ptMatchingLeadGenMuon, "ptMatchingLeadGenMuon/F");
+            razorTree->Branch("ptMatchingLeadGenPhoton", &ptMatchingLeadGenPhoton, "ptMatchingLeadGenPhoton/F");
         }
     }
+    razorTree->Branch("run", &run, "run/I");
+    razorTree->Branch("lumi", &lumi, "lumi/I");
+    razorTree->Branch("event", &event, "event/I");
+    razorTree->Branch("nVtx", &nVtx, "nVtx/I");
+    razorTree->Branch("nPU_mean", &nPU_mean, "nPU_mean/I");
     razorTree->Branch("hlt_dimuon", &hlt_dimuon, "hlt_dimuon/O");
     razorTree->Branch("hlt_singlemu", &hlt_singlemu, "hlt_singlemu/O");
     razorTree->Branch("hlt_photon", &hlt_photon, "hlt_photon/O");
     razorTree->Branch("hlt_photon_weight", &hlt_photon_weight, "hlt_photon_weight/F");
+    razorTree->Branch("passedHLTPhoton50", &passedHLTPhoton50, "passedHLTPhoton50/O");
+    razorTree->Branch("passedHLTPhoton75", &passedHLTPhoton75, "passedHLTPhoton75/O");
+    razorTree->Branch("passedHLTPhoton90", &passedHLTPhoton90, "passedHLTPhoton90/O");
+    razorTree->Branch("passedHLTPhoton135", &passedHLTPhoton135, "passedHLTPhoton135/O");
+    razorTree->Branch("passedHLTPhoton150", &passedHLTPhoton150, "passedHLTPhoton150/O");
+    razorTree->Branch("passedHLTPhoton160", &passedHLTPhoton160, "passedHLTPhoton160/O");
     razorTree->Branch("hlt_razor", &hlt_razor, "hlt_razor/O");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
     razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
@@ -150,10 +162,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     razorTree->Branch("recoZphi", &recoZphi, "recoZphi/F");
     razorTree->Branch("recoZmass", &recoZmass, "recoZmass/F");
     if(filterEvents){
-        razorTree->Branch("run", &run, "run/I");
-        razorTree->Branch("lumi", &lumi, "lumi/I");
-        razorTree->Branch("nVtx", &nVtx, "nVtx/I");
-        razorTree->Branch("nPU_mean", &nPU_mean, "nPU_mean/I");
         razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
         razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
         razorTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
@@ -266,16 +274,23 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             subleadingGenMuonE = 0;
             subleadingGenPhotonE = 0;
         }
-	run = 0;
-	lumi = 0;
- 	nVtx = 0;
-	nPU_mean = 0;
-	hlt_dimuon = false;
+        run = 0;
+        lumi = 0;
+        event = 0;
+        nVtx = 0;
+        nPU_mean = 0;
+        hlt_dimuon = false;
         hlt_singlemu = false;
         hlt_photon = false;
         hlt_razor = false;
         hlt_photon_weight = 0.;
-	nSelectedJets = 0;
+        passedHLTPhoton50 = false;
+        passedHLTPhoton75 = false;
+        passedHLTPhoton90 = false;
+        passedHLTPhoton135 = false;
+        passedHLTPhoton150 = false;
+        passedHLTPhoton160 = false;
+        nSelectedJets = 0;
         nBTaggedJets = 0;
         nVetoMuons = 0;
         nLooseMuons = 0;
@@ -346,16 +361,16 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //****************************************************//
         //               Select PU and trigger                //
         //****************************************************//
-	nVtx = nPV;
+        nVtx = nPV;
         if(!isData)
-	  for(int i=0; i<nBunchXing; i++)
-	    if(BunchXing[i]==0) nPU_mean = nPUmean[i];
+            for(int i=0; i<nBunchXing; i++)
+                if(BunchXing[i]==0) nPU_mean = nPUmean[i];
 
         //dimuon trigger
         //3 HLT_Mu17_Mu8
         //4 HLT_Mu17_TkMu8
-	if(HLTDecision[3] == 1 || HLTDecision[4] == 1 )
-	  hlt_dimuon = true;
+        if(HLTDecision[3] == 1 || HLTDecision[4] == 1 )
+            hlt_dimuon = true;
 
         //single muon trigger
         //0 HLT_IsoMu24
@@ -374,11 +389,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(HLTDecision[i] == 1) hlt_photon = true;
         }
         //see AN_2013_373 for estimates of the luminosities collected by each trigger
-        float lumi_HLTPhoton150 = 8.893e2 + 4.414e3 + 7.152e3 + 7.257e3;
-        float lumi_HLTPhoton135 = 8.893e2 + 1.471e2 + 5.429e3 + 7.257e3;
-        float lumi_HLTPhoton90  = 1.622e1 + 6.384e1 + 1.010e2 + 9.881e1;
-        float lumi_HLTPhoton75  = 8.111e0 + 2.943e1 + 4.768e1 + 4.838e1;
-        float lumi_HLTPhoton50  = 1.353e0 + 4.905e0 + 7.947e0 + 8.064e0;
+        float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
+        float lumi_HLTPhoton75  = 8.111e0 + 2.953e1 + 4.768e1 + 4.879e1;
+        float lumi_HLTPhoton90  = 1.622e1 + 6.408e1 + 1.010e2 + 9.948e1;
+        float lumi_HLTPhoton135 = 8.893e2 + 1.476e2 + 5.429e3 + 7.318e3;
+        float lumi_HLTPhoton150 = 8.893e2 + 4.429e3 + 7.152e3 + 7.318e3;
         //data -- scale each event up according to the prescale of the tightest trigger it passed
         //(apply trigger weights EITHER to data OR MC -- not both!)
         if(isData && hlt_photon){
@@ -396,6 +411,25 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             }
             else if(HLTDecision[29] == 1){
                 hlt_photon_weight = lumi_HLTPhoton150/lumi_HLTPhoton50;
+            }
+            //save the trigger bits
+            if(HLTDecision[34] == 1){
+                passedHLTPhoton160 = true;
+            }
+            if(HLTDecision[33] == 1){
+                passedHLTPhoton150 = true;
+            }
+            if(HLTDecision[32] == 1){
+                passedHLTPhoton135 = true;
+            }
+            if(HLTDecision[31] == 1){
+                passedHLTPhoton90 = true;
+            }
+            if(HLTDecision[30] == 1){
+                passedHLTPhoton75 = true;
+            }
+            if(HLTDecision[29] == 1){
+                passedHLTPhoton50 = true;
             }
         }
         //MC -- scale each event down according to the prescale of the tightest trigger it passed
@@ -424,9 +458,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 
         if(filterEvents && !hlt_dimuon && !hlt_singlemu && !hlt_photon && !hlt_razor) continue;
 
-	run = runNum;
-	lumi = lumiNum;
-	
+        run = runNum;
+        lumi = lumiNum;
+        event = eventNum;
+
         //****************************************************//
         //               Select gen particles                 //
         //****************************************************//
@@ -548,7 +583,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                 }
             }
             nLooseMuons++;
-            
+
             GoodMuons.push_back(thisMuon);
 
             //check if this muon is leading or subleading
@@ -764,7 +799,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             for(auto& jet : GoodJetsNoLeadPhoton){
                 if(jet.Pt() > 80) numJets80_noPho++;
             }
-            
+
             //count jets and compute HT
             numJets_noPho = GoodJetsNoLeadPhoton.size();
             for(auto& pf : GoodJetsNoLeadPhoton) HT_noPho += pf.Pt();
