@@ -27,10 +27,10 @@ constexpr float EE_PFnHadIsoConst    = 2.9;
 constexpr float EE_PFnHadIsoSlope    = 0.04;
 
 constexpr float EB_GetPFchHadIsoCut( ){ return EB_PFchHadIsoCut; };
-float EB_GetPFnHadIsoCut( float pt ){ return EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt; };
-float EB_GetPFphoIsoCut( float pt ){ return EB_PFphoIsoConst + EB_PFphoIsoSlope*pt; };
+float EB_GetPFnHadIsoCut( float pt ){ return (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFphoIsoCut( float pt ){ return (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
 
 constexpr float EE_GetPFchHadIsoCut( ){ return EE_PFchHadIsoCut; };
-float EE_GetPFnHadIsoCut( float pt ){ return EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt; };
+float EE_GetPFnHadIsoCut( float pt ){ return (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
 
 #endif

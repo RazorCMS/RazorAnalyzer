@@ -138,9 +138,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	event = eventNum;
         if(combineTrees) box = LowRes;
 	
-	std::cout << "=================================" << std::endl;
-	std::cout << jentry << "--> run: " << run << " evt: " << event << std::endl;
-	std::cout << "=================================" << std::endl;
+	//if ( !(run == 194115 && event == 652179837) ) continue;
+	//std::cout << "=================================" << std::endl;
+	//std::cout << jentry << "--> run: " << run << " evt: " << event << std::endl;
+	//std::cout << "=================================" << std::endl;
 	
         //TODO: triggers!
         bool passedDiphotonTrigger = true;
@@ -185,47 +186,54 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         for(int i = 0; i < nPhotons; i++){
 	  //ID cuts -- apply isolation after candidate pair selection
 	  //if(!isMediumPhotonNoIsoCuts(i)){
+	  std::cout << "pho pt: " << phoPt[i] << " pho eta: " << phoEta[i] << std::endl;
 	  if ( !isGoodPhotonRun1( i , false ) )
 	    {
-	      //std::cout << "[INFO]: Failed photon ID" << std::endl;
+	      std::cout << "[INFO]: Failed photon ID" << std::endl;
 	      continue;
 	    }
-
+	  
 	  //double pho_pt = pho_RegressionE[i]/cosh( pho_superClusterEta[i] );//regressed PT	  
 	  double pho_pt = pho_RegressionE[i]/cosh( phoEta[i] );//regressed PT
 	  //if(phoPt[i] < 25){
-	  if ( pho_pt < 25.0 )
+	  if ( pho_pt < 24.0 )
 	    {
 	      //std::cout << "[INFO]: Photon PT < 25.0" << std::endl;
 	      continue;
 	    }
 	  
-            if(fabs(pho_superClusterEta[i]) > 2.5){
-                //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
-                continue; 
-            }
-
-            //photon passes
-            if( pho_pt > 40.0 ) nPhotonsAbove40GeV++;
-            //TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i] );
-	    TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, phoEta[i], phoPhi[i], pho_RegressionE[i] );
-            GoodPhotons.push_back( thisPhoton );
-            GoodPhotonSigmaE.push_back( pho_RegressionEUncertainty[i] );
-            //GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
-	    GoodPhotonPassesIso.push_back( isGoodPhotonRun1( i , true ) );
-            nSelectedPhotons++;
+	  if( fabs(pho_superClusterEta[i]) > 2.5 ){
+	    //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
+	    continue; 
+	  }
+	  
+	  if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
+	    {
+	      //Removing gap photons
+	      continue;
+	    }
+	  //photon passes
+	  if( pho_pt > 40.0 ) nPhotonsAbove40GeV++;
+	  //TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, pho_superClusterEta[i], phoPhi[i], pho_RegressionE[i] );
+	  TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, phoEta[i], phoPhi[i], pho_RegressionE[i] );
+	  GoodPhotons.push_back( thisPhoton );
+	  GoodPhotonSigmaE.push_back( pho_RegressionEUncertainty[i] );
+	  //GoodPhotonPassesIso.push_back(photonPassesMediumIsoCuts(i));
+	  GoodPhotonPassesIso.push_back( isGoodPhotonRun1( i , true ) );
+	  nSelectedPhotons++;
         }
         //if there is no photon with pT above 40 GeV, reject the event
         if( nPhotonsAbove40GeV == 0 ){
-	  std::cout << "[INFO]: Failed to have at least one Photon PT > 40.0 GeV" << std::endl;
-	  for ( auto& tmp : GoodPhotons ) std::cout << "pho pt: " << tmp.Pt() << std::endl;
+	  //std::cout << "[INFO]: Failed to have at least one Photon PT > 40.0 GeV" << std::endl;
+	  // for ( auto& tmp : GoodPhotons ) std::cout << "pho pt: " << tmp.Pt() << std::endl;
 	  continue;
         }
 	
 	if ( GoodPhotons.size() < 2 )
 	  {
-	    std::cout << "[INFO]: Less than two photons" << std::endl;
-	    //continue;
+	    //std::cout << "[INFO]: Less than two photons" << std::endl;
+	    //std::cout << "NPhotons: " << GoodPhotons.size() << std::endl;
+	    continue;
 	  }
 	//find the "best" photon pair
         TLorentzVector HiggsCandidate(0,0,0,0);
@@ -239,13 +247,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 
                 //need one photon in the pair to have pt > 40 GeV
                 if( pho1.Pt() < 40.0 && pho2.Pt() < 40.0 ){
-		  //continue;
+		  continue;
                 }
                 //need diphoton mass between > 100 GeV as in AN (April 1st)
                 double diphotonMass = (pho1 + pho2).M();
-                //if(diphotonMass < 100 || diphotonMass > 180){
-		if( diphotonMass < 100.0 ){
-		  //continue;
+                if(diphotonMass < 100 || diphotonMass > 180){
+		//if( diphotonMass < 100.0 ){
+		  continue;
                 }
                 
                 //if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
@@ -258,28 +266,34 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             }
         }   
 	
+	/*
 	std::cout << run << " " << event << " " << HiggsCandidate.M() << " " << HiggsCandidate.Pt() << " " 
 		  << GoodPhotons[goodPhoIndex1].Pt() << " " << GoodPhotons[goodPhoIndex1].Eta() << " "
 		  << GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E() << " "
 		  << GoodPhotons[goodPhoIndex2].Pt() << " " << GoodPhotons[goodPhoIndex2].Eta() << " "
 		  << GoodPhotonSigmaE[goodPhoIndex2]/GoodPhotons[goodPhoIndex2].E() << std::endl;
+	*/
+
         //if the best candidate pair has pT < 20 GeV, reject the event
+	//std::cout << "index1: " << goodPhoIndex1 << " index2: " << goodPhoIndex2 << std::endl;
         if( HiggsCandidate.Pt() < 20.0 ){
-	  std::cout << "[INFO]: Higgs Candidate PT < 20 GeV" << std::endl;
-	  std::cout << "H Pt: " << HiggsCandidate.Pt() << std::endl;
+	  //std::cout << "[INFO]: Higgs Candidate PT < 20 GeV" << std::endl;
+	  //std::cout << "H Pt: " << HiggsCandidate.Pt() << std::endl;
 	  continue;
         }
 
 	//if the best candidate pair has a photon in the endcap, reject the event
 	//Reject gap photons
-        if( fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.44 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.44 ){
-	  std::cout << "[INFO]: pho1 or pho2, Eta > 1.44" << std::endl;
-	  std::cout << "Pho1 Eta: " << GoodPhotons[goodPhoIndex1].Eta() << " Pho2 Eta: " << GoodPhotons[goodPhoIndex2].Eta() << std::endl;
-	  continue;
+	
+	if ( fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.44 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.44 ){
+	  //std::cout << "[INFO]: pho1 or pho2, Eta > 1.44" << std::endl;
+	  //std::cout << "Pho1 Eta: " << GoodPhotons[goodPhoIndex1].Eta() << " Pho2 Eta: " << GoodPhotons[goodPhoIndex2].Eta() << std::endl;
+	  //continue;
         }
+       
 	//if the best candidate pair has a non-isolated photon, reject the event
         if( !GoodPhotonPassesIso[goodPhoIndex1] || !GoodPhotonPassesIso[goodPhoIndex2] ){
-	  std::cout << "[INFO]: One/both photon/s failed isolation" << std::endl;
+	  //std::cout << "[INFO]: One/both photon/s failed isolation" << std::endl;
 	  continue;
         }
 	//record higgs candidate info

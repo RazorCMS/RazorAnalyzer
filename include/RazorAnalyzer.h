@@ -111,6 +111,7 @@ class RazorAnalyzer: public RazorEvents {
 	bool isGoodPhotonRun1( int i, bool _iso );
 	bool photonPassIsoRun1( int i );
 	void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+	bool passEleVetoRun1( int i );
 
         //functions in RazorAuxJet.cc
 	
