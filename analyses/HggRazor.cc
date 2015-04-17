@@ -138,7 +138,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	event = eventNum;
         if(combineTrees) box = LowRes;
 	
-	//if ( !(run == 194115 && event == 652179837) ) continue;
+	//if ( !(run == 194424 && event == 373810394) ) continue;
 	//std::cout << "=================================" << std::endl;
 	//std::cout << jentry << "--> run: " << run << " evt: " << event << std::endl;
 	//std::cout << "=================================" << std::endl;
@@ -186,7 +186,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         for(int i = 0; i < nPhotons; i++){
 	  //ID cuts -- apply isolation after candidate pair selection
 	  //if(!isMediumPhotonNoIsoCuts(i)){
-	  std::cout << "pho pt: " << phoPt[i] << " pho eta: " << phoEta[i] << std::endl;
+	  std::cout << i << " pho pt: " << pho_RegressionE[i]/cosh( phoEta[i] ) << " pho eta: " << phoEta[i] << std::endl;
 	  if ( !isGoodPhotonRun1( i , false ) )
 	    {
 	      std::cout << "[INFO]: Failed photon ID" << std::endl;
@@ -354,8 +354,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
         //if MR < 200, reject the event
         if ( theMR < 150.0 ){
-	  std::cout << "[INFO]: Failed baseline MR cut" << std::endl;
-	  std::cout << "MR: " << theMR << " Rsq: " << theRsq << std::endl;
+	  //std::cout << "[INFO]: Failed baseline MR cut" << std::endl;
+	  //std::cout << "MR: " << theMR << " Rsq: " << theRsq << std::endl;
 	  continue;
         }
 
@@ -375,7 +375,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    }//end first jet loop
 	  }
 	
-	if ( sigmaEOverE1 < 0.015 && sigmaEOverE2 < 0.015 ) std::cout << "[INFO]: SigmaEoverE1: " << sigmaEOverE1 << " SigmaEoverE2: " << sigmaEOverE2 << std::endl;
+	//if ( sigmaEOverE1 < 0.015 && sigmaEOverE2 < 0.015 ) std::cout << "[INFO]: SigmaEoverE1: " << sigmaEOverE1 << " SigmaEoverE2: " << sigmaEOverE2 << std::endl;
+	std::cout << "==MADE IT==" << std::endl;
         //HighPt Box
         if ( pTGammaGamma > 110.0 )
 	  {
