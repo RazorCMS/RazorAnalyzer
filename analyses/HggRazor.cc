@@ -19,16 +19,17 @@ enum HggRazorBox {
 
 struct PhotonCandidate
 {                                                  
-  float phoPt;                                                                                        
-  float phoEta;                                                                                     
-  float phoPho;                                                                                   
-  float phoSigmaIetaIeta;                                                                        
-  float phoR9;                                                                                  
-  float phoHoverE;                                                                        
-  float phosumChargedHadronPt;                                                                
-  float phosumNeutralHadronEt;                                                     
-  float phosumPhotonEt;                                            
-  float phopassEleVeto;
+  int   Index;
+  TLorentzVector photon;
+  float SigmaIetaIeta;                                                                        
+  float R9;                                                                                  
+  float HoverE;                                                                        
+  float sumChargedHadronPt;                                                                
+  float sumNeutralHadronEt;                                                     
+  float sumPhotonEt;                                            
+  float sigmaEOverE;
+  bool  _passEleVeto;
+  bool  _passIso;
 };
 
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
@@ -72,12 +73,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     int run, event;
 
     //selected photon variables
-    float pho1Pt, pho1Eta, pho1Phi, pho1SigmaIetaIeta, pho1R9, pho1HoverE, pho1sumChargedHadronPt, pho1sumPhotonEt;
-    bool pho1passEleVeto;
-    float pho2Pt, pho2Eta, pho2Phi, pho2SigmaIetaIeta, pho2R9, pho2HoverE, pho2sumChargedHadronPt, pho2sumPhotonEt;
-    bool pho2passEleVeto;
+    float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
+    float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
+    bool  Pho_passEleVeto[2], Pho_passIso[2];
     
-
     //set branches on big tree
     if(combineTrees){
        razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
@@ -118,28 +117,34 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
 	  box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
 	  
-	  box.second->Branch("pho1Pt", &pho1Pt, "pho1Pt/F");
-	  box.second->Branch("pho1Eta", &pho1Eta, "pho1Eta/F");
-	  box.second->Branch("pho1Phi", &pho1Phi, "pho1Phi/F");
-	  box.second->Branch("pho1SigmaIetaIeta", &pho1SigmaIetaIeta, "pho1SigmaIetaIeta/F");
-	  box.second->Branch("pho1R9", &pho1R9, "pho1R9/F");
-	  box.second->Branch("pho1HoverE", &pho1HoverE, "pho1HoverE/F");
-	  box.second->Branch("pho1sumChargedHadronPt", &pho1sumChargedHadronPt, "pho1sumChargedHadronPt/F");
-	  box.second->Branch("pho1sumPhotonEt", &pho1sumPhotonEt, "pho1sumPhotonEt/F");
-	  box.second->Branch("pho1passEleVeto", &pho1passEleVeto, "pho1passEleVeto/F");
-	  box.second->Branch("pho1sigmaEOverE", &sigmaEOverE1, "pho1sigmaEOverE/F");
+	  box.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
+	  box.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+	  box.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+	  box.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
+	  box.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
+	  box.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
+	  box.second->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
+	  box.second->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
+	  box.second->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
+	  box.second->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
+	  box.second->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
+	  box.second->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/F");
+	  box.second->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/F");
 	  //box.second->Branch("", , "");
 	  
-	  box.second->Branch("pho2Pt", &pho2Pt, "pho2Pt/F");
-          box.second->Branch("pho2Eta", &pho2Eta, "pho2Eta/F");
-          box.second->Branch("pho2Phi", &pho2Phi, "pho2Phi/F");
-          box.second->Branch("pho2SigmaIetaIeta", &pho2SigmaIetaIeta, "pho2SigmaIetaIeta/F");
-          box.second->Branch("pho2R9", &pho2R9, "pho2R9/F");
-          box.second->Branch("pho2HoverE", &pho2HoverE, "pho2HoverE/F");
-          box.second->Branch("pho2sumChargedHadronPt", &pho2sumChargedHadronPt, "pho2sumChargedHadronPt/F");
-          box.second->Branch("pho2sumPhotonEt", &pho2sumPhotonEt, "pho2sumPhotonEt/F");
-          box.second->Branch("pho2passEleVeto", &pho2passEleVeto, "pho2passEleVeto/F");
-	  box.second->Branch("pho2sigmaEOverE", &sigmaEOverE2, "pho2sigmaEOverE/F");
+	  box.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
+	  box.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+          box.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+          box.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
+          box.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
+          box.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
+          box.second->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
+          box.second->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
+          box.second->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
+          box.second->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
+          box.second->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
+          box.second->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/F");
+          box.second->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/F");
 	  
 	  box.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
 	  box.second->Branch("mbbH", &mbbH, "mbbH/F");
@@ -182,35 +187,26 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	event = eventNum;
 
 	//selected photons variables
-	//pho1
-	pho1Pt                 = -99.;
-	pho1Eta                = -99.;
-	pho1Phi                = -99.;
-	pho1SigmaIetaIeta      = -99.;
-	pho1R9                 = -99.;
-	pho1HoverE             = -99.;
-	pho1sumChargedHadronPt = -99.;
-	pho1sumPhotonEt        = -99.;
-	pho1passEleVeto        = false;
-	//pho2
-	pho2Pt                 = -99.;
-	pho2Eta                = -99.;
-	pho2Phi                = -99.;
-	pho2SigmaIetaIeta      = -99.;
-        pho2R9                 = -99.;
-        pho2HoverE             = -99.;
-        pho2sumChargedHadronPt = -99.;
-        pho2sumPhotonEt        = -99.;
-        pho2passEleVeto        = false;
-
+	for ( int i = 0; i < 2; i++ )
+	  {
+	    Pho_E[i]                  = -99.;
+	    Pho_Pt[i]                 = -99.;
+	    Pho_Eta[i]                = -99.;
+	    Pho_Phi[i]                = -99.;
+	    Pho_SigmaIetaIeta[i]      = -99.;
+	    Pho_R9[i]                 = -99.;
+	    Pho_HoverE[i]             = -99.;
+	    Pho_sumChargedHadronPt[i] = -99.;
+	    Pho_sumNeutralHadronEt[i] = -99.;
+	    Pho_sumPhotonEt[i]        = -99.;
+	    Pho_sigmaEOverE[i]        = -99.;
+	    Pho_passEleVeto[i]        = false;
+	    Pho_passIso[i]            = false;
+	  }
+	
         if(combineTrees) box = LowRes;
 	
-	//if ( !(run == 194424 && event == 373810394) ) continue;
-	//std::cout << "=================================" << std::endl;
-	//std::cout << jentry << "--> run: " << run << " evt: " << event << std::endl;
-	//std::cout << "=================================" << std::endl;
-	
-        //TODO: triggers!
+	//TODO: triggers!
         bool passedDiphotonTrigger = true;
         if(!passedDiphotonTrigger) continue;
 
@@ -254,20 +250,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
 	  //ID cuts -- apply isolation after candidate pair selection
-	  //if(!isMediumPhotonNoIsoCuts(i)){
-	  std::cout << i << " pho pt: " << pho_RegressionE[i]/cosh( phoEta[i] ) << " pho eta: " << phoEta[i] << std::endl;
 	  if ( !isGoodPhotonRun1( i , false ) )
 	    {
-	      std::cout << "[INFO]: Failed photon ID" << std::endl;
 	      continue;
 	    }
 	  
-	  //double pho_pt = pho_RegressionE[i]/cosh( pho_superClusterEta[i] );//regressed PT	  
-	  double pho_pt = pho_RegressionE[i]/cosh( phoEta[i] );//regressed PT
-	  //if(phoPt[i] < 25){
+	  //Defining Corrected Photon momentum
+	  float sf = pho_RegressionE[i]/phoE[i];
+	  float pho_pt = phoPt[i]*sf;//Try to avoid using cosh to sync with Alex
+	  TVector3 vec;
+	  vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	  
 	  if ( pho_pt < 24.0 )
 	    {
-	      //std::cout << "[INFO]: Photon PT < 25.0" << std::endl;
 	      continue;
 	    }
 	  
@@ -283,110 +278,117 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    }
 	  //photon passes
 	  if( pho_pt > 40.0 ) nPhotonsAbove40GeV++;
-	  TLorentzVector thisPhoton = makeTLorentzVector( pho_pt, phoEta[i], phoPhi[i], pho_RegressionE[i] );
-	  GoodPhotons.push_back( thisPhoton );
-	  GoodPhotonSigmaE.push_back( pho_RegressionEUncertainty[i] );
-          GoodPhotonPassesIso.push_back( isGoodPhotonRun1( i , true ) );
+	  //setting up photon 4-momentum with zero mass
+	  TLorentzVector thisPhoton;
+	  thisPhoton.SetVectM( vec, .0 );
+	  //GoodPhotons.push_back( thisPhoton );
 	  
 	  //Filling Photon Candidate
-	  PhotonCandidate tmp;
-	  tmp.phoPt = pho_pt;
-	  tmp.phoEta = phoEta[i];
-	  tmp.phoPhi = phoPhi[i];
-	  tmp.phoSigmaIetaIeta = 
-	    
+	  PhotonCandidate tmp_phoCand;
+	  tmp_phoCand.Index = i;
+	  tmp_phoCand.photon = thisPhoton;
+	  tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
+	  tmp_phoCand.R9 = phoR9[i];
+	  tmp_phoCand.HoverE = pho_HoverE[i];
+	  tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
+	  tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
+	  tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
+	  tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
+	  tmp_phoCand._passEleVeto = pho_passEleVeto[i];
+	  tmp_phoCand._passIso = isGoodPhotonRun1( i , true );
+	  phoCand.push_back( tmp_phoCand );
 	  
 	  nSelectedPhotons++;
         }
         //if there is no photon with pT above 40 GeV, reject the event
-        if( nPhotonsAbove40GeV == 0 ){
-	  //std::cout << "[INFO]: Failed to have at least one Photon PT > 40.0 GeV" << std::endl;
-	  // for ( auto& tmp : GoodPhotons ) std::cout << "pho pt: " << tmp.Pt() << std::endl;
-	  continue;
-        }
-	
-	if ( GoodPhotons.size() < 2 )
+        if( nPhotonsAbove40GeV == 0 )
 	  {
-	    //std::cout << "[INFO]: Less than two photons" << std::endl;
-	    //std::cout << "NPhotons: " << GoodPhotons.size() << std::endl;
 	    continue;
 	  }
-	//find the "best" photon pair
+	
+	if ( phoCand.size() < 2 )
+	  {
+	    continue;
+	  }
+	
+	//find the "best" photon pair, higher Pt!
         TLorentzVector HiggsCandidate(0,0,0,0);
-        int goodPhoIndex1 = -1;
+	int goodPhoIndex1 = -1;
         int goodPhoIndex2 = -1;
         double bestSumPt = -99.;
-	for(size_t i = 0; i < GoodPhotons.size(); i++){
-	  for(size_t j = i+1; j < GoodPhotons.size(); j++){//I like this logic better, I find it easier to understand
-                TLorentzVector pho1 = GoodPhotons[i];
-                TLorentzVector pho2 = GoodPhotons[j];
+	for(size_t i = 0; i < phoCand.size(); i++){
+	  for(size_t j = i+1; j < phoCand.size(); j++){//I like this logic better, I find it easier to understand
+                PhotonCandidate pho1 = phoCand[i];
+                PhotonCandidate pho2 = phoCand[j];
                 
                 //need one photon in the pair to have pt > 40 GeV
-                if( pho1.Pt() < 40.0 && pho2.Pt() < 40.0 ){
+                if( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 ){
 		  continue;
                 }
                 //need diphoton mass between > 100 GeV as in AN (April 1st)
-                double diphotonMass = (pho1 + pho2).M();
+                double diphotonMass = (pho1.photon + pho2.photon).M();
                 if(diphotonMass < 100 || diphotonMass > 180){
 		//if( diphotonMass < 100.0 ){
 		  continue;
                 }
                 
                 //if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
-                if( pho1.Pt() + pho2.Pt() > bestSumPt ){
-		  bestSumPt = pho1.Pt() + pho2.Pt();
-		  HiggsCandidate = pho1 + pho2;
-		  goodPhoIndex1 = i;
-		  goodPhoIndex2 = j;  
+                if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt ){
+		  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
+		  HiggsCandidate = pho1.photon + pho2.photon;
+		  goodPhoIndex1 = pho1.Index;
+		  goodPhoIndex2 = pho2.Index;  
                 }
             }
         }   
 	
-	/*
-	std::cout << run << " " << event << " " << HiggsCandidate.M() << " " << HiggsCandidate.Pt() << " " 
-		  << GoodPhotons[goodPhoIndex1].Pt() << " " << GoodPhotons[goodPhoIndex1].Eta() << " "
-		  << GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E() << " "
-		  << GoodPhotons[goodPhoIndex2].Pt() << " " << GoodPhotons[goodPhoIndex2].Eta() << " "
-		  << GoodPhotonSigmaE[goodPhoIndex2]/GoodPhotons[goodPhoIndex2].E() << std::endl;
-	*/
 
-        //if the best candidate pair has pT < 20 GeV, reject the event
-	//std::cout << "index1: " << goodPhoIndex1 << " index2: " << goodPhoIndex2 << std::endl;
-        if( HiggsCandidate.Pt() < 20.0 ){
-	  //std::cout << "[INFO]: Higgs Candidate PT < 20 GeV" << std::endl;
-	  //std::cout << "H Pt: " << HiggsCandidate.Pt() << std::endl;
-	  continue;
-        }
-
-	//if the best candidate pair has a photon in the endcap, reject the event
-	//Reject gap photons
+	//Filling Selected Photon Information
+	TLorentzVector pho_cand_vec[2];
+	int _pho_index = 0;
+        for ( auto& tmpPho : phoCand )
+          {
+            if ( !( tmpPho.Index == goodPhoIndex1 || tmpPho.Index == goodPhoIndex2 ) ) continue;
+            if( _pho_index > 1 ) std::cerr << "[ERROR]: Photon index larger than 1!" << std::endl;
+	    pho_cand_vec[_pho_index]           = tmpPho.photon;
+	    Pho_E[_pho_index]                  = tmpPho.photon.E();
+            Pho_Pt[_pho_index]                 = tmpPho.photon.Pt();
+            Pho_Eta[_pho_index]                = tmpPho.photon.Eta();
+            Pho_Phi[_pho_index]                = tmpPho.photon.Phi();
+            Pho_SigmaIetaIeta[_pho_index]      = tmpPho.SigmaIetaIeta;
+            Pho_R9[_pho_index]                 = tmpPho.R9;
+            Pho_HoverE[_pho_index]             = tmpPho.HoverE;
+            Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
+            Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
+            Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
+            Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
+            Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
+            Pho_passIso[_pho_index]            = tmpPho._passIso;
+            _pho_index++;
+          }
 	
-	if ( fabs(GoodPhotons[goodPhoIndex1].Eta()) > 1.44 || fabs(GoodPhotons[goodPhoIndex2].Eta()) > 1.44 ){
-	  //std::cout << "[INFO]: pho1 or pho2, Eta > 1.44" << std::endl;
-	  //std::cout << "Pho1 Eta: " << GoodPhotons[goodPhoIndex1].Eta() << " Pho2 Eta: " << GoodPhotons[goodPhoIndex2].Eta() << std::endl;
-	  //continue;
-        }
+	//if the best candidate pair has pT < 20 GeV, reject the event
+	if( HiggsCandidate.Pt() < 20.0 )
+	  {
+	    continue;
+	  }
+	
+	//if the best candidate pair has a photon in the endcap, reject the event
+	if ( fabs( Pho_Pt[0] ) > 1.44 || fabs( Pho_Pt[1] ) > 1.44 )
+	  {
+	    //allow for now, to sync with alex, probably good idea to keep them to debug
+	    //continue;
+	  }
        
 	//if the best candidate pair has a non-isolated photon, reject the event
-        if( !GoodPhotonPassesIso[goodPhoIndex1] || !GoodPhotonPassesIso[goodPhoIndex2] ){
-	  //std::cout << "[INFO]: One/both photon/s failed isolation" << std::endl;
-	  continue;
-        }
+        if( !Pho_passIso[0] || !Pho_passIso[1] )
+	  {
+	    continue;
+	  }
 	//record higgs candidate info
         mGammaGamma = HiggsCandidate.M();
         pTGammaGamma = HiggsCandidate.Pt();
-	//Filling pho1 Info
-	/*
-	pho1Pt                 = [goodPhoIndex1];
-	pho1SigmaIetaIeta      = ;
-        pho1R9                 = -99.;
-        pho1HoverE             = -99.;
-        pho1sumChargedHadronPt = -99.;
-        pho1sumPhotonEt        = -99.;
-        pho1passEleVeto        = false;
-        sigmaEOverE1 = GoodPhotonSigmaE[goodPhoIndex1]/GoodPhotons[goodPhoIndex1].E();
-        sigmaEOverE2 = GoodPhotonSigmaE[goodPhoIndex2]/GoodPhotons[goodPhoIndex2].E();
-	*/	
+		
 	//Jets
 	vector<TLorentzVector> GoodJets;
         vector<pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
@@ -399,50 +401,47 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  if( jetPt[i] < 30.0 ) continue;//According to the April 1st 2015 AN
 	  if( fabs(jetEta[i]) >= 3.0 ) continue;
 	  if ( !jetPassIDLoose[i] ) continue;
-	  //if ( !jetPassIDTight[i] ) continue;
-            TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
-            //exclude selected photons from the jet collection
-            double deltaRJetPhoton = min(thisJet.DeltaR(GoodPhotons[goodPhoIndex1]), thisJet.DeltaR(GoodPhotons[goodPhoIndex2]));
-            //if(deltaRJetPhoton < 0.4) continue;
-	    if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
-
-            GoodJets.push_back(thisJet);
-            nSelectedJets++;
-
-            if(isCSVL(i)){
-                nLooseBTaggedJets++;
-                if(isCSVM(i)){ 
-                    nMediumBTaggedJets++;
-                    GoodCSVLJets.push_back(make_pair(thisJet, true));
-                }
-                else{
-                    GoodCSVLJets.push_back(make_pair(thisJet, false));
-                }
-            }
+	  TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
+	  //exclude selected photons from the jet collection
+	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
+	  if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
+	  
+	  GoodJets.push_back(thisJet);
+	  nSelectedJets++;
+	  
+	  if(isCSVL(i)){
+	    nLooseBTaggedJets++;
+	    if(isCSVM(i)){ 
+	      nMediumBTaggedJets++;
+	      GoodCSVLJets.push_back(make_pair(thisJet, true));
+	    }
+	    else{
+	      GoodCSVLJets.push_back(make_pair(thisJet, false));
+	    }
+	  }
         }
 	
         //if there are no good jets, reject the event
-        if( nSelectedJets == 0 ){
-	  std::cout << "[INFO]: No Identified Jet" << std::endl;
-	  continue;
-        }
-
+        if( nSelectedJets == 0 )
+	  {
+	    continue;
+	  }
+	
         //Compute the razor variables using the selected jets and the diphoton system
         vector<TLorentzVector> JetsPlusHiggsCandidate;
         for(auto& jet : GoodJets) JetsPlusHiggsCandidate.push_back(jet);
         JetsPlusHiggsCandidate.push_back(HiggsCandidate);
-
+	
         TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
-
+	
         vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
         theMR = computeMR(hemispheres[0], hemispheres[1]); 
         theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
         //if MR < 200, reject the event
-        if ( theMR < 150.0 ){
-	  //std::cout << "[INFO]: Failed baseline MR cut" << std::endl;
-	  //std::cout << "MR: " << theMR << " Rsq: " << theRsq << std::endl;
-	  continue;
-        }
+        if ( theMR < 150.0 )
+	  {
+	    continue;
+	  }
 
         //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
         if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
@@ -460,9 +459,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    }//end first jet loop
 	  }
 	
-	//if ( sigmaEOverE1 < 0.015 && sigmaEOverE2 < 0.015 ) std::cout << "[INFO]: SigmaEoverE1: " << sigmaEOverE1 << " SigmaEoverE2: " << sigmaEOverE2 << std::endl;
-	std::cout << "==MADE IT==" << std::endl;
-        //HighPt Box
+	//Writing output to tree
+	//HighPt Box
         if ( pTGammaGamma > 110.0 )
 	  {
 	    if(combineTrees){
@@ -490,7 +488,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    else razorBoxes["Zbb"]->Fill();
 	  }
         //HighRes Box
-        else if( sigmaEOverE1 < 0.015 && sigmaEOverE2 < 0.015 )
+        else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 )
 	  {
 	    if(combineTrees){
 	      box = HighRes;
