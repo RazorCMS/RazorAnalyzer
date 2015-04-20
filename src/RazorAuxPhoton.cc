@@ -191,8 +191,8 @@ bool RazorAnalyzer::isGoodPhotonRun1( int i, bool _iso = false)
       //std::cout << "yes!, pass HoverE?" << std::endl;
       if ( pho_HoverE[i] > EB_HoverECut ) return false;// HoverE Cut
       //std::cout << "yes!, pass ietaieta?" << std::endl;
-      //if ( phoSigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
-      if ( phoFull5x5SigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;
+      if ( phoSigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
+      //if ( phoFull5x5SigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;
       //std::cout << "yes!" << std::endl;
       if ( _iso && !photonPassIsoRun1( i ) ) return false;//Apply Isolation if flag (_iso) is true
       //if ( _iso) std::cout << "yes, passed ISO" << std::endl;
@@ -206,8 +206,8 @@ bool RazorAnalyzer::isGoodPhotonRun1( int i, bool _iso = false)
       //std::cout<< "yes!, pass HoverE?" << std::endl;
       if ( pho_HoverE[i] > EE_HoverECut ) return false;// HoverE Cut 
       //std::cout<< "yes!, pass ietaieta?" << std::endl;
-      //if ( phoSigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
-      if ( phoFull5x5SigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;
+      if ( phoSigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
+      //if ( phoFull5x5SigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;
       //std::cout<< "yes!" << std::endl;
       if ( _iso && !photonPassIsoRun1( i ) ) return false;//Apply Isolation if flag (_iso) is true
       //if ( _iso) std::cout<< "yes, passed ISO" << std::endl;
