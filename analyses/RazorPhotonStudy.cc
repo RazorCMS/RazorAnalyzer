@@ -45,6 +45,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenTaus, nGenPhotons;
     float theMR, MR_noPho, MR_noZ, MR_noW, MR_noGenZ;
     float theRsq, Rsq_noPho, Rsq_noZ, Rsq_noW, Rsq_noGenZ; 
+    float deltaPhi, deltaPhi_noPho, deltaPhi_noZ, deltaPhi_noW, deltaPhi_noGenZ; 
     float met,genmet,met_noPho, met_noZ, met_noW, genZmass, met_noGenZ;
     float leadingGenMuonPt, leadingGenPhotonPt;
     float leadingGenMuonEta, leadingGenPhotonEta;
@@ -110,6 +111,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             razorTree->Branch("MR_noGenZ", &MR_noGenZ, "MR_noGenZ/F");
             razorTree->Branch("Rsq_noGenZ", &Rsq_noGenZ, "Rsq_noGenZ/F");
             razorTree->Branch("met_noGenZ", &met_noGenZ, "met_noGenZ/F");
+            razorTree->Branch("deltaPhi_noGenZ", &deltaPhi_noGenZ, "deltaPhi_noGenZ/F");
             razorTree->Branch("metphi_noGenZ", &metphi_noGenZ, "metphi_noGenZ/F");
             razorTree->Branch("genmet", &genmet, "genmet/F");
             razorTree->Branch("genmetphi", &genmetphi, "genmetphi/F");
@@ -161,7 +163,15 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     razorTree->Branch("recoZeta", &recoZeta, "recoZeta/F");
     razorTree->Branch("recoZphi", &recoZphi, "recoZphi/F");
     razorTree->Branch("recoZmass", &recoZmass, "recoZmass/F");
+    razorTree->Branch("MR_noPho", &MR_noPho, "MR_noPho/F");
+    razorTree->Branch("Rsq_noPho", &Rsq_noPho, "Rsq_noPho/F");
+    razorTree->Branch("deltaPhi_noPho", &deltaPhi_noPho, "deltaPhi_noPho/F");
+    razorTree->Branch("numJets_noPho", &numJets_noPho, "numJets_noPho/I");
+    razorTree->Branch("numJets80_noPho", &numJets80_noPho, "numJets80_noPho/I");
     if(filterEvents){
+        razorTree->Branch("met_noPho", &met_noPho, "met_noPho/F");
+        razorTree->Branch("metphi_noPho", &metphi_noPho, "metphi_noPho/F");
+        razorTree->Branch("HT_noPho", &HT_noPho, "HT_noPho/F");
         razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
         razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
         razorTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
@@ -180,31 +190,27 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         razorTree->Branch("MR", &theMR, "MR/F");
         razorTree->Branch("MR_noZ", &MR_noZ, "MR_noZ/F");
         razorTree->Branch("MR_noW", &MR_noW, "MR_noW/F");
-        razorTree->Branch("MR_noPho", &MR_noPho, "MR_noPho/F");
         razorTree->Branch("Rsq", &theRsq, "Rsq/F");
-        razorTree->Branch("Rsq_noPho", &Rsq_noPho, "Rsq_noPho/F");
         razorTree->Branch("Rsq_noZ", &Rsq_noZ, "Rsq_noZ/F");
         razorTree->Branch("Rsq_noW", &Rsq_noW, "Rsq_noW/F");
+        razorTree->Branch("deltaPhi", &deltaPhi, "deltaPhi/F");
+        razorTree->Branch("deltaPhi_noZ", &deltaPhi_noZ, "deltaPhi_noZ/F");
+        razorTree->Branch("deltaPhi_noW", &deltaPhi_noW, "deltaPhi_noW/F");
         razorTree->Branch("met", &met, "met/F");
         razorTree->Branch("metphi", &metphi, "metphi/F");
-        razorTree->Branch("met_noPho", &met_noPho, "met_noPho/F");
         razorTree->Branch("met_noZ", &met_noZ, "met_noZ/F");
         razorTree->Branch("met_noW", &met_noW, "met_noW/F");
         razorTree->Branch("metphi_noZ", &metphi_noZ, "metphi_noZ/F");
         razorTree->Branch("metphi_noW", &metphi_noW, "metphi_noW/F");
-        razorTree->Branch("metphi_noPho", &metphi_noPho, "metphi_noPho/F");
         razorTree->Branch("HT", &HT, "HT/F");
         razorTree->Branch("HT_noZ", &HT_noZ, "HT_noZ/F");
         razorTree->Branch("HT_noW", &HT_noW, "HT_noW/F");
-        razorTree->Branch("HT_noPho", &HT_noPho, "HT_noPho/F");
         razorTree->Branch("numJets", &numJets, "numJets/I");
         razorTree->Branch("numJets_noZ", &numJets_noZ, "numJets_noZ/I");
         razorTree->Branch("numJets_noW", &numJets_noW, "numJets_noW/I");
-        razorTree->Branch("numJets_noPho", &numJets_noPho, "numJets_noPho/I");
         razorTree->Branch("numJets80", &numJets80, "numJets80/I");
         razorTree->Branch("numJets80_noZ", &numJets80_noZ, "numJets80_noZ/I");
         razorTree->Branch("numJets80_noW", &numJets80_noW, "numJets80_noW/I");
-        razorTree->Branch("numJets80_noPho", &numJets80_noPho, "numJets80_noPho/I");
         razorTree->Branch("mTLepMet", &mTLepMet, "mTLepMet/F");
     }
 
@@ -249,6 +255,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             genmet = genMetPt;
             genmetphi = genMetPhi;
             Rsq_noGenZ = -1;
+            deltaPhi_noGenZ = -1;
             HT_noGenZ = 0;
             numJets_noGenZ = 0;
             numJets80_noGenZ = 0;
@@ -344,6 +351,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         Rsq_noPho = -1;
         Rsq_noZ = -1;
         Rsq_noW = -1;
+        deltaPhi = -1;
+        deltaPhi_noPho = -1;
+        deltaPhi_noZ = -1;
+        deltaPhi_noW = -1;
         HT = 0;
         HT_noPho = 0;
         HT_noZ = 0;
@@ -690,6 +701,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             vector<TLorentzVector> hemispheres = getHemispheres(GoodJets);
             theMR = computeMR(hemispheres[0], hemispheres[1]); 
             theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+            deltaPhi = fabs(hemispheres[0].DeltaPhi(hemispheres[1]));
         }
 
         //****************************************************//
@@ -810,6 +822,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                 TLorentzVector PFMET_NOPHO = makeTLorentzVectorPtEtaPhiM(met_noPho, 0, metphi_noPho, 0);
                 MR_noPho = computeMR(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1]); 
                 Rsq_noPho = computeRsq(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1], PFMET_NOPHO);
+                deltaPhi_noPho = fabs(hemispheresNoLeadPhoton[0].DeltaPhi(hemispheresNoLeadPhoton[1]));
             }
         } 
         else{ //save some info even if no photons are found
@@ -906,6 +919,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoMuons);
             Rsq_noZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], ZPlusMet_perp);
             MR_noZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
+            deltaPhi_noZ = fabs(hemispheresNoZ[0].DeltaPhi(hemispheresNoZ[1])); 
         }
         if(!isData){
             //Gen Z
@@ -920,6 +934,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                 vector<TLorentzVector> hemispheresNoGenZ = getHemispheres(GoodJetsNoGenMuons);
                 Rsq_noGenZ = computeRsq(hemispheresNoGenZ[0], hemispheresNoGenZ[1], ZPlusMetGen_perp);
                 MR_noGenZ = computeMR(hemispheresNoGenZ[0], hemispheresNoGenZ[1]); 
+                deltaPhi_noGenZ = fabs(hemispheresNoGenZ[0].DeltaPhi(hemispheresNoGenZ[1])); 
             }
         }
         //razor variables using tight muons (for W)
@@ -927,6 +942,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoTightMuons);
             Rsq_noW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], WPlusMet_perp);
             MR_noW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
+            deltaPhi_noW = fabs(hemispheresNoW[0].DeltaPhi(hemispheresNoW[1])); 
         }
 
         //for W, also get the transverse mass of the first tight muon and the MET
