@@ -1,7 +1,7 @@
 /*
 Defines 2012 Cut Based Photon ID
+Defines PhotonCandidate struct
 */
-
 
 #ifndef RAZOR_AUX_PHOTON_HH
 #define RAZOR_AUX_PHOTON_HH 1
@@ -33,4 +33,19 @@ float EB_GetPFphoIsoCut( float pt ){ return (EB_PFphoIsoConst + EB_PFphoIsoSlope
 constexpr float EE_GetPFchHadIsoCut( ){ return EE_PFchHadIsoCut; };
 float EE_GetPFnHadIsoCut( float pt ){ return (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
 
+/*
+struct PhotonCandidate
+{
+  float phoPt;
+  float phoEta;
+  float phoPho;
+  float phoSigmaIetaIeta;
+  float phoR9;
+  float phoHoverE;
+  float phosumChargedHadronPt;
+  float phosumNeutralHadronEt;
+  float phosumPhotonEt;
+  float phopassEleVeto;
+};
+*/
 #endif

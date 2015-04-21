@@ -128,47 +128,49 @@ bool RazorAnalyzer::photonPassIsoRun1( int i )
   double effAreaNeutralHadrons = 0.0;
   double effAreaPhotons = 0.0;
   getPhotonEffAreaRun1( eta, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
+  /*
   std::cout << "chA:" << effAreaChargedHadrons << " nA: " << effAreaNeutralHadrons << " phoA: " << effAreaPhotons << std::endl;
   std::cout << "chHad: " << pho_sumChargedHadronPt[i] << std::endl;
   std::cout << "nHad: " << pho_sumNeutralHadronEt[i] << std::endl;
   std::cout << "pho: " << pho_sumPhotonEt[i] << std::endl;
   std::cout << "pu: " << fixedGridRhoAll << std::endl;
+  */
   //Compute Photon Isolation
   //Rho corrected PF charged hadron isolation
   double PFIsoCorrected_chHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
-  std::cout << "chHad Iso: " << PFIsoCorrected_chHad << std::endl;
+  //std::cout << "chHad Iso: " << PFIsoCorrected_chHad << std::endl;
   //Rho corrected PF neutral hadron isolation                                                                              
   double PFIsoCorrected_nHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoAll*effAreaNeutralHadrons, 0.);
-  std::cout << "nHad Iso: " <<PFIsoCorrected_nHad <<std::endl;
+  //std::cout << "nHad Iso: " <<PFIsoCorrected_nHad <<std::endl;
   //Rho corrected PF photon isolation                                                              
   double PFIsoCorrected_pho = max(pho_sumPhotonEt[i] - fixedGridRhoAll*effAreaPhotons, 0.);
-  std::cout << "pho Iso: " << PFIsoCorrected_pho <<std::endl;
+  //std::cout << "pho Iso: " << PFIsoCorrected_pho <<std::endl;
   
   //Apply Isolation
   if ( _isEB )
     {
-      std::cout << "==EB==" << std::endl;
-      std::cout << "pass chHad iso?" << std::endl;
-      std::cout << "chHad Cut: " << EB_GetPFchHadIsoCut() << std::endl;
+      //std::cout << "==EB==" << std::endl;
+      //std::cout << "pass chHad iso?" << std::endl;
+      //std::cout << "chHad Cut: " << EB_GetPFchHadIsoCut() << std::endl;
       if ( PFIsoCorrected_chHad > EB_GetPFchHadIsoCut() ) return false;
-      std::cout<< "pass nHad iso?" << std::endl;
-      std::cout << "nHad Cut: " << EB_GetPFnHadIsoCut( pt ) << std::endl;
+      //std::cout<< "pass nHad iso?" << std::endl;
+      //std::cout << "nHad Cut: " << EB_GetPFnHadIsoCut( pt ) << std::endl;
       if ( PFIsoCorrected_nHad > EB_GetPFnHadIsoCut( pt ) ) return false;
-      std::cout << "Pho Cut: " << EB_GetPFphoIsoCut( pt ) << std::endl;
-      std::cout<< "pass pho iso?" <<std::endl;
+      //std::cout << "Pho Cut: " << EB_GetPFphoIsoCut( pt ) << std::endl;
+      //std::cout<< "pass pho iso?" <<std::endl;
       if ( PFIsoCorrected_pho > EB_GetPFphoIsoCut( pt ) ) return false;
-      std::cout<< "EB Yes" <<std::endl;
+      //std::cout<< "EB Yes" <<std::endl;
     }
   else
     {
-      std::cout << "==EE==" << std::endl;
-      std::cout << "pass chHad iso?" << std::endl;
-      std::cout << "chHad Cut: " << EE_GetPFchHadIsoCut() << std::endl;
+      //std::cout << "==EE==" << std::endl;
+      //std::cout << "pass chHad iso?" << std::endl;
+      //std::cout << "chHad Cut: " << EE_GetPFchHadIsoCut() << std::endl;
       if ( PFIsoCorrected_chHad > EE_GetPFchHadIsoCut() ) return false;
-      std::cout << "nHad Cut: " << EE_GetPFnHadIsoCut( pt ) << std::endl;
-      std::cout<< "pass nHad iso?" <<std::endl;
+      //std::cout << "nHad Cut: " << EE_GetPFnHadIsoCut( pt ) << std::endl;
+      //std::cout<< "pass nHad iso?" <<std::endl;
       if ( PFIsoCorrected_nHad > EE_GetPFnHadIsoCut( pt ) ) return false;
-      std::cout<< "EE Yes" <<std::endl;
+      //std::cout<< "EE Yes" <<std::endl;
       //No Photn Isolation requirement;
     }
   
@@ -183,34 +185,32 @@ bool RazorAnalyzer::isGoodPhotonRun1( int i, bool _iso = false)
   if ( _isEB )
     {
       //EB
-      std::cout<< "=====EB====" << std::endl;
-      std::cout << "pass Ele Veto?" << std::endl;
-      //if ( EB_EleVeto && !photonPassesElectronVeto( i ) ) return false;//Conversion Safe Electron Veto
+      //std::cout<< "=====EB====" << std::endl;
+      //std::cout << "pass Ele Veto?" << std::endl;
       if ( EB_EleVeto && !passEleVetoRun1( i ) ) return false;
-      std::cout << "yes!, pass HoverE?" << std::endl;
+      //std::cout << "yes!, pass HoverE?" << std::endl;
       if ( pho_HoverE[i] > EB_HoverECut ) return false;// HoverE Cut
-      std::cout << "yes!, pass ietaieta?" << std::endl;
-      //if ( phoSigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
-      if ( phoFull5x5SigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;
-      std::cout << "yes!" << std::endl;
+      //std::cout << "yes!, pass ietaieta?" << std::endl;
+      if ( phoSigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
+      //if ( phoFull5x5SigmaIetaIeta[i] > EB_SigmaIetaIetaCut ) return false;
+      //std::cout << "yes!" << std::endl;
       if ( _iso && !photonPassIsoRun1( i ) ) return false;//Apply Isolation if flag (_iso) is true
-      if ( _iso) std::cout << "yes, passed ISO" << std::endl;
+      //if ( _iso) std::cout << "yes, passed ISO" << std::endl;
     }
   else
     {
       //EE
-      std::cout << "=====EE====" << std::endl;
-      std::cout << "pass Ele Veto?" << std::endl;
-      //if ( EE_EleVeto && !photonPassesElectronVeto( i ) ) return false;//Conversion Safe Electron Veto   
+      //std::cout << "=====EE====" << std::endl;
+      //std::cout << "pass Ele Veto?" << std::endl;
       if ( EE_EleVeto && !passEleVetoRun1( i ) ) return false;
-      std::cout<< "yes!, pass HoverE?" << std::endl;
+      //std::cout<< "yes!, pass HoverE?" << std::endl;
       if ( pho_HoverE[i] > EE_HoverECut ) return false;// HoverE Cut 
-      std::cout<< "yes!, pass ietaieta?" << std::endl;
-      //if ( phoSigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
-      if ( phoFull5x5SigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;
-      std::cout<< "yes!" << std::endl;
+      //std::cout<< "yes!, pass ietaieta?" << std::endl;
+      if ( phoSigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;// SigmaIetaIeta Cut
+      //if ( phoFull5x5SigmaIetaIeta[i] > EE_SigmaIetaIetaCut ) return false;
+      //std::cout<< "yes!" << std::endl;
       if ( _iso && !photonPassIsoRun1( i ) ) return false;//Apply Isolation if flag (_iso) is true
-      if ( _iso) std::cout<< "yes, passed ISO" << std::endl;
+      //if ( _iso) std::cout<< "yes, passed ISO" << std::endl;
     }
 
   return true;
