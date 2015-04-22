@@ -461,6 +461,25 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             else if(HLTDecision[29] == 1){
                 hlt_photon_weight = lumi_HLTPhoton50/lumi_HLTPhoton150;
             }
+            //save the trigger bits
+            if(HLTDecision[34] == 1){
+                passedHLTPhoton160 = true;
+            }
+            if(HLTDecision[33] == 1){
+                passedHLTPhoton150 = true;
+            }
+            if(HLTDecision[32] == 1){
+                passedHLTPhoton135 = true;
+            }
+            if(HLTDecision[31] == 1){
+                passedHLTPhoton90 = true;
+            }
+            if(HLTDecision[30] == 1){
+                passedHLTPhoton75 = true;
+            }
+            if(HLTDecision[29] == 1){
+                passedHLTPhoton50 = true;
+            }
         }
 
         for(int i = 46; i <= 50; i++){
