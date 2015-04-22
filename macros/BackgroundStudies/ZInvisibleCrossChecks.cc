@@ -177,12 +177,13 @@ void ZInvisibleCrossChecks(){
             float eventWeight = weight;
             eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
             //reweigh according to selection efficiency and acceptance
-            double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-            if(effFactor > 1e-5) eventWeight /= effFactor;
-            else{ 
-                eventWeight = 0;
-                //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
-            }
+            //double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+            //if(effFactor > 1e-5) eventWeight /= effFactor;
+            //else{ 
+            //    eventWeight = 0;
+            //    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+            //}
+
             //apply selection cuts and fill the appropriate histograms
             for(uint cut = 0; cut < cutSequence.size(); cut++){
                 bool passesCut = cuts[cut]->EvalInstance();
@@ -237,12 +238,13 @@ void ZInvisibleCrossChecks(){
 
             //get event weight
             float eventWeight = 1.0;
+
             //reweigh according to selection efficiency and acceptance
-            double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-            if(effFactor > 1e-5) eventWeight /= effFactor;
-            else{ 
-                eventWeight = 0;
-            }
+            //double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+            //if(effFactor > 1e-5) eventWeight /= effFactor;
+            //else{ 
+            //    eventWeight = 0;
+            //}
 
             //get weight if associate each trigger with a particular pt range
             double triggerWeightRestricted = 0.0;
