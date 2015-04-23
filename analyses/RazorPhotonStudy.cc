@@ -79,7 +79,6 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     if(!isData){
         razorTree->Branch("nGenMuons", &nGenMuons, "nGenMuons/I");
         razorTree->Branch("nGenPhotons", &nGenPhotons, "nGenPhotons/I");
-        razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
         razorTree->Branch("leadingGenMuonPt", &leadingGenMuonPt, "leadingGenMuonPt/F");
         razorTree->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
         razorTree->Branch("leadingGenMuonPhi", &leadingGenMuonPhi, "leadingGenMuonPhi/F");
@@ -143,6 +142,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     razorTree->Branch("hlt_razor", &hlt_razor, "hlt_razor/O");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
     razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+    razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("leadingMuonPt", &leadingMuonPt, "leadingMuonPt/F");
     razorTree->Branch("leadingMuonEta", &leadingMuonEta, "leadingMuonEta/F");
     razorTree->Branch("leadingMuonPhi", &leadingMuonPhi, "leadingMuonPhi/F");
@@ -733,10 +733,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(fabs(phoEta[i]) > 2.5) continue;
 
             if(isRunOne){
-                if(!isMediumRunOnePhoton(i)) continue;
+                if(!isTightRunOnePhoton(i)) continue;
             }
             else{
-                if(!isMediumPhoton(i)) continue;
+                if(!isTightPhoton(i)) continue;
             }
 
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;

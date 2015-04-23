@@ -19,7 +19,8 @@
 
 using namespace std;
 
-bool debug = true;
+bool debug = false;
+//bool debug = true;
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
@@ -61,8 +62,25 @@ void ZInvisibleCrossChecks(){
     float MR_noPho, Rsq_noPho;
     int numJets_noPho, numJets80_noPho;
     for(auto &file : mcfiles){
-        cout << file.first << endl;
         mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
+
+        mctrees[file.first]->SetBranchStatus("*", 0); // disable all
+        mctrees[file.first]->SetBranchStatus("weight", 1);
+        mctrees[file.first]->SetBranchStatus("leadingPhotonPt", 1);
+        mctrees[file.first]->SetBranchStatus("leadingPhotonEta", 1);
+        mctrees[file.first]->SetBranchStatus("hlt_photon", 1);
+        mctrees[file.first]->SetBranchStatus("nPU_mean", 1);
+        mctrees[file.first]->SetBranchStatus("passedHLTPhoton50", 1);
+        mctrees[file.first]->SetBranchStatus("passedHLTPhoton75", 1);
+        mctrees[file.first]->SetBranchStatus("passedHLTPhoton90", 1);
+        mctrees[file.first]->SetBranchStatus("passedHLTPhoton135", 1);
+        mctrees[file.first]->SetBranchStatus("passedHLTPhoton150", 1);
+        mctrees[file.first]->SetBranchStatus("numJets_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("MR_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("deltaPhi_noPho", 1);
+
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
         mctrees[file.first]->SetBranchAddress("leadingPhotonEta", &leadingPhotonEta);
@@ -80,6 +98,22 @@ void ZInvisibleCrossChecks(){
     }
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
+        
+        datatrees[file.first]->SetBranchStatus("*", 0); // disable all
+        datatrees[file.first]->SetBranchStatus("leadingPhotonPt", 1);
+        datatrees[file.first]->SetBranchStatus("leadingPhotonEta", 1);
+        datatrees[file.first]->SetBranchStatus("hlt_photon", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton50", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton75", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton90", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton135", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton150", 1);
+        datatrees[file.first]->SetBranchStatus("numJets_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("MR_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("deltaPhi_noPho", 1);
+
         datatrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
         datatrees[file.first]->SetBranchAddress("leadingPhotonEta", &leadingPhotonEta);
         datatrees[file.first]->SetBranchAddress("hlt_photon", &hlt_photon);
@@ -114,17 +148,26 @@ void ZInvisibleCrossChecks(){
     float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
     float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.80, 1.5};
     vector<string> cutSequence;
-    cutSequence.push_back( "hlt_photon" );
-    cutSequence.push_back( "hlt_photon && numJets_noPho > 1" );
-    cutSequence.push_back( "hlt_photon && numJets_noPho > 1 && deltaPhi_noPho < 2.7" );
-    cutSequence.push_back( "hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1" );
-    cutSequence.push_back( "hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1 && MR_noPho > 300 && Rsq_noPho > 0.15" );
     vector<string> cutName;
+
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon" );
     cutName.push_back( "No cuts" );
+
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1" );
+    cutName.push_back( "Require two 40-GeV Jets" );
+
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7" );
     cutName.push_back( "Require #Delta #phi < 2.7" );
-    cutName.push_back( "Require #Delta #phi < 2.7 and two 40-GeV Jets" );
+
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1 && deltaPhi_noPho < 2.7" );
+    cutName.push_back( "Require two 40-GeV Jets and #Delta #phi < 2.7" );
+
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1" );
     cutName.push_back( "Require #Delta #phi < 2.7 and two 80-GeV Jets" );
+
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1 && MR_noPho > 300 && Rsq_noPho > 0.15" );
     cutName.push_back( "Require #Delta #phi < 2.7, two 80-GeV Jets, MR > 300 GeV, Rsq > 0.15" );
+
     map<string, vector<TH1F *> > mcPhotonPt, mcNJets, mcNJets80, mcMR, mcRsq;
     vector<TH1F *> dataPhotonPt, dataNJets, dataNJets80, dataMR, dataRsq;
     for(auto &tree : mctrees){
@@ -301,7 +344,6 @@ void ZInvisibleCrossChecks(){
     legend->AddEntry(mcPhotonPt["WG"][0], "W+Gamma MC");
     legend->AddEntry(mcPhotonPt["ZG"][0], "Z+Gamma MC");
     for(uint cut = 0; cut < cutSequence.size(); cut++){
-        cout << "Printing plots: " << cut << endl;
         //create histogram stacks for MC
         THStack PhotonPtMC(Form("PhotonPtStack%d", cut), cutName[cut].c_str());
         THStack NumJetsMC(Form("NumJetsStack%d", cut), cutName[cut].c_str());
@@ -318,11 +360,6 @@ void ZInvisibleCrossChecks(){
             mcMR[tree][cut]->SetFillColor(colors[tree]);
             mcRsq[tree][cut]->SetFillColor(colors[tree]);
 
-            cout << mcPhotonPt[tree][cut]->GetEntries() << endl;
-            cout << mcNJets[tree][cut]->GetEntries() << endl;
-            cout << mcNJets80[tree][cut]->GetEntries() << endl;
-            cout << mcMR[tree][cut]->GetEntries() << endl;
-            cout << mcRsq[tree][cut]->GetEntries() << endl;
             PhotonPtMC.Add(mcPhotonPt[tree][cut]);
             NumJetsMC.Add(mcNJets[tree][cut]);
             NumJets80MC.Add(mcNJets80[tree][cut]);
