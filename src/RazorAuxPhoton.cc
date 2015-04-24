@@ -120,7 +120,8 @@ bool RazorAnalyzer::photonPassIsoRun1( int i )
 {
   //Define variables
   float eta = pho_superClusterEta[i];
-  float pt  = phoPt[i]; 
+  //float pt  = phoPt[i]*phoE[i]/pho_RegressionE[i]; 
+  float pt  = phoPt[i];
   bool _isEB = false;
   if ( fabs( eta ) < 1.44 ) _isEB = true;
   //get effective area for isolation calculations                                                

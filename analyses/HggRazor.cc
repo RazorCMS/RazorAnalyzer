@@ -1,5 +1,6 @@
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
+#include "JetCorrectorParameters.h"
 //#include "RazorAuxPhoton.hh"
 
 //C++ includes
@@ -41,10 +42,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         outFileName = "HggRazor.root";
     }
     TFile outFile(outFileName.c_str(), "RECREATE");
-
+    
+    //Including Jet Corrections
+    std::vector<JetCorrectorParameters> correctionParameters;
+    
+    correctionParameters.push_back(JetCorrectorParameters("data/FT_53_V10_AN3_L1FastJet_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/FT_53_V10_AN3_L2Relative_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/FT_53_V10_AN3_L3Absolute_AK5PF.txt"));
+    
+    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
+    
     //one tree to hold all events
     TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
-
+    
     //separate trees for individual boxes
     map<string, TTree*> razorBoxes;
     vector<string> boxNames;
@@ -61,7 +71,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
     //tree variables
-    int nSelectedJets, nLooseBTaggedJets, nMediumBTaggedJets;
+    int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
     int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
     float theMR;
     float theRsq;
@@ -77,9 +87,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
     bool  Pho_passEleVeto[2], Pho_passIso[2];
     
+    //jet information
+    float jet_E[10], jet_Pt[10], jet_Eta[10], jet_Phi[10];
+    
     //set branches on big tree
     if(combineTrees){
-       razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
+      razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
         razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
         razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
         razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -103,7 +116,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         for(auto& box : razorBoxes){
 	  box.second->Branch("run", &run, "run/I");
 	  box.second->Branch("event", &event, "event/I");
-	  box.second->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
 	  box.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
 	  box.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
 	  box.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -148,6 +160,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  
 	  box.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
 	  box.second->Branch("mbbH", &mbbH, "mbbH/F");
+	  
+	  box.second->Branch("n_Jets", &n_Jets, "n_Jets/I");
+	  box.second->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
+	  box.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
+	  box.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
+	  box.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
 	}
     }
 
@@ -166,7 +184,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         NEvents->Fill(1.0);
 
         //reset tree variables
-        nSelectedJets = 0;
+        n_Jets = 0;
         nLooseBTaggedJets = 0;
         nMediumBTaggedJets = 0;
         nLooseMuons = 0;
@@ -204,7 +222,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    Pho_passIso[i]            = false;
 	  }
 	
-        if(combineTrees) box = LowRes;
+	//jets
+	for ( int i = 0; i < 10; i++ )
+	  {
+	    jet_E[i]   = -99.;
+	    jet_Pt[i]  = -99.;
+	    jet_Eta[i] = -99.;
+	    jet_Phi[i] = -99.;
+	  }
+	
+	if(combineTrees) box = LowRes;
 	
 	//TODO: triggers!
         bool passedDiphotonTrigger = true;
@@ -257,9 +284,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  
 	  //Defining Corrected Photon momentum
 	  float sf = pho_RegressionE[i]/phoE[i];
-	  float pho_pt = phoPt[i]*sf;//Try to avoid using cosh to sync with Alex
+	  float pho_pt = phoPt[i];//Try to avoid using cosh to sync with Alex
+	  float pho_pt2 = pho_RegressionE[i]/cosh(phoEta[i]);
+	  //std::cout << "pho# " << i << " phopt1: " << pho_pt << " pho_pt2: " << pho_pt2 << std::endl;
 	  TVector3 vec;
-	  vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	  //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	  vec.SetPtEtaPhi( phoPt[i], phoEta[i], phoPhi[i] );
 	  
 	  if ( pho_pt < 24.0 )
 	    {
@@ -388,26 +418,37 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	//record higgs candidate info
         mGammaGamma = HiggsCandidate.M();
         pTGammaGamma = HiggsCandidate.Pt();
-		
+	
+
 	//Jets
 	vector<TLorentzVector> GoodJets;
-        vector<pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
+        vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
 
 	//I think I am selecting too many jets!
 	//is the jet ID applied correctly
 	//???
+	std::cout << "nJets: " << nJets << std::endl;
         for(int i = 0; i < nJets; i++){
-	  //if(jetPt[i] < 40) continue;
-	  if( jetPt[i] < 30.0 ) continue;//According to the April 1st 2015 AN
-	  if( fabs(jetEta[i]) >= 3.0 ) continue;
-	  if ( !jetPassIDLoose[i] ) continue;
-	  TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
+	  //Jet Corrections                                                                      
+	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
+						 fixedGridRhoFastjetAll, jetJetArea[i],
+						 JetCorrector );
+	  
+	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+	  std::cout << i << " pt: " << thisJet.Pt() << " eta: " << thisJet.Eta() << " phi: " << thisJet.Phi() << std::endl; 
+
+	  if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
+	  if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
+          int level = 2; //loose jet ID
+          if ( !jetPassIDTight[i] ) continue;
+          if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
+	  
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
 	  if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
 	  
 	  GoodJets.push_back(thisJet);
-	  nSelectedJets++;
+	  n_Jets++;
 	  
 	  if(isCSVL(i)){
 	    nLooseBTaggedJets++;
@@ -422,9 +463,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         }
 	
         //if there are no good jets, reject the event
-        if( nSelectedJets == 0 )
+        if( n_Jets == 0 )
 	  {
 	    continue;
+	  }
+	
+	int iJet = 0;
+	for ( auto tmp_jet : GoodJets )
+	  {
+	    jet_E[iJet] = tmp_jet.E();
+	    jet_Pt[iJet] = tmp_jet.Pt();
+	    jet_Eta[iJet] = tmp_jet.Eta();
+	    jet_Phi[iJet] = tmp_jet.Phi();
+	    iJet++;
 	  }
 	
         //Compute the razor variables using the selected jets and the diphoton system
