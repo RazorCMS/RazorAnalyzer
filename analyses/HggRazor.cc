@@ -46,9 +46,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     //Including Jet Corrections
     std::vector<JetCorrectorParameters> correctionParameters;
     
-    correctionParameters.push_back(JetCorrectorParameters("data/FT_53_V10_AN3_L1FastJet_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/FT_53_V10_AN3_L2Relative_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/FT_53_V10_AN3_L3Absolute_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/Summer13_V4_DATA_L1FastJet_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/Summer13_V4_DATA_L2Relative_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/Summer13_V4_DATA_L3Absolute_AK5PF.txt"));
     
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
     
@@ -283,13 +283,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    }
 	  
 	  //Defining Corrected Photon momentum
-	  float sf = pho_RegressionE[i]/phoE[i];
+	  //float sf = pho_RegressionE[i]/phoE[i];
 	  float pho_pt = phoPt[i];//Try to avoid using cosh to sync with Alex
-	  float pho_pt2 = pho_RegressionE[i]/cosh(phoEta[i]);
+	  //float pho_pt = phoPt[i]*sf;
+	  //float pho_pt2 = pho_RegressionE[i]/cosh(phoEta[i]);
 	  //std::cout << "pho# " << i << " phopt1: " << pho_pt << " pho_pt2: " << pho_pt2 << std::endl;
 	  TVector3 vec;
-	  //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
-	  vec.SetPtEtaPhi( phoPt[i], phoEta[i], phoPhi[i] );
+	  vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	  //vec.SetPtEtaPhi( phoPt[i], phoEta[i], phoPhi[i] );
 	  
 	  if ( pho_pt < 24.0 )
 	    {
@@ -431,7 +432,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         for(int i = 0; i < nJets; i++){
 	  //Jet Corrections                                                                      
 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-						 fixedGridRhoFastjetAll, jetJetArea[i],
+						 fixedGridRhoAll, jetJetArea[i],
 						 JetCorrector );
 	  
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
