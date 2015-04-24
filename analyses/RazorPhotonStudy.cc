@@ -2,6 +2,7 @@
 
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
+#include "JetCorrectorParameters.h"
 
 //C++ includes
 
@@ -213,6 +214,33 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         razorTree->Branch("numJets80_noW", &numJets80_noW, "numJets80_noW/I");
         razorTree->Branch("mTLepMet", &mTLepMet, "mTLepMet/F");
     }
+
+    //****************************************************//
+    //                  Set up JEC                        //
+    //****************************************************//
+   
+    std::vector<JetCorrectorParameters> correctionParameters;
+
+    //get the jet correction parameters
+    char* cmsswPath;
+    cmsswPath = getenv("CMSSW_BASE");
+    if(cmsswPath != NULL){
+        cout << "Getting JEC parameters from " << cmsswPath << "/src/RazorAnalyzer/data" << endl;
+        if (isRunOne) {
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/FT_53_V6_AN1_L1FastJet_AK5PF.txt", cmsswPath)));
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/FT_53_V6_AN1_L2Relative_AK5PF.txt", cmsswPath)));
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/FT_53_V6_AN1_L3Absolute_AK5PF.txt", cmsswPath))); 
+        } else {
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt", cmsswPath)));
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt", cmsswPath)));
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt", cmsswPath)));    
+        }
+    }
+    else{
+        cout << "Error: CMSSW_BASE is not defined!  Please set up CMSSW." << endl <<  "Exiting..." << endl;
+        return;
+    }
+    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
 
     //****************************************************//
     //            Begin the event loop                    //
@@ -681,8 +709,16 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //               Select jets                          //
         //****************************************************//
         vector<TLorentzVector> GoodJets; //will contain leptons above 40 GeV in addition to jets
+        TVector3 metCorrection; //contains p_T - p_T_JEC summed over all jets
         for(int i = 0; i < nJets; i++){
-            if(jetPt[i] < 40) continue;
+            double JEC = 1.0;
+            if(isRunOne){
+                JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoAll, jetJetArea[i], JetCorrector);   
+            }
+            else{
+                JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoFastjetAll, jetJetArea[i], JetCorrector);   
+            }
+            if(jetPt[i]*JEC < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
             //apply jet iD
             if(isRunOne){
@@ -697,8 +733,15 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                 }
             }
 
-            TLorentzVector thisJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
-            if(jetPt[i] > 80) numJets80++;
+            TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC);
+
+            TVector3 unCorrJetPerp, corrJetPerp;
+            unCorrJetPerp.SetPtEtaPhi(jetPt[i], 0, jetPhi[i]);
+            corrJetPerp.SetPtEtaPhi(jetPt[i]*JEC, 0, jetPhi[i]);
+            //propagate the correction to the MET
+            metCorrection = metCorrection + unCorrJetPerp - corrJetPerp;
+
+            if(jetPt[i]*JEC > 80) numJets80++;
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 
@@ -708,8 +751,14 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //****************************************************//
         //     Compute the razor variables and HT, nJets      //
         //****************************************************//
-        TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
-        metphi = metPhi;
+
+        //get the type-1 corrected PFMET
+        TVector3 metUncorr;
+        metUncorr.SetPtEtaPhi(metPt, 0, metPhi);
+        TVector3 metCorr = metUncorr + metCorrection;
+
+        TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metCorr.Pt(), 0, metCorr.Phi(), 0);
+        metphi = PFMET.Phi();
 
         //count jets and compute HT
         numJets = GoodJets.size();
