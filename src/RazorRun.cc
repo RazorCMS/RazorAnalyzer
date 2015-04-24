@@ -51,24 +51,52 @@ int main(int argc, char* argv[]){
     }
     
     //build the TChain
-    //TChain *theChain = new TChain("ntuples/RazorEvents");
-    TChain* theChain = new TChain("RazorEvents"); 
+    //tree name is set give the structure in the first root file, see while loop below
+    TChain* theChain = new TChain();
     string curFileName;
     ifstream inputFile(inputFileName.c_str());
     int NFilesLoaded = 0;
-    if(!inputFile){
-        cerr << "Error: input file not found!" << endl; 
-        return -1;
+    if ( !inputFile ){
+      cerr << "Error: input file not found!" << endl;
+      return -1;
     }
-    while(getline(inputFile, curFileName)){
-        theChain->Add(curFileName.c_str());
-	if (analysisType != "MakeMCPileupDistribution") {
+    
+    while ( getline(inputFile, curFileName) )
+      {
+	if ( NFilesLoaded == 0 )
+	  {
+	    /*
+	      checks root file structure and add first file
+	    */
+	    TFile* f_0 = TFile::Open( curFileName.c_str() );
+	    if( f_0->GetDirectory("ntuples") )
+	      {
+		theChain->SetName("ntuples/RazorEvents");
+		std::cout << "[INFO]: default configuration for tchain" << std::endl;
+	      }
+	    else
+	      {
+		theChain->SetName("RazorEvents");
+		std::cout << "[INFO]: alternative configuration for tchain"<< std::endl;
+	      }
+	    theChain->Add( curFileName.c_str() );
+	    delete f_0;
+	  }
+	else
+	  {
+	    //Addind remaining files after file structure is decided
+	    theChain->Add( curFileName.c_str() );
+	  }
+	
+	if ( analysisType != "MakeMCPileupDistribution" ) {
 	  std::cout << "chaining " << curFileName << std::endl;
-	}
-	NFilesLoaded++;
-    }
+        }
+        NFilesLoaded++;
+      }     
+    
     std::cout << "Loaded Total of " << NFilesLoaded << " files\n";
-
+    if ( theChain == NULL ) return -1;
+    
     RazorAnalyzer analyzer(theChain);
     
     //------ EXECUTE YOUR ANALYSIS ------//
