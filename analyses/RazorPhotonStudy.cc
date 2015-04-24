@@ -24,6 +24,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     //****************************************************//
 
     cout << "Initializing..." << endl;
+
+    //random number generator for jet smearing
+    TRandom3 *random = new TRandom3();
+    random->SetSeed(33333);
+
     string outfilename = outputfilename;
     if (outfilename == "") outfilename = "RazorPhotonStudy.root";
     TFile outFile(outfilename.c_str(), "RECREATE");
@@ -232,28 +237,44 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     //                  Set up JEC                        //
     //****************************************************//
    
-    std::vector<JetCorrectorParameters> correctionParameters;
 
     //get the jet correction parameters
+    std::vector<JetCorrectorParameters> correctionParameters;
     char* cmsswPath;
+    FactorizedJetCorrector *JetCorrector;
+    JetCorrectorParameters *JetResolutionParameters;
+    SimpleJetResolution *JetResolutionCalculator;
     cmsswPath = getenv("CMSSW_BASE");
     if(cmsswPath != NULL){
-        cout << "Getting JEC parameters from " << cmsswPath << "/src/RazorAnalyzer/data" << endl;
+        string pathname(cmsswPath);
+        pathname = pathname+"/src/RazorAnalyzer/data/";
+        cout << "Getting JEC parameters from " << pathname << endl;
         if (isRunOne) {
-            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/FT_53_V6_AN1_L1FastJet_AK5PF.txt", cmsswPath)));
-            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/FT_53_V6_AN1_L2Relative_AK5PF.txt", cmsswPath)));
-            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/FT_53_V6_AN1_L3Absolute_AK5PF.txt", cmsswPath))); 
-        } else {
-            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt", cmsswPath)));
-            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt", cmsswPath)));
-            correctionParameters.push_back(JetCorrectorParameters(Form("%s/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt", cmsswPath)));    
+            if(isData){
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L1FastJet_AK5PF.txt", pathname.c_str())));
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2Relative_AK5PF.txt", pathname.c_str())));
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L3Absolute_AK5PF.txt", pathname.c_str()))); 
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PF.txt", pathname.c_str()))); 
+            }
+            else{
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_MC_L1FastJet_AK5PF.txt", pathname.c_str())));
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_MC_L2Relative_AK5PF.txt", pathname.c_str())));
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_MC_L3Absolute_AK5PF.txt", pathname.c_str()))); 
+            }
         }
-    }
+        else{ //Run 2
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+            correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));    
+        }
+        JetCorrector = new FactorizedJetCorrector(correctionParameters);
+        JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt", pathname.c_str()));
+        JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+    } 
     else{
         cout << "Error: CMSSW_BASE is not defined!  Please set up CMSSW." << endl <<  "Exiting..." << endl;
         return;
     }
-    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
 
     //****************************************************//
     //            Begin the event loop                    //
@@ -724,6 +745,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         vector<TLorentzVector> GoodJets; //will contain leptons above 40 GeV in addition to jets
         TVector3 metCorrection; //contains p_T - p_T_JEC summed over all jets
         for(int i = 0; i < nJets; i++){
+            //apply JEC
             double JEC = 1.0;
             if(isRunOne){
                 JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoAll, jetJetArea[i], JetCorrector);   
@@ -731,13 +753,36 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             else{
                 JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoFastjetAll, jetJetArea[i], JetCorrector);   
             }
-            if(jetPt[i]*JEC < 40) continue;
+            //apply jet resolution smearing to MC
+            double jetEnergySmearFactor = 1.0;
+            if(!isData){
+                jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], nPU_mean, JetResolutionCalculator, random);
+            }
+            //check for noise
+            if(isRunOne){
+                if(!jetPassIDTight[i]) continue;
+            }   
+            
+            //jet TLorentzVector, with corrections included
+            TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
+
+            //if the corrected pt is above 20 GeV, this jet is used for the MET correction
+            TVector3 unCorrJetPerp, corrJetPerp;
+            unCorrJetPerp.SetPtEtaPhi(jetPt[i], 0, jetPhi[i]);
+            corrJetPerp.SetPtEtaPhi(jetPt[i]*JEC*jetEnergySmearFactor, 0, jetPhi[i]);
+            //propagate the correction to the MET
+            if(jetPt[i]*JEC*jetEnergySmearFactor > 20){
+                metCorrection = metCorrection + unCorrJetPerp - corrJetPerp;
+            }
+
+            //pt and eta cuts
+            if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
             if(fabs(jetEta[i]) > 3.0) continue;
-            //apply jet iD
+
+            //apply jet PU ID
             if(isRunOne){
                 int level = 2; //loose jet ID
                 if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
-                if (!jetPassIDTight[i]) continue;
                 if(isOldCSVM(i)) nBTaggedJets++;
             }
             else{
@@ -746,15 +791,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                 }
             }
 
-            TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC);
-
-            TVector3 unCorrJetPerp, corrJetPerp;
-            unCorrJetPerp.SetPtEtaPhi(jetPt[i], 0, jetPhi[i]);
-            corrJetPerp.SetPtEtaPhi(jetPt[i]*JEC, 0, jetPhi[i]);
-            //propagate the correction to the MET
-            metCorrection = metCorrection + unCorrJetPerp - corrJetPerp;
-
-            if(jetPt[i]*JEC > 80) numJets80++;
+            if(jetPt[i]*JEC*jetEnergySmearFactor > 80) numJets80++;
             GoodJets.push_back(thisJet);
             nSelectedJets++;
 

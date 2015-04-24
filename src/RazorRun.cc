@@ -254,7 +254,7 @@ int main(int argc, char* argv[]){
       analyzer.EnablePhotons();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();
-      if(option == 1){ 
+      if(isData){ 
           analyzer.RazorPhotonStudy(outputFileName, true, true, true); //run with data (Run 1)
       }
       else{
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]){
       analyzer.EnablePhotons();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();
-      if(option == 1){ 
+      if(isData){ 
           analyzer.RazorPhotonStudy(outputFileName, true, false, true); //run with data -- don't filter events (Run 1)
       }
       else{
