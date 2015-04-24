@@ -63,3 +63,26 @@ double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta,
   return cumulativeCorrection;
 
 }
+
+double RazorAnalyzer::JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, TRandom3 *random) {
+
+  std::vector<float> fJetEta, fJetPtNPU;
+  fJetEta.push_back(jetEta);  
+  fJetPtNPU.push_back(jetPt); 
+  fJetPtNPU.push_back(NPU); 
+  double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
+  
+  double c = 1;
+  if (fabs(jetEta) < 0.5) c = 1.079;
+  else if(fabs(jetEta) < 1.1) c = 1.099;
+  else if(fabs(jetEta) < 1.7) c = 1.121;
+  else if(fabs(jetEta) < 2.3) c = 1.208;
+  else if(fabs(jetEta) < 2.8) c = 1.254;
+  else if(fabs(jetEta) < 3.2) c = 1.395;
+  else if(fabs(jetEta) < 5.0) c = 1.056;
+
+  double sigma = sqrt( c*c - 1) * MCJetResolution;
+
+  return fmax( 1.0 + random->Gaus(0, sigma) , 0);
+
+}

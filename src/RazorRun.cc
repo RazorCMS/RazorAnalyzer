@@ -18,8 +18,8 @@ using namespace std;
 int main(int argc, char* argv[]){
 
     //get input files and analysis type from command line
-    if(argc < 3){
-        cerr << "Usage: RazorRun <input list> <analysis type> <output filename (optional)> [option number] [optional label]" << endl;
+    if(argc < 4){
+        cerr << "Usage: RazorRun <input list> <analysis type> <isData> <output filename (optional)> [option number] [optional label]" << endl;
         cerr << "Analyses available: " << endl 
             << "razor                --   inclusive razor analysis" << endl 
             << "hggrazor             --   higgs->diphoton razor analysis" << endl
@@ -37,17 +37,22 @@ int main(int argc, char* argv[]){
     string inputFileName(argv[1]);
     string analysisType(argv[2]);
 
+    string isDataOption = "";
+    isDataOption = argv[3];
+    bool isData = false;
+    if (isDataOption == "y" || isDataOption == "1" || isDataOption == "true") isData = true;
+        
     string outputFileName = "";
-    if (argc >= 4)  outputFileName = argv[3];
+    if (argc >= 5)  outputFileName = argv[4];
 
     int option = -1;
-    if (argc >= 5) {
-      option = atoi(argv[4]);
+    if (argc >= 6) {
+      option = atoi(argv[5]);
     }
     
     string label = "";
-    if (argc >= 6) {
-      label = argv[5];
+    if (argc >= 7) {
+      label = argv[6];
     }
     
     //build the TChain
@@ -209,7 +214,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option, false);
+      analyzer.RazorControlRegions(outputFileName, option, isData, false);
     }
     else if(analysisType == "RunOneRazorControlRegions"){
       cout << "Executing RunOneRazorControlRegions analysis..." << endl;
@@ -222,7 +227,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option, true);
+      analyzer.RazorControlRegions(outputFileName, option, isData, true);
     }
     else if(analysisType == "VetoLeptonEfficiencyControlRegion"){
       cout << "Executing VetoLeptonEfficiencyDileptonControlRegion analysis..." << endl;
