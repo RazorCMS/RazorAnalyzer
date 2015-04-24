@@ -395,3 +395,12 @@ bool RazorAnalyzer::isMediumRunOnePhoton(int i){
     //endcap photons
     return passesRunOneCutsBasedPhotonID(i, 0.05, 0.033, 1.2, 1.5+0.04*phoPt[i], 1.0+0.005*phoPt[i]);
 }
+
+bool RazorAnalyzer::isTightRunOnePhoton(int i){
+    //barrel photons
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+        return passesRunOneCutsBasedPhotonID(i, 0.05, 0.011, 0.7, 0.4+0.04*phoPt[i], 0.5*0.005*phoPt[i]);
+    }
+    //endcap photons
+    return passesRunOneCutsBasedPhotonID(i, 0.05, 0.031, 0.5, 1.5+0.04*phoPt[i], 1.0+0.005*phoPt[i]);
+}

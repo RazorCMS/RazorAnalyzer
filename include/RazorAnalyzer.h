@@ -102,6 +102,7 @@ class RazorAnalyzer: public RazorEvents {
         bool isLoosePhoton(int i);
         bool isMediumPhoton(int i);
         bool isMediumRunOnePhoton(int i);
+        bool isTightRunOnePhoton(int i);
         bool isMediumPhotonNoIsoCuts(int i);
         bool photonPassesLooseIsoCuts(int i);
         bool photonPassesMediumIsoCuts(int i);
