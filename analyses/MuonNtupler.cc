@@ -218,6 +218,9 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fMuPFIso04 = (muon_chargedIso[matchedIndex] + fmax(0.0,  muon_photonIso[matchedIndex] + muon_neutralHadIso[matchedIndex] - 0.5*muon_pileupIso[matchedIndex])) / muonPt[matchedIndex];
 	    muTree->fMuIsLoose = muonIsLoose[matchedIndex];
 	    muTree->fMuIsTight = muonIsTight[matchedIndex];
+	    muTree->fPassVetoSelection = isVetoMuon(matchedIndex);
+	    muTree->fPassLooseSelection = isLooseMuon(matchedIndex);
+	    muTree->fPassTightSelection = isTightMuon(matchedIndex);
 	  } else {
 	    muTree->fMuPt = 0;
 	    muTree->fMuEta = 0;
@@ -228,6 +231,9 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fMuPFIso04 = -1;
 	    muTree->fMuIsLoose = false;
 	    muTree->fMuIsTight = false;
+	    muTree->fPassVetoSelection = false;
+	    muTree->fPassLooseSelection = false;
+	    muTree->fPassTightSelection = false;
 	  }
 	  
 	  //***********************
