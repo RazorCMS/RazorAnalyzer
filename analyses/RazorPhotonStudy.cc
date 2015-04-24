@@ -257,9 +257,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                 correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PF.txt", pathname.c_str()))); 
             }
             else{
-                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_MC_L1FastJet_AK5PF.txt", pathname.c_str())));
-                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_MC_L2Relative_AK5PF.txt", pathname.c_str())));
-                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_MC_L3Absolute_AK5PF.txt", pathname.c_str()))); 
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L1FastJet_AK5PF.txt", pathname.c_str())));
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L2Relative_AK5PF.txt", pathname.c_str())));
+                correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L3Absolute_AK5PF.txt", pathname.c_str()))); 
             }
         }
         else{ //Run 2
