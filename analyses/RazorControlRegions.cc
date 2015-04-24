@@ -12,28 +12,46 @@
 using namespace std;
 
  
-void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isRunOne)
+void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isData, bool isRunOne)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
+    cout << "IsData = " << isData << "\n";
+
+    TRandom3 *random = new TRandom3();
+
+    bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
 
     if (isRunOne) {
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/FT_53_V6_AN1_L1FastJet_AK5PF.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/FT_53_V6_AN1_L2Relative_AK5PF.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/FT_53_V6_AN1_L3Absolute_AK5PF.txt")); 
+      if (isData) {
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L1FastJet_AK5PF.txt"));
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2Relative_AK5PF.txt"));
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L3Absolute_AK5PF.txt")); 
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2L3Residual_AK5PF.txt")); 
+      } else {
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_MC_L1FastJet_AK5PF.txt"));
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_MC_L2Relative_AK5PF.txt"));
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_MC_L3Absolute_AK5PF.txt")); 
+      }
     } else {
       correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
       correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
       correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
     }
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
+    SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     string outfilename = outputfilename;
-    if (outfilename == "") outfilename = "RazorVetoLeptonStudy.root";
+    if (outfilename == "") outfilename = "RazorControlRegions.root";
     TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
     ControlSampleEvents *events = new ControlSampleEvents;
-    events->CreateTree();
+    if (option == 2) {
+      events->CreateTree(ControlSampleEvents::kTreeType_MiniOneLepton);
+    } else {
+      events->CreateTree();
+    }
     events->tree_->SetAutoFlush(0);
 
     //histogram containing total number of processed events (for normalization)
@@ -45,17 +63,26 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Total Events: " << fChain->GetEntries() << "\n";
     Long64_t nbytes = 0, nb = 0;
 
-    //for (Long64_t jentry=36834; jentry<fChain->GetEntries();jentry++) {
+    //for (Long64_t jentry=46000; jentry<fChain->GetEntries();jentry++) {
     for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
 
       //begin event
       if(jentry % 1000 == 0) cout << "Processing entry " << jentry << endl;
+
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-        //fill normalization histogram
-        NEvents->Fill(1.0);
+
+      printSyncDebug = false;
+      if (printSyncDebug) {
+	cout << "\n****************************************************************\n";
+	cout << "Debug Event : " << runNum << " " << lumiNum << " " << eventNum << "\n";
+      }
+
+
+      //fill normalization histogram
+      NEvents->Fill(1.0);
      
 	//event info
 	events->weight = 1.0;
@@ -63,7 +90,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->lumi = lumiNum;
 	events->event = eventNum;
 	events->processID = 0;
-
  
 	//get NPU
 	for (int i=0; i < nBunchXing; ++i) {
@@ -77,7 +103,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    events->NPU_Plus1 = nPUmean[i];
 	  }	  
 	}
-
+	events->NPV = nPV;
  
         //TODO: triggers!
         bool passedLeptonicTrigger = true;
@@ -258,6 +284,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      VetoLeptonIndex.push_back(i);
 	      VetoLeptonPt.push_back(muonPt[i]);
 	    }
+
+	    if (printSyncDebug) cout << "muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : Tight = " << isTightMuon(i) << " Loose = " << isLooseMuon(i) << " Veto = " << isVetoMuon(i) << " \n";
                         	   
 	    if(!isVetoMuon(i)) continue;  
 	    TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
@@ -295,6 +323,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      VetoLeptonPt.push_back(elePt[i]);
 	    }
             
+	    if (printSyncDebug) cout << "ele " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Loose = " << isLooseElectron(i) << " Veto = " << isMVANonTrigVetoElectron(i) << " \n";
+
 	    if(!isMVANonTrigVetoElectron(i)) continue; 
 	    TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
             GoodLeptons.push_back(thisElectron);        
@@ -640,9 +670,22 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
 	} //loop over Veto leptons
 
+	//save this for the 1-lepton mini ntuples
+	if (lep1Found) {
+	  events->lep1Pt = events->lep1.Pt();
+	  events->lep1Eta = events->lep1.Eta();
+	} else {
+	  events->lep1Pt = -99;
+	  events->lep1Eta = -99;
+	}
 
+	if (printSyncDebug) {
+	  cout << "\n\n";
+	  cout << "lep1: " << events->lep1Type << " | " << events->lep1.Pt() << " " << events->lep1.Eta() << " " << events->lep1.Phi() << " | Tight = " << events->lep1PassTight << " Loose = " << events->lep1PassLoose << " Veto = " << events->lep1PassVeto << "\n";
+	  cout << "lep2: " << events->lep2Type << " | " << events->lep2.Pt() << " " << events->lep2.Eta() << " " << events->lep2.Phi() << " | Tight = " << events->lep2PassTight << " Loose = " << events->lep2PassLoose << " Veto = " << events->lep2PassVeto << "\n";	 
+	}
 
-	//if ((events->lep1.Pt() > 0 && events->lep1MatchedGenLepIndex < 0) || (events->lep2.Pt() > 0 && events->lep2MatchedGenLepIndex < 0)) {
+	// if ((events->lep1.Pt() > 0 && events->lep1MatchedGenLepIndex < 0) || (events->lep2.Pt() > 0 && events->lep2MatchedGenLepIndex < 0)) {
 	// if ((events->lep1.Pt() > 0 && events->lep1MatchedGenLepIndex < 0 && abs(events->lep1Type)==15 && events->lep1PassTight && (events->genlep1Type != 0 || events->genlep2Type != 0))) {
 	//   cout << "\n\n";
 	//   cout << "lep1: " << events->lep1Type << " | " << events->lep1.Pt() << " " << events->lep1.Eta() << " " << events->lep1.Phi() << " | " << events->lep1PassTight << " " << events->lep1PassLoose << " " << events->lep1PassVeto << "\n";
@@ -667,6 +710,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;
 	int numJetsAbove40GeV = 0;
+	double MetX_Type1Corr = 0;
+	double MetY_Type1Corr = 0;
 	int nBJetsLoose20GeV = 0;
 	int nBJetsMedium20GeV = 0;
 	int nBJetsTight20GeV = 0;
@@ -682,7 +727,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->minDPhiN = 9999;
 
 
-        for(int i = 0; i < nJets; i++){
+       for(int i = 0; i < nJets; i++){
 
 	  //exclude selected muons and electrons from the jet collection
 	  double dR = -1;
@@ -703,18 +748,72 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  // }
 	  // if(!matchedGenJet) continue;
 	  
+
+	  if (printSyncDebug)  {
+	    cout << "jet " << i << " : " << jetPt[i] << " " << jetEta[i] << " " << jetPhi[i] 
+		 << " : rho = " << fixedGridRhoAll << " area = " << jetJetArea[i] << " "
+		 << " | " 
+		 << "correctedPt = " << jetPt[i]*JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+									   fixedGridRhoAll, jetJetArea[i], 
+									   JetCorrector) << " "
+		 // << jetPt[i]*JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+		 // 				       fixedGridRhoFastjetAll, jetJetArea[i], 
+		 // 				       JetCorrector) << " "
+	  	 << " | passID = " << jetPassIDTight[i] << " passPUJetID = " << bool((jetPileupIdFlag[i] & (1 << 2)) != 0) 
+		 << " | csv = " << jetCSV[i] << " passCSVL = " << isOldCSVL(i) << " passCSVM = " << isOldCSVM(i) << " " << "\n";
+	  }
+
+
+
 	  //*******************************************************
 	  //apply jet iD
 	  //*******************************************************
-	  int level = 2; //loose jet ID
 	  if (!jetPassIDTight[i]) continue;
-	  if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
 
-
+	  //*******************************************************
+	  //Correct Jet Energy Scale and Resolution
+	  //*******************************************************
+	  double tmpRho = fixedGridRhoFastjetAll;
+	  if (isRunOne) tmpRho = fixedGridRhoAll;
 	  double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-						 fixedGridRhoFastjetAll, jetJetArea[i], 
+						 tmpRho, jetJetArea[i], 
 						 JetCorrector);   
-	  TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC);
+
+	  double jetEnergySmearFactor = 1.0;
+	  if (!isData) {
+	    std::vector<float> fJetEta, fJetPtNPU;
+	    fJetEta.push_back(jetEta[i]);  
+	    fJetPtNPU.push_back(jetPt[i]*JEC); 
+	    fJetPtNPU.push_back(events->NPU_0); 
+	    if (printSyncDebug) {
+	      cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
+	  	   << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
+	    }
+	    jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
+	  }
+	  if (printSyncDebug) {
+	    cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";
+	  }
+
+	  TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
+	  TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
+
+	  //*******************************
+	  //Add to Type1 Met Correction
+	  //*******************************
+	  if (jetPt[i]*JEC > 20) {
+	    MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
+	    MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
+	    if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - UnCorrJet.Px() << " " << thisJet.Py() - UnCorrJet.Py() << "\n";
+	  }
+
+	  // //*******************************************************
+	  // //apply  Pileup Jet ID
+	  // //*******************************************************
+	  // int level = 2; //loose jet ID
+	  // if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+
+
 
 	  if (abs(jetPartonFlavor[i]) == 5) {
 	    if (!bjet1Found) {
@@ -758,15 +857,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) nBJetsMedium20GeV++;
 	  if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) nBJetsTight20GeV++;
 
-
-	  if(jetPt[i]*JEC < 40) continue;
+	  if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
 	  if(fabs(jetEta[i]) > 3.0) continue;
-	  
+	 
 
 	  numJetsAbove40GeV++;
-	  if(jetPt[i]*JEC > 80) numJetsAbove80GeV++;
-
-	  
+	  if(jetPt[i]*JEC*jetEnergySmearFactor > 80) numJetsAbove80GeV++;	  
 	  GoodJets.push_back(thisJet);	  
 	  
         } //loop over jets
@@ -850,7 +946,18 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
         for(auto& jet : GoodJets_NoLeadJet) GoodPFObjects_NoLeadJet.push_back(jet);
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
         if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects_NoLeadJet.push_back(lep);
-        TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+
+	double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
+	double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
+
+	TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
+        TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+
+	if (printSyncDebug) {
+	  cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
+	  cout << "Corrected PFMET: " << PFMET.Pt() << " " << PFMET.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
+	}
+
         TLorentzVector PFMET_NoLeadJet = PFMET; if (leadJetIndex >= 0) PFMET_NoLeadJet = PFMET + GoodJets[leadJetIndex];
 
 	events->MR = 0;
@@ -872,9 +979,17 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->Rsq_NoLeadJet = computeRsq(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1], PFMET_NoLeadJet);
 	}
 
-	events->MET = metPt;
+	if (printSyncDebug)  {
+	  cout << "MR = " << events->MR << " Rsq = " << events->Rsq << " | "
+	       << " Mll = " << (events->lep1 + events->lep2).M() << " | " 
+	       << " NJets80 = " << numJetsAbove80GeV << " NJets40 = " << numJetsAbove40GeV << " GoodPFObjects.size() = " << GoodPFObjects.size() << " "
+	       << " MET = " << metPt << " MetPhi = " << metPhi << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
+	}
+
+	events->MET = PFMET.Pt();
 	events->MET_NoLeadJet = PFMET_NoLeadJet.Pt();
 	events->NJets40 = numJetsAbove40GeV;
+	events->NJets80 = numJetsAbove80GeV;
 	events->NBJetsLoose = nBJetsLoose20GeV;
 	events->NBJetsMedium = nBJetsMedium20GeV;
 	events->NBJetsTight = nBJetsTight20GeV;
@@ -883,7 +998,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	for(auto& pfobj : GoodPFObjects) events->HT += pfobj.Pt();
 	
 	//compute M_T for lep1 and MET
-	events->lep1MT = sqrt(events->lep1.M2() + 2*metPt*events->lep1.Pt()*(1 - cos(deltaPhi(metPhi,events->lep1.Phi()))));
+	events->lep1MT = sqrt(events->lep1.M2() + 2*PFMET.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(PFMET.Phi(),events->lep1.Phi()))));
 	
 	//save HLT Decisions
 	for(int k=0; k<100; ++k) {
@@ -915,12 +1030,26 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      && events->lep1PassLoose && events->lep2PassLoose
 	      && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
 	}
+	if (option == 2) {
+	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
+	       && events->lep1PassTight
+	       && events->lep1.Pt() > 30) passSkim = true;
+	}
 	if (option == 10) {
 	  if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
 	}
+	if (option == 12) {
+	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
+	       && events->lep1PassTight
+	       && events->lep1.Pt() > 30
+	       && ( (events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20)
+	       ) {
+	    passSkim = true;
+	  }
+	}
 
 	//fill event 
-	if (passSkim) {
+	if (passSkim) {	  
 	  events->tree_->Fill();
 	}
 

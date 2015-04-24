@@ -75,8 +75,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fIDMVATrig = ele_IDMVATrig[i];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[i];
 	    eleTree->fPassVetoSelection = isVetoElectron(i);
-	    eleTree->fPassLooseSelection = isLooseElectron(i);
-	    eleTree->fPassTightSelection = isTightElectron(i);
+	    eleTree->fPassLooseSelection = isRunOneLooseElectron(i);
+	    eleTree->fPassTightSelection = isRunOneTightElectron(i);
 	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(i);
 
 
@@ -146,10 +146,10 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
       //Tree entries based on gen-level objects
       //********************************************
       else if (Option >= 10 && Option < 20) {
-	  
+
 	for(int i = 0; i < nGenParticle; i++){
 	    
-	  //select prompt muons
+	  //select prompt electrons
 	  if (Option == 11) {
 	    if (abs(gParticleId[i]) != 11) continue;	      
 	    if (!(abs(gParticleMotherId[i]) == 23 || 
@@ -222,6 +222,10 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fElePFIso04 = (ele_chargedIso[matchedIndex] + fmax(0.0,  ele_photonIso[matchedIndex] + ele_neutralHadIso[matchedIndex] - 0.5*ele_pileupIso[matchedIndex])) / elePt[matchedIndex];
 	    eleTree->fIDMVATrig = ele_IDMVATrig[matchedIndex];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[matchedIndex];
+	    eleTree->fPassVetoSelection = isVetoElectron(matchedIndex);
+	    eleTree->fPassLooseSelection = isRunOneLooseElectron(matchedIndex);
+	    eleTree->fPassTightSelection = isRunOneTightElectron(matchedIndex);
+	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(matchedIndex);
 	  } else {
 	    eleTree->fCharge = 0;
 	    eleTree->fElePt = 0;
@@ -243,6 +247,10 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fElePFIso04 = 0;
 	    eleTree->fIDMVATrig = 0;
 	    eleTree->fIDMVANonTrig = 0;
+	    eleTree->fPassVetoSelection = false;
+	    eleTree->fPassLooseSelection = false;
+	    eleTree->fPassTightSelection = false;
+	    eleTree->fPassMVANonTrigVetoSelection = false;
 	  }
 	  
 	  //***********************

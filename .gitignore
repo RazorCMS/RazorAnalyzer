@@ -16,3 +16,5 @@ tmp.txt
 output/*
 output2
 *.d
+dummy*
+test.*

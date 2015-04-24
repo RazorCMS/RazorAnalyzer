@@ -7,6 +7,7 @@
 
 #include <RazorEvents.h> //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
 #include "FactorizedJetCorrector.h"
+#include "SimpleJetResolution.h"
 
 //ROOT includes
 #include <TROOT.h>
@@ -14,6 +15,7 @@
 #include <TTree.h>
 #include <TFile.h>
 #include "TLorentzVector.h"
+#include "TRandom3.h"
 
 //C++ includes
 #include <map>
@@ -56,7 +58,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root");
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
-	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isRunOne = false);
+	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false, bool isRunOne = false);
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
         virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false, bool filterEvents = true, bool isRunOne = true);
         virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
@@ -126,7 +128,9 @@ class RazorAnalyzer: public RazorEvents {
 					  double rho, double jetArea,
 					  FactorizedJetCorrector *jetcorrector,  
 					  bool printDebug = false);
-	  
+	double JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, 
+  					SimpleJetResolution *JetResolutionCalculator, TRandom3 *random);
+	
         //functions in RazorAuxMisc.cc
 	double deltaPhi(double phi1, double phi2);
 	double deltaR(double eta1, double phi1, double eta2, double phi2);
