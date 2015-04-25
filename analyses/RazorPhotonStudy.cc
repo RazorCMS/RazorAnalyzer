@@ -1080,10 +1080,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //*****Filter events******//
         //************************//
         if(filterEvents){
-            if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-            //if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
-            if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
-            if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
+	  if(nSelectedPhotons < 1 ) continue;
+            // if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
+            // //if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
+            // if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
+            // if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
         }
 
         razorTree->Fill();
