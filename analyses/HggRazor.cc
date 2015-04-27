@@ -46,9 +46,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     //Including Jet Corrections
     std::vector<JetCorrectorParameters> correctionParameters;
     
-    correctionParameters.push_back(JetCorrectorParameters("data/Summer13_V4_DATA_L1FastJet_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/Summer13_V4_DATA_L2Relative_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/Summer13_V4_DATA_L3Absolute_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
+    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
     
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
     
@@ -289,8 +290,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  //float pho_pt2 = pho_RegressionE[i]/cosh(phoEta[i]);
 	  //std::cout << "pho# " << i << " phopt1: " << pho_pt << " pho_pt2: " << pho_pt2 << std::endl;
 	  TVector3 vec;
-	  vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
-	  //vec.SetPtEtaPhi( phoPt[i], phoEta[i], phoPhi[i] );
+	  //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	  vec.SetPtEtaPhi( phoPt[i], phoEta[i], phoPhi[i] );
 	  
 	  if ( pho_pt < 24.0 )
 	    {
@@ -428,7 +429,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	//I think I am selecting too many jets!
 	//is the jet ID applied correctly
 	//???
-	std::cout << "nJets: " << nJets << std::endl;
+	//std::cout << "nJets: " << nJets << std::endl;
         for(int i = 0; i < nJets; i++){
 	  //Jet Corrections                                                                      
 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
@@ -436,12 +437,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 						 JetCorrector );
 	  
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
-	  std::cout << i << " pt: " << thisJet.Pt() << " eta: " << thisJet.Eta() << " phi: " << thisJet.Phi() << std::endl; 
+	  //std::cout << i << " pt: " << thisJet.Pt() << " eta: " << thisJet.Eta() << " phi: " << thisJet.Phi() << std::endl; 
 
 	  if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
 	  if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
           int level = 2; //loose jet ID
-          if ( !jetPassIDTight[i] ) continue;
+          if ( !jetPassIDLoose[i] ) continue;
           if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
 	  
 	  //exclude selected photons from the jet collection
@@ -451,9 +452,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  GoodJets.push_back(thisJet);
 	  n_Jets++;
 	  
-	  if(isCSVL(i)){
+	  /*
+	   Change to isCSVL and isCSVM if you want CISV
+	   */
+	  if( isOldCSVL(i) ){
 	    nLooseBTaggedJets++;
-	    if(isCSVM(i)){ 
+	    if( isOldCSVM(i) ){ 
 	      nMediumBTaggedJets++;
 	      GoodCSVLJets.push_back(make_pair(thisJet, true));
 	    }
@@ -511,6 +515,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    }//end first jet loop
 	  }
 	
+	std::cout << "mbbH: " << mbbH << " mbbZ: " << mbbZ << std::endl;
 	//Writing output to tree
 	//HighPt Box
         if ( pTGammaGamma > 110.0 )
