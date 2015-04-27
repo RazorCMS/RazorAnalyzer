@@ -15,8 +15,8 @@ echo " "; echo "Initialize CMSSW"; echo " "
 #setenv KRB5CCNAME /home/sixie/.krb5/ticket
 set workDir=`pwd`
 
-setenv SCRAM_ARCH slc6_amd64_gcc481
-cd    /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/
+setenv SCRAM_ARCH slc6_amd64_gcc472
+cd    /afs/cern.ch/work/a/apresyan/CMSSW_5_3_26/src
 eval `scramv1 runtime -csh`
 cd -
 
@@ -47,7 +47,7 @@ echo ""
 # Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
 echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${outputfile} ${option}
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${option} ${outputfile} 
 
 ls -ltr 
 

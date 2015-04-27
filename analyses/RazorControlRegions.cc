@@ -18,7 +18,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    TRandom3 *random = new TRandom3();
+    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -30,9 +30,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L3Absolute_AK5PF.txt")); 
 	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2L3Residual_AK5PF.txt")); 
       } else {
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_MC_L1FastJet_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_MC_L2Relative_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_MC_L3Absolute_AK5PF.txt")); 
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L1FastJet_AK5PF.txt"));
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L2Relative_AK5PF.txt"));
+	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L3Absolute_AK5PF.txt")); 
       }
     } else {
       correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
@@ -810,8 +810,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  // //*******************************************************
 	  // //apply  Pileup Jet ID
 	  // //*******************************************************
-	  // int level = 2; //loose jet ID
-	  // if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+	  int level = 2; //loose jet ID
+	  if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
 
 
 

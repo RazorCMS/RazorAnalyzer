@@ -16,6 +16,7 @@
 #include "TLegend.h"
 #include "TPad.h"
 #include "TColor.h"
+#include "assert.h"
 
 using namespace std;
 
@@ -45,12 +46,12 @@ void ZInvisibleCrossChecks(){
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
-    mcfiles["GJets"] = new TFile("GJetsRun1Eff_19700pb_weighted.root");
-    mcfiles["EMQCD"] = new TFile("EMQCDRun1Eff_19700pb_weighted.root");
-    mcfiles["TTG"] = new TFile("TTGJetsRun1Eff_19700pb_weighted.root");
-    mcfiles["WG"] = new TFile("WGJetsRun1Eff_19700pb_weighted.root");
-    mcfiles["ZG"] = new TFile("ZGJetsRun1Eff_19700pb_weighted.root");
-    datafiles["GJets"] = new TFile("PhotonRun1Eff_goodlumi.root");
+    mcfiles["GJets"] = new TFile("GJets_HT-40ToInf_weighted.root");
+    mcfiles["EMQCD"] = new TFile("QCD_Pt_20_30_EMEnriched_weighted.root");
+    mcfiles["TTG"] = new TFile("TTGJets_8TeV-madgraph_19700pb_weighted.root");
+    mcfiles["WG"] = new TFile("WGToLNuG_TuneZ2star_8TeV-madgraph-tauola_19700pb_weighted.root");
+    mcfiles["ZG"] = new TFile("ZG_Inclusive_8TeV-madgraph_19700pb_weighted.root");
+    datafiles["GJets"] = new TFile("Photon_Run2012ABCD_GOODLUMI.root");
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -58,9 +59,11 @@ void ZInvisibleCrossChecks(){
     float leadingPhotonPt, leadingPhotonEta;
     bool hlt_photon;
     bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150;
-    int nPU_mean;
-    float MR_noPho, Rsq_noPho;
+    int nPU_mean, nVtx, nSelectedPhotons;
+    float MR_noPho, Rsq_noPho, HT_noPho, met_noPho, deltaPhi_noPho;
     int numJets_noPho, numJets80_noPho;
+    bool Flag_HBHENoiseFilter, Flag_CSCTightHaloFilter, Flag_EcalDeadCellTriggerPrimitiveFilter, Flag_eeBadScFilter, Flag_ecalLaserCorrFilter;
+      
     for(auto &file : mcfiles){
         mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
 
@@ -77,9 +80,13 @@ void ZInvisibleCrossChecks(){
         mctrees[file.first]->SetBranchStatus("passedHLTPhoton150", 1);
         mctrees[file.first]->SetBranchStatus("numJets_noPho", 1);
         mctrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("nVtx", 1); // enable 
         mctrees[file.first]->SetBranchStatus("MR_noPho", 1);
         mctrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
         mctrees[file.first]->SetBranchStatus("deltaPhi_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("nSelectedPhotons", 1); // enable 
+        mctrees[file.first]->SetBranchStatus("met_noPho", 1); // enable 
+        mctrees[file.first]->SetBranchStatus("HT_noPho", 1); // enable 
 
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
@@ -95,6 +102,11 @@ void ZInvisibleCrossChecks(){
         mctrees[file.first]->SetBranchAddress("numJets80_noPho", &numJets80_noPho);
         mctrees[file.first]->SetBranchAddress("MR_noPho", &MR_noPho);
         mctrees[file.first]->SetBranchAddress("Rsq_noPho", &Rsq_noPho);
+        mctrees[file.first]->SetBranchAddress("nSelectedPhotons", &nSelectedPhotons);
+        mctrees[file.first]->SetBranchAddress("HT_noPho", &HT_noPho);
+        mctrees[file.first]->SetBranchAddress("met_noPho", &met_noPho);
+        mctrees[file.first]->SetBranchAddress("nVtx", &nVtx); // enable 
+        mctrees[file.first]->SetBranchAddress("deltaPhi_noPho", &deltaPhi_noPho); // enable 
     }
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
@@ -113,6 +125,15 @@ void ZInvisibleCrossChecks(){
         datatrees[file.first]->SetBranchStatus("MR_noPho", 1);
         datatrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
         datatrees[file.first]->SetBranchStatus("deltaPhi_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("nSelectedPhotons", 1); // enable 
+        datatrees[file.first]->SetBranchStatus("HT_noPho", 1); // enable 
+        datatrees[file.first]->SetBranchStatus("met_noPho", 1); // enable 
+        datatrees[file.first]->SetBranchStatus("nVtx", 1); // enable 
+        datatrees[file.first]->SetBranchStatus("Flag_HBHENoiseFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_CSCTightHaloFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_eeBadScFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_ecalLaserCorrFilter", 1); // enable
 
         datatrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
         datatrees[file.first]->SetBranchAddress("leadingPhotonEta", &leadingPhotonEta);
@@ -126,6 +147,16 @@ void ZInvisibleCrossChecks(){
         datatrees[file.first]->SetBranchAddress("numJets80_noPho", &numJets80_noPho);
         datatrees[file.first]->SetBranchAddress("MR_noPho", &MR_noPho);
         datatrees[file.first]->SetBranchAddress("Rsq_noPho", &Rsq_noPho);
+        datatrees[file.first]->SetBranchAddress("nSelectedPhotons", &nSelectedPhotons);
+        datatrees[file.first]->SetBranchAddress("HT_noPho", &HT_noPho);
+        datatrees[file.first]->SetBranchAddress("met_noPho", &met_noPho);
+        datatrees[file.first]->SetBranchAddress("nVtx", &nVtx); // enable 
+        datatrees[file.first]->SetBranchAddress("deltaPhi_noPho", &deltaPhi_noPho); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter); // enable 
     }
 
     //load efficiency/acceptance histograms
@@ -168,38 +199,74 @@ void ZInvisibleCrossChecks(){
     cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1 && MR_noPho > 300 && Rsq_noPho > 0.15" );
     cutName.push_back( "Require #Delta #phi < 2.7, two 80-GeV Jets, MR > 300 GeV, Rsq > 0.15" );
 
-    map<string, vector<TH1F *> > mcPhotonPt, mcNJets, mcNJets80, mcMR, mcRsq;
-    vector<TH1F *> dataPhotonPt, dataNJets, dataNJets80, dataMR, dataRsq;
+    cutSequence.push_back( "met_noPho > 100 && hlt_photon" );
+    cutName.push_back( "MET > 100 GeV" );
+
+    map<string, vector<TH1F *> > mcPhotonPt, mcPhotonEta, mcNJets, mcNJets80, mcMR, mcRsq,  mcMet, mcNvtx, mcnSelectedPhotons, mcHT_noPho, mcdeltaPhi_noPho;
+    vector<TH1F *> dataPhotonPt, dataPhotonEta, dataNJets, dataNJets80, dataMR, dataRsq, dataMet, dataNvtx, datanSelectedPhotons, dataHT_noPho, datadeltaPhi_noPho;
     for(auto &tree : mctrees){
         mcPhotonPt[tree.first] = vector<TH1F *>();
+        mcPhotonEta[tree.first] = vector<TH1F *>();
         mcNJets[tree.first] = vector<TH1F *>();
         mcNJets80[tree.first] = vector<TH1F *>();
         mcMR[tree.first] = vector<TH1F *>();
         mcRsq[tree.first] = vector<TH1F *>();
+        mcMet[tree.first] = vector<TH1F *>();
+        mcNvtx[tree.first] = vector<TH1F *>();
+        mcnSelectedPhotons[tree.first] = vector<TH1F *>();
+        mcHT_noPho[tree.first] = vector<TH1F *>();
+        mcdeltaPhi_noPho[tree.first] = vector<TH1F *>();
     }
     for(uint cut = 0; cut < cutSequence.size(); cut++){
         for(auto &tree : mctrees){
             mcPhotonPt[tree.first].push_back(new TH1F(Form("mcPhotonPt%s%d", tree.first.c_str(), cut), Form("%s; photon pt (GeV)", cutName[cut].c_str()), 50, 20., 1000));
+            mcPhotonEta[tree.first].push_back(new TH1F(Form("mcPhotonEta%s%d", tree.first.c_str(), cut), Form("%s; photon Eta ", cutName[cut].c_str()), 50, -3, 3));
             mcNJets[tree.first].push_back(new TH1F(Form("mcNJets%s%d", tree.first.c_str(), cut), Form("%s; Number of jets 40 GeV", cutName[cut].c_str()), 10, 0, 10));
+            mcNvtx[tree.first].push_back(new TH1F(Form("mcNvtx%s%d", tree.first.c_str(), cut), Form("%s; NVtx (GeV)", cutName[cut].c_str()), 50, 0, 50));
             mcNJets80[tree.first].push_back(new TH1F(Form("mcNJets80%s%d", tree.first.c_str(), cut), Form("%s; Number of jets 80 GeV", cutName[cut].c_str()), 10, 0, 10));
             mcMR[tree.first].push_back(new TH1F(Form("mcMR%s%d", tree.first.c_str(), cut), Form("%s; MR (GeV)", cutName[cut].c_str()), nMRBins, MRBinLowEdges));
             mcRsq[tree.first].push_back(new TH1F(Form("mcRsq%s%d", tree.first.c_str(), cut), Form("%s; Rsq (GeV)", cutName[cut].c_str()), nRsqBins, RsqBinLowEdges));
+            mcMet[tree.first].push_back(new TH1F(Form("mcMet%s%d", tree.first.c_str(), cut), Form("%s; MET (GeV)", cutName[cut].c_str()), 200, 0, 1000));
+            mcnSelectedPhotons[tree.first].push_back(new TH1F(Form("mcnSelectedPhotons%s%d", tree.first.c_str(), cut), Form("%s; NSelected Photons", cutName[cut].c_str()), 10, 0, 10));
+            mcHT_noPho[tree.first].push_back(new TH1F(Form("mcHT_noPho%s%d", tree.first.c_str(), cut), Form("%s; HT NoPho", cutName[cut].c_str()), 50, 0, 1000));
+            mcdeltaPhi_noPho[tree.first].push_back(new TH1F(Form("mcdeltaPhi_noPho%s%d", tree.first.c_str(), cut), Form("%s; Delta Phi", cutName[cut].c_str()), 50, 0, 3.2));
+
             mcPhotonPt[tree.first][cut]->Sumw2();
             mcNJets[tree.first][cut]->Sumw2();
             mcNJets80[tree.first][cut]->Sumw2();
             mcMR[tree.first][cut]->Sumw2();
             mcRsq[tree.first][cut]->Sumw2();
+            mcPhotonEta[tree.first][cut]->Sumw2();
+            mcMet[tree.first][cut]->Sumw2();
+            mcNvtx[tree.first][cut]->Sumw2();
+	    mcnSelectedPhotons[tree.first][cut]->Sumw2();
+	    mcHT_noPho[tree.first][cut]->Sumw2();
+	    mcdeltaPhi_noPho[tree.first][cut]->Sumw2();
+	    
         }
         dataPhotonPt.push_back(new TH1F(Form("dataPhotonPt%d", cut), Form("%s; photon pt (GeV)", cutName[cut].c_str()), 50, 20., 1000));
+        dataPhotonEta.push_back(new TH1F(Form("dataPhotonEta%d", cut), Form("%s; photon Eta", cutName[cut].c_str()), 50, -3., 3));
         dataNJets.push_back(new TH1F(Form("dataNJets%d", cut), Form("%s; Number of jets 40 GeV", cutName[cut].c_str()), 10, 0, 10));
         dataNJets80.push_back(new TH1F(Form("dataNJets80%d", cut), Form("%s; Number of jets 80 GeV", cutName[cut].c_str()), 10, 0, 10));
         dataMR.push_back(new TH1F(Form("dataMR%d", cut), Form("%s; MR (GeV)", cutName[cut].c_str()), nMRBins, MRBinLowEdges));
         dataRsq.push_back(new TH1F(Form("dataRsq%d", cut), Form("%s; Rsq (GeV)", cutName[cut].c_str()), nRsqBins, RsqBinLowEdges));
+        dataMet.push_back(new TH1F(Form("dataMet%d", cut), Form("%s; mcMet (GeV)", cutName[cut].c_str()), 200, 0, 1000));
+        dataNvtx.push_back(new TH1F(Form("dataNvtx%d", cut), Form("%s; NVtx (GeV)", cutName[cut].c_str()), 50, 0, 50));
+        datanSelectedPhotons.push_back(new TH1F(Form("datanSelectedPhotons%d", cut), Form("%s; NSelected Photons", cutName[cut].c_str()), 10, 0, 10));
+        dataHT_noPho.push_back(new TH1F(Form("dataHT_noPho%d", cut), Form("%s; HT NoPho", cutName[cut].c_str()), 50, 0, 1000));
+        datadeltaPhi_noPho.push_back(new TH1F(Form("datadeltaPhi_noPho%d", cut), Form("%s; Delta Phi", cutName[cut].c_str()), 50, 0, 3.2));
+
         dataPhotonPt[cut]->Sumw2();
+        dataPhotonEta[cut]->Sumw2();
         dataNJets[cut]->Sumw2();
         dataNJets80[cut]->Sumw2();
         dataMR[cut]->Sumw2();
         dataRsq[cut]->Sumw2();
+        dataMet[cut]->Sumw2();
+	dataNvtx[cut]->Sumw2();
+	datanSelectedPhotons[cut]->Sumw2();
+	dataHT_noPho[cut]->Sumw2();
+	datadeltaPhi_noPho[cut]->Sumw2();
     }
     for(auto &tree : mctrees){
         cout << "Filling MC histograms: " << tree.first << endl;
@@ -219,6 +286,7 @@ void ZInvisibleCrossChecks(){
             //get event weight
             float eventWeight = weight;
             eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
+
             //reweigh according to selection efficiency and acceptance
             //double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
             //if(effFactor > 1e-5) eventWeight /= effFactor;
@@ -252,10 +320,16 @@ void ZInvisibleCrossChecks(){
                 if(!passesCorrectTrigger) continue;
 
                 (mcPhotonPt[tree.first])[cut]->Fill(leadingPhotonPt, eventWeight);
+                (mcPhotonEta[tree.first])[cut]->Fill(leadingPhotonEta, eventWeight);
                 (mcNJets[tree.first])[cut]->Fill(numJets_noPho, eventWeight);
                 (mcNJets80[tree.first])[cut]->Fill(numJets80_noPho, eventWeight);
                 (mcMR[tree.first])[cut]->Fill(MR_noPho, eventWeight);
                 (mcRsq[tree.first])[cut]->Fill(Rsq_noPho, eventWeight);
+                (mcMet[tree.first])[cut]->Fill(met_noPho, eventWeight);
+                (mcNvtx[tree.first])[cut]->Fill(nVtx, eventWeight);
+                (mcnSelectedPhotons[tree.first])[cut]->Fill(nSelectedPhotons, eventWeight);
+                (mcHT_noPho[tree.first])[cut]->Fill(HT_noPho, eventWeight);
+                (mcdeltaPhi_noPho[tree.first])[cut]->Fill(deltaPhi_noPho, eventWeight);
             }
         }
 
@@ -282,6 +356,9 @@ void ZInvisibleCrossChecks(){
             //get event weight
             float eventWeight = 1.0;
 
+	    if(!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) continue;
+	    if(leadingPhotonPt>5000) continue;
+	    
             //reweigh according to selection efficiency and acceptance
             //double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
             //if(effFactor > 1e-5) eventWeight /= effFactor;
@@ -314,11 +391,17 @@ void ZInvisibleCrossChecks(){
                 if(!passesCut) continue;
 
                 dataPhotonPt[cut]->Fill(leadingPhotonPt, eventWeight);
-                dataNJets[cut]->Fill(numJets_noPho, eventWeight);
+		dataPhotonEta[cut]->Fill(leadingPhotonEta, eventWeight);
+		dataNJets[cut]->Fill(numJets_noPho, eventWeight);
                 dataNJets80[cut]->Fill(numJets80_noPho, eventWeight);
                 dataMR[cut]->Fill(MR_noPho, eventWeight);
                 dataRsq[cut]->Fill(Rsq_noPho, eventWeight);
-            }
+                dataMet[cut]->Fill(met_noPho, eventWeight);
+		dataNvtx[cut]->Fill(nVtx, eventWeight);
+		datanSelectedPhotons[cut]->Fill(nSelectedPhotons, eventWeight);
+ 		dataHT_noPho[cut]->Fill(HT_noPho, eventWeight);
+		datadeltaPhi_noPho[cut]->Fill(deltaPhi_noPho, eventWeight);
+           }
         }
         for(uint cut = 0; cut < cutSequence.size(); cut++){
             delete cuts[cut];
@@ -346,46 +429,81 @@ void ZInvisibleCrossChecks(){
     for(uint cut = 0; cut < cutSequence.size(); cut++){
         //create histogram stacks for MC
         THStack PhotonPtMC(Form("PhotonPtStack%d", cut), cutName[cut].c_str());
+        THStack PhotonEtaMC(Form("PhotonEtaStack%d", cut), cutName[cut].c_str());
         THStack NumJetsMC(Form("NumJetsStack%d", cut), cutName[cut].c_str());
         THStack NumJets80MC(Form("NumJets80Stack%d", cut), cutName[cut].c_str());
         THStack MRMC(Form("MRStack%d", cut), cutName[cut].c_str());
         THStack RsqMC(Form("RsqStack%d", cut), cutName[cut].c_str());
+        THStack MetMC(Form("MetStack%d", cut), cutName[cut].c_str());
+        THStack NVtxMC(Form("NVtxStack%d", cut), cutName[cut].c_str());
+        THStack NPhotonsMC(Form("NPhotonStack%d", cut), cutName[cut].c_str());
+        THStack HTMC(Form("HTStack%d", cut), cutName[cut].c_str());
+        THStack DPhiMC(Form("DPhiMC%d", cut), cutName[cut].c_str());
         
         //add the histograms to the stack in order
         vector<string> orderedtrees {"ZG", "WG", "TTG", "EMQCD", "GJets"};
         for(auto &tree : orderedtrees){
             mcPhotonPt[tree][cut]->SetFillColor(colors[tree]);
-            mcNJets[tree][cut]->SetFillColor(colors[tree]);
+	    mcPhotonEta[tree][cut]->SetFillColor(colors[tree]);
+	    mcNJets[tree][cut]->SetFillColor(colors[tree]);
             mcNJets80[tree][cut]->SetFillColor(colors[tree]);
             mcMR[tree][cut]->SetFillColor(colors[tree]);
             mcRsq[tree][cut]->SetFillColor(colors[tree]);
+            mcMet[tree][cut]->SetFillColor(colors[tree]);
+            mcNvtx[tree][cut]->SetFillColor(colors[tree]);
+	    mcnSelectedPhotons[tree][cut]->SetFillColor(colors[tree]);
+	    mcHT_noPho[tree][cut]->SetFillColor(colors[tree]);
+	    mcdeltaPhi_noPho[tree][cut]->SetFillColor(colors[tree]);
 
             PhotonPtMC.Add(mcPhotonPt[tree][cut]);
+            PhotonEtaMC.Add(mcPhotonEta[tree][cut]);
             NumJetsMC.Add(mcNJets[tree][cut]);
             NumJets80MC.Add(mcNJets80[tree][cut]);
             MRMC.Add(mcMR[tree][cut]);
             RsqMC.Add(mcRsq[tree][cut]);
+	    MetMC.Add(mcMet[tree][cut]);
+	    NVtxMC.Add(mcNvtx[tree][cut]);
+	    NPhotonsMC.Add(mcnSelectedPhotons[tree][cut]);
+	    HTMC.Add(mcHT_noPho[tree][cut]);
+	    DPhiMC.Add(mcdeltaPhi_noPho[tree][cut]);
         }
         DrawDataVsMCRatioPlot(dataPhotonPt[cut], &PhotonPtMC, legend, "Photon pt (GeV)", "ZInvisibleCrossChecksPhotonPt"+to_string(cut), true);
+        DrawDataVsMCRatioPlot(dataPhotonEta[cut], &PhotonEtaMC, legend, "Photon Eta", "ZInvisibleCrossChecksPhotonEta"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNJets[cut], &NumJetsMC, legend, "Number of jets 40 GeV", "ZInvisibleCrossChecksNumJets"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ZInvisibleCrossChecksNumJets80"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ZInvisibleCrossChecksMR"+to_string(cut), true);
         DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ZInvisibleCrossChecksRsq"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ZInvisibleCrossChecksMET"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ZInvisibleCrossChecksNVtx"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(datanSelectedPhotons[cut], &NPhotonsMC, legend, "nPhotons", "ZInvisibleCrossChecksNPho"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataHT_noPho[cut], &HTMC, legend, "HT", "ZInvisibleCrossChecksHT"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(datadeltaPhi_noPho[cut], &DPhiMC, legend, "DPhi", "ZInvisibleCrossChecksDPhi"+to_string(cut), false);
     }
 
     delete legend;
     for(uint cut = 0; cut < cutSequence.size(); cut++){
         delete dataPhotonPt[cut];
+        delete dataPhotonEta[cut];
         delete dataNJets[cut];
         delete dataNJets80[cut];
         delete dataMR[cut];
         delete dataRsq[cut];
-        for(auto &tree : mctrees){
-            delete mcPhotonPt[tree.first][cut];
-            delete mcNJets[tree.first][cut];
-            delete mcNJets80[tree.first][cut];
-            delete mcMR[tree.first][cut];
-            delete mcRsq[tree.first][cut];
+ 	delete dataMet[cut];
+	delete dataNvtx[cut];
+	delete datanSelectedPhotons[cut];
+	delete dataHT_noPho[cut];
+	delete datadeltaPhi_noPho[cut];
+	for(auto &tree : mctrees){
+	  delete mcPhotonPt[tree.first][cut];
+	  delete mcPhotonEta[tree.first][cut];
+	  delete mcNJets[tree.first][cut];
+	  delete mcNJets80[tree.first][cut];
+	  delete mcMR[tree.first][cut];
+	  delete mcRsq[tree.first][cut];
+	  delete mcMet[tree.first][cut];
+	  delete mcNvtx[tree.first][cut];
+	  delete mcnSelectedPhotons[tree.first][cut];
+	  delete mcdeltaPhi_noPho[tree.first][cut];
         }
     }
 
