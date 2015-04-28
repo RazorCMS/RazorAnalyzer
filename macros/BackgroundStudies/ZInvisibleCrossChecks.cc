@@ -46,12 +46,12 @@ void ZInvisibleCrossChecks(){
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
-    mcfiles["GJets"] = new TFile("GJets_HT-40ToInf_weighted.root");
-    mcfiles["EMQCD"] = new TFile("QCD_Pt_20_30_EMEnriched_weighted.root");
-    mcfiles["TTG"] = new TFile("TTGJets_8TeV-madgraph_19700pb_weighted.root");
-    mcfiles["WG"] = new TFile("WGToLNuG_TuneZ2star_8TeV-madgraph-tauola_19700pb_weighted.root");
-    mcfiles["ZG"] = new TFile("ZG_Inclusive_8TeV-madgraph_19700pb_weighted.root");
-    datafiles["GJets"] = new TFile("Photon_Run2012ABCD_GOODLUMI.root");
+    mcfiles["GJets"] = new TFile("GJets_HT-40ToInf_IsoInverted_weighted.root");
+    mcfiles["EMQCD"] = new TFile("QCD_Pt_20_Inf_EMEnriched_IsoInverted_weighted.root");
+    mcfiles["TTG"] = new TFile("TTGJets_8TeV-madgraph_19700pb_IsoInverted_weighted.root");
+    mcfiles["WG"] = new TFile("WGToLNuG_TuneZ2star_8TeV-madgraph-tauola_19700pb_IsoInverted_weighted.root");
+    mcfiles["ZG"] = new TFile("ZG_Inclusive_8TeV-madgraph_19700pb_IsoInverted_weighted.root");
+    datafiles["GJets"] = new TFile("Photon_Run2012ABCD_IsoInverted_GOODLUMI.root");
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -467,17 +467,17 @@ void ZInvisibleCrossChecks(){
 	    HTMC.Add(mcHT_noPho[tree][cut]);
 	    DPhiMC.Add(mcdeltaPhi_noPho[tree][cut]);
         }
-        DrawDataVsMCRatioPlot(dataPhotonPt[cut], &PhotonPtMC, legend, "Photon pt (GeV)", "ZInvisibleCrossChecksPhotonPt"+to_string(cut), true);
-        DrawDataVsMCRatioPlot(dataPhotonEta[cut], &PhotonEtaMC, legend, "Photon Eta", "ZInvisibleCrossChecksPhotonEta"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNJets[cut], &NumJetsMC, legend, "Number of jets 40 GeV", "ZInvisibleCrossChecksNumJets"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ZInvisibleCrossChecksNumJets80"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ZInvisibleCrossChecksMR"+to_string(cut), true);
-        DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ZInvisibleCrossChecksRsq"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ZInvisibleCrossChecksMET"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ZInvisibleCrossChecksNVtx"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(datanSelectedPhotons[cut], &NPhotonsMC, legend, "nPhotons", "ZInvisibleCrossChecksNPho"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataHT_noPho[cut], &HTMC, legend, "HT", "ZInvisibleCrossChecksHT"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(datadeltaPhi_noPho[cut], &DPhiMC, legend, "DPhi", "ZInvisibleCrossChecksDPhi"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataPhotonPt[cut], &PhotonPtMC, legend, "Photon pt (GeV)", "PhotonInvertedCrossChecksPhotonPt"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataPhotonEta[cut], &PhotonEtaMC, legend, "Photon Eta", "PhotonInvertedCrossChecksPhotonEta"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNJets[cut], &NumJetsMC, legend, "Number of jets 40 GeV", "PhotonInvertedCrossChecksNumJets"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "PhotonInvertedCrossChecksNumJets80"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "PhotonInvertedCrossChecksMR"+to_string(cut), true);
+        DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "PhotonInvertedCrossChecksRsq"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "PhotonInvertedCrossChecksMET"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "PhotonInvertedCrossChecksNVtx"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(datanSelectedPhotons[cut], &NPhotonsMC, legend, "nPhotons", "PhotonInvertedCrossChecksNPho"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataHT_noPho[cut], &HTMC, legend, "HT", "PhotonInvertedCrossChecksHT"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(datadeltaPhi_noPho[cut], &DPhiMC, legend, "DPhi", "PhotonInvertedCrossChecksDPhi"+to_string(cut), false);
     }
 
     delete legend;
@@ -543,6 +543,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     mcStack->GetYaxis()->SetLabelSize(0.03);
     mcStack->GetYaxis()->SetTitleOffset(0.45);
     mcStack->GetYaxis()->SetTitleSize(0.05);
+    // mcStack->SetMinimum(0.1);
     dataHist->SetMarkerStyle(20);
     dataHist->SetMarkerSize(1);
     dataHist->GetYaxis()->SetTitle("Number of events in 19.7/fb");
@@ -586,6 +587,6 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Draw("pe");
     pad2.Modified();
     gPad->Update();
-    c.Print(Form("%s.pdf", printString.c_str()));
+    c.Print(Form("%s.gif", printString.c_str()));
     c.Print(Form("%s.root", printString.c_str()));
 }
