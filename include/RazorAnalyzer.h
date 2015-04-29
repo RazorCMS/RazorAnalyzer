@@ -47,7 +47,7 @@ class RazorAnalyzer: public RazorEvents {
 
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
-        virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false);
+        virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
