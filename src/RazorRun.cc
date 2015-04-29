@@ -121,7 +121,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
-        analyzer.RazorInclusive(outputFileName, true); //change the bool to true if you want all analysis boxes combined in one tree
+        analyzer.RazorInclusive(outputFileName, true, isData, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "hggrazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;

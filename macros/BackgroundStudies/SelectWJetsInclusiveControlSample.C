@@ -177,8 +177,6 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
   float MR = 0;
   float Rsq = 0;
   float mll = 0;
-
-
   bool printdebug = false;
 
   TFile *pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
@@ -236,8 +234,8 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
   for (uint i=0; i < inputfiles.size(); ++i) {
     histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 70, 0, 3500));
     histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 25, 0, 1.5));
-    histLep1MT.push_back(new TH1D(Form("histLep1MT_%s",processLabels[i].c_str()), "; Lep1MT [GeV/c] ; Number of Events", 100, 0, 200));
-    histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV/c] ; Number of Events", 100, 0, 1000));
+    histLep1MT.push_back(new TH1D(Form("histLep1MT_%s",processLabels[i].c_str()), "; Lep1MT [GeV/c] ; Number of Events", 100, 60, 260));
+    histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV/c] ; Number of Events", 100, 0, 250));
     histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", 15, -0.5, 14.5));
     histNJets80.push_back(new TH1D(Form("histNJets80_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 80); Number of Events", 10, -0.5, 9.5));
     histNBtags.push_back(new TH1D(Form("histNBtags_%s",processLabels[i].c_str()), "; Number of B tags; Number of Events", 10, -0.5,9.5));
@@ -261,14 +259,13 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
   //*******************************************************************************************                
   for (uint i=0; i < inputfiles.size(); ++i) {
     ControlSampleEvents *events = new ControlSampleEvents;
-    events->LoadTree(inputfiles[i].c_str());
+    events->LoadTree(inputfiles[i].c_str(), ControlSampleEvents::kTreeType_MiniOneLepton);
 
     cout << "process: " << processLabels[i] << " | Total Entries: " << events->tree_->GetEntries() << "\n";
     for(UInt_t ientry=0; ientry < events->tree_->GetEntries(); ientry++) {       	
       events->tree_->GetEntry(ientry);
       
       if (ientry % 1000000 == 0) cout << "Event " << ientry << endl;      
-      //if (ientry > 1000000) break;
 
       double puWeight = 1;      
       double weight = 1;
@@ -277,11 +274,7 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
 	puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
 	puWeight = 1.0;
 	weight = lumi * events->weight * puWeight;
-
-	//cout << "NPU : " << events->NPU_0 << " " << puWeight << "\n";
-
       }
-
 
       //******************************
       //Trigger Selection
@@ -301,12 +294,13 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
       } else {
 	if (events->HLTDecision[0] ==true || events->HLTDecision[1] ==true || 
 	    events->HLTDecision[8] ==true || events->HLTDecision[9] ==true 
+	    //|| events->HLTDecision[10] ==true 
+	    //|| events->HLTDecision[11] ==true
 	    ) passTrigger = true;
       }
       
       if (!passTrigger) continue;
       
-
       //******************************
       //Selection Cuts 
       //******************************
@@ -318,16 +312,21 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
       //MET cut
       if (!(events->MET > 30)) continue;
 
-      if (option == "MR300Rsq0p15_ZeroMediumBTag" || option == "MR300Rsq0p15_ZeroLooseBTag") {
+      //MT cut
+      if (option == "InclusiveCR") {
+	if (!(events->lep1MT > 60)) continue;
+      }
+           
+      if (option == "TwoJets") {
 	if (!(events->NJets80 >= 2)) continue;
       } 
       
-      if (option == "MR300Rsq0p15_ZeroMediumBTag" || option == "MR300Rsq0p15_ZeroLooseBTag") {
+      if (option == "MR300Rsq0p15" ) {
 	if (!(events->MR > 300 && events->Rsq > 0.15 )) continue;
       }
       
       //MT cuts
-      if ( option == "MR300Rsq0p15_ZeroMediumBTag" || option == "MR300Rsq0p15_ZeroLooseBTag" ) {
+      if ( option == "WJetsEnhanced" || option == "MR300Rsq0p15" ) {
 	if (!(events->lep1MT > 30 && events->lep1MT < 100)) {	  
 	  continue;
 	}
@@ -336,12 +335,10 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
       //******************************
       //B-Tagging Options
       //******************************
-      if (option == "MR300Rsq0p15_ZeroMediumBTag" 
-	  ) {
+      if (option == "WJetsEnhanced" || option == "MR300Rsq0p15") {
 	if ( !( events->NBJetsMedium == 0)) continue;
       }
-       if (option == "MR300Rsq0p15_ZeroLooseBTag" 
-	   ) {
+       if (option == "ZeroLooseBTag" ) {
 	if ( !( events->NBJetsLoose == 0)) continue;
       }
      
@@ -371,50 +368,20 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
 	  leptonEffScaleFactor = 0.96; //approximate guess for the average looking at all the scale factors in pt-eta bins
 	} else if (abs(events->lep1Type) == 13) {
 	  leptonEffScaleFactor = 1.00; //approximate guess for the average looking at all the scale factors in pt-eta bins
-	}
-		
+	}	
+	
 	if (abs(events->lep1Type) == 11) {
 	  triggerEffScaleFactor = 0.97;
 	} else if (abs(events->lep1Type) == 13) {
 	  triggerEffScaleFactor= 0.97; //approximate guess for the average looking at all the scale factors in pt-eta bins
 	}
 
-	//b-tagging scale factors
-	double btagScaleFactor = 1.0;
-	double bjet1EventScaleFactor = 1.0;
-	double bjet2EventScaleFactor = 1.0;
-	if (events->bjet1.Pt() > 20) {
-	  double bjet1ScaleFactor = 0.938887 + 0.00017124 * events->bjet1.Pt() + (-2.76366e-07) * events->bjet1.Pt() * events->bjet1.Pt() ;
-	  double MCEff = 1.0;
-	  if (events->bjet1.Pt() < 50) MCEff = 0.65;
-	  else if (events->bjet1.Pt() < 80) MCEff = 0.70;
-	  else if (events->bjet1.Pt() < 120) MCEff = 0.73;
-	  else if (events->bjet1.Pt() < 210) MCEff = 0.73;
-	  else MCEff = 0.66;				 
-	  if (events->bjet1PassMedium) bjet1EventScaleFactor = bjet1ScaleFactor;
-	  else bjet1EventScaleFactor = ( 1/MCEff - bjet1ScaleFactor) / ( 1/MCEff - 1);
-	}
-	if (events->bjet2.Pt() > 20) {
-	  double bjet2ScaleFactor = 0.938887 + 0.00017124 * events->bjet2.Pt() + (-2.76366e-07) * events->bjet2.Pt() * events->bjet1.Pt() ;
-	  double MCEff = 1.0;
-	  if (events->bjet2.Pt() < 50) MCEff = 0.65;
-	  else if (events->bjet2.Pt() < 80) MCEff = 0.70;
-	  else if (events->bjet2.Pt() < 120) MCEff = 0.73;
-	  else if (events->bjet2.Pt() < 210) MCEff = 0.73;
-	  else MCEff = 0.66;				 
-	  if (events->bjet2PassMedium) bjet2EventScaleFactor = bjet2ScaleFactor;
-	  else bjet2EventScaleFactor = ( 1/MCEff - bjet2ScaleFactor) / ( 1/MCEff - 1);
-	}
-	btagScaleFactor = bjet1EventScaleFactor * bjet2EventScaleFactor;
-
-
 	weight *= leptonEffScaleFactor;
-	weight *= btagScaleFactor;
-
 
 	if (processLabels[i] == "TTJets") {
 	  weight *= TTBarScaleFactorsHist->GetBinContent( TTBarScaleFactorsHist->GetXaxis()->FindFixBin(fmin(fmax(events->MR,300.1),699.9)) ,  
 							  TTBarScaleFactorsHist->GetYaxis()->FindFixBin(fmin(fmax(events->Rsq,0.1501),1.499)) );
+
 	}
 
       }
@@ -522,13 +489,8 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
 	cout << "Bin " << DataMinusBkg_MRVsRsq->GetXaxis()->GetBinCenter(i) << " " << DataMinusBkg_MRVsRsq->GetYaxis()->GetBinCenter(j) << " : "
 	     << data << " " << mc << " " << bkg << " " << mc_StatErr << " " << bkg_StatErrSqr << " " << bkg_SysErrSqr << "\n";
 
-
 	MCToDataScaleFactor_MRVsRsq->SetBinContent(i,j, (data - bkg)/mc );
-	if ((data-bkg) > 0) {
-	  MCToDataScaleFactor_MRVsRsq->SetBinError(i,j, ((data - bkg)/mc)*sqrt( pow(mc_StatErr/mc,2) + pow(dataMinusBkgTotalErr/(data-bkg),2)) );
-	} else {
-	  MCToDataScaleFactor_MRVsRsq->SetBinError(i,j, mc_StatErr/mc );
-	}
+	MCToDataScaleFactor_MRVsRsq->SetBinError(i,j, ((data - bkg)/mc)*sqrt( pow(mc_StatErr/mc,2) + pow(dataMinusBkgTotalErr/(data-bkg),2)) );
 
       }
     }
@@ -566,19 +528,6 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
   PlotDataAndStackedBkg( histLep1MT, processLabels, color, hasData, "Lep1MT", Label);
   PlotDataAndStackedBkg( histMET, processLabels, color, hasData, "MET", Label);
 
-
-  // //*******************************************************************************************
-  // //MR Vs Rsq
-  // //*******************************************************************************************
-  // cv = new TCanvas("cv","cv", 800,600);
-  // histMRVsRsq[0]->SetStats(false);
-  // histMRVsRsq[0]->Draw("colz");
-  // cv->SaveAs(Form("Razor_TTBarDileptonControlRegion_EventCountsTTJets_MRVsRsq%s.gif",Label.c_str()));
-
-  // cv = new TCanvas("cv","cv", 800,600);
-  // statUnc_MRVsRsq->SetStats(false);
-  // statUnc_MRVsRsq->Draw("colz");
-  // cv->SaveAs(Form("Razor_TTBarDileptonControlRegion_StatUncTTJets_MRVsRsq%s.gif",Label.c_str()));
 
   //--------------------------------------------------------------------------------------------------------------
   // Tables
@@ -632,34 +581,25 @@ void RunSelectWJetsSingleLeptonControlSample( string datafile, vector<string> bk
 
 
 
-
-
-
-void SelectWJetsControlSample( int option = -1) {
+void SelectWJetsInclusiveControlSample( int option = 0) {
 
   string datafile = "";
   vector<string> inputfiles;
   vector<string> processLabels;
   vector<int> colors;
+  vector<double> scaleFactors;
+
+  if (option == 0 || option == 10 || option == 20) datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_SingleElectron_GoodLumi.root";
+  if (option == 1 || option == 11 || option == 21) datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_SingleMu_GoodLumi.root";
 
 
-  //MR300 Skims
-  if (option == 1 || option == 11) {
-    datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_SingleMu_GoodLumi.root";
-  } 
-  else if (option == 0 || option == 10) {
-    datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_SingleElectron_GoodLumi.root";
-  }
-
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_QCDEMEnriched_1pb_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_TTJets_1pb_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_DYJetsToLL_HTBinned_1pb_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_SingleTop_1pb_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_VV_1pb_weighted.root");
-  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_TTV_1pb_weighted.root");
-
-  
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_QCDEMEnriched_1pb_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_TTJets_1pb_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_SingleTop_1pb_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_VV_1pb_weighted.root");
+  inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/SingleLeptonSkim/RunOneRazorControlRegions_OneLeptonMiniNtuple_SingleLeptonSkim_TTV_1pb_weighted.root");
 
   processLabels.push_back("WJets");  
   processLabels.push_back("QCD");  
@@ -669,7 +609,7 @@ void SelectWJetsControlSample( int option = -1) {
   processLabels.push_back("VV");
   processLabels.push_back("TT+V");
   
-  colors.push_back(kBlue);
+   colors.push_back(kBlue);
   colors.push_back(kViolet);
   colors.push_back(kRed);
   colors.push_back(kGreen+2);
@@ -683,23 +623,74 @@ void SelectWJetsControlSample( int option = -1) {
   //Single Ele Control Region
   //*********************************************************************
   if (option == 0) {
-    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels,  colors, 19780,"MR300Rsq0p15_ZeroMediumBTag",0,"MR300Rsq0p15_ZeroMediumBTag_SingleEle");
+    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels, colors, 19780, "InclusiveCR",0,"InclusiveCR_SingleEle");  
   }
   if (option == 10) {
-    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels,  colors, 19780,"MR300Rsq0p15_ZeroLooseBTag",0,"MR300Rsq0p15_ZeroLooseBTag_SingleEle");
+    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels, colors, 19780, "WJetsEnhanced",0,"WJetsEnhanced_SingleEle");  
+  }
+  if (option == 20) {
+    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels, colors, 19780, "MR300Rsq0p15",0,"MR300Rsq0p15_SingleEle");  
   }
 
- 
   //*********************************************************************
   //Single Mu Control Region
   //*********************************************************************
   if (option == 1) {
-    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels,  colors, 19780,"MR300Rsq0p15_ZeroMediumBTag",1,"MR300Rsq0p15_ZeroMediumBTag_SingleMu");
+    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"InclusiveCR",1,"InclusiveCR_SingleMu");
   }
   if (option == 11) {
-    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels,  colors, 19780,"MR300Rsq0p15_ZeroLooseBTag",1,"MR300Rsq0p15_ZeroLooseBTag_SingleMu");
+    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"WJetsEnhanced",1,"WJetsEnhanced_SingleMu");
+  }
+  if (option == 21) {
+    RunSelectWJetsSingleLeptonControlSample(datafile, inputfiles,processLabels, colors, 19780,"MR300Rsq0p15",1,"MR300Rsq0p15_SingleMu");
   }
 
-
 }
+
+
+//**********************
+//Single Mu Yields
+//**********************
+//Inclusive
+// Data: 5.19409e+07
+// MC: 5.0472e+07
+
+//TwoJets
+// Data: 318551
+// MC: 346613
+
+//MR400Rsq0p15
+//Data: 8591
+//MC: 8848.3 (W+Jets inclusive sample, not HT binned)
+// Data: 8591
+// MC: 10374.9
+// MC WJets: 6558.13 (would need to be corrected by 0.728 to agree with data)
+
+// ZeroMediumBTag
+// Data: 5270
+// MC: 6684.04
+// MC WJets: 5927.58 ( needs to correct 0.761)
+
+
+
+//**********************
+//Single Ele Yields
+//**********************
+//Inclusive
+// Data: 3.53828e+07
+// MC: 3.71602e+07
+
+//TwoJets
+// Data: 260124
+// MC: 297443
+
+//MR400Rsq0p15
+// Data: 7083
+// MC: 8945.6
+// MC WJets: 5758.37 ( needs 0.677 correction to agree with data)
+
+// ZeroMediumBTag
+// Data: 4312
+// MC: 5808.72
+// MC WJets: 5191.55 (needs 0.712 correction to agree with data)
 

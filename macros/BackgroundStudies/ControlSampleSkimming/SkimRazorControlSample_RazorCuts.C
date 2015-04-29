@@ -49,7 +49,7 @@ void SkimRazorControlSample_RazorCuts( string inputfile, string outputfile) {
     events->tree_->GetEntry(ientry);      
     if (ientry % 1000000 == 0) cout << "Event " << ientry << endl;      
     
-    if ( events->MR > 300 && events->Rsq>0.1 ) {
+    if ( events->MR > 300 && events->Rsq>0.0 ) {
       outputTree->Fill();
     }
   }

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
+void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool isData, bool isRunOne)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
@@ -24,6 +24,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
   TTree *razorTree = new TTree("RazorInclusive", "Info on selected razor inclusive events");
     
   //initialize jet energy corrections
+  TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
   std::vector<JetCorrectorParameters> correctionParameters;
   //get correct directory for JEC files (different for lxplus and t3-higgs)
   struct stat sb;
@@ -36,11 +37,27 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     dir = Form("%s/src/RazorAnalyzer/data/", getenv("CMSSW_BASE"));
     cout << "Getting JEC parameters from " << dir << endl;
   }
-  correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt", dir.c_str())));
-  correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L2Relative_AK4PFchs.txt", dir.c_str())));
-  correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt", dir.c_str())));    
 
+  if (isRunOne) {
+    if (isData) {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L1FastJet_AK5PF.txt", dir.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2Relative_AK5PF.txt", dir.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L3Absolute_AK5PF.txt", dir.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PF.txt", dir.c_str())));
+    } else {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L1FastJet_AK5PF.txt", dir.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L2Relative_AK5PF.txt", dir.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L3Absolute_AK5PF.txt", dir.c_str())));
+    }
+  } else {
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt", dir.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L2Relative_AK4PFchs.txt", dir.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt", dir.c_str())));
+  }
+  
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+  JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",dir.c_str()));
+  SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
@@ -139,11 +156,32 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     theRsq = -1;
     if(combineTrees) box = NONE;
 
+    //*****************************************
     //TODO: triggers!
+    //*****************************************
     bool passedLeptonicTrigger = true;
     bool passedHadronicTrigger= true;
     if(!(passedLeptonicTrigger || passedHadronicTrigger)) continue; //ensure event passed a trigger
         
+    //*****************************************
+    //Get Pileup Information
+    //*****************************************
+    double NPU = 0;
+    for (int i=0; i < nBunchXing; ++i) {
+      if (BunchXing[i] == 0) {
+	NPU = nPUmean[i];
+      }
+      if (BunchXing[i] == -1) {
+	NPU = nPUmean[i];
+      }
+      if (BunchXing[i] == 1) {
+	NPU = nPUmean[i];
+      }	  
+    }
+    
+    //*****************************************
+    //Select Leptons
+    //*****************************************
     vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
     for(int i = 0; i < nMuons; i++){
 
@@ -228,28 +266,73 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
      
     // }
 
+
+    //***********************************************
+    //Variables for Type1 Met Correction
+    //***********************************************
+    double MetX_Type1Corr = 0;
+    double MetY_Type1Corr = 0;
+
     //***********************************************
     //Select Jets
     //***********************************************
     for(int i = 0; i < nJets; i++){
 
-      double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-    					     fixedGridRhoFastjetAll, jetJetArea[i], 
-    					     JetCorrector);   
-      double jetCorrPt = jetPt[i]*JEC;
-      double jetCorrE = jetE[i]*JEC;
-
-      if(jetCorrPt < 40) continue;
-      if(fabs(jetEta[i]) > 3.0) continue;
-
+      //*****************************************************************
       //exclude selected muons and electrons from the jet collection
+      //*****************************************************************
       double deltaR = -1;
-      TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
       for(auto& lep : GoodLeptons){
-    	double thisDR = thisJet.DeltaR(lep);
+    	double thisDR = RazorAnalyzer::deltaR(jetEta[i],jetPhi[i],lep.Eta(),lep.Phi());  
     	if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
       }
       if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
+      
+
+      //*****************************************************************
+      //apply Jet ID
+      //*****************************************************************
+      if (!jetPassIDTight[i]) continue;
+
+
+      //*****************************************************************
+      //Apply Jet Energy and Resolution Corrections
+      //*****************************************************************
+      double tmpRho = fixedGridRhoFastjetAll;
+      if (isRunOne) tmpRho = fixedGridRhoAll;
+      double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+    					     tmpRho, jetJetArea[i], 
+    					     JetCorrector);   
+
+      double jetEnergySmearFactor = 1.0;
+      if (!isData) {
+	jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
+      }
+      
+      TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
+      TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);      
+      double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
+      double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
+
+      //*******************************
+      //Add to Type1 Met Correction
+      //*******************************
+      if (jetPt[i]*JEC*jetEnergySmearFactor > 20) {
+	MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
+	MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
+      }
+
+      //*******************************************************
+      //apply  Pileup Jet ID
+      //*******************************************************
+      int level = 2; //loose jet ID
+      if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+      
+      //*******************************************************
+      //apply Jet cuts
+      //*******************************************************
+      if(jetCorrPt < 40) continue;
+      if(fabs(jetEta[i]) > 3.0) continue;
             
       if(jetCorrPt > 80) numJetsAbove80GeV++;
       GoodJets.push_back(thisJet);
@@ -266,7 +349,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     vector<TLorentzVector> GoodPFObjects;
     for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
     if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
-    TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+
+    //*************************************************************
+    //Apply Type1 Met Correction
+    //*************************************************************
+    double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
+    double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
+    TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
+    TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 
     HT = 0;
     for(auto& obj : GoodPFObjects) HT += obj.Pt();
@@ -299,88 +389,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees)
     //Apply ECAL Dead Cells Filter
     //**********************************************************************
     if (Flag_EcalDeadCellTriggerPrimitiveFilter == false) continue;
-
-
-    // // if (nSelectedJets > 2 && theRsq > 0.15) {
-    // if (theMR > 1000 && theRsq > 0.25) {
-
-    //   for(auto& lep : GoodLeptons) cout << "lepton " << lep.Pt() << " " << lep.Eta() << " " << lep.Phi() << "\n";
-    //   for(auto& jet : GoodJets) cout << "jet " << jet.Pt() << " " << jet.Eta() << " " << jet.Phi() << "\n";
-
-    //   for(int i = 0; i < nJets; i++){
-	
-    // 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-    // 					       fixedGridRhoFastjetAll, jetJetArea[i], 
-    // 					       JetCorrector);   
-    // 	double jetCorrPt = jetPt[i]*JEC;
-    // 	double jetCorrE = jetE[i]*JEC;
-	
-    // 	if(jetCorrPt < 40) continue;
-    // 	if(fabs(jetEta[i]) > 3.0) continue;
-
-    // 	//exclude selected muons and electrons from the jet collection
-    // 	double deltaR = -1;
-    // 	TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
-    // 	for(auto& lep : GoodLeptons){
-    // 	  double thisDR = thisJet.DeltaR(lep);
-    // 	  if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
-    // 	}
-    // 	if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
-            
-    // 	cout << "JET " << i << " : " << jetCorrPt << " " << jetEta[i] << " " << jetPhi[i] << " : " << jetPt[i] << " : ";
-    // 	if(isCSVM(i)) cout << "Btagged ";
-    // 	cout << "\n";
-
-    //   }
-
-
-    //   for(int j = 0; j < nGenJets; j++){
-    // 	if(genJetPt[j] < 40) continue;
-    // 	if(fabs(genJetEta[j]) > 3.0) continue;
-
-    // 	//exclude selected muons and electrons from the jet collection
-    // 	double deltaR = -1;
-    // 	TLorentzVector thisJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
-    // 	for(auto& lep : GoodLeptons){
-    // 	  double thisDR = thisJet.DeltaR(lep);
-    // 	  if(deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
-    // 	}
-    // 	if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
-
-    // 	bool isBJet = false;
-    // 	for(int i = 0; i < nJets; i++){
-    // 	  double tmpDR = RazorAnalyzer::deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i] );
-    // 	  if ( tmpDR < 0.4 && abs(jetPartonFlavor[i]) == 5) isBJet = true;
-    // 	}
-
-    // 	cout << "genjet " << j << " : " << genJetPt[j] << " " << genJetEta[j] << " " << genJetPhi[j] << " ";
-    // 	if (isBJet) cout << " BJET";
-    // 	cout << "\n";
-    
-    //   }
-
-    //   cout << "hemisphere 1: " << hemispheres[0].Pt() << " " << hemispheres[0].Eta() << " " << hemispheres[0].Phi() << " \n";
-    //   cout << "hemisphere 2: " << hemispheres[1].Pt() << " " << hemispheres[1].Eta() << " " << hemispheres[1].Phi() << " \n";
-    //   cout << " MR Rsq : " << theMR << " " << theRsq << "\n";
-    //   cout << "dPhiRazor : " << dPhiRazor << "\n";
-      
-    //   for(int j = 0; j < nGenParticle; j++){
-    // 	cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " | "
-    // 	     << gParticlePt[j] << " "
-    // 	     << gParticleEta[j] << " "
-    // 	     << gParticlePhi[j] << " "
-    // 	     << " | " << gParticleMotherId[j] << " , " << gParticleMotherIndex[j] 
-    // 	     << "\n";	 
-    //   }
-    //   cout << "\n\n\n";	    	     
-    // }
-
-
-  
-
-
-  
-
 
     //MuEle Box
     if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
