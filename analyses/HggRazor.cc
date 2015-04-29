@@ -55,7 +55,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     //one tree to hold all events
     TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
-    
+    /*
+      combine Trees
+    */
+    combineTrees = true;
+      
     //separate trees for individual boxes
     map<string, TTree*> razorBoxes;
     vector<string> boxNames;
@@ -79,7 +83,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     int nSelectedPhotons;
     float mGammaGamma, pTGammaGamma;
     float mbbZ, mbbH;
-    float sigmaEOverE1, sigmaEOverE2;
     HggRazorBox box;
     int run, event;
 
@@ -93,24 +96,78 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     //set branches on big tree
     if(combineTrees){
+      razorTree->Branch("run", &run, "run/I");
+      razorTree->Branch("event", &event, "event/I");
+      razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
+      razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
+      razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+      razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+      razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+      razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+      razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
+      razorTree->Branch("MR", &theMR, "MR/F");
+      razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+      razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
+      razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+      razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+      
+      razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
+      razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+      razorTree->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+      razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
+      razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
+      razorTree->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
+      razorTree->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
+      razorTree->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
+      razorTree->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
+      razorTree->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
+      razorTree->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
+      razorTree->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
+      razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
+      
+      razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
+      razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+      razorTree->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+      razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
+      razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
+      razorTree->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
+      razorTree->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
+      razorTree->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
+      razorTree->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
+      razorTree->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
+      razorTree->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
+      razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
+      razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
+      
+      razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
+      razorTree->Branch("mbbH", &mbbH, "mbbH/F");
+
       razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
-        razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
-        razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
-        razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
-        razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
-        razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
-        razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-        razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
-        razorTree->Branch("MR", &theMR, "MR/F");
-        razorTree->Branch("Rsq", &theRsq, "Rsq/F");
-        razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
-        razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
-        razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
-        razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
-        razorTree->Branch("mbbH", &mbbH, "mbbH/F");
-        razorTree->Branch("sigmaEOverE1", &sigmaEOverE1, "sigmaEOverE1/F");
-        razorTree->Branch("sigmaEOverE2", &sigmaEOverE2, "sigmaEOverE2/F");
-        razorTree->Branch("box", &box, "box/I");
+      razorTree->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
+      razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
+      razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
+      razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+      
+      /*
+      razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
+      razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
+      razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
+      razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+      razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+      razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+      razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+      razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
+      razorTree->Branch("MR", &theMR, "MR/F");
+      razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+      razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
+      razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+      razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+      razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
+      razorTree->Branch("mbbH", &mbbH, "mbbH/F");
+      razorTree->Branch("sigmaEOverE1", &sigmaEOverE1, "sigmaEOverE1/F");
+      razorTree->Branch("sigmaEOverE2", &sigmaEOverE2, "sigmaEOverE2/F");
+      razorTree->Branch("box", &box, "box/I");
+      */
     }
     //set branches on all trees
     else{ 
@@ -141,8 +198,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  box.second->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
 	  box.second->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
 	  box.second->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
-	  box.second->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/F");
-	  box.second->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/F");
+	  box.second->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
+	  box.second->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
 	  //box.second->Branch("", , "");
 	  
 	  box.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
@@ -156,8 +213,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
           box.second->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
           box.second->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
           box.second->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
-          box.second->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/F");
-          box.second->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/F");
+          box.second->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
+          box.second->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O");
 	  
 	  box.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
 	  box.second->Branch("mbbH", &mbbH, "mbbH/F");
@@ -200,8 +257,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         pTGammaGamma = -1;
         mbbZ = 0;
         mbbH = 0;
-        sigmaEOverE1 = -1;
-        sigmaEOverE2 = -1;
 	run = runNum;
 	event = eventNum;
 
@@ -231,6 +286,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    jet_Eta[i] = -99.;
 	    jet_Phi[i] = -99.;
 	  }
+	
+	//if ( !( run == 206859 && event == 24345 ) ) continue;
 	
 	if(combineTrees) box = LowRes;
 	
@@ -278,8 +335,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
         int nPhotonsAbove40GeV = 0;
         for(int i = 0; i < nPhotons; i++){
 	  //ID cuts -- apply isolation after candidate pair selection
+	  //std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
 	  if ( !isGoodPhotonRun1( i , false ) )
 	    {
+	      //std::cout << "[INFO]: failed ID" << std::endl;
 	      continue;
 	    }
 	  
@@ -295,21 +354,24 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  
 	  if ( pho_pt < 24.0 )
 	    {
+	      //std::cout << "[INFO]: failed pt" << std::endl;
 	      continue;
 	    }
 	  
 	  if( fabs(pho_superClusterEta[i]) > 2.5 ){
 	    //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
+	    //std::cout << "[INFO]: failed eta" << std::endl;
 	    continue; 
 	  }
 	  
 	  if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
 	    {
 	      //Removing gap photons
+	      //std::cout << "[INFO]: failed gap" << std::endl;
 	      continue;
 	    }
 	  //photon passes
-	  if( pho_pt > 40.0 ) nPhotonsAbove40GeV++;
+	  if( pho_pt > 32.0 ) nPhotonsAbove40GeV++;
 	  //setting up photon 4-momentum with zero mass
 	  TLorentzVector thisPhoton;
 	  thisPhoton.SetVectM( vec, .0 );
@@ -331,6 +393,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  phoCand.push_back( tmp_phoCand );
 	  
 	  nSelectedPhotons++;
+	  //std::cout << "adding photon: " << nSelectedPhotons << std::endl;
         }
         //if there is no photon with pT above 40 GeV, reject the event
         if( nPhotonsAbove40GeV == 0 )
@@ -353,14 +416,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
                 PhotonCandidate pho1 = phoCand[i];
                 PhotonCandidate pho2 = phoCand[j];
                 
+		//std::cout << "pho1Pt: " << pho1.photon.Pt() << " pho2Pt: " << pho2.photon.Pt() << std::endl;
                 //need one photon in the pair to have pt > 40 GeV
                 if( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 ){
 		  continue;
                 }
                 //need diphoton mass between > 100 GeV as in AN (April 1st)
                 double diphotonMass = (pho1.photon + pho2.photon).M();
-                if(diphotonMass < 100 || diphotonMass > 180){
-		//if( diphotonMass < 100.0 ){
+                if( diphotonMass < 100 ){
 		  continue;
                 }
                 
@@ -399,6 +462,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             _pho_index++;
           }
 	
+	std::cout << "iso1: " << Pho_passIso[0] << " iso2: " << Pho_passIso[1] << std::endl; 
 	//if the best candidate pair has pT < 20 GeV, reject the event
 	if( HiggsCandidate.Pt() < 20.0 )
 	  {
