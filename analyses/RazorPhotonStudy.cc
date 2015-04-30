@@ -41,7 +41,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 
     //tree variables
     int nVtx, nPU_mean;
-    int run, lumi, event;
+    UInt_t run, lumi, event;
     bool hlt_dimuon, hlt_singlemu, hlt_photon, hlt_razor;
     float hlt_photon_weight;
     int nSelectedJets, nBTaggedJets;
@@ -130,9 +130,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             razorTree->Branch("ptMatchingLeadGenPhoton", &ptMatchingLeadGenPhoton, "ptMatchingLeadGenPhoton/F");
         }
     }
-    razorTree->Branch("run", &run, "run/I");
-    razorTree->Branch("lumi", &lumi, "lumi/I");
-    razorTree->Branch("event", &event, "event/I");
+    razorTree->Branch("run", &run, "run/i");
+    razorTree->Branch("lumi", &lumi, "lumi/i");
+    razorTree->Branch("event", &event, "event/i");
     razorTree->Branch("nVtx", &nVtx, "nVtx/I");
     razorTree->Branch("nPU_mean", &nPU_mean, "nPU_mean/I");
     razorTree->Branch("hlt_dimuon", &hlt_dimuon, "hlt_dimuon/O");
@@ -832,7 +832,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(fabs(phoEta[i]) > 2.5) continue;
 
             if(isRunOne){
-                if(!isTightRunOnePhoton(i)) continue;
+                // if(!isTightRunOnePhoton(i)) continue;
+	      if(!isMediumRunOnePhoton(i)) continue;
             }
             else{
                 if(!isTightPhoton(i)) continue;
