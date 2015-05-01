@@ -175,11 +175,31 @@ if __name__ == '__main__':
     rootTools.Utils.importToWS(w,wdata)
     
     inFiles = [f for f in args if f.lower().endswith('.root')]
-            
+
+    
+    args = w.set("variables")
+    
+    #we cut away events outside our MR window
+    mRmin = args['MR'].getMin()
+    mRmax = args['MR'].getMax()
+
+    #we cut away events outside our Rsq window
+    rsqMin = args['Rsq'].getMin()
+    rsqMax = args['Rsq'].getMax()
+
+    btagMin =  args['nBtag'].getMin()
+    btagMax =  args['nBtag'].getMax()
+    
     if len(inFiles)==1:
-        outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%s.root'%(lumi/1000.,box))
+        if btagMax>btagMin+1:
+            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
+        else:
+            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
     else:
-        outFile = 'RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%s.root'%(lumi/1000.,box)
+        if btagMax>btagMin+1:
+            outFile = 'RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+        else:
+            outFile = 'RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
     outFile = rt.TFile.Open(options.outDir+"/"+outFile,'recreate')
