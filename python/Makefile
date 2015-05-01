@@ -4,6 +4,8 @@ INCLUDEDIR= src
 SHARED = libRazorRun2.so
 INCLUDELIST= RooRazor2DTail_SYS.h RooRazor3DBinPdf.h MLMixedSample.h RooBTagMult.h RooSigmoid.h Linkdef.h
 
+.PHONY: $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/RooRazor3DBinPdf.o $(INCLUDEDIR)/RooBTagMult.o $(INCLUDEDIR)/RooSigmoid.o $(INCLUDEDIR)/MLMixedSample.o
+
 all: $(SHARED) 
 
 $(INCLUDEDIR)/rootdict.cc: 
@@ -26,7 +28,7 @@ $(INCLUDEDIR)/MLMixedSample.o:
 
 $(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/RooRazor3DBinPdf.o $(INCLUDEDIR)/RooBTagMult.o $(INCLUDEDIR)/RooSigmoid.o $(INCLUDEDIR)/MLMixedSample.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^
-	mv $(SHARED) lib
+	mv $(SHARED) lib/
 
 clean:
 	@rm -f $(INCLUDEDIR)/*.o
