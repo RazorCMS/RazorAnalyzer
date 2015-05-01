@@ -132,7 +132,7 @@ Double_t RooRazor3DBinPdf::evaluate() const
     Double_t yHigh = yArray[yBin+1];
 
     
-    total_integral = Gfun(xMin,yMin)-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax);
+    total_integral = -Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut);
 
     if(xHigh <= xCut && yHigh <= yCut) {
       return 0.0;
