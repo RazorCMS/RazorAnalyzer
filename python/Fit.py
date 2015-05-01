@@ -71,6 +71,8 @@ if __name__ == '__main__':
     if options.noFit:
         fitResult = rt.RooFitResult()
     else:
+        
+        rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
         if options.fitRegion == "Full":
             nll = pdf.createNLL(data)
         else:
@@ -79,15 +81,25 @@ if __name__ == '__main__':
         m.migrad()
         m.hesse()
         fitResult = m.save()
+        rt.RooMsgService.instance().reset()
 
         fitResult.Print('v')
+        fitResult.correlationMatrix().Print('v')
     
         rootTools.Utils.importToWS(w,fitResult)
     
     mr = w.var('MR')
     rsq = w.var('Rsq')
     nbtag = w.var('nBtag')
-    
+
+    btagMin = nbtag.getMin()
+    btagMax = nbtag.getMax()
+
+    btag = ""
+    if btagMax>btagMin+1:
+        btag = "%i-%ibtag"%(btagMin,btagMax-1)
+    else:
+        btag = "%ibtag"%(btagMin)
 
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -103,13 +115,13 @@ if __name__ == '__main__':
     rsqFrame.SetXTitle("R^{2}")
 
     
-    def plot1d(data,pdf,var,frame,c):
+    def plot1d(data,pdf,var,frame,btag,c):
         data.plotOn(frame,rt.RooFit.Name("Data"),rt.RooFit.Invisible())
         #pdf.plotOn(frame,rt.RooFit.VisualizeError(fitResult,0.25),rt.RooFit.FillColor(rt.kBlue-10),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"))
         pdf.plotOn(frame,rt.RooFit.Name("Total"),rt.RooFit.FillColor(rt.kBlue-10),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(pdf.expectedEvents(w.set('variables')),rt.RooAbsReal.NumEvent))
-        pdf.plotOn(frame,rt.RooFit.Name("TTj1b"),rt.RooFit.Components('razor3dPdf_TTj1b'),rt.RooFit.LineColor(rt.kViolet),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj1b').getVal(),rt.RooAbsReal.NumEvent))
-        pdf.plotOn(frame,rt.RooFit.Name("TTj2b"),rt.RooFit.Components('razor3dPdf_TTj2b'),rt.RooFit.LineColor(rt.kRed),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj2b').getVal(),rt.RooAbsReal.NumEvent))
-        pdf.plotOn(frame,rt.RooFit.Name("TTj3b"),rt.RooFit.Components('razor3dPdf_TTj3b'),rt.RooFit.LineColor(rt.kGreen),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj3b').getVal(),rt.RooAbsReal.NumEvent))
+        #pdf.plotOn(frame,rt.RooFit.Name("TTj1b"),rt.RooFit.Components('razor3dPdf_TTj1b'),rt.RooFit.LineColor(rt.kViolet),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj1b').getVal(),rt.RooAbsReal.NumEvent))
+        #pdf.plotOn(frame,rt.RooFit.Name("TTj2b"),rt.RooFit.Components('razor3dPdf_TTj2b'),rt.RooFit.LineColor(rt.kRed),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj2b').getVal(),rt.RooAbsReal.NumEvent))
+        #pdf.plotOn(frame,rt.RooFit.Name("TTj3b"),rt.RooFit.Components('razor3dPdf_TTj3b'),rt.RooFit.LineColor(rt.kGreen),rt.RooFit.LineStyle(rt.kDashed),rt.RooFit.Range("Full"),rt.RooFit.NormRange("Full"),rt.RooFit.Normalization(w.var('Ntot_TTj3b').getVal(),rt.RooAbsReal.NumEvent))
         data.plotOn(frame,rt.RooFit.Name("Data"))
         frame.SetMinimum(0.01)
         frame.SetMaximum(data.sumEntries()*2)
@@ -134,16 +146,16 @@ if __name__ == '__main__':
         leg.SetLineColor(rt.kWhite)
         leg.AddEntry(frame.findObject("Data"),"Sim Data","pe")
         leg.AddEntry(frame.findObject("Total"),"Total","lf")
-        leg.AddEntry(frame.findObject("TTj1b"),"1b-tag","l")
-        leg.AddEntry(frame.findObject("TTj2b"),"2b-tag","l")
-        leg.AddEntry(frame.findObject("TTj3b"),"3b-tag","l")
+        #leg.AddEntry(frame.findObject("TTj1b"),"1b-tag","l")
+        #leg.AddEntry(frame.findObject("TTj2b"),"2b-tag","l")
+        #leg.AddEntry(frame.findObject("TTj3b"),"3b-tag","l")
         leg.Draw()
     
-        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+options.fitRegion.replace(',','_')+"_"+box+".pdf")
-        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+options.fitRegion.replace(',','_')+"_"+box+".C")
+        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+options.fitRegion.replace(',','_')+"_"+btag+"_"+box+".pdf")
+        c.Print(options.outDir+"/RooPlot_"+var.GetName()+"_"+options.fitRegion.replace(',','_')+"_"+btag+"_"+box+".C")
 
-    plot1d(data,pdf,mr,mrFrame,c)
-    plot1d(data,pdf,rsq,rsqFrame,c)
+    plot1d(data,pdf,mr,mrFrame,btag,c)
+    plot1d(data,pdf,rsq,rsqFrame,btag,c)
 
     inFiles = [f for f in args if f.lower().endswith('.root')]
             

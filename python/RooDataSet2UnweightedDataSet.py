@@ -39,14 +39,14 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     mRmax = row['MR'].getMax()
     rsqMin = row['Rsq'].getMin()
     rsqMax = row['Rsq'].getMax()
-    nbtagMin = row['nBtag'].getMin()
-    nbtagMax = row['nBtag'].getMax()
+    btagMin = row['nBtag'].getMin()
+    btagMax = row['nBtag'].getMax()
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
-    myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 70, rsqMin, rsqMax, 3, nbtagMin, nbtagMax)
+    myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 70, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
     myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
     myTH2.Sumw2()
 
@@ -89,9 +89,13 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     #l.DrawLatex(0.11,0.77,"Razor MultiJet Box")
     #l.DrawLatex(0.56,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")
     #l.DrawLatex(0.5,0.77,"m_{#tilde{g}} = %i GeV, m  _{#tilde{#chi}} = %i GeV"%(1000,900))
-    
-    c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%s.pdf"%box)
-    c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%s.C"%box)
+
+    if btagMax>btagMin+1:
+        c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%i-%ibtag_%s.pdf"%(btagMin,btagMax-1,box))
+        c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%i-%ibtag_%s.C"%(btagMin,btagMax-1,box))
+    else:
+        c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%ibtag_%s.pdf"%(btagMin,box))
+        c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%ibtag_%s.C"%(btagMin,box))
 
     print wdata.weight()
     Nev = myTH3.Integral()
@@ -126,8 +130,12 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     myTH2Toy.GetXaxis().SetNoExponent()
     myTH2Toy.GetYaxis().SetNoExponent()
     myTH2Toy.Draw("colz")
-    c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%s.pdf"%box)
-    c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%s.C"%box)
+    if btagMax>btagMin+1:
+        c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%i-%ibtag_%s.pdf"%(btagMin,btagMax-1,box))
+        c.Print(options.outDir+"/TH2D_SMCocktail_weighted_%i-%ibtag_%s.C"%(btagMin,btagMax-1,box))
+    else:
+        c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%ibtag_%s.pdf"%(btagMin,box))
+        c.Print(options.outDir+"/TH2D_SMCocktail_unweighted_%ibtag_%s.C"%(btagMin,box))
 
     return uwdata
 
