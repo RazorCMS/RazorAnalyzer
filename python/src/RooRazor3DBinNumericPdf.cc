@@ -7,15 +7,21 @@
 #include <cmath>
 #include <math.h>
 
-#include "RooRazor3DBinPdf.h"
+#include "RooRazor3DBinNumericPdf.h"
 #include "RooRealVar.h"
+#include "Math/Functor.h"
+#include "Math/WrappedFunction.h"
+#include "Math/IFunction.h"
+#include "Math/Integrator.h"
+#include "Math/GSLIntegrator.h"
 
-ClassImp(RooRazor3DBinPdf)
+ClassImp(RooRazor3DBinNumericPdf)
 //---------------------------------------------------------------------------
-RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,
+RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _x0, RooAbsReal& _y0, 
 				   RooAbsReal& _b, RooAbsReal& _n,
+				   RooAbsReal& _y1, RooAbsReal& _y2,
 				   RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut) : RooAbsPdf(name, title), 
 //TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
@@ -23,6 +29,8 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,
   Y0("Y0", "Y Offset", this, _y0),
   B("B", "B Shape parameter", this, _b),
   N("N", "N Shape parameter", this, _n),
+  Y1("Y1", "Y turn-off offset", this, _y1),
+  Y2("Y2", "Y turn-off width", this, _y2),
   xCut("xCut", "X Cut parameter",this, _xCut),
   yCut("yCut", "Y Cut parameter",this, _yCut),
   zCut("zCut", "Z Cut parameter",this, _zCut),
@@ -34,20 +42,24 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,
   zMax(0),
   xMin(0),
   yMin(0),
-  zMin(0)
+  zMin(0),
+  relTol(1E-12),
+  absTol(1E-12)
 {
   memset(&xArray, 0, sizeof(xArray));
   memset(&yArray, 0, sizeof(yArray));
   memset(&zArray, 0, sizeof(zArray));
 }
 //---------------------------------------------------------------------------
-RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* name) :
+RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(const RooRazor3DBinNumericPdf& other, const char* name) :
    RooAbsPdf(other, name), 
    th1x("th1x", this, other.th1x),  
    X0("X0", this, other.X0),
    Y0("Y0", this, other.Y0),
    B("B", this, other.B),
    N("N", this, other.N),
+   Y1("Y1", this, other.Y1),
+   Y2("Y2", this, other.Y2),
    xCut("xCut", this, other.xCut),
    yCut("yCut", this, other.yCut),
    zCut("zCut", this, other.zCut),
@@ -59,7 +71,9 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* na
    zMax(other.zMax),
    xMin(other.xMin),
    yMin(other.yMin),
-   zMin(other.zMin)
+   zMin(other.zMin),
+   relTol(other.relTol),
+   absTol(other.absTol)
 {
   //memset(&xArray, 0, sizeof(xArray));
   //memset(&yArray, 0, sizeof(yArray));
@@ -75,7 +89,7 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* na
   }
 }
 //---------------------------------------------------------------------------
-void RooRazor3DBinPdf::setTH3Binning(TH3* _Hnominal){
+void RooRazor3DBinNumericPdf::setTH3Binning(TH3* _Hnominal){
   xBins = _Hnominal->GetXaxis()->GetNbins();
   yBins = _Hnominal->GetYaxis()->GetNbins();
   zBins = _Hnominal->GetZaxis()->GetNbins();
@@ -99,12 +113,19 @@ void RooRazor3DBinPdf::setTH3Binning(TH3* _Hnominal){
   }
 }
 //---------------------------------------------------------------------------
-Double_t RooRazor3DBinPdf::evaluate() const
+void RooRazor3DBinNumericPdf::setRelTol(double _relTol){
+  relTol = _relTol;
+}
+//---------------------------------------------------------------------------
+void RooRazor3DBinNumericPdf::setAbsTol(double _absTol){
+  absTol = _absTol;
+}
+//---------------------------------------------------------------------------
+Double_t RooRazor3DBinNumericPdf::evaluate() const
 {
   Double_t integral = 0.0;
   Double_t total_integral = 1.0;
   
-
   if(B <= 0. || N <= 0. || X0 >= xMin || Y0 >= yMin) return 0.0;
 
   Int_t nBins = xBins*yBins*zBins;
@@ -132,24 +153,44 @@ Double_t RooRazor3DBinPdf::evaluate() const
     Double_t yHigh = yArray[yBin+1];
 
     
-    total_integral = -Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut);
+    // define the function to be integrated numerically
+    MyParametricFunction func;
+    double params[8];
+    params[0] = X0;    params[1] = Y0;
+    params[2] = B;     params[3] = N;
+    params[4] = Y1;    params[5] = Y2;
+    func.SetParameters(params);
+    ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
+    ig.SetFunction(func,false);
+      
+    total_integral = (N/pow(B*N,N))*(-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut)) ;
 
     if(xHigh <= xCut && yHigh <= yCut) {
       return 0.0;
     }
     else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {
-      integral = Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh);
+      //integral = (N/pow(B*N,N))*(Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
+      params[6] = xCut;  params[7] = xHigh;
+      integral = ig.Integral(yLow,yHigh);
     }
     else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {
-      integral = Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh);
+      //integral = (N/pow(B*N,N))*(Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh));
+      params[6] = xLow;  params[7] = xHigh;
+      integral = ig.Integral(yCut,yHigh);
     }
     else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {
-      integral = -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut);
+      //integral = (N/pow(B*N,N))*(-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut));
+      params[6] = xLow;  params[7] = xHigh;
+      integral = ig.Integral(yLow,yHigh);
+      params[6] = xLow;  params[7] = xCut;
+      integral -= ig.Integral(yLow,yCut);
     }
     else {
-      integral = Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh);
+      //integral = (N/pow(B*N,N))*(Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
+      params[6] = xLow;  params[7] = xHigh;
+      integral = ig.Integral(yLow,yHigh);
     }
-
+      
   }
 
   if (total_integral>0.0) {
@@ -159,13 +200,13 @@ Double_t RooRazor3DBinPdf::evaluate() const
 }
 
 // //---------------------------------------------------------------------------
-Int_t RooRazor3DBinPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
+Int_t RooRazor3DBinNumericPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
   if (matchArgs(allVars, analVars, th1x)) return 1;
   return 0;
 }
 
 // //---------------------------------------------------------------------------
-Double_t RooRazor3DBinPdf::analyticalIntegral(Int_t code, const char* rangeName) const{
+Double_t RooRazor3DBinNumericPdf::analyticalIntegral(Int_t code, const char* rangeName) const{
 
    Double_t th1xMin = th1x.min(rangeName); Double_t th1xMax = th1x.max(rangeName);
    Int_t iBinMin = (Int_t) th1xMin; Int_t iBinMax = (Int_t) th1xMax;
@@ -179,8 +220,21 @@ Double_t RooRazor3DBinPdf::analyticalIntegral(Int_t code, const char* rangeName)
    //cout <<  "iBinMin = " << iBinMin << ",iBinMax = " << iBinMax << endl;
    Int_t nBins =  xBins*yBins*zBins;
 
-   if (code==1 && iBinMin==0 && iBinMax>=nBins){
-     integral = -Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut);
+   
+    // define the function to be integrated numerically
+    MyParametricFunction func;
+    double params[8];
+    params[0] = X0;    params[1] = Y0;
+    params[2] = B;     params[3] = N;
+    params[4] = Y1;    params[5] = Y2;
+    func.SetParameters(params);
+    ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
+    ig.SetFunction(func,false);
+    
+
+   if (code==1 && iBinMin<=0 && iBinMax>=nBins){
+     integral = (N/pow(B*N,N))*(-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut));
+     
    }
    else if(code==1) { 
      total_integral = Gfun(xMin,yMin)-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax);
@@ -203,20 +257,32 @@ Double_t RooRazor3DBinPdf::analyticalIntegral(Int_t code, const char* rangeName)
 	   Double_t yHigh = yArray[yBin+1];
 	   if(xHigh <= xCut && yHigh <= yCut) integral += 0.0;
 	   else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {
-	     integral += Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh);
+	     //integral += (N/pow(B*N,N))*(Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
+	     params[6] = xCut;  params[7] = xHigh;
+	     integral += ig.Integral(yLow,yHigh);
 	   }
 	   else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {
-	     integral += Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh);
+	     //integral += (N/pow(B*N,N))*(Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh));
+	     params[6] = xLow;  params[7] = xHigh;
+	     integral += ig.Integral(yCut,yHigh);
 	   }
 	   else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {
-	     integral += -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut);
+	     //integral += (N/pow(B*N,N))*(-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut));
+	     params[6] = xLow;  params[7] = xHigh;
+	     integral += ig.Integral(yLow,yHigh);
+	     params[6] = xLow;  params[7] = xCut;
+	     integral -= ig.Integral(yLow,yCut);
 	   }
-	   else integral += Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh);
+	   else {
+	     //integral += (N/pow(B*N,N))*(Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
+	     params[6] = xLow;  params[7] = xHigh;
+	     integral += ig.Integral(yLow,yHigh);
+	   }
 	 }
        }
      }
    } else {
-     cout << "WARNING IN RooRazor3DBinPdf: integration code is not correct" << endl;
+     cout << "WARNING IN RooRazor3DBinNumericPdf: integration code is not correct" << endl;
      cout << "                           what are you integrating on?" << endl;
      return 1.0;
    }
