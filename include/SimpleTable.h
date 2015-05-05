@@ -30,7 +30,7 @@ class SimpleTable : public TObject
         protected:
             ULong_t fHash; //stored hash value
 
-            ClassDef(MyParameter,1) // Extension to TParameter<double>
+            //ClassDef(MyParameter,1) // Extension to TParameter<double>
     };
 
     public:
@@ -44,6 +44,6 @@ class SimpleTable : public TObject
     protected:
         THashTable      fTable;
 
-        ClassDef(SimpleTable, 1) // Simple table to keep numbers
+        //ClassDef(SimpleTable, 1) // Simple table to keep numbers
 };
 #endif

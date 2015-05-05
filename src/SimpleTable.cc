@@ -3,8 +3,8 @@
 #include <TSystem.h>
 #include <TFormula.h>
 
-ClassImp(SimpleTable)
-ClassImp(SimpleTable::MyParameter)
+//ClassImp(SimpleTable)
+//ClassImp(SimpleTable::MyParameter)
 
 //--------------------------------------------------------------------------------------------------
 void SimpleTable::MyParameter::Print(Option_t */*option*/) const
