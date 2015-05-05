@@ -29,7 +29,8 @@ void ZInvisibleControlSamples(){
     gStyle->SetPaintTextFormat("1.0f");
 
     //choose which sample to normalize to
-    string normalizeTo = "ZJets";
+    string normalizeTo = "DYJets";
+    //string normalizeTo = "ZJets";
 
     //for plots
     float MetMin = 0.;
@@ -51,14 +52,21 @@ void ZInvisibleControlSamples(){
 
     map<string, string> suffixes;
     suffixes["DYJets"] = "_noZ";
-    suffixes["WJets"] = "_noW";
-    suffixes["GJets"] = "_noPho";
-    suffixes["ZJets"] = "";
-    suffixes["TTJets"] = "_noW";
     suffixes["TTJetsDY"] = "_noZ";
-    suffixes["Top"] = "_noW";
     suffixes["TopDY"] = "_noZ";
+    suffixes["TTWDY"] = "_noZ";
+    suffixes["TTZDY"] = "_noZ";
+    suffixes["WJets"] = "_noW";
+    suffixes["TTJets"] = "_noW";
+    suffixes["Top"] = "_noW";
+    suffixes["TTW"] = "_noW";
+    suffixes["TTZ"] = "_noW";
+    suffixes["GJets"] = "_noPho";
     suffixes["QCD"] = "_noPho";
+    suffixes["WG"] = "_noPho";
+    suffixes["ZG"] = "_noPho";
+    suffixes["TTG"] = "_noPho";
+    suffixes["ZJets"] = "";
 
     map<string, string> cuts;
     cuts["DYJets"] = "nLooseMuons == 2 && hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
@@ -67,10 +75,17 @@ void ZInvisibleControlSamples(){
     cuts["ZJets"] = "nLooseMuons == 0 && nLooseElectrons == 0 && hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
 
     cuts["TTJets"] = cuts["WJets"];
-    cuts["TTJetsDY"] = cuts["DYJets"];
     cuts["Top"] = cuts["WJets"];
+    cuts["TTZ"] = cuts["WJets"];
+    cuts["TTW"] = cuts["WJets"];
+    cuts["TTJetsDY"] = cuts["DYJets"];
     cuts["TopDY"] = cuts["DYJets"];
+    cuts["TTWDY"] = cuts["DYJets"];
+    cuts["TTZDY"] = cuts["DYJets"];
     cuts["QCD"] = cuts["GJets"];
+    cuts["WG"] = cuts["GJets"];
+    cuts["ZG"] = cuts["GJets"];
+    cuts["TTG"] = cuts["GJets"];
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -83,8 +98,8 @@ void ZInvisibleControlSamples(){
     //backgrounds for WJets
     mcfiles["TTJets"] = new TFile("TTJetsRun1_19700pb_weighted.root");
     mcfiles["Top"] = new TFile("SingleTopRun1_19700pb_weighted.root");
-    mcfiles["TTW"] = new TFile("TTWRun1_19700pb_weighted.root");
-    mcfiles["TTZ"] = new TFile("TTZRun1_19700pb_weighted.root");
+    mcfiles["TTW"] = new TFile("TTWJetsRun1_19700pb_weighted.root");
+    mcfiles["TTZ"] = new TFile("TTZJetsRun1_19700pb_weighted.root");
     //backgrounds for DYJets
     mcfiles["TTJetsDY"] = mcfiles["TTJets"];
     mcfiles["TopDY"] = mcfiles["Top"];
@@ -92,9 +107,9 @@ void ZInvisibleControlSamples(){
     mcfiles["TTZDY"] = mcfiles["TTZ"];
     //backgrounds for GJets
     mcfiles["QCD"] = new TFile("QCDRun1_19700pb_weighted.root");
-    mcfiles["WG"] = new TFile("WGRun1_19700pb_weighted.root");
-    mcfiles["ZG"] = new TFile("ZGRun1_19700pb_weighted.root");
-    mcfiles["TTG"] = new TFile("TTGRun1_19700pb_weighted.root");
+    mcfiles["WG"] = new TFile("WGJetsRun1_19700pb_weighted.root");
+    mcfiles["ZG"] = new TFile("ZGJetsRun1_19700pb_weighted.root");
+    mcfiles["TTG"] = new TFile("TTGJetsRun1_19700pb_weighted.root");
     //data
     datafiles["DYJets"] = new TFile("DoubleMuRun1_goodlumi.root");
     datafiles["WJets"] = new TFile("SingleMuRun1_goodlumi.root");
@@ -120,6 +135,10 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchStatus(Form("met%s", suffixes[file.first].c_str()), 1);
         mctrees[file.first]->SetBranchStatus(Form("MR%s", suffixes[file.first].c_str()), 1);
         mctrees[file.first]->SetBranchStatus(Form("Rsq%s", suffixes[file.first].c_str()), 1);
+        mctrees[file.first]->SetBranchStatus(Form("numJets80%s", suffixes[file.first].c_str()), 1);
+        mctrees[file.first]->SetBranchStatus("MR_noW", 1);
+        mctrees[file.first]->SetBranchStatus("Rsq_noW", 1);
+        mctrees[file.first]->SetBranchStatus("numJets80_noW", 1);
         mctrees[file.first]->SetBranchStatus("weight", 1);
         mctrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
         mctrees[file.first]->SetBranchStatus("leadingMuonEta", 1);
@@ -134,6 +153,14 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchStatus("recoZmass", 1);
         mctrees[file.first]->SetBranchStatus("mTLepMet", 1);
         mctrees[file.first]->SetBranchStatus("nPU_mean", 1);
+        mctrees[file.first]->SetBranchStatus("nLooseMuons", 1);
+        mctrees[file.first]->SetBranchStatus("nLooseElectrons", 1);
+        mctrees[file.first]->SetBranchStatus("nTightMuons", 1);
+        mctrees[file.first]->SetBranchStatus("hlt_photon", 1);
+        mctrees[file.first]->SetBranchStatus("hlt_dimuon", 1);
+        mctrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
+        mctrees[file.first]->SetBranchStatus("hlt_razor", 1);
+        mctrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
 
         mctrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
@@ -157,26 +184,35 @@ void ZInvisibleControlSamples(){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
         datatrees[file.first]->SetBranchStatus("*", 0);
 
-        datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), 1);
-        datatrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), 1);
-        datatrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), 1);
-        datatrees[file.first]->SetBranchAddress("leadingMuonPt", 1);
-        datatrees[file.first]->SetBranchAddress("leadingMuonEta", 1);
-        datatrees[file.first]->SetBranchAddress("leadingTightMuonPt", 1);
-        datatrees[file.first]->SetBranchAddress("leadingTightMuonEta", 1);
-        datatrees[file.first]->SetBranchAddress("subleadingMuonPt", 1);
-        datatrees[file.first]->SetBranchAddress("subleadingMuonEta", 1);
-        datatrees[file.first]->SetBranchAddress("leadingPhotonPt", 1);
-        datatrees[file.first]->SetBranchAddress("leadingPhotonEta", 1);
-        datatrees[file.first]->SetBranchAddress("recoZpt", 1);
-        datatrees[file.first]->SetBranchAddress("recoZeta", 1);
-        datatrees[file.first]->SetBranchAddress("recoZmass", 1);
-        datatrees[file.first]->SetBranchAddress("mTLepMet", 1);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton50", 1);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton75", 1);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton90", 1);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton135", 1);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton150", 1);
+        datatrees[file.first]->SetBranchStatus(Form("met%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchStatus(Form("MR%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchStatus(Form("Rsq%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchStatus(Form("numJets80%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
+        datatrees[file.first]->SetBranchStatus("leadingMuonEta", 1);
+        datatrees[file.first]->SetBranchStatus("leadingTightMuonPt", 1);
+        datatrees[file.first]->SetBranchStatus("leadingTightMuonEta", 1);
+        datatrees[file.first]->SetBranchStatus("subleadingMuonPt", 1);
+        datatrees[file.first]->SetBranchStatus("subleadingMuonEta", 1);
+        datatrees[file.first]->SetBranchStatus("leadingPhotonPt", 1);
+        datatrees[file.first]->SetBranchStatus("leadingPhotonEta", 1);
+        datatrees[file.first]->SetBranchStatus("recoZpt", 1);
+        datatrees[file.first]->SetBranchStatus("recoZeta", 1);
+        datatrees[file.first]->SetBranchStatus("recoZmass", 1);
+        datatrees[file.first]->SetBranchStatus("mTLepMet", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton50", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton75", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton90", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton135", 1);
+        datatrees[file.first]->SetBranchStatus("passedHLTPhoton150", 1);
+        datatrees[file.first]->SetBranchStatus("nLooseMuons", 1);
+        datatrees[file.first]->SetBranchStatus("nLooseElectrons", 1);
+        datatrees[file.first]->SetBranchStatus("nTightMuons", 1);
+        datatrees[file.first]->SetBranchStatus("hlt_photon", 1);
+        datatrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
+        datatrees[file.first]->SetBranchStatus("hlt_dimuon", 1);
+        datatrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
+        datatrees[file.first]->SetBranchStatus("hlt_razor", 1);
 
         datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         datatrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
@@ -215,11 +251,11 @@ void ZInvisibleControlSamples(){
 
     //load muon efficiency scale factor histogram
     TFile muIdSFFile("data/ScaleFactors/MuonEfficiencies_ID_Run2012ReReco_53X.root");
-    TFile muIsoSFFile("data/ScaleFactors/MuonEfficiencies_ISO_Run2012ReReco_53X.root");
-    TH2F *muIdSFHist = (TH2F*)muIdSFFile->Get("sfLOOSE");
-    TH2F *muIsoSFHist = (TH2F*)muIsoSFFile->Get("sfLOOSE");
-    TH2F *muIdTightSFHist = (TH2F*)muIdSFFile->Get("sfTIGHT");
-    TH2F *muIsoTightSFHist = (TH2F*)muIsoSFFile->Get("sfTIGHT");
+    TFile muIsoSFFile("data/ScaleFactors/MuonEfficiencies_ISO_Run_2012ReReco_53X.root");
+    //TH2F *muIdSFHist = (TH2F*)muIdSFFile.Get("what goes here?");
+    //TH2F *muIsoSFHist = (TH2F*)muIsoSFFile.Get("what goes here?");
+    //TH2F *muIdTightSFHist = (TH2F*)muIdSFFile.Get("what goes here?");
+    //TH2F *muIsoTightSFHist = (TH2F*)muIsoSFFile.Get("what goes here?");
     float singleMuTriggerSF = 0.97;
     float doubleMuTriggerSF = 0.97;
     float doubleMuNormalizationSF = 0.97;
@@ -276,8 +312,8 @@ void ZInvisibleControlSamples(){
                 double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
 
                 //efficiency scale factors
-                effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-                effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                //effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                //effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
 
                 //trigger and normalization scale factors
                 effFactor *= singleMuTriggerSF;
@@ -294,11 +330,11 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
 
                 //efficiency scale factors: leading muon
-                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
                 //subleading muon
-                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
 
                 //trigger and normalization scale factors
                 effFactor *= doubleMuTriggerSF;
@@ -353,8 +389,8 @@ void ZInvisibleControlSamples(){
                 double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
 
                 //efficiency scale factors
-                effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-                effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                //effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                //effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
 
                 //trigger scale factor
                 effFactor *= singleMuTriggerSF;
@@ -371,11 +407,11 @@ void ZInvisibleControlSamples(){
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
 
                 //efficiency scale factors: leading muon
-                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
                 //subleading muon
-                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
 
                 //trigger and normalization scale factors
                 effFactor *= doubleMuTriggerSF;
@@ -420,7 +456,6 @@ void ZInvisibleControlSamples(){
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
         razorHistosDataBeforeReweighing[tree.first] = TH2F(Form("razordatabeforereweighing%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        razorHistosDataBeforeReweighing[tree.first].Sumw2();
         MRHistosDataBeforeReweighing[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
         RsqHistosDataBeforeReweighing[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
         razorHistosDataBeforeReweighing[tree.first].Sumw2();
@@ -448,37 +483,37 @@ void ZInvisibleControlSamples(){
                 }
                 double triggerWeightRestricted = 0.0;
                 //get weight if associate each photon trigger with a particular pt range
-                //if(passedHLTPhoton150 && leadingPhotonPt > 165){ 
-                //    triggerWeightRestricted = 1.0;
-                //}
-                //else if(passedHLTPhoton135 && leadingPhotonPt > 150 && leadingPhotonPt < 165){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
-                //}
-                //else if(passedHLTPhoton90 && leadingPhotonPt > 100 && leadingPhotonPt < 150){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
-                //}
-                //else if(passedHLTPhoton75 && leadingPhotonPt > 90 && leadingPhotonPt < 100){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
-                //}
-                //else if(passedHLTPhoton50 && leadingPhotonPt < 90){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
-                //}
-                //get weight using the tightest trigger passed
-                if(passedHLTPhoton150){ 
+                if(passedHLTPhoton150 && leadingPhotonPt > 165){ 
                     triggerWeightRestricted = 1.0;
                 }
-                else if(passedHLTPhoton135){
+                else if(passedHLTPhoton135 && leadingPhotonPt > 150 && leadingPhotonPt < 165){
                     triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
                 }
-                else if(passedHLTPhoton90){
+                else if(passedHLTPhoton90 && leadingPhotonPt > 100 && leadingPhotonPt < 150){
                     triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
                 }
-                else if(passedHLTPhoton75){
+                else if(passedHLTPhoton75 && leadingPhotonPt > 90 && leadingPhotonPt < 100){
                     triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
                 }
-                else if(passedHLTPhoton50){
+                else if(passedHLTPhoton50 && leadingPhotonPt < 90){
                     triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
                 }
+                //get weight using the tightest trigger passed
+                //if(passedHLTPhoton150){ 
+                //    triggerWeightRestricted = 1.0;
+                //}
+                //else if(passedHLTPhoton135){
+                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
+                //}
+                //else if(passedHLTPhoton90){
+                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
+                //}
+                //else if(passedHLTPhoton75){
+                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
+                //}
+                //else if(passedHLTPhoton50){
+                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
+                //}
 
                 reweighFactor *= triggerWeightRestricted;
 
@@ -512,12 +547,21 @@ void ZInvisibleControlSamples(){
     }
     //subtract the top background from the WJets histogram
     //TODO: apply the ttbar data/MC scale factors first
-    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"] - razorHistosForReweighing["TTJets"] - razorHistosForReweighing["TTZ"] - razorHistosForReweighing["TTW"];
+    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"];
+    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["TTJets"];
+    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["TTW"];
+    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["TTZ"];
     //subtract the top background from the DYJets histogram
     //TODO: apply the ttbar data/MC scale factors first
-    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TopDY"] - razorHistosForReweighing["TTJetsDY"] - razorHistosForReweighing["TTZDY"] - razorHistosForReweighing["TTWDY"];
+    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TTJetsDY"];
+    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TopDY"];
+    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TTWDY"];
+    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TTZDY"];
     //subtract the QCD background from the photon+jets histogram
-    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["QCD"] - razorHistosForReweighing["TTG"] - razorHistosForReweighing["WG"] - razorHistosForReweighing["ZG"];
+    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["QCD"];
+    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["TTG"];
+    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["WG"];
+    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["ZG"];
 
     //Step 4: apply reweighing factors to data
     map<string, TH2F> razorHistosData;
@@ -1049,14 +1093,14 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     TList * histList = (TList*)mcStack->GetHists();
     TIter next(histList);
     TH1 *mcTotal = (TH1*) histList->First()->Clone();
-    mcTotal->Sumw2();
+    //mcTotal->Sumw2();
     TObject *obj;
     while((obj = next())){
         if(obj == histList->First()) continue;
         mcTotal->Add((TH1*)obj);
     }
     TH1F *dataOverMC = (TH1F*)dataHist->Clone();
-    dataOverMC->Sumw2();
+    //dataOverMC->Sumw2();
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
