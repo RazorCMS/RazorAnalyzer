@@ -2,7 +2,7 @@
 sed $1'q;d' listfile.txt | sed 's/eoscms\/\/eos\/cms/xrootd-cms.infn.it\//' > tmplist.txt
 
 # run RazorRun
-./RazorRun tmplist.txt Analyses ntupleName.root Option
+./RazorRun tmplist.txt Analyses Option ntupleName.root 
 
 # run cmsRun to produce a valid FrameworkJobReport.xml 
 cmsRun -j FrameworkJobReport.xml -p PSet.py

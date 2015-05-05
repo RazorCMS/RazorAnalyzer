@@ -46,12 +46,12 @@ void ZInvisibleCrossChecks(){
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
-    mcfiles["GJets"] = new TFile("GJets_HT-40ToInf_IsoInverted_weighted.root");
-    mcfiles["EMQCD"] = new TFile("QCD_Pt_20_Inf_EMEnriched_IsoInverted_weighted.root");
-    mcfiles["TTG"] = new TFile("TTGJets_8TeV-madgraph_19700pb_IsoInverted_weighted.root");
-    mcfiles["WG"] = new TFile("WGToLNuG_TuneZ2star_8TeV-madgraph-tauola_19700pb_IsoInverted_weighted.root");
-    mcfiles["ZG"] = new TFile("ZG_Inclusive_8TeV-madgraph_19700pb_IsoInverted_weighted.root");
-    datafiles["GJets"] = new TFile("Photon_Run2012ABCD_IsoInverted_GOODLUMI.root");
+    mcfiles["GJets"] = new TFile("GJets_HT-40ToInf_MediumPhoton_weighted.root");
+    mcfiles["EMQCD"] = new TFile("QCD_HT-100ToInf_TuneZ2star_8TeV-madgraph-pythia_19700pb_MediumPhoton_weighted.root");
+    mcfiles["TTG"] = new TFile("TTGJets_8TeV-madgraph_19700pb_MediumPhoton_weighted.root");
+    mcfiles["WG"] = new TFile("WGToLNuG_TuneZ2star_8TeV-madgraph-tauola_19700pb_MediumPhoton_weighted.root");
+    mcfiles["ZG"] = new TFile("ZG_Inclusive_8TeV-madgraph_19700pb_MediumPhoton_weighted.root");
+    datafiles["GJets"] = new TFile("Photon_Run2012ABCD_MediumPhoton_GOODLUMI.root");
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -187,8 +187,8 @@ void ZInvisibleCrossChecks(){
     cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1" );
     cutName.push_back( "Require two 40-GeV Jets" );
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7" );
-    cutName.push_back( "Require #Delta #phi < 2.7" );
+    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && HT_noPho > 160 " );
+    cutName.push_back( "Require HT_noPho > 160 GeV" );
 
     cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1 && deltaPhi_noPho < 2.7" );
     cutName.push_back( "Require two 40-GeV Jets and #Delta #phi < 2.7" );
@@ -467,17 +467,17 @@ void ZInvisibleCrossChecks(){
 	    HTMC.Add(mcHT_noPho[tree][cut]);
 	    DPhiMC.Add(mcdeltaPhi_noPho[tree][cut]);
         }
-        DrawDataVsMCRatioPlot(dataPhotonPt[cut], &PhotonPtMC, legend, "Photon pt (GeV)", "PhotonInvertedCrossChecksPhotonPt"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataPhotonEta[cut], &PhotonEtaMC, legend, "Photon Eta", "PhotonInvertedCrossChecksPhotonEta"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNJets[cut], &NumJetsMC, legend, "Number of jets 40 GeV", "PhotonInvertedCrossChecksNumJets"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "PhotonInvertedCrossChecksNumJets80"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "PhotonInvertedCrossChecksMR"+to_string(cut), true);
-        DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "PhotonInvertedCrossChecksRsq"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "PhotonInvertedCrossChecksMET"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "PhotonInvertedCrossChecksNVtx"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(datanSelectedPhotons[cut], &NPhotonsMC, legend, "nPhotons", "PhotonInvertedCrossChecksNPho"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataHT_noPho[cut], &HTMC, legend, "HT", "PhotonInvertedCrossChecksHT"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(datadeltaPhi_noPho[cut], &DPhiMC, legend, "DPhi", "PhotonInvertedCrossChecksDPhi"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataPhotonPt[cut], &PhotonPtMC, legend, "Photon pt (GeV)", "MediumPhotonCrossChecks_newQCD_PhotonPt"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataPhotonEta[cut], &PhotonEtaMC, legend, "Photon Eta", "MediumPhotonCrossChecks_newQCD_PhotonEta"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNJets[cut], &NumJetsMC, legend, "Number of jets 40 GeV", "MediumPhotonCrossChecks_newQCD_NumJets"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "MediumPhotonCrossChecks_newQCD_NumJets80"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "MediumPhotonCrossChecks_newQCD_MR"+to_string(cut), true);
+        DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "MediumPhotonCrossChecks_newQCD_Rsq"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "MediumPhotonCrossChecks_newQCD_MET"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "MediumPhotonCrossChecks_newQCD_NVtx"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(datanSelectedPhotons[cut], &NPhotonsMC, legend, "nPhotons", "MediumPhotonCrossChecksN_newQCD_Pho"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataHT_noPho[cut], &HTMC, legend, "HT", "MediumPhotonCrossChecks_newQCD_HT"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(datadeltaPhi_noPho[cut], &DPhiMC, legend, "DPhi", "MediumPhotonCrossChecks_newQCD_DPhi"+to_string(cut), false);
     }
 
     delete legend;
@@ -543,7 +543,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     mcStack->GetYaxis()->SetLabelSize(0.03);
     mcStack->GetYaxis()->SetTitleOffset(0.45);
     mcStack->GetYaxis()->SetTitleSize(0.05);
-    // mcStack->SetMinimum(0.1);
+    mcStack->SetMinimum(0.1);
     dataHist->SetMarkerStyle(20);
     dataHist->SetMarkerSize(1);
     dataHist->GetYaxis()->SetTitle("Number of events in 19.7/fb");
@@ -573,6 +573,15 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->GetYaxis()->SetTitleSize(0.08);
     dataOverMC->GetXaxis()->SetTitleSize(0.08);
     dataOverMC->SetStats(0);
+    string histoName = dataHist->GetName() ;
+    if(histoName.find("datadeltaPhi") != std::string::npos  )
+      {
+	leg->SetX1NDC(0.1); leg->SetX2NDC(0.3); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
+      }
+    else 
+      {
+	leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
+      }
     leg->Draw();
     c.cd();
     TPad pad2("pad2","pad2",0,0.0,1,0.4);
@@ -588,5 +597,5 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     pad2.Modified();
     gPad->Update();
     c.Print(Form("%s.gif", printString.c_str()));
-    c.Print(Form("%s.root", printString.c_str()));
+    // c.Print(Form("%s.root", printString.c_str()));
 }

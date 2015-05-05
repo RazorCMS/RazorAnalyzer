@@ -14,6 +14,32 @@ seed = 1988
 def setStyle():
     rt.gStyle.SetOptStat(0)
     rt.gStyle.SetOptTitle(0)
+
+    
+def print1DCanvas(c,h,h_data,printName):
+    c.SetLogx(0)
+    c.SetLogy(1)
+    h.SetLineWidth(2)
+    hClone = h.Clone(h.GetName()+"Clone")
+    hClone.SetLineColor(rt.kBlue)
+    hClone.SetFillColor(rt.kBlue-10)
+    h_data.SetMarkerColor(rt.kBlack)
+    h_data.SetMarkerStyle(20)
+    h_data.SetLineColor(rt.kBlack)
+    h_data.Draw("pe")
+    hClone.Draw("e2same")
+    h.SetFillStyle(0)
+    h.DrawCopy("histsame")
+    h_data.Draw("pesame")
+    c.Print(printName)
+    c.Print(os.path.splitext(printName)[0]+'.C')
+    
+def print2DCanvas(c,h,printName):
+    c.SetLogx(1)
+    c.SetLogy(1)
+    h.Draw("textcolz")
+    c.Print(printName)
+    c.Print(os.path.splitext(printName)[0]+'.C')
     
 def setFFColors(hNS):
     Red = array('d',  [0.00, 0.70, 0.90, 1.00, 1.00, 1.00, 1.00])
@@ -149,14 +175,15 @@ def getBestFitRms(myTree, sumName, nObs, c):
     myTree.Draw('%s>>htest%s'%(sumName,sumName.replace('+','')))
     htemp = rt.gPad.GetPrimitive("htest%s"%sumName.replace('+',''))
     #xmax = int(htemp.GetXaxis().GetXmax()+1)
-    xmax = htemp.GetXaxis().GetXmax()
-    xmin = max(0,int(htemp.GetXaxis().GetXmin()))
+    xmax = max(htemp.GetXaxis().GetXmax(),nObs)
+    xmin = max(0,htemp.GetXaxis().GetXmin())
     nbins = htemp.GetNbinsX()
+    nbins = 100.
     #xmode, xminus, xplus = find68ProbRange(htemp, probVal=0.5)
     #binWidth = 2.*(xplus-xminus)*rt.TMath.Power(htemp.GetEntries(),-1./3)
     #binWidth = max(1.,binWidth)
     #nbins = int((xmax-xmin)/binWidth)
-    myTree.Draw('%s>>htemp%s(%i,%i,%i)'%(sumName,sumName.replace('+',''),nbins,xmin,xmax))
+    myTree.Draw('%s>>htemp%s(%i,%f,%f)'%(sumName,sumName.replace('+',''),nbins,xmin,xmax))
     htemp = rt.gPad.GetPrimitive("htemp%s"%sumName.replace('+',''))
     mean = htemp.GetMean()
     mode = htemp.GetBinCenter(htemp.GetMaximumBin())
@@ -203,16 +230,14 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
-    parser.add_option('-s','--sigma-cut',dest="sigmaCut", default=-1,type="float",
-                  help="number of sigmas cut, i.e. sqrt( -2DeltaLog(L) ) < cut")
     parser.add_option('-t','--toys',dest="nToys", default=10000,type="int",
                   help="number of toys")
     parser.add_option('--no-stat',dest="noStat",default=False,action='store_true',
                   help="just systematic uncertainty (no poisson fluctuations), default is statstical + systematic uncertainty")
-    parser.add_option('--refit',dest="refit",default=False,action='store_true',
-                  help="refit, in frequentist approach")
-    parser.add_option('--no-sys',dest="noSys",default=False,action='store_true',
+    parser.add_option('--bayes',dest="bayes",default=True,action='store_true',
                   help="just statstical uncertainty (poisson fluctuations), default is statstical + systematic uncertainty")
+    parser.add_option('--freq',dest="freq",default=False,action='store_true',
+                  help="refit each toy with only statistical fluctuations, as in frequentist approach")
 
     (options,args) = parser.parse_args()
     
@@ -221,10 +246,11 @@ if __name__ == '__main__':
     box = options.box
     lumi = options.lumi
     nToys = options.nToys
-    noStat = options.noStat
-    noSys = options.noSys
-    sigmaCut = options.sigmaCut
-    refit = options.refit
+    bayes = options.bayes
+    freq = options.freq
+
+    if freq: bayes = False
+    else: bayes = True
     
     lumi_in = 0.
     for f in args:
@@ -286,15 +312,10 @@ if __name__ == '__main__':
         paramNames.append('Ntot_%s_%s'%(bkgd,box))
     paramNames.sort()
 
-    unc = 'StatpSys'
-    if noStat: unc = 'SysOnly'
-    if noSys: unc = 'StatOnly'
-
-    n2dllCut = 'n2dllCutNone'
-    if sigmaCut>0:
-        n2dllCut = 'n2dllCut%.1fs'%sigmaCut
+    unc = 'Bayes'
+    if freq: unc = 'Freq'
     
-    output = rt.TFile.Open(options.outDir+'/toys_%s_%s_%s.root'%(unc,n2dllCut,box),'recreate')
+    output = rt.TFile.Open(options.outDir+'/toys_%s_%s.root'%(unc,box),'recreate')
     output.cd()
     myTree = rt.TTree("myTree", "myTree")
     
@@ -318,9 +339,9 @@ if __name__ == '__main__':
     rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
     while iToy < nToys:
         if iToy%100==0: print "generating %ith toy"%iToy
-        if noSys:
+        if freq:
             pSet = fr.floatParsFinal()
-        else:
+        elif bayes:
             pSet = fr.randomizePars()
         for p in rootTools.RootIterator.RootIterator(pSet):
             w.var(p.GetName()).setVal(p.getVal())
@@ -344,22 +365,22 @@ if __name__ == '__main__':
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore: continue
 
-        if sigmaCut>0 and math.sqrt(n2dll.getVal())>sigmaCut: continue
+        #if sigmaCut>0 and math.sqrt(n2dll.getVal())>sigmaCut: continue
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()
-        if noStat:
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
-        else:
+        if bayes or freq:
             asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy))
+            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore: continue
 
         pSetSave = pSet
-        if refit:
+        if freq:
             fr_toy = extRazorPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
             if fr_toy.covQual() < 3: continue
             pSetSave = fr_toy.floatParsFinal()
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy))
+            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy),rt.RooFit.Asimov())
+            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy))
 
         value = setattr(s1, 'n2dll_%s'%box, n2dll.getVal())
 
@@ -459,7 +480,7 @@ if __name__ == '__main__':
             bestFit, rms, pvalue, nsigma = getBestFitRms(myTree,sumName,nObs,c)
             h_RsqMR_[btagString].SetBinContent(i,j,bestFit)
             h_RsqMR_[btagString].SetBinError(i,j,rms)
-            h_FF_[btagString].SetBinContent(i,j,nsigma)
+            if nsigma<0: h_FF_[btagString].SetBinContent(i,j,nsigma)
             
     binXSumDict, binYSumDict, binXYSumDict, binXYZSumDict = getBinSumDicts(x,y,z,btag=[1,2,3])
     for (i,j,k), sumName in binXYZSumDict.iteritems():
@@ -468,43 +489,19 @@ if __name__ == '__main__':
         h_nBtagRsqMR.SetBinContent(i,j,k,bestFit)
         h_nBtagRsqMR.SetBinError(i,j,k,rms)
             
-
-    def print2DCanvas(c,h,printName):
-        c.SetLogx(1)
-        c.SetLogy(1)
-        h.Draw("textcolz")
-        c.Print(options.outDir+"/"+printName+'.pdf')
-        c.Print(options.outDir+"/"+printName+'.C')
-
-    for btag in ['1_2_3','1','2','3']:
+    setFFColors(h_FF_['1_2_3'])
+    print2DCanvas(c,h_FF_['1_2_3'],options.outDir+'/h_FF.pdf')
+    for btag in ['1','2','3']:
         setFFColors(h_FF_[btag])
-        print2DCanvas(c,h_FF_[btag],'h_FF')
-        
-    def print1DCanvas(c,h,h_data,printName):
-        c.SetLogx(0)
-        c.SetLogy(1)
-        h.SetLineWidth(2)
-        hClone = h.Clone(h.GetName()+"Clone")
-        hClone.SetLineColor(rt.kBlue)
-        hClone.SetFillColor(rt.kBlue-10)
-        h_data.SetMarkerColor(rt.kBlack)
-        h_data.SetMarkerStyle(20)
-        h_data.SetLineColor(rt.kBlack)
-        h_data.Draw("pe")
-        hClone.Draw("e2same")
-        h.SetFillStyle(0)
-        h.DrawCopy("histsame")
-        h_data.Draw("pesame")
-        c.Print(options.outDir+"/"+printName+'.pdf')
-        c.Print(options.outDir+"/"+printName+'.C')
+        print2DCanvas(c,h_FF_[btag],'h_FF_'+btag)
 
     
-    print1DCanvas(c,h_MR_['1_2_3'],h_data_MR_['1_2_3'],'h_MR')
-    print1DCanvas(c,h_Rsq_['1_2_3'],h_data_Rsq_['1_2_3'],'h_Rsq')
+    print1DCanvas(c,h_MR_['1_2_3'],h_data_MR_['1_2_3'],options.outDir+'/h_MR.pdf')
+    print1DCanvas(c,h_Rsq_['1_2_3'],h_data_Rsq_['1_2_3'],options.outDir+'/h_Rsq.pdf')
 
     for btag in ['1','2','3']:
-        print1DCanvas(c,h_MR_[btag],h_data_MR_[btag],'h_MR_'+btag)
-        print1DCanvas(c,h_Rsq_[btag],h_data_Rsq_[btag],'h_Rsq_'+btag)
+        print1DCanvas(c,h_MR_[btag],h_data_MR_[btag],options.outDir+'/h_MR_'+btag+'.pdf')
+        print1DCanvas(c,h_Rsq_[btag],h_data_Rsq_[btag],options.outDir+'/h_Rsq_'+btag+'.pdf')
         
     for h in [h_MR_['1_2_3'],h_Rsq_['1_2_3'],h_RsqMR_['1_2_3'],h_nBtagRsqMR]:
         h.Write()

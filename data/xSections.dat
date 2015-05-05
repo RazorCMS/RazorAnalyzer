@@ -132,3 +132,8 @@ QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6               4.25e+03*0.131
 QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6                   810*0.11
 ZG_Inclusive_8TeV-madgraph                                      172.1
 WGToLNuG_TuneZ2star_8TeV-madgraph-tauola                        553.9
+QCD_HT-100To250_TuneZ2star_8TeV-madgraph-pythia                 10367000.
+QCD_HT-250To500_TuneZ2star_8TeV-madgraph-pythia6                276000.
+QCD_HT-500To1000_TuneZ2star_8TeV-madgraph-pythia6               8426.
+QCD_HT-1000ToInf_TuneZ2star_8TeV-madgraph-pythia6               204.
+    

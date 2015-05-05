@@ -54,9 +54,11 @@ void ZInvisibleControlSamples(){
     suffixes["WJets"] = "_noW";
     suffixes["GJets"] = "_noPho";
     suffixes["ZJets"] = "";
+    suffixes["TTJets"] = "_noW";
+    suffixes["TTJetsDY"] = "_noZ";
     suffixes["Top"] = "_noW";
-    suffixes["TopForDY"] = "_noZ";
-    suffixes["EMQCD"] = "_noPho";
+    suffixes["TopDY"] = "_noZ";
+    suffixes["QCD"] = "_noPho";
 
     map<string, string> cuts;
     cuts["DYJets"] = "nLooseMuons == 2 && hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
@@ -64,23 +66,40 @@ void ZInvisibleControlSamples(){
     cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
     cuts["ZJets"] = "nLooseMuons == 0 && nLooseElectrons == 0 && hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
 
+    cuts["TTJets"] = cuts["WJets"];
+    cuts["TTJetsDY"] = cuts["DYJets"];
     cuts["Top"] = cuts["WJets"];
-    cuts["TopForDY"] = cuts["DYJets"];
-    cuts["EMQCD"] = cuts["GJets"];
+    cuts["TopDY"] = cuts["DYJets"];
+    cuts["QCD"] = cuts["GJets"];
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
-    mcfiles["DYJets"] = new TFile("DYJetsRun1_19700pb.root");
-    mcfiles["WJets"] = new TFile("WJetsRun1_19700pb.root");
-    mcfiles["GJets"] = new TFile("GJetsRun1_19700pb.root");
-    mcfiles["ZJets"] = new TFile("ZJetsRun1_19700pb.root");
-    mcfiles["Top"] = new TFile("TopBackgroundsRun1_19700pb.root");
-    mcfiles["TopForDY"] = mcfiles["Top"];
-    mcfiles["EMQCD"] = new TFile("PhotonBackgroundsRun1_19700pb.root");
+    //signal processes
+    mcfiles["DYJets"] = new TFile("DYJetsRun1_19700pb_weighted.root");
+    mcfiles["WJets"] = new TFile("WJetsRun1_19700pb_weighted.root");
+    mcfiles["GJets"] = new TFile("GJetsRun1_19700pb_weighted.root");
+    mcfiles["ZJets"] = new TFile("ZJetsRun1_19700pb_weighted.root");
+    //backgrounds for WJets
+    mcfiles["TTJets"] = new TFile("TTJetsRun1_19700pb_weighted.root");
+    mcfiles["Top"] = new TFile("SingleTopRun1_19700pb_weighted.root");
+    mcfiles["TTW"] = new TFile("TTWRun1_19700pb_weighted.root");
+    mcfiles["TTZ"] = new TFile("TTZRun1_19700pb_weighted.root");
+    //backgrounds for DYJets
+    mcfiles["TTJetsDY"] = mcfiles["TTJets"];
+    mcfiles["TopDY"] = mcfiles["Top"];
+    mcfiles["TTWDY"] = mcfiles["TTW"];
+    mcfiles["TTZDY"] = mcfiles["TTZ"];
+    //backgrounds for GJets
+    mcfiles["QCD"] = new TFile("QCDRun1_19700pb_weighted.root");
+    mcfiles["WG"] = new TFile("WGRun1_19700pb_weighted.root");
+    mcfiles["ZG"] = new TFile("ZGRun1_19700pb_weighted.root");
+    mcfiles["TTG"] = new TFile("TTGRun1_19700pb_weighted.root");
+    //data
     datafiles["DYJets"] = new TFile("DoubleMuRun1_goodlumi.root");
     datafiles["WJets"] = new TFile("SingleMuRun1_goodlumi.root");
     datafiles["GJets"] = new TFile("PhotonRun1_goodlumi.root");
+
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -97,6 +116,25 @@ void ZInvisibleControlSamples(){
         mrs[file.first] = 0.;
         rsqs[file.first] = 0.;
         mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
+        mctrees[file.first]->SetBranchStatus("*", 0);
+        mctrees[file.first]->SetBranchStatus(Form("met%s", suffixes[file.first].c_str()), 1);
+        mctrees[file.first]->SetBranchStatus(Form("MR%s", suffixes[file.first].c_str()), 1);
+        mctrees[file.first]->SetBranchStatus(Form("Rsq%s", suffixes[file.first].c_str()), 1);
+        mctrees[file.first]->SetBranchStatus("weight", 1);
+        mctrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
+        mctrees[file.first]->SetBranchStatus("leadingMuonEta", 1);
+        mctrees[file.first]->SetBranchStatus("leadingTightMuonPt", 1);
+        mctrees[file.first]->SetBranchStatus("leadingTightMuonEta", 1);
+        mctrees[file.first]->SetBranchStatus("subleadingMuonPt", 1);
+        mctrees[file.first]->SetBranchStatus("subleadingMuonEta", 1);
+        mctrees[file.first]->SetBranchStatus("leadingPhotonPt", 1);
+        mctrees[file.first]->SetBranchStatus("leadingPhotonEta", 1);
+        mctrees[file.first]->SetBranchStatus("recoZpt", 1);
+        mctrees[file.first]->SetBranchStatus("recoZeta", 1);
+        mctrees[file.first]->SetBranchStatus("recoZmass", 1);
+        mctrees[file.first]->SetBranchStatus("mTLepMet", 1);
+        mctrees[file.first]->SetBranchStatus("nPU_mean", 1);
+
         mctrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), &rsqs[file.first]);
@@ -117,6 +155,29 @@ void ZInvisibleControlSamples(){
     }
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
+        datatrees[file.first]->SetBranchStatus("*", 0);
+
+        datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchAddress("leadingMuonPt", 1);
+        datatrees[file.first]->SetBranchAddress("leadingMuonEta", 1);
+        datatrees[file.first]->SetBranchAddress("leadingTightMuonPt", 1);
+        datatrees[file.first]->SetBranchAddress("leadingTightMuonEta", 1);
+        datatrees[file.first]->SetBranchAddress("subleadingMuonPt", 1);
+        datatrees[file.first]->SetBranchAddress("subleadingMuonEta", 1);
+        datatrees[file.first]->SetBranchAddress("leadingPhotonPt", 1);
+        datatrees[file.first]->SetBranchAddress("leadingPhotonEta", 1);
+        datatrees[file.first]->SetBranchAddress("recoZpt", 1);
+        datatrees[file.first]->SetBranchAddress("recoZeta", 1);
+        datatrees[file.first]->SetBranchAddress("recoZmass", 1);
+        datatrees[file.first]->SetBranchAddress("mTLepMet", 1);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton50", 1);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton75", 1);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton90", 1);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton135", 1);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton150", 1);
+
         datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         datatrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
         datatrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), &rsqs[file.first]);
@@ -132,12 +193,12 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress("recoZeta", &recoZeta);
         datatrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
         datatrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton50", &passedHLTPhoton50);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton75", &passedHLTPhoton75);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton90", &passedHLTPhoton90);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton135", &passedHLTPhoton135);
+        datatrees[file.first]->SetBranchAddress("passedHLTPhoton150", &passedHLTPhoton150);
     }
-        datatrees["GJets"]->SetBranchAddress("passedHLTPhoton50", &passedHLTPhoton50);
-        datatrees["GJets"]->SetBranchAddress("passedHLTPhoton75", &passedHLTPhoton75);
-        datatrees["GJets"]->SetBranchAddress("passedHLTPhoton90", &passedHLTPhoton90);
-        datatrees["GJets"]->SetBranchAddress("passedHLTPhoton135", &passedHLTPhoton135);
-        datatrees["GJets"]->SetBranchAddress("passedHLTPhoton150", &passedHLTPhoton150);
         //luminosities collected by the various photon triggers
         float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
         float lumi_HLTPhoton75  = 8.111e0 + 2.953e1 + 4.768e1 + 4.879e1;
@@ -151,6 +212,17 @@ void ZInvisibleControlSamples(){
     TH2F muonTightEffHisto = *(TH2F *)effFile.Get("MuonEfficiencyTight");
     TH2F photonEffHisto = *(TH2F *)effFile.Get("PhotonEfficiency");
     TH2F zAccHisto = *(TH2F *)effFile.Get("MuonAcceptance");
+
+    //load muon efficiency scale factor histogram
+    TFile muIdSFFile("data/ScaleFactors/MuonEfficiencies_ID_Run2012ReReco_53X.root");
+    TFile muIsoSFFile("data/ScaleFactors/MuonEfficiencies_ISO_Run2012ReReco_53X.root");
+    TH2F *muIdSFHist = (TH2F*)muIdSFFile->Get("sfLOOSE");
+    TH2F *muIsoSFHist = (TH2F*)muIsoSFFile->Get("sfLOOSE");
+    TH2F *muIdTightSFHist = (TH2F*)muIdSFFile->Get("sfTIGHT");
+    TH2F *muIsoTightSFHist = (TH2F*)muIsoSFFile->Get("sfTIGHT");
+    float singleMuTriggerSF = 0.97;
+    float doubleMuTriggerSF = 0.97;
+    float doubleMuNormalizationSF = 0.97;
 
     //load pileup reweighting histogram
     TFile *pileupWeightFile = new TFile("data/Run1PileupWeights.root", "READ");
@@ -190,7 +262,7 @@ void ZInvisibleControlSamples(){
             eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
 
             //reweigh according to selection efficiency and acceptance
-            if(tree.first == "GJets" || tree.first == "EMQCD"){
+            if(tree.first == "GJets" || tree.first == "QCD" || tree.first == "WG" || tree.first == "ZG" || tree.first == "TTG"){
                 double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
@@ -199,18 +271,39 @@ void ZInvisibleControlSamples(){
                 }
                 mcPhotonPt.Fill(leadingPhotonPt, eventWeight);
             }
-            else if(tree.first == "WJets" || tree.first == "Top"){
+            else if(tree.first == "WJets" || tree.first == "Top" || tree.first == "TTJets" || tree.first == "TTW" || tree.first == "TTZ"){
+                //ID efficiency
                 double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+
+                //efficiency scale factors
+                effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+
+                //trigger and normalization scale factors
+                effFactor *= singleMuTriggerSF;
+
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{ 
                     eventWeight = 0;
                     //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
-            else if(tree.first == "DYJets" || tree.first == "TopForDY"){
+            else if(tree.first == "DYJets" || tree.first == "TopDY" || tree.first == "TTJetsDY" || tree.first == "TTWDY" || tree.first == "TTZDY"){
                 double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
                 effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+
+                //efficiency scale factors: leading muon
+                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //subleading muon
+                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+
+                //trigger and normalization scale factors
+                effFactor *= doubleMuTriggerSF;
+                effFactor *= doubleMuNormalizationSF;
+
                 if(effFactor > 1e-5) eventWeight /= effFactor;
                 else{
                     //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
@@ -248,7 +341,7 @@ void ZInvisibleControlSamples(){
             float reweighFactor = weight;
             reweighFactor *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
             //reweigh by efficiency and acceptance
-            if(tree.first == "GJets" || tree.first == "EMQCD"){
+            if(tree.first == "GJets" || tree.first == "QCD" || tree.first == "TTG" || tree.first == "WG" || tree.first == "ZG"){
                 double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
@@ -256,18 +349,38 @@ void ZInvisibleControlSamples(){
                     //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
                 }
             }
-            else if(tree.first == "WJets" || tree.first == "Top"){
+            else if(tree.first == "WJets" || tree.first == "Top" || tree.first == "TTJets" || tree.first == "TTW" || tree.first == "TTZ"){
                 double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+
+                //efficiency scale factors
+                effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+
+                //trigger scale factor
+                effFactor *= singleMuTriggerSF;
+
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{ 
                     reweighFactor = 0;
                     //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                 }
             }
-            else if(tree.first == "DYJets" || tree.first == "TopForDY"){
+            else if(tree.first == "DYJets" || tree.first == "TopDY" || tree.first == "TTJetsDY" || tree.first == "TTWDY" || tree.first == "TTZDY"){
                 double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
                 effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
                 effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+
+                //efficiency scale factors: leading muon
+                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                //subleading muon
+                effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+
+                //trigger and normalization scale factors
+                effFactor *= doubleMuTriggerSF;
+                effFactor *= doubleMuNormalizationSF;
+
                 if(effFactor > 1e-5) reweighFactor /= effFactor;
                 else{
                     //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
@@ -399,12 +512,12 @@ void ZInvisibleControlSamples(){
     }
     //subtract the top background from the WJets histogram
     //TODO: apply the ttbar data/MC scale factors first
-    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"];
+    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"] - razorHistosForReweighing["TTJets"] - razorHistosForReweighing["TTZ"] - razorHistosForReweighing["TTW"];
     //subtract the top background from the DYJets histogram
     //TODO: apply the ttbar data/MC scale factors first
-    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TopForDY"];
+    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TopDY"] - razorHistosForReweighing["TTJetsDY"] - razorHistosForReweighing["TTZDY"] - razorHistosForReweighing["TTWDY"];
     //subtract the QCD background from the photon+jets histogram
-    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["EMQCD"];
+    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["QCD"] - razorHistosForReweighing["TTG"] - razorHistosForReweighing["WG"] - razorHistosForReweighing["ZG"];
 
     //Step 4: apply reweighing factors to data
     map<string, TH2F> razorHistosData;
@@ -576,47 +689,68 @@ void ZInvisibleControlSamples(){
     c.SetLogy();
     //WJets
     THStack SingleMuonMC("SingleMuonMC", "MR in 1-muon control sample");
-    MRHistosBeforeReweighing["WJets"].SetLineColor(kOrange+10);
     MRHistosBeforeReweighing["WJets"].SetFillColor(kOrange+10);
-    MRHistosBeforeReweighing["Top"].SetLineColor(kViolet-5);
     MRHistosBeforeReweighing["Top"].SetFillColor(kViolet-5);
+    MRHistosBeforeReweighing["TTJets"].SetFillColor(kViolet-6);
+    MRHistosBeforeReweighing["TTW"].SetFillColor(kRed+2);
+    MRHistosBeforeReweighing["TTZ"].SetFillColor(kOrange-3);
+    SingleMuonMC.Add(&MRHistosBeforeReweighing["TTZ"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighing["TTW"]);
     SingleMuonMC.Add(&MRHistosBeforeReweighing["Top"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighing["TTJets"]);
     SingleMuonMC.Add(&MRHistosBeforeReweighing["WJets"]);
     MRHistosDataBeforeReweighing["WJets"].SetMarkerStyle(20);
     MRHistosDataBeforeReweighing["WJets"].SetMarkerSize(1);
     TLegend *SingleMuonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
     SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["WJets"], "WJets MC");
-    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["Top"], "Top MC (ttbar and single top)");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTJets"], "TTJets MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["Top"], "Single Top MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTW"], "TTW MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTZ"], "TTZ MC");
     SingleMuonLegend->AddEntry(&MRHistosDataBeforeReweighing["WJets"], "2012 Data, Single Muon CS");
     DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["WJets"], &SingleMuonMC, SingleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundSingleMuon", true);
     //DYJets
     THStack DoubleMuonMC("DoubleMuonMC", "MR in 2-muon control sample");
-    MRHistosBeforeReweighing["DYJets"].SetLineColor(kAzure);
     MRHistosBeforeReweighing["DYJets"].SetFillColor(kAzure);
-    MRHistosBeforeReweighing["TopForDY"].SetLineColor(kViolet-5);
-    MRHistosBeforeReweighing["TopForDY"].SetFillColor(kViolet-5);
-    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TopForDY"]);
+    MRHistosBeforeReweighing["TopDY"].SetFillColor(kViolet-5);
+    MRHistosBeforeReweighing["TTJetsDY"].SetFillColor(kViolet-6);
+    MRHistosBeforeReweighing["TTWDY"].SetFillColor(kRed+2);
+    MRHistosBeforeReweighing["TTZDY"].SetFillColor(kOrange-3);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TTZDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TTWDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TopDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TTJetsDY"]);
     DoubleMuonMC.Add(&MRHistosBeforeReweighing["DYJets"]);
     MRHistosDataBeforeReweighing["DYJets"].SetMarkerStyle(20);
     MRHistosDataBeforeReweighing["DYJets"].SetMarkerSize(1);
     TLegend *DoubleMuonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
     DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["DYJets"], "DYJets MC");
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TopForDY"], "Top MC (ttbar and single top)");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTJetsDY"], "TTJets MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TopDY"], "Single Top MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTWDY"], "TTW MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTZDY"], "TTZ MC");
     DoubleMuonLegend->AddEntry(&MRHistosDataBeforeReweighing["DYJets"], "2012 Data, Double Muon CS");
     DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["DYJets"], &DoubleMuonMC, DoubleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundDoubleMuon", true);
     //Gamma+Jets
     THStack PhotonMC("PhotonMC", "MR in photon control sample");
-    MRHistosBeforeReweighing["GJets"].SetLineColor(kTeal+10);
-    MRHistosBeforeReweighing["GJets"].SetFillColor(kTeal+10);
-    MRHistosBeforeReweighing["EMQCD"].SetLineColor(kGreen+3);
-    MRHistosBeforeReweighing["EMQCD"].SetFillColor(kGreen+3);
-    PhotonMC.Add(&MRHistosBeforeReweighing["EMQCD"]);
+    MRHistosBeforeReweighing["GJets"].SetFillColor(9);
+    MRHistosBeforeReweighing["QCD"].SetFillColor(8);
+    MRHistosBeforeReweighing["TTG"].SetFillColor(7);
+    MRHistosBeforeReweighing["WG"].SetFillColor(38);
+    MRHistosBeforeReweighing["ZG"].SetFillColor(4);
+    PhotonMC.Add(&MRHistosBeforeReweighing["ZG"]);
+    PhotonMC.Add(&MRHistosBeforeReweighing["WG"]);
+    PhotonMC.Add(&MRHistosBeforeReweighing["TTG"]);
+    PhotonMC.Add(&MRHistosBeforeReweighing["QCD"]);
     PhotonMC.Add(&MRHistosBeforeReweighing["GJets"]);
     MRHistosDataBeforeReweighing["GJets"].SetMarkerStyle(20);
     MRHistosDataBeforeReweighing["GJets"].SetMarkerSize(1);
     TLegend *PhotonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
     PhotonLegend->AddEntry(&MRHistosBeforeReweighing["GJets"], "GJets MC");
-    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["EMQCD"], "QCD MC (EM enriched)");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["QCD"], "QCD MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["TTG"], "TTG MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["WG"], "WG MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["ZG"], "ZG MC");
     PhotonLegend->AddEntry(&MRHistosDataBeforeReweighing["GJets"], "2012 Data, Photon CS");
     PhotonLegend->Draw();
     DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["GJets"], &PhotonMC, PhotonLegend, "MR (GeV)", "controlSampleMRBackgroundPhoton", true);
@@ -626,33 +760,45 @@ void ZInvisibleControlSamples(){
     c.SetLogx(kFALSE);
     //WJets
     THStack SingleMuonRsqMC("SingleMuonMC", "Rsq in 1-muon control sample");
-    RsqHistosBeforeReweighing["WJets"].SetLineColor(kOrange+10);
     RsqHistosBeforeReweighing["WJets"].SetFillColor(kOrange+10);
-    RsqHistosBeforeReweighing["Top"].SetLineColor(kViolet-5);
     RsqHistosBeforeReweighing["Top"].SetFillColor(kViolet-5);
+    RsqHistosBeforeReweighing["TTJets"].SetFillColor(kViolet-6);
+    RsqHistosBeforeReweighing["TTW"].SetFillColor(kRed+2);
+    RsqHistosBeforeReweighing["TTZ"].SetFillColor(kOrange-3);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTZ"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTW"]);
     SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["Top"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTJets"]);
     SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["WJets"]);
     RsqHistosDataBeforeReweighing["WJets"].SetMarkerStyle(20);
     RsqHistosDataBeforeReweighing["WJets"].SetMarkerSize(1);
     DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["WJets"], &SingleMuonRsqMC, SingleMuonLegend, "Rsq", "controlSampleRsqBackgroundSingleMuon", false);
     //DYJets
     THStack DoubleMuonRsqMC("DoubleMuonMC", "Rsq in 2-muon control sample");
-    RsqHistosBeforeReweighing["DYJets"].SetLineColor(kAzure);
     RsqHistosBeforeReweighing["DYJets"].SetFillColor(kAzure);
-    RsqHistosBeforeReweighing["TopForDY"].SetLineColor(kViolet-5);
-    RsqHistosBeforeReweighing["TopForDY"].SetFillColor(kViolet-5);
-    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TopForDY"]);
+    RsqHistosBeforeReweighing["TopDY"].SetFillColor(kViolet-5);
+    RsqHistosBeforeReweighing["TTJetsDY"].SetFillColor(kViolet-6);
+    RsqHistosBeforeReweighing["TTWDY"].SetFillColor(kRed+2);
+    RsqHistosBeforeReweighing["TTZDY"].SetFillColor(kOrange-3);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTZDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTWDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TopDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTJetsDY"]);
     DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["DYJets"]);
     RsqHistosDataBeforeReweighing["DYJets"].SetMarkerStyle(20);
     RsqHistosDataBeforeReweighing["DYJets"].SetMarkerSize(1);
     DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["DYJets"], &DoubleMuonRsqMC, DoubleMuonLegend, "Rsq", "controlSampleRsqBackgroundDoubleMuon", false);
     //Gamma+Jets
     THStack PhotonRsqMC("PhotonMC", "Rsq in photon control sample");
-    RsqHistosBeforeReweighing["GJets"].SetLineColor(kTeal+10);
-    RsqHistosBeforeReweighing["GJets"].SetFillColor(kTeal+10);
-    RsqHistosBeforeReweighing["EMQCD"].SetLineColor(kGreen+3);
-    RsqHistosBeforeReweighing["EMQCD"].SetFillColor(kGreen+3);
-    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["EMQCD"]);
+    RsqHistosBeforeReweighing["GJets"].SetFillColor(9);
+    RsqHistosBeforeReweighing["QCD"].SetFillColor(8);
+    RsqHistosBeforeReweighing["TTG"].SetFillColor(7);
+    RsqHistosBeforeReweighing["WG"].SetFillColor(38);
+    RsqHistosBeforeReweighing["ZG"].SetFillColor(4);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["ZG"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["WG"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["TTG"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["QCD"]);
     PhotonRsqMC.Add(&RsqHistosBeforeReweighing["GJets"]);
     RsqHistosDataBeforeReweighing["GJets"].SetMarkerStyle(20);
     RsqHistosDataBeforeReweighing["GJets"].SetMarkerSize(1);
