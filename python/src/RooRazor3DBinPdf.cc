@@ -10,6 +10,8 @@
 #include "RooRazor3DBinPdf.h"
 #include "RooRealVar.h"
 
+using namespace std;
+
 ClassImp(RooRazor3DBinPdf)
 //---------------------------------------------------------------------------
 RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,

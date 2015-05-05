@@ -15,6 +15,8 @@
 #include "Math/Integrator.h"
 #include "Math/GSLIntegrator.h"
 
+using namespace std;
+
 ClassImp(RooRazor3DBinNumericPdf)
 //---------------------------------------------------------------------------
 RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(const char *name, const char *title,

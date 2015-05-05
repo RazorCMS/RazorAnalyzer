@@ -8,6 +8,8 @@
 #include "RooRazor2DTail_SYS.h"
 #include "RooRealVar.h"
 
+using namespace std;
+
 ClassImp(RooRazor2DTail_SYS)
 //---------------------------------------------------------------------------
 RooRazor2DTail_SYS::RooRazor2DTail_SYS(const char *name, const char *title,

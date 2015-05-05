@@ -8,6 +8,8 @@
 #include "RooBTagMult.h"
 #include "RooRealVar.h"
 
+using namespace std;
+
 ClassImp(RooBTagMult)
 //---------------------------------------------------------------------------
 RooBTagMult::RooBTagMult(const char *name, const char *title,
