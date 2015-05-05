@@ -18,3 +18,5 @@ output2
 *.d
 dummy*
 test.*
+*.pcm
+.__*
