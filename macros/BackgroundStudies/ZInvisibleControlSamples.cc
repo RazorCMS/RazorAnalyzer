@@ -40,10 +40,10 @@ void ZInvisibleControlSamples(){
     float MetMin = 0.;
     float MetMax = 1000;
     float nMetBins = 20;
-    float nMRBins = 10;
-    float nRsqBins = 8;
-    float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
-    float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.80, 1.5};
+    float nMRBins = 8;
+    float nRsqBins = 7;
+    float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 4000};
+    float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
 
     //upper bounds of reweighting histograms
     float maxPhotonPt = 999; 
@@ -1011,7 +1011,7 @@ void ZInvisibleControlSamples(){
 
     //write out the data/MC scale factors
     c.SetLogx(true);
-    c.SetLogy(false);
+    c.SetLogy(true);
     c.SetLogz(false);
     TFile sfFile("ZInvisibleScaleFactorsRun1.root", "RECREATE");
     sfFile.cd();
