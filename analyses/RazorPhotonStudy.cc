@@ -80,6 +80,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
     int nSelectedPhotons;    
     float mTLepMet;
     bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150, passedHLTPhoton160;
+    int nBJetsLoose20GeV, nBJetsMedium20GeV, nBJetsTight20GeV;
+    bool bjet1PassLoose, bjet1PassMedium, bjet1PassTight, bjet2PassLoose, bjet2PassMedium, bjet2PassTight;
+    float bjet1Pt, bjet2Pt;
 
     //set branches on big tree
     if(!isData){
@@ -231,8 +234,19 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         razorTree->Branch("numJets80_noZ", &numJets80_noZ, "numJets80_noZ/I");
         razorTree->Branch("numJets80_noW", &numJets80_noW, "numJets80_noW/I");
         razorTree->Branch("mTLepMet", &mTLepMet, "mTLepMet/F");
+        razorTree->Branch("nBJetsLoose20GeV", &nBJetsLoose20GeV, "nBJetsLoose20GeV/I");
+        razorTree->Branch("nBJetsMedium20GeV", &nBJetsMedium20GeV, "nBJetsMedium20GeV/I");
+        razorTree->Branch("nBJetsTight20GeV", &nBJetsTight20GeV, "nBJetsTight20GeV/I");
+        razorTree->Branch("bjet1PassLoose", &bjet1PassLoose, "bjet1PassLoose/O");
+        razorTree->Branch("bjet1PassMedium", &bjet1PassMedium, "bjet1PassMedium/O");
+        razorTree->Branch("bjet1PassTight", &bjet1PassTight, "bjet1PassTight/O");
+        razorTree->Branch("bjet2PassLoose", &bjet2PassLoose, "bjet2PassLoose/O");
+        razorTree->Branch("bjet2PassMedium", &bjet2PassMedium, "bjet2PassMedium/O");
+        razorTree->Branch("bjet2PassTight", &bjet2PassTight, "bjet2PassTight/O");
+        razorTree->Branch("bjet1Pt", &bjet1Pt, "bjet1Pt/F");
+        razorTree->Branch("bjet2Pt", &bjet2Pt, "bjet2Pt/F");
     }
-
+    
     //****************************************************//
     //                  Set up JEC                        //
     //****************************************************//
@@ -430,7 +444,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         numJets80_noZ = 0;
         numJets80_noW = 0;
         mTLepMet = -1;
-
+	nBJetsLoose20GeV = nBJetsMedium20GeV = nBJetsTight20GeV = 0;
+	bjet1PassLoose = bjet1PassMedium = bjet1PassTight = false;
+	bjet2PassLoose = bjet2PassMedium = bjet2PassTight = false;
+	bjet1Pt = bjet2Pt = -999.;
+    
         //****************************************************//
         //               Select PU and trigger                //
         //****************************************************//
@@ -742,6 +760,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //****************************************************//
         //               Select jets                          //
         //****************************************************//
+	bool bjet1Found = false;
+	bool bjet2Found = false;
+
         vector<TLorentzVector> GoodJets; //will contain leptons above 40 GeV in addition to jets
         TVector3 metCorrection; //contains p_T - p_T_JEC summed over all jets
         for(int i = 0; i < nJets; i++){
@@ -790,6 +811,46 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
                     nBTaggedJets++;
                 }
             }
+
+	    // bjets in MC
+	    if(!isData)
+	      if (abs(jetPartonFlavor[i]) == 5) {
+		if (!bjet1Found) {
+		  bjet1Found = true;
+		  bjet1Pt = jetPt[i];
+		  bjet1PassLoose  = false;
+		  bjet1PassMedium = false;
+		  bjet1PassTight  = false;
+		  if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) bjet1PassLoose = true;	      
+		  if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) bjet1PassMedium = true;
+		  if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) bjet1PassTight = true;	      
+		} else if ( jetPt[i] > bjet1Pt ) {		  
+		  bjet2Pt = bjet1Pt;
+		  bjet2PassLoose  = bjet1PassLoose;
+		  bjet2PassMedium = bjet1PassMedium;
+		  bjet2PassTight  = bjet1PassTight;
+		  
+		  bjet1Pt = jetPt[i];
+		  bjet1PassLoose  = false;
+		  bjet1PassMedium = false;
+		  bjet1PassTight  = false;
+		  if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) bjet1PassLoose = true;	      
+		  if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) bjet1PassMedium = true;
+		  if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) bjet1PassTight = true;	      
+		} else {
+		  if (!bjet2Found || jetPt[i] > bjet2Pt ) {
+		    bjet2Found = true;
+		    bjet2Pt = jetPt[i];
+		    bjet2PassLoose  = false;
+		    bjet2PassMedium = false;
+		    bjet2PassTight  = false;
+		    if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) bjet2PassLoose = true;	      
+		    if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) bjet2PassMedium = true;
+		    if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) bjet2PassTight = true;	   	    
+		  }
+		}
+	      } //if it's a bjet		
+	    
 
             if(jetPt[i]*JEC*jetEnergySmearFactor > 80) numJets80++;
             GoodJets.push_back(thisJet);
@@ -1081,13 +1142,11 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         //*****Filter events******//
         //************************//
         if(filterEvents){
+	  // if(nSelectedPhotons < 1 ) continue;
             if(numJets80 < 2) continue; //event fails to have two 80 GeV jets
-            if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
+            // if(GoodMuons.size() == 0 && GoodPhotons.size() == 0) continue; //don't save event if no muons or photons
             if(theMR < 300 && MR_noZ < 300 && MR_noW < 300 && MR_noPho < 300) continue;
             if(theRsq < 0.15 && Rsq_noZ < 0.15 && Rsq_noW < 0.15 && Rsq_noPho < 0.15) continue;
-        }
-        else{ //unfiltered ntuple -- require a photon
-            if(nSelectedPhotons < 1) continue;
         }
 
         razorTree->Fill();
