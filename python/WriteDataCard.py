@@ -145,7 +145,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
         processString = "process"
         processNumberString = "process"
         rateString = "rate"
-        lumiString = "lumi"
+        lumiString = "lumi\tlnN"
         for i in range(0,len(bkgs)+1):
             binString +="\t%s"%box
             processString += "\t%s"%processes[i]
