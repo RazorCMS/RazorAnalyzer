@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Mar 11 17:53:23 2015 by ROOT version 5.32/00
+// Sun May 10 23:40:39 2015 by ROOT version 5.32/00
 // from TTree RazorEvents/selected miniAOD information
-// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root
+// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -22,6 +22,7 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
    // Declaration of leaf types
+   Bool_t          isData;
    Int_t           nPV;
    Int_t           runNum;
    Int_t           lumiNum;
@@ -131,6 +132,7 @@ public :
    Float_t         pho_sumChargedHadronPt[40];   //[nPhotons]
    Float_t         pho_sumNeutralHadronEt[40];   //[nPhotons]
    Float_t         pho_sumPhotonEt[40];   //[nPhotons]
+   Float_t         pho_sumWorstVertexChargedHadronPt[40];   //[nPhotons]
    Bool_t          pho_isConversion[40];   //[nPhotons]
    Bool_t          pho_passEleVeto[40];   //[nPhotons]
    Float_t         pho_RegressionE[40];   //[nPhotons]
@@ -153,6 +155,8 @@ public :
    Int_t           jetPileupIdFlag[50];   //[nJets]
    Bool_t          jetPassIDLoose[50];   //[nJets]
    Bool_t          jetPassIDTight[50];   //[nJets]
+   Bool_t          jetPassMuFrac[50];   //[nJets]
+   Bool_t          jetPassEleFrac[50];   //[nJets]
    Int_t           jetPartonFlavor[50];   //[nJets]
    Int_t           jetHadronFlavor[50];   //[nJets]
    UInt_t          nFatJets;
@@ -169,23 +173,30 @@ public :
    Float_t         metPt;
    Float_t         metPhi;
    Float_t         sumMET;
+   Float_t         metType0Pt;
+   Float_t         metType0Phi;
+   Float_t         metType1Pt;
+   Float_t         metType1Phi;
+   Float_t         metType0Plus1Pt;
+   Float_t         metType0Plus1Phi;
    Bool_t          Flag_HBHENoiseFilter;
    Bool_t          Flag_CSCTightHaloFilter;
-   Bool_t          Flag_hcalLaserEventFilter; 
-   Bool_t          Flag_EcalDeadCellTriggerPrimitiveFilter; 
+   Bool_t          Flag_hcalLaserEventFilter;
+   Bool_t          Flag_EcalDeadCellTriggerPrimitiveFilter;
+   Bool_t          Flag_EcalDeadCellBoundaryEnergyFilter;
    Bool_t          Flag_goodVertices;
    Bool_t          Flag_trackingFailureFilter;
-   Bool_t          Flag_eeBadScFilter; 
+   Bool_t          Flag_eeBadScFilter;
    Bool_t          Flag_ecalLaserCorrFilter;
-   Bool_t          Flag_trkPOGFilters; 
+   Bool_t          Flag_trkPOGFilters;
    Bool_t          Flag_trkPOG_manystripclus53X;
    Bool_t          Flag_trkPOG_toomanystripclus53X;
    Bool_t          Flag_trkPOG_logErrorTooManyClusters;
    Bool_t          Flag_METFilters;
-   Float_t         MR;
-   Float_t         RSQ;
-   Float_t         MR_AK8;
-   Float_t         RSQ_AK8;
+   Bool_t          Flag_EcalDeadCellEvent;
+   Bool_t          Flag_IsNotDeadEcalCluster;
+   Bool_t          Flag_EcalDeadDR;
+   Bool_t          Flag_EcalBoundaryDR;
    Bool_t          HLTDecision[100];
    Int_t           nGenJets;
    Float_t         genJetE[50];   //[nGenJets]
@@ -211,6 +222,7 @@ public :
    Float_t         gParticlePhi[4000];   //[nGenParticle]
 
    // List of branches
+   TBranch        *b_isData;   //!
    TBranch        *b_nPV;   //!
    TBranch        *b_runNum;   //!
    TBranch        *b_lumiNum;   //!
@@ -320,6 +332,7 @@ public :
    TBranch        *b_pho_sumChargedHadronPt;   //!
    TBranch        *b_pho_sumNeutralHadronEt;   //!
    TBranch        *b_pho_sumPhotonEt;   //!
+   TBranch        *b_pho_sumWorstVertexChargedHadronPt;   //!
    TBranch        *b_pho_isConversion;   //!
    TBranch        *b_pho_passEleVeto;   //!
    TBranch        *b_pho_RegressionE;   //!
@@ -342,6 +355,8 @@ public :
    TBranch        *b_jetPileupIdFlag;   //!
    TBranch        *b_jetPassIDLoose;   //!
    TBranch        *b_jetPassIDTight;   //!
+   TBranch        *b_jetPassMuFrac;   //!
+   TBranch        *b_jetPassEleFrac;   //!
    TBranch        *b_jetPartonFlavor;   //!
    TBranch        *b_jetHadronFlavor;   //!
    TBranch        *b_nFatJets;   //!
@@ -358,10 +373,17 @@ public :
    TBranch        *b_metPt;   //!
    TBranch        *b_metPhi;   //!
    TBranch        *b_sumMET;   //!
+   TBranch        *b_metType0Pt;   //!
+   TBranch        *b_metType0Phi;   //!
+   TBranch        *b_metType1Pt;   //!
+   TBranch        *b_metType1Phi;   //!
+   TBranch        *b_metType0Plus1Pt;   //!
+   TBranch        *b_metType0Plus1Phi;   //!
    TBranch        *b_Flag_HBHENoiseFilter;   //!
    TBranch        *b_Flag_CSCTightHaloFilter;   //!
    TBranch        *b_Flag_hcalLaserEventFilter;   //!
    TBranch        *b_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
+   TBranch        *b_Flag_EcalDeadCellBoundaryEnergyFilter;   //!
    TBranch        *b_Flag_goodVertices;   //!
    TBranch        *b_Flag_trackingFailureFilter;   //!
    TBranch        *b_Flag_eeBadScFilter;   //!
@@ -371,10 +393,10 @@ public :
    TBranch        *b_Flag_trkPOG_toomanystripclus53X;   //!
    TBranch        *b_Flag_trkPOG_logErrorTooManyClusters;   //!
    TBranch        *b_Flag_METFilters;   //!
-   TBranch        *b_MR;   //!
-   TBranch        *b_RSQ;   //!
-   TBranch        *b_MR_AK8;   //!
-   TBranch        *b_RSQ_AK8;   //!
+   TBranch        *b_Flag_EcalDeadCellEvent;   //!
+   TBranch        *b_Flag_IsNotDeadEcalCluster;   //!
+   TBranch        *b_Flag_EcalDeadDR;   //!
+   TBranch        *b_Flag_EcalBoundaryDR;   //!
    TBranch        *b_HLTDecision;   //!
    TBranch        *b_nGenJets;   //!
    TBranch        *b_genJetE;   //!
@@ -418,11 +440,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root");
+         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.6/Run1/MC/v1/sixie/TT_CT10_TuneZ2star_8TeV-powheg-tauola/runOneRazorNtuplerV1p6_MC_v1_v2/150310_012729/0000/razorNtuple_1.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -470,6 +492,7 @@ void RazorEvents::Init(TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
+   fChain->SetBranchAddress("isData", &isData, &b_isData);
    fChain->SetBranchAddress("nPV", &nPV, &b_nPV);
    fChain->SetBranchAddress("runNum", &runNum, &b_runNum);
    fChain->SetBranchAddress("lumiNum", &lumiNum, &b_lumiNum);
@@ -484,9 +507,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
    fChain->SetBranchAddress("nBunchXing", &nBunchXing, &b_nBunchXing);
-   fChain->SetBranchAddress("BunchXing", &BunchXing, &b_BunchXing);
-   fChain->SetBranchAddress("nPU", &nPU, &b_nPU);
-   fChain->SetBranchAddress("nPUmean", &nPUmean, &b_nPUmean);
+   fChain->SetBranchAddress("BunchXing", BunchXing, &b_BunchXing);
+   fChain->SetBranchAddress("nPU", nPU, &b_nPU);
+   fChain->SetBranchAddress("nPUmean", nPUmean, &b_nPUmean);
    fChain->SetBranchAddress("nMuons", &nMuons, &b_nMuons);
    fChain->SetBranchAddress("muonE", muonE, &b_muonE);
    fChain->SetBranchAddress("muonPt", muonPt, &b_muonPt);
@@ -579,6 +602,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_sumChargedHadronPt", pho_sumChargedHadronPt, &b_pho_sumChargedHadronPt);
    fChain->SetBranchAddress("pho_sumNeutralHadronEt", pho_sumNeutralHadronEt, &b_pho_sumNeutralHadronEt);
    fChain->SetBranchAddress("pho_sumPhotonEt", pho_sumPhotonEt, &b_pho_sumPhotonEt);
+   fChain->SetBranchAddress("pho_sumWorstVertexChargedHadronPt", pho_sumWorstVertexChargedHadronPt, &b_pho_sumWorstVertexChargedHadronPt);
    fChain->SetBranchAddress("pho_isConversion", pho_isConversion, &b_pho_isConversion);
    fChain->SetBranchAddress("pho_passEleVeto", pho_passEleVeto, &b_pho_passEleVeto);
    fChain->SetBranchAddress("pho_RegressionE", pho_RegressionE, &b_pho_RegressionE);
@@ -601,6 +625,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("jetPileupIdFlag", jetPileupIdFlag, &b_jetPileupIdFlag);
    fChain->SetBranchAddress("jetPassIDLoose", jetPassIDLoose, &b_jetPassIDLoose);
    fChain->SetBranchAddress("jetPassIDTight", jetPassIDTight, &b_jetPassIDTight);
+   fChain->SetBranchAddress("jetPassMuFrac", jetPassMuFrac, &b_jetPassMuFrac);
+   fChain->SetBranchAddress("jetPassEleFrac", jetPassEleFrac, &b_jetPassEleFrac);
    fChain->SetBranchAddress("jetPartonFlavor", jetPartonFlavor, &b_jetPartonFlavor);
    fChain->SetBranchAddress("jetHadronFlavor", jetHadronFlavor, &b_jetHadronFlavor);
    fChain->SetBranchAddress("nFatJets", &nFatJets, &b_nFatJets);
@@ -617,10 +643,17 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("metPt", &metPt, &b_metPt);
    fChain->SetBranchAddress("metPhi", &metPhi, &b_metPhi);
    fChain->SetBranchAddress("sumMET", &sumMET, &b_sumMET);
+   fChain->SetBranchAddress("metType0Pt", &metType0Pt, &b_metType0Pt);
+   fChain->SetBranchAddress("metType0Phi", &metType0Phi, &b_metType0Phi);
+   fChain->SetBranchAddress("metType1Pt", &metType1Pt, &b_metType1Pt);
+   fChain->SetBranchAddress("metType1Phi", &metType1Phi, &b_metType1Phi);
+   fChain->SetBranchAddress("metType0Plus1Pt", &metType0Plus1Pt, &b_metType0Plus1Pt);
+   fChain->SetBranchAddress("metType0Plus1Phi", &metType0Plus1Phi, &b_metType0Plus1Phi);
    fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
    fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
    fChain->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, &b_Flag_hcalLaserEventFilter);
    fChain->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, &b_Flag_EcalDeadCellTriggerPrimitiveFilter);
+   fChain->SetBranchAddress("Flag_EcalDeadCellBoundaryEnergyFilter", &Flag_EcalDeadCellBoundaryEnergyFilter, &b_Flag_EcalDeadCellBoundaryEnergyFilter);
    fChain->SetBranchAddress("Flag_goodVertices", &Flag_goodVertices, &b_Flag_goodVertices);
    fChain->SetBranchAddress("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, &b_Flag_trackingFailureFilter);
    fChain->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter, &b_Flag_eeBadScFilter);
@@ -630,16 +663,16 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, &b_Flag_trkPOG_toomanystripclus53X);
    fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
-   fChain->SetBranchAddress("MR", &MR, &b_MR);
-   fChain->SetBranchAddress("RSQ", &RSQ, &b_RSQ);
-   fChain->SetBranchAddress("MR_AK8", &MR_AK8, &b_MR_AK8);
-   fChain->SetBranchAddress("RSQ_AK8", &RSQ_AK8, &b_RSQ_AK8);
+   fChain->SetBranchAddress("Flag_EcalDeadCellEvent", &Flag_EcalDeadCellEvent, &b_Flag_EcalDeadCellEvent);
+   fChain->SetBranchAddress("Flag_IsNotDeadEcalCluster", &Flag_IsNotDeadEcalCluster, &b_Flag_IsNotDeadEcalCluster);
+   fChain->SetBranchAddress("Flag_EcalDeadDR", &Flag_EcalDeadDR, &b_Flag_EcalDeadDR);
+   fChain->SetBranchAddress("Flag_EcalBoundaryDR", &Flag_EcalBoundaryDR, &b_Flag_EcalBoundaryDR);
    fChain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
    fChain->SetBranchAddress("nGenJets", &nGenJets, &b_nGenJets);
-   fChain->SetBranchAddress("genJetE", &genJetE, &b_genJetE);
-   fChain->SetBranchAddress("genJetPt", &genJetPt, &b_genJetPt);
-   fChain->SetBranchAddress("genJetEta", &genJetEta, &b_genJetEta);
-   fChain->SetBranchAddress("genJetPhi", &genJetPhi, &b_genJetPhi);
+   fChain->SetBranchAddress("genJetE", genJetE, &b_genJetE);
+   fChain->SetBranchAddress("genJetPt", genJetPt, &b_genJetPt);
+   fChain->SetBranchAddress("genJetEta", genJetEta, &b_genJetEta);
+   fChain->SetBranchAddress("genJetPhi", genJetPhi, &b_genJetPhi);
    fChain->SetBranchAddress("genMetPt", &genMetPt, &b_genMetPt);
    fChain->SetBranchAddress("genMetPhi", &genMetPhi, &b_genMetPhi);
    fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
@@ -649,14 +682,14 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genAlphaQCD", &genAlphaQCD, &b_genAlphaQCD);
    fChain->SetBranchAddress("genAlphaQED", &genAlphaQED, &b_genAlphaQED);
    fChain->SetBranchAddress("nGenParticle", &nGenParticle, &b_nGenParticle);
-   fChain->SetBranchAddress("gParticleMotherId", &gParticleMotherId, &b_gParticleMotherId);
-   fChain->SetBranchAddress("gParticleMotherIndex", &gParticleMotherIndex, &b_gParticleMotherIndex);
-   fChain->SetBranchAddress("gParticleId", &gParticleId, &b_gParticleId);
-   fChain->SetBranchAddress("gParticleStatus", &gParticleStatus, &b_gParticleStatus);
-   fChain->SetBranchAddress("gParticleE", &gParticleE, &b_gParticleE);
-   fChain->SetBranchAddress("gParticlePt", &gParticlePt, &b_gParticlePt);
-   fChain->SetBranchAddress("gParticleEta", &gParticleEta, &b_gParticleEta);
-   fChain->SetBranchAddress("gParticlePhi", &gParticlePhi, &b_gParticlePhi);
+   fChain->SetBranchAddress("gParticleMotherId", gParticleMotherId, &b_gParticleMotherId);
+   fChain->SetBranchAddress("gParticleMotherIndex", gParticleMotherIndex, &b_gParticleMotherIndex);
+   fChain->SetBranchAddress("gParticleId", gParticleId, &b_gParticleId);
+   fChain->SetBranchAddress("gParticleStatus", gParticleStatus, &b_gParticleStatus);
+   fChain->SetBranchAddress("gParticleE", gParticleE, &b_gParticleE);
+   fChain->SetBranchAddress("gParticlePt", gParticlePt, &b_gParticlePt);
+   fChain->SetBranchAddress("gParticleEta", gParticleEta, &b_gParticleEta);
+   fChain->SetBranchAddress("gParticlePhi", gParticlePhi, &b_gParticlePhi);
    Notify();
 }
 
