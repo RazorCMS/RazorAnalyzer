@@ -1,7 +1,7 @@
 from optparse import OptionParser
 import ROOT as rt
 import rootTools
-from Framework import Config
+from framework import Config
 from array import *
 import os
 import sys
