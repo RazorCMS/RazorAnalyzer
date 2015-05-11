@@ -200,6 +200,8 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metPt", 1);
     fChain->SetBranchStatus("metPhi", 1);
     fChain->SetBranchStatus("sumMET", 1);
+    fChain->SetBranchStatus("metType0Plus1Pt", 1);
+    fChain->SetBranchStatus("metType0Plus1Phi", 1);
     fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
     fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
     fChain->SetBranchStatus("Flag_hcalLaserEventFilter", 1);

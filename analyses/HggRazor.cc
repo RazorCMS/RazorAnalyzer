@@ -42,7 +42,7 @@ struct evt
   std::string event;
 };
 
-bool _phodebug = true;
+bool _phodebug = false;
 bool _debug    = true;
 bool _info     = true;
 
@@ -71,7 +71,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   /*
     combine Trees
   */
-  combineTrees = true;
+  combineTrees = false;
   
 
   /*
@@ -121,7 +121,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   float theMR;
-  float theRsq;
+  float theRsq, t1Rsq;
+  float MET, t1MET;
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma;
   float mbbZ, mbbH;
@@ -149,6 +150,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
     razorTree->Branch("MR", &theMR, "MR/F");
     razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+    razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+    razorTree->Branch("MET", &MET, "MET/F");
+    razorTree->Branch("t1MET", &t1MET, "t1MET/F");
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -204,6 +208,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
       box.second->Branch("MR", &theMR, "MR/F");
       box.second->Branch("Rsq", &theRsq, "Rsq/F");
+      box.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+      box.second->Branch("MET", &MET, "MET/F");
+      box.second->Branch("t1MET", &t1MET, "t1MET/F");
       box.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
       box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -312,10 +319,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     ss << run << event;
     if ( mymap.find( ss.str() ) == mymap.end() )continue;
     //if ( !( run == 206859 && event == 24345 ) ) continue;
-    
+    */
     if ( _debug ) std::cout << "============" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
-    */
     
     if(combineTrees) box = LowRes;
     
@@ -447,7 +453,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       for(size_t j = i+1; j < phoCand.size(); j++){//I like this logic better, I find it easier to understand
 	PhotonCandidate pho1 = phoCand[i];
 	PhotonCandidate pho2 = phoCand[j];
-        
+        if ( _debug )
+	  {
+	    std::cout << "[DEBUG]: pho1-> " << pho1.photon.Pt()
+		      << " [DEBUG]: pho2->" << pho2.photon.Pt() 
+		      << std::endl;
+	  }
 	//need one photon in the pair to have pt > 40 GeV
 	if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
 	  {
@@ -456,6 +467,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  }
 	//need diphoton mass between > 100 GeV as in AN (April 1st)
 	double diphotonMass = (pho1.photon + pho2.photon).M();
+	if ( _debug )
+	  {
+	    std::cout << "[DEBUG] Hgg cadidate pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
+	  }
+	
 	if( diphotonMass < 100 )
 	  {
 	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: " << std::endl;
@@ -498,6 +514,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	_pho_index++;
       }
     
+    if ( _debug )
+      {
+	std::cout << "[DEBUG]: best photon pair: " 
+		  << "\n-> pho1Pt: " << Pho_Pt[0] 
+		  << "\n-> pho2Pt: " << Pho_Pt[1] 
+		  << std::endl;
+      }
+
     //if the best candidate pair has pT < 20 GeV, reject the event
     if( HiggsCandidate.Pt() < 20.0 )
       {
@@ -520,7 +544,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	for ( auto& phoC : phoCand )
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
-	    photonPassIsoRun1( phoC.Index, true );
+	    photonPassIsoRun1( phoC.Index, _debug );
 	  }
 	continue;
       }
@@ -592,10 +616,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
     
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+    TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
     
     vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
-    theMR = computeMR(hemispheres[0], hemispheres[1]); 
+    theMR  = computeMR(hemispheres[0], hemispheres[1]); 
     theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+    t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
+    MET = metPt;
+    t1MET = metType0Plus1Pt;
     //if MR < 200, reject the event
     if ( theMR < 150.0 )
       {
