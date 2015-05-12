@@ -75,7 +75,7 @@ void ZInvisibleControlSamples(){
     map<string, string> cuts;
     cuts["DYJets"] = "nLooseMuons == 2 && hlt_dimuon && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
     cuts["WJets"] = "nBTaggedJets == 0 && nTightMuons == 1 && nLooseMuons == 1 && hlt_singlemu && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
-    cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1";
+    cuts["GJets"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1 && leadingPhotonPt > 80";
     cuts["ZJets"] = "nLooseMuons == 0 && nLooseElectrons == 0 && hlt_razor && MR > 300 && Rsq > 0.15 && numJets80 > 1";
 
     cuts["TTJets"] = cuts["WJets"];
@@ -129,6 +129,7 @@ void ZInvisibleControlSamples(){
     float leadingMuonPt, leadingMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
     float leadingTightMuonPt, leadingTightMuonEta;
     bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150;
+    float genZPt;
     int nPU_mean;
     float MR, Rsq;
     for(auto &file : mcfiles){
@@ -175,6 +176,7 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
         mctrees[file.first]->SetBranchStatus("hlt_razor", 1);
         mctrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
+        mctrees[file.first]->SetBranchStatus("genZPt", 1);
 
         mctrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
@@ -195,6 +197,7 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
         mctrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
         mctrees[file.first]->SetBranchAddress("nPU_mean", &nPU_mean);
+        mctrees[file.first]->SetBranchAddress("genZPt", &genZPt);
     }
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
@@ -379,6 +382,21 @@ void ZInvisibleControlSamples(){
                 //trigger and normalization scale factors
                 eventWeight *= doubleMuTriggerSF;
                 eventWeight *= doubleMuNormalizationSF;
+
+                //ISR reweighting for DYJets
+                if(tree.first == "DYJets"){
+                    double isrWeight = 1.0;
+                    if(genZPt > 120 && genZPt < 150){
+                        isrWeight = 0.95;
+                    }
+                    else if(genZPt > 150 && genZPt < 250){
+                        isrWeight = 0.90;
+                    }
+                    else if(genZPt > 250){
+                        isrWeight = 0.80;
+                    }
+                    eventWeight *= isrWeight;
+                }
 
                 //TTJets SF
                 if(tree.first == "TTJetsDY"){
