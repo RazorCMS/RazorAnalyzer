@@ -156,17 +156,17 @@ bool RazorAnalyzer::photonPassIsoRun1( int i , bool _debug )
     {
       if ( PFIsoCorrected_chHad > EB_GetPFchHadIsoCut() )
 	{
-	  std::cout << "EB, Iso: failed chHadIso, cut @ " << EB_GetPFchHadIsoCut() << std::endl;
+	  if ( _debug ) std::cout << "EB, Iso: failed chHadIso, cut @ " << EB_GetPFchHadIsoCut() << std::endl;
 	  return false;
 	}
       if ( PFIsoCorrected_nHad > EB_GetPFnHadIsoCut( pt ) )
 	{
-	  std::cout << "EB, Iso: failed nHadIso, cut @ " << EB_GetPFnHadIsoCut( pt ) << std::endl;
+	  if ( _debug ) std::cout << "EB, Iso: failed nHadIso, cut @ " << EB_GetPFnHadIsoCut( pt ) << std::endl;
 	  return false;
 	}
       if ( PFIsoCorrected_pho > EB_GetPFphoIsoCut( pt ) )
 	{
-	  std::cout << "EB, Iso: failed phoIso, cut @ " << EB_GetPFphoIsoCut( pt ) << std::endl;
+	  if ( _debug ) std::cout << "EB, Iso: failed phoIso, cut @ " << EB_GetPFphoIsoCut( pt ) << std::endl;
 	  return false;
 	}
     }
@@ -174,12 +174,12 @@ bool RazorAnalyzer::photonPassIsoRun1( int i , bool _debug )
     {
       if ( PFIsoCorrected_chHad > EE_GetPFchHadIsoCut() )
 	{
-	  std::cout << "EE, Iso: failed chHadIso, cut @ " << EE_GetPFchHadIsoCut() << std::endl;
+	  if ( _debug ) std::cout << "EE, Iso: failed chHadIso, cut @ " << EE_GetPFchHadIsoCut() << std::endl;
 	  return false;
 	}
       if ( PFIsoCorrected_nHad > EE_GetPFnHadIsoCut( pt ) )
 	{
-	  std::cout << "EE, Iso: failed nHadIso, cut @ " << EE_GetPFnHadIsoCut( pt ) << std::endl;
+	  if ( _debug ) std::cout << "EE, Iso: failed nHadIso, cut @ " << EE_GetPFnHadIsoCut( pt ) << std::endl;
 	  return false;
 	}
     }

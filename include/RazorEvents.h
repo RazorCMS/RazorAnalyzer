@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sun May 10 23:40:39 2015 by ROOT version 5.32/00
+// Wed May  6 00:48:01 2015 by ROOT version 5.32/00
 // from TTree RazorEvents/selected miniAOD information
-// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root
+// found on file: /afs/cern.ch/work/c/cpena/public/RunOneNtupler/CMSSW_5_3_26/src/SUSYBSMAnalysis/RunOneRazorTuplizer/python/razorNtuple_ttH_Final.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -440,11 +440,12 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root");
+<<<<<<< HEAD
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/work/c/cpena/public/RunOneNtupler/CMSSW_5_3_26/src/SUSYBSMAnalysis/RunOneRazorTuplizer/python/razorNtuple_ttH_Final.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root");
+         f = new TFile("/afs/cern.ch/work/c/cpena/public/RunOneNtupler/CMSSW_5_3_26/src/SUSYBSMAnalysis/RunOneRazorTuplizer/python/razorNtuple_ttH_Final.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorNtupleV1.8/Run1/MC/v1/sixie/TTTT_TuneZ2star_8TeV-madgraph-tauola/runOneRazorNtuplerV1p8_MC_Summer12_DR53X-PU_S10_START53_V7A-v1_v1_v1/150502_135033//0000/razorNtuple_1.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/work/c/cpena/public/RunOneNtupler/CMSSW_5_3_26/src/SUSYBSMAnalysis/RunOneRazorTuplizer/python/razorNtuple_ttH_Final.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
