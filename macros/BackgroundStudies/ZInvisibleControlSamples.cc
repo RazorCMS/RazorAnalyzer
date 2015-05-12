@@ -18,6 +18,10 @@
 
 using namespace std;
 
+//true: find the translation factors from MC to data
+//false: find the translation factors from DY, W, G to Z->nunu
+bool computeDataOverMCSFs = true;
+
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
 void ZInvisibleControlSamples(){
@@ -29,26 +33,26 @@ void ZInvisibleControlSamples(){
     gStyle->SetPaintTextFormat("1.0f");
 
     //choose which sample to normalize to
-    string normalizeTo = "DYJets";
-    //string normalizeTo = "ZJets";
+    //string normalizeTo = "DYJets";
+    string normalizeTo = "ZJets";
 
     //for plots
     float MetMin = 0.;
     float MetMax = 1000;
     float nMetBins = 20;
-    float nMRBins = 10;
-    float nRsqBins = 8;
-    float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
-    float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.80, 1.5};
+    float nMRBins = 8;
+    float nRsqBins = 7;
+    float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 4000};
+    float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
 
-    //upper bounds of reweighing histograms
+    //upper bounds of reweighting histograms
     float maxPhotonPt = 999; 
     float maxMuonPt = 999;
     float maxZPt = 2999;
 
-    //decide to reweigh by MET or by MR and Rsq
-    //(reweighByRazor = false to reweigh by MET, true to reweigh by MR and Rsq)
-    bool reweighByRazor = true; 
+    //decide to reweight by MET or by MR and Rsq
+    //(reweightByRazor = false to reweight by MET, true to reweight by MR and Rsq)
+    bool reweightByRazor = true; 
 
     map<string, string> suffixes;
     suffixes["DYJets"] = "_noZ";
@@ -126,19 +130,29 @@ void ZInvisibleControlSamples(){
     float leadingTightMuonPt, leadingTightMuonEta;
     bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150;
     int nPU_mean;
+    float MR, Rsq;
     for(auto &file : mcfiles){
         mets[file.first] = 0.;
         mrs[file.first] = 0.;
         rsqs[file.first] = 0.;
         mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
         mctrees[file.first]->SetBranchStatus("*", 0);
-        mctrees[file.first]->SetBranchStatus(Form("met%s", suffixes[file.first].c_str()), 1);
-        mctrees[file.first]->SetBranchStatus(Form("MR%s", suffixes[file.first].c_str()), 1);
-        mctrees[file.first]->SetBranchStatus(Form("Rsq%s", suffixes[file.first].c_str()), 1);
-        mctrees[file.first]->SetBranchStatus(Form("numJets80%s", suffixes[file.first].c_str()), 1);
+        mctrees[file.first]->SetBranchStatus("met_noW", 1);
         mctrees[file.first]->SetBranchStatus("MR_noW", 1);
         mctrees[file.first]->SetBranchStatus("Rsq_noW", 1);
         mctrees[file.first]->SetBranchStatus("numJets80_noW", 1);
+        mctrees[file.first]->SetBranchStatus("met_noZ", 1);
+        mctrees[file.first]->SetBranchStatus("MR_noZ", 1);
+        mctrees[file.first]->SetBranchStatus("Rsq_noZ", 1);
+        mctrees[file.first]->SetBranchStatus("numJets80_noZ", 1);
+        mctrees[file.first]->SetBranchStatus("met_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("MR_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
+        mctrees[file.first]->SetBranchStatus("met", 1);
+        mctrees[file.first]->SetBranchStatus("MR", 1);
+        mctrees[file.first]->SetBranchStatus("Rsq", 1);
+        mctrees[file.first]->SetBranchStatus("numJets80", 1);
         mctrees[file.first]->SetBranchStatus("weight", 1);
         mctrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
         mctrees[file.first]->SetBranchStatus("leadingMuonEta", 1);
@@ -165,6 +179,8 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("Rsq%s", suffixes[file.first].c_str()), &rsqs[file.first]);
+        mctrees[file.first]->SetBranchAddress("MR", &MR);
+        mctrees[file.first]->SetBranchAddress("Rsq", &Rsq);
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
         mctrees[file.first]->SetBranchAddress("leadingMuonEta", &leadingMuonEta);
@@ -184,10 +200,22 @@ void ZInvisibleControlSamples(){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
         datatrees[file.first]->SetBranchStatus("*", 0);
 
-        datatrees[file.first]->SetBranchStatus(Form("met%s", suffixes[file.first].c_str()), 1);
-        datatrees[file.first]->SetBranchStatus(Form("MR%s", suffixes[file.first].c_str()), 1);
-        datatrees[file.first]->SetBranchStatus(Form("Rsq%s", suffixes[file.first].c_str()), 1);
-        datatrees[file.first]->SetBranchStatus(Form("numJets80%s", suffixes[file.first].c_str()), 1);
+        datatrees[file.first]->SetBranchStatus("met_noW", 1);
+        datatrees[file.first]->SetBranchStatus("MR_noW", 1);
+        datatrees[file.first]->SetBranchStatus("Rsq_noW", 1);
+        datatrees[file.first]->SetBranchStatus("numJets80_noW", 1);
+        datatrees[file.first]->SetBranchStatus("met_noZ", 1);
+        datatrees[file.first]->SetBranchStatus("MR_noZ", 1);
+        datatrees[file.first]->SetBranchStatus("Rsq_noZ", 1);
+        datatrees[file.first]->SetBranchStatus("numJets80_noZ", 1);
+        datatrees[file.first]->SetBranchStatus("met_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("MR_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
+        datatrees[file.first]->SetBranchStatus("met", 1);
+        datatrees[file.first]->SetBranchStatus("MR", 1);
+        datatrees[file.first]->SetBranchStatus("Rsq", 1);
+        datatrees[file.first]->SetBranchStatus("numJets80", 1);
         datatrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
         datatrees[file.first]->SetBranchStatus("leadingMuonEta", 1);
         datatrees[file.first]->SetBranchStatus("leadingTightMuonPt", 1);
@@ -235,12 +263,12 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress("passedHLTPhoton135", &passedHLTPhoton135);
         datatrees[file.first]->SetBranchAddress("passedHLTPhoton150", &passedHLTPhoton150);
     }
-        //luminosities collected by the various photon triggers
-        float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
-        float lumi_HLTPhoton75  = 8.111e0 + 2.953e1 + 4.768e1 + 4.879e1;
-        float lumi_HLTPhoton90  = 1.622e1 + 6.408e1 + 1.010e2 + 9.948e1;
-        float lumi_HLTPhoton135 = 8.893e2 + 1.476e2 + 5.429e3 + 7.318e3;
-        float lumi_HLTPhoton150 = 8.893e2 + 4.429e3 + 7.152e3 + 7.318e3;
+    //luminosities collected by the various photon triggers
+    float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
+    float lumi_HLTPhoton75  = 8.111e0 + 2.953e1 + 4.768e1 + 4.879e1;
+    float lumi_HLTPhoton90  = 1.622e1 + 6.408e1 + 1.010e2 + 9.948e1;
+    float lumi_HLTPhoton135 = 8.893e2 + 1.476e2 + 5.429e3 + 7.318e3;
+    float lumi_HLTPhoton150 = 8.893e2 + 4.429e3 + 7.152e3 + 7.318e3;
 
     //load efficiency/acceptance histograms
     TFile effFile("Run1LeptonPhotonEfficiency.root");
@@ -252,10 +280,7 @@ void ZInvisibleControlSamples(){
     //load muon efficiency scale factor histogram
     TFile muIdSFFile("data/ScaleFactors/MuonEfficiencies_ID_Run2012ReReco_53X.root");
     TFile muIsoSFFile("data/ScaleFactors/MuonEfficiencies_ISO_Run_2012ReReco_53X.root");
-    //TH2F *muIdSFHist = (TH2F*)muIdSFFile.Get("what goes here?");
-    //TH2F *muIsoSFHist = (TH2F*)muIsoSFFile.Get("what goes here?");
-    //TH2F *muIdTightSFHist = (TH2F*)muIdSFFile.Get("what goes here?");
-    //TH2F *muIsoTightSFHist = (TH2F*)muIsoSFFile.Get("what goes here?");
+    //TODO: add muon efficiency scale factors
     float singleMuTriggerSF = 0.97;
     float doubleMuTriggerSF = 0.97;
     float doubleMuNormalizationSF = 0.97;
@@ -264,23 +289,31 @@ void ZInvisibleControlSamples(){
     TFile *pileupWeightFile = new TFile("data/Run1PileupWeights.root", "READ");
     TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PUWeight_Run1");
     assert(pileupWeightHist);
-    
-    //Step 1: Get the distributions to reweigh by: MET, MR, Rsq
-    map<string, TH1F> metHistosForReweighing;
-    map<string, TH2F> razorHistosForReweighing;
-    map<string, TH1F> MRHistosBeforeReweighing;
-    map<string, TH1F> RsqHistosBeforeReweighing;
+
+    //load TTbar scale factor histograms
+    TFile *TTBarDileptonScaleFactorsFile = new TFile("data/ScaleFactors/Run1/TTBarDileptonScaleFactors.root");
+    TH2F *TTBarDileptonScaleFactor = (TH2F*)TTBarDileptonScaleFactorsFile->Get("TTBarDileptonScaleFactor");
+    TFile *TTBarSingleLeptonScaleFactorsFile = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
+    TH2F *TTBarSingleLeptonScaleFactor = (TH2F*)TTBarSingleLeptonScaleFactorsFile->Get("TTBarSingleLeptonScaleFactor");
+    float maxMRForTTJetsSF = 650;
+    float maxRsqForTTJetsSF = 1.0;
+
+    //Step 1: Get the distributions to reweight by: MET, MR, Rsq
+    map<string, TH1F> metHistosForReweighting;
+    map<string, TH2F> razorHistosForReweighting;
+    map<string, TH1F> MRHistosBeforeReweighting;
+    map<string, TH1F> RsqHistosBeforeReweighting;
     TH1F mcPhotonPt("mcPhotonPt", "Photon Pt; photon pt", 100, 0, 1000);
     mcPhotonPt.Sumw2();
     for(auto &tree : mctrees){
         cout << "Filling MC histograms: " << tree.first << endl;
-        metHistosForReweighing[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", nMetBins, MetMin, MetMax);
-        razorHistosForReweighing[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        MRHistosBeforeReweighing[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
-        RsqHistosBeforeReweighing[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
-        MRHistosBeforeReweighing[tree.first].Sumw2();
-        RsqHistosBeforeReweighing[tree.first].Sumw2();
-        razorHistosForReweighing[tree.first].Sumw2();
+        metHistosForReweighting[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", nMetBins, MetMin, MetMax);
+        razorHistosForReweighting[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        MRHistosBeforeReweighting[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        RsqHistosBeforeReweighting[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
+        MRHistosBeforeReweighting[tree.first].Sumw2();
+        RsqHistosBeforeReweighting[tree.first].Sumw2();
+        razorHistosForReweighting[tree.first].Sumw2();
         uint nEntries = tree.second->GetEntries();
         //make TTreeFormula for selection cuts
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
@@ -297,170 +330,173 @@ void ZInvisibleControlSamples(){
             float eventWeight = weight;
             eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
 
-            //reweigh according to selection efficiency and acceptance
+            //reweight according to selection efficiency and acceptance
             if(tree.first == "GJets" || tree.first == "QCD" || tree.first == "WG" || tree.first == "ZG" || tree.first == "TTG"){
-                double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-                if(effFactor > 1e-5) eventWeight /= effFactor;
-                else{ 
-                    eventWeight = 0;
-                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                if(!computeDataOverMCSFs){
+                    double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindFixBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+
+                    if(effFactor > 1e-5) eventWeight /= effFactor;
+                    else{ 
+                        eventWeight = 0;
+                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    }
                 }
                 mcPhotonPt.Fill(leadingPhotonPt, eventWeight);
             }
             else if(tree.first == "WJets" || tree.first == "Top" || tree.first == "TTJets" || tree.first == "TTW" || tree.first == "TTZ"){
                 //ID efficiency
-                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                if(!computeDataOverMCSFs){
+                    double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindFixBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
 
-                //efficiency scale factors
-                //effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-                //effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-
+                    if(effFactor > 1e-5) eventWeight /= effFactor;
+                    else{ 
+                        eventWeight = 0;
+                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                    }
+                }
+                
                 //trigger and normalization scale factors
-                effFactor *= singleMuTriggerSF;
+                eventWeight *= singleMuTriggerSF;
 
-                if(effFactor > 1e-5) eventWeight /= effFactor;
-                else{ 
-                    eventWeight = 0;
-                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                //TTJets SF
+                if(tree.first == "TTJets"){
+                    double ttjetsSF = TTBarDileptonScaleFactor->GetBinContent(TTBarDileptonScaleFactor->FindFixBin(min(MR, maxMRForTTJetsSF), min(Rsq, maxRsqForTTJetsSF)));
+                    if(ttjetsSF > 1e-5) eventWeight *= ttjetsSF;
                 }
             }
             else if(tree.first == "DYJets" || tree.first == "TopDY" || tree.first == "TTJetsDY" || tree.first == "TTWDY" || tree.first == "TTZDY"){
-                double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+                if(!computeDataOverMCSFs){
+                    double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                    effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                    effFactor *= zAccHisto.GetBinContent(zAccHisto.FindFixBin(min(recoZpt, maxZPt), fabs(recoZeta)));
 
-                //efficiency scale factors: leading muon
-                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                //subleading muon
-                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-
+                    if(effFactor > 1e-5) eventWeight /= effFactor;
+                    else{
+                        //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                        eventWeight = 0;
+                    }
+                }
                 //trigger and normalization scale factors
-                effFactor *= doubleMuTriggerSF;
-                effFactor *= doubleMuNormalizationSF;
+                eventWeight *= doubleMuTriggerSF;
+                eventWeight *= doubleMuNormalizationSF;
 
-                if(effFactor > 1e-5) eventWeight /= effFactor;
-                else{
-                    //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
-                    eventWeight = 0;
+                //TTJets SF
+                if(tree.first == "TTJetsDY"){
+                    double ttjetsSF = TTBarDileptonScaleFactor->GetBinContent(TTBarDileptonScaleFactor->FindFixBin(min(MR, maxMRForTTJetsSF), min(Rsq, maxRsqForTTJetsSF)));
+                    if(ttjetsSF > 1e-5) eventWeight *= ttjetsSF;
                 }
             }
             else if(tree.first != "ZJets"){
                 cout << "Warning: unexpected dataset " << tree.first << " encountered!  Check the code." << endl;
             }
             //fill each quantity
-            metHistosForReweighing[tree.first].Fill(mets[tree.first], eventWeight);
-            razorHistosForReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], eventWeight);
-            MRHistosBeforeReweighing[tree.first].Fill(mrs[tree.first], eventWeight);
-            RsqHistosBeforeReweighing[tree.first].Fill(rsqs[tree.first], eventWeight);
+            metHistosForReweighting[tree.first].Fill(mets[tree.first], eventWeight);
+            razorHistosForReweighting[tree.first].Fill(mrs[tree.first], rsqs[tree.first], eventWeight);
+            MRHistosBeforeReweighting[tree.first].Fill(mrs[tree.first], eventWeight);
+            RsqHistosBeforeReweighting[tree.first].Fill(rsqs[tree.first], eventWeight);
         }
     }
 
-    //Step 2: Sanity check: apply the reweighing factors to MC
+    //Step 2: Sanity check: apply the reweighting factors to MC
     map<string, TH2F> razorHistosMC;
-    for(auto &tree : mctrees){
-        cout << "Filling reweighed MC histograms: " << tree.first << endl;
-        razorHistosMC[tree.first] = TH2F(Form("razorMCReweighed%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        razorHistosMC[tree.first].Sumw2();
-        uint nEntries = tree.second->GetEntries();
-        TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
-        cutsFormula.GetNdata();
-        for(uint i = 0; i < nEntries; i++){
-            //get entry
-            tree.second->GetEntry(i);
+    if(!computeDataOverMCSFs){
+        for(auto &tree : mctrees){
+            cout << "Filling reweighted MC histograms: " << tree.first << endl;
+            razorHistosMC[tree.first] = TH2F(Form("razorMCReweighted%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorHistosMC[tree.first].Sumw2();
+            uint nEntries = tree.second->GetEntries();
+            TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
+            cutsFormula.GetNdata();
+            for(uint i = 0; i < nEntries; i++){
+                //get entry
+                tree.second->GetEntry(i);
 
-            //apply selection cuts
-            bool passesSelection = cutsFormula.EvalInstance();
-            if(!passesSelection) continue;
+                //apply selection cuts
+                bool passesSelection = cutsFormula.EvalInstance();
+                if(!passesSelection) continue;
 
-            float reweighFactor = weight;
-            reweighFactor *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
-            //reweigh by efficiency and acceptance
-            if(tree.first == "GJets" || tree.first == "QCD" || tree.first == "TTG" || tree.first == "WG" || tree.first == "ZG"){
-                double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-                if(effFactor > 1e-5) reweighFactor /= effFactor;
-                else{
-                    reweighFactor = 0;
-                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                float eventWeight = weight;
+                eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
+
+                //reweight by efficiency and acceptance
+                if(tree.first == "GJets" || tree.first == "QCD" || tree.first == "TTG" || tree.first == "WG" || tree.first == "ZG"){
+                    if(!computeDataOverMCSFs){
+                        double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindFixBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+                        if(effFactor > 1e-5) eventWeight /= effFactor;
+                        else{
+                            eventWeight = 0;
+                            //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                        }
+                    }
                 }
-            }
-            else if(tree.first == "WJets" || tree.first == "Top" || tree.first == "TTJets" || tree.first == "TTW" || tree.first == "TTZ"){
-                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                else if(tree.first == "WJets" || tree.first == "Top" || tree.first == "TTJets" || tree.first == "TTW" || tree.first == "TTZ"){
+                    if(!computeDataOverMCSFs){
+                        double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindFixBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
 
-                //efficiency scale factors
-                //effFactor *= muIdTightSFHist->GetBinContent(muIdTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-                //effFactor *= muIsoTightSFHist->GetBinContent(muIsoTightSFHist->FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-
-                //trigger scale factor
-                effFactor *= singleMuTriggerSF;
-
-                if(effFactor > 1e-5) reweighFactor /= effFactor;
-                else{ 
-                    reweighFactor = 0;
-                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                        if(effFactor > 1e-5) eventWeight /= effFactor;
+                        else{ 
+                            eventWeight = 0;
+                            //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                        }
+                    }
+                    //trigger scale factor
+                    eventWeight *= singleMuTriggerSF;
                 }
-            }
-            else if(tree.first == "DYJets" || tree.first == "TopDY" || tree.first == "TTJetsDY" || tree.first == "TTWDY" || tree.first == "TTZDY"){
-                double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+                else if(tree.first == "DYJets" || tree.first == "TopDY" || tree.first == "TTJetsDY" || tree.first == "TTWDY" || tree.first == "TTZDY"){
+                    if(!computeDataOverMCSFs){
+                        double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                        effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                        effFactor *= zAccHisto.GetBinContent(zAccHisto.FindFixBin(min(recoZpt, maxZPt), fabs(recoZeta)));
 
-                //efficiency scale factors: leading muon
-                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                //subleading muon
-                //effFactor *= muIdSFHist->GetBinContent(muIdSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                //effFactor *= muIsoSFHist->GetBinContent(muIsoSFHist->FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-
-                //trigger and normalization scale factors
-                effFactor *= doubleMuTriggerSF;
-                effFactor *= doubleMuNormalizationSF;
-
-                if(effFactor > 1e-5) reweighFactor /= effFactor;
-                else{
-                    //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
-                    reweighFactor = 0;
+                        if(effFactor > 1e-5) eventWeight /= effFactor;
+                        else{
+                            //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                            eventWeight = 0;
+                        }
+                    }
+                    //trigger and normalization scale factors
+                    eventWeight *= doubleMuTriggerSF;
+                    eventWeight *= doubleMuNormalizationSF;
                 }
-            }
-            else if(tree.first != "ZJets"){
-                cout << "Warning: unexpected dataset " << tree.first << " encountered!  Check the code." << endl;
-            }
+                else if(tree.first != "ZJets"){
+                    cout << "Warning: unexpected dataset " << tree.first << " encountered!  Check the code." << endl;
+                }
 
-            if(reweighByRazor){ //reweigh by MR and Rsq
-                //get the factor to reweigh by
-                float denominator = razorHistosForReweighing[tree.first].GetBinContent(razorHistosForReweighing[tree.first].FindBin(mrs[tree.first], rsqs[tree.first]));
-                float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(razorHistosForReweighing[normalizeTo].FindBin(mrs[tree.first], rsqs[tree.first]));
-                if(denominator > 0){
-                    reweighFactor *= numerator / denominator;
+                if(reweightByRazor){ //reweight by MR and Rsq
+                    //get the factor to reweight by
+                    float denominator = razorHistosForReweighting[tree.first].GetBinContent(razorHistosForReweighting[tree.first].FindFixBin(mrs[tree.first], rsqs[tree.first]));
+                    float numerator = razorHistosForReweighting[normalizeTo].GetBinContent(razorHistosForReweighting[normalizeTo].FindFixBin(mrs[tree.first], rsqs[tree.first]));
+                    if(denominator > 0){
+                        eventWeight *= numerator / denominator;
+                    }
+                } 
+                else{ //reweight by MET
+                    //get the factor to reweight by
+                    float denominator = metHistosForReweighting[tree.first].GetBinContent(metHistosForReweighting[tree.first].FindFixBin(mets[tree.first]));
+                    float numerator = metHistosForReweighting[normalizeTo].GetBinContent(metHistosForReweighting[normalizeTo].FindFixBin(mets[tree.first]));
+                    if(denominator > 0){
+                        eventWeight *= numerator / denominator;    
+                    }
                 }
-            } 
-            else{ //reweigh by MET
-                //get the factor to reweigh by
-                float denominator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
-                float numerator = metHistosForReweighing[normalizeTo].GetBinContent(metHistosForReweighing[normalizeTo].FindBin(mets[tree.first]));
-                if(denominator > 0){
-                    reweighFactor *= numerator / denominator;    
-                }
+                razorHistosMC[tree.first].Fill(mrs[tree.first], rsqs[tree.first], eventWeight);
             }
-            razorHistosMC[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
         }
     }
 
     //Step 3: make data distributions
-    map<string, TH2F> razorHistosDataBeforeReweighing; //apply only efficiency and acceptance corrections
-    map<string, TH1F> MRHistosDataBeforeReweighing;
-    map<string, TH1F> RsqHistosDataBeforeReweighing;
+    map<string, TH2F> razorHistosDataBeforeReweighting; //apply only efficiency and acceptance corrections
+    map<string, TH1F> MRHistosDataBeforeReweighting;
+    map<string, TH1F> RsqHistosDataBeforeReweighting;
     TH1F dataPhotonPt("dataPhotonPt", "Photon Pt; photon pt", 100, 0, 1000);
     dataPhotonPt.Sumw2();
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
-        razorHistosDataBeforeReweighing[tree.first] = TH2F(Form("razordatabeforereweighing%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        MRHistosDataBeforeReweighing[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
-        RsqHistosDataBeforeReweighing[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
-        razorHistosDataBeforeReweighing[tree.first].Sumw2();
-        MRHistosDataBeforeReweighing[tree.first].Sumw2();
-        RsqHistosDataBeforeReweighing[tree.first].Sumw2();
+        razorHistosDataBeforeReweighting[tree.first] = TH2F(Form("razordatabeforereweighting%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        MRHistosDataBeforeReweighting[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        RsqHistosDataBeforeReweighting[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
+        razorHistosDataBeforeReweighting[tree.first].Sumw2();
+        MRHistosDataBeforeReweighting[tree.first].Sumw2();
+        RsqHistosDataBeforeReweighting[tree.first].Sumw2();
         uint nEntries = tree.second->GetEntries();
         TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
         cutsFormula.GetNdata();
@@ -472,14 +508,16 @@ void ZInvisibleControlSamples(){
             bool passesSelection = cutsFormula.EvalInstance();
             if(!passesSelection) continue;
 
-            float reweighFactor = 1.0;
-            //reweigh by efficiency and acceptance
+            float eventWeight = 1.0;
+            //reweight by efficiency and acceptance
             if(tree.first == "GJets"){
-                double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-                if(effFactor > 1e-5) reweighFactor /= effFactor;
-                else{ 
-                    reweighFactor = 0;
-                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                if(!computeDataOverMCSFs){
+                    double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindFixBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+                    if(effFactor > 1e-5) eventWeight /= effFactor;
+                    else{ 
+                        eventWeight = 0;
+                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    }
                 }
                 double triggerWeightRestricted = 0.0;
                 //get weight if associate each photon trigger with a particular pt range
@@ -498,192 +536,187 @@ void ZInvisibleControlSamples(){
                 else if(passedHLTPhoton50 && leadingPhotonPt < 90){
                     triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
                 }
-                //get weight using the tightest trigger passed
-                //if(passedHLTPhoton150){ 
-                //    triggerWeightRestricted = 1.0;
-                //}
-                //else if(passedHLTPhoton135){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
-                //}
-                //else if(passedHLTPhoton90){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
-                //}
-                //else if(passedHLTPhoton75){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
-                //}
-                //else if(passedHLTPhoton50){
-                //    triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
-                //}
+                eventWeight *= triggerWeightRestricted;
 
-                reweighFactor *= triggerWeightRestricted;
-
-                dataPhotonPt.Fill(leadingPhotonPt, reweighFactor);
+                dataPhotonPt.Fill(leadingPhotonPt, eventWeight);
             }
             else if(tree.first == "WJets"){
-                double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-                if(effFactor > 1e-5) reweighFactor /= effFactor;
-                else{ 
-                    reweighFactor = 0;
-                    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                if(!computeDataOverMCSFs){
+                    double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindFixBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                    if(effFactor > 1e-5) eventWeight /= effFactor;
+                    else{ 
+                        eventWeight = 0;
+                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                    }
                 }
             }
             else if(tree.first == "DYJets"){
-                double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
-                if(effFactor > 1e-5) reweighFactor /= effFactor;
-                else{
-                    //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
-                    reweighFactor = 0;
+                if(!computeDataOverMCSFs){
+                    double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                    effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                    effFactor *= zAccHisto.GetBinContent(zAccHisto.FindFixBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+                    if(effFactor > 1e-5) eventWeight /= effFactor;
+                    else{
+                        //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                        eventWeight = 0;
+                    }
                 }
             }
             else if(tree.first != "ZJets"){
                 cout << "Warning: unexpected dataset " << tree.first << " encountered!  Check the code." << endl;
             }
-            razorHistosDataBeforeReweighing[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
-            MRHistosDataBeforeReweighing[tree.first].Fill(mrs[tree.first], reweighFactor);
-            RsqHistosDataBeforeReweighing[tree.first].Fill(rsqs[tree.first], reweighFactor);
+            razorHistosDataBeforeReweighting[tree.first].Fill(mrs[tree.first], rsqs[tree.first], eventWeight);
+            MRHistosDataBeforeReweighting[tree.first].Fill(mrs[tree.first], eventWeight);
+            RsqHistosDataBeforeReweighting[tree.first].Fill(rsqs[tree.first], eventWeight);
+        }
+    }
+    //for rare background processes, include a 20% uncertainty on the total yield in each bin, summed in quadrature with the statistical uncertainty
+    double sysErrorFrac = 0.2;
+    //for QCD, assign a 100% uncertainty
+    double qcdErrorFrac = 1.0;
+    for(auto &tree : mctrees){
+        //only do this for rare processes (not signal processes or TTJets)
+        if(tree.first == "DYJets" || tree.first == "WJets" || tree.first == "GJets" || tree.first == "ZJets" || tree.first == "TTJets") continue; 
+        for(int i = 0; i < razorHistosForReweighting[tree.first].GetNbinsX()+1; i++){
+            for(int j = 0; j < razorHistosForReweighting[tree.first].GetNbinsY()+1; j++){
+                double error = 0.0;
+                if(tree.first == "QCD"){
+                    error = qcdErrorFrac*razorHistosForReweighting[tree.first].GetBinContent(i, j);
+                }
+                else{
+                    error = sysErrorFrac*razorHistosForReweighting[tree.first].GetBinContent(i, j);
+                }
+                razorHistosForReweighting[tree.first].SetBinError(i, j, sqrt(pow(razorHistosForReweighting[tree.first].GetBinError(i, j), 2) + error*error));
+            }
         }
     }
     //subtract the top background from the WJets histogram
-    //TODO: apply the ttbar data/MC scale factors first
-    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["Top"];
-    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["TTJets"];
-    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["TTW"];
-    razorHistosDataBeforeReweighing["WJets"] = razorHistosDataBeforeReweighing["WJets"] - razorHistosForReweighing["TTZ"];
+    razorHistosDataBeforeReweighting["WJets"] = razorHistosDataBeforeReweighting["WJets"] - razorHistosForReweighting["Top"];
+    razorHistosDataBeforeReweighting["WJets"] = razorHistosDataBeforeReweighting["WJets"] - razorHistosForReweighting["TTJets"];
+    razorHistosDataBeforeReweighting["WJets"] = razorHistosDataBeforeReweighting["WJets"] - razorHistosForReweighting["TTW"];
+    razorHistosDataBeforeReweighting["WJets"] = razorHistosDataBeforeReweighting["WJets"] - razorHistosForReweighting["TTZ"];
     //subtract the top background from the DYJets histogram
-    //TODO: apply the ttbar data/MC scale factors first
-    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TTJetsDY"];
-    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TopDY"];
-    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TTWDY"];
-    razorHistosDataBeforeReweighing["DYJets"] = razorHistosDataBeforeReweighing["DYJets"] - razorHistosForReweighing["TTZDY"];
+    razorHistosDataBeforeReweighting["DYJets"] = razorHistosDataBeforeReweighting["DYJets"] - razorHistosForReweighting["TTJetsDY"];
+    razorHistosDataBeforeReweighting["DYJets"] = razorHistosDataBeforeReweighting["DYJets"] - razorHistosForReweighting["TopDY"];
+    razorHistosDataBeforeReweighting["DYJets"] = razorHistosDataBeforeReweighting["DYJets"] - razorHistosForReweighting["TTWDY"];
+    razorHistosDataBeforeReweighting["DYJets"] = razorHistosDataBeforeReweighting["DYJets"] - razorHistosForReweighting["TTZDY"];
     //subtract the QCD background from the photon+jets histogram
-    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["QCD"];
-    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["TTG"];
-    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["WG"];
-    razorHistosDataBeforeReweighing["GJets"] = razorHistosDataBeforeReweighing["GJets"] - razorHistosForReweighing["ZG"];
+    razorHistosDataBeforeReweighting["GJets"] = razorHistosDataBeforeReweighting["GJets"] - razorHistosForReweighting["QCD"];
+    razorHistosDataBeforeReweighting["GJets"] = razorHistosDataBeforeReweighting["GJets"] - razorHistosForReweighting["TTG"];
+    razorHistosDataBeforeReweighting["GJets"] = razorHistosDataBeforeReweighting["GJets"] - razorHistosForReweighting["WG"];
+    razorHistosDataBeforeReweighting["GJets"] = razorHistosDataBeforeReweighting["GJets"] - razorHistosForReweighting["ZG"];
 
-    //Step 4: apply reweighing factors to data
+    //Step 4: apply reweighting factors to data
     map<string, TH2F> razorHistosData;
-    if(reweighByRazor){
-        for(auto &tree : datatrees){
-            cout << "Making weighted data histograms: " << tree.first << endl;
-            razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorHistosData[tree.first].Sumw2();
-            for(int i = 0; i < razorHistosData[tree.first].GetNbinsX()+1; i++){
-                for(int j = 0; j < razorHistosData[tree.first].GetNbinsY()+1; j++){
-                    float numerator = razorHistosForReweighing[normalizeTo].GetBinContent(i, j);
-                    float denominator = razorHistosForReweighing[tree.first].GetBinContent(i, j);
-                    float numeratorError = razorHistosForReweighing[normalizeTo].GetBinError(i, j);
-                    float denominatorError = razorHistosForReweighing[tree.first].GetBinError(i, j);
-                    if(denominator > 0){
-                        razorHistosData[tree.first].SetBinContent(i, j, razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numerator/denominator);
-                        //compute the uncertainty on the bin, folding in uncertainties on the scale factor numerator/denominator
-                        razorHistosData[tree.first].SetBinError(i, j, sqrt(pow(razorHistosDataBeforeReweighing[tree.first].GetBinError(i, j)*numerator/denominator, 2) + pow(razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numeratorError/denominator, 2) + pow(razorHistosDataBeforeReweighing[tree.first].GetBinContent(i, j)*numerator*denominatorError/(denominator*denominator), 2)));
+    if(!computeDataOverMCSFs){
+        if(reweightByRazor){
+            for(auto &tree : datatrees){
+                cout << "Making weighted data histograms: " << tree.first << endl;
+                razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+                razorHistosData[tree.first].Sumw2();
+                for(int i = 0; i < razorHistosData[tree.first].GetNbinsX()+1; i++){
+                    for(int j = 0; j < razorHistosData[tree.first].GetNbinsY()+1; j++){
+                        float numerator = razorHistosForReweighting[normalizeTo].GetBinContent(i, j);
+                        float denominator = razorHistosForReweighting[tree.first].GetBinContent(i, j);
+                        float numeratorError = razorHistosForReweighting[normalizeTo].GetBinError(i, j);
+                        float denominatorError = razorHistosForReweighting[tree.first].GetBinError(i, j);
+                        if(denominator > 0){
+                            razorHistosData[tree.first].SetBinContent(i, j, razorHistosDataBeforeReweighting[tree.first].GetBinContent(i, j)*numerator/denominator);
+                            //compute the uncertainty on the bin, folding in uncertainties on the scale factor numerator/denominator
+                            razorHistosData[tree.first].SetBinError(i, j, sqrt(pow(razorHistosDataBeforeReweighting[tree.first].GetBinError(i, j)*numerator/denominator, 2) + pow(razorHistosDataBeforeReweighting[tree.first].GetBinContent(i, j)*numeratorError/denominator, 2) + pow(razorHistosDataBeforeReweighting[tree.first].GetBinContent(i, j)*numerator*denominatorError/(denominator*denominator), 2)));
+                        }
+                        else{
+                            razorHistosData[tree.first].SetBinContent(i, j, 0.);
+                            razorHistosData[tree.first].SetBinError(i, j, 0.);
+                        }
                     }
-                    else{
-                        razorHistosData[tree.first].SetBinContent(i, j, 0.);
-                        razorHistosData[tree.first].SetBinError(i, j, 0.);
-                    }
-                }
-            }   
+                }   
+            }
         }
-    }
-    else{ 
-        for(auto &tree : datatrees){
-            cout << "Making weighted data histograms: " << tree.first << endl;
-            razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorHistosData[tree.first].Sumw2();
+        else{ 
+            for(auto &tree : datatrees){
+                cout << "Making weighted data histograms: " << tree.first << endl;
+                razorHistosData[tree.first] = TH2F(Form("razordata%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+                razorHistosData[tree.first].Sumw2();
 
-            uint nEntries = tree.second->GetEntries();
-            TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
-            cutsFormula.GetNdata();
-            for(uint i = 0; i < nEntries; i++){
-                //get entry
-                tree.second->GetEntry(i);
+                uint nEntries = tree.second->GetEntries();
+                TTreeFormula cutsFormula(Form("%sCutsFormula", tree.first.c_str()), cuts[tree.first].c_str(), tree.second);
+                cutsFormula.GetNdata();
+                for(uint i = 0; i < nEntries; i++){
+                    //get entry
+                    tree.second->GetEntry(i);
 
-                //apply selection cuts
-                bool passesSelection = cutsFormula.EvalInstance();
-                if(!passesSelection) continue;
+                    //apply selection cuts
+                    bool passesSelection = cutsFormula.EvalInstance();
+                    if(!passesSelection) continue;
 
-                float reweighFactor = 1.0;
-                //reweigh by efficiency and acceptance
-                if(tree.first == "GJets"){
-                    double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-                    if(effFactor > 1e-5) reweighFactor /= effFactor;
-                    else{ 
-                        reweighFactor = 0;
-                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                    float reweightFactor = 1.0;
+                    //reweight by efficiency and acceptance
+                    if(tree.first == "GJets"){
+                        double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindFixBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+                        if(effFactor > 1e-5) reweightFactor /= effFactor;
+                        else{ 
+                            reweightFactor = 0;
+                            //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+                        }
+                        //get weight if associate each photon trigger with a particular pt range
+                        double triggerWeightRestricted = 0.0;
+                        if(passedHLTPhoton150 && leadingPhotonPt > 165){ 
+                            triggerWeightRestricted = 1.0;
+                        }
+                        else if(passedHLTPhoton135 && leadingPhotonPt > 150 && leadingPhotonPt < 165){
+                            triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
+                        }
+                        else if(passedHLTPhoton90 && leadingPhotonPt > 100 && leadingPhotonPt < 150){
+                            triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
+                        }
+                        else if(passedHLTPhoton75 && leadingPhotonPt > 90 && leadingPhotonPt < 100){
+                            triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
+                        }
+                        else if(passedHLTPhoton50 && leadingPhotonPt < 90){
+                            triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
+                        }
+                        reweightFactor *= triggerWeightRestricted;
                     }
-                    //get weight if associate each photon trigger with a particular pt range
-                    double triggerWeightRestricted = 0.0;
-                    if(passedHLTPhoton150 && leadingPhotonPt > 165){ 
-                        triggerWeightRestricted = 1.0;
+                    else if(tree.first == "WJets"){
+                        double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindFixBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
+                        if(effFactor > 1e-5) reweightFactor /= effFactor;
+                        else{ 
+                            reweightFactor = 0;
+                            //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
+                        }
                     }
-                    else if(passedHLTPhoton135 && leadingPhotonPt > 150 && leadingPhotonPt < 165){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
+                    else if(tree.first == "DYJets"){
+                        double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
+                        effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindFixBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
+                        effFactor *= zAccHisto.GetBinContent(zAccHisto.FindFixBin(min(recoZpt, maxZPt), fabs(recoZeta)));
+                        if(effFactor > 1e-5) reweightFactor /= effFactor;
+                        else{
+                            //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
+                            reweightFactor = 0;
+                        }
                     }
-                    else if(passedHLTPhoton90 && leadingPhotonPt > 100 && leadingPhotonPt < 150){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
+                    //reweight by MET
+                    //get the factor to reweight by
+                    float denominator = metHistosForReweighting[tree.first].GetBinContent(metHistosForReweighting[tree.first].FindFixBin(mets[tree.first]));
+                    float numerator = metHistosForReweighting[normalizeTo].GetBinContent(metHistosForReweighting[normalizeTo].FindFixBin(mets[tree.first]));
+                    if(denominator > 0){
+                        reweightFactor *= numerator / denominator;    
                     }
-                    else if(passedHLTPhoton75 && leadingPhotonPt > 90 && leadingPhotonPt < 100){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
-                    }
-                    else if(passedHLTPhoton50 && leadingPhotonPt < 90){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
-                    }
-                    reweighFactor *= triggerWeightRestricted;
-                }
-                else if(tree.first == "WJets"){
-                    double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindBin(min(leadingTightMuonPt, maxMuonPt), fabs(leadingTightMuonEta)));
-                    if(effFactor > 1e-5) reweighFactor /= effFactor;
-                    else{ 
-                        reweighFactor = 0;
-                        //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
-                    }
-                }
-                else if(tree.first == "DYJets"){
-                    double effFactor = muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(leadingMuonPt, maxMuonPt), fabs(leadingMuonEta)));
-                    effFactor *= muonLooseEffHisto.GetBinContent(muonLooseEffHisto.FindBin(min(subleadingMuonPt, maxMuonPt), fabs(subleadingMuonEta)));
-                    effFactor *= zAccHisto.GetBinContent(zAccHisto.FindBin(min(recoZpt, maxZPt), fabs(recoZeta)));
-                    if(effFactor > 1e-5) reweighFactor /= effFactor;
-                    else{
-                        //cout << "Warning: efficiency histogram gives 0; (lead pt " << leadingMuonPt << ", leading eta " << leadingMuonEta << ", subleading pt " << subleadingMuonPt << ", subleading eta " << subleadingMuonEta << ", z pt " << recoZpt << ", z eta " << recoZeta << "); setting event weight to 0" << endl;
-                        reweighFactor = 0;
-                    }
-                }
-                //reweigh by MET
-                //get the factor to reweigh by
-                float denominator = metHistosForReweighing[tree.first].GetBinContent(metHistosForReweighing[tree.first].FindBin(mets[tree.first]));
-                float numerator = metHistosForReweighing[normalizeTo].GetBinContent(metHistosForReweighing[normalizeTo].FindBin(mets[tree.first]));
-                if(denominator > 0){
-                    reweighFactor *= numerator / denominator;    
-                }
 
-                razorHistosData[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweighFactor);
+                    razorHistosData[tree.first].Fill(mrs[tree.first], rsqs[tree.first], reweightFactor);
+                }
             }
         }
     }
 
-    TFile outfile("controlSampleHistograms.root", "recreate");
     TCanvas c("c", "c", 800, 600);
     c.SetLogx();
-    //print "step 1" histograms used for reweighing
+    //print "step 1" histograms used for reweighting
     c.SetLogz();
-    for(auto &hist : razorHistosForReweighing){
-        cout << "Before reweighing, MC histo for " << hist.first << " entries: " << hist.second.Integral() << endl;
-    }
-    for(auto &hist : razorHistosDataBeforeReweighing){
-        cout << "Before reweighing, Data histo for " << hist.first << " entries: " << hist.second.Integral() << endl;
-    }
-    for(auto &hist : razorHistosMC){
-        cout << "After reweighing, MC histo for " << hist.first << " entries: " << hist.second.Integral() << endl;
-    }
-    for(auto &hist : razorHistosData){
-        cout << "After reweighing, Data histo for " << hist.first << " entries: " << hist.second.Integral() << endl;
-    }
-    for(auto &hist : razorHistosForReweighing){
-        hist.second.SetTitle(Form("MC reweighed by efficiency and acceptance, for %s", hist.first.c_str()));
+    for(auto &hist : razorHistosForReweighting){
+        if(computeDataOverMCSFs) hist.second.SetTitle(Form("MC for %s", hist.first.c_str()));
+        else hist.second.SetTitle(Form("MC reweighted by efficiency and acceptance, for %s", hist.first.c_str()));
         hist.second.GetXaxis()->SetTitle("MR");
         hist.second.GetYaxis()->SetTitle("Rsq");
         hist.second.SetStats(0);
@@ -691,280 +724,277 @@ void ZInvisibleControlSamples(){
         hist.second.Draw("same,text");
         c.Print(Form("controlSampleMCHistogram%s.pdf", hist.first.c_str()));
         c.Print(Form("controlSampleMCHistogram%s.root", hist.first.c_str()));
-        hist.second.Write();
     }
     //print "step 2" histograms
-    for(auto &hist : razorHistosMC){
-        hist.second.SetTitle(Form("MC with all corrections applied, for %s", hist.first.c_str()));
-        hist.second.GetXaxis()->SetTitle("MR");
-        hist.second.GetYaxis()->SetTitle("Rsq");
-        hist.second.SetStats(0);
-        hist.second.Draw("colz");
-        hist.second.Draw("same,text");
-        c.Print(Form("controlSampleReweighedMCHistogram%s.pdf", hist.first.c_str()));
-        c.Print(Form("controlSampleReweighedMCHistogram%s.root", hist.first.c_str()));
-        hist.second.Write();
+    if(!computeDataOverMCSFs){
+        for(auto &hist : razorHistosMC){
+            hist.second.SetTitle(Form("MC with all corrections applied, for %s", hist.first.c_str()));
+            hist.second.GetXaxis()->SetTitle("MR");
+            hist.second.GetYaxis()->SetTitle("Rsq");
+            hist.second.SetStats(0);
+            hist.second.Draw("colz");
+            hist.second.Draw("same,text");
+            c.Print(Form("controlSampleReweightedMCHistogram%s.pdf", hist.first.c_str()));
+            c.Print(Form("controlSampleReweightedMCHistogram%s.root", hist.first.c_str()));
+        }
     }
-    //print "step 3" razor histograms from data
-    for(auto &hist : razorHistosData){
-        hist.second.SetTitle(Form("Prediction for %s", hist.first.c_str()));
-        hist.second.GetXaxis()->SetTitle("MR");
-        hist.second.GetYaxis()->SetTitle("Rsq");
-        hist.second.SetStats(0);
-        hist.second.Draw("colz");
-        hist.second.Draw("same,text");
-        c.Print(Form("controlSampleHistogram%s.pdf", hist.first.c_str()));
-        c.Print(Form("controlSampleHistogram%s.root", hist.first.c_str()));
-        hist.second.Write();
+    //print "step 4" razor histograms from data
+    if(!computeDataOverMCSFs){
+        for(auto &hist : razorHistosData){
+            hist.second.SetTitle(Form("Prediction for %s", hist.first.c_str()));
+            hist.second.GetXaxis()->SetTitle("MR");
+            hist.second.GetYaxis()->SetTitle("Rsq");
+            hist.second.SetStats(0);
+            hist.second.Draw("colz");
+            hist.second.Draw("same,text");
+            c.Print(Form("controlSampleHistogram%s.pdf", hist.first.c_str()));
+            c.Print(Form("controlSampleHistogram%s.root", hist.first.c_str()));
+        }
     }
-    //print razor histograms from data before reweighing by MR/Rsq/MET
-    for(auto &hist : razorHistosDataBeforeReweighing){
-        hist.second.SetTitle(Form("Data before reweighing by MR and Rsq, for %s", hist.first.c_str()));
+    //print razor histograms from data before reweighting by MR/Rsq/MET
+    for(auto &hist : razorHistosDataBeforeReweighting){
+        hist.second.SetTitle(Form("Data (background subtracted) for %s", hist.first.c_str()));
         hist.second.GetXaxis()->SetTitle("MR");
         hist.second.GetYaxis()->SetTitle("Rsq");
         hist.second.SetStats(0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("controlSampleHistogramBeforeReweighing%s.pdf", hist.first.c_str()));
-        c.Print(Form("controlSampleHistogramBeforeReweighing%s.root", hist.first.c_str()));
-        hist.second.Write();
+        c.Print(Form("controlSampleHistogramBeforeReweighting%s.pdf", hist.first.c_str()));
+        c.Print(Form("controlSampleHistogramBeforeReweighting%s.root", hist.first.c_str()));
     }
     //print MR histograms, comparing data to MC
     c.SetLogy();
     //WJets
     THStack SingleMuonMC("SingleMuonMC", "MR in 1-muon control sample");
-    MRHistosBeforeReweighing["WJets"].SetFillColor(kOrange+10);
-    MRHistosBeforeReweighing["Top"].SetFillColor(kViolet-5);
-    MRHistosBeforeReweighing["TTJets"].SetFillColor(kViolet-6);
-    MRHistosBeforeReweighing["TTW"].SetFillColor(kRed+2);
-    MRHistosBeforeReweighing["TTZ"].SetFillColor(kOrange-3);
-    SingleMuonMC.Add(&MRHistosBeforeReweighing["TTZ"]);
-    SingleMuonMC.Add(&MRHistosBeforeReweighing["TTW"]);
-    SingleMuonMC.Add(&MRHistosBeforeReweighing["Top"]);
-    SingleMuonMC.Add(&MRHistosBeforeReweighing["TTJets"]);
-    SingleMuonMC.Add(&MRHistosBeforeReweighing["WJets"]);
-    MRHistosDataBeforeReweighing["WJets"].SetMarkerStyle(20);
-    MRHistosDataBeforeReweighing["WJets"].SetMarkerSize(1);
+    MRHistosBeforeReweighting["WJets"].SetFillColor(kOrange+10);
+    MRHistosBeforeReweighting["Top"].SetFillColor(kViolet-5);
+    MRHistosBeforeReweighting["TTJets"].SetFillColor(kViolet-6);
+    MRHistosBeforeReweighting["TTW"].SetFillColor(kRed+2);
+    MRHistosBeforeReweighting["TTZ"].SetFillColor(kOrange-3);
+    SingleMuonMC.Add(&MRHistosBeforeReweighting["TTZ"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighting["TTW"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighting["Top"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighting["TTJets"]);
+    SingleMuonMC.Add(&MRHistosBeforeReweighting["WJets"]);
+    MRHistosDataBeforeReweighting["WJets"].SetMarkerStyle(20);
+    MRHistosDataBeforeReweighting["WJets"].SetMarkerSize(1);
     TLegend *SingleMuonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
-    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["WJets"], "WJets MC");
-    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTJets"], "TTJets MC");
-    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["Top"], "Single Top MC");
-    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTW"], "TTW MC");
-    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTZ"], "TTZ MC");
-    SingleMuonLegend->AddEntry(&MRHistosDataBeforeReweighing["WJets"], "2012 Data, Single Muon CS");
-    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["WJets"], &SingleMuonMC, SingleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundSingleMuon", true);
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighting["WJets"], "WJets MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTJets"], "TTJets MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighting["Top"], "Single Top MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTW"], "TTW MC");
+    SingleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTZ"], "TTZ MC");
+    SingleMuonLegend->AddEntry(&MRHistosDataBeforeReweighting["WJets"], "2012 Data, Single Muon CS");
+    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighting["WJets"], &SingleMuonMC, SingleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundSingleMuon", true);
     //DYJets
     THStack DoubleMuonMC("DoubleMuonMC", "MR in 2-muon control sample");
-    MRHistosBeforeReweighing["DYJets"].SetFillColor(kAzure);
-    MRHistosBeforeReweighing["TopDY"].SetFillColor(kViolet-5);
-    MRHistosBeforeReweighing["TTJetsDY"].SetFillColor(kViolet-6);
-    MRHistosBeforeReweighing["TTWDY"].SetFillColor(kRed+2);
-    MRHistosBeforeReweighing["TTZDY"].SetFillColor(kOrange-3);
-    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TTZDY"]);
-    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TTWDY"]);
-    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TopDY"]);
-    DoubleMuonMC.Add(&MRHistosBeforeReweighing["TTJetsDY"]);
-    DoubleMuonMC.Add(&MRHistosBeforeReweighing["DYJets"]);
-    MRHistosDataBeforeReweighing["DYJets"].SetMarkerStyle(20);
-    MRHistosDataBeforeReweighing["DYJets"].SetMarkerSize(1);
+    MRHistosBeforeReweighting["DYJets"].SetFillColor(kAzure);
+    MRHistosBeforeReweighting["TopDY"].SetFillColor(kViolet-5);
+    MRHistosBeforeReweighting["TTJetsDY"].SetFillColor(kViolet-6);
+    MRHistosBeforeReweighting["TTWDY"].SetFillColor(kRed+2);
+    MRHistosBeforeReweighting["TTZDY"].SetFillColor(kOrange-3);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighting["TTZDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighting["TTWDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighting["TopDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighting["TTJetsDY"]);
+    DoubleMuonMC.Add(&MRHistosBeforeReweighting["DYJets"]);
+    MRHistosDataBeforeReweighting["DYJets"].SetMarkerStyle(20);
+    MRHistosDataBeforeReweighting["DYJets"].SetMarkerSize(1);
     TLegend *DoubleMuonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["DYJets"], "DYJets MC");
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTJetsDY"], "TTJets MC");
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TopDY"], "Single Top MC");
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTWDY"], "TTW MC");
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighing["TTZDY"], "TTZ MC");
-    DoubleMuonLegend->AddEntry(&MRHistosDataBeforeReweighing["DYJets"], "2012 Data, Double Muon CS");
-    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["DYJets"], &DoubleMuonMC, DoubleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundDoubleMuon", true);
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["DYJets"], "DYJets MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTJetsDY"], "TTJets MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TopDY"], "Single Top MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTWDY"], "TTW MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTZDY"], "TTZ MC");
+    DoubleMuonLegend->AddEntry(&MRHistosDataBeforeReweighting["DYJets"], "2012 Data, Double Muon CS");
+    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighting["DYJets"], &DoubleMuonMC, DoubleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundDoubleMuon", true);
     //Gamma+Jets
     THStack PhotonMC("PhotonMC", "MR in photon control sample");
-    MRHistosBeforeReweighing["GJets"].SetFillColor(9);
-    MRHistosBeforeReweighing["QCD"].SetFillColor(8);
-    MRHistosBeforeReweighing["TTG"].SetFillColor(7);
-    MRHistosBeforeReweighing["WG"].SetFillColor(38);
-    MRHistosBeforeReweighing["ZG"].SetFillColor(4);
-    PhotonMC.Add(&MRHistosBeforeReweighing["ZG"]);
-    PhotonMC.Add(&MRHistosBeforeReweighing["WG"]);
-    PhotonMC.Add(&MRHistosBeforeReweighing["TTG"]);
-    PhotonMC.Add(&MRHistosBeforeReweighing["QCD"]);
-    PhotonMC.Add(&MRHistosBeforeReweighing["GJets"]);
-    MRHistosDataBeforeReweighing["GJets"].SetMarkerStyle(20);
-    MRHistosDataBeforeReweighing["GJets"].SetMarkerSize(1);
+    MRHistosBeforeReweighting["GJets"].SetFillColor(9);
+    MRHistosBeforeReweighting["QCD"].SetFillColor(8);
+    MRHistosBeforeReweighting["TTG"].SetFillColor(7);
+    MRHistosBeforeReweighting["WG"].SetFillColor(38);
+    MRHistosBeforeReweighting["ZG"].SetFillColor(4);
+    PhotonMC.Add(&MRHistosBeforeReweighting["ZG"]);
+    PhotonMC.Add(&MRHistosBeforeReweighting["WG"]);
+    PhotonMC.Add(&MRHistosBeforeReweighting["TTG"]);
+    PhotonMC.Add(&MRHistosBeforeReweighting["QCD"]);
+    PhotonMC.Add(&MRHistosBeforeReweighting["GJets"]);
+    MRHistosDataBeforeReweighting["GJets"].SetMarkerStyle(20);
+    MRHistosDataBeforeReweighting["GJets"].SetMarkerSize(1);
     TLegend *PhotonLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
-    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["GJets"], "GJets MC");
-    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["QCD"], "QCD MC");
-    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["TTG"], "TTG MC");
-    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["WG"], "WG MC");
-    PhotonLegend->AddEntry(&MRHistosBeforeReweighing["ZG"], "ZG MC");
-    PhotonLegend->AddEntry(&MRHistosDataBeforeReweighing["GJets"], "2012 Data, Photon CS");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighting["GJets"], "GJets MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighting["QCD"], "QCD MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighting["TTG"], "TTG MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighting["WG"], "WG MC");
+    PhotonLegend->AddEntry(&MRHistosBeforeReweighting["ZG"], "ZG MC");
+    PhotonLegend->AddEntry(&MRHistosDataBeforeReweighting["GJets"], "2012 Data, Photon CS");
     PhotonLegend->Draw();
-    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighing["GJets"], &PhotonMC, PhotonLegend, "MR (GeV)", "controlSampleMRBackgroundPhoton", true);
+    DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighting["GJets"], &PhotonMC, PhotonLegend, "MR (GeV)", "controlSampleMRBackgroundPhoton", true);
 
     //print Rsq histograms, comparing data to MC
     c.SetLogy();
     c.SetLogx(kFALSE);
     //WJets
     THStack SingleMuonRsqMC("SingleMuonMC", "Rsq in 1-muon control sample");
-    RsqHistosBeforeReweighing["WJets"].SetFillColor(kOrange+10);
-    RsqHistosBeforeReweighing["Top"].SetFillColor(kViolet-5);
-    RsqHistosBeforeReweighing["TTJets"].SetFillColor(kViolet-6);
-    RsqHistosBeforeReweighing["TTW"].SetFillColor(kRed+2);
-    RsqHistosBeforeReweighing["TTZ"].SetFillColor(kOrange-3);
-    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTZ"]);
-    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTW"]);
-    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["Top"]);
-    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTJets"]);
-    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighing["WJets"]);
-    RsqHistosDataBeforeReweighing["WJets"].SetMarkerStyle(20);
-    RsqHistosDataBeforeReweighing["WJets"].SetMarkerSize(1);
-    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["WJets"], &SingleMuonRsqMC, SingleMuonLegend, "Rsq", "controlSampleRsqBackgroundSingleMuon", false);
+    RsqHistosBeforeReweighting["WJets"].SetFillColor(kOrange+10);
+    RsqHistosBeforeReweighting["Top"].SetFillColor(kViolet-5);
+    RsqHistosBeforeReweighting["TTJets"].SetFillColor(kViolet-6);
+    RsqHistosBeforeReweighting["TTW"].SetFillColor(kRed+2);
+    RsqHistosBeforeReweighting["TTZ"].SetFillColor(kOrange-3);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TTZ"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TTW"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighting["Top"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TTJets"]);
+    SingleMuonRsqMC.Add(&RsqHistosBeforeReweighting["WJets"]);
+    RsqHistosDataBeforeReweighting["WJets"].SetMarkerStyle(20);
+    RsqHistosDataBeforeReweighting["WJets"].SetMarkerSize(1);
+    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighting["WJets"], &SingleMuonRsqMC, SingleMuonLegend, "Rsq", "controlSampleRsqBackgroundSingleMuon", false);
     //DYJets
     THStack DoubleMuonRsqMC("DoubleMuonMC", "Rsq in 2-muon control sample");
-    RsqHistosBeforeReweighing["DYJets"].SetFillColor(kAzure);
-    RsqHistosBeforeReweighing["TopDY"].SetFillColor(kViolet-5);
-    RsqHistosBeforeReweighing["TTJetsDY"].SetFillColor(kViolet-6);
-    RsqHistosBeforeReweighing["TTWDY"].SetFillColor(kRed+2);
-    RsqHistosBeforeReweighing["TTZDY"].SetFillColor(kOrange-3);
-    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTZDY"]);
-    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTWDY"]);
-    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TopDY"]);
-    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["TTJetsDY"]);
-    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighing["DYJets"]);
-    RsqHistosDataBeforeReweighing["DYJets"].SetMarkerStyle(20);
-    RsqHistosDataBeforeReweighing["DYJets"].SetMarkerSize(1);
-    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["DYJets"], &DoubleMuonRsqMC, DoubleMuonLegend, "Rsq", "controlSampleRsqBackgroundDoubleMuon", false);
+    RsqHistosBeforeReweighting["DYJets"].SetFillColor(kAzure);
+    RsqHistosBeforeReweighting["TopDY"].SetFillColor(kViolet-5);
+    RsqHistosBeforeReweighting["TTJetsDY"].SetFillColor(kViolet-6);
+    RsqHistosBeforeReweighting["TTWDY"].SetFillColor(kRed+2);
+    RsqHistosBeforeReweighting["TTZDY"].SetFillColor(kOrange-3);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TTZDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TTWDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TopDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighting["TTJetsDY"]);
+    DoubleMuonRsqMC.Add(&RsqHistosBeforeReweighting["DYJets"]);
+    RsqHistosDataBeforeReweighting["DYJets"].SetMarkerStyle(20);
+    RsqHistosDataBeforeReweighting["DYJets"].SetMarkerSize(1);
+    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighting["DYJets"], &DoubleMuonRsqMC, DoubleMuonLegend, "Rsq", "controlSampleRsqBackgroundDoubleMuon", false);
     //Gamma+Jets
     THStack PhotonRsqMC("PhotonMC", "Rsq in photon control sample");
-    RsqHistosBeforeReweighing["GJets"].SetFillColor(9);
-    RsqHistosBeforeReweighing["QCD"].SetFillColor(8);
-    RsqHistosBeforeReweighing["TTG"].SetFillColor(7);
-    RsqHistosBeforeReweighing["WG"].SetFillColor(38);
-    RsqHistosBeforeReweighing["ZG"].SetFillColor(4);
-    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["ZG"]);
-    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["WG"]);
-    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["TTG"]);
-    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["QCD"]);
-    PhotonRsqMC.Add(&RsqHistosBeforeReweighing["GJets"]);
-    RsqHistosDataBeforeReweighing["GJets"].SetMarkerStyle(20);
-    RsqHistosDataBeforeReweighing["GJets"].SetMarkerSize(1);
-    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighing["GJets"], &PhotonRsqMC, PhotonLegend, "Rsq", "controlSampleRsqBackgroundPhoton", false);
+    RsqHistosBeforeReweighting["GJets"].SetFillColor(9);
+    RsqHistosBeforeReweighting["QCD"].SetFillColor(8);
+    RsqHistosBeforeReweighting["TTG"].SetFillColor(7);
+    RsqHistosBeforeReweighting["WG"].SetFillColor(38);
+    RsqHistosBeforeReweighting["ZG"].SetFillColor(4);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighting["ZG"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighting["WG"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighting["TTG"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighting["QCD"]);
+    PhotonRsqMC.Add(&RsqHistosBeforeReweighting["GJets"]);
+    RsqHistosDataBeforeReweighting["GJets"].SetMarkerStyle(20);
+    RsqHistosDataBeforeReweighting["GJets"].SetMarkerSize(1);
+    DrawDataVsMCRatioPlot(&RsqHistosDataBeforeReweighting["GJets"], &PhotonRsqMC, PhotonLegend, "Rsq", "controlSampleRsqBackgroundPhoton", false);
 
-    //quantify agreement between DYJets and WJets predictions
+    gStyle->SetPaintTextFormat("1.2f");
     c.SetLogy(false);
     c.SetLogz(false);
     c.SetLogx();
-    gStyle->SetPaintTextFormat("1.2f");
-    TH2F *DYWComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWComparisonHist");
-    TH2F *DYWSigmaComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWSigmaComparisonHist");
-    for(int i = 0; i < DYWComparisonHist->GetNbinsX()+1; i++){
-        for(int j = 0; j < DYWComparisonHist->GetNbinsY()+1; j++){
-            //set bin content to (WJets - DYJets)/DYJets
-            DYWComparisonHist->SetBinContent(i, j, (razorHistosData["WJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/razorHistosData["DYJets"].GetBinContent(i, j));
-            //set bin content to (WJets - DYJets)/(error on difference)
-            float sigma1 = razorHistosData["WJets"].GetBinError(i, j);
-            float sigma2 = razorHistosData["DYJets"].GetBinError(i, j);
-            DYWSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["WJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+    if(!computeDataOverMCSFs){
+        //quantify agreement between DYJets and WJets predictions
+        TH2F *DYWComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWComparisonHist");
+        TH2F *DYWSigmaComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWSigmaComparisonHist");
+        for(int i = 0; i < DYWComparisonHist->GetNbinsX()+1; i++){
+            for(int j = 0; j < DYWComparisonHist->GetNbinsY()+1; j++){
+                //set bin content to (WJets - DYJets)/DYJets
+                DYWComparisonHist->SetBinContent(i, j, (razorHistosData["WJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/razorHistosData["DYJets"].GetBinContent(i, j));
+                //set bin content to (WJets - DYJets)/(error on difference)
+                float sigma1 = razorHistosData["WJets"].GetBinError(i, j);
+                float sigma2 = razorHistosData["DYJets"].GetBinError(i, j);
+                DYWSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["WJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+            }
         }
-    }
-    DYWComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/DYJets Prediction");
-    DYWComparisonHist->GetXaxis()->SetTitle("MR");
-    DYWComparisonHist->GetYaxis()->SetTitle("Rsq");
-    DYWComparisonHist->SetStats(0);
-    DYWComparisonHist->SetMinimum(-1.0);
-    DYWComparisonHist->SetMaximum(1.0);
-    DYWComparisonHist->Draw("colz");
-    DYWComparisonHist->Draw("same,text");
-    c.Print("controlSampleHistogramComparisonDYW.pdf");
-    c.Print("controlSampleHistogramComparisonDYW.root");
-    DYWComparisonHist->Write();
-    DYWSigmaComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/#sigma_{W - DY}");
-    DYWSigmaComparisonHist->GetXaxis()->SetTitle("MR");
-    DYWSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
-    DYWSigmaComparisonHist->SetStats(0);
-    DYWSigmaComparisonHist->SetMinimum(-3);
-    DYWSigmaComparisonHist->SetMaximum(3);
-    DYWSigmaComparisonHist->Draw("colz");
-    DYWSigmaComparisonHist->Draw("same,text");
-    c.Print("controlSampleSigmaHistogramComparisonDYW.pdf");
-    c.Print("controlSampleSigmaHistogramComparisonDYW.root");
-    DYWSigmaComparisonHist->Write();
+        DYWComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/DYJets Prediction");
+        DYWComparisonHist->GetXaxis()->SetTitle("MR");
+        DYWComparisonHist->GetYaxis()->SetTitle("Rsq");
+        DYWComparisonHist->SetStats(0);
+        DYWComparisonHist->SetMinimum(-1.0);
+        DYWComparisonHist->SetMaximum(1.0);
+        DYWComparisonHist->Draw("colz");
+        DYWComparisonHist->Draw("same,text");
+        c.Print("controlSampleHistogramComparisonDYW.pdf");
+        c.Print("controlSampleHistogramComparisonDYW.root");
+        DYWSigmaComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/#sigma_{W - DY}");
+        DYWSigmaComparisonHist->GetXaxis()->SetTitle("MR");
+        DYWSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
+        DYWSigmaComparisonHist->SetStats(0);
+        DYWSigmaComparisonHist->SetMinimum(-3);
+        DYWSigmaComparisonHist->SetMaximum(3);
+        DYWSigmaComparisonHist->Draw("colz");
+        DYWSigmaComparisonHist->Draw("same,text");
+        c.Print("controlSampleSigmaHistogramComparisonDYW.pdf");
+        c.Print("controlSampleSigmaHistogramComparisonDYW.root");
 
-    //do the same for DYJets vs GJets
-    TH2F *DYGComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGComparisonHist");
-    TH2F *DYGSigmaComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGSigmaComparisonHist");
-    for(int i = 0; i < DYGComparisonHist->GetNbinsX()+1; i++){
-        for(int j = 0; j < DYGComparisonHist->GetNbinsY()+1; j++){
-            //set bin content to (GJets - DYJets)/DYJets
-            DYGComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/razorHistosData["DYJets"].GetBinContent(i, j));
-            //set bin content to (GJets - DYJets)/(error on difference)
-            float sigma1 = razorHistosData["GJets"].GetBinError(i, j);
-            float sigma2 = razorHistosData["DYJets"].GetBinError(i, j);
-            DYGSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+        //do the same for DYJets vs GJets
+        TH2F *DYGComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGComparisonHist");
+        TH2F *DYGSigmaComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGSigmaComparisonHist");
+        for(int i = 0; i < DYGComparisonHist->GetNbinsX()+1; i++){
+            for(int j = 0; j < DYGComparisonHist->GetNbinsY()+1; j++){
+                //set bin content to (GJets - DYJets)/DYJets
+                DYGComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/razorHistosData["DYJets"].GetBinContent(i, j));
+                //set bin content to (GJets - DYJets)/(error on difference)
+                float sigma1 = razorHistosData["GJets"].GetBinError(i, j);
+                float sigma2 = razorHistosData["DYJets"].GetBinError(i, j);
+                DYGSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+            }
         }
-    }
-    DYGComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/DYJets Prediction");
-    DYGComparisonHist->GetXaxis()->SetTitle("MR");
-    DYGComparisonHist->GetYaxis()->SetTitle("Rsq");
-    DYGComparisonHist->SetStats(0);
-    DYGComparisonHist->SetMinimum(-1.0);
-    DYGComparisonHist->SetMaximum(1.0);
-    DYGComparisonHist->Draw("colz");
-    DYGComparisonHist->Draw("same,text");
-    c.Print("controlSampleHistogramComparisonDYG.pdf");
-    c.Print("controlSampleHistogramComparisonDYG.root");
-    DYGComparisonHist->Write();
-    DYGSigmaComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/#sigma_{G - DY}");
-    DYGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
-    DYGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
-    DYGSigmaComparisonHist->SetStats(0);
-    DYGSigmaComparisonHist->SetMinimum(-3);
-    DYGSigmaComparisonHist->SetMaximum(3);
-    DYGSigmaComparisonHist->Draw("colz");
-    DYGSigmaComparisonHist->Draw("same,text");
-    c.Print("controlSampleSigmaHistogramComparisonDYG.pdf");
-    c.Print("controlSampleSigmaHistogramComparisonDYG.root");
-    DYGSigmaComparisonHist->Write();
+        DYGComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/DYJets Prediction");
+        DYGComparisonHist->GetXaxis()->SetTitle("MR");
+        DYGComparisonHist->GetYaxis()->SetTitle("Rsq");
+        DYGComparisonHist->SetStats(0);
+        DYGComparisonHist->SetMinimum(-1.0);
+        DYGComparisonHist->SetMaximum(1.0);
+        DYGComparisonHist->Draw("colz");
+        DYGComparisonHist->Draw("same,text");
+        c.Print("controlSampleHistogramComparisonDYG.pdf");
+        c.Print("controlSampleHistogramComparisonDYG.root");
+        DYGSigmaComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/#sigma_{G - DY}");
+        DYGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
+        DYGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
+        DYGSigmaComparisonHist->SetStats(0);
+        DYGSigmaComparisonHist->SetMinimum(-3);
+        DYGSigmaComparisonHist->SetMaximum(3);
+        DYGSigmaComparisonHist->Draw("colz");
+        DYGSigmaComparisonHist->Draw("same,text");
+        c.Print("controlSampleSigmaHistogramComparisonDYG.pdf");
+        c.Print("controlSampleSigmaHistogramComparisonDYG.root");
 
-    //and for WJets vs GJets
-    TH2F *WGComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGComparisonHist");
-    TH2F *WGSigmaComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGSigmaComparisonHist");
-    for(int i = 0; i < WGComparisonHist->GetNbinsX()+1; i++){
-        for(int j = 0; j < WGComparisonHist->GetNbinsY()+1; j++){
-            //set bin content to (GJets - WJets)/WJets
-            WGComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["WJets"].GetBinContent(i, j))/razorHistosData["WJets"].GetBinContent(i, j));
-            //set bin content to (GJets - WJets)/(error on difference)
-            float sigma1 = razorHistosData["GJets"].GetBinError(i, j);
-            float sigma2 = razorHistosData["WJets"].GetBinError(i, j);
-            WGSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["WJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+        //and for WJets vs GJets
+        TH2F *WGComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGComparisonHist");
+        TH2F *WGSigmaComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGSigmaComparisonHist");
+        for(int i = 0; i < WGComparisonHist->GetNbinsX()+1; i++){
+            for(int j = 0; j < WGComparisonHist->GetNbinsY()+1; j++){
+                //set bin content to (GJets - WJets)/WJets
+                WGComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["WJets"].GetBinContent(i, j))/razorHistosData["WJets"].GetBinContent(i, j));
+                //set bin content to (GJets - WJets)/(error on difference)
+                float sigma1 = razorHistosData["GJets"].GetBinError(i, j);
+                float sigma2 = razorHistosData["WJets"].GetBinError(i, j);
+                WGSigmaComparisonHist->SetBinContent(i, j, (razorHistosData["GJets"].GetBinContent(i, j) - razorHistosData["WJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+            }
         }
+        WGComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/WJets Prediction");
+        WGComparisonHist->GetXaxis()->SetTitle("MR");
+        WGComparisonHist->GetYaxis()->SetTitle("Rsq");
+        WGComparisonHist->SetStats(0);
+        WGComparisonHist->SetMinimum(-1.0);
+        WGComparisonHist->SetMaximum(1.0);
+        WGComparisonHist->Draw("colz");
+        WGComparisonHist->Draw("same,text");
+        c.Print("controlSampleHistogramComparisonWG.pdf");
+        c.Print("controlSampleHistogramComparisonWG.root");
+        WGSigmaComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/#sigma_{G - W}");
+        WGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
+        WGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
+        WGSigmaComparisonHist->SetStats(0);
+        WGSigmaComparisonHist->SetMinimum(-3);
+        WGSigmaComparisonHist->SetMaximum(3);
+        WGSigmaComparisonHist->Draw("colz");
+        WGSigmaComparisonHist->Draw("same,text");
+        c.Print("controlSampleSigmaHistogramComparisonWG.pdf");
+        c.Print("controlSampleSigmaHistogramComparisonWG.root");
     }
-    WGComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/WJets Prediction");
-    WGComparisonHist->GetXaxis()->SetTitle("MR");
-    WGComparisonHist->GetYaxis()->SetTitle("Rsq");
-    WGComparisonHist->SetStats(0);
-    WGComparisonHist->SetMinimum(-1.0);
-    WGComparisonHist->SetMaximum(1.0);
-    WGComparisonHist->Draw("colz");
-    WGComparisonHist->Draw("same,text");
-    c.Print("controlSampleHistogramComparisonWG.pdf");
-    c.Print("controlSampleHistogramComparisonWG.root");
-    WGComparisonHist->Write();
-    WGSigmaComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/#sigma_{G - W}");
-    WGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
-    WGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
-    WGSigmaComparisonHist->SetStats(0);
-    WGSigmaComparisonHist->SetMinimum(-3);
-    WGSigmaComparisonHist->SetMaximum(3);
-    WGSigmaComparisonHist->Draw("colz");
-    WGSigmaComparisonHist->Draw("same,text");
-    c.Print("controlSampleSigmaHistogramComparisonWG.pdf");
-    c.Print("controlSampleSigmaHistogramComparisonWG.root");
-    WGSigmaComparisonHist->Write();
 
     //plot the photon pt distribution in data and MC
     mcPhotonPt.SetStats(0);
     mcPhotonPt.SetLineColor(kViolet);
     dataPhotonPt.SetStats(0);
     mcPhotonPt.Draw();
+    c.SetLogy(false);
     dataPhotonPt.Draw("pesame");
     c.Print("controlSamplePhotonPt.pdf");
     c.Print("controlSamplePhotonPt.root");
@@ -975,13 +1005,14 @@ void ZInvisibleControlSamples(){
     //get the data/MC scale factors in each bin of MR and Rsq
     map<string, TH2F> dataOverMCScaleFactors;
     for(auto &tree : datatrees){
-        dataOverMCScaleFactors[tree.first] = *((TH2F*)razorHistosDataBeforeReweighing[tree.first].Clone(Form("%sScaleFactors", tree.first.c_str())));
-        dataOverMCScaleFactors[tree.first].Divide(&razorHistosForReweighing[tree.first]);
+        dataOverMCScaleFactors[tree.first] = *((TH2F*)razorHistosDataBeforeReweighting[tree.first].Clone(Form("%sScaleFactors", tree.first.c_str())));
+        dataOverMCScaleFactors[tree.first].Divide(&razorHistosForReweighting[tree.first]);
     }
 
     //write out the data/MC scale factors
     c.SetLogx(true);
-    c.SetLogy(false);
+    c.SetLogy(true);
+    c.SetLogz(false);
     TFile sfFile("ZInvisibleScaleFactorsRun1.root", "RECREATE");
     sfFile.cd();
     for(auto &hist : dataOverMCScaleFactors){
@@ -998,14 +1029,17 @@ void ZInvisibleControlSamples(){
         hist.second.Write(); 
     }
 
-    //plot the difference between the WJets and DYJets scale factors, in #sigmas
-    TH2F *DYWScaleHist = (TH2F*)razorHistosData["DYJets"].Clone("DYWScaleHist");
+    //plot the difference between the WJets and DYJets scale factors, in #sigmas and in %
+    TH2F *DYWScaleHist = (TH2F*)razorHistosDataBeforeReweighting["DYJets"].Clone("DYWScaleHist");
+    TH2F *DYWScaleHistPerc = (TH2F*)razorHistosDataBeforeReweighting["DYJets"].Clone("DYWScaleHistPerc");
     for(int i = 0; i < DYWScaleHist->GetNbinsX()+1; i++){
         for(int j = 0; j < DYWScaleHist->GetNbinsY()+1; j++){
             //set bin content to (WJets - DYJets)/(error on difference)
             float sigma1 = dataOverMCScaleFactors["WJets"].GetBinError(i, j);
             float sigma2 = dataOverMCScaleFactors["DYJets"].GetBinError(i, j);
             DYWScaleHist->SetBinContent(i, j, (dataOverMCScaleFactors["WJets"].GetBinContent(i, j) - dataOverMCScaleFactors["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+            //set bin content to (WJets - DYJets)/DYJets
+            DYWScaleHistPerc->SetBinContent(i, j, (dataOverMCScaleFactors["WJets"].GetBinContent(i, j) - dataOverMCScaleFactors["DYJets"].GetBinContent(i, j))/dataOverMCScaleFactors["DYJets"].GetBinContent(i,j));
         }
     }
     DYWScaleHist->SetTitle("(WJets SF - DYJets SF)/#sigma_{W-DY}");
@@ -1016,17 +1050,30 @@ void ZInvisibleControlSamples(){
     DYWScaleHist->SetMaximum(3.0);
     DYWScaleHist->Draw("colz");
     DYWScaleHist->Draw("same,text");
-    c.Print("ScaleDYW.pdf");
-    c.Print("ScaleDYW.root");
+    c.Print("ScaleDYWnSigma.pdf");
+    c.Print("ScaleDYWnSigma.root");
+    DYWScaleHistPerc->SetTitle("(WJets SF - DYJets SF)/DYJets SF");
+    DYWScaleHistPerc->GetXaxis()->SetTitle("MR");
+    DYWScaleHistPerc->GetYaxis()->SetTitle("Rsq");
+    DYWScaleHistPerc->SetStats(0);
+    DYWScaleHistPerc->SetMinimum(-1.0);
+    DYWScaleHistPerc->SetMaximum(1.0);
+    DYWScaleHistPerc->Draw("colz");
+    DYWScaleHistPerc->Draw("same,text");
+    c.Print("ScaleDYWPercent.pdf");
+    c.Print("ScaleDYWPercent.root");
 
     //do the same for WJets and GJets
-    TH2F *WGScaleHist = (TH2F*)razorHistosData["WJets"].Clone("WGScaleHist");
+    TH2F *WGScaleHist = (TH2F*)razorHistosDataBeforeReweighting["WJets"].Clone("WGScaleHist");
+    TH2F *WGScaleHistPerc = (TH2F*)razorHistosDataBeforeReweighting["WJets"].Clone("WGScaleHistPerc");
     for(int i = 0; i < WGScaleHist->GetNbinsX()+1; i++){
         for(int j = 0; j < WGScaleHist->GetNbinsY()+1; j++){
             //set bin content to (GJets - WJets)/(error on difference)
             float sigma1 = dataOverMCScaleFactors["WJets"].GetBinError(i, j);
             float sigma2 = dataOverMCScaleFactors["GJets"].GetBinError(i, j);
             WGScaleHist->SetBinContent(i, j, (dataOverMCScaleFactors["GJets"].GetBinContent(i, j) - dataOverMCScaleFactors["WJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+            //set bin content to (GJets - WJets)/WJets
+            WGScaleHistPerc->SetBinContent(i, j, (dataOverMCScaleFactors["GJets"].GetBinContent(i, j) - dataOverMCScaleFactors["WJets"].GetBinContent(i, j))/dataOverMCScaleFactors["WJets"].GetBinContent(i,j));
         }
     }
     WGScaleHist->SetTitle("(GJets SF - WJets SF)/#sigma_{G-W}");
@@ -1037,17 +1084,30 @@ void ZInvisibleControlSamples(){
     WGScaleHist->SetMaximum(3.0);
     WGScaleHist->Draw("colz");
     WGScaleHist->Draw("same,text");
-    c.Print("ScaleWG.pdf");
-    c.Print("ScaleWG.root");
+    c.Print("ScaleWGnSigma.pdf");
+    c.Print("ScaleWGnSigma.root");
+    WGScaleHistPerc->SetTitle("(GJets SF - WJets SF)/WJets SF");
+    WGScaleHistPerc->GetXaxis()->SetTitle("MR");
+    WGScaleHistPerc->GetYaxis()->SetTitle("Rsq");
+    WGScaleHistPerc->SetStats(0);
+    WGScaleHistPerc->SetMinimum(-1.0);
+    WGScaleHistPerc->SetMaximum(1.0);
+    WGScaleHistPerc->Draw("colz");
+    WGScaleHistPerc->Draw("same,text");
+    c.Print("ScaleWGPercent.pdf");
+    c.Print("ScaleWGPercent.root");
 
     //do the same for DYJets and GJets
-    TH2F *DYGScaleHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGScaleHist");
+    TH2F *DYGScaleHist = (TH2F*)razorHistosDataBeforeReweighting["DYJets"].Clone("DYGScaleHist");
+    TH2F *DYGScaleHistPerc = (TH2F*)razorHistosDataBeforeReweighting["DYJets"].Clone("DYGScaleHistPerc");
     for(int i = 0; i < DYGScaleHist->GetNbinsX()+1; i++){
         for(int j = 0; j < DYGScaleHist->GetNbinsY()+1; j++){
             //set bin content to (GJets - DYJets)/(error on difference)
             float sigma1 = dataOverMCScaleFactors["GJets"].GetBinError(i, j);
             float sigma2 = dataOverMCScaleFactors["DYJets"].GetBinError(i, j);
             DYGScaleHist->SetBinContent(i, j, (dataOverMCScaleFactors["GJets"].GetBinContent(i, j) - dataOverMCScaleFactors["DYJets"].GetBinContent(i, j))/sqrt(sigma1*sigma1+sigma2*sigma2));
+            //set bin content to (GJets - DYJets)/DYJets
+            DYGScaleHistPerc->SetBinContent(i, j, (dataOverMCScaleFactors["GJets"].GetBinContent(i, j) - dataOverMCScaleFactors["DYJets"].GetBinContent(i, j))/dataOverMCScaleFactors["DYJets"].GetBinContent(i, j));
         }
     }
     DYGScaleHist->SetTitle("(GJets SF - DYJets SF)/#sigma_{G-DY}");
@@ -1058,9 +1118,18 @@ void ZInvisibleControlSamples(){
     DYGScaleHist->SetMaximum(3.0);
     DYGScaleHist->Draw("colz");
     DYGScaleHist->Draw("same,text");
-    c.Print("ScaleDYG.pdf");
-    c.Print("ScaleDYG.root");
-
+    c.Print("ScaleDYGnSigma.pdf");
+    c.Print("ScaleDYGnSigma.root");
+    DYGScaleHistPerc->SetTitle("(GJets SF - DYJets SF)/DYJets SF");
+    DYGScaleHistPerc->GetXaxis()->SetTitle("MR");
+    DYGScaleHistPerc->GetYaxis()->SetTitle("Rsq");
+    DYGScaleHistPerc->SetStats(0);
+    DYGScaleHistPerc->SetMinimum(-1.0);
+    DYGScaleHistPerc->SetMaximum(1.0);
+    DYGScaleHistPerc->Draw("colz");
+    DYGScaleHistPerc->Draw("same,text");
+    c.Print("ScaleDYGPercent.pdf");
+    c.Print("ScaleDYGPercent.root");
 }
 
 int main(){

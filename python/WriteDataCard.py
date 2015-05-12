@@ -14,11 +14,13 @@ def initializeWorkspace(w,cfg,box):
     for parameter in parameters:
         w.factory(parameter)
         paramName = parameter.split('[')[0]
-        if paramName.find("Cut")==-1:
+        if paramName.find("Cut")==-1 and paramName.find("Ntot")==-1:
             paramNames.append(paramName)
             w.var(paramName).setConstant(False)
-        else:
+        elif paramName.find("Cut")!=-1:
             w.var(paramName).setConstant(True)
+        elif paramName.find("Ntot")!=-1:
+            w.var(paramName).setConstant(False)
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -30,6 +32,7 @@ def initializeWorkspace(w,cfg,box):
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
 
     commands = cfg.getVariables(box, "combine_pdfs")
+    bkgs = []
     for command in commands:
         if command.find('SUM::')!=-1:
             w.factory(command)
@@ -47,8 +50,10 @@ def initializeWorkspace(w,cfg,box):
             if hasattr(pdf,'setTH3Binning'):
                 pdf.setTH3Binning(emptyHist3D)
             rootTools.Utils.importToWS(w,pdf)
-
-    return paramNames
+            bkg = name.split("_")
+            bkg.remove(box)
+            bkgs.append("_".join(bkg))
+    return paramNames, bkgs
 
 
 def initializeWorkspace_noFit(w,cfg,box):
@@ -118,31 +123,43 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
 
 
 def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
-        txtfile = open(txtfileName,"w")
-        txtfile.write("imax 1 number of channels\n")
-        nBkgd = 3
-        txtfile.write("jmax %i number of backgrounds\n"%nBkgd)
-        txtfile.write("kmax * number of nuisance parameters\n")
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("observation	%.3f\n"%
-                      w.data("data_obs").sumEntries())
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%
-                      (txtfileName.replace('.txt','.root'),box,box))
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("bin		%s			%s			%s			%s\n"%(box,box,box,box))
-        txtfile.write("process		%s_%s 	%s_%s	%s_%s	%s_%s\n"%
-                        (box,model,box,bkgs[0],box,bkgs[1],box,bkgs[2]))
-        txtfile.write("process        	0          		1			2			3\n")
-        txtfile.write("rate            %.3f		%.3f		%.3f		%.3f\n"%
-                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("RMRTree").sumEntries("nBtag==1")*lumi/lumi_in,
-                        w.data("RMRTree").sumEntries("nBtag==2")*lumi/lumi_in,w.data("RMRTree").sumEntries("nBtag==3")*lumi/lumi_in))
-        
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("lumi			lnN	%.3f       1.00	1.00 1.00\n"%(1.05))
+        obsRate = w.data("data_obs").sumEntries()
+        nBkgd = len(bkgs)
+        rootFileName = txtfileName.replace('.txt','.root')
+        rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+        rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
+        processes = ["%s_%s"%(box,model)]
+        processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
+        lumiErrs = [1.05]
+        lumiErrs.extend([1 for bkg in bkgs])
+        divider = "------------------------------------------------------------\n"
+        datacard = "imax 1 number of channels\n" + \
+                   "jmax %i number of backgrounds\n"%nBkgd + \
+                   "kmax * number of nuisance parameters\n" + \
+                   divider + \
+                   "observation	%.3f\n"%obsRate + \
+                   divider + \
+                   "shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%(rootFileName,box,box) + \
+                   divider
+        binString = "bin"
+        processString = "process"
+        processNumberString = "process"
+        rateString = "rate"
+        lumiString = "lumi\tlnN"
+        for i in range(0,len(bkgs)+1):
+            binString +="\t%s"%box
+            processString += "\t%s"%processes[i]
+            processNumberString += "\t%i"%i
+            rateString += "\t%.3f" %rates[i]
+            lumiString += "\t%.3f"%lumiErrs[i]
+        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
+        datacard+=binString+processString+processNumberString+rateString+divider
+        # now nuisances
+        datacard+=lumiString
         for paramName in paramNames:
-                txtfile.write("%s  	flatParam\n"%
-                              (paramName))
+                datacard += "%s  	flatParam\n"%(paramName)
+        txtfile = open(txtfileName,"w")
+        txtfile.write(datacard)
         txtfile.close()
 
         
@@ -186,8 +203,8 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
                   help="Turn off fit (use MC directly)")
-    parser.add_option('--asimov',dest="asimov",default=False,action='store_true',
-                  help="use asimov dataset derived from fit")
+    parser.add_option('--fit',dest="fit",default=False,action='store_true',
+                  help="perform a fit first")
 
     (options,args) = parser.parse_args()
     
@@ -210,24 +227,21 @@ if __name__ == '__main__':
                 data = workspace.data('RMRTree')
             lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
 
-  
     w = rt.RooWorkspace("w"+box)
     
     if noFit:
         paramNames = initializeWorkspace_noFit(w,cfg,box)
     else:
-        paramNames = initializeWorkspace(w,cfg,box)
+        paramNames, bkgs = initializeWorkspace(w,cfg,box)
     
     rootTools.Utils.importToWS(w,data)
     
     th1x = w.var('th1x')
     
-
     myTH1 = convertDataset2TH1(data, cfg, box, w)
     myTH1.Scale(lumi/lumi_in)
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
-    if not options.asimov:
-        rootTools.Utils.importToWS(w,dataHist)
+    rootTools.Utils.importToWS(w,dataHist)
     
     if noFit:
         data1b = data.reduce("nBtag==1")
@@ -248,23 +262,11 @@ if __name__ == '__main__':
         dataHist3b = rt.RooDataHist("%s_%s"%(box,"TTj3b"),"%s_%s"%(box,"TTj3b"),rt.RooArgList(th1x), myTH13b)
         rootTools.Utils.importToWS(w,dataHist3b)
 
-    elif options.asimov:
-        ntot_ttj1b = rt.RooRealVar('Ntot_TTj1b','Ntot_TTj1b',data.sumEntries("nBtag==1"),0,10000)
-        ntot_ttj2b = rt.RooRealVar('Ntot_TTj2b','Ntot_TTj2b',data.sumEntries("nBtag==2"),0,10000)
-        ntot_ttj3b = rt.RooRealVar('Ntot_TTj3b','Ntot_TTj3b',data.sumEntries("nBtag==3"),0,10000)
-        coefList = rt.RooArgList()
-        coefList.add(ntot_ttj1b)
-        coefList.add(ntot_ttj2b)
-        coefList.add(ntot_ttj3b)
-        pdfList = rt.RooArgList()
-        pdfList.add(w.pdf('%s_%s'%(box,'TTj1b')))
-        pdfList.add(w.pdf('%s_%s'%(box,'TTj2b')))
-        pdfList.add(w.pdf('%s_%s'%(box,'TTj3b')))
-        extRazorPdf = rt.RooAddPdf('extRazorPdf','extRazorPdf',pdfList,coefList)
-        fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Miniuit2','migrad'),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1))
+    elif options.fit:
+        fr = w.pdf('extRazorPdf').fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.PrintLevel(-1),rt.RooFit.SumW2Error(False),rt.RooFit.PrintEvalErrors(-1))
         fr.Print('v')
-        asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov(),rt.RooFit.Name('data_obs'))
-        rootTools.Utils.importToWS(w,asimov)
+        #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov(),rt.RooFit.Name('data_obs'))
+        #rootTools.Utils.importToWS(w,asimov)
     
     
     sigTH1 = convertDataset2TH1(signalDs, cfg, box, w,"signal")
@@ -281,5 +283,5 @@ if __name__ == '__main__':
     if noFit:
         writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
     else:
-        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
+        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w)
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))

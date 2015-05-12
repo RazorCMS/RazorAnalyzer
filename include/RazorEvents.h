@@ -440,6 +440,7 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
+<<<<<<< HEAD
       TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/work/c/cpena/public/RunOneNtupler/CMSSW_5_3_26/src/SUSYBSMAnalysis/RunOneRazorTuplizer/python/razorNtuple_ttH_Final.root");
       if (!f || !f->IsOpen()) {
          f = new TFile("/afs/cern.ch/work/c/cpena/public/RunOneNtupler/CMSSW_5_3_26/src/SUSYBSMAnalysis/RunOneRazorTuplizer/python/razorNtuple_ttH_Final.root");
