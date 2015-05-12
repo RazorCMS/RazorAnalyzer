@@ -35,6 +35,7 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("pvX", 1);
     fChain->SetBranchStatus("pvY", 1);
     fChain->SetBranchStatus("pvZ", 1);
+    fChain->SetBranchStatus("isData", 1);
     fChain->SetBranchStatus("runNum", 1);
     fChain->SetBranchStatus("lumiNum", 1);
     fChain->SetBranchStatus("eventNum", 1);
@@ -159,6 +160,7 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_sumChargedHadronPt", 1);
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
+    fChain->SetBranchStatus("pho_sumWorstVertexChargedHadronPt", 1);
     fChain->SetBranchStatus("pho_isConversion", 1);
     fChain->SetBranchStatus("pho_passEleVeto", 1);
     fChain->SetBranchStatus("pho_RegressionE", 1);
@@ -184,6 +186,8 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetPileupIdFlag", 1);
     fChain->SetBranchStatus("jetPassIDLoose", 1);
     fChain->SetBranchStatus("jetPassIDTight", 1);
+    fChain->SetBranchStatus("jetPassMuFrac", 1);
+    fChain->SetBranchStatus("jetPassEleFrac", 1);
     fChain->SetBranchStatus("jetPartonFlavor", 1);
     fChain->SetBranchStatus("jetHadronFlavor", 1);
 }
@@ -199,13 +203,18 @@ void RazorAnalyzer::EnableFatJets(){
 void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metPt", 1);
     fChain->SetBranchStatus("metPhi", 1);
-    fChain->SetBranchStatus("sumMET", 1);
+    fChain->SetBranchStatus("metType0Pt", 1);
+    fChain->SetBranchStatus("metType0Phi", 1);
+    fChain->SetBranchStatus("metType1Pt", 1);
+    fChain->SetBranchStatus("metType1Phi", 1);
     fChain->SetBranchStatus("metType0Plus1Pt", 1);
     fChain->SetBranchStatus("metType0Plus1Phi", 1);
+    fChain->SetBranchStatus("sumMET", 1);
     fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
     fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
     fChain->SetBranchStatus("Flag_hcalLaserEventFilter", 1);
     fChain->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1);
+    fChain->SetBranchStatus("Flag_EcalDeadCellBoundaryEnergyFilter", 1);
     fChain->SetBranchStatus("Flag_goodVertices", 1);
     fChain->SetBranchStatus("Flag_trackingFailureFilter", 1);
     fChain->SetBranchStatus("Flag_eeBadScFilter", 1);
@@ -215,6 +224,10 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_trkPOG_toomanystripclus53X", 1);
     fChain->SetBranchStatus("Flag_trkPOG_logErrorTooManyClusters", 1);
     fChain->SetBranchStatus("Flag_METFilters", 1);    
+    fChain->SetBranchStatus("Flag_EcalDeadCellEvent", 1);    
+    fChain->SetBranchStatus("Flag_IsNotDeadEcalCluster", 1);    
+    fChain->SetBranchStatus("Flag_EcalDeadDR", 1);    
+    fChain->SetBranchStatus("Flag_EcalBoundaryDR", 1);    
 }
 
 void RazorAnalyzer::EnableRazor(){
