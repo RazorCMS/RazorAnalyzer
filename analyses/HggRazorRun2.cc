@@ -41,16 +41,16 @@ struct evt
   std::string event;
 };
 
-#define _phodebug  0
-#define _debug     0
-#define _info      0
+#define _phodebug 0
+#define _debug    0
+#define _info     0
 
-void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
+void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
   if ( _info) std::cout << "Initializing..." << std::endl;
   if (outFileName.empty()){
-    if ( _info ) std::cout << "HggRazor: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
+    if ( _info ) std::cout << "HggRazorRun1: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
     outFileName = "HggRazor.root";
   }
   TFile outFile(outFileName.c_str(), "RECREATE");

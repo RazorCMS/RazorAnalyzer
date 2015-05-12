@@ -21,17 +21,18 @@ int main(int argc, char* argv[]){
     if(argc < 4){
         cerr << "Usage: RazorRun <input list> <analysis type> <isData> <output filename (optional)> [option number] [optional label]" << endl;
         cerr << "Analyses available: " << endl 
-            << "razor                --   inclusive razor analysis" << endl 
-            << "hggrazor             --   higgs->diphoton razor analysis" << endl
-            << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
-            << "razorVetoLeptonStudy --   study lepton veto" << endl
-            << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
-            << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events" << endl
-            << "electronNtupler      --   study electron variables" << endl
-            << "muonNtupler          --   study muon variables" << endl
-            << "jetNtupler           --   study jet variables" << endl
-            << "photonntupler        --   study photon variables" << endl
-            << "dummy                --   do nothing useful" << endl;
+	     << "razor                --   inclusive razor analysis" << endl 
+	     << "hggrazor             --   run1 higgs->diphoton razor analysis" << endl
+	     << "run2hggrazor         --   run2 higgs->diphoton razor analysis" << endl
+	     << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
+	     << "razorVetoLeptonStudy --   study lepton veto" << endl
+	     << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
+	     << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events" << endl
+	     << "electronNtupler      --   study electron variables" << endl
+	     << "muonNtupler          --   study muon variables" << endl
+	     << "jetNtupler           --   study jet variables" << endl
+	     << "photonntupler        --   study photon variables" << endl
+	     << "dummy                --   do nothing useful" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
@@ -133,10 +134,20 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
         analyzer.EnablePhotons();
         analyzer.HggRazor(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
-
+    }
+    else if(analysisType == "run2hggrazor"){
+      cout << "Executing run2 higgs->diphoton razor analysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnablePhotons();
+      analyzer.HggRazorRun2(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "matchedrazor"){
-        cout << "Executing genjet-matched razor inclusive analysis..." << endl;
+      cout << "Executing genjet-matched razor inclusive analysis..." << endl;
         analyzer.EnableJets();
         analyzer.EnableMet();
         analyzer.EnableElectrons();
