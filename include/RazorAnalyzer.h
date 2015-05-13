@@ -111,12 +111,17 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesMediumIsoCuts(int i);
         bool photonPassesTightIsoCuts(int i);
         bool isTightPhoton(int i);
-	//Run1 Cut Based ID
+	// R u n 1   C u t   B a s e d   I D
+	//----------------------------------
 	bool isGoodPhotonRun1( int i, bool _iso, bool _debug );
 	bool photonPassIsoRun1( int i, bool _debug );
 	void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	bool passEleVetoRun1( int i );
-
+	// R u n 2   C u t   B a s e d   I D
+	//----------------------------------
+	bool isGoodPhotonRun2( int i, bool _iso, bool _debug );
+	bool photonPassIsoRun2( int i, bool _debug );
+        
         //functions in RazorAuxJet.cc
 	
         bool isOldCSVL(int i);

@@ -42,8 +42,8 @@ struct evt
 };
 
 #define _phodebug  0
-#define _debug     0
-#define _info      0
+#define _debug     1
+#define _info      1
 
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 {
@@ -126,7 +126,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   float mGammaGamma, pTGammaGamma;
   float mbbZ, mbbH;
   HggRazorBox box;
-  int run, event;
+  unsigned int lumi, run, event;
   
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
@@ -138,8 +138,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   
   //set branches on big tree
   if(combineTrees){
-    razorTree->Branch("run", &run, "run/I");
-    razorTree->Branch("event", &event, "event/I");
+    razorTree->Branch("lumi", &lumi, "lumi/i");
+    razorTree->Branch("run", &run, "run/i");
+    razorTree->Branch("event", &event, "event/i");
     razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
     razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -196,8 +197,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   //set branches on all trees
   else{ 
     for(auto& box : razorBoxes){
-      box.second->Branch("run", &run, "run/I");
-      box.second->Branch("event", &event, "event/I");
+      box.second->Branch("lumi", &lumi, "lumi/i");
+      box.second->Branch("run", &run, "run/i");
+      box.second->Branch("event", &event, "event/i");
       box.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
       box.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
       box.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -283,7 +285,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     pTGammaGamma = -1;
     mbbZ = 0;
     mbbH = 0;
-    run = runNum;
+    lumi  = lumiNum;
+    run   = runNum;
     event = eventNum;
     
     //selected photons variables
@@ -319,7 +322,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     if ( mymap.find( ss.str() ) == mymap.end() )continue;
     //if ( !( run == 206859 && event == 24345 ) ) continue;
     */
-    if ( _debug ) std::cout << "============" << std::endl;
+    if ( _debug ) std::cout << "=======new event=====" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
     
     if(combineTrees) box = LowRes;
