@@ -8,6 +8,7 @@
 #include <RazorEvents.h> //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
 #include "FactorizedJetCorrector.h"
 #include "SimpleJetResolution.h"
+#include "HggRazorAuxPhoton.hh"
 
 //ROOT includes
 #include <TROOT.h>
@@ -111,6 +112,8 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesMediumIsoCuts(int i);
         bool photonPassesTightIsoCuts(int i);
         bool isTightPhoton(int i);
+
+	//function in HggRazorAuxPhoton.cc
 	// R u n 1   C u t   B a s e d   I D
 	//----------------------------------
 	bool isGoodPhotonRun1( int i, bool _iso, bool _debug );
@@ -119,9 +122,9 @@ class RazorAnalyzer: public RazorEvents {
 	bool passEleVetoRun1( int i );
 	// R u n 2   C u t   B a s e d   I D
 	//----------------------------------
-	bool isGoodPhotonRun2( int i, bool _iso, bool _debug );
-	bool photonPassIsoRun2( int i, bool _debug );
-        
+	bool isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug );
+	bool photonPassIsoRun2( int i, WP wp ,bool _debug );
+	
         //functions in RazorAuxJet.cc
 	
         bool isOldCSVL(int i);
