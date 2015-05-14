@@ -41,8 +41,8 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 1
-#define _debug    1
+#define _phodebug 0
+#define _debug    0
 #define _info     1
 
 void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
@@ -57,11 +57,16 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
-    
+  /*
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
+  */
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
 
