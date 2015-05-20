@@ -247,6 +247,9 @@ void FullControlRegionBasedPrediction(){
     //make plots
     TCanvas c("c", "c", 800, 600);
     c.SetLogx();
+
+    //total MC histogram
+    TH2F TotalRazorMC("TotalRazorMC", "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
     //print MC histograms
     c.SetLogz();
     for(auto &hist : razorHistosMC){
@@ -258,7 +261,17 @@ void FullControlRegionBasedPrediction(){
         hist.second.Draw("same,text");
         c.Print(Form("razorInclusiveMCHistogram%s.pdf", hist.first.c_str()));
         c.Print(Form("razorInclusiveMCHistogram%s.root", hist.first.c_str()));
+
+        //add to total histogram
+        TotalRazorMC = TotalRazorMC + hist.second;
     }
+    TotalRazorMC.SetTitle("Total MC");
+    TotalRazorMC.SetStats(0);
+    TotalRazorMC.Draw("colz");
+    TotalRazorMC.Draw("same,text");
+    c.Print("razorInclusiveMCHistogramTotal.pdf");
+    c.Print("razorInclusiveMCHistogramTotal.root");
+
     //print data histogram
     razorData.SetTitle("Data");
     razorData.GetXaxis()->SetTitle("MR");
@@ -271,8 +284,8 @@ void FullControlRegionBasedPrediction(){
     
     //print MR and Rsq 1D histograms, comparing data to MC
     c.SetLogy();
-    THStack MRTotalRazorMC("TotalRazorMC", "MR");
-    THStack RsqTotalRazorMC("TotalRazorMC", "Rsq");
+    THStack MRTotalRazorMC("MRTotalRazorMC", "MR");
+    THStack RsqTotalRazorMC("RsqTotalRazorMC", "Rsq");
 
     //format MC histograms
     MRHistosMC["DYJets"].SetFillColor(kAzure);
