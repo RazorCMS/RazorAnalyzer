@@ -43,27 +43,36 @@ struct evt
 
 #define _phodebug 0
 #define _debug    0
-#define _info     0
+#define _info     1
 
 void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
   if ( _info) std::cout << "Initializing..." << std::endl;
   if (outFileName.empty()){
-    if ( _info ) std::cout << "HggRazorRun1: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
+    if ( _info ) std::cout << "HggRazorRun2: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
     outFileName = "HggRazor.root";
   }
   TFile outFile(outFileName.c_str(), "RECREATE");
   
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
-    
+  /*
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
+  */
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
+
+  //I n i t i a l i z i n g   E f f e c t i v e   A r e a   A r r a y; 
+  //------------------------------------------------------------------
+  InitEffArea( );
   
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
@@ -126,7 +135,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   float mGammaGamma, pTGammaGamma;
   float mbbZ, mbbH;
   HggRazorBox box;
-  int run, event;
+  unsigned int run, lumi, event;
   
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
@@ -138,8 +147,9 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   
   //set branches on big tree
   if(combineTrees){
-    razorTree->Branch("run", &run, "run/I");
-    razorTree->Branch("event", &event, "event/I");
+    razorTree->Branch("run", &run, "run/i");
+    razorTree->Branch("lumi", &lumi, "lumi/i");
+    razorTree->Branch("event", &event, "event/i");
     razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
     razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -196,8 +206,9 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   //set branches on all trees
   else{ 
     for(auto& box : razorBoxes){
-      box.second->Branch("run", &run, "run/I");
-      box.second->Branch("event", &event, "event/I");
+      box.second->Branch("run", &run, "run/i");
+      box.second->Branch("lumi", &lumi, "lumi/i");
+      box.second->Branch("event", &event, "event/i");
       box.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
       box.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
       box.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -284,6 +295,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     mbbZ = 0;
     mbbH = 0;
     run = runNum;
+    lumi = lumiNum; 
     event = eventNum;
     
     //selected photons variables
@@ -369,9 +381,9 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     for(int i = 0; i < nPhotons; i++){
       //ID cuts -- apply isolation after candidate pair selection
       if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-      if ( !isGoodPhotonRun1( i , false, false ) )
+      if ( !isGoodPhotonRun2( i , false, WP::Loose, false ) )
 	{
-	  if ( _phodebug ) std::cout << "[DEBUG]: failed ID" << std::endl;
+	  if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
 	  continue;
 	}
       
@@ -419,7 +431,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
       tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
       tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
       tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-      tmp_phoCand._passIso = isGoodPhotonRun1( i , true, false );
+      tmp_phoCand._passIso = photonPassIsoRun2( i, WP::Loose, _debug );
       phoCand.push_back( tmp_phoCand );
       
       nSelectedPhotons++;
@@ -438,7 +450,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 	  {
 	    if ( _debug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] 
 				    << " SIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-	    isGoodPhotonRun1( i , false, _debug );
+	    isGoodPhotonRun2( i , false, WP::Loose, _debug );
 	  }
 	continue;
       }
@@ -468,12 +480,12 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 	double diphotonMass = (pho1.photon + pho2.photon).M();
 	if ( _debug )
 	  {
-	    std::cout << "[DEBUG] Hgg cadidate pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
+	    std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
 	  }
 	
 	if( diphotonMass < 100 )
 	  {
-	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: " << std::endl;
+	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
 	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
 	    continue;
 	  }
@@ -543,7 +555,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 	for ( auto& phoC : phoCand )
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
-	    photonPassIsoRun1( phoC.Index, _debug );
+	    photonPassIsoRun2( phoC.Index, WP::Loose, _debug );
 	  }
 	continue;
       }

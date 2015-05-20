@@ -7,7 +7,7 @@ INCLUDELIST= SimpleTable.h Linkdef.h
 
 SCRATCHDIR = /tmp/
 
-AUX = $(wildcard $(SRCDIR)/RazorAux*.cc)
+AUX = $(wildcard $(SRCDIR)/RazorAux*.cc $(SRCDIR)/HggRazorAuxPhoton.cc)
 ANALYSES = $(wildcard analyses/*.cc)
 JETCORR = $(SRCDIR)/JetCorrectorParameters.cc $(SRCDIR)/SimpleJetCorrectionUncertainty.cc  $(SRCDIR)/JetCorrectionUncertainty.cc $(SRCDIR)/SimpleJetCorrector.cc $(SRCDIR)/FactorizedJetCorrector.cc $(SRCDIR)/SimpleJetResolution.cc
 JETCORROBJ = $(JETCORR:cc=o)

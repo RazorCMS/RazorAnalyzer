@@ -1,55 +1,26 @@
-/*
-Defines 2012 Cut Based Photon ID
-Defines PhotonCandidate struct
-*/
-
-#ifndef RAZOR_AUX_PHOTON_HH
-#define RAZOR_AUX_PHOTON_HH 1
 //C++ INCLUDES
 #include <iostream>
 #include <math.h>
 //ROOT INCLUDES
 //LOCAL INCLUDES
+#include "HggRazorAuxPhoton.hh"
 
-constexpr bool  EB_EleVeto           = true;
-constexpr float EB_HoverECut         = 0.05;
-constexpr float EB_SigmaIetaIetaCut  = 0.012;
-constexpr float EB_PFchHadIsoCut     = 2.6;
-constexpr float EB_PFnHadIsoConst    = 3.5;
-constexpr float EB_PFnHadIsoSlope    = 0.04;
-constexpr float EB_PFphoIsoConst     = 1.3;
-constexpr float EB_PFphoIsoSlope     = 0.005;
+//std::map< EA, std::vector<float> > effAreas;
+float effArea[3][7];
 
-constexpr bool  EE_EleVeto           = true;
-constexpr float EE_HoverECut         = 0.05;
-constexpr float EE_SigmaIetaIetaCut  = 0.034;
-constexpr float EE_PFchHadIsoCut     = 2.3;
-constexpr float EE_PFnHadIsoConst    = 2.9;
-constexpr float EE_PFnHadIsoSlope    = 0.04;
+float EB_GetPFchHadIsoCut( ){ return EB_PFchHadIsoCut; };
+float EB_GetPFnHadIsoCut( float pt ){ return (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFphoIsoCut( float pt ){ return (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
 
-constexpr float EB_GetPFchHadIsoCut( ){ return EB_PFchHadIsoCut; };
-extern float EB_GetPFnHadIsoCut( float pt ){ return (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt); };
-extern float EB_GetPFphoIsoCut( float pt ){ return (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
+float EE_GetPFchHadIsoCut( ){ return EE_PFchHadIsoCut; };
+float EE_GetPFnHadIsoCut( float pt ){ return (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
 
-constexpr float EE_GetPFchHadIsoCut( ){ return EE_PFchHadIsoCut; };
-extern float EE_GetPFnHadIsoCut( float pt ){ return (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
 
-//------------------------------------------------------
-// R u n 2   P h o t o n   I D   f o r   H g g R a z o r
-//------------------------------------------------------
-
-// E f f e c t i v e   A r e a   T h r e s h o l d s 
-// -------------------------------------------------
-constexpr int n_EA_Threshold = 6;
-constexpr float EA_Threshold[] = { 1.0, 1.479, 2.0 , 2.2, 2.3, 2.4 };
-enum class EA { chHad, nHad, photon};
-
-// E f f e c t i v e   A r e a   V a l u e s 
-// -----------------------------------------
-extern float effArea[3][7];
-void InitEffArea()
+//R u n 2  F u n c t i o n s
+//--------------------------
+void InitEffArea( )
 {
-  //F i l l i n g   c h H a d   
+  //F i l l i n g   c h H a d
   //-------------------------
   effArea[0][0] = 0.0234;
   effArea[0][1] = 0.0189;
@@ -58,9 +29,9 @@ void InitEffArea()
   effArea[0][4] = 0.0110;
   effArea[0][5] = 0.0074;
   effArea[0][6] = 0.0035;
-  
+
   //F i l l i n g   n H a d
-  //-------------------------
+  //-----------------------                            
   effArea[1][0] = 0.0053;
   effArea[1][1] = 0.0103;
   effArea[1][2] = 0.0057;
@@ -80,27 +51,26 @@ void InitEffArea()
   effArea[2][6] = 0.1484;
 };
 
-// G e t   E f f e c t i v e   A r e a   B i n 
+// G e t   E f f e c t i v e   A r e a   B i n
 //--------------------------------------------
-int GetEAbin( float eta )
+bool GetEA( float eta, double& EAcHad, double& EAnHad, double& EAphoton  )
 {
+  int eabin = n_EA_Threshold;
   for( int i = 0; i < n_EA_Threshold; i++ )
     {
-      if ( fabs( eta ) < EA_Threshold[i] ) return i;
+      if ( fabs( eta ) < EA_Threshold[i] )
+	{
+	  eabin = i;
+	  break;
+	}
     }
-  return n_EA_Threshold;
+  
+  EAcHad = effArea[0][eabin];
+  EAnHad = effArea[1][eabin];
+  EAphoton = effArea[2][eabin];
+  if ( EAcHad <= .0 || EAnHad <= .0 || EAphoton <= .0 ) return false;
+  return true;
 };
-
-
-// P h o t o n   I D   W o r k i n g   P o in t s
-// ----------------------------------------------
-enum class WP { Loose, Medium, Tight };
-//EB
-float HoverE_EB[] = { 0.0280, 0.0120, 0.0100 };
-float SigmaIetaIeta_EB[] = { 0.01070, 0.0100, 0.0100 };
-//EE
-float HoverE_EE[] = { 0.093, 0.023, 0.015 };
-float SigmaIetaIeta_EE[] = { 0.0272, 0.0267, 0.0265 };
 
 // I s o l a t i o n s
 //--------------------
@@ -120,7 +90,7 @@ float GetchHadIsoCut( WP wp, float eta )
       if ( wp == WP::Medium )return 1.09;
       if ( wp == WP::Tight ) return 1.04;
     }
-
+  
   return -1.;
 };
 
@@ -140,7 +110,7 @@ float GetnHadIsoCut( WP wp, float eta, float pt )
       if ( wp == WP::Medium )return 4.31 + 0.01720*pt;
       if ( wp == WP::Tight ) return 3.89 + 0.01720*pt;
     }
-  
+
   return -1.;
 };
 
@@ -160,8 +130,6 @@ float GetPhotonIsoCut( WP wp, float eta, float pt )
       if ( wp == WP::Medium )return 1.90 + 0.0091*pt;
       if ( wp == WP::Tight ) return 1.40 + 0.0091*pt;
     }
-  
+
   return -1.;
 };
-
-#endif

@@ -15,6 +15,8 @@
 #include "THStack.h"
 #include "TLegend.h"
 #include "TPad.h"
+#include "assert.h"
+#include "math.h"
 
 using namespace std;
 
@@ -95,29 +97,29 @@ void ZInvisibleControlSamples(){
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
     //signal processes
-    mcfiles["DYJets"] = new TFile("DYJetsRun1_19700pb_weighted.root");
-    mcfiles["WJets"] = new TFile("WJetsRun1_19700pb_weighted.root");
-    mcfiles["GJets"] = new TFile("GJetsRun1_19700pb_weighted.root");
-    mcfiles["ZJets"] = new TFile("ZJetsRun1_19700pb_weighted.root");
+    mcfiles["DYJets"] = new TFile("./DYJetsRun1_19700pb_weighted.root");
+    mcfiles["WJets"] = new TFile("./WJetsRun1_19700pb_weighted.root");
+    mcfiles["GJets"] = new TFile("./GJetsRun1_19700pb_weighted.root");
+    mcfiles["ZJets"] = new TFile("./ZJetsRun1_19700pb_weighted.root");
     //backgrounds for WJets
-    mcfiles["TTJets"] = new TFile("TTJetsRun1_19700pb_weighted.root");
-    mcfiles["Top"] = new TFile("SingleTopRun1_19700pb_weighted.root");
-    mcfiles["TTW"] = new TFile("TTWJetsRun1_19700pb_weighted.root");
-    mcfiles["TTZ"] = new TFile("TTZJetsRun1_19700pb_weighted.root");
+    mcfiles["TTJets"] = new TFile("./TTJetsRun1_19700pb_weighted.root");
+    mcfiles["Top"] = new TFile("./SingleTopRun1_19700pb_weighted.root");
+    mcfiles["TTW"] = new TFile("./TTWJetsRun1_19700pb_weighted.root");
+    mcfiles["TTZ"] = new TFile("./TTZJetsRun1_19700pb_weighted.root");
     //backgrounds for DYJets
     mcfiles["TTJetsDY"] = mcfiles["TTJets"];
     mcfiles["TopDY"] = mcfiles["Top"];
     mcfiles["TTWDY"] = mcfiles["TTW"];
     mcfiles["TTZDY"] = mcfiles["TTZ"];
     //backgrounds for GJets
-    mcfiles["QCD"] = new TFile("QCDRun1_19700pb_weighted.root");
-    mcfiles["WG"] = new TFile("WGJetsRun1_19700pb_weighted.root");
-    mcfiles["ZG"] = new TFile("ZGJetsRun1_19700pb_weighted.root");
-    mcfiles["TTG"] = new TFile("TTGJetsRun1_19700pb_weighted.root");
+    mcfiles["QCD"] = new TFile("./QCDRun1_19700pb_weighted.root");
+    mcfiles["WG"] = new TFile("./WGJetsRun1_19700pb_weighted.root");
+    mcfiles["ZG"] = new TFile("./ZGJetsRun1_19700pb_weighted.root");
+    mcfiles["TTG"] = new TFile("./TTGJetsRun1_19700pb_weighted.root");
     //data
-    datafiles["DYJets"] = new TFile("DoubleMuRun1_goodlumi.root");
-    datafiles["WJets"] = new TFile("SingleMuRun1_goodlumi.root");
-    datafiles["GJets"] = new TFile("PhotonRun1_goodlumi.root");
+    datafiles["DYJets"] = new TFile("./DoubleMuRun1_goodlumi.root");
+    datafiles["WJets"] = new TFile("./SingleMuRun1_goodlumi.root");
+    datafiles["GJets"] = new TFile("./PhotonRun1_goodlumi.root");
 
     //get trees and set branches
     map<string, TTree*> mctrees;
@@ -128,8 +130,10 @@ void ZInvisibleControlSamples(){
     float weight;
     float leadingMuonPt, leadingMuonEta, leadingPhotonPt, leadingPhotonEta, recoZpt, recoZeta, recoZmass, subleadingMuonPt, subleadingMuonEta, mTLepMet;
     float leadingTightMuonPt, leadingTightMuonEta;
+    float bjet1Pt, bjet2Pt;
+    bool bjet1PassMedium, bjet2PassMedium;
     bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150;
-    float genZPt;
+    float genZPt, genWPt;
     int nPU_mean;
     float MR, Rsq;
     for(auto &file : mcfiles){
@@ -176,7 +180,12 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
         mctrees[file.first]->SetBranchStatus("hlt_razor", 1);
         mctrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
-        mctrees[file.first]->SetBranchStatus("genZPt", 1);
+        mctrees[file.first]->SetBranchStatus("genZpt", 1);
+        mctrees[file.first]->SetBranchStatus("genWpt", 1);
+        mctrees[file.first]->SetBranchStatus("bjet1PassMedium", 1);
+        mctrees[file.first]->SetBranchStatus("bjet2PassMedium", 1);
+        mctrees[file.first]->SetBranchStatus("bjet1Pt", 1);
+        mctrees[file.first]->SetBranchStatus("bjet2Pt", 1);
 
         mctrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         mctrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
@@ -197,7 +206,12 @@ void ZInvisibleControlSamples(){
         mctrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
         mctrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
         mctrees[file.first]->SetBranchAddress("nPU_mean", &nPU_mean);
-        mctrees[file.first]->SetBranchAddress("genZPt", &genZPt);
+        mctrees[file.first]->SetBranchAddress("genZpt", &genZPt);
+        mctrees[file.first]->SetBranchAddress("genWpt", &genWPt);
+        mctrees[file.first]->SetBranchAddress("bjet1PassMedium", &bjet1PassMedium);
+        mctrees[file.first]->SetBranchAddress("bjet2PassMedium", &bjet2PassMedium);
+        mctrees[file.first]->SetBranchAddress("bjet1Pt", &bjet1Pt);
+        mctrees[file.first]->SetBranchAddress("bjet2Pt", &bjet2Pt);
     }
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
@@ -244,6 +258,10 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchStatus("hlt_dimuon", 1);
         datatrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
         datatrees[file.first]->SetBranchStatus("hlt_razor", 1);
+        datatrees[file.first]->SetBranchStatus("bjet1PassMedium", 1);
+        datatrees[file.first]->SetBranchStatus("bjet2PassMedium", 1);
+        datatrees[file.first]->SetBranchStatus("bjet1Pt", 1);
+        datatrees[file.first]->SetBranchStatus("bjet2Pt", 1);
 
         datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         datatrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
@@ -265,6 +283,10 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress("passedHLTPhoton90", &passedHLTPhoton90);
         datatrees[file.first]->SetBranchAddress("passedHLTPhoton135", &passedHLTPhoton135);
         datatrees[file.first]->SetBranchAddress("passedHLTPhoton150", &passedHLTPhoton150);
+        datatrees[file.first]->SetBranchAddress("bjet1PassMedium", &bjet1PassMedium);
+        datatrees[file.first]->SetBranchAddress("bjet2PassMedium", &bjet2PassMedium);
+        datatrees[file.first]->SetBranchAddress("bjet1Pt", &bjet1Pt);
+        datatrees[file.first]->SetBranchAddress("bjet2Pt", &bjet2Pt);
     }
     //luminosities collected by the various photon triggers
     float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
@@ -312,8 +334,10 @@ void ZInvisibleControlSamples(){
         cout << "Filling MC histograms: " << tree.first << endl;
         metHistosForReweighting[tree.first] = TH1F(Form("metmc%s", tree.first.c_str()), "MET (GeV); MET(GeV)", nMetBins, MetMin, MetMax);
         razorHistosForReweighting[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        MRHistosBeforeReweighting[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
-        RsqHistosBeforeReweighting[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
+        // MRHistosBeforeReweighting[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        // RsqHistosBeforeReweighting[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
+        MRHistosBeforeReweighting[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", 20, 300, 4000);
+        RsqHistosBeforeReweighting[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq",  10, 0.15, 1.5);
         MRHistosBeforeReweighting[tree.first].Sumw2();
         RsqHistosBeforeReweighting[tree.first].Sumw2();
         razorHistosForReweighting[tree.first].Sumw2();
@@ -357,9 +381,55 @@ void ZInvisibleControlSamples(){
                         //cout << "Warning: efficiency histogram gives 0 (pt " << leadingTightMuonPt << ", eta " << leadingTightMuonEta << "); setting event weight to 0" << endl;
                     }
                 }
-                
+		
                 //trigger and normalization scale factors
                 eventWeight *= singleMuTriggerSF;
+
+		//b-tagging scale factors
+		double btagScaleFactor = 1.0;
+		double bjet1EventScaleFactor = 1.0;
+		double bjet2EventScaleFactor = 1.0;
+		if (bjet1Pt > 20) {
+		  double bjet1ScaleFactor = 0.938887 + 0.00017124 * bjet1Pt + (-2.76366e-07) * bjet1Pt * bjet1Pt ;
+		  double MCEff = 1.0;
+		  if (bjet1Pt < 50) MCEff = 0.65;
+		  else if (bjet1Pt < 80) MCEff = 0.70;
+		  else if (bjet1Pt < 120) MCEff = 0.73;
+		  else if (bjet1Pt < 210) MCEff = 0.73;
+		  else MCEff = 0.66;				 
+		  if (bjet1PassMedium) bjet1EventScaleFactor = bjet1ScaleFactor;
+		  else bjet1EventScaleFactor = ( 1/MCEff - bjet1ScaleFactor) / ( 1/MCEff - 1);
+		}
+		if (bjet2Pt > 20) {
+		  double bjet2ScaleFactor = 0.938887 + 0.00017124 * bjet2Pt + (-2.76366e-07) * bjet2Pt * bjet2Pt ;
+		  double MCEff = 1.0;
+		  if (bjet2Pt < 50) MCEff = 0.65;
+		  else if (bjet2Pt < 80) MCEff = 0.70;
+		  else if (bjet2Pt < 120) MCEff = 0.73;
+		  else if (bjet2Pt < 210) MCEff = 0.73;
+		  else MCEff = 0.66;		 
+		  if (bjet2PassMedium) bjet2EventScaleFactor = bjet2ScaleFactor;
+		  else bjet2EventScaleFactor = ( 1/MCEff - bjet2ScaleFactor) / ( 1/MCEff - 1);
+		}
+		btagScaleFactor = bjet1EventScaleFactor * bjet1EventScaleFactor;
+
+		eventWeight *= btagScaleFactor;
+		
+		// //ISR reweighting for WJets
+                // if(tree.first == "WJets"){
+                //     double isrWeight = 1.0;
+                //     if(genWPt > 120 && genWPt < 150){
+                //         isrWeight = 0.95;
+                //     }
+                //     else if(genWPt > 150 && genWPt < 250){
+                //         isrWeight = 0.90;
+                //     }
+                //     else if(genWPt > 250){
+                //         isrWeight = 0.80;
+                //     }
+                //     eventWeight *= isrWeight;
+                // }
+
 
                 //TTJets SF
                 if(tree.first == "TTJets"){
@@ -383,20 +453,20 @@ void ZInvisibleControlSamples(){
                 eventWeight *= doubleMuTriggerSF;
                 eventWeight *= doubleMuNormalizationSF;
 
-                //ISR reweighting for DYJets
-                if(tree.first == "DYJets"){
-                    double isrWeight = 1.0;
-                    if(genZPt > 120 && genZPt < 150){
-                        isrWeight = 0.95;
-                    }
-                    else if(genZPt > 150 && genZPt < 250){
-                        isrWeight = 0.90;
-                    }
-                    else if(genZPt > 250){
-                        isrWeight = 0.80;
-                    }
-                    eventWeight *= isrWeight;
-                }
+                // //ISR reweighting for DYJets
+                // if(tree.first == "DYJets"){
+                //     double isrWeight = 1.0;
+                //     if(genZPt > 120 && genZPt < 150){
+                //         isrWeight = 0.95;
+                //     }
+                //     else if(genZPt > 150 && genZPt < 250){
+                //         isrWeight = 0.90;
+                //     }
+                //     else if(genZPt > 250){
+                //         isrWeight = 0.80;
+                //     }
+                //     eventWeight *= isrWeight;
+                // }
 
                 //TTJets SF
                 if(tree.first == "TTJetsDY"){
@@ -510,8 +580,10 @@ void ZInvisibleControlSamples(){
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
         razorHistosDataBeforeReweighting[tree.first] = TH2F(Form("razordatabeforereweighting%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        MRHistosDataBeforeReweighting[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
-        RsqHistosDataBeforeReweighting[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
+        // MRHistosDataBeforeReweighting[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        // RsqHistosDataBeforeReweighting[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
+        MRHistosDataBeforeReweighting[tree.first] = TH1F(Form("mrdata%s", tree.first.c_str()), "; MR (GeV)", 20, 300, 4000);
+        RsqHistosDataBeforeReweighting[tree.first] = TH1F(Form("rsqdata%s", tree.first.c_str()), "; Rsq (GeV)", 10, 0.15, 1.5);
         razorHistosDataBeforeReweighting[tree.first].Sumw2();
         MRHistosDataBeforeReweighting[tree.first].Sumw2();
         RsqHistosDataBeforeReweighting[tree.first].Sumw2();
@@ -740,8 +812,8 @@ void ZInvisibleControlSamples(){
         hist.second.SetStats(0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("controlSampleMCHistogram%s.pdf", hist.first.c_str()));
-        c.Print(Form("controlSampleMCHistogram%s.root", hist.first.c_str()));
+        c.Print(Form("controlSampleMCHistogram%s_noISR.gif", hist.first.c_str()));
+        // c.Print(Form("controlSampleMCHistogram%s.root", hist.first.c_str()));
     }
     //print "step 2" histograms
     if(!computeDataOverMCSFs){
@@ -752,8 +824,8 @@ void ZInvisibleControlSamples(){
             hist.second.SetStats(0);
             hist.second.Draw("colz");
             hist.second.Draw("same,text");
-            c.Print(Form("controlSampleReweightedMCHistogram%s.pdf", hist.first.c_str()));
-            c.Print(Form("controlSampleReweightedMCHistogram%s.root", hist.first.c_str()));
+            c.Print(Form("controlSampleReweightedMCHistogram%s_noISR.gif", hist.first.c_str()));
+            // c.Print(Form("controlSampleReweightedMCHistogram%s.root", hist.first.c_str()));
         }
     }
     //print "step 4" razor histograms from data
@@ -765,8 +837,8 @@ void ZInvisibleControlSamples(){
             hist.second.SetStats(0);
             hist.second.Draw("colz");
             hist.second.Draw("same,text");
-            c.Print(Form("controlSampleHistogram%s.pdf", hist.first.c_str()));
-            c.Print(Form("controlSampleHistogram%s.root", hist.first.c_str()));
+            c.Print(Form("controlSampleHistogram%s_noISR.gif", hist.first.c_str()));
+            // c.Print(Form("controlSampleHistogram%s.root", hist.first.c_str()));
         }
     }
     //print razor histograms from data before reweighting by MR/Rsq/MET
@@ -777,8 +849,8 @@ void ZInvisibleControlSamples(){
         hist.second.SetStats(0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("controlSampleHistogramBeforeReweighting%s.pdf", hist.first.c_str()));
-        c.Print(Form("controlSampleHistogramBeforeReweighting%s.root", hist.first.c_str()));
+        c.Print(Form("controlSampleHistogramBeforeReweighting%s_noISR.gif", hist.first.c_str()));
+        // c.Print(Form("controlSampleHistogramBeforeReweighting%s.root", hist.first.c_str()));
     }
     //print MR histograms, comparing data to MC
     c.SetLogy();
@@ -925,8 +997,8 @@ void ZInvisibleControlSamples(){
         DYWComparisonHist->SetMaximum(1.0);
         DYWComparisonHist->Draw("colz");
         DYWComparisonHist->Draw("same,text");
-        c.Print("controlSampleHistogramComparisonDYW.pdf");
-        c.Print("controlSampleHistogramComparisonDYW.root");
+        c.Print("controlSampleHistogramComparisonDYW_noISR.gif");
+        // c.Print("controlSampleHistogramComparisonDYW.root");
         DYWSigmaComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/#sigma_{W - DY}");
         DYWSigmaComparisonHist->GetXaxis()->SetTitle("MR");
         DYWSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
@@ -935,8 +1007,8 @@ void ZInvisibleControlSamples(){
         DYWSigmaComparisonHist->SetMaximum(3);
         DYWSigmaComparisonHist->Draw("colz");
         DYWSigmaComparisonHist->Draw("same,text");
-        c.Print("controlSampleSigmaHistogramComparisonDYW.pdf");
-        c.Print("controlSampleSigmaHistogramComparisonDYW.root");
+        c.Print("controlSampleSigmaHistogramComparisonDYW_noISR.gif");
+        // c.Print("controlSampleSigmaHistogramComparisonDYW.root");
 
         //do the same for DYJets vs GJets
         TH2F *DYGComparisonHist = (TH2F*)razorHistosData["DYJets"].Clone("DYGComparisonHist");
@@ -959,8 +1031,8 @@ void ZInvisibleControlSamples(){
         DYGComparisonHist->SetMaximum(1.0);
         DYGComparisonHist->Draw("colz");
         DYGComparisonHist->Draw("same,text");
-        c.Print("controlSampleHistogramComparisonDYG.pdf");
-        c.Print("controlSampleHistogramComparisonDYG.root");
+        c.Print("controlSampleHistogramComparisonDYG_noISR.gif");
+        // c.Print("controlSampleHistogramComparisonDYG.root");
         DYGSigmaComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/#sigma_{G - DY}");
         DYGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
         DYGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
@@ -969,8 +1041,8 @@ void ZInvisibleControlSamples(){
         DYGSigmaComparisonHist->SetMaximum(3);
         DYGSigmaComparisonHist->Draw("colz");
         DYGSigmaComparisonHist->Draw("same,text");
-        c.Print("controlSampleSigmaHistogramComparisonDYG.pdf");
-        c.Print("controlSampleSigmaHistogramComparisonDYG.root");
+        c.Print("controlSampleSigmaHistogramComparisonDYG_noISR.gif");
+        // c.Print("controlSampleSigmaHistogramComparisonDYG.root");
 
         //and for WJets vs GJets
         TH2F *WGComparisonHist = (TH2F*)razorHistosData["WJets"].Clone("WGComparisonHist");
@@ -993,8 +1065,8 @@ void ZInvisibleControlSamples(){
         WGComparisonHist->SetMaximum(1.0);
         WGComparisonHist->Draw("colz");
         WGComparisonHist->Draw("same,text");
-        c.Print("controlSampleHistogramComparisonWG.pdf");
-        c.Print("controlSampleHistogramComparisonWG.root");
+        c.Print("controlSampleHistogramComparisonWG_noISR.gif");
+        // c.Print("controlSampleHistogramComparisonWG.root");
         WGSigmaComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/#sigma_{G - W}");
         WGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
         WGSigmaComparisonHist->GetYaxis()->SetTitle("Rsq");
@@ -1003,8 +1075,8 @@ void ZInvisibleControlSamples(){
         WGSigmaComparisonHist->SetMaximum(3);
         WGSigmaComparisonHist->Draw("colz");
         WGSigmaComparisonHist->Draw("same,text");
-        c.Print("controlSampleSigmaHistogramComparisonWG.pdf");
-        c.Print("controlSampleSigmaHistogramComparisonWG.root");
+        c.Print("controlSampleSigmaHistogramComparisonWG_noISR.gif");
+        // c.Print("controlSampleSigmaHistogramComparisonWG.root");
     }
 
     //plot the photon pt distribution in data and MC
@@ -1014,11 +1086,11 @@ void ZInvisibleControlSamples(){
     mcPhotonPt.Draw();
     c.SetLogy(false);
     dataPhotonPt.Draw("pesame");
-    c.Print("controlSamplePhotonPt.pdf");
-    c.Print("controlSamplePhotonPt.root");
+    c.Print("controlSamplePhotonPt_noISR.gif");
+    // c.Print("controlSamplePhotonPt.root");
     c.SetLogy();
-    c.Print("controlSamplePhotonPtLog.pdf");
-    c.Print("controlSamplePhotonPtLog.root");
+    c.Print("controlSamplePhotonPtLog_noISR.gif");
+    // c.Print("controlSamplePhotonPtLog.root");
 
     //get the data/MC scale factors in each bin of MR and Rsq
     map<string, TH2F> dataOverMCScaleFactors;
@@ -1041,8 +1113,8 @@ void ZInvisibleControlSamples(){
         hist.second.SetMaximum(2.0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("DataOverMC%s.pdf", hist.first.c_str()));
-        c.Print(Form("DataOverMC%s.root", hist.first.c_str()));
+        c.Print(Form("DataOverMC%s_noISR.gif", hist.first.c_str()));
+        // c.Print(Form("DataOverMC%s.root", hist.first.c_str()));
         //write it 
         hist.second.Write(); 
     }
@@ -1068,8 +1140,8 @@ void ZInvisibleControlSamples(){
     DYWScaleHist->SetMaximum(3.0);
     DYWScaleHist->Draw("colz");
     DYWScaleHist->Draw("same,text");
-    c.Print("ScaleDYWnSigma.pdf");
-    c.Print("ScaleDYWnSigma.root");
+    c.Print("ScaleDYWnSigma_noISR.gif");
+    // c.Print("ScaleDYWnSigma.root");
     DYWScaleHistPerc->SetTitle("(WJets SF - DYJets SF)/DYJets SF");
     DYWScaleHistPerc->GetXaxis()->SetTitle("MR");
     DYWScaleHistPerc->GetYaxis()->SetTitle("Rsq");
@@ -1078,8 +1150,8 @@ void ZInvisibleControlSamples(){
     DYWScaleHistPerc->SetMaximum(1.0);
     DYWScaleHistPerc->Draw("colz");
     DYWScaleHistPerc->Draw("same,text");
-    c.Print("ScaleDYWPercent.pdf");
-    c.Print("ScaleDYWPercent.root");
+    c.Print("ScaleDYWPercent_noISR.gif");
+    // c.Print("ScaleDYWPercent.root");
 
     //do the same for WJets and GJets
     TH2F *WGScaleHist = (TH2F*)razorHistosDataBeforeReweighting["WJets"].Clone("WGScaleHist");
@@ -1102,8 +1174,8 @@ void ZInvisibleControlSamples(){
     WGScaleHist->SetMaximum(3.0);
     WGScaleHist->Draw("colz");
     WGScaleHist->Draw("same,text");
-    c.Print("ScaleWGnSigma.pdf");
-    c.Print("ScaleWGnSigma.root");
+    c.Print("ScaleWGnSigma_noISR.gif");
+    // c.Print("ScaleWGnSigma.root");
     WGScaleHistPerc->SetTitle("(GJets SF - WJets SF)/WJets SF");
     WGScaleHistPerc->GetXaxis()->SetTitle("MR");
     WGScaleHistPerc->GetYaxis()->SetTitle("Rsq");
@@ -1112,8 +1184,8 @@ void ZInvisibleControlSamples(){
     WGScaleHistPerc->SetMaximum(1.0);
     WGScaleHistPerc->Draw("colz");
     WGScaleHistPerc->Draw("same,text");
-    c.Print("ScaleWGPercent.pdf");
-    c.Print("ScaleWGPercent.root");
+    c.Print("ScaleWGPercent_noISR.gif");
+    // c.Print("ScaleWGPercent.root");
 
     //do the same for DYJets and GJets
     TH2F *DYGScaleHist = (TH2F*)razorHistosDataBeforeReweighting["DYJets"].Clone("DYGScaleHist");
@@ -1136,8 +1208,8 @@ void ZInvisibleControlSamples(){
     DYGScaleHist->SetMaximum(3.0);
     DYGScaleHist->Draw("colz");
     DYGScaleHist->Draw("same,text");
-    c.Print("ScaleDYGnSigma.pdf");
-    c.Print("ScaleDYGnSigma.root");
+    c.Print("ScaleDYGnSigma_noISR.gif");
+    // c.Print("ScaleDYGnSigma.root");
     DYGScaleHistPerc->SetTitle("(GJets SF - DYJets SF)/DYJets SF");
     DYGScaleHistPerc->GetXaxis()->SetTitle("MR");
     DYGScaleHistPerc->GetYaxis()->SetTitle("Rsq");
@@ -1146,8 +1218,8 @@ void ZInvisibleControlSamples(){
     DYGScaleHistPerc->SetMaximum(1.0);
     DYGScaleHistPerc->Draw("colz");
     DYGScaleHistPerc->Draw("same,text");
-    c.Print("ScaleDYGPercent.pdf");
-    c.Print("ScaleDYGPercent.root");
+    c.Print("ScaleDYGPercent_noISR.gif");
+    // c.Print("ScaleDYGPercent.root");
 }
 
 int main(){
@@ -1170,6 +1242,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     mcStack->GetYaxis()->SetLabelSize(0.03);
     mcStack->GetYaxis()->SetTitleOffset(0.45);
     mcStack->GetYaxis()->SetTitleSize(0.05);
+    mcStack->SetMinimum(0.1);
     dataHist->SetMarkerStyle(20);
     dataHist->SetMarkerSize(1);
     dataHist->GetYaxis()->SetTitle("Number of events in 19.7/fb");
@@ -1191,8 +1264,8 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
-    //dataOverMC->SetMinimum(0.7);
-    //dataOverMC->SetMaximum(1.3);
+    dataOverMC->SetMinimum(0.5);
+    dataOverMC->SetMaximum(1.5);
     dataOverMC->GetXaxis()->SetLabelSize(0.1);
     dataOverMC->GetYaxis()->SetLabelSize(0.08);
     dataOverMC->GetYaxis()->SetTitleOffset(0.35);
@@ -1213,6 +1286,6 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Draw("pe");
     pad2.Modified();
     gPad->Update();
-    c.Print(Form("%s.pdf", printString.c_str()));
-    c.Print(Form("%s.root", printString.c_str()));
+    c.Print(Form("%s_noISR.gif", printString.c_str()));
+    // c.Print(Form("%s.root", printString.c_str()));
 }
