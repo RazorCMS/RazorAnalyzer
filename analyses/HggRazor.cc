@@ -20,6 +20,8 @@ enum HggRazorBox {
     LowRes
 };
 
+enum HggRazorBoxSimple { HR, LR };
+
 struct PhotonCandidate
 {                                                  
   int   Index;
@@ -42,7 +44,7 @@ struct evt
 };
 
 #define _phodebug  0
-#define _debug     1
+#define _debug     0
 #define _info      1
 
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
@@ -71,6 +73,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     combine Trees
   */
   combineTrees = false;
+  bool simpleBoxes = false;
   
 
   /*
@@ -113,6 +116,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
   }
   
+  map<string, TTree*> razorBoxesSimple;
+  vector<string> boxNamesSimple;
+  boxNamesSimple.push_back("HighRes");
+  boxNamesSimple.push_back("LowRes");
+  for(size_t i = 0; i < boxNamesSimple.size(); i++){
+    razorBoxesSimple[boxNamesSimple[i]] = new TTree(boxNamesSimple[i].c_str(), boxNamesSimple[i].c_str());
+  }
   //histogram containing total number of processed events (for normalization)
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
@@ -125,7 +135,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma;
   float mbbZ, mbbH;
-  HggRazorBox box;
+  //HggRazorBox box;
+  //HggRazorBoxSimple simplebox;
   unsigned int lumi, run, event;
   
   //selected photon variables
@@ -195,7 +206,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
   }
   //set branches on all trees
-  else{ 
+  else if ( !simpleBoxes ){ 
     for(auto& box : razorBoxes){
       box.second->Branch("lumi", &lumi, "lumi/i");
       box.second->Branch("run", &run, "run/i");
@@ -252,8 +263,69 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
       box.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       box.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
-    }
+    } 
   }
+  else
+    {
+      for ( auto& simplebox : razorBoxesSimple )
+	{
+	  simplebox.second->Branch("lumi", &lumi, "lumi/i");
+	  simplebox.second->Branch("run", &run, "run/i");
+	  simplebox.second->Branch("event", &event, "event/i");
+	  simplebox.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
+	  simplebox.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
+	  simplebox.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+	  simplebox.second->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+	  simplebox.second->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+	  simplebox.second->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+	  simplebox.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
+	  simplebox.second->Branch("MR", &theMR, "MR/F");
+	  simplebox.second->Branch("Rsq", &theRsq, "Rsq/F");
+	  simplebox.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+	  simplebox.second->Branch("MET", &MET, "MET/F");
+	  simplebox.second->Branch("t1MET", &t1MET, "t1MET/F");
+	  simplebox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
+	  simplebox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+	  simplebox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+
+	  simplebox.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
+	  simplebox.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+	  simplebox.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+	  simplebox.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
+	  simplebox.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
+	  simplebox.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
+	  simplebox.second->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
+	  simplebox.second->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
+	  simplebox.second->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
+	  simplebox.second->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
+	  simplebox.second->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
+	  simplebox.second->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
+	  simplebox.second->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
+
+	  simplebox.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
+	  simplebox.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+	  simplebox.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+	  simplebox.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
+	  simplebox.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
+	  simplebox.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
+	  simplebox.second->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
+	  simplebox.second->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
+	  simplebox.second->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
+	  simplebox.second->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
+	  simplebox.second->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
+	  simplebox.second->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
+	  simplebox.second->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O");
+	  
+	  simplebox.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
+	  simplebox.second->Branch("mbbH", &mbbH, "mbbH/F");
+
+	  simplebox.second->Branch("n_Jets", &n_Jets, "n_Jets/I");
+	  simplebox.second->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
+	  simplebox.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
+	  simplebox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
+	  simplebox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+	}
+    }
   
   //begin loop
   if (fChain == 0) return;
@@ -325,7 +397,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     if ( _debug ) std::cout << "=======new event=====" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
     
-    if(combineTrees) box = LowRes;
+    //if(combineTrees) box = LowRes;
     
     //TODO: triggers!
     bool passedDiphotonTrigger = true;
@@ -658,58 +730,89 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     if ( _debug ) std::cout << "mbbH: " << mbbH << " mbbZ: " << mbbZ << std::endl;
     //Writing output to tree
-    //HighPt Box
-    if ( pTGammaGamma > 110.0 )
+    if ( !simpleBoxes )
       {
-	if(combineTrees){
-	  box = HighPt;
-	  razorTree->Fill();
-	}
-	else razorBoxes["HighPt"]->Fill();
+	//HighPt Box
+	if ( pTGammaGamma > 110.0 )
+	  {
+	    if(combineTrees)
+	      {
+		//box = HighPt;
+		razorTree->Fill();
+	      }
+	    else razorBoxes["HighPt"]->Fill();
+	  }
+	//Hbb Box
+	else if ( mbbH > 110.0 && mbbH < 140.0 )
+	  {
+	    if(combineTrees)
+	      {
+		//box = Hbb;
+		razorTree->Fill();
+	      }
+	    else razorBoxes["Hbb"]->Fill();
+	  }
+	//Zbb Box
+	else if( mbbZ > 76.0 && mbbZ < 106.0 )
+	  {
+	    if(combineTrees)
+	      {
+		//box = Zbb;
+		razorTree->Fill();
+	      }
+	    else razorBoxes["Zbb"]->Fill();
+	  }
+	//HighRes Box
+	else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 )
+	  {
+	    if(combineTrees)
+	      {
+		//box = HighRes;
+		razorTree->Fill();
+	      }
+	    else razorBoxes["HighRes"]->Fill();
+	  }
+	//LowRes Box
+	else
+	  {
+	    if(combineTrees)
+	      {
+		//box = LowRes;
+		razorTree->Fill();
+	      }
+	    else razorBoxes["LowRes"]->Fill();
+	  }
       }
-    //Hbb Box
-    else if ( mbbH > 110.0 && mbbH < 140.0 )
-      {
-	if(combineTrees){
-	  box = Hbb;
-	  razorTree->Fill();
-	}
-	else razorBoxes["Hbb"]->Fill();
-      }
-    //Zbb Box
-    else if( mbbZ > 76.0 && mbbZ < 106.0 )
-      {
-	if(combineTrees){
-	  box = Zbb;
-	  razorTree->Fill();
-	}
-	else razorBoxes["Zbb"]->Fill();
-      }
-    //HighRes Box
-    else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 )
-      {
-	if(combineTrees){
-	  box = HighRes;
-	  razorTree->Fill();
-	}
-	else razorBoxes["HighRes"]->Fill();
-      }
-    //LowRes Box
     else
       {
-	if(combineTrees){
-	  box = LowRes;
-	  razorTree->Fill();
-	}
-	else razorBoxes["LowRes"]->Fill();
+	if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 )
+	  {
+	    razorBoxesSimple["HighRes"]->Fill();
+	  }
+	else
+	  {
+	    razorBoxesSimple["LowRes"]->Fill();
+	  }
       }
-    
   }//end of event loop
   
   if ( _info ) std::cout << "[INFO]: Number of events processed: " << NEvents->Integral() << std::endl;
   if ( _info ) std::cout << "[INFO]: Writing output trees..." << std::endl;
-  if(combineTrees) razorTree->Write();
-  else for(auto& box : razorBoxes) box.second->Write();
+  if( !simpleBoxes )
+    {
+      if( combineTrees )
+	{
+	  razorTree->Write();
+	}
+      else
+	{
+	  for ( auto& box : razorBoxes ) box.second->Write();
+	}
+    }
+  else
+    {
+      for( auto& box : razorBoxesSimple ) box.second->Write();
+    }
   NEvents->Write();
   
   outFile.Close();
