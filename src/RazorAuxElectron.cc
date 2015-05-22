@@ -349,3 +349,158 @@ bool RazorAnalyzer::isRunOneTightElectron(int i){
   } 
   return pass;
 }
+
+double RazorAnalyzer::getElectronEfficiencyRunOne( string selectionType, double pt, double eta) {
+
+  double result = 0;
+  if (selectionType == "tight") {
+    if (fabs(eta) < 0.8) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.413;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.561;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.703;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.797;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.844;
+      } else if (pt >= 50) {
+	result =  0.862;
+      } 
+    } else if ( fabs(eta) < 1.44) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.410;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.523;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.652;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.773;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.840;
+      } else if (pt >= 50) {
+	result =  0.865;
+      } 
+    } else if ( fabs(eta) < 1.57) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.233;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.279;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.366;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.521;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.686;
+      } else if (pt >= 50) {
+	result =  0.713;
+      } 
+    } else if ( fabs(eta) < 2.0) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.180;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.290;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.462;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.589;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.667;
+      } else if (pt >= 50) {
+	result =  0.710;
+      } 
+    } else if ( fabs(eta) < 2.5) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.188;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.305;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.458;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.564;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.638;
+      } else if (pt >= 50) {
+	result =  0.675;
+      } 
+    }
+  }
+
+  if (selectionType == "loose") {
+    if (fabs(eta) < 0.8) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.488;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.642;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.774;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.851;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.883;
+      } else if (pt >= 50) {
+	result =  0.894;
+      } 
+    } else if ( fabs(eta) < 1.44) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.566;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.687;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.789;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.872;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.908;
+      } else if (pt >= 50) {
+	result =  0.917;
+      } 
+    } else if ( fabs(eta) < 1.57) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.415;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.475;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.584;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.737;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.846;
+      } else if (pt >= 50) {
+	result =  0.852;
+      } 
+    } else if ( fabs(eta) < 2.0) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.306;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.485;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.680;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.783;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.827;
+      } else if (pt >= 50) {
+	result =  0.838;
+      } 
+    } else if ( fabs(eta) < 2.5) {
+      if (pt >= 5 && pt < 15) {
+	result =  0.315;
+      } else if (pt >= 15 && pt < 20) {
+	result =  0.471;
+      } else if (pt >= 20 && pt < 30) {
+	result =  0.632;
+      } else if (pt >= 30 && pt < 40) {
+	result =  0.718;
+      } else if (pt >= 40 && pt < 50) {
+	result =  0.767;
+      } else if (pt >= 50) {
+	result =  0.780;
+      } 
+    }
+  } //end if loose
+
+  return result;
+
+}

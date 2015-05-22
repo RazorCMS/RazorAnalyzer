@@ -115,6 +115,7 @@ int main(int argc, char* argv[]){
     else if(analysisType == "razor"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
+	analyzer.EnablePileup();
 	analyzer.EnableJets();
         analyzer.EnableMet();
         analyzer.EnableElectrons();
@@ -123,6 +124,19 @@ int main(int argc, char* argv[]){
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
         analyzer.RazorInclusive(outputFileName, true, isData, false); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "RunOneRazor"){
+        cout << "Executing razor inclusive analysis..." << endl;
+	analyzer.EnableEventInfo();
+	analyzer.EnablePileup();
+	analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+        analyzer.EnableTaus();
+	analyzer.EnableMC();
+	analyzer.EnableGenParticles();
+        analyzer.RazorInclusive(outputFileName, true, isData, true); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "hggrazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;
