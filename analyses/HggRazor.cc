@@ -132,8 +132,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   float theMR;
   float theRsq, t1Rsq;
   float MET, t1MET;
+  float mHem1, ptHem1, etaHem1, phiHem1, mHem2, ptHem2, etaHem2, phiHem2;
   int nSelectedPhotons;
-  float mGammaGamma, pTGammaGamma;
+  float mGammaGamma, pTGammaGamma, etaGammaGamma, phiGammaGamma;
   float mbbZ, mbbH;
   //HggRazorBox box;
   //HggRazorBoxSimple simplebox;
@@ -167,10 +168,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+    razorTree->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
+    razorTree->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
     
     razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
     razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
-    razorTree->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+    razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
     razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
     razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
     razorTree->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
@@ -184,7 +187,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
     razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
-    razorTree->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+    razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
     razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
     razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
     razorTree->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
@@ -204,6 +207,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+
+    razorTree->Branch("mHem1", &mHem1, "mHem1/F");
+    razorTree->Branch("ptHem1", &ptHem1, "ptHem1/F");
+    razorTree->Branch("etaHem1", &etaHem1, "etaHem1/F");
+    razorTree->Branch("phiHem1", &phiHem1, "phiHem1/F");
+
+    razorTree->Branch("mHem2", &mHem2, "mHem2/F");
+    razorTree->Branch("ptHem2", &ptHem2, "ptHem2/F");
+    razorTree->Branch("etaHem2", &etaHem2, "etaHem2/F");
+    razorTree->Branch("phiHem2", &phiHem2, "phiHem2/F");
   }
   //set branches on all trees
   else if ( !simpleBoxes ){ 
@@ -226,10 +239,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
       box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+      box.second->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
+      box.second->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
       
       box.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
       box.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
-      box.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+      box.second->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
       box.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
       box.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
       box.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
@@ -243,7 +258,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       
       box.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
       box.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
-      box.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+      box.second->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
       box.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
       box.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
       box.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
@@ -263,6 +278,17 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
       box.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       box.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+
+      box.second->Branch("mHem1", &mHem1, "mHem1/F");
+      box.second->Branch("ptHem1", &ptHem1, "ptHem1/F");
+      box.second->Branch("etaHem1", &etaHem1, "etaHem1/F");
+      box.second->Branch("phiHem1", &phiHem1, "phiHem1/F");
+
+      box.second->Branch("mHem2", &mHem2, "mHem2/F");
+      box.second->Branch("ptHem2", &ptHem2, "ptHem2/F");
+      box.second->Branch("etaHem2", &etaHem2, "etaHem2/F");
+      box.second->Branch("phiHem2", &phiHem2, "phiHem2/F");
+      
     } 
   }
   else
@@ -287,10 +313,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
 	  simplebox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
 	  simplebox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+	  simplebox.second->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
+	  simplebox.second->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
 
 	  simplebox.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
 	  simplebox.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
-	  simplebox.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+	  simplebox.second->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
 	  simplebox.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
 	  simplebox.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
 	  simplebox.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
@@ -304,7 +332,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 
 	  simplebox.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
 	  simplebox.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
-	  simplebox.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+	  simplebox.second->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
 	  simplebox.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
 	  simplebox.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
 	  simplebox.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
@@ -324,6 +352,17 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
 	  simplebox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
 	  simplebox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+
+	  simplebox.second->Branch("mHem1", &mHem1, "mHem1/F");
+	  simplebox.second->Branch("ptHem1", &ptHem1, "ptHem1/F");
+	  simplebox.second->Branch("etaHem1", &etaHem1, "etaHem1/F");
+	  simplebox.second->Branch("phiHem1", &phiHem1, "phiHem1/F");
+	  
+	  simplebox.second->Branch("mHem2", &mHem2, "mHem2/F");
+	  simplebox.second->Branch("ptHem2", &ptHem2, "ptHem2/F");
+	  simplebox.second->Branch("etaHem2", &etaHem2, "etaHem2/F");
+	  simplebox.second->Branch("phiHem2", &phiHem2, "phiHem2/F");
+	  
 	}
     }
   
@@ -353,14 +392,26 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     theMR = -1;
     theRsq = -1;
     nSelectedPhotons = 0;
-    mGammaGamma = -1;
-    pTGammaGamma = -1;
+    mGammaGamma      = -1;
+    pTGammaGamma     = -1;
+    etaGammaGamma    = -1;
+    phiGammaGamma    = -1;
     mbbZ = 0;
     mbbH = 0;
     lumi  = lumiNum;
     run   = runNum;
     event = eventNum;
     
+    mHem1   = -1;
+    ptHem1  = -1;
+    etaHem1 = -1;
+    phiHem1 = -1;
+
+    mHem2   = -1;
+    ptHem2  = -1;
+    etaHem2 = -1;
+    phiHem2 = -1;
+
     //selected photons variables
     for ( int i = 0; i < 2; i++ )
       {
@@ -625,6 +676,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     //record higgs candidate info
     mGammaGamma = HiggsCandidate.M();
     pTGammaGamma = HiggsCandidate.Pt();
+    etaGammaGamma = HiggsCandidate.Eta();
+    phiGammaGamma = HiggsCandidate.Phi();
     
     
     //Jets
@@ -698,20 +751,33 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
     MET = metPt;
     t1MET = metType0Plus1Pt;
-    //if MR < 200, reject the event
-    if ( theMR < 150.0 )
-      {
-	if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
-	for ( auto& jet : JetsPlusHiggsCandidate )
-	  {
-	    if ( _debug ) std::cout << "phoPT: " << pTGammaGamma 
-				    << " jet pt : " << jet.Pt() << " eta: " << jet.Eta() << " phi: " << jet.Phi() 
-				    << " h1 pt: " << hemispheres[0].Pt() << " h1 eta: " << hemispheres[0].Eta()
-				    << " h2 pt: " << hemispheres[1].Pt() << " h2 eta: " << hemispheres[1].Eta() << std::endl;
-	  }
-	continue;
-      }
+    //hem1
+    mHem1   = hemispheres[0].M();
+    ptHem1  = hemispheres[0].Pt();
+    etaHem1 = hemispheres[0].Eta();
+    phiHem1 = hemispheres[0].Phi();
+    //hem2
+    mHem2   = hemispheres[1].M();
+    ptHem2  = hemispheres[1].Pt();
+    etaHem2 = hemispheres[1].Eta();
+    phiHem2 = hemispheres[1].Phi();
+    //No MR cut
     
+    /*
+      if ( theMR < 150.0 )
+      {
+      if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
+      for ( auto& jet : JetsPlusHiggsCandidate )
+      {
+      if ( _debug ) std::cout << "phoPT: " << pTGammaGamma 
+      << " jet pt : " << jet.Pt() << " eta: " << jet.Eta() << " phi: " << jet.Phi() 
+      << " h1 pt: " << hemispheres[0].Pt() << " h1 eta: " << hemispheres[0].Eta()
+      << " h2 pt: " << hemispheres[1].Pt() << " h2 eta: " << hemispheres[1].Eta() << std::endl;
+      }
+      continue;
+      }
+    */
+
     //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
     if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
       {
