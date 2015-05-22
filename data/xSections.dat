@@ -114,6 +114,7 @@ WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    26.2*(0.6760)*0.
 WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola                    26.2*(0.1080*3)*0.101*1.23344
 ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola                   0.364791
 ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola                    2.448690
+ZZJetsTo4L_TuneZ2star_8TeV-madgraph-tauola                      0.176908
 TTTT_TuneZ2star_8TeV-madgraph-tauola                            9.144e-04
 #Gamma+jets samples -- tentative!
 GJets_HT-40To100_8TeV-madgraph                                  2.093e4
@@ -136,4 +137,3 @@ QCD_HT-100To250_TuneZ2star_8TeV-madgraph-pythia                 10367000.
 QCD_HT-250To500_TuneZ2star_8TeV-madgraph-pythia6                276000.
 QCD_HT-500To1000_TuneZ2star_8TeV-madgraph-pythia6               8426.
 QCD_HT-1000ToInf_TuneZ2star_8TeV-madgraph-pythia6               204.
-    
