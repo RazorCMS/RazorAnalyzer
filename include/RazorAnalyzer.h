@@ -90,6 +90,7 @@ class RazorAnalyzer: public RazorEvents {
 	bool passMVANonTrigVetoElectronIso(int i);
         bool isRunOneLooseElectron(int i);
         bool isRunOneTightElectron(int i);
+	double getElectronEfficiencyRunOne( string selectionType, double pt, double eta);
 
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);
@@ -154,6 +155,8 @@ class RazorAnalyzer: public RazorEvents {
         int SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch=0.4);
 	
 	//functions in src/RazorAuxGenLevel.cc
+	bool matchesGenMuon(double eta, double phi);
+	bool matchesGenElectron(double eta, double phi);
 	bool isGenTau(int index);
 	bool isGenLeptonicTau(int index);
 	int findClosestGenElectron(double eta, double phi);

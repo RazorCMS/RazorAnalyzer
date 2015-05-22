@@ -4,9 +4,11 @@
 
 //C++ includes
 #include <sys/stat.h>
+#include <assert.h>
 
 //ROOT includes
 #include "TH1F.h"
+#include "TH2D.h"
 
 using namespace std;
 
@@ -14,6 +16,22 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
+  bool printdebug = false;
+
+  //Pileup Weights
+  TFile *pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
+  TH1D *pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
+  assert(pileupWeightHist);
+
+  //Lepton Efficiency Correction Factors
+  TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
+  TH2D *eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
+  assert(eleLooseEffSFHist);
+  TH2D *eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("sfTIGHT");
+  assert(eleTightEffSFHist);
+  
+
+
   if (outFileName.empty()){
     cout << "RazorInclusive: Output filename not specified!" << endl << "Using default output name RazorInclusive.root" << endl;
     outFileName = "RazorInclusive.root";
@@ -30,7 +48,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   struct stat sb;
   string dir;
   if(stat("/afs/cern.ch/work/s/sixie/public", &sb) == 0 && S_ISDIR(sb.st_mode)){ //check if Si's directory exists
-    dir = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data";
+    if (isRunOne) {
+      dir = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data";
+    } else {
+      dir = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data";
+    }
     cout << "Getting JEC parameters from " << dir << endl;
   }
   else{ //we are on t3-higgs (for running locally on your laptop we need a separate solution)
@@ -58,6 +80,10 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
   JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",dir.c_str()));
   SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+
+
+
+
 
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
@@ -90,7 +116,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float theRsq;  
   float met;
   float HT;
-
+  float weight = 1.0;
+  float pileupWeight = 1.0;
+  float lepEffCorrFactor = 1.0;
+  float lepTrigCorrFactor = 1.0;
+  float btagCorrFactor = 1.0;
+  bool  hltDecision[100];
+   
+     
   RazorBox box;
 
   //set branches on big tree
@@ -108,6 +141,33 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     razorTree->Branch("met", &met, "met/F");
     razorTree->Branch("HT", &HT, "HT/F");
     razorTree->Branch("box", &box, "box/I");
+
+    //MET Filters
+    // razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
+    // razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
+    // razorTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, "Flag_hcalLaserEventFilter/O");
+    // razorTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/O");
+    // razorTree->Branch("Flag_goodVertices", &Flag_goodVertices, "Flag_goodVertices/O");
+    // razorTree->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, "Flag_trackingFailureFilter/O");
+    // razorTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter, "Flag_eeBadScFilter/O");
+    // razorTree->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter, "Flag_ecalLaserCorrFilter/O");
+    // razorTree->Branch("Flag_trkPOGFilters", &Flag_trkPOGFilters, "Flag_trkPOGFilters/O");
+    // razorTree->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, "Flag_trkPOG_manystripclus53X/O");
+    // razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
+    // razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
+    // razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
+    //razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[100]/O");
+
+    if (!isData) {    
+      razorTree->Branch("weight", &weight, "weight/F");
+      //   razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
+      //   razorTree->Branch("lepEffCorrFactor", &lepEffCorrFactor, "lepEffCorrFactor/F");
+      //   razorTree->Branch("lepTrigCorrFactor", &lepTrigCorrFactor, "lepTrigCorrFactor/F");
+      //   razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
+    } else {
+      razorTree->Branch("run", &runNum, "run/i");
+      razorTree->Branch("lumi", &lumiNum, "lumi/i");
+    }
   }
   //set branches on all trees
   else{ 
@@ -137,6 +197,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
+    printdebug = false;
 
     //fill normalization histogram
     NEvents->Fill(1.0);
@@ -155,12 +216,23 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     theMR = -1;
     theRsq = -1;
     if(combineTrees) box = NONE;
+    weight = 1.0;
 
     //*****************************************
     //TODO: triggers!
     //*****************************************
+    bool passedDileptonTrigger = false;
+    bool passedSingleLeptonTrigger = false;
     bool passedLeptonicTrigger = true;
-    bool passedHadronicTrigger= true;
+    bool passedHadronicTrigger= false;
+    if (HLTDecision[46] || HLTDecision[47] ||HLTDecision[48] ||HLTDecision[49] ||HLTDecision[50]) passedHadronicTrigger = true;
+    if (HLTDecision[3] || HLTDecision[4] || HLTDecision[6] || HLTDecision[7]|| HLTDecision[12]) passedDileptonTrigger = true;
+    if (isData) {
+      if (HLTDecision[0] || HLTDecision[1] ||HLTDecision[8] ||HLTDecision[9]) passedSingleLeptonTrigger = true;
+    } else {
+      if (HLTDecision[0] || HLTDecision[1] || HLTDecision[9]) passedSingleLeptonTrigger = true;
+    }
+    passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
     if(!(passedLeptonicTrigger || passedHadronicTrigger)) continue; //ensure event passed a trigger
         
     //*****************************************
@@ -178,15 +250,27 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	NPU = nPUmean[i];
       }	  
     }
-    
+    pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+
     //*****************************************
     //Select Leptons
     //*****************************************
+    lepEffCorrFactor  = 1.0;
+
+
+
+
+
     vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
     for(int i = 0; i < nMuons; i++){
 
       if(muonPt[i] < 5) continue;
       if(abs(muonEta[i]) > 2.4) continue;
+
+      //Calculate MC->Data Scale Factors
+      if (RazorAnalyzer::matchesGenMuon(muonEta[i],muonPhi[i])) {	
+	//apply muon efficiency scale factors
+      }
 
       if(isVetoMuon(i)) nVetoMuons++;
       if(isLooseMuon(i) && muonPt[i] >= 10 ) nLooseMuons++;
@@ -199,9 +283,38 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     for(int i = 0; i < nElectrons; i++){
       if(elePt[i] < 5) continue;
       if(fabs(eleEta[i]) > 2.5) continue;
+
+      if (RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i])) {
+	double effLoose = getElectronEfficiencyRunOne("loose",elePt[i],eleEta[i]);	  
+	double effLooseSF = eleLooseEffSFHist->GetBinContent( eleLooseEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
+							      eleLooseEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
+	double tmpLooseSF = 1.0;
+	if( (!isRunOne && isLooseElectron(i)) || (isRunOne && isRunOneLooseElectron(i)) ) {
+	  tmpLooseSF = effLooseSF;
+	} else {
+	  tmpLooseSF = ( 1/effLoose - effLooseSF) / ( 1/effLoose - 1);
+	}
+
+	if (tmpLooseSF != tmpLooseSF) cout << tmpLooseSF << " " << effLoose << " " << effLooseSF << "\n";
+
+	double effTight = getElectronEfficiencyRunOne("tight",elePt[i],eleEta[i]);	  
+	double effTightSF = eleTightEffSFHist->GetBinContent( eleTightEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
+							      eleTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
+	double tmpTightSF = 1.0;
+	if( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) ) {
+	  tmpTightSF = effTightSF;
+	} else {
+	  tmpTightSF = ( 1/effTight - effTightSF) / ( 1/effTight - 1);
+	}
+	if (tmpTightSF != tmpTightSF) cout << tmpTightSF << " " << effTight << " " << effTightSF << "\n";
+
+	lepEffCorrFactor *= tmpLooseSF;
+	lepEffCorrFactor *= tmpTightSF;
+      }
+
       if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
-      if(isLooseElectron(i) && elePt[i] > 10 ) nLooseElectrons++;
-      if(isTightElectron(i) && elePt[i] > 10 ) nTightElectrons++;
+      if( ( (!isRunOne && isLooseElectron(i)) || (isRunOne && isRunOneLooseElectron(i)) ) && elePt[i] > 10 ) nLooseElectrons++;
+      if( ( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) ) && elePt[i] > 10 ) nTightElectrons++;
 
       //remove overlaps
       bool overlap = false;
@@ -214,25 +327,32 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       GoodLeptons.push_back(thisElectron);            
     }
-    for(int i = 0; i < nTaus; i++){	 
-      if (tauPt[i] < 20) continue;
-      if (fabs(tauEta[i]) > 2.4) continue;
 
-      if(isLooseTau(i)) nLooseTaus++;
-      if(isTightTau(i)) nTightTaus++;
-
-      //remove overlaps
-      bool overlap = false;
-      for(auto& lep : GoodLeptons){
-	if (RazorAnalyzer::deltaR(tauEta[i],tauPhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
+    //******************************
+    //Only Do Taus for Run2
+    //******************************
+    if (!isRunOne) {
+      for(int i = 0; i < nTaus; i++){	 
+	if (tauPt[i] < 20) continue;
+	if (fabs(tauEta[i]) > 2.4) continue;
+	
+	if(isLooseTau(i)) nLooseTaus++;
+	if(isTightTau(i)) nTightTaus++;
+	
+	//remove overlaps
+	bool overlap = false;
+	for(auto& lep : GoodLeptons){
+	  if (RazorAnalyzer::deltaR(tauEta[i],tauPhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
+	}
+	if(overlap) continue;
+	
+	if (!isLooseTau(i)) continue;
+	TLorentzVector thisTau; thisTau.SetPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
+	GoodLeptons.push_back(thisTau);  
       }
-      if(overlap) continue;
-
-      if (!isLooseTau(i)) continue;
-      TLorentzVector thisTau; thisTau.SetPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
-      GoodLeptons.push_back(thisTau);  
     }
         
+
     vector<TLorentzVector> GoodJets;
     int numJetsAbove80GeV = 0;
 
@@ -266,6 +386,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
      
     // }
 
+
+    //initialize B-Tagging Correction Factor
+    btagCorrFactor = 1.0;
 
     //***********************************************
     //Variables for Type1 Met Correction
@@ -315,6 +438,31 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
 
       //*******************************
+      //B-Tagging Correction Factor
+      //*******************************
+      if (abs(jetPartonFlavor[i]) == 5 &&jetCorrPt > 20) {
+	double tmpBTagCorrFactor = 1.0;
+	
+	double tmpCorrFactor = 0.938887 + 0.00017124 * jetCorrPt + (-2.76366e-07) * jetCorrPt * jetCorrPt ;
+	double MCEff = 1.0;
+	if (jetCorrPt < 50) MCEff = 0.65;
+	else if (jetCorrPt < 80) MCEff = 0.70;
+	else if (jetCorrPt < 120) MCEff = 0.73;
+	else if (jetCorrPt < 210) MCEff = 0.73;
+	else MCEff = 0.66;				 
+	
+	//if pass CSV Medium
+	if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) {
+	  tmpBTagCorrFactor = tmpCorrFactor;
+	} else {
+	  tmpBTagCorrFactor = ( 1/MCEff - tmpCorrFactor) / ( 1/MCEff - 1);
+	}
+
+	btagCorrFactor *= tmpBTagCorrFactor;
+      }
+
+
+      //*******************************
       //Add to Type1 Met Correction
       //*******************************
       if (jetPt[i]*JEC*jetEnergySmearFactor > 20) {
@@ -338,7 +486,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       GoodJets.push_back(thisJet);
       nSelectedJets++;
 
-      if(isCSVM(i)){ 
+      if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))){ 
     	nBTaggedJets++;
       }
     }
@@ -388,7 +536,28 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //**********************************************************************
     //Apply ECAL Dead Cells Filter
     //**********************************************************************
-    if (Flag_EcalDeadCellTriggerPrimitiveFilter == false) continue;
+    if (isRunOne) {
+      if (isData) {
+	if (!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) {
+	  cout << "Fail noise filter\n";
+	  continue;
+	}
+      }
+    } else {
+      if (Flag_EcalDeadCellTriggerPrimitiveFilter == false) continue;
+    }
+
+    //**********************************************************************
+    //Compute correction factor weight
+    //**********************************************************************
+    weight *= pileupWeight;
+    weight *= lepEffCorrFactor;
+    weight *= btagCorrFactor;    
+
+
+    //**********************************************************************
+    //Categorize Events into Razor Boxes 
+    //**********************************************************************
 
     //MuEle Box
     if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
@@ -497,6 +666,26 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	else razorBoxes["DiJet"]->Fill();
       }     
     }
+
+
+
+    //******************************
+    //Print Debug
+    //******************************
+    if (printdebug) {
+      cout << "\nNew Event\n";
+      for(int j = 0; j < nGenParticle; j++){
+	cout << "GenParticle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " : " << gParticleMotherId[j] << "\n";
+      }
+    }
+
+
+
+
+
+
+
+
   }//end of event loop
   
   cout << "Writing output trees..." << endl;

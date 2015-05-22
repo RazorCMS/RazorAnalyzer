@@ -37,7 +37,7 @@
 
 void PlotMCToDataScaleFactors_TTBarSingleLepton() {
   
-  TFile *TTBarDileptonFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/TTBarDileptonScaleFactors.root", "READ");
+  TFile *TTBarDileptonFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/TTBarDileptonScaleFactors.root", "READ");
   TFile *TTBarSingleMuFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/TTBarSingleLeptonControlRegionPlots_MR300Rsq0p15_OneMediumBTag_SingleMu.root", "READ");
   TFile *TTBarSingleEleFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/TTBarSingleLeptonControlRegionPlots_MR300Rsq0p15_OneMediumBTag_SingleEle.root", "READ");
 
@@ -115,11 +115,16 @@ void PlotMCToDataScaleFactors_TTBarSingleLepton() {
       // cout << "bin " << i << j << " : " << TTBarSingleMuDataMinusBkgHist->GetBinContent(i,j) << " " << TTBarSingleEleDataMinusBkgHist->GetBinContent(i,j)  << " | "
       // 	   << TTBarSingleMuMCHist->GetBinContent(i,j) << " " <<  TTBarSingleEleMCHist->GetBinContent(i,j) << " "
       // 	   << "\n";
-      cout << "bin " << i << j << " : " << data << " +/- " << dataErr << " , " << mc << " +/- " << mcErr 
-	   << " | " << data/mc << " +/- " << (data/mc)*sqrt( pow(mcErr/mc,2)+pow(dataErr/data,2) ) << "\n";
+      if (i != 0 && j!=0) {
+	cout << "bin " << i << j << " : " << data << " +/- " << dataErr << " , " << mc << " +/- " << mcErr 
+	     << " | " << data/mc << " +/- " << (data/mc)*sqrt( pow(mcErr/mc,2)+pow(dataErr/data,2) ) << "\n";
 
-      TTBarSingleLep->SetBinContent(i,j, data/mc);
-      TTBarSingleLep->SetBinError(i,j, (data/mc)*sqrt( pow(mcErr/mc,2)+pow(dataErr/data,2) ) );
+	TTBarSingleLep->SetBinContent(i,j, data/mc);
+	TTBarSingleLep->SetBinError(i,j, (data/mc)*sqrt( pow(mcErr/mc,2)+pow(dataErr/data,2) ) );
+      } else {
+	TTBarSingleLep->SetBinContent(i,j, 1.0);
+	TTBarSingleLep->SetBinError(i,j, 0);
+      }
     }
   }
   cv = new TCanvas("cv","cv",800,600);
@@ -129,6 +134,8 @@ void PlotMCToDataScaleFactors_TTBarSingleLepton() {
   TTBarSingleLep->SetStats(false);
   TTBarSingleLep->GetZaxis()->SetTitle("MC to Data Scale Factor");
   cv->SetRightMargin(0.15);
+  cv->SetLogx();
+  cv->SetLogy();
   cv->SaveAs("TTBarSingleLep.gif");
   
 
@@ -141,12 +148,17 @@ void PlotMCToDataScaleFactors_TTBarSingleLepton() {
   TH2D* CompareTTBarSingleLeptonWithDileptonFraction = (TH2D*)TTBarDileptonHist->Clone("CompareTTBarSingleLeptonWithDileptonFraction");
   for (int i=0; i<CompareTTBarSingleLeptonWithDileptonSigmas->GetXaxis()->GetNbins()+1;i++) {
     for (int j=0; j<CompareTTBarSingleLeptonWithDileptonSigmas->GetYaxis()->GetNbins()+1;j++) {
-      CompareTTBarSingleLeptonWithDileptonSigmas->SetBinContent(i,j, (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / sqrt( pow(TTBarDileptonHist->GetBinError(i,j), 2) + pow(TTBarSingleLep->GetBinError(i,j), 2)));
-      CompareTTBarSingleLeptonWithDileptonFraction->SetBinContent(i,j, (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / TTBarDileptonHist->GetBinContent(i,j) );
-
-      cout << "Bin " << i << " " << j << " : " << TTBarDileptonHist->GetBinContent(i,j) << " +/- " << TTBarDileptonHist->GetBinError(i,j) << " , " << TTBarSingleLep->GetBinContent(i,j) << " +/- " << TTBarSingleLep->GetBinError(i,j) << " : " 
-	   << (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / sqrt( pow(TTBarDileptonHist->GetBinError(i,j), 2) + pow(TTBarSingleLep->GetBinError(i,j), 2)) << " " << (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / TTBarDileptonHist->GetBinContent(i,j) 
-	   << " \n";
+      if (i!=0 && j!=0) {
+	CompareTTBarSingleLeptonWithDileptonSigmas->SetBinContent(i,j, (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / sqrt( pow(TTBarDileptonHist->GetBinError(i,j), 2) + pow(TTBarSingleLep->GetBinError(i,j), 2)));
+	CompareTTBarSingleLeptonWithDileptonFraction->SetBinContent(i,j, (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / TTBarDileptonHist->GetBinContent(i,j) );
+	
+	cout << "Bin " << i << " " << j << " : " << TTBarDileptonHist->GetBinContent(i,j) << " +/- " << TTBarDileptonHist->GetBinError(i,j) << " , " << TTBarSingleLep->GetBinContent(i,j) << " +/- " << TTBarSingleLep->GetBinError(i,j) << " : " 
+	     << (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / sqrt( pow(TTBarDileptonHist->GetBinError(i,j), 2) + pow(TTBarSingleLep->GetBinError(i,j), 2)) << " " << (TTBarDileptonHist->GetBinContent(i,j) - TTBarSingleLep->GetBinContent(i,j)) / TTBarDileptonHist->GetBinContent(i,j) 
+	     << " \n";
+      } else {
+	CompareTTBarSingleLeptonWithDileptonSigmas->SetBinContent(i,j, 0);
+	CompareTTBarSingleLeptonWithDileptonFraction->SetBinContent(i,j, 0);	
+      }
 
     }
   }
@@ -158,8 +170,10 @@ void PlotMCToDataScaleFactors_TTBarSingleLepton() {
   CompareTTBarSingleLeptonWithDileptonSigmas->GetZaxis()->SetTitle("Difference in #sigma");
   CompareTTBarSingleLeptonWithDileptonSigmas->Draw("colz,text");
   cv->SetRightMargin(0.15);
+  cv->SetLogy();
   cv->SaveAs("CompareTTBarSingleLeptonWithDileptonSigmas.gif");
 
+ 
   cv = new TCanvas("cv","cv",800,600);
   CompareTTBarSingleLeptonWithDileptonFraction->SetMaximum(1.0);
   CompareTTBarSingleLeptonWithDileptonFraction->SetMinimum(-1.0);
@@ -169,8 +183,10 @@ void PlotMCToDataScaleFactors_TTBarSingleLepton() {
   CompareTTBarSingleLeptonWithDileptonFraction->Draw("colz,text");
   gPad->Update();
   cv->SetRightMargin(0.15);
+  cv->SetLogy();
   cv->SaveAs("CompareTTBarSingleLeptonWithDileptonFraction.gif");
 
+  return;
 
   TFile *file = TFile::Open("TTBarSingleLeptonScaleFactors.root", "RECREATE");
   file->cd();  
@@ -271,6 +287,8 @@ void PlotMCToDataScaleFactors_WJets( ) {
   WJetsSingleLep->SetStats(false);
   WJetsSingleLep->GetZaxis()->SetTitle("MC to Data Scale Factor");
   cv->SetRightMargin(0.15);
+  cv->SetLogx();
+  cv->SetLogy();
   cv->SaveAs("WJetsSingleLep.gif");
   
 
@@ -337,9 +355,8 @@ void PlotMCToDataScaleFactors_ZToLL( ) {
   CompareZToLL_EEVsMM->GetZaxis()->SetTitle("Difference (#sigma)");
   CompareZToLL_EEVsMM->Draw("colz");
   cv->SetRightMargin(0.15);
+  cv->SetLogy();
   cv->SaveAs("CompareZToLL_EEVsMM.gif");
-
-
 
   //********************************************************************************************
   //Combine SingleMu and SingleEle
@@ -371,9 +388,10 @@ void PlotMCToDataScaleFactors_ZToLL( ) {
   cv = new TCanvas("cv","cv",800,600);
   ZToLLDilepton->SetMaximum(1.5);
   ZToLLDilepton->SetMinimum(0.0);
-  ZToLLDilepton->Draw("colz,text");
+  ZToLLDilepton->Draw("colz,texte1");
   ZToLLDilepton->SetStats(false);
   ZToLLDilepton->GetZaxis()->SetTitle("MC to Data Scale Factor");
+  cv->SetLogy();
   cv->SetRightMargin(0.15);
   cv->SaveAs("ZToLLDileptonScaleFactor.gif");
   
@@ -519,10 +537,11 @@ void PlotMCToDataScaleFactors_TTBarDilepton( ) {
   cv = new TCanvas("cv","cv",800,600);
   TTBarDilepton->SetMaximum(1.5);
   TTBarDilepton->SetMinimum(0.0);
-  TTBarDilepton->Draw("colz,text");
+  TTBarDilepton->Draw("colz,texte1");
   TTBarDilepton->SetStats(false);
   TTBarDilepton->GetZaxis()->SetTitle("MC to Data Scale Factor");
   cv->SetRightMargin(0.15);
+  cv->SetLogy();
   cv->SaveAs("TTBarDileptonScaleFactor.gif");
   
 

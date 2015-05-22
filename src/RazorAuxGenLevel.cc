@@ -144,3 +144,34 @@ int RazorAnalyzer::findClosestParton(float eta, float phi){
   
   return partonIndex;
 };
+
+
+//Checks if a gen muon is in the given eta and phi direction
+bool RazorAnalyzer::matchesGenMuon(double eta, double phi){
+  bool result = false;
+  for(int j = 0; j < nGenParticle; j++){
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
+	 abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1 &&
+	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
+	 ) {
+      result = true;
+      break;
+    }    
+  }
+  return result;
+};
+
+//Checks if a gen electron is in the given eta and phi direction
+bool RazorAnalyzer::matchesGenElectron(double eta, double phi){
+  bool result = false;
+  for(int j = 0; j < nGenParticle; j++){
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
+	 abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 &&
+	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
+	 ) {
+      result = true;
+      break;
+    }    
+  }
+  return result;
+};
