@@ -112,20 +112,22 @@ int main(int argc, char* argv[]) {
 
             //add weight branch
             float weight = 1;
+	    float inputweight;
 	    if (!normalizedTree->GetBranch("weight")) {
 	      normalizedTree->Branch("weight", &weight, "weight/F");
 	    } else {
 	      cout << "Found weight Branch already.\n";
 	      normalizedTree->SetBranchAddress("weight", &weight);
+	      inputTree->SetBranchAddress("weight", &inputweight);
 	    }
 
             //store the weights
             for (int n=0;n<inputTree->GetEntries();n++) { 
 	      if (n%1000000==0) cout << "Processed Event " << n << "\n";
                 inputTree->GetEntry(n);
-                weight = 1.0;
+                //weight = 1.0;
                 if(normalizationWeight >= 0){
-                    weight = weight * normalizationWeight;
+		  weight = inputweight * normalizationWeight;
                 } 
                 normalizedTree->Fill(); 
             }
