@@ -18,6 +18,7 @@ def binnedFit(pdf, data):
     #m.hesse()
     #fr = m.save()
     fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
+    
     return fr
  
 def setStyle():
@@ -66,9 +67,12 @@ if __name__ == '__main__':
     setStyle()
     
     extRazorPdf = w.pdf('extRazorPdf')
-    
+
     fr = binnedFit(extRazorPdf,dataHist)
-    fr.Print('v')    
+    #fr = rt.RooFitResult()
+    fr.Print('v')
+    
+    rootTools.Utils.importToWS(w,fr)
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -109,6 +113,14 @@ if __name__ == '__main__':
     h_MR = h_nBtagRsqMR.Project3D("xe")
     h_Rsq = h_nBtagRsqMR.Project3D("ye")
 
-    RunToys.print1DCanvas(c,h_MR,h_data_MR,"h_MR.pdf")
-    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,"h_Rsq.pdf")
+    
 
+    RunToys.print1DCanvas(c,h_MR,h_data_MR,options.outDir+"/h_MR.pdf","M_{R} [GeV]","Events")
+    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq.pdf","R^{2}","Events")
+    
+
+    outFileName = "BinnedFitResults_%s.root"%(box)
+    outFile = rt.TFile.Open(options.outDir+"/"+outFileName,'recreate')
+    outFile.cd()
+    w.Write()
+    outFile.Close()

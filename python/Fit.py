@@ -63,15 +63,9 @@ if __name__ == '__main__':
     rt.RooAbsReal.defaultIntegratorConfig().setEpsAbs(1e-13) 
     rt.RooAbsReal.defaultIntegratorConfig().setEpsRel(1e-13) 
     
-    #if options.fitRegion == "Full":
-    #    fitResult = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.PrintEvalErrors(0),rt.RooFit.EvalErrorWall(False))
-    #else:
-    #    fitResult = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Range(options.fitRegion))
-
     if options.noFit:
         fitResult = rt.RooFitResult()
     else:
-        
         rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
         if options.fitRegion == "Full":
             nll = pdf.createNLL(data)
