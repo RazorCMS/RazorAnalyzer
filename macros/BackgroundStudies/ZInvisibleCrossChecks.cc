@@ -17,11 +17,16 @@
 #include "TPad.h"
 #include "TColor.h"
 #include "assert.h"
+#include "math.h"
 
 using namespace std;
 
 bool debug = false;
 //bool debug = true;
+
+//true: find the translation factors from MC to data
+//false: find the translation factors from DY, W, G to Z->nunu
+bool computeDataOverMCSFs = true;
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
@@ -46,12 +51,13 @@ void ZInvisibleCrossChecks(){
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
-    mcfiles["GJets"] = new TFile("GJets_HT-40ToInf_MediumPhoton_weighted.root");
-    mcfiles["EMQCD"] = new TFile("QCD_HT-100ToInf_TuneZ2star_8TeV-madgraph-pythia_19700pb_MediumPhoton_weighted.root");
-    mcfiles["TTG"] = new TFile("TTGJets_8TeV-madgraph_19700pb_MediumPhoton_weighted.root");
-    mcfiles["WG"] = new TFile("WGToLNuG_TuneZ2star_8TeV-madgraph-tauola_19700pb_MediumPhoton_weighted.root");
-    mcfiles["ZG"] = new TFile("ZG_Inclusive_8TeV-madgraph_19700pb_MediumPhoton_weighted.root");
-    datafiles["GJets"] = new TFile("Photon_Run2012ABCD_MediumPhoton_GOODLUMI.root");
+    mcfiles["GJets"] = new TFile("./GJetsRun1_19700pb_weighted.root");
+    mcfiles["EMQCD"] = new TFile("./QCDRun1_19700pb_weighted.root");
+    mcfiles["TTG"] = new TFile("./TTGJetsRun1_19700pb_weighted.root");
+    mcfiles["WG"] = new TFile("./WGJetsRun1_19700pb_weighted.root");
+    mcfiles["ZG"] = new TFile("./ZGJetsRun1_19700pb_weighted.root");
+
+    datafiles["GJets"] = new TFile("./PhotonRun1_goodlumi.root");
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
@@ -181,26 +187,27 @@ void ZInvisibleCrossChecks(){
     vector<string> cutSequence;
     vector<string> cutName;
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon" );
-    cutName.push_back( "No cuts" );
+    cutSequence.push_back( "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1 && leadingPhotonPt > 80" );
+    // cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon" );
+    cutName.push_back( "Photon Control Region" );
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1" );
-    cutName.push_back( "Require two 40-GeV Jets" );
+    // cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1" );
+    // cutName.push_back( "Require two 40-GeV Jets" );
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && HT_noPho > 160 " );
-    cutName.push_back( "Require HT_noPho > 160 GeV" );
+    // cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && HT_noPho > 160 " );
+    // cutName.push_back( "Require HT_noPho > 160 GeV" );
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1 && deltaPhi_noPho < 2.7" );
-    cutName.push_back( "Require two 40-GeV Jets and #Delta #phi < 2.7" );
+    // cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && numJets_noPho > 1 && deltaPhi_noPho < 2.7" );
+    // cutName.push_back( "Require two 40-GeV Jets and #Delta #phi < 2.7" );
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1" );
-    cutName.push_back( "Require #Delta #phi < 2.7 and two 80-GeV Jets" );
+    // cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1" );
+    // cutName.push_back( "Require #Delta #phi < 2.7 and two 80-GeV Jets" );
 
-    cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1 && MR_noPho > 300 && Rsq_noPho > 0.15" );
-    cutName.push_back( "Require #Delta #phi < 2.7, two 80-GeV Jets, MR > 300 GeV, Rsq > 0.15" );
+    // cutSequence.push_back( "leadingPhotonPt > 80 && hlt_photon && deltaPhi_noPho < 2.7 && numJets80_noPho > 1 && MR_noPho > 300 && Rsq_noPho > 0.15" );
+    // cutName.push_back( "Require #Delta #phi < 2.7, two 80-GeV Jets, MR > 300 GeV, Rsq > 0.15" );
 
-    cutSequence.push_back( "met_noPho > 100 && hlt_photon" );
-    cutName.push_back( "MET > 100 GeV" );
+    // cutSequence.push_back( "met_noPho > 100 && hlt_photon" );
+    // cutName.push_back( "MET > 100 GeV" );
 
     map<string, vector<TH1F *> > mcPhotonPt, mcPhotonEta, mcNJets, mcNJets80, mcMR, mcRsq,  mcMet, mcNvtx, mcnSelectedPhotons, mcHT_noPho, mcdeltaPhi_noPho;
     vector<TH1F *> dataPhotonPt, dataPhotonEta, dataNJets, dataNJets80, dataMR, dataRsq, dataMet, dataNvtx, datanSelectedPhotons, dataHT_noPho, datadeltaPhi_noPho;
@@ -224,7 +231,8 @@ void ZInvisibleCrossChecks(){
             mcNJets[tree.first].push_back(new TH1F(Form("mcNJets%s%d", tree.first.c_str(), cut), Form("%s; Number of jets 40 GeV", cutName[cut].c_str()), 10, 0, 10));
             mcNvtx[tree.first].push_back(new TH1F(Form("mcNvtx%s%d", tree.first.c_str(), cut), Form("%s; NVtx (GeV)", cutName[cut].c_str()), 50, 0, 50));
             mcNJets80[tree.first].push_back(new TH1F(Form("mcNJets80%s%d", tree.first.c_str(), cut), Form("%s; Number of jets 80 GeV", cutName[cut].c_str()), 10, 0, 10));
-            mcMR[tree.first].push_back(new TH1F(Form("mcMR%s%d", tree.first.c_str(), cut), Form("%s; MR (GeV)", cutName[cut].c_str()), nMRBins, MRBinLowEdges));
+            mcMR[tree.first].push_back(new TH1F(Form("mcMR%s%d", tree.first.c_str(), cut), Form("%s; MR (GeV)", cutName[cut].c_str()), 20, 300, 4000));
+            // mcMR[tree.first].push_back(new TH1F(Form("mcMR%s%d", tree.first.c_str(), cut), Form("%s; MR (GeV)", cutName[cut].c_str()), nMRBins, MRBinLowEdges));
             mcRsq[tree.first].push_back(new TH1F(Form("mcRsq%s%d", tree.first.c_str(), cut), Form("%s; Rsq (GeV)", cutName[cut].c_str()), nRsqBins, RsqBinLowEdges));
             mcMet[tree.first].push_back(new TH1F(Form("mcMet%s%d", tree.first.c_str(), cut), Form("%s; MET (GeV)", cutName[cut].c_str()), 200, 0, 1000));
             mcnSelectedPhotons[tree.first].push_back(new TH1F(Form("mcnSelectedPhotons%s%d", tree.first.c_str(), cut), Form("%s; NSelected Photons", cutName[cut].c_str()), 10, 0, 10));
@@ -248,7 +256,8 @@ void ZInvisibleCrossChecks(){
         dataPhotonEta.push_back(new TH1F(Form("dataPhotonEta%d", cut), Form("%s; photon Eta", cutName[cut].c_str()), 50, -3., 3));
         dataNJets.push_back(new TH1F(Form("dataNJets%d", cut), Form("%s; Number of jets 40 GeV", cutName[cut].c_str()), 10, 0, 10));
         dataNJets80.push_back(new TH1F(Form("dataNJets80%d", cut), Form("%s; Number of jets 80 GeV", cutName[cut].c_str()), 10, 0, 10));
-        dataMR.push_back(new TH1F(Form("dataMR%d", cut), Form("%s; MR (GeV)", cutName[cut].c_str()), nMRBins, MRBinLowEdges));
+        // dataMR.push_back(new TH1F(Form("dataMR%d", cut), Form("%s; MR (GeV)", cutName[cut].c_str()), nMRBins, MRBinLowEdges));
+        dataMR.push_back(new TH1F(Form("dataMR%d", cut), Form("%s; MR (GeV)", cutName[cut].c_str()), 20, 300, 4000));
         dataRsq.push_back(new TH1F(Form("dataRsq%d", cut), Form("%s; Rsq (GeV)", cutName[cut].c_str()), nRsqBins, RsqBinLowEdges));
         dataMet.push_back(new TH1F(Form("dataMet%d", cut), Form("%s; mcMet (GeV)", cutName[cut].c_str()), 200, 0, 1000));
         dataNvtx.push_back(new TH1F(Form("dataNvtx%d", cut), Form("%s; NVtx (GeV)", cutName[cut].c_str()), 50, 0, 50));
@@ -288,13 +297,15 @@ void ZInvisibleCrossChecks(){
             eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
 
             //reweigh according to selection efficiency and acceptance
-            //double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-            //if(effFactor > 1e-5) eventWeight /= effFactor;
-            //else{ 
-            //    eventWeight = 0;
-            //    //cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
-            //}
-
+	    if(!computeDataOverMCSFs){
+	      double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindFixBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
+	      
+	      if(effFactor > 1e-5) eventWeight /= effFactor;
+	      else{ 
+		eventWeight = 0;
+		//cout << "Warning: efficiency histogram gives 0 (pt " << leadingPhotonPt << ", eta " << leadingPhotonEta << "); setting event weight to 0" << endl;
+	      }
+	    }
             //apply selection cuts and fill the appropriate histograms
             for(uint cut = 0; cut < cutSequence.size(); cut++){
                 bool passesCut = cuts[cut]->EvalInstance();
@@ -360,12 +371,14 @@ void ZInvisibleCrossChecks(){
 	    if(leadingPhotonPt>5000) continue;
 	    
             //reweigh according to selection efficiency and acceptance
-            //double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
-            //if(effFactor > 1e-5) eventWeight /= effFactor;
-            //else{ 
-            //    eventWeight = 0;
-            //}
+	    if(!computeDataOverMCSFs){
+	      double effFactor = photonEffHisto.GetBinContent(photonEffHisto.FindBin(min(leadingPhotonPt, maxPhotonPt), fabs(leadingPhotonEta)));
 
+	      if(effFactor > 1e-5) eventWeight /= effFactor;
+	      else{ 
+		eventWeight = 0;
+	      }
+	    }
             //get weight if associate each trigger with a particular pt range
             double triggerWeightRestricted = 0.0;
             if(passedHLTPhoton150 && leadingPhotonPt > 165){ 
@@ -564,8 +577,8 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
-    //dataOverMC->SetMinimum(0.7);
-    //dataOverMC->SetMaximum(1.3);
+    dataOverMC->SetMinimum(0.5);
+    dataOverMC->SetMaximum(1.5);
     dataOverMC->GetXaxis()->SetLabelSize(0.1);
     dataOverMC->GetYaxis()->SetLabelSize(0.08);
     dataOverMC->GetYaxis()->SetTitleOffset(0.35);
@@ -574,6 +587,11 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->GetXaxis()->SetTitleSize(0.08);
     dataOverMC->SetStats(0);
     string histoName = dataHist->GetName() ;
+    if(histoName.find("MR") != std::string::npos  )
+      {
+	cout<<"Number of events in data: "<<dataHist->Integral()<<" "<<printString<<endl;
+	cout<<"Number of events in MC: "<<mcTotal->Integral()<<" "<<endl;
+      }
     if(histoName.find("datadeltaPhi") != std::string::npos  )
       {
 	leg->SetX1NDC(0.1); leg->SetX2NDC(0.3); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
@@ -596,6 +614,6 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Draw("pe");
     pad2.Modified();
     gPad->Update();
-    c.Print(Form("%s.gif", printString.c_str()));
+    c.Print(Form("%s.pdf", printString.c_str()));
     // c.Print(Form("%s.root", printString.c_str()));
 }

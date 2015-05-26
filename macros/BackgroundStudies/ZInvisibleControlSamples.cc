@@ -133,6 +133,7 @@ void ZInvisibleControlSamples(){
     float bjet1Pt, bjet2Pt;
     bool bjet1PassMedium, bjet2PassMedium;
     bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150;
+    bool Flag_HBHENoiseFilter, Flag_CSCTightHaloFilter, Flag_EcalDeadCellTriggerPrimitiveFilter, Flag_eeBadScFilter, Flag_ecalLaserCorrFilter;
     float genZPt, genWPt;
     int nPU_mean;
     float MR, Rsq;
@@ -262,6 +263,11 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchStatus("bjet2PassMedium", 1);
         datatrees[file.first]->SetBranchStatus("bjet1Pt", 1);
         datatrees[file.first]->SetBranchStatus("bjet2Pt", 1);
+        datatrees[file.first]->SetBranchStatus("Flag_HBHENoiseFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_CSCTightHaloFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_eeBadScFilter", 1); // enable
+        datatrees[file.first]->SetBranchStatus("Flag_ecalLaserCorrFilter", 1); // enable
 
         datatrees[file.first]->SetBranchAddress(Form("met%s", suffixes[file.first].c_str()), &mets[file.first]);
         datatrees[file.first]->SetBranchAddress(Form("MR%s", suffixes[file.first].c_str()), &mrs[file.first]);
@@ -287,6 +293,11 @@ void ZInvisibleControlSamples(){
         datatrees[file.first]->SetBranchAddress("bjet2PassMedium", &bjet2PassMedium);
         datatrees[file.first]->SetBranchAddress("bjet1Pt", &bjet1Pt);
         datatrees[file.first]->SetBranchAddress("bjet2Pt", &bjet2Pt);
+        datatrees[file.first]->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter); // enable 
+        datatrees[file.first]->SetBranchAddress("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter); // enable 
     }
     //luminosities collected by the various photon triggers
     float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
@@ -415,7 +426,7 @@ void ZInvisibleControlSamples(){
 
 		eventWeight *= btagScaleFactor;
 		
-		// //ISR reweighting for WJets
+		//ISR reweighting for WJets
                 // if(tree.first == "WJets"){
                 //     double isrWeight = 1.0;
                 //     if(genWPt > 120 && genWPt < 150){
@@ -453,7 +464,7 @@ void ZInvisibleControlSamples(){
                 eventWeight *= doubleMuTriggerSF;
                 eventWeight *= doubleMuNormalizationSF;
 
-                // //ISR reweighting for DYJets
+                //ISR reweighting for DYJets
                 // if(tree.first == "DYJets"){
                 //     double isrWeight = 1.0;
                 //     if(genZPt > 120 && genZPt < 150){
@@ -598,6 +609,8 @@ void ZInvisibleControlSamples(){
             bool passesSelection = cutsFormula.EvalInstance();
             if(!passesSelection) continue;
 
+	    if(!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) continue;
+
             float eventWeight = 1.0;
             //reweight by efficiency and acceptance
             if(tree.first == "GJets"){
@@ -627,6 +640,8 @@ void ZInvisibleControlSamples(){
                     triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
                 }
                 eventWeight *= triggerWeightRestricted;
+
+		if(leadingPhotonPt>5000) continue; // reject noise
 
                 dataPhotonPt.Fill(leadingPhotonPt, eventWeight);
             }
@@ -812,7 +827,7 @@ void ZInvisibleControlSamples(){
         hist.second.SetStats(0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("controlSampleMCHistogram%s_noISR.gif", hist.first.c_str()));
+        c.Print(Form("controlSampleMCHistogram%s_noISR.pdf", hist.first.c_str()));
         // c.Print(Form("controlSampleMCHistogram%s.root", hist.first.c_str()));
     }
     //print "step 2" histograms
@@ -824,7 +839,7 @@ void ZInvisibleControlSamples(){
             hist.second.SetStats(0);
             hist.second.Draw("colz");
             hist.second.Draw("same,text");
-            c.Print(Form("controlSampleReweightedMCHistogram%s_noISR.gif", hist.first.c_str()));
+            c.Print(Form("controlSampleReweightedMCHistogram%s_noISR.pdf", hist.first.c_str()));
             // c.Print(Form("controlSampleReweightedMCHistogram%s.root", hist.first.c_str()));
         }
     }
@@ -837,7 +852,7 @@ void ZInvisibleControlSamples(){
             hist.second.SetStats(0);
             hist.second.Draw("colz");
             hist.second.Draw("same,text");
-            c.Print(Form("controlSampleHistogram%s_noISR.gif", hist.first.c_str()));
+            c.Print(Form("controlSampleHistogram%s_noISR.pdf", hist.first.c_str()));
             // c.Print(Form("controlSampleHistogram%s.root", hist.first.c_str()));
         }
     }
@@ -849,7 +864,7 @@ void ZInvisibleControlSamples(){
         hist.second.SetStats(0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("controlSampleHistogramBeforeReweighting%s_noISR.gif", hist.first.c_str()));
+        c.Print(Form("controlSampleHistogramBeforeReweighting%s_noISR.pdf", hist.first.c_str()));
         // c.Print(Form("controlSampleHistogramBeforeReweighting%s.root", hist.first.c_str()));
     }
     //print MR histograms, comparing data to MC
@@ -895,7 +910,7 @@ void ZInvisibleControlSamples(){
     DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTJetsDY"], "TTJets MC");
     DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TopDY"], "Single Top MC");
     DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTWDY"], "TTW MC");
-    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTZDY"], "TTZ MC");
+    DoubleMuonLegend->AddEntry(&MRHistosBeforeReweighting["TTZDY"], "TTZ MC");    
     DoubleMuonLegend->AddEntry(&MRHistosDataBeforeReweighting["DYJets"], "2012 Data, Double Muon CS");
     DrawDataVsMCRatioPlot(&MRHistosDataBeforeReweighting["DYJets"], &DoubleMuonMC, DoubleMuonLegend, "MR (GeV)", "controlSampleMRBackgroundDoubleMuon", true);
     //Gamma+Jets
@@ -997,7 +1012,7 @@ void ZInvisibleControlSamples(){
         DYWComparisonHist->SetMaximum(1.0);
         DYWComparisonHist->Draw("colz");
         DYWComparisonHist->Draw("same,text");
-        c.Print("controlSampleHistogramComparisonDYW_noISR.gif");
+        c.Print("controlSampleHistogramComparisonDYW_noISR.pdf");
         // c.Print("controlSampleHistogramComparisonDYW.root");
         DYWSigmaComparisonHist->SetTitle("(WJets Prediction - DYJets Prediction)/#sigma_{W - DY}");
         DYWSigmaComparisonHist->GetXaxis()->SetTitle("MR");
@@ -1007,7 +1022,7 @@ void ZInvisibleControlSamples(){
         DYWSigmaComparisonHist->SetMaximum(3);
         DYWSigmaComparisonHist->Draw("colz");
         DYWSigmaComparisonHist->Draw("same,text");
-        c.Print("controlSampleSigmaHistogramComparisonDYW_noISR.gif");
+        c.Print("controlSampleSigmaHistogramComparisonDYW_noISR.pdf");
         // c.Print("controlSampleSigmaHistogramComparisonDYW.root");
 
         //do the same for DYJets vs GJets
@@ -1031,7 +1046,7 @@ void ZInvisibleControlSamples(){
         DYGComparisonHist->SetMaximum(1.0);
         DYGComparisonHist->Draw("colz");
         DYGComparisonHist->Draw("same,text");
-        c.Print("controlSampleHistogramComparisonDYG_noISR.gif");
+        c.Print("controlSampleHistogramComparisonDYG_noISR.pdf");
         // c.Print("controlSampleHistogramComparisonDYG.root");
         DYGSigmaComparisonHist->SetTitle("(GJets Prediction - DYJets Prediction)/#sigma_{G - DY}");
         DYGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
@@ -1041,7 +1056,7 @@ void ZInvisibleControlSamples(){
         DYGSigmaComparisonHist->SetMaximum(3);
         DYGSigmaComparisonHist->Draw("colz");
         DYGSigmaComparisonHist->Draw("same,text");
-        c.Print("controlSampleSigmaHistogramComparisonDYG_noISR.gif");
+        c.Print("controlSampleSigmaHistogramComparisonDYG_noISR.pdf");
         // c.Print("controlSampleSigmaHistogramComparisonDYG.root");
 
         //and for WJets vs GJets
@@ -1065,7 +1080,7 @@ void ZInvisibleControlSamples(){
         WGComparisonHist->SetMaximum(1.0);
         WGComparisonHist->Draw("colz");
         WGComparisonHist->Draw("same,text");
-        c.Print("controlSampleHistogramComparisonWG_noISR.gif");
+        c.Print("controlSampleHistogramComparisonWG_noISR.pdf");
         // c.Print("controlSampleHistogramComparisonWG.root");
         WGSigmaComparisonHist->SetTitle("(GJets Prediction - WJets Prediction)/#sigma_{G - W}");
         WGSigmaComparisonHist->GetXaxis()->SetTitle("MR");
@@ -1075,7 +1090,7 @@ void ZInvisibleControlSamples(){
         WGSigmaComparisonHist->SetMaximum(3);
         WGSigmaComparisonHist->Draw("colz");
         WGSigmaComparisonHist->Draw("same,text");
-        c.Print("controlSampleSigmaHistogramComparisonWG_noISR.gif");
+        c.Print("controlSampleSigmaHistogramComparisonWG_noISR.pdf");
         // c.Print("controlSampleSigmaHistogramComparisonWG.root");
     }
 
@@ -1086,10 +1101,10 @@ void ZInvisibleControlSamples(){
     mcPhotonPt.Draw();
     c.SetLogy(false);
     dataPhotonPt.Draw("pesame");
-    c.Print("controlSamplePhotonPt_noISR.gif");
+    c.Print("controlSamplePhotonPt_noISR.pdf");
     // c.Print("controlSamplePhotonPt.root");
     c.SetLogy();
-    c.Print("controlSamplePhotonPtLog_noISR.gif");
+    c.Print("controlSamplePhotonPtLog_noISR.pdf");
     // c.Print("controlSamplePhotonPtLog.root");
 
     //get the data/MC scale factors in each bin of MR and Rsq
@@ -1113,7 +1128,7 @@ void ZInvisibleControlSamples(){
         hist.second.SetMaximum(2.0);
         hist.second.Draw("colz");
         hist.second.Draw("same,text");
-        c.Print(Form("DataOverMC%s_noISR.gif", hist.first.c_str()));
+        c.Print(Form("DataOverMC%s_noISR.pdf", hist.first.c_str()));
         // c.Print(Form("DataOverMC%s.root", hist.first.c_str()));
         //write it 
         hist.second.Write(); 
@@ -1140,7 +1155,7 @@ void ZInvisibleControlSamples(){
     DYWScaleHist->SetMaximum(3.0);
     DYWScaleHist->Draw("colz");
     DYWScaleHist->Draw("same,text");
-    c.Print("ScaleDYWnSigma_noISR.gif");
+    c.Print("ScaleDYWnSigma_noISR.pdf");
     // c.Print("ScaleDYWnSigma.root");
     DYWScaleHistPerc->SetTitle("(WJets SF - DYJets SF)/DYJets SF");
     DYWScaleHistPerc->GetXaxis()->SetTitle("MR");
@@ -1150,7 +1165,7 @@ void ZInvisibleControlSamples(){
     DYWScaleHistPerc->SetMaximum(1.0);
     DYWScaleHistPerc->Draw("colz");
     DYWScaleHistPerc->Draw("same,text");
-    c.Print("ScaleDYWPercent_noISR.gif");
+    c.Print("ScaleDYWPercent_noISR.pdf");
     // c.Print("ScaleDYWPercent.root");
 
     //do the same for WJets and GJets
@@ -1174,7 +1189,7 @@ void ZInvisibleControlSamples(){
     WGScaleHist->SetMaximum(3.0);
     WGScaleHist->Draw("colz");
     WGScaleHist->Draw("same,text");
-    c.Print("ScaleWGnSigma_noISR.gif");
+    c.Print("ScaleWGnSigma_noISR.pdf");
     // c.Print("ScaleWGnSigma.root");
     WGScaleHistPerc->SetTitle("(GJets SF - WJets SF)/WJets SF");
     WGScaleHistPerc->GetXaxis()->SetTitle("MR");
@@ -1184,7 +1199,7 @@ void ZInvisibleControlSamples(){
     WGScaleHistPerc->SetMaximum(1.0);
     WGScaleHistPerc->Draw("colz");
     WGScaleHistPerc->Draw("same,text");
-    c.Print("ScaleWGPercent_noISR.gif");
+    c.Print("ScaleWGPercent_noISR.pdf");
     // c.Print("ScaleWGPercent.root");
 
     //do the same for DYJets and GJets
@@ -1208,7 +1223,7 @@ void ZInvisibleControlSamples(){
     DYGScaleHist->SetMaximum(3.0);
     DYGScaleHist->Draw("colz");
     DYGScaleHist->Draw("same,text");
-    c.Print("ScaleDYGnSigma_noISR.gif");
+    c.Print("ScaleDYGnSigma_noISR.pdf");
     // c.Print("ScaleDYGnSigma.root");
     DYGScaleHistPerc->SetTitle("(GJets SF - DYJets SF)/DYJets SF");
     DYGScaleHistPerc->GetXaxis()->SetTitle("MR");
@@ -1218,7 +1233,7 @@ void ZInvisibleControlSamples(){
     DYGScaleHistPerc->SetMaximum(1.0);
     DYGScaleHistPerc->Draw("colz");
     DYGScaleHistPerc->Draw("same,text");
-    c.Print("ScaleDYGPercent_noISR.gif");
+    c.Print("ScaleDYGPercent_noISR.pdf");
     // c.Print("ScaleDYGPercent.root");
 }
 
@@ -1260,6 +1275,14 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
         mcTotal->Add((TH1*)obj);
     }
     TH1F *dataOverMC = (TH1F*)dataHist->Clone();
+
+    string histoName = dataHist->GetName() ;
+    if(histoName.find("mr") != std::string::npos  )
+      {
+	cout<<"Number of events in data: "<<dataHist->Integral()<<" "<<printString<<endl;
+	cout<<"Number of events in MC: "<<mcTotal->Integral()<<" "<<endl;
+      }
+    
     //dataOverMC->Sumw2();
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
@@ -1286,6 +1309,6 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Draw("pe");
     pad2.Modified();
     gPad->Update();
-    c.Print(Form("%s_noISR.gif", printString.c_str()));
+    c.Print(Form("%s_noISR.pdf", printString.c_str()));
     // c.Print(Form("%s.root", printString.c_str()));
 }
