@@ -100,7 +100,7 @@ private:
 #include "Math/IFunction.h"
 #include "Math/IParamFunction.h"
  
-class MyParametricFunction: public ROOT::Math::IParametricFunctionOneDim
+class RazorFunctionSigmoid: public ROOT::Math::IParametricFunctionOneDim
 {
 private:
    const double *pars;
@@ -109,20 +109,65 @@ public:
    double DoEvalPar(double x,const double* p) const
    {
      double integral = ( (p[6]-p[0])*exp(p[2]*p[3]*pow(p[7]-p[0],1/p[3])*pow(x-p[1],1/p[3])) - (p[7]-p[0])*exp(p[2]*p[3]*pow(p[6]-p[0],1/p[3])*pow(x-p[1],1/p[3])) )*exp(-p[2]*p[3]*(pow(p[6]-p[0],1/p[3])+pow(p[7]-p[0],1/p[3]))*pow(x-p[1],1/p[3]));
-     double suppress = ( 1. - 1. / (1.+exp(-(x-p[4])/p[5])) );
+     double suppress = 1. / (1.+exp((x-p[4])/p[5]));
      return suppress*integral;
    }
    
    double DoEval(double x) const
    {
      double integral = ( (pars[6]-pars[0])*exp(pars[2]*pars[3]*pow(pars[7]-pars[0],1/pars[3])*pow(x-pars[1],1/pars[3])) - (pars[7]-pars[0])*exp(pars[2]*pars[3]*pow(pars[6]-pars[0],1/pars[3])*pow(x-pars[1],1/pars[3])) )*exp(-pars[2]*pars[3]*(pow(pars[6]-pars[0],1/pars[3])+pow(pars[7]-pars[0],1/pars[3]))*pow(x-pars[1],1/pars[3]));
-     double suppress = ( 1. - 1. / (1.+exp(-(x-pars[4])/pars[5])) );
+     double suppress = 1. / (1.+exp((x-pars[4])/pars[5]));
      return suppress*integral;
    }
  
    ROOT::Math::IBaseFunctionOneDim* Clone() const
    {
-      return new MyParametricFunction();
+      return new RazorFunctionSigmoid();
+   }
+ 
+   const double* Parameters() const
+   {
+      return pars;
+   }
+ 
+   void SetParameters(const double* p)
+   {
+      pars = p;
+   }
+ 
+   unsigned int NPar() const
+   {
+      return 8;
+   }
+};
+
+
+#include "Math/IFunction.h"
+#include "Math/IParamFunction.h"
+ 
+class RazorFunctionErf: public ROOT::Math::IParametricFunctionOneDim
+{
+private:
+   const double *pars;
+ 
+public:
+   double DoEvalPar(double x,const double* p) const
+   {
+     double integral = ( (p[6]-p[0])*exp(p[2]*p[3]*pow(p[7]-p[0],1/p[3])*pow(x-p[1],1/p[3])) - (p[7]-p[0])*exp(p[2]*p[3]*pow(p[6]-p[0],1/p[3])*pow(x-p[1],1/p[3])) )*exp(-p[2]*p[3]*(pow(p[6]-p[0],1/p[3])+pow(p[7]-p[0],1/p[3]))*pow(x-p[1],1/p[3]));
+     double suppress = 0.5*TMath::Erfc((x-p[4])/p[5]);
+     return suppress*integral;
+   }
+   
+   double DoEval(double x) const
+   {
+     double integral = ( (pars[6]-pars[0])*exp(pars[2]*pars[3]*pow(pars[7]-pars[0],1/pars[3])*pow(x-pars[1],1/pars[3])) - (pars[7]-pars[0])*exp(pars[2]*pars[3]*pow(pars[6]-pars[0],1/pars[3])*pow(x-pars[1],1/pars[3])) )*exp(-pars[2]*pars[3]*(pow(pars[6]-pars[0],1/pars[3])+pow(pars[7]-pars[0],1/pars[3]))*pow(x-pars[1],1/pars[3]));
+     double suppress = 0.5*TMath::Erfc((x-pars[4])/pars[5]);
+     return suppress*integral;
+   }
+ 
+   ROOT::Math::IBaseFunctionOneDim* Clone() const
+   {
+      return new RazorFunctionErf();
    }
  
    const double* Parameters() const
