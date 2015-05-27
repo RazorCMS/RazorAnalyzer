@@ -156,7 +156,7 @@ Double_t RooRazor3DBinNumericPdf::evaluate() const
 
     
     // define the function to be integrated numerically
-    MyParametricFunction func;
+    RazorFunctionErf func;
     double params[8];
     params[0] = X0;    params[1] = Y0;
     params[2] = B;     params[3] = N;
@@ -223,15 +223,15 @@ Double_t RooRazor3DBinNumericPdf::analyticalIntegral(Int_t code, const char* ran
    Int_t nBins =  xBins*yBins*zBins;
 
    
-    // define the function to be integrated numerically
-    MyParametricFunction func;
-    double params[8];
-    params[0] = X0;    params[1] = Y0;
-    params[2] = B;     params[3] = N;
-    params[4] = Y1;    params[5] = Y2;
-    func.SetParameters(params);
-    ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
-    ig.SetFunction(func,false);
+   // define the function to be integrated numerically
+   RazorFunctionErf func;
+   double params[8];
+   params[0] = X0;    params[1] = Y0;
+   params[2] = B;     params[3] = N;
+   params[4] = Y1;    params[5] = Y2;
+   func.SetParameters(params);
+   ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kNONADAPTIVE,absTol,relTol);
+   ig.SetFunction(func,false);
     
 
    if (code==1 && iBinMin<=0 && iBinMax>=nBins){
