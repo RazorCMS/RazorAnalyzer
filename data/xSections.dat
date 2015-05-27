@@ -39,7 +39,7 @@ WJetsToLNu_HT-100to200_Tune4C_13TeV-madgraph-tauola             1817
 WJetsToLNu_HT-200to400_Tune4C_13TeV-madgraph-tauola             471.6
 WJetsToLNu_HT-400to600_Tune4C_13TeV-madgraph-tauola             55.61
 WJetsToLNu_HT-600toInf_Tune4C_13TeV-madgraph-tauola             18.81
-GJet_Pt40_doubleEMEnriched_TuneZ2star_13TeV-pythia6             17180
+GJet_Pt40_doubleEMEnriched_TuneZ2star_13TeV-pythia6             17180*0.038
 GJets_HT-100to200_Tune4C_13TeV-madgraph-tauola                  1534
 GJets_HT-200to400_Tune4C_13TeV-madgraph-tauola                  489.9
 GJets_HT-400to600_Tune4C_13TeV-madgraph-tauola                  62.05

@@ -44,7 +44,7 @@ struct evt
 };
 
 #define _phodebug  0
-#define _debug     0
+#define _debug     1
 #define _info      1
 
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
@@ -127,6 +127,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
   //tree variables
+  bool trigger;
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   float theMR;
@@ -153,6 +154,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("lumi", &lumi, "lumi/i");
     razorTree->Branch("run", &run, "run/i");
     razorTree->Branch("event", &event, "event/i");
+    razorTree->Branch("trigger", &trigger, "trigger/O");
     razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
     razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -224,6 +226,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("lumi", &lumi, "lumi/i");
       box.second->Branch("run", &run, "run/i");
       box.second->Branch("event", &event, "event/i");
+      box.second->Branch("trigger", &trigger, "trigger/O");
       box.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
       box.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
       box.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -298,6 +301,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("lumi", &lumi, "lumi/i");
 	  simplebox.second->Branch("run", &run, "run/i");
 	  simplebox.second->Branch("event", &event, "event/i");
+	  simplebox.second->Branch("trigger", &trigger, "trigger/O");
 	  simplebox.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
 	  simplebox.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
 	  simplebox.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -381,6 +385,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     NEvents->Fill(1.0);
     
     //reset tree variables
+    trigger = false;
     n_Jets = 0;
     nLooseBTaggedJets = 0;
     nMediumBTaggedJets = 0;
@@ -450,9 +455,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     //if(combineTrees) box = LowRes;
     
-    //TODO: triggers!
-    bool passedDiphotonTrigger = true;
-    if(!passedDiphotonTrigger) continue;
+    //A p p l y   P h o t o n   T r i g g e r s 
+    //-----------------------------------------
+    trigger = HLTDecision[25] || HLTDecision[26] || HLTDecision[27] || HLTDecision[28];
+    //if ( !trigger ) continue;
+    //Save trigger decision in tree instead of rejecting events (this needs to be done at the ntuple level)
     
     //muon selection
     for(int i = 0; i < nMuons; i++){
@@ -694,7 +701,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       
       if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
-      int level = 2; //loose jet ID
+      //int level = 2; //3rd bit of jetPileupIdFlag
       if ( !jetPassIDLoose[i] ) continue;
       //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
