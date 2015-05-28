@@ -31,10 +31,12 @@ def initializeWorkspace(w,cfg,box):
     w.var('th1x').setBins(nBins)
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
 
+    w.Print('v')
     commands = cfg.getVariables(box, "combine_pdfs")
     bkgs = []
     for command in commands:
-        if command.find('SUM::')!=-1:
+        lower = command.lower()
+        if lower.find('sum::')!=-1 or lower.find('prod::')!=-1 or lower.find('expr::')!=-1:
             w.factory(command)
         else:
             myclass = command.split('::')[0]
@@ -118,7 +120,7 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
             for iz in range(1,len(z)):
                 i+= 1
                 myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
-   
+
     return myTH1
 
 
@@ -273,8 +275,6 @@ if __name__ == '__main__':
     sigTH1.Scale(lumi/lumi_in)
     sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
     rootTools.Utils.importToWS(w,sigDataHist)
-
-    w.Print('v')
             
     outFile = 'razor_combine_%s_%s_lumi-%.1f_%s.root'%(model,massPoint,lumi/1000.,box)
     
