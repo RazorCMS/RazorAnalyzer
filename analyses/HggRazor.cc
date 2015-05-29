@@ -59,11 +59,20 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
-    
+  
+  /*
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
+  */
+  
+  
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
+  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
+  //correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
+  
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
   
@@ -803,10 +812,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     TLorentzVector evtP4;
     for ( auto& tmp : JetsPlusHiggsCandidate ) evtP4 += tmp;
     evtMass    = evtP4.M();
+    
+    
     evtMT      = GetMT( evtP4, t1PFMET );
     evtMTEnergy = GetMTEnergy( evtP4, t1PFMET );
     evtDphi    = GetDphi( evtP4, t1PFMET );
-
+    
+    /*
+    //if t1MET is not available use default MET
+    evtMT      = GetMT( evtP4, PFMET );                                                                                                                         
+    evtMTEnergy = GetMTEnergy( evtP4, PFMET );   
+    evtDphi    = GetDphi( evtP4, PFMET ); 
+    */
+    
     if( ggHem == 0 )
       {
 	//hem1

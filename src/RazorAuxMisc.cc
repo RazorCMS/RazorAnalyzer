@@ -189,7 +189,8 @@ double RazorAnalyzer::computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLore
 double RazorAnalyzer::GetMT( TLorentzVector visible, TVector3 met )
 {
   TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
-  return sqrt( visible.M2() + 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
+  //return sqrt( visible.M2() + 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
+  return sqrt( 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
 };
 
 double RazorAnalyzer::GetMT( TLorentzVector visible, TLorentzVector met )
@@ -198,10 +199,12 @@ double RazorAnalyzer::GetMT( TLorentzVector visible, TLorentzVector met )
   return GetMT( visible, _met );
 };
 
+
 double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TVector3 met )
 {
   TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
-  return vis.DeltaPhi( met );
+  //return sqrt( visible.M2() + 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
+  return sqrt( 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
 };
 
 double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TLorentzVector met )
@@ -210,10 +213,11 @@ double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TLorentzVector met )
   return GetMTEnergy( visible, _met );
 };
 
+
 double RazorAnalyzer::GetDphi( TLorentzVector visible, TVector3 met )
 {
   TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
-  return sqrt( visible.M2() + 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
+  return vis.DeltaPhi( met );
 };
 
 double RazorAnalyzer::GetDphi( TLorentzVector visible, TLorentzVector met )
