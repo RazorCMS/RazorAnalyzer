@@ -44,7 +44,7 @@ struct evt
 };
 
 #define _phodebug  0
-#define _debug     1
+#define _debug     0
 #define _info      1
 
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
@@ -136,6 +136,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   float mHem1, ptHem1, etaHem1, phiHem1, mHem2, ptHem2, etaHem2, phiHem2;
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, etaGammaGamma, phiGammaGamma;
+  float evtMass, evtMT, evtMTEnergy, evtDphi;
   float mbbZ, mbbH;
   //HggRazorBox box;
   //HggRazorBoxSimple simplebox;
@@ -219,6 +220,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("ptHem2", &ptHem2, "ptHem2/F");
     razorTree->Branch("etaHem2", &etaHem2, "etaHem2/F");
     razorTree->Branch("phiHem2", &phiHem2, "phiHem2/F");
+
+    razorTree->Branch("evtMass", &evtMass, "evtMass/F");
+    razorTree->Branch("evtMT", &evtMT, "evtMT/F");
+    razorTree->Branch("evtMTEnergy", &evtMTEnergy, "evtMTEnergy/F");
+    razorTree->Branch("evtDphi", &evtDphi, "evtDphi/F");
   }
   //set branches on all trees
   else if ( !simpleBoxes ){ 
@@ -291,6 +297,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("ptHem2", &ptHem2, "ptHem2/F");
       box.second->Branch("etaHem2", &etaHem2, "etaHem2/F");
       box.second->Branch("phiHem2", &phiHem2, "phiHem2/F");
+      
+      box.second->Branch("evtMass", &evtMass, "evtMass/F");
+      box.second->Branch("evtMT", &evtMT, "evtMT/F");
+      box.second->Branch("evtMTEnergy", &evtMTEnergy, "evtMTEnergy/F");
+      box.second->Branch("evtDphi", &evtDphi, "evtDphi/F");
       
     } 
   }
@@ -367,6 +378,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("etaHem2", &etaHem2, "etaHem2/F");
 	  simplebox.second->Branch("phiHem2", &phiHem2, "phiHem2/F");
 	  
+	  simplebox.second->Branch("evtMass", &evtMass, "evtMass/F");
+	  simplebox.second->Branch("evtMT", &evtMT, "evtMT/F");
+	  simplebox.second->Branch("evtMTEnergy", &evtMTEnergy, "evtMTEnergy/F");
+	  simplebox.second->Branch("evtDphi", &evtDphi, "evtDphi/F");
 	}
     }
   
@@ -416,6 +431,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     ptHem2  = -1;
     etaHem2 = -1;
     phiHem2 = -1;
+    
+    evtMass    = -1;
+    evtMT      = -1;
+    evtMTEnergy = -1;
+    evtDphi    = -1;
 
     //selected photons variables
     for ( int i = 0; i < 2; i++ )
@@ -702,7 +722,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
       //int level = 2; //3rd bit of jetPileupIdFlag
-      if ( !jetPassIDLoose[i] ) continue;
+      //no jed id providede for Phys14 Samples
+      //if ( !jetPassIDLoose[i] ) continue;
       //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
       //exclude selected photons from the jet collection
@@ -746,28 +767,77 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     //Compute the razor variables using the selected jets and the diphoton system
     vector<TLorentzVector> JetsPlusHiggsCandidate;
-    for( auto& jet : GoodJets ) JetsPlusHiggsCandidate.push_back(jet);
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
+    for( auto& jet : GoodJets ) JetsPlusHiggsCandidate.push_back(jet);
     
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
     TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
     
+    if ( JetsPlusHiggsCandidate.size() < 2 ) continue;
     vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
+    std::vector< std::vector<int> > index_test = getHemispheresV2( JetsPlusHiggsCandidate );
+    
+    int ggHem = -1;
+    for( auto& tmp : index_test[0] )
+      {
+	if ( tmp == 0 ) 
+	  {
+	    ggHem = 0;
+	  }
+      }
+    for( auto& tmp : index_test[1] )
+      {
+	if ( tmp == 0 )
+	  {
+	    ggHem = 1;
+	  }
+      }
+    
+    
     theMR  = computeMR(hemispheres[0], hemispheres[1]); 
     theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
     t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
     MET = metPt;
     t1MET = metType0Plus1Pt;
-    //hem1
-    mHem1   = hemispheres[0].M();
-    ptHem1  = hemispheres[0].Pt();
-    etaHem1 = hemispheres[0].Eta();
-    phiHem1 = hemispheres[0].Phi();
-    //hem2
-    mHem2   = hemispheres[1].M();
-    ptHem2  = hemispheres[1].Pt();
-    etaHem2 = hemispheres[1].Eta();
-    phiHem2 = hemispheres[1].Phi();
+
+    TLorentzVector evtP4;
+    for ( auto& tmp : JetsPlusHiggsCandidate ) evtP4 += tmp;
+    evtMass    = evtP4.M();
+    evtMT      = GetMT( evtP4, t1PFMET );
+    evtMTEnergy = GetMTEnergy( evtP4, t1PFMET );
+    evtDphi    = GetDphi( evtP4, t1PFMET );
+
+    if( ggHem == 0 )
+      {
+	//hem1
+	mHem1   = hemispheres[0].M();
+	ptHem1  = hemispheres[0].Pt();
+	etaHem1 = hemispheres[0].Eta();
+	phiHem1 = hemispheres[0].Phi();
+	//hem2
+	mHem2   = hemispheres[1].M();
+	ptHem2  = hemispheres[1].Pt();
+	etaHem2 = hemispheres[1].Eta();
+	phiHem2 = hemispheres[1].Phi();
+      }
+    else if( ggHem == 1 )
+      {
+	//hem1                                                                                                                                 
+        mHem1   = hemispheres[1].M();
+        ptHem1  = hemispheres[1].Pt();
+        etaHem1 = hemispheres[1].Eta();
+        phiHem1 = hemispheres[1].Phi();
+        //hem2                                                                                                                                 
+        mHem2   = hemispheres[0].M();
+        ptHem2  = hemispheres[0].Pt();
+        etaHem2 = hemispheres[0].Eta();
+        phiHem2 = hemispheres[0].Phi();
+      }
+    else
+      {
+	std::cerr << "[ERROR]: higgs not found in the hemispheres!!" << std::endl;
+	break;
+      }
     //No MR cut
     
     /*

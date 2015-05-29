@@ -147,9 +147,16 @@ class RazorAnalyzer: public RazorEvents {
         TLorentzVector makeTLorentzVector(double pt, double eta, double phi, double energy);
 	TLorentzVector makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass);
 	vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
-        double computeMR(TLorentzVector hem1, TLorentzVector hem2);
+	std::vector< std::vector<int> > getHemispheresV2( std::vector<TLorentzVector> jets);
+	double computeMR(TLorentzVector hem1, TLorentzVector hem2);
         double computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector met);
-
+	double GetMT( TLorentzVector visible, TVector3 met );
+	double GetMTEnergy( TLorentzVector visible, TVector3 met );
+	double GetMT( TLorentzVector visible, TLorentzVector met );
+	double GetMTEnergy( TLorentzVector visible, TLorentzVector met );
+	double GetDphi( TLorentzVector visible, TVector3 met );
+	double GetDphi( TLorentzVector visible, TLorentzVector met );
+	
         bool passesHadronicRazorBaseline(double MR, double Rsq);
         bool passesLeptonicRazorBaseline(double MR, double Rsq);
         int SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch=0.4);

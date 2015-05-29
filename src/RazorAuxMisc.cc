@@ -91,6 +91,88 @@ vector<TLorentzVector> RazorAnalyzer::getHemispheres(vector<TLorentzVector> jets
     return hemsOut;
 }
 
+std::vector< std::vector<int> > RazorAnalyzer::getHemispheresV2( std::vector<TLorentzVector> jets )
+{
+  //returns vector with original indices to jets
+  int nJets = jets.size();
+  vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations                                                              
+  std::vector< std::vector<int> > index1;
+  vector<TLorentzVector> possibleHem2s;
+  std::vector< std::vector<int> > index2;
+
+  if(nJets < 2){ //return empty hemispheres if there are fewer than 2 jets provided                                                           
+    std::vector<int> emptyIndex1, emptyIndex2;
+    std::vector< std::vector<int> > void_return;
+    void_return.push_back( emptyIndex1 );
+    void_return.push_back( emptyIndex2 );
+    return void_return;
+  }
+  
+  //stolen from https://github.com/pierinim/BSMatLHC/blob/master/BSMApp/src/CMS/CMSHemisphere.cc                                              
+  int nComb = pow(2, nJets);
+  //std::cout << "njets: " << nJets << " ncomb: " << nComb << std::endl;
+  //step 1: store all possible partitions of the input jets                                                                                   
+  int j_count;
+  for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
+    //std::cout << "=iter: " << i << std::endl; 
+    TLorentzVector j_temp1, j_temp2;
+    std::vector<int> tmp_index1, tmp_index2;
+    int itemp = i;
+    j_count = nComb/2;
+    int count = 0;
+    while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2               
+      //std::cout << "j_count: " << j_count << " itemp: " << itemp << " count: " << count << std::endl; 
+      if(itemp/j_count == 1){
+	j_temp1 += jets[count];
+	tmp_index1.push_back( count );
+      } else {
+	j_temp2 += jets[count];
+	tmp_index2.push_back( count );
+      }
+      itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count                                                            
+      j_count /= 2;
+      count++;
+    }
+    possibleHem1s.push_back(j_temp1);
+    index1.push_back( tmp_index1 );
+    possibleHem2s.push_back(j_temp2);
+    index2.push_back( tmp_index2 );
+  }
+  
+  //step 2: choose the partition that minimizes m1^2 + m2^2                                                                                   
+  double mMin = -1;
+  TLorentzVector myHem1;
+  TLorentzVector myHem2;
+  int partition_index = -1;
+  for(size_t i=0; i < possibleHem1s.size(); i++){
+    double mTemp = possibleHem1s[i].M2() + possibleHem2s[i].M2();
+    if(mMin < 0 || mTemp < mMin){
+      mMin = mTemp;
+      myHem1 = possibleHem1s[i];
+      myHem2 = possibleHem2s[i];
+      partition_index = i;
+    }
+  }
+
+  //return the hemispheres in decreasing order of pt                                                                                          
+  vector<TLorentzVector> hemsOut;
+  std::vector< std::vector<int> > index_out;
+  if(myHem1.Pt() > myHem2.Pt()){
+    hemsOut.push_back(myHem1);
+    hemsOut.push_back(myHem2);
+    index_out.push_back( index1[partition_index] );
+    index_out.push_back( index2[partition_index] );
+  } else {
+    hemsOut.push_back(myHem2);
+    hemsOut.push_back(myHem1);
+    index_out.push_back( index2[partition_index] );
+    index_out.push_back( index1[partition_index] );
+  }
+  
+  return index_out;
+};
+
+
 double RazorAnalyzer::computeMR(TLorentzVector hem1, TLorentzVector hem2){
     return sqrt(pow(hem1.P() + hem2.P(), 2) - pow(hem1.Pz() + hem2.Pz(), 2));
 }
@@ -102,6 +184,43 @@ double RazorAnalyzer::computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLore
     double mTR = sqrt(term1 - term2);
     return (mTR / mR) * (mTR / mR);
 }
+
+
+double RazorAnalyzer::GetMT( TLorentzVector visible, TVector3 met )
+{
+  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
+  return sqrt( visible.M2() + 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
+};
+
+double RazorAnalyzer::GetMT( TLorentzVector visible, TLorentzVector met )
+{
+  TVector3 _met( met.Px(), met.Py(), met.Pz() );
+  return GetMT( visible, _met );
+};
+
+double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TVector3 met )
+{
+  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
+  return vis.DeltaPhi( met );
+};
+
+double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TLorentzVector met )
+{
+  TVector3 _met( met.Px(), met.Py(), met.Pz() );
+  return GetMTEnergy( visible, _met );
+};
+
+double RazorAnalyzer::GetDphi( TLorentzVector visible, TVector3 met )
+{
+  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
+  return sqrt( visible.M2() + 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
+};
+
+double RazorAnalyzer::GetDphi( TLorentzVector visible, TLorentzVector met )
+{
+  TVector3 _met( met.Px(), met.Py(), met.Pz() );
+  return GetDphi( visible, _met );
+};
 
 //auxiliary functions for RazorInclusive and MatchedRazorInclusive analyses
 bool RazorAnalyzer::passesHadronicRazorBaseline(double MR, double Rsq){
