@@ -26,7 +26,6 @@ void FullControlRegionBasedPrediction(){
     //set color palette 
     const Int_t NCont = 101;
     gStyle->SetNumberContours(NCont);
-    gStyle->SetPaintTextFormat("1.0f");
 
     //define MR and Rsq binning
     float nMRBins = 10;
@@ -36,29 +35,34 @@ void FullControlRegionBasedPrediction(){
 
     //get input files -- output of RazorInclusive analyzer
     //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions
+    int lumiInData = 19700; //in /pb
+    int lumiInMC = 1; //luminosity used to normalize MC ntuples
+    string mcPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/MC_WithCorrectionFactors/";//location of MC ntuples
+    string dataPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/Data/"; //location of data ntuples
+
     map<string, TFile*> mcfiles;
     TFile *datafile;
     //main backgrounds
-    mcfiles["DYJets"] = new TFile("RazorDYJetsRun1_19700pb_weighted.root");
-    mcfiles["WJets"] = new TFile("RazorWJetsRun1_19700pb_weighted.root");
-    mcfiles["ZJetsNuNu"] = new TFile("RazorZJetsNuNuRun1_19700pb_weighted.root");
-    mcfiles["TTJets"] = new TFile("RazorTTJetsRun1_19700pb_weighted.root");
-    mcfiles["SingleTop"] = new TFile("RazorSingleTopRun1_19700pb_weighted.root");
-    mcfiles["QCD"] = new TFile("RazorQCDRun1_19700pb_weighted.root");
+    mcfiles["DYJets"] = new TFile(Form("%s/RazorInclusive_DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["WJets"] = new TFile(Form("%s/RazorInclusive_WJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["ZJetsNuNu"] = new TFile(Form("%s/RazorInclusive_ZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["TTJets"] = new TFile(Form("%s/RazorInclusive_TTJets_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["SingleTop"] = new TFile(Form("%s/RazorInclusive_SingleTop_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["QCD"] = new TFile(Form("%s/RazorInclusive_QCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     //rare backgrounds
-    mcfiles["TTW"] = new TFile("RazorTTWJetsRun1_19700pb_weighted.root");
-    mcfiles["TTZ"] = new TFile("RazorTTZJetsRun1_19700pb_weighted.root");
-    //TODO: add all other background processes!
+    mcfiles["TTV"] = new TFile(Form("%s/RazorInclusive_TTV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["VV"] = new TFile(Form("%s/RazorInclusive_VV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["TTTT"] = new TFile(Form("%s/RazorInclusive_TTTT_TuneZ2star_8TeV-madgraph-tauola_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
 
     //data
-    datafile = new TFile("RazorInclusiveRun1Data.root");
+    datafile = new TFile(Form("%s/RazorInclusive_Data_HTMHTParked_Run2012_GoodLumi.root", dataPrefix.c_str()));
 
     //get trees and set branches
     map<string, TTree*> mctrees;
     TTree *datatree;
     float weight;
     float MR, Rsq, dPhiRazor;
-    int nBTaggedJets, box;
+    int nBTaggedJets, nSelectedJets, box;
     for(auto &file : mcfiles){
         mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
         mctrees[file.first]->SetBranchStatus("*", 0);
@@ -68,6 +72,7 @@ void FullControlRegionBasedPrediction(){
         mctrees[file.first]->SetBranchStatus("Rsq", 1);
         mctrees[file.first]->SetBranchStatus("dPhiRazor", 1);
         mctrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
+        mctrees[file.first]->SetBranchStatus("nSelectedJets", 1);
 
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("box", &box);
@@ -75,6 +80,7 @@ void FullControlRegionBasedPrediction(){
         mctrees[file.first]->SetBranchAddress("Rsq", &Rsq);
         mctrees[file.first]->SetBranchAddress("dPhiRazor", &dPhiRazor);
         mctrees[file.first]->SetBranchAddress("nBTaggedJets", &nBTaggedJets);
+        mctrees[file.first]->SetBranchAddress("nSelectedJets", &nSelectedJets);
     }
     datatree = (TTree*)datafile->Get("RazorInclusive");
     datatree->SetBranchStatus("*", 0);
@@ -83,12 +89,14 @@ void FullControlRegionBasedPrediction(){
     datatree->SetBranchStatus("Rsq", 1);
     datatree->SetBranchStatus("dPhiRazor", 1);
     datatree->SetBranchStatus("nBTaggedJets", 1);
+    datatree->SetBranchStatus("nSelectedJets", 1);
 
     datatree->SetBranchAddress("box", &box);
     datatree->SetBranchAddress("MR", &MR);
     datatree->SetBranchAddress("Rsq", &Rsq);
     datatree->SetBranchAddress("dPhiRazor", &dPhiRazor);
     datatree->SetBranchAddress("nBTaggedJets", &nBTaggedJets);
+    datatree->SetBranchAddress("nSelectedJets", &nSelectedJets);
 
     //load TTbar scale factor histograms
     TFile *SFFileTTBar = new TFile("data/ScaleFactors/Run1/TTBarDileptonScaleFactors.root");
@@ -120,234 +128,270 @@ void FullControlRegionBasedPrediction(){
     float SFmaxMRZJetsNuNuFromGamma = SFHistZJetsNuNuFromGamma->GetXaxis()->GetXmax() - 1;
     float SFmaxRsqZJetsNuNuFromGamma = SFHistZJetsNuNuFromGamma->GetYaxis()->GetXmax() - 0.01;
 
-    //Step 1: Get the predictions from each MC process
-    map<string, TH2F> razorHistosMC;
-    map<string, TH1F> MRHistosMC;
-    map<string, TH1F> RsqHistosMC;
-    for(auto &tree : mctrees){
-        cout << "Filling MC histograms: " << tree.first << endl;
+    vector<int> boxes;
+    vector<string> boxNames;
+    boxes.push_back(8);
+    boxNames.push_back("MultiJet");
+    boxes.push_back(10);
+    boxNames.push_back("DiJet");
+    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
+    //loop over boxes
+    for(uint iBox = 0; iBox < boxes.size(); iBox++){
+        gStyle->SetPaintTextFormat("1.0f");
+        cout << "Analyzing " << boxNames[iBox] << " Box " << endl;
+        //Step 1: Get the predictions from each MC process
+        map<string, TH2F> razorHistosMC;
+        map<string, TH1F> MRHistosMC;
+        map<string, TH1F> RsqHistosMC;
+        for(auto &tree : mctrees){
+            cout << "Filling MC histograms: " << tree.first << endl;
 
-        //set up histograms
-        razorHistosMC[tree.first] = TH2F(Form("razormc%s", tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        MRHistosMC[tree.first] = TH1F(Form("mrmc%s", tree.first.c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
-        RsqHistosMC[tree.first] = TH1F(Form("rsqmc%s", tree.first.c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
-        MRHistosMC[tree.first].Sumw2();
-        RsqHistosMC[tree.first].Sumw2();
-        razorHistosMC[tree.first].Sumw2();
+            //set up histograms
+            razorHistosMC[tree.first] = TH2F(Form("razormc%s%s", tree.first.c_str(), boxNames[iBox].c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            MRHistosMC[tree.first] = TH1F(Form("mrmc%s%s", tree.first.c_str(), boxNames[iBox].c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+            RsqHistosMC[tree.first] = TH1F(Form("rsqmc%s%s", tree.first.c_str(), boxNames[iBox].c_str()), "; Rsq", nRsqBins, RsqBinLowEdges);
+            MRHistosMC[tree.first].Sumw2();
+            RsqHistosMC[tree.first].Sumw2();
+            razorHistosMC[tree.first].Sumw2();
 
-        uint nEntries = tree.second->GetEntries();
-        //loop over entries
+            uint nEntries = tree.second->GetEntries();
+            //loop over entries
+            for(uint i = 0; i < nEntries; i++){
+                //get entry
+                tree.second->GetEntry(i); 
+
+                //enforce correct box and number of B-tags
+                if(box != boxes[iBox]) continue;
+                if(nBTaggedJets < minNBTags) continue;
+
+                //cut on MR and Rsq
+                if(MR < 300 || Rsq < 0.15) continue;
+
+                float eventWeight = weight*lumiInData*1.0/lumiInMC;
+
+                //TTJets SF
+                if(tree.first == "TTJets"){
+                    double SFTTJets = SFHistTTBar->GetBinContent(SFHistTTBar->FindFixBin(min(MR, SFmaxMRTTJets), min(Rsq, SFmaxRsqTTJets)));
+                    if(SFTTJets > 1e-5){
+                        eventWeight *= SFTTJets;
+                    }
+                    else{
+                        //cout << "Warning: TTJets scale factor is zero!" << endl;
+                    }
+                }
+                //WJets SF
+                else if(tree.first == "WJets"){
+                    double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(MR, SFmaxMRWJets), min(Rsq, SFmaxRsqWJets)));
+                    if(SFWJets > 1e-5){
+                        eventWeight *= SFWJets;
+                    }
+                    else{
+                        //cout << "Warning: WJets scale factor is zero!" << endl;
+                    }
+                }
+                //DYJets SF
+                else if(tree.first == "DYJets"){
+                    double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(MR, SFmaxMRDYJets), min(Rsq, SFmaxRsqDYJets)));
+                    if(SFDYJets > 1e-5){
+                        eventWeight *= SFDYJets;
+                    }
+                    else{
+                        //cout << "Warning: DYJets scale factor is zero!" << endl;
+                    }
+                }
+
+                //ZNuNu SF
+                //TODO: combine the three predictions for ZNuNu?  currently use Gamma+Jets prediction
+                else if(tree.first == "ZJetsNuNu"){
+                    double SFZJetsNuNu = SFHistZJetsNuNuFromGamma->GetBinContent(SFHistZJetsNuNuFromGamma->FindFixBin(min(MR, SFmaxMRZJetsNuNuFromGamma), min(Rsq, SFmaxRsqZJetsNuNuFromGamma)));
+                    if(SFZJetsNuNu > 1e-5){
+                        eventWeight *= SFZJetsNuNu;
+                    }
+                    else{
+                        //cout << "Warning: ZJetsNuNu scale factor is zero!" << endl;
+                    }
+                }
+
+                //TODO: keep track of uncertainties on the scale factors
+
+                //fill each quantity
+                razorHistosMC[tree.first].Fill(MR, Rsq, eventWeight);
+                MRHistosMC[tree.first].Fill(MR, eventWeight);
+                RsqHistosMC[tree.first].Fill(Rsq, eventWeight);
+            }
+        }
+
+        //Step 2: make data distributions
+        cout << "Filling data histograms" << endl;
+
+        //create histograms
+        TH2F razorData(Form("razordata%s", boxNames[iBox].c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        TH1F MRData(Form("mrdata%s", boxNames[iBox].c_str()), "; MR (GeV)", nMRBins, MRBinLowEdges);
+        TH1F RsqData(Form("rsqdata%s", boxNames[iBox].c_str()), "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
+        razorData.Sumw2();
+        MRData.Sumw2();
+        RsqData.Sumw2();
+
+        uint nEntries = datatree->GetEntries();
         for(uint i = 0; i < nEntries; i++){
             //get entry
-            tree.second->GetEntry(i); 
+            datatree->GetEntry(i);
 
-            float eventWeight = weight;
+            //enforce correct box and number of B-tags
+            if(box != boxes[iBox]) continue;
+            if(nBTaggedJets < minNBTags) continue;
 
-            //TTJets SF
-            if(tree.first == "TTJets"){
-                double SFTTJets = SFHistTTBar->GetBinContent(SFHistTTBar->FindFixBin(min(MR, SFmaxMRTTJets), min(Rsq, SFmaxRsqTTJets)));
-                if(SFTTJets > 1e-5){
-                    eventWeight *= SFTTJets;
-                }
-                else{
-                    cout << "Warning: TTJets scale factor is zero!" << endl;
-                }
-            }
-            //WJets SF
-            else if(tree.first == "WJets"){
-                double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(MR, SFmaxMRWJets), min(Rsq, SFmaxRsqWJets)));
-                if(SFWJets > 1e-5){
-                    eventWeight *= SFWJets;
-                }
-                else{
-                    cout << "Warning: WJets scale factor is zero!" << endl;
-                }
-            }
-            //DYJets SF
-            else if(tree.first == "DYJets"){
-                double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(MR, SFmaxMRDYJets), min(Rsq, SFmaxRsqDYJets)));
-                if(SFDYJets > 1e-5){
-                    eventWeight *= SFDYJets;
-                }
-                else{
-                    cout << "Warning: DYJets scale factor is zero!" << endl;
-                }
-            }
+            //cut on MR and Rsq
+            if(MR < 300 || Rsq < 0.15) continue;
 
-            //ZNuNu SF
-            //TODO: combine the three predictions for ZNuNu?  currently use Gamma+Jets prediction
-            else if(tree.first == "ZJetsNuNu"){
-                double SFZJetsNuNu = SFHistZJetsNuNuFromGamma->GetBinContent(SFHistZJetsNuNuFromGamma->FindFixBin(min(MR, SFmaxMRZJetsNuNuFromGamma), min(Rsq, SFmaxRsqZJetsNuNuFromGamma)));
-                if(SFZJetsNuNu > 1e-5){
-                    eventWeight *= SFZJetsNuNu;
-                }
-                else{
-                    cout << "Warning: ZJetsNuNu scale factor is zero!" << endl;
-                }
-            }
+            float eventWeight = 1.0;
 
-            //TODO: keep track of uncertainties correctly
-
-            //fill each quantity
-            razorHistosMC[tree.first].Fill(MR, Rsq, eventWeight);
-            MRHistosMC[tree.first].Fill(MR, eventWeight);
-            RsqHistosMC[tree.first].Fill(Rsq, eventWeight);
+            razorData.Fill(MR, Rsq, eventWeight);
+            MRData.Fill(MR, eventWeight);
+            RsqData.Fill(Rsq, eventWeight);
         }
-    }
-
-    //Step 2: make data distributions
-    cout << "Filling data histograms" << endl;
-
-    //create histograms
-    TH2F razorData("razordata", "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-    TH1F MRData("mrdata", "; MR (GeV)", nMRBins, MRBinLowEdges);
-    TH1F RsqData("rsqdata", "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
-    TH2F razorDataUncorrected("razordataUncorrected", "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-    TH1F MRDataUncorrected("mrdataUncorrected", "; MR (GeV)", nMRBins, MRBinLowEdges);
-    TH1F RsqDataUncorrected("rsqdataUncorrected", "; Rsq (GeV)", nRsqBins, RsqBinLowEdges);
-    razorData.Sumw2();
-    MRData.Sumw2();
-    RsqData.Sumw2();
-    razorDataUncorrected.Sumw2();
-    MRDataUncorrected.Sumw2();
-    RsqDataUncorrected.Sumw2();
-
-    uint nEntries = datatree->GetEntries();
-    for(uint i = 0; i < nEntries; i++){
-        //get entry
-        datatree->GetEntry(i);
-
-        float eventWeight = 1.0;
-
-        razorData.Fill(MR, Rsq, eventWeight);
-        MRData.Fill(MR, eventWeight);
-        RsqData.Fill(Rsq, eventWeight);
-    }
-    //for rare background processes, include a 20% uncertainty on the total yield in each bin, summed in quadrature with the statistical uncertainty
-    double sysErrorFrac = 0.2;
-    //for QCD, assign a 100% uncertainty
-    double qcdErrorFrac = 1.0;
-    for(auto &tree : mctrees){
-        //only do this for rare processes 
-        if(tree.first == "DYJets" || tree.first == "WJets" || tree.first == "ZJetsNuNu" || tree.first == "TTJets") continue; 
-        for(int i = 0; i < razorHistosMC[tree.first].GetNbinsX()+1; i++){
-            for(int j = 0; j < razorHistosMC[tree.first].GetNbinsY()+1; j++){
-                double error = 0.0;
-                if(tree.first == "QCD"){
-                    error = qcdErrorFrac*razorHistosMC[tree.first].GetBinContent(i, j);
+        //for rare background processes, include a 20% uncertainty on the total yield in each bin, summed in quadrature with the statistical uncertainty
+        double sysErrorFrac = 0.2;
+        //for QCD, assign a 100% uncertainty
+        double qcdErrorFrac = 1.0;
+        for(auto &tree : mctrees){
+            //only do this for rare processes 
+            if(tree.first == "DYJets" || tree.first == "WJets" || tree.first == "ZJetsNuNu" || tree.first == "TTJets") continue; 
+            for(int i = 0; i < razorHistosMC[tree.first].GetNbinsX()+1; i++){
+                for(int j = 0; j < razorHistosMC[tree.first].GetNbinsY()+1; j++){
+                    double error = 0.0;
+                    if(tree.first == "QCD"){
+                        error = qcdErrorFrac*razorHistosMC[tree.first].GetBinContent(i, j);
+                    }
+                    else{
+                        error = sysErrorFrac*razorHistosMC[tree.first].GetBinContent(i, j);
+                    }
+                    razorHistosMC[tree.first].SetBinError(i, j, sqrt(pow(razorHistosMC[tree.first].GetBinError(i, j), 2) + error*error));
                 }
-                else{
-                    error = sysErrorFrac*razorHistosMC[tree.first].GetBinContent(i, j);
-                }
-                razorHistosMC[tree.first].SetBinError(i, j, sqrt(pow(razorHistosMC[tree.first].GetBinError(i, j), 2) + error*error));
             }
         }
-    }
 
-    //make plots
-    TCanvas c("c", "c", 800, 600);
-    c.SetLogx();
+        //make plots
+        //TODO: also draw MC before scale factors, for comparison
+        TCanvas c("c", "c", 800, 600);
+        c.SetLogx();
 
-    //total MC histogram
-    TH2F TotalRazorMC("TotalRazorMC", "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-    //print MC histograms
-    c.SetLogz();
-    for(auto &hist : razorHistosMC){
-        hist.second.SetTitle(Form("MC for %s", hist.first.c_str()));
-        hist.second.GetXaxis()->SetTitle("MR");
-        hist.second.GetYaxis()->SetTitle("Rsq");
-        hist.second.SetStats(0);
-        hist.second.Draw("colz");
-        hist.second.Draw("same,text");
-        c.Print(Form("razorInclusiveMCHistogram%s.pdf", hist.first.c_str()));
-        c.Print(Form("razorInclusiveMCHistogram%s.root", hist.first.c_str()));
+        //total MC histogram
+        TH2F TotalRazorMC("TotalRazorMC", "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        //print MC histograms
+        c.SetLogz();
+        for(auto &hist : razorHistosMC){
+            hist.second.SetTitle(Form("MC for %s, %s Box", hist.first.c_str(), boxNames[iBox].c_str()));
+            hist.second.GetXaxis()->SetTitle("MR");
+            hist.second.GetYaxis()->SetTitle("Rsq");
+            hist.second.SetStats(0);
+            hist.second.Draw("colz");
+            hist.second.Draw("same,text");
+            c.Print(Form("razorInclusiveMCHistogram%s%s.pdf", hist.first.c_str(), boxNames[iBox].c_str()));
+            c.Print(Form("razorInclusiveMCHistogram%s%s.root", hist.first.c_str(), boxNames[iBox].c_str()));
 
-        //add to total histogram
-        TotalRazorMC = TotalRazorMC + hist.second;
-    }
-    TotalRazorMC.SetTitle("Total MC");
-    TotalRazorMC.SetStats(0);
-    TotalRazorMC.Draw("colz");
-    TotalRazorMC.Draw("same,text");
-    c.Print("razorInclusiveMCHistogramTotal.pdf");
-    c.Print("razorInclusiveMCHistogramTotal.root");
+            //add to total histogram
+            TotalRazorMC = TotalRazorMC + hist.second;
+        }
+        TotalRazorMC.SetTitle(Form("Total MC, %s Box", boxNames[iBox].c_str()));
+        TotalRazorMC.SetStats(0);
+        TotalRazorMC.Draw("colz");
+        TotalRazorMC.Draw("same,text");
+        c.Print(Form("razorInclusiveMCHistogramTotal%s.pdf", boxNames[iBox].c_str()));
+        c.Print(Form("razorInclusiveMCHistogramTotal%s.root", boxNames[iBox].c_str()));
 
-    //print data histogram
-    razorData.SetTitle("Data");
-    razorData.GetXaxis()->SetTitle("MR");
-    razorData.GetYaxis()->SetTitle("Rsq");
-    razorData.SetStats(0);
-    razorData.Draw("colz");
-    razorData.Draw("same,text");
-    c.Print("razorInclusiveDataHistogram.pdf");
-    c.Print("razorInclusiveDataHistogram.root");
-    
-    //print MR and Rsq 1D histograms, comparing data to MC
-    c.SetLogy();
-    THStack MRTotalRazorMC("MRTotalRazorMC", "MR");
-    THStack RsqTotalRazorMC("RsqTotalRazorMC", "Rsq");
+        //print data histogram
+        razorData.SetTitle(Form("Data, %s Box", boxNames[iBox].c_str()));
+        razorData.GetXaxis()->SetTitle("MR");
+        razorData.GetYaxis()->SetTitle("Rsq");
+        razorData.SetStats(0);
+        razorData.Draw("colz");
+        razorData.Draw("same,text");
+        c.Print(Form("razorInclusiveDataHistogram%s.pdf", boxNames[iBox].c_str()));
+        c.Print(Form("razorInclusiveDataHistogram%s.root", boxNames[iBox].c_str()));
 
-    //format MC histograms
-    MRHistosMC["DYJets"].SetFillColor(kAzure);
-    MRHistosMC["WJets"].SetFillColor(kOrange+10);
-    MRHistosMC["ZJetsNuNu"].SetFillColor(38);
-    MRHistosMC["TTJets"].SetFillColor(kViolet-6);
-    MRHistosMC["SingleTop"].SetFillColor(kViolet-5);
-    MRHistosMC["QCD"].SetFillColor(kBlack);
-    MRHistosMC["TTW"].SetFillColor(kRed+2);
-    MRHistosMC["TTZ"].SetFillColor(kOrange-3);
-    MRTotalRazorMC.Add(&MRHistosMC["TTZ"]);
-    MRTotalRazorMC.Add(&MRHistosMC["TTW"]);
-    MRTotalRazorMC.Add(&MRHistosMC["SingleTop"]);
-    MRTotalRazorMC.Add(&MRHistosMC["QCD"]);
-    MRTotalRazorMC.Add(&MRHistosMC["DYJets"]);
-    MRTotalRazorMC.Add(&MRHistosMC["TTJets"]);
-    MRTotalRazorMC.Add(&MRHistosMC["WJets"]);
-    MRTotalRazorMC.Add(&MRHistosMC["ZJetsNuNu"]);
-    //TODO: include all backgrounds
-    MRData.SetMarkerStyle(20);
-    MRData.SetMarkerSize(1);
-    RsqHistosMC["DYJets"].SetFillColor(kAzure);
-    RsqHistosMC["WJets"].SetFillColor(kOrange+10);
-    RsqHistosMC["ZJetsNuNu"].SetFillColor(38);
-    RsqHistosMC["TTJets"].SetFillColor(kViolet-6);
-    RsqHistosMC["SingleTop"].SetFillColor(kViolet-5);
-    RsqHistosMC["QCD"].SetFillColor(kBlack);
-    RsqHistosMC["TTW"].SetFillColor(kRed+2);
-    RsqHistosMC["TTZ"].SetFillColor(kOrange-3);
-    RsqTotalRazorMC.Add(&RsqHistosMC["TTZ"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["TTW"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["SingleTop"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["QCD"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["DYJets"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["TTJets"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["WJets"]);
-    RsqTotalRazorMC.Add(&RsqHistosMC["ZJetsNuNu"]);
-    //TODO: include all backgrounds
-    RsqData.SetMarkerStyle(20);
-    RsqData.SetMarkerSize(1);
+        //print MR and Rsq 1D histograms, comparing data to MC
+        c.SetLogy();
+        THStack MRTotalRazorMC("MRTotalRazorMC", Form("MR, %s Box", boxNames[iBox].c_str()));
+        THStack RsqTotalRazorMC("RsqTotalRazorMC", Form("Rsq, %s Box", boxNames[iBox].c_str()));
 
-    //create legend
-    TLegend *RazorLegend = new TLegend(0.7, 0.7, 0.9, 0.9);
-    RazorLegend->AddEntry(&MRHistosMC["WJets"], "WJets MC");
-    RazorLegend->AddEntry(&MRHistosMC["DYJets"], "DYJets MC");
-    RazorLegend->AddEntry(&MRHistosMC["ZJetsNuNu"], "ZJetsNuNu MC");
-    RazorLegend->AddEntry(&MRHistosMC["TTJets"], "TTJets MC");
-    RazorLegend->AddEntry(&MRHistosMC["Top"], "Single Top MC");
-    RazorLegend->AddEntry(&MRHistosMC["TTW"], "TTW MC");
-    RazorLegend->AddEntry(&MRHistosMC["TTZ"], "TTZ MC");
-    RazorLegend->AddEntry(&MRHistosMC["QCD"], "QCD MC");
-    //TODO: include all backgrounds
-    RazorLegend->AddEntry(&MRData, "2012 Data");
-    DrawDataVsMCRatioPlot(&MRData, &MRTotalRazorMC, RazorLegend, "MR (GeV)", "razorInclusiveMRBackground", true);
-    c.SetLogx(kFALSE);
-    DrawDataVsMCRatioPlot(&RsqData, &RsqTotalRazorMC, RazorLegend, "Rsq (GeV)", "razorInclusiveRsqBackground", true);
+        //format MC histograms
+        MRHistosMC["QCD"].SetFillColor(33);
+        MRHistosMC["ZJetsNuNu"].SetFillColor(kCyan+1);
+        MRHistosMC["WJets"].SetFillColor(kRed+1);
+        MRHistosMC["TTJets"].SetFillColor(kGreen+3);
+        MRHistosMC["DYJets"].SetFillColor(kAzure);
+        MRHistosMC["SingleTop"].SetFillColor(kBlue+3);
+        MRHistosMC["TTV"].SetFillColor(kSpring);
+        MRHistosMC["VV"].SetFillColor(kViolet+2);
+        MRHistosMC["TTTT"].SetFillColor(kRed+4);
+        MRTotalRazorMC.Add(&MRHistosMC["TTTT"]);
+        MRTotalRazorMC.Add(&MRHistosMC["VV"]);
+        MRTotalRazorMC.Add(&MRHistosMC["TTV"]);
+        MRTotalRazorMC.Add(&MRHistosMC["SingleTop"]);
+        MRTotalRazorMC.Add(&MRHistosMC["DYJets"]);
+        MRTotalRazorMC.Add(&MRHistosMC["TTJets"]);
+        MRTotalRazorMC.Add(&MRHistosMC["WJets"]);
+        MRTotalRazorMC.Add(&MRHistosMC["ZJetsNuNu"]);
+        MRTotalRazorMC.Add(&MRHistosMC["QCD"]);
+        MRData.SetMarkerStyle(20);
+        MRData.SetMarkerSize(1);
+        RsqHistosMC["QCD"].SetFillColor(33);
+        RsqHistosMC["ZJetsNuNu"].SetFillColor(kCyan+1);
+        RsqHistosMC["WJets"].SetFillColor(kRed+1);
+        RsqHistosMC["TTJets"].SetFillColor(kGreen+3);
+        RsqHistosMC["DYJets"].SetFillColor(kAzure);
+        RsqHistosMC["SingleTop"].SetFillColor(kBlue+3);
+        RsqHistosMC["TTV"].SetFillColor(kSpring);
+        RsqHistosMC["VV"].SetFillColor(kViolet+2);
+        RsqHistosMC["TTTT"].SetFillColor(kRed+4);
+        RsqTotalRazorMC.Add(&RsqHistosMC["TTTT"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["VV"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["TTV"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["SingleTop"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["DYJets"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["TTJets"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["WJets"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["ZJetsNuNu"]);
+        RsqTotalRazorMC.Add(&RsqHistosMC["QCD"]);
+        RsqData.SetMarkerStyle(20);
+        RsqData.SetMarkerSize(1);
 
-    gStyle->SetPaintTextFormat("1.2f");
-    c.SetLogy(false);
-    c.SetLogz(false);
-    c.SetLogx();
-    //TODO: quantify data-MC agreement
+        //create legend
+        TLegend *RazorLegend = new TLegend(0.6, 0.6, 0.9, 0.9);
+        RazorLegend->AddEntry(&MRHistosMC["WJets"], "WJets MC");
+        RazorLegend->AddEntry(&MRHistosMC["DYJets"], "DYJets MC");
+        RazorLegend->AddEntry(&MRHistosMC["ZJetsNuNu"], "ZJetsNuNu MC");
+        RazorLegend->AddEntry(&MRHistosMC["TTJets"], "TTJets MC");
+        RazorLegend->AddEntry(&MRHistosMC["SingleTop"], "Single Top MC");
+        RazorLegend->AddEntry(&MRHistosMC["VV"], "VV MC");
+        RazorLegend->AddEntry(&MRHistosMC["TTV"], "TTV MC");
+        RazorLegend->AddEntry(&MRHistosMC["TTTT"], "TTTT MC");
+        RazorLegend->AddEntry(&MRHistosMC["QCD"], "QCD MC");
+        RazorLegend->AddEntry(&MRData, "2012 Data");
+        DrawDataVsMCRatioPlot(&MRData, &MRTotalRazorMC, RazorLegend, "MR (GeV)", "razorInclusiveMRBackground"+boxNames[iBox], true);
+        c.SetLogx(kFALSE);
+        DrawDataVsMCRatioPlot(&RsqData, &RsqTotalRazorMC, RazorLegend, "Rsq (GeV)", "razorInclusiveRsqBackground"+boxNames[iBox], true);
+
+        gStyle->SetPaintTextFormat("1.2f");
+        c.SetLogy(false);
+        c.SetLogz(false);
+        c.SetLogx();
+
+        //data/MC
+        TH2F DataOverMCHist = *((TH2F*)razorData.Clone(Form("DataOverMCHist%s", boxNames[iBox].c_str())));
+        DataOverMCHist.Divide(&TotalRazorMC);
+        DataOverMCHist.SetStats(0);
+        DataOverMCHist.SetMinimum(0.1);
+        DataOverMCHist.SetMaximum(3.0);
+        DataOverMCHist.SetTitle(Form("Data/MC, %s Box", boxNames[iBox].c_str()));
+        DataOverMCHist.Draw("colz");
+        DataOverMCHist.Draw("same,text");
+        c.Print(Form("razorInclusiveDataOverMC%s.pdf", boxNames[iBox].c_str()));
+
+        //TODO: quantify data-MC agreement in nSigmas
+        delete RazorLegend;
+    } //end of loop over boxes
 }
 
 int main(){
@@ -391,8 +435,8 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
-    //dataOverMC->SetMinimum(0.7);
-    //dataOverMC->SetMaximum(1.3);
+    dataOverMC->SetMinimum(0.5);
+    dataOverMC->SetMaximum(1.5);
     dataOverMC->GetXaxis()->SetLabelSize(0.1);
     dataOverMC->GetYaxis()->SetLabelSize(0.08);
     dataOverMC->GetYaxis()->SetTitleOffset(0.35);
