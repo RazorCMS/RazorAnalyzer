@@ -113,6 +113,8 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesMediumIsoCuts(int i);
         bool photonPassesTightIsoCuts(int i);
         bool isTightPhoton(int i);
+	double getPhotonScaleCorrectionRunOne7TeV(int run, double eta, double r9, double et);
+	double getPhotonScaleCorrectionRunOne8TeV(int run, double eta, double r9, double et);
 
 	//function in HggRazorAuxPhoton.cc
 	// R u n 1   C u t   B a s e d   I D
