@@ -60,18 +60,18 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
   
-  /*
+  
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
   correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
-  */
   
-  
+  /*
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
   //correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
+  */
   
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
@@ -141,8 +141,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   float theMR;
   float theRsq, t1Rsq;
-  float MET, t1MET;
+  float MET, phiMET, t1MET, phit1MET;
   float mHem1, ptHem1, etaHem1, phiHem1, mHem2, ptHem2, etaHem2, phiHem2;
+  int n_JetsHem1, n_JetsHem2;
+  int jetIndexHem1[10], jetIndexHem2[10];
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, etaGammaGamma, phiGammaGamma;
   float evtMass, evtMT, evtMTEnergy, evtDphi;
@@ -176,7 +178,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("Rsq", &theRsq, "Rsq/F");
     razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
     razorTree->Branch("MET", &MET, "MET/F");
+    razorTree->Branch("phiMET", &phiMET, "phiMET/F");
     razorTree->Branch("t1MET", &t1MET, "t1MET/F");
+    razorTree->Branch("phit1MET", &phit1MET, "phit1MET/F");
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -224,11 +228,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("ptHem1", &ptHem1, "ptHem1/F");
     razorTree->Branch("etaHem1", &etaHem1, "etaHem1/F");
     razorTree->Branch("phiHem1", &phiHem1, "phiHem1/F");
+    razorTree->Branch("n_JetsHem1", &n_JetsHem1, "n_JetsHem1/I");
+    razorTree->Branch("jetIndexHem1", jetIndexHem1, "jetIndexHem1[n_JetsHem1]/I");
 
     razorTree->Branch("mHem2", &mHem2, "mHem2/F");
     razorTree->Branch("ptHem2", &ptHem2, "ptHem2/F");
     razorTree->Branch("etaHem2", &etaHem2, "etaHem2/F");
     razorTree->Branch("phiHem2", &phiHem2, "phiHem2/F");
+    razorTree->Branch("n_JetsHem2", &n_JetsHem2, "n_JetsHem2/I");
+    razorTree->Branch("jetIndexHem2", jetIndexHem2, "jetIndexHem2[n_JetsHem2]/I");
 
     razorTree->Branch("evtMass", &evtMass, "evtMass/F");
     razorTree->Branch("evtMT", &evtMT, "evtMT/F");
@@ -253,7 +261,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("Rsq", &theRsq, "Rsq/F");
       box.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
       box.second->Branch("MET", &MET, "MET/F");
+      box.second->Branch("phiMET", &phiMET, "phiMET/F");
       box.second->Branch("t1MET", &t1MET, "t1MET/F");
+      box.second->Branch("phit1MET", &phit1MET, "phit1MET/F");
       box.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
       box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -301,12 +311,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("ptHem1", &ptHem1, "ptHem1/F");
       box.second->Branch("etaHem1", &etaHem1, "etaHem1/F");
       box.second->Branch("phiHem1", &phiHem1, "phiHem1/F");
+      box.second->Branch("n_JetsHem1", &n_JetsHem1, "n_JetsHem1/I");
+      box.second->Branch("jetIndexHem1", jetIndexHem1, "jetIndexHem1[n_JetsHem1]/I");
 
       box.second->Branch("mHem2", &mHem2, "mHem2/F");
       box.second->Branch("ptHem2", &ptHem2, "ptHem2/F");
       box.second->Branch("etaHem2", &etaHem2, "etaHem2/F");
       box.second->Branch("phiHem2", &phiHem2, "phiHem2/F");
-      
+      box.second->Branch("n_JetsHem2", &n_JetsHem2, "n_JetsHem2/I");
+      box.second->Branch("jetIndexHem2", jetIndexHem2, "jetIndexHem2[n_JetsHem2]/I");
+
       box.second->Branch("evtMass", &evtMass, "evtMass/F");
       box.second->Branch("evtMT", &evtMT, "evtMT/F");
       box.second->Branch("evtMTEnergy", &evtMTEnergy, "evtMTEnergy/F");
@@ -333,7 +347,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("Rsq", &theRsq, "Rsq/F");
 	  simplebox.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
 	  simplebox.second->Branch("MET", &MET, "MET/F");
+	  simplebox.second->Branch("phiMET", &phiMET, "phiMET/F");
 	  simplebox.second->Branch("t1MET", &t1MET, "t1MET/F");
+	  simplebox.second->Branch("phit1MET", &phit1MET, "phit1MET/F");
 	  simplebox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
 	  simplebox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
 	  simplebox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -381,11 +397,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("ptHem1", &ptHem1, "ptHem1/F");
 	  simplebox.second->Branch("etaHem1", &etaHem1, "etaHem1/F");
 	  simplebox.second->Branch("phiHem1", &phiHem1, "phiHem1/F");
+	  simplebox.second->Branch("n_JetsHem1", &n_JetsHem1, "n_JetsHem1/I");
+	  simplebox.second->Branch("jetIndexHem1", jetIndexHem1, "jetIndexHem1[n_JetsHem1]/I");
 	  
 	  simplebox.second->Branch("mHem2", &mHem2, "mHem2/F");
 	  simplebox.second->Branch("ptHem2", &ptHem2, "ptHem2/F");
 	  simplebox.second->Branch("etaHem2", &etaHem2, "etaHem2/F");
 	  simplebox.second->Branch("phiHem2", &phiHem2, "phiHem2/F");
+	  simplebox.second->Branch("n_JetsHem2", &n_JetsHem2, "n_JetsHem2/I");
+	  simplebox.second->Branch("jetIndexHem2", jetIndexHem2, "jetIndexHem2[n_JetsHem2]/I");
 	  
 	  simplebox.second->Branch("evtMass", &evtMass, "evtMass/F");
 	  simplebox.second->Branch("evtMT", &evtMT, "evtMT/F");
@@ -418,6 +438,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     nLooseElectrons = 0;
     nTightElectrons = 0;
     nTightTaus = 0;
+    MET   = -1;
+    phiMET = -99;
+    t1MET   = -1;
+    phit1MET = -99;
     theMR = -1;
     theRsq = -1;
     nSelectedPhotons = 0;
@@ -431,16 +455,23 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     run   = runNum;
     event = eventNum;
     
-    mHem1   = -1;
-    ptHem1  = -1;
-    etaHem1 = -1;
-    phiHem1 = -1;
+    mHem1      = -1;
+    ptHem1     = -1;
+    etaHem1    = -1;
+    phiHem1    = -1;
+    n_JetsHem1 = 0;
 
-    mHem2   = -1;
-    ptHem2  = -1;
-    etaHem2 = -1;
-    phiHem2 = -1;
+    mHem2      = -1;
+    ptHem2     = -1;
+    etaHem2    = -1;
+    phiHem2    = -1;
+    n_JetsHem2 = 0;
     
+    for ( int i = 0; i < 10; i++ )
+      {
+	jetIndexHem1[i] = -1;
+	jetIndexHem2[i]= -1;
+      }
     evtMass    = -1;
     evtMT      = -1;
     evtMTEnergy = -1;
@@ -710,7 +741,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	continue;
       }
     //record higgs candidate info
-    mGammaGamma = HiggsCandidate.M();
+    mGammaGamma = HiggsCandidate.M() - 25.;
     pTGammaGamma = HiggsCandidate.Pt();
     etaGammaGamma = HiggsCandidate.Eta();
     phiGammaGamma = HiggsCandidate.Phi();
@@ -732,7 +763,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
       //int level = 2; //3rd bit of jetPileupIdFlag
       //no jed id providede for Phys14 Samples
-      //if ( !jetPassIDLoose[i] ) continue;
+      if ( !jetPassIDLoose[i] ) continue;
       //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
       //exclude selected photons from the jet collection
@@ -763,7 +794,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
 	continue;
       }
-    
+
+    //S o rt i n g   j e t s   b y   p T 
+    //----------------------------------
+    auto sortTLV = [](TLorentzVector a, TLorentzVector b){ return a.Pt() > b.Pt() ? true : false; };
+    std::sort( GoodJets.begin(), GoodJets.end(), sortTLV );
+
     int iJet = 0;
     for ( auto tmp_jet : GoodJets )
       {
@@ -802,17 +838,60 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  }
       }
     
+    //Setting hemipheres content index
+    int i_ctr = 0;
+    if ( ggHem == 0 )
+      {
+	n_JetsHem1 = index_test[0].size() - 1;//remove higgs
+	i_ctr = 0;
+	for ( auto& tmp : index_test[0] )
+	  {
+	    if ( tmp != 0 )
+	      {
+		jetIndexHem1[i_ctr] = tmp - 1;//subtract higgs index 
+		i_ctr++;
+	      }
+	  }
+	n_JetsHem2 = index_test[1].size();
+	i_ctr =0;
+        for ( auto& tmp : index_test[1] )
+          {
+	    jetIndexHem2[i_ctr]= tmp - 1;//subtract higgs index
+            i_ctr++;
+          }
+      }
+    else if ( ggHem = 1 )
+      {
+	n_JetsHem1 = index_test[1].size() - 1;//remove higgs
+	i_ctr = 0;
+        for ( auto& tmp : index_test[1] )
+          {
+            if ( tmp != 0 )
+	      {
+		jetIndexHem1[i_ctr] = tmp - 1;//subtract higgs index
+		i_ctr++;
+	      }
+          }
+	n_JetsHem2 = index_test[0].size();
+	i_ctr = 0;
+        for ( auto& tmp : index_test[0] )
+          {
+            jetIndexHem2[i_ctr] = tmp - 1;//subtract higgs index
+            i_ctr++;
+          }
+      }
     
-    theMR  = computeMR(hemispheres[0], hemispheres[1]); 
-    theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
-    t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
-    MET = metPt;
-    t1MET = metType0Plus1Pt;
+    theMR    = computeMR(hemispheres[0], hemispheres[1]); 
+    theRsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+    t1Rsq    = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
+    MET      = metPt;
+    phiMET   = metPhi;
+    t1MET    = metType0Plus1Pt;
+    phit1MET = metType0Plus1Phi;
 
     TLorentzVector evtP4;
     for ( auto& tmp : JetsPlusHiggsCandidate ) evtP4 += tmp;
     evtMass    = evtP4.M();
-    
     
     evtMT      = GetMT( evtP4, t1PFMET );
     evtMTEnergy = GetMTEnergy( evtP4, t1PFMET );
@@ -840,12 +919,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       }
     else if( ggHem == 1 )
       {
-	//hem1                                                                                                                                 
+	//hem1
         mHem1   = hemispheres[1].M();
         ptHem1  = hemispheres[1].Pt();
         etaHem1 = hemispheres[1].Eta();
         phiHem1 = hemispheres[1].Phi();
-        //hem2                                                                                                                                 
+        //hem2  
         mHem2   = hemispheres[0].M();
         ptHem2  = hemispheres[0].Pt();
         etaHem2 = hemispheres[0].Eta();
