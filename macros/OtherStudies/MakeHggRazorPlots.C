@@ -9,6 +9,7 @@
 #include <TLatex.h>
 #include <TRandom3.h>
 #include <TMath.h>
+#include <TLorentzVector.h>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -50,11 +51,206 @@ double deltaR(double eta1, double phi1, double eta2, double phi2) {
   return sqrt( dphi*dphi + deta*deta);
 }
 
+TH1F* makeNewHist( string title, string axisLabel, int nbins, double rangeLow, double rangeHigh, int color, bool isData) {
+
+  TH1F *newhist = new TH1F( title.c_str(), axisLabel.c_str(), nbins, rangeLow, rangeHigh);
+  if (!isData) newhist->SetFillColor(color);
+  if (isData) newhist->SetLineWidth(3); 
+  newhist->SetLineColor(color);    
+  newhist->SetStats(false);    
+  newhist->Sumw2();
+  return newhist;
+
+}
+
+void PlotDataAndStackedBkg( vector<TH1F*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label ) {
+
+  TCanvas *cv =0;
+  TLegend *legend = 0;
+
+  cv = new TCanvas("cv","cv", 800,700);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  TPad *pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
+  legend = new TLegend(0.60,0.54,0.90,0.84);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+
+  THStack *stack = new THStack();
+  TH1F *histDataOverMC = (TH1F*)hist[0]->Clone("histDataOverMC");
+
+  if (hasData) {
+    for (int i = hist.size()-1; i >= 1; --i) {
+      hist[i]->SetFillColor(color[i]);
+      hist[i]->SetFillStyle(1001);
+      
+      if ( hist[i]->Integral() > 0) {
+  	stack->Add(hist[i]);
+      }
+    }
+  } else {
+    for (int i = hist.size()-1; i >= 0; --i) {
+      hist[i]->SetFillColor(color[i]);
+      hist[i]->SetFillStyle(1001);
+      
+      if ( hist[i]->Integral() > 0) {
+  	stack->Add(hist[i]);
+      }
+    }
+  }
+
+  for (uint i = 0 ; i < hist.size(); ++i) {
+    if (hasData && i==0) {
+      legend->AddEntry(hist[i],(processLabels[i]).c_str(), "LP");
+    } else {
+      legend->AddEntry(hist[i],(processLabels[i]).c_str(), "F");
+    }
+  }
+
+  if (stack->GetHists()->GetEntries() > 0) {
+    stack->Draw("hist");
+    stack->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stack->GetHists()->At(0)))->GetXaxis()->GetTitle());
+    stack->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stack->GetHists()->At(0)))->GetYaxis()->GetTitle());
+    stack->GetHistogram()->GetYaxis()->SetTitleOffset(1.5);
+    stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
+    stack->SetMinimum( 0.1 );
+
+    if (hasData) {
+      hist[0]->SetLineWidth(2);
+      hist[0]->SetLineColor(color[0]);
+      hist[0]->Draw("e1same");
+    }
+    legend->Draw();
+  }
+  cv->cd();
+  cv->Update();
+
+
+  TPad *pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->Draw();
+  pad2->cd();
+    
+  for (int b=0; b<histDataOverMC->GetXaxis()->GetNbins()+2; ++b) {
+    double data = 0;
+    if (hasData) {
+      data = hist[0]->GetBinContent(b);
+    }
+    double MC = 0;
+    double MCErrSqr = 0;
+    if (hasData) {
+      for (uint i = 1 ; i < hist.size(); ++i) {
+	MC += hist[i]->GetBinContent(b);
+	MCErrSqr += pow(hist[i]->GetBinError(b),2);
+      }
+    } else {
+      MC = 1;
+    }
+      
+    if (MC > 0) {
+      histDataOverMC->SetBinContent(b, data / MC);
+      histDataOverMC->SetBinError(b, (data / MC)*sqrt(1/data + MCErrSqr/pow(MC,2) ));
+    } else {
+      histDataOverMC->SetBinContent(b, 0);
+      histDataOverMC->SetBinError(b, 0);
+    }
+    //cout << "bin " << b << " : " << histDataOverMC->GetBinContent(b) << " " << histDataOverMC->GetBinError(b) << "\n";
+  }
+
+  histDataOverMC->GetYaxis()->SetTitle("Data/MC");
+  histDataOverMC->GetYaxis()->SetNdivisions(306);
+  histDataOverMC->GetYaxis()->SetTitleSize(0.10);
+  histDataOverMC->GetYaxis()->SetTitleOffset(0.3);
+  histDataOverMC->GetYaxis()->SetRangeUser(0.5,1.5);
+  histDataOverMC->GetYaxis()->SetLabelSize(0.10);
+  histDataOverMC->GetXaxis()->SetLabelSize(0.125);
+  histDataOverMC->GetXaxis()->SetTitleSize(0.125);
+  histDataOverMC->GetXaxis()->SetTitleOffset(1.2);
+  histDataOverMC->SetStats(false);
+  histDataOverMC->Draw("e1");
+  
+  pad1->SetLogy(false);
+  cv->SaveAs(Form("HggRazor_%s%s.gif",varName.c_str(), label.c_str()));
+  
+  pad1->SetLogy(true);
+  cv->SaveAs(Form("HggRazor_%s%s_Logy.gif",varName.c_str(),label.c_str()));
+
+}
+
+
+void PlotData( TH1F* hist , string dataLabel, string varName, string label, string latexlabel, bool setLogy = false ) {
+
+  TCanvas *cv =0;
+  TLegend *legend = 0;
+
+  cv = new TCanvas("cv","cv", 800,700);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  // cv->SetLeftMargin(0.16);
+  // cv->SetRightMargin(0.3);
+  // cv->SetTopMargin(0.07);
+  // cv->SetBottomMargin(0.12);
+  // cv->SetFrameBorderMode(0);  
+
+  legend = new TLegend(0.60,0.54,0.90,0.84);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(hist,(dataLabel).c_str(), "LP");
+
+  // hist->SetFillColor(kBLack);
+  // hist->SetFillStyle(1001);
+      
+  hist->SetLineWidth(2);
+  hist->SetLineColor(kBlack);
+  hist->Draw("e1same");
+
+  legend->Draw();
+
+  TLatex *tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.030);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.2, 0.92, Form("CMS Data #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
+  //tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, %s", latexlabel.c_str()));
+  tex->Draw();
+  
+
+  if(setLogy) {
+    cv->SetLogy(true);
+    cv->SaveAs(Form("HggRazor_%s%s_Logy.gif",varName.c_str(),label.c_str()));
+  } else {
+    cv->SetLogy(false);
+    cv->SaveAs(Form("HggRazor_%s%s.gif",varName.c_str(), label.c_str()));
+  }
+
+}
+
+
 
 //------------------------------------------------------------------------------
 // PlotHiggsRes_LP
 //------------------------------------------------------------------------------
-void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,vector<string> bkgLabels, int boxOption = 0, int option = -1, string label = "", string latexlabel = "") {
+void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,vector<string> bkgLabels, vector<int> bkgColors, int boxOption = 0, int option = -1, string label = "", string latexlabel = "") {
 
   //--------------------------------------------------------------------------------------------------------------
   // Settings 
@@ -66,37 +262,31 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
 
   vector<string> inputfiles;
   vector<string> processLabels;
+  vector<int> color;
 
   bool hasData = false;
   if (datafile != "") {
     hasData = true;
     inputfiles.push_back(datafile);
     processLabels.push_back(dataLabel);
+    color.push_back(kBlack);
   } else {
     hasData = true;
     inputfiles.push_back("");
     processLabels.push_back("Hypothetical Data");    
+    color.push_back(kBlack);
   }
   assert(bkgfiles.size() == bkgLabels.size());
   for (int i=0; i < bkgfiles.size(); ++i) {
      inputfiles.push_back(bkgfiles[i]);
      processLabels.push_back(bkgLabels[i]);
+     color.push_back(bkgColors[i]);
   }
 
 
   //*******************************************************************************************
   //Define Histograms
   //*******************************************************************************************
-  TH1F* histMRAllBkg =  new TH1F( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 3000);
-  TH1F* histRsqAllBkg =  new TH1F( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 1.5);
-  TH1F* histMRAllBkg_AfterDPhiCut =  new TH1F("MRAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 3000);
-  TH1F* histRsqAllBkg_AfterDPhiCut =  new TH1F( "RsqAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 1.5);
-  histMRAllBkg->SetStats(false);
-  histMRAllBkg_AfterDPhiCut->SetStats(false);
-  histRsqAllBkg->SetStats(false);
-  histRsqAllBkg_AfterDPhiCut->SetStats(false);
-  
-
   vector<TH1F*> histNJets80;
   vector<TH1F*> histNJets60;
   vector<TH1F*> histNJets40;
@@ -108,109 +298,67 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
   vector<TH1F*> histMR;
   vector<TH1F*> histRsq;
   vector<TH1F*> histDPhiRazor;
+  vector<TH1F*> histDPhiHiggsMET;
   vector<TH1F*> histMgg;
   vector<TH1F*> histPtggPeakRegion;
   vector<TH1F*> histPtggSidebandRegion;
+  vector<TH1F*> histMinDRJetsToPhotons;
+  vector<TH1F*> histMHiggsClosestJet;
+  vector<TH1F*> histMHiggsLeadingJet;
+  vector<TH1F*> histMTLeadJet;
+  vector<TH1F*> histMTMinDPhiMetJet;
+  vector<TH1F*> histDPhiLeadJetMET;
+  vector<TH1F*> histDRLeadJetHiggs;
+  vector<TH1F*> histMjjMaxPtPair;
+  vector<TH1F*> histMjjMaxPtPairExcludeJetClosestToHiggs;
+  vector<TH1F*> histMTJetMaxPt;
+  vector<TH1F*> histMTJJMaxPt;
+
+  vector<TH1F*> histMassOppositeHiggs;
+  vector<TH1F*> histMTOppositeHiggs;
+  vector<TH1F*> histMassOppositeLeadJet;
+  vector<TH1F*> histMTOppositeLeadJet;
+
+  vector<TH1F*> histCosThetaStar;
 
   assert (inputfiles.size() == processLabels.size());
-  for (int i=0; i < inputfiles.size(); ++i) {    
-    histMgg.push_back( new TH1F( Form("Mgg_%s",processLabels[i].c_str()), ";M_{#gamma#gamma} [GeV/c^{2}];Number of Events", 20, 100, 160));
-    if (!hasData || i != 0) histMgg[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histMgg[i]->SetLineWidth(3);
-    histMgg[i]->SetLineColor(color[i]);    
-    histMgg[i]->SetStats(false);    
-    histMgg[i]->Sumw2();
+  for (int i=0; i < inputfiles.size(); ++i) {        
+    histMgg.push_back( makeNewHist( Form("Mgg_%s",processLabels[i].c_str()), ";M_{#gamma#gamma} [GeV/c^{2}];Number of Events", 60, 100, 160, color[i],  (hasData && i==0) ));  
 
-    histMR.push_back( new TH1F( Form("MR_%s",processLabels[i].c_str()), ";M_{R} [GeV/c^{2}];Number of Events", 25, 0, 3000));
-    if (!hasData || i != 0) histMR[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histMR[i]->SetLineWidth(3);
-    histMR[i]->SetLineColor(color[i]);    
-    histMR[i]->SetStats(false);    
-    histMR[i]->Sumw2();
+    histMjjMaxPtPair.push_back( makeNewHist( Form("MjjMaxPtPair_%s",processLabels[i].c_str()), ";M_{jj}^{max pTjj} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMjjMaxPtPairExcludeJetClosestToHiggs.push_back( makeNewHist( Form("MjjMaxPtPairExcludeJetClosestToHiggs_%s",processLabels[i].c_str()), ";M_{jj}^{max pTjj excl jet nearest Higgs} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMassOppositeHiggs.push_back( makeNewHist( Form("histMassOppositeHiggs_%s",processLabels[i].c_str()), ";M_{all objects except #gamma#gamma} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMTOppositeHiggs.push_back( makeNewHist( Form("histMTOppositeHiggs_%s",processLabels[i].c_str()), ";M_{T}^{all objects except #gamma#gamma} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMassOppositeLeadJet.push_back( makeNewHist( Form("histMassOppositeLeadJet_%s",processLabels[i].c_str()), ";M_{all objects except lead jet} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMTOppositeLeadJet.push_back( makeNewHist( Form("histMTOppositeLeadJet_%s",processLabels[i].c_str()), ";M_{T}^{all objects except lead jet} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMTJetMaxPt.push_back( makeNewHist( Form("MTJetMaxPt_%s",processLabels[i].c_str()), ";M_{jj}^{max pTjj} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMTJJMaxPt.push_back( makeNewHist( Form("MTJJMaxPt_%s",processLabels[i].c_str()), ";M_{jj}^{max pTjj} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
 
-    histRsq.push_back( new TH1F( Form("Rsq_%s",processLabels[i].c_str()), ";R^{2} ;Number of Events", 50, 0, 1.5));
-    if (!hasData || i != 0) histRsq[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histRsq[i]->SetLineWidth(3);
-    histRsq[i]->SetLineColor(color[i]);
-    histRsq[i]->SetStats(false);     
+    histMinDRJetsToPhotons.push_back( makeNewHist( Form("MinDRJetsToPhotons_%s",processLabels[i].c_str()), ";min#Delta R(jet,#gamma);Number of Events", 100, 0, 4.0, color[i], (hasData && i==0) ));  
+    histDRLeadJetHiggs.push_back( makeNewHist( Form("DRLeadJetHiggs_%s",processLabels[i].c_str()), ";#Delta R(Leading jet, Higgs);Number of Events", 100, 0, 10, color[i], (hasData && i==0) ));  
+    histMTMinDPhiMetJet.push_back( makeNewHist( Form("MTMinDPhiMetJet_%s",processLabels[i].c_str()), ";M_{T}^{jet nearest MET} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histDPhiLeadJetMET.push_back( makeNewHist( Form("DPhiLeadJetMET_%s",processLabels[i].c_str()), ";#Delta#phi(Leading jet, MET);Number of Events", 100, 0, 3.15, color[i],  (hasData && i==0) ));  
+    histMHiggsClosestJet.push_back( makeNewHist( Form("MHiggsClosestJet_%s",processLabels[i].c_str()), ";M_{#gamma#gamma nearest jet} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMHiggsLeadingJet.push_back( makeNewHist( Form("MHiggsLeadingJet_%s",processLabels[i].c_str()), ";M_{#gamma#gamma lead jet} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
+    histMTLeadJet.push_back( makeNewHist( Form("MTLeadJet_%s",processLabels[i].c_str()), ";M_{T}^{leading jet} [GeV/c^{2}];Number of Events", 100, 0, 1000, color[i],  (hasData && i==0) ));  
 
-    histNJets80.push_back( new TH1F( Form("NJets80_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5));
-    if (!hasData || i != 0) histNJets80[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histNJets80[i]->SetLineWidth(3);
-    histNJets80[i]->SetLineColor(color[i]);    
-    histNJets80[i]->SetStats(false);    
-    histNJets80[i]->Sumw2();
+    histMR.push_back( makeNewHist( Form("MR_%s",processLabels[i].c_str()), ";M_{R} [GeV/c^{2}];Number of Events", 25, 0, 3000, color[i],  (hasData && i==0) ));  
+    histRsq.push_back( makeNewHist( Form("Rsq_%s",processLabels[i].c_str()), ";R^{2} ;Number of Events", 50, 0, 1.5, color[i],  (hasData && i==0) ));  
+    histNJets80.push_back( makeNewHist( Form("NJets80_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5, color[i],  (hasData && i==0) ));  
+    histNJets60.push_back( makeNewHist( Form("NJets60_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5, color[i],  (hasData && i==0) ));  
+    histNJets40.push_back( makeNewHist( Form("NJets40_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5, color[i],  (hasData && i==0) ));   
+    histNJets30.push_back( makeNewHist( Form("NJets30_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5, color[i],  (hasData && i==0) ));  
+    histPhoton1Pt.push_back( makeNewHist( Form("Photon1Pt_%s",processLabels[i].c_str()), ";Leading Photon p_{T} [GeV/c];Number of Events", 50, 0, 200, color[i],  (hasData && i==0) ));  
+    histPhoton2Pt.push_back( makeNewHist( Form("Photon2Pt_%s",processLabels[i].c_str()), ";Second Photon p_{T} [GeV/c];Number of Events", 50, 0, 200, color[i],  (hasData && i==0) ));  
+    histJet1Pt.push_back( makeNewHist( Form("Jet1Pt_%s",processLabels[i].c_str()), ";Leading Jet p_{T} [GeV/c];Number of Events", 125, 0, 500, color[i],  (hasData && i==0) ));  
+    histJet2Pt.push_back( makeNewHist( Form("Jet2Pt_%s",processLabels[i].c_str()), ";Second Jet p_{T} [GeV/c];Number of Events", 125, 0, 500, color[i],  (hasData && i==0) ));  
+    histDPhiHiggsMET.push_back( makeNewHist( Form("DPhiHiggsMET_%s",processLabels[i].c_str()), ";#Delta#phi(#gamma#gamma,MET)];Number of Events", 20, 0, 3.15, color[i],  (hasData && i==0) ));  
+    histPtggPeakRegion.push_back( makeNewHist( Form("PtggPeakRegion_%s",processLabels[i].c_str()), ";p_{T #gamma#gamma} [GeV/c];Number of Events", 20, 0, 500, color[i],  (hasData && i==0) ));  
+    histPtggSidebandRegion.push_back( makeNewHist( Form("PtggSidebandRegion_%s",processLabels[i].c_str()), ";p_{T #gamma#gamma} [GeV/c];Number of Events", 20, 0, 500, color[i],  (hasData && i==0) ));  
+    histDPhiRazor.push_back( makeNewHist( Form("DPhiRazor_%s",processLabels[i].c_str()), ";#Delta#phi Hemispheres ;Number of Events", 50, 0, 3.14, color[i],  (hasData && i==0) ));  
 
-    histNJets60.push_back( new TH1F( Form("NJets60_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5));
-    if (!hasData || i != 0) histNJets60[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histNJets60[i]->SetLineWidth(3);
-    histNJets60[i]->SetLineColor(color[i]);    
-    histNJets60[i]->SetStats(false);    
-    histNJets60[i]->Sumw2();
-
-    histNJets40.push_back( new TH1F( Form("NJets40_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5));
-    if (!hasData || i != 0) histNJets40[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histNJets40[i]->SetLineWidth(3);
-    histNJets40[i]->SetLineColor(color[i]);    
-    histNJets40[i]->SetStats(false);    
-    histNJets40[i]->Sumw2();
-
-    histNJets30.push_back( new TH1F( Form("NJets30_%s",processLabels[i].c_str()), ";Number of Jets with p_{T} > 80 GeV/c;Number of Events", 10, -0.5, 9.5));
-    if (!hasData || i != 0) histNJets30[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histNJets30[i]->SetLineWidth(3);
-    histNJets30[i]->SetLineColor(color[i]);    
-    histNJets30[i]->SetStats(false);    
-    histNJets30[i]->Sumw2();
-
-    histPhoton1Pt.push_back( new TH1F( Form("Photon1Pt_%s",processLabels[i].c_str()), ";Leading Photon p_{T} [GeV/c];Number of Events", 50, 0, 200));
-    if (!hasData || i != 0) histPhoton1Pt[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histPhoton1Pt[i]->SetLineWidth(3);
-    histPhoton1Pt[i]->SetLineColor(color[i]);    
-    histPhoton1Pt[i]->SetStats(false);    
-    histPhoton1Pt[i]->Sumw2();
-
-    histPhoton2Pt.push_back( new TH1F( Form("Photon2Pt_%s",processLabels[i].c_str()), ";Second Photon p_{T} [GeV/c];Number of Events", 50, 0, 200));
-    if (!hasData || i != 0) histPhoton2Pt[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histPhoton2Pt[i]->SetLineWidth(3);
-    histPhoton2Pt[i]->SetLineColor(color[i]);    
-    histPhoton2Pt[i]->SetStats(false);    
-    histPhoton2Pt[i]->Sumw2();
-
-    histJet1Pt.push_back( new TH1F( Form("Jet1Pt_%s",processLabels[i].c_str()), ";Leading Jet p_{T} [GeV/c];Number of Events", 125, 0, 500));
-    if (!hasData || i != 0) histJet1Pt[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histJet1Pt[i]->SetLineWidth(3);
-    histJet1Pt[i]->SetLineColor(color[i]);    
-    histJet1Pt[i]->SetStats(false);    
-    histJet1Pt[i]->Sumw2();
-
-    histJet2Pt.push_back( new TH1F( Form("Jet2Pt_%s",processLabels[i].c_str()), ";Second Jet p_{T} [GeV/c];Number of Events", 125, 0, 500));
-    if (!hasData || i != 0) histJet2Pt[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histJet2Pt[i]->SetLineWidth(3);
-    histJet2Pt[i]->SetLineColor(color[i]);    
-    histJet2Pt[i]->SetStats(false);    
-    histJet2Pt[i]->Sumw2();
-
-    histPtggPeakRegion.push_back( new TH1F( Form("PtggPeakRegion_%s",processLabels[i].c_str()), ";p_{T #gamma#gamma} [GeV/c];Number of Events", 20, 0, 500));
-    if (!hasData || i != 0) histPtggPeakRegion[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histPtggPeakRegion[i]->SetLineWidth(3);
-    histPtggPeakRegion[i]->SetLineColor(color[i]);    
-    histPtggPeakRegion[i]->SetStats(false);    
-    histPtggPeakRegion[i]->Sumw2();
-
-    histPtggSidebandRegion.push_back( new TH1F( Form("PtggSidebandRegion_%s",processLabels[i].c_str()), ";p_{T #gamma#gamma} [GeV/c];Number of Events", 20, 0, 500));
-    if (!hasData || i != 0) histPtggSidebandRegion[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histPtggSidebandRegion[i]->SetLineWidth(3);
-    histPtggSidebandRegion[i]->SetLineColor(color[i]);    
-    histPtggSidebandRegion[i]->SetStats(false);    
-    histPtggSidebandRegion[i]->Sumw2();
-
-    histDPhiRazor.push_back( new TH1F( Form("DPhiRazor_%s",processLabels[i].c_str()), ";#Delta#phi Hemispheres ;Number of Events", 50, 0, 3.14));
-    if (!hasData || i != 0) histDPhiRazor[i]->SetFillColor(color[i]);
-    if (hasData && i==0) histDPhiRazor[i]->SetLineWidth(3);
-    histDPhiRazor[i]->SetLineColor(color[i]);
-    histDPhiRazor[i]->SetStats(false); 
- }
-
+    histCosThetaStar.push_back( makeNewHist( Form("CosThetaStar_%s",processLabels[i].c_str()), ";Cos(#theta^{*}_{CS}) ;Number of Events", 50, 0, 1, color[i],  (hasData && i==0) ));  
+  }
   //*******************************************************************************************
   //Define Counts
   //*******************************************************************************************
@@ -230,6 +378,7 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
 
     float w = 0;
     int njets = 0;
+    float jetE[40]; //[njets]
     float jetpt[40]; //[njets]
     float jeteta[40]; //[njets]
     float jetphi[40]; //[njets]
@@ -244,6 +393,10 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
     float MR = 0;
     float mgg = 0;
     float ptgg = 0;
+    float etagg = 0;
+    float phigg = 0;
+    float metphi = 0;
+    float met = 0;
     float Rsq = 0;
     uint run = 0;
     uint event = 0;
@@ -252,21 +405,28 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
     tree->SetBranchAddress("event",&event);
     tree->SetBranchAddress("weight",&w);
     tree->SetBranchAddress("n_Jets",&njets);
+    tree->SetBranchAddress("jet_E",&jetE);
     tree->SetBranchAddress("jet_Pt",&jetpt);
     tree->SetBranchAddress("jet_Eta",&jeteta);
     tree->SetBranchAddress("jet_Phi",&jetphi);
     tree->SetBranchAddress("pho1Pt",&pho1pt);
-    tree->SetBranchAddress("Pho1Eta",&pho1eta);
+    //tree->SetBranchAddress("Pho1Eta",&pho1eta);
+    tree->SetBranchAddress("pho1Eta",&pho1eta);
     tree->SetBranchAddress("pho1Phi",&pho1phi);
     tree->SetBranchAddress("pho2Pt",&pho2pt);
-    tree->SetBranchAddress("Pho2Eta",&pho2eta);
+    //tree->SetBranchAddress("Pho2Eta",&pho2eta);
+    tree->SetBranchAddress("pho2Eta",&pho2eta);
     tree->SetBranchAddress("pho2Phi",&pho2phi);
     tree->SetBranchAddress("nBTaggedJets",&nBTaggedJets);
     tree->SetBranchAddress("dPhiRazor",&dPhiRazor);
     tree->SetBranchAddress("MR",&MR);
     tree->SetBranchAddress("mGammaGamma",&mgg);
     tree->SetBranchAddress("pTGammaGamma",&ptgg);
+    tree->SetBranchAddress("etaGammaGamma",&etagg);
+    tree->SetBranchAddress("phiGammaGamma",&phigg);
     tree->SetBranchAddress("t1Rsq",&Rsq);
+    tree->SetBranchAddress("t1MET",&met);
+    tree->SetBranchAddress("phit1MET",&metphi);
 
     cout << "Process : " << processLabels[i] << " : Total Events: " << tree->GetEntries() << "\n";
 
@@ -285,7 +445,11 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
       if (!(pho1pt > 25 && pho2pt > 25)) continue;
       if (!(pho1pt > 40 || pho2pt > 40)) continue;
       if (!( fabs(pho1eta) < 1.44 && fabs(pho2eta) < 1.44 ) ) continue;
-      if (!(MR > 350 && Rsq > 0.035)) continue;
+      if (!(MR > 350 && Rsq > 0.035 && ptgg < 150 )) continue;
+
+      TLorentzVector vPho1; vPho1.SetPtEtaPhiM(pho1pt,pho1eta,pho1phi,0);
+      TLorentzVector vPho2; vPho2.SetPtEtaPhiM(pho2pt,pho2eta,pho2phi,0);
+      double cosThetaStar = 2 *( (vPho2.E()*vPho1.Pz() - vPho1.E()*vPho2.Pz()) / (mgg*sqrt(mgg*mgg+ptgg*ptgg)) );
 
       //count jets
       int njets80 = 0;
@@ -293,23 +457,64 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
       int njets40 = 0;
       double leadjetpt = 0;
       double secondjetpt = 0;
+
+      double minDRJetsToPhotons = 9999;
+      double mTLeadJet = 0;
+      double DPhiLeadJetMet = 0;
+      double DRLeadJetHiggs = 0;
+      double minDRHiggsJet = 9999;
+      double MHiggsClosestJet = 0;
+      int jetClosestToHiggs = -1;
+      int indexLeadJet = -1;
+      double MLeadingJetHiggs = 0;
+
+      double minDPhiMetJet = 9999;
+      double minDPhiMetJet_MT = 0;
       for(int j=0; j < njets; ++j) {
 
 	if (fabs(jeteta[j]) >=  3.0) continue;
 
 	//cout << "jet " << j << " : " << jetpt[j] << "\n";
-	if ( deltaR( jeteta[j], pho1eta, jetphi[j], pho1phi) < 0.4) {
-	  //cout << "overlap : " << pho1pt << " " << jetpt[j] << " " << deltaR( jeteta[j], pho1eta, jetphi[j], pho1phi) << "\n";
+	if ( deltaR( jeteta[j], jetphi[j], pho1eta, pho1phi) < 0.4) {
+	  //cout << "overlap : " << pho1pt << " " << jetpt[j] << " " << deltaR( jeteta[j], jetphi[j], pho1eta,  pho1phi) << "\n";
 	  continue; 
 	}
-	if ( deltaR( jeteta[j], pho2eta, jetphi[j], pho2phi) < 0.4) {
-	  //cout << "overlap2 : " << pho2pt << " " << jetpt[j] << " " << deltaR( jeteta[j], pho2eta, jetphi[j], pho2phi) << "\n";
+	if ( deltaR( jeteta[j], jetphi[j], pho2eta, pho2phi) < 0.4) {
+	  //cout << "overlap2 : " << pho2pt << " " << jetpt[j] << " " << deltaR( jeteta[j], jetphi[j], pho2eta,  pho2phi) << "\n";
 	  continue; 
+	}
+	
+	//find jet closest to either of the photons
+	if ( fmin ( deltaR( jeteta[j], jetphi[j], pho1eta,  pho1phi) , deltaR( jeteta[j], jetphi[j], pho2eta,  pho2phi))
+	     < minDRJetsToPhotons) minDRJetsToPhotons =  fmin(deltaR( jeteta[j], jetphi[j], pho1eta,  pho1phi) , deltaR( jeteta[j], jetphi[j], pho2eta,  pho2phi));
+	
+
+	//find jet closest to higgs
+	if (  deltaR( jeteta[j], jetphi[j], etagg,  phigg)  < minDRHiggsJet) {
+	  minDRHiggsJet = deltaR( jeteta[j], jetphi[j], etagg,  phigg);
+	  jetClosestToHiggs = j;
+	  TLorentzVector v1; v1.SetPtEtaPhiE(jetpt[j],jeteta[j],jetphi[j],jetE[j]);
+	  TLorentzVector v2; v2.SetPtEtaPhiM(ptgg,etagg,phigg,mgg);
+	  MHiggsClosestJet = (v1+v2).M();
+	}
+
+	if ( fabs(deltaPhi(jetphi[j],metphi)) < minDPhiMetJet ) {	  
+	  minDPhiMetJet = fabs(deltaPhi(jetphi[j],metphi));
+	  TLorentzVector v1; v1.SetPtEtaPhiE(jetpt[j],jeteta[j],jetphi[j],jetE[j]);
+	  minDPhiMetJet_MT =  sqrt(v1.M2() + 2*met*v1.Pt()*(1 - cos(deltaPhi(metphi,v1.Phi()))));
 	}
 
 	if (jetpt[j] > leadjetpt) {
 	  secondjetpt = leadjetpt;
 	  leadjetpt = jetpt[j];
+	  indexLeadJet = j;
+
+	  TLorentzVector v1; v1.SetPtEtaPhiE(jetpt[j],jeteta[j],jetphi[j],jetE[j]);
+	  TLorentzVector v2; v2.SetPtEtaPhiM(ptgg,etagg,phigg,mgg);
+	  MLeadingJetHiggs = (v1+v2).M();
+	  mTLeadJet =  sqrt(v1.M2() + 2*met*v1.Pt()*(1 - cos(deltaPhi(metphi,v1.Phi()))));
+	  DPhiLeadJetMet = fabs(deltaPhi(jetphi[j],metphi));
+	  DRLeadJetHiggs = fabs(deltaR(jeteta[j],jetphi[j],etagg,phigg));	 
 	} else if (jetpt[j] > secondjetpt) {
 	  secondjetpt = jetpt[j];
 	}
@@ -324,13 +529,119 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
       	  njets40++;
       	}
       }
+
+
+      //find the jet pair that is closest in DR
+      double maxPtjj = 0;
+      double maxPtjj_excludeJetClosestToHiggs = 0;
+      double Mjj_maxPtPair = 0;
+      double Mjj_maxPtPair_excludeJetClosestToHiggs = 0;
+
+      double maxPtMetJet = 0;
+      double MTJetMaxPt = 0;
+      double maxPtMetJJ = 0;
+      double MTJJMaxPt = 0;
+      TLorentzVector v_OppositeHiggs; v_OppositeHiggs.SetPxPyPzE(0,0,0,0);
+      TLorentzVector v_OppositeLeadJet; v_OppositeLeadJet.SetPtEtaPhiM(ptgg,etagg,phigg,mgg);
+      for(int j=0; j < njets; ++j) {
+
+	if ( deltaR( jeteta[j], jetphi[j],pho1eta,  pho1phi) < 0.4) {
+	  continue; 
+	}
+	if ( deltaR( jeteta[j], jetphi[j], pho2eta,  pho2phi) < 0.4) {
+	  continue; 
+	}
+	
+	TLorentzVector vJet; vJet.SetPtEtaPhiE(jetpt[j],jeteta[j],jetphi[j],jetE[j]);
+	  
+	//all jets
+	v_OppositeHiggs = (v_OppositeHiggs+vJet);
+	
+	//opposite lead jet
+	if (j != indexLeadJet) {
+	  v_OppositeLeadJet = (v_OppositeLeadJet + vJet);
+	}
+
+	//find jet maximizing pT of MET+Jet system
+	if ( sqrt( pow( vJet.Px()+met*cos(metphi),2) + pow( vJet.Py()+met*sin(metphi),2) ) > maxPtMetJet ) {
+	  maxPtMetJet = sqrt( pow( vJet.Px()+met*cos(metphi),2) + pow( vJet.Py()+met*sin(metphi),2) );
+	  MTJetMaxPt = sqrt(vJet.M2() + 2*met*vJet.Pt()*(1 - cos(deltaPhi(metphi,vJet.Phi()))));
+	}
+
+	for(int k=j+1; k < njets; ++k) {
+
+	  //cout << "jet " << k << " : " << jetpt[k] << " " <<  deltaR( jeteta[j], jetphi[j], jeteta[k], jetphi[k]) << "\n";
+	  if ( deltaR( jeteta[k], jetphi[k],pho1eta,  pho1phi) < 0.4) {
+	    continue; 
+	  }
+	  if ( deltaR( jeteta[k], jetphi[k], pho2eta,  pho2phi) < 0.4) {
+	    continue; 
+	  }
+
+	  TLorentzVector v1; v1.SetPtEtaPhiE(jetpt[j],jeteta[j],jetphi[j],jetE[j]);
+	  TLorentzVector v2; v2.SetPtEtaPhiE(jetpt[k],jeteta[k],jetphi[k],jetE[k]);
+
+	  //exclude jet closest to the Higgs
+	  if (!(j == jetClosestToHiggs || k == jetClosestToHiggs)) {
+	    if ( (v1+v2).Pt() > maxPtjj_excludeJetClosestToHiggs ) {
+	      maxPtjj_excludeJetClosestToHiggs = (v1+v2).Pt();
+	      Mjj_maxPtPair_excludeJetClosestToHiggs = (v1+v2).M();
+	    }
+	  }
+
+	  //jet pair with max pT_jj
+	  if ( (v1+v2).Pt() > maxPtjj ) {
+	    maxPtjj = (v1+v2).Pt();
+	    Mjj_maxPtPair = (v1+v2).M();
+	  }
+
+	  //find JJ pair maximizing pT of Met+JJ system
+	//find jet maximizing pT of MET+Jet system
+	  if ( sqrt( pow( (v1+v2).Px()+met*cos(metphi),2) + pow( (v1+v2).Py()+met*sin(metphi),2) ) > maxPtMetJet ) {
+	  maxPtMetJet = sqrt( pow( (v1+v2).Px()+met*cos(metphi),2) + pow( (v1+v2).Py()+met*sin(metphi),2) );
+	  MTJJMaxPt = sqrt((v1+v2).M2() + 2*met*(v1+v2).Pt()*(1 - cos(deltaPhi(metphi,(v1+v2).Phi()))));
+	}
+
+
+	}
+      }
+
+
+
       //cout << "lead jets: " << leadjetpt << " " << secondjetpt << "\n";
       cout << run << " " << event << " : " << mgg << " " << ptgg << " " << MR << " " << Rsq << " : " << pho1eta << " " << pho2eta << " \n";
 
-      histMgg[i]->Fill(mgg, weight);
+      //if (MLeadingJetHiggs > 320 && MLeadingJetHiggs < 360) {
+      if ( minDRJetsToPhotons > 1.5) {
+	histMgg[i]->Fill(mgg, weight);
+      }
+      //}
       if (mgg > 125 && mgg < 135) {
+
+	histCosThetaStar[i]->Fill(cosThetaStar,weight);
+
+	histMTMinDPhiMetJet[i]->Fill(minDPhiMetJet_MT, weight);
+	histDPhiLeadJetMET[i]->Fill(DPhiLeadJetMet, weight);
+	histDRLeadJetHiggs[i]->Fill(DRLeadJetHiggs, weight);
+
+	//DIJet masses
+	histMjjMaxPtPair[i]->Fill( Mjj_maxPtPair, weight);
+	histMjjMaxPtPairExcludeJetClosestToHiggs[i]->Fill( Mjj_maxPtPair_excludeJetClosestToHiggs, weight);
+	histMTJetMaxPt[i]->Fill( MTJetMaxPt, weight );	
+	histMTJJMaxPt[i]->Fill( MTJJMaxPt, weight );	
+
+	histMassOppositeHiggs[i]->Fill( v_OppositeHiggs.M() , weight );
+	histMTOppositeHiggs[i]->Fill( sqrt(v_OppositeHiggs.M2() + 2*met*v_OppositeHiggs.Pt()*(1 - cos(deltaPhi(metphi,v_OppositeHiggs.Phi())))) , weight );
+	histMassOppositeLeadJet[i]->Fill( v_OppositeLeadJet.M() , weight );
+	histMTOppositeLeadJet[i]->Fill( sqrt(v_OppositeLeadJet.M2() + 2*met*v_OppositeLeadJet.Pt()*(1 - cos(deltaPhi(metphi,v_OppositeLeadJet.Phi())))) , weight );	
+	histMHiggsClosestJet[i]->Fill(MHiggsClosestJet, weight);
+	histMHiggsLeadingJet[i]->Fill(MLeadingJetHiggs, weight);
+	histMTLeadJet[i]->Fill(mTLeadJet, weight);
 	histRsq[i]->Fill(Rsq, weight);	  
 	histMR[i]->Fill(MR, weight);
+
+	histMinDRJetsToPhotons[i]->Fill(minDRJetsToPhotons, weight);
+	histDPhiHiggsMET[i]->Fill(fabs(deltaPhi(phigg,metphi)), weight);	  
 	histPtggPeakRegion[i]->Fill(ptgg, weight);
 	histNJets80[i]->Fill(njets80, weight);
 	histNJets60[i]->Fill(njets60, weight);
@@ -370,737 +681,39 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
   //*******************************************************************************************
   //Mgg
   //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
+  PlotData( histCosThetaStar[0], processLabels[0], "CosThetaStar", Label, latexlabel);
+  PlotData( histMgg[0] , processLabels[0], "Mgg", Label, latexlabel);
+  PlotData( histNJets80[0] , processLabels[0], "NJets80", Label, latexlabel);
+  PlotData( histNJets60[0] , processLabels[0], "NJets60", Label, latexlabel);
+  PlotData( histNJets40[0] , processLabels[0], "NJets40", Label, latexlabel);
+  PlotData( histNJets30[0] , processLabels[0], "NJets30", Label, latexlabel);
+
+  PlotData( histPhoton1Pt[0] , processLabels[0], "Photon1Pt", Label, latexlabel);
+  PlotData( histPhoton2Pt[0] , processLabels[0], "Photon2Pt", Label, latexlabel);
+  PlotData( histJet1Pt[0] , processLabels[0], "Jet1Pt", Label, latexlabel);
+  PlotData( histJet2Pt[0] , processLabels[0], "Jet2Pt", Label, latexlabel);
+  PlotData( histMinDRJetsToPhotons[0] , processLabels[0], "MinDRJetsToPhotons", Label, latexlabel);
+
+  PlotData( histPtggPeakRegion[0] , processLabels[0], "PtggPeakRegion", Label, latexlabel);
+  PlotData( histPtggSidebandRegion[0] , processLabels[0], "PtggSidebandRegion", Label, latexlabel);
+
+  PlotData( histMHiggsClosestJet[0] , processLabels[0], "MHiggsClosestJet", Label, latexlabel);
+  PlotData( histMHiggsLeadingJet[0] , processLabels[0], "MHiggsLeadingJet", Label, latexlabel);
+  PlotData( histDPhiHiggsMET[0] , processLabels[0], "DPhiHiggsMET", Label, latexlabel);
+  PlotData( histMTLeadJet[0] , processLabels[0], "MTLeadJet", Label, latexlabel);
+  PlotData( histMTMinDPhiMetJet[0] , processLabels[0], "MTMinDPhiMetJet", Label, latexlabel);
+  PlotData( histDPhiLeadJetMET[0] , processLabels[0], "DPhiLeadJetMet", Label, latexlabel);
+  PlotData( histDRLeadJetHiggs[0] , processLabels[0], "DRLeadJetHiggs", Label, latexlabel);
+
+  PlotData( histMjjMaxPtPair[0] , processLabels[0], "MjjMaxPtPair", Label, latexlabel);
+  PlotData( histMjjMaxPtPairExcludeJetClosestToHiggs[0] , processLabels[0], "MjjMaxPtPairExcludeJetClosestToHiggs", Label, latexlabel);
+  PlotData( histMTJetMaxPt[0] , processLabels[0], "MTJetMaxPt", Label, latexlabel);
+  PlotData( histMTJJMaxPt[0] , processLabels[0], "MTJJMaxPt", Label, latexlabel);
+  PlotData( histMassOppositeHiggs[0] , processLabels[0], "MassOppositeHiggs", Label, latexlabel);
+  PlotData( histMTOppositeHiggs[0] , processLabels[0], "MTOppositeHiggs", Label, latexlabel);
+  PlotData( histMassOppositeLeadJet[0] , processLabels[0], "MassOppositeLeadJet", Label, latexlabel);
+  PlotData( histMTOppositeLeadJet[0] , processLabels[0], "MTOppositeLeadJet", Label, latexlabel);
 
-  THStack *stackMgg = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histMgg.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histMgg[i]->GetNbinsX()+1; j++) {
-  	intError += histMgg[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histMgg[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histMgg[i]->Integral() > 0) {
-  	stackMgg->Add(histMgg[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histMgg.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histMgg[i]->GetNbinsX()+1; j++) {
-  	intError += histMgg[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histMgg[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histMgg[i]->Integral() > 0) {
-  	stackMgg->Add(histMgg[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histMgg.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histMgg[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histMgg[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackMgg->Draw("hist");
-  // stackMgg->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackMgg->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackMgg->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackMgg->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackMgg->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histMgg[0]->SetLineColor(kBlack);
-    histMgg[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histMgg[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s", "19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("Mgg%s.gif",Label.c_str()));
-
- 
-
- //*******************************************************************************************
-  //NJets80
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackNJets80 = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histNJets80.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets80[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets80[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets80[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets80[i]->Integral() > 0) {
-  	stackNJets80->Add(histNJets80[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histNJets80.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets80[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets80[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets80[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets80[i]->Integral() > 0) {
-  	stackNJets80->Add(histNJets80[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histNJets80.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histNJets80[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histNJets80[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackNJets80->Draw("hist");
-  // stackNJets80->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackNJets80->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackNJets80->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackNJets80->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackNJets80->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histNJets80[0]->SetLineColor(kBlack);
-    histNJets80[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histNJets80[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("NJets80%s.gif",Label.c_str()));
-
-  //*******************************************************************************************
-  //NJets60
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackNJets60 = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histNJets60.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets60[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets60[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets60[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets60[i]->Integral() > 0) {
-  	stackNJets60->Add(histNJets60[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histNJets60.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets60[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets60[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets60[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets60[i]->Integral() > 0) {
-  	stackNJets60->Add(histNJets60[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histNJets60.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histNJets60[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histNJets60[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-
-  if (hasData) {
-    histNJets60[0]->SetLineColor(kBlack);
-    histNJets60[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histNJets60[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("NJets60%s.gif",Label.c_str()));
-
-  //*******************************************************************************************
-  //NJets40
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackNJets40 = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histNJets40.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets40[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets40[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets40[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets40[i]->Integral() > 0) {
-  	stackNJets40->Add(histNJets40[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histNJets40.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets40[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets40[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets40[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets40[i]->Integral() > 0) {
-  	stackNJets40->Add(histNJets40[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histNJets40.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histNJets40[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histNJets40[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackNJets40->Draw("hist");
-  // stackNJets40->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackNJets40->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackNJets40->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackNJets40->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackNJets40->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histNJets40[0]->SetLineColor(kBlack);
-    histNJets40[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histNJets40[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("NJets40%s.gif",Label.c_str()));
-
-  //*******************************************************************************************
-  //NJets30
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackNJets30 = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histNJets30.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets30[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets30[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets30[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets30[i]->Integral() > 0) {
-  	stackNJets30->Add(histNJets30[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histNJets30.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histNJets30[i]->GetNbinsX()+1; j++) {
-  	intError += histNJets30[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histNJets30[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histNJets30[i]->Integral() > 0) {
-  	stackNJets30->Add(histNJets30[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histNJets30.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histNJets30[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histNJets30[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackNJets30->Draw("hist");
-  // stackNJets30->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackNJets30->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackNJets30->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackNJets30->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackNJets30->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histNJets30[0]->SetLineColor(kBlack);
-    histNJets30[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histNJets30[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("NJets30%s.gif",Label.c_str()));
-
- 
-
-  //*******************************************************************************************
-  //Photon1Pt
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackPhoton1Pt = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histPhoton1Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPhoton1Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histPhoton1Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPhoton1Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPhoton1Pt[i]->Integral() > 0) {
-  	stackPhoton1Pt->Add(histPhoton1Pt[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histPhoton1Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPhoton1Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histPhoton1Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPhoton1Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPhoton1Pt[i]->Integral() > 0) {
-  	stackPhoton1Pt->Add(histPhoton1Pt[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histPhoton1Pt.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histPhoton1Pt[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histPhoton1Pt[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackPhoton1Pt->Draw("hist");
-  // stackPhoton1Pt->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackPhoton1Pt->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackPhoton1Pt->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackPhoton1Pt->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackPhoton1Pt->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histPhoton1Pt[0]->SetLineColor(kBlack);
-    histPhoton1Pt[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histPhoton1Pt[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("Photon1Pt%s.gif",Label.c_str()));
-
- 
-  //*******************************************************************************************
-  //Photon2Pt
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackPhoton2Pt = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histPhoton2Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPhoton2Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histPhoton2Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPhoton2Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPhoton2Pt[i]->Integral() > 0) {
-  	stackPhoton2Pt->Add(histPhoton2Pt[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histPhoton2Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPhoton2Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histPhoton2Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPhoton2Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPhoton2Pt[i]->Integral() > 0) {
-  	stackPhoton2Pt->Add(histPhoton2Pt[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histPhoton2Pt.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histPhoton2Pt[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histPhoton2Pt[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackPhoton2Pt->Draw("hist");
-  // stackPhoton2Pt->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackPhoton2Pt->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackPhoton2Pt->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackPhoton2Pt->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackPhoton2Pt->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histPhoton2Pt[0]->SetLineColor(kBlack);
-    histPhoton2Pt[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histPhoton2Pt[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("Photon2Pt%s.gif",Label.c_str()));
-
- 
-
-  //*******************************************************************************************
-  //Jet1Pt
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackJet1Pt = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histJet1Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histJet1Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histJet1Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histJet1Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histJet1Pt[i]->Integral() > 0) {
-  	stackJet1Pt->Add(histJet1Pt[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histJet1Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histJet1Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histJet1Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histJet1Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histJet1Pt[i]->Integral() > 0) {
-  	stackJet1Pt->Add(histJet1Pt[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histJet1Pt.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histJet1Pt[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histJet1Pt[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackJet1Pt->Draw("hist");
-  // stackJet1Pt->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackJet1Pt->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackJet1Pt->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackJet1Pt->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackJet1Pt->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histJet1Pt[0]->SetLineColor(kBlack);
-    histJet1Pt[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histJet1Pt[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("Jet1Pt%s.gif",Label.c_str()));
-
- 
-  //*******************************************************************************************
-  //Jet2Pt
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackJet2Pt = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histJet2Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histJet2Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histJet2Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histJet2Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histJet2Pt[i]->Integral() > 0) {
-  	stackJet2Pt->Add(histJet2Pt[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histJet2Pt.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histJet2Pt[i]->GetNbinsX()+1; j++) {
-  	intError += histJet2Pt[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histJet2Pt[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histJet2Pt[i]->Integral() > 0) {
-  	stackJet2Pt->Add(histJet2Pt[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histJet2Pt.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histJet2Pt[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histJet2Pt[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackJet2Pt->Draw("hist");
-  // stackJet2Pt->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackJet2Pt->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackJet2Pt->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackJet2Pt->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackJet2Pt->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histJet2Pt[0]->SetLineColor(kBlack);
-    histJet2Pt[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histJet2Pt[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("Jet2Pt%s.gif",Label.c_str()));
-
- 
-
-
-  //*******************************************************************************************
-  //PtggPeakRegion
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackPtggPeakRegion = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histPtggPeakRegion.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPtggPeakRegion[i]->GetNbinsX()+1; j++) {
-  	intError += histPtggPeakRegion[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPtggPeakRegion[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPtggPeakRegion[i]->Integral() > 0) {
-  	stackPtggPeakRegion->Add(histPtggPeakRegion[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histPtggPeakRegion.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPtggPeakRegion[i]->GetNbinsX()+1; j++) {
-  	intError += histPtggPeakRegion[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPtggPeakRegion[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPtggPeakRegion[i]->Integral() > 0) {
-  	stackPtggPeakRegion->Add(histPtggPeakRegion[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histPtggPeakRegion.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histPtggPeakRegion[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histPtggPeakRegion[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackPtggPeakRegion->Draw("hist");
-  // stackPtggPeakRegion->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackPtggPeakRegion->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackPtggPeakRegion->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackPtggPeakRegion->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackPtggPeakRegion->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histPtggPeakRegion[0]->SetLineColor(kBlack);
-    histPtggPeakRegion[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histPtggPeakRegion[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("PtggPeakRegion%s.gif",Label.c_str()));
-
-   //*******************************************************************************************
-  //PtggSidebandRegion
-  //*******************************************************************************************
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.70,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-
-  THStack *stackPtggSidebandRegion = new THStack();
-
-  if (hasData) {
-    for (Int_t i = histPtggSidebandRegion.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPtggSidebandRegion[i]->GetNbinsX()+1; j++) {
-  	intError += histPtggSidebandRegion[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPtggSidebandRegion[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPtggSidebandRegion[i]->Integral() > 0) {
-  	stackPtggSidebandRegion->Add(histPtggSidebandRegion[i]);
-      }
-    }    
-  } else {
-    for (Int_t i = histPtggSidebandRegion.size()-1; i >= 0; i--) {
-      double intError = 0;
-      for(int j=1; j < histPtggSidebandRegion[i]->GetNbinsX()+1; j++) {
-  	intError += histPtggSidebandRegion[i]->GetBinError(j);
-      }
-      cout << processLabels[i] << " : " << histPtggSidebandRegion[i]->GetSumOfWeights() << " +/- " << intError << "\n";
-      if ( histPtggSidebandRegion[i]->Integral() > 0) {
-  	stackPtggSidebandRegion->Add(histPtggSidebandRegion[i]);
-      }
-    }
-  }
-  for (Int_t i = 0 ; i < int(histPtggSidebandRegion.size()); ++i) {
-    if (hasData && i==0) {
-      legend->AddEntry(histPtggSidebandRegion[i],processLabels[i].c_str(), "L");
-    } else {
-      legend->AddEntry(histPtggSidebandRegion[i],processLabels[i].c_str(), "F");
-    }
-  }
-  
-
-  //stackPtggSidebandRegion->Draw("hist");
-  // stackPtggSidebandRegion->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackPtggSidebandRegion->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackPtggSidebandRegion->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackPtggSidebandRegion->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackPtggSidebandRegion->GetHistogram()->SetLineColor(kBlack);
-
-  if (hasData) {
-    histPtggSidebandRegion[0]->SetLineColor(kBlack);
-    histPtggSidebandRegion[0]->Draw("e1same");
-    cout << processLabels[0] << " : " << histPtggSidebandRegion[0]->GetSumOfWeights() << "\n";
-  }
-
-  legend->Draw();
-
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.030);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 8 TeV, #int L = %s fb^{-1}, %s","19.7", latexlabel.c_str()));
-  tex->Draw();
-  
-  cv->SaveAs(Form("PtggSidebandRegion%s.gif",Label.c_str()));
-
- 
 
   //*******************************************************************************************
   //Summarize Counts
@@ -1150,16 +763,22 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
    
 
    dataLabel = "data";
+
+
+   //datafile = "/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RazorHgg/MC/DiPhotonJets_8TeV.root";
+   //datafile = "/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RazorHgg/MC/ttH_8TeV.root";
+
    //Main Analysis Categories
    //datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run1/HggRazor/HggRazorNtuple/DoublePhotonDataRunABCD_Trigger_GoodLumi.root";
 
    //HighRes - LowRes categories only
-   datafile = "/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RazorHgg/HggRazorSimpleCat_Filtered.root";
-
+   //datafile = "/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RazorHgg/HggRazorSimpleCat_Filtered.root";
+   datafile = "/afs/cern.ch/work/c/cpena/public/CMSSW_5_3_26/src/RazorCommon/DataPhotonRunABCD_SimpleCategory_May29_GoodLumi.root";
 
    vector<string> bkgfiles;
    vector<string> bkgLabels;
-   
+   vector<int> bkgColors;
+
    // bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/HbbRazor/CSVM/HbbRazor_TTJets_1pb_weighted.root");  
    // bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/HbbRazor/CSVM/HbbRazor_DYJetsToLL_1pb_weighted.root");
    // bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/HbbRazor/CSVM/HbbRazor_WJetsToLNu_1pb_weighted.root");
@@ -1176,7 +795,15 @@ void RunMakeRazorPlots ( string datafile, string dataLabel,  vector<string> bkgf
    // bkgLabels.push_back("SingleTop");
    // bkgLabels.push_back("Other");
 
-   RunMakeRazorPlots(datafile,dataLabel,bkgfiles,bkgLabels,0,1,"MR350Rsq0p035","H#rightarrow#gamma#gamma Razor");
+  //  colors.push_back(kRed);
+  // colors.push_back(kGreen+2);
+  // colors.push_back(kBlue);
+  // colors.push_back(kAzure+10);
+  // colors.push_back(kGray);
+  // colors.push_back(kOrange+1);
+  // colors.push_back(kBlack);
+
+   RunMakeRazorPlots(datafile,dataLabel,bkgfiles,bkgLabels,bkgColors,0,1,"MR350Rsq0p035","H#rightarrow#gamma#gamma Razor");
    
  
  }
