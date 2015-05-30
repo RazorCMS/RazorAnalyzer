@@ -37,6 +37,13 @@ struct PhotonCandidate
   bool  _passIso;
 };
 
+struct JetCandidate
+{
+  int Index;
+  TLorentzVector jet;
+  float CSV;
+};
+
 struct evt
 {
   std::string run;
@@ -79,7 +86,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
   /*
-    combine Trees
+    combine Trees has preference, if you either want the 5 categories trees or the "simple" 2 categories trees set it to false
   */
   combineTrees = false;
   bool simpleBoxes = false;
@@ -147,6 +154,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   int jetIndexHem1[10], jetIndexHem2[10];
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, etaGammaGamma, phiGammaGamma;
+  float mGammaGammaCorr, pTGammaGammaCorr;
   float evtMass, evtMT, evtMTEnergy, evtDphi;
   float mbbZ, mbbH;
   //HggRazorBox box;
@@ -155,11 +163,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
+  float Pho_ECorr[2], Pho_PtCorr[2];
   float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
   bool  Pho_passEleVeto[2], Pho_passIso[2];
   
   //jet information
-  float jet_E[10], jet_Pt[10], jet_Eta[10], jet_Phi[10];
+  float jet_E[15], jet_Pt[15], jet_Eta[15], jet_Phi[15], jet_CSV[15], mHJ[15], MT[15];
+  int jet_HighestCSVindex[15];
+  float Mhb;//mass of higgs+highest CSV jet
+  int nMT;//number of MT variables n_jets+1
   
   //set branches on big tree
   if(combineTrees){
@@ -186,9 +198,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
     razorTree->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
     razorTree->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
-    
+    razorTree->Branch("mGammaGammaCorr", &mGammaGammaCorr, "mGammaGammaCorr/F");
+    razorTree->Branch("pTGammaGammaCorr", &pTGammaGammaCorr, "pTGammaGammaCorr/F");
+
     razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
     razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+    razorTree->Branch("pho1ECorr", &Pho_ECorr[0], "pho1ECorr/F");
+    razorTree->Branch("pho1PtCorr", &Pho_PtCorr[0], "pho1PtCorr/F");
     razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
     razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
     razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
@@ -203,6 +219,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
     razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+    razorTree->Branch("pho2ECorr", &Pho_ECorr[1], "pho2ECorr/F");
+    razorTree->Branch("pho2PtCorr", &Pho_PtCorr[1], "pho2PtCorr/F");
     razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
     razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
     razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
@@ -223,6 +241,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+    razorTree->Branch("jet_CSV", jet_CSV, "jet_CSV[n_Jets]/F");
+    razorTree->Branch("jet_HighestCSVindex", jet_HighestCSVindex, "jet_HighestCSVindex[n_Jets]/I");
+    
+    razorTree->Branch("mHJ", mHJ, "mHJ[n_Jets]/F");
+    razorTree->Branch("nMT", &nMT, "nMT/I");
+    razorTree->Branch("MT", MT, "MT[nMT]/F");
+    razorTree->Branch("Mhb", &Mhb, "Mhb/F");
 
     razorTree->Branch("mHem1", &mHem1, "mHem1/F");
     razorTree->Branch("ptHem1", &ptHem1, "ptHem1/F");
@@ -269,9 +294,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
       box.second->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
       box.second->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
-      
+      box.second->Branch("mGammaGammaCorr", &mGammaGammaCorr, "mGammaGammaCorr/F");
+      box.second->Branch("pTGammaGammaCorr", &pTGammaGammaCorr, "pTGammaGammaCorr/F");
+
       box.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
       box.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+      box.second->Branch("pho1ECorr", &Pho_ECorr[0], "pho1ECorr/F");
+      box.second->Branch("pho1PtCorr", &Pho_PtCorr[0], "pho1PtCorr/F");
       box.second->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
       box.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
       box.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
@@ -286,6 +315,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       
       box.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
       box.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+      box.second->Branch("pho2ECorr", &Pho_ECorr[1], "pho2ECorr/F");
+      box.second->Branch("pho2PtCorr", &Pho_PtCorr[1], "pho2PtCorr/F");
       box.second->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
       box.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
       box.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
@@ -306,7 +337,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
       box.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       box.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
-
+      box.second->Branch("jet_CSV", jet_CSV, "jet_CSV[n_Jets]/F");
+      box.second->Branch("jet_HighestCSVindex", jet_HighestCSVindex, "jet_HighestCSVindex[n_Jets]/I");
+      
+      box.second->Branch("mHJ", mHJ, "mHJ[n_Jets]/F");
+      box.second->Branch("nMT", &nMT, "nMT/I");
+      box.second->Branch("MT", MT, "MT[nMT]/F");
+      box.second->Branch("Mhb", &Mhb, "Mhb/F");
+      
       box.second->Branch("mHem1", &mHem1, "mHem1/F");
       box.second->Branch("ptHem1", &ptHem1, "ptHem1/F");
       box.second->Branch("etaHem1", &etaHem1, "etaHem1/F");
@@ -355,9 +393,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
 	  simplebox.second->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
 	  simplebox.second->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
+	  simplebox.second->Branch("mGammaGammaCorr", &mGammaGammaCorr, "mGammaGammaCorr/F");
+	  simplebox.second->Branch("pTGammaGammaCorr", &pTGammaGammaCorr, "pTGammaGammaCorr/F");
 
 	  simplebox.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
 	  simplebox.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+	  simplebox.second->Branch("pho1ECorr", &Pho_ECorr[0], "pho1ECorr/F");
+	  simplebox.second->Branch("pho1PtCorr", &Pho_PtCorr[0], "pho1PtCorr/F");
 	  simplebox.second->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
 	  simplebox.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
 	  simplebox.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
@@ -372,6 +414,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 
 	  simplebox.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
 	  simplebox.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+	  simplebox.second->Branch("pho2ECorr", &Pho_ECorr[1], "pho2ECorr/F");
+          simplebox.second->Branch("pho2PtCorr", &Pho_PtCorr[1], "pho2PtCorr/F");
 	  simplebox.second->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
 	  simplebox.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
 	  simplebox.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
@@ -392,7 +436,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
 	  simplebox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
 	  simplebox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+	  simplebox.second->Branch("jet_CSV", jet_CSV, "jet_CSV[n_Jets]/F");
+	  simplebox.second->Branch("jet_HighestCSVindex", jet_HighestCSVindex, "jet_HighestCSVindex[n_Jets]/I");
 
+	  simplebox.second->Branch("mHJ", mHJ, "mHJ[n_Jets]/F");
+	  simplebox.second->Branch("nMT", &nMT, "nMT/I");
+	  simplebox.second->Branch("MT", MT, "MT[nMT]/F");
+	  simplebox.second->Branch("Mhb", &Mhb, "Mhb/F");
+	  
 	  simplebox.second->Branch("mHem1", &mHem1, "mHem1/F");
 	  simplebox.second->Branch("ptHem1", &ptHem1, "ptHem1/F");
 	  simplebox.second->Branch("etaHem1", &etaHem1, "etaHem1/F");
@@ -447,6 +498,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     nSelectedPhotons = 0;
     mGammaGamma      = -1;
     pTGammaGamma     = -1;
+    mGammaGammaCorr  = -1;
+    pTGammaGammaCorr = -1;
     etaGammaGamma    = -1;
     phiGammaGamma    = -1;
     mbbZ = 0;
@@ -482,6 +535,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       {
 	Pho_E[i]                  = -99.;
 	Pho_Pt[i]                 = -99.;
+	Pho_ECorr[i]              = -99.;
+        Pho_PtCorr[i]             = -99.;
 	Pho_Eta[i]                = -99.;
 	Pho_Phi[i]                = -99.;
 	Pho_SigmaIetaIeta[i]      = -99.;
@@ -496,14 +551,20 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       }
     
     //jets
-    for ( int i = 0; i < 10; i++ )
+    for ( int i = 0; i < 15; i++ )
       {
-	jet_E[i]   = -99.;
-	jet_Pt[i]  = -99.;
-	jet_Eta[i] = -99.;
-	jet_Phi[i] = -99.;
+	jet_E[i]               = -99.;
+	jet_Pt[i]              = -99.;
+	jet_Eta[i]             = -99.;
+	jet_Phi[i]             = -99.;
+	jet_CSV[i]             = -99.;
+	jet_HighestCSVindex[i] = -1;
+	mHJ[i]                 = -99.; 
+	MT[i]                  = -99.;
       }
-    
+
+    nMT = 0;
+    Mhb = -99;
     /*
     std::stringstream ss;
     ss << run << event;
@@ -572,12 +633,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       //float pho_pt = phoPt[i];//nominal pt
       float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
       TVector3 vec;
-      //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
       vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
       
       if ( phoPt[i] < 24.0 )
-      //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
-	{
+      	{
 	  if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
 	  continue;
 	}
@@ -681,7 +740,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       }
     }   
     
-    
+    auto sortPhoCand = []( PhotonCandidate a, PhotonCandidate b ){ return a.photon.Pt() > b.photon.Pt() ? true : false; };
+    std::sort( phoCand.begin(), phoCand.end(), sortPhoCand );
     //Filling Selected Photon Information
     TLorentzVector pho_cand_vec[2];
     int _pho_index = 0;
@@ -741,14 +801,29 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	continue;
       }
     //record higgs candidate info
-    mGammaGamma = HiggsCandidate.M() - 25.;
+    mGammaGamma = HiggsCandidate.M();
     pTGammaGamma = HiggsCandidate.Pt();
     etaGammaGamma = HiggsCandidate.Eta();
     phiGammaGamma = HiggsCandidate.Phi();
+
+    //A p p l y i n g   p h o t o n   s c a l e   c o r r e c t i o n
+    //---------------------------------------------------------------
+    TLorentzVector phoCorr[2];
+    for ( int j = 0; j < 2; j++ )
+      {
+	double scalePhoton = getPhotonScaleCorrectionRunOne8TeV( run, Pho_Eta[j], Pho_R9[j], Pho_Pt[j] );
+	Pho_PtCorr[j] = Pho_Pt[j]/scalePhoton;
+	Pho_ECorr[j]  = Pho_E[j]/scalePhoton;
+	phoCorr[j].SetPtEtaPhiM( Pho_PtCorr[j], Pho_Eta[j], Pho_Phi[j], .0 );
+      }
+    
+    mGammaGammaCorr = ( phoCorr[0] + phoCorr[1] ).M();
+    pTGammaGammaCorr = ( phoCorr[0] + phoCorr[1] ).Pt();
     
     
     //Jets
     vector<TLorentzVector> GoodJets;
+    std::vector< JetCandidate > GoodCandJets;
     vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
     
     for(int i = 0; i < nJets; i++){
@@ -758,7 +833,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 					      JetCorrector );
       
       TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
-      
       if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
       //int level = 2; //3rd bit of jetPileupIdFlag
@@ -770,7 +844,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
       if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
       
+      JetCandidate thisJetCandidate;
+      thisJetCandidate.Index = i;
+      thisJetCandidate.jet   = thisJet;
+      thisJetCandidate.CSV   = jetCSV[i];
       GoodJets.push_back(thisJet);
+      GoodCandJets.push_back( thisJetCandidate );
       n_Jets++;
       
       /*
@@ -794,21 +873,39 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
 	continue;
       }
-
+    nMT = n_Jets + 1;
     //S o rt i n g   j e t s   b y   p T 
     //----------------------------------
     auto sortTLV = [](TLorentzVector a, TLorentzVector b){ return a.Pt() > b.Pt() ? true : false; };
     std::sort( GoodJets.begin(), GoodJets.end(), sortTLV );
+    auto sortJetCandidate = []( JetCandidate a, JetCandidate b ){ return a.jet.Pt() > b.jet.Pt() ? true : false; };
+    std::sort( GoodCandJets.begin(), GoodCandJets.end(), sortJetCandidate );
 
     int iJet = 0;
-    for ( auto tmp_jet : GoodJets )
+    for ( auto& tmp_jet : GoodCandJets )
       {
-	jet_E[iJet] = tmp_jet.E();
-	jet_Pt[iJet] = tmp_jet.Pt();
-	jet_Eta[iJet] = tmp_jet.Eta();
-	jet_Phi[iJet] = tmp_jet.Phi();
+	jet_E[iJet]   = tmp_jet.jet.E();
+	jet_Pt[iJet]  = tmp_jet.jet.Pt();
+	jet_Eta[iJet] = tmp_jet.jet.Eta();
+	jet_Phi[iJet] = tmp_jet.jet.Phi();
+	jet_CSV[iJet] = tmp_jet.CSV;
+	mHJ[iJet]     = ( tmp_jet.jet + HiggsCandidate ).M();
+	tmp_jet.Index = iJet;//Will use this when sorting by CSV
 	iJet++;
       }
+    //S o r t i n g   j e t s   b y   C S V
+    //-------------------------------------
+    std::vector< JetCandidate > tmp_JetCandidate  = GoodCandJets;//Avoid suffle of indeces after CSV ordering
+    auto sortJetCandidateCVS = [] ( JetCandidate a, JetCandidate b ){ return a.CSV > b.CSV ? true : false; };
+    std::sort( tmp_JetCandidate.begin(), tmp_JetCandidate.end(), sortJetCandidateCVS );
+    iJet = 0;
+    for ( auto tmp_jet : tmp_JetCandidate )
+      {
+	jet_HighestCSVindex[iJet] = tmp_jet.Index;
+	iJet++;
+      }
+    //mass higgs+higest csv jet
+    Mhb = ( tmp_JetCandidate[0].jet + HiggsCandidate ).M();
     
     //Compute the razor variables using the selected jets and the diphoton system
     vector<TLorentzVector> JetsPlusHiggsCandidate;
@@ -860,7 +957,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
             i_ctr++;
           }
       }
-    else if ( ggHem = 1 )
+    else if ( ggHem == 1 )
       {
 	n_JetsHem1 = index_test[1].size() - 1;//remove higgs
 	i_ctr = 0;
@@ -890,7 +987,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     phit1MET = metType0Plus1Phi;
 
     TLorentzVector evtP4;
-    for ( auto& tmp : JetsPlusHiggsCandidate ) evtP4 += tmp;
+    i_ctr = 0;
+    for ( auto tmp : JetsPlusHiggsCandidate )
+      {
+	evtP4     += tmp;
+	MT[i_ctr]  = GetMT( tmp, t1PFMET ); 
+      }
     evtMass    = evtP4.M();
     
     evtMT      = GetMT( evtP4, t1PFMET );
@@ -969,8 +1071,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       }
     
     if ( _debug ) std::cout << "mbbH: " << mbbH << " mbbZ: " << mbbZ << std::endl;
+
+    
     //Writing output to tree
-    if ( !simpleBoxes )
+    if ( !simpleBoxes || combineTrees )
       {
 	//HighPt Box
 	if ( pTGammaGamma > 110.0 )
@@ -1038,7 +1142,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   
   if ( _info ) std::cout << "[INFO]: Number of events processed: " << NEvents->Integral() << std::endl;
   if ( _info ) std::cout << "[INFO]: Writing output trees..." << std::endl;
-  if( !simpleBoxes )
+  if( !simpleBoxes || combineTrees )
     {
       if( combineTrees )
 	{
