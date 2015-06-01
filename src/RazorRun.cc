@@ -333,6 +333,45 @@ int main(int argc, char* argv[]){
           analyzer.RazorPhotonStudy(outputFileName, false, false, true); //run with MC -- don't filter events (Run 1)
       }
     } 
+    else if(analysisType == "hbbrazor"){
+        cout << "Executing razor inclusive analysis..." << endl;
+	analyzer.EnableEventInfo();
+	analyzer.EnablePileup();
+	analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+        analyzer.EnableTaus();
+	analyzer.EnableMC();
+	analyzer.EnableGenParticles();
+        analyzer.HbbRazor(outputFileName, true, isData, false); 
+    }
+    else if(analysisType == "hzzRunOneRazor"){
+        cout << "Executing razor inclusive analysis..." << endl;
+	analyzer.EnableEventInfo();
+	analyzer.EnablePileup();
+	analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+        analyzer.EnableTaus();
+	analyzer.EnableMC();
+	analyzer.EnableGenParticles();
+        analyzer.HZZRazor(outputFileName, isData, true); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "hzzRazor"){
+        cout << "Executing razor inclusive analysis..." << endl;
+	analyzer.EnableEventInfo();
+	analyzer.EnablePileup();
+	analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+        analyzer.EnableTaus();
+	analyzer.EnableMC();
+	analyzer.EnableGenParticles();
+        analyzer.HZZRazor(outputFileName, isData, false); //change the bool to true if you want all analysis boxes combined in one tree
+    }
     else if(analysisType == "MakeMCPileupDistribution"){
       cout << "Executing MakeMCPileupDistribution..." << endl;
       analyzer.EnablePileup();     

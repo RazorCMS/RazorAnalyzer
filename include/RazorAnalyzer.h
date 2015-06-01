@@ -65,6 +65,8 @@ class RazorAnalyzer: public RazorEvents {
         virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false, bool filterEvents = true, bool isRunOne = true);
         virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
 	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
+        virtual void HbbRazor(string outFileName = "HbbRazor.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
+        virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false, bool isRunOne = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -76,6 +78,8 @@ class RazorAnalyzer: public RazorEvents {
 	bool passVetoMuonIso(int i);
 	bool passLooseMuonIso(int i);
         bool passTightMuonIso(int i);
+        bool passRunOneHZZMuonPreselection(int i);
+        bool isRunOneHZZMuon(int i);
 
         //functions in RazorAuxElectron.cc
         bool isVetoElectron(int i);
@@ -88,6 +92,9 @@ class RazorAnalyzer: public RazorEvents {
         bool passTightElectronIso(int i);
         bool passLooseElectronIso(int i);
 	bool passMVANonTrigVetoElectronIso(int i);
+	bool passRunOneHZZElectronIso(int i);
+	bool passRunOneHZZElectronPreselection(int i);
+	bool isRunOneHZZElectron(int i);
         bool isRunOneLooseElectron(int i);
         bool isRunOneTightElectron(int i);
 	double getElectronEfficiencyRunOne( string selectionType, double pt, double eta);
@@ -158,7 +165,7 @@ class RazorAnalyzer: public RazorEvents {
 	double GetMTEnergy( TLorentzVector visible, TLorentzVector met );
 	double GetDphi( TLorentzVector visible, TVector3 met );
 	double GetDphi( TLorentzVector visible, TLorentzVector met );
-	
+
         bool passesHadronicRazorBaseline(double MR, double Rsq);
         bool passesLeptonicRazorBaseline(double MR, double Rsq);
         int SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch=0.4);
@@ -176,21 +183,47 @@ class RazorAnalyzer: public RazorEvents {
 	int findClosestParton(float eta, float phi);
 	
         //enums
+	// OLD Categories without 6jet category
+        /* enum RazorBox { //boxes for razor inclusive analysis */
+	/*   MuEle = 0,  */
+	/*   MuMu = 1, */
+	/*   EleEle = 2, */
+	/*   MuMultiJet = 3, */
+	/*   MuJet = 4, */
+	/*   EleMultiJet = 5, */
+	/*   EleJet = 6, */
+	/*   LooseLeptonMultiJet = 7, */
+	/*   MultiJet = 8, */
+	/*   LooseLeptonDiJet = 9, */
+	/*   DiJet = 10, */
+	/*   TwoBJet = 10, */
+	/*   OneBJet = 11, */
+	/*   ZeroBJet = 12, */
+	/*   NONE = 999 */
+        /* }; */
         enum RazorBox { //boxes for razor inclusive analysis
 	  MuEle = 0, 
 	  MuMu = 1,
 	  EleEle = 2,
-	  MuMultiJet = 3,
-	  MuJet = 4,
-	  EleMultiJet = 5,
-	  EleJet = 6,
-	  LooseLeptonMultiJet = 7,
-	  MultiJet = 8,
-	  LooseLeptonDiJet = 9,
-	  DiJet = 10,
-	  TwoBJet = 10,
-	  OneBJet = 11,
-	  ZeroBJet = 12,
+	  MuSixJet = 3,
+	  MuFourJet = 4,
+	  MuJet = 5,
+	  EleSixJet = 6,
+	  EleFourJet = 7,
+	  EleJet = 8,
+	  LooseLeptonSixJet = 9,
+	  LooseLeptonFourJet = 10,
+	  SixJet = 11,
+	  FourJet = 12,
+	  LooseLeptonDiJet = 13,
+	  DiJet = 14,	  
+	  TwoBJet = 15,
+	  OneBJet = 16,
+	  ZeroBJet = 17,
+	  MuMultiJet = 18,
+	  EleMultiJet = 19,
+	  LooseLeptonMultiJet = 20,
+	  MultiJet = 21,
 	  NONE = 999
         };
 };
