@@ -123,7 +123,8 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
       	||
       	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
       	)
-      && ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
+      //&& ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
+      && ( (elePt[i] > 20 && ele_miniiso[i] < 0.2)
 	   ||
 	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i]))  < 5)
 	   )
@@ -269,7 +270,8 @@ bool RazorAnalyzer::passTightElectronIso(int i){
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
  
   bool pass = false;
-  if (  ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
+  //if (  ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
+  if (  ( (elePt[i] > 20 && ele_miniiso[i] < 0.2 )
 	  ||
 	  (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) < 5)
 	  )
@@ -279,6 +281,66 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
 
   return pass;
 
+}
+
+
+bool RazorAnalyzer::passRunOneHZZElectronPreselection(int i){
+
+  Int_t subdet = 0;
+  if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
+  else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
+  else subdet = 2;
+  Int_t ptBin = 0;
+  if (elePt[i] > 10.0) ptBin = 1;
+  
+  Double_t MVACut = -999;
+  if (subdet == 0 && ptBin == 0) MVACut = 0.47;
+  if (subdet == 1 && ptBin == 0) MVACut = 0.004;
+  if (subdet == 2 && ptBin == 0) MVACut = 0.295;
+  if (subdet == 0 && ptBin == 1) MVACut = 0.5;
+  if (subdet == 1 && ptBin == 1) MVACut = 0.12;
+  if (subdet == 2 && ptBin == 1) MVACut = 0.6;
+
+  bool pass = false;
+  if (ele_IDMVANonTrig[i] > MVACut   
+      && fabs(ele_d0[i]) < 0.5
+      && fabs(ele_dZ[i]) < 1.0
+      ) {
+    pass = true;
+  }
+
+  return pass;
+}
+
+
+bool RazorAnalyzer::isRunOneHZZElectron(int i){
+
+  Int_t subdet = 0;
+  if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
+  else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
+  else subdet = 2;
+  Int_t ptBin = 0;
+  if (elePt[i] > 10.0) ptBin = 1;
+  
+  Double_t MVACut = -999;
+  if (subdet == 0 && ptBin == 0) MVACut = 0.47;
+  if (subdet == 1 && ptBin == 0) MVACut = 0.004;
+  if (subdet == 2 && ptBin == 0) MVACut = 0.295;
+  if (subdet == 0 && ptBin == 1) MVACut = 0.5;
+  if (subdet == 1 && ptBin == 1) MVACut = 0.12;
+  if (subdet == 2 && ptBin == 1) MVACut = 0.6;
+
+  bool pass = false;
+  if (ele_IDMVANonTrig[i] > MVACut   
+      && fabs(ele_d0[i]) < 0.5
+      && fabs(ele_dZ[i]) < 1.0
+      && fabs(ele_d0[i]) < 0.05
+      && ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.4)      
+      ) {
+    pass = true;
+  }
+
+  return pass;
 }
 
 
