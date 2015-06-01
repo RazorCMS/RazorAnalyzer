@@ -68,6 +68,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fPassVetoSelection = isVetoMuon(i);
 	  muTree->fPassLooseSelection = isLooseMuon(i);
 	  muTree->fPassTightSelection = isTightMuon(i);
+	  muTree->fPtRel = muon_ptrel[i];
+	  muTree->fMiniIso = muon_miniiso[i];
 
 	  //Match to Gen particle
 	  int matchedIndex = -1;
@@ -125,10 +127,10 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  }
 	  muTree->fDRToClosestParton = minDRToParton;
 
-	  if (minDRToParton < 0.4) {
-	    printDecay = true;
-	    cout << "Muon Close to Parton : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " --> " << gParticleId[closestPartonIndex] << " " << gParticlePt[closestPartonIndex] << " " << gParticleEta[closestPartonIndex] << " " << gParticlePhi[closestPartonIndex] << "\n";
-	  }
+	  // if (minDRToParton < 0.4) {
+	  //   printDecay = true;
+	  //   cout << "Muon Close to Parton : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " --> " << gParticleId[closestPartonIndex] << " " << gParticlePt[closestPartonIndex] << " " << gParticleEta[closestPartonIndex] << " " << gParticlePhi[closestPartonIndex] << "\n";
+	  // }
 	  //***********************
 	  //Fill Muon
 	  //***********************
@@ -221,6 +223,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fPassVetoSelection = isVetoMuon(matchedIndex);
 	    muTree->fPassLooseSelection = isLooseMuon(matchedIndex);
 	    muTree->fPassTightSelection = isTightMuon(matchedIndex);
+	    muTree->fPtRel = muon_ptrel[i];
+	    muTree->fMiniIso = muon_miniiso[i];
 	  } else {
 	    muTree->fMuPt = 0;
 	    muTree->fMuEta = 0;
@@ -234,6 +238,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fPassVetoSelection = false;
 	    muTree->fPassLooseSelection = false;
 	    muTree->fPassTightSelection = false;
+	    muTree->fPtRel = 0;
+	    muTree->fMiniIso = 0;
 	  }
 	  
 	  //***********************

@@ -78,7 +78,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassLooseSelection = isRunOneLooseElectron(i);
 	    eleTree->fPassTightSelection = isRunOneTightElectron(i);
 	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(i);
-
+	    eleTree->fPtRel = ele_ptrel[i];
+	    eleTree->fMiniIso = ele_miniiso[i];
 
 	    //Match to Gen particle
 	    int matchedIndex = -1;
@@ -226,6 +227,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassLooseSelection = isRunOneLooseElectron(matchedIndex);
 	    eleTree->fPassTightSelection = isRunOneTightElectron(matchedIndex);
 	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(matchedIndex);
+	    eleTree->fPtRel = ele_ptrel[i];
+	    eleTree->fMiniIso = ele_miniiso[i];
 	  } else {
 	    eleTree->fCharge = 0;
 	    eleTree->fElePt = 0;
@@ -251,6 +254,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassLooseSelection = false;
 	    eleTree->fPassTightSelection = false;
 	    eleTree->fPassMVANonTrigVetoSelection = false;
+	    eleTree->fPtRel = 0;
+	    eleTree->fMiniIso = 0;
 	  }
 	  
 	  //***********************

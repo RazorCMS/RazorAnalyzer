@@ -86,6 +86,8 @@
       Float_t                 fNeutralHadronIso_DR0p2To0p3;
       Float_t                 fNeutralHadronIso_DR0p3To0p4;
       Float_t                 fNeutralHadronIso_DR0p4To0p5;
+      Float_t                 fPtRel;
+      Float_t                 fMiniIso;
       Bool_t                  fMuPassTriggerDenominator;
 
     public:
@@ -168,6 +170,8 @@
         fNeutralHadronIso_DR0p2To0p3 = 0.0;
         fNeutralHadronIso_DR0p3To0p4 = 0.0;
         fNeutralHadronIso_DR0p4To0p5 = 0.0;
+	fPtRel                       = 0.0;
+	fMiniIso                     = 0.0;
         fMuPassTriggerDenominator = kFALSE;
       }
     
@@ -209,6 +213,9 @@
 	tree_->Branch("D0",&fMuD0,"D0/F"); 
 	tree_->Branch("IP3d",&fMuIP3d,"IP3d/F"); 
 	tree_->Branch("IP3dSig",&fMuIP3dSig,"IP3dSig/F"); 
+	tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
+	tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
+
 	if (version == kMuTreeStd ) {
           tree_->Branch("typeBits",&fMuTypeBits,"typeBits/i"); 
           tree_->Branch("isAllArbitrated",&fIsAllArbitrated,"isAllArbitrated/i"); 
@@ -288,6 +295,8 @@
 	tree_->SetBranchAddress("D0",&fMuD0);
 	tree_->SetBranchAddress("IP3d",&fMuIP3d);
 	tree_->SetBranchAddress("IP3dSig",&fMuIP3dSig);
+	tree_->SetBranchAddress("PtRel",&fPtRel);
+	tree_->SetBranchAddress("MiniIso",&fMiniIso);
 
         if (version == kMuTreeStd ) {
           tree_->SetBranchAddress("typeBits",&fMuTypeBits);
