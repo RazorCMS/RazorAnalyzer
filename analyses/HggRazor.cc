@@ -992,6 +992,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       {
 	evtP4     += tmp;
 	MT[i_ctr]  = GetMT( tmp, t1PFMET ); 
+	i_ctr++;
       }
     evtMass    = evtP4.M();
     
