@@ -1,4 +1,4 @@
-//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_0_6_patch3/src/RazorAnalyzer/ObjectStudies/MakeElectronIsoPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
+//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/macros/ObjectStudies/MakeElectronIsoPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
 //================================================================================================
 //
 // HWW selection macro
@@ -575,13 +575,20 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   //==============================================================================================================  
   TH1F *ElePFIso_Real = new TH1F(("ElePFIso_Real"+label).c_str(), "; PFIso ; Number of Events ",  10000, 0 , 200);
   TH1F *ElePFRelIso_Real = new TH1F(("ElePFRelIso_Real"+label).c_str(), "; PFRelIso ; Number of Events ",  10000, 0 , 10);
+  TH1F *ElePtRel_Real = new TH1F(("ElePtRel_Real"+label).c_str(), "; PtRel ; Number of Events ",  10000, 0 , 10);
+  TH1F *EleMiniIso_Real = new TH1F(("EleMiniIso_Real"+label).c_str(), "; MiniIso ; Number of Events ",  10000, 0 , 10);
   TH1F *ElePFIso_Fake = new TH1F(("ElePFIso_Fake"+label).c_str(), "; PFIso ; Number of Events ",  10000, 0 , 200);
   TH1F *ElePFRelIso_Fake = new TH1F(("ElePFRelIso_Fake"+label).c_str(), "; PFRelIso ; Number of Events ",  10000, 0 , 10);
+  TH1F *ElePtRel_Fake = new TH1F(("ElePtRel_Fake"+label).c_str(), "; PtRel ; Number of Events ",  10000, 0 , 10);
+  TH1F *EleMiniIso_Fake = new TH1F(("EleMiniIso_Fake"+label).c_str(), "; MiniIso ; Number of Events ",  10000, 0 , 10);
+
 
   Double_t RealElectrons = 0;
   Double_t FakeElectrons = 0;
   Double_t RealElectronPassCSA14VetoIso = 0;
   Double_t FakeElectronPassCSA14VetoIso = 0;
+  Double_t RealElectronPassMiniIso = 0;
+  Double_t FakeElectronPassMiniIso = 0;
 
   //*****************************************************************************************
   //EleTree
@@ -592,7 +599,7 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
 
   cout << "Total Entries: " << EleTree->tree_->GetEntries() << "\n";
   int nentries = EleTree->tree_->GetEntries();
-  nentries = 5000000;
+  //nentries = 5000000;
   for(UInt_t ientry=0; ientry < EleTree->tree_->GetEntries(); ientry++) {       	
     EleTree->tree_->GetEntry(ientry);
     
@@ -614,7 +621,7 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
 
     Int_t ptBin = 0;
     if (EleTree->fElePt > 10.0) ptBin = 1;
-    if (EleTree->fElePt > 20.0) ptBin = 2;
+    if (EleTree->fElePt > 50.0) ptBin = 2;
 
     Bool_t passCuts = kFALSE;
     if (Option == 0) passCuts = (subdet == 0 && ptBin == 0);
@@ -638,13 +645,18 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
     //Real Electron
     if (abs(EleTree->fPdgId) == 11) {
       //don't consider electrons close to partons
-      if (!(EleTree->fDRToClosestParton > 1.0)) continue;
+      //if (!(EleTree->fDRToClosestParton > 1.0)) continue;
+      //if (!(EleTree->fDRToClosestParton < 0.4)) continue;
+
 
       RealElectrons += EleTree->fWeight;
 
       if (passCSA14VetoIso(EleTree)) RealElectronPassCSA14VetoIso += EleTree->fWeight;
+      if (EleTree->fMiniIso < 0.2) RealElectronPassMiniIso += EleTree->fWeight;
       ElePFRelIso_Real->Fill(EleTree->fElePFIso04, EleTree->fWeight);
       ElePFIso_Real->Fill(EleTree->fElePFIso04*EleTree->fElePt, EleTree->fWeight);
+      ElePtRel_Real->Fill(EleTree->fPtRel, EleTree->fWeight);
+      EleMiniIso_Real->Fill(EleTree->fMiniIso, EleTree->fWeight);
 
     } 
 
@@ -653,9 +665,12 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
       FakeElectrons += EleTree->fWeight;
 
       if (passCSA14VetoIso(EleTree)) FakeElectronPassCSA14VetoIso += EleTree->fWeight;      
+      if (EleTree->fMiniIso < 0.2) FakeElectronPassMiniIso += EleTree->fWeight;
       ElePFRelIso_Fake->Fill(EleTree->fElePFIso04, EleTree->fWeight);
       ElePFIso_Fake->Fill(EleTree->fElePFIso04*EleTree->fElePt, EleTree->fWeight);
-  
+      ElePtRel_Fake->Fill(EleTree->fPtRel, EleTree->fWeight);
+      EleMiniIso_Fake->Fill(EleTree->fMiniIso, EleTree->fWeight);
+
     }
 
   } 
@@ -668,6 +683,10 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   cout << "CSA14 VetoIso Fake Electron Efficiency : " << FakeElectronPassCSA14VetoIso << " / " << FakeElectrons << " = " << FakeElectronPassCSA14VetoIso/FakeElectrons << endl;
   TGraphAsymmErrors* ROC_CSA14VetoIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassCSA14VetoIso/RealElectrons , FakeElectronPassCSA14VetoIso/FakeElectrons, "ROC_CSA14VetoIsoWP"+label);
 
+  cout << "CSA14 VetoIso Real Electron Efficiency : " << RealElectronPassMiniIso << " / " << RealElectrons << " = " << RealElectronPassMiniIso/RealElectrons << endl;
+  cout << "CSA14 VetoIso Fake Electron Efficiency : " << FakeElectronPassMiniIso << " / " << FakeElectrons << " = " << FakeElectronPassMiniIso/FakeElectrons << endl;
+  TGraphAsymmErrors* ROC_MiniIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassMiniIso/RealElectrons , FakeElectronPassMiniIso/FakeElectrons, "ROC_MiniIsoWP"+label);
+
 
   Double_t BkgEffCSA14VetoIso = FakeElectronPassCSA14VetoIso/FakeElectrons;
   Double_t SigEffCSA14VetoIso = RealElectronPassCSA14VetoIso/RealElectrons;
@@ -678,6 +697,8 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   //*****************************************************************************************
   TGraphAsymmErrors* ROC_PFIso = MakeSigEffVsBkgEffGraph(ElePFIso_Real, ElePFIso_Fake, "ROC_PFIso"+label );
   TGraphAsymmErrors* ROC_PFRelIso = MakeSigEffVsBkgEffGraph(ElePFRelIso_Real, ElePFRelIso_Fake, "ROC_PFRelIso"+label );
+  TGraphAsymmErrors* ROC_PtRel = MakeSigEffVsBkgEffGraph(ElePtRel_Real, ElePtRel_Fake, "ROC_PtRel"+label,false );
+  TGraphAsymmErrors* ROC_MiniIso = MakeSigEffVsBkgEffGraph(EleMiniIso_Real, EleMiniIso_Fake, "ROC_MiniIso"+label );
 
 
   //*****************************************************************************************
@@ -720,7 +741,7 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   //*****************************************************************************************
   ROCGraphs.clear();
   GraphLabels.clear();
-  plotname = "ElectronIDMVA"+label;
+  plotname = "ElectronIso"+label;
 
   // ROCGraphs.push_back(ROC_PFIso);
   // GraphLabels.push_back("PFIso");
@@ -729,6 +750,10 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   ROCGraphs.push_back(ROC_PFRelIso);
   GraphLabels.push_back("PFRelIso");
   colors.push_back(kRed);
+  
+  ROCGraphs.push_back(ROC_MiniIso);
+  GraphLabels.push_back("MiniIso");
+  colors.push_back(kBlue);
   
 
 
@@ -743,7 +768,7 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   cv = new TCanvas("cv", "cv", 800, 600);
 
 //    legend = new TLegend(0.45,0.20,0.75,0.50);
-  legend = new TLegend(0.54,0.14,0.94,0.44);
+  legend = new TLegend(0.50,0.14,0.94,0.44);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   for (UInt_t i=0; i<GraphLabels.size(); ++i) {
@@ -762,12 +787,19 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
     }
   }
 
-  legend->AddEntry(ROC_CSA14VetoIsoWP, "CSA14VetoIso WP", "P");
+  legend->AddEntry(ROC_CSA14VetoIsoWP, "Razor PHYS14 Veto Iso WP", "P");
   ROC_CSA14VetoIsoWP->SetFillColor(kGreen+3);
   ROC_CSA14VetoIsoWP->SetMarkerColor(kGreen+3);
   ROC_CSA14VetoIsoWP->SetMarkerStyle(34);
   ROC_CSA14VetoIsoWP->SetMarkerSize(2.5);
   ROC_CSA14VetoIsoWP->Draw("Psame");
+
+  legend->AddEntry(ROC_MiniIsoWP, "MiniIso < 0.2", "P");
+  ROC_MiniIsoWP->SetFillColor(kBlack);
+  ROC_MiniIsoWP->SetMarkerColor(kBlack);
+  ROC_MiniIsoWP->SetMarkerStyle(34);
+  ROC_MiniIsoWP->SetMarkerSize(2.5);
+  ROC_MiniIsoWP->Draw("Psame");
 
   legend->Draw();
   

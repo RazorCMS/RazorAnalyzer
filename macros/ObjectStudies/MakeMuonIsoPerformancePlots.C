@@ -1,4 +1,5 @@
-//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/ObjectStudies/MakeMuonIsoPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
+//root -l /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/macros/ObjectStudies/MakeMuonIsoPerformancePlots.C+'("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_TTJetsPrompt_T1bbbbFake.root","All",-1)'
+
 //================================================================================================
 //
 // HWW selection macro
@@ -488,13 +489,19 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
   //==============================================================================================================  
   TH1F *MuPFIso_Real = new TH1F(("MuPFIso_Real"+label).c_str(), "; PFIso ; Number of Events ",  10000, 0 , 200);
   TH1F *MuPFRelIso_Real = new TH1F(("MuPFRelIso_Real"+label).c_str(), "; PFRelIso ; Number of Events ",  10000, 0 , 10);
+  TH1F *MuPtRel_Real = new TH1F(("MuPtRel_Real"+label).c_str(), "; PtRel ; Number of Events ",  10000, 0 , 10);
+  TH1F *MuMiniIso_Real = new TH1F(("MuMiniIso_Real"+label).c_str(), "; MiniIso ; Number of Events ",  10000, 0 , 10);
   TH1F *MuPFIso_Fake = new TH1F(("MuPFIso_Fake"+label).c_str(), "; PFIso ; Number of Events ",  10000, 0 , 200);
   TH1F *MuPFRelIso_Fake = new TH1F(("MuPFRelIso_Fake"+label).c_str(), "; PFRelIso ; Number of Events ",  10000, 0 , 10);
+  TH1F *MuPtRel_Fake = new TH1F(("MuPtRel_Fake"+label).c_str(), "; PtRel ; Number of Events ",  10000, 0 , 10);
+  TH1F *MuMiniIso_Fake = new TH1F(("MuMiniIso_Fake"+label).c_str(), "; MiniIso ; Number of Events ",  10000, 0 , 10);
 
   Double_t RealMuons = 0;
   Double_t FakeMuons = 0;
   Double_t RealMuonPassVetoIso = 0;
   Double_t FakeMuonPassVetoIso = 0;
+  Double_t RealMuonPassMiniIso = 0;
+  Double_t FakeMuonPassMiniIso = 0;
 
   //*****************************************************************************************
   //MuTree
@@ -553,8 +560,11 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
       RealMuons += MuTree->fWeight;
 
       if (passVetoIso(MuTree)) RealMuonPassVetoIso += MuTree->fWeight;
+      if (MuTree->fMiniIso < 0.2) RealMuonPassMiniIso += MuTree->fWeight;
       MuPFRelIso_Real->Fill(MuTree->fMuPFIso04, MuTree->fWeight);
       MuPFIso_Real->Fill(MuTree->fMuPFIso04*MuTree->fMuPt, MuTree->fWeight);
+      MuPtRel_Real->Fill(MuTree->fPtRel, MuTree->fWeight);
+      MuMiniIso_Real->Fill(MuTree->fMiniIso, MuTree->fWeight);
 
     } 
 
@@ -563,9 +573,12 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
       FakeMuons += MuTree->fWeight;
 
       if (passVetoIso(MuTree)) FakeMuonPassVetoIso += MuTree->fWeight;      
+      if (MuTree->fMiniIso < 0.2) FakeMuonPassMiniIso += MuTree->fWeight;
       MuPFRelIso_Fake->Fill(MuTree->fMuPFIso04, MuTree->fWeight);
       MuPFIso_Fake->Fill(MuTree->fMuPFIso04*MuTree->fMuPt, MuTree->fWeight);
-  
+      MuPtRel_Fake->Fill(MuTree->fPtRel, MuTree->fWeight);
+      MuMiniIso_Fake->Fill(MuTree->fMiniIso, MuTree->fWeight);
+ 
     }
 
   } 
@@ -578,6 +591,9 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
   cout << " VetoIso Fake Muon Efficiency : " << FakeMuonPassVetoIso << " / " << FakeMuons << " = " << FakeMuonPassVetoIso/FakeMuons << endl;
   TGraphAsymmErrors* ROC_VetoIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealMuonPassVetoIso/RealMuons , FakeMuonPassVetoIso/FakeMuons, "ROC_VetoIsoWP"+label);
 
+  cout << "CSA14 VetoIso Real Muon Efficiency : " << RealMuonPassMiniIso << " / " << RealMuons << " = " << RealMuonPassMiniIso/RealMuons << endl;
+  cout << "CSA14 VetoIso Fake Muon Efficiency : " << FakeMuonPassMiniIso << " / " << FakeMuons << " = " << FakeMuonPassMiniIso/FakeMuons << endl;
+  TGraphAsymmErrors* ROC_MiniIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealMuonPassMiniIso/RealMuons , FakeMuonPassMiniIso/FakeMuons, "ROC_MiniIsoWP"+label);
 
   Double_t BkgEffVetoIso = FakeMuonPassVetoIso/FakeMuons;
   Double_t SigEffVetoIso = RealMuonPassVetoIso/RealMuons;
@@ -588,6 +604,8 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
   //*****************************************************************************************
   TGraphAsymmErrors* ROC_PFIso = MakeSigEffVsBkgEffGraph(MuPFIso_Real, MuPFIso_Fake, "ROC_PFIso"+label );
   TGraphAsymmErrors* ROC_PFRelIso = MakeSigEffVsBkgEffGraph(MuPFRelIso_Real, MuPFRelIso_Fake, "ROC_PFRelIso"+label );
+  TGraphAsymmErrors* ROC_PtRel = MakeSigEffVsBkgEffGraph(MuPtRel_Real, MuPtRel_Fake, "ROC_PtRel"+label,false );
+  TGraphAsymmErrors* ROC_MiniIso = MakeSigEffVsBkgEffGraph(MuMiniIso_Real, MuMiniIso_Fake, "ROC_MiniIso"+label );
 
 
   //*****************************************************************************************
@@ -640,6 +658,10 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
   GraphLabels.push_back("PFRelIso");
   colors.push_back(kRed);
   
+  ROCGraphs.push_back(ROC_MiniIso);
+  GraphLabels.push_back("MiniIso");
+  colors.push_back(kBlue);
+  
 
 
   //*****************************************************************************************
@@ -653,7 +675,7 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
   cv = new TCanvas("cv", "cv", 800, 600);
 
 //    legend = new TLegend(0.45,0.20,0.75,0.50);
-  legend = new TLegend(0.54,0.14,0.94,0.44);
+  legend = new TLegend(0.50,0.14,0.85,0.44);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   for (UInt_t i=0; i<GraphLabels.size(); ++i) {
@@ -672,12 +694,20 @@ void MakeMuonIsoPerformancePlots(string InputFile, string Label, Int_t Option)
     }
   }
 
-  legend->AddEntry(ROC_VetoIsoWP, "VetoIso WP", "P");
+  legend->AddEntry(ROC_VetoIsoWP, "Razor PHYS14 Veto Iso WP", "P");
   ROC_VetoIsoWP->SetFillColor(kGreen+3);
   ROC_VetoIsoWP->SetMarkerColor(kGreen+3);
   ROC_VetoIsoWP->SetMarkerStyle(34);
   ROC_VetoIsoWP->SetMarkerSize(2.5);
   ROC_VetoIsoWP->Draw("Psame");
+ 
+  legend->AddEntry(ROC_MiniIsoWP, "MiniIso < 0.2", "P");
+  ROC_MiniIsoWP->SetFillColor(kBlack);
+  ROC_MiniIsoWP->SetMarkerColor(kBlack);
+  ROC_MiniIsoWP->SetMarkerStyle(34);
+  ROC_MiniIsoWP->SetMarkerSize(2.5);
+  ROC_MiniIsoWP->Draw("Psame");
+
 
   legend->Draw();
   
