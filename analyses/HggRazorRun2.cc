@@ -578,8 +578,8 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
       
       if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
-      int level = 2; //loose jet ID
-      if ( !jetPassIDLoose[i] ) continue;
+      //int level = 2; //loose jet ID
+      //if ( !jetPassIDLoose[i] ) continue;
       //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
       //exclude selected photons from the jet collection

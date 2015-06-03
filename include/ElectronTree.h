@@ -121,6 +121,8 @@ class ElectronTree {
   Float_t                 fNeutralHadronIso_DR0p2To0p3;
   Float_t                 fNeutralHadronIso_DR0p3To0p4;
   Float_t                 fNeutralHadronIso_DR0p4To0p5;
+  Float_t                 fPtRel;
+  Float_t                 fMiniIso;
 
   Bool_t                  fElePassTriggerDenominator;
 
@@ -267,6 +269,8 @@ class ElectronTree {
     fNeutralHadronIso_DR0p2To0p3   = 0.0;
     fNeutralHadronIso_DR0p3To0p4   = 0.0;
     fNeutralHadronIso_DR0p4To0p5   = 0.0;
+    fPtRel                         = 0.0;
+    fMiniIso                       = 0.0;
     fElePassTriggerDenominator     = 0.0;
     fIsEB                          = 0.0;           
     fIsEE                          = 0.0;           
@@ -360,6 +364,9 @@ class ElectronTree {
     tree_->Branch("PassLooseSelection",&fPassLooseSelection,"PassLooseSelection/O"); 
     tree_->Branch("PassTightSelection",&fPassTightSelection,"PassTightSelection/O"); 
     tree_->Branch("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection,"PassMVANonTrigVetoSelection/O"); 
+    tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
+    tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
+
 
     if (version == kEleTreeStd ) {
       tree_->Branch("scEt",&fEleSCEt,"scEt/F"); 
@@ -498,6 +505,8 @@ class ElectronTree {
     tree_->SetBranchAddress("PassLooseSelection",&fPassLooseSelection);
     tree_->SetBranchAddress("PassTightSelection",&fPassTightSelection);
     tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection);
+    tree_->SetBranchAddress("PtRel",&fPtRel);
+    tree_->SetBranchAddress("MiniIso",&fMiniIso);
     
     if (version == kEleTreeStd ) {
       tree_->SetBranchAddress("scEt",&fEleSCEt);
