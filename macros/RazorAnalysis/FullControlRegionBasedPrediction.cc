@@ -21,40 +21,52 @@ using namespace std;
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
 void FullControlRegionBasedPrediction(){
+    bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
+    bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
     gROOT->SetBatch();
+
+    float dPhiRazorCut = 4; //cut on the angle between the two razor hemispheres
 
     //set color palette 
     const Int_t NCont = 101;
     gStyle->SetNumberContours(NCont);
 
     //define MR and Rsq binning
-    float nMRBins = 10;
-    float nRsqBins = 8;
+    int nMRBins = 10;
+    int nRsqBins = 8;
     float MRBinLowEdges[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
     float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 
+    //define cuts for 1D MR and Rsq plots
+    float MRCutFor1DPlots = 400;
+    float RsqCutFor1DPlots = 0.25;
+
     //get input files -- output of RazorInclusive analyzer
-    //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions
     int lumiInData = 19700; //in /pb
     int lumiInMC = 1; //luminosity used to normalize MC ntuples
-    string mcPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/MC_WithCorrectionFactors/";//location of MC ntuples
+    string mcPrefix = "";
+    if(doMiscCorrections){
+        //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
+        mcPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/MC_WithCorrectionFactors/";//location of MC ntuples
+    }
+    else{
+        mcPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
+    }
     string dataPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/Data/"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
-    TFile *datafile;
-    //main backgrounds
     mcfiles["DYJets"] = new TFile(Form("%s/RazorInclusive_DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["WJets"] = new TFile(Form("%s/RazorInclusive_WJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["ZJetsNuNu"] = new TFile(Form("%s/RazorInclusive_ZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["TTJets"] = new TFile(Form("%s/RazorInclusive_TTJets_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["SingleTop"] = new TFile(Form("%s/RazorInclusive_SingleTop_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["QCD"] = new TFile(Form("%s/RazorInclusive_QCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    //rare backgrounds
     mcfiles["TTV"] = new TFile(Form("%s/RazorInclusive_TTV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["VV"] = new TFile(Form("%s/RazorInclusive_VV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
     mcfiles["TTTT"] = new TFile(Form("%s/RazorInclusive_TTTT_TuneZ2star_8TeV-madgraph-tauola_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
 
     //data
+    TFile *datafile;
     datafile = new TFile(Form("%s/RazorInclusive_Data_HTMHTParked_Run2012_GoodLumi.root", dataPrefix.c_str()));
 
     //get trees and set branches
@@ -128,6 +140,12 @@ void FullControlRegionBasedPrediction(){
     float SFmaxMRZJetsNuNuFromGamma = SFHistZJetsNuNuFromGamma->GetXaxis()->GetXmax() - 1;
     float SFmaxRsqZJetsNuNuFromGamma = SFHistZJetsNuNuFromGamma->GetYaxis()->GetXmax() - 0.01;
 
+    //load ZNuNu-->DYJets weighting factors
+    TFile *ZNuNuToDYWeightFile = new TFile("data/ScaleFactors/Run1/ZNuNuToDYScaleFactorsRun1.root");
+    TH2F *ZNuNuToDYWeightHist = (TH2F*)ZNuNuToDYWeightFile->Get("razormcDYJets");
+    float maxMRZNuNuToDY = ZNuNuToDYWeightHist->GetXaxis()->GetXmax() - 1;
+    float maxRsqZNuNuToDY = ZNuNuToDYWeightHist->GetYaxis()->GetXmax() - 0.01;
+
     vector<int> boxes;
     vector<string> boxNames;
     boxes.push_back(8);
@@ -166,49 +184,62 @@ void FullControlRegionBasedPrediction(){
 
                 //cut on MR and Rsq
                 if(MR < 300 || Rsq < 0.15) continue;
+                //cut on dPhiRazor
+                if(fabs(dPhiRazor) > dPhiRazorCut) continue;
 
                 float eventWeight = weight*lumiInData*1.0/lumiInMC;
 
-                //TTJets SF
-                if(tree.first == "TTJets"){
-                    double SFTTJets = SFHistTTBar->GetBinContent(SFHistTTBar->FindFixBin(min(MR, SFmaxMRTTJets), min(Rsq, SFmaxRsqTTJets)));
-                    if(SFTTJets > 1e-5){
-                        eventWeight *= SFTTJets;
+                //Data/MC scale factors
+                if(doSFCorrections){
+                    //TTJets SF
+                    if(tree.first == "TTJets"){
+                        double SFTTJets = SFHistTTBar->GetBinContent(SFHistTTBar->FindFixBin(min(MR, SFmaxMRTTJets), min(Rsq, SFmaxRsqTTJets)));
+                        if(SFTTJets > 1e-5){
+                            eventWeight *= SFTTJets;
+                        }
+                        else{
+                            //cout << "Warning: TTJets scale factor is zero!" << endl;
+                        }
                     }
-                    else{
-                        //cout << "Warning: TTJets scale factor is zero!" << endl;
+                    //WJets SF
+                    else if(tree.first == "WJets"){
+                        double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(MR, SFmaxMRWJets), min(Rsq, SFmaxRsqWJets)));
+                        if(SFWJets > 1e-5){
+                            eventWeight *= SFWJets;
+                        }
+                        else{
+                            //cout << "Warning: WJets scale factor is zero!" << endl;
+                        }
                     }
-                }
-                //WJets SF
-                else if(tree.first == "WJets"){
-                    double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(MR, SFmaxMRWJets), min(Rsq, SFmaxRsqWJets)));
-                    if(SFWJets > 1e-5){
-                        eventWeight *= SFWJets;
+                    //DYJets SF
+                    else if(tree.first == "DYJets"){
+                        double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(MR, SFmaxMRDYJets), min(Rsq, SFmaxRsqDYJets)));
+                        if(SFDYJets > 1e-5){
+                            eventWeight *= SFDYJets;
+                        }
+                        else{
+                            //cout << "Warning: DYJets scale factor is zero!" << endl;
+                        }
                     }
-                    else{
-                        //cout << "Warning: WJets scale factor is zero!" << endl;
-                    }
-                }
-                //DYJets SF
-                else if(tree.first == "DYJets"){
-                    double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(MR, SFmaxMRDYJets), min(Rsq, SFmaxRsqDYJets)));
-                    if(SFDYJets > 1e-5){
-                        eventWeight *= SFDYJets;
-                    }
-                    else{
-                        //cout << "Warning: DYJets scale factor is zero!" << endl;
-                    }
-                }
+                    //ZNuNu SF
+                    //TODO: combine the three predictions for ZNuNu?  currently use Gamma+Jets prediction
+                    else if(tree.first == "ZJetsNuNu"){
+                        double SFZJetsNuNu = SFHistZJetsNuNuFromDY->GetBinContent(SFHistZJetsNuNuFromDY->FindFixBin(min(MR, SFmaxMRZJetsNuNuFromDY), min(Rsq, SFmaxRsqZJetsNuNuFromDY)));
+                        if(SFZJetsNuNu > 1e-5){
+                            eventWeight *= SFZJetsNuNu;
+                        }
+                        else{
+                            //cout << "Warning: ZJetsNuNu scale factor is zero!" << endl;
+                        }
 
-                //ZNuNu SF
-                //TODO: combine the three predictions for ZNuNu?  currently use Gamma+Jets prediction
-                else if(tree.first == "ZJetsNuNu"){
-                    double SFZJetsNuNu = SFHistZJetsNuNuFromGamma->GetBinContent(SFHistZJetsNuNuFromGamma->FindFixBin(min(MR, SFmaxMRZJetsNuNuFromGamma), min(Rsq, SFmaxRsqZJetsNuNuFromGamma)));
-                    if(SFZJetsNuNu > 1e-5){
-                        eventWeight *= SFZJetsNuNu;
-                    }
-                    else{
-                        //cout << "Warning: ZJetsNuNu scale factor is zero!" << endl;
+                        //scale ZNuNu so it looks like DYJets
+                        double SFZNuNuToDY = ZNuNuToDYWeightHist->GetBinContent(ZNuNuToDYWeightHist->FindFixBin(min(MR, maxMRZNuNuToDY), min(Rsq, maxRsqZNuNuToDY)));
+                        if(SFZNuNuToDY > 1e-5){
+                            eventWeight *= SFZNuNuToDY;
+                        }
+                        else{
+                            //cout << "Warning: ZNuNuToDY scale factor is zero!" << endl;
+                        }
                     }
                 }
 
@@ -216,8 +247,8 @@ void FullControlRegionBasedPrediction(){
 
                 //fill each quantity
                 razorHistosMC[tree.first].Fill(MR, Rsq, eventWeight);
-                MRHistosMC[tree.first].Fill(MR, eventWeight);
-                RsqHistosMC[tree.first].Fill(Rsq, eventWeight);
+                if(Rsq > RsqCutFor1DPlots) MRHistosMC[tree.first].Fill(MR, eventWeight);
+                if(MR > MRCutFor1DPlots) RsqHistosMC[tree.first].Fill(Rsq, eventWeight);
             }
         }
 
@@ -243,12 +274,14 @@ void FullControlRegionBasedPrediction(){
 
             //cut on MR and Rsq
             if(MR < 300 || Rsq < 0.15) continue;
+            //cut on dPhiRazor
+            if(fabs(dPhiRazor) > dPhiRazorCut) continue;
 
             float eventWeight = 1.0;
 
             razorData.Fill(MR, Rsq, eventWeight);
-            MRData.Fill(MR, eventWeight);
-            RsqData.Fill(Rsq, eventWeight);
+            if(Rsq > RsqCutFor1DPlots) MRData.Fill(MR, eventWeight);
+            if(MR > MRCutFor1DPlots) RsqData.Fill(Rsq, eventWeight);
         }
         //for rare background processes, include a 20% uncertainty on the total yield in each bin, summed in quadrature with the statistical uncertainty
         double sysErrorFrac = 0.2;
@@ -287,8 +320,14 @@ void FullControlRegionBasedPrediction(){
             hist.second.SetStats(0);
             hist.second.Draw("colz");
             hist.second.Draw("same,text");
-            c.Print(Form("razorInclusiveMCHistogram%s%s.pdf", hist.first.c_str(), boxNames[iBox].c_str()));
-            c.Print(Form("razorInclusiveMCHistogram%s%s.root", hist.first.c_str(), boxNames[iBox].c_str()));
+            if(doSFCorrections){
+                c.Print(Form("razorInclusiveMCHistogram%s%s.pdf", hist.first.c_str(), boxNames[iBox].c_str()));
+                c.Print(Form("razorInclusiveMCHistogram%s%s.root", hist.first.c_str(), boxNames[iBox].c_str()));
+            }
+            else{
+                c.Print(Form("razorInclusiveMCHistogram%s%sNoSFCorr.pdf", hist.first.c_str(), boxNames[iBox].c_str()));
+                c.Print(Form("razorInclusiveMCHistogram%s%sNoSFCorr.root", hist.first.c_str(), boxNames[iBox].c_str()));
+            }
 
             //add to total histogram
             TotalRazorMC = TotalRazorMC + hist.second;
@@ -297,8 +336,14 @@ void FullControlRegionBasedPrediction(){
         TotalRazorMC.SetStats(0);
         TotalRazorMC.Draw("colz");
         TotalRazorMC.Draw("same,text");
-        c.Print(Form("razorInclusiveMCHistogramTotal%s.pdf", boxNames[iBox].c_str()));
-        c.Print(Form("razorInclusiveMCHistogramTotal%s.root", boxNames[iBox].c_str()));
+        if(doSFCorrections){
+            c.Print(Form("razorInclusiveMCHistogramTotal%s.pdf", boxNames[iBox].c_str()));
+            c.Print(Form("razorInclusiveMCHistogramTotal%s.root", boxNames[iBox].c_str()));
+        }
+        else{
+            c.Print(Form("razorInclusiveMCHistogramTotal%sNoSFCorr.pdf", boxNames[iBox].c_str()));
+            c.Print(Form("razorInclusiveMCHistogramTotal%sNoSFCorr.root", boxNames[iBox].c_str()));
+        }
 
         //print data histogram
         razorData.SetTitle(Form("Data, %s Box", boxNames[iBox].c_str()));
@@ -312,8 +357,8 @@ void FullControlRegionBasedPrediction(){
 
         //print MR and Rsq 1D histograms, comparing data to MC
         c.SetLogy();
-        THStack MRTotalRazorMC("MRTotalRazorMC", Form("MR, %s Box", boxNames[iBox].c_str()));
-        THStack RsqTotalRazorMC("RsqTotalRazorMC", Form("Rsq, %s Box", boxNames[iBox].c_str()));
+        THStack MRTotalRazorMC("MRTotalRazorMC", Form("MR (Rsq > %.2f), %s Box", RsqCutFor1DPlots, boxNames[iBox].c_str()));
+        THStack RsqTotalRazorMC("RsqTotalRazorMC", Form("Rsq (MR > %.0f), %s Box", MRCutFor1DPlots, boxNames[iBox].c_str()));
 
         //format MC histograms
         MRHistosMC["QCD"].SetFillColor(33);
@@ -369,9 +414,16 @@ void FullControlRegionBasedPrediction(){
         RazorLegend->AddEntry(&MRHistosMC["TTTT"], "TTTT MC");
         RazorLegend->AddEntry(&MRHistosMC["QCD"], "QCD MC");
         RazorLegend->AddEntry(&MRData, "2012 Data");
-        DrawDataVsMCRatioPlot(&MRData, &MRTotalRazorMC, RazorLegend, "MR (GeV)", "razorInclusiveMRBackground"+boxNames[iBox], true);
-        c.SetLogx(kFALSE);
-        DrawDataVsMCRatioPlot(&RsqData, &RsqTotalRazorMC, RazorLegend, "Rsq (GeV)", "razorInclusiveRsqBackground"+boxNames[iBox], true);
+        if(doSFCorrections){
+            DrawDataVsMCRatioPlot(&MRData, &MRTotalRazorMC, RazorLegend, "MR (GeV)", "razorInclusiveMRBackground"+boxNames[iBox], true);
+            c.SetLogx(kFALSE);
+            DrawDataVsMCRatioPlot(&RsqData, &RsqTotalRazorMC, RazorLegend, "Rsq (GeV)", "razorInclusiveRsqBackground"+boxNames[iBox], true);
+        }
+        else{
+            DrawDataVsMCRatioPlot(&MRData, &MRTotalRazorMC, RazorLegend, "MR (GeV)", "razorInclusiveMRBackground"+boxNames[iBox]+"NoSFCorr", true);
+            c.SetLogx(kFALSE);
+            DrawDataVsMCRatioPlot(&RsqData, &RsqTotalRazorMC, RazorLegend, "Rsq (GeV)", "razorInclusiveRsqBackground"+boxNames[iBox]+"NoSFCorr", true);
+        }
 
         gStyle->SetPaintTextFormat("1.2f");
         c.SetLogy(false);
@@ -387,7 +439,12 @@ void FullControlRegionBasedPrediction(){
         DataOverMCHist.SetTitle(Form("Data/MC, %s Box", boxNames[iBox].c_str()));
         DataOverMCHist.Draw("colz");
         DataOverMCHist.Draw("same,text");
-        c.Print(Form("razorInclusiveDataOverMC%s.pdf", boxNames[iBox].c_str()));
+        if(doSFCorrections){
+            c.Print(Form("razorInclusiveDataOverMC%s.pdf", boxNames[iBox].c_str()));
+        }
+        else{
+            c.Print(Form("razorInclusiveDataOverMC%sNoSFCorr.pdf", boxNames[iBox].c_str()));
+        }
 
         //TODO: quantify data-MC agreement in nSigmas
         delete RazorLegend;
