@@ -2,31 +2,34 @@ from optparse import OptionParser
 import ROOT as rt
 import rootTools
 from framework import Config
+import sys
+from array import *
 
 k_T = 689.1/424.5
 k_Z = 3.*2008.4/5482.
 k_W = 3.*20508.9/50100.0
-k_QCD = {'MultiJet': 1.2,
-         'LooseLeptonMultiJet': 1.0,
-         'DiJet': 1.2,
-         'EleMultiJet':1.0,
-         'MuMultiJet':1.0,
-         'EleJet':1.0,
-         'MuJet':1.0,
-         'MuEle':1.0,
-         'EleEle':1.0,
-         'MuMu':1.0}
+
+k_QCD = {}
     
-boxes = {'MuEle':0,
-         'MuMu':1,
-         'EleEle':2,
-         'MuMultiJet':3,
-         'MuJet':4,
-         'EleMultiJet':5,
-         'EleJet':6,
-         'LooseLeptonMultiJet':7,
-         'MultiJet':8,
-         'DiJet':9}
+boxes = {'MuEle':[0],
+         'MuMu':[1],
+         'EleEle':[2],
+         'MuSixJet':[3],
+         'MuFourJet':[4],
+         'MuMultiJet':[3,4],
+         'MuJet':[5],
+         'EleSixJet':[6],
+         'EleFourJet':[7],
+         'EleMultiJet':[6,7],
+         'EleJet':[8],
+         'LooseLeptonSixJet':[9],
+         'LooseLeptonFourJet':[10],
+         'LooseLeptonMultiJet':[9,10],
+         'SixJet':[11],
+         'FourJet':[12],
+         'MultiJet':[11,12],
+         'LooseLeptonDiJet':[13],
+         'DiJet':[14]}
 
 dPhiCut = 2.7
 
@@ -46,19 +49,68 @@ def initializeWorkspace(w,cfg):
             else:
                 w.var(paramName).setConstant(False)
 
-def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName='RMRTree'):
-    """This defines the format of the RooDataSet"""
+
+def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     if f.find('SMS')!=-1:
         k = 1.
     elif f.find('TTJets')!=-1:
-        k = k_T*k_QCD[box]
+        k = k_T
     elif f.find('DYJets')!=-1 or f.find('ZJets')!=-1:
-        k = k_Z*k_QCD[box]
+        k = k_Z
     elif f.find('WJets')!=-1:
-        k = k_W*k_QCD[box]
+        k = k_W
+    else:
+        k = 1.
+        
+    args = workspace.set("variables")
+    
+    #we cut away events outside our MR window
+    mRmin = args['MR'].getMin()
+    mRmax = args['MR'].getMax()
+
+    #we cut away events outside our Rsq window
+    rsqMin = args['Rsq'].getMin()
+    rsqMax = args['Rsq'].getMax()
+
+    btagMin =  args['nBtag'].getMin()
+    btagMax =  args['nBtag'].getMax()
+    
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    
+    btagCutoff = 3
+    if box in ["MuEle", "MuMu", "EleEle"]:
+        btagCutoff = 1
+        
+    boxCut = '(' + ' || '.join(['box==%i'%boxNum for boxNum in boxes[box]]) + ')'
+
+    label = f.replace('.root','').split('/')[-1]
+    htemp = rt.TH1D('htemp_%s'%label,'htemp_%s'%label,len(z)-1,z)
+
+    if useWeight:
+        tree.Project(htemp.GetName(),
+                    'min(nBTaggedJets,%i)'%btagCutoff,
+                    '(%f/%f) * %f * weight * (MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %f && %s && abs(dPhiRazor) < %f)' % (lumi,lumi_in,k,mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut))
+    else:
+        tree.Project(htemp.GetName(),
+                    'MR',
+                    '(MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %f && %s && abs(dPhiRazor) < %f)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut))
+        
+    return [htemp.GetBinContent(i) for i in range(1,len(z))]
+        
+    
+def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName='RMRTree'):
+    """This defines the format of the RooDataSet"""
+    if f.find('SMS')!=-1:
+        k = [1. for k_btag in k_QCD[box]]
+    elif f.find('TTJets')!=-1:
+        k = [k_T*k_btag for k_btag in k_QCD[box]]
+    elif f.find('DYJets')!=-1 or f.find('ZJets')!=-1:
+        k = [k_Z*k_btag for k_btag in k_QCD[box]]
+    elif f.find('WJets')!=-1:
+        k = [k_W*k_btag for k_btag in k_QCD[box]]
     else:
         k = k_QCD[box]
-                    
+
     args = workspace.set("variables")
     data = rt.RooDataSet(treeName,'Selected R and MR',args)
     
@@ -72,14 +124,20 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
 
     btagMin =  args['nBtag'].getMin()
     btagMax =  args['nBtag'].getMax()
+
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
+    label = f.replace('.root','').split('/')[-1]
+    htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
     btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
+        
+    boxCut = '(' + ' || '.join(['box==%i'%boxNum for boxNum in boxes[box]]) + ')'
 
     tree.Draw('>>elist',
-              'MR > %f && MR < %f && Rsq > %f && Rsq < %f && nBTaggedJets >= %f && box == %i && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagMin,boxes[box],dPhiCut),
+              'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut),
               'entrylist')
         
     elist = rt.gDirectory.Get('elist')
@@ -95,15 +153,11 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
         
         a.setRealValue('MR',tree.MR)
         a.setRealValue('Rsq',tree.Rsq)
-        if tree.nBTaggedJets >= btagCutoff:
-            a.setRealValue('nBtag',btagCutoff)
-        else:
-            a.setRealValue('nBtag',tree.nBTaggedJets)
+        a.setRealValue('nBtag',min(tree.nBTaggedJets,btagCutoff))
+        
         if useWeight:
-            try:
-                a.setRealValue('W',tree.weight*lumi*k/lumi_in)
-            except AttributeError:
-                a.setRealValue('W',1.0)
+            btag_bin = htemp.FindBin(min(tree.nBTaggedJets,btagCutoff)) - 1
+            a.setRealValue('W',tree.weight*lumi*k[btag_bin]/lumi_in)
         else:
             a.setRealValue('W',1.0)
         data.add(a)
@@ -126,12 +180,14 @@ if __name__ == '__main__':
                   help="Output directory to store datasets")
     parser.add_option('-w','--weight',dest="useWeight",default=False,action='store_true',
                   help="use weight")
-    parser.add_option('-l','--lumi',dest="lumi", default=4000.,type="float",
+    parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('--lumi-in',dest="lumi_in", default=1.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
+    parser.add_option('-q','--remove-qcd',dest="removeQCD",default=False,action='store_true',
+                  help="remove QCD, while augmenting remaining MC backgrounds")
 
     (options,args) = parser.parse_args()
     
@@ -141,6 +197,7 @@ if __name__ == '__main__':
     lumi = options.lumi
     lumi_in = options.lumi_in
     useWeight = options.useWeight
+    removeQCD = options.removeQCD
     
     print 'Input files are %s' % ', '.join(args)
     
@@ -151,18 +208,46 @@ if __name__ == '__main__':
     
     w.factory('W[1.,0.,+INF]')
     w.set('variables').add(w.var('W'))
-
     
     ds = []
 
-    i = 0    
-    for f in args:
+    
+    btagMin =  w.var('nBtag').getMin()
+    btagMax =  w.var('nBtag').getMax()
+
+    if removeQCD:
+        # first get sum of weights for each background per b-tag bin ( sumW[label] )
+        sumW = {}
+        sumWQCD = 0.
+        for f in args:
+            if f.lower().endswith('.root'):
+                rootFile = rt.TFile(f)
+                tree = rootFile.Get('RazorInclusive')
+                if f.lower().find('sms')==-1:
+                    
+                    label = f.replace('.root','').split('/')[-1]
+                    sumW[label] = getSumOfWeights(tree, cfg, box, w, useWeight, f, lumi, lumi_in)
+                    if label.find('QCD')!=-1: sumWQCD = sumW[label]
+        # get total sum of weights
+        sumWTotal = [sum(allW) for allW in zip( * sumW.values() )]
+
+        # get scale factor to scale other backgrounds by
+        k_QCD[box] = [total/(total - qcd) for total, qcd in zip(sumWTotal,sumWQCD)]
+         
+        print "sum of weights total     =", sumWTotal
+        print "sum of weights QCD       =", sumWQCD
+        print "scale factor k_QCD[ %s ] ="%box, k_QCD[box]
+
+    for i, f in enumerate(args):
         if f.lower().endswith('.root'):
             rootFile = rt.TFile(f)
             tree = rootFile.Get('RazorInclusive')
             if f.lower().find('sms')==-1:
-                i+=1
-                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi, lumi_in,  'RMRTree_%i'%i))
+                if removeQCD and f.find('QCD')!=-1:
+                    continue # do not add QCD
+                else:
+                    ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi, lumi_in,  'RMRTree_%i'%i))
+                
             else:
                 model = f.split('-')[1].split('_')[0]
                 massPoint = '_'.join(f.split('_')[2:4])
@@ -175,7 +260,6 @@ if __name__ == '__main__':
     rootTools.Utils.importToWS(w,wdata)
     
     inFiles = [f for f in args if f.lower().endswith('.root')]
-
     
     args = w.set("variables")
     
@@ -202,6 +286,7 @@ if __name__ == '__main__':
             outFile = 'RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
+    print "Output file is: %s" % (options.outDir+"/"+outFile)
     outFile = rt.TFile.Open(options.outDir+"/"+outFile,'recreate')
     outFile.cd()
     w.Write()
