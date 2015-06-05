@@ -28,27 +28,6 @@ float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
-//for plotting MR in slices of Rsq.  return the number of the Rsq bin corresponding to the given value of Rsq
-//returns -1 if the value is less than the minimum bin
-int whichMRSlice(float Rsq){
-    if(Rsq < RSQBINLOWEDGES[0]) return -1;
-    for(int i = 0; i < NRSQBINS; i++){
-        if(Rsq < RSQBINLOWEDGES[i+1]) return i;
-    }
-    //overflow
-    return NRSQBINS;
-}
-//for plotting Rsq in slices of MR.  return the number of the MR bin corresponding to the given value of MR 
-//returns -1 if the value is less than the minimum bin
-int whichRsqSlice(float MR){
-    if(MR < MRBINLOWEDGES[0]) return -1;
-    for(int i = 0; i < NMRBINS; i++){
-        if(MR < MRBINLOWEDGES[i+1]) return i;
-    }
-    //overflow
-    return NMRBINS;
-}
-
 void FullControlRegionBasedPrediction(){
     bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
     bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
