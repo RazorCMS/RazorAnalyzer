@@ -19,9 +19,11 @@
 using namespace std;
 
 //define MR and Rsq binning
-int NMRBINS = 10;
+//int NMRBINS = 10;
+//float MRBINLOWEDGES[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
+int NMRBINS = 18;
+float MRBINLOWEDGES[] = {300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200};
 int NRSQBINS = 8;
-float MRBINLOWEDGES[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
 float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
@@ -135,8 +137,8 @@ void FullControlRegionBasedPrediction(){
     datatree->SetBranchAddress("nSelectedJets", &nSelectedJets);
 
     //load TTbar scale factor histograms
-    TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarDileptonScaleFactors.root");
-    TH2F *SFHistTTJets = (TH2F*)SFFileTTJets->Get("TTBarDileptonScaleFactor");
+    TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
+    TH2F *SFHistTTJets = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
     float SFmaxMRTTJets = SFHistTTJets->GetXaxis()->GetXmax() - 1;
     float SFmaxRsqTTJets = SFHistTTJets->GetYaxis()->GetXmax() - 0.01;
     //cout << "TTJets " << SFmaxMRTTJets << " " << SFmaxRsqTTJets << endl;
@@ -200,7 +202,7 @@ void FullControlRegionBasedPrediction(){
     boxes.push_back(10);
     boxNames.push_back("DiJet");
     boxes.push_back(999);
-    boxNames.push_back("MultiJet + LooseLeptonMultiJet");
+    boxNames.push_back("MultiJetORLooseLeptonMultiJet");
     int minNBTags = 1; //TODO: bin in nBTags instead of cutting
     //loop over boxes
     for(uint iBox = 0; iBox < boxes.size(); iBox++){
@@ -577,10 +579,11 @@ void FullControlRegionBasedPrediction(){
         //plot slices of MR and Rsq
         for(int i = 0; i < NRSQBINS; i++){
             map<string, TH1F*> ThisRsqSliceMCMap;    
-            TH1F *ThisRsqSliceData = (TH1F*)razorData.ProjectionX(Form("ThisRsqSliceData%d%s", i, boxNames[iBox].c_str()), i+1);
+            TH1F *ThisRsqSliceData = (TH1F*)razorData.ProjectionX(Form("ThisRsqSliceData%d%s", i, boxNames[iBox].c_str()), i+1, i+1);
             THStack *ThisRsqSliceMC = new THStack("ThisRsqSliceMC", Form("MR (Rsq > %.2f), %s Box", RSQBINLOWEDGES[i], boxNames[iBox].c_str()));
             for(auto &hist : razorHistosMC){
-                TH1F *thisHist = (TH1F*)hist.second.ProjectionX(Form("hist%s%d%s", hist.first.c_str(), i, boxNames[iBox].c_str()), i+1);
+                TH1F *thisHist;
+                thisHist = (TH1F*)hist.second.ProjectionX(Form("hist%s%d%s", hist.first.c_str(), i, boxNames[iBox].c_str()), i+1, i+1);
                 thisHist->SetFillColor(MRHistosMC[hist.first].GetFillColor());
                 ThisRsqSliceMCMap[hist.first] = thisHist;
             }
@@ -597,10 +600,11 @@ void FullControlRegionBasedPrediction(){
         }
         for(int i = 0; i < NMRBINS; i++){
             map<string, TH1F*> ThisMRSliceMCMap;    
-            TH1F *ThisMRSliceData = (TH1F*)razorData.ProjectionX(Form("ThisMRSliceData%d%s", i, boxNames[iBox].c_str()), i+1);
+            TH1F *ThisMRSliceData = (TH1F*)razorData.ProjectionX(Form("ThisMRSliceData%d%s", i, boxNames[iBox].c_str()), i+1, i+1);
             THStack *ThisMRSliceMC = new THStack("ThisMRSliceMC", Form("Rsq (MR > %.0f), %s Box", MRBINLOWEDGES[i], boxNames[iBox].c_str()));
             for(auto &hist : razorHistosMC){
-                TH1F *thisHist = (TH1F*)hist.second.ProjectionX(Form("hist%s%d%s", hist.first.c_str(), i, boxNames[iBox].c_str()), i+1);
+                TH1F *thisHist;
+                thisHist = (TH1F*)hist.second.ProjectionX(Form("hist%s%d%s", hist.first.c_str(), i, boxNames[iBox].c_str()), i+1, i+1);
                 thisHist->SetFillColor(RsqHistosMC[hist.first].GetFillColor());
                 ThisMRSliceMCMap[hist.first] = thisHist;
             }
