@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
+void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
@@ -67,7 +67,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
   }
 
   if (isRunOne) {
-    if (isData) {
+    if (IsData) {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L1FastJet_AK5PF.txt", dir.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2Relative_AK5PF.txt", dir.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L3Absolute_AK5PF.txt", dir.c_str())));
@@ -197,9 +197,9 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
   // razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
   // razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
   // razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
-  //razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[100]/O");
+  razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[100]/O");
 
-  if (!isData) {    
+  if (!IsData) {    
     razorTree->Branch("weight", &weight, "weight/F");
     //   razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
     //   razorTree->Branch("lepEffCorrFactor", &lepEffCorrFactor, "lepEffCorrFactor/F");
@@ -220,10 +220,13 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     printdebug = false;
 
-    //fill normalization histogram
+    //fill normalization histogram 
     NEvents->Fill(1.0);
 
     //reset tree variables
+    run = runNum;
+    lumi = lumiNum;
+    event = eventNum;
     nLooseBTaggedJets = 0;
     nMediumBTaggedJets = 0;
     MR = -1;
@@ -232,6 +235,28 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     t1met = -1;
     t1Rsq = -1;
     weight = 1.0;
+    m4l = -999;
+    pt4l = -999;
+    eta4l = -999;
+    phi4l = -999;
+    lep1E = -999;
+    lep1Pt = -999;
+    lep1Eta = -999;
+    lep1Phi = -999;
+    lep2E = -999;
+    lep2Pt = -999;
+    lep2Eta = -999;
+    lep2Phi = -999;
+    lep3E = -999;
+    lep3Pt = -999;
+    lep3Eta = -999;
+    lep3Phi = -999;
+    lep4E =-999; 
+    lep4Pt = -999;
+    lep4Eta = -999;
+    lep4Phi = -999;
+    mZ1 = -999;
+    mZ2 = -999;
 
     // //*****************************************
     // //TODO: triggers!
@@ -277,6 +302,8 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     //*****************************************
     //Select Leptons
     //*****************************************
+    // cout << "\n\n***********************************************\n";
+    // cout << "Event: " << runNum << " " << eventNum << "\n";
     vector<TLorentzVector> preselLeptons;
     vector<TLorentzVector> GoodLeptons;
     vector<int> preselType;
@@ -293,8 +320,10 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
 	//apply muon efficiency scale factors
       }
 
+      //cout << "Muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << passRunOneHZZMuonPreselection(i) << " " << isRunOneHZZMuon(i) << " | " << "\n";
+
       if(!passRunOneHZZMuonPreselection(i)) continue;  
-      if (isRunOneHZZMuon(i)) nMuons++;
+      if (isRunOneHZZMuon(i)) nSelectedMuons++;
 
       preselType.push_back(13);
       preselIndex.push_back(i);
@@ -312,10 +341,12 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
       for(auto& lep : preselLeptons){
 	if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.05) overlap = true;
       }
+      //cout << "Electron " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : overlap=" << overlap << " " << passRunOneHZZElectronPreselection(i) << " " << isRunOneHZZElectron(i) << "\n";
+
       if(overlap) continue;
 
       if(!passRunOneHZZElectronPreselection(i)) continue; 
-      if (isRunOneHZZElectron(i)) nElectrons++;
+      if (isRunOneHZZElectron(i)) nSelectedElectrons++;
 
       preselType.push_back(11);
       preselIndex.push_back(i);
@@ -325,6 +356,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
       if(isRunOneHZZElectron(i)) GoodLeptons.push_back(thisElectron);
     }
 
+    
     //***********************************************
     //select Z1 candidate
     //***********************************************
@@ -357,6 +389,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     TLorentzVector Z1Candidate; Z1Candidate.SetPxPyPzE(0,0,0,0); 
     if (foundZ1Candidate) {
       Z1Candidate = preselLeptons[Z1LeptonPairIndices.first]+preselLeptons[Z1LeptonPairIndices.second];
+      //cout << "Z1Candidate: " << Z1Candidate.M() << " " << Z1Candidate.Pt() << " " << Z1Candidate.Eta() << " " << Z1Candidate.Phi() << "\n";
     } else {
       continue;
     }
@@ -397,6 +430,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     TLorentzVector Z2Candidate; Z2Candidate.SetPxPyPzE(0,0,0,0); 
     if (foundZ2Candidate) {
       Z2Candidate = preselLeptons[Z2LeptonPairIndices.first]+preselLeptons[Z2LeptonPairIndices.second];
+      //cout << "Z2Candidate: " << Z2Candidate.M() << " " << Z2Candidate.Pt() << " " << Z2Candidate.Eta() << " " << Z2Candidate.Phi() << "\n";
     } else {
       continue;
     }
@@ -404,11 +438,11 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     TLorentzVector ZZCandidate; ZZCandidate.SetPxPyPzE(0,0,0,0); 
     if (foundZ1Candidate && foundZ2Candidate) {
       ZZCandidate = Z1Candidate + Z2Candidate;      
+      //cout << "ZZCandidate: " << ZZCandidate.M() << " " << ZZCandidate.Pt() << " " << ZZCandidate.Eta() << " " << ZZCandidate.Phi() << "\n";
     } else {
       continue;
     }
-
-
+ 
     //***********************************************
     //Get leading and subleading leptons
     //***********************************************
@@ -592,9 +626,10 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
       //*******************************************************
       //apply  Pileup Jet ID
       //*******************************************************
+      bool passPUJetID = true;
       if (isRunOne) {
-	//int level = 2; //loose jet ID
-	//if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
+	int level = 2; //loose jet ID
+	if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) passPUJetID = false;
       }
       
       //*******************************************************
@@ -603,6 +638,8 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
       if(jetCorrPt < 30) continue;
       if(fabs(jetEta[i]) > 3.0) continue;
             
+      //cout << "Jet " << i << " : " << thisJet.Pt() << " " << thisJet.Eta() << " " << thisJet.Phi() << " | " << isOldCSVL(i) << " " << isOldCSVM(i) << " | " << passPUJetID << "\n";
+
       GoodJets.push_back(thisJet);
 
       jet_E[n_Jets] = thisJet.E();
@@ -626,9 +663,6 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     //Compute the razor variables using the selected jets and possibly leptons
     vector<TLorentzVector> GoodPFObjects;
     GoodPFObjects.push_back(ZZCandidate);
-    for(auto& lep : GoodLeptons) {
-      GoodPFObjects.push_back(lep);
-    }
     for(auto& jet : GoodJets) {
       GoodPFObjects.push_back(jet);
     }
@@ -718,6 +752,8 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool isData, bool isRunOne)
     //**********************************************************************
     //Fill Tree
     //**********************************************************************
+    // cout << "MR = " << MR << " , R^2 = " << t1Rsq << " , HT = " << HT << " t1met = " << t1met << "\n";
+    // cout << "Fill\n";
     razorTree->Fill();
 
     //******************************
