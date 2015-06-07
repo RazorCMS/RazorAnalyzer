@@ -21,8 +21,8 @@
       UInt_t                  fRunNumber;
       UInt_t                  fLumiSectionNumber;
       UInt_t                  fEventNumber;
-      Bool_t                  fMuEventNumberParity;
-      Int_t                   fPdgId;
+      Bool_t                  fPhoEventNumberParity;
+      Int_t                   fMotherPdgId;
       Float_t                 fDRToClosestParton;
       Float_t                 fPhoGenE;  
       Float_t                 fPhoGenPt; 
@@ -53,6 +53,9 @@
       Bool_t                  fPhoIsLoose;
       Bool_t                  fPhoIsMedium;
       Bool_t                  fPhoIsTight;
+      Bool_t                  fPhoPassLooseID;
+      Bool_t                  fPhoPassMediumID;
+      Bool_t                  fPhoPassTightID;
       Bool_t                  fPhoPassLooseIso;
       Bool_t                  fPhoPassMediumIso;
       Bool_t                  fPhoPassTightIso;
@@ -78,8 +81,8 @@
 	fRunNumber               = 0.0;
 	fLumiSectionNumber       = 0.0;
 	fEventNumber             = 0.0;
-	fMuEventNumberParity     = false;
-	fPdgId                   = 0.0;
+	fPhoEventNumberParity     = false;
+	fMotherPdgId                   = 0.0;
 	fDRToClosestParton       = 0.0;
 	fPhoGenE                 = 0.0;
 	fPhoGenPt                = 0.0;
@@ -107,6 +110,9 @@
 	fPhoIsLoose              = false;
 	fPhoIsMedium             = false;
 	fPhoIsTight              = false;
+	fPhoPassLooseID         = false;
+	fPhoPassMediumID        = false;
+	fPhoPassTightID         = false;
 	fPhoPassLooseIso         = false;
 	fPhoPassMediumIso        = false;
 	fPhoPassTightIso         = false;
@@ -130,8 +136,8 @@
 	tree_->Branch("run",&fRunNumber,"run/i");
 	tree_->Branch("lumi",&fLumiSectionNumber,"lumi/i");
 	tree_->Branch("event",&fEventNumber,"event/i");
-	tree_->Branch("MuEventNumberParity",&fMuEventNumberParity,"MuEventNumberParity/O");
-	tree_->Branch("PdgId",&fPdgId,"PdgId/I");
+	tree_->Branch("PhoEventNumberParity",&fPhoEventNumberParity,"PhoEventNumberParity/O");
+	tree_->Branch("MotherPdgId",&fMotherPdgId,"MotherPdgId/I");
 	tree_->Branch("DRToClosestParton",&fDRToClosestParton,"DRToClosestParton/F");
 	tree_->Branch("PhoGenE",&fPhoGenE,"PhoGenE/F");
 	tree_->Branch("PhoGenPt",&fPhoGenPt,"PhoGenPt/F");
@@ -159,6 +165,9 @@
 	tree_->Branch("PhoIsLoose",&fPhoIsLoose,"PhoIsLoose/O");
 	tree_->Branch("PhoIsMedium",&fPhoIsMedium,"PhoIsMedium/O");
 	tree_->Branch("PhoIsTight",&fPhoIsTight,"PhoIsTight/O");
+	tree_->Branch("PhoPassLooseID",&fPhoPassLooseID,"PhoPassLooseID/O");
+	tree_->Branch("PhoPassMediumID",&fPhoPassMediumID,"PhoPassMediumID/O");
+	tree_->Branch("PhoPassTightID",&fPhoPassTightID,"PhoPassTightID/O");
 	tree_->Branch("PhoPassLooseIso",&fPhoPassLooseIso,"PhoPassLooseIso/O");
 	tree_->Branch("PhoPassMediumIso",&fPhoPassMediumIso,"PhoPassMediumIso/O");
 	tree_->Branch("PhoPassTightIso",&fPhoPassTightIso,"PhoPassTightIso/O");
@@ -183,8 +192,8 @@
 	tree_->SetBranchAddress("run",&fRunNumber);
 	tree_->SetBranchAddress("lumi",&fLumiSectionNumber);
 	tree_->SetBranchAddress("event",&fEventNumber);
-	tree_->SetBranchAddress("MuEventNumberParity",&fMuEventNumberParity);
-	tree_->SetBranchAddress("PdgId",&fPdgId);
+	tree_->SetBranchAddress("PhoEventNumberParity",&fPhoEventNumberParity);
+	tree_->SetBranchAddress("MotherPdgId",&fMotherPdgId);
 	tree_->SetBranchAddress("DRToClosestParton",&fDRToClosestParton);
 	tree_->SetBranchAddress("PhoGenE",&fPhoGenE);
 	tree_->SetBranchAddress("PhoGenPt",&fPhoGenPt);
@@ -212,6 +221,9 @@
 	tree_->SetBranchAddress("PhoIsLoose",&fPhoIsLoose);
 	tree_->SetBranchAddress("PhoIsMedium",&fPhoIsMedium);
 	tree_->SetBranchAddress("PhoIsTight",&fPhoIsTight);
+	tree_->SetBranchAddress("PhoPassLooseID",&fPhoPassLooseID);
+	tree_->SetBranchAddress("PhoPassMediumID",&fPhoPassMediumID);
+	tree_->SetBranchAddress("PhoPassTightID",&fPhoPassTightID);
 	tree_->SetBranchAddress("PhoPassLooseIso",&fPhoPassLooseIso);
 	tree_->SetBranchAddress("PhoPassMediumIso",&fPhoPassMediumIso);
 	tree_->SetBranchAddress("PhoPassTightIso",&fPhoPassTightIso);
