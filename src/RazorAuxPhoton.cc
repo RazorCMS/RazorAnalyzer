@@ -237,112 +237,54 @@ bool RazorAnalyzer::isGoodPhotonRun1( int i, bool _iso = false, bool _debug = fa
   return true;
 };
 
-// R u n 2   H g g   P h o t o n   ID
-//-----------------------------------
-bool RazorAnalyzer::isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug )
+
+
+void RazorAnalyzer::getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
 {
-  bool _isEB = false;
-  if ( fabs( pho_superClusterEta[i] ) < 1.48 ) _isEB = true;
-  if ( _isEB )
+  if( fabs( eta ) < 1.0 )
     {
-      // L o o s e  W o r k i n g   P o i n t
-      //-------------------------------------
-      if ( wp == WP::Loose )
-	{
-	  if ( pho_HoverE[i] > HoverE_EB[0] )
-	    {
-	      if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
-	      return false;// HoverE Cut
-	    }
-	  if ( phoSigmaIetaIeta[i] > SigmaIetaIeta_EB[0] )
-	    {
-	      if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-              return false;// SigmaIetaIeta Cut
-	    }
-	}
-      // M e d i u m  W o r k i n g   P o i n t
-      //-------------------------------------
-      if ( wp == WP::Medium )
-        {
-          if ( pho_HoverE[i] > HoverE_EB[1] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
-              return false;// HoverE Cut
-            }
-          if ( phoSigmaIetaIeta[i] > SigmaIetaIeta_EB[1] )
-            {
-	      if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-              return false;// SigmaIetaIeta Cut
-            }
-	}
-      // T i g h t  W o r k i n g   P o i n t
-      //-------------------------------------
-      if ( wp == WP::Tight )
-        {
-          if ( pho_HoverE[i] > HoverE_EB[2] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
-              return false;// HoverE Cut
-            }
-          if ( phoSigmaIetaIeta[i] > SigmaIetaIeta_EB[2] )
-            {
-	      if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-              return false;// SigmaIetaIeta Cut
-            }
-	}
+      effAreaChHad = 0.0234;
+      effAreaNHad  = 0.0053;
+      effAreaPho   = 0.0896;
+    }
+  else if( fabs( eta ) < 1.479 )
+    {
+      effAreaChHad = 0.0189;
+      effAreaNHad  = 0.0103;
+      effAreaPho   = 0.0762;
+    }
+  else if( fabs( eta ) < 2.0 )
+    {
+      effAreaChHad = 0.0171;
+      effAreaNHad  = 0.0057;
+      effAreaPho   = 0.0383;
+    }
+  else if( fabs( eta ) < 2.2 )
+    {
+      effAreaChHad = 0.0129;
+      effAreaNHad  = 0.0070;
+      effAreaPho   = 0.0534;
+    }
+  else if( fabs( eta ) < 2.3 )
+    {
+      effAreaChHad = 0.0110;
+      effAreaNHad  = 0.0152;
+      effAreaPho   = 0.0846;
+    }
+  else if( fabs( eta ) < 2.4 )
+    {
+      effAreaChHad = 0.0074;
+      effAreaNHad  = 0.0230;
+      effAreaPho   = 0.1032;
     }
   else
     {
-      // L o o s e  W o r k i n g   P o i n t                    
-      //------------------------------------- 
-      if ( wp == WP::Loose )
-        {
-          if ( pho_HoverE[i] > HoverE_EE[0] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
-              return false;// HoverE Cut
-            }
-          if ( phoSigmaIetaIeta[i] > SigmaIetaIeta_EB[0] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-              return false;// SigmaIetaIeta Cut
-            }
-        }
-      // M e d i u m  W o r k i n g   P o i n t 
-      //-------------------------------------         
-      if ( wp == WP::Medium )
-        {
-          if ( pho_HoverE[i] > HoverE_EE[1] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
-              return false;// HoverE Cut
-            }
-          if ( phoSigmaIetaIeta[i] > SigmaIetaIeta_EE[1] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-              return false;// SigmaIetaIeta Cut
-            }
-        }
-      // T i g h t  W o r k i n g   P o i n t
-      //-------------------------------------
-      if ( wp == WP::Tight )
-        {
-          if ( pho_HoverE[i] > HoverE_EE[2] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
-              return false;// HoverE Cut
-            }
-          if ( phoSigmaIetaIeta[i] > SigmaIetaIeta_EE[2] )
-            {
-              if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
-              return false;// SigmaIetaIeta Cut
-            }
-        }
+      effAreaChHad = 0.0035;
+      effAreaNHad  = 0.1709;
+      effAreaPho   = 0.1598;
     }
-  
-  if ( _iso && photonPassIsoRun2( i, wp, _debug ) )return false;
-  return true;
 };
+
 
 //R u n 2  H g g R a z o r  I s o l a t  i o n
 //--------------------------------------------
@@ -354,8 +296,17 @@ bool RazorAnalyzer::photonPassIsoRun2( int i, WP wp ,bool _debug )
   double effAreaChargedHadrons = -1.;
   double effAreaNeutralHadrons = -1.;
   double effAreaPhotons        = -1.;
-  GetEA( eta, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
+  getPhotonEffAreaRun2( eta, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
   
+  if ( _debug )
+    {
+      std::cout << "chA:" << effAreaChargedHadrons << " nA: " << effAreaNeutralHadrons << " phoA: " << effAreaPhotons << std::endl;
+      std::cout << "chHad: " << pho_sumChargedHadronPt[i] << std::endl;
+      std::cout << "nHad: " << pho_sumNeutralHadronEt[i] << std::endl;
+      std::cout << "pho: " << pho_sumPhotonEt[i] << std::endl;
+      std::cout << "pu: " << fixedGridRhoAll << std::endl;
+    }
+
   //Compute Photon Isolation
   //Rho corrected PF charged hadron isolation
   double PFIsoCorrected_chHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
@@ -377,6 +328,115 @@ bool RazorAnalyzer::photonPassIsoRun2( int i, WP wp ,bool _debug )
   
   return true;
 };   
+
+
+// R u n 2   H g g   P h o t o n   ID
+//-----------------------------------
+bool RazorAnalyzer::isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug )
+{
+  bool _isEB = false;
+  if ( fabs( pho_superClusterEta[i] ) < 1.48 ) _isEB = true;
+  if ( _isEB )
+    {
+      // L o o s e  W o r k i n g   P o i n t
+      //-------------------------------------
+      if ( wp == WP::Loose )
+	{
+	  if ( pho_HoverE[i] > HoverE_EB[0] )
+	    {
+	      if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
+	      return false;// HoverE Cut
+	    }
+	  if ( phoFull5x5SigmaIetaIeta[i] > SigmaIetaIeta_EB[0] )
+	    {
+	      if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+              return false;// SigmaIetaIeta Cut
+	    }
+	}
+      // M e d i u m  W o r k i n g   P o i n t
+      //-------------------------------------
+      if ( wp == WP::Medium )
+        {
+          if ( pho_HoverE[i] > HoverE_EB[1] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
+              return false;// HoverE Cut
+            }
+          if ( phoFull5x5SigmaIetaIeta[i] > SigmaIetaIeta_EB[1] )
+            {
+	      if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+              return false;// SigmaIetaIeta Cut
+            }
+	}
+      // T i g h t  W o r k i n g   P o i n t
+      //-------------------------------------
+      if ( wp == WP::Tight )
+        {
+          if ( pho_HoverE[i] > HoverE_EB[2] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
+              return false;// HoverE Cut
+            }
+          if ( phoFull5x5SigmaIetaIeta[i] > SigmaIetaIeta_EB[2] )
+            {
+	      if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+              return false;// SigmaIetaIeta Cut
+            }
+	}
+    }
+  else
+    {
+      // L o o s e  W o r k i n g   P o i n t                    
+      //------------------------------------- 
+      if ( wp == WP::Loose )
+        {
+          if ( pho_HoverE[i] > HoverE_EE[0] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
+              return false;// HoverE Cut
+            }
+          if ( phoFull5x5SigmaIetaIeta[i] > SigmaIetaIeta_EE[0] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+              return false;// SigmaIetaIeta Cut
+            }
+        }
+      // M e d i u m  W o r k i n g   P o i n t 
+      //-------------------------------------         
+      if ( wp == WP::Medium )
+        {
+          if ( pho_HoverE[i] > HoverE_EE[1] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
+              return false;// HoverE Cut
+            }
+          if ( phoFull5x5SigmaIetaIeta[i] > SigmaIetaIeta_EE[1] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+              return false;// SigmaIetaIeta Cut
+            }
+        }
+      // T i g h t  W o r k i n g   P o i n t
+      //-------------------------------------
+      if ( wp == WP::Tight )
+        {
+          if ( pho_HoverE[i] > HoverE_EE[2] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 HoverE: " << pho_HoverE[i] << std::endl;
+              return false;// HoverE Cut
+            }
+          if ( phoFull5x5SigmaIetaIeta[i] > SigmaIetaIeta_EE[2] )
+            {
+              if ( _debug ) std::cout << "EB, ID: failed run2 SigmaIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+              return false;// SigmaIetaIeta Cut
+            }
+        }
+    }
+  
+  if ( _iso && !photonPassIsoRun2( i, wp, _debug ) )return false;
+  return true;
+};
+
 
 bool RazorAnalyzer::photonPassesRunOneIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut){
     //get effective area for isolation calculations
