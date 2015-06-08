@@ -51,10 +51,7 @@ enum class EA { chHad, nHad, photon};
 //std::map< EA, std::vector<float> > effAreas;
 //float effArea[3][7] = {{}};
 void InitEffArea();
-// G e t   E f f e c t i v e   A r e a   B i n 
-//--------------------------------------------
-//int GetEAbin( float eta );
-bool GetEA( float eta, double& EAcHad, double& EAnHad, double& EAphoton  );
+
 // P h o t o n   I D   W o r k i n g   P o in t s
 // ----------------------------------------------
 enum class WP { Loose, Medium, Tight };

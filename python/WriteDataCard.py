@@ -199,7 +199,7 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
-    parser.add_option('-l','--lumi',dest="lumi", default=4000.,type="float",
+    parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")

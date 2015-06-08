@@ -123,7 +123,7 @@ bool RazorAnalyzer::isRunOneHZZMuon(int i){
       && fabs(muon_d0[i]) < 0.5
       && fabs(muon_dZ[i]) < 1.0
       && fabs(muon_ip3dSignificance[i]) < 4
-      && ( ( muonPt[i] > 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.4 ))
+      && ( ( (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.4 ))
       ) {
     pass = true;
   }

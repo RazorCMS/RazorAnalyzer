@@ -256,12 +256,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       if (BunchXing[i] == 0) {
 	NPU = nPUmean[i];
       }
-      if (BunchXing[i] == -1) {
-	NPU = nPUmean[i];
-      }
-      if (BunchXing[i] == 1) {
-	NPU = nPUmean[i];
-      }	  
     }
 
     if (isRunOne) {
