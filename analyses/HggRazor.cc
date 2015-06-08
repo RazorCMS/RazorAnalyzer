@@ -837,7 +837,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
       //int level = 2; //3rd bit of jetPileupIdFlag
       //no jed id providede for Phys14 Samples
-      if ( !jetPassIDLoose[i] ) continue;
+      //if ( !jetPassIDLoose[i] ) continue;
       //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
       //exclude selected photons from the jet collection
