@@ -100,8 +100,11 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     
 def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName='RMRTree'):
     """This defines the format of the RooDataSet"""
+    
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    
     if f.find('SMS')!=-1:
-        k = [1. for k_btag in k_QCD[box]]
+        k = [1. for z_bin in z]
     elif f.find('TTJets')!=-1:
         k = [k_T*k_btag for k_btag in k_QCD[box]]
     elif f.find('DYJets')!=-1 or f.find('ZJets')!=-1:
@@ -124,8 +127,6 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
 
     btagMin =  args['nBtag'].getMin()
     btagMax =  args['nBtag'].getMax()
-
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
@@ -277,13 +278,15 @@ if __name__ == '__main__':
     if len(inFiles)==1:
         if btagMax>btagMin+1:
             outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
+            outFile = outFile.replace('_1pb','')
         else:
             outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
+            outFile = outFile.replace('_1pb','')
     else:
         if btagMax>btagMin+1:
-            outFile = 'RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+            outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
         else:
-            outFile = 'RazorAnalysis_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+            outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
     print "Output file is: %s" % (options.outDir+"/"+outFile)

@@ -16,7 +16,7 @@ def setStyle():
     rt.gStyle.SetOptTitle(0)
 
     
-def print1DCanvas(c,h,h_data,printName,xTitle,yTitle):
+def print1DCanvas(c,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",tLeg=None):
     c.SetLogx(0)
     c.SetLogy(1)
     
@@ -28,7 +28,7 @@ def print1DCanvas(c,h,h_data,printName,xTitle,yTitle):
     pad2.SetLeftMargin(0.15)
     pad1.SetRightMargin(0.05)
     pad2.SetRightMargin(0.05)
-    pad1.SetTopMargin(0.05)
+    pad1.SetTopMargin(0.12)
     pad2.SetTopMargin(0.)
     pad1.SetBottomMargin(0.)
     pad2.SetBottomMargin(0.47)
@@ -37,6 +37,7 @@ def print1DCanvas(c,h,h_data,printName,xTitle,yTitle):
     rt.gPad.SetLogy()
     
     h.SetLineWidth(2)
+    h.SetLineColor(rt.kBlue)
     hClone = h.Clone(h.GetName()+"Clone")
     hClone.SetLineColor(rt.kBlue)
     hClone.SetFillColor(rt.kBlue-10)
@@ -53,6 +54,8 @@ def print1DCanvas(c,h,h_data,printName,xTitle,yTitle):
     h_data.GetXaxis().SetTitleOffset(0.8)
     h_data.GetYaxis().SetTitleOffset(0.7)
     h_data.GetXaxis().SetTicks("+-")
+    h_data.SetMaximum(math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25))
+    h_data.SetMinimum(1e-1*h_data.GetBinContent(h_data.GetMinimumBin()))
     h_data.Draw("pe")
     hClone.Draw("e2same")
     h.SetFillStyle(0)
@@ -106,10 +109,32 @@ def print1DCanvas(c,h,h_data,printName,xTitle,yTitle):
     hDataDivide.Draw('pesame')
     hCloneDivide.Draw("axissame")
 
+
     pad2.Update()
     pad1.cd()
     pad1.Update()
     pad1.Draw()
+
+    if tLeg==None:
+        tLeg = rt.TLegend(0.7,0.6,0.9,0.8)
+        tLeg.SetFillColor(0)
+        tLeg.SetTextFont(42)
+        tLeg.SetLineColor(0)
+        tLeg.AddEntry(h_data,"Sim. Data","lep")
+        tLeg.AddEntry(hClone,"Fit","lf")
+    tLeg.Draw("same")
+
+        
+    l = rt.TLatex()
+    l.SetTextAlign(11)
+    l.SetTextSize(0.05)
+    l.SetTextFont(42)
+    l.SetNDC()
+    l.DrawLatex(0.15,0.9,"CMS simulation")
+    l.DrawLatex(0.78,0.9,"%s"%lumiLabel)
+    l.SetTextFont(52)
+    l.DrawLatex(0.2,0.8,boxLabel)
+
     c.cd()
     
     c.Print(printName)
