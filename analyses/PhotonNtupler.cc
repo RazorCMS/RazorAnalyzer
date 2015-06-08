@@ -51,7 +51,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	  phoTree->fRunNumber = runNum;
 	  phoTree->fLumiSectionNumber = lumiNum;
 	  phoTree->fEventNumber = eventNum;
-	  phoTree->fMuEventNumberParity = (eventNum % 2 == 0);
+	  phoTree->fPhoEventNumberParity = (eventNum % 2 == 0);
 
 	  // cout << "start ? " << bool(!phoTree->fPhoIsLoose && phoSigmaIetaIeta[i] < 0.01 && pho_HoverE[i] < 0.028) << " "
 	  //      << bool(phoSigmaIetaIeta[i] < 0.01) << " " << bool(pho_HoverE[i] < 0.028) << " \n";
@@ -195,7 +195,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	     phoTree->fRunNumber = runNum;
 	     phoTree->fLumiSectionNumber = lumiNum;
 	     phoTree->fEventNumber = eventNum;
-	     phoTree->fMuEventNumberParity = (eventNum % 2 == 0);
+	     phoTree->fPhoEventNumberParity = (eventNum % 2 == 0);
 	     phoTree->fRho = fixedGridRhoFastjetAll;
 	     phoTree->fNVertices = nPV;
 	     
@@ -253,9 +253,9 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	       phoTree->fPhoIsLoose = isGoodPhotonRun2( matchedIndex , true, WP::Loose, false );
 	       phoTree->fPhoIsMedium = isGoodPhotonRun2( matchedIndex , true, WP::Medium, false );
 	       phoTree->fPhoIsTight = isGoodPhotonRun2( matchedIndex , true, WP::Tight, false );
-	       phoTree->fPhoPassLooseID = isGoodPhotonRun2( i , false, WP::Loose, false );
-	       phoTree->fPhoPassMediumID = isGoodPhotonRun2( i , false, WP::Medium, false );
-	       phoTree->fPhoPassTightID = isGoodPhotonRun2( i , false, WP::Tight, false );
+	       phoTree->fPhoPassLooseID = isGoodPhotonRun2( matchedIndex , false, WP::Loose, false );
+	       phoTree->fPhoPassMediumID = isGoodPhotonRun2( matchedIndex , false, WP::Medium, false );
+	       phoTree->fPhoPassTightID = isGoodPhotonRun2( matchedIndex , false, WP::Tight, false );
 	       phoTree->fPhoPassLooseIso = photonPassIsoRun2( matchedIndex, WP::Loose, false);
 	       phoTree->fPhoPassMediumIso = photonPassIsoRun2( matchedIndex, WP::Medium, false);
 	       phoTree->fPhoPassTightIso = photonPassIsoRun2( matchedIndex, WP::Tight, false);
