@@ -65,6 +65,119 @@ TTZJets \
 
 end
 
+##########################
+# Run One RazorInclusive
+##########################
+foreach sample( \
+Data_DoubleElectron_Run2012A \
+Data_DoubleElectron_Run2012B \
+Data_DoubleElectron_Run2012C \
+Data_DoubleElectron_Run2012D \
+Data_DoubleMuParked_Run2012A \
+Data_DoubleMuParked_Run2012B \
+Data_DoubleMuParked_Run2012C \
+Data_DoubleMuParked_Run2012D \
+Data_MuEG_Run2012A \
+Data_MuEG_Run2012B \
+Data_MuEG_Run2012C \
+Data_MuEG_Run2012D \
+Data_SingleElectron_Run2012A \
+Data_SingleElectron_Run2012B \
+Data_SingleElectron_Run2012C \
+Data_SingleElectron_Run2012D \
+Data_SingleMu_Run2012A \
+Data_SingleMu_Run2012B \
+Data_SingleMu_Run2012C \
+Data_SingleMu_Run2012D \
+Data_HT_Run2012A \
+Data_HTMHTParked_Run2012B \
+Data_HTMHTParked_Run2012C \
+Data_HTMHTParked_Run2012D \
+) 
+  setenv LSB_JOB_REPORT_MAIL N
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p8-Run1/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/public/condor/res/Run2SUSY/RazorAnalysis/RazorInclusive_${sample}_${jobnumber}.out -J RazorInclusive_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazor $inputfilelist true 1 $filesPerJob $jobnumber RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/
+	
+        while ( `bjobs | grep RUN | wc | awk '{print $1}' | awk '{if($1 > 50){print "yes"}else{print "no"}}'` == "yes")
+	   sleep 10
+        end
+    endif
+  end
+end
+
+foreach sample( \
+DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball \
+WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball \
+TTJets_FullLeptMGDecays_8TeV-madgraph-tauola \
+T_s-channel_TuneZ2star_8TeV-powheg-tauola \
+T_t-channel_TuneZ2star_8TeV-powheg-tauola \
+T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
+Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola \
+Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola \
+Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
+WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
+WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
+WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola \
+ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
+ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
+ZZJetsTo4L_TuneZ2star_8TeV-madgraph-tauola \
+TTWJets_8TeV-madgraph \
+TTWWJets_8TeV-madgraph \
+TTZJets_8TeV-madgraph_v2 \
+TTTT_TuneZ2star_8TeV-madgraph-tauola \
+WJetsToLNu_HT-150To200_8TeV-madgraph \
+WJetsToLNu_HT-200To250_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
+WJetsToLNu_HT-300To400_8TeV-madgraph \
+WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
+TTJets_HadronicMGDecays_8TeV-madgraph \
+TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola \
+QCD_HT-100To250_TuneZ2star_8TeV-madgraph-pythia \
+QCD_HT-250To500_TuneZ2star_8TeV-madgraph-pythia6 \
+QCD_HT-500To1000_TuneZ2star_8TeV-madgraph-pythia6 \
+QCD_HT-1000ToInf_TuneZ2star_8TeV-madgraph-pythia6 \
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph_ext \
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
+ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph_ext \
+) 
+  setenv LSB_JOB_REPORT_MAIL N
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p8-Run1/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorInclusive_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazor $inputfilelist false 1 $filesPerJob $jobnumber RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/
+	while ( `bjobs | grep RUN | wc | awk '{print $1}' | awk '{if($1 > 50){print "yes"}else{print "no"}}'` == "yes")
+	   sleep 10
+        end
+    endif
+  end
+end
+
 
 
 ##########################
@@ -277,16 +390,33 @@ end
 # Run One Control Region Study
 ##########################
 foreach sample( \
-SingleMu \
-SingleElectron \
-DoubleMuParked \
-DoubleElectron \
-MuEG \
-HT \
-HTMHTParked \
+Data_DoubleElectron_Run2012A \
+Data_DoubleElectron_Run2012B \
+Data_DoubleElectron_Run2012C \
+Data_DoubleElectron_Run2012D \
+Data_DoubleMuParked_Run2012A \
+Data_DoubleMuParked_Run2012B \
+Data_DoubleMuParked_Run2012C \
+Data_DoubleMuParked_Run2012D \
+Data_MuEG_Run2012A \
+Data_MuEG_Run2012B \
+Data_MuEG_Run2012C \
+Data_MuEG_Run2012D \
+Data_SingleElectron_Run2012A \
+Data_SingleElectron_Run2012B \
+Data_SingleElectron_Run2012C \
+Data_SingleElectron_Run2012D \
+Data_SingleMu_Run2012A \
+Data_SingleMu_Run2012B \
+Data_SingleMu_Run2012C \
+Data_SingleMu_Run2012D \
+Data_HT_Run2012A \
+Data_HTMHTParked_Run2012B \
+Data_HTMHTParked_Run2012C \
+Data_HTMHTParked_Run2012D \
 ) 
   setenv LSB_JOB_REPORT_MAIL N
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p8-Run1/${sample}.cern.txt"
   set filesPerJob = 1
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
@@ -330,48 +460,46 @@ end
 
 
 foreach sample( \
-DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
-DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
-DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
-DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
-DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
 DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball \
-TTJets_FullLeptMGDecays_8TeV-madgraph-tauola \
-TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola \
-TTJets_HadronicMGDecays_8TeV-madgraph \
 WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball \
-WJetsToLNu_HT-150To200_8TeV-madgraph \
-WJetsToLNu_HT-200To250_8TeV-madgraph \
-WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
-WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
-WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
-T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
+TTJets_FullLeptMGDecays_8TeV-madgraph-tauola \
 T_s-channel_TuneZ2star_8TeV-powheg-tauola \
 T_t-channel_TuneZ2star_8TeV-powheg-tauola \
+T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
 Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola \
 Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola \
 Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
 WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
-WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola\
+WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
 WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola \
 ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
 ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
+ZZJetsTo4L_TuneZ2star_8TeV-madgraph-tauola \
 TTWJets_8TeV-madgraph \
 TTWWJets_8TeV-madgraph \
 TTZJets_8TeV-madgraph_v2 \
 TTTT_TuneZ2star_8TeV-madgraph-tauola \
+WJetsToLNu_HT-150To200_8TeV-madgraph \
+WJetsToLNu_HT-200To250_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph \
+WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
+WJetsToLNu_HT-300To400_8TeV-madgraph \
+WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph \
+WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
+DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
+TTJets_HadronicMGDecays_8TeV-madgraph \
+TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola \
+QCD_HT-100To250_TuneZ2star_8TeV-madgraph-pythia \
+QCD_HT-250To500_TuneZ2star_8TeV-madgraph-pythia6 \
+QCD_HT-500To1000_TuneZ2star_8TeV-madgraph-pythia6 \
+QCD_HT-1000ToInf_TuneZ2star_8TeV-madgraph-pythia6 \
 ) 
   setenv LSB_JOB_REPORT_MAIL N
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p8-Run1/${sample}.cern.txt"
   set filesPerJob = 1
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
