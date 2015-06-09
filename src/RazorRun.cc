@@ -231,12 +231,12 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.JetNtupler(outputFileName, option);
     }
-    else if(analysisType == "photonntupler"){
+    else if(analysisType == "photonNtupler"){
         cout << "Running photon ntupler..." << endl;
         analyzer.EnableEventInfo();
         analyzer.EnablePhotons();
         analyzer.EnableGenParticles();
-        analyzer.PhotonNtupler();
+        analyzer.PhotonNtupler(outputFileName, option);
     }
     else if(analysisType == "met"){ // met analyzer to plot some histograms
         cout << "Executing razor MET analysis..." << endl;

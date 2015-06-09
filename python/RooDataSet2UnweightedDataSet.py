@@ -45,10 +45,18 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
-    
-    myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 70, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
-    myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
+
+    # use fine binning
+    #myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 70, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
+    #myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
+    #myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
+
+    # use binning written in config
+    myTH3 = rt.TH3D(uwName+box, uwName+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
+    myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", len(x)-1, x, len(y)-1, y)
+    myTH2Toy = rt.TH2D("h", "h", len(x)-1, x, len(y)-1, y)
     myTH2.Sumw2()
+    myTH2Toy.Sumw2()
 
     # fills automatically with weight
     data.fillHistogram(myTH3, varList,"MR>0")
@@ -120,7 +128,6 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
        uwdata.add(varSet)
     
 
-    myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
     uwdata.fillHistogram(myTH2Toy, varList2D,"MR>0")
     myTH2Toy.SetTitle("Unweighted %s"%box)
     myTH2Toy.GetXaxis().SetTitle("M_{R}")

@@ -31,7 +31,7 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
-    parser.add_option('-l','--lumi',dest="lumi", default=4000.,type="float",
+    parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
@@ -115,8 +115,22 @@ if __name__ == '__main__':
 
     
 
-    RunToys.print1DCanvas(c,h_MR,h_data_MR,options.outDir+"/h_MR.pdf","M_{R} [GeV]","Events")
-    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq.pdf","R^{2}","Events")
+
+    btagLabel = ""
+    if z[-1] == z[0]+1 and z[-1]==4:
+        btagLabel = "#geq %i b-tag" % z[0]
+    elif z[-1] == z[0]+1:
+        btagLabel = "%i b-tag" % z[0]
+    elif z[-1]==4:
+        btagLabel = "#geq %i b-tag" % z[0]
+    else:
+        btagLabel = "%i-%i b-tag" % (z[0],z[-2])
+
+    lumiLabel = "%i fb^{-1} (13 TeV)" % (lumi/1000.)
+    boxLabel = "razor %s %s" % (box,btagLabel)
+         
+    RunToys.print1DCanvas(c,h_MR,h_data_MR,options.outDir+"/h_MR.pdf","M_{R} [GeV]","Events",lumiLabel,boxLabel)
+    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq.pdf","R^{2}","Events",lumiLabel,boxLabel)
     
 
     outFileName = "BinnedFitResults_%s.root"%(box)

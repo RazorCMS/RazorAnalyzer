@@ -1,77 +1,26 @@
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
+#include "PhotonTree.h"
 
 using namespace std;
 
-void RazorAnalyzer::PhotonNtupler(string outputFilename)
+void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 {
-    //create output file
-    TFile outFile(outputFilename.c_str(), "RECREATE");
-    TTree *PhotonNtuple = new TTree("PhotonNtuple", "Selected photon information");
+    cout << "Initializing..." << endl;
+    string outfilename = outputFilename;
+    if (outfilename == "") outfilename = "PhotonNtuple.root";
+    TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
+    PhotonTree *phoTree = new PhotonTree;
+    phoTree->CreateTree(PhotonTree::kPhotonTreeLight);
+    phoTree->tree_->SetAutoFlush(0);
+    
+    cout << "Run With Option = " << Option << "\n";
 
-    //photon branches carried over from ntuple
-    PhotonNtuple->Branch("nPhotons", &nPhotons, "nPhotons/I");
-    PhotonNtuple->Branch("phoPt", phoPt, "phoPt[nPhotons]/F");
-    PhotonNtuple->Branch("phoEta", phoEta, "phoEta[nPhotons]/F");
-    PhotonNtuple->Branch("phoPhi", phoPhi,"phoPhi[nPhotons]/F");
-    PhotonNtuple->Branch("phoFull5x5SigmaIetaIeta", phoFull5x5SigmaIetaIeta,"phoFull5x5SigmaIetaIeta[nPhotons]/F");
-    PhotonNtuple->Branch("phoR9", phoR9,"phoR9[nPhotons]/F");
-    PhotonNtuple->Branch("pho_HoverE", pho_HoverE,"pho_HoverE[nPhotons]/F");
-    PhotonNtuple->Branch("pho_sumChargedHadronPt", pho_sumChargedHadronPt,"pho_sumChargedHadronPt[nPhotons]/F");
-    PhotonNtuple->Branch("pho_sumNeutralHadronEt", pho_sumNeutralHadronEt,"pho_sumNeutralHadronEt[nPhotons]/F");
-    PhotonNtuple->Branch("pho_sumPhotonEt", pho_sumPhotonEt,"pho_sumPhotonEt[nPhotons]/F");
-    PhotonNtuple->Branch("pho_isConversion", pho_isConversion,"pho_isConversion[nPhotons]/O");
-    PhotonNtuple->Branch("pho_passEleVeto", pho_passEleVeto,"pho_passEleVeto[nPhotons]/O");
-    PhotonNtuple->Branch("pho_RegressionE", pho_RegressionE,"pho_RegressionE[nPhotons]/F");
-    PhotonNtuple->Branch("pho_RegressionEUncertainty", pho_RegressionEUncertainty,"pho_RegressionEUncertainty[nPhotons]/F");
-    PhotonNtuple->Branch("pho_IDMVA", pho_IDMVA,"pho_IDMVA[nPhotons]/F");
-    PhotonNtuple->Branch("pho_superClusterEta", pho_superClusterEta,"pho_superClusterEta[nPhotons]/F");
-    PhotonNtuple->Branch("pho_hasPixelSeed", pho_hasPixelSeed,"pho_hasPixelSeed[nPhotons]/O");
-    PhotonNtuple->Branch("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, "fixedGridRhoFastjetAll/F");
-    PhotonNtuple->Branch("nPV", &nPV, "nPV/I");
-    //extra photon branches
-    int nGenPhotons;
-    float genPhotonPt[200];
-    float genPhotonEta[200];
-    float genPhotonPhi[200];
-    float genPhotonE[200];
-    PhotonNtuple->Branch("nGenPhotons", &nGenPhotons,"nGenPhotons/I");
-    PhotonNtuple->Branch("genPhotonPt", genPhotonPt, "genPhotonPt[nGenPhotons]/F");
-    PhotonNtuple->Branch("genPhotonEta", genPhotonEta, "genPhotonEta[nGenPhotons]/F");
-    PhotonNtuple->Branch("genPhotonPhi", genPhotonPhi, "genPhotonPhi[nGenPhotons]/F");
-    PhotonNtuple->Branch("genPhotonE", genPhotonE, "genPhotonE[nGenPhotons]/F");
+    UInt_t NPhotonsFilled = 0;
 
-    bool phoMatchesGen[40];
-    int nMatchingGenPhotons[40];
-    int phoMatchingGenPhotonIndex[40];
-    float deltaEOverEBest[40];
-    bool phoIsLoose[40];
-    bool phoIsMedium[40];
-    bool phoIsTight[40];
-    bool phoIsBarrel[40];
-    bool phoIsIsolatedLoose[40];
-    bool phoIsIsolatedMedium[40];
-    bool phoIsIsolatedTight[40];
-    float phoChHadIsolation[40];
-    float phoNeuHadIsolation[40];
-    float phoPhotIsolation[40];
-    PhotonNtuple->Branch("phoMatchesGen", phoMatchesGen, "phoMatchesGen[nPhotons]/O");
-    PhotonNtuple->Branch("nMatchingGenPhotons", nMatchingGenPhotons, "nMatchingGenPhotons[nPhotons]/I");
-    PhotonNtuple->Branch("phoMatchingGenPhotonIndex", phoMatchingGenPhotonIndex, "phoMatchingGenPhotonIndex[nPhotons]/I");
-    PhotonNtuple->Branch("deltaEOverEBest", deltaEOverEBest, "deltaEOverEBest[nPhotons]/F");
-    PhotonNtuple->Branch("phoIsLoose", phoIsLoose, "phoIsLoose[nPhotons]/O");
-    PhotonNtuple->Branch("phoIsMedium", phoIsMedium, "phoIsMedium[nPhotons]/O");
-    PhotonNtuple->Branch("phoIsTight", phoIsTight, "phoIsTight[nPhotons]/O");
-    PhotonNtuple->Branch("phoIsBarrel", phoIsBarrel, "phoIsBarrel[nPhotons]/O");
-    PhotonNtuple->Branch("phoIsIsolatedLoose", phoIsIsolatedLoose, "phoIsIsolatedLoose[nPhotons]/O");
-    PhotonNtuple->Branch("phoIsIsolatedMedium", phoIsIsolatedMedium, "phoIsIsolatedMedium[nPhotons]/O");
-    PhotonNtuple->Branch("phoIsIsolatedTight", phoIsIsolatedTight, "phoIsIsolatedTight[nPhotons]/O");
-    PhotonNtuple->Branch("phoChHadIsolation", phoChHadIsolation, "phoChHadIsolation[nPhotons]/F");
-    PhotonNtuple->Branch("phoNeuHadIsolation", phoNeuHadIsolation, "phoNeuHadIsolation[nPhotons]/F");
-    PhotonNtuple->Branch("phoPhotIsolation", phoPhotIsolation, "phoPhotIsolation[nPhotons]/F");
 
+    //begin loop
     if (fChain == 0) return;
-
     Long64_t nentries = fChain->GetEntriesFast();
 
     Long64_t nbytes = 0, nb = 0;
@@ -82,124 +31,256 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename)
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-        //reset tree variables
-        for(int i = 0; i < 40; i++){
-            nMatchingGenPhotons[i] = 0;
-            phoChHadIsolation[i] = -1;
-            phoNeuHadIsolation[i] = -1;
-            phoPhotIsolation[i] = -1;
-        }
-        nGenPhotons = 0;
-        for(int i = 0; i < 200; i++){
-            genPhotonPt[i] = -999;
-            genPhotonEta[i] = -999;
-            genPhotonPhi[i] = -999;
-        }
+      bool printDecay = false;
+
+      //****************************************
+      //Tree entries based on reco objects
+      //****************************************
+      if (Option < 10 ) {
+
+        //fill photon information
+        for(int i = 0; i < nPhotons; i++){
+	  //try to match photon with a gen photon
+
+	  //cout << "Photon " << i << " : " << phoPt[i] << " " << phoEta[i] << " " << phoPhi[i]<< " : " << phoSigmaIetaIeta[i] << " " << pho_HoverE[i] << " \n";
+ 
+	  //***********************
+	  //Fill Photon Variables
+	  //***********************
+	  phoTree->fWeight = 1;
+	  phoTree->fRunNumber = runNum;
+	  phoTree->fLumiSectionNumber = lumiNum;
+	  phoTree->fEventNumber = eventNum;
+	  phoTree->fPhoEventNumberParity = (eventNum % 2 == 0);
+
+	  // cout << "start ? " << bool(!phoTree->fPhoIsLoose && phoSigmaIetaIeta[i] < 0.01 && pho_HoverE[i] < 0.028) << " "
+	  //      << bool(phoSigmaIetaIeta[i] < 0.01) << " " << bool(pho_HoverE[i] < 0.028) << " \n";
+
+	  phoTree->fRho = fixedGridRhoFastjetAll;
+	  phoTree->fNVertices = nPV;
+	  phoTree->fPhoPt = phoPt[i];
+	  phoTree->fPhoEta = phoEta[i];
+	  phoTree->fPhoPhi = phoPhi[i];
+	  phoTree->fPhoSigmaIetaIeta = phoSigmaIetaIeta[i];
+	  phoTree->fPhoFull5x5SigmaIetaIeta = phoFull5x5SigmaIetaIeta[i];
+	  phoTree->fPhoR9 = phoR9[i];
+	  phoTree->fPhoHOverE = pho_HoverE[i];
+	  phoTree->fPhoChargedHadronIso = pho_sumChargedHadronPt[i];
+	  phoTree->fPhoNeutralHadronIso = pho_sumNeutralHadronEt[i];
+	  phoTree->fPhoPhotonIso = pho_sumPhotonEt[i];
+	  phoTree->fPhoIsConversion = pho_isConversion[i];
+	  phoTree->fPhoPassEleVeto = pho_passEleVeto[i];
+	  phoTree->fPhoRegressionE = pho_RegressionE[i];
+	  phoTree->fPhoRegressionSigmaE = pho_RegressionEUncertainty[i];
+	  phoTree->fPhoIDMVA = pho_IDMVA[i];
+	  phoTree->fPhoSCEta = pho_superClusterEta[i];
+	  phoTree->fPhoHasPixelSeed = pho_hasPixelSeed[i];
+
+
+	  phoTree->fPhoIsLoose = isGoodPhotonRun2( i , true, WP::Loose, false );
+	  phoTree->fPhoIsMedium = isGoodPhotonRun2( i , true, WP::Medium, false );
+	  phoTree->fPhoIsTight = isGoodPhotonRun2( i , true, WP::Tight, false );
+	  phoTree->fPhoPassLooseID = isGoodPhotonRun2( i , false, WP::Loose, false );
+	  phoTree->fPhoPassMediumID = isGoodPhotonRun2( i , false, WP::Medium, false );
+	  phoTree->fPhoPassTightID = isGoodPhotonRun2( i , false, WP::Tight, false );
+	  phoTree->fPhoPassLooseIso = photonPassIsoRun2( i, WP::Loose, false);
+	  phoTree->fPhoPassMediumIso = photonPassIsoRun2( i, WP::Medium, false);
+	  phoTree->fPhoPassTightIso = photonPassIsoRun2( i, WP::Tight, false);
+
+	  bool foundMatch = false;
+	  int phoMatchingGenPhotonIndex = -1;
+	  double deltaEOverEBest = 999;
+	  float minDRToParton = 9999;
+	  //int closestPartonIndex = -1;
+	  for(int g = 0; g < nGenParticle; g++){
+
+	    //find closest parton to photon
+	    if  ( ((abs(gParticleId[g]) >= 1 && abs(gParticleId[g]) <= 5) || abs(gParticleId[g]) == 21)
+		  && gParticleStatus[g] == 23
+		  ) {
+	      double tmpDR = deltaR( gParticleEta[g], gParticlePhi[g], phoEta[i], phoPhi[i]);
+	      if ( tmpDR < minDRToParton ) {
+		//closestPartonIndex = g;
+		minDRToParton = tmpDR;
+	      }
+	    }
+
+
+	    //Find Matching Gen Photon
+	    if(gParticleStatus[g] != 1) continue;
+	    if(gParticleId[g] != 22) continue;
+	    if(gParticleE[g] < 1.) continue;
+
+	    if(deltaR(phoEta[i], phoPhi[i], gParticleEta[g], gParticlePhi[g]) > 0.2) continue;
+	    float deltaEOverE = fabs(pho_RegressionE[i] - gParticleE[g])/gParticleE[g];
+	    if(deltaEOverE > 1.) continue;
+	    
+	    foundMatch = true;	    
+	    if(deltaEOverE < deltaEOverEBest){
+	      deltaEOverEBest = deltaEOverE;
+	      phoMatchingGenPhotonIndex = g;
+	    }
+	   
+	  }
+
+	  
+	  phoTree->fDRToClosestParton = minDRToParton;
+	  if (foundMatch) {
+	    phoTree->fMotherPdgId = gParticleMotherId[phoMatchingGenPhotonIndex];
+	    phoTree->fPhoGenE = gParticleE[phoMatchingGenPhotonIndex];
+	    phoTree->fPhoGenPt = gParticlePt[phoMatchingGenPhotonIndex];
+	    phoTree->fPhoGenEta = gParticleEta[phoMatchingGenPhotonIndex];
+	    phoTree->fPhoGenPhi = gParticlePhi[phoMatchingGenPhotonIndex];
+	  } else {
+	    phoTree->fMotherPdgId = 0;
+	    phoTree->fPhoGenE = 0;
+	    phoTree->fPhoGenPt = 0;
+	    phoTree->fPhoGenEta = 0;
+	    phoTree->fPhoGenPhi = 0;
+	  }
+        
+
+	  if (printDecay) {
+	     for(int g = 0; g < nGenParticle; g++){
+	       cout << g << " : " << gParticleId[g] << " "  << gParticleStatus[g] << " : " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " " << gParticleMotherId[g] << "\n";
+	     }
+	  }
+
+	  bool doFillPhoton = false;
+	  bool isPromptPhoton = false;
+	  if (abs(phoTree->fMotherPdgId) == 25 || ( abs(phoTree->fMotherPdgId) >= 1 && abs(phoTree->fMotherPdgId) <= 6) || 
+	      ( abs(phoTree->fMotherPdgId) >= 11 && abs(phoTree->fMotherPdgId) <= 16)) isPromptPhoton = true;
+	  
+	  if (Option == 0) {
+	    if (!isPromptPhoton) doFillPhoton = true;
+	  }
+	  if (Option == 1) {
+	    if (isPromptPhoton) doFillPhoton = true;
+	  }
+	  if (doFillPhoton) {
+
+	    // cout << "DEBUG\n";
+	    // isGoodPhotonRun2( i , true, WP::Loose, true );
+
+	    // cout << "weird ? " << bool(!phoTree->fPhoIsLoose && phoSigmaIetaIeta[i] < 0.01 && pho_HoverE[i] < 0.028) << " "
+	    // 	 << bool(phoSigmaIetaIeta[i] < 0.01) << " " << bool(pho_HoverE[i] < 0.028) << " " << phoTree->fPhoIsLoose << "\n";
+	    // if (!phoTree->fPhoIsLoose && phoSigmaIetaIeta[i] < 0.01 && pho_HoverE[i] < 0.028) {
+	    //   cout << runNum << " " << eventNum << "\n";
+	      
+	    //   cout << "check: " << phoTree->fPhoSigmaIetaIeta << " " << phoTree->fPhoHOverE << "\n";
+	    // }
+	    	    
+	    NPhotonsFilled++;	     	    
+	    phoTree->tree_->Fill();
+	  }
+	}
+      }
+      
+      //********************************************
+      //Tree entries based on gen-level objects
+      //********************************************
+      else if (Option >= 10 && Option < 20) {
 
         //select gen photons
         for(int g = 0; g < nGenParticle; g++){
            if(gParticleStatus[g] != 1) continue;
            if(gParticleId[g] != 22) continue;
-           if(gParticleE[g] < 1.) continue;
+           if(gParticlePt[g] < 5.) continue;
            
-           //check if this particle is descended from a Higgs
-           bool isFromHiggs = false;
-           int mothIndex = gParticleMotherIndex[g];
-           while(gParticleMotherIndex[mothIndex] >= 0){
-               if(gParticleId[mothIndex] == 25){ //if it's a Higgs 
-                   isFromHiggs = true;
-                   break;
-               }
-               mothIndex = gParticleMotherIndex[mothIndex];
-           }
-           //require photon to descend from a Higgs
-           if(!isFromHiggs) continue;
+	   if( abs(gParticleMotherId[g]) == 25 || abs(gParticleMotherId[g]) == 24 || ( abs(gParticleMotherId[g]) >= 1 && abs(gParticleMotherId[g]) <= 5) 
+	       || ( abs(gParticleMotherId[g]) >= 11 && abs(gParticleMotherId[g]) <= 16)
+	       ) {
 
-           //fill gen photon info
-           genPhotonPt[nGenPhotons] = gParticlePt[g];
-           genPhotonEta[nGenPhotons] = gParticleEta[g];
-           genPhotonPhi[nGenPhotons] = gParticlePhi[g];
-           genPhotonE[nGenPhotons] = gParticleE[g];
-           nGenPhotons++;
+	     phoTree->fWeight = 1;
+	     phoTree->fRunNumber = runNum;
+	     phoTree->fLumiSectionNumber = lumiNum;
+	     phoTree->fEventNumber = eventNum;
+	     phoTree->fPhoEventNumberParity = (eventNum % 2 == 0);
+	     phoTree->fRho = fixedGridRhoFastjetAll;
+	     phoTree->fNVertices = nPV;
+	     
+	     phoTree->fMotherPdgId = gParticleMotherId[g];
+	     phoTree->fPhoGenE = gParticleE[g];
+	     phoTree->fPhoGenPt = gParticlePt[g];
+	     phoTree->fPhoGenEta = gParticleEta[g];
+	     phoTree->fPhoGenPhi = gParticlePhi[g];
+
+	     //Find Closest Parton
+	     float minDRToParton = 9999;
+	     for(int j = 0; j < nGenParticle; j++){	      
+	       //only look for outgoing partons
+	       if  (!( ((abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21) 
+		       && gParticleStatus[j] == 23)
+		    ) continue;	       
+	       double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], gParticleEta[g], gParticlePhi[g]);
+	       if ( tmpDR < minDRToParton ) minDRToParton = tmpDR;
+	     }
+	     phoTree->fDRToClosestParton = minDRToParton;
+	     
+	     //Find Associated Reco Photon
+	     int matchedIndex = -1;
+	     double deltaEOverEBest = 999;
+
+	     for(int j = 0; j < nPhotons; j++){
+	       float deltaEOverE = fabs(pho_RegressionE[j] - gParticleE[g])/gParticleE[g];
+	       if(deltaEOverE > 1.) continue;
+	       if ( deltaR( phoEta[j], phoPhi[j], gParticleEta[g], gParticlePhi[g]) < 0.1
+		    && deltaEOverE < deltaEOverEBest
+		    ) {		
+		 matchedIndex = j;
+		 deltaEOverEBest = deltaEOverE;
+	       }
+	     } 
+	     
+	     if (matchedIndex > -1) {
+	       phoTree->fPhoPt = phoPt[matchedIndex];
+	       phoTree->fPhoEta = phoEta[matchedIndex];
+	       phoTree->fPhoPhi = phoPhi[matchedIndex];
+	       phoTree->fPhoSigmaIetaIeta = phoSigmaIetaIeta[matchedIndex];
+	       phoTree->fPhoFull5x5SigmaIetaIeta = phoFull5x5SigmaIetaIeta[matchedIndex];
+	       phoTree->fPhoR9 = phoR9[matchedIndex];
+	       phoTree->fPhoHOverE = pho_HoverE[matchedIndex];
+	       phoTree->fPhoChargedHadronIso = pho_sumChargedHadronPt[matchedIndex];
+	       phoTree->fPhoNeutralHadronIso = pho_sumNeutralHadronEt[matchedIndex];
+	       phoTree->fPhoPhotonIso = pho_sumPhotonEt[matchedIndex];
+	       phoTree->fPhoIsConversion = pho_isConversion[matchedIndex];
+	       phoTree->fPhoPassEleVeto = pho_passEleVeto[matchedIndex];
+	       phoTree->fPhoRegressionE = pho_RegressionE[matchedIndex];
+	       phoTree->fPhoRegressionSigmaE = pho_RegressionEUncertainty[matchedIndex];
+	       phoTree->fPhoIDMVA = pho_IDMVA[matchedIndex];
+	       phoTree->fPhoSCEta = pho_superClusterEta[matchedIndex];
+	       phoTree->fPhoHasPixelSeed = pho_hasPixelSeed[matchedIndex];
+	       phoTree->fPhoIsLoose = isGoodPhotonRun2( matchedIndex , true, WP::Loose, false );
+	       phoTree->fPhoIsMedium = isGoodPhotonRun2( matchedIndex , true, WP::Medium, false );
+	       phoTree->fPhoIsTight = isGoodPhotonRun2( matchedIndex , true, WP::Tight, false );
+	       phoTree->fPhoPassLooseID = isGoodPhotonRun2( matchedIndex , false, WP::Loose, false );
+	       phoTree->fPhoPassMediumID = isGoodPhotonRun2( matchedIndex , false, WP::Medium, false );
+	       phoTree->fPhoPassTightID = isGoodPhotonRun2( matchedIndex , false, WP::Tight, false );
+	       phoTree->fPhoPassLooseIso = photonPassIsoRun2( matchedIndex, WP::Loose, false);
+	       phoTree->fPhoPassMediumIso = photonPassIsoRun2( matchedIndex, WP::Medium, false);
+	       phoTree->fPhoPassTightIso = photonPassIsoRun2( matchedIndex, WP::Tight, false);
+	     }
+
+	     bool doFillPhoton = false;
+	     bool isPromptPhoton = false;
+	     if (abs(phoTree->fMotherPdgId) == 25 || ( abs(phoTree->fMotherPdgId) >= 1 && abs(phoTree->fMotherPdgId) <= 6) || 
+		 ( abs(phoTree->fMotherPdgId) >= 11 && abs(phoTree->fMotherPdgId) <= 16)) isPromptPhoton = true;
+	     
+	     if (isPromptPhoton) doFillPhoton = true;
+	     
+	     if (doFillPhoton) {
+	       NPhotonsFilled++;	     	    
+	       phoTree->tree_->Fill();
+	     }
+	   }        
         }
+      } 
 
-        //fill photon information
-        for(int i = 0; i < nPhotons; i++){
-            //try to match photon with a gen photon
-            phoMatchesGen[i] = false;
-            phoMatchingGenPhotonIndex[i] = -1;
-            deltaEOverEBest[i] = 999;
-            for(int g = 0; g < nGenPhotons; g++){
-                if(deltaR(phoEta[i], phoPhi[i], genPhotonEta[g], genPhotonPhi[g]) > 0.2) continue;
-                float deltaEOverE = fabs(pho_RegressionE[i] - genPhotonE[g])/genPhotonE[g];
-                if(deltaEOverE > 1.) continue;
-
-                phoMatchesGen[i] = true;
-                nMatchingGenPhotons[i]++;
-
-                if(deltaEOverE < deltaEOverEBest[i]){
-                    deltaEOverEBest[i] = deltaEOverE;
-                    phoMatchingGenPhotonIndex[i] = g;
-                }
-            }
-
-            phoIsLoose[i] = isLoosePhoton(i);
-            phoIsMedium[i] = isMediumPhoton(i);
-            phoIsTight[i] = isTightPhoton(i);
-            if(fabs(pho_superClusterEta[i]) < 1.479) phoIsBarrel[i] = true;
-            else phoIsBarrel[i] = false;
-
-            phoIsIsolatedLoose[i] = photonPassesLooseIsoCuts(i);
-            phoIsIsolatedMedium[i] = photonPassesMediumIsoCuts(i);
-            phoIsIsolatedTight[i] = photonPassesTightIsoCuts(i);
-
-            //get effective area for isolation calculations
-            double effAreaChargedHadrons = 0.0;
-            double effAreaNeutralHadrons = 0.0;
-            double effAreaPhotons = 0.0;
-            if(fabs(pho_superClusterEta[i]) < 1.0){
-                effAreaChargedHadrons = 0.0080;
-                effAreaNeutralHadrons = 0.0126;
-                effAreaPhotons = 0.0982;
-            }
-            else if(fabs(pho_superClusterEta[i]) < 1.479){
-                effAreaChargedHadrons = 0.0079;
-                effAreaNeutralHadrons = 0.0237;
-                effAreaPhotons = 0.0857;
-            }
-            else if(fabs(pho_superClusterEta[i]) < 2.0){
-                effAreaChargedHadrons = 0.0080;
-                effAreaNeutralHadrons = 0.0;
-                effAreaPhotons = 0.0484;
-            }
-            else if(fabs(pho_superClusterEta[i]) < 2.2){
-                effAreaChargedHadrons = 0.0048;
-                effAreaNeutralHadrons = 0.0;
-                effAreaPhotons = 0.0668;
-            }
-            else if(fabs(pho_superClusterEta[i]) < 2.3){
-                effAreaChargedHadrons = 0.0029;
-                effAreaNeutralHadrons = 0.0;
-                effAreaPhotons = 0.0868;
-            }
-            else if(fabs(pho_superClusterEta[i]) < 2.4){
-                effAreaChargedHadrons = 0.0036;
-                effAreaNeutralHadrons = 0.0;
-                effAreaPhotons = 0.0982;
-            }
-            else{
-                effAreaChargedHadrons = 0.0016;
-                effAreaNeutralHadrons = 0.0769;
-                effAreaPhotons = 0.1337;
-            }
-
-            //compute isolation quantities
-            phoChHadIsolation[i] = max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
-            phoNeuHadIsolation[i] = max(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
-            phoPhotIsolation[i] = max(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
-        }
-        PhotonNtuple->Fill();
-    }
-    PhotonNtuple->Write();
-    outFile.Close();
+    } // loop over events 
+    
+    cout << "Filled Total of " << NPhotonsFilled << " Photons\n";
+    cout << "Writing output trees..." << endl;
+    outFile->Write();
+    outFile->Close();
+    
 }

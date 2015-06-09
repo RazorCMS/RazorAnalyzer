@@ -199,7 +199,7 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
-    parser.add_option('-l','--lumi',dest="lumi", default=4000.,type="float",
+    parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
@@ -275,8 +275,15 @@ if __name__ == '__main__':
     sigTH1.Scale(lumi/lumi_in)
     sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
     rootTools.Utils.importToWS(w,sigDataHist)
-            
-    outFile = 'razor_combine_%s_%s_lumi-%.1f_%s.root'%(model,massPoint,lumi/1000.,box)
+
+    
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    btagMin = z[0]
+    btagMax = z[-1]        
+    if btagMax>btagMin+1:            
+        outFile = 'razor_combine_%s_%s_lumi-%.1f_%i-%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,btagMax-1,box)
+    else:
+        outFile = 'razor_combine_%s_%s_lumi-%.1f_%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,box)
     
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     w.Write()

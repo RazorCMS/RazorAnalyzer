@@ -71,15 +71,8 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   //*******************************************************************************************
   //Define Histograms
   //*******************************************************************************************
-  TH1F* histMRAllBkg =  new TH1F( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 3000);
-  TH1F* histRsqAllBkg =  new TH1F( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 1.5);
-  TH1F* histMRAllBkg_AfterDPhiCut =  new TH1F("MRAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 3000);
-  TH1F* histRsqAllBkg_AfterDPhiCut =  new TH1F( "RsqAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 1.5);
-  histMRAllBkg->SetStats(false);
-  histMRAllBkg_AfterDPhiCut->SetStats(false);
-  histRsqAllBkg->SetStats(false);
-  histRsqAllBkg_AfterDPhiCut->SetStats(false);
-  
+  vector<double> EventCount;
+  vector<double> EventCountErrSqr;
 
   vector<TH1F*> histMR;
   vector<TH1F*> histRsq;
@@ -88,6 +81,9 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
   assert (inputfiles.size() == processLabels.size());
   for (int i=0; i < inputfiles.size(); ++i) {    
+    EventCount.push_back(0);
+    EventCountErrSqr.push_back(0);
+
     histMR.push_back( new TH1F( Form("MR_%s",processLabels[i].c_str()), ";M_{R} [GeV/c^{2}];Number of Events", 25, 0, 3000));
     if (!hasSignal || i != 0) histMR[i]->SetFillColor(color[i]);
     if (hasSignal && i==0) histMR[i]->SetLineWidth(3);
@@ -118,7 +114,6 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   //*******************************************************************************************
   //Define Counts
   //*******************************************************************************************
-
 
 
   //*******************************************************************************************
@@ -171,17 +166,15 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
       //apply baseline cuts
       if (!(MR > 200 && Rsq > 0.02)) continue;
 
-      if (!hasSignal || i>0) {
-	histMRAllBkg->Fill(MR, intLumi*weight);
-	histRsqAllBkg->Fill(Rsq, intLumi*weight);
-	histMRAllBkg_AfterDPhiCut->Fill(MR, intLumi*weight);
-	histRsqAllBkg_AfterDPhiCut->Fill(Rsq, intLumi*weight);	
-      }
 
-      if ( Rsq > 0.035 && MR > 350 && ptbb < 120  ) {
+      if ( Rsq > 0.035 && MR > 350 
+	   && ptbb < 110  
+	   ) {
 	histDPhiRazor[i]->Fill(dPhiRazor, intLumi*weight);		
 	histMbb[i]->Fill(mbb, intLumi*weight);
 	if (mbb > 115 && mbb < 135) {
+	  EventCount[i] += intLumi*weight;
+	  EventCountErrSqr[i] += pow(intLumi*weight,2);	
 	  histRsq[i]->Fill(Rsq, intLumi*weight);	  
 	  histMR[i]->Fill(MR, intLumi*weight);
 	}
@@ -205,6 +198,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
       double mr = random->Landau(400,50);
       histMbb[0]->Fill(m, NSignal/10000.0);
       if (m > 115 && m < 135) {
+	EventCount[0] += NSignal/10000.0;
 	histMR[0]->Fill(mr, NSignal/10000.0);
       }
     }
@@ -305,6 +299,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
       }
       cout << processLabels[i] << " : " << histMbb[i]->GetSumOfWeights() << " +/- " << intError << "\n";
       if ( histMbb[i]->Integral() > 0) {
+	if (i!=0) histMbb[i]->Smooth();
   	stackMbb->Add(histMbb[i]);
       }
     }    
@@ -353,165 +348,13 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
  
 
-
-
-  // //*******************************************************************************************
-  // //Rsq
-  // //*******************************************************************************************
-  // cv = new TCanvas("cv","cv", 800,600);
-  // legend = new TLegend(0.60,0.54,0.90,0.84);
-  // legend->SetTextSize(0.03);
-  // legend->SetBorderSize(0);
-  // legend->SetFillStyle(0);
-
-  // THStack *stackRsq = new THStack();
-
-  // if (hasSignal) {
-  //   for (Int_t i = histRsq.size()-1; i >= 1; i--) {
-  //     cout << processLabels[i] << " : " << histRsq[i]->GetSumOfWeights() << "\n";
-  //     if ( histRsq[i]->Integral() > 0) {
-  // 	stackRsq->Add(histRsq[i]);
-  //     }
-  //   }    
-  // } else {
-  //   for (Int_t i = histRsq.size()-1; i >= 0; i--) {
-  //     cout << processLabels[i] << " : " << histRsq[i]->GetSumOfWeights() << "\n";
-  //     if ( histRsq[i]->Integral() > 0) {
-  // 	stackRsq->Add(histRsq[i]);
-  //     }
-  //   }
-  // }
-  // for (Int_t i = 0 ; i < int(histRsq.size()); ++i) {
-  //   if (hasSignal && i==0) {
-  //     legend->AddEntry(histRsq[i],processLabels[i].c_str(), "L");
-  //   } else {
-  //     legend->AddEntry(histRsq[i],processLabels[i].c_str(), "F");
-  //   }
-  // }
-  
-
-  // stackRsq->Draw();
-  // stackRsq->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackRsq->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackRsq->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackRsq->GetHists()->At(0)))->GetYaxis()->GetTitle());
-
-  // if (hasSignal) {
-  //   histRsq[0]->Draw("sameL");
-  // }
-
-  // legend->Draw();
-  // cv->SaveAs(Form("Rsq%s.gif",Label.c_str()));
-
- 
-
-  // //*******************************************************************************************
-  // //DPhiRazor
-  // //*******************************************************************************************
-  // cv = new TCanvas("cv","cv", 800,600);
-  // legend = new TLegend(0.15,0.54,0.65,0.84);
-  // legend->SetTextSize(0.03);
-  // legend->SetBorderSize(0);
-  // legend->SetFillStyle(0);
-
-  // THStack *stackDPhiRazor = new THStack();
-
-  // if (hasSignal) {
-  //   for (Int_t i = histDPhiRazor.size()-1; i >= 1; i--) {
-  //     cout << processLabels[i] << " : " << histDPhiRazor[i]->GetSumOfWeights() << "\n";
-  //     if ( histDPhiRazor[i]->Integral() > 0) {
-  // 	stackDPhiRazor->Add(histDPhiRazor[i]);
-  //     }
-  //   }    
-  // } else {
-  //   for (Int_t i = histDPhiRazor.size()-1; i >= 0; i--) {
-  //     cout << processLabels[i] << " : " << histDPhiRazor[i]->GetSumOfWeights() << "\n";
-  //     if ( histDPhiRazor[i]->Integral() > 0) {
-  // 	stackDPhiRazor->Add(histDPhiRazor[i]);
-  //     }
-  //   }
-  // }
-  // for (Int_t i = 0 ; i < int(histDPhiRazor.size()); ++i) {
-  //   if (hasSignal && i==0) {
-  //     legend->AddEntry(histDPhiRazor[i],processLabels[i].c_str(), "L");
-  //   } else {
-  //     legend->AddEntry(histDPhiRazor[i],processLabels[i].c_str(), "F");
-  //   }
-  // }
-  
-
-  // stackDPhiRazor->Draw();
-  // stackDPhiRazor->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackDPhiRazor->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  // stackDPhiRazor->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackDPhiRazor->GetHists()->At(0)))->GetYaxis()->GetTitle());
-  // stackDPhiRazor->GetHistogram()->GetYaxis()->SetTitleOffset(1.35);
-
-  // if (hasSignal) {
-  //   histDPhiRazor[0]->Draw("sameL");
-  // }
-
-  // legend->Draw();
-  // cv->SaveAs(Form("DPhiRazor%s.gif",Label.c_str()));
-
- 
-  // //*******************************************************************************************
-  // //MR Before and After DPhi Cut
-  // //*******************************************************************************************
-  // cv = new TCanvas("cv","cv", 800,600);
-  // legend = new TLegend(0.50,0.54,0.90,0.84);
-  // legend->SetTextSize(0.03);
-  // legend->SetBorderSize(0);
-  // legend->SetFillStyle(0);
-
-  // histMRAllBkg = NormalizeHist(histMRAllBkg);
-  // histMRAllBkg_AfterDPhiCut = NormalizeHist(histMRAllBkg_AfterDPhiCut);
-
-  // histMRAllBkg->SetLineColor(kBlue);
-  // histMRAllBkg_AfterDPhiCut->SetLineColor(kRed);
-  // histMRAllBkg->GetYaxis()->SetTitle("Fraction of Events");
-  // histMRAllBkg->GetYaxis()->SetTitleOffset(1.2);
-  // histMRAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
-
-  // legend->AddEntry(histMRAllBkg, "No #Delta#phi_{Razor} cut", "L");
-  // legend->AddEntry(histMRAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.7 cut", "L");
-
-  // histMRAllBkg->Draw("hist");
-  // histMRAllBkg_AfterDPhiCut->Draw("histsame");
-
-  // legend->Draw();
-  // cv->SetLogy();
-  // cv->SaveAs(Form("MRBeforeAfterDPhiCut.gif",Label.c_str()));
-
-  // //*******************************************************************************************
-  // //Rsq Before and After DPhi Cut
-  // //*******************************************************************************************
-  // cv = new TCanvas("cv","cv", 800,600);
-  // legend = new TLegend(0.50,0.54,0.90,0.84);
-  // legend->SetTextSize(0.03);
-  // legend->SetBorderSize(0);
-  // legend->SetFillStyle(0);
-
-  // histRsqAllBkg = NormalizeHist(histRsqAllBkg);
-  // histRsqAllBkg_AfterDPhiCut = NormalizeHist(histRsqAllBkg_AfterDPhiCut);
-
-  // histRsqAllBkg->SetLineColor(kBlue);
-  // histRsqAllBkg_AfterDPhiCut->SetLineColor(kRed);
-  // histRsqAllBkg->GetYaxis()->SetTitle("Fraction of Events");
-  // histRsqAllBkg->GetYaxis()->SetTitleOffset(1.2);
-  // histRsqAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
-
-  // legend->AddEntry(histRsqAllBkg, "No #Delta#phi_{Razor} cut", "L");
-  // legend->AddEntry(histRsqAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.7 cut", "L");
-
-  // histRsqAllBkg->Draw("hist");
-  // histRsqAllBkg_AfterDPhiCut->Draw("histsame");
-
-  // legend->Draw();
-  // cv->SetLogy();
-  // cv->SaveAs(Form("RsqBeforeAfterDPhiCut.gif",Label.c_str()));
-
-
-  //*******************************************************************************************
+   //*******************************************************************************************
   //Summarize Counts
   //*******************************************************************************************
- 
+  for(int i=0; i<int(processLabels.size()); i++) {
+    cout << processLabels[i] << " : " << EventCount[i] << " +/- " << sqrt(EventCountErrSqr[i]) << "\n";
+  }
+
    //--------------------------------------------------------------------------------------------------------------
   // Output
   //==============================================================================================================
@@ -563,7 +406,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgLabels.push_back("SingleTop");
    bkgLabels.push_back("Other");
 
-   RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"MR350Rsq0p035_CSVT","H#rightarrowbb Razor");
+   RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"MR350Rsq0p035PT110_CSVT","H#rightarrowbb Razor");
    
  
  }

@@ -72,7 +72,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 
   //I n i t i a l i z i n g   E f f e c t i v e   A r e a   A r r a y; 
   //------------------------------------------------------------------
-  InitEffArea( );
+  //InitEffArea( ); //not needed anymore
   
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");

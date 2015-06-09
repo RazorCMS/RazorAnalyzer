@@ -57,7 +57,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
 	virtual void TauNtupler(string outputfilename = "", int Option = -1);
 	virtual void JetNtupler(string outputfilename = "", int Option = -1);
-        virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root");
+        virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root", int Option = -1); 
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false, bool isRunOne = false);
@@ -134,9 +134,10 @@ class RazorAnalyzer: public RazorEvents {
 	//----------------------------------
 	bool isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug );
 	bool photonPassIsoRun2( int i, WP wp ,bool _debug );
-	
-        //functions in RazorAuxJet.cc
-	
+	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+
+
+        //functions in RazorAuxJet.cc     
         bool isOldCSVL(int i);
         bool isOldCSVM(int i);
         bool isOldCSVT(int i);
