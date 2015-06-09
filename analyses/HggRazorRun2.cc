@@ -42,7 +42,7 @@ struct evt
 };
 
 #define _phodebug 0
-#define _debug    0
+#define _debug    1
 #define _info     1
 
 void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
@@ -66,7 +66,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
-  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
+  //correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
 
@@ -636,7 +636,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     MET = metPt;
     t1MET = metType0Plus1Pt;
     //if MR < 200, reject the event
-    if ( theMR < 150.0 )
+    if ( theMR < 0.0 )
       {
 	if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
 	for ( auto& jet : JetsPlusHiggsCandidate )
