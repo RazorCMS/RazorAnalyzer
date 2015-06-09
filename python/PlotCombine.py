@@ -38,7 +38,8 @@ if __name__ == '__main__':
     mGluino = options.mGluino
     mLSP = options.mLSP
     mStop = options.mStop
-
+    btag = "0-3btag"
+    
     thyXsec = -1
     thyXsecErr = -1
     
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     
     if signif:
         for lumi in lumiArray:
-            tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s.ProfileLikelihood.mH120.root'%(inDir,model,massPoint,lumi,box))
+            tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%.1f_%s_%s.ProfileLikelihood.mH120.root'%(inDir,model,massPoint,lumi,btag,box))
             
             limit = tfile.Get('limit')
             limit.Draw('>>elist','','entrylist')
@@ -89,7 +90,7 @@ if __name__ == '__main__':
         
         for lumi in lumiArray:
 
-            tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s.Asymptotic.mH120.root'%(inDir,model,massPoint,lumi,box))
+            tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s_%s.Asymptotic.mH120.root'%(inDir,model,massPoint,lumi,btag,box))
 
             limit = tfile.Get('limit')
             limit.Draw('>>elist','','entrylist')

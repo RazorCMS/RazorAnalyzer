@@ -61,9 +61,9 @@ if __name__ == '__main__':
             signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root'%(lumi,btag,box)           
             if not glob.glob(signalDsName):
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(cfg,box,model,massPoint),options.dryRun)
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(cfg,box,1000.*lumi,model,massPoint),options.dryRun)
             if not glob.glob(backgroundDsName):
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(cfg,box),options.dryRun)
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w -q Backgrounds/*.root'%(cfg,box,1000.*lumi),options.dryRun)
                 exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(cfg,box,lumi,btag,box),options.dryRun)
             exec_me('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s'%(1000*lumi,cfg,box,options.outDir,fit,signalDsName,backgroundDsName),options.dryRun)
             
