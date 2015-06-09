@@ -5,6 +5,10 @@ from array import *
 import sys
 import glob
 
+def exec_me(command,dryRun=True):
+    print command
+    if not dryRun: os.system(command)
+
 if __name__ == '__main__':
 
     parser = OptionParser()
@@ -28,6 +32,8 @@ if __name__ == '__main__':
                   help="Output directory to store cards")
     parser.add_option('--fit',dest="fit",default=False,action='store_true',
                   help="Turn on pre-fit")
+    parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
+                  help="Just print out commands to run")
 
     (options,args) = parser.parse_args()
 
@@ -55,28 +61,28 @@ if __name__ == '__main__':
             signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root'%(lumi,btag,box)           
             if not glob.glob(signalDsName):
-                os.system('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(cfg,box,model,massPoint))
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(cfg,box,model,massPoint),options.dryRun)
             if not glob.glob(backgroundDsName):
-                os.system('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(cfg,box))
-                os.system('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(cfg,box,lumi,btag,box))
-            os.system('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s'%(1000*lumi,cfg,box,options.outDir,fit,signalDsName,backgroundDsName))
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(cfg,box),options.dryRun)
+                exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(cfg,box,lumi,btag,box),options.dryRun)
+            exec_me('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s'%(1000*lumi,cfg,box,options.outDir,fit,signalDsName,backgroundDsName),options.dryRun)
             
             if signif:
-                os.system('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box))
-                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir))
+                exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
+                exec_me('mv higgsCombine%s_%s_lumi-%.1f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir),options.dryRun)
             else:
-                os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,btag,box))
-                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir))
+                exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt -n %s_%s_lumi-%.1f_%s_%s'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box),options.dryRun)
+                exec_me('mv higgsCombine%s_%s_lumi-%.1f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)
         if len(boxes)>1:
-            for box in boxes: os.system('cp %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt .'%(options.outDir,model,massPoint,lumi,btag,box))
+            for box in boxes: exec_me('cp %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt .'%(options.outDir,model,massPoint,lumi,btag,box),options.dryRun)
             cmds = ['%s=razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(box,model,massPoint,lumi,btag,box) for box in boxes]
-            os.system('combineCards.py %s > %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(' '.join(cmds),options.outDir,model,massPoint,lumi,btag,options.box))
-            os.system('cat %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(options.outDir,model,massPoint,lumi,btag_options.box))
+            exec_me('combineCards.py %s > %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(' '.join(cmds),options.outDir,model,massPoint,lumi,btag,options.box),options.dryRun)
+            exec_me('cat %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(options.outDir,model,massPoint,lumi,btag,options.box),options.dryRun)
             if signif:
-                os.system('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,btag,options.box))
-                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir))
+                exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,btag,options.box),options.dryRun)
+                exec_me('mv higgsCombine%s_%s_lumi-%.1f_%s_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir),options.dryRun)
             else:
-                os.system('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,btag,options.box))
-                os.system('mv higgsCombine%s_%s_lumi-%.1f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir))
-            for box in boxes: os.system('rm razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(model,massPoint,lumi,btag,box))
+                exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.1f_%s_%s.txt -n %s_%s_lumi-%.1f_%s_%s'%(options.outDir,model,massPoint,lumi,btag,options.box,model,massPoint,lumi,btag,options.box),options.dryRun)
+                exec_me('mv higgsCombine%s_%s_lumi-%.1f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir),options.dryRun)
+            for box in boxes: exec_me('rm razor_combine_%s_%s_lumi-%.1f_%s_%s.txt'%(model,massPoint,lumi,btag,box),options.dryRun)
  
