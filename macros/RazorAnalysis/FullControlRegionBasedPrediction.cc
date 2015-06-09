@@ -21,8 +21,10 @@ using namespace std;
 //define MR and Rsq binning
 //int NMRBINS = 10;
 //float MRBINLOWEDGES[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
-int NMRBINS = 18;
-float MRBINLOWEDGES[] = {300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200};
+int NMRBINS = 20;
+float MRBINLOWEDGES[] = {200, 230, 260, 290, 320, 350, 380, 410, 440, 470, 500, 530, 560, 590, 620, 650, 680, 710, 740, 770, 800};
+//int NMRBINS = 20;
+//float MRBINLOWEDGES[] = {200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200};
 int NRSQBINS = 8;
 float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 
@@ -33,9 +35,13 @@ void FullControlRegionBasedPrediction(){
     bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
     gROOT->SetBatch();
 
-    bool doDPhiRazorCut = true;
-    //bool doDPhiRazorCut = false;
+    //bool doDPhiRazorCut = true;
+    bool doDPhiRazorCut = false;
     float dPhiRazorCut = 2.7; //cut on the angle between the two razor hemispheres
+
+    bool doMetCut = true;
+    //bool doMetCut = false;
+    float metCut = 30;
 
     //set color palette 
     const Int_t NCont = 101;
@@ -52,12 +58,12 @@ void FullControlRegionBasedPrediction(){
     string mcPrefix = "";
     if(doMiscCorrections){
         //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
-        mcPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/MC_WithCorrectionFactors/";//location of MC ntuples
+        mcPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_WithCorrectionFactors"; //location of MC ntuples
     }
     else{
-        mcPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
+        mcPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
     }
-    string dataPrefix = "eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/done/Data/"; //location of data ntuples
+    string dataPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/Data"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
     mcfiles["DYJets"] = new TFile(Form("%s/RazorInclusive_DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
@@ -78,7 +84,7 @@ void FullControlRegionBasedPrediction(){
     map<string, TTree*> mctrees;
     TTree *datatree;
     float weight;
-    float MR, Rsq, dPhiRazor;
+    float MR, Rsq, dPhiRazor, met;
     int nBTaggedJets, nSelectedJets, box;
     for(auto &file : mcfiles){
         mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
@@ -90,6 +96,7 @@ void FullControlRegionBasedPrediction(){
         mctrees[file.first]->SetBranchStatus("dPhiRazor", 1);
         mctrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
         mctrees[file.first]->SetBranchStatus("nSelectedJets", 1);
+        mctrees[file.first]->SetBranchStatus("met", 1);
 
         mctrees[file.first]->SetBranchAddress("weight", &weight);
         mctrees[file.first]->SetBranchAddress("box", &box);
@@ -98,6 +105,7 @@ void FullControlRegionBasedPrediction(){
         mctrees[file.first]->SetBranchAddress("dPhiRazor", &dPhiRazor);
         mctrees[file.first]->SetBranchAddress("nBTaggedJets", &nBTaggedJets);
         mctrees[file.first]->SetBranchAddress("nSelectedJets", &nSelectedJets);
+        mctrees[file.first]->SetBranchAddress("met", &met);
     }
     datatree = (TTree*)datafile->Get("RazorInclusive");
     datatree->SetBranchStatus("*", 0);
@@ -107,13 +115,14 @@ void FullControlRegionBasedPrediction(){
     datatree->SetBranchStatus("dPhiRazor", 1);
     datatree->SetBranchStatus("nBTaggedJets", 1);
     datatree->SetBranchStatus("nSelectedJets", 1);
+    datatree->SetBranchStatus("met", 1);
 
     datatree->SetBranchAddress("box", &box);
     datatree->SetBranchAddress("MR", &MR);
     datatree->SetBranchAddress("Rsq", &Rsq);
     datatree->SetBranchAddress("dPhiRazor", &dPhiRazor);
     datatree->SetBranchAddress("nBTaggedJets", &nBTaggedJets);
-    datatree->SetBranchAddress("nSelectedJets", &nSelectedJets);
+    datatree->SetBranchAddress("met", &met);
 
     //load TTbar scale factor histograms
     TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
@@ -229,9 +238,11 @@ void FullControlRegionBasedPrediction(){
                 if(nBTaggedJets < minNBTags) continue;
 
                 //cut on MR and Rsq
-                if(MR < 300 || Rsq < 0.15) continue;
+                if(MR < 200 || Rsq < 0.15) continue;
                 //cut on dPhiRazor
                 if(doDPhiRazorCut && fabs(dPhiRazor) > dPhiRazorCut) continue;
+                //cut on met
+                if(doMetCut && met < metCut) continue;
 
                 float eventWeight = weight*lumiInData*1.0/lumiInMC;
                 float sysErrorSquared = 0.0;
@@ -417,9 +428,11 @@ void FullControlRegionBasedPrediction(){
             if(nBTaggedJets < minNBTags) continue;
 
             //cut on MR and Rsq
-            if(MR < 300 || Rsq < 0.15) continue;
+            if(MR < 200 || Rsq < 0.15) continue;
             //cut on dPhiRazor
             if(doDPhiRazorCut && fabs(dPhiRazor) > dPhiRazorCut) continue;
+            //cut on met
+            if(doMetCut && met < metCut) continue;
 
             float eventWeight = 1.0;
 
@@ -579,11 +592,11 @@ void FullControlRegionBasedPrediction(){
         }
         for(int i = 0; i < NMRBINS; i++){
             map<string, TH1F*> ThisMRSliceMCMap;    
-            TH1F *ThisMRSliceData = (TH1F*)razorData.ProjectionX(Form("ThisMRSliceData%d%s", i, boxNames[iBox].c_str()), i+1, i+1);
+            TH1F *ThisMRSliceData = (TH1F*)razorData.ProjectionY(Form("ThisMRSliceData%d%s", i, boxNames[iBox].c_str()), i+1, i+1);
             THStack *ThisMRSliceMC = new THStack("ThisMRSliceMC", Form("Rsq (MR > %.0f), %s Box", MRBINLOWEDGES[i], boxNames[iBox].c_str()));
             for(auto &hist : razorHistosMC){
                 TH1F *thisHist;
-                thisHist = (TH1F*)hist.second.ProjectionX(Form("hist%s%d%s", hist.first.c_str(), i, boxNames[iBox].c_str()), i+1, i+1);
+                thisHist = (TH1F*)hist.second.ProjectionY(Form("hist%s%d%s", hist.first.c_str(), i, boxNames[iBox].c_str()), i+1, i+1);
                 thisHist->SetFillColor(RsqHistosMC[hist.first].GetFillColor());
                 ThisMRSliceMCMap[hist.first] = thisHist;
             }
