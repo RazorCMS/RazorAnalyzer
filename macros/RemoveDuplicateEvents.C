@@ -34,13 +34,13 @@ void RemoveDuplicateEvents( string inputfile, string outputfile) {
   //create output file
   TFile *outputFile = new TFile(outputfile.c_str(), "RECREATE");
 
-  //loop over all TTrees in the file and add the weight branch to each of them
+  //loop over all TTrees in the file
   TFile inputFile(inputfile.c_str(), "READ");
   inputFile.cd();
   inputFile.Purge(); //purge unwanted TTree cycles in file
   TIter nextkey(inputFile.GetListOfKeys());
   TKey *key;
-  cout << "here1\n";
+  //cout << "here1\n";
   while((key = (TKey*)nextkey())){
     string className = key->GetClassName();
     cout << "Getting key from file.  Class type: " << className << endl;
@@ -52,7 +52,7 @@ void RemoveDuplicateEvents( string inputfile, string outputfile) {
     TTree *inputTree = (TTree*)key->ReadObj();
     cout << "Processing tree " << inputTree->GetName() << endl;
 
-    //create new normalized tree
+    //create new tree
     outputFile->cd();
     TTree *outputTree = inputTree->CloneTree(0);  
     cout << "Events in the ntuple: " << inputTree->GetEntries() << endl;
@@ -62,20 +62,18 @@ void RemoveDuplicateEvents( string inputfile, string outputfile) {
     inputTree->SetBranchAddress("run", &run);
     inputTree->SetBranchAddress("event", &event);
 	    
-    vector<pair<uint,uint> > processedRunEventList;
-
+    map<pair<uint,uint>, bool > processedRunEvents;
     for (int n=0;n<inputTree->GetEntries();n++) { 
       if (n%1000000==0) cout << "Processed Event " << n << "\n";
       inputTree->GetEntry(n);
 
-      bool isDuplicate = false;
-      for( int i=0; i < int(processedRunEventList.size()) ; ++i) {
-	if (processedRunEventList[i].first == run && processedRunEventList[i].second == event) isDuplicate = true;
+      if(processedRunEvents.find(make_pair(run, event)) == processedRunEvents.end()){ 
+          //not duplicate
+          processedRunEvents[make_pair(run, event)] = true;
+          outputTree->Fill(); 
       }
-      if (!isDuplicate) {
-	pair<uint,uint> newRunEvent = pair<uint,uint>(run, event);
-	processedRunEventList.push_back(newRunEvent);
-	outputTree->Fill(); 
+      else{
+          cout << "Duplicate event " << run << " " << event << endl;
       }
     }
 
