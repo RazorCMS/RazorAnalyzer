@@ -559,6 +559,38 @@ Bool_t passCSA14VetoIso( ElectronTree *eleTree) {
 }
 
 
+Bool_t passImprovedVetoIso( ElectronTree *eleTree) {
+
+    bool pass = false;
+    if (eleTree->fElePt > 20) {
+      if(fabs(eleTree->fEleSCEta) < 1.479) {
+	if ( eleTree->fMiniIso < 0.2   
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (  eleTree->fMiniIso < 0.2
+	      ) {
+	  pass = true;
+	}
+      } 
+    } else if ( eleTree->fElePt <= 20) {
+      if(fabs(eleTree->fEleSCEta) < 1.479) {
+	if ( eleTree->fElePFIso04 *eleTree->fElePt  < 5
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if ( eleTree->fElePFIso04 *eleTree->fElePt  < 5
+	     ) {
+	  pass = true;
+	}
+      } 
+    }
+    return pass;
+}
+
+
 
 //*************************************************************************************************
 //Fill Lepton Pt Spectrum
@@ -589,6 +621,8 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   Double_t FakeElectronPassCSA14VetoIso = 0;
   Double_t RealElectronPassMiniIso = 0;
   Double_t FakeElectronPassMiniIso = 0;
+  Double_t RealElectronPassImprovedVetoIso = 0;
+  Double_t FakeElectronPassImprovedVetoIso = 0;
 
   //*****************************************************************************************
   //EleTree
@@ -652,6 +686,7 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
       RealElectrons += EleTree->fWeight;
 
       if (passCSA14VetoIso(EleTree)) RealElectronPassCSA14VetoIso += EleTree->fWeight;
+      if (passImprovedVetoIso(EleTree)) RealElectronPassImprovedVetoIso += EleTree->fWeight;
       if (EleTree->fMiniIso < 0.2) RealElectronPassMiniIso += EleTree->fWeight;
       ElePFRelIso_Real->Fill(EleTree->fElePFIso04, EleTree->fWeight);
       ElePFIso_Real->Fill(EleTree->fElePFIso04*EleTree->fElePt, EleTree->fWeight);
@@ -665,6 +700,7 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
       FakeElectrons += EleTree->fWeight;
 
       if (passCSA14VetoIso(EleTree)) FakeElectronPassCSA14VetoIso += EleTree->fWeight;      
+      if (passImprovedVetoIso(EleTree)) FakeElectronPassImprovedVetoIso += EleTree->fWeight;      
       if (EleTree->fMiniIso < 0.2) FakeElectronPassMiniIso += EleTree->fWeight;
       ElePFRelIso_Fake->Fill(EleTree->fElePFIso04, EleTree->fWeight);
       ElePFIso_Fake->Fill(EleTree->fElePFIso04*EleTree->fElePt, EleTree->fWeight);
@@ -683,8 +719,12 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
   cout << "CSA14 VetoIso Fake Electron Efficiency : " << FakeElectronPassCSA14VetoIso << " / " << FakeElectrons << " = " << FakeElectronPassCSA14VetoIso/FakeElectrons << endl;
   TGraphAsymmErrors* ROC_CSA14VetoIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassCSA14VetoIso/RealElectrons , FakeElectronPassCSA14VetoIso/FakeElectrons, "ROC_CSA14VetoIsoWP"+label);
 
-  cout << "CSA14 VetoIso Real Electron Efficiency : " << RealElectronPassMiniIso << " / " << RealElectrons << " = " << RealElectronPassMiniIso/RealElectrons << endl;
-  cout << "CSA14 VetoIso Fake Electron Efficiency : " << FakeElectronPassMiniIso << " / " << FakeElectrons << " = " << FakeElectronPassMiniIso/FakeElectrons << endl;
+  cout << "Improved VetoIso Real Electron Efficiency : " << RealElectronPassImprovedVetoIso << " / " << RealElectrons << " = " << RealElectronPassImprovedVetoIso/RealElectrons << endl;
+  cout << "Improved VetoIso Fake Electron Efficiency : " << FakeElectronPassImprovedVetoIso << " / " << FakeElectrons << " = " << FakeElectronPassImprovedVetoIso/FakeElectrons << endl;
+  TGraphAsymmErrors* ROC_ImprovedVetoIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassImprovedVetoIso/RealElectrons , FakeElectronPassImprovedVetoIso/FakeElectrons, "ROC_ImprovedVetoIsoWP"+label);
+
+  cout << "MiniIso VetoIso Real Electron Efficiency : " << RealElectronPassMiniIso << " / " << RealElectrons << " = " << RealElectronPassMiniIso/RealElectrons << endl;
+  cout << "MiniIso VetoIso Fake Electron Efficiency : " << FakeElectronPassMiniIso << " / " << FakeElectrons << " = " << FakeElectronPassMiniIso/FakeElectrons << endl;
   TGraphAsymmErrors* ROC_MiniIsoWP = MakeCurrentWPSigEffVsBkgEffGraph(RealElectronPassMiniIso/RealElectrons , FakeElectronPassMiniIso/FakeElectrons, "ROC_MiniIsoWP"+label);
 
 
@@ -787,12 +827,12 @@ void MakeElectronIsoPerformancePlots(string InputFile, string Label, Int_t Optio
     }
   }
 
-  legend->AddEntry(ROC_CSA14VetoIsoWP, "Razor PHYS14 Veto Iso WP", "P");
-  ROC_CSA14VetoIsoWP->SetFillColor(kGreen+3);
-  ROC_CSA14VetoIsoWP->SetMarkerColor(kGreen+3);
-  ROC_CSA14VetoIsoWP->SetMarkerStyle(34);
-  ROC_CSA14VetoIsoWP->SetMarkerSize(2.5);
-  ROC_CSA14VetoIsoWP->Draw("Psame");
+  legend->AddEntry(ROC_ImprovedVetoIsoWP, "Razor PHYS14 Veto Iso WP", "P");
+  ROC_ImprovedVetoIsoWP->SetFillColor(kGreen+3);
+  ROC_ImprovedVetoIsoWP->SetMarkerColor(kGreen+3);
+  ROC_ImprovedVetoIsoWP->SetMarkerStyle(34);
+  ROC_ImprovedVetoIsoWP->SetMarkerSize(2.5);
+  ROC_ImprovedVetoIsoWP->Draw("Psame");
 
   legend->AddEntry(ROC_MiniIsoWP, "MiniIso < 0.2", "P");
   ROC_MiniIsoWP->SetFillColor(kBlack);

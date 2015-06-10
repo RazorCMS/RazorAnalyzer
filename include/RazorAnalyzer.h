@@ -5,7 +5,7 @@
 #ifndef RazorAnalyzer_h
 #define RazorAnalyzer_h
 
-#include <RazorEvents.h> //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
+#include "RazorEvents.h" //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
 #include "FactorizedJetCorrector.h"
 #include "SimpleJetResolution.h"
 #include "HggRazorAuxPhoton.hh"

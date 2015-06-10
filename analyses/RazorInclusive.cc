@@ -22,7 +22,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   TFile *pileupWeightFile = 0;
   TH1D *pileupWeightHist = 0;
   if (isRunOne) {
-    pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
+    //pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/Run1/Run1PileupWeights.root");
     pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
     assert(pileupWeightHist);
   }
@@ -31,7 +32,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   TH2D *eleLooseEffSFHist = 0;
   TH2D *eleTightEffSFHist = 0;
   if (isRunOne) {
-    TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
+    //TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
+    TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root");
     eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
     assert(eleLooseEffSFHist);
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("sfTIGHT");
@@ -87,10 +89,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",dir.c_str()));
   SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
-
-
-
-
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
   vector<string> boxNames;
@@ -104,7 +102,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   boxNames.push_back("LooseLeptonMultiJet");
   boxNames.push_back("MultiJet");
   boxNames.push_back("DiJet");
-
 
   for(size_t i = 0; i < boxNames.size(); i++){
     razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
@@ -122,13 +119,13 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float theRsq;  
   float met;
   float HT;
+  float mT, leadingTightMuPt, leadingTightElePt;
   float weight = 1.0;
   float pileupWeight = 1.0;
   float lepEffCorrFactor = 1.0;
-  float lepTrigCorrFactor = 1.0;
+  //float lepTrigCorrFactor = 1.0;
   float btagCorrFactor = 1.0;
-  bool  hltDecision[100];
-   
+  //bool  hltDecision[100];
      
   RazorBox box;
 
@@ -146,6 +143,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     razorTree->Branch("Rsq", &theRsq, "Rsq/F");
     razorTree->Branch("met", &met, "met/F");
     razorTree->Branch("HT", &HT, "HT/F");
+    razorTree->Branch("mT", &mT, "mT/F");
+    razorTree->Branch("leadingTightMuPt", &leadingTightMuPt, "leadingTightMuPt/F");
+    razorTree->Branch("leadingTightElePt", &leadingTightElePt, "leadingTightElePt/F");
     razorTree->Branch("box", &box, "box/I");
 
     //MET Filters
@@ -190,6 +190,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       box.second->Branch("met", &met, "met/F");
       box.second->Branch("HT", &HT, "HT/F");
       box.second->Branch("Rsq", &theRsq, "Rsq/F");
+      box.second->Branch("mT", &mT, "mT/F");
+      box.second->Branch("leadingTightMuPt", &leadingTightMuPt, "leadingTightMuPt/F");
+      box.second->Branch("leadingTightElePt", &leadingTightElePt, "leadingTightElePt/F");
     }
   }
 
@@ -221,6 +224,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     nTightTaus = 0;
     theMR = -1;
     theRsq = -1;
+    mT = -1;
+    leadingTightMuPt = -1;
+    leadingTightElePt = -1;
     if(combineTrees) box = NONE;
     weight = 1.0;
 
@@ -262,13 +268,13 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
     }
 
-
     //*****************************************
     //Select Leptons
     //*****************************************
     lepEffCorrFactor  = 1.0;
 
     vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
+    TLorentzVector leadingTightMu, leadingTightEle; //used for mT calculation
     for(int i = 0; i < nMuons; i++){
 
       if(muonPt[i] < 5) continue;
@@ -279,13 +285,20 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	//apply muon efficiency scale factors
       }
 
+      TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
+
       if(isVetoMuon(i)) nVetoMuons++;
       if(isLooseMuon(i) && muonPt[i] >= 10 ) nLooseMuons++;
-      if(isTightMuon(i) && muonPt[i] >= 10) nTightMuons++;
+      if(isTightMuon(i) && muonPt[i] >= 10){
+          nTightMuons++;
+          if(muonPt[i] > leadingTightMuPt){
+              leadingTightMu = thisMuon;
+              leadingTightMuPt = muonPt[i];
+          }
+      }
 
       if(!isVetoMuon(i)) continue;  
-      TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
-      GoodLeptons.push_back(thisMuon);           
+      GoodLeptons.push_back(thisMuon); 
     }
     for(int i = 0; i < nElectrons; i++){
       if(elePt[i] < 5) continue;
@@ -321,9 +334,17 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	}
       }
 
+      TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+
       if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
       if( ( (!isRunOne && isLooseElectron(i)) || (isRunOne && isRunOneLooseElectron(i)) ) && elePt[i] > 10 ) nLooseElectrons++;
-      if( ( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) ) && elePt[i] > 10 ) nTightElectrons++;
+      if( ( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) ) && elePt[i] > 10 ){
+          nTightElectrons++;
+          if(elePt[i] > leadingTightElePt){
+              leadingTightEle = thisElectron;
+              leadingTightElePt = elePt[i];
+          }
+      }
 
       //remove overlaps
       bool overlap = false;
@@ -333,7 +354,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       if(overlap) continue;
 
       if(!isMVANonTrigVetoElectron(i)) continue; 
-      TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       GoodLeptons.push_back(thisElectron);            
     }
 
@@ -361,7 +381,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
         
-
     vector<TLorentzVector> GoodJets;
     int numJetsAbove80GeV = 0;
 
@@ -447,7 +466,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
       TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);      
       double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
-      double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
+      //double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
 
       //*******************************
       //B-Tagging Correction Factor
@@ -552,8 +571,17 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
     met = metPt;
 
-    //cout << "Check: " << eventNum << " : " << theMR << " " << theRsq << " " << dPhiRazor << "\n";
+    //save transverse mass 
+    if(nTightMuons + nTightElectrons > 0){
+        TLorentzVector leadingLepton;
+        if(leadingTightMuPt > leadingTightElePt) leadingLepton = leadingTightMu;
+        else leadingLepton = leadingTightEle;
 
+        float deltaPhiLepMet = leadingLepton.DeltaPhi(PFMET);
+        mT = sqrt(2*leadingLepton.Pt()*PFMET.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); 
+    }
+
+    //cout << "Check: " << eventNum << " : " << theMR << " " << theRsq << " " << dPhiRazor << "\n";
 
     //**********************************************************************
     //Apply ECAL Dead Cells Filter
@@ -577,7 +605,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       weight *= lepEffCorrFactor;
       weight *= btagCorrFactor;    
     }
-
 
     //**********************************************************************
     //Categorize Events into Razor Boxes 
@@ -732,8 +759,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
 
-
-
     //******************************
     //Print Debug
     //******************************
@@ -743,13 +768,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	cout << "GenParticle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " : " << gParticleMotherId[j] << "\n";
       }
     }
-
-
-
-
-
-
-
 
   }//end of event loop
   

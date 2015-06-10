@@ -176,7 +176,7 @@ Bool_t passImprovedIso( ElectronTree *eleTree) {
 
     bool pass = false;
     if(eleTree->fElePt > 20) {
-      pass = bool(eleTree->fElePFIso04 < 0.3);
+      pass = bool(eleTree->fMiniIso < 0.2);
     } else {
       pass = bool(eleTree->fElePFIso04*eleTree->fElePt < 5);
     }
@@ -219,27 +219,41 @@ Bool_t passIDMVANonTrigVeto( ElectronTree *eleTree) {
 
 
 
-bool PassSelection( ElectronTree* eleTree ) {
+bool PassSelection( ElectronTree* eleTree, int wp ) {
 
   bool pass = false;
 
-  if ( eleTree->fElePt > 0 && 
-       //passCSA14VetoID(eleTree) &&
-       passIDMVANonTrigVeto(eleTree) && 
-
-       //(0 == 0)
-       //(eleTree->fElePFIso04*eleTree->fElePt < 8)
-       //passCSA14VetoIso(eleTree)
-       passImprovedIso(eleTree)
-
-       //passCSA14Loose(eleTree)
-       //passCSA14Tight(eleTree)
-
-       ) {		  	   
-    pass = true;
+  //Veto
+  if (wp == 1) {
+    if ( eleTree->fElePt > 0 && passIDMVANonTrigVeto(eleTree)
+	 && passImprovedIso(eleTree) ) {
+      pass = true;
+    }
   }
-  return pass;
-  
+
+  if (wp == 2) {
+    if ( eleTree->fElePt > 0 && passCSA14Loose(eleTree) ) {
+      pass = true;
+    }
+  }
+
+  if (wp == 3) {
+    if ( eleTree->fElePt > 0 && passCSA14Tight(eleTree) ) {
+      pass = true;
+    }
+
+  }
+
+  //isolation only
+  if (wp == 11) {
+    if ( eleTree->fElePt > 0
+	 && passImprovedIso(eleTree) ) {
+      pass = true;
+    }
+  }
+
+
+  return pass;  
 }
 
 
@@ -247,12 +261,17 @@ void plotElectronEfficiency() {
   TCanvas *cv =0;
   TLegend *legend =0;
 
-  TFile *fileVeto = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Electron_VetoSelection.root","READ");
-  TFile *fileLoose = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Electron_LooseSelection.root","READ");
-  TFile *fileTight = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Electron_TightSelection.root","READ");
-  TFile *fileFakesVeto = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_FakeElectron_VetoSelection.root","READ");
-  TFile *fileFakesLoose = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_FakeElectron_LooseSelection.root","READ");
-  TFile *fileFakesTight = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_FakeElectron_TightSelection.root","READ");
+  TFile *fileVeto = new TFile("Efficiency_PromptElectron_TTJets_25ns_Veto.root","READ");
+  TFile *fileLoose = new TFile("Efficiency_PromptElectron_TTJets_25ns_Loose.root","READ");
+  TFile *fileTight = new TFile("Efficiency_PromptElectron_TTJets_25ns_Tight.root","READ");
+  TFile *fileFakesVeto = new TFile("Efficiency_FakeElectron_TTJets_25ns_Veto.root","READ");
+  TFile *fileFakesLoose = new TFile("Efficiency_FakeElectron_TTJets_25ns_Loose.root","READ");
+  TFile *fileFakesTight = new TFile("Efficiency_FakeElectron_TTJets_25ns_Tight.root","READ");
+
+  TFile *fileVetoIsoGivenID = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data//Efficiency_Electron_NumeratorImprovedVetoIso_DenominatorNonTrigMVAID.root","READ");
+  TFile *fileCSA14VetoIsoGivenID = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Electron_NumeratorCSA14VetoIso_DenominatorNonTrigMVAID.root","READ");
+
+
 
   TGraphAsymmErrors* effPtVeto = (TGraphAsymmErrors*)fileVeto->Get("Efficiency_Pt");
   TGraphAsymmErrors* effPtLoose = (TGraphAsymmErrors*)fileLoose->Get("Efficiency_Pt");
@@ -263,6 +282,8 @@ void plotElectronEfficiency() {
   TGraphAsymmErrors* effNpvVeto = (TGraphAsymmErrors*)fileVeto->Get("Efficiency_NPV");
   TGraphAsymmErrors* effNpvLoose = (TGraphAsymmErrors*)fileLoose->Get("Efficiency_NPV");
   TGraphAsymmErrors* effNpvTight = (TGraphAsymmErrors*)fileTight->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effPtVetoIsoGivenID = (TGraphAsymmErrors*)fileVetoIsoGivenID->Get("Efficiency_Pt");
+  TGraphAsymmErrors* effPtCSA14VetoIsoGivenID = (TGraphAsymmErrors*)fileCSA14VetoIsoGivenID->Get("Efficiency_Pt");
 
   TGraphAsymmErrors* effFakePtVeto = (TGraphAsymmErrors*)fileFakesVeto->Get("Efficiency_Pt");
   TGraphAsymmErrors* effFakePtLoose = (TGraphAsymmErrors*)fileFakesLoose->Get("Efficiency_Pt");
@@ -273,6 +294,37 @@ void plotElectronEfficiency() {
   TGraphAsymmErrors* effFakeNpvVeto = (TGraphAsymmErrors*)fileFakesVeto->Get("Efficiency_NPV");
   TGraphAsymmErrors* effFakeNpvLoose = (TGraphAsymmErrors*)fileFakesLoose->Get("Efficiency_NPV");
   TGraphAsymmErrors* effFakeNpvTight = (TGraphAsymmErrors*)fileFakesTight->Get("Efficiency_NPV");
+
+
+
+
+  cv = new TCanvas("cv","cv", 800,600);
+
+  legend = new TLegend(0.50,0.34,0.90,0.54);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(effPtVetoIsoGivenID, "Improved Veto Isolation", "LP");
+  legend->AddEntry(effPtCSA14VetoIsoGivenID, "CSA14 Veto Isolation", "LP");
+
+
+  effPtVetoIsoGivenID->SetLineWidth(3);
+  effPtVetoIsoGivenID->SetLineColor(kBlue);
+  effPtVetoIsoGivenID->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
+  effPtVetoIsoGivenID->GetYaxis()->SetTitle("Isolation Efficiency");
+  effPtVetoIsoGivenID->GetYaxis()->SetTitleOffset(1.2);
+  effPtCSA14VetoIsoGivenID->SetLineWidth(3);
+  effPtCSA14VetoIsoGivenID->SetLineColor(kRed);
+
+  effPtVetoIsoGivenID->Draw("AP");
+  effPtCSA14VetoIsoGivenID->Draw("Psame");
+  effPtVetoIsoGivenID->SetMinimum(0.65);
+
+  legend->Draw();  
+  cv->SaveAs("ElectronIsolationEfficiency.gif");
+  cv->SaveAs("ElectronIsolationEfficiency.pdf");
+
+ 
 
   cv = new TCanvas("cv","cv", 800,600);
 
@@ -388,7 +440,7 @@ void plotElectronEfficiency() {
   effFakePtVeto->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
   effFakePtVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakePtVeto->GetYaxis()->SetTitleOffset(1.35);
-  effFakePtVeto->GetYaxis()->SetRangeUser(0,0.20);
+  effFakePtVeto->GetYaxis()->SetRangeUser(0,0.2);
 
   effFakePtLoose->SetLineWidth(3);
   effFakePtLoose->SetLineColor(kBlue);
@@ -419,7 +471,7 @@ void plotElectronEfficiency() {
   effFakeEtaVeto->GetXaxis()->SetTitle("Electron #eta");
   effFakeEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
   effFakeEtaVeto->GetYaxis()->SetTitleOffset(1.35);
-  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.10);
+  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.1);
 
   effFakeEtaLoose->SetLineWidth(3);
   effFakeEtaLoose->SetLineColor(kBlue);
@@ -477,10 +529,8 @@ void plotElectronEfficiency() {
 
 //=== MAIN MACRO ================================================================================================= 
 
-void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string label = "") {
-  plotElectronEfficiency();
-  return;
-
+void ProduceElectronEfficiencyPlots(const string inputfile, int wp, int option = -1, string label = "") {
+ 
   string Label = "";
   if (label != "") Label = "_" + label;
 
@@ -535,7 +585,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
     if (option == 0) {
       //**** PT - ETA ****
       histDenominatorPtEta->Fill(EleTree->fEleGenPt,EleTree->fEleGenEta);
-      if(PassSelection(EleTree)) {
+      if(PassSelection(EleTree,wp)) {
 	histNumeratorPtEta->Fill(EleTree->fEleGenPt,EleTree->fEleGenEta);
       }
 
@@ -544,7 +594,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
       histDenominatorPt->Fill(EleTree->fEleGenPt);
 
       //Numerator
-      if(PassSelection(EleTree)) {
+      if(PassSelection(EleTree,wp)) {
         histNumeratorPt->Fill(EleTree->fEleGenPt);        
       }
 
@@ -554,7 +604,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorEta->Fill(EleTree->fEleGenEta);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorEta->Fill(EleTree->fEleGenEta);        
 	}
 
@@ -565,7 +615,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorPhi->Fill(EleTree->fEleGenPhi);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorPhi->Fill(EleTree->fEleGenPhi);        
 	}
 
@@ -576,7 +626,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorRho->Fill(EleTree->fRho);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorRho->Fill(EleTree->fRho);        
 	}
 
@@ -586,7 +636,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorNpv->Fill(EleTree->fNVertices);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorNpv->Fill(EleTree->fNVertices);        
 	}
 
@@ -597,7 +647,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
       //   histDenominatorNpu->Fill(EleTree->);
 
       //   //Numerator
-      //   if(PassSelection(EleTree)) {
+      //   if(PassSelection(EleTree,wp)) {
       //     histNumeratorNpu->Fill(EleTree->);        
       //   }
 
@@ -605,9 +655,13 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
     }
 
     if (option == 1) {
+
+      //if (!(EleTree->fElePt > 0 && passIDMVANonTrigVeto(EleTree))) continue;
+
+
       //**** PT - ETA ****
       histDenominatorPtEta->Fill(EleTree->fElePt,EleTree->fEleEta);
-      if(PassSelection(EleTree)) {
+      if(PassSelection(EleTree,wp)) {
 	histNumeratorPtEta->Fill(EleTree->fElePt,EleTree->fEleEta);
       }
 
@@ -616,7 +670,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
       histDenominatorPt->Fill(EleTree->fElePt);
 
       //Numerator
-      if(PassSelection(EleTree)) {
+      if(PassSelection(EleTree,wp)) {
         histNumeratorPt->Fill(EleTree->fElePt);        
       }
 
@@ -626,7 +680,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorEta->Fill(EleTree->fEleEta);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorEta->Fill(EleTree->fEleEta);        
 	}
 
@@ -637,7 +691,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorPhi->Fill(EleTree->fElePhi);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorPhi->Fill(EleTree->fElePhi);        
 	}
 
@@ -648,7 +702,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorRho->Fill(EleTree->fRho);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorRho->Fill(EleTree->fRho);        
 	}
 
@@ -658,7 +712,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 	histDenominatorNpv->Fill(EleTree->fNVertices);
 
 	//Numerator
-	if(PassSelection(EleTree)) {
+	if(PassSelection(EleTree,wp)) {
 	  histNumeratorNpv->Fill(EleTree->fNVertices);        
 	}
 
@@ -669,7 +723,7 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
       //   histDenominatorNpu->Fill(EleTree->);
 
       //   //Numerator
-      //   if(PassSelection(EleTree)) {
+      //   if(PassSelection(EleTree,wp)) {
       //     histNumeratorNpu->Fill(EleTree->);        
       //   }
 
@@ -772,5 +826,37 @@ void MakeElectronEfficiencyPlots(const string inputfile, int option = -1, string
 
   file->Close();
   delete file;       
+
+}
+
+void MakeElectronEfficiencyPlots( int option = 0) {
+
+  if (option == 1) {
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 0, "PromptElectron_TTJets_25ns_Veto");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 0, "PromptElectron_TTJets_25ns_Loose");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 0, "PromptElectron_TTJets_25ns_Tight");
+    
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 1, "FakeElectron_TTJets_25ns_Veto");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 1, "FakeElectron_TTJets_25ns_Loose");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 1, "FakeElectron_TTJets_25ns_Tight");
+
+
+
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 0, "PromptElectron_TTJets_25ns_Veto");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 0, "PromptElectron_TTJets_25ns_Loose");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 0, "PromptElectron_TTJets_25ns_Tight");
+    
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_Fake_TTJets.root", 1, 1, "FakeElectron_TTJets_25ns_Veto");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_Fake_TTJets.root", 2, 1, "FakeElectron_TTJets_25ns_Loose");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_Fake_TTJets.root", 3, 1, "FakeElectron_TTJets_25ns_Tight");
+
+
+  }
+
+  if (option == 11) {
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/ElectronNtuple/ElectronNtuple_Prompt_TTJets.root", 11, 1, "ElectronID_TTJets_VetoIso");
+  }
+
+  plotElectronEfficiency();
 
 }

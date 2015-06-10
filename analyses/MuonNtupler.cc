@@ -223,8 +223,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fPassVetoSelection = isVetoMuon(matchedIndex);
 	    muTree->fPassLooseSelection = isLooseMuon(matchedIndex);
 	    muTree->fPassTightSelection = isTightMuon(matchedIndex);
-	    muTree->fPtRel = muon_ptrel[i];
-	    muTree->fMiniIso = muon_miniiso[i];
+	    muTree->fPtRel = muon_ptrel[matchedIndex];
+	    muTree->fMiniIso = muon_miniiso[matchedIndex];
 	  } else {
 	    muTree->fMuPt = 0;
 	    muTree->fMuEta = 0;
