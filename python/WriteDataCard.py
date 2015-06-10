@@ -8,19 +8,36 @@ import sys
 
 seed = 1988
 
+
+def fixPars(w, label, doFix=True, setVal=None):
+    parSet = w.allVars()
+    for par in rootTools.RootIterator.RootIterator(parSet):
+        if label in par.GetName():
+            par.setConstant(doFix)
+            if setVal is not None: par.setVal(setVal)
+
 def initializeWorkspace(w,cfg,box):
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
     for parameter in parameters:
         w.factory(parameter)
         paramName = parameter.split('[')[0]
-        if paramName.find("Cut")==-1 and paramName.find("Ntot")==-1:
+        if not ("Cut" in paramName or "Ntot" in paramName):
             paramNames.append(paramName)
             w.var(paramName).setConstant(False)
-        elif paramName.find("Cut")!=-1:
-            w.var(paramName).setConstant(True)
-        elif paramName.find("Ntot")!=-1:
-            w.var(paramName).setConstant(False)
+            
+        # fix Rsq MR cut parameters
+        fixPars(w,"Cut")
+
+        # float normalization parameters
+        fixPars(w,"Ntot",False)
+        
+        # turn off shape parameters if no events in b-tag bin:
+        for i in [0, 1, 2, 3]:
+            if "Ntot_TTj%ib"%i in paramName:
+                w.var(paramName).setVal(w.data("RMRTree").sumEntries("nBtag==%i"%i))
+                if not w.var(paramName).getVal():
+                    fixPars(w,"TTj%ib"%i)    
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -231,12 +248,13 @@ if __name__ == '__main__':
 
     w = rt.RooWorkspace("w"+box)
     
+    rootTools.Utils.importToWS(w,data)
+    
     if noFit:
         paramNames = initializeWorkspace_noFit(w,cfg,box)
     else:
         paramNames, bkgs = initializeWorkspace(w,cfg,box)
     
-    rootTools.Utils.importToWS(w,data)
     
     th1x = w.var('th1x')
     
