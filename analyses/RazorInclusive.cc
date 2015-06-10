@@ -22,7 +22,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   TFile *pileupWeightFile = 0;
   TH1D *pileupWeightHist = 0;
   if (isRunOne) {
-    pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
+    //pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/Run1/Run1PileupWeights.root");
     pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
     assert(pileupWeightHist);
   }
@@ -31,7 +32,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   TH2D *eleLooseEffSFHist = 0;
   TH2D *eleTightEffSFHist = 0;
   if (isRunOne) {
-    TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
+    //TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
+    TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root");
     eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
     assert(eleLooseEffSFHist);
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("sfTIGHT");
@@ -121,9 +123,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float weight = 1.0;
   float pileupWeight = 1.0;
   float lepEffCorrFactor = 1.0;
-  float lepTrigCorrFactor = 1.0;
+  //float lepTrigCorrFactor = 1.0;
   float btagCorrFactor = 1.0;
-  bool  hltDecision[100];
+  //bool  hltDecision[100];
      
   RazorBox box;
 
@@ -464,7 +466,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
       TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);      
       double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
-      double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
+      //double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
 
       //*******************************
       //B-Tagging Correction Factor
