@@ -42,7 +42,7 @@ struct evt
 };
 
 #define _phodebug 0
-#define _debug    1
+#define _debug    0
 #define _info     1
 
 void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
@@ -519,7 +519,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 	Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
 	Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
 	Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
-	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
+	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
 	Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	Pho_passIso[_pho_index]            = tmpPho._passIso;
 	_pho_index++;
