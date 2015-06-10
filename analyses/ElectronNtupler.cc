@@ -227,8 +227,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassLooseSelection = isRunOneLooseElectron(matchedIndex);
 	    eleTree->fPassTightSelection = isRunOneTightElectron(matchedIndex);
 	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(matchedIndex);
-	    eleTree->fPtRel = ele_ptrel[i];
-	    eleTree->fMiniIso = ele_miniiso[i];
+	    eleTree->fPtRel = ele_ptrel[matchedIndex];
+	    eleTree->fMiniIso = ele_miniiso[matchedIndex];
 	  } else {
 	    eleTree->fCharge = 0;
 	    eleTree->fElePt = 0;
