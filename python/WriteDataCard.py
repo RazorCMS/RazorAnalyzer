@@ -176,7 +176,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
         # now nuisances
         datacard+=lumiString
         for paramName in paramNames:
-                datacard += "%s  	flatParam\n"%(paramName)
+            datacard += "%s  	flatParam\n"%(paramName)
         txtfile = open(txtfileName,"w")
         txtfile.write(datacard)
         txtfile.close()

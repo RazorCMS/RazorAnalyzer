@@ -103,13 +103,13 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
-    if f.find('SMS')!=-1:
+    if 'SMS' in f:
         k = [1. for z_bin in z]
-    elif f.find('TTJets')!=-1:
+    elif 'TTJets' in f:
         k = [k_T*k_btag for k_btag in k_QCD[box]]
-    elif f.find('DYJets')!=-1 or f.find('ZJets')!=-1:
+    elif 'DYJets' in f or 'ZJets' in f:
         k = [k_Z*k_btag for k_btag in k_QCD[box]]
-    elif f.find('WJets')!=-1:
+    elif 'WJets' in f:
         k = [k_W*k_btag for k_btag in k_QCD[box]]
     else:
         k = k_QCD[box]
@@ -136,7 +136,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
         btagCutoff = 1
         
     boxCut = '(' + ' || '.join(['box==%i'%boxNum for boxNum in boxes[box]]) + ')'
-
+    
     tree.Draw('>>elist',
               'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut),
               'entrylist')
@@ -166,9 +166,16 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     numEntries = data.numEntries()
     
     wdata = rt.RooDataSet(data.GetName(),data.GetTitle(),data,data.get(),"MR>=0.","W")
+    numEntriesByBtag = []
+    sumEntriesByBtag = []
+    for i in z[:-1]:
+        numEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).numEntries())
+        sumEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).sumEntries())
+        
     print "Filename: %s"%f
-    print "Number of Entries in Box %s = %d"%(box,data.numEntries())
-    print "Sum of Weights in Box %s = %.1f"%(box,wdata.sumEntries())
+    print "Scale Factors     [ %s ] ="%box, k
+    print "Number of Entries [ %s ] ="%(box), numEntriesByBtag
+    print "Sum of Weights    [ %s ] ="%(box), sumEntriesByBtag
 
     return wdata
 
@@ -235,9 +242,9 @@ if __name__ == '__main__':
         # get scale factor to scale other backgrounds by
         k_QCD[box] = [total/(total - qcd) for total, qcd in zip(sumWTotal,sumWQCD)]
          
-        print "sum of weights total     =", sumWTotal
-        print "sum of weights QCD       =", sumWQCD
-        print "scale factor k_QCD[ %s ] ="%box, k_QCD[box]
+        print "Sum of Weights Total [ %s ] ="%box, sumWTotal
+        print "Sum of Weights QCD   [ %s ] ="%box, sumWQCD
+        print "Scale Factor k_QCD   [ %s ] ="%box, k_QCD[box]
 
     for i, f in enumerate(args):
         if f.lower().endswith('.root'):
@@ -257,7 +264,7 @@ if __name__ == '__main__':
     wdata = ds[0].Clone('RMRTree')
     for ids in range(1,len(ds)):
         wdata.append(ds[ids])
-    
+            
     rootTools.Utils.importToWS(w,wdata)
     
     inFiles = [f for f in args if f.lower().endswith('.root')]
@@ -289,7 +296,17 @@ if __name__ == '__main__':
             outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
-    print "Output file is: %s" % (options.outDir+"/"+outFile)
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    numEntriesByBtag = []
+    sumEntriesByBtag = []
+    for i in z[:-1]:
+        numEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).numEntries())
+        sumEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).sumEntries())
+        
+    print "Output File: %s"%(options.outDir+"/"+outFile)
+    print "Number of Entries Total [ %s ] ="%(box), numEntriesByBtag
+    print "Sum of Weights Total    [ %s ] ="%(box), sumEntriesByBtag
+    
     outFile = rt.TFile.Open(options.outDir+"/"+outFile,'recreate')
     outFile.cd()
     w.Write()
