@@ -1,4 +1,6 @@
 RazorRun
+eos
+plots*
 NormalizeNtuple
 *.o
 *.root

@@ -1,3 +1,3 @@
 {
-gSystem->Load("python/lib/libRazorRun2");
+    gSystem->Load("python/lib/libRazorRun2");
 }
