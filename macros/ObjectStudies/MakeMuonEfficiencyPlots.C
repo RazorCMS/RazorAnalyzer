@@ -29,48 +29,71 @@
 #endif
 
 
-bool PassSelection( MuonTree* MuTree ) {
+bool PassSelection( MuonTree* MuTree, int wp ) {
 
   bool pass = false;
 
-  //if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && MuTree->fMuPFIso04*MuTree->fMuPt < 11) {
-  //if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose) {
-  // if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.4) {
-  //   pass = true;
-  // }
-  
   //improved isolation
 
-  // //**********************************
-  // //Tight Selection
-  // //**********************************
-   if (MuTree->fMuPt > 0 && MuTree->fMuIsTight && fabs(MuTree->fMuIP3dSig)<4 && fabs(MuTree->fMuD0) < 0.2 && MuTree->fMuPFIso04 < 0.12) {
-     pass = true;
-   }
- 
+  //**********************************
+  //Tight Selection
+  //**********************************
+  if (wp == 3) {
+    if (MuTree->fMuPt > 0 && MuTree->fMuIsTight && fabs(MuTree->fMuIP3dSig)<4 && fabs(MuTree->fMuD0) < 0.2 && MuTree->fMuPFIso04 < 0.12) {
+      pass = true;
+    }
+  } 
+
   //**********************************
   //Loose Selection
   //**********************************
-  // if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.2) {
-  //   pass = true;
-  // }
+  if (wp == 2) {
+    if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.2) {
+      pass = true;
+    }
+  }
   
-  // //**********************************
-  // //Veto Selection
-  // //**********************************
-  // if (MuTree->fMuPt > 20) {
-  //   if (MuTree->fMuPt > 0 
-  // 	&& MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 &&  MuTree->fMuPFIso04 < 0.4) {
-  //     pass = true;
-  //   }
-  // } else {
-  //   if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04*MuTree->fMuPt < 10) {
-  //     pass = true;
+  //**********************************
+  //Veto Selection
+  //**********************************
+  // if (wp == 1) {
+  //   if (MuTree->fMuPt > 20) {
+  //     if (MuTree->fMuPt > 0 
+  // 	  && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 
+  // 	  && MuTree->fMiniIso / MuTree->fMuPt < 0.2
+  // 	  ) {
+  // 	pass = true;
+  //     }
+  //   } else {
+  //     if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04*MuTree->fMuPt < 10) {
+  // 	pass = true;
+  //     }
   //   }
   // }
 
-  //reco only
-  //if (MuTree->fMuPt > 0) pass = true;
+  //**********************************
+  //Relative Isolation Veto Selection
+  //**********************************
+  if (wp == 11) {
+    if (MuTree->fMuPt > 20) {
+      if (MuTree->fMuPt > 0 
+	  && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 
+	  && MuTree->fMuPFIso04 < 0.4
+	  ) {
+	pass = true;
+      }
+    } else {
+      if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.4) {
+	pass = true;
+      }
+    }
+  }
+
+
+  // reco only
+  if (wp ==0) {
+     if (MuTree->fMuPt > 0) pass = true;
+  }
 
   return pass;
 
@@ -82,14 +105,14 @@ void plotMuonEfficiency() {
   TCanvas *cv =0;
   TLegend *legend =0;
 
-  TFile *fileRelIso = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_NumeratorRelIso0p4_DenominatorLooseIDAndIPCut.root","READ");
-  TFile *fileImprovedIso = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_NumeratorImprovedIso_DenominatorLooseIDAndIPCut.root","READ");
-  TFile *fileVeto = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_VetoSelection.root","READ");
-  TFile *fileLoose = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_LooseSelection.root","READ");
-  TFile *fileTight = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_TightSelection.root","READ");
-  TFile *fileFakesVeto = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_FakeMuon_VetoSelection.root","READ");
-  TFile *fileFakesLoose = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_FakeMuon_LooseSelection.root","READ");
-  TFile *fileFakesTight = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_FakeMuon_TightSelection.root","READ");
+  TFile *fileRelIso = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_NumeratorRelIso0p4_DenominatorLooseIDAndIPCut.root","READ");
+  TFile *fileImprovedIso = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_NumeratorImprovedIso_DenominatorLooseIDAndIPCut.root","READ");
+  TFile *fileVeto = new TFile("Efficiency_PromptMuon_TTJets_25ns_Veto.root","READ");
+  TFile *fileLoose = new TFile("Efficiency_PromptMuon_TTJets_25ns_Loose.root","READ");
+  TFile *fileTight = new TFile("Efficiency_PromptMuon_TTJets_25ns_Tight.root","READ");
+  TFile *fileFakesVeto = new TFile("Efficiency_FakeMuon_TTJets_25ns_Veto.root","READ");
+  TFile *fileFakesLoose = new TFile("Efficiency_FakeMuon_TTJets_25ns_Loose.root","READ");
+  TFile *fileFakesTight = new TFile("Efficiency_FakeMuon_TTJets_25ns_Tight.root","READ");
 
   TGraphAsymmErrors* effPtRelIso = (TGraphAsymmErrors*)fileRelIso->Get("Efficiency_Pt");
   TGraphAsymmErrors* effPtImprovedIso = (TGraphAsymmErrors*)fileImprovedIso->Get("Efficiency_Pt");
@@ -144,7 +167,7 @@ void plotMuonEfficiency() {
   cv->SaveAs("MuonIsolationEfficiencyVsPt.pdf");
 
 
-
+  return;
 
   cv = new TCanvas("cv","cv", 800,600);
 
@@ -156,27 +179,27 @@ void plotMuonEfficiency() {
   legend->AddEntry(effPtLoose, "Loose", "LP");
   legend->AddEntry(effPtTight, "Tight", "LP");
 
-  effPtVeto->SetLineWidth(3);
-  effPtVeto->SetLineColor(kBlack);
-  effPtVeto->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
-  effPtVeto->GetYaxis()->SetTitle("Selection Efficiency");
-  effPtVeto->GetYaxis()->SetTitleOffset(1.2);
+  effPtTight->SetLineWidth(3);
+  effPtTight->SetLineColor(kRed);
+  effPtTight->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
+  effPtTight->GetYaxis()->SetTitle("Selection Efficiency");
+  effPtTight->GetYaxis()->SetTitleOffset(1.2);
 
   effPtLoose->SetLineWidth(3);
   effPtLoose->SetLineColor(kBlue);
-  effPtTight->SetLineWidth(3);
-  effPtTight->SetLineColor(kRed);
+  effPtVeto->SetLineWidth(3);
+  effPtVeto->SetLineColor(kBlack);
 
-  effPtVeto->Draw("AP");
+  effPtTight->Draw("AP");
+  effPtVeto->Draw("Psame");
   effPtLoose->Draw("Psame");
-  effPtTight->Draw("Psame");
   
   legend->Draw();  
   cv->SaveAs("MuonSelectionEfficiencyVsPt.gif");
   cv->SaveAs("MuonSelectionEfficiencyVsPt.pdf");
 
 
- 
+
   cv = new TCanvas("cv","cv", 800,600);
 
   legend = new TLegend(0.50,0.34,0.90,0.54);
@@ -187,20 +210,20 @@ void plotMuonEfficiency() {
   legend->AddEntry(effEtaLoose, "Loose", "LP");
   legend->AddEntry(effEtaTight, "Tight", "LP");
 
-  effEtaVeto->SetLineWidth(3);
-  effEtaVeto->SetLineColor(kBlack);
-  effEtaVeto->GetXaxis()->SetTitle("Muon #eta ");
-  effEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
-  effEtaVeto->GetYaxis()->SetTitleOffset(1.2);
+  effEtaTight->SetLineWidth(3);
+  effEtaTight->SetLineColor(kRed);
+  effEtaTight->GetXaxis()->SetTitle("Muon #eta");
+  effEtaTight->GetYaxis()->SetTitle("Selection Efficiency");
+  effEtaTight->GetYaxis()->SetTitleOffset(1.2);
 
   effEtaLoose->SetLineWidth(3);
   effEtaLoose->SetLineColor(kBlue);
-  effEtaTight->SetLineWidth(3);
-  effEtaTight->SetLineColor(kRed);
+  effEtaVeto->SetLineWidth(3);
+  effEtaVeto->SetLineColor(kBlack);
 
-  effEtaVeto->Draw("AP");
+  effEtaTight->Draw("AP");
+  effEtaVeto->Draw("Psame");
   effEtaLoose->Draw("Psame");
-  effEtaTight->Draw("Psame");
   
   legend->Draw();  
   cv->SaveAs("MuonSelectionEfficiencyVsEta.gif");
@@ -211,7 +234,7 @@ void plotMuonEfficiency() {
 
   cv = new TCanvas("cv","cv", 800,600);
 
-  legend = new TLegend(0.50,0.75,0.90,0.90);
+  legend = new TLegend(0.50,0.34,0.90,0.54);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -219,28 +242,25 @@ void plotMuonEfficiency() {
   legend->AddEntry(effNpvLoose, "Loose", "LP");
   legend->AddEntry(effNpvTight, "Tight", "LP");
 
-  effNpvVeto->SetLineWidth(3);
-  effNpvVeto->SetLineColor(kBlack);
-  effNpvVeto->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
-  effNpvVeto->GetYaxis()->SetTitle("Selection Efficiency");
-  effNpvVeto->GetYaxis()->SetTitleOffset(1.2);
-  effNpvVeto->GetXaxis()->SetRangeUser(5,35);
-  effNpvVeto->GetYaxis()->SetRangeUser(0.5,1.0);
+  effNpvTight->SetLineWidth(3);
+  effNpvTight->SetLineColor(kRed);
+  effNpvTight->GetXaxis()->SetTitle("Number of Reconstructed Vertices");
+  effNpvTight->GetYaxis()->SetTitle("Selection Efficiency");
+  effNpvTight->GetYaxis()->SetTitleOffset(1.2);
+  effNpvTight->GetXaxis()->SetRangeUser(5,35);
 
   effNpvLoose->SetLineWidth(3);
   effNpvLoose->SetLineColor(kBlue);
-  effNpvTight->SetLineWidth(3);
-  effNpvTight->SetLineColor(kRed);
+  effNpvVeto->SetLineWidth(3);
+  effNpvVeto->SetLineColor(kBlack);
 
-  effNpvVeto->Draw("AP");
+  effNpvTight->Draw("AP");
+  effNpvVeto->Draw("Psame");
   effNpvLoose->Draw("Psame");
-  effNpvTight->Draw("Psame");
   
   legend->Draw();  
   cv->SaveAs("MuonSelectionEfficiencyVsNpv.gif");
   cv->SaveAs("MuonSelectionEfficiencyVsNpv.pdf");
-
-
 
 
 
@@ -258,31 +278,32 @@ void plotMuonEfficiency() {
   legend->AddEntry(effFakePtLoose, "Loose", "LP");
   legend->AddEntry(effFakePtTight, "Tight", "LP");
 
-  effFakePtVeto->SetLineWidth(3);
-  effFakePtVeto->SetLineColor(kBlack);
-  effFakePtVeto->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
-  effFakePtVeto->GetYaxis()->SetTitle("Selection Efficiency");
-  effFakePtVeto->GetYaxis()->SetTitleOffset(1.35);
+  effFakePtTight->SetLineWidth(3);
+  effFakePtTight->SetLineColor(kRed);
+  effFakePtTight->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
+  effFakePtTight->GetYaxis()->SetTitle("Selection Efficiency");
+  effFakePtTight->GetYaxis()->SetTitleOffset(1.35);
 
   effFakePtLoose->SetLineWidth(3);
   effFakePtLoose->SetLineColor(kBlue);
-  effFakePtTight->SetLineWidth(3);
-  effFakePtTight->SetLineColor(kRed);
+  effFakePtVeto->SetLineWidth(3);
+  effFakePtVeto->SetLineColor(kBlack);
 
-  effFakePtVeto->Draw("AP");
+  effFakePtTight->Draw("AP");
   effFakePtLoose->Draw("Psame");
-  effFakePtTight->Draw("Psame");
+  effFakePtVeto->Draw("Psame");
   
-  effFakePtVeto->GetYaxis()->SetRangeUser(0,0.05);
+  effFakePtTight->GetYaxis()->SetRangeUser(0,0.05);
 
   legend->Draw();  
   //cv->SetLogy();
   cv->SaveAs("MuonSelectionFakeRateVsPt.gif");
   cv->SaveAs("MuonSelectionFakeRateVsPt.pdf");
 
+
   cv = new TCanvas("cv","cv", 800,600);
 
-  legend = new TLegend(0.50,0.7,0.90,0.85);
+  legend = new TLegend(0.50,0.70,0.90,0.90);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -290,33 +311,33 @@ void plotMuonEfficiency() {
   legend->AddEntry(effFakeEtaLoose, "Loose", "LP");
   legend->AddEntry(effFakeEtaTight, "Tight", "LP");
 
-  effFakeEtaVeto->SetLineWidth(3);
-  effFakeEtaVeto->SetLineColor(kBlack);
-  effFakeEtaVeto->GetXaxis()->SetTitle("Muon #eta");
-  effFakeEtaVeto->GetYaxis()->SetTitle("Selection Efficiency");
-  effFakeEtaVeto->GetYaxis()->SetTitleOffset(1.35);
+  effFakeEtaTight->SetLineWidth(3);
+  effFakeEtaTight->SetLineColor(kRed);
+  effFakeEtaTight->GetXaxis()->SetTitle("Muon #eta");
+  effFakeEtaTight->GetYaxis()->SetTitle("Selection Efficiency");
+  effFakeEtaTight->GetYaxis()->SetTitleOffset(1.35);
 
   effFakeEtaLoose->SetLineWidth(3);
   effFakeEtaLoose->SetLineColor(kBlue);
-  effFakeEtaTight->SetLineWidth(3);
-  effFakeEtaTight->SetLineColor(kRed);
+  effFakeEtaVeto->SetLineWidth(3);
+  effFakeEtaVeto->SetLineColor(kBlack);
 
-  effFakeEtaVeto->GetYaxis()->SetRangeUser(0,0.04);
-
-  effFakeEtaVeto->Draw("AP");
+  effFakeEtaTight->Draw("AP");
   effFakeEtaLoose->Draw("Psame");
-  effFakeEtaTight->Draw("Psame");
+  effFakeEtaVeto->Draw("Psame");
   
+  effFakeEtaTight->GetYaxis()->SetRangeUser(0,0.04);
+
   legend->Draw();  
+  //cv->SetLogy();
   cv->SaveAs("MuonSelectionFakeRateVsEta.gif");
   cv->SaveAs("MuonSelectionFakeRateVsEta.pdf");
 
 
 
+  cv = new TCanvas("cv","cv", 800,600);
 
- cv = new TCanvas("cv","cv", 800,600);
-
-  legend = new TLegend(0.50,0.65,0.90,0.80);
+  legend = new TLegend(0.50,0.70,0.90,0.90);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -324,30 +345,27 @@ void plotMuonEfficiency() {
   legend->AddEntry(effFakeNpvLoose, "Loose", "LP");
   legend->AddEntry(effFakeNpvTight, "Tight", "LP");
 
-  effFakeNpvVeto->SetLineWidth(3);
-  effFakeNpvVeto->SetLineColor(kBlack);
-  effFakeNpvVeto->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
-  effFakeNpvVeto->GetYaxis()->SetTitle("Selection Efficiency");
-  effFakeNpvVeto->GetYaxis()->SetTitleOffset(1.35);
-  effFakeNpvVeto->GetXaxis()->SetRangeUser(5,35);
-  effFakeNpvVeto->GetYaxis()->SetRangeUser(0.0,0.04);
+  effFakeNpvTight->SetLineWidth(3);
+  effFakeNpvTight->SetLineColor(kRed);
+  effFakeNpvTight->GetXaxis()->SetTitle("Number of Reconstructed Vertices");
+  effFakeNpvTight->GetYaxis()->SetTitle("Selection Efficiency");
+  effFakeNpvTight->GetYaxis()->SetTitleOffset(1.35);
+  effFakeNpvTight->GetXaxis()->SetRangeUser(5,35);
+  effFakeNpvTight->GetYaxis()->SetRangeUser(0,0.04);
 
   effFakeNpvLoose->SetLineWidth(3);
   effFakeNpvLoose->SetLineColor(kBlue);
-  effFakeNpvTight->SetLineWidth(3);
-  effFakeNpvTight->SetLineColor(kRed);
+  effFakeNpvVeto->SetLineWidth(3);
+  effFakeNpvVeto->SetLineColor(kBlack);
 
-  effFakeNpvVeto->Draw("AP");
+  effFakeNpvTight->Draw("AP");
   effFakeNpvLoose->Draw("Psame");
-  effFakeNpvTight->Draw("Psame");
-  
+  effFakeNpvVeto->Draw("Psame"); 
+
   legend->Draw();  
+  //cv->SetLogy();
   cv->SaveAs("MuonSelectionFakeRateVsNpv.gif");
   cv->SaveAs("MuonSelectionFakeRateVsNpv.pdf");
-
-
-
-
 
 
 }
@@ -357,10 +375,7 @@ void plotMuonEfficiency() {
 
 //=== MAIN MACRO ================================================================================================= 
 
-void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string label = "") {
-
-   plotMuonEfficiency();
-   return;
+void ProduceMuonEfficiencyPlots(const string inputfile, int wp = 0,  int option = -1, string label = "") {
 
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -410,13 +425,15 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 
     if (!(MuTree->fMuPt > 5)) continue;
 
-    //Pass ID cuts   
-    // if (!(MuTree->fMuPt > 0 && MuTree->fMuIsLoose  && fabs(MuTree->fMuIP3dSig)<4)) continue;
+    //For Iso only efficiency require ID cuts   
+    if (wp == 10 || wp == 11) {
+      if (!(MuTree->fMuPt > 0 && MuTree->fMuIsLoose  && fabs(MuTree->fMuIP3dSig)<4)) continue;
+    } 
 
     if (option==0) {
       //**** PT - ETA ****
       histDenominatorPtEta->Fill(MuTree->fMuGenPt,MuTree->fMuGenEta);
-      if(PassSelection(MuTree)) {
+      if(PassSelection(MuTree,wp)) {
 	histNumeratorPtEta->Fill(MuTree->fMuGenPt,MuTree->fMuGenEta);
       }
 
@@ -425,7 +442,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
       histDenominatorPt->Fill(MuTree->fMuGenPt);
 
       //Numerator
-      if(PassSelection(MuTree)) {
+      if(PassSelection(MuTree,wp)) {
         histNumeratorPt->Fill(MuTree->fMuGenPt);        
       }
 
@@ -435,7 +452,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorEta->Fill(MuTree->fMuGenEta);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorEta->Fill(MuTree->fMuGenEta);        
 	}
 
@@ -446,7 +463,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorPhi->Fill(MuTree->fMuGenPhi);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorPhi->Fill(MuTree->fMuGenPhi);        
 	}
 
@@ -457,7 +474,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorRho->Fill(MuTree->fRho);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorRho->Fill(MuTree->fRho);        
 	}
 
@@ -467,7 +484,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorNpv->Fill(MuTree->fNVertices);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorNpv->Fill(MuTree->fNVertices);        
 	}
 
@@ -478,7 +495,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
       //   histDenominatorNpu->Fill(MuTree->);
 
       //   //Numerator
-      //   if(PassSelection(MuTree)) {
+      //   if(PassSelection(MuTree,wp)) {
       //     histNumeratorNpu->Fill(MuTree->);        
       //   }
 
@@ -487,7 +504,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
     if (option==1) {
       //**** PT - ETA ****
       histDenominatorPtEta->Fill(MuTree->fMuPt,MuTree->fMuEta);
-      if(PassSelection(MuTree)) {
+      if(PassSelection(MuTree,wp)) {
 	histNumeratorPtEta->Fill(MuTree->fMuPt,MuTree->fMuEta);
       }
 
@@ -496,7 +513,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
       histDenominatorPt->Fill(MuTree->fMuPt);
 
       //Numerator
-      if(PassSelection(MuTree)) {
+      if(PassSelection(MuTree,wp)) {
         histNumeratorPt->Fill(MuTree->fMuPt);        
       }
 
@@ -506,7 +523,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorEta->Fill(MuTree->fMuEta);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorEta->Fill(MuTree->fMuEta);        
 	}
 
@@ -517,7 +534,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorPhi->Fill(MuTree->fMuPhi);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorPhi->Fill(MuTree->fMuPhi);        
 	}
 
@@ -528,7 +545,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorRho->Fill(MuTree->fRho);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorRho->Fill(MuTree->fRho);        
 	}
 
@@ -538,7 +555,7 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
 	histDenominatorNpv->Fill(MuTree->fNVertices);
 
 	//Numerator
-	if(PassSelection(MuTree)) {
+	if(PassSelection(MuTree,wp)) {
 	  histNumeratorNpv->Fill(MuTree->fNVertices);        
 	}
 
@@ -623,4 +640,32 @@ void MakeMuonEfficiencyPlots(const string inputfile, int option = -1, string lab
   file->Close();
   delete file;       
 
+}
+
+
+void MakeMuonEfficiencyPlots(int option = 0) {
+  
+  if (option == 1) {
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 0, "PromptMuon_TTJets_25ns_Veto");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 0, "PromptMuon_TTJets_25ns_Loose");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 0, "PromptMuon_TTJets_25ns_Tight");
+    
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 1, "FakeMuon_TTJets_25ns_Veto");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 1, "FakeMuon_TTJets_25ns_Loose");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 1, "FakeMuon_TTJets_25ns_Tight");
+
+   
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 1, 0, "PromptMuon_TTJets_25ns_Veto");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 2, 0, "PromptMuon_TTJets_25ns_Loose");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 3, 0, "PromptMuon_TTJets_25ns_Tight");    
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_Fake_TTJets.root", 1, 1, "FakeMuon_TTJets_25ns_Veto");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_Fake_TTJets.root", 2, 1, "FakeMuon_TTJets_25ns_Loose");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_Fake_TTJets.root", 3, 1, "FakeMuon_TTJets_25ns_Tight");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 10, 0, "Muon_NumeratorImprovedIso_DenominatorLooseIDAndIPCut");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 11, 0, "Muon_NumeratorRelIso0p4_DenominatorLooseIDAndIPCut");
+
+  }
+
+  plotMuonEfficiency();
+   
 }

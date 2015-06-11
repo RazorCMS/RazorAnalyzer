@@ -66,7 +66,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
   correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
-  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
+  //correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
 
@@ -519,7 +519,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
 	Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
 	Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
 	Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
-	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
+	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
 	Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	Pho_passIso[_pho_index]            = tmpPho._passIso;
 	_pho_index++;
@@ -636,7 +636,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     MET = metPt;
     t1MET = metType0Plus1Pt;
     //if MR < 200, reject the event
-    if ( theMR < 150.0 )
+    if ( theMR < 0.0 )
       {
 	if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
 	for ( auto& jet : JetsPlusHiggsCandidate )

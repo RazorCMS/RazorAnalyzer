@@ -29,14 +29,15 @@
 #endif
 
 
-bool PassSelection( TauTree* tauTree ) {
+bool PassSelection( TauTree* tauTree , int wp) {
 
   bool pass = false;
 
-  if (tauTree->fTauPt > 20 && tauTree->fPassLooseSelection) pass = true;  
-
+  if (wp == 1) {
+    if (tauTree->fTauPt > 20 && tauTree->fPassLooseSelection) pass = true;  
+  }
+  
   return pass;
-
 }
 
 
@@ -45,8 +46,8 @@ void plotTauEfficiency() {
   TCanvas *cv =0;
   TLegend *legend =0;
 
-  TFile *fileLoose = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Tau_LooseSelection.root","READ");
-  TFile *fileFakesLoose = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_JetFakeTau_LooseSelection.root","READ");
+  TFile *fileLoose = new TFile("Efficiency_PromptTau_TTJets_25ns_Loose.root","READ");
+  TFile *fileFakesLoose = new TFile("Efficiency_FakeTau_TTJets_25ns_Loose.root","READ");
 
 
   TGraphAsymmErrors* effPtLoose = (TGraphAsymmErrors*)fileLoose->Get("Efficiency_Pt");
@@ -238,10 +239,8 @@ void plotTauEfficiency() {
 
 //=== MAIN MACRO ================================================================================================= 
 
-void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string label = "") {
+void ProduceTauEfficiencyPlots(const string inputfile, int wp,  int option = -1, string label = "") {
 
-  plotTauEfficiency();
-  return;
 
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -286,19 +285,28 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
     if (ientry % 100000 == 0) cout << "Event " << ientry << endl;
 
     //Cuts
-    if (tauTree->fTauGenPt < 5) continue;
-    if (abs(tauTree->fTauGenEta) > 2.4) continue;
+    if (option == 0) {
+      if (tauTree->fTauGenPt < 5) continue;
+      if (abs(tauTree->fTauGenEta) > 2.4) continue;
+    }
    
-    //if (!(tauTree->fTauPt > 20)) continue;
-    // if (!(abs(tauTree->fPdgId) == 0)) continue;
-    //if (!(abs(tauTree->fPdgId) == 11)) continue;
-    //if (!(abs(tauTree->fPdgId) == 13)) continue;
-
+    if (option >= 10) {
+      if (!(tauTree->fTauPt > 20)) continue;
+      if (option == 10) {
+	if (!(abs(tauTree->fPdgId) == 0)) continue;
+      }
+      if (option == 11) {
+       if (!(abs(tauTree->fPdgId) == 11)) continue;
+      }
+      if (option == 13) {
+	if (!(abs(tauTree->fPdgId) == 13)) continue;
+      }
+    }
 
     if (option == 0) {
       //**** PT - ETA ****
       histDenominatorPtEta->Fill(tauTree->fTauGenPt,tauTree->fTauGenEta);
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
 	histNumeratorPtEta->Fill(tauTree->fTauGenPt,tauTree->fTauGenEta);
       }
 
@@ -307,7 +315,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       histDenominatorPt->Fill(tauTree->fTauGenPt);
 
       //Numerator
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
         histNumeratorPt->Fill(tauTree->fTauGenPt);        
       }
 
@@ -317,7 +325,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
 	histDenominatorEta->Fill(tauTree->fTauGenEta);
 
 	//Numerator
-	if(PassSelection(tauTree)) {
+	if(PassSelection(tauTree,wp)) {
 	  histNumeratorEta->Fill(tauTree->fTauGenEta);        
 	}
 
@@ -328,7 +336,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
 	histDenominatorPhi->Fill(tauTree->fTauGenPhi);
 
 	//Numerator
-	if(PassSelection(tauTree)) {
+	if(PassSelection(tauTree,wp)) {
 	  histNumeratorPhi->Fill(tauTree->fTauGenPhi);        
 	}
 
@@ -339,7 +347,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
 	histDenominatorRho->Fill(tauTree->fRho);
 
 	//Numerator
-	if(PassSelection(tauTree)) {
+	if(PassSelection(tauTree,wp)) {
 	  histNumeratorRho->Fill(tauTree->fRho);        
 	}
 
@@ -349,7 +357,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
 	histDenominatorNpv->Fill(tauTree->fNVertices);
 
 	//Numerator
-	if(PassSelection(tauTree)) {
+	if(PassSelection(tauTree,wp)) {
 	  histNumeratorNpv->Fill(tauTree->fNVertices);        
 	}
 
@@ -360,17 +368,17 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       //   histDenominatorNpu->Fill(tauTree->fNPU);
 
       //   //Numerator
-      //   if(PassSelection(tauTree)) {
+      //   if(PassSelection(tauTree,wp)) {
       //     histNumeratorNpu->Fill(tauTree->fNPU);        
       //   }
 
       // }
     }
 
-    if (option == 1) {
+    if (option == 1 || option >= 10) {
     //**** PT - ETA ****
     histDenominatorPtEta->Fill(tauTree->fTauPt,tauTree->fTauEta);
-    if(PassSelection(tauTree)) {
+    if(PassSelection(tauTree,wp)) {
       histNumeratorPtEta->Fill(tauTree->fTauPt,tauTree->fTauEta);
     }
 
@@ -379,7 +387,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       histDenominatorPt->Fill(tauTree->fTauPt);
 
       //Numerator
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
         histNumeratorPt->Fill(tauTree->fTauPt);        
       }
 
@@ -389,7 +397,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       histDenominatorEta->Fill(tauTree->fTauEta);
 
       //Numerator
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
         histNumeratorEta->Fill(tauTree->fTauEta);        
       }
 
@@ -400,7 +408,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       histDenominatorPhi->Fill(tauTree->fTauPhi);
 
       //Numerator
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
         histNumeratorPhi->Fill(tauTree->fTauPhi);        
       }
 
@@ -411,7 +419,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       histDenominatorRho->Fill(tauTree->fRho);
 
       //Numerator
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
         histNumeratorRho->Fill(tauTree->fRho);        
       }
 
@@ -421,7 +429,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
       histDenominatorNpv->Fill(tauTree->fNVertices);
 
       //Numerator
-      if(PassSelection(tauTree)) {
+      if(PassSelection(tauTree,wp)) {
         histNumeratorNpv->Fill(tauTree->fNVertices);        
       }
 
@@ -432,7 +440,7 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
     //   histDenominatorNpu->Fill(tauTree->fNPU);
 
     //   //Numerator
-    //   if(PassSelection(tauTree)) {
+    //   if(PassSelection(tauTree,wp)) {
     //     histNumeratorNpu->Fill(tauTree->fNPU);        
     //   }
 
@@ -515,3 +523,14 @@ void MakeTauEfficiencyPlots(const string inputfile, int option = -1, string labe
   delete file;       
 
  }
+
+void MakeTauEfficiencyPlots(int option = 0) {
+
+  if (option == 1) {
+    ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/TauNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 0, "PromptTau_TTJets_25ns_Loose") ;
+    ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/TauNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 10, "FakeTau_TTJets_25ns_Loose") ;
+  } 
+
+  plotTauEfficiency();
+  
+}
