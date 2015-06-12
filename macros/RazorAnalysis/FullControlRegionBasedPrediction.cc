@@ -35,43 +35,63 @@ bool isSingleElectronBox(RazorAnalyzer::RazorBox box){
 }
 
 //define MR and Rsq binning
+
 //int NMRBINS = 10;
 //float MRBINLOWEDGES[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
-int NMRBINS = 20;
-float MRBINLOWEDGES[] = {300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900};
-//int NMRBINS = 20;
-//float MRBINLOWEDGES[] = {200, 230, 260, 290, 320, 350, 380, 410, 440, 470, 500, 530, 560, 590, 620, 650, 680, 710, 740, 770, 800};
-//int NMRBINS = 20;
-//float MRBINLOWEDGES[] = {200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200};
 int NRSQBINS = 8;
 float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
+
+//even binning
+int NMRBINS = 20;
+float MRBINLOWEDGES[] = {300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900};
+//float MRBINLOWEDGES[] = {200, 230, 260, 290, 320, 350, 380, 410, 440, 470, 500, 530, 560, 590, 620, 650, 680, 710, 740, 770, 800};
+//float MRBINLOWEDGES[] = {200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200};
+
+//ttbar single lepton SF bins
+//int NMRBINS = 8;
+//int NRSQBINS = 7;
+//float MRBINLOWEDGES[] = {300, 350, 400, 450, 500, 550, 700, 900, 4000};
+//float RSQBINLOWEDGES[] = {0.15,0.175,0.20,0.225,0.25,0.30,0.41, 1.5};
+
+//wjets single lepton SF bins
+//const int NMRBINS = 9;
+//const int NRSQBINS = 8;
+//double MRBINLOWEDGES[] = {300, 350, 400, 450, 500, 550, 700, 900, 1200, 4000};
+//double RSQBINLOWEDGES[] = {0.15,0.175,0.20,0.225, 0.25,0.30,0.41,0.52,1.5};  
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
 void FullControlRegionBasedPrediction(){
     bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
     bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
-    bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
+    //bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
+    bool scaleZNuNuToDY = false; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
     gROOT->SetBatch();
 
     //////////////////////////////////////////////////
     //Define baseline cuts
     //////////////////////////////////////////////////
 
-    //bool doDPhiRazorCut = true;
-    bool doDPhiRazorCut = false;
+    bool doDPhiRazorCut = true;
+    //bool doDPhiRazorCut = false;
     float dPhiRazorCut = 2.7; //cut on the angle between the two razor hemispheres
 
-    //bool doMetCut = false;
-    bool doMetCut = true;
+    bool doMetCut = false;
+    //bool doMetCut = true;
     float metCut = 30;
 
-    bool doMTCut = true;
+    //bool doMTCut = true;
+    bool doMTCut = false;
     float mTLowerCut = 30;
     float mTUpperCut = 100;
 
-    bool doLeptonPtCut = true;
+    //bool doLeptonPtCut = true;
+    bool doLeptonPtCut = false;
     float leptonPtCut = 30;
+
+    //bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
+    bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
+    int minNBTags = 0; //TODO: bin in nBTags instead of cutting
 
     //set color palette 
     const Int_t NCont = 101;
@@ -93,8 +113,8 @@ void FullControlRegionBasedPrediction(){
     else{
         mcPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
     }
-    string dataPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/"; //location of data ntuples
-    //string dataPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/Data"; //location of data ntuples
+    //string dataPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/"; //location of data ntuples
+    string dataPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
     //mcfiles["DYJets"] = new TFile(Form("%s/RazorInclusive_DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
@@ -221,9 +241,9 @@ void FullControlRegionBasedPrediction(){
 
     //load ZNuNu scale factor histograms
     TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
-    TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
+    //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("WJetsScaleFactors");
-    //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
+    TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
     float SFmaxMRZJetsNuNu = SFHistZJetsNuNu->GetXaxis()->GetXmax() - 1;
     float SFmaxRsqZJetsNuNu = SFHistZJetsNuNu->GetYaxis()->GetXmax() - 0.01;
     //cout << "ZJetsNuNu " << SFmaxMRZJetsNuNu << " " << SFmaxRsqZJetsNuNu << endl;
@@ -252,6 +272,10 @@ void FullControlRegionBasedPrediction(){
     boxes[RazorAnalyzer::SixJet] = "SixJet";
     boxes[RazorAnalyzer::FourJet] = "FourJet";
     boxes[RazorAnalyzer::DiJet] = "DiJet";
+    boxes[RazorAnalyzer::NONE] = "MultiJetPlusLooseLeptonMultiJet"; //(a temporary hack to combine three boxes)
+    //boxes[RazorAnalyzer::NONE] = "MultiJet"; //(a temporary hack to combine three boxes)
+    //boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; //(a temporary hack to combine three boxes)
+    //boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton"; //(a temporary hack to combine three boxes)
     //associate each box with a dataset
     map<RazorAnalyzer::RazorBox, string> boxDatasets;
     boxDatasets[RazorAnalyzer::MuEle] = "MuEG";
@@ -270,10 +294,8 @@ void FullControlRegionBasedPrediction(){
     boxDatasets[RazorAnalyzer::FourJet] = "HTMHT";
     boxDatasets[RazorAnalyzer::DiJet] = "HTMHT";
 
-    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
-
     //make directories for plots
-    string plotDir = "plots";
+    string plotDir = "/afs/cern.ch/work/d/duanders/public/plotsNoZNuNuSF0BtagDPhiCut";
     struct stat st;
     if (stat(plotDir.c_str(), &st) == -1) {
         mkdir(plotDir.c_str(), 0777);
@@ -283,11 +305,11 @@ void FullControlRegionBasedPrediction(){
     }
     for(auto &ibox : boxes){
         //check if directory exists
-        if (stat(Form("plots/RazorInclusive/%s", ibox.second.c_str()), &st) == -1) {
-                mkdir(Form("plots/RazorInclusive/%s", ibox.second.c_str()), 0777);
+        if (stat(Form("%s/RazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), &st) == -1) {
+            mkdir(Form("%s/RazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), 0777);
         }
     }       
-    string plotPath = "plots/RazorInclusive";
+    string plotPath = plotDir+"/RazorInclusive";
 
     //////////////////////////////////////////////////
     //Make histograms for each box, and fill them
@@ -327,7 +349,12 @@ void FullControlRegionBasedPrediction(){
             RazorAnalyzer::RazorBox razorbox = static_cast<RazorAnalyzer::RazorBox>(box);
 
             //enforce correct number of B-tags
-            if(nBTaggedJets < minNBTags) continue;
+            if(bTagsInclusive){
+                if(nBTaggedJets < minNBTags) continue;
+            }
+            else {
+                if(nBTaggedJets != minNBTags) continue;
+            }
             //cut on MR and Rsq
             if(MR < MRBINLOWEDGES[0] || Rsq < RSQBINLOWEDGES[0]) continue;
             //cut on dPhiRazor
@@ -335,7 +362,9 @@ void FullControlRegionBasedPrediction(){
             //cut on met
             if(doMetCut && met < metCut) continue;
             //cut on mT
-            if(doMTCut && (mT < mTLowerCut || mT > mTUpperCut)) continue;
+            if(doMTCut && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
+                if(mT < mTLowerCut || mT > mTUpperCut) continue;
+            }
             //cut on lepton pt
             if(doLeptonPtCut){
                 if(isSingleMuonBox(razorbox) && leadingTightMuPt < leptonPtCut) continue;
@@ -394,7 +423,7 @@ void FullControlRegionBasedPrediction(){
                 }
                 //ZNuNu SF
                 //TODO: combine the three predictions for ZNuNu
-                else if(tree.first == "ZJetsNuNu"){
+                /*else if(tree.first == "ZJetsNuNu"){
                     double SFZJetsNuNu = SFHistZJetsNuNu->GetBinContent(SFHistZJetsNuNu->FindFixBin(min(MR, SFmaxMRZJetsNuNu), min(Rsq, SFmaxRsqZJetsNuNu)));
                     double SFErrorZJetsNuNu = SFHistZJetsNuNu->GetBinError(SFHistZJetsNuNu->FindFixBin(min(MR, SFmaxMRZJetsNuNu), min(Rsq, SFmaxRsqZJetsNuNu)));
                     if(SFZJetsNuNu < 1e5){
@@ -423,7 +452,12 @@ void FullControlRegionBasedPrediction(){
                             sysErrorSquared = 0;
                         }
                     }
-                }
+                }*/
+            }
+
+            //single lepton trigger scale factor
+            if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
+                eventWeight = eventWeight*0.97;
             }
 
             //fill each quantity
@@ -440,6 +474,24 @@ void FullControlRegionBasedPrediction(){
             if(MR > MRCutFor1DPlots){
                 RsqHistosMC[razorbox][tree.first].Fill(Rsq, eventWeight);
                 RsqErrorHistosMC[razorbox][tree.first].Fill(Rsq, sysErrorSquared);
+            }
+
+            //combined Single Lepton boxes
+            //if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
+            //MultiJet box
+            //if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
+            //LooseLeptonMultiJet+MultiJet box
+            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+                razorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, Rsq, sysErrorSquared);
+                if(Rsq > RsqCutFor1DPlots){
+                    MRHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, eventWeight);
+                    MRErrorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, sysErrorSquared);
+                }
+                if(MR > MRCutFor1DPlots){
+                    RsqHistosMC[RazorAnalyzer::NONE][tree.first].Fill(Rsq, eventWeight);
+                    RsqErrorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(Rsq, sysErrorSquared);
+                }
             }
         }
     }
@@ -535,7 +587,12 @@ void FullControlRegionBasedPrediction(){
             if(tree.first != boxDatasets[razorbox]) continue;
 
             //enforce correct number of B-tags
-            if(nBTaggedJets < minNBTags) continue;
+            if(bTagsInclusive){
+                if(nBTaggedJets < minNBTags) continue;
+            }
+            else {
+                if(nBTaggedJets != minNBTags) continue;
+            }
             //cut on MR and Rsq
             if(MR < MRBINLOWEDGES[0] || Rsq < RSQBINLOWEDGES[0]) continue;
             //cut on dPhiRazor
@@ -543,7 +600,9 @@ void FullControlRegionBasedPrediction(){
             //cut on met
             if(doMetCut && met < metCut) continue;
             //cut on mT
-            if(doMTCut && (mT < mTLowerCut || mT > mTUpperCut)) continue;
+            if(doMTCut && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
+                if(mT < mTLowerCut || mT > mTUpperCut) continue;
+            }
             //cut on lepton pt
             if(doLeptonPtCut){
                 if(isSingleMuonBox(razorbox) && leadingTightMuPt < leptonPtCut) continue;
@@ -559,6 +618,21 @@ void FullControlRegionBasedPrediction(){
             razorData[razorbox].Fill(MR, Rsq, eventWeight);
             if(Rsq > RsqCutFor1DPlots) MRData[razorbox].Fill(MR, eventWeight);
             if(MR > MRCutFor1DPlots) RsqData[razorbox].Fill(Rsq, eventWeight);
+
+            //combined Single Lepton boxes
+            //if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
+            //MultiJet box
+            //if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
+            //LooseLeptonMultiJet+MultiJet box
+            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+                razorData[RazorAnalyzer::NONE].Fill(MR, Rsq, eventWeight);
+                if(Rsq > RsqCutFor1DPlots){
+                    MRData[RazorAnalyzer::NONE].Fill(MR, eventWeight);
+                }
+                if(MR > MRCutFor1DPlots){
+                    RsqData[RazorAnalyzer::NONE].Fill(Rsq, eventWeight);
+                }
+            }
         }
     }
 
@@ -581,7 +655,7 @@ void FullControlRegionBasedPrediction(){
             hist.second.SetStats(0);
             hist.second.Draw("colz");
             hist.second.Draw("same,text");
-            //c.Print(Form("%s/%s/MCHistogram%s%s.pdf", plotPath.c_str(), ibox.second.c_str(), hist.first.c_str(), ibox.second.c_str()));
+            //c.Print(Form("%s/%s/MCHistogram%s%s.gif", plotPath.c_str(), ibox.second.c_str(), hist.first.c_str(), ibox.second.c_str()));
             //c.Print(Form("%s/%s/MCHistogram%s%s.root", plotPath.c_str(), ibox.second.c_str(), hist.first.c_str(), ibox.second.c_str()));
 
             //add to total histogram
@@ -591,7 +665,7 @@ void FullControlRegionBasedPrediction(){
         TotalRazorMC.SetStats(0);
         TotalRazorMC.Draw("colz");
         TotalRazorMC.Draw("same,text");
-        c.Print(Form("%s/%s/MCHistogramTotal%s.pdf", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
+        c.Print(Form("%s/%s/MCHistogramTotal%s.gif", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
         //c.Print(Form("%s/%s/MCHistogramTotal%s.root", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
 
         //print data histogram
@@ -601,7 +675,7 @@ void FullControlRegionBasedPrediction(){
         razorData[ibox.first].SetStats(0);
         razorData[ibox.first].Draw("colz");
         razorData[ibox.first].Draw("same,text");
-        c.Print(Form("%s/%s/DataHistogram%s.pdf", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
+        c.Print(Form("%s/%s/DataHistogram%s.gif", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
         //c.Print(Form("%s/%s/DataHistogram%s.root", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
 
         //print MR and Rsq 1D histograms, comparing data to MC
@@ -767,7 +841,7 @@ void FullControlRegionBasedPrediction(){
         DataOverMCHist.SetTitle(Form("Data/MC, %s Box", ibox.second.c_str()));
         DataOverMCHist.Draw("colz");
         DataOverMCHist.Draw("same,text");
-        c.Print(Form("%s/%s/DataOverMC%s.pdf", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
+        c.Print(Form("%s/%s/DataOverMC%s.gif", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
         //(data-MC)/sigma
         TH2F DataMCSigmaComparison = *((TH2F*)razorData[ibox.first].Clone(Form("DataMCSigmaComparison%s", ibox.second.c_str())));
         for(int i = 0; i < razorData[ibox.first].GetNbinsX()+1; i++){
@@ -782,7 +856,7 @@ void FullControlRegionBasedPrediction(){
         DataMCSigmaComparison.SetTitle(Form("(Data-MC)/#sigma_{Data-MC}, %s Box", ibox.second.c_str()));
         DataMCSigmaComparison.Draw("colz");
         DataMCSigmaComparison.Draw("same,text");
-            c.Print(Form("%s/%s/DataMCSigma%s.pdf", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
+            c.Print(Form("%s/%s/DataMCSigma%s.gif", plotPath.c_str(), ibox.second.c_str(), ibox.second.c_str()));
 
         delete RazorLegend;
     }
@@ -852,11 +926,10 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->Draw("pe");
     pad2.Modified();
     gPad->Update();
-    c.Print(Form("%s.pdf", printString.c_str()));
+    c.Print(Form("%sLog.gif", printString.c_str()));
     //c.Print(Form("%s.root", printString.c_str()));
     pad1.SetLogy(kFALSE);
     pad1.Modified();
     gPad->Update();
-    c.Print(Form("%sLinear.pdf", printString.c_str()));
-    //c.Print(Form("%sLinear.root", printString.c_str()));
+    c.Print(Form("%sLinear.gif", printString.c_str()));
 }
