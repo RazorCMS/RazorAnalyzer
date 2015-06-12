@@ -169,9 +169,9 @@ if __name__ == '__main__':
         h_limit.GetXaxis().SetTitle("Integrated Luminosity [fb^{-1}]")
         h_limit.GetYaxis().SetTitle("Expected Signal Significance [std. dev.]")
         h_limit.Draw("a3")
-        threeSigGraph.Draw("c same")
-        fiveSigGraph.Draw("c same")
-        sigGraph.Draw("c same")
+        threeSigGraph.Draw("l same")
+        fiveSigGraph.Draw("l same")
+        sigGraph.Draw("l same")
     else:
         c.SetLogy(1)
         h_limit.Add(exp2sigmaGraph)
@@ -189,8 +189,8 @@ if __name__ == '__main__':
         #h_limit.SetMinimum(50.)
         h_limit.Draw("a3")
     
-        expGraph.Draw("c same")
-        xsecGraph.Draw("c same")
+        expGraph.Draw("l same")
+        xsecGraph.Draw("l same")
         demo = exp1sigmaGraph.Clone()
         demo.SetLineColor(rt.kBlack)
         demo.SetLineStyle(2)
@@ -220,11 +220,17 @@ if __name__ == '__main__':
     elif model=="T1tttt":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowt#bar{t}#tilde{#chi}^{0}_{1}")
         l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
+    elif model=="T1qqqq":
+        l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowq#bar{q}#tilde{#chi}^{0}_{1}")
+        l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
     elif model=="T2tt":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{t}#tilde{t},  #tilde{t}#rightarrowt#tilde{#chi}^{0}_{1}")
         l.DrawLatex(0.52,0.77,"m_{#tilde{t}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
     elif model=="T2bb":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{b}#tilde{b},  #tilde{b}#rightarrowb#tilde{#chi}^{0}_{1}")
+        l.DrawLatex(0.52,0.77,"m_{#tilde{b}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
+    elif model=="T2qq":
+        l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{q}#tilde{q},  #tilde{b}#rightarrowb#tilde{#chi}^{0}_{1}")
         l.DrawLatex(0.52,0.77,"m_{#tilde{b}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
 
     if signif:

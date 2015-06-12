@@ -54,8 +54,9 @@ if __name__ == '__main__':
   
     w = rt.RooWorkspace("w"+box)
     
-    paramNames = initializeWorkspace(w,cfg,box)
     rootTools.Utils.importToWS(w,data)
+    
+    paramNames = initializeWorkspace(w,cfg,box)
     
     th1x = w.var('th1x')
     
