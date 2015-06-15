@@ -72,7 +72,7 @@ if __name__ == '__main__':
             signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,3.0,btag,box)
             backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(3.0,btag,box)
             if not glob.glob(signalDsName):
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(options.config,box,1000.*lumi,model,massPoint),options.dryRun)
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(options.config,box,model,massPoint),options.dryRun)
             if not glob.glob(backgroundDsName):                
                 exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box),options.dryRun)
                 #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box,1000.*lumi),options.dryRun)
