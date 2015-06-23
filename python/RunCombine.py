@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option('-c','--config',dest="config",type="string",default="config/run2.config",
-                  help="Name of the config file to use"),
+                  help="Name of the config file to use")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
@@ -25,16 +25,16 @@ if __name__ == '__main__':
                   help="mass of stop")
     parser.add_option('--mLSP',dest="mLSP", default=-1,type="float",
                   help="mass of LSP")
-    parser.add_option('--lumi-array',dest="lumi_array", default="0.2,3,4,10",type="string",
-                  help="lumi array in fb^-1, e.g.: 0.2,3,4,10")
+    parser.add_option('--lumi-array',dest="lumi_array", default="0.2,0.5,1,3,4,7,10",type="string",
+                  help="lumi array in fb^-1, e.g.: 0.2,0.5,1,3,4,7,10")
     parser.add_option('--signif',dest="signif",default=False,action='store_true',
                   help="calculate significance instead of limit")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
     parser.add_option('--fit',dest="fit",default=False,action='store_true',
                   help="Turn on pre-fit")
-    parser.add_option('--min-tol',dest="min_tol",default=0.01,type="float",
-                  help="minimizer tolerance (default = 0.01)")
+    parser.add_option('--min-tol',dest="min_tol",default=0.001,type="float",
+                  help="minimizer tolerance (default = 0.001)")
     parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
                   help="Just print out commands to run")
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
             signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,3.0,btag,box)
             backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(3.0,btag,box)
             if not glob.glob(signalDsName):
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(options.config,box,1000.*lumi,model,massPoint),options.dryRun)
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(options.config,box,model,massPoint),options.dryRun)
             if not glob.glob(backgroundDsName):                
                 exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box),options.dryRun)
                 #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box,1000.*lumi),options.dryRun)

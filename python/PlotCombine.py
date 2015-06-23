@@ -4,10 +4,13 @@ import ROOT as rt
 from array import *
 import sys
 import re
+from framework import Config
 
 if __name__ == '__main__':
 
     parser = OptionParser()
+    parser.add_option('-c','--config',dest="config",type="string",default="config/run2.config",
+                  help="Name of the config file to use")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
@@ -38,8 +41,27 @@ if __name__ == '__main__':
     mGluino = options.mGluino
     mLSP = options.mLSP
     mStop = options.mStop
-    btag = "0-3btag"
     
+    cfg = Config.Config(options.config)    
+    
+    z = array('d', cfg.getBinning(box.split('_')[0])[2]) # nBtag binning
+    btagMin = z[0]
+    btagMax = z[-2]        
+    if btagMax>btagMin:          
+        btag = '%i-%ibtag'%(btagMin,btagMax)
+    else:
+        btag = '%ibtag'%(btagMin)    
+
+    btagLabel = ""
+    if z[-1] == z[0]+1 and z[-1]==4:
+        btagLabel = "#geq %i b-tag" % z[0]
+    elif z[-1] == z[0]+1:
+        btagLabel = "%i b-tag" % z[0]
+    elif z[-1]==4:
+        btagLabel = "#geq %i b-tag" % z[0]
+    else:
+        btagLabel = "%i-%i b-tag" % (z[0],z[-2])
+        
     thyXsec = -1
     thyXsecErr = -1
     
@@ -91,7 +113,7 @@ if __name__ == '__main__':
         for lumi in lumiArray:
 
             tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s_%s.Asymptotic.mH120.root'%(inDir,model,massPoint,lumi,btag,box))
-
+            tfile.Print('v')
             limit = tfile.Get('limit')
             limit.Draw('>>elist','','entrylist')
             elist = rt.gDirectory.Get('elist')
@@ -209,8 +231,10 @@ if __name__ == '__main__':
     boxes = box.split('_')
     if len(boxes)>1:
         l.DrawLatex(0.15,0.77,"razor %s"%'+'.join(boxes[0:2]))
-        for i in range(2,len(boxes)):
+        for i in range(2,len(boxes)-1):
             l.DrawLatex(0.15,0.84-0.07*i,"+%s"%boxes[i])
+        l.DrawLatex(0.15,0.84-0.07*(len(boxes)-1),"+%s, %s"%(boxes[-1],btagLabel))
+            
     else:
         l.DrawLatex(0.15,0.77,"razor %s box"%boxes[0])
     l.SetTextFont(42)
@@ -263,15 +287,15 @@ if __name__ == '__main__':
     #axis.Draw()
     if model.find("T1")!=-1:
         if signif:
-            c.Print("%s/signif_%s_%i_%i_%s.pdf"%(options.outDir,model,mGluino,mLSP,box))
-            c.Print("%s/signif_%s_%i_%i_%s.C"%(options.outDir,model,mGluino,mLSP,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mGluino,mLSP,btag,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.C"%(options.outDir,model,mGluino,mLSP,btag,box))
         else:
-            c.Print("%s/limit_%s_%i_%i_%s.pdf"%(options.outDir,model,mGluino,mLSP,box))
-            c.Print("%s/limit_%s_%i_%i_%s.C"%(options.outDir,model,mGluino,mLSP,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mGluino,mLSP,btag,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.C"%(options.outDir,model,mGluino,mLSP,btag,box))
     elif model.find("T2")!=-1:
         if signif:
-            c.Print("%s/signif_%s_%i_%i_%s.pdf"%(options.outDir,model,mStop,mLSP,box))
-            c.Print("%s/signif_%s_%i_%i_%s.C"%(options.outDir,model,mStop,mLSP,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mStop,mLSP,btag,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.C"%(options.outDir,model,mStop,mLSP,btag,box))
         else:
-            c.Print("%s/limit_%s_%i_%i_%s.pdf"%(options.outDir,model,mStop,mLSP,box))
-            c.Print("%s/limit_%s_%i_%i_%s.C"%(options.outDir,model,mStop,mLSP,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mStop,mLSP,btag,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.C"%(options.outDir,model,mStop,mLSP,btag,box))
