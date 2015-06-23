@@ -16,7 +16,7 @@ def fixPars(w, label, doFix=True, setVal=None):
             par.setConstant(doFix)
             if setVal is not None: par.setVal(setVal)
 
-def initializeWorkspace(w,cfg,box):
+def initializeWorkspace(w,cfg,box,scaleFactor=1.):
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
     for parameter in parameters:
@@ -35,7 +35,7 @@ def initializeWorkspace(w,cfg,box):
         # turn off shape parameters if no events in b-tag bin:
         for i in [0, 1, 2, 3]:
             if "Ntot_TTj%ib"%i in paramName:
-                w.var(paramName).setVal(w.data("RMRTree").sumEntries("nBtag==%i"%i))
+                w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag==%i"%i) ))
                 if not w.var(paramName).getVal():
                     fixPars(w,"TTj%ib"%i)    
     
@@ -176,7 +176,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
         # now nuisances
         datacard+=lumiString
         for paramName in paramNames:
-                datacard += "%s  	flatParam\n"%(paramName)
+            datacard += "%s  	flatParam\n"%(paramName)
         txtfile = open(txtfileName,"w")
         txtfile.write(datacard)
         txtfile.close()
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     if noFit:
         paramNames = initializeWorkspace_noFit(w,cfg,box)
     else:
-        paramNames, bkgs = initializeWorkspace(w,cfg,box)
+        paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in)
     
     
     th1x = w.var('th1x')

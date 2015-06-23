@@ -17,8 +17,8 @@ def setStyle():
 
     
 def print1DCanvas(c,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",tLeg=None):
-    c.SetLogx(0)
-    c.SetLogy(1)
+    #c.SetLogx(0)
+    #c.SetLogy(1)
     
     pad1 = rt.TPad(c.GetName()+"_pad1","pad1",0,0.25,1,1)
     pad2 = rt.TPad(c.GetName()+"_pad2","pad2",0,0,1,0.25)
@@ -34,7 +34,7 @@ def print1DCanvas(c,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",tL
     pad2.SetBottomMargin(0.47)
     pad1.Draw()
     pad1.cd()
-    rt.gPad.SetLogy()
+    rt.gPad.SetLogy(1)
     
     h.SetLineWidth(2)
     h.SetLineColor(rt.kBlue)
@@ -55,7 +55,7 @@ def print1DCanvas(c,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",tL
     h_data.GetYaxis().SetTitleOffset(0.7)
     h_data.GetXaxis().SetTicks("+-")
     h_data.SetMaximum(math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25))
-    h_data.SetMinimum(1e-1*h_data.GetBinContent(h_data.GetMinimumBin()))
+    h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
     h_data.Draw("pe")
     hClone.Draw("e2same")
     h.SetFillStyle(0)

@@ -15,8 +15,11 @@
 
       /// bit map
       /// DON'T CHANGE ORDER
-      enum TreeType { kTreeType_Default = 0,
-		      kTreeType_MiniOneLepton = 1,
+      enum TreeType { kTreeType_Default = 0,		      
+		      kTreeType_OneLeptonReduced = 1,
+		      kTreeType_DileptonFull = 2,
+		      kTreeType_PhotonReduced = 3,
+		      kTreeType_PhotonFull = 4,
       };
 
       //*******************************************
@@ -77,7 +80,7 @@
       Bool_t                  lep2PassVetoIso;
       Bool_t                  lep2PassLooseIso;
       Bool_t                  lep2PassTightIso;
-      Float_t                 lep2MinDRToBJet;
+      Float_t                 lep2MinDRToBJet;     
       TLorentzVector          bjet1;
       TLorentzVector          bjet2;
       Bool_t                  bjet1PassLoose;
@@ -127,6 +130,45 @@
       Bool_t                  Flag_trkPOG_logErrorTooManyClusters;
       Bool_t                  Flag_METFilters;
      
+      TLorentzVector          pho1;
+      TLorentzVector          pho2;
+      Bool_t                  pho1PassLoose;
+      Bool_t                  pho1PassTight;
+      Bool_t                  pho1PassLoose;
+      Bool_t                  pho1PassTight;
+      Bool_t                  HLT_Dimuon;
+      Bool_t                  HLT_SingleMu;
+      Bool_t                  HLT_Photon;
+      Bool_t                  HLT_Razor;
+      Bool_t                  HLT_Photon50;
+      Bool_t                  HLT_Photon75;
+      Bool_t                  HLT_Photon90;
+      Bool_t                  HLT_Photon135;
+      Bool_t                  HLT_Photon150;
+      Bool_t                  HLT_Photon160;
+      Float_t                 MR_NoZ;
+      Float_t                 Rsq_NoZ;
+      Float_t                 MR_NoW;
+      Float_t                 Rsq_NoW;
+      Float_t                 MR_NoPho;
+      Float_t                 Rsq_NoPho;
+      Float_t                 HT_NoZ;
+      Float_t                 HT_NoW;
+      Float_t                 HT_NoPho;
+      Float_t                 dPhiRazor_NoZ;
+      Float_t                 dPhiRazor_NoW;
+      Float_t                 dPhiRazor_NoPho;
+      Float_t                 MET_NoZ;
+      Float_t                 MET_NoW;
+      Float_t                 MET_NoPho;
+      Float_t                 NJets_NoZ;
+      Float_t                 NJets_NoW;
+      Float_t                 NJets_NoPho;
+      Float_t                 NJets80_NoZ;
+      Float_t                 NJets80_NoW;
+      Float_t                 NJets80_NoPho;
+
+
 
     public:
       /// this is the main element
@@ -146,6 +188,8 @@
 	bjet2Ptr    = &bjet2;       
 	jet1Ptr     = &jet1;
 	jet2Ptr     = &jet2;       
+	pho1Ptr     = &pho1;
+	pho2Ptr     = &pho2;
       };
 
       /// default destructor
@@ -245,7 +289,44 @@
 	Flag_trkPOG_manystripclus53X = 0.0;
 	Flag_trkPOG_toomanystripclus53X = 0.0;
 	Flag_trkPOG_logErrorTooManyClusters = 0.0;
-	Flag_METFilters = 0.0;
+	Flag_METFilters = 0.
+	
+	pho1PassLoose = false;
+	pho1PassTight = false;
+	pho1PassLoose = false;
+	pho1PassTight = false;
+	HLT_Dimuon = false;
+	HLT_SingleMu = false;
+	HLT_Photon = false;
+	HLT_Razor = false;
+	HLT_Photon50 = false;
+	HLT_Photon75 = false;
+	HLT_Photon90 = false;
+	HLT_Photon135 = false;
+	HLT_Photon150 = false;
+	HLT_Photon160 = false;
+	MR_NoZ = 0.0 ; 
+	Rsq_NoZ = 0.0 ; 
+	MR_NoW = 0.0 ; 
+	Rsq_NoW = 0.0 ; 
+	MR_NoPho = 0.0 ; 
+	Rsq_NoPho = 0.0 ; 
+	HT_NoZ = 0.0 ; 
+	HT_NoW = 0.0 ; 
+	HT_NoPho = 0.0 ; 
+	dPhiRazor_NoZ = 0.0 ; 
+	dPhiRazor_NoW = 0.0 ; 
+	dPhiRazor_NoPho = 0.0 ; 
+	MET_NoZ = 0.0 ; 
+	MET_NoW = 0.0 ; 
+	MET_NoPho = 0.0 ; 
+	NJets_NoZ = 0.0 ; 
+	NJets_NoW = 0.0 ; 
+	NJets_NoPho = 0.0 ; 
+	NJets80_NoZ = 0.0 ; 
+	NJets80_NoW = 0.0 ; 
+	NJets80_NoPho = 0.0 ; 
+
       }
     
       /// load a ControlSampleEvents

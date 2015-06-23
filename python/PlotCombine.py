@@ -4,10 +4,13 @@ import ROOT as rt
 from array import *
 import sys
 import re
+from framework import Config
 
 if __name__ == '__main__':
 
     parser = OptionParser()
+    parser.add_option('-c','--config',dest="config",type="string",default="config/run2.config",
+                  help="Name of the config file to use")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
@@ -38,8 +41,27 @@ if __name__ == '__main__':
     mGluino = options.mGluino
     mLSP = options.mLSP
     mStop = options.mStop
-    btag = "0-3btag"
     
+    cfg = Config.Config(options.config)    
+    
+    z = array('d', cfg.getBinning(box.split('_')[0])[2]) # nBtag binning
+    btagMin = z[0]
+    btagMax = z[-2]        
+    if btagMax>btagMin:          
+        btag = '%i-%ibtag'%(btagMin,btagMax)
+    else:
+        btag = '%ibtag'%(btagMin)    
+
+    btagLabel = ""
+    if z[-1] == z[0]+1 and z[-1]==4:
+        btagLabel = "#geq %i b-tag" % z[0]
+    elif z[-1] == z[0]+1:
+        btagLabel = "%i b-tag" % z[0]
+    elif z[-1]==4:
+        btagLabel = "#geq %i b-tag" % z[0]
+    else:
+        btagLabel = "%i-%i b-tag" % (z[0],z[-2])
+        
     thyXsec = -1
     thyXsecErr = -1
     
@@ -91,7 +113,7 @@ if __name__ == '__main__':
         for lumi in lumiArray:
 
             tfile = rt.TFile.Open('%s/higgsCombine%s_%s_lumi-%s_%s_%s.Asymptotic.mH120.root'%(inDir,model,massPoint,lumi,btag,box))
-
+            tfile.Print('v')
             limit = tfile.Get('limit')
             limit.Draw('>>elist','','entrylist')
             elist = rt.gDirectory.Get('elist')
@@ -169,9 +191,9 @@ if __name__ == '__main__':
         h_limit.GetXaxis().SetTitle("Integrated Luminosity [fb^{-1}]")
         h_limit.GetYaxis().SetTitle("Expected Signal Significance [std. dev.]")
         h_limit.Draw("a3")
-        threeSigGraph.Draw("c same")
-        fiveSigGraph.Draw("c same")
-        sigGraph.Draw("c same")
+        threeSigGraph.Draw("l same")
+        fiveSigGraph.Draw("l same")
+        sigGraph.Draw("l same")
     else:
         c.SetLogy(1)
         h_limit.Add(exp2sigmaGraph)
@@ -189,8 +211,8 @@ if __name__ == '__main__':
         #h_limit.SetMinimum(50.)
         h_limit.Draw("a3")
     
-        expGraph.Draw("c same")
-        xsecGraph.Draw("c same")
+        expGraph.Draw("l same")
+        xsecGraph.Draw("l same")
         demo = exp1sigmaGraph.Clone()
         demo.SetLineColor(rt.kBlack)
         demo.SetLineStyle(2)
@@ -209,8 +231,10 @@ if __name__ == '__main__':
     boxes = box.split('_')
     if len(boxes)>1:
         l.DrawLatex(0.15,0.77,"razor %s"%'+'.join(boxes[0:2]))
-        for i in range(2,len(boxes)):
+        for i in range(2,len(boxes)-1):
             l.DrawLatex(0.15,0.84-0.07*i,"+%s"%boxes[i])
+        l.DrawLatex(0.15,0.84-0.07*(len(boxes)-1),"+%s, %s"%(boxes[-1],btagLabel))
+            
     else:
         l.DrawLatex(0.15,0.77,"razor %s box"%boxes[0])
     l.SetTextFont(42)
@@ -220,11 +244,17 @@ if __name__ == '__main__':
     elif model=="T1tttt":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowt#bar{t}#tilde{#chi}^{0}_{1}")
         l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
+    elif model=="T1qqqq":
+        l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowq#bar{q}#tilde{#chi}^{0}_{1}")
+        l.DrawLatex(0.52,0.77,"m_{#tilde{g}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mGluino,mLSP))
     elif model=="T2tt":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{t}#tilde{t},  #tilde{t}#rightarrowt#tilde{#chi}^{0}_{1}")
         l.DrawLatex(0.52,0.77,"m_{#tilde{t}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
     elif model=="T2bb":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{b}#tilde{b},  #tilde{b}#rightarrowb#tilde{#chi}^{0}_{1}")
+        l.DrawLatex(0.52,0.77,"m_{#tilde{b}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
+    elif model=="T2qq":
+        l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{q}#tilde{q},  #tilde{b}#rightarrowb#tilde{#chi}^{0}_{1}")
         l.DrawLatex(0.52,0.77,"m_{#tilde{b}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(mStop,mLSP))
 
     if signif:
@@ -257,15 +287,15 @@ if __name__ == '__main__':
     #axis.Draw()
     if model.find("T1")!=-1:
         if signif:
-            c.Print("%s/signif_%s_%i_%i_%s.pdf"%(options.outDir,model,mGluino,mLSP,box))
-            c.Print("%s/signif_%s_%i_%i_%s.C"%(options.outDir,model,mGluino,mLSP,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mGluino,mLSP,btag,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.C"%(options.outDir,model,mGluino,mLSP,btag,box))
         else:
-            c.Print("%s/limit_%s_%i_%i_%s.pdf"%(options.outDir,model,mGluino,mLSP,box))
-            c.Print("%s/limit_%s_%i_%i_%s.C"%(options.outDir,model,mGluino,mLSP,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mGluino,mLSP,btag,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.C"%(options.outDir,model,mGluino,mLSP,btag,box))
     elif model.find("T2")!=-1:
         if signif:
-            c.Print("%s/signif_%s_%i_%i_%s.pdf"%(options.outDir,model,mStop,mLSP,box))
-            c.Print("%s/signif_%s_%i_%i_%s.C"%(options.outDir,model,mStop,mLSP,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mStop,mLSP,btag,box))
+            c.Print("%s/signif_%s_%i_%i_%s_%s.C"%(options.outDir,model,mStop,mLSP,btag,box))
         else:
-            c.Print("%s/limit_%s_%i_%i_%s.pdf"%(options.outDir,model,mStop,mLSP,box))
-            c.Print("%s/limit_%s_%i_%i_%s.C"%(options.outDir,model,mStop,mLSP,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.pdf"%(options.outDir,model,mStop,mLSP,btag,box))
+            c.Print("%s/limit_%s_%i_%i_%s_%s.C"%(options.outDir,model,mStop,mLSP,btag,box))

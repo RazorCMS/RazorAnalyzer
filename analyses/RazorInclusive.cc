@@ -173,6 +173,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     } else {
       razorTree->Branch("run", &runNum, "run/i");
       razorTree->Branch("lumi", &lumiNum, "lumi/i");
+      razorTree->Branch("event", &eventNum, "event/i");
     }
   }
   //set branches on all trees
@@ -193,6 +194,17 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       box.second->Branch("mT", &mT, "mT/F");
       box.second->Branch("leadingTightMuPt", &leadingTightMuPt, "leadingTightMuPt/F");
       box.second->Branch("leadingTightElePt", &leadingTightElePt, "leadingTightElePt/F");
+      if (!isData) {    
+          box.second->Branch("weight", &weight, "weight/F");
+          //   box.second->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
+          //   box.second->Branch("lepEffCorrFactor", &lepEffCorrFactor, "lepEffCorrFactor/F");
+          //   box.second->Branch("lepTrigCorrFactor", &lepTrigCorrFactor, "lepTrigCorrFactor/F");
+          //   box.second->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
+      } else {
+          box.second->Branch("run", &runNum, "run/i");
+          box.second->Branch("lumi", &lumiNum, "lumi/i");
+          box.second->Branch("event", &eventNum, "event/i");
+      }
     }
   }
 
