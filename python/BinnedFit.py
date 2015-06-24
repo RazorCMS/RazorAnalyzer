@@ -35,6 +35,9 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
+    parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
+                  help="Turn off fit (useful for visualizing initial parameters)")
+
 
     (options,args) = parser.parse_args()
     
@@ -42,6 +45,7 @@ if __name__ == '__main__':
     
     box = options.box
     lumi = options.lumi
+    noFit = options.noFit
     
     lumi_in = 0.
     for f in args:
@@ -69,11 +73,12 @@ if __name__ == '__main__':
     
     extRazorPdf = w.pdf('extRazorPdf')
 
-    fr = binnedFit(extRazorPdf,dataHist)
-    #fr = rt.RooFitResult()
-    fr.Print('v')
-    
-    rootTools.Utils.importToWS(w,fr)
+    if noFit:
+        fr = rt.RooFitResult()
+    else:        
+        fr = binnedFit(extRazorPdf,dataHist)
+        fr.Print('v')    
+        rootTools.Utils.importToWS(w,fr)
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -106,6 +111,7 @@ if __name__ == '__main__':
                 h_nBtagRsqMR.SetBinContent(i,j,k,h_th1x.GetBinContent(iBinX+1))
                 h_nBtagRsqMR.SetBinError(i,j,k,h_th1x.GetBinError(iBinX+1))
 
+
                 
     h_data_RsqMR = h_data_nBtagRsqMR.Project3D("yxe")
     h_data_MR = h_data_nBtagRsqMR.Project3D("xe")
@@ -115,7 +121,23 @@ if __name__ == '__main__':
     h_Rsq = h_nBtagRsqMR.Project3D("ye")
 
     
+    if len(z)>1:
+        h_MR_components = []
+        h_Rsq_components = []
+        h_labels = []        
+        h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
+        for k in range(1,len(z)):
+            h_MR_components.append(h_nBtagRsqMR.ProjectionX("MR_%ibtag"%z[k-1],0,-1,k,k,""))
+            h_Rsq_components.append(h_nBtagRsqMR.ProjectionY("Rsq_%ibtag"%z[k-1],0,-1,k,k,""))
+            if z[k-1]==3 and z[-1]==4:
+                h_labels.append("#geq %i b-tag" % z[k-1] )
+            if z[k-1]==1 and z[-1]==2 and box in ['MuEle','MuMu','EleEle']:                
+                h_labels.append("#geq %i b-tag" % z[k-1] )
+            else:            
+                h_labels.append("%i b-tag" % z[k-1] )
 
+    print h_MR_components
+    print h_Rsq_components
 
     btagLabel = ""
     if z[-1] == z[0]+1 and z[-1]==4:
@@ -124,14 +146,18 @@ if __name__ == '__main__':
         btagLabel = "%i b-tag" % z[0]
     elif z[-1]==4:
         btagLabel = "#geq %i b-tag" % z[0]
+    elif z[-1]==2 and box in ['MuEle','MuMu','EleEle']:
+        btagLabel = "#geq %i b-tag" % z[0]        
     else:
         btagLabel = "%i-%i b-tag" % (z[0],z[-2])
 
     lumiLabel = "%i fb^{-1} (13 TeV)" % (lumi/1000.)
     boxLabel = "razor %s %s" % (box,btagLabel)
+
+    
          
-    RunToys.print1DCanvas(c,h_MR,h_data_MR,options.outDir+"/h_MR.pdf","M_{R} [GeV]","Events",lumiLabel,boxLabel)
-    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq.pdf","R^{2}","Events",lumiLabel,boxLabel)
+    RunToys.print1DCanvas(c,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]","Events",lumiLabel,boxLabel,None,h_MR_components,h_colors,h_labels)
+    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}","Events",lumiLabel,boxLabel,None,h_Rsq_components,h_colors,h_labels)
     
 
     outFileName = "BinnedFitResults_%s.root"%(box)
