@@ -16,7 +16,7 @@
       /// bit map
       /// DON'T CHANGE ORDER
       enum TreeType { kTreeType_Default = 0,		      
-		      kTreeType_OneLeptonReduced = 1,
+		      kTreeType_MiniOneLepton = 1,
 		      kTreeType_DileptonFull = 2,
 		      kTreeType_PhotonReduced = 3,
 		      kTreeType_PhotonFull = 4,
@@ -132,8 +132,6 @@
      
       TLorentzVector          pho1;
       TLorentzVector          pho2;
-      Bool_t                  pho1PassLoose;
-      Bool_t                  pho1PassTight;
       Bool_t                  pho1PassLoose;
       Bool_t                  pho1PassTight;
       Bool_t                  HLT_Dimuon;
@@ -289,7 +287,7 @@
 	Flag_trkPOG_manystripclus53X = 0.0;
 	Flag_trkPOG_toomanystripclus53X = 0.0;
 	Flag_trkPOG_logErrorTooManyClusters = 0.0;
-	Flag_METFilters = 0.
+	Flag_METFilters = 0.0;
 	
 	pho1PassLoose = false;
 	pho1PassTight = false;
@@ -357,7 +355,7 @@
 	tree_->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
 	tree_->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
 	
-	if (treeType == kTreeType_Default || treeType == kTreeType_MiniOneLepton) {
+	if (treeType == kTreeType_Default || treeType == kTreeType_MiniOneLepton || treeType == kTreeType_DileptonFull) {
 	  tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
 	  tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
 	  tree_->Branch("lep1PassVeto",&lep1PassVeto,"lep1PassVeto/O");
@@ -426,6 +424,8 @@
 	  tree_->Branch("bjet2",   "TLorentzVector", &bjet2Ptr);
 	  tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
 	  tree_->Branch("jet2",    "TLorentzVector", &jet2Ptr);
+	  tree_->Branch("pho1",    "TLorentzVector", &pho1Ptr);
+	  tree_->Branch("pho2",    "TLorentzVector", &pho2Ptr);
 	  tree_->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
 	  tree_->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
 	  tree_->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
@@ -464,7 +464,7 @@
 	tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
 	tree_->SetBranchAddress("NBJetsTight",&NBJetsTight);
 	
-	if (treeType == kTreeType_Default || treeType == kTreeType_MiniOneLepton) {
+	if (treeType == kTreeType_Default || treeType == kTreeType_MiniOneLepton || treeType == kTreeType_DileptonFull) {
 	  tree_->SetBranchAddress("genlep1Type",&genlep1Type);
 	  tree_->SetBranchAddress("lep1Type",&lep1Type);
 	  tree_->SetBranchAddress("lep1PassVeto",&lep1PassVeto);
@@ -533,6 +533,8 @@
 	  tree_->SetBranchAddress("bjet2",&bjet2Ptr);
 	  tree_->SetBranchAddress("jet1",&jet1Ptr);
 	  tree_->SetBranchAddress("jet2",&jet2Ptr);
+	  tree_->SetBranchAddress("pho1",&pho1Ptr);
+	  tree_->SetBranchAddress("pho2",&pho2Ptr);
 	  tree_->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
 	  tree_->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter);
 	  tree_->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter);
@@ -560,6 +562,8 @@
       TLorentzVector* bjet2Ptr;
       TLorentzVector* jet1Ptr;
       TLorentzVector* jet2Ptr;
+      TLorentzVector* pho1Ptr;
+      TLorentzVector* pho2Ptr;
       
   }; 
 
