@@ -128,6 +128,7 @@ class RazorAnalyzer: public RazorEvents {
 	//----------------------------------
 	bool isGoodPhotonRun1( int i, bool _iso, bool _debug );
 	bool photonPassIsoRun1( int i, bool _debug );
+	bool photonPassIsoRun1( int i , WP wp, bool _debug );
 	void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	bool passEleVetoRun1( int i );
 	// R u n 2   C u t   B a s e d   I D
@@ -170,6 +171,10 @@ class RazorAnalyzer: public RazorEvents {
         bool passesHadronicRazorBaseline(double MR, double Rsq);
         bool passesLeptonicRazorBaseline(double MR, double Rsq);
         int SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch=0.4);
+	
+	double calcMT2(float testMass, bool massive, std::vector<TLorentzVector> jets, TLorentzVector MET, int hemi_seed, int hemi_association);
+	
+
 	
 	//functions in src/RazorAuxGenLevel.cc
 	bool matchesGenMuon(double eta, double phi);

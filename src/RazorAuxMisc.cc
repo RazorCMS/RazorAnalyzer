@@ -1,5 +1,7 @@
 #include "RazorAnalyzer.h"
 #include "TLorentzVector.h"
+#include "Hemisphere.hh"
+#include "Davismt2.hh"
 
 double RazorAnalyzer::deltaPhi(double phi1, double phi2) {
   double dphi = phi1-phi2;
@@ -274,3 +276,67 @@ int RazorAnalyzer::SubtractParticleFromCollection(TLorentzVector ToSubtract, vec
     Collection[closestDRIndex].SetPxPyPzE(Collection[closestDRIndex].Px()*scalePFactor, Collection[closestDRIndex].Py()*scalePFactor, Collection[closestDRIndex].Pz()*scalePFactor, Collection[closestDRIndex].E()*scalePFactor);
     return closestDRIndex;
 }
+
+double RazorAnalyzer::calcMT2(float testMass, bool massive, vector<TLorentzVector> jets, TLorentzVector MET, int hemi_seed, int hemi_association)
+{
+  //computes MT2 using a test mass of testMass, with hemispheres made massless if massive is set to false
+  //hemispheres are clustered by finding the grouping of input jets that minimizes the Lund distance
+  
+  if(jets.size() < 2) return -9999; //need at least two jets for the calculation
+  vector<float> px, py, pz, E;
+  for(uint i = 0; i < jets.size(); i++){
+    //push 4vector components onto individual lists
+    px.push_back(jets[i].Px());
+    py.push_back(jets[i].Py());
+    pz.push_back(jets[i].Pz());
+    E.push_back(jets[i].E());
+  }
+  
+  //form the hemispheres using the provided Hemisphere class
+  Hemisphere* hemis = new Hemisphere(px, py, pz, E, hemi_seed, hemi_association);
+  vector<int> grouping = hemis->getGrouping();
+  TLorentzVector pseudojet1(0.,0.,0.,0.);
+  TLorentzVector pseudojet2(0.,0.,0.,0.);
+        
+  //make the hemisphere vectors
+  for(uint i=0; i<px.size(); ++i){
+    if(grouping[i]==1){
+      pseudojet1.SetPx(pseudojet1.Px() + px[i]);
+      pseudojet1.SetPy(pseudojet1.Py() + py[i]);
+      pseudojet1.SetPz(pseudojet1.Pz() + pz[i]);
+      pseudojet1.SetE( pseudojet1.E()  + E[i]);   
+    }else if(grouping[i] == 2){
+      pseudojet2.SetPx(pseudojet2.Px() + px[i]);
+      pseudojet2.SetPy(pseudojet2.Py() + py[i]);
+      pseudojet2.SetPz(pseudojet2.Pz() + pz[i]);
+      pseudojet2.SetE( pseudojet2.E()  + E[i]);
+    }
+  }
+  delete hemis;
+  
+  //now compute MT2 using the Davismt2 class
+  
+  //these arrays contain (mass, px, py) for the pseudojets and the MET
+  double pa[3];
+  double pb[3];
+  double pmiss[3];
+  
+  pmiss[0] = 0;
+  pmiss[1] = static_cast<double> (MET.Px());
+  pmiss[2] = static_cast<double> (MET.Py());
+  
+  pa[0] = static_cast<double> (massive ? pseudojet1.M() : 0);
+  pa[1] = static_cast<double> (pseudojet1.Px());
+  pa[2] = static_cast<double> (pseudojet1.Py());
+  
+  pb[0] = static_cast<double> (massive ? pseudojet2.M() : 0);
+  pb[1] = static_cast<double> (pseudojet2.Px());
+  pb[2] = static_cast<double> (pseudojet2.Py());
+  
+  Davismt2 *mt2 = new Davismt2();
+  mt2->set_momenta(pa, pb, pmiss);
+  mt2->set_mn(testMass);
+  Float_t MT2=mt2->get_mt2();
+  delete mt2;
+  return MT2;
+};
