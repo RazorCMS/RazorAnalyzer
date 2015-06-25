@@ -18,6 +18,8 @@
 #include "assert.h"
 #include "math.h"
 
+#include "RazorAnalyzer/include/ControlSampleEvents.h"
+
 using namespace std;
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
@@ -78,35 +80,38 @@ void CompareDataFitCRs(){
     cuts["TTBarDilepton"] = "";
     cuts["WSingleLepton"] = "";
     cuts["ZLLDilepton"] = "";
-    cuts["ZNuNuFromDY"] = "hlt_dimuon && nLooseMuons == 2 && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
-    cuts["ZNuNuFromW"] = "hlt_singlemu && nBTaggedJets == 0 && nTightMuons == 1 && nLooseMuons == 1 && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
-    cuts["ZNuNuFromGamma"] = "hlt_photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1 && leadingPhotonPt > 80";
+    cuts["ZNuNuFromDY"] = "";
+    cuts["ZNuNuFromW"] = "";
+    cuts["ZNuNuFromGamma"] = "";
+    //cuts["ZNuNuFromDY"] = "HLT_Dimuon && nLooseMuons == 2 && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
+    //cuts["ZNuNuFromW"] = "HLT_SingleMu && nBTaggedJets == 0 && nTightMuons == 1 && nLooseMuons == 1 && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
+    //cuts["ZNuNuFromGamma"] = "HLT_Photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1 && pho1.Pt() > 80";
 
     //get input files
-    map<string, TFile*> mcfiles;
-    map<string, TFile*> datafiles;
+    map<string, string> mcfilenames;
+    map<string, string> datafilenames;
     string baseDir = "root://eoscms://store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/";
     string fileSuffix = ".root";
 
-    mcfiles["DYJets"] = new TFile(Form("%s/DYJetsRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["TTJets"] = new TFile(Form("%s/TTJetsRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["WJets"] = new TFile(Form("%s/WJetsRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["ZJetsNuNu"] = new TFile(Form("%s/ZJetsNuNuRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["SingleTop"] = new TFile(Form("%s/SingleTopRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["TTV"] = new TFile(Form("%s/TTVRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["VV"] = new TFile(Form("%s/VVRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["QCD"] = new TFile(Form("%s/QCDRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["GJets"] = new TFile(Form("%s/GJetsRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["VG"] = new TFile(Form("%s/VGRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    mcfiles["TTG"] = new TFile(Form("%s/TTGRun1%s", baseDir.c_str(), fileSuffix.c_str()));
+    mcfilenames["DYJets"] = baseDir+"/DYJetsRun1"+fileSuffix;
+    mcfilenames["TTJets"] = baseDir+"/TTJetsRun1"+fileSuffix;
+    mcfilenames["WJets"] = baseDir+"/WJetsRun1"+fileSuffix;
+    mcfilenames["ZJetsNuNu"] = baseDir+"/ZJetsNuNuRun1"+fileSuffix;
+    mcfilenames["SingleTop"] = baseDir+"/SingleTopRun1"+fileSuffix;
+    mcfilenames["TTV"] = baseDir+"/TTVRun1"+fileSuffix;
+    mcfilenames["VV"] = baseDir+"/VVRun1"+fileSuffix;
+    mcfilenames["QCD"] = baseDir+"/QCDRun1"+fileSuffix;
+    mcfilenames["GJets"] = baseDir+"/GJetsRun1"+fileSuffix;
+    mcfilenames["VG"] = baseDir+"/VGRun1"+fileSuffix;
+    mcfilenames["TTG"] = baseDir+"/TTGRun1"+fileSuffix;
 
     //data
-    datafiles["HTMHT"] = new TFile(Form("%s/HTMHTRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    datafiles["SingleMuon"] = new TFile(Form("%s/SingleMuonRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    datafiles["SingleElectron"] = new TFile(Form("%s/SingleElectronRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    datafiles["DoubleMuon"] = new TFile(Form("%s/DoubleMuonRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    datafiles["DoubleElectron"] = new TFile(Form("%s/DoubleElectronRun1%s", baseDir.c_str(), fileSuffix.c_str()));
-    datafiles["Photon"] = new TFile(Form("%s/PhotonRun1%s", baseDir.c_str(), fileSuffix.c_str()));
+    datafilenames["HTMHT"] = baseDir+"/HTMHTRun1"+fileSuffix;
+    datafilenames["SingleMuon"] = baseDir+"/SingleMuonRun1"+fileSuffix;
+    datafilenames["SingleElectron"] = baseDir+"/SingleElectronRun1"+fileSuffix;
+    datafilenames["DoubleMuon"] = baseDir+"/DoubleMuonRun1"+fileSuffix;
+    datafilenames["DoubleElectron"] = baseDir+"/DoubleElectronRun1"+fileSuffix;
+    datafilenames["Photon"] = baseDir+"/PhotonRun1"+fileSuffix;
 
     //assign datasets to control regions
     map<string, vector<string> > controlRegionMC;
@@ -125,163 +130,18 @@ void CompareDataFitCRs(){
     controlRegionData["ZNuNuFromW"] = vector<string> {"SingleMuon"};
     controlRegionData["ZNuNuFromGamma"] = vector<string> {"Photon"};
 
-    //get trees and set branches
-    map<string, TTree*> mctrees;
-    map<string, TTree*> datatrees;
-    float weight;
-    float leadingMuonPt, leadingPhotonPt, recoZmass, subleadingMuonPt, mTLepMet;
-    float leadingTightMuonPt;
-    float bjet1Pt, bjet2Pt;
-    bool bjet1PassMedium, bjet2PassMedium;
-    bool hlt_singlemu, hlt_dimuon, hlt_photon, hlt_razor;
-    bool passedHLTPhoton50, passedHLTPhoton75, passedHLTPhoton90, passedHLTPhoton135, passedHLTPhoton150;
-    bool Flag_HBHENoiseFilter, Flag_CSCTightHaloFilter, Flag_EcalDeadCellTriggerPrimitiveFilter, Flag_eeBadScFilter, Flag_ecalLaserCorrFilter;
-    float genZPt, genWPt;
-    int nPU_mean;
-    float MR, Rsq, MR_noZ, Rsq_noZ, MR_noW, Rsq_noW, MR_noPho, Rsq_noPho;
-    for(auto &file : mcfiles){
-        mctrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
-        mctrees[file.first]->SetBranchStatus("*", 0);
-        mctrees[file.first]->SetBranchStatus("MR_noW", 1);
-        mctrees[file.first]->SetBranchStatus("Rsq_noW", 1);
-        mctrees[file.first]->SetBranchStatus("numJets80_noW", 1);
-        mctrees[file.first]->SetBranchStatus("MR_noZ", 1);
-        mctrees[file.first]->SetBranchStatus("Rsq_noZ", 1);
-        mctrees[file.first]->SetBranchStatus("numJets80_noZ", 1);
-        mctrees[file.first]->SetBranchStatus("MR_noPho", 1);
-        mctrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
-        mctrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
-        mctrees[file.first]->SetBranchStatus("MR", 1);
-        mctrees[file.first]->SetBranchStatus("Rsq", 1);
-        mctrees[file.first]->SetBranchStatus("numJets80", 1);
-        mctrees[file.first]->SetBranchStatus("weight", 1);
-        mctrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
-        mctrees[file.first]->SetBranchStatus("leadingTightMuonPt", 1);
-        mctrees[file.first]->SetBranchStatus("subleadingMuonPt", 1);
-        mctrees[file.first]->SetBranchStatus("leadingPhotonPt", 1);
-        mctrees[file.first]->SetBranchStatus("recoZmass", 1);
-        mctrees[file.first]->SetBranchStatus("mTLepMet", 1);
-        mctrees[file.first]->SetBranchStatus("nPU_mean", 1);
-        mctrees[file.first]->SetBranchStatus("nLooseMuons", 1);
-        mctrees[file.first]->SetBranchStatus("nLooseElectrons", 1);
-        mctrees[file.first]->SetBranchStatus("nTightMuons", 1);
-        mctrees[file.first]->SetBranchStatus("hlt_photon", 1);
-        mctrees[file.first]->SetBranchStatus("hlt_dimuon", 1);
-        mctrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
-        mctrees[file.first]->SetBranchStatus("hlt_razor", 1);
-        mctrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
-        mctrees[file.first]->SetBranchStatus("genZpt", 1);
-        mctrees[file.first]->SetBranchStatus("genWpt", 1);
-        mctrees[file.first]->SetBranchStatus("bjet1PassMedium", 1);
-        mctrees[file.first]->SetBranchStatus("bjet2PassMedium", 1);
-        mctrees[file.first]->SetBranchStatus("bjet1Pt", 1);
-        mctrees[file.first]->SetBranchStatus("bjet2Pt", 1);
-
-        mctrees[file.first]->SetBranchAddress("MR", &MR);
-        mctrees[file.first]->SetBranchAddress("Rsq", &Rsq);
-        mctrees[file.first]->SetBranchAddress("MR_noZ", &MR_noZ);
-        mctrees[file.first]->SetBranchAddress("Rsq_noZ", &Rsq_noZ);
-        mctrees[file.first]->SetBranchAddress("MR_noW", &MR_noW);
-        mctrees[file.first]->SetBranchAddress("Rsq_noW", &Rsq_noW);
-        mctrees[file.first]->SetBranchAddress("MR_noPho", &MR_noPho);
-        mctrees[file.first]->SetBranchAddress("Rsq_noPho", &Rsq_noPho);
-        mctrees[file.first]->SetBranchAddress("weight", &weight);
-        mctrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
-        mctrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
-        mctrees[file.first]->SetBranchAddress("subleadingMuonPt", &subleadingMuonPt);
-        mctrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
-        mctrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
-        mctrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
-        mctrees[file.first]->SetBranchAddress("nPU_mean", &nPU_mean);
-        mctrees[file.first]->SetBranchAddress("genZpt", &genZPt);
-        mctrees[file.first]->SetBranchAddress("genWpt", &genWPt);
-        mctrees[file.first]->SetBranchAddress("bjet1PassMedium", &bjet1PassMedium);
-        mctrees[file.first]->SetBranchAddress("bjet2PassMedium", &bjet2PassMedium);
-        mctrees[file.first]->SetBranchAddress("bjet1Pt", &bjet1Pt);
-        mctrees[file.first]->SetBranchAddress("bjet2Pt", &bjet2Pt);
-        mctrees[file.first]->SetBranchAddress("hlt_singlemu", &hlt_singlemu);
-        mctrees[file.first]->SetBranchAddress("hlt_dimuon", &hlt_dimuon);
-        mctrees[file.first]->SetBranchAddress("hlt_razor", &hlt_razor);
-        mctrees[file.first]->SetBranchAddress("hlt_photon", &hlt_photon);
+    //get trees
+    map<string, ControlSampleEvents*> mcevents;
+    map<string, ControlSampleEvents*> dataevents;
+    for(auto &file : mcfilenames){
+        mcevents[file.first] = new ControlSampleEvents;
+        mcevents[file.first]->LoadTree(file.second.c_str());
     }
-    for(auto &file : datafiles){
-        datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
-        datatrees[file.first]->SetBranchStatus("*", 0);
-
-        datatrees[file.first]->SetBranchStatus("MR_noW", 1);
-        datatrees[file.first]->SetBranchStatus("Rsq_noW", 1);
-        datatrees[file.first]->SetBranchStatus("numJets80_noW", 1);
-        datatrees[file.first]->SetBranchStatus("MR_noZ", 1);
-        datatrees[file.first]->SetBranchStatus("Rsq_noZ", 1);
-        datatrees[file.first]->SetBranchStatus("numJets80_noZ", 1);
-        datatrees[file.first]->SetBranchStatus("MR_noPho", 1);
-        datatrees[file.first]->SetBranchStatus("Rsq_noPho", 1);
-        datatrees[file.first]->SetBranchStatus("numJets80_noPho", 1);
-        datatrees[file.first]->SetBranchStatus("MR", 1);
-        datatrees[file.first]->SetBranchStatus("Rsq", 1);
-        datatrees[file.first]->SetBranchStatus("numJets80", 1);
-        datatrees[file.first]->SetBranchStatus("leadingMuonPt", 1);
-        datatrees[file.first]->SetBranchStatus("leadingTightMuonPt", 1);
-        datatrees[file.first]->SetBranchStatus("subleadingMuonPt", 1);
-        datatrees[file.first]->SetBranchStatus("leadingPhotonPt", 1);
-        datatrees[file.first]->SetBranchStatus("recoZmass", 1);
-        datatrees[file.first]->SetBranchStatus("mTLepMet", 1);
-        datatrees[file.first]->SetBranchStatus("passedHLTPhoton50", 1);
-        datatrees[file.first]->SetBranchStatus("passedHLTPhoton75", 1);
-        datatrees[file.first]->SetBranchStatus("passedHLTPhoton90", 1);
-        datatrees[file.first]->SetBranchStatus("passedHLTPhoton135", 1);
-        datatrees[file.first]->SetBranchStatus("passedHLTPhoton150", 1);
-        datatrees[file.first]->SetBranchStatus("nLooseMuons", 1);
-        datatrees[file.first]->SetBranchStatus("nLooseElectrons", 1);
-        datatrees[file.first]->SetBranchStatus("nTightMuons", 1);
-        datatrees[file.first]->SetBranchStatus("hlt_photon", 1);
-        datatrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
-        datatrees[file.first]->SetBranchStatus("hlt_dimuon", 1);
-        datatrees[file.first]->SetBranchStatus("hlt_singlemu", 1);
-        datatrees[file.first]->SetBranchStatus("hlt_razor", 1);
-        datatrees[file.first]->SetBranchStatus("bjet1PassMedium", 1);
-        datatrees[file.first]->SetBranchStatus("bjet2PassMedium", 1);
-        datatrees[file.first]->SetBranchStatus("bjet1Pt", 1);
-        datatrees[file.first]->SetBranchStatus("bjet2Pt", 1);
-        datatrees[file.first]->SetBranchStatus("Flag_HBHENoiseFilter", 1); // enable
-        datatrees[file.first]->SetBranchStatus("Flag_CSCTightHaloFilter", 1); // enable
-        datatrees[file.first]->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1); // enable
-        datatrees[file.first]->SetBranchStatus("Flag_eeBadScFilter", 1); // enable
-        datatrees[file.first]->SetBranchStatus("Flag_ecalLaserCorrFilter", 1); // enable
-
-        datatrees[file.first]->SetBranchAddress("MR", &MR);
-        datatrees[file.first]->SetBranchAddress("Rsq", &Rsq);
-        datatrees[file.first]->SetBranchAddress("MR_noZ", &MR_noZ);
-        datatrees[file.first]->SetBranchAddress("Rsq_noZ", &Rsq_noZ);
-        datatrees[file.first]->SetBranchAddress("MR_noW", &MR_noW);
-        datatrees[file.first]->SetBranchAddress("Rsq_noW", &Rsq_noW);
-        datatrees[file.first]->SetBranchAddress("MR_noPho", &MR_noPho);
-        datatrees[file.first]->SetBranchAddress("Rsq_noPho", &Rsq_noPho);
-        datatrees[file.first]->SetBranchAddress("leadingMuonPt", &leadingMuonPt);
-        datatrees[file.first]->SetBranchAddress("leadingTightMuonPt", &leadingTightMuonPt);
-        datatrees[file.first]->SetBranchAddress("subleadingMuonPt", &subleadingMuonPt);
-        datatrees[file.first]->SetBranchAddress("leadingPhotonPt", &leadingPhotonPt);
-        datatrees[file.first]->SetBranchAddress("recoZmass", &recoZmass);
-        datatrees[file.first]->SetBranchAddress("mTLepMet", &mTLepMet);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton50", &passedHLTPhoton50);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton75", &passedHLTPhoton75);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton90", &passedHLTPhoton90);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton135", &passedHLTPhoton135);
-        datatrees[file.first]->SetBranchAddress("passedHLTPhoton150", &passedHLTPhoton150);
-        datatrees[file.first]->SetBranchAddress("bjet1PassMedium", &bjet1PassMedium);
-        datatrees[file.first]->SetBranchAddress("bjet2PassMedium", &bjet2PassMedium);
-        datatrees[file.first]->SetBranchAddress("bjet1Pt", &bjet1Pt);
-        datatrees[file.first]->SetBranchAddress("bjet2Pt", &bjet2Pt);
-        datatrees[file.first]->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter); // enable 
-        datatrees[file.first]->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter); // enable 
-        datatrees[file.first]->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter); // enable 
-        datatrees[file.first]->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter); // enable 
-        datatrees[file.first]->SetBranchAddress("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter); // enable 
-        datatrees[file.first]->SetBranchAddress("hlt_singlemu", &hlt_singlemu);
-        datatrees[file.first]->SetBranchAddress("hlt_dimuon", &hlt_dimuon);
-        datatrees[file.first]->SetBranchAddress("hlt_razor", &hlt_razor);
-        datatrees[file.first]->SetBranchAddress("hlt_photon", &hlt_photon);
+    for(auto &file : datafilenames){
+        dataevents[file.first] = new ControlSampleEvents;
+        dataevents[file.first]->LoadTree(file.second.c_str());
     }
+
     //luminosities collected by the various photon triggers
     float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
     float lumi_HLTPhoton75  = 8.111e0 + 2.953e1 + 4.768e1 + 4.879e1;
@@ -339,30 +199,30 @@ void CompareDataFitCRs(){
     ///////////////////////////////////////////////////////////
     map<string, map<string, TH2F*> > razorHistosMC;
     map<string, map<string, TH2F*> > razorErrorHistosMC; //store sum(w^2*error(SF)^2)
-    for(auto &tree : mctrees){
-        cout << "Filling MC histograms: " << tree.first << endl;
+    for(auto &sample : mcevents){
+        cout << "Filling MC histograms: " << sample.first << endl;
 
         //make histograms, and make TTreeFormulas for selection cuts
         map<string, TTreeFormula*> cutsFormulas;
         for(auto &cut : cuts){
-            razorHistosMC[cut.first][tree.first] = new TH2F(Form("razormc%s%s", cut.first.c_str(), tree.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorErrorHistosMC[cut.first][tree.first] = new TH2F(Form("razorErrormc%s%s", tree.first.c_str(), cut.second.c_str()), "sum(w^2*error(SF)^2); MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorHistosMC[cut.first][tree.first]->Sumw2();
-            razorErrorHistosMC[cut.first][tree.first]->Sumw2();
-            cutsFormulas[cut.first] = new TTreeFormula(Form("%s%sCutsFormula", cut.first.c_str(), tree.first.c_str()), cuts[cut.first].c_str(), tree.second);
+            razorHistosMC[cut.first][sample.first] = new TH2F(Form("razormc%s%s", cut.first.c_str(), sample.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorErrorHistosMC[cut.first][sample.first] = new TH2F(Form("razorErrormc%s%s", sample.first.c_str(), cut.second.c_str()), "sum(w^2*error(SF)^2); MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorHistosMC[cut.first][sample.first]->Sumw2();
+            razorErrorHistosMC[cut.first][sample.first]->Sumw2();
+            cutsFormulas[cut.first] = new TTreeFormula(Form("%s%sCutsFormula", cut.first.c_str(), sample.first.c_str()), cuts[cut.first].c_str(), sample.second->tree_);
             cutsFormulas[cut.first]->GetNdata();
         }
 
         //loop over entries
-        uint nEntries = tree.second->GetEntries();
+        uint nEntries = sample.second->tree_->GetEntries();
         for(uint i = 0; i < nEntries; i++){
             //get entry
-            tree.second->GetEntry(i); 
+            sample.second->tree_->GetEntry(i); 
 
-            float eventWeight = weight*lumiInData*1.0/lumiInMC;
+            float eventWeight = sample.second->weight*lumiInData*1.0/lumiInMC;
 
             //PU reweighting
-            eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPU_mean));
+            eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(sample.second->NPU_0));
             float sysErrorSquared = 0.0;
 
             for(auto &cutf : cutsFormulas){
@@ -373,7 +233,7 @@ void CompareDataFitCRs(){
                 //check if this sample is used for this control region
                 bool found = false;
                 for(auto &name : controlRegionMC[cutf.first]){
-                    if(tree.first == name) found = true;
+                    if(sample.first == name) found = true;
                 }
                 if(!found) continue;
 
@@ -383,14 +243,14 @@ void CompareDataFitCRs(){
 
                 //btagging scale factor
                 if(cutf.first == "TTBarSingleLepton" || cutf.first == "TTBarDilepton" || cutf.first == "WSingleLepton"){
-                    eventWeight *= getBTagMediumScaleFactor(bjet1Pt, bjet1PassMedium, bjet2Pt, bjet2PassMedium);
+                    eventWeight *= getBTagMediumScaleFactor(sample.second->bjet1.Pt(), sample.second->bjet1PassMedium, sample.second->bjet2.Pt(), sample.second->bjet2PassMedium);
                 }
 
                 //trigger scale factors
-                if(hlt_singlemu && (cutf.first == "TTBarSingleLepton" || cutf.first == "WSingleLepton" || cutf.first == "ZNuNuFromW")){
+                if(sample.second->HLT_SingleMu && (cutf.first == "TTBarSingleLepton" || cutf.first == "WSingleLepton" || cutf.first == "ZNuNuFromW")){
                     eventWeight *= singleMuTriggerSF;
                 }
-                else if(hlt_dimuon && (cutf.first == "TTBarDilepton" || cutf.first == "ZLLDilepton" || cutf.first == "ZNuNuFromDY")){
+                else if(sample.second->HLT_Dimuon && (cutf.first == "TTBarDilepton" || cutf.first == "ZLLDilepton" || cutf.first == "ZNuNuFromDY")){
                     eventWeight *= doubleMuTriggerSF;
                     eventWeight *= doubleMuNormalizationSF;
                 }
@@ -399,12 +259,12 @@ void CompareDataFitCRs(){
 
                 //Data/MC scale factors
                 //TTJets SF
-                if(tree.first == "TTJets"){
-                    double SFTTJets = SFHistTTJets->GetBinContent(SFHistTTJets->FindFixBin(min(MR, SFmaxMRTTJets), min(Rsq, SFmaxRsqTTJets)));
-                    double SFErrorTTJets = SFHistTTJets->GetBinError(SFHistTTJets->FindFixBin(min(MR, SFmaxMRTTJets), min(Rsq, SFmaxRsqTTJets)));
+                if(sample.first == "TTJets"){
+                    double SFTTJets = SFHistTTJets->GetBinContent(SFHistTTJets->FindFixBin(min(sample.second->MR, SFmaxMRTTJets), min(sample.second->Rsq, SFmaxRsqTTJets)));
+                    double SFErrorTTJets = SFHistTTJets->GetBinError(SFHistTTJets->FindFixBin(min(sample.second->MR, SFmaxMRTTJets), min(sample.second->Rsq, SFmaxRsqTTJets)));
                     if(SFTTJets < 1e5){
                         eventWeight *= SFTTJets;
-                        sysErrorSquared += weight*weight*SFErrorTTJets*SFErrorTTJets;
+                        sysErrorSquared += sample.second->weight*sample.second->weight*SFErrorTTJets*SFErrorTTJets;
                     }
                     else{
                         //cout << "Warning: TTJets scale factor is Inf!" << endl;
@@ -413,12 +273,12 @@ void CompareDataFitCRs(){
                     }
                 }
                 //WJets SF
-                else if(tree.first == "WJets"){
-                    double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(MR, SFmaxMRWJets), min(Rsq, SFmaxRsqWJets)));
-                    double SFErrorWJets = SFHistWJets->GetBinError(SFHistWJets->FindFixBin(min(MR, SFmaxMRWJets), min(Rsq, SFmaxRsqWJets)));
+                else if(sample.first == "WJets"){
+                    double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(sample.second->MR, SFmaxMRWJets), min(sample.second->Rsq, SFmaxRsqWJets)));
+                    double SFErrorWJets = SFHistWJets->GetBinError(SFHistWJets->FindFixBin(min(sample.second->MR, SFmaxMRWJets), min(sample.second->Rsq, SFmaxRsqWJets)));
                     if(SFWJets < 1e5){
                         eventWeight *= SFWJets;
-                        sysErrorSquared += weight*weight*SFErrorWJets*SFErrorWJets;
+                        sysErrorSquared += sample.second->weight*sample.second->weight*SFErrorWJets*SFErrorWJets;
                     }
                     else{
                         //cout << "Warning: WJets scale factor is Inf!" << endl;
@@ -427,12 +287,12 @@ void CompareDataFitCRs(){
                     }
                 }
                 //DYJets SF
-                else if(tree.first == "DYJets"){
-                    double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(MR, SFmaxMRDYJets), min(Rsq, SFmaxRsqDYJets)));
-                    double SFErrorDYJets = SFHistDYJets->GetBinError(SFHistDYJets->FindFixBin(min(MR, SFmaxMRDYJets), min(Rsq, SFmaxRsqDYJets)));
+                else if(sample.first == "DYJets"){
+                    double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(sample.second->MR, SFmaxMRDYJets), min(sample.second->Rsq, SFmaxRsqDYJets)));
+                    double SFErrorDYJets = SFHistDYJets->GetBinError(SFHistDYJets->FindFixBin(min(sample.second->MR, SFmaxMRDYJets), min(sample.second->Rsq, SFmaxRsqDYJets)));
                     if(SFDYJets < 1e5){
                         eventWeight *= SFDYJets;
-                        sysErrorSquared += weight*weight*SFErrorDYJets*SFErrorDYJets;
+                        sysErrorSquared += sample.second->weight*sample.second->weight*SFErrorDYJets*SFErrorDYJets;
                     }
                     else{
                         //cout << "Warning: DYJets scale factor is Inf!" << endl;
@@ -441,12 +301,12 @@ void CompareDataFitCRs(){
                     }
                 }
                 //ZNuNu SF
-                else if(tree.first == "ZJetsNuNu"){
-                    double SFZJetsNuNu = SFHistZJetsNuNu->GetBinContent(SFHistZJetsNuNu->FindFixBin(min(MR, SFmaxMRZJetsNuNu), min(Rsq, SFmaxRsqZJetsNuNu)));
-                    double SFErrorZJetsNuNu = SFHistZJetsNuNu->GetBinError(SFHistZJetsNuNu->FindFixBin(min(MR, SFmaxMRZJetsNuNu), min(Rsq, SFmaxRsqZJetsNuNu)));
+                else if(sample.first == "ZJetsNuNu"){
+                    double SFZJetsNuNu = SFHistZJetsNuNu->GetBinContent(SFHistZJetsNuNu->FindFixBin(min(sample.second->MR, SFmaxMRZJetsNuNu), min(sample.second->Rsq, SFmaxRsqZJetsNuNu)));
+                    double SFErrorZJetsNuNu = SFHistZJetsNuNu->GetBinError(SFHistZJetsNuNu->FindFixBin(min(sample.second->MR, SFmaxMRZJetsNuNu), min(sample.second->Rsq, SFmaxRsqZJetsNuNu)));
                     if(SFZJetsNuNu < 1e5){
                         eventWeight *= SFZJetsNuNu;
-                        sysErrorSquared += weight*weight*SFErrorZJetsNuNu*SFErrorZJetsNuNu;
+                        sysErrorSquared += sample.second->weight*sample.second->weight*SFErrorZJetsNuNu*SFErrorZJetsNuNu;
                     }
                     else{
                         //cout << "Warning: ZJetsNuNu scale factor is Inf!" << endl;
@@ -460,36 +320,36 @@ void CompareDataFitCRs(){
                 ///////////////////////////////////////////////////////////
 
                 //ZNuNuFromDY CR
-                if(cutf.first == "ZNuNuFromDY"){
-                    razorHistosMC[cutf.first][tree.first]->Fill(MR_noZ, Rsq_noZ, eventWeight);
-                    razorErrorHistosMC[cutf.first][tree.first]->Fill(MR_noZ, Rsq_noZ, sysErrorSquared);
+                /*if(cutf.first == "ZNuNuFromDY"){
+                    razorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR_noZ, sample.second->Rsq_noZ, eventWeight);
+                    razorErrorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR_noZ, sample.second->Rsq_noZ, sysErrorSquared);
                 }
                 //ZNuNuFromW CR
                 else if(cutf.first == "ZNuNuFromW"){
-                    razorHistosMC[cutf.first][tree.first]->Fill(MR_noW, Rsq_noW, eventWeight);
-                    razorErrorHistosMC[cutf.first][tree.first]->Fill(MR_noW, Rsq_noW, sysErrorSquared);
+                    razorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR_noW, sample.second->Rsq_noW, eventWeight);
+                    razorErrorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR_noW, sample.second->Rsq_noW, sysErrorSquared);
                 }
                 //ZNuNuFromGamma CR
                 else if(cutf.first == "ZNuNuFromGamma"){
-                    razorHistosMC[cutf.first][tree.first]->Fill(MR_noPho, Rsq_noPho, eventWeight);
-                    razorErrorHistosMC[cutf.first][tree.first]->Fill(MR_noPho, Rsq_noPho, sysErrorSquared);
-                }
+                    razorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR_noPho, sample.second->Rsq_noPho, eventWeight);
+                    razorErrorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR_noPho, sample.second->Rsq_noPho, sysErrorSquared);
+                }*/
                 //other CRs
                 else{
-                    razorHistosMC[cutf.first][tree.first]->Fill(MR, Rsq, eventWeight);
-                    razorErrorHistosMC[cutf.first][tree.first]->Fill(MR, Rsq, sysErrorSquared);
+                    razorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR, sample.second->Rsq, eventWeight);
+                    razorErrorHistosMC[cutf.first][sample.first]->Fill(sample.second->MR, sample.second->Rsq, sysErrorSquared);
                 }
             }
         }
     }
 
     //update errors to take into account systematic uncertainties
-    for(auto &tree : mctrees){
+    for(auto &sample : mcevents){
         for(auto &cut : cuts){
-            for(int i = 0; i < razorHistosMC[cut.first][tree.first]->GetNbinsX()+1; i++){
-                for(int j = 0; j < razorHistosMC[cut.first][tree.first]->GetNbinsY()+1; j++){
-                    double squaredError = razorErrorHistosMC[cut.first][tree.first]->GetBinContent(i, j);
-                    razorHistosMC[cut.first][tree.first]->SetBinError(i, j, sqrt(pow(razorHistosMC[cut.first][tree.first]->GetBinError(i, j), 2) + squaredError));
+            for(int i = 0; i < razorHistosMC[cut.first][sample.first]->GetNbinsX()+1; i++){
+                for(int j = 0; j < razorHistosMC[cut.first][sample.first]->GetNbinsY()+1; j++){
+                    double squaredError = razorErrorHistosMC[cut.first][sample.first]->GetBinContent(i, j);
+                    razorHistosMC[cut.first][sample.first]->SetBinError(i, j, sqrt(pow(razorHistosMC[cut.first][sample.first]->GetBinError(i, j), 2) + squaredError));
                 }
             }
         }
@@ -499,20 +359,20 @@ void CompareDataFitCRs(){
     double sysErrorFrac = 0.2;
     //for QCD, assign a 100% uncertainty
     double qcdErrorFrac = 1.0;
-    for(auto &tree : mctrees){
+    for(auto &sample : mcevents){
         //only do this for rare processes 
-        if(tree.first == "DYJets" || tree.first == "WJets" || tree.first == "ZJetsNuNu" || tree.first == "TTJets") continue; 
+        if(sample.first == "DYJets" || sample.first == "WJets" || sample.first == "ZJetsNuNu" || sample.first == "TTJets") continue; 
         for(auto &cut : cuts){
-            for(int i = 0; i < razorHistosMC[cut.first][tree.first]->GetNbinsX()+1; i++){
-                for(int j = 0; j < razorHistosMC[cut.first][tree.first]->GetNbinsY()+1; j++){
+            for(int i = 0; i < razorHistosMC[cut.first][sample.first]->GetNbinsX()+1; i++){
+                for(int j = 0; j < razorHistosMC[cut.first][sample.first]->GetNbinsY()+1; j++){
                     double error = 0.0;
-                    if(tree.first == "QCD"){
-                        error = qcdErrorFrac*razorHistosMC[cut.first][tree.first]->GetBinContent(i, j);
+                    if(sample.first == "QCD"){
+                        error = qcdErrorFrac*razorHistosMC[cut.first][sample.first]->GetBinContent(i, j);
                     }
                     else{
-                        error = sysErrorFrac*razorHistosMC[cut.first][tree.first]->GetBinContent(i, j);
+                        error = sysErrorFrac*razorHistosMC[cut.first][sample.first]->GetBinContent(i, j);
                     }
-                    razorHistosMC[cut.first][tree.first]->SetBinError(i, j, sqrt(pow(razorHistosMC[cut.first][tree.first]->GetBinError(i, j), 2) + error*error));
+                    razorHistosMC[cut.first][sample.first]->SetBinError(i, j, sqrt(pow(razorHistosMC[cut.first][sample.first]->GetBinError(i, j), 2) + error*error));
                 }
             }
         }
@@ -527,24 +387,24 @@ void CompareDataFitCRs(){
         razorHistosData[cut.first] = new TH2F(Form("razordata%s", cut.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
         razorHistosData[cut.first]->Sumw2();
     }
-    for(auto &tree : datatrees){
-        cout << "Filling data histograms: " << tree.first << endl;
+    for(auto &sample : dataevents){
+        cout << "Filling data histograms: " << sample.first << endl;
 
         //make TTreeFormulas for selection cuts
         map<string, TTreeFormula*> cutsFormulas;
         for(auto &cut : cuts){
-            cutsFormulas[cut.first] = new TTreeFormula(Form("%s%sCutsFormula", cut.first.c_str(), tree.first.c_str()), cuts[cut.first].c_str(), tree.second);
+            cutsFormulas[cut.first] = new TTreeFormula(Form("%s%sCutsFormula", cut.first.c_str(), sample.first.c_str()), cuts[cut.first].c_str(), sample.second->tree_);
             cutsFormulas[cut.first]->GetNdata();
         }
 
         //loop over entries
-        uint nEntries = tree.second->GetEntries();
+        uint nEntries = sample.second->tree_->GetEntries();
         for(uint i = 0; i < nEntries; i++){
             //get entry
-            tree.second->GetEntry(i);
+            sample.second->tree_->GetEntry(i);
 
             //noise filters
-            if(!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) continue;
+            if(!(sample.second->Flag_HBHENoiseFilter) || !(sample.second->Flag_CSCTightHaloFilter) || !(sample.second->Flag_eeBadScFilter) ) continue;
 
             for(auto &cutf : cutsFormulas){
                 //apply selection cuts
@@ -554,7 +414,7 @@ void CompareDataFitCRs(){
                 //check if this sample is used for this control region
                 bool found = false;
                 for(auto &name : controlRegionData[cutf.first]){
-                    if(tree.first == name) found = true;
+                    if(sample.first == name) found = true;
                 }
                 if(!found) continue;
 
@@ -564,24 +424,24 @@ void CompareDataFitCRs(){
                 if(cutf.first == "ZNuNuFromGamma"){
                     double triggerWeightRestricted = 0.0;
                     //get weight if associate each photon trigger with a particular pt range
-                    if(passedHLTPhoton150 && leadingPhotonPt > 165){ 
+                    if(sample.second->HLT_Photon150 && sample.second->pho1.Pt() > 165){ 
                         triggerWeightRestricted = 1.0;
                     }
-                    else if(passedHLTPhoton135 && leadingPhotonPt > 150 && leadingPhotonPt < 165){
+                    else if(sample.second->HLT_Photon135 && sample.second->pho1.Pt() > 150 && sample.second->pho1.Pt() < 165){
                         triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
                     }
-                    else if(passedHLTPhoton90 && leadingPhotonPt > 100 && leadingPhotonPt < 150){
+                    else if(sample.second->HLT_Photon90 && sample.second->pho1.Pt() > 100 && sample.second->pho1.Pt() < 150){
                         triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
                     }
-                    else if(passedHLTPhoton75 && leadingPhotonPt > 90 && leadingPhotonPt < 100){
+                    else if(sample.second->HLT_Photon75 && sample.second->pho1.Pt() > 90 && sample.second->pho1.Pt() < 100){
                         triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
                     }
-                    else if(passedHLTPhoton50 && leadingPhotonPt < 90){
+                    else if(sample.second->HLT_Photon50 && sample.second->pho1.Pt() < 90){
                         triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
                     }
                     eventWeight *= triggerWeightRestricted;
 
-                    if(leadingPhotonPt>5000) continue; // reject noise
+                    if(sample.second->pho1.Pt()>5000) continue; // reject noise
                 }
 
                 ///////////////////////////////////////////////////////////
@@ -589,20 +449,20 @@ void CompareDataFitCRs(){
                 ///////////////////////////////////////////////////////////
 
                 //ZNuNuFromDY CR
-                if(cutf.first == "ZNuNuFromDY"){
-                    razorHistosData[cutf.first]->Fill(MR_noZ, Rsq_noZ, eventWeight);
+                /*if(cutf.first == "ZNuNuFromDY"){
+                    razorHistosData[cutf.first]->Fill(sample.second->MR_noZ, sample.second->Rsq_noZ, eventWeight);
                 }
                 //ZNuNuFromW CR
                 else if(cutf.first == "ZNuNuFromW"){
-                    razorHistosData[cutf.first]->Fill(MR_noW, Rsq_noW, eventWeight);
+                    razorHistosData[cutf.first]->Fill(sample.second->MR_noW, sample.second->Rsq_noW, eventWeight);
                 }
                 //ZNuNuFromGamma CR
                 else if(cutf.first == "ZNuNuFromGamma"){
-                    razorHistosData[cutf.first]->Fill(MR_noPho, Rsq_noPho, eventWeight);
-                }
+                    razorHistosData[cutf.first]->Fill(sample.second->MR_noPho, sample.second->Rsq_noPho, eventWeight);
+                }*/
                 //other CRs
                 else{
-                    razorHistosData[cutf.first]->Fill(MR, Rsq, eventWeight);
+                    razorHistosData[cutf.first]->Fill(sample.second->MR, sample.second->Rsq, eventWeight);
                 }
             }
         }
