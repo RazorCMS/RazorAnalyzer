@@ -276,6 +276,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMet();
       analyzer.EnableElectrons();
       analyzer.EnableMuons();
+      analyzer.EnablePhotons();
       analyzer.EnableTaus();
       analyzer.EnableMC();
       analyzer.EnableGenParticles();

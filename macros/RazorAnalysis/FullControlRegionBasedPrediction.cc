@@ -62,18 +62,23 @@ float MRBINLOWEDGES[] = {300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
 void FullControlRegionBasedPrediction(){
-    bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
-    bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
-    //bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
-    bool scaleZNuNuToDY = false; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
-    gROOT->SetBatch();
+
+    //set color palette 
+    const Int_t NCont = 101;
+    gStyle->SetNumberContours(NCont);
 
     //////////////////////////////////////////////////
     //Define baseline cuts
     //////////////////////////////////////////////////
 
-    bool doDPhiRazorCut = true;
-    //bool doDPhiRazorCut = false;
+    bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
+    bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
+    bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
+    //bool scaleZNuNuToDY = false; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
+    gROOT->SetBatch();
+
+    //bool doDPhiRazorCut = true;
+    bool doDPhiRazorCut = false;
     float dPhiRazorCut = 2.7; //cut on the angle between the two razor hemispheres
 
     bool doMetCut = false;
@@ -83,19 +88,41 @@ void FullControlRegionBasedPrediction(){
     //bool doMTCut = true;
     bool doMTCut = false;
     float mTLowerCut = 30;
-    float mTUpperCut = 100;
+    float mTUpperCut = 1e6;
+    //float mTUpperCut = 100;
 
     //bool doLeptonPtCut = true;
     bool doLeptonPtCut = false;
     float leptonPtCut = 30;
 
-    //bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
-    bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
-    int minNBTags = 0; //TODO: bin in nBTags instead of cutting
+    bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
+    //bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
+    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
 
-    //set color palette 
-    const Int_t NCont = 101;
-    gStyle->SetNumberContours(NCont);
+    //declare which boxes to check
+    map<RazorAnalyzer::RazorBox, string> boxes;
+    boxes[RazorAnalyzer::MuEle] = "MuEle";
+    boxes[RazorAnalyzer::MuMu] = "MuMu";
+    boxes[RazorAnalyzer::EleEle] = "EleEle";
+    boxes[RazorAnalyzer::MuSixJet] = "MuSixJet";
+    boxes[RazorAnalyzer::MuFourJet] = "MuFourJet";
+    boxes[RazorAnalyzer::MuJet] = "MuJet";
+    boxes[RazorAnalyzer::EleSixJet] = "EleSixJet";
+    boxes[RazorAnalyzer::EleFourJet] = "EleFourJet";
+    boxes[RazorAnalyzer::EleJet] = "EleJet";
+    boxes[RazorAnalyzer::LooseLeptonSixJet] = "LooseLeptonSixJet";
+    boxes[RazorAnalyzer::LooseLeptonFourJet] = "LooseLeptonFourJet";
+    boxes[RazorAnalyzer::LooseLeptonDiJet] = "LooseLeptonDiJet";
+    boxes[RazorAnalyzer::SixJet] = "SixJet";
+    boxes[RazorAnalyzer::FourJet] = "FourJet";
+    boxes[RazorAnalyzer::DiJet] = "DiJet";
+    boxes[RazorAnalyzer::MultiJet] = "MultiJet"; //(a hack to combine boxes)
+    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "MultiJetPlusLooseLeptonMultiJet";
+    if(minNBTags == 0) boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; 
+    else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
+
+    //output directory for plots
+    string plotDir = "/afs/cern.ch/work/d/duanders/public/plots1BTag";
 
     //define cuts for 1D MR and Rsq plots
     float MRCutFor1DPlots = 400;
@@ -255,27 +282,6 @@ void FullControlRegionBasedPrediction(){
     float maxRsqZNuNuToDY = ZNuNuToDYWeightHist->GetYaxis()->GetXmax() - 0.01;
     //cout << "ZNuNuToDY " << maxMRZNuNuToDY << " " << maxRsqZNuNuToDY << endl;
 
-    //declare which boxes to check
-    map<RazorAnalyzer::RazorBox, string> boxes;
-    boxes[RazorAnalyzer::MuEle] = "MuEle";
-    boxes[RazorAnalyzer::MuMu] = "MuMu";
-    boxes[RazorAnalyzer::EleEle] = "EleEle";
-    boxes[RazorAnalyzer::MuSixJet] = "MuSixJet";
-    boxes[RazorAnalyzer::MuFourJet] = "MuFourJet";
-    boxes[RazorAnalyzer::MuJet] = "MuJet";
-    boxes[RazorAnalyzer::EleSixJet] = "EleSixJet";
-    boxes[RazorAnalyzer::EleFourJet] = "EleFourJet";
-    boxes[RazorAnalyzer::EleJet] = "EleJet";
-    boxes[RazorAnalyzer::LooseLeptonSixJet] = "LooseLeptonSixJet";
-    boxes[RazorAnalyzer::LooseLeptonFourJet] = "LooseLeptonFourJet";
-    boxes[RazorAnalyzer::LooseLeptonDiJet] = "LooseLeptonDiJet";
-    boxes[RazorAnalyzer::SixJet] = "SixJet";
-    boxes[RazorAnalyzer::FourJet] = "FourJet";
-    boxes[RazorAnalyzer::DiJet] = "DiJet";
-    boxes[RazorAnalyzer::NONE] = "MultiJetPlusLooseLeptonMultiJet"; //(a temporary hack to combine three boxes)
-    //boxes[RazorAnalyzer::NONE] = "MultiJet"; //(a temporary hack to combine three boxes)
-    //boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; //(a temporary hack to combine three boxes)
-    //boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton"; //(a temporary hack to combine three boxes)
     //associate each box with a dataset
     map<RazorAnalyzer::RazorBox, string> boxDatasets;
     boxDatasets[RazorAnalyzer::MuEle] = "MuEG";
@@ -295,7 +301,6 @@ void FullControlRegionBasedPrediction(){
     boxDatasets[RazorAnalyzer::DiJet] = "HTMHT";
 
     //make directories for plots
-    string plotDir = "/afs/cern.ch/work/d/duanders/public/plotsNoZNuNuSF0BtagDPhiCut";
     struct stat st;
     if (stat(plotDir.c_str(), &st) == -1) {
         mkdir(plotDir.c_str(), 0777);
@@ -423,7 +428,7 @@ void FullControlRegionBasedPrediction(){
                 }
                 //ZNuNu SF
                 //TODO: combine the three predictions for ZNuNu
-                /*else if(tree.first == "ZJetsNuNu"){
+                else if(tree.first == "ZJetsNuNu"){
                     double SFZJetsNuNu = SFHistZJetsNuNu->GetBinContent(SFHistZJetsNuNu->FindFixBin(min(MR, SFmaxMRZJetsNuNu), min(Rsq, SFmaxRsqZJetsNuNu)));
                     double SFErrorZJetsNuNu = SFHistZJetsNuNu->GetBinError(SFHistZJetsNuNu->FindFixBin(min(MR, SFmaxMRZJetsNuNu), min(Rsq, SFmaxRsqZJetsNuNu)));
                     if(SFZJetsNuNu < 1e5){
@@ -452,7 +457,7 @@ void FullControlRegionBasedPrediction(){
                             sysErrorSquared = 0;
                         }
                     }
-                }*/
+                }
             }
 
             //single lepton trigger scale factor
@@ -477,21 +482,19 @@ void FullControlRegionBasedPrediction(){
             }
 
             //combined Single Lepton boxes
-            //if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
-            //MultiJet box
-            //if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
-            //LooseLeptonMultiJet+MultiJet box
-            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+            if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
                 razorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, Rsq, sysErrorSquared);
-                if(Rsq > RsqCutFor1DPlots){
-                    MRHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, eventWeight);
-                    MRErrorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(MR, sysErrorSquared);
-                }
-                if(MR > MRCutFor1DPlots){
-                    RsqHistosMC[RazorAnalyzer::NONE][tree.first].Fill(Rsq, eventWeight);
-                    RsqErrorHistosMC[RazorAnalyzer::NONE][tree.first].Fill(Rsq, sysErrorSquared);
-                }
+            }
+            //MultiJet box
+            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
+                razorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
+            //LooseLeptonMultiJet+MultiJet box
+            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+                razorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
         }
     }
@@ -620,18 +623,16 @@ void FullControlRegionBasedPrediction(){
             if(MR > MRCutFor1DPlots) RsqData[razorbox].Fill(Rsq, eventWeight);
 
             //combined Single Lepton boxes
-            //if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
+            if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
+                razorData[RazorAnalyzer::NONE].Fill(MR, Rsq, eventWeight);
+            }
             //MultiJet box
-            //if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
+            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
+                razorData[RazorAnalyzer::MultiJet].Fill(MR, Rsq, eventWeight);
+            }
             //LooseLeptonMultiJet+MultiJet box
             if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
-                razorData[RazorAnalyzer::NONE].Fill(MR, Rsq, eventWeight);
-                if(Rsq > RsqCutFor1DPlots){
-                    MRData[RazorAnalyzer::NONE].Fill(MR, eventWeight);
-                }
-                if(MR > MRCutFor1DPlots){
-                    RsqData[RazorAnalyzer::NONE].Fill(Rsq, eventWeight);
-                }
+                razorData[RazorAnalyzer::LooseLeptonMultiJet].Fill(MR, Rsq, eventWeight);
             }
         }
     }
