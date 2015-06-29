@@ -11,6 +11,11 @@
 
 using namespace std;
 
+struct greater_than_pt{
+    inline bool operator() (const TLorentzVector& p1, const TLorentzVector& p2){
+        return p1.Pt() > p2.Pt();
+    }
+};
  
 void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isData, bool isRunOne)
 {
@@ -47,9 +52,30 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     if (outfilename == "") outfilename = "RazorControlRegions.root";
     TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
     ControlSampleEvents *events = new ControlSampleEvents;
-    if (option == 2) {
-      events->CreateTree(ControlSampleEvents::kTreeType_MiniOneLepton);
-    } else {
+    
+    if (option == 1)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
+    else if (option == 2)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Reduced);
+    else if (option == 3)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
+    else if (option == 4)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Reduced);
+    else if (option == 5)
+      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
+    else if (option == 6)
+      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Reduced);
+    else if (option == 7)
+      events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Full);
+    else if (option == 8)
+      events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Reduced);
+    else if (option == 9)
+      events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
+    else if (option == 10)
+      events->CreateTree(ControlSampleEvents::kTreeType_Photon_Reduced);
+    else if (option == 11)
+      events->CreateTree(ControlSampleEvents::kTreeType_ZeroLepton_Full);
+    else {
       events->CreateTree();
     }
     events->tree_->SetAutoFlush(0);
@@ -64,7 +90,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     Long64_t nbytes = 0, nb = 0;
 
     //for (Long64_t jentry=46000; jentry<fChain->GetEntries();jentry++) {
-    for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
+    for (Long64_t jentry=0; jentry<10000;jentry++) {
+    // for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
 
       //begin event
       if(jentry % 1000 == 0) cout << "Processing entry " << jentry << endl;
@@ -1018,27 +1045,260 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->Flag_trkPOG_manystripclus53X = Flag_trkPOG_manystripclus53X;
 	events->Flag_trkPOG_toomanystripclus53X = true;
 	events->Flag_trkPOG_logErrorTooManyClusters = Flag_trkPOG_logErrorTooManyClusters;
-	events->Flag_METFilters = Flag_METFilters;
-	
+	events->Flag_METFilters = Flag_METFilters;	
 
+
+	///////////////////////////////
+	////// Photon Ntuple Part /////
+	///////////////////////////////
+        for(int i = 29; i <= 34; i++){
+	  if(HLTDecision[i] == 1) events->HLT_Photon = true;
+        }
+	
+        if(isData && events->HLT_Photon){
+            //save the trigger bits
+            if(HLTDecision[34] == 1){
+                events->HLT_Photon160 = true;
+            }
+            if(HLTDecision[33] == 1){
+                events->HLT_Photon150 = true;
+            }
+            if(HLTDecision[32] == 1){
+                events->HLT_Photon135 = true;
+            }
+            if(HLTDecision[31] == 1){
+                events->HLT_Photon90 = true;
+            }
+            if(HLTDecision[30] == 1){
+                events->HLT_Photon75 = true;
+            }
+            if(HLTDecision[29] == 1){
+                events->HLT_Photon50 = true;
+            }
+        }
+
+        //****************************************************//
+        //             Select photons                         //
+        //****************************************************//
+        vector<TLorentzVector> GoodPhotons;
+        int nPhotonsAbove40GeV = 0;
+
+        for(int i = 0; i < nPhotons; i++){
+
+
+	  if(phoPt[i] < 10) continue;
+            if(fabs(phoEta[i]) > 2.5) continue;
+
+            if(isRunOne){
+                // if(!isTightRunOnePhoton(i)) continue;
+	      if(!isMediumRunOnePhoton(i)) continue;
+            }
+            else{
+                if(!isTightPhoton(i)) continue;
+            }
+
+            if(phoPt[i] > 40) nPhotonsAbove40GeV++;
+            TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
+            GoodPhotons.push_back(thisPhoton);
+        }
+
+	events->nSelectedPhotons = nPhotonsAbove40GeV;
+
+	//****************************************************//
+        //    Compute razor vars for DY, W, Gamma samples     //
+        //****************************************************//
+        //photons
+	events->pho1.SetPtEtaPhiM(0,0,0,0);
+	
+        if(GoodPhotons.size()>0){
+            sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
+
+            //compute MET with leading photon added
+            TLorentzVector m1 = GoodPhotons[0];
+            TLorentzVector m2 = PFMET;
+            TLorentzVector photonPlusMet_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), 0.0);
+
+            events->MET_NoPho = photonPlusMet_perp.Pt();
+            events->METPhi_NoPho = photonPlusMet_perp.Phi();
+
+            //remove leading photon from collection of selected jets
+            vector<TLorentzVector> GoodJetsNoLeadPhoton = GoodJets;
+            int subtractedIndex = SubtractParticleFromCollection(GoodPhotons[0], GoodJetsNoLeadPhoton);
+            if(subtractedIndex >= 0){
+                if(GoodJetsNoLeadPhoton[subtractedIndex].Pt() < 40){ //erase this jet
+                    GoodJetsNoLeadPhoton.erase(GoodJetsNoLeadPhoton.begin()+subtractedIndex);
+                }
+            }
+	    
+            //count the number of jets above 80 GeV now
+	    int numJets80_noPho = 0.;
+            for(auto& jet : GoodJetsNoLeadPhoton){
+	      if(jet.Pt() > 80) numJets80_noPho++;
+            }
+	    events->NJets80_NoPho = numJets80_noPho;
+	    
+            //count jets and compute HT
+            events->NJets_NoPho = GoodJetsNoLeadPhoton.size();
+	    float ht_noPho = 0.;
+            for(auto& pf : GoodJetsNoLeadPhoton) ht_noPho += pf.Pt();
+	    events->HT_NoPho = ht_noPho;
+	    
+            if(GoodJetsNoLeadPhoton.size() >= 2 && GoodJetsNoLeadPhoton.size() <20){
+                //remake the hemispheres using the new jet collection
+                vector<TLorentzVector> hemispheresNoLeadPhoton = getHemispheres(GoodJetsNoLeadPhoton);
+                TLorentzVector PFMET_NOPHO = makeTLorentzVectorPtEtaPhiM(events->MET_NoPho, 0, events->METPhi_NoPho, 0);
+                events->MR_NoPho = computeMR(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1]); 
+                events->Rsq_NoPho = computeRsq(hemispheresNoLeadPhoton[0], hemispheresNoLeadPhoton[1], PFMET_NOPHO);
+                events->dPhiRazor_NoPho = fabs(hemispheresNoLeadPhoton[0].DeltaPhi(hemispheresNoLeadPhoton[1]));
+            }
+
+	    events->pho1 = GoodPhotons[0];
+        }
+	
+	//****************************************************//
+        //               Select muons                         //
+        //****************************************************//
+        vector<TLorentzVector> GoodMuons; 
+        vector<TLorentzVector> GoodMuonsTight;
+	int nvetomuons = 0;
+	int nloosemuons = 0;
+	int ntightmuons = 0;
+
+        for(int i = 0; i < nMuons; i++){
+	  
+	  if(!isLooseMuon(i)) continue;
+	  if(muonPt[i] < 10) continue;
+	  if(abs(muonEta[i]) > 2.4) continue;
+	  TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
+	  
+	  if(isVetoMuon(i)) nvetomuons++;
+	  if(isTightMuon(i)){
+	    ntightmuons++;
+	    GoodMuonsTight.push_back(thisMuon);
+	    
+	    nloosemuons++;
+	    
+	    GoodMuons.push_back(thisMuon);
+	  }
+	}
+	events->nVetoMuons  = nvetomuons;
+	events->nTightMuons = ntightmuons;
+	events->nLooseMuons = nloosemuons;
+	
+	//remove selected muons from collection of selected jets and add them to the MET
+	vector<TLorentzVector> GoodJetsNoMuons = GoodJets;
+	TLorentzVector TotalMuonVec;
+	for(auto& mu : GoodMuons){
+	  TotalMuonVec = TotalMuonVec + mu; //add this muon's momentum to the sum
+	  int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoMuons);
+	  if(subtractedIndex >= 0){
+	    if(GoodJetsNoMuons[subtractedIndex].Pt() < 40){ //erase this jet
+	      GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
+	    }
+	  }
+	}
+	
+        //remove selected TIGHT muons from collection of selected jets and add them to the MET
+        vector<TLorentzVector> GoodJetsNoTightMuons = GoodJets;
+        TLorentzVector TotalTightMuonVec;
+        for(auto& mu : GoodMuonsTight){
+            TotalTightMuonVec = TotalTightMuonVec + mu; //add this muon's momentum to the sum
+            int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoTightMuons);
+            if(subtractedIndex >= 0){
+                if(GoodJetsNoTightMuons[subtractedIndex].Pt() < 40){ //erase this jet
+                    GoodJetsNoTightMuons.erase(GoodJetsNoTightMuons.begin()+subtractedIndex);
+                }
+            }
+        }
+
+        //make the MET vector with the muons (or gen muons) added
+        TLorentzVector ZPlusMet_perp = makeTLorentzVector((TotalMuonVec + PFMET).Pt(), 0., (TotalMuonVec + PFMET).Phi(), 0.);
+        events->MET_NoZ = ZPlusMet_perp.Pt();
+        events->METPhi_NoZ = ZPlusMet_perp.Phi();
+
+        TLorentzVector WPlusMet_perp = makeTLorentzVector((TotalTightMuonVec + PFMET).Pt(), 0., (TotalTightMuonVec + PFMET).Phi(), 0.);
+        events->MET_NoW = WPlusMet_perp.Pt();
+        events->METPhi_NoW = WPlusMet_perp.Phi(); 
+
+        //count jets and compute HT
+        //Z
+	int njets80noZ = 0;
+	int njets80noW = 0;
+	float ht_noZ   = 0.;
+	float ht_noW   = 0.;
+        events->NJets_NoZ = GoodJetsNoMuons.size();
+        for(auto& jet : GoodJetsNoMuons){
+	  ht_noZ += jet.Pt();
+	  if(jet.Pt() > 80) njets80noZ++;
+        }
+	events->HT_NoZ = ht_noZ;
+	events->NJets80_NoZ = njets80noZ;
+	 
+        //W
+        events->NJets_NoW = GoodJetsNoTightMuons.size();
+        for(auto& jet : GoodJetsNoTightMuons){
+	  ht_noW += jet.Pt();
+	  if(jet.Pt() > 80) njets80noW++; 
+        }
+	events->HT_NoW = ht_noW;
+	events->NJets80_NoW = njets80noW;
+ 
+        //get reco Z information
+        if(GoodMuons.size() >= 1){
+	  events->recoZpt = TotalMuonVec.Pt();
+	  events->recoZmass = TotalMuonVec.M();
+        }
+
+        //compute reco Z information and razor variables for DY
+        if(events->NJets_NoZ > 1 && GoodJets.size()<20)
+        {
+            vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoMuons);
+            events->Rsq_NoZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], ZPlusMet_perp);
+            events->MR_NoZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
+            events->dPhiRazor_NoZ = fabs(hemispheresNoZ[0].DeltaPhi(hemispheresNoZ[1])); 
+        }
+        //razor variables using tight muons (for W)
+        if(events->NJets_NoW > 1 && GoodJets.size()<20){
+            vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoTightMuons);
+            events->Rsq_NoW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], WPlusMet_perp);
+            events->MR_NoW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
+            events->dPhiRazor_NoW = fabs(hemispheresNoW[0].DeltaPhi(hemispheresNoW[1])); 
+        }
+
+        //for W, also get the transverse mass of the first tight muon and the MET
+        if(GoodMuonsTight.size() > 0) 
+        {
+            TLorentzVector m1 = GoodMuonsTight[0];
+            TLorentzVector m2 = PFMET;
+            double deltaPhiLepMet = m1.DeltaPhi(m2);
+            events->lep1MT = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); //transverse mass calculation
+
+            //store reco W information
+            events->recoWpt = (m1+m2).Pt();
+            events->recoWphi = (m1+m2).Phi();
+        }
+	
+	////////////////////////////////////
+	////// End Photon Ntuple Part //////
+	////////////////////////////////////
 	//skim events
 	bool passSkim = false;
 	if (option == -1) passSkim = true;
-	if (option == 1) {
+	if (option == 6) { // SI CHECK THIS!!!!!!!!
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
 	      && events->lep1PassLoose && events->lep2PassLoose
 	      && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
 	}
-	if (option == 2) {
+	if (option == 1) { // SI CHECK THIS!!!!!!!
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && events->lep1PassTight
 	       && events->lep1.Pt() > 30) passSkim = true;
 	}
-	if (option == 10) {
+	if (option == 10) { // SI WTF IS THIS???????
 	  if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
 	}
-	if (option == 12) {
+	if (option == 2) { // SI CHECK THIS!!!!!!!!
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && events->lep1PassTight
 	       && events->lep1.Pt() > 30
@@ -1047,9 +1307,44 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    passSkim = true;
 	  }
 	}
+	if(option == 4) // kTreeType_OneLeptonAdd2MET_Reduced
+	  {
+            if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
+            if(events->MR < 300 && events->MR_NoW < 300) passSkim = false;
+            if(events->Rsq < 0.15 && events->Rsq_NoW < 0.15) passSkim = false;
+            if(GoodMuons.size() == 0) passSkim = false; //don't save event if no muons or photons
+	  }
+	if(option == 6) // kTreeType_Dilepton_Reduced
+	  {
+            if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
+            if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
+            if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
+            if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
+	  }	  
+	if(option == 8) // kTreeType_DileptonAdd2MET_Reduced
+	  {
+            if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
+            if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
+            if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
+            if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
+	  }
+	if(option == 10) // kTreeType_Photon_Reduced
+	  {
+            // if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
+            // else if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
+            // else if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
+            // else if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
+	    // else
+	      passSkim = true;
+	    // if(passSkim == true)
+	    //   cout<<" "<<events->NJets80 <<" "<<events->MR <<" "<<events->MR_NoZ<<" "<<events->Rsq <<" "<< events->Rsq_NoZ<<" "<<GoodMuons.size()<<endl;
+
+	    
+	  }
 
 	//fill event 
-	if (passSkim) {	  
+	if (passSkim) {
+	  cout<<"Filling the tree... " <<endl;
 	  events->tree_->Fill();
 	}
 
