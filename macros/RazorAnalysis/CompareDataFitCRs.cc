@@ -24,6 +24,20 @@ using namespace std;
 
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
+void SetHistogramColor(TH1 *hist, string name){
+    if(name == "QCD") hist->SetFillColor(33);
+    if(name == "ZJetsNuNu") hist->SetFillColor(kCyan+1);
+    if(name == "WJets") hist->SetFillColor(kRed+1);
+    if(name == "TTJets") hist->SetFillColor(kGreen+3);
+    if(name == "DYJets") hist->SetFillColor(kAzure);
+    if(name == "SingleTop") hist->SetFillColor(kBlue+3);
+    if(name == "TTV") hist->SetFillColor(kSpring);
+    if(name == "VV") hist->SetFillColor(kViolet+2);
+    if(name == "GJets") hist->SetFillColor(8);
+    if(name == "VG") hist->SetFillColor(38);
+    if(name == "TTG") hist->SetFillColor(7);
+}
+
 //compute b-tagging scale factor
 double getBTagMediumScaleFactor(double b1Pt, bool b1Pass, double b2Pt, bool b2Pass){
     double btagScaleFactor = 1.0;
@@ -74,15 +88,15 @@ void CompareDataFitCRs(){
     float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
 
     //selection cuts for each control region
-    //TODO: fill in cuts
+    //(note: invariant mass cuts are handled within the event loop)
     map<string, string> cuts;
-    cuts["TTBarSingleLepton"] = "MR > 300";
-    cuts["TTBarDilepton"] = "MR > 300";
-    cuts["WSingleLepton"] = "MR > 300";
-    cuts["ZLLDilepton"] = "MR > 300";
-    //cuts["ZNuNuFromDY"] = "MR > 300";
-    //cuts["ZNuNuFromW"] = "MR > 300";
-    //cuts["ZNuNuFromGamma"] = "MR > 300";
+    cuts["TTBarSingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && MET > 30 && lep1MT > 30 && lep1MT < 100 && lep1.Pt() > 25 && NBJetsMedium >= 1 && (HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9]) && MR > 300 && Rsq > 0.15";
+    cuts["TTBarDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1.Pt() > 25 && lep2.Pt() > 25 && lep1PassLoose && lep2PassLoose && (HLTDecision[3] || HLTDecision[4] || HLTDecision[12] || HLTDecision[6] || HLTDecision[7]) && MET > 40 && NBJetsMedium >= 1 && MR > 300 && Rsq > 0.15";
+    cuts["WSingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 25 && MET > 30 && NBJetsMedium == 0 && lep1MT > 30 && lep1MT < 100 && (HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9]) && MR > 300 && Rsq > 0.15";
+    cuts["ZLLDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && NBJetsMedium == 0 && (lep1.Pt() > 25 && lep2.Pt() > 25 && lep1PassLoose && lep2PassLoose) && (HLTDecision[3] || HLTDecision[4] || HLTDecision[12]) && MR > 300 && Rsq > 0.15";
+    //cuts["ZNuNuFromDY"] = "MR_noZ > 300";
+    //cuts["ZNuNuFromW"] = "MR_noW > 300";
+    //cuts["ZNuNuFromGamma"] = "MR_noPho > 300";
     //cuts["ZNuNuFromDY"] = "HLT_Dimuon && nLooseMuons == 2 && recoZmass > 71 && recoZmass < 111 && MR_noZ > 300 && Rsq_noZ > 0.15 && numJets80_noZ > 1";
     //cuts["ZNuNuFromW"] = "HLT_SingleMu && nBTaggedJets == 0 && nTightMuons == 1 && nLooseMuons == 1 && MR_noW > 300 && Rsq_noW > 0.15 && numJets80_noW > 1 && mTLepMet > 30 && mTLepMet < 100";
     //cuts["ZNuNuFromGamma"] = "HLT_Photon && MR_noPho > 300 && Rsq_noPho > 0.15 && numJets80_noPho > 1 && pho1.Pt() > 80";
@@ -126,13 +140,13 @@ void CompareDataFitCRs(){
 
     //assign datasets to control regions
     map<string, vector<string> > controlRegionMC;
-    controlRegionMC["TTBarSingleLepton"] = vector<string> {"TTJets", "WJets", "DYJets", "SingleTop", "QCD", "VV", "TTV"};
-    controlRegionMC["TTBarDilepton"] = vector<string> {"TTJets", "DYJets", "WJets", "SingleTop", "VV", "TTV"};
-    controlRegionMC["WSingleLepton"] = vector<string> {"WJets", "TTJets", "DYJets", "SingleTop", "QCD", "VV", "TTV"};
-    controlRegionMC["ZLLDilepton"] = vector<string> {"DYJets", "TTJets", "WJets", "SingleTop", "VV", "TTV"};
-    //controlRegionMC["ZNuNuFromDY"] = vector<string> {"DYJets", "TTJets", "WJets", "SingleTop", "QCD", "VV", "TTV"};
-    //controlRegionMC["ZNuNuFromW"] = vector<string> {"WJets", "TTJets", "DYJets", "SingleTop", "QCD", "VV", "TTV"};
-    //controlRegionMC["ZNuNuFromGamma"] = vector<string> {"GJets", "QCD", "VG", "TTG"};
+    controlRegionMC["TTBarSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "WJets", "TTJets"};
+    controlRegionMC["TTBarDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "DYJets", "TTJets"};
+    controlRegionMC["WSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
+    controlRegionMC["ZLLDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
+    //controlRegionMC["ZNuNuFromDY"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "WJets", "TTJets", "DYJets"};
+    //controlRegionMC["ZNuNuFromW"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
+    //controlRegionMC["ZNuNuFromGamma"] = vector<string> {"TTG", "VG", "QCD", "GJets"};
 
     map<string, vector<string> > controlRegionData;
     controlRegionData["TTBarSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
@@ -259,6 +273,16 @@ void CompareDataFitCRs(){
                 bool passesSelection = cutsFormula->EvalInstance();
                 if(!passesSelection) continue;
 
+                //extra selection on dilepton mass
+                if(region.first == "TTBarDilepton"){
+                    float mLL = (curTree->lep1 + curTree->lep2).M();
+                    if(mLL > 76 && mLL < 106) continue;
+                }
+                if(region.first == "ZLLDilepton"){
+                    float mLL = (curTree->lep1 + curTree->lep2).M();
+                    if(mLL < 60 || mLL > 120) continue;
+                }
+
                 ///////////////////////////////////////////////////////////
                 // Apply scale factors
                 ///////////////////////////////////////////////////////////
@@ -268,11 +292,12 @@ void CompareDataFitCRs(){
                     eventWeight *= getBTagMediumScaleFactor(curTree->bjet1.Pt(), curTree->bjet1PassMedium, curTree->bjet2.Pt(), curTree->bjet2PassMedium);
                 }
 
-                //trigger scale factors
-                if(curTree->HLT_SingleMu && (region.first == "TTBarSingleLepton" || region.first == "WSingleLepton" || region.first == "ZNuNuFromW")){
+                //trigger scale factors: single muon
+                if((curTree->HLTDecision[0] || curTree->HLTDecision[1]) && (region.first == "TTBarSingleLepton" || region.first == "WSingleLepton" || region.first == "ZNuNuFromW")){
                     eventWeight *= singleMuTriggerSF;
                 }
-                else if(curTree->HLT_Dimuon && (region.first == "TTBarDilepton" || region.first == "ZLLDilepton" || region.first == "ZNuNuFromDY" || region.first == "ZLLDilepton")){
+                //trigger scale factors: double muon
+                else if((curTree->HLTDecision[3] || curTree->HLTDecision[4]) && (region.first == "TTBarDilepton" || region.first == "ZLLDilepton" || region.first == "ZNuNuFromDY" || region.first == "ZLLDilepton")){
                     eventWeight *= doubleMuTriggerSF;
                     eventWeight *= doubleMuNormalizationSF;
                 }
@@ -427,6 +452,16 @@ void CompareDataFitCRs(){
                 bool passesSelection = cutsFormula->EvalInstance();
                 if(!passesSelection) continue;
 
+                //extra selection on dilepton mass
+                if(region.first == "TTBarDilepton"){
+                    float mLL = (curTree->lep1 + curTree->lep2).M();
+                    if(mLL > 76 && mLL < 106) continue;
+                }
+                if(region.first == "ZLLDilepton"){
+                    float mLL = (curTree->lep1 + curTree->lep2).M();
+                    if(mLL < 60 || mLL > 120) continue;
+                }
+
                 float eventWeight = 1.0;
 
                 //reweight for photon triggers
@@ -487,23 +522,15 @@ void CompareDataFitCRs(){
         gStyle->SetPaintTextFormat("1.0f");
         c.SetLogx();
 
-        //razorHistosMC[cut.first]["QCD"]->SetFillColor(33);
-        //razorHistosMC[cut.first]["ZJetsNuNu"]->SetFillColor(kCyan+1);
-        //razorHistosMC[cut.first]["WJets"]->SetFillColor(kRed+1);
-        //razorHistosMC[cut.first]["TTJets"]->SetFillColor(kGreen+3);
-        //razorHistosMC[cut.first]["DYJets"]->SetFillColor(kAzure);
-        //razorHistosMC[cut.first]["SingleTop"]->SetFillColor(kBlue+3);
-        //razorHistosMC[cut.first]["TTV"]->SetFillColor(kSpring);
-        //razorHistosMC[cut.first]["VV"]->SetFillColor(kViolet+2);
-        //razorHistosMC[cut.first]["GJets"]->SetFillColor(8);
-        //razorHistosMC[cut.first]["VG"]->SetFillColor(38);
-        //razorHistosMC[cut.first]["TTG"]->SetFillColor(7);
-
         //create legend
         TLegend *RazorLegend = new TLegend(0.6, 0.6, 0.9, 0.9);
-        for(auto &name : controlRegionMC[cut.first]){
+        for(int i = controlRegionMC[cut.first].size() - 1; i >= 0; i--){
+            string name = controlRegionMC[cut.first][i];
+            SetHistogramColor(razorHistosMC[cut.first][name], name);
             RazorLegend->AddEntry(razorHistosMC[cut.first][name], name.c_str());
         }
+        razorHistosData[cut.first]->SetMarkerStyle(20);
+        razorHistosData[cut.first]->SetMarkerSize(1);
         RazorLegend->AddEntry(razorHistosData[cut.first], "2012 Data");
 
         //plot slices of MR and Rsq
@@ -514,7 +541,7 @@ void CompareDataFitCRs(){
             for(auto &sample : controlRegionMC[cut.first]){
                 TH1F *thisHist;
                 thisHist = (TH1F*)razorHistosMC[cut.first][sample]->ProjectionX(Form("hist%s%d%s", sample.c_str(), i, cut.first.c_str()), i+1, i+1);
-                //thisHist->SetFillColor(razorHistosMC[cut.first][sample]->GetFillColor());
+                SetHistogramColor(thisHist, sample);
                 ThisRsqSliceMCMap[sample] = thisHist;
             }
             for(auto &name : controlRegionMC[cut.first]){
@@ -529,7 +556,7 @@ void CompareDataFitCRs(){
             for(auto &sample : controlRegionMC[cut.first]){
                 TH1F *thisHist;
                 thisHist = (TH1F*)razorHistosMC[cut.first][sample]->ProjectionY(Form("hist%s%d%s", sample.c_str(), i, cut.first.c_str()), i+1, i+1);
-                //thisHist->SetFillColor(razorHistosMC[cut.first][sample]->GetFillColor());
+                SetHistogramColor(thisHist, sample);
                 ThisMRSliceMCMap[sample] = thisHist;
             }
             for(auto &name : controlRegionMC[cut.first]){
@@ -545,7 +572,7 @@ void CompareDataFitCRs(){
             for(auto &sample : controlRegionMC[cut.first]){
                 TH1F *thisHist;
                 thisHist = (TH1F*)razorHistosMC[cut.first][sample]->ProjectionX(Form("histinc%s%d%s", sample.c_str(), i, cut.first.c_str()), i+1);
-                //thisHist->SetFillColor(razorHistosMC[cut.first][sample]->GetFillColor());
+                SetHistogramColor(thisHist, sample);
                 ThisRsqSliceMCMap[sample] = thisHist;
             }
             for(auto &name : controlRegionMC[cut.first]){
@@ -560,7 +587,7 @@ void CompareDataFitCRs(){
             for(auto &sample : controlRegionMC[cut.first]){
                 TH1F *thisHist;
                 thisHist = (TH1F*)razorHistosMC[cut.first][sample]->ProjectionY(Form("histinc%s%d%s", sample.c_str(), i, cut.first.c_str()), i+1);
-                //thisHist->SetFillColor(razorHistosMC[cut.first][sample]->GetFillColor());
+                SetHistogramColor(thisHist, sample);
                 ThisMRSliceMCMap[sample] = thisHist;
             }
             for(auto &name : controlRegionMC[cut.first]){
