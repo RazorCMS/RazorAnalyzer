@@ -254,6 +254,9 @@ int main(int argc, char* argv[]){
       analyzer.EnableElectrons();
       analyzer.EnableMuons();
       analyzer.EnableTaus();
+      analyzer.EnableEventInfo();
+      analyzer.EnableMC();
+
       analyzer.RazorDM(outputFileName);
     }
     else if(analysisType == "RazorControlRegions"){
