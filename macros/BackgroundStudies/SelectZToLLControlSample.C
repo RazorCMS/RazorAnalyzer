@@ -51,8 +51,8 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   pad1->Draw();
   pad1->cd();
 
-  legend = new TLegend(0.60,0.54,0.90,0.84);
-  legend->SetTextSize(0.03);
+  legend = new TLegend(0.60,0.50,0.90,0.84);
+  legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
 
@@ -91,7 +91,9 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->Draw("hist");
     stack->GetHistogram()->GetXaxis()->SetTitle(((TH1D*)(stack->GetHists()->At(0)))->GetXaxis()->GetTitle());
     stack->GetHistogram()->GetYaxis()->SetTitle(((TH1D*)(stack->GetHists()->At(0)))->GetYaxis()->GetTitle());
-    stack->GetHistogram()->GetYaxis()->SetTitleOffset(1.5);
+    stack->GetHistogram()->GetYaxis()->SetTitleOffset(0.8);
+    stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
+    stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
     stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
     stack->SetMinimum( 0.1 );
 
@@ -146,8 +148,8 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->GetYaxis()->SetRangeUser(0.5,1.5);
   histDataOverMC->GetYaxis()->SetLabelSize(0.10);
   histDataOverMC->GetXaxis()->SetLabelSize(0.125);
-  histDataOverMC->GetXaxis()->SetTitleSize(0.125);
-  histDataOverMC->GetXaxis()->SetTitleOffset(1.2);
+  histDataOverMC->GetXaxis()->SetTitleSize(0.15);
+  histDataOverMC->GetXaxis()->SetTitleOffset(1.0);
   histDataOverMC->SetStats(false);
   histDataOverMC->Draw("e1");
   
@@ -214,7 +216,7 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PUWeight_Run1");
   assert(pileupWeightHist);
 
-  TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/ElectronSelection_Run2012ReReco_53X.root","READ");
+  TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
   TH2D *eleEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
   assert(eleEffSFHist);
 
@@ -256,8 +258,8 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
     histNVtx.push_back(new TH1D(Form("histNVtx_%s",processLabels[i].c_str()), "; Number of Primary Vertices; R^{2}; Number of Events", 100, -0.5, 99.5));
-    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 100, 0, 3000));
-    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 100, 0, 2.0));
+    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 100, 400, 2500));
+    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 100, 0.05, 1.0));
     histDileptonMass.push_back(new TH1D(Form("histDileptonMass_%s",processLabels[i].c_str()), "; M_{ll} [GeV/c^{2}]; Number of Events", 100, 0, 200));
     histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV/c] ; Number of Events", 100, 0, 1000));
     histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", 15, -0.5, 14.5));
@@ -574,32 +576,32 @@ void SelectZToLLControlSample( int option = 0) {
 
   //Inclusive sample
   if (option == 11) {
-    datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DoubleMuParked_GoodLumi.root";
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DoubleMuParked_GoodLumi.root";
   } else if (option == 10) {
-    datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DoubleElectron_GoodLumi.root";
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DoubleElectron_GoodLumi.root";
   }
   if (option == 10 || option == 11) {
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_TTJets_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_VV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_SingleTop_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_TTV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_TTJets_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_VV_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_SingleTop_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_TTV_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
   }
 
   // //Razor Skim sample
   if (option == 1) {
-    datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_DoubleMuParked_GoodLumi.root";
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleMuParked_GoodLumi.root";
   } else if (option == 0) {
-    datafile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_DoubleElectron_GoodLumi.root";
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleElectron_GoodLumi.root";
   }
   if (option == 0 || option == 1) {
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_DYJetsToLL_HTBinned_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTJets_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_VV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_SingleTop_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_DYJetsToLL_HTBinned_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTJets_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_VV_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_SingleTop_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTV_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
   }
 
   processLabels.push_back("DY");
