@@ -83,7 +83,7 @@ Note the first script removes the QCD contribution and scales up the
 remaining backgrounds if given the option -q. The following commands will (locally)
 produce the weighted and "unweighted" datasets, run the fit, and make the 1D fit projections in MR and Rsq. 
 
-    python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2_1-3btag.config -w -l 3000 -d Datasets Backgrounds/RazorInclusive_*weighted.root
+    python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2_1-3btag.config -w -q -l 3000 -d Datasets Backgrounds/RazorInclusive_*weighted.root
     python python/BinnedFit.py -b MultiJet -c config/run2_1-3btag.config -d FitResults Datasets/RazorInclusive_SMCocktail_weighted_lumi-3.0_1-3btag_MultiJet.root
 	
 To produce a large number of other 1D fit projections, and the 2D
