@@ -8,7 +8,7 @@ import os
 import random
 import sys
 import math
-import RunToys
+from PlotFit import *
 
 
 def binnedFit(pdf, data):
@@ -21,9 +21,6 @@ def binnedFit(pdf, data):
     
     return fr
  
-def setStyle():
-    rt.gStyle.SetOptStat(0)
-    rt.gStyle.SetOptTitle(0)
     
 if __name__ == '__main__':
     parser = OptionParser()
@@ -48,37 +45,43 @@ if __name__ == '__main__':
     noFit = options.noFit
     
     lumi_in = 0.
+
+    data = None
     for f in args:
         if f.lower().endswith('.root'):
             rootFile = rt.TFile(f)
             workspace = rootFile.Get('w'+box)
             data = workspace.data('RMRTree')
             lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
-
+    if data is None:
+        print "give a root file as input"
   
     w = rt.RooWorkspace("w"+box)
-    
     rootTools.Utils.importToWS(w,data)
     
-    paramNames = initializeWorkspace(w,cfg,box)
+    paramNames, bkgs = initializeWorkspace(w,cfg,box)
     
     th1x = w.var('th1x')
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
     myTH1.Scale(lumi/lumi_in)
-    dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
+    dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     rootTools.Utils.importToWS(w,dataHist)
-
+    
     setStyle()
     
     extRazorPdf = w.pdf('extRazorPdf')
 
     if noFit:
         fr = rt.RooFitResult()
-    else:        
+    else:
+        
+        nll = extRazorPdf.createNLL(dataHist)
         fr = binnedFit(extRazorPdf,dataHist)
         fr.Print('v')    
         rootTools.Utils.importToWS(w,fr)
+        #rootTools.Utils.importToWS(w,nll)
+        
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -136,8 +139,6 @@ if __name__ == '__main__':
             else:            
                 h_labels.append("%i b-tag" % z[k-1] )
 
-    print h_MR_components
-    print h_Rsq_components
 
     btagLabel = ""
     if z[-1] == z[0]+1 and z[-1]==4:
@@ -156,8 +157,8 @@ if __name__ == '__main__':
 
     
          
-    RunToys.print1DCanvas(c,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]","Events",lumiLabel,boxLabel,None,h_MR_components,h_colors,h_labels)
-    RunToys.print1DCanvas(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}","Events",lumiLabel,boxLabel,None,h_Rsq_components,h_colors,h_labels)
+    print1DProj(c,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]","Events",lumiLabel,boxLabel,None,h_MR_components,h_colors,h_labels)
+    print1DProj(c,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}","Events",lumiLabel,boxLabel,None,h_Rsq_components,h_colors,h_labels)
     
 
     outFileName = "BinnedFitResults_%s.root"%(box)

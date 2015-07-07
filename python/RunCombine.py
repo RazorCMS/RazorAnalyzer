@@ -62,8 +62,8 @@ if __name__ == '__main__':
         for box in boxes:            
             z = array('d', cfg.getBinning(box)[2]) # nBtag binning
             btagMin = z[0]
-            btagMax = z[-2]        
-            if btagMax>btagMin:          
+            btagMax = z[-1]        
+            if btagMax-1>btagMin:          
                 btag = '%i-%ibtag'%(btagMin,btagMax)
             else:
                 btag = '%ibtag'%(btagMin)    

@@ -8,154 +8,7 @@ import os
 import random
 import sys
 import math
-
-seed = 1988
-
-def setStyle():
-    rt.gStyle.SetOptStat(0)
-    rt.gStyle.SetOptTitle(0)
-
-    
-def print1DCanvas(c,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",tLeg=None):
-    #c.SetLogx(0)
-    #c.SetLogy(1)
-    
-    pad1 = rt.TPad(c.GetName()+"_pad1","pad1",0,0.25,1,1)
-    pad2 = rt.TPad(c.GetName()+"_pad2","pad2",0,0,1,0.25)
-    pad1.Range(-213.4588,-0.3237935,4222.803,5.412602);
-    pad2.Range(-213.4588,-2.206896,4222.803,3.241379);
-    pad1.SetLeftMargin(0.15)
-    pad2.SetLeftMargin(0.15)
-    pad1.SetRightMargin(0.05)
-    pad2.SetRightMargin(0.05)
-    pad1.SetTopMargin(0.12)
-    pad2.SetTopMargin(0.)
-    pad1.SetBottomMargin(0.)
-    pad2.SetBottomMargin(0.47)
-    pad1.Draw()
-    pad1.cd()
-    rt.gPad.SetLogy(1)
-    
-    h.SetLineWidth(2)
-    h.SetLineColor(rt.kBlue)
-    hClone = h.Clone(h.GetName()+"Clone")
-    hClone.SetLineColor(rt.kBlue)
-    hClone.SetFillColor(rt.kBlue-10)
-    h_data.SetMarkerColor(rt.kBlack)
-    h_data.SetMarkerStyle(20)
-    h_data.SetLineColor(rt.kBlack)
-    h_data.GetXaxis().SetTitle(xTitle)
-    h_data.GetYaxis().SetTitle(yTitle)
-    h_data.GetXaxis().SetLabelOffset(0.16)
-    h_data.GetXaxis().SetLabelSize(0.06)
-    h_data.GetYaxis().SetLabelSize(0.06)
-    h_data.GetXaxis().SetTitleSize(0.06)
-    h_data.GetYaxis().SetTitleSize(0.08)
-    h_data.GetXaxis().SetTitleOffset(0.8)
-    h_data.GetYaxis().SetTitleOffset(0.7)
-    h_data.GetXaxis().SetTicks("+-")
-    h_data.SetMaximum(math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25))
-    h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
-    h_data.Draw("pe")
-    hClone.Draw("e2same")
-    h.SetFillStyle(0)
-    h.DrawCopy("histsame")
-    h_data.Draw("pesame")
-    pad1.Draw()
-    c.Update()
-    c.cd()
-    pad2.Draw()
-    pad2.cd()
-    rt.gPad.SetLogy(0)
-    
-    h_data.Sumw2()
-    hClone.Sumw2()
-    hDataDivide = h_data.Clone(h_data.GetName()+"Divide")
-    hDataDivide.Sumw2()
-
-    hDivide = h.Clone(h.GetName()+"Divide") 
-    hCloneDivide = hClone.Clone(hClone.GetName()+"Divide") 
-    hCloneDivide.GetYaxis().SetLabelSize(0.18)
-    hCloneDivide.SetTitle("")
-    hCloneDivide.SetMaximum(3.5)
-    hCloneDivide.SetMinimum(0.)
-    hCloneDivide.GetXaxis().SetLabelSize(0.22)
-    hCloneDivide.GetXaxis().SetTitleSize(0.22)
-
-    
-    for i in range(1, h_data.GetNbinsX()+1):
-        tmpVal = hCloneDivide.GetBinContent(i)
-        if tmpVal != -0.:
-            hDataDivide.SetBinContent(i, hDataDivide.GetBinContent(i)/tmpVal)
-            hDataDivide.SetBinError(i, hDataDivide.GetBinError(i)/tmpVal)
-            hCloneDivide.SetBinContent(i, hCloneDivide.GetBinContent(i)/tmpVal)
-            hCloneDivide.SetBinError(i, hCloneDivide.GetBinError(i)/tmpVal)
-            hDivide.SetBinContent(i, hDivide.GetBinContent(i)/tmpVal)
-            hDivide.SetBinError(i, hDivide.GetBinError(i)/tmpVal)
-
-            
-    hCloneDivide.GetXaxis().SetTitleOffset(0.97)
-    hCloneDivide.GetXaxis().SetLabelOffset(0.02)
-    hCloneDivide.GetXaxis().SetTitle(xTitle)
-
-    hCloneDivide.GetYaxis().SetNdivisions(504,rt.kTRUE)
-    hCloneDivide.GetYaxis().SetTitleOffset(0.2)
-    hCloneDivide.GetYaxis().SetTitleSize(0.22)
-    hCloneDivide.GetYaxis().SetTitle("Data/Fit")
-    hCloneDivide.GetXaxis().SetTicks("+")
-    hCloneDivide.GetXaxis().SetTickLength(0.07)
-    hCloneDivide.SetMarkerColor(rt.kBlue-10)
-    hCloneDivide.Draw("e2")
-    hDataDivide.Draw('pesame')
-    hCloneDivide.Draw("axissame")
-
-
-    pad2.Update()
-    pad1.cd()
-    pad1.Update()
-    pad1.Draw()
-
-    if tLeg==None:
-        tLeg = rt.TLegend(0.7,0.6,0.9,0.8)
-        tLeg.SetFillColor(0)
-        tLeg.SetTextFont(42)
-        tLeg.SetLineColor(0)
-        tLeg.AddEntry(h_data,"Sim. Data","lep")
-        tLeg.AddEntry(hClone,"Fit","lf")
-    tLeg.Draw("same")
-
-        
-    l = rt.TLatex()
-    l.SetTextAlign(11)
-    l.SetTextSize(0.05)
-    l.SetTextFont(42)
-    l.SetNDC()
-    l.DrawLatex(0.15,0.9,"CMS simulation")
-    l.DrawLatex(0.78,0.9,"%s"%lumiLabel)
-    l.SetTextFont(52)
-    l.DrawLatex(0.2,0.8,boxLabel)
-
-    c.cd()
-    
-    c.Print(printName)
-    c.Print(os.path.splitext(printName)[0]+'.C')
-    
-def print2DCanvas(c,h,printName):
-    c.SetLogx(1)
-    c.SetLogy(1)
-    h.Draw("textcolz")
-    c.Print(printName)
-    c.Print(os.path.splitext(printName)[0]+'.C')
-    
-def setFFColors(hNS):
-    Red = array('d',  [0.00, 0.70, 0.90, 1.00, 1.00, 1.00, 1.00])
-    Green = array('d',[0.00, 0.70, 0.90, 1.00, 0.90, 0.70, 0.00])
-    Blue = array('d', [1.00, 1.00, 1.00, 1.00, 0.90, 0.70, 0.00])
-    Length =array('d',[0.00, 0.20, 0.35, 0.50, 0.65, 0.8, 1.00]) # colors get darker faster at 4sigma
-    rt.TColor.CreateGradientColorTable(7,Length,Red,Green,Blue,999)
-    hNS.SetMaximum(5.1)
-    hNS.SetMinimum(-5.1) # so the binning is 0 2 4
-    hNS.SetContour(999)
+from PlotFit import *
     
 def find68ProbRange(hToy, probVal=0.6827):
     minVal = 0.
@@ -221,7 +74,7 @@ def getTree(myTree,paramNames,nBins,box):
         stringMyStruct1 = stringMyStruct1+"float %s;" %(paramName)
     for iBinX in range(0,nBins):
         stringMyStruct1 = stringMyStruct1+"float b%i;" %(iBinX)
-    print stringMyStruct1+"};}"
+    #print stringMyStruct1+"};}"
     rando = random.randint(1,999999)
     tempMacro = open("tempMacro_%d.C"%rando,"w")
     tempMacro.write(stringMyStruct1+"};}")
@@ -241,39 +94,53 @@ def getTree(myTree,paramNames,nBins,box):
     os.system("rm tempMacro_%d.C"%rando)
     return s1
 
-def getBinSumDicts(x, y, z, btag=[[1,2,3]]):
-    binXSumDict = {}
-    binYSumDict = {}
-    binXYSumDict = {}
-    binXYZSumDict = {}
-    
-    for i in range(1,len(x)):
-        binXSumDict[i] = ''
-    for j in range(1,len(y)):
-        binYSumDict[j] = ''
-    for i in range(1,len(x)):
+def getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
+
+    binSumDict = {}
+
+    if sumType.lower()=="x":
+        for i in range(1,len(x)):
+            binXSumDict[i] = ''
+    elif sumType.lower()=="y":
         for j in range(1,len(y)):
-            binXYSumDict[i,j] = ''
+            binYSumDict[j] = ''
+    elif sumType.lower()=="yx":
+        for i in range(1,len(x)):
+            for j in range(1,len(y)):
+                binSumDict[i,j] = ''
+    elif sumType.lower()=="zyx":
+        for i in range(1,len(x)):
+            for j in range(1,len(y)):
+                for k in range(1,len(z)):
+                    binSumDict[i,j,k] = ''
             
     iBinX = -1
     for i in range(1,len(x)):
         for j in range(1,len(y)):
             for k in range(1,len(z)):
                 iBinX += 1
-                if (iBinX)%3+1 in btag: binXSumDict[i] += 'b%i+'%iBinX
-                if (iBinX)%3+1 in btag: binYSumDict[j] += 'b%i+'%iBinX
-                if (iBinX)%3+1 in btag: binXYSumDict[i,j] += 'b%i+'%iBinX
-                binXYZSumDict[i,j,k] = 'b%i'%iBinX
+                if i>=minX and i<=maxX and j>=minY and j<=maxY and z>=minZ and i<=maxZ:
+                    if sumType.lower()=="x":
+                        binSumDict[i] += 'b%i+'%iBinX
+                    elif sumType.lower()=="y":
+                        binSumDict[j] += 'b%i+'%iBinX
+                    elif sumType.lower()=="yx":
+                        binSumDict[i,j] += 'b%i+'%iBinX
+                    elif sumType.lower()=="zyx":
+                        binSumDict[i,j,k] = 'b%i'%iBinX
                 
-    for i in range(1,len(x)):
-        binXSumDict[i] = binXSumDict[i][0:-1]
-    for j in range(1,len(y)):
-        binYSumDict[j] = binYSumDict[j][0:-1]
-    for i in range(1,len(x)):
+    if sumType.lower()=="x":
+        for i in range(1,len(x)):
+            binSumDict[i] = binSumDict[i][0:-1]            
+    elif sumType.lower()=="y":
         for j in range(1,len(y)):
-            binXYSumDict[i,j] = binXYSumDict[i,j][0:-1]
+            binSumDict[j] = binSumDict[j][0:-1]      
+    elif sumType.lower()=="yx":
+        for i in range(1,len(x)):
+            for j in range(1,len(y)):
+                binSumDict[i,j] = binSumDict[i,j][0:-1]
             
-    return binXSumDict, binYSumDict, binXYSumDict, binXYZSumDict
+    return binSumDict
 
 def getBestFitRms(myTree, sumName, nObs, c, outDir):
     myTree.GetEntry(0)
@@ -326,57 +193,58 @@ def getBestFitRms(myTree, sumName, nObs, c, outDir):
     return bestFit, rms, pvalue, nsigma
 
 
-def runToys(box,freq,w,outDir):
+def runToys(w,options,cfg):
     
     setStyle()
+    rt.RooRandom.randomGenerator().SetSeed(options.seed)
     
     extRazorPdf = w.pdf('extRazorPdf')
-    
+    dataHist = w.data("data_obs")
+    fr = w.obj('fitresult_extRazorPdf_data_obs')
+    #nll = w.function('nll_extRazorPdf_data_obs')
     nll = extRazorPdf.createNLL(dataHist)
-    m = rt.RooMinuit(nll)
-    m.migrad()
-    m.hesse()
-    fr = m.save()
-    #fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
-    fr.Print('v')
+    th1x = w.var("th1x")
+    
     params = extRazorPdf.getParameters(dataHist)
-    params.remove(w.var('BtagCut_TTj1b'))
-    params.remove(w.var('BtagCut_TTj2b'))
-    params.remove(w.var('BtagCut_TTj3b'))
-    params.remove(w.var('MRCut_%s'%box))
-    params.remove(w.var('RCut_%s'%box))
+    paramsToRemove = []
+    for p in rootTools.RootIterator.RootIterator(params):
+        if p.isConstant(): paramsToRemove.append(p)
+
+    [params.remove(p) for p in paramsToRemove]
+    paramNames = [p.GetName() for p in rootTools.RootIterator.RootIterator(params)]
+    paramNames.sort()
+    #params.remove(w.var('BtagCut_TTj1b'))
+    #params.remove(w.var('BtagCut_TTj2b'))
+    #params.remove(w.var('BtagCut_TTj3b'))
+    #params.remove(w.var('MRCut_%s'%options.box))
+    #params.remove(w.var('RCut_%s'%options.box))
     
     hessePdf = fr.createHessePdf(params)
-    minNll = rt.RooRealVar('minNll_%s'%box,'minNll_%s'%box,fr.minNll())
+    minNll = rt.RooRealVar('minNll_%s'%options.box,'minNll_%s'%options.box,fr.minNll())
     minNll.setConstant(True)
-    n2dll = rt.RooFormulaVar('n2dll_%s'%box,'2*@0-2*@1',rt.RooArgList(nll,minNll))
+    n2dll = rt.RooFormulaVar('n2dll_%s'%options.box,'2*@0-2*@1',rt.RooArgList(nll,minNll))
     
-    rootTools.Utils.importToWS(w,n2dll)
-    rootTools.Utils.importToWS(w,hessePdf)
+    #rootTools.Utils.importToWS(w,n2dll)
+    #rootTools.Utils.importToWS(w,hessePdf)
     
-    x = array('d', cfg.getBinning(box)[0]) # MR binning
-    y = array('d', cfg.getBinning(box)[1]) # Rsq binning
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    x = array('d', cfg.getBinning(options.box)[0]) # MR binning
+    y = array('d', cfg.getBinning(options.box)[1]) # Rsq binning
+    z = array('d', cfg.getBinning(options.box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     
     th1x.setBins(nBins)
 
 
-    for bkgd in ['TTj1b','TTj2b','TTj3b']:
-        paramNames.remove('%s_%s_norm'%(box,bkgd))
-        paramNames.append('Ntot_%s_%s'%(bkgd,box))
-    paramNames.sort()
-
     unc = 'Bayes'
-    if freq: unc = 'Freq'
+    if options.freq: unc = 'Freq'
     
-    output = rt.TFile.Open(outDir+'/toys_%s_%s.root'%(unc,box),'recreate')
+    output = rt.TFile.Open(options.outDir+'/toys_%s_%s.root'%(unc,options.box),'recreate')
     output.cd()
     myTree = rt.TTree("myTree", "myTree")
     
-    s1 = getTree(myTree,paramNames, nBins,box)
+    s1 = getTree(myTree,paramNames, nBins,options.box)
     
-    value = setattr(s1, 'n2dll_%s'%box, n2dll.getVal())
+    value = setattr(s1, 'n2dll_%s'%options.box, n2dll.getVal())
     for p in rootTools.RootIterator.RootIterator(fr.floatParsFinal()):
         w.var(p.GetName()).setVal(p.getVal())
         w.var(p.GetName()).setError(p.getError())
@@ -392,23 +260,30 @@ def runToys(box,freq,w,outDir):
         
     iToy = 0
     rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
-    while iToy < nToys:
-        if iToy%100==0: print "generating %ith toy"%iToy
-        if freq:
+    
+    nBadPars = 0
+    while iToy < options.nToys:
+        if options.freq:
             pSet = fr.floatParsFinal()
-        elif bayes:
-            pSet = fr.randomizePars()
+        else:
+            if options.noSys:                
+                pSet = fr.floatParsFinal()
+            else:                
+                pSet = fr.randomizePars()
         for p in rootTools.RootIterator.RootIterator(pSet):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
 
         badPars = []
         for bkgd in ['TTj1b','TTj2b']:
-            badPars.append(w.var('n_%s_%s'%(bkgd,box)).getVal() <= 0)
-            badPars.append(w.var('b_%s_%s'%(bkgd,box)).getVal() <= 0)
-            badPars.append(w.var('MR0_%s_%s'%(bkgd,box)).getVal() >= w.var('MR').getMin())
-            badPars.append(w.var('R0_%s_%s'%(bkgd,box)).getVal()  >=  w.var('Rsq').getMin())
-        if any(badPars): continue
+            badPars.append(w.var('n_%s_%s'%(bkgd,options.box)).getVal() <= 0)
+            badPars.append(w.var('b_%s_%s'%(bkgd,options.box)).getVal() <= 0)
+            badPars.append(w.var('MR0_%s_%s'%(bkgd,options.box)).getVal() >= w.var('MR').getMin())
+            badPars.append(w.var('R0_%s_%s'%(bkgd,options.box)).getVal()  >=  w.var('Rsq').getMin())
+        if any(badPars):
+            nBadPars+=1
+            #print "BAD PARS #%i"%nBadPars
+            continue
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()
         pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
@@ -423,21 +298,24 @@ def runToys(box,freq,w,outDir):
         #if sigmaCut>0 and math.sqrt(n2dll.getVal())>sigmaCut: continue
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()
-        if bayes or freq:
+        if options.noStat:
+            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
+        else:
             asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy))
-            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore: continue
 
         pSetSave = pSet
-        if freq:
+        if options.freq:
             fr_toy = extRazorPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
             if fr_toy.covQual() < 3: continue
             pSetSave = fr_toy.floatParsFinal()
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy),rt.RooFit.Asimov())
-            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy))
+            if options.noStat:
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy),rt.RooFit.Asimov())
+            else:
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy))
 
-        value = setattr(s1, 'n2dll_%s'%box, n2dll.getVal())
+        value = setattr(s1, 'n2dll_%s'%options.box, n2dll.getVal())
 
         for p in rootTools.RootIterator.RootIterator(pSetSave):
             value = setattr(s1, p.GetName(), p.getVal())
@@ -445,9 +323,10 @@ def runToys(box,freq,w,outDir):
         for iBinX in range(0,nBins):
             th1x.setVal(iBinX+0.5)
             pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
-            if iToy%1000==0: print iBinX, asimov.weight(rt.RooArgSet(th1x)), pdfValV
+            #if iToy%1000==0: print iBinX, asimov.weight(rt.RooArgSet(th1x)), pdfValV
             value = setattr(s1, 'b%i'%iBinX, float(asimov.weight(rt.RooArgSet(th1x))))
-                        
+        
+        if iToy%100==0: print "generating %ith toy"%iToy
         myTree.Fill()
         iToy+=1
     rt.RooMsgService.instance().reset()
@@ -467,62 +346,86 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
-    parser.add_option('-l','--lumi',dest="lumi", default=4000.,type="float",
+    parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
-    parser.add_option('-t','--toys',dest="nToys", default=10000,type="int",
+    parser.add_option('-t','--toys',dest="nToys", default=3000,type="int",
                   help="number of toys")
+    parser.add_option('-s','--seed',dest="seed", default=1988,type="int",
+                  help="random seed")
     parser.add_option('--no-stat',dest="noStat",default=False,action='store_true',
-                  help="just systematic uncertainty (no poisson fluctuations), default is statstical + systematic uncertainty")
-    parser.add_option('--bayes',dest="bayes",default=True,action='store_true',
-                  help="bayesian method")
+                  help="no statistical uncertainty, just systematic uncertainty, default is statstical + systematic uncertainty")
+    parser.add_option('--no-sys',dest="noSys",default=False,action='store_true',
+                  help="no systematic uncertainty, just statistical uncertainty, default is statstical + systematic uncertainty")
     parser.add_option('--freq',dest="freq",default=False,action='store_true',
-                  help="refit each toy with only statistical fluctuations, as in frequentist approach")
+                  help="refit each toy with only statistical fluctuations, as in frequentist approach; default is bayeseian")
+    parser.add_option('-i','--inputFitFile',dest="inputFitFile", default=None,type="string",
+                  help="input fit file")
 
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
     
-    box = options.box
     lumi = options.lumi
-    nToys = options.nToys
-    bayes = options.bayes
-    freq = options.freq
 
-    if freq: bayes = False
-    else: bayes = True
+    inputFitFile = options.inputFitFile
+    
     
     lumi_in = 0.
-    for f in args:
-        if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f)
-            workspace = rootFile.Get('w'+box)
-            data = workspace.data('RMRTree')
-            lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
+
+    if inputFitFile is not None:
+        rootFile = rt.TFile.Open(inputFitFile,"r")
+        w = rootFile.Get("w"+options.box)
+        fr = w.obj("fitresult_extRazorPdf_data_obs")
+        nll = w.function("nll_extRazorPdf_data_obs")
+    else:
+        for f in args:
+            if f.lower().endswith('.root'):
+                rootFile = rt.TFile(f)
+                workspace = rootFile.Get('w'+options.box)
+                data = workspace.data('RMRTree')
+                lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
 
   
-    w = rt.RooWorkspace("w"+box)
+        w = rt.RooWorkspace("w"+options.box)
     
-    paramNames, bkgs = initializeWorkspace(w,cfg,box)
-    rootTools.Utils.importToWS(w,data)
+        paramNames, bkgs = initializeWorkspace(w,cfg,options.box)
+        rootTools.Utils.importToWS(w,data)
     
-    th1x = w.var('th1x')
+        th1x = w.var('th1x')
     
-    myTH1 = convertDataset2TH1(data, cfg, box, w)
-    myTH1.Scale(lumi/lumi_in)
-    dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
-    rootTools.Utils.importToWS(w,dataHist)
+        myTH1 = convertDataset2TH1(data, cfg, options.box, w)
+        myTH1.Scale(lumi/lumi_in)
+        dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
+        rootTools.Utils.importToWS(w,dataHist)
 
-    outputName = runToys(box,freq,w,options.outDir)
+        nll = extRazorPdf.createNLL(dataHist)
+        #m = rt.RooMinuit(nll)
+        #m.migrad()
+        #m.hesse()
+        #fr = m.save()
+        fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
+        fr.Print('v')
+        rootTools.Utils.importToWS(w,fr)
+        #rootTools.Utils.importToWS(w,nll)
+
+        
+    outputName = runToys(w,options,cfg)
+
+    print "writing tree to %s"%(outputName)
+    sys.exit()
+    
     output = rt.TFile.Open(outputName,"read")
     myTree = output.Get("myTree")
 
+
+    
     c = rt.TCanvas('c','c',500,400)
     
-    x = array('d', cfg.getBinning(box)[0]) # MR binning
-    y = array('d', cfg.getBinning(box)[1]) # Rsq binning
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    x = array('d', cfg.getBinning(options.box)[0]) # MR binning
+    y = array('d', cfg.getBinning(options.box)[1]) # Rsq binning
+    z = array('d', cfg.getBinning(options.box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     
     rt.TH1D.SetDefaultSumw2()
@@ -584,7 +487,8 @@ if __name__ == '__main__':
     for btag in [[1,2,3],[1],[2],[3]]:
         btagString = [str(k) for k in btag]
         btagString = "_".join(btagString)
-        binXSumDict, binYSumDict, binXYSumDict, binXYZSumDict = getBinSumDicts(x,y,z,btag)
+        binXSumDict = getBinSumDicts("x",0,len(x),0,len(y),0,len(z),x,y,z)
+        binXSumDict, binYSumDict, binXYSumDict, binXYZSumDict = getBinSumDicts("x",0,len(x),0,len(y),0,len(z),x,y,z)
         for i, sumName in binXSumDict.iteritems():
             nObs = h_data_MR_[btagString].GetBinContent(i)
             bestFit, rms, pvalue, nsigma = getBestFitRms(myTree,sumName,nObs,c,options.outDir)
@@ -609,38 +513,6 @@ if __name__ == '__main__':
         h_nBtagRsqMR.SetBinContent(i,j,k,bestFit)
         h_nBtagRsqMR.SetBinError(i,j,k,rms)
             
-    setFFColors(h_FF_['1_2_3'])
-    print2DCanvas(c,h_FF_['1_2_3'],options.outDir+'/h_FF.pdf')
-    for btag in ['1','2','3']:
-        setFFColors(h_FF_[btag])
-        print2DCanvas(c,h_FF_[btag],'h_FF_'+btag)
-
-    
-    print1DCanvas(c,h_MR_['1_2_3'],h_data_MR_['1_2_3'],options.outDir+'/h_MR.pdf')
-    print1DCanvas(c,h_Rsq_['1_2_3'],h_data_Rsq_['1_2_3'],options.outDir+'/h_Rsq.pdf')
-
-    for btag in ['1','2','3']:
-        print1DCanvas(c,h_MR_[btag],h_data_MR_[btag],options.outDir+'/h_MR_'+btag+'.pdf')
-        print1DCanvas(c,h_Rsq_[btag],h_data_Rsq_[btag],options.outDir+'/h_Rsq_'+btag+'.pdf')
-
     
     unc = 'Bayes'
-    if freq: unc = 'Freq'
-        
-    for h in [h_MR_['1_2_3'],h_Rsq_['1_2_3'],h_RsqMR_['1_2_3'],h_nBtagRsqMR]:
-        h.SetDirectory(0)
-    for h in [h_data_MR_['1_2_3'],h_data_Rsq_['1_2_3'],h_data_RsqMR_['1_2_3'],h_data_nBtagRsqMR]:
-        h.SetDirectory(0)
-        
-    newoutput = rt.TFile(options.outDir+"/plots_"+unc+"_"+box+".root","recreate")
-    newoutput.cd()
-        
-    for h in [h_MR_['1_2_3'],h_Rsq_['1_2_3'],h_RsqMR_['1_2_3'],h_nBtagRsqMR]:
-        h.Write()
-    for h in [h_data_MR_['1_2_3'],h_data_Rsq_['1_2_3'],h_data_RsqMR_['1_2_3'],h_data_nBtagRsqMR]:
-        h.Write()
-        
-    output.Close()
-    newoutput.Close()
-    
-    
+    if options.freq: unc = 'Freq'
