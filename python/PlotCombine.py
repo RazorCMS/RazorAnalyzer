@@ -233,10 +233,13 @@ if __name__ == '__main__':
         l.DrawLatex(0.15,0.77,"razor %s"%'+'.join(boxes[0:2]))
         for i in range(2,len(boxes)-1):
             l.DrawLatex(0.15,0.84-0.07*i,"+%s"%boxes[i])
-        l.DrawLatex(0.15,0.84-0.07*(len(boxes)-1),"+%s, %s"%(boxes[-1],btagLabel))
+        if len(boxes)>2:
+            l.DrawLatex(0.15,0.84-0.07*(len(boxes)-1),"+%s, %s"%(boxes[-1],btagLabel))
+        else:            
+            l.DrawLatex(0.15,0.84-0.07*2,"%s"%(btagLabel))
             
     else:
-        l.DrawLatex(0.15,0.77,"razor %s box"%boxes[0])
+        l.DrawLatex(0.15,0.77,"razor %s box, %s"%(boxes[0],btagLabel))
     l.SetTextFont(42)
     if model=="T1bbbb":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")
