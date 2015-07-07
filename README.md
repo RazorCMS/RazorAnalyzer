@@ -89,8 +89,7 @@ produce the weighted and "unweighted" datasets, run the fit, and make the 1D fit
 To produce a large number of other 1D fit projections, and the 2D
 projections in MR and Rsq,
 
-    python python/PlotFit.py -b MultiJet -c config/run2_1-3btag.config
-    -d FitResults -i FitResults/BinnedFitResults_MultiJet.root
+    python python/PlotFit.py -b MultiJet -c config/run2_1-3btag.config -d FitResults -i FitResults/BinnedFitResults_MultiJet.root
 	
 Next, to produce the datacards, run combine, and make the fit
 projection plots (on lxplus), execute the following:
@@ -105,8 +104,7 @@ FitProjections.
 To make an "unweighted" dataset (not needed for the preceding commands),
 execute
 
-    python python/RooDataSet2UnweightedDataSet.py -b MultiJet -c
-    config/run2_1-3btag.config -d Datasets Datasets/RazorAnalysis_SMCocktail_weighted_lumi-3.0_1-3btag_MultiJet.root
+    python python/RooDataSet2UnweightedDataSet.py -b MultiJet -c config/run2_1-3btag.config -d Datasets Datasets/RazorAnalysis_SMCocktail_weighted_lumi-3.0_1-3btag_MultiJet.root
 
 To make a .csv file of the yields in the cards directory, run the following command
 
