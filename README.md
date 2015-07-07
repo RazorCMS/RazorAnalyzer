@@ -47,6 +47,13 @@ The script will (locally) run the RazorInclusive analysis on each sample listed 
 
 Fitting samples and setting limits
 -----------
+
+The main controller of the fit and limit setting comes from the
+configuration file, which defines the binning used in the binned fit,
+the initlial values of the shape parameters, etc.
+
+    config/run2_1-3btag.config
+
 Setup combine from lxplus:
 
     cmsrel CMSSW_7_1_5
@@ -68,21 +75,47 @@ Make output directories to make workflow easier
     mkdir Backgrounds; mkdir Signals; mkdir Datasets
     mkdir FitResults; mkdir FitProjections; mkdir cards
 
-Copy background trees such as RazorAnalysis\_TTJets\_25ns\_weighted.root to Backgrounds/ and signal
-trees such as RazorAnalysis\_SMS-T1bbbb\_2J_mGl-1500\_mLSP-100\_\_weighted.root
-to Signals/. Note the script assumes no QCD and scales up all backgrounds
-by hard-coded factors per box. The following commands will (locally)
+Copy all the SM background trees such as RazorInclusive\_TTJets\_1pb\_weighted.root to Backgrounds and signal
+trees such as RazorInclusive\_SMS-T1bbbb\_2J\_mGl-1500\_mLSP-100\_1pb\_weighted.root
+to Signals.
+
+Note the first script removes the QCD contribution and scales up the
+remaining backgrounds if given the option -q. The following commands will (locally)
 produce the weighted and "unweighted" datasets, run the fit, and make the 1D fit projections in MR and Rsq. 
 
-    python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2.config -w -l 4000 -d Datasets Backgrounds/RazorAnalysis_*_25ns_weighted.root
-    python python/RooDataSet2UnweightedDataSet.py -b MultiJet -c config/run2.config -d Datasets Datasets/RazorAnalysis_SMCocktail_weighted_lumi-4.0_MultiJet.root
-    python python/Fit.py -b MultiJet -c config/run2.config -d FitResults Datasets/RazorAnalysis_SMCocktail_unweighted_lumi-4.0_MultiJet.root
+    python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2_1-3btag.config -w -l 3000 -d Datasets Backgrounds/RazorInclusive_*weighted.root
+    python python/BinnedFit.py -b MultiJet -c config/run2_1-3btag.config -d FitResults Datasets/RazorInclusive_SMCocktail_weighted_lumi-3.0_1-3btag_MultiJet.root
+	
+To produce a large number of other 1D fit projections, and the 2D
+projections in MR and Rsq,
+
+    python python/PlotFit.py -b MultiJet -c config/run2_1-3btag.config
+    -d FitResults -i FitResults/BinnedFitResults_MultiJet.root
 	
 Next, to produce the datacards, run combine, and make the fit
 projection plots (on lxplus), execute the following:
 
-    python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2.config -w -l 4000 -d Datasets Signals/RazorAnalysis_SMS-T1bbbb_2J_mGl-1500_mLSP-100_weighted.root 
-    python python/RunCombine.py -b MultiJet -c config/run2.config -d cards --lumi-array 0.2,1,2,4,7,10 -m T1bbbb --mGluino 1500 --mLSP 100
-    python python/PlotCombine.py -b MultiJet -c config/run2.config -d FitProjections -i cards --lumi-array 0.2,1,2,4,7,10 -m T1bbbb --mGluino 1500 --mLSP 100 
+    python python/DustinTuple2RooDataSet.py -b MultiJet -c config/run2_1-3btag.config -w -l 3000 -d Datasets Signals/RazorInclusive_SMS-T1bbbb_2J_mGl-1500_mLSP-100_1pb_weighted.root
+    python python/RunCombine.py -b MultiJet -c config/run2_1-3btag.config -d cards --lumi-array 0.2,0.5,1,3,5,7,10 -m T1bbbb --mGluino 1500 --mLSP 100
+    python python/PlotCombine.py -b MultiJet -c config/run2_1-3btag.config -d FitProjections -i cards --lumi-array 0.2,0.5,1,3,5,7,10 -m T1bbbb --mGluino 1500 --mLSP 100 
 	
-which should produce the plots in the directory FitProjections/.
+which should produce the fit projection plots in the directory
+FitProjections.
+
+To make an "unweighted" dataset (not needed for the preceding commands),
+execute
+
+    python python/RooDataSet2UnweightedDataSet.py -b MultiJet -c
+    config/run2_1-3btag.config -d Datasets Datasets/RazorAnalysis_SMCocktail_weighted_lumi-3.0_1-3btag_MultiJet.root
+
+To make a .csv file of the yields in the cards directory, run the following command
+
+    python python/WriteDataCard.py -b MultiJet -c config/run2_1-3btag.config -d cards Datasets/RazorInclusive_SMS-T1bbbb_2J_mGl-1500_mLSP-100_weighted_lumi-3.0_1-3btag_MultiJet.root Datasets/RazorInclusive_SMCocktail_weighted_lumi-3.0_1-3btag_MultiJet.root --print-yields 
+
+To run 10000 "Bayesian" toys, marginalizing the shape parameters to
+estimate the systematic uncertainty in each bin,
+
+    python python/RunToys.py -b MultiJet -c config/run2_1-3btag.config -i FitResults/BinnedFitResults_MultiJet.root -d FitResults  -t 10000
+
+More information on how to use the output from this toy generation
+coming soon...
