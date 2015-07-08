@@ -69,6 +69,11 @@ protected:
    Double_t xArray[20]; // xArray[xBins+1]
    Double_t yArray[20]; // yArray[yBins+1]
    Double_t zArray[5]; // zArray[zBins+1]
+   Double_t histArray[1444]; // histArray[xBins*yBins*zBins]
+   //Double_t xArray[21]; // xArray[xBins+1]
+   //Double_t yArray[21]; // yArray[yBins+1]
+   //Double_t zArray[5]; // zArray[zBins+1]
+   //Double_t histArray[1600]; // histArray[xBins*yBins*zBins]
    Double_t xMax;        // X max
    Double_t yMax;        // Y max
    Double_t zMax;        // Z max

@@ -245,6 +245,9 @@ if __name__ == '__main__':
         print "Sum of Weights Total [ %s ] ="%box, sumWTotal
         print "Sum of Weights QCD   [ %s ] ="%box, sumWQCD
         print "Scale Factor k_QCD   [ %s ] ="%box, k_QCD[box]
+    else:        
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        k_QCD[box] = [1. for iz in range(1,len(z))]
 
     for i, f in enumerate(args):
         if f.lower().endswith('.root'):
@@ -286,19 +289,29 @@ if __name__ == '__main__':
         if btagMax>btagMin+1:
             outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
             outFile = outFile.replace('_1pb','')
+            if not useWeight:
+                outFile = outFile.replace("weighted","unweighted")
         else:
             outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
             outFile = outFile.replace('_1pb','')
+            if not useWeight:
+                outFile = outFile.replace("weighted","unweighted")
     else:
         if btagMax>btagMin+1:
-            outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+            if useWeight:
+                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+            else:
+                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         else:
-            outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+            if useWeight:
+                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+            else:
+                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     numEntriesByBtag = []
     sumEntriesByBtag = []
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     for i in z[:-1]:
         numEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).numEntries())
         sumEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).sumEntries())
