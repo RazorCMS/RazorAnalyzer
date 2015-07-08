@@ -93,7 +93,7 @@ void CompareDataFitCRs(){
     cuts["TTBarSingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && MET > 30 && lep1MT > 30 && lep1MT < 100 && lep1.Pt() > 25 && NBJetsMedium >= 1 && (HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9]) && MR > 300 && Rsq > 0.15";
     cuts["TTBarDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1.Pt() > 25 && lep2.Pt() > 25 && lep1PassLoose && lep2PassLoose && (HLTDecision[3] || HLTDecision[4] || HLTDecision[12] || HLTDecision[6] || HLTDecision[7]) && MET > 40 && NBJetsMedium >= 1 && MR > 300 && Rsq > 0.15";
     cuts["WSingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 25 && MET > 30 && NBJetsMedium == 0 && lep1MT > 30 && lep1MT < 100 && (HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9]) && MR > 300 && Rsq > 0.15";
-    cuts["ZLLDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && NBJetsMedium == 0 && (lep1.Pt() > 25 && lep2.Pt() > 25 && lep1PassLoose && lep2PassLoose) && (HLTDecision[3] || HLTDecision[4] || HLTDecision[12]) && MR > 300 && Rsq > 0.15";
+    cuts["ZLLDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && NBJetsMedium == 0 && lep1.Pt() > 25 && lep2.Pt() > 25 && lep1PassLoose && lep2PassLoose && (HLTDecision[3] || HLTDecision[4] || HLTDecision[12]) && MR > 300 && Rsq > 0.15";
     //cuts["ZNuNuFromDY"] = "MR_noZ > 300";
     //cuts["ZNuNuFromW"] = "MR_noW > 300";
     //cuts["ZNuNuFromGamma"] = "MR_noPho > 300";
@@ -280,7 +280,7 @@ void CompareDataFitCRs(){
                 }
                 if(region.first == "ZLLDilepton"){
                     float mLL = (curTree->lep1 + curTree->lep2).M();
-                    if(mLL < 60 || mLL > 120) continue;
+                    if(mLL < 76 || mLL > 106) continue;
                 }
 
                 ///////////////////////////////////////////////////////////
@@ -426,13 +426,13 @@ void CompareDataFitCRs(){
     map<string, TH2F*> razorHistosData; //apply only efficiency and acceptance corrections
     for(auto &region : controlRegionData){
         cout << "Filling data histograms for control region " << region.first << endl;
+        razorHistosData[region.first] = new TH2F(Form("razordata%s", region.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        razorHistosData[region.first]->Sumw2();
+
         for(auto &sample : region.second){
             cout << "   Filling data histograms: " << sample << endl;
             string theSkim = controlRegionSkim[region.first];
             curTree = dataevents[theSkim][sample];
-
-            razorHistosData[region.first] = new TH2F(Form("razordata%s%s", region.first.c_str(), sample.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorHistosData[region.first]->Sumw2();
 
             //make TTreeFormulas for selection cuts
             TTreeFormula* cutsFormula;
@@ -459,7 +459,7 @@ void CompareDataFitCRs(){
                 }
                 if(region.first == "ZLLDilepton"){
                     float mLL = (curTree->lep1 + curTree->lep2).M();
-                    if(mLL < 60 || mLL > 120) continue;
+                    if(mLL < 76 || mLL > 106) continue;
                 }
 
                 float eventWeight = 1.0;
