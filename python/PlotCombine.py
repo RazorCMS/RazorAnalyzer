@@ -48,7 +48,7 @@ if __name__ == '__main__':
     btagMin = z[0]
     btagMax = z[-1]        
     if btagMax-1>btagMin:          
-        btag = '%i-%ibtag'%(btagMin,btagMax)
+        btag = '%i-%ibtag'%(btagMin,btagMax-1)
     else:
         btag = '%ibtag'%(btagMin)    
 
