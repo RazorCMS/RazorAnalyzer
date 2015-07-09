@@ -38,6 +38,19 @@ void SetHistogramColor(TH1 *hist, string name){
     if(name == "TTG") hist->SetFillColor(7);
 }
 
+pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
+    float maxMR = sfHist->GetXaxis()->GetXmax() - 1;
+    float maxRsq = sfHist->GetYaxis()->GetXmax() - 0.01;
+    double sf = sfHist->GetBinContent(sfHist->FindFixBin(min(MR, maxMR), min(Rsq, maxRsq)));
+    double sfErr = sfHist->GetBinError(sfHist->FindFixBin(min(MR, maxMR), min(Rsq, maxRsq)));
+    if(sf < 1e5){
+        return std::make_pair(sf, sfErr);
+    }
+    else{
+        std::cout << "Warning: Data/MC scale factor is Inf!  Returning 0" << endl;
+        return std::make_pair(0.0, 0.0);
+    }
+}
 
 void CompareDataFitCRs(){
     gROOT->SetBatch();
@@ -145,31 +158,24 @@ void CompareDataFitCRs(){
     float lumi_HLTPhoton135 = 8.893e2 + 1.476e2 + 5.429e3 + 7.318e3;
     float lumi_HLTPhoton150 = 8.893e2 + 4.429e3 + 7.152e3 + 7.318e3;
 
+    map<string, TH2F*> SFHists;
     //load TTbar scale factor histograms
     TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
-    TH2F *SFHistTTJets = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
-    float SFmaxMRTTJets = SFHistTTJets->GetXaxis()->GetXmax() - 1;
-    float SFmaxRsqTTJets = SFHistTTJets->GetYaxis()->GetXmax() - 0.01;
+    SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
 
     //load WJets scale factor histogram
     TFile *SFFileWJets = new TFile("data/ScaleFactors/Run1/WJetsSingleLeptonScaleFactors.root");
-    TH2F *SFHistWJets = (TH2F*)SFFileWJets->Get("WJetsSingleLeptonScaleFactor");
-    float SFmaxMRWJets = SFHistWJets->GetXaxis()->GetXmax() - 1;
-    float SFmaxRsqWJets = SFHistWJets->GetYaxis()->GetXmax() - 0.01;
+    SFHists["WJets"] = (TH2F*)SFFileWJets->Get("WJetsSingleLeptonScaleFactor");
 
     //load DYJets scale factor histogram
     TFile *SFFileDYJets = new TFile("data/ScaleFactors/Run1/ZToLLScaleFactors.root");
-    TH2F *SFHistDYJets = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
-    float SFmaxMRDYJets = SFHistDYJets->GetXaxis()->GetXmax() - 1;
-    float SFmaxRsqDYJets = SFHistDYJets->GetYaxis()->GetXmax() - 0.01;
+    SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
 
     //load ZNuNu scale factor histograms
     TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("WJetsScaleFactors");
-    TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
-    float SFmaxMRZJetsNuNu = SFHistZJetsNuNu->GetXaxis()->GetXmax() - 1;
-    float SFmaxRsqZJetsNuNu = SFHistZJetsNuNu->GetYaxis()->GetXmax() - 0.01;
+    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
 
     //load ZNuNu-->DYJets weighting factors
     TFile *ZNuNuToDYWeightFile = new TFile("data/ScaleFactors/Run1/ZNuNuToDYScaleFactorsRun1.root");
@@ -223,61 +229,10 @@ void CompareDataFitCRs(){
 
                 //Data/MC scale factors
                 if(region.first != "ZNuNuFromDY" && region.first != "ZNuNuFromW" && region.first != "ZNuNuFromGamma"){
-                    //TTJets SF
-                    if(sample == "TTJets"){
-                        double SFTTJets = SFHistTTJets->GetBinContent(SFHistTTJets->FindFixBin(min(curTree->MR, SFmaxMRTTJets), min(curTree->Rsq, SFmaxRsqTTJets)));
-                        double SFErrorTTJets = SFHistTTJets->GetBinError(SFHistTTJets->FindFixBin(min(curTree->MR, SFmaxMRTTJets), min(curTree->Rsq, SFmaxRsqTTJets)));
-                        if(SFTTJets < 1e5){
-                            eventWeight *= SFTTJets;
-                            sysErrorSquared += curTree->weight*curTree->weight*SFErrorTTJets*SFErrorTTJets;
-                        }
-                        else{
-                            //cout << "Warning: TTJets scale factor is Inf!" << endl;
-                            eventWeight = 0;
-                            sysErrorSquared = 0;
-                        }
-                    }
-                    //WJets SF
-                    else if(sample == "WJets"){
-                        double SFWJets = SFHistWJets->GetBinContent(SFHistWJets->FindFixBin(min(curTree->MR, SFmaxMRWJets), min(curTree->Rsq, SFmaxRsqWJets)));
-                        double SFErrorWJets = SFHistWJets->GetBinError(SFHistWJets->FindFixBin(min(curTree->MR, SFmaxMRWJets), min(curTree->Rsq, SFmaxRsqWJets)));
-                        if(SFWJets < 1e5){
-                            eventWeight *= SFWJets;
-                            sysErrorSquared += curTree->weight*curTree->weight*SFErrorWJets*SFErrorWJets;
-                        }
-                        else{
-                            //cout << "Warning: WJets scale factor is Inf!" << endl;
-                            eventWeight = 0;
-                            sysErrorSquared = 0;
-                        }
-                    }
-                    //DYJets SF
-                    else if(sample == "DYJets"){
-                        double SFDYJets = SFHistDYJets->GetBinContent(SFHistDYJets->FindFixBin(min(curTree->MR, SFmaxMRDYJets), min(curTree->Rsq, SFmaxRsqDYJets)));
-                        double SFErrorDYJets = SFHistDYJets->GetBinError(SFHistDYJets->FindFixBin(min(curTree->MR, SFmaxMRDYJets), min(curTree->Rsq, SFmaxRsqDYJets)));
-                        if(SFDYJets < 1e5){
-                            eventWeight *= SFDYJets;
-                            sysErrorSquared += curTree->weight*curTree->weight*SFErrorDYJets*SFErrorDYJets;
-                        }
-                        else{
-                            //cout << "Warning: DYJets scale factor is Inf!" << endl;
-                            eventWeight = 0;
-                            sysErrorSquared = 0;
-                        }
-                    }
-                    //ZNuNu SF
-                    else if(sample == "ZJetsNuNu"){
-                        double SFZJetsNuNu = SFHistZJetsNuNu->GetBinContent(SFHistZJetsNuNu->FindFixBin(min(curTree->MR, SFmaxMRZJetsNuNu), min(curTree->Rsq, SFmaxRsqZJetsNuNu)));
-                        double SFErrorZJetsNuNu = SFHistZJetsNuNu->GetBinError(SFHistZJetsNuNu->FindFixBin(min(curTree->MR, SFmaxMRZJetsNuNu), min(curTree->Rsq, SFmaxRsqZJetsNuNu)));
-                        if(SFZJetsNuNu < 1e5){
-                            eventWeight *= SFZJetsNuNu;
-                            sysErrorSquared += curTree->weight*curTree->weight*SFErrorZJetsNuNu*SFErrorZJetsNuNu;
-                        }
-                        else{
-                            //cout << "Warning: ZJetsNuNu scale factor is Inf!" << endl;
-                            eventWeight = 0;
-                            sysErrorSquared = 0;
-                        }
+                    if(sample == "TTJets" || sample == "WJets" || sample == "DYJets" || sample == "ZJetsNuNu"){
+                        pair<double, double> sfAndErr = getDataMCSFAndError(SFHists[sample], curTree->MR, curTree->Rsq);
+                        eventWeight *= sfAndErr.first; //multiply event weight by scale factor
+                        sysErrorSquared += curTree->weight*curTree->weight*sfAndErr.second*sfAndErr.second; //add (w*sigma)^2 to the systematic uncertainty
                     }
                 }
 
