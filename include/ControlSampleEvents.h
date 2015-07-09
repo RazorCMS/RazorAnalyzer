@@ -8,6 +8,7 @@
 #include "assert.h"
 #include <Rtypes.h>
 #include "TLorentzVector.h"
+#include "TH1F.h"
 
 class ControlSampleEvents {
   
@@ -116,8 +117,8 @@ class ControlSampleEvents {
   Float_t                 minDPhi;
   Float_t                 minDPhiN;
   Float_t                 dPhiRazor;
-  Int_t                  NJets40;
-  Int_t                  NJets80;
+  UInt_t                  NJets40;
+  UInt_t                  NJets80;
   UInt_t                  NBJetsLoose;
   UInt_t                  NBJetsMedium;
   UInt_t                  NBJetsTight;
@@ -411,7 +412,6 @@ class ControlSampleEvents {
        treeType == kTreeType_Dilepton_Full || treeType == kTreeType_DileptonAdd2MET_Full ||
        treeType == kTreeType_Photon_Full)
       {
-	tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[100]/O");
       }
     
     // book the branches that go into only One Lepton trees
@@ -427,6 +427,7 @@ class ControlSampleEvents {
     }
     
     if (treeType == kTreeType_Default) {
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[100]/O");
       tree_->Branch("NPU_Minus1",&NPU_Minus1,"NPU_Minus1/i");
       tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
       tree_->Branch("event",&event,"event/i");
@@ -597,7 +598,6 @@ class ControlSampleEvents {
        treeType == kTreeType_Dilepton_Full || treeType == kTreeType_DileptonAdd2MET_Full ||
        treeType == kTreeType_Photon_Full)
       {
-	tree_->SetBranchAddress("HLTDecision",&HLTDecision);
       }
     
 
@@ -613,6 +613,7 @@ class ControlSampleEvents {
     }
 
     if (treeType == kTreeType_Default) {
+      tree_->SetBranchAddress("HLTDecision",&HLTDecision);
       tree_->SetBranchAddress("NPV",&NPV);
       tree_->SetBranchAddress("NPU_Minus1",&NPU_Minus1);
       tree_->SetBranchAddress("NPU_Plus1",&NPU_Plus1);
@@ -741,6 +742,204 @@ class ControlSampleEvents {
     }
     
     gErrorIgnoreLevel = currentState;
+  }
+
+  //check if the current event satisfies the selection criteria for the given control sample
+  //Supports the following control regions:
+  //TTBarSingleLepton
+  //TTBarDilepton
+  //WSingleLepton
+  //ZLLDilepton
+  bool inControlSample(string sampleName, string option = "", bool isRunOne = true){
+      using namespace std;
+
+      if(sampleName == "TTBarSingleLepton"){
+          //HLT
+          if(isRunOne){
+              bool passedTrigger = HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9];
+              if(!passedTrigger) return false;
+          }
+
+          //lepton = tight ele or mu with pt > 25
+          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
+          if(!lep1PassTight) return false;
+          if(lep1.Pt() < 25) return false;
+
+          //MET and MT cuts
+          if(MET < 30) return false;
+          if(lep1MT < 30 || lep1MT > 100) return false;
+
+          //b-tag requirement
+          if(option == "TwoLooseBTag"){
+              if(NBJetsLoose < 2) return false;
+          }
+          else{
+              if(NBJetsMedium < 1) return false;
+          }
+
+          //razor baseline cut
+          if(MR < 300 || Rsq < 0.15) return false;
+
+          //passes selection
+          return true;
+      }
+      else if(sampleName == "TTBarDilepton"){
+          //HLT
+          if(isRunOne){
+              bool passedTrigger = HLTDecision[3] || HLTDecision[4] || HLTDecision[12] || HLTDecision[6] || HLTDecision[7];
+              if(!passedTrigger) return false;
+          }
+
+          //leptons = two loose ele or mu with pt > 25, mass outside Z window
+          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
+          if(abs(lep2Type) != 11 && abs(lep2Type) != 13) return false;
+          if(!lep1PassLoose) return false;
+          if(!lep2PassLoose) return false;
+          if(lep1.Pt() < 25) return false;
+          if(lep2.Pt() < 25) return false;
+          float mLL = (lep1+lep2).M();
+          if(mLL > 76 && mLL < 106) return false;
+
+          //MET cut
+          if(MET < 40) return false;
+          
+          //b-tag requirement
+          if(option == "TwoLooseBTag"){
+              if(NBJetsLoose < 2) return false;
+          }
+          else{
+              if(NBJetsMedium < 1) return false;
+          }
+
+          //razor baseline cut
+          if(MR < 300 || Rsq < 0.15) return false;
+
+          //passes selection
+          return true;
+      }
+      else if(sampleName == "WSingleLepton"){
+          //HLT
+          if(isRunOne){
+              bool passedTrigger = HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9]; 
+              if(!passedTrigger) return false;
+          }
+
+          //lepton = tight ele or mu with pt > 25
+          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
+          if(!lep1PassTight) return false;
+          if(lep1.Pt() < 25) return false;
+
+          //Require 2 80 GeV jets
+          if(NJets80 < 2) return false;
+
+          //MET and MT cuts
+          if(MET < 30) return false;
+          if(lep1MT < 30 || lep1MT > 100) return false;
+
+          //b-tag requirement
+          if(NBJetsMedium > 0) return false;
+
+          //razor baseline cut
+          if(MR < 300 || Rsq < 0.15) return false;
+
+          //passes selection
+          return true;
+      }
+      else if(sampleName == "ZLLDilepton"){
+          //HLT
+          if(isRunOne){
+              bool passedTrigger = HLTDecision[3] || HLTDecision[4] || HLTDecision[12];
+              if(!passedTrigger) return false;
+          }
+
+          //leptons = two loose ele or mu with pt > 25, mass inside Z window
+          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
+          if(abs(lep2Type) != 11 && abs(lep2Type) != 13) return false;
+          if(!lep1PassLoose) return false;
+          if(!lep2PassLoose) return false;
+          if(lep1.Pt() < 25) return false;
+          if(lep2.Pt() < 25) return false;
+          float mLL = (lep1+lep2).M();
+          if(mLL < 60 || mLL > 120) return false;
+
+          //b-tag requirement
+          if(NBJetsMedium > 0) return false;
+
+          //razor baseline cut
+          if(MR < 300 || Rsq < 0.15) return false;
+
+          //passes selection
+          return true;
+      }
+      else{
+          std::cout << "Warning: control sample " << sampleName << " is not recognized." << std::endl;
+      }
+
+      return false;
+  }
+
+  //compute b-tagging scale factor
+  double getRunOneBTagMediumScaleFactor(){
+      double btagScaleFactor = 1.0;
+      double bjet1EventScaleFactor = 1.0;
+      double bjet2EventScaleFactor = 1.0;
+      if (bjet1.Pt() > 20) {
+          double bjet1ScaleFactor = 0.938887 + 0.00017124 * bjet1.Pt() + (-2.76366e-07) * bjet1.Pt() * bjet1.Pt() ;
+          double MCEff = 1.0;
+          if (bjet1.Pt() < 50) MCEff = 0.65;
+          else if (bjet1.Pt() < 80) MCEff = 0.70;
+          else if (bjet1.Pt() < 120) MCEff = 0.73;
+          else if (bjet1.Pt() < 210) MCEff = 0.73;
+          else MCEff = 0.66;				 
+          if (bjet1PassMedium) bjet1EventScaleFactor = bjet1ScaleFactor;
+          else bjet1EventScaleFactor = ( 1/MCEff - bjet1ScaleFactor) / ( 1/MCEff - 1);
+      }
+      if (bjet2.Pt() > 20) {
+          double bjet2ScaleFactor = 0.938887 + 0.00017124 * bjet2.Pt() + (-2.76366e-07) * bjet2.Pt() * bjet2.Pt() ;
+          double MCEff = 1.0;
+          if (bjet2.Pt() < 50) MCEff = 0.65;
+          else if (bjet2.Pt() < 80) MCEff = 0.70;
+          else if (bjet2.Pt() < 120) MCEff = 0.73;
+          else if (bjet2.Pt() < 210) MCEff = 0.73;
+          else MCEff = 0.66;		 
+          if (bjet2PassMedium) bjet2EventScaleFactor = bjet2ScaleFactor;
+          else bjet2EventScaleFactor = ( 1/MCEff - bjet2ScaleFactor) / ( 1/MCEff - 1);
+      }
+      btagScaleFactor = bjet1EventScaleFactor * bjet2EventScaleFactor;
+      return btagScaleFactor;
+  }
+
+  //apply all data/MC corrections
+  float getMCCorrection(TH1F *pileupWeightHist, string sampleName, bool isRunOne = true){
+      float singleMuTriggerSF = 0.97;
+      float doubleMuTriggerSF = 0.97;
+      float doubleMuNormalizationSF = 0.97;
+
+      float corrFactor = 1.0;
+
+      //PU reweighting
+      corrFactor *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU_0));
+
+      if(isRunOne){
+          //btagging scale factor
+          if(sampleName == "TTBarSingleLepton" || sampleName == "TTBarDilepton" || sampleName == "WSingleLepton" || sampleName == "ZLLDilepton"){
+              corrFactor *= getRunOneBTagMediumScaleFactor();
+          }
+
+          //trigger scale factors: single muon
+          if((HLTDecision[0] || HLTDecision[1]) && (sampleName == "TTBarSingleLepton" || sampleName == "WSingleLepton" || sampleName == "ZNuNuFromW")){
+              corrFactor *= singleMuTriggerSF;
+          }
+          //trigger scale factors: double muon
+          else if((HLTDecision[3] || HLTDecision[4]) && (sampleName == "TTBarDilepton" || sampleName == "ZLLDilepton" || sampleName == "ZNuNuFromDY" || sampleName == "ZLLDilepton")){
+              corrFactor *= doubleMuTriggerSF;
+              corrFactor *= doubleMuNormalizationSF;
+          }
+
+          //TODO: muon and electron ID scale factors
+      }
+
+      return corrFactor;
   }
 
  private:
