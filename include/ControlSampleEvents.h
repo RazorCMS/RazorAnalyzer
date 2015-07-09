@@ -798,7 +798,8 @@ class ControlSampleEvents {
           if(lep1.Pt() < 25) return false;
           if(lep2.Pt() < 25) return false;
           float mLL = (lep1+lep2).M();
-          if(mLL > 76 && mLL < 106) return false;
+          if(mLL < 20) return false;
+          if(abs(lep1Type) == abs(lep2Type) && mLL > 76 && mLL < 106) return false;
 
           //MET cut
           if(MET < 40) return false;
@@ -824,13 +825,10 @@ class ControlSampleEvents {
               if(!passedTrigger) return false;
           }
 
-          //lepton = tight ele or mu with pt > 25
+          //lepton = tight ele or mu with pt > 30
           if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
           if(!lep1PassTight) return false;
-          if(lep1.Pt() < 25) return false;
-
-          //Require 2 80 GeV jets
-          if(NJets80 < 2) return false;
+          if(lep1.Pt() < 30) return false;
 
           //MET and MT cuts
           if(MET < 30) return false;

@@ -162,6 +162,8 @@ void CompareDataFitCRs(){
     //load TTbar scale factor histograms
     TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
     SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
+    //TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarDileptonScaleFactors.root");
+    //SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarDileptonScaleFactor");
 
     //load WJets scale factor histogram
     TFile *SFFileWJets = new TFile("data/ScaleFactors/Run1/WJetsSingleLeptonScaleFactors.root");
