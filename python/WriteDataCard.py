@@ -52,7 +52,6 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
         for iy in range(1,len(y)):
             for iz in range(1,len(z)):
                 emptyHist3D.SetBinContent(ix,iy,iz,1.)
-                #if w.var('MR').min('LowMR') 
 
     w.Print('v')
     commands = cfg.getVariables(box, "combine_pdfs")

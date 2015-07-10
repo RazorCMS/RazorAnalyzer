@@ -46,21 +46,19 @@ if __name__ == '__main__':
     
     z = array('d', cfg.getBinning(box.split('_')[0])[2]) # nBtag binning
     btagMin = z[0]
-    btagMax = z[-2]        
-    if btagMax>btagMin:          
-        btag = '%i-%ibtag'%(btagMin,btagMax)
+    btagMax = z[-1]        
+    if btagMax-1>btagMin:          
+        btag = '%i-%ibtag'%(btagMin,btagMax-1)
     else:
         btag = '%ibtag'%(btagMin)    
 
     btagLabel = ""
-    if z[-1] == z[0]+1 and z[-1]==4:
+    if z[-1]==4:
         btagLabel = "#geq %i b-tag" % z[0]
     elif z[-1] == z[0]+1:
         btagLabel = "%i b-tag" % z[0]
-    elif z[-1]==4:
-        btagLabel = "#geq %i b-tag" % z[0]
     else:
-        btagLabel = "%i-%i b-tag" % (z[0],z[-2])
+        btagLabel = "%i-%i b-tag" % (z[0],z[-1]-1)
         
     thyXsec = -1
     thyXsecErr = -1

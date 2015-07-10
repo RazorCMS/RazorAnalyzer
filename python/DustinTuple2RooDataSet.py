@@ -33,6 +33,8 @@ boxes = {'MuEle':[0],
 
 dPhiCut = 2.7
 
+MTCut = -1
+
 def initializeWorkspace(w,cfg):
     variables = cfg.getVariablesRange(box,"variables",w)
     parameters = cfg.getVariables(box, "parameters")
