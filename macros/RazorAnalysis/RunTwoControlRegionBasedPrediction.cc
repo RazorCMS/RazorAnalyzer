@@ -896,9 +896,9 @@ void createCSVOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razo
 void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags, bool leptonBox, bool splitTableInTwo){
     ofstream out;
     out.open("razorRunTwoYields"+to_string(nBTags)+"btag"+boxName+".tex");
-    out << "\\begin{sidewaystable}[!ht]" << std::endl << "\\begin{center}" << std::endl;
-    out << "\\tiny" << std::endl;
-    out << "\\begin{tabular}{|c|c|c|c";
+    out << "\\newgeometry{margin=0.2cm}" << std::endl;
+    out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\tiny" << std::endl;
+    out << "\\begin{longtable}{|c|c|c|c";
     for(auto &sample : razorHistos) out << "|c";
     if(!splitTableInTwo) for(auto &sample : razorSignals) out << "|c";
     out << "|} " << std::endl << "\\hline" << std::endl;
@@ -906,12 +906,14 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
     for(auto &sample : razorHistos) out << " & " << sample.first << "";
     out << " & Total Background";
     if(!splitTableInTwo) for(auto &sample : razorSignals) out << " & " << sample.first << "";
-    out << " \\\\" << std::endl;
+    out << " \\\\" << std::endl << "\\hline" << std::endl;
     out << std::setprecision(3);
+    int binNum = 1;
     for(int i = 1; i < NMRBINS+1; i++){
         for(int j = 1; j < NRSQBINS+1; j++){
             if(!(leptonBox) && (MRBINLOWEDGES[i-1] < 400 || RSQBINLOWEDGES[j-1] < 0.25)) continue;
-            out << j + (i-1)*NRSQBINS << " & ";
+            out << binNum << " & ";
+            binNum++;
             out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << " & ";
             out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j];
             double totalBG = 0.0;
@@ -929,27 +931,27 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
             out << "\\hline" << std::endl;
         }
     }
-    out << "\\end{tabular}" << std::endl;
-    out << "\\caption{Summary of MC yields in " << boxName << " box, before applying data/MC scale factors.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+    out << "\\caption{Summary of MC yields in the " << boxName << " box, before applying data/MC scale factors.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
     out << "\\label{tab:" << boxName << "yields}" << std::endl;
-    out << "\\end{center}" << std::endl;
-    out << "\\end{sidewaystable}" << std::endl;
+    out << "\\end{longtable}" << std::endl << "\\end{center}" << std::endl << "\\end{landscape}" << std::endl << "\\restoregeometry" << std::endl;
 
     if(splitTableInTwo){ //list signal yields in a separate table
-        out << std::endl << "\\begin{sidewaystable}[!ht]" << std::endl << "\\begin{center}" << std::endl;
-        out << "\\tiny" << std::endl;
-        out << "\\begin{tabular}{|c|c|c|c";
+        out << std::endl << "\\newgeometry{margin=0.2cm}" << std::endl;
+        out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\tiny" << std::endl;
+        out << "\\begin{longtable}{|c|c|c|c";
         for(auto &sample : razorSignals) out << "|c";
         out << "|} " << std::endl << "\\hline" << std::endl;
         out << "Bin Number & MR Range & Rsq Range";
         out << " & Total Background";
         for(auto &sample : razorSignals) out << " & " << sample.first << "";
-        out << " \\\\" << std::endl;
+        out << " \\\\" << std::endl << "\\hline" << std::endl;
         out << std::setprecision(3);
+        int binNum = 1;
         for(int i = 1; i < NMRBINS+1; i++){
             for(int j = 1; j < NRSQBINS+1; j++){
                 if(!(leptonBox) && (MRBINLOWEDGES[i-1] < 400 || RSQBINLOWEDGES[j-1] < 0.25)) continue;
-                out << j + (i-1)*NRSQBINS << " & ";
+                out << binNum << " & ";
+                binNum++;
                 out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << " & ";
                 out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j];
                 double totalBG = 0.0;
@@ -964,11 +966,9 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
                 out << "\\hline" << std::endl;
             }
         }
-        out << "\\end{tabular}" << std::endl;
-        out << "\\caption{Summary of signal MC yields in " << boxName << " box.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+        out << "\\caption{Summary of signal MC yields in the " << boxName << " box.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
         out << "\\label{tab:" << boxName << "signalyields}" << std::endl;
-        out << "\\end{center}" << std::endl;
-        out << "\\end{sidewaystable}" << std::endl;
+        out << "\\end{longtable}" << std::endl << "\\end{center}" << std::endl << "\\end{landscape}" << std::endl << "\\restoregeometry" << std::endl;
     }
     out.close();
 
