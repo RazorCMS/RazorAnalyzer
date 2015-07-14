@@ -120,4 +120,20 @@ bool isSingleElectronBox(RazorAnalyzer::RazorBox box){
     return false;
 }
 
+//check if the given box is a lepton box (excluding LooseLepton boxes)
+bool isLeptonicBox(RazorAnalyzer::RazorBox box){
+    if(box == RazorAnalyzer::MuJet
+            || box == RazorAnalyzer::MuFourJet
+            || box == RazorAnalyzer::MuSixJet
+            || box == RazorAnalyzer::MuMultiJet
+            || box == RazorAnalyzer::EleJet
+            || box == RazorAnalyzer::EleFourJet
+            || box == RazorAnalyzer::EleSixJet
+            || box == RazorAnalyzer::EleMultiJet
+            || box == RazorAnalyzer::MuMu
+            || box == RazorAnalyzer::MuEle
+            || box == RazorAnalyzer::EleEle) return true;
+    return false;
+}
+
 #endif

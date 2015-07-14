@@ -49,7 +49,7 @@ float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 //double RSQBINLOWEDGES[] = {0.15,0.175,0.20,0.225, 0.25,0.30,0.41,0.52,1.5};  
 
 void createCSVOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags);
-void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags);
+void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags, bool leptonBox=false, bool splitTableInTwo=true);
 
 void RunTwoControlRegionBasedPrediction(){
     gROOT->SetBatch();
@@ -488,7 +488,7 @@ void RunTwoControlRegionBasedPrediction(){
     if(addSMS){
         for(auto &box : razorHistosMC){
             createCSVOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags);
-            createLatexTableOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags);
+            createLatexTableOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags, isLeptonicBox(box.first), true);
         }
     }
 
@@ -893,23 +893,24 @@ void createCSVOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razo
     out.close();
 }
 
-void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags){
+void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags, bool leptonBox, bool splitTableInTwo){
     ofstream out;
     out.open("razorRunTwoYields"+to_string(nBTags)+"btag"+boxName+".tex");
     out << "\\begin{sidewaystable}[!ht]" << std::endl << "\\begin{center}" << std::endl;
-    out << "\\footnotesize" << std::endl;
+    out << "\\tiny" << std::endl;
     out << "\\begin{tabular}{|c|c|c|c";
     for(auto &sample : razorHistos) out << "|c";
-    for(auto &sample : razorSignals) out << "|c";
+    if(!splitTableInTwo) for(auto &sample : razorSignals) out << "|c";
     out << "|} " << std::endl << "\\hline" << std::endl;
     out << "Bin Number & MR Range & Rsq Range";
     for(auto &sample : razorHistos) out << " & " << sample.first << "";
     out << " & Total Background";
-    for(auto &sample : razorSignals) out << " & " << sample.first << "";
+    if(!splitTableInTwo) for(auto &sample : razorSignals) out << " & " << sample.first << "";
     out << " \\\\" << std::endl;
     out << std::setprecision(3);
     for(int i = 1; i < NMRBINS+1; i++){
         for(int j = 1; j < NRSQBINS+1; j++){
+            if(!(leptonBox) && (MRBINLOWEDGES[i-1] < 400 || RSQBINLOWEDGES[j-1] < 0.25)) continue;
             out << j + (i-1)*NRSQBINS << " & ";
             out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << " & ";
             out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j];
@@ -919,8 +920,10 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
                 totalBG += sample.second.GetBinContent(i, j);
             }
             out << " & " << totalBG;
-            for(auto &sample : razorSignals){
-                out << " & " << sample.second.GetBinContent(i, j) << " $\\pm$ " << sample.second.GetBinError(i, j);
+            if(!splitTableInTwo){
+                for(auto &sample : razorSignals){
+                    out << " & " << sample.second.GetBinContent(i, j) << " $\\pm$ " << sample.second.GetBinError(i, j);
+                }
             }
             out << " \\\\" << std::endl;
             out << "\\hline" << std::endl;
@@ -931,6 +934,42 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
     out << "\\label{tab:" << boxName << "yields}" << std::endl;
     out << "\\end{center}" << std::endl;
     out << "\\end{sidewaystable}" << std::endl;
+
+    if(splitTableInTwo){ //list signal yields in a separate table
+        out << std::endl << "\\begin{sidewaystable}[!ht]" << std::endl << "\\begin{center}" << std::endl;
+        out << "\\tiny" << std::endl;
+        out << "\\begin{tabular}{|c|c|c|c";
+        for(auto &sample : razorSignals) out << "|c";
+        out << "|} " << std::endl << "\\hline" << std::endl;
+        out << "Bin Number & MR Range & Rsq Range";
+        out << " & Total Background";
+        for(auto &sample : razorSignals) out << " & " << sample.first << "";
+        out << " \\\\" << std::endl;
+        out << std::setprecision(3);
+        for(int i = 1; i < NMRBINS+1; i++){
+            for(int j = 1; j < NRSQBINS+1; j++){
+                if(!(leptonBox) && (MRBINLOWEDGES[i-1] < 400 || RSQBINLOWEDGES[j-1] < 0.25)) continue;
+                out << j + (i-1)*NRSQBINS << " & ";
+                out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << " & ";
+                out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j];
+                double totalBG = 0.0;
+                for(auto &sample : razorHistos){
+                    totalBG += sample.second.GetBinContent(i, j);
+                }
+                out << " & " << totalBG;
+                for(auto &sample : razorSignals){
+                    out << " & " << sample.second.GetBinContent(i, j) << " $\\pm$ " << sample.second.GetBinError(i, j);
+                }
+                out << " \\\\" << std::endl;
+                out << "\\hline" << std::endl;
+            }
+        }
+        out << "\\end{tabular}" << std::endl;
+        out << "\\caption{Summary of signal MC yields in " << boxName << " box.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+        out << "\\label{tab:" << boxName << "signalyields}" << std::endl;
+        out << "\\end{center}" << std::endl;
+        out << "\\end{sidewaystable}" << std::endl;
+    }
     out.close();
 
 }
