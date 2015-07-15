@@ -88,8 +88,8 @@ void RazorAnalyzer::HbbRazor(string outFileName, bool combineTrees, bool isData,
 
   //tree variables
   int nBTaggedJets;
-  int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
-  int nVetoMuons, nVetoElectrons, nLooseTaus;
+  int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons;
+  int nLooseTaus;
   float dPhiRazor;
   float theMR;
   float theRsq;  
@@ -187,14 +187,11 @@ void RazorAnalyzer::HbbRazor(string outFileName, bool combineTrees, bool isData,
 
     //reset tree variables
     nBTaggedJets = 0;
-    nVetoMuons = 0;
     nLooseMuons = 0;
     nTightMuons = 0;
-    nVetoElectrons = 0;
     nLooseElectrons = 0;
     nTightElectrons = 0;
     nLooseTaus = 0;
-    nTightTaus = 0;
     theMR = -1;
     theRsq = -1;
     weight = 1.0;
@@ -458,7 +455,7 @@ void RazorAnalyzer::HbbRazor(string outFileName, bool combineTrees, bool isData,
 
     sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
 
-    for(int i=0; i<GoodJets.size(); i++)
+    for(int i=0; i<int(GoodJets.size()); i++)
       {
 	jet_E[n_Jets] = GoodJets[i].E();
 	jet_Pt[n_Jets] = GoodJets[i].Pt();
