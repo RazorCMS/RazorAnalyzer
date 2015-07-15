@@ -67,6 +67,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
         virtual void HbbRazor(string outFileName = "HbbRazor.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
         virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false, bool isRunOne = false);
+	virtual void RazorQCDStudy(string outFileName = "RazorQCDStudy.root", int option = -1, bool isData = false, bool isRunOne = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
