@@ -927,7 +927,13 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
     out << "\\begin{longtable}{|c|c|c|c";
     for(auto &sample : razorHistos) out << "|c";
     if(!splitTableInTwo) for(auto &sample : razorSignals) out << "|c";
-    out << "|} " << std::endl << "\\hline" << std::endl;
+    out << "|} " << std::endl;
+
+    out << "\\caption{Summary of MC yields in the " << boxName << " box, before applying data/MC scale factors.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+    out << "\\label{tab:" << boxName << "yields}" << std::endl;
+    out << "\\endhead" <<std::endl;
+    
+    out<< "\\hline" << std::endl;
     out << "Bin Number & MR Range & Rsq Range";
     for(auto &sample : razorHistos) out << " & " << sample.first << "";
     out << " & Total Background";
@@ -957,8 +963,6 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
             out << "\\hline" << std::endl;
         }
     }
-    out << "\\caption{Summary of MC yields in the " << boxName << " box, before applying data/MC scale factors.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
-    out << "\\label{tab:" << boxName << "yields}" << std::endl;
     out << "\\end{longtable}" << std::endl << "\\end{center}" << std::endl << "\\end{landscape}" << std::endl << "\\restoregeometry" << std::endl;
 
     if(splitTableInTwo){ //list signal yields in a separate table
@@ -966,7 +970,13 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
         out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\tiny" << std::endl;
         out << "\\begin{longtable}{|c|c|c|c";
         for(auto &sample : razorSignals) out << "|c";
-        out << "|} " << std::endl << "\\hline" << std::endl;
+        out << "|} " << std::endl;
+
+        out << "\\caption{Summary of signal MC yields in the " << boxName << " box.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+        out << "\\label{tab:" << boxName << "signalyields}" << std::endl;
+	out << "\\endhead" <<std::endl;
+	
+	out<< "\\hline" << std::endl;
         out << "Bin Number & MR Range & Rsq Range";
         out << " & Total Background";
         for(auto &sample : razorSignals) out << " & " << sample.first << "";
@@ -992,8 +1002,6 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
                 out << "\\hline" << std::endl;
             }
         }
-        out << "\\caption{Summary of signal MC yields in the " << boxName << " box.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
-        out << "\\label{tab:" << boxName << "signalyields}" << std::endl;
         out << "\\end{longtable}" << std::endl << "\\end{center}" << std::endl << "\\end{landscape}" << std::endl << "\\restoregeometry" << std::endl;
     }
     out.close();
