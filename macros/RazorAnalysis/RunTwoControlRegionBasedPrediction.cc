@@ -95,7 +95,8 @@ void RunTwoControlRegionBasedPrediction(){
 
     bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
     //bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
-    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
+    int minNBTags = 1; 
+    //TODO: bin in nBTags instead of cutting
 
     //declare which boxes to check
     map<RazorAnalyzer::RazorBox, string> boxes;
@@ -115,7 +116,9 @@ void RunTwoControlRegionBasedPrediction(){
     boxes[RazorAnalyzer::FourJet] = "FourJet";
     boxes[RazorAnalyzer::DiJet] = "DiJet";
     boxes[RazorAnalyzer::MultiJet] = "MultiJet"; //(a hack to combine boxes)
-    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "MultiJetPlusLooseLeptonMultiJet";
+    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "LooseLeptonMultiJet";
+    boxes[RazorAnalyzer::MuMultiJet] = "MuMultiJet";
+    boxes[RazorAnalyzer::EleMultiJet] = "EleMultiJet";
     if(minNBTags == 0) boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; 
     else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
 
@@ -127,7 +130,7 @@ void RunTwoControlRegionBasedPrediction(){
     float RsqCutFor1DPlots = 0.25;
 
     //get input files -- output of RazorInclusive analyzer
-    int lumiInData = 19700; //in /pb
+    int lumiInData = 3000; //in /pb
     int lumiInMC = 1; //luminosity used to normalize MC ntuples
     //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
     string mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/MCReadinessReview2/RazorInclusive_";
@@ -418,10 +421,20 @@ void RunTwoControlRegionBasedPrediction(){
                 razorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
-            //LooseLeptonMultiJet+MultiJet box
-            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+            //LooseLeptonMultiJet box
+            if(razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
                 razorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
+            //MuMultiJet box
+            if(razorbox == RazorAnalyzer::MuFourJet || razorbox == RazorAnalyzer::MuSixJet){
+                razorHistosMC[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
+            //EleMultiJet box
+            if(razorbox == RazorAnalyzer::EleFourJet || razorbox == RazorAnalyzer::EleSixJet){
+                razorHistosMC[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
         }
     }
@@ -480,6 +493,19 @@ void RunTwoControlRegionBasedPrediction(){
                 if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
                     razorHistosSignal[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 }
+                //LooseLeptonMultiJet box
+                if(razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+                    razorHistosSignal[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+                //MuMultiJet box
+                if(razorbox == RazorAnalyzer::MuFourJet || razorbox == RazorAnalyzer::MuSixJet){
+                    razorHistosSignal[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+                //EleMultiJet box
+                if(razorbox == RazorAnalyzer::EleFourJet || razorbox == RazorAnalyzer::EleSixJet){
+                    razorHistosSignal[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+
             }
         }
     }
