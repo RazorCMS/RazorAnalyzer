@@ -923,7 +923,7 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
     ofstream out;
     out.open("razorRunTwoYields"+to_string(nBTags)+"btag"+boxName+".tex");
     out << "\\newgeometry{margin=0.2cm}" << std::endl;
-    out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\tiny" << std::endl;
+    out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\footnotesize" << std::endl;
     out << "\\begin{longtable}{|c|c|c|c";
     for(auto &sample : razorHistos) out << "|c";
     if(!splitTableInTwo) for(auto &sample : razorSignals) out << "|c";
@@ -967,7 +967,7 @@ void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F
 
     if(splitTableInTwo){ //list signal yields in a separate table
         out << std::endl << "\\newgeometry{margin=0.2cm}" << std::endl;
-        out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\tiny" << std::endl;
+        out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\footnotesize" << std::endl;
         out << "\\begin{longtable}{|c|c|c|c";
         for(auto &sample : razorSignals) out << "|c";
         out << "|} " << std::endl;
