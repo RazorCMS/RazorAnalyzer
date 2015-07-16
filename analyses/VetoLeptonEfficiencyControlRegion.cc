@@ -28,7 +28,7 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
     if (outfilename == "") outfilename = "RazorVetoLeptonStudy.root";
     TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
     ControlSampleEvents *events = new ControlSampleEvents;
-    events->CreateTree();
+    events->CreateTree(ControlSampleEvents::kTreeType_Default);
     events->tree_->SetAutoFlush(0);
 
     //histogram containing total number of processed events (for normalization)

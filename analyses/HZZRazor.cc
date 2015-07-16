@@ -638,7 +638,9 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       if(jetCorrPt < 30) continue;
       if(fabs(jetEta[i]) > 3.0) continue;
             
-      //cout << "Jet " << i << " : " << thisJet.Pt() << " " << thisJet.Eta() << " " << thisJet.Phi() << " | " << isOldCSVL(i) << " " << isOldCSVM(i) << " | " << passPUJetID << "\n";
+      if (passPUJetID || !passPUJetID) {
+	//cout << "Jet " << i << " : " << thisJet.Pt() << " " << thisJet.Eta() << " " << thisJet.Phi() << " | " << isOldCSVL(i) << " " << isOldCSVM(i) << " | " << passPUJetID << "\n";
+      }
 
       GoodJets.push_back(thisJet);
 

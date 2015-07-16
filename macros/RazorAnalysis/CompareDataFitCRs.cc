@@ -19,10 +19,9 @@
 #include "math.h"
 
 #include "RazorAnalyzer/include/ControlSampleEvents.h"
+#include "include/MacroHelper.h"
 
 using namespace std;
-
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
 
 void SetHistogramColor(TH1 *hist, string name){
     if(name == "QCD") hist->SetFillColor(33);
@@ -461,75 +460,4 @@ void CompareDataFitCRs(){
 int main(){
     CompareDataFitCRs();
     return 0;
-}
-
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX){
-    TCanvas c("c", "c", 800, 600);
-    c.Clear();
-    c.cd();
-    TPad pad1("pad1","pad1",0,0.4,1,1);
-    pad1.SetBottomMargin(0);
-    pad1.SetLogy();
-    if(logX) pad1.SetLogx();
-    pad1.Draw();
-    pad1.cd();
-    mcStack->Draw("hist");
-    mcStack->GetYaxis()->SetTitle("Number of events in 19.7/fb");
-    mcStack->GetYaxis()->SetLabelSize(0.03);
-    mcStack->GetYaxis()->SetTitleOffset(0.45);
-    mcStack->GetYaxis()->SetTitleSize(0.05);
-    mcStack->SetMinimum(0.1);
-    dataHist->SetMarkerStyle(20);
-    dataHist->SetMarkerSize(1);
-    dataHist->GetYaxis()->SetTitle("Number of events in 19.7/fb");
-    dataHist->Draw("pesame");
-    pad1.Modified();
-    gPad->Update();
-    //make ratio histogram
-    TList * histList = (TList*)mcStack->GetHists();
-    TIter next(histList);
-    TH1 *mcTotal = (TH1*) histList->First()->Clone();
-    //mcTotal->Sumw2();
-    TObject *obj;
-    while((obj = next())){
-        if(obj == histList->First()) continue;
-        mcTotal->Add((TH1*)obj);
-    }
-    TH1F *dataOverMC = (TH1F*)dataHist->Clone();
-
-    string histoName = dataHist->GetName() ;
-    if(histoName.find("mr") != std::string::npos  )
-    {
-        cout<<"Number of events in data: "<<dataHist->Integral()<<" "<<printString<<endl;
-        cout<<"Number of events in MC: "<<mcTotal->Integral()<<" "<<endl;
-    }
-
-    //dataOverMC->Sumw2();
-    dataOverMC->Divide(mcTotal);
-    dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
-    dataOverMC->GetYaxis()->SetTitle("Data / MC");
-    dataOverMC->SetMinimum(0.5);
-    dataOverMC->SetMaximum(1.5);
-    dataOverMC->GetXaxis()->SetLabelSize(0.1);
-    dataOverMC->GetYaxis()->SetLabelSize(0.08);
-    dataOverMC->GetYaxis()->SetTitleOffset(0.35);
-    dataOverMC->GetXaxis()->SetTitleOffset(1.00);
-    dataOverMC->GetYaxis()->SetTitleSize(0.08);
-    dataOverMC->GetXaxis()->SetTitleSize(0.08);
-    dataOverMC->SetStats(0);
-    leg->Draw();
-    c.cd();
-    TPad pad2("pad2","pad2",0,0.0,1,0.4);
-    pad2.SetTopMargin(0);
-    pad2.SetTopMargin(0.008);
-    pad2.SetBottomMargin(0.25);
-    pad2.SetGridy();
-    if(logX) pad2.SetLogx();
-    pad2.Draw();
-    pad2.cd();
-    dataOverMC->Draw("pe");
-    pad2.Modified();
-    gPad->Update();
-    c.Print(Form("%s.pdf", printString.c_str()));
-    // c.Print(Form("%s.root", printString.c_str()));
 }

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <map>
 #include <string>
 #include <sys/types.h>
@@ -26,7 +27,6 @@
 using namespace std;
 
 //define MR and Rsq binning
-
 int NMRBINS = 10;
 float MRBINLOWEDGES[] = {300, 350, 400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
 int NRSQBINS = 8;
@@ -35,8 +35,6 @@ float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 //even binning
 //int NMRBINS = 20;
 //float MRBINLOWEDGES[] = {300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900};
-//float MRBINLOWEDGES[] = {200, 230, 260, 290, 320, 350, 380, 410, 440, 470, 500, 530, 560, 590, 620, 650, 680, 710, 740, 770, 800};
-//float MRBINLOWEDGES[] = {200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200};
 
 //ttbar single lepton SF bins
 //int NMRBINS = 8;
@@ -50,23 +48,31 @@ float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 //double MRBINLOWEDGES[] = {300, 350, 400, 450, 500, 550, 700, 900, 1200, 4000};
 //double RSQBINLOWEDGES[] = {0.15,0.175,0.20,0.225, 0.25,0.30,0.41,0.52,1.5};  
 
-void createCSVOutputFile(map<string, TH2F> &razorHistos, string boxName, int nBTags);
+void createCSVOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags);
+void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags, bool leptonBox=false, bool splitTableInTwo=true);
 
-void FullControlRegionBasedPrediction(){
+void RunTwoControlRegionBasedPrediction(){
+    gROOT->SetBatch();
+
     //set color palette 
     const Int_t NCont = 101;
     gStyle->SetNumberContours(NCont);
 
+    bool doData = false;
+    bool addSMS = true; //add SUSY signals to yield table
+
     //////////////////////////////////////////////////
     //Define baseline cuts
     //////////////////////////////////////////////////
+    //TODO: put these into a config file 
 
     bool doSFCorrections = false; //apply TT, W, Z, DY scale factors
     //bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
-    bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
+
+    bool doSystematicUncertainties = false; //apply non-statistical uncertainties on MC sample yields
+
     //bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
     bool scaleZNuNuToDY = false; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
-    gROOT->SetBatch();
 
     bool doDPhiRazorCut = true;
     //bool doDPhiRazorCut = false;
@@ -89,7 +95,8 @@ void FullControlRegionBasedPrediction(){
 
     bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
     //bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
-    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
+    int minNBTags = 1; 
+    //TODO: bin in nBTags instead of cutting
 
     //declare which boxes to check
     map<RazorAnalyzer::RazorBox, string> boxes;
@@ -109,7 +116,9 @@ void FullControlRegionBasedPrediction(){
     boxes[RazorAnalyzer::FourJet] = "FourJet";
     boxes[RazorAnalyzer::DiJet] = "DiJet";
     boxes[RazorAnalyzer::MultiJet] = "MultiJet"; //(a hack to combine boxes)
-    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "MultiJetPlusLooseLeptonMultiJet";
+    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "LooseLeptonMultiJet";
+    boxes[RazorAnalyzer::MuMultiJet] = "MuMultiJet";
+    boxes[RazorAnalyzer::EleMultiJet] = "EleMultiJet";
     if(minNBTags == 0) boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; 
     else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
 
@@ -121,38 +130,42 @@ void FullControlRegionBasedPrediction(){
     float RsqCutFor1DPlots = 0.25;
 
     //get input files -- output of RazorInclusive analyzer
-    int lumiInData = 19700; //in /pb
+    int lumiInData = 3000; //in /pb
     int lumiInMC = 1; //luminosity used to normalize MC ntuples
-    string mcPrefix;
-    if(doMiscCorrections){
-        //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
-        mcPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/";
-    }
-    else{
-        mcPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
-    }
-    //string dataPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/"; //location of data ntuples
-    string dataPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/"; //location of data ntuples
+    //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
+    string mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/MCReadinessReview2/RazorInclusive_";
+    string dataPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/MCReadinessReview2/RazorInclusive_"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
-    mcfiles["DYJets"] = new TFile(Form("%s/DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["WJets"] = new TFile(Form("%s/WJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["ZJetsNuNu"] = new TFile(Form("%s/ZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTJets"] = new TFile(Form("%s/TTJets_All_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["SingleTop"] = new TFile(Form("%s/SingleTop_All_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["QCD"] = new TFile(Form("%s/QCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTV"] = new TFile(Form("%s/TTV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["VV"] = new TFile(Form("%s/VV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTTT"] = new TFile(Form("%s/TTTT_TuneZ2star_8TeV-madgraph-tauola_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["DYJets"] = TFile::Open(Form("%sDYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["WJets"] = TFile::Open(Form("%sWJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["ZJetsNuNu"] = TFile::Open(Form("%sZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["TTJets"] = TFile::Open(Form("%sTTJets_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["SingleTop"] = TFile::Open(Form("%sSingleTop_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["QCD"] = TFile::Open(Form("%sQCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["VV"] = TFile::Open(Form("%sMultiboson_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+
+    map<string, TFile*> signalfiles;
+    if(addSMS){
+        signalfiles["T1qqqq1400/100"] = TFile::Open(Form("%sSMS-T1qqqq_2J_mGl-1400_mLSP-100_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+        signalfiles["T1qqqq1000/800"] = TFile::Open(Form("%sSMS-T1qqqq_2J_mGl-1000_mLSP-800_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+        signalfiles["T1bbbb1500/100"] = TFile::Open(Form("%sSMS-T1bbbb_2J_mGl-1500_mLSP-100_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+        signalfiles["T1bbbb1000/900"] = TFile::Open(Form("%sSMS-T1bbbb_2J_mGl-1000_mLSP-900_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+        signalfiles["T1tttt1500/100"] = TFile::Open(Form("%sSMS-T1tttt_2J_mGl-1500_mLSP-100_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+        signalfiles["T1tttt1200/800"] = TFile::Open(Form("%sSMS-T1tttt_2J_mGl-1200_mLSP-800_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    }
 
     //data
     map<string, TFile*> datafiles;
-    vector<string> datanames{"HTMHT", "SingleMu", "SingleElectron", "DoubleMuParked", "DoubleElectron", "MuEG"};
-    for(auto &name : datanames) datafiles[name] = new TFile(Form("%s/Data_%s_GoodLumi.root", dataPrefix.c_str(), name.c_str()));
+    if(doData){
+        vector<string> datanames{"HTMHT", "SingleMu", "SingleElectron", "DoubleMuParked", "DoubleElectron", "MuEG"};
+        for(auto &name : datanames) datafiles[name] = TFile::Open(Form("%s/Data_%s_GoodLumi.root", dataPrefix.c_str(), name.c_str()));
+    }
 
     //get trees and set branches
     map<string, TTree*> mctrees;
     map<string, TTree*> datatrees;
+    map<string, TTree*> signaltrees;
     float weight;
     float MR, Rsq, dPhiRazor, met, mT, leadingTightMuPt, leadingTightElePt;
     int nBTaggedJets, nSelectedJets, box;
@@ -184,6 +197,36 @@ void FullControlRegionBasedPrediction(){
         mctrees[file.first]->SetBranchAddress("leadingTightElePt", &leadingTightElePt);
     }
 
+    if(addSMS){
+        for(auto &file : signalfiles){
+            signaltrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
+            signaltrees[file.first]->SetBranchStatus("*", 0);
+            signaltrees[file.first]->SetBranchStatus("weight", 1);
+            signaltrees[file.first]->SetBranchStatus("box", 1);
+            signaltrees[file.first]->SetBranchStatus("MR", 1);
+            signaltrees[file.first]->SetBranchStatus("Rsq", 1);
+            signaltrees[file.first]->SetBranchStatus("dPhiRazor", 1);
+            signaltrees[file.first]->SetBranchStatus("nBTaggedJets", 1);
+            signaltrees[file.first]->SetBranchStatus("nSelectedJets", 1);
+            signaltrees[file.first]->SetBranchStatus("met", 1);
+            signaltrees[file.first]->SetBranchStatus("mT", 1);
+            signaltrees[file.first]->SetBranchStatus("leadingTightMuPt", 1);
+            signaltrees[file.first]->SetBranchStatus("leadingTightElePt", 1);
+
+            signaltrees[file.first]->SetBranchAddress("weight", &weight);
+            signaltrees[file.first]->SetBranchAddress("box", &box);
+            signaltrees[file.first]->SetBranchAddress("MR", &MR);
+            signaltrees[file.first]->SetBranchAddress("Rsq", &Rsq);
+            signaltrees[file.first]->SetBranchAddress("dPhiRazor", &dPhiRazor);
+            signaltrees[file.first]->SetBranchAddress("nBTaggedJets", &nBTaggedJets);
+            signaltrees[file.first]->SetBranchAddress("nSelectedJets", &nSelectedJets);
+            signaltrees[file.first]->SetBranchAddress("met", &met);
+            signaltrees[file.first]->SetBranchAddress("mT", &mT);
+            signaltrees[file.first]->SetBranchAddress("leadingTightMuPt", &leadingTightMuPt);
+            signaltrees[file.first]->SetBranchAddress("leadingTightElePt", &leadingTightElePt);
+        }
+    }
+
     for(auto &file : datafiles){
         datatrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
         datatrees[file.first]->SetBranchStatus("*", 0);
@@ -210,27 +253,31 @@ void FullControlRegionBasedPrediction(){
     }
 
     map<string, TH2F*> SFHists;
+    //TODO: data/MC scale factors, once available
+
+    //if(doSFCorrections){
     //load TTbar scale factor histograms
-    TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
-    SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
+    //TFile *SFFileTTJets = TFile::Open("data/ScaleFactors/TTBarSingleLeptonScaleFactors.root");
+    //SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
 
     //load WJets scale factor histogram
-    TFile *SFFileWJets = new TFile("data/ScaleFactors/Run1/WJetsSingleLeptonScaleFactors.root");
-    SFHists["WJets"] = (TH2F*)SFFileWJets->Get("WJetsSingleLeptonScaleFactor");
+    //TFile *SFFileWJets = TFile::Open("data/ScaleFactors/WJetsSingleLeptonScaleFactors.root");
+    //SFHists["WJets"] = (TH2F*)SFFileWJets->Get("WJetsSingleLeptonScaleFactor");
 
     //load DYJets scale factor histogram
-    TFile *SFFileDYJets = new TFile("data/ScaleFactors/Run1/ZToLLScaleFactors.root");
-    SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
+    //TFile *SFFileDYJets = TFile::Open("data/ScaleFactors/ZToLLScaleFactors.root");
+    //SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
 
     //load ZNuNu scale factor histograms
-    TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
+    //TFile *SFFileZJetsNuNu = TFile::Open("data/ScaleFactors/ZInvisibleScaleFactorsRun1.root");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("WJetsScaleFactors");
-    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
+    //SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
 
     //load ZNuNu-->DYJets weighting factors
-    TFile *ZNuNuToDYWeightFile = new TFile("data/ScaleFactors/Run1/ZNuNuToDYScaleFactorsRun1.root");
-    TH2F *ZNuNuToDYWeightHist = (TH2F*)ZNuNuToDYWeightFile->Get("razormcDYJets");
+    //TFile *ZNuNuToDYWeightFile = TFile::Open("data/ScaleFactors/ZNuNuToDYScaleFactorsRun1.root");
+    //TH2F *ZNuNuToDYWeightHist = (TH2F*)ZNuNuToDYWeightFile->Get("razormcDYJets");
+    //}
 
     //associate each box with a dataset
     map<RazorAnalyzer::RazorBox, string> boxDatasets;
@@ -255,16 +302,16 @@ void FullControlRegionBasedPrediction(){
     if (stat(plotDir.c_str(), &st) == -1) {
         mkdir(plotDir.c_str(), 0777);
     }
-    if (stat(Form("%s/RazorInclusive", plotDir.c_str()), &st) == -1) {
-        mkdir(Form("%s/RazorInclusive", plotDir.c_str()), 0777);
+    if (stat(Form("%s/RunTwoRazorInclusive", plotDir.c_str()), &st) == -1) {
+        mkdir(Form("%s/RunTwoRazorInclusive", plotDir.c_str()), 0777);
     }
     for(auto &ibox : boxes){
         //check if directory exists
-        if (stat(Form("%s/RazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), &st) == -1) {
-            mkdir(Form("%s/RazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), 0777);
+        if (stat(Form("%s/RunTwoRazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), &st) == -1) {
+            mkdir(Form("%s/RunTwoRazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), 0777);
         }
     }       
-    string plotPath = plotDir+"/RazorInclusive";
+    string plotPath = plotDir+"/RunTwoRazorInclusive";
 
     //////////////////////////////////////////////////
     //Make histograms for each box, and fill them
@@ -290,6 +337,7 @@ void FullControlRegionBasedPrediction(){
             MRHistosMC[ibox.first][tree.first].Sumw2();
             RsqHistosMC[ibox.first][tree.first].Sumw2();
             razorHistosMC[ibox.first][tree.first].Sumw2();
+
             //histograms to hold sum(w^2*error(SF)^2) for each bin
             razorErrorHistosMC[ibox.first][tree.first] = TH2F(Form("razorErrormc%s%s", tree.first.c_str(), ibox.second.c_str()), "sum(w^2*error(SF)^2); MR (GeV); Rsq", NMRBINS, MRBINLOWEDGES, NRSQBINS, RSQBINLOWEDGES);
             MRErrorHistosMC[ibox.first][tree.first] = TH1F(Form("mrErrormc%s%s", tree.first.c_str(), ibox.second.c_str()), "sum(w^2*error(SF)^2); MR (GeV)", NMRBINS, MRBINLOWEDGES);
@@ -340,20 +388,11 @@ void FullControlRegionBasedPrediction(){
                 if(tree.first == "ZJetsNuNu"){
                     //scale ZNuNu so it looks like DYJets
                     if(scaleZNuNuToDY){
-                        pair<double, double> sfAndErr = getDataMCSFAndError(ZNuNuToDYWeightHist, MR, Rsq);
-                        eventWeight *= sfAndErr.first;
-                        sysErrorSquared += weight*weight*sfAndErr.second*sfAndErr.second;
+                        //pair<double, double> sfAndErr = getDataMCSFAndError(ZNuNuToDYWeightHist, MR, Rsq);
+                        //eventWeight *= sfAndErr.first;
+                        //sysErrorSquared += weight*weight*sfAndErr.second*sfAndErr.second;
                     }
                 }
-            }
-
-            //single lepton trigger scale factor
-            if(isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox)){
-                eventWeight = eventWeight*0.97;
-            }
-            //double lepton trigger scale factor
-            if(razorbox == RazorAnalyzer::MuMu){
-                eventWeight = eventWeight*0.97*0.97; //account for trigger and overall normalization
             }
 
             //fill each quantity
@@ -382,77 +421,164 @@ void FullControlRegionBasedPrediction(){
                 razorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
-            //LooseLeptonMultiJet+MultiJet box
-            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+            //LooseLeptonMultiJet box
+            if(razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
                 razorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
+            //MuMultiJet box
+            if(razorbox == RazorAnalyzer::MuFourJet || razorbox == RazorAnalyzer::MuSixJet){
+                razorHistosMC[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
+            //EleMultiJet box
+            if(razorbox == RazorAnalyzer::EleFourJet || razorbox == RazorAnalyzer::EleSixJet){
+                razorHistosMC[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
         }
     }
+
+    map<RazorAnalyzer::RazorBox, map<string, TH2F> > razorHistosSignal;
+    if(addSMS){
+        for(auto &tree : signaltrees){
+            cout << "Filling signal histograms: " << tree.first << endl;
+
+            //set up histograms
+            for(auto &ibox : boxes){
+                razorHistosSignal[ibox.first][tree.first] = TH2F(Form("razorsignal%s%s", tree.first.c_str(), ibox.second.c_str()), "; MR (GeV); Rsq", NMRBINS, MRBINLOWEDGES, NRSQBINS, RSQBINLOWEDGES);
+                razorHistosSignal[ibox.first][tree.first].Sumw2();
+            }
+
+            uint nEntries = tree.second->GetEntries();
+            //loop over entries
+            for(uint i = 0; i < nEntries; i++){
+                //get entry
+                tree.second->GetEntry(i); 
+                RazorAnalyzer::RazorBox razorbox = static_cast<RazorAnalyzer::RazorBox>(box);
+
+                //enforce correct number of B-tags
+                if(bTagsInclusive){
+                    if(nBTaggedJets < minNBTags) continue;
+                }
+                else {
+                    if(nBTaggedJets != minNBTags) continue;
+                }
+                //cut on MR and Rsq
+                if(MR < MRBINLOWEDGES[0] || Rsq < RSQBINLOWEDGES[0]) continue;
+                //cut on dPhiRazor
+                if(doDPhiRazorCut && fabs(dPhiRazor) > dPhiRazorCut) continue;
+                //cut on met
+                if(doMetCut && met < metCut) continue;
+                //cut on mT
+                if(doMTCut && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
+                    if(mT < mTLowerCut || mT > mTUpperCut) continue;
+                }
+                //cut on lepton pt
+                if(doLeptonPtCut){
+                    if(isSingleMuonBox(razorbox) && leadingTightMuPt < leptonPtCut) continue;
+                    if(isSingleElectronBox(razorbox) && leadingTightElePt < leptonPtCut) continue;
+                }
+
+                float eventWeight = weight*lumiInData*1.0/lumiInMC;
+
+                //fill each quantity
+                if(boxes.find(razorbox) == boxes.end()){
+                    cout << "Box " << razorbox << " not in the list!" << endl;
+                    continue;
+                }
+                razorHistosSignal[razorbox][tree.first].Fill(MR, Rsq, eventWeight);
+
+                //MultiJet box
+                if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
+                    razorHistosSignal[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+                //LooseLeptonMultiJet box
+                if(razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+                    razorHistosSignal[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+                //MuMultiJet box
+                if(razorbox == RazorAnalyzer::MuFourJet || razorbox == RazorAnalyzer::MuSixJet){
+                    razorHistosSignal[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+                //EleMultiJet box
+                if(razorbox == RazorAnalyzer::EleFourJet || razorbox == RazorAnalyzer::EleSixJet){
+                    razorHistosSignal[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                }
+
+            }
+        }
+    }
+
     //write the MC yields to a CSV file
-    for(auto &box : razorHistosMC){
-        createCSVOutputFile(box.second, boxes[box.first], minNBTags);
+    if(addSMS){
+        for(auto &box : razorHistosMC){
+            createCSVOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags);
+            createLatexTableOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags, isLeptonicBox(box.first), true);
+        }
     }
 
     //update errors to take into account systematic uncertainties
-    for(auto &tree : mctrees){
-        for(auto &ibox : boxes){
-            for(int i = 0; i < razorHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
-                for(int j = 0; j < razorHistosMC[ibox.first][tree.first].GetNbinsY()+1; j++){
-                    double squaredError = razorErrorHistosMC[ibox.first][tree.first].GetBinContent(i, j);
-                    razorHistosMC[ibox.first][tree.first].SetBinError(i, j, sqrt(pow(razorHistosMC[ibox.first][tree.first].GetBinError(i, j), 2) + squaredError));
+    if(doSystematicUncertainties){
+        for(auto &tree : mctrees){
+            for(auto &ibox : boxes){
+                for(int i = 0; i < razorHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
+                    for(int j = 0; j < razorHistosMC[ibox.first][tree.first].GetNbinsY()+1; j++){
+                        double squaredError = razorErrorHistosMC[ibox.first][tree.first].GetBinContent(i, j);
+                        razorHistosMC[ibox.first][tree.first].SetBinError(i, j, sqrt(pow(razorHistosMC[ibox.first][tree.first].GetBinError(i, j), 2) + squaredError));
+                    }
                 }
-            }
-            for(int i = 0; i < MRHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
-                double squaredError = MRErrorHistosMC[ibox.first][tree.first].GetBinContent(i);
-                MRHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(MRHistosMC[ibox.first][tree.first].GetBinError(i), 2) + squaredError));
-            }
-            for(int i = 0; i < RsqHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
-                double squaredError = RsqErrorHistosMC[ibox.first][tree.first].GetBinContent(i);
-                RsqHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(RsqHistosMC[ibox.first][tree.first].GetBinError(i), 2) + squaredError));
+                for(int i = 0; i < MRHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
+                    double squaredError = MRErrorHistosMC[ibox.first][tree.first].GetBinContent(i);
+                    MRHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(MRHistosMC[ibox.first][tree.first].GetBinError(i), 2) + squaredError));
+                }
+                for(int i = 0; i < RsqHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
+                    double squaredError = RsqErrorHistosMC[ibox.first][tree.first].GetBinContent(i);
+                    RsqHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(RsqHistosMC[ibox.first][tree.first].GetBinError(i), 2) + squaredError));
+                }
             }
         }
-    }
 
-    //for rare background processes, include a 20% uncertainty on the total yield in each bin, summed in quadrature with the statistical uncertainty
-    double sysErrorFrac = 0.2;
-    //for QCD, assign a 100% uncertainty
-    double qcdErrorFrac = 1.0;
-    for(auto &tree : mctrees){
-        //only do this for rare processes 
-        if(tree.first == "DYJets" || tree.first == "WJets" || tree.first == "ZJetsNuNu" || tree.first == "TTJets") continue; 
-        for(auto &ibox : boxes){
-            for(int i = 0; i < razorHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
-                for(int j = 0; j < razorHistosMC[ibox.first][tree.first].GetNbinsY()+1; j++){
+        //for rare background processes, include a 20% uncertainty on the total yield in each bin, summed in quadrature with the statistical uncertainty
+        double sysErrorFrac = 0.2;
+        //for QCD, assign a 100% uncertainty
+        double qcdErrorFrac = 1.0;
+        for(auto &tree : mctrees){
+            //only do this for rare processes 
+            if(tree.first == "DYJets" || tree.first == "WJets" || tree.first == "ZJetsNuNu" || tree.first == "TTJets") continue; 
+            for(auto &ibox : boxes){
+                for(int i = 0; i < razorHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
+                    for(int j = 0; j < razorHistosMC[ibox.first][tree.first].GetNbinsY()+1; j++){
+                        double error = 0.0;
+                        if(tree.first == "QCD"){
+                            error = qcdErrorFrac*razorHistosMC[ibox.first][tree.first].GetBinContent(i, j);
+                        }
+                        else{
+                            error = sysErrorFrac*razorHistosMC[ibox.first][tree.first].GetBinContent(i, j);
+                        }
+                        razorHistosMC[ibox.first][tree.first].SetBinError(i, j, sqrt(pow(razorHistosMC[ibox.first][tree.first].GetBinError(i, j), 2) + error*error));
+                    }
+                }
+                for(int i = 0; i < MRHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
                     double error = 0.0;
                     if(tree.first == "QCD"){
-                        error = qcdErrorFrac*razorHistosMC[ibox.first][tree.first].GetBinContent(i, j);
+                        error = qcdErrorFrac*MRHistosMC[ibox.first][tree.first].GetBinContent(i);
                     }
                     else{
-                        error = sysErrorFrac*razorHistosMC[ibox.first][tree.first].GetBinContent(i, j);
+                        error = sysErrorFrac*MRHistosMC[ibox.first][tree.first].GetBinContent(i);
                     }
-                    razorHistosMC[ibox.first][tree.first].SetBinError(i, j, sqrt(pow(razorHistosMC[ibox.first][tree.first].GetBinError(i, j), 2) + error*error));
+                    MRHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(MRHistosMC[ibox.first][tree.first].GetBinError(i), 2) + error*error));
                 }
-            }
-            for(int i = 0; i < MRHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
-                double error = 0.0;
-                if(tree.first == "QCD"){
-                    error = qcdErrorFrac*MRHistosMC[ibox.first][tree.first].GetBinContent(i);
+                for(int i = 0; i < RsqHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
+                    double error = 0.0;
+                    if(tree.first == "QCD"){
+                        error = qcdErrorFrac*RsqHistosMC[ibox.first][tree.first].GetBinContent(i);
+                    }
+                    else{
+                        error = sysErrorFrac*RsqHistosMC[ibox.first][tree.first].GetBinContent(i);
+                    }
+                    RsqHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(RsqHistosMC[ibox.first][tree.first].GetBinError(i), 2) + error*error));
                 }
-                else{
-                    error = sysErrorFrac*MRHistosMC[ibox.first][tree.first].GetBinContent(i);
-                }
-                MRHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(MRHistosMC[ibox.first][tree.first].GetBinError(i), 2) + error*error));
-            }
-            for(int i = 0; i < RsqHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
-                double error = 0.0;
-                if(tree.first == "QCD"){
-                    error = qcdErrorFrac*RsqHistosMC[ibox.first][tree.first].GetBinContent(i);
-                }
-                else{
-                    error = sysErrorFrac*RsqHistosMC[ibox.first][tree.first].GetBinContent(i);
-                }
-                RsqHistosMC[ibox.first][tree.first].SetBinError(i, sqrt(pow(RsqHistosMC[ibox.first][tree.first].GetBinError(i), 2) + error*error));
             }
         }
     }
@@ -760,15 +886,17 @@ void FullControlRegionBasedPrediction(){
 }
 
 int main(){
-    FullControlRegionBasedPrediction();
+    RunTwoControlRegionBasedPrediction();
     return 0;
 }
 
-void createCSVOutputFile(map<string, TH2F> &razorHistos, string boxName, int nBTags){
+void createCSVOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags){
     ofstream out;
-    out.open("razorYields"+to_string(nBTags)+"btag"+boxName+".csv");
+    out.open("razorRunTwoYields"+to_string(nBTags)+"btag"+boxName+".csv");
     out << "bin number,MR range,Rsq range,b-tags";
     for(auto &sample : razorHistos) out << "," << sample.first << " yield";
+    out << ",total background yield";
+    for(auto &sample : razorSignals) out << "," << sample.first << " yield";
     out << std::endl;
     for(int i = 1; i < NMRBINS+1; i++){
         for(int j = 1; j < NRSQBINS+1; j++){
@@ -776,11 +904,106 @@ void createCSVOutputFile(map<string, TH2F> &razorHistos, string boxName, int nBT
             out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << ",";
             out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j] << ",";
             out << nBTags;
+            double totalBG = 0.0;
             for(auto &sample : razorHistos){
-                out << "," << sample.second.GetBinContent(i, j);
+                out << "," << sample.second.GetBinContent(i, j) << " +/- " << sample.second.GetBinError(i, j);
+                totalBG += sample.second.GetBinContent(i, j);
+            }
+            out << "," << totalBG;
+            for(auto &sample : razorSignals){
+                out << "," << sample.second.GetBinContent(i, j) << " +/- " << sample.second.GetBinError(i, j);
             }
             out << std::endl;
         }
     }
     out.close();
+}
+
+void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags, bool leptonBox, bool splitTableInTwo){
+    ofstream out;
+    out.open("razorRunTwoYields"+to_string(nBTags)+"btag"+boxName+".tex");
+    out << "\\newgeometry{margin=0.2cm}" << std::endl;
+    out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\footnotesize" << std::endl;
+    out << "\\begin{longtable}{|c|c|c|c";
+    for(auto &sample : razorHistos) out << "|c";
+    if(!splitTableInTwo) for(auto &sample : razorSignals) out << "|c";
+    out << "|} " << std::endl;
+
+    out << "\\caption{Summary of MC yields in the " << boxName << " box, before applying data/MC scale factors.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+    out << "\\label{tab:" << boxName << "yields}" << std::endl;
+    out << "\\endhead" <<std::endl;
+    
+    out<< "\\hline" << std::endl;
+    out << "Bin Number & MR Range & Rsq Range";
+    for(auto &sample : razorHistos) out << " & " << sample.first << "";
+    out << " & Total Background";
+    if(!splitTableInTwo) for(auto &sample : razorSignals) out << " & " << sample.first << "";
+    out << " \\\\" << std::endl << "\\hline" << std::endl;
+    out << std::setprecision(3);
+    int binNum = 1;
+    for(int i = 1; i < NMRBINS+1; i++){
+        for(int j = 1; j < NRSQBINS+1; j++){
+            if(!(leptonBox) && (MRBINLOWEDGES[i-1] < 400 || RSQBINLOWEDGES[j-1] < 0.25)) continue;
+            out << binNum << " & ";
+            binNum++;
+            out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << " & ";
+            out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j];
+            double totalBG = 0.0;
+            for(auto &sample : razorHistos){
+                out << " & " << sample.second.GetBinContent(i, j) << " $\\pm$ " << sample.second.GetBinError(i, j);
+                totalBG += sample.second.GetBinContent(i, j);
+            }
+            out << " & " << totalBG;
+            if(!splitTableInTwo){
+                for(auto &sample : razorSignals){
+                    out << " & " << sample.second.GetBinContent(i, j) << " $\\pm$ " << sample.second.GetBinError(i, j);
+                }
+            }
+            out << " \\\\" << std::endl;
+            out << "\\hline" << std::endl;
+        }
+    }
+    out << "\\end{longtable}" << std::endl << "\\end{center}" << std::endl << "\\end{landscape}" << std::endl << "\\restoregeometry" << std::endl;
+
+    if(splitTableInTwo){ //list signal yields in a separate table
+        out << std::endl << "\\newgeometry{margin=0.2cm}" << std::endl;
+        out << "\\begin{landscape}" << std::endl << "\\begin{center}" << std::endl << "\\footnotesize" << std::endl;
+        out << "\\begin{longtable}{|c|c|c|c";
+        for(auto &sample : razorSignals) out << "|c";
+        out << "|} " << std::endl;
+
+        out << "\\caption{Summary of signal MC yields in the " << boxName << " box.  Only events with at least one medium b-jet tag are counted.}" << std::endl;
+        out << "\\label{tab:" << boxName << "signalyields}" << std::endl;
+	out << "\\endhead" <<std::endl;
+	
+	out<< "\\hline" << std::endl;
+        out << "Bin Number & MR Range & Rsq Range";
+        out << " & Total Background";
+        for(auto &sample : razorSignals) out << " & " << sample.first << "";
+        out << " \\\\" << std::endl << "\\hline" << std::endl;
+        out << std::setprecision(3);
+        int binNum = 1;
+        for(int i = 1; i < NMRBINS+1; i++){
+            for(int j = 1; j < NRSQBINS+1; j++){
+                if(!(leptonBox) && (MRBINLOWEDGES[i-1] < 400 || RSQBINLOWEDGES[j-1] < 0.25)) continue;
+                out << binNum << " & ";
+                binNum++;
+                out << MRBINLOWEDGES[i-1] << "-" << MRBINLOWEDGES[i] << " & ";
+                out << RSQBINLOWEDGES[j-1] << "-" << RSQBINLOWEDGES[j];
+                double totalBG = 0.0;
+                for(auto &sample : razorHistos){
+                    totalBG += sample.second.GetBinContent(i, j);
+                }
+                out << " & " << totalBG;
+                for(auto &sample : razorSignals){
+                    out << " & " << sample.second.GetBinContent(i, j) << " $\\pm$ " << sample.second.GetBinError(i, j);
+                }
+                out << " \\\\" << std::endl;
+                out << "\\hline" << std::endl;
+            }
+        }
+        out << "\\end{longtable}" << std::endl << "\\end{center}" << std::endl << "\\end{landscape}" << std::endl << "\\restoregeometry" << std::endl;
+    }
+    out.close();
+
 }

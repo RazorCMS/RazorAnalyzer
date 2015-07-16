@@ -910,6 +910,7 @@ class ControlSampleEvents {
   //apply all data/MC corrections
   float getMCCorrection(TH1F *pileupWeightHist, string sampleName, bool isRunOne = true){
       float singleMuTriggerSF = 0.97;
+      float singleEleTriggerSF = 0.97;
       float doubleMuTriggerSF = 0.97;
       float doubleMuNormalizationSF = 0.97;
 
@@ -927,6 +928,10 @@ class ControlSampleEvents {
           //trigger scale factors: single muon
           if((HLTDecision[0] || HLTDecision[1]) && (sampleName == "TTBarSingleLepton" || sampleName == "WSingleLepton" || sampleName == "ZNuNuFromW")){
               corrFactor *= singleMuTriggerSF;
+          }
+          //trigger scale factors: single ele 
+          if((HLTDecision[8] || HLTDecision[9]) && (sampleName == "TTBarSingleLepton" || sampleName == "WSingleLepton" || sampleName == "ZNuNuFromW")){
+              corrFactor *= singleEleTriggerSF;
           }
           //trigger scale factors: double muon
           else if((HLTDecision[3] || HLTDecision[4]) && (sampleName == "TTBarDilepton" || sampleName == "ZLLDilepton" || sampleName == "ZNuNuFromDY" || sampleName == "ZLLDilepton")){

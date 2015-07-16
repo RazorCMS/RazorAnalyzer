@@ -48,6 +48,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
+
+    //*************************************************************************
+    //Set up Output File
+    //*************************************************************************
     string outfilename = outputfilename;
     if (outfilename == "") outfilename = "RazorControlRegions.root";
     TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
@@ -55,43 +59,45 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     
     if (option == 1)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
+    else if (option == 101)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
+    else if (option == 201)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
     else if (option == 2)
-      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Reduced);
-    else if (option == 3)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
-    else if (option == 4)
-      events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Reduced);
-    else if (option == 5)
+    else if (option == 102)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
+    else if (option == 3)
       events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
-    else if (option == 6)
-      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Reduced);
-    else if (option == 7)
+    else if (option == 103)
+      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
+    else if (option == 4)
       events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Full);
-    else if (option == 8)
-      events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Reduced);
-    else if (option == 9)
+    else if (option == 104)
+      events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Full);
+    else if (option == 5)
       events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
-    else if (option == 10)
-      events->CreateTree(ControlSampleEvents::kTreeType_Photon_Reduced);
-    else if (option == 11)
+    else if (option == 105)
+      events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
+    else if (option == 6)
       events->CreateTree(ControlSampleEvents::kTreeType_ZeroLepton_Full);
     else {
-      events->CreateTree();
+      events->CreateTree(ControlSampleEvents::kTreeType_Default);
     }
     events->tree_->SetAutoFlush(0);
 
     //histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
-    //begin loop
-    if (fChain == 0) return;
 
+    //*************************************************************************
+    //Look over Input File Events
+    //*************************************************************************
+    if (fChain == 0) return;
     cout << "Total Events: " << fChain->GetEntries() << "\n";
     Long64_t nbytes = 0, nb = 0;
 
-    //for (Long64_t jentry=46000; jentry<fChain->GetEntries();jentry++) {
-    for (Long64_t jentry=0; jentry<10000;jentry++) {
-    // for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
+    for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
 
       //begin event
       if(jentry % 1000 == 0) cout << "Processing entry " << jentry << endl;
@@ -132,13 +138,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	events->NPV = nPV;
  
-        //TODO: triggers!
-        bool passedLeptonicTrigger = true;
-        bool passedHadronicTrigger= true;
-        if(!(passedLeptonicTrigger || passedHadronicTrigger)) continue; //ensure event passed a trigger
+
         
 	//******************************************
-	//find generated leptons
+	//Find Generated leptons
 	//******************************************
 	vector<int> genLeptonIndex;
 
@@ -206,9 +209,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	} //loop over gen particles
 	
 
-	//******************************************
 	//sort gen leptons by pt
-	//******************************************
 	int tempIndex = -1;
 	for(uint i = 0; i < genLeptonIndex.size() ; i++) {
 	  for (uint j=0; j < genLeptonIndex.size()-1; j++) {
@@ -219,36 +220,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    }
 	  }
 	}
-
-
-	// for (int i=0;i<genLeptonIndex.size();i++) cout << "Lepton " << i << " : " << gParticleId[genLeptonIndex[i]] << " | " 
-	// 					       << gParticlePt[genLeptonIndex[i]] << " "
-	// 					       << gParticleEta[genLeptonIndex[i]] << " "
-	// 					       << gParticlePhi[genLeptonIndex[i]] << " " 
-	// 					       << " \n";
-	// cout << "\n";
-
-
-	// if (genLeptonIndex.size() != 2) {
-	//   cout << "\n";
-	//   cout << "\n";
-	//   for (int i=0;i<genLeptonIndex.size();i++) cout << "Lepton " << i << " : " << gParticleId[genLeptonIndex[i]] << " | " 
-	// 					     << gParticlePt[genLeptonIndex[i]] << " "
-	// 					     << gParticleEta[genLeptonIndex[i]] << " "
-	// 					     << gParticlePhi[genLeptonIndex[i]] << " " 
-	// 					     << " \n";
-						  
-	//   cout << "\n";
-
-	//   for(int j = 0; j < nGenParticle; j++){
-	//     cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " | "
-	// 	 << gParticlePt[j] << " "
-	// 	 << gParticleEta[j] << " "
-	// 	 << gParticlePhi[j] << " "
-	// 	 << " | " << gParticleMotherId[j] << " , " << gParticleMotherIndex[j] 
-	// 	 << "\n";
-	//   }
-	// } 
 
 	events->genlep1.SetPtEtaPhiM(0,0,0,0);
 	events->genlep2.SetPtEtaPhiM(0,0,0,0);
@@ -271,6 +242,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }				      
 	}
 
+
+
+
+	//*************************************************************************
+	//Find Reconstructed Leptons
+	//*************************************************************************
+	
 	vector<int> VetoLeptonIndex; 
 	vector<int> VetoLeptonType;
 	vector<int> VetoLeptonPt;
@@ -385,9 +363,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
         }
 
 
-	//********************************
 	//Sort Leptons
-	//********************************
 	tempIndex = -1;
 	int tempType = -1;
 	int tempPt = -1;
@@ -444,9 +420,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	
 	
-	//********************************
-	//Fill Leptons
-	//********************************
+	//************************************************************************
+	//Fill Lepton Information, in order of tight, loose, veto
+	//************************************************************************
 	events->lep1.SetPtEtaPhiM(0,0,0,0);
 	events->lep2.SetPtEtaPhiM(0,0,0,0);
 	events->lep1Type = 0;
@@ -712,26 +688,11 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  cout << "lep2: " << events->lep2Type << " | " << events->lep2.Pt() << " " << events->lep2.Eta() << " " << events->lep2.Phi() << " | Tight = " << events->lep2PassTight << " Loose = " << events->lep2PassLoose << " Veto = " << events->lep2PassVeto << "\n";	 
 	}
 
-	// if ((events->lep1.Pt() > 0 && events->lep1MatchedGenLepIndex < 0) || (events->lep2.Pt() > 0 && events->lep2MatchedGenLepIndex < 0)) {
-	// if ((events->lep1.Pt() > 0 && events->lep1MatchedGenLepIndex < 0 && abs(events->lep1Type)==15 && events->lep1PassTight && (events->genlep1Type != 0 || events->genlep2Type != 0))) {
-	//   cout << "\n\n";
-	//   cout << "lep1: " << events->lep1Type << " | " << events->lep1.Pt() << " " << events->lep1.Eta() << " " << events->lep1.Phi() << " | " << events->lep1PassTight << " " << events->lep1PassLoose << " " << events->lep1PassVeto << "\n";
-	//   cout << "lep2: " << events->lep2Type << " | " << events->lep2.Pt() << " " << events->lep2.Eta() << " " << events->lep2.Phi() << " | " << events->lep2PassTight << " " << events->lep2PassLoose << " " << events->lep2PassVeto << "\n";
-	//   cout << "genlep1: " << events->genlep1Type << " | " << events->genlep1.Pt() << " " << events->genlep1.Eta() << " " << events->genlep1.Phi() << "\n";
-	//   cout << "genlep2: " << events->genlep2Type << " | " << events->genlep2.Pt() << " " << events->genlep2.Eta() << " " << events->genlep2.Phi() << "\n";
-
-	//   for(int j = 0; j < nGenParticle; j++){
-	//     cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " | "
-	// 	 << gParticlePt[j] << " "
-	// 	 << gParticleEta[j] << " "
-	// 	 << gParticlePhi[j] << " "
-	// 	 << " | " << gParticleMotherId[j] << " , " << gParticleMotherIndex[j] 
-	// 	 << "\n";	 
-	//   }
-	//   cout << "\n";
-	// }
 
 
+	//************************************************************************
+	//Find all Relevent Jets	
+	//************************************************************************
 	bool bjet1Found = false;
 	bool bjet2Found = false;
         vector<TLorentzVector> GoodJets;
@@ -753,7 +714,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->minDPhi = 9999;
 	events->minDPhiN = 9999;
 
-
        for(int i = 0; i < nJets; i++){
 
 	  //exclude selected muons and electrons from the jet collection
@@ -764,18 +724,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
 	  if(dR > 0 && dR < 0.4) continue; //jet matches a selected lepton
 	  
-	  // //exclude jet if it doesn't match a selected genjet
-	  // bool matchedGenJet = false;
-	  // for(uint j = 0; j < nGenJets; j++){
-	  //   double thisDR = deltaR(genJetEta[j],genJetPhi[j],jetEta[i],jetPhi[i]);
-	  //   if(thisDR < 0.4 && fabs(jetPt[i]-genJetPt[j])/genJetPt[j] < 0.5 ){
-	  // 	  matchedGenJet = true;
-	  // 	  break;
-	  //     }
-	  // }
-	  // if(!matchedGenJet) continue;
 	  
-
 	  if (printSyncDebug)  {
 	    cout << "jet " << i << " : " << jetPt[i] << " " << jetEta[i] << " " << jetPhi[i] 
 		 << " : rho = " << fixedGridRhoAll << " area = " << jetJetArea[i] << " "
@@ -783,9 +732,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 		 << "correctedPt = " << jetPt[i]*JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
 									   fixedGridRhoAll, jetJetArea[i], 
 									   JetCorrector) << " "
-		 // << jetPt[i]*JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-		 // 				       fixedGridRhoFastjetAll, jetJetArea[i], 
-		 // 				       JetCorrector) << " "
 	  	 << " | passID = " << jetPassIDTight[i] << " passPUJetID = " << bool((jetPileupIdFlag[i] & (1 << 2)) != 0) 
 		 << " | csv = " << jetCSV[i] << " passCSVL = " << isOldCSVL(i) << " passCSVM = " << isOldCSVM(i) << " " << "\n";
 	  }
@@ -834,12 +780,11 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - UnCorrJet.Px() << " " << thisJet.Py() - UnCorrJet.Py() << "\n";
 	  }
 
-	  // //*******************************************************
-	  // //apply  Pileup Jet ID
-	  // //*******************************************************
+	  //*******************************************************
+	  //apply  Pileup Jet ID
+	  //*******************************************************
 	  int level = 2; //loose jet ID
-	  if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
-
+	  //if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
 
 
 	  if (abs(jetPartonFlavor[i]) == 5) {
@@ -867,7 +812,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet1PassTight = true;	      
 	    } else {
 	      if (!bjet2Found || thisJet.Pt() > events->bjet2.Pt() ) {
-		//cout << "jet " << i << " " << jetPartonFlavor[i] << " | " << bjet1Found << " " << bjet2Found << " : " << thisJet.Pt() << "\n";
 		bjet2Found = true;
 		events->bjet2.SetPtEtaPhiM(thisJet.Pt(), thisJet.Eta(), thisJet.Phi(), thisJet.M());
 		events->bjet2PassLoose = false;
@@ -895,9 +839,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
         } //loop over jets
 
 
-	//*****************************************************
 	//sort good jets
-	//*****************************************************
 	TLorentzVector tmpjet;
 	for (int i=0;i<int(GoodJets.size());i++) {
 	  for (int j=0;j<int(GoodJets.size()-1);j++) {
@@ -947,32 +889,11 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if (dPhiN < events->minDPhiN) events->minDPhiN = dPhiN;
 	}
 
-	//Make Good Jet Collection, excluding the leading jet
-	vector<TLorentzVector> GoodJets_NoLeadJet;
-	int leadJetIndex = -1;
-	double leadJetPt = 0;
-	for (int i=0;i<int(GoodJets.size());i++) {
-	  if (GoodJets[i].Pt() > leadJetPt) {
-	    leadJetIndex = i;
-	    leadJetPt = GoodJets[i].Pt();
-	  }
-	}
-	int numJetsAbove80GeV_NoLeadJet = 0;
-	for (int i=0;i<int(GoodJets.size());i++) {
-	  if (i != leadJetIndex) {
-	    GoodJets_NoLeadJet.push_back(GoodJets[i]);
-	    if (GoodJets[i].Pt() > 80) numJetsAbove80GeV_NoLeadJet++;
-	  }
-	}
-
 
         //Compute the razor variables using the selected jets and possibly leptons
         vector<TLorentzVector> GoodPFObjects;
-        vector<TLorentzVector> GoodPFObjects_NoLeadJet;
         for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
-        for(auto& jet : GoodJets_NoLeadJet) GoodPFObjects_NoLeadJet.push_back(jet);
-        if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
-        if(passedLeptonicTrigger) for(auto& lep : GoodLeptons) GoodPFObjects_NoLeadJet.push_back(lep);
+        for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
 
 	double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
 	double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
@@ -985,26 +906,19 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  cout << "Corrected PFMET: " << PFMET.Pt() << " " << PFMET.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
 	}
 
-        TLorentzVector PFMET_NoLeadJet = PFMET; if (leadJetIndex >= 0) PFMET_NoLeadJet = PFMET + GoodJets[leadJetIndex];
-
 	events->MR = 0;
 	events->Rsq = 0;
 	
 
-	//cout << "debug: " << numJetsAbove80GeV << " " << GoodJets.size() << " " << GoodLeptons.size() << " : " << GoodPFObjects.size() << "\n";
-
 	//only compute razor variables if we have 2 jets above 80 GeV
-	if (numJetsAbove80GeV >= 2 && GoodJets.size() < 20) {
+	if (GoodPFObjects.size() >= 2 && GoodJets.size() < 20
+	    //&& numJetsAbove80GeV >= 2 //Si: I think we don't need this requirement at this point
+	    ) {
 	  vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
 	  events->MR = computeMR(hemispheres[0], hemispheres[1]); 
 	  events->Rsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	}
-
-	if (numJetsAbove80GeV_NoLeadJet >= 2 && GoodJets.size() < 20) {
-	  vector<TLorentzVector> hemispheres_NoLeadJet = getHemispheres(GoodPFObjects_NoLeadJet);
-	  events->MR_NoLeadJet = computeMR(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1]); 
-	  events->Rsq_NoLeadJet = computeRsq(hemispheres_NoLeadJet[0], hemispheres_NoLeadJet[1], PFMET_NoLeadJet);
-	}
+	
 
 	if (printSyncDebug)  {
 	  cout << "MR = " << events->MR << " Rsq = " << events->Rsq << " | "
@@ -1014,7 +928,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
 	events->MET = PFMET.Pt();
-	events->MET_NoLeadJet = PFMET_NoLeadJet.Pt();
 	events->NJets40 = numJetsAbove40GeV;
 	events->NJets80 = numJetsAbove80GeV;
 	events->NBJetsLoose = nBJetsLoose20GeV;
@@ -1271,7 +1184,11 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
             TLorentzVector m1 = GoodMuonsTight[0];
             TLorentzVector m2 = PFMET;
             double deltaPhiLepMet = m1.DeltaPhi(m2);
-            events->lep1MT = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); //transverse mass calculation
+
+	    //Only use this lep1MT if we are using the option with leptons added to MET
+	    if  (option == 2 || option == 102) {
+	      events->lep1MT = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); //transverse mass calculation
+	    }
 
             //store reco W information
             events->recoWpt = (m1+m2).Pt();
@@ -1284,21 +1201,25 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//skim events
 	bool passSkim = false;
 	if (option == -1) passSkim = true;
-	if (option == 6) { // SI CHECK THIS!!!!!!!!
+
+
+	// Dilepton skim
+	if (option == 103) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
-	      && events->lep1PassLoose && events->lep2PassLoose
-	      && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
+	       && events->lep1PassLoose && events->lep2PassLoose
+	       && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
 	}
-	if (option == 1) { // SI CHECK THIS!!!!!!!
+
+	//single tight lepton skim
+	if (option == 101) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && events->lep1PassTight
 	       && events->lep1.Pt() > 30) passSkim = true;
 	}
-	if (option == 10) { // SI WTF IS THIS???????
-	  if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
-	}
-	if (option == 2) { // SI CHECK THIS!!!!!!!!
+
+	//single tight lepton plus razor skim
+	if (option == 102) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && events->lep1PassTight
 	       && events->lep1.Pt() > 30
@@ -1307,39 +1228,40 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    passSkim = true;
 	  }
 	}
-	if(option == 4) // kTreeType_OneLeptonAdd2MET_Reduced
+
+	//Razor skim
+	if (option == 100) { 
+	  if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
+	}
+
+	//Single lepton skim for 1L CR with adding lepton to MET
+	if(option == 102) // kTreeType_OneLeptonAdd2MET_Reduced
 	  {
+	    passSkim = true;
             if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
             if(events->MR < 300 && events->MR_NoW < 300) passSkim = false;
             if(events->Rsq < 0.15 && events->Rsq_NoW < 0.15) passSkim = false;
             if(GoodMuons.size() == 0) passSkim = false; //don't save event if no muons or photons
 	  }
-	if(option == 6) // kTreeType_Dilepton_Reduced
+
+
+	//Dilepton skim with adding leptons to MET
+	if(option == 104) 
 	  {
-            if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
-            if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
-            if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
-            if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
-	  }	  
-	if(option == 8) // kTreeType_DileptonAdd2MET_Reduced
-	  {
+	    passSkim = true;
             if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
             if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
             if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
             if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
 	  }
-	if(option == 10) // kTreeType_Photon_Reduced
-	  {
-            // if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
-            // else if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
-            // else if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
-            // else if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
-	    // else
-	      passSkim = true;
-	    // if(passSkim == true)
-	    //   cout<<" "<<events->NJets80 <<" "<<events->MR <<" "<<events->MR_NoZ<<" "<<events->Rsq <<" "<< events->Rsq_NoZ<<" "<<GoodMuons.size()<<endl;
 
-	    
+	//Photon+Jet Skim
+	if(option == 105) // kTreeType_Photon_Reduced
+	  {
+	    passSkim = true;	    
+            if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
+            if(events->MR < 300 && events->MR_NoPho < 300) passSkim = false;
+            if(events->Rsq < 0.15 && events->Rsq_NoPho < 0.15) passSkim = false;
 	  }
 
 	//fill event 

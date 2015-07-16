@@ -13,11 +13,11 @@
 using namespace std;
 
 enum HggRazorBox {
-    HighPt,
-    Hbb,
-    Zbb,
-    HighRes,
-    LowRes
+    HighPt = 0,
+    Hbb = 1,
+    Zbb = 2,
+    HighRes = 3,
+    LowRes = 4
 };
 
 struct PhotonCandidate
@@ -134,7 +134,8 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma;
   float mbbZ, mbbH;
-  HggRazorBox box;
+  HggRazorBox razorbox = LowRes;
+
   unsigned int run, lumi, event;
   
   //selected photon variables
@@ -165,6 +166,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+    razorTree->Branch("box", &razorbox, "box/I");
     
     razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
     razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
@@ -205,62 +207,62 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
   }
   //set branches on all trees
   else{ 
-    for(auto& box : razorBoxes){
-      box.second->Branch("run", &run, "run/i");
-      box.second->Branch("lumi", &lumi, "lumi/i");
-      box.second->Branch("event", &event, "event/i");
-      box.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
-      box.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
-      box.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
-      box.second->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
-      box.second->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
-      box.second->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-      box.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
-      box.second->Branch("MR", &theMR, "MR/F");
-      box.second->Branch("Rsq", &theRsq, "Rsq/F");
-      box.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
-      box.second->Branch("MET", &MET, "MET/F");
-      box.second->Branch("t1MET", &t1MET, "t1MET/F");
-      box.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
-      box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
-      box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+    for(auto& thisBox : razorBoxes){
+      thisBox.second->Branch("run", &run, "run/i");
+      thisBox.second->Branch("lumi", &lumi, "lumi/i");
+      thisBox.second->Branch("event", &event, "event/i");
+      thisBox.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
+      thisBox.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
+      thisBox.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+      thisBox.second->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+      thisBox.second->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+      thisBox.second->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+      thisBox.second->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
+      thisBox.second->Branch("MR", &theMR, "MR/F");
+      thisBox.second->Branch("Rsq", &theRsq, "Rsq/F");
+      thisBox.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+      thisBox.second->Branch("MET", &MET, "MET/F");
+      thisBox.second->Branch("t1MET", &t1MET, "t1MET/F");
+      thisBox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
+      thisBox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+      thisBox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
       
-      box.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
-      box.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
-      box.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
-      box.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
-      box.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
-      box.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
-      box.second->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
-      box.second->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
-      box.second->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
-      box.second->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
-      box.second->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
-      box.second->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
-      box.second->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
+      thisBox.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
+      thisBox.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
+      thisBox.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+      thisBox.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
+      thisBox.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
+      thisBox.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
+      thisBox.second->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
+      thisBox.second->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
+      thisBox.second->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
+      thisBox.second->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
+      thisBox.second->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
+      thisBox.second->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
+      thisBox.second->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
       
-      box.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
-      box.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
-      box.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
-      box.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
-      box.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
-      box.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
-      box.second->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
-      box.second->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
-      box.second->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
-      box.second->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
-      box.second->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
-      box.second->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
-      box.second->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O");
+      thisBox.second->Branch("pho2E", &Pho_E[1], "pho2E/F");
+      thisBox.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
+      thisBox.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+      thisBox.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
+      thisBox.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
+      thisBox.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
+      thisBox.second->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
+      thisBox.second->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
+      thisBox.second->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
+      thisBox.second->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
+      thisBox.second->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
+      thisBox.second->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
+      thisBox.second->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O");
       
-      box.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
-      box.second->Branch("mbbH", &mbbH, "mbbH/F");
+      thisBox.second->Branch("mbbZ", &mbbZ, "mbbZ/F");
+      thisBox.second->Branch("mbbH", &mbbH, "mbbH/F");
       
-      box.second->Branch("n_Jets", &n_Jets, "n_Jets/I");
-      box.second->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
-      box.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
-      box.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
-      box.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+      thisBox.second->Branch("n_Jets", &n_Jets, "n_Jets/I");
+      thisBox.second->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
+      thisBox.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
+      thisBox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
+      thisBox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
     }
   }
   
@@ -334,7 +336,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     if ( _debug ) std::cout << "============" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
     
-    if(combineTrees) box = LowRes;
+    if(combineTrees) razorbox = LowRes;
     
     //TODO: triggers!
     bool passedDiphotonTrigger = true;
@@ -671,7 +673,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     if ( pTGammaGamma > 110.0 )
       {
 	if(combineTrees){
-	  box = HighPt;
+	  razorbox = HighPt;
 	  razorTree->Fill();
 	}
 	else razorBoxes["HighPt"]->Fill();
@@ -680,7 +682,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     else if ( mbbH > 110.0 && mbbH < 140.0 )
       {
 	if(combineTrees){
-	  box = Hbb;
+	  razorbox = Hbb;
 	  razorTree->Fill();
 	}
 	else razorBoxes["Hbb"]->Fill();
@@ -689,7 +691,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     else if( mbbZ > 76.0 && mbbZ < 106.0 )
       {
 	if(combineTrees){
-	  box = Zbb;
+	  razorbox = Zbb;
 	  razorTree->Fill();
 	}
 	else razorBoxes["Zbb"]->Fill();
@@ -698,7 +700,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 )
       {
 	if(combineTrees){
-	  box = HighRes;
+	  razorbox = HighRes;
 	  razorTree->Fill();
 	}
 	else razorBoxes["HighRes"]->Fill();
@@ -707,7 +709,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     else
       {
 	if(combineTrees){
-	  box = LowRes;
+	  razorbox = LowRes;
 	  razorTree->Fill();
 	}
 	else razorBoxes["LowRes"]->Fill();
