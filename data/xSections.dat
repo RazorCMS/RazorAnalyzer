@@ -12,7 +12,7 @@ QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15   1.064e+03
 QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15   121.5
 QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15    25.42
 
-#13 TeV Spring15 MC -- cross-sections from MCM
+#13 TeV Spring15 50ns MC -- cross-sections from MCM
 TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                   502.2
 WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8              60290
 ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1  38.09
