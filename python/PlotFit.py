@@ -8,7 +8,7 @@ import os
 import random
 import sys
 import math
-
+from scipy.integrate import quad
 
 def setStyle():
     rt.gStyle.SetOptStat(0)
@@ -139,6 +139,8 @@ def getPValueFromKDE(nObs,maxX,func):
         print "contribution from otherRoot to maxX =", func.Integral(otherRoot,maxX)
         pvalKDE += func.Integral(otherRoot,maxX)
     pvalKDE = pvalKDE/totalProb
+    if pvalKDE>1.:
+        pvalKDE = 1.
     # DRAWING FUNCTION AND FILLS
     ic = rt.TColor(1398, 0.75, 0.92, 0.68,"")
     func.SetLineColor(ic.GetColor(0.1, .85, 0.5))
@@ -174,42 +176,25 @@ def getPValueFromKDE(nObs,maxX,func):
 def find68ProbRange(hToy, probVal=0.6827):
     minVal = 0.
     maxVal = 100000.
-    if hToy.Integral()<=0: return hToy.GetBinCenter(hToy.GetMaximumBin()),max(minVal,0.),maxVal
-    # get the bin contents
-    probsList = []
-    for  i in range(1, hToy.GetNbinsX()+1):
-        probsList.append(hToy.GetBinContent(i)/hToy.Integral())
-    probsList.sort()
-    prob = 0
-    prob68 = 0
-    found = False
-    for i in range(0,len(probsList)):
-        if prob+probsList[i] >= 1-probVal and not found:
-            frac = (1-probVal-prob)/probsList[i]
-            prob68 = probsList[i-1]+frac*(probsList[i]-probsList[i-1])
-            found = True
-        prob = prob + probsList[i]
-
-    foundMin = False
-    foundMax = False
-    for  i in range(0, hToy.GetNbinsX()):
-        if not foundMin and hToy.GetBinContent(i+1) >= prob68:
-            fraction = (prob68-hToy.GetBinContent(i))/(hToy.GetBinContent(i+1)-hToy.GetBinContent(i))
-            minVal = hToy.GetBinLowEdge(i)+hToy.GetBinWidth(i)*fraction
-            foundMin = True
-        if not foundMax and hToy.GetBinContent(hToy.GetNbinsX()-i) >= prob68:
-            fraction = (prob68-hToy.GetBinContent(hToy.GetNbinsX()-i+1))/(hToy.GetBinContent(hToy.GetNbinsX()-i)-hToy.GetBinContent(hToy.GetNbinsX()-i+1))
-            maxVal = hToy.GetBinLowEdge(hToy.GetNbinsX()-i)+hToy.GetBinWidth(hToy.GetNbinsX()-i)*(1-fraction)
-            foundMax = True
-    return hToy.GetXaxis().GetBinLowEdge(hToy.GetMaximumBin()), max(minVal,0.),maxVal
+    mode = hToy.GetBinLowEdge(hToy.GetMaximumBin())
+    rms  = hToy.GetRMS()
+    if hToy.Integral()<=0: return mode,minVal,maxVal
+    minVal = mode-rms/2.
+    maxVal = mode+rms/2.
+    if minVal<0:
+        minValTemp = abs(minVal)
+        minVal = minVal+minValTemp #should evaluate to zero
+        maxVal = maxVal+minValTemp        
+    
+    return mode, minVal,maxVal
 
 def findMedian(myHisto):
     prob = 0
     median = 0
-    for i in range(1, myHisto.GetNbinsX()+1):
-        if prob <= 0.5 and prob+myHisto.GetBinContent(i) > 0.5:
-            median = myHisto.GetBinCenter(i)
-        prob = prob + myHisto.GetBinContent(i)
+    for iBin in range(1, myHisto.GetNbinsX()+1):
+        if prob <= 0.5 and prob+myHisto.GetBinContent(iBin) > 0.5:
+            median = myHisto.GetBinCenter(iBin)
+        prob = prob + myHisto.GetBinContent(iBin)
     return median
 
 def getPValue(n, hToy):
@@ -222,11 +207,9 @@ def getPValue(n, hToy):
     return Prob
 
 def getSigmaFromPval(n, bf, hToy, pVal):
-    #if hToy.GetMaximumBin() == hToy.FindBin(n): return 0.
     medianVal = findMedian(hToy)
-    coreProb = 1. - pVal
-    if n>bf: return rt.TMath.NormQuantile(0.5 + coreProb/2.)
-    else: return -rt.TMath.NormQuantile(0.5 + coreProb/2.)
+    if n>bf: return rt.TMath.NormQuantile(1 - pVal/2.)
+    else: return rt.TMath.NormQuantile( pVal/2. )
 
         
 def getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
@@ -283,17 +266,18 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     bestFit = eval(sumName.replace('b','myTree.b'))
     myTree.Draw('%s>>htest%s'%(sumName,sumName.replace('+','')))
     htemp = rt.gPad.GetPrimitive("htest%s"%sumName.replace('+',''))
-    xmax = max(htemp.GetXaxis().GetXmax(),nObs+1)
-    xmin = max(0,htemp.GetXaxis().GetXmin())
-
-    # make 20 bins
-    useKDE = xmax-xmin>20
+    xmax = int(max(htemp.GetXaxis().GetXmax()+1,nObs+1))
+    xmin = int(max(0,htemp.GetXaxis().GetXmin()))
+    mean = htemp.GetMean()
+    
+    # just make 20 bins if (xmax-xmin)>40 and mean>10 (because we're using KDE)
+    useKDE = ((xmax-xmin)>40) and (mean>10)
     if useKDE:
         if (xmax-xmin)%20:
             xmax = xmax + 20-(xmax-xmin)%20
         nbins=20
     else:
-        nbins = xmax-xmin
+        nbins = xmax-xmin    
 
     myTree.Draw('%s>>htemp%s(%i,%f,%f)'%(sumName,sumName.replace('+',''),nbins,xmin,xmax))
     htemp = rt.gPad.GetPrimitive("htemp%s"%sumName.replace('+',''))
@@ -304,10 +288,11 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     rms = htemp.GetRMS()
     func, rkpdf, dataset = getKDE(sumName,myTree,htemp)
     pvalue = getPValue(nObs,htemp)
-    useKDE = xmax-xmin>40
+    
     if useKDE:
         pvalue,funcFillRight,funcFillLeft,drawLeft = getPValueFromKDE(nObs,xmax,func)
         mode,rangeMin,rangeMax,probRange,funcFill68 = find68ProbRangeFromKDEMode(xmax,func)
+        range68 = (rangeMax-rangeMin)
     nsigma = getSigmaFromPval(nObs, bestFit, htemp, pvalue)
     #print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
 
@@ -319,10 +304,10 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
         htemp.SetMarkerColor(rt.kBlack)
         htemp.SetLineColor(rt.kBlack)
         tgraph = rt.TGraph(4)
-        tgraph.SetPoint(1, bestFit-range68/2,0)
-        tgraph.SetPoint(2, bestFit-range68/2,htemp.GetMaximum())
-        tgraph.SetPoint(3, bestFit+range68/2,htemp.GetMaximum())
-        tgraph.SetPoint(4, bestFit+range68/2,0)
+        tgraph.SetPoint(1, rangeMin,0)
+        tgraph.SetPoint(2, rangeMin,htemp.GetMaximum())
+        tgraph.SetPoint(3, rangeMax,htemp.GetMaximum())
+        tgraph.SetPoint(4, rangeMax,0)
         tgraph.SetFillColor(rt.kBlue-10)
         tgraph.SetLineColor(rt.kBlue-10)
         tline = rt.TLine(bestFit,0,bestFit,htemp.GetMaximum())
@@ -332,14 +317,14 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
         tlineObs.SetLineColor(rt.kBlack)
         tlineObs.SetLineWidth(2)
         htemp.Draw("pe")
-        # tgraph is rms width
-        #tgraph.Draw("fsame")
-        htemp.Draw("pesame")
         if useKDE:
             func.Draw("same")
             #funcFill68.Draw("fcsame")
             funcFillRight.Draw("fcsame")
             if drawLeft: funcFillLeft.Draw("fcsame")
+        else:
+            tgraph.Draw("fsame")
+            
         tline.Draw("same")
         tlineObs.Draw("same")
         htemp.Draw("pesame")
@@ -400,8 +385,14 @@ def setDataHist(h_data,xTitle,yTitle,color=rt.kBlack):
     h_data.GetXaxis().SetTitleOffset(0.8)
     h_data.GetYaxis().SetTitleOffset(0.7)
     h_data.GetXaxis().SetTicks("+-")
-    h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25)))
-    h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
+    if "h_Rsq_data_MR" in h_data.GetName():
+        h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),2)))
+    else:        
+        h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25)))
+    if "h_Rsq_data_MR" in h_data.GetName():
+        h_data.SetMinimum(1e-2)
+    else:        
+        h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -585,16 +576,19 @@ def print1DSlice(c,h_slices,h_data_slices,printName,xTitle,yTitle,lumiLabel="",b
     pad1.Draw()
 
     if tLeg==None:
-        if len(h_slices)>=7:
-            tLeg = rt.TLegend(0.7,0.3,0.9,0.8)
-        elif len(h_slices)==6:
-            tLeg = rt.TLegend(0.7,0.35,0.9,0.8)
-        elif len(h_slices)==5:
+        if len(h_slices)>=8:
+            tLeg = rt.TLegend(0.5,0.55,0.7,0.8)
+            tLeg2 = rt.TLegend(0.7,0.55,0.9,0.8)
+        elif len(h_slices)==7:
             tLeg = rt.TLegend(0.7,0.4,0.9,0.8)
-        elif len(h_slices)==4:
+        elif len(h_slices)==6:
+            tLeg = rt.TLegend(0.7,0.4,0.9,0.8)
+        elif len(h_slices)==5:
             tLeg = rt.TLegend(0.7,0.45,0.9,0.8)
+        elif len(h_slices)==4:
+            tLeg = rt.TLegend(0.7,0.55,0.9,0.8)
         elif len(h_slices)==3:
-            tLeg = rt.TLegend(0.7,0.5,0.9,0.8)
+            tLeg = rt.TLegend(0.7,0.55,0.9,0.8)
         elif len(h_slices)==2:
             tLeg = rt.TLegend(0.7,0.55,0.9,0.8)            
         else:
@@ -602,10 +596,22 @@ def print1DSlice(c,h_slices,h_data_slices,printName,xTitle,yTitle,lumiLabel="",b
         tLeg.SetFillColor(0)
         tLeg.SetTextFont(42)
         tLeg.SetLineColor(0)
-        for h, color, label in zip(h_slices, h_colors, h_labels):                
-            tLeg.AddEntry(h,label,"l")
+        if len(h_slices)>=8:
+            tLeg2.SetFillColor(0)
+            tLeg2.SetTextFont(42)
+            tLeg2.SetLineColor(0)
             
+        legendEntry = 0
+        for h, color, label in zip(h_slices, h_colors, h_labels):
+            legendEntry+=1     
+            if legendEntry>4 and len(h_slices)>=8:
+                tLeg2.AddEntry(h,label,"l")
+            else:            
+                tLeg.AddEntry(h,label,"l")
     tLeg.Draw("same")
+    
+    if len(h_slices)>=8:
+        tLeg2.Draw("same")
 
     l = rt.TLatex()
     l.SetTextAlign(11)
@@ -693,6 +699,47 @@ def getGrayLines(x,y):
         
     return xLines,yLines
 
+def dressFrenchFlag(hNS):    
+    fGrayGraphs = []
+    tlatexList = []
+    col1 = rt.gROOT.GetColor(rt.kGray+1)
+    col1.SetAlpha(0.3)
+    for iBinX in range(1,hNS.GetNbinsX()+1):
+        for iBinY in range(1,hNS.GetNbinsY()+1):
+            if hNS.GetBinContent(iBinX,iBinY)!= -999: continue
+            xBinLow = hNS.GetXaxis().GetBinLowEdge(iBinX)
+            xBinHigh = xBinLow+hNS.GetXaxis().GetBinWidth(iBinX)
+            yBinLow = hNS.GetYaxis().GetBinLowEdge(iBinY)
+            yBinHigh = yBinLow+hNS.GetYaxis().GetBinWidth(iBinY)
+            fGray = rt.TGraph(5)
+            fGray.SetPoint(0,xBinLow,yBinLow)
+            fGray.SetPoint(1,xBinLow,yBinHigh)
+            fGray.SetPoint(2,xBinHigh,yBinHigh)
+            fGray.SetPoint(3,xBinHigh,yBinLow)
+            fGray.SetPoint(4,xBinLow,yBinLow)
+            fGray.SetFillColor(rt.kGray+1)
+            fGrayGraphs.append(fGray)
+    for iBinX in range(1,hNS.GetNbinsX()+1):
+        for iBinY in range(1,hNS.GetNbinsY()+1):
+            binCont = hNS.GetBinContent(iBinX,iBinY)
+            if binCont == -999: continue
+            if abs(binCont)==0: continue
+            yBin = hNS.GetYaxis().GetBinLowEdge(iBinY) + .3*hNS.GetYaxis().GetBinWidth(iBinY) # bottom of TLatex 30% across the binwidth in X
+            if iBinX==1 and binCont>=0.:
+                xBin  = hNS.GetXaxis().GetBinLowEdge(iBinX) + .1*hNS.GetXaxis().GetBinWidth(iBinX)
+            elif iBinX==1 and binCont<0.:
+                xBin  = hNS.GetXaxis().GetBinLowEdge(iBinX) + .05*hNS.GetXaxis().GetBinWidth(iBinX) # left side of TLatex 10% across the binwidth in X
+            elif binCont>=0.:
+                xBin  = hNS.GetXaxis().GetBinLowEdge(iBinX) + .25*hNS.GetXaxis().GetBinWidth(iBinX)
+            elif binCont<0.:
+                xBin  = hNS.GetXaxis().GetBinLowEdge(iBinX) + .1*hNS.GetXaxis().GetBinWidth(iBinX) # left side of TLatex 10% across the binwidth in X
+
+            tlatex = rt.TLatex(xBin,yBin,"%2.1f"%binCont)
+            tlatex.SetTextSize(0.04)
+            tlatex.SetTextFont(42)
+            tlatexList.append(tlatex)
+    return fGrayGraphs, tlatexList
+
 def set2DCanvas(c):
     c.SetLeftMargin(0.15)
     c.SetBottomMargin(0.15)
@@ -728,24 +775,31 @@ def print2DScatter(c,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,x,y,zMi
     l.DrawLatex(0.2,0.85,boxLabel)
     
     c.Print(printName)
-    c.Print(os.path.splitext(printName)[0]+'.C')
-
+    c.Print(os.path.splitext(printName)[0]+'.C')    
+    c.SetLogy(0)
+    c.SetLogx(0)
+    c.Print(printName.replace('log','lin'))
+    c.Print(os.path.splitext(printName.replace('log','lin'))[0]+'.C')
     
-def print2DResiduals(c,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,x,y,drawOpt="colztext"):
+def print2DResiduals(c,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,x,y,drawOpt="colz"):
     
     c = set2DCanvas(c)
-    absMax = max(abs(h_resi.GetMinimum()),abs(h_resi.GetMaximum()))
-    
+    absMax = max(abs(h_resi.GetMinimum()),abs(h_resi.GetMaximum()))    
     h_resi = set2DHisto(h_resi,xTitle,yTitle,zTitle)
-    setFFColors(h_resi,-1.5*absMax,1.5*absMax)
+    
     if "nsigma" in h_resi.GetName():
-        setFFColors(h_resi,-5.1,5.1)        
+        setFFColors(h_resi,-5.1,5.1)
+    else:
+        setFFColors(h_resi,-1.5*absMax,1.5*absMax)
     h_resi.Draw(drawOpt)
     xLines, yLines = getGrayLines(x,y)
+
+    fGrayGraphs, tlatexList = dressFrenchFlag(h_resi)
     
     [xLine.Draw("l") for xLine in xLines]
     [yLine.Draw("l") for yLine in yLines]
-
+    [fGray.Draw("f") for fGray in fGrayGraphs]    
+    [tlatex.Draw() for tlatex in tlatexList]
     
     l = rt.TLatex()
     l.SetTextAlign(11)
@@ -759,6 +813,10 @@ def print2DResiduals(c,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,
     
     c.Print(printName)
     c.Print(os.path.splitext(printName)[0]+'.C')
+    c.SetLogy(0)
+    c.SetLogx(0)
+    c.Print(printName.replace('log','lin'))
+    c.Print(os.path.splitext(printName.replace('log','lin'))[0]+'.C')
         
 
 def get3DHistoFrom1D(h1D,x,y,z,name):   
@@ -779,35 +837,68 @@ def Gamma(a, x):
 def Gfun(x, y, X0, Y0, B, N):
     return Gamma(N,B*N*rt.TMath.Power((x-X0)*(y-Y0),1/N))
 
-def getBinEvents(i, j, k, x, y, z, workspace):
-    errorFlag = False
-    bkg = "TTj%ib"%z[k-1]
-    if z[k-1]==3:
-        bkgShape = "TTj2b"
-    else:
-        bkgShape = "TTj%ib"%z[k-1]
-        
-    B = workspace.var("b_%s_%s"%(bkgShape,box)).getVal()
-    N = workspace.var("n_%s_%s"%(bkgShape,box)).getVal()
-    X0 = workspace.var("MR0_%s_%s"%(bkgShape,box)).getVal()
-    Y0 = workspace.var("R0_%s_%s"%(bkgShape,box)).getVal()
-    NTOT = workspace.var("Ntot_%s_%s"%(bkg,box)).getVal()
+def integrand(Y,X0,Y0,Y1,Y2,B,N,xmin,xmax):
+    integral = ( (xmin-X0)*rt.TMath.Exp(B*N*rt.TMath.Power(xmax-X0,1/N)*rt.TMath.Power(Y-Y0,1/N)) - (xmax-X0)*rt.TMath.Exp(B*N*rt.TMath.Power(xmin-X0,1/N)*rt.TMath.Power(Y-Y0,1/N)) )*rt.TMath.Exp(-B*N*(rt.TMath.Power(xmin-X0,1/N)+rt.TMath.Power(xmax-X0,1/N))*rt.TMath.Power(Y-Y0,1/N))
+    suppress = 0.5*rt.TMath.Erfc((Y-Y1)/Y2)
+    
+    return integral*suppress
 
+def getBinEvents(i, j, k, x, y, z, workspace,box):
+    errorFlag = False
+    
+    bkg = "TTj%ib"%z[k-1]
+
+    pdfs = workspace.allPdfs()
+
+    B = -99999999
+    N = -99999999
+    X0 = -99999999
+    Y0 = -99999999
+    Y1 = -99999999
+    Y2 = -99999999
+    NTOT = -99999999
+    for pdf in rootTools.RootIterator.RootIterator(pdfs):
+        pdfParams = pdf.getParameters(workspace.data("obs_data"))        
+        for pdfParam in rootTools.RootIterator.RootIterator(pdfParams):
+            if bkg in pdf.GetName():
+                if "b_" in pdfParam.GetName():
+                    B = pdfParam.getVal()
+                if "n_" in pdfParam.GetName():
+                    N = pdfParam.getVal()
+                if "MR0_" in pdfParam.GetName():
+                    X0 = pdfParam.getVal()
+                if "R0_" in pdfParam.GetName():
+                    Y0 = pdfParam.getVal()
+                if "R1_" in pdfParam.GetName():
+                    Y1 = pdfParam.getVal()
+                if "R2_" in pdfParam.GetName():
+                    Y2 = pdfParam.getVal()
+            if "Ntot_%s"%bkg in pdfParam.GetName():
+                NTOT = pdfParam.getVal()
+    
     xmin  = x[0]
     xmax  = x[-1]
     ymin  = y[0]
     ymax  = y[-1]
-    total_integral = (N/rt.TMath.Power(B*N,N))*(Gfun(xmin,ymin,X0,Y0,B,N)-Gfun(xmin,ymax,X0,Y0,B,N)-Gfun(xmax,ymin,X0,Y0,B,N)+Gfun(xmax,ymax,X0,Y0,B,N))
-
+    if Y1>-99999999 and Y2>-99999999:
+        total_numerical_integral = quad(integrand, ymin, ymax, args=(X0,Y0,Y1,Y2,B,N,xmin,xmax))
+        total_integral = total_numerical_integral[0]
+    else:
+        total_integral = (N/rt.TMath.Power(B*N,N))*(Gfun(xmin,ymin,X0,Y0,B,N)-Gfun(xmin,ymax,X0,Y0,B,N)-Gfun(xmax,ymin,X0,Y0,B,N)+Gfun(xmax,ymax,X0,Y0,B,N))
+    
     xmin  = x[i-1]
     xmax  = x[i]
     ymin  = y[j-1]
     ymax  = y[j]
-    integral = (N/rt.TMath.Power(B*N,N))*(Gfun(xmin,ymin,X0,Y0,B,N)-Gfun(xmin,ymax,X0,Y0,B,N)-Gfun(xmax,ymin,X0,Y0,B,N)+Gfun(xmax,ymax,X0,Y0,B,N))
+    if Y1>-99999999 and Y2>-99999999:
+        numerical_integral = quad(integrand, ymin, ymax, args=(X0,Y0,Y1,Y2,B,N,xmin,xmax))
+        integral = numerical_integral[0]
+    else:
+        integral = (N/rt.TMath.Power(B*N,N))*(Gfun(xmin,ymin,X0,Y0,B,N)-Gfun(xmin,ymax,X0,Y0,B,N)-Gfun(xmax,ymin,X0,Y0,B,N)+Gfun(xmax,ymax,X0,Y0,B,N))
 
     bin_events =  NTOT*integral/total_integral
 
-    if bin_events <= 0:
+    if bin_events < 0:
         errorFlag = True
         print "\nERROR: bin razor pdf integral =", integral
         print "\nERROR: total razor pdf integral =", total_integral
@@ -827,13 +918,14 @@ def getErrors1D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
 
 def getNsigma2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
     binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
-    
     d = rt.TCanvas('d','d',500,400)
     for (i,j), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i,j)
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
         #h.SetBinContent(i,j,(nObs-bestFit)/rms)
         h.SetBinContent(i,j,nsigma)
+        if abs(nsigma)==0 and bestFit<1 and nObs==0:
+            h.SetBinContent(i,j,-999)
     return h
 
 
@@ -866,7 +958,9 @@ if __name__ == '__main__':
     if options.inputToyFile is not None:
         inputToyFile = rt.TFile.Open(options.inputToyFile,"read")
         toyTree = inputToyFile.Get("myTree")
-    
+
+    computeErrors = (toyTree is not None)
+    computeErrors = False
 
     w = inputFitFile.Get("w"+box)
         
@@ -907,7 +1001,7 @@ if __name__ == '__main__':
     for i in range(1,len(xFine)):
         for j in range(1,len(yFine)):
             for k in range(1,len(zFine)):
-                value, errorFlag= getBinEvents(i,j,k,xFine,yFine,zFine,w)
+                value, errorFlag= getBinEvents(i,j,k,xFine,yFine,zFine,w,box)
                 if not errorFlag:
                     h_nBtagRsqMR_fine.SetBinContent(i,j,k,value)
 
@@ -933,7 +1027,7 @@ if __name__ == '__main__':
     h_Rsq.SetName("h_Rsq")
 
 
-    if toyTree is not None:
+    if computeErrors:
         h_MR = getErrors1D(h_MR,h_data_MR,toyTree,options,"x",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
         h_Rsq = getErrors1D(h_Rsq,h_data_Rsq,toyTree,options,"y",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
 
@@ -948,6 +1042,9 @@ if __name__ == '__main__':
     h_MR_slice_components = []
     h_data_MR_slice_components = []
     h_MR_slice_component_labels = []
+    h_MR_integral_components = []
+    h_data_MR_integral_components = []
+    h_MR_integral_component_labels = []
     for j in range(1,len(y)):
         h_MR_slices.append(h_nBtagRsqMR.ProjectionX("h_MR_%.2fRsq%.2f"%(y[j-1],y[j]),j,j,0,-1,""))
         h_MR_integrals.append(h_nBtagRsqMR.ProjectionX("h_MR_Rsq%.2f"%(y[j-1]),j,len(y)-1,0,-1,""))
@@ -955,7 +1052,7 @@ if __name__ == '__main__':
         h_data_MR_integrals.append(h_data_nBtagRsqMR.ProjectionX("h_MR_data_Rsq%.2f"%(y[j-1]),j,len(y)-1,0,-1,""))
         h_MR_slice_labels.append("%.2f #leq R^{2} < %.2f"%(y[j-1],y[j]))
         h_MR_integral_labels.append("R^{2} #geq %.2f"%(y[j-1]))
-        if toyTree is not None:
+        if computeErrors:
             h_MR_slices[-1] = getErrors1D(h_MR_slices[-1],h_data_MR_slices[-1],toyTree,options,"x",0,len(x)-1,j,j,0,len(z)-1,x,y,z)
             h_MR_integrals[-1] = getErrors1D(h_MR_integrals[-1],h_data_MR_integrals[-1],toyTree,options,"x",0,len(x)-1,j,len(y)-1,0,len(z)-1,x,y,z)            
         if len(z)>1:
@@ -965,7 +1062,7 @@ if __name__ == '__main__':
             for k in range(1,len(z)):
                 h_MR_comp.append(h_nBtagRsqMR.ProjectionX("h_MR_%ibtag_%.2fRsq%.2f"%(z[k-1],y[j-1],y[j]),j,j,k,k,""))
                 h_data_MR_comp.append(h_data_nBtagRsqMR.ProjectionX("h_MR_data_%ibtag_%.2fRsq%.2f"%(z[k-1],y[j-1],y[j]),j,j,k,k,""))                
-                if toyTree is not None:
+                if computeErrors:
                     h_MR_comp[-1] = getErrors1D(h_MR_comp[-1],h_data_MR_comp[-1],toyTree,options,"x",0,len(x)-1,j,j,k,k,x,y,z)
                 if z[k-1]==3 and z[-1]==4:
                     h_label_comp.append("#geq %i b-tag, %.2f #leq R^{2} < %.2f " % (z[k-1],y[j-1],y[j]) )
@@ -989,6 +1086,9 @@ if __name__ == '__main__':
     h_Rsq_slice_components = []
     h_data_Rsq_slice_components = []
     h_Rsq_slice_component_labels = []
+    h_Rsq_integral_components = []
+    h_data_Rsq_integral_components = []
+    h_Rsq_integral_component_labels = []
     for i in range(1,len(x)):
         h_Rsq_slices.append(h_nBtagRsqMR.ProjectionY("h_Rsq_%iMR%i"%(x[i-1],x[i]),i,i,0,-1,""))
         h_Rsq_integrals.append(h_nBtagRsqMR.ProjectionY("h_Rsq_MR%i"%(x[i-1]),i,len(x)-1,0,-1,""))
@@ -997,7 +1097,7 @@ if __name__ == '__main__':
         h_Rsq_slice_labels.append("%i #leq M_{R} < %i"%(x[i-1],x[i]))
         h_Rsq_integral_labels.append("M_{R} #geq %i"%(x[i-1]))
         
-        if toyTree is not None:
+        if computeErrors:
             h_Rsq_slices[-1] = getErrors1D(h_Rsq_slices[-1],h_data_Rsq_slices[-1],toyTree,options,"y",i,i,0,len(y)-1,0,len(z)-1,x,y,z)
             h_Rsq_integrals[-1] = getErrors1D(h_Rsq_integrals[-1],h_data_Rsq_integrals[-1],toyTree,options,"y",i,i,0,len(y)-1,0,len(z)-1,x,y,z)
         if len(z)>1:
@@ -1007,7 +1107,7 @@ if __name__ == '__main__':
             for k in range(1,len(z)):
                 h_Rsq_comp.append(h_nBtagRsqMR.ProjectionY("h_Rsq_%ibtag_%iMR%i"%(z[k-1],x[i-1],x[i]),i,i,k,k,""))
                 h_data_Rsq_comp.append(h_data_nBtagRsqMR.ProjectionY("h_Rsq_data_%ibtag_%iMR%i"%(z[k-1],x[i-1],x[i]),i,i,k,k,""))                 
-                if toyTree is not None:
+                if computeErrors:
                     h_Rsq_comp[-1] = getErrors1D(h_Rsq_comp[-1],h_data_Rsq_comp[-1],toyTree,options,"y",i,i,0,len(y)-1,k,k,x,y,z)           
                 if z[k-1]==3 and z[-1]==4:
                     h_label_comp.append("#geq %i b-tag, %i #leq M_{R} < %i " % (z[k-1],x[i-1],x[i]) )
@@ -1022,8 +1122,12 @@ if __name__ == '__main__':
                         
     h_MR_components = []
     h_Rsq_components = []
+    h_RsqMR_components = []
+    h_RsqMR_fine_components = []
     h_data_MR_components = []
     h_data_Rsq_components = []
+    h_data_RsqMR_components = []
+    h_data_RsqMR_fine_components = []
     h_labels = []        
     h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
     if len(z)>1:
@@ -1032,8 +1136,19 @@ if __name__ == '__main__':
             h_Rsq_components.append(h_nBtagRsqMR.ProjectionY("h_Rsq_%ibtag"%z[k-1],0,-1,k,k,""))
             h_data_MR_components.append(h_data_nBtagRsqMR.ProjectionX("h_MR_data_%ibtag"%z[k-1],0,-1,k,k,""))
             h_data_Rsq_components.append(h_data_nBtagRsqMR.ProjectionY("h_Rsq_data_%ibtag"%z[k-1],0,-1,k,k,""))
+            h_data_Rsq_components.append(h_data_nBtagRsqMR.ProjectionY("h_Rsq_data_%ibtag"%z[k-1],0,-1,k,k,""))
             
-            if toyTree is not None:
+            h_nBtagRsqMR.GetZaxis().SetRange(k,k)
+            h_RsqMR_components.append(h_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
+            h_nBtagRsqMR_fine.GetZaxis().SetRange(k,k)
+            h_RsqMR_fine_components.append(h_nBtagRsqMR_fine.Project3D("%ibtag_yx"%z[k]))
+            
+            h_data_nBtagRsqMR.GetZaxis().SetRange(k,k)
+            h_data_RsqMR_components.append(h_data_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
+            h_data_nBtagRsqMR_fine.GetZaxis().SetRange(k,k)
+            h_data_RsqMR_fine_components.append(h_data_nBtagRsqMR_fine.Project3D("%ibtag_yx"%z[k]))
+            
+            if computeErrors:
                 h_MR_components[-1] = getErrors1D(h_MR_components[-1],h_data_MR_components[-1],toyTree,options,"x",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
                 h_Rsq_components[-1] = getErrors1D(h_Rsq_components[-1],h_data_Rsq_components[-1],toyTree,options,"y",0,len(x)-1,0,len(y)-1,k,k,x,y,z)  
             if z[k-1]==3 and z[-1]==4:
@@ -1066,12 +1181,13 @@ if __name__ == '__main__':
     newBoxLabel = "razor %s %s" % (box,btagLabel)
     more_colors = [rt.kBlack,rt.kBlue]
     more_colors.extend(h_colors)
+    more_colors.extend([rt.kMagenta,rt.kGray,rt.kCyan,rt.kYellow])
     print1DSlice(c,h_MR_integrals,h_data_MR_integrals,options.outDir+"/h_MR_slicesRsq_%s.pdf"%(box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,None,more_colors,h_MR_integral_labels)
     
     newBoxLabel = "razor %s %s" % (box,btagLabel)
     more_colors = [rt.kBlack,rt.kBlue]
     more_colors.extend(h_colors)
-    more_colors.extend([rt.kMagenta,rt.kGray])
+    more_colors.extend([rt.kMagenta,rt.kGray,rt.kCyan,rt.kYellow])
     print1DSlice(c,h_Rsq_integrals,h_data_Rsq_integrals,options.outDir+"/h_Rsq_slicesMR_%s.pdf"%(box),"R^{2}","Events",lumiLabel,newBoxLabel,None,more_colors,h_Rsq_integral_labels)
 
     h_RsqMR_residuals = h_data_RsqMR.Clone("h_RsqMR_residuals")
@@ -1080,46 +1196,80 @@ if __name__ == '__main__':
     h_RsqMR_percentdiff = h_data_RsqMR.Clone("h_RsqMR_percentdiff")
     h_RsqMR_percentdiff.Add(h_RsqMR,-1.)
     h_RsqMR_percentdiff.Divide(h_RsqMR)
-
     
     h_RsqMR_statnsigma = h_data_RsqMR.Clone("h_RsqMR_statnsigma")
-    h_RsqMR_statnsigma.Add(h_RsqMR,-1.)
     for i in range(1,h_RsqMR_statnsigma.GetNbinsX()+1):
         for j in range(1,h_RsqMR_statnsigma.GetNbinsY()+1):
             fit = h_RsqMR.GetBinContent(i,j)
             dat = h_data_RsqMR.GetBinContent(i,j)
-            h_RsqMR_statnsigma.SetBinContent(i,j,(fit-dat)/rt.TMath.Sqrt(fit))
+            h_RsqMR_statnsigma.SetBinContent(i,j,(dat-fit)/rt.TMath.Sqrt(fit))
     
     h_RsqMR_nsigma = h_RsqMR_statnsigma.Clone("h_RsqMR_nsigma")
-    if toyTree is not None:
+    if computeErrors:
         h_RsqMR_nsigma = getNsigma2D(h_RsqMR_nsigma,h_data_RsqMR,toyTree,options,"yx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
-    
-    print2DResiduals(c,h_RsqMR_residuals,options.outDir+"/h_RsqMR_residuals_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Residuals (Sim. Data - Fit)",lumiLabel,boxLabel,x,y)
-    print2DResiduals(c,h_RsqMR_percentdiff,options.outDir+"/h_RsqMR_percentdiff_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (Sim. Data - Fit)/Fit",lumiLabel,boxLabel,x,y)
-    print2DResiduals(c,h_RsqMR_statnsigma,options.outDir+"/h_RsqMR_statnsigma_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (Sim. Data - Fit)/sqrt(Fit)",lumiLabel,boxLabel,x,y)
-    print2DResiduals(c,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,x,y)
-    print2DScatter(c,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum())
-    print2DScatter(c,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum())
 
-    sys.exit()
+    h_RsqMR_nsigma_components = []
+    h_RsqMR_statnsigma_components = []
+    h_RsqMR_percentdiff_components = []
+    h_RsqMR_residuals_components = []
+    if len(z)>1:
+        for k in range(1,len(z)):
+            h_RsqMR_nsigma_btag = h_RsqMR_nsigma.Clone("h_RsqMR_nsigma_%ibtag"%z[k-1])
+            if computeErrors:
+                h_RsqMR_nsigma_components.append(getNsigma2D(h_RsqMR_nsigma_btag,h_data_RsqMR_components[k-1],toyTree,options,"yx",0,len(x)-1,0,len(y)-1,k,k,x,y,z))
+            h_RsqMR_statnsigma_btag = h_RsqMR_statnsigma.Clone("h_RsqMR_statnsigma_%ibtag"%z[k-1])
+            for i in range(1,h_RsqMR_statnsigma_btag.GetNbinsX()+1):
+                for j in range(1,h_RsqMR_statnsigma_btag.GetNbinsY()+1):
+                    fit = h_RsqMR_components[k-1].GetBinContent(i,j)
+                    dat = h_data_RsqMR_components[k-1].GetBinContent(i,j)
+                    h_RsqMR_statnsigma_btag.SetBinContent(i,j,(dat-fit)/rt.TMath.Sqrt(fit))                    
+            h_RsqMR_statnsigma_components.append(h_RsqMR_statnsigma_btag)
+            h_RsqMR_percentdiff_btag = h_data_RsqMR_components[k-1].Clone("h_RsqMR_percentdiff_%ibtag"%z[k-1])
+            h_RsqMR_percentdiff_btag.Add(h_RsqMR_components[k-1],-1.)
+            h_RsqMR_percentdiff_btag.Divide(h_RsqMR_components[k-1])                  
+            h_RsqMR_percentdiff_components.append(h_RsqMR_percentdiff_btag)
+            
+            h_RsqMR_residuals_btag = h_data_RsqMR_components[k-1].Clone("h_RsqMR_residuals_%ibtag"%z[k-1])
+            h_RsqMR_residuals_btag.Add(h_RsqMR_components[k-1],-1.)
+            h_RsqMR_residuals_components.append(h_RsqMR_residuals_btag)
+
+    
+    
+    print2DResiduals(c,h_RsqMR_residuals,options.outDir+"/h_RsqMR_residuals_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Residuals (Sim. Data - Fit)",lumiLabel,boxLabel,x,y)
+    print2DResiduals(c,h_RsqMR_percentdiff,options.outDir+"/h_RsqMR_percentdiff_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (Sim. Data - Fit)/Fit",lumiLabel,boxLabel,x,y)
+    print2DResiduals(c,h_RsqMR_statnsigma,options.outDir+"/h_RsqMR_statnsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (Sim. Data - Fit)/sqrt(Fit)",lumiLabel,boxLabel,x,y)
+    if computeErrors:
+        print2DResiduals(c,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,x,y)
+    print2DScatter(c,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum())
+    print2DScatter(c,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum())
+
+    
     for k in range(0,len(z)-1):
         newBoxLabel = "razor %s %s"%(box,h_labels[k])
         print1DProj(c,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel)
         print1DProj(c,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}","Events",lumiLabel,newBoxLabel)
+        if computeErrors:
+            print2DResiduals(c,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,x,y)   
+        print2DResiduals(c,h_RsqMR_residuals_components[k],options.outDir+"/h_RsqMR_residuals_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Residuals (Sim. Data - Fit)",lumiLabel,newBoxLabel,x,y)
+        print2DResiduals(c,h_RsqMR_percentdiff_components[k],options.outDir+"/h_RsqMR_percentdiff_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (Sim. Data - Fit)/Fit",lumiLabel,newBoxLabel,x,y)
+        print2DResiduals(c,h_RsqMR_statnsigma_components[k],options.outDir+"/h_RsqMR_statnsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (Sim. Data - Fit)/sqrt(Fit)",lumiLabel,newBoxLabel,x,y)
+        print2DScatter(c,h_RsqMR_fine_components[k],options.outDir+"/h_RsqMR_scatter_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,x,y,h_data_RsqMR_fine_components[k].GetMinimum(),h_data_RsqMR_fine_components[k].GetMaximum())
+        print2DScatter(c,h_data_RsqMR_fine_components[k],options.outDir+"/h_RsqMR_scatter_data_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,newBoxLabel,x,y,h_data_RsqMR_fine_components[k].GetMinimum(),h_data_RsqMR_fine_components[k].GetMaximum())
+
 
         
-    for j in range(0,len(y)-1):
-        newBoxLabel = "razor %s %s"%(box,h_MR_slice_labels[j])
-        print1DProj(c,h_MR_slices[j],h_data_MR_slices[j],options.outDir+"/h_MR_%.2fRsq%.2f_%s.pdf"%(y[j],y[j+1],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,None,h_MR_slice_components[j],h_colors,h_labels)
-        for k in range(0,len(z)-1):
-            newBoxLabel = "razor %s %s"%(box,h_MR_slice_component_labels[j][k])
-            print1DProj(c,h_MR_slice_components[j][k],h_data_MR_slice_components[j][k],options.outDir+"/h_MR_%ibtag_%.2fRsq%.2f_%s.pdf"%(z[k],y[j],y[j+1],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel)
-        
-    for i in range(0,len(x)-1):
-        newBoxLabel = "razor %s %s"%(box,h_Rsq_slice_labels[i])
-        print1DProj(c,h_Rsq_slices[i],h_data_Rsq_slices[i],options.outDir+"/h_Rsq_%iMR%i_%s.pdf"%(x[i],x[i+1],box),"R^{2}","Events",lumiLabel,newBoxLabel,None,h_Rsq_slice_components[i],h_colors,h_labels)
-        for k in range(0,len(z)-1):
-            newBoxLabel = "razor %s %s"%(box,h_Rsq_slice_component_labels[i][k])
-            print1DProj(c,h_Rsq_slice_components[i][k],h_data_Rsq_slice_components[i][k],options.outDir+"/h_Rsq_%ibtag_%iMR%i_%s.pdf"%(z[k],x[i],x[i+1],box),"R^{2}","Events",lumiLabel,newBoxLabel)
+    #for j in range(0,len(y)-1):
+    #    newBoxLabel = "razor %s %s"%(box,h_MR_slice_labels[j])
+    #    print1DProj(c,h_MR_slices[j],h_data_MR_slices[j],options.outDir+"/h_MR_%.2fRsq%.2f_%s.pdf"%(y[j],y[j+1],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,None,h_MR_slice_components[j],h_colors,h_labels)
+    #    for k in range(0,len(z)-1):
+    #        newBoxLabel = "razor %s %s"%(box,h_MR_slice_component_labels[j][k])
+    #        print1DProj(c,h_MR_slice_components[j][k],h_data_MR_slice_components[j][k],options.outDir+"/h_MR_%ibtag_%.2fRsq%.2f_%s.pdf"%(z[k],y[j],y[j+1],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel)
+    #    
+    #for i in range(0,len(x)-1):
+    #    newBoxLabel = "razor %s %s"%(box,h_Rsq_slice_labels[i])
+    #    print1DProj(c,h_Rsq_slices[i],h_data_Rsq_slices[i],options.outDir+"/h_Rsq_%iMR%i_%s.pdf"%(x[i],x[i+1],box),"R^{2}","Events",lumiLabel,newBoxLabel,None,h_Rsq_slice_components[i],h_colors,h_labels)
+    #    for k in range(0,len(z)-1):
+    #        newBoxLabel = "razor %s %s"%(box,h_Rsq_slice_component_labels[i][k])
+    #        print1DProj(c,h_Rsq_slice_components[i][k],h_data_Rsq_slice_components[i][k],options.outDir+"/h_Rsq_%ibtag_%iMR%i_%s.pdf"%(z[k],x[i],x[i+1],box),"R^{2}","Events",lumiLabel,newBoxLabel)
 
             

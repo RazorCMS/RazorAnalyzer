@@ -3,25 +3,10 @@ import ROOT as rt
 import rootTools
 from framework import Config
 from array import *
+from DustinTuple2RooDataSet import initializeWorkspace
 
 seed = 1988
 
-def initializeWorkspace(w,cfg):
-    variables = cfg.getVariablesRange(box,"variables",w)
-    parameters = cfg.getVariables(box, "parameters")
-    paramNames = []
-    for parameter in parameters:
-        w.factory(parameter)
-        paramName = parameter.split('[')[0]
-        if paramName.find("Cut")==-1 and paramName.find("Ntot")==-1:
-            paramNames.append(paramName)
-            w.var(paramName).setConstant(False)
-        else:
-            if paramName.find("Ntot")==-1:
-                w.var(paramName).setConstant(True)
-            else:
-                w.var(paramName).setConstant(False)
-                
 def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     """Get the cocktail dataset from the file"""
     row = data.get()
@@ -168,7 +153,7 @@ if __name__ == '__main__':
     
     w = rt.RooWorkspace("w"+box)
 
-    initializeWorkspace(w,cfg)
+    initializeWorkspace(w,cfg,box)
     
     ds = []
     for f in args:

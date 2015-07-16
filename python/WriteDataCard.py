@@ -5,6 +5,8 @@ from framework import Config
 from array import *
 import os
 import sys
+from itertools import *
+from operator import *
 
 seed = 1988
 
@@ -34,24 +36,41 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
         
         # turn off shape parameters if no events in b-tag bin:
         for i in [0, 1, 2, 3]:
-            if "Ntot_TTj%ib"%i in paramName:
+            if "Ntot" in paramName and "%ib"%i in paramName:
                 w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag==%i"%i) ))
                 if not w.var(paramName).getVal():
-                    fixPars(w,"TTj%ib"%i)    
+                    fixPars(w,"%ib"%i)    
     if x is None or y is None or z is None:
         x = array('d', cfg.getBinning(box)[0]) # MR binning
         y = array('d', cfg.getBinning(box)[1]) # Rsq binning
         z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    
+
     w.factory('th1x[0,0,%i]'%nBins)
     w.var('th1x').setBins(nBins)
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
-    
+
+    iBinX = -1
+    sidebandBins = []
     for ix in range(1,len(x)):
         for iy in range(1,len(y)):
             for iz in range(1,len(z)):
+                iBinX+=1
                 emptyHist3D.SetBinContent(ix,iy,iz,1.)
+                w.var('MR').setVal(emptyHist3D.GetXaxis().GetBinCenter(ix))
+                w.var('Rsq').setVal(emptyHist3D.GetYaxis().GetBinCenter(iy))
+                w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz))
+                inSideband = ( w.var('MR').inRange('LowMR') * w.var('Rsq').inRange('LowMR') * w.var('nBtag').inRange('LowMR') )
+                inSideband += ( w.var('MR').inRange('LowRsq') * w.var('Rsq').inRange('LowRsq') * w.var('nBtag').inRange('LowRsq') )
+                if inSideband: sidebandBins.append(iBinX)
+                    
+    sidebandGroups = []
+    for k, g in groupby(enumerate(sidebandBins), lambda (i,x):i-x):
+        consecutiveBins = map(itemgetter(1), g)
+        sidebandGroups.append([consecutiveBins[0],consecutiveBins[-1]+1])
+
+    #for iSideband, sidebandGroup in enumerate(sidebandGroups):
+    #    w.var("th1x").setRange("sideband%i"%iSideband,sidebandGroup[0],sidebandGroup[1])        
 
     w.Print('v')
     commands = cfg.getVariables(box, "combine_pdfs")
@@ -75,7 +94,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
                 pdf.setTH3Binning(emptyHist3D)
             rootTools.Utils.importToWS(w,pdf)
             bkg = name.split("_")
-            bkg.remove(box)
+            if box in bkg: bkg.remove(box)
             bkgs.append("_".join(bkg))
     return paramNames, bkgs
 
