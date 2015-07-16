@@ -35,22 +35,12 @@ dPhiCut = 2.7
 
 MTCut = -1
 
-def initializeWorkspace(w,cfg):
+def initializeWorkspace(w,cfg,box):
     variables = cfg.getVariablesRange(box,"variables",w)
-    parameters = cfg.getVariables(box, "parameters")
-    paramNames = []
-    for parameter in parameters:
-        w.factory(parameter)
-        paramName = parameter.split('[')[0]
-        if paramName.find("Cut")==-1 and paramName.find("Ntot")==-1:
-            paramNames.append(paramName)
-            w.var(paramName).setConstant(False)
-        else:
-            if paramName.find("Ntot")==-1:
-                w.var(paramName).setConstant(True)
-            else:
-                w.var(paramName).setConstant(False)
-
+    
+    w.factory('W[1.,0.,+INF]')
+    w.set('variables').add(w.var('W'))
+    return w
 
 def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     if f.find('SMS')!=-1:
@@ -213,11 +203,9 @@ if __name__ == '__main__':
     
     w = rt.RooWorkspace("w"+box)
 
-    initializeWorkspace(w,cfg)
+    variables = initializeWorkspace(w,cfg,box)
     
     
-    w.factory('W[1.,0.,+INF]')
-    w.set('variables').add(w.var('W'))
     
     ds = []
 
