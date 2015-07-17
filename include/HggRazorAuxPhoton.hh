@@ -30,11 +30,26 @@ constexpr float EE_PFnHadIsoConst    = 2.9;
 constexpr float EE_PFnHadIsoSlope    = 0.04;
 
 float EB_GetPFchHadIsoCut( );
+float EB_GetPFchHadIsoCut_VL( );
+float EB_GetPFchHadIsoCut_M( );
+
 float EB_GetPFnHadIsoCut( float pt );
+float EB_GetPFnHadIsoCut_VL( float pt );
+float EB_GetPFnHadIsoCut_M( float pt );
+
 float EB_GetPFphoIsoCut( float pt );
+float EB_GetPFphoIsoCut_VL( float pt );
+float EB_GetPFphoIsoCut_M( float pt );
 
 float EE_GetPFchHadIsoCut( );
+float EE_GetPFchHadIsoCut_VL( );
+float EE_GetPFchHadIsoCut_M( );
+
 float EE_GetPFnHadIsoCut( float pt );
+float EE_GetPFnHadIsoCut_VL( float pt );
+float EE_GetPFnHadIsoCut_M( float pt );
+
+float EE_GetPFphoIsoCut_M( float pt );
 
 //------------------------------------------------------
 // R u n 2   P h o t o n   I D   f o r   H g g R a z o r
@@ -54,7 +69,7 @@ void InitEffArea();
 
 // P h o t o n   I D   W o r k i n g   P o in t s
 // ----------------------------------------------
-enum class WP { Loose, Medium, Tight };
+enum class WP { VeryLoose, Loose, Medium, Tight };
 //EB
 constexpr float HoverE_EB[] = { 0.0280, 0.0120, 0.0100 };
 constexpr float SigmaIetaIeta_EB[] = { 0.01070, 0.0100, 0.0100 };

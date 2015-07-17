@@ -80,7 +80,6 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     combine Trees
   */
   combineTrees = false;
-  
 
   /*
     This is to debug and sync with Alex's events
@@ -170,7 +169,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     
     razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
     razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
-    razorTree->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
+    razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
     razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
     razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
     razorTree->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
@@ -184,7 +183,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
     
     razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
     razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
-    razorTree->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
+    razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
     razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
     razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
     razorTree->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
@@ -328,11 +327,11 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
       }
     
     /*
-    std::stringstream ss;
-    ss << run << event;
-    if ( mymap.find( ss.str() ) == mymap.end() )continue;
-    //if ( !( run == 206859 && event == 24345 ) ) continue;
-    */
+      std::stringstream ss;
+      ss << run << event;
+      if ( mymap.find( ss.str() ) == mymap.end() )continue;
+      //if ( !( run == 206859 && event == 24345 ) ) continue;
+      */
     if ( _debug ) std::cout << "============" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
     
@@ -397,7 +396,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
       vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
       
       if ( phoPt[i] < 24.0 )
-      //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
+	//if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
 	{
 	  if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
 	  continue;
@@ -581,7 +580,7 @@ void RazorAnalyzer::HggRazorRun2(string outFileName, bool combineTrees)
       if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
       //int level = 2; //loose jet ID
-      //if ( !jetPassIDLoose[i] ) continue;
+      if ( !jetPassIDLoose[i] ) continue;
       //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
       //exclude selected photons from the jet collection

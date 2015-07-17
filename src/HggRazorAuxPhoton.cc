@@ -9,11 +9,26 @@
 // float effArea[3][7];
 
 float EB_GetPFchHadIsoCut( ){ return EB_PFchHadIsoCut; };
+float EB_GetPFchHadIsoCut_VL( ){ return 2.0*EB_PFchHadIsoCut; };
+float EB_GetPFchHadIsoCut_M( ){ return 1.5; };
+
 float EB_GetPFnHadIsoCut( float pt ){ return (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFnHadIsoCut_VL( float pt ){ return (2.*EB_PFphoIsoConst + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFnHadIsoCut_M( float pt ){ return (1.0 + EB_PFnHadIsoSlope*pt); };
+
 float EB_GetPFphoIsoCut( float pt ){ return (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
+float EB_GetPFphoIsoCut_VL( float pt ){ return (2.*EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
+float EB_GetPFphoIsoCut_M( float pt ){ return (0.7 + EB_PFphoIsoSlope*pt); };
 
 float EE_GetPFchHadIsoCut( ){ return EE_PFchHadIsoCut; };
+float EE_GetPFchHadIsoCut_VL( ){ return 2*EE_PFchHadIsoCut; };
+float EE_GetPFchHadIsoCut_M( ){ return 1.2; };
+
 float EE_GetPFnHadIsoCut( float pt ){ return (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
+float EE_GetPFnHadIsoCut_VL( float pt ){ return (2.*EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
+float EE_GetPFnHadIsoCut_M( float pt ){ return (1.5 + EE_PFnHadIsoSlope*pt); };
+
+float EE_GetPFphoIsoCut_M( float pt ){ return (1.0 + 0.005*pt); };
 
 // I s o l a t i o n s
 //--------------------
