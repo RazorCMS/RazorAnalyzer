@@ -88,7 +88,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   /*
     combine Trees has preference, if you either want the 5 categories trees or the "simple" 2 categories trees set it to false
   */
+  
   combineTrees = false;
+  //combineTrees = true; 
   bool simpleBoxes = false;
   
 
@@ -155,6 +157,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   int jetIndexHem1[10], jetIndexHem2[10];
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, etaGammaGamma, phiGammaGamma;
+  float mggRes;
   float mGammaGammaCorr, pTGammaGammaCorr;
   float evtMass, evtMT, evtMTEnergy, evtDphi;
   float mbbZ, mbbH;
@@ -201,6 +204,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("MT2", &MT2, "MT2/F");
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+    razorTree->Branch("mggRes", &mggRes, "mggRes");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
     razorTree->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
     razorTree->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
@@ -301,6 +305,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       box.second->Branch("MT2", &MT2, "MT2/F");
       box.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       box.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+      box.second->Branch("mggRes", &mggRes, "mggRes");
       box.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
       box.second->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
       box.second->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
@@ -404,6 +409,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  simplebox.second->Branch("MT2", &MT2, "MT2/F");
 	  simplebox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
 	  simplebox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+	  simplebox.second->Branch("mggRes", &mggRes, "mggRes");
 	  simplebox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
 	  simplebox.second->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
 	  simplebox.second->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
@@ -516,6 +522,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     MT2       = -1;
     nSelectedPhotons = 0;
     mGammaGamma      = -1;
+    mggRes           = -1;
     pTGammaGamma     = -1;
     mGammaGammaCorr  = -1;
     pTGammaGammaCorr = -1;
@@ -823,6 +830,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	  }
 	continue;
       }
+
+    mggRes = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
     //record higgs candidate info
     mGammaGamma = HiggsCandidate.M();
     pTGammaGamma = HiggsCandidate.Pt();
