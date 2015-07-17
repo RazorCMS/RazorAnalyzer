@@ -40,6 +40,26 @@ int RazorAnalyzer::findClosestGenMuon(double eta, double phi) {
   return matchedIndex;
 };
 
+//Finds closest gen jet and returns index to gParticle
+int RazorAnalyzer::findClosestGenJet(double eta, double phi) {
+  int matchedIndex = -1;
+  float minDR = 999.0;
+  for(int j = 0; j < nGenJets; j++){
+    //    if (gParticleStatus[j] != 1) continue;
+    //if (abs(gParticleId[j]) != 13) continue;
+
+    if ( deltaR(eta, phi, genJetEta[j], genJetPhi[j]) < 0.3
+         && deltaR(eta, phi, genJetEta[j], genJetPhi[j]) < minDR
+         ) {
+      matchedIndex = j;
+      minDR = deltaR( eta, phi, genJetEta[j], genJetPhi[j]);
+    }
+
+  }
+
+  return matchedIndex;
+};
+
 
 
 //Checks if the gParticle is a tau and that comes from a W or a Z

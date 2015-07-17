@@ -2,6 +2,24 @@
 ## Cross section in pb for datasets
 ##
 
+
+#13 TeV Spring 15 MC
+QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15     1.74e+06
+QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15     3.67e+05
+QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15     2.94e+04
+QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15    6.524e+03 
+QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15   1.064e+03
+QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15   121.5
+QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15    25.42
+
+#13 TeV Spring15 50ns MC -- cross-sections from MCM
+TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                   502.2
+WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8              60290
+ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1  38.09
+ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1      38.09
+ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1 80.95
+ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1     103.02
+
 #13 TeV SM backgrounds -- LO cross sections from MCM
 TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola         424.5
 QCD_Pt-5to10_Tune4C_13TeV_pythia8                               80710000000

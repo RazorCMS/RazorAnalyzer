@@ -46,21 +46,19 @@ if __name__ == '__main__':
     
     z = array('d', cfg.getBinning(box.split('_')[0])[2]) # nBtag binning
     btagMin = z[0]
-    btagMax = z[-2]        
-    if btagMax>btagMin:          
-        btag = '%i-%ibtag'%(btagMin,btagMax)
+    btagMax = z[-1]        
+    if btagMax-1>btagMin:          
+        btag = '%i-%ibtag'%(btagMin,btagMax-1)
     else:
         btag = '%ibtag'%(btagMin)    
 
     btagLabel = ""
-    if z[-1] == z[0]+1 and z[-1]==4:
+    if z[-1]==4:
         btagLabel = "#geq %i b-tag" % z[0]
     elif z[-1] == z[0]+1:
         btagLabel = "%i b-tag" % z[0]
-    elif z[-1]==4:
-        btagLabel = "#geq %i b-tag" % z[0]
     else:
-        btagLabel = "%i-%i b-tag" % (z[0],z[-2])
+        btagLabel = "%i-%i b-tag" % (z[0],z[-1]-1)
         
     thyXsec = -1
     thyXsecErr = -1
@@ -233,10 +231,13 @@ if __name__ == '__main__':
         l.DrawLatex(0.15,0.77,"razor %s"%'+'.join(boxes[0:2]))
         for i in range(2,len(boxes)-1):
             l.DrawLatex(0.15,0.84-0.07*i,"+%s"%boxes[i])
-        l.DrawLatex(0.15,0.84-0.07*(len(boxes)-1),"+%s, %s"%(boxes[-1],btagLabel))
+        if len(boxes)>2:
+            l.DrawLatex(0.15,0.84-0.07*(len(boxes)-1),"+%s, %s"%(boxes[-1],btagLabel))
+        else:            
+            l.DrawLatex(0.15,0.84-0.07*2,"%s"%(btagLabel))
             
     else:
-        l.DrawLatex(0.15,0.77,"razor %s box"%boxes[0])
+        l.DrawLatex(0.15,0.77,"razor %s box, %s"%(boxes[0],btagLabel))
     l.SetTextFont(42)
     if model=="T1bbbb":
         l.DrawLatex(0.52,0.84,"pp #rightarrow #tilde{g}#tilde{g},  #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")

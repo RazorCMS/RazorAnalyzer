@@ -127,10 +127,13 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  }
 	  muTree->fDRToClosestParton = minDRToParton;
 
+	  if (closestPartonIndex > 0 || closestPartonIndex <= 0) {
 	  // if (minDRToParton < 0.4) {
 	  //   printDecay = true;
 	  //   cout << "Muon Close to Parton : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " --> " << gParticleId[closestPartonIndex] << " " << gParticlePt[closestPartonIndex] << " " << gParticleEta[closestPartonIndex] << " " << gParticlePhi[closestPartonIndex] << "\n";
 	  // }
+	  }
+
 	  //***********************
 	  //Fill Muon
 	  //***********************
