@@ -57,27 +57,33 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
     ControlSampleEvents *events = new ControlSampleEvents;
     
-    if (option == 1)
+    //**********************************************
+    //Options
+    //tens and ones digits refer to tree type.  
+    //1: Single-Lepton
+    //2: Single-Lepton Add To MET
+    //3: Dilepton
+    //4: Dilepton Add To MET
+    //5: Photon Add To MET
+    //hundreds digit refers to lepton skim option
+    //0: no skim
+    //1: 1 lepton skim
+    //2: 2 lepton skim
+    //5: photon skim
+    //thousand digit refers to razor skim option
+    //0: no skim
+    //1: razor skim MR > 300 Rsq > 0.15
+    //*********************************************
+
+    if (option == 1 || option == 101 || option == 1101)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
-    else if (option == 101)
-      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
-    else if (option == 201)
-      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
-    else if (option == 2)
+    else if (option == 2 || option == 102 || option == 1102)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
-    else if (option == 102)
-      events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
-    else if (option == 3)
+    else if (option == 3 || option == 203 || option == 1203)
       events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
-    else if (option == 103)
-      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
-    else if (option == 4)
+    else if (option == 4 || option == 204 || option == 1204)
       events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Full);
-    else if (option == 104)
-      events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Full);
-    else if (option == 5)
-      events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
-    else if (option == 105)
+    else if (option == 5 || option == 505 || option == 1505 )
       events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
     else if (option == 6)
       events->CreateTree(ControlSampleEvents::kTreeType_ZeroLepton_Full);
@@ -1200,11 +1206,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	////////////////////////////////////
 	//skim events
 	bool passSkim = false;
-	if (option == -1) passSkim = true;
-
-
+	if (option < 100) passSkim = true;
+       
 	// Dilepton skim
-	if (option == 103) { 
+	if (option == 203) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
 	       && events->lep1PassLoose && events->lep2PassLoose
@@ -1219,7 +1224,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
 	//single tight lepton plus razor skim
-	if (option == 102) { 
+	if (option == 1101) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && events->lep1PassTight
 	       && events->lep1.Pt() > 30
@@ -1230,12 +1235,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
 	//Razor skim
-	if (option == 100) { 
+	if (option == 1000) { 
 	  if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
 	}
 
 	//Single lepton skim for 1L CR with adding lepton to MET
-	if(option == 102) // kTreeType_OneLeptonAdd2MET_Reduced
+	if(option == 1102) // kTreeType_OneLeptonAdd2MET_Reduced
 	  {
 	    passSkim = true;
             if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
@@ -1246,7 +1251,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 
 	//Dilepton skim with adding leptons to MET
-	if(option == 104) 
+	if(option == 1204) 
 	  {
 	    passSkim = true;
             if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
@@ -1256,7 +1261,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
 
 	//Photon+Jet Skim
-	if(option == 105) // kTreeType_Photon_Reduced
+	if(option == 5) // kTreeType_Photon_Reduced
 	  {
 	    passSkim = true;	    
             if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
@@ -1266,7 +1271,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	//fill event 
 	if (passSkim) {
-	  cout<<"Filling the tree... " <<endl;
+	  if (printSyncDebug) cout<<"Filling the tree... " <<endl;
 	  events->tree_->Fill();
 	}
 
