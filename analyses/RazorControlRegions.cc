@@ -65,6 +65,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //3: Dilepton
     //4: Dilepton Add To MET
     //5: Photon Add To MET
+    //11: Single-Lepton Reduced
     //hundreds digit refers to lepton skim option
     //0: no skim
     //1: 1 lepton skim
@@ -77,6 +78,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
     if (option == 1 || option == 101 || option == 1101)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
+    else if (option == 11 || option == 111 || option == 1111)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Reduced);
     else if (option == 2 || option == 102 || option == 1102)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
     else if (option == 3 || option == 203 || option == 1203)
@@ -1216,10 +1219,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	       && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
 	}
 
-	//single tight lepton skim
-	if (option == 101) { 
+	//single lepton skim
+	if (option == 101 || option == 111) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
-	       && events->lep1PassTight
+	       //&& events->lep1PassTight
 	       && events->lep1.Pt() > 30) passSkim = true;
 	}
 

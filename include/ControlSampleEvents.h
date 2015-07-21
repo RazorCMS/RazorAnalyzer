@@ -418,6 +418,7 @@ class ControlSampleEvents {
       tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("MET",&MET,"MET/F");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
     }
   
     if (treeType == kTreeType_OneLepton_Full) {
