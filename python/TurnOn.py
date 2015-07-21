@@ -13,10 +13,16 @@ import csv
 
 def setStyle():
     rt.gStyle.SetOptStat(0)
+    rt.gStyle.SetOptFit(0000)
     rt.gStyle.SetOptTitle(0)
     rt.gStyle.SetPaintTextFormat("1.2g")
     rt.gROOT.SetBatch()
     rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
+    
+    rt.gStyle.SetStatY(1.9)
+    rt.gStyle.SetStatX(1.9)
+    rt.gStyle.SetStatW(0.1)
+    rt.gStyle.SetStatH(0.1)
 
 
 if __name__ == '__main__':
@@ -71,15 +77,19 @@ if __name__ == '__main__':
     pNum2D =  [rt.TH2D("num2D","R2-MR numerator;M_{R} [GeV];R^{2};numerator",len(x)-1,x,len(y)-1,y)]
     pDenom2D =  [rt.TH2D("denom2D","R2-MR denominator;M_{R} [GeV];R^{2};denominator",len(x)-1,x,len(y)-1,y)]
     pEff2D =  [rt.TEfficiency("eff2D","R2-MR efficiency;M_{R} [GeV];R^{2};efficiency",len(x)-1,x,len(y)-1,y)]
+    [pEff.SetStatisticOption(rt.TEfficiency.kFCP) for pEff in pEff2D]
 
     
     pNumMR =  [rt.TH1D("numMR_Rsq%.2f"%yCut,"MR numerator;M_{R} [GeV];numerator",len(x)-1,x) for yCut in yCuts]
     pDenomMR =  [rt.TH1D("denomMR_Rsq%.2f"%yCut,"MR denominator;M_{R} [GeV];denominator",len(x)-1,x) for yCut in yCuts]
     pEffMR =  [rt.TEfficiency("effMR_Rsq%.2f"%yCut,"MR efficiency;M_{R} [GeV];efficiency",len(x)-1,x) for yCut in yCuts]
+    [pEff.SetStatisticOption(rt.TEfficiency.kFCP) for pEff in pEffMR]
     
     pNumRsq =  [rt.TH1D("numRsq_MR%i"%xCut,"Rsq numerator;R^{2};numerator",len(y)-1,y) for xCut in xCuts]
     pDenomRsq =  [rt.TH1D("denomRsq_MR%i"%xCut,"Rsq denominator;R^{2};denominator",len(y)-1,y) for xCut in xCuts]
     pEffRsq =  [rt.TEfficiency("effRsq_MR%i"%xCut,"Rsq efficiency;R^{2};efficiency",len(y)-1,y) for xCut in xCuts]
+    [pEff.SetStatisticOption(rt.TEfficiency.kFCP) for pEff in pEffRsq]
+    
     entry = -1
     while True:
         entry = elist.Next()
@@ -111,7 +121,9 @@ if __name__ == '__main__':
             for pEff,xCut in zip(pEffRsq,xCuts):
                 if tree.MR>xCut: pEff.Fill(bNum,tree.Rsq)
 
-    c = rt.TCanvas("c","c",500,400)    
+
+    setStyle()
+    c = rt.TCanvas("c","c",500,400)
     c.SetRightMargin(0.15)
     
     colors = [rt.kViolet,rt.kRed,rt.kGreen,rt.kBlue,rt.kBlack]
@@ -134,12 +146,21 @@ if __name__ == '__main__':
         c.Print(options.outDir+"/"+'_'.join(options.numerator.split(','))+"_"+'_'.join(options.denominator.split(','))+"_"+pEff.GetName().replace(".","p")+".C")
 
         
+    sigmoid = rt.TF1("sigmoidMR","[0]/(1.0+exp(-(x-[1])/[2]))",0.,1200.)
+    sigmoid.SetParameter(0,1)
+    sigmoid.SetParLimits(0,0,1)
+    sigmoid.SetParameter(1,200)
+    sigmoid.SetParameter(2,30)
     first = True
     for pEff,color,yCut in zip(pEffMR,colors,yCuts):
         #pEff.SetLineColor(color)
         pEff.Draw()
+        pEff.Fit(sigmoid)
         rt.gPad.Update()
+        pEff.GetPaintedGraph().SetMarkerStyle(8)
+        pEff.GetPaintedGraph().SetMarkerSize(20)        
         pEff.GetPaintedGraph().SetMaximum(1.3)
+        rt.gPad.Update()
         #if first:
         #    pEff.Draw("pe")
         #    first = False
@@ -162,8 +183,15 @@ if __name__ == '__main__':
         c.Print(options.outDir+"/"+'_'.join(options.numerator.split(','))+"_"+'_'.join(options.denominator.split(','))+"_"+pEff.GetName().replace(".","p")+".C")
 
 
+    sigmoid = rt.TF1("sigmoidRsq","[0]/(1.0+exp(-(x-[1])/[2]))",0.,1.5)
+    sigmoid.SetParameter(0,1)
+    sigmoid.SetParLimits(0,0,1)
+    sigmoid.SetParameter(1,0.25)
+    sigmoid.SetParameter(2,0.05)
     first = True
     for pEff,color,xCut in zip(pEffRsq,colors,xCuts):
+        rt.gPad.Update()
+        pEff.Fit(sigmoid)
         #pEff.SetLineColor(color)
         pEff.Draw()
         rt.gPad.Update()
