@@ -61,8 +61,8 @@ void FullControlRegionBasedPrediction(){
     //Define baseline cuts
     //////////////////////////////////////////////////
 
-    bool doSFCorrections = false; //apply TT, W, Z, DY scale factors
-    //bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
+    //bool doSFCorrections = false; //apply TT, W, Z, DY scale factors
+    bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
     bool doMiscCorrections = true; //apply lepton efficiency, b-tagging, ... scale factors
     //bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
     bool scaleZNuNuToDY = false; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
@@ -108,8 +108,11 @@ void FullControlRegionBasedPrediction(){
     boxes[RazorAnalyzer::SixJet] = "SixJet";
     boxes[RazorAnalyzer::FourJet] = "FourJet";
     boxes[RazorAnalyzer::DiJet] = "DiJet";
-    boxes[RazorAnalyzer::MultiJet] = "MultiJet"; //(a hack to combine boxes)
-    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "MultiJetPlusLooseLeptonMultiJet";
+    //combination boxes
+    boxes[RazorAnalyzer::MultiJet] = "MultiJet"; 
+    boxes[RazorAnalyzer::LooseLeptonMultiJet] = "LooseLeptonMultiJet";
+    boxes[RazorAnalyzer::MuMultiJet] = "MuMultiJet";
+    boxes[RazorAnalyzer::EleMultiJet] = "EleMultiJet";
     if(minNBTags == 0) boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; 
     else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
 
@@ -126,29 +129,29 @@ void FullControlRegionBasedPrediction(){
     string mcPrefix;
     if(doMiscCorrections){
         //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
-        mcPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/";
+        mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/";
     }
     else{
-        mcPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
+        mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
     }
     //string dataPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/"; //location of data ntuples
-    string dataPrefix = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/"; //location of data ntuples
+    string dataPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
-    mcfiles["DYJets"] = new TFile(Form("%s/DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["WJets"] = new TFile(Form("%s/WJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["ZJetsNuNu"] = new TFile(Form("%s/ZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTJets"] = new TFile(Form("%s/TTJets_All_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["SingleTop"] = new TFile(Form("%s/SingleTop_All_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["QCD"] = new TFile(Form("%s/QCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTV"] = new TFile(Form("%s/TTV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["VV"] = new TFile(Form("%s/VV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTTT"] = new TFile(Form("%s/TTTT_TuneZ2star_8TeV-madgraph-tauola_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["DYJets"] = TFile::Open(Form("%s/DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["WJets"] = TFile::Open(Form("%s/WJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["ZJetsNuNu"] = TFile::Open(Form("%s/ZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["TTJets"] = TFile::Open(Form("%s/TTJets_All_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["SingleTop"] = TFile::Open(Form("%s/SingleTop_All_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["QCD"] = TFile::Open(Form("%s/QCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["TTV"] = TFile::Open(Form("%s/TTV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["VV"] = TFile::Open(Form("%s/VV_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["TTTT"] = TFile::Open(Form("%s/TTTT_TuneZ2star_8TeV-madgraph-tauola_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
 
     //data
     map<string, TFile*> datafiles;
     vector<string> datanames{"HTMHT", "SingleMu", "SingleElectron", "DoubleMuParked", "DoubleElectron", "MuEG"};
-    for(auto &name : datanames) datafiles[name] = new TFile(Form("%s/Data_%s_GoodLumi.root", dataPrefix.c_str(), name.c_str()));
+    for(auto &name : datanames) datafiles[name] = TFile::Open(Form("%s/Data_%s_GoodLumi.root", dataPrefix.c_str(), name.c_str()));
 
     //get trees and set branches
     map<string, TTree*> mctrees;
@@ -382,10 +385,20 @@ void FullControlRegionBasedPrediction(){
                 razorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::MultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
-            //LooseLeptonMultiJet+MultiJet box
-            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+            //LooseLeptonMultiJet box
+            if(razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
                 razorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
                 razorErrorHistosMC[RazorAnalyzer::LooseLeptonMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
+            //MuMultiJet box
+            if(razorbox == RazorAnalyzer::MuFourJet || razorbox == RazorAnalyzer::MuSixJet){
+                razorHistosMC[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::MuMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
+            }
+            //EleMultiJet box
+            if(razorbox == RazorAnalyzer::EleFourJet || razorbox == RazorAnalyzer::EleSixJet){
+                razorHistosMC[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, eventWeight);
+                razorErrorHistosMC[RazorAnalyzer::EleMultiJet][tree.first].Fill(MR, Rsq, sysErrorSquared);
             }
         }
     }
@@ -526,9 +539,17 @@ void FullControlRegionBasedPrediction(){
             if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet){
                 razorData[RazorAnalyzer::MultiJet].Fill(MR, Rsq, eventWeight);
             }
-            //LooseLeptonMultiJet+MultiJet box
-            if(razorbox == RazorAnalyzer::FourJet || razorbox == RazorAnalyzer::SixJet || razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
+            //LooseLeptonMultiJet box
+            if(razorbox == RazorAnalyzer::LooseLeptonFourJet || razorbox == RazorAnalyzer::LooseLeptonSixJet){
                 razorData[RazorAnalyzer::LooseLeptonMultiJet].Fill(MR, Rsq, eventWeight);
+            }
+            //MuMultiJet box
+            if(razorbox == RazorAnalyzer::MuFourJet || razorbox == RazorAnalyzer::MuSixJet){
+                razorData[RazorAnalyzer::MuMultiJet].Fill(MR, Rsq, eventWeight);
+            }
+            //EleMultiJet box
+            if(razorbox == RazorAnalyzer::EleFourJet || razorbox == RazorAnalyzer::EleSixJet){
+                razorData[RazorAnalyzer::EleMultiJet].Fill(MR, Rsq, eventWeight);
             }
         }
     }
