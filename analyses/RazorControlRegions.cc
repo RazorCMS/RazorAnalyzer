@@ -1212,7 +1212,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (option < 100) passSkim = true;
        
 	// Dilepton skim
-	if (option == 203) { 
+	if (option == 203 || option == 204) { 
 	  if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	       && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
 	       && events->lep1PassLoose && events->lep2PassLoose
