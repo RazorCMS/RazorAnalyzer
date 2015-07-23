@@ -87,9 +87,9 @@ void FullControlRegionBasedPrediction(){
     bool doLeptonPtCut = false;
     float leptonPtCut = 30;
 
-    bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
-    //bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
-    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
+    //bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
+    bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
+    int minNBTags = 0; //TODO: bin in nBTags instead of cutting
 
     //declare which boxes to check
     map<RazorAnalyzer::RazorBox, string> boxes;
@@ -117,7 +117,7 @@ void FullControlRegionBasedPrediction(){
     else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
 
     //output directory for plots
-    string plotDir = "/afs/cern.ch/work/d/duanders/public/plotsForReadinessReview2";
+    string plotDir = "/afs/cern.ch/work/d/duanders/public/plots0btagForReadinessReview2";
 
     //define cuts for 1D MR and Rsq plots
     float MRCutFor1DPlots = 400;
