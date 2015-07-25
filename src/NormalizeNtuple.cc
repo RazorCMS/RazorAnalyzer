@@ -27,7 +27,7 @@ double getNormalizationWeight(string filename, string datasetName, double intLum
     delete file;
     return 0;
   }
-  double NEvents = hist->GetEntries();
+  double NEvents = hist->GetBinContent(1);
   cout << "Original events in the sample: " << NEvents << endl;
 
   //Get CrossSection
@@ -126,8 +126,8 @@ int main(int argc, char* argv[]) {
 	      if (n%1000000==0) cout << "Processed Event " << n << "\n";
                 inputTree->GetEntry(n);
                 //weight = 1.0;
-                if(normalizationWeight >= 0){
-		  weight = inputweight * normalizationWeight;
+                if(normalizationWeight >= 0){		  
+		  weight = ( inputweight > 0 ? 1 : -1 ) * normalizationWeight;
                 } 
                 normalizedTree->Fill(); 
             }
