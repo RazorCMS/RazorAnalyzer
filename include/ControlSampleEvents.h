@@ -1051,7 +1051,7 @@ class ControlSampleEvents {
           if(MR_NoPho < 300 || Rsq_NoPho < 0.15) return false;
 
           //passes selection
-          return true
+          return true;
       }
       else{
           std::cout << "Warning: control sample " << sampleName << " is not recognized." << std::endl;
