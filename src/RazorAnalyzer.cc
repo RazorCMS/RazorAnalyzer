@@ -46,6 +46,7 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
     fChain->SetBranchStatus("HLTDecision", 1);
+    fChain->SetBranchStatus("HLTPrescale", 1);
 }
 
 void RazorAnalyzer::EnablePileup(){
@@ -76,6 +77,8 @@ void RazorAnalyzer::EnableMuons(){
     fChain->SetBranchStatus("muon_neutralHadIso", 1);
     fChain->SetBranchStatus("muon_ptrel", 1);
     fChain->SetBranchStatus("muon_miniiso", 1);
+    fChain->SetBranchStatus("muon_passSingleMuTagFilter", 1);
+    fChain->SetBranchStatus("muon_passHLTFilter", 1);
 }
 
 void RazorAnalyzer::EnableElectrons(){
@@ -107,6 +110,12 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_CombineP4", 1);
     fChain->SetBranchStatus("ele_ptrel", 1);
     fChain->SetBranchStatus("ele_miniiso", 1); 
+    fChain->SetBranchStatus("ele_passSingleEleTagFilter", 1); 
+    fChain->SetBranchStatus("ele_passTPOneTagFilter", 1); 
+    fChain->SetBranchStatus("ele_passTPTwoTagFilter", 1); 
+    fChain->SetBranchStatus("ele_passTPOneProbeFilter", 1); 
+    fChain->SetBranchStatus("ele_passTPTwoProbeFilter", 1); 
+    fChain->SetBranchStatus("ele_passHLTFilter", 1); 
 }
 
 void RazorAnalyzer::EnableTaus(){
@@ -190,6 +199,14 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetPassEleFrac", 1);
     fChain->SetBranchStatus("jetPartonFlavor", 1);
     fChain->SetBranchStatus("jetHadronFlavor", 1);
+    fChain->SetBranchStatus("jetChargedEMEnergyFraction", 1);
+    fChain->SetBranchStatus("jetNeutralEMEnergyFraction", 1);
+    fChain->SetBranchStatus("jetChargedHadronEnergyFraction", 1);
+    fChain->SetBranchStatus("jetNeutralHadronEnergyFraction", 1);
+    fChain->SetBranchStatus("jetMuonEnergyFraction", 1);
+    fChain->SetBranchStatus("jetHOEnergyFraction", 1);
+    fChain->SetBranchStatus("jetHFHadronEnergyFraction", 1);
+    fChain->SetBranchStatus("jetHFEMEnergyFraction", 1);
 }
 
 void RazorAnalyzer::EnableFatJets(){
