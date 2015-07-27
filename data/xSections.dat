@@ -35,6 +35,10 @@ ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1     38.09
 ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1         38.09
 ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1 80.95
 ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1     103.02
+WWTo2L2Nu_13TeV-powheg                                                 63.21*(1-0.0305)*(0.1080*3)*(0.1080*3)*1.2151
+WW_TuneCUETP8M1_13TeV-pythia8                                          63.21
+WZ_TuneCUETP8M1_13TeV-pythia8                                          22.82
+ZZ_TuneCUETP8M1_13TeV-pythia8                                          10.32
 
 #13 TeV SM backgrounds -- LO cross sections from MCM
 TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola         424.5
