@@ -68,6 +68,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void HbbRazor(string outFileName = "HbbRazor.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
         virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false, bool isRunOne = false);
 	virtual void RazorQCDStudy(string outFileName = "RazorQCDStudy.root", int option = -1, bool isData = false, bool isRunOne = false);
+	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
 
         //functions in RazorAuxMuon.cc
 	bool isVetoMuon(int i);
@@ -83,6 +84,9 @@ class RazorAnalyzer: public RazorEvents {
         bool isRunOneHZZMuon(int i);
 
         //functions in RazorAuxElectron.cc
+        bool isEGammaPOGVetoElectron(int i);
+        bool isEGammaPOGLooseElectron(int i);
+        bool isEGammaPOGTightElectron(int i);
         bool isVetoElectron(int i);
         bool isLooseElectron(int i);
         bool isTightElectron(int i);
@@ -90,8 +94,10 @@ class RazorAnalyzer: public RazorEvents {
         bool passTightElectronID(int i);
         bool passLooseElectronID(int i);
 	bool passMVANonTrigVetoElectronID(int i);
-        bool passTightElectronIso(int i);
+        bool passEGammaPOGLooseElectronIso(int i);
+        bool passEGammaPOGTightElectronIso(int i);
         bool passLooseElectronIso(int i);
+        bool passTightElectronIso(int i);
 	bool passMVANonTrigVetoElectronIso(int i);
 	bool passRunOneHZZElectronIso(int i);
 	bool passRunOneHZZElectronPreselection(int i);
@@ -99,6 +105,10 @@ class RazorAnalyzer: public RazorEvents {
         bool isRunOneLooseElectron(int i);
         bool isRunOneTightElectron(int i);
 	double getElectronEfficiencyRunOne( string selectionType, double pt, double eta);
+	bool matchElectronHLTFilters( int i, string HLTFilter);
+	bool matchProbeElectronHLTFilters( int i);
+	bool matchProbeSCHLTFilters( int i);
+	bool matchTagElectronHLTFilters( int i);
 
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);

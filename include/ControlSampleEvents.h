@@ -125,6 +125,7 @@ class ControlSampleEvents {
   UInt_t                  NBJetsTight;
   Float_t                 HT;
   Float_t                 lep1MT;
+  Float_t                 mll;
   Bool_t                  Flag_HBHENoiseFilter;//
   Bool_t                  Flag_CSCTightHaloFilter;
   Bool_t                  Flag_hcalLaserEventFilter; //
@@ -298,6 +299,7 @@ class ControlSampleEvents {
     NBJetsTight          = 0;
     HT                   = 0.0;      
     lep1MT               = 0.0;  
+    mll                  = 0.0;
     Flag_HBHENoiseFilter = 0.0;//
     Flag_CSCTightHaloFilter = 0.0;
     Flag_hcalLaserEventFilter = 0.0; //
@@ -502,6 +504,7 @@ class ControlSampleEvents {
       tree_->Branch("jet2PassCSVMedium",&jet2PassCSVMedium,"jet2PassCSVMedium/O");
       tree_->Branch("jet2PassCSVTight",&jet2PassCSVTight,"jet2PassCSVTight/O");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
+      tree_->Branch("mll",&mll,"mll/F");      
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
@@ -742,6 +745,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("jet2PassCSVMedium",&jet2PassCSVMedium);
       tree_->SetBranchAddress("jet2PassCSVTight",&jet2PassCSVTight);
       tree_->SetBranchAddress("lep1MT",&lep1MT);
+      tree_->SetBranchAddress("mll",&mll);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
       tree_->SetBranchAddress("HT",&HT);
@@ -873,10 +877,10 @@ class ControlSampleEvents {
               if(!passedTrigger) return false;
           }
 
-          //lepton = tight ele or mu with pt > 30
+          //lepton = tight ele or mu with pt > 25
           if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
           if(!lep1PassTight) return false;
-          if(lep1.Pt() < 30) return false;
+          if(lep1.Pt() < 25) return false;
 
           //MET and MT cuts
           if(MET < 30) return false;
@@ -971,7 +975,7 @@ class ControlSampleEvents {
           if(lep1.Pt() < 25) return false;
           if(lep2.Pt() < 25) return false;
           float mLL = (lep1+lep2).M();
-          if(mLL < 80 || mLL > 110) return false;
+          if(mLL < 60 || mLL > 120) return false;
 
           //b-tag requirement
           if(NBJetsMedium > 0) return false;
@@ -981,70 +985,6 @@ class ControlSampleEvents {
 
           //passes selection
           return true;
-      }
-      else if(sampleName == "ZNuNuDilepton"){
-          //HLT
-          if(isRunOne){
-              bool passedTrigger = HLTDecision[3] || HLTDecision[4] || HLTDecision[12];
-              if(!passedTrigger) return false;
-          }
-          //leptons = two loose ele or mu with pt > 25, mass inside Z window
-          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
-          if(abs(lep2Type) != 11 && abs(lep2Type) != 13) return false;
-          if(!lep1PassLoose) return false;
-          if(!lep2PassLoose) return false;
-          if(lep1.Pt() < 25) return false;
-          if(lep2.Pt() < 25) return false;
-          float mLL = (lep1+lep2).M();
-          if(mLL < 80 || mLL > 110) return false;
-
-          //b-tag requirement
-          if(NBJetsMedium > 0) return false;
-
-          //razor baseline cut
-          if(MR_NoZ < 300 || Rsq_NoZ < 0.15) return false;
-
-          //passes selection
-          return true;
-      }
-      else if(sampleName == "ZNuNuSingleLepton"){
-          //HLT
-          if(isRunOne){
-              bool passedTrigger = HLTDecision[0] || HLTDecision[1] || HLTDecision[8] || HLTDecision[9]; 
-              if(!passedTrigger) return false;
-          }
-
-          //lepton = tight ele or mu with pt > 30
-          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
-          if(!lep1PassTight) return false;
-          if(lep1.Pt() < 30) return false;
-
-          //MET and MT cuts
-          if(MET < 30) return false;
-          if(lep1MT < 30 || lep1MT > 100) return false;
-
-          //b-tag requirement
-          if(NBJetsMedium > 0) return false;
-
-          //razor baseline cut
-          if(MR_NoW < 300 || Rsq_NoW < 0.15) return false;
-
-          //passes selection
-          return true;
-      }
-      else if(sampleName == "ZNuNuPhoton"){
-          if(isRunOne){
-          //HLT
-              bool passedTrigger = HLTDecision[29] || HLTDecision[30] || HLTDecision[31] || HLTDecision[32] || HLTDecision[33] || HLTDecision[34];
-              if(!passedTrigger) return false;
-          }
-
-          //photon ID
-          if(!pho1PassMedium) return false;
-          if(pho1.Pt() < 80) return false;
-
-          //razor baseline cut
-          if(MR_NoPho < 300 || Rsq_NoPho < 0.15) return false;
       }
       else{
           std::cout << "Warning: control sample " << sampleName << " is not recognized." << std::endl;
