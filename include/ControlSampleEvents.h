@@ -860,6 +860,9 @@ class ControlSampleEvents {
   //TTBarDilepton
   //WSingleLepton
   //ZLLDilepton
+  //ZNuNuDilepton
+  //ZNuNuSingleLepton
+  //ZNuNuPhoton
   bool inControlSample(string sampleName, string option = "", bool isRunOne = true){
       using namespace std;
 
