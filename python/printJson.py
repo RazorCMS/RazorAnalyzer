@@ -44,11 +44,9 @@ def walk(top, topdown=True):
         yield dirpath, dirnames, filenames, top
 
     
-def convertTree2Dict(tree):
-    
-    runLumiDict = {}
+def convertTree2Dict(runLumiDict,tree,lumiBranch,runBranch):
 
-    if not (hasattr(tree,'lumi') and hasattr(tree,'run')):
+    if not (hasattr(tree,lumiBranch) and hasattr(tree,runBranch)):
         print "tree does not contain run and lumi branches, returning empty json"
         return runLumiDict
     # loop over tree to get run, lumi "flat" dictionary
@@ -61,16 +59,19 @@ def convertTree2Dict(tree):
         tree.GetEntry(entry)
         if entry%10000==0:
             print "processing entry %i"%entry
-        if '%s'%(tree.run) in runLumiDict.keys():
-            currentLumi = runLumiDict['%s'%(tree.run)]
-            if int(tree.lumi) in currentLumi:
+        if '%s'%(getattr(tree,runBranch)) in runLumiDict.keys():
+            currentLumi = runLumiDict['%s'%(getattr(tree,runBranch))]
+            if int(getattr(tree,lumiBranch)) in currentLumi:
                 pass
             else:                
-                currentLumi.append(int(tree.lumi))
-                runLumiDict.update({'%s'%(tree.run):currentLumi})
+                currentLumi.append(int(getattr(tree,lumiBranch)))
+                runLumiDict.update({'%s'%(getattr(tree,runBranch)):currentLumi})
         else:
-            runLumiDict['%s'%(tree.run)] = [int(tree.lumi)]
+            runLumiDict['%s'%(getattr(tree,runBranch))] = [int(getattr(tree,lumiBranch))]
+        
+    return runLumiDict
 
+def fixDict(runLumiDict):
     # fix run, lumi list by grouping consecutive lumis
     for run in runLumiDict.keys():
         lumiGroups = []
@@ -85,29 +86,39 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-o','--output',dest="output",type="string",default="test.json",
                   help="Name of the json file to write to")
+    parser.add_option('-l','--lumi-branch',dest="lumiBranch",type="string",default="lumi",
+                  help="Name of lumi branch in tree")
+    parser.add_option('-r','--run-branch',dest="runBranch",type="string",default="run",
+                  help="Name of run branch in tree")
     
     (options,args) = parser.parse_args()
 
-    
+
+    rootFiles = []
     for f in args:
         if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f)
+            rootFile = rt.TFile.Open(f)
+            rootFiles.append(rootFile)
 
     trees = []
     # crawl root file to look for trees
-    for dirpath, dirnames, filenames, tdirectory in walk(rootFile):
-        for filename in filenames:
-            obj = tdirectory.Get(filename)
-            if isinstance(obj, rt.TTree):
-                trees.append(obj)
-                
+    for rootFile in rootFiles:
+        for dirpath, dirnames, filenames, tdirectory in walk(rootFile):
+            for filename in set(filenames):
+                obj = tdirectory.Get(filename)
+                if isinstance(obj, rt.TTree) and obj!=None:
+                    print "found tree %s in directory %s in file %s"%(obj.GetName(),tdirectory.GetName(),rootFile.GetName())
+                    trees.append(obj)
 
-    # use first tree found
-    runLumiDict = convertTree2Dict(trees[0])
+    # loop over trees found
+    runLumiDict = {}
+    for tree in trees:
+        runLumiDict = convertTree2Dict(runLumiDict,tree,options.lumiBranch,options.runBranch)
+    runLumiDict = fixDict(runLumiDict)
     output = open(options.output,'w')
     json.dump(runLumiDict,output,sort_keys=True)
     output.close()
-    print '\njson:'
+    print '\njson dumped to file %s:'%options.output
     os.system('cat %s'%options.output)
     print '\n'
             
