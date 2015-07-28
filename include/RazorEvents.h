@@ -421,6 +421,9 @@ public :
    TBranch        *b_gParticleEta;   //!
    TBranch        *b_gParticlePhi;   //!
 
+   //ADDED LINE
+   //   TBranch        *b_HLTDecision;
+
    RazorEvents(TTree *tree=0);
    virtual ~RazorEvents();
    virtual Int_t    Cut(Long64_t entry);
@@ -690,6 +693,10 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("gParticlePt", gParticlePt, &b_gParticlePt);
    fChain->SetBranchAddress("gParticleEta", gParticleEta, &b_gParticleEta);
    fChain->SetBranchAddress("gParticlePhi", gParticlePhi, &b_gParticlePhi);
+
+   //ADDED LINE
+   //  fchain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
+
    Notify();
 }
 

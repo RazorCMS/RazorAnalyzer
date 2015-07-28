@@ -32,7 +32,8 @@ int main(int argc, char* argv[]){
 	     << "muonNtupler          --   study muon variables" << endl
 	     << "jetNtupler           --   study jet variables" << endl
 	     << "photonntupler        --   study photon variables" << endl
-	     << "dummy                --   do nothing useful" << endl;
+	     << "dummy                --   do nothing useful" << endl
+	     << "razorDM              --   run MultiJet razor dark matter analysis" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
@@ -258,6 +259,15 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
 
       analyzer.RazorDM(outputFileName);
+    }
+    else if (analysisType == "TagAndProbe"){
+      cout << "Executing TagAndProbe analysis..." << endl;
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableEventInfo();
+      analyzer.EnableMC();
+
+      analyzer.TagAndProbe(outputFileName);
     }
     else if(analysisType == "RazorControlRegions"){
       cout << "Executing RazorControlRegions analysis..." << endl;
