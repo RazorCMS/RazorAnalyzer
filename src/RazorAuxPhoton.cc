@@ -116,11 +116,13 @@ void RazorAnalyzer::getPhotonEffAreaRun1( float eta, double& effAreaChHad, doubl
     }
 };
 
+//----------------------------------------
+// R u n 1   L o o s e  I s o l a t i o n
+//----------------------------------------
 bool RazorAnalyzer::photonPassIsoRun1( int i , bool _debug )
 {
   //Define variables
   float eta = pho_superClusterEta[i];
-  //float pt  = phoE[i]/cosh(phoEta[i]); 
   float pt  = phoPt[i];//default pt
   bool _isEB = false;
   if ( fabs( eta ) < 1.48 ) _isEB = true;
@@ -181,6 +183,114 @@ bool RazorAnalyzer::photonPassIsoRun1( int i , bool _debug )
 	{
 	  if ( _debug ) std::cout << "EE, Iso: failed nHadIso, cut @ " << EE_GetPFnHadIsoCut( pt ) << std::endl;
 	  return false;
+	}
+    }
+  
+  return true;
+};
+
+bool RazorAnalyzer::photonPassIsoRun1( int i , WP wp, bool _debug )
+{
+  //Define variables                                                                                
+  float eta = pho_superClusterEta[i];
+  float pt  = phoPt[i];//default pt                                          
+  bool _isEB = false;
+  if ( fabs( eta ) < 1.48 ) _isEB = true;
+  //get effective area for isolation calculations         
+  double effAreaChargedHadrons = 0.0;
+  double effAreaNeutralHadrons = 0.0;
+  double effAreaPhotons = 0.0;
+  getPhotonEffAreaRun1( eta, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
+  if ( _debug )
+    {
+      std::cout << "chA:" << effAreaChargedHadrons << " nA: " << effAreaNeutralHadrons << " phoA: " << effAreaPhotons << std::endl;
+      std::cout << "chHad: " << pho_sumChargedHadronPt[i] << std::endl;
+      std::cout << "nHad: " << pho_sumNeutralHadronEt[i] << std::endl;
+      std::cout << "pho: " << pho_sumPhotonEt[i] << std::endl;
+      std::cout << "pu: " << fixedGridRhoAll << std::endl;
+    }
+  //Compute Photon Isolation                                                             
+  //Rho corrected PF charged hadron isolation                                                     
+  double PFIsoCorrected_chHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
+  //Rho corrected PF neutral hadron isolation                                                         
+  double PFIsoCorrected_nHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoAll*effAreaNeutralHadrons, 0.);
+  //Rho corrected PF photon isolation                                                                   
+  double PFIsoCorrected_pho = max(pho_sumPhotonEt[i] - fixedGridRhoAll*effAreaPhotons, 0.);
+  if ( _debug )
+    {
+      std::cout << "chHad Iso: " << PFIsoCorrected_chHad << std::endl;
+      std::cout << "nHad Iso: " <<PFIsoCorrected_nHad <<std::endl;
+      std::cout << "pho Iso: " << PFIsoCorrected_pho <<std::endl;
+    }
+  double _EB_chHadCut, _EB_nHadCut, _EB_phoCut;
+  double _EE_chHadCut, _EE_nHadCut, _EE_phoCut;
+  if ( wp == WP::VeryLoose )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut_VL();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut_VL( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut_VL( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut_VL();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut_VL( pt );
+      _EE_phoCut   = 999.;
+    }
+  else if ( wp == WP::Loose )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut( pt );
+      _EE_phoCut   = 999.;
+    }
+  else if (wp == WP::Medium )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut_M();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut_M( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut_M( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut_M();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut_M( pt );
+      _EE_phoCut   = EE_GetPFphoIsoCut_M( pt );
+    }
+  else
+    {
+      std::cerr << "[ERROR]: unrecognized working point!" << std::endl;
+      return false;
+    }
+  //Apply Isolation
+  if ( _isEB )
+    {
+      if ( PFIsoCorrected_chHad > _EB_chHadCut )
+        {
+          if ( _debug ) std::cout << "EB, Iso: failed chHadIso, cut @ " << _EB_chHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_nHad > _EB_nHadCut )
+        {
+          if ( _debug ) std::cout << "EB, Iso: failed nHadIso, cut @ " << _EB_nHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_pho > _EB_phoCut )
+        {
+          if ( _debug ) std::cout << "EB, Iso: failed phoIso, cut @ " << _EB_phoCut << std::endl;
+          return false;
+        }
+    }
+  else
+    {
+      if ( PFIsoCorrected_chHad > _EE_chHadCut )
+        {
+          if ( _debug ) std::cout << "EE, Iso: failed chHadIso, cut @ " << _EE_chHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_nHad > _EE_nHadCut )
+        {
+          if ( _debug ) std::cout << "EE, Iso: failed nHadIso, cut @ " << _EE_nHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_pho > _EE_phoCut )
+	{
+	  if ( _debug ) std::cout << "EE, Iso: failed phoIso, cut @ " << _EE_phoCut << std::endl;
+          return false;
 	}
     }
   

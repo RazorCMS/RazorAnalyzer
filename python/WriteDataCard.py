@@ -5,6 +5,8 @@ from framework import Config
 from array import *
 import os
 import sys
+from itertools import *
+from operator import *
 
 seed = 1988
 
@@ -16,7 +18,7 @@ def fixPars(w, label, doFix=True, setVal=None):
             par.setConstant(doFix)
             if setVal is not None: par.setVal(setVal)
 
-def initializeWorkspace(w,cfg,box,scaleFactor=1.):
+def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
     for parameter in parameters:
@@ -34,19 +36,41 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.):
         
         # turn off shape parameters if no events in b-tag bin:
         for i in [0, 1, 2, 3]:
-            if "Ntot_TTj%ib"%i in paramName:
+            if "Ntot" in paramName and "%ib"%i in paramName:
                 w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag==%i"%i) ))
                 if not w.var(paramName).getVal():
-                    fixPars(w,"TTj%ib"%i)    
-    
-    x = array('d', cfg.getBinning(box)[0]) # MR binning
-    y = array('d', cfg.getBinning(box)[1]) # Rsq binning
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+                    fixPars(w,"%ib"%i)    
+    if x is None or y is None or z is None:
+        x = array('d', cfg.getBinning(box)[0]) # MR binning
+        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    
+
     w.factory('th1x[0,0,%i]'%nBins)
     w.var('th1x').setBins(nBins)
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
+
+    iBinX = -1
+    sidebandBins = []
+    for ix in range(1,len(x)):
+        for iy in range(1,len(y)):
+            for iz in range(1,len(z)):
+                iBinX+=1
+                emptyHist3D.SetBinContent(ix,iy,iz,1.)
+                w.var('MR').setVal(emptyHist3D.GetXaxis().GetBinCenter(ix))
+                w.var('Rsq').setVal(emptyHist3D.GetYaxis().GetBinCenter(iy))
+                w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz))
+                inSideband = ( w.var('MR').inRange('LowMR') * w.var('Rsq').inRange('LowMR') * w.var('nBtag').inRange('LowMR') )
+                inSideband += ( w.var('MR').inRange('LowRsq') * w.var('Rsq').inRange('LowRsq') * w.var('nBtag').inRange('LowRsq') )
+                if inSideband: sidebandBins.append(iBinX)
+                    
+    sidebandGroups = []
+    for k, g in groupby(enumerate(sidebandBins), lambda (i,x):i-x):
+        consecutiveBins = map(itemgetter(1), g)
+        sidebandGroups.append([consecutiveBins[0],consecutiveBins[-1]+1])
+
+    #for iSideband, sidebandGroup in enumerate(sidebandGroups):
+    #    w.var("th1x").setRange("sideband%i"%iSideband,sidebandGroup[0],sidebandGroup[1])        
 
     w.Print('v')
     commands = cfg.getVariables(box, "combine_pdfs")
@@ -70,7 +94,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.):
                 pdf.setTH3Binning(emptyHist3D)
             rootTools.Utils.importToWS(w,pdf)
             bkg = name.split("_")
-            bkg.remove(box)
+            if box in bkg: bkg.remove(box)
             bkgs.append("_".join(bkg))
     return paramNames, bkgs
 
@@ -96,7 +120,7 @@ def initializeWorkspace_noFit(w,cfg,box):
 
     return paramNames
 
-def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
+def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h', x = array('d',[]), y = array('d',[]), z = array('d',[])):
     """Get the cocktail dataset from the file"""
     
     row = data.get()
@@ -116,10 +140,11 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h'):
     nbtagMin = row['nBtag'].getMin()
     nbtagMax = row['nBtag'].getMax()
 
-    
-    x = array('d', cfg.getBinning(box)[0]) # MR binning
-    y = array('d', cfg.getBinning(box)[1]) # Rsq binning
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    if cfg is not None:    
+        x = array('d', cfg.getBinning(box)[0]) # MR binning
+        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+
     
     myTH3 = rt.TH3D(th1Name+box, th1Name+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
     myTH2 = rt.TH2D(th1Name+box+"2d", th1Name+box+"2d", len(x)-1, x, len(y)-1, y)
@@ -224,6 +249,8 @@ if __name__ == '__main__':
                   help="Turn off fit (use MC directly)")
     parser.add_option('--fit',dest="fit",default=False,action='store_true',
                   help="perform a fit first")
+    parser.add_option('--print-yields',dest="printYields",default=False,action='store_true',
+                  help="print yields")
 
     (options,args) = parser.parse_args()
     
@@ -232,6 +259,7 @@ if __name__ == '__main__':
     box = options.box
     lumi = options.lumi
     noFit = options.noFit
+    printYields = options.printYields
 
     lumi_in = 0.
     for f in args:
@@ -260,7 +288,7 @@ if __name__ == '__main__':
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
     myTH1.Scale(lumi/lumi_in)
-    dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
+    dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     rootTools.Utils.importToWS(w,dataHist)
     
     if noFit:
@@ -293,7 +321,6 @@ if __name__ == '__main__':
     sigTH1.Scale(lumi/lumi_in)
     sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
     rootTools.Utils.importToWS(w,sigDataHist)
-
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
@@ -310,3 +337,28 @@ if __name__ == '__main__':
     else:
         writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w)
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))
+
+    
+
+    if printYields:
+        x = array('d', cfg.getBinning(box)[0]) # MR binning
+        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        zBins = len(z)-1
+        yBins = len(y)-1
+        xBins = len(x)-1
+        csvFile = open(options.outDir+"/"+outFile.replace(".root",".csv"),'w')
+        csvOutput = "bin number,MR range,Rsq range,b-tags,signal yield (S),background yield from MC (B),background yield from fit (F),S/B,S/F"
+        for iBin in range(0,th1x.getBins()):
+            signal = sigDataHist.sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
+            mc = w.data("data_obs").sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
+            asimov = w.pdf("extRazorPdf").generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov())
+            fit = asimov.sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
+            zBin = iBin % zBins
+            yBin = ( (iBin - zBin)/(zBins) ) % (yBins)
+            xBin =  (iBin - zBin - yBin*zBins ) / (zBins*yBins)
+            csvOutput += "\n%i,%i-%i,%.2f-%.2f,%i,%f,%f,%f,=E%i/F%i,=E%i/G%i" % (iBin, x[xBin],x[xBin+1],y[yBin],y[yBin+1],z[zBin],signal,mc,fit,iBin+2,iBin+2,iBin+2,iBin+2)
+        csvFile.write(csvOutput)
+        csvFile.close()
+        print ""
+        print "yields written into %s"%(options.outDir+"/"+outFile.replace(".root",".csv"))

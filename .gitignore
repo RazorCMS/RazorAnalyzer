@@ -21,4 +21,7 @@ output2
 dummy*
 test.*
 *.pcm
+*.csv
 .__*
+*.tex
+*.gif

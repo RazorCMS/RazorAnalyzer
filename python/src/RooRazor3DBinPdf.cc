@@ -41,6 +41,7 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const char *name, const char *title,
   memset(&xArray, 0, sizeof(xArray));
   memset(&yArray, 0, sizeof(yArray));
   memset(&zArray, 0, sizeof(zArray));
+  memset(&histArray, 0, sizeof(histArray));
 }
 //---------------------------------------------------------------------------
 RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* name) :
@@ -66,6 +67,7 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* na
   //memset(&xArray, 0, sizeof(xArray));
   //memset(&yArray, 0, sizeof(yArray));
   //memset(&zArray, 0, sizeof(zArray));
+  //memset(&histArray, 0, sizeof(histArray));
   for (Int_t i=0; i<xBins+1; i++){
     xArray[i] = other.xArray[i];
   }
@@ -74,6 +76,16 @@ RooRazor3DBinPdf::RooRazor3DBinPdf(const RooRazor3DBinPdf& other, const char* na
   }
   for (Int_t k=0; k<zBins+1; k++){
     zArray[k] =  other.zArray[k];
+  }
+
+  Int_t th1xBin = 0;
+  for (Int_t i=0; i<xBins+1; i++){
+    for (Int_t j=0; j<yBins+1; j++){
+      for (Int_t k=0; k<zBins+1; k++){
+	histArray[th1xBin] =  other.histArray[th1xBin];
+	th1xBin++;
+      }
+    }
   }
 }
 //---------------------------------------------------------------------------
@@ -90,6 +102,7 @@ void RooRazor3DBinPdf::setTH3Binning(TH3* _Hnominal){
   memset(&xArray, 0, sizeof(xArray));
   memset(&yArray, 0, sizeof(yArray));
   memset(&zArray, 0, sizeof(zArray));
+  memset(&histArray, 0, sizeof(histArray));
   for (Int_t i=0; i<xBins+1; i++){
     xArray[i] =  _Hnominal->GetXaxis()->GetBinLowEdge(i+1);
   }
@@ -99,6 +112,20 @@ void RooRazor3DBinPdf::setTH3Binning(TH3* _Hnominal){
   for (Int_t k=0; k<zBins+1; k++){
     zArray[k] =  _Hnominal->GetZaxis()->GetBinLowEdge(k+1);
   }
+  Int_t th1xBin = 0;
+  for (Int_t i=0; i<xBins; i++){
+    for (Int_t j=0; j<yBins; j++){
+      for (Int_t k=0; k<zBins; k++){
+	histArray[th1xBin] = _Hnominal->GetBinContent(i+1,j+1,k+1);
+	//cout << xArray[i] << ", " << xArray[i+1] << endl;
+	//cout << yArray[j] << ", " << yArray[j+1] << endl;
+	//cout << zArray[k] << ", " << zArray[k+1] << endl;
+	//cout << histArray[th1xBin] << endl;
+	th1xBin++;
+      }
+    }
+  }
+  
 }
 //---------------------------------------------------------------------------
 Double_t RooRazor3DBinPdf::evaluate() const
@@ -155,7 +182,7 @@ Double_t RooRazor3DBinPdf::evaluate() const
   }
 
   if (total_integral>0.0) {
-    return integral;
+    return histArray[iBin] * integral;
   } else return 0;
 
 }
@@ -181,10 +208,10 @@ Double_t RooRazor3DBinPdf::analyticalIntegral(Int_t code, const char* rangeName)
    //cout <<  "iBinMin = " << iBinMin << ",iBinMax = " << iBinMax << endl;
    Int_t nBins =  xBins*yBins*zBins;
 
-   if (code==1 && iBinMin==0 && iBinMax>=nBins){
-     integral = -Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut);
-   }
-   else if(code==1) { 
+   //   if (code==1 && iBinMin==0 && iBinMax>=nBins){
+   //  integral = -Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut);
+   //}
+   if(code==1) { 
      total_integral = Gfun(xMin,yMin)-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax);
      for (Int_t iBin=iBinMin; iBin<iBinMax; iBin++){
        Int_t zBin = iBin % zBins;
@@ -205,15 +232,15 @@ Double_t RooRazor3DBinPdf::analyticalIntegral(Int_t code, const char* rangeName)
 	   Double_t yHigh = yArray[yBin+1];
 	   if(xHigh <= xCut && yHigh <= yCut) integral += 0.0;
 	   else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {
-	     integral += Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh);
+	     integral += histArray[iBin] * ( Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
 	   }
 	   else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {
-	     integral += Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh);
+	     integral += histArray[iBin] * ( Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh) );
 	   }
 	   else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {
-	     integral += -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut);
+	     integral += histArray[iBin] * ( -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut) );
 	   }
-	   else integral += Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh);
+	   else integral += histArray[iBin] * ( Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
 	 }
        }
      }
