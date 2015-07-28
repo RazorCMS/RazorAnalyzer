@@ -3,25 +3,10 @@ import ROOT as rt
 import rootTools
 from framework import Config
 from array import *
+from DustinTuple2RooDataSet import initializeWorkspace
 
 seed = 1988
 
-def initializeWorkspace(w,cfg):
-    variables = cfg.getVariablesRange(box,"variables",w)
-    parameters = cfg.getVariables(box, "parameters")
-    paramNames = []
-    for parameter in parameters:
-        w.factory(parameter)
-        paramName = parameter.split('[')[0]
-        if paramName.find("Cut")==-1 and paramName.find("Ntot")==-1:
-            paramNames.append(paramName)
-            w.var(paramName).setConstant(False)
-        else:
-            if paramName.find("Ntot")==-1:
-                w.var(paramName).setConstant(True)
-            else:
-                w.var(paramName).setConstant(False)
-                
 def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     """Get the cocktail dataset from the file"""
     row = data.get()
@@ -47,14 +32,15 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
 
     # use fine binning
-    #myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 70, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
-    #myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
-    #myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 70, rsqMin, rsqMax)
+    rt.RooRandom.randomGenerator().SetSeed(seed)
+    myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 100, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
+    myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 100, rsqMin, rsqMax)
+    myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 100, rsqMin, rsqMax)
 
     # use binning written in config
-    myTH3 = rt.TH3D(uwName+box, uwName+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
-    myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", len(x)-1, x, len(y)-1, y)
-    myTH2Toy = rt.TH2D("h", "h", len(x)-1, x, len(y)-1, y)
+    #myTH3 = rt.TH3D(uwName+box, uwName+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
+    #myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", len(x)-1, x, len(y)-1, y)
+    #myTH2Toy = rt.TH2D("h", "h", len(x)-1, x, len(y)-1, y)
     myTH2.Sumw2()
     myTH2Toy.Sumw2()
 
@@ -167,7 +153,7 @@ if __name__ == '__main__':
     
     w = rt.RooWorkspace("w"+box)
 
-    initializeWorkspace(w,cfg)
+    initializeWorkspace(w,cfg,box)
     
     ds = []
     for f in args:

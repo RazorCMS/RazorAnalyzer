@@ -1,6 +1,7 @@
 #include "RazorAnalyzer.h"
 
-bool RazorAnalyzer::isVetoElectron(int i){
+
+bool RazorAnalyzer::isEGammaPOGVetoElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
     if ( fabs(ele_dEta[i]) < 0.016315
@@ -34,7 +35,7 @@ bool RazorAnalyzer::isVetoElectron(int i){
   return pass;
 }
 
-bool RazorAnalyzer::isLooseElectron(int i){
+bool RazorAnalyzer::isEGammaPOGLooseElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
     if ( fabs(ele_dEta[i]) < 0.012442
@@ -68,7 +69,7 @@ bool RazorAnalyzer::isLooseElectron(int i){
   return pass;
 }
 
-bool RazorAnalyzer::isTightElectron(int i){
+bool RazorAnalyzer::isEGammaPOGTightElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
     if ( fabs(ele_dEta[i]) < 0.006574
@@ -102,6 +103,78 @@ bool RazorAnalyzer::isTightElectron(int i){
   return pass;
 }
 
+bool RazorAnalyzer::isVetoElectron(int i){
+  return isMVANonTrigVetoElectron(i);
+}
+
+bool RazorAnalyzer::isLooseElectron(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.012442
+	 && fabs(ele_dPhi[i]) < 0.072624
+	 && eleFull5x5SigmaIetaIeta[i] < 0.010557
+	 && ele_HoverE[i] < 0.121476
+	 && fabs(ele_d0[i]) < 0.022664
+	 && fabs(ele_dZ[i]) < 0.173670
+	 && ele_OneOverEminusOneOverP[i] < 0.221803
+	 && ele_miniiso[i] < 0.1
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.010654
+	 && fabs(ele_dPhi[i]) < 0.145129
+	 && eleFull5x5SigmaIetaIeta[i] < 0.032602
+	 && ele_HoverE[i] < 0.131862
+	 && fabs(ele_d0[i]) < 0.097358
+	 && fabs(ele_dZ[i]) < 0.198444
+	 && ele_OneOverEminusOneOverP[i] < 0.142283
+	 && ele_miniiso[i] < 0.1
+	&& ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
+bool RazorAnalyzer::isTightElectron(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.006574
+	 && fabs(ele_dPhi[i]) < 0.022868
+	 && eleFull5x5SigmaIetaIeta[i] < 0.010181
+	 && ele_HoverE[i] < 0.037553
+	 && fabs(ele_d0[i]) < 0.009924
+	 && fabs(ele_dZ[i]) < 0.015310
+	 && ele_OneOverEminusOneOverP[i] < 0.131191
+	 && ele_miniiso[i] < 0.1
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.005681
+	 && fabs(ele_dPhi[i]) < 0.032046
+	 && eleFull5x5SigmaIetaIeta[i] < 0.028766
+	 && ele_HoverE[i] < 0.081902
+	 && fabs(ele_d0[i]) < 0.027261
+	 && fabs(ele_dZ[i]) < 0.147154
+	 && ele_OneOverEminusOneOverP[i] < 0.106055
+	 && ele_miniiso[i] < 0.1
+	&& ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
 bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
 
   Int_t subdet = 0;
@@ -123,7 +196,6 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
       	||
       	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
       	)
-      //&& ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
       && ( (elePt[i] > 20 && ele_miniiso[i] < 0.2)
 	   ||
 	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i]))  < 5)
@@ -235,7 +307,7 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 }
 
 
-bool RazorAnalyzer::passLooseElectronIso(int i){
+bool RazorAnalyzer::passEGammaPOGLooseElectronIso(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
     if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.120026
@@ -251,7 +323,7 @@ bool RazorAnalyzer::passLooseElectronIso(int i){
   return pass;
 }
 
-bool RazorAnalyzer::passTightElectronIso(int i){
+bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
     if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.074355
@@ -267,10 +339,25 @@ bool RazorAnalyzer::passTightElectronIso(int i){
   return pass;
 }
 
+bool RazorAnalyzer::passLooseElectronIso(int i){
+  bool pass = false;
+  if ( ele_miniiso[i] < 0.1 ){
+    pass = true;
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::passTightElectronIso(int i){
+  bool pass = false;
+  if ( ele_miniiso[i] < 0.1 ){
+    pass = true;
+  }
+  return pass;
+}
+
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
  
   bool pass = false;
-  //if (  ( (elePt[i] > 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.3)
   if (  ( (elePt[i] > 20 && ele_miniiso[i] < 0.2 )
 	  ||
 	  (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) < 5)
@@ -565,4 +652,86 @@ double RazorAnalyzer::getElectronEfficiencyRunOne( string selectionType, double 
 
   return result;
 
+}
+
+
+bool RazorAnalyzer::matchTagElectronHLTFilters(int i){
+  bool match = false;
+  if ( 
+      //Data filters
+      ele_passHLTFilter[i][1] || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
+      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53]
+      //MC filters
+      || ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
+       ) {
+    match = true;
+  }
+
+  return match;
+}
+
+bool RazorAnalyzer::matchProbeElectronHLTFilters(int i){
+  bool match = false;
+  if ( 
+      ele_passHLTFilter[i][50] || ele_passHLTFilter[i][51]     
+       ) {
+    match = true;
+  }
+  
+  return match;
+}
+
+bool RazorAnalyzer::matchProbeSCHLTFilters(int i){
+  bool match = false;
+  if ( 
+      ele_passHLTFilter[i][54] || ele_passHLTFilter[i][55]     
+       ) {
+    match = true;
+  }
+  
+  return match;
+}
+
+bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter){
+  bool match = false;
+
+  if (HLTFilter == "SingleElectron") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][1] || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
+	//MC filters
+	|| ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "DoubleElectronLeg1") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][24] || ele_passHLTFilter[i][28]
+	 ) {
+      match = true;
+    }
+  }
+
+  if (HLTFilter == "DoubleElectronLeg2") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][25] || ele_passHLTFilter[i][29]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "DoubleElectronLeg2DZ") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][26] || ele_passHLTFilter[i][30]
+	 ) {
+      match = true;
+    }
+  }
+   
+  return match;
 }

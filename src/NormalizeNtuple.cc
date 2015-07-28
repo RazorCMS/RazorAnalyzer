@@ -27,7 +27,7 @@ double getNormalizationWeight(string filename, string datasetName, double intLum
     delete file;
     return 0;
   }
-  double NEvents = hist->GetEntries();
+  double NEvents = hist->GetBinContent(1);
   cout << "Original events in the sample: " << NEvents << endl;
 
   //Get CrossSection
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
         TFile *outputFile = new TFile(Form("%s_%.0fpb_weighted.root", (fileName.substr(0, fileName.find_last_of("."))).c_str(), intLumi), "RECREATE");
 
         //loop over all TTrees in the file and add the weight branch to each of them
-        TFile inputFile(fileName.c_str(), "UPDATE");
+        TFile inputFile(fileName.c_str(), "READ");
         inputFile.cd();
         inputFile.Purge(); //purge unwanted TTree cycles in file
         TIter nextkey(inputFile.GetListOfKeys());
@@ -126,8 +126,8 @@ int main(int argc, char* argv[]) {
 	      if (n%1000000==0) cout << "Processed Event " << n << "\n";
                 inputTree->GetEntry(n);
                 //weight = 1.0;
-                if(normalizationWeight >= 0){
-		  weight = inputweight * normalizationWeight;
+                if(normalizationWeight >= 0){		  
+		  weight = ( inputweight > 0 ? 1 : -1 ) * normalizationWeight;
                 } 
                 normalizedTree->Fill(); 
             }

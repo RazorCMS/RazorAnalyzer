@@ -279,6 +279,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMet();
       analyzer.EnableElectrons();
       analyzer.EnableMuons();
+      analyzer.EnablePhotons();
       analyzer.EnableTaus();
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
@@ -374,6 +375,34 @@ int main(int argc, char* argv[]){
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
         analyzer.HZZRazor(outputFileName, isData, false); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "RazorQCDStudy" || analysisType == "RazorRunOneQCDStudy" ){
+      cout << "Executing razor QCD analysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnablePileup();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      bool isRunOne = false; 
+      if (analysisType == "RazorRunOneQCDStudy") isRunOne = true;
+      analyzer.RazorQCDStudy(outputFileName, isRunOne, false); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "RazorTagAndProbe"){
+      cout << "Executing RazorTagAndProbe analysis..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();      
+      analyzer.RazorTagAndProbe(outputFileName, option, isData);
     }
     else if(analysisType == "MakeMCPileupDistribution"){
       cout << "Executing MakeMCPileupDistribution..." << endl;

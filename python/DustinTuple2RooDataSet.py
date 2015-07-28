@@ -33,22 +33,14 @@ boxes = {'MuEle':[0],
 
 dPhiCut = 2.7
 
-def initializeWorkspace(w,cfg):
-    variables = cfg.getVariablesRange(box,"variables",w)
-    parameters = cfg.getVariables(box, "parameters")
-    paramNames = []
-    for parameter in parameters:
-        w.factory(parameter)
-        paramName = parameter.split('[')[0]
-        if paramName.find("Cut")==-1 and paramName.find("Ntot")==-1:
-            paramNames.append(paramName)
-            w.var(paramName).setConstant(False)
-        else:
-            if paramName.find("Ntot")==-1:
-                w.var(paramName).setConstant(True)
-            else:
-                w.var(paramName).setConstant(False)
+MTCut = -1
 
+def initializeWorkspace(w,cfg,box):
+    variables = cfg.getVariablesRange(box,"variables",w)
+    
+    w.factory('W[1.,0.,+INF]')
+    w.set('variables').add(w.var('W'))
+    return w
 
 def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     if f.find('SMS')!=-1:
@@ -211,11 +203,9 @@ if __name__ == '__main__':
     
     w = rt.RooWorkspace("w"+box)
 
-    initializeWorkspace(w,cfg)
+    variables = initializeWorkspace(w,cfg,box)
     
     
-    w.factory('W[1.,0.,+INF]')
-    w.set('variables').add(w.var('W'))
     
     ds = []
 
@@ -245,6 +235,9 @@ if __name__ == '__main__':
         print "Sum of Weights Total [ %s ] ="%box, sumWTotal
         print "Sum of Weights QCD   [ %s ] ="%box, sumWQCD
         print "Scale Factor k_QCD   [ %s ] ="%box, k_QCD[box]
+    else:        
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        k_QCD[box] = [1. for iz in range(1,len(z))]
 
     for i, f in enumerate(args):
         if f.lower().endswith('.root'):
@@ -286,19 +279,29 @@ if __name__ == '__main__':
         if btagMax>btagMin+1:
             outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
             outFile = outFile.replace('_1pb','')
+            if not useWeight:
+                outFile = outFile.replace("weighted","unweighted")
         else:
             outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
             outFile = outFile.replace('_1pb','')
+            if not useWeight:
+                outFile = outFile.replace("weighted","unweighted")
     else:
         if btagMax>btagMin+1:
-            outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+            if useWeight:
+                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+            else:
+                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         else:
-            outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+            if useWeight:
+                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+            else:
+                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     numEntriesByBtag = []
     sumEntriesByBtag = []
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     for i in z[:-1]:
         numEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).numEntries())
         sumEntriesByBtag.append(wdata.reduce('nBtag==%i'%i).sumEntries())

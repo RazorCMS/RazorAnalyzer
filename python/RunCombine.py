@@ -62,9 +62,9 @@ if __name__ == '__main__':
         for box in boxes:            
             z = array('d', cfg.getBinning(box)[2]) # nBtag binning
             btagMin = z[0]
-            btagMax = z[-2]        
-            if btagMax>btagMin:          
-                btag = '%i-%ibtag'%(btagMin,btagMax)
+            btagMax = z[-1]
+            if btagMax-1>btagMin:          
+                btag = '%i-%ibtag'%(btagMin,btagMax-1)
             else:
                 btag = '%ibtag'%(btagMin)    
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,lumi,btag,box)

@@ -22,10 +22,17 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
 
     //Correct the _uncorr variables' Pt and E                                                                                                                                  
     std::vector<JetCorrectorParameters> correctionParameters;
+    //Run1 Corrections
+    /*
     correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
     correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
     correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
     correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
+    */
+    //PHYS14 corrections
+    correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
+    correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
+    correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
 
     //one tree to hold all events
@@ -247,7 +254,12 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
 	  if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue;
 
 	  //ADDED LINES
-	  int level = 2; //3rd bit of jetPileupIdFlag                                                                                                                          
+	  int level = 2; //3rd bit of jetPileupIdFlag
+	  
+	  /*
+	    In the case of v1p5 ntuples the jetPassIDLoose flag is not implemented,
+	    please comment out the continue statement below
+	  */
 	  if ( !jetPassIDLoose[i] ) continue;
 	  // if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;	  
 	  
