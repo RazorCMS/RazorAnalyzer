@@ -71,12 +71,18 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
 
         //functions in RazorAuxMuon.cc
+	bool isMuonPOGLooseMuon(int i);
+	bool isMuonPOGMediumMuon(int i);
+        bool isMuonPOGTightMuon(int i);
 	bool isVetoMuon(int i);
 	bool isLooseMuon(int i);
         bool isTightMuon(int i);
 	bool passVetoMuonID(int i);
 	bool passLooseMuonID(int i);
         bool passTightMuonID(int i);
+	bool passMuonPOGLooseMuonIso(int i);
+ 	bool passMuonPOGMediumMuonIso(int i);
+        bool passMuonPOGTightMuonIso(int i);
 	bool passVetoMuonIso(int i);
 	bool passLooseMuonIso(int i);
         bool passTightMuonIso(int i);
