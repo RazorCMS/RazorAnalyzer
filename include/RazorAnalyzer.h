@@ -8,7 +8,6 @@
 #include "RazorEvents.h" //This is a MakeClass of the RazorEvents tree in the ntuple to be analyzed
 #include "FactorizedJetCorrector.h"
 #include "SimpleJetResolution.h"
-#include "HggRazorAuxPhoton.hh"
 
 //ROOT includes
 #include <TROOT.h>
@@ -49,8 +48,7 @@ class RazorAnalyzer: public RazorEvents {
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
-        virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);//Run1
-	virtual void HggRazorRun2(string outFileName = "HggRazorRun2.root", bool combineTrees = false);//Run2
+        virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
 	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
@@ -123,36 +121,31 @@ class RazorAnalyzer: public RazorEvents {
 
         //functions in RazorAuxPhoton.cc
         bool photonPassesElectronVeto(int i);
+	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
         bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
-        bool photonPassesRunOneIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
-        bool passesCutsBasedPhotonID(int i, double HoverECut, double SigmaIetaIetaCut, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
-        bool passesRunOneCutsBasedPhotonID(int i, double HoverECut, double SigmaIetaIetaCut, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
-        bool passesCutsBasedPhotonIDNoIsoCuts(int i, double HoverECut, double SigmaIetaIetaCut);
+	bool photonPassLooseID(int i);
+	bool photonPassMediumID(int i);
+	bool photonPassTightID(int i);
+	bool photonPassLooseIso(int i);
+	bool photonPassMediumIso(int i);
+	bool photonPassTightIso(int i);
         bool isLoosePhoton(int i);
         bool isMediumPhoton(int i);
-        bool isMediumRunOnePhoton(int i);
-        bool isTightRunOnePhoton(int i);
-        bool isMediumPhotonNoIsoCuts(int i);
-        bool photonPassesLooseIsoCuts(int i);
-        bool photonPassesMediumIsoCuts(int i);
-        bool photonPassesTightIsoCuts(int i);
         bool isTightPhoton(int i);
-	double getPhotonScaleCorrectionRunOne7TeV(int run, double eta, double r9, double et);
-	double getPhotonScaleCorrectionRunOne8TeV(int run, double eta, double r9, double et);
 
-	//function in HggRazorAuxPhoton.cc
-	// R u n 1   C u t   B a s e d   I D
-	//----------------------------------
-	bool isGoodPhotonRun1( int i, bool _iso, bool _debug );
-	bool photonPassIsoRun1( int i, bool _debug );
-	bool photonPassIsoRun1( int i , WP wp, bool _debug );
-	void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-	bool passEleVetoRun1( int i );
-	// R u n 2   C u t   B a s e d   I D
-	//----------------------------------
-	bool isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug );
-	bool photonPassIsoRun2( int i, WP wp ,bool _debug );
-	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+	/* //function in HggRazorAuxPhoton.cc */
+	/* // R u n 1   C u t   B a s e d   I D */
+	/* //---------------------------------- */
+	/* bool isGoodPhotonRun1( int i, bool _iso, bool _debug ); */
+	/* bool photonPassIsoRun1( int i, bool _debug ); */
+	/* bool photonPassIsoRun1( int i , WP wp, bool _debug ); */
+	/* void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho ); */
+	/* bool passEleVetoRun1( int i ); */
+	/* // R u n 2   C u t   B a s e d   I D */
+	/* //---------------------------------- */
+	/* bool isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug ); */
+	/* bool photonPassIsoRun2( int i, WP wp ,bool _debug ); */
+	/* void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho ); */
 
 
         //functions in RazorAuxJet.cc     

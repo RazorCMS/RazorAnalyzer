@@ -891,14 +891,7 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         for(int i = 0; i < nPhotons; i++){
             if(phoPt[i] < 10) continue;
             if(fabs(phoEta[i]) > 2.5) continue;
-
-            if(isRunOne){
-                // if(!isTightRunOnePhoton(i)) continue;
-	      if(!isMediumRunOnePhoton(i)) continue;
-            }
-            else{
-                if(!isTightPhoton(i)) continue;
-            }
+	    if(!isTightPhoton(i)) continue;
 
             if(phoPt[i] > 40) nPhotonsAbove40GeV++;
             TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);

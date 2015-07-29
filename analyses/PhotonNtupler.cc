@@ -77,15 +77,15 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	  phoTree->fPhoHasPixelSeed = pho_hasPixelSeed[i];
 
 
-	  phoTree->fPhoIsLoose = isGoodPhotonRun2( i , true, WP::Loose, false );
-	  phoTree->fPhoIsMedium = isGoodPhotonRun2( i , true, WP::Medium, false );
-	  phoTree->fPhoIsTight = isGoodPhotonRun2( i , true, WP::Tight, false );
-	  phoTree->fPhoPassLooseID = isGoodPhotonRun2( i , false, WP::Loose, false );
-	  phoTree->fPhoPassMediumID = isGoodPhotonRun2( i , false, WP::Medium, false );
-	  phoTree->fPhoPassTightID = isGoodPhotonRun2( i , false, WP::Tight, false );
-	  phoTree->fPhoPassLooseIso = photonPassIsoRun2( i, WP::Loose, false);
-	  phoTree->fPhoPassMediumIso = photonPassIsoRun2( i, WP::Medium, false);
-	  phoTree->fPhoPassTightIso = photonPassIsoRun2( i, WP::Tight, false);
+	  phoTree->fPhoIsLoose = isLoosePhoton(i);
+	  phoTree->fPhoIsMedium = isMediumPhoton(i);
+	  phoTree->fPhoIsTight = isTightPhoton(i);
+	  phoTree->fPhoPassLooseID = photonPassLooseID(i);
+	  phoTree->fPhoPassMediumID = photonPassMediumID(i);
+	  phoTree->fPhoPassTightID = photonPassTightID(i);
+	  phoTree->fPhoPassLooseIso = photonPassLooseIso(i);
+	  phoTree->fPhoPassMediumIso = photonPassMediumIso(i);
+	  phoTree->fPhoPassTightIso = photonPassTightIso(i);
 
 	  bool foundMatch = false;
 	  int phoMatchingGenPhotonIndex = -1;
@@ -160,8 +160,6 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	  if (doFillPhoton) {
 
 	    // cout << "DEBUG\n";
-	    // isGoodPhotonRun2( i , true, WP::Loose, true );
-
 	    // cout << "weird ? " << bool(!phoTree->fPhoIsLoose && phoSigmaIetaIeta[i] < 0.01 && pho_HoverE[i] < 0.028) << " "
 	    // 	 << bool(phoSigmaIetaIeta[i] < 0.01) << " " << bool(pho_HoverE[i] < 0.028) << " " << phoTree->fPhoIsLoose << "\n";
 	    // if (!phoTree->fPhoIsLoose && phoSigmaIetaIeta[i] < 0.01 && pho_HoverE[i] < 0.028) {
@@ -250,15 +248,15 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	       phoTree->fPhoIDMVA = pho_IDMVA[matchedIndex];
 	       phoTree->fPhoSCEta = pho_superClusterEta[matchedIndex];
 	       phoTree->fPhoHasPixelSeed = pho_hasPixelSeed[matchedIndex];
-	       phoTree->fPhoIsLoose = isGoodPhotonRun2( matchedIndex , true, WP::Loose, false );
-	       phoTree->fPhoIsMedium = isGoodPhotonRun2( matchedIndex , true, WP::Medium, false );
-	       phoTree->fPhoIsTight = isGoodPhotonRun2( matchedIndex , true, WP::Tight, false );
-	       phoTree->fPhoPassLooseID = isGoodPhotonRun2( matchedIndex , false, WP::Loose, false );
-	       phoTree->fPhoPassMediumID = isGoodPhotonRun2( matchedIndex , false, WP::Medium, false );
-	       phoTree->fPhoPassTightID = isGoodPhotonRun2( matchedIndex , false, WP::Tight, false );
-	       phoTree->fPhoPassLooseIso = photonPassIsoRun2( matchedIndex, WP::Loose, false);
-	       phoTree->fPhoPassMediumIso = photonPassIsoRun2( matchedIndex, WP::Medium, false);
-	       phoTree->fPhoPassTightIso = photonPassIsoRun2( matchedIndex, WP::Tight, false);
+	       phoTree->fPhoIsLoose = isLoosePhoton(matchedIndex);
+	       phoTree->fPhoIsMedium = isMediumPhoton(matchedIndex);
+	       phoTree->fPhoIsTight = isTightPhoton(matchedIndex);
+	       phoTree->fPhoPassLooseID = photonPassLooseID(matchedIndex);
+	       phoTree->fPhoPassMediumID = photonPassMediumID(matchedIndex);
+	       phoTree->fPhoPassTightID = photonPassTightID(matchedIndex);
+	       phoTree->fPhoPassLooseIso = photonPassLooseIso(matchedIndex);
+	       phoTree->fPhoPassMediumIso = photonPassMediumIso(matchedIndex);
+	       phoTree->fPhoPassTightIso = photonPassTightIso(matchedIndex);
 	     }
 
 	     bool doFillPhoton = false;
