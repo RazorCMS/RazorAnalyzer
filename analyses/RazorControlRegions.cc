@@ -65,7 +65,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //3: Dilepton
     //4: Dilepton Add To MET
     //5: Photon Add To MET
+    //6: Zero Lepton
     //11: Single-Lepton Reduced
+    //12: Single-Lepton Add To MET Reduced
+    //13: Dilepton Reduced
+    //14: Dilepton Add To MET Reduced
+    //15: Photon Reduced
     //hundreds digit refers to lepton skim option
     //0: no skim
     //1: 1 lepton skim
@@ -74,21 +79,27 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //thousand digit refers to razor skim option
     //0: no skim
     //1: razor skim MR > 300 Rsq > 0.15
+    //2: razor skim MR_NoW > 300 && Rsq_NoW > 0.15
+    //3: razor skim MR_NoZ > 300 && Rsq_NoZ > 0.15
+    //5: razor skim MR_NoPho > 300 && Rsq_NoPho > 0.15
     //*********************************************
+    int razorSkimOption = floor(float(option) / 1000);
+    int leptonSkimOption = floor( float(option - razorSkimOption*1000) / 100);
+    int treeTypeOption = option - razorSkimOption*10000 - leptonSkimOption*100;
 
-    if (option == 1 || option == 101 || option == 1101)
+    if (treeTypeOption == 1)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
-    else if (option == 11 || option == 111 || option == 1111)
+    else if (treeTypeOption == 11)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Reduced);
-    else if (option == 2 || option == 102 || option == 1102)
+    else if (treeTypeOption == 2)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLeptonAdd2MET_Full);
-    else if (option == 3 || option == 203 || option == 1203)
+    else if (treeTypeOption == 3)
       events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
-    else if (option == 4 || option == 204 || option == 1204)
+    else if (treeTypeOption == 4)
       events->CreateTree(ControlSampleEvents::kTreeType_DileptonAdd2MET_Full);
-    else if (option == 5 || option == 505 || option == 1505 )
+    else if (treeTypeOption == 5)
       events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
-    else if (option == 6)
+    else if (treeTypeOption == 6)
       events->CreateTree(ControlSampleEvents::kTreeType_ZeroLepton_Full);
     else {
       events->CreateTree(ControlSampleEvents::kTreeType_Default);
@@ -129,6 +140,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
       
       //event info
+      events->option = option;
       events->weight = genWeight;
       events->run = runNum;
       events->lumi = lumiNum;
@@ -270,6 +282,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       vector<int> TightLeptonType;
       vector<int> TightLeptonPt;
       vector<TLorentzVector> GoodLeptons;//leptons used to compute hemispheres
+      vector<int> GoodLeptonType;//leptons used to compute hemispheres
+      vector<bool> GoodLeptonIsTight;//leptons used to compute hemispheres
+      vector<bool> GoodLeptonIsLoose;//leptons used to compute hemispheres
+      vector<bool> GoodLeptonIsVeto;//leptons used to compute hemispheres
 
 
 
@@ -303,10 +319,29 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	if (printSyncDebug) cout << "muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : Tight = " << isTightMuon(i) << " Loose = " << isLooseMuon(i) << " Veto = " << isVetoMuon(i) << " \n";
                         	   
-	if(!isVetoMuon(i)) continue;  
 	TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
-	GoodLeptons.push_back(thisMuon);
-      }
+
+	//*******************************************************
+	//For Single Lepton Options, use only tight leptons
+	//For Dilepton Options, use only loose leptons
+	//*******************************************************
+	bool isGoodLepton = false;
+	if (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
+	  if (isTightMuon(i)) isGoodLepton = true;
+	}
+	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
+	  if (isLooseMuon(i)) isGoodLepton = true;
+	}
+
+	if (isGoodLepton) {
+	  GoodLeptons.push_back(thisMuon);
+	  GoodLeptonType.push_back(13 * -1 * muonCharge[i]);
+	  GoodLeptonIsTight.push_back( isTightMuon(i) );
+	  GoodLeptonIsLoose.push_back( isLooseMuon(i) );
+	  GoodLeptonIsVeto.push_back( isVetoMuon(i) );
+	}
+
+      } // loop over muons
 
 
       for(int i = 0; i < nElectrons; i++){
@@ -321,35 +356,50 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	if (alreadySelected) continue;
 
-	if( ( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) )
-	    && elePt[i] > 10 ) {
+	if( isTightElectron(i) && elePt[i] > 10 ) {
 	  TightLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  TightLeptonIndex.push_back(i);
 	  TightLeptonPt.push_back(elePt[i]);
 	}
-	else if( ( (!isRunOne && isLooseElectron(i)) || (isRunOne && isRunOneLooseElectron(i)) )
-		 && elePt[i] > 10 ) {
+	else if( isLooseElectron(i) && elePt[i] > 10 ) {
 	  LooseLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  LooseLeptonIndex.push_back(i);
 	  LooseLeptonPt.push_back(elePt[i]);
 	}
-	else if(isMVANonTrigVetoElectron(i)) {
+	else if(isVetoElectron(i)) {
 	  VetoLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  VetoLeptonIndex.push_back(i);
 	  VetoLeptonPt.push_back(elePt[i]);
 	}
             
-	if (printSyncDebug) cout << "ele " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Loose = " << isLooseElectron(i) << " Veto = " << isMVANonTrigVetoElectron(i) << " \n";
+	if (printSyncDebug) cout << "ele " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Loose = " << isLooseElectron(i) << " Veto = " << isVetoElectron(i) << " \n";
 
-	if(!isMVANonTrigVetoElectron(i)) continue; 
+	if(!isVetoElectron(i)) continue; 
+
 	TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-	GoodLeptons.push_back(thisElectron);        
+
+	//*******************************************************
+	//For Single Lepton Options, use only tight leptons
+	//For Dilepton Options, use only loose leptons
+	//*******************************************************
+	bool isGoodLepton = false;
+	if (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
+	  if (isTightElectron(i)) isGoodLepton = true;
+	}
+	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
+	  if (isLooseElectron(i)) isGoodLepton = true;
+	}
+
+	if (isGoodLepton) {
+	  GoodLeptons.push_back(thisElectron);        
+	  GoodLeptonType.push_back(11 * -1 * muonCharge[i]);
+	  GoodLeptonIsTight.push_back( isTightElectron(i) );
+	  GoodLeptonIsLoose.push_back( isLooseElectron(i) );
+	  GoodLeptonIsVeto.push_back( isVetoElectron(i) );
+	}
       }
 
       for(int i = 0; i < nTaus; i++){
-
-	if (isRunOne) continue;
-
 	if (tauPt[i] < 20) continue;
 	if (fabs(tauEta[i]) > 2.4) continue;
 
@@ -369,70 +419,42 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  LooseLeptonType.push_back(15);
 	  LooseLeptonIndex.push_back(i);
 	  LooseLeptonPt.push_back(tauPt[i]);
-	}	 
-	  
+	}	 	  
       }
 
-
-      //Sort Leptons
-      tempIndex = -1;
-      int tempType = -1;
-      int tempPt = -1;
-      for(uint i = 0; i < TightLeptonIndex.size() ; i++) {
-	for (uint j=0; j < TightLeptonIndex.size()-1; j++) {
-	  if (TightLeptonPt[j] > TightLeptonPt[j]) { 
-	    tempIndex = TightLeptonIndex[j];             // swap elements
-	    tempType = TightLeptonType[j];
-	    tempPt = TightLeptonPt[j];
-	    TightLeptonIndex[j] = TightLeptonIndex[j+1];
-	    TightLeptonType[j] = TightLeptonType[j+1];
-	    TightLeptonPt[j] = TightLeptonPt[j+1]; 
-	    TightLeptonIndex[j+1] = tempIndex;
-	    TightLeptonType[j+1] = tempType;
-	    TightLeptonPt[j+1] = tempPt;
-	  }
-	}
-      }
-      tempIndex = -1;
-      tempType = -1;
-      tempPt = -1;
-      for(uint i = 0; i < LooseLeptonIndex.size() ; i++) {
-	for (uint j=0; j < LooseLeptonIndex.size()-1; j++) {
-	  if (LooseLeptonPt[j] > LooseLeptonPt[j]) { 
-	    tempIndex = LooseLeptonIndex[j];             // swap elements
-	    tempType = LooseLeptonType[j];
-	    tempPt = LooseLeptonPt[j];
-	    LooseLeptonIndex[j] = LooseLeptonIndex[j+1];
-	    LooseLeptonType[j] = LooseLeptonType[j+1];
-	    LooseLeptonPt[j] = LooseLeptonPt[j+1]; 
-	    LooseLeptonIndex[j+1] = tempIndex;
-	    LooseLeptonType[j+1] = tempType;
-	    LooseLeptonPt[j+1] = tempPt;
-	  }
-	}
-      }
-      tempIndex = -1;
-      tempType = -1;
-      tempPt = -1;
-      for(uint i = 0; i < VetoLeptonIndex.size() ; i++) {
-	for (uint j=0; j < VetoLeptonIndex.size()-1; j++) {
-	  if (VetoLeptonPt[j] > VetoLeptonPt[j]) { 
-	    tempIndex = VetoLeptonIndex[j];             // swap elements
-	    tempType = VetoLeptonType[j];
-	    tempPt = VetoLeptonPt[j];
-	    VetoLeptonIndex[j] = VetoLeptonIndex[j+1];
-	    VetoLeptonType[j] = VetoLeptonType[j+1];
-	    VetoLeptonPt[j] = VetoLeptonPt[j+1]; 
-	    VetoLeptonIndex[j+1] = tempIndex;
-	    VetoLeptonType[j+1] = tempType;
-	    VetoLeptonPt[j+1] = tempPt;
-	  }
-	}
-      }
-	
-	
       //************************************************************************
-      //Fill Lepton Information, in order of tight, loose, veto
+      //Sort the collections by pT
+      //************************************************************************
+      for(uint i = 0; i < GoodLeptons.size() ; i++) {
+	for (uint j=0; j < GoodLeptons.size()-1; j++) {
+	  if (GoodLeptons[j+1].Pt() > GoodLeptons[j].Pt()) { 
+
+	    // swap elements
+	    TLorentzVector tmpV = GoodLeptons[j]; 
+	    int tmpType = GoodLeptonType[j];
+	    bool tmpIsTight = GoodLeptonIsTight[j];
+	    bool tmpIsLoose = GoodLeptonIsLoose[j];
+	    bool tmpIsVeto = GoodLeptonIsVeto[j];
+
+	    GoodLeptons[j] = GoodLeptons[j+1];
+	    GoodLeptonType[j] = GoodLeptonType[j+1];
+	    GoodLeptonIsTight[j] = GoodLeptonIsTight[j+1];
+	    GoodLeptonIsLoose[j] = GoodLeptonIsLoose[j+1];
+	    GoodLeptonIsVeto[j] = GoodLeptonIsVeto[j+1];
+
+	    GoodLeptons[j+1] = tmpV;
+	    GoodLeptonType[j+1] = tmpType;
+	    GoodLeptonIsTight[j+1] = tmpIsTight;
+	    GoodLeptonIsLoose[j+1] = tmpIsLoose;
+	    GoodLeptonIsVeto[j+1] = tmpIsVeto;	  
+	  }
+	}
+      }
+
+   
+
+      //************************************************************************
+      //Fill Lepton Information using Good Leptons collection
       //************************************************************************
       events->lep1.SetPtEtaPhiM(0,0,0,0);
       events->lep2.SetPtEtaPhiM(0,0,0,0);
@@ -449,242 +471,50 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
       bool lep1Found = false;
       bool lep2Found = false;
-      for (uint i=0; i<TightLeptonType.size(); i++) {
+      for (uint i=0; i<GoodLeptons.size(); i++) {
 	if (!lep1Found) {
-	  events->lep1Type = TightLeptonType[i];
-	  double mass = 0.000511;
-	  double tmpEta = 0;
-	  double tmpPhi = 0;
-	  if (abs(TightLeptonType[i]) == 11) {
-	    events->lep1.SetPtEtaPhiM(elePt[TightLeptonIndex[i]], eleEta[TightLeptonIndex[i]], elePhi[TightLeptonIndex[i]],mass);	      
-	    tmpEta = eleEta[TightLeptonIndex[i]];
-	    tmpPhi = elePhi[TightLeptonIndex[i]];
-	  } else if (abs(TightLeptonType[i]) == 13) {
-	    mass = 0.1057;
-	    events->lep1.SetPtEtaPhiM(muonPt[TightLeptonIndex[i]], muonEta[TightLeptonIndex[i]], muonPhi[TightLeptonIndex[i]],mass);
-	    tmpEta = muonEta[TightLeptonIndex[i]];
-	    tmpPhi = muonPhi[TightLeptonIndex[i]];
-	  } else if (abs(TightLeptonType[i]) == 15) {
-	    mass = 1.777;
-	    events->lep1.SetPtEtaPhiM(tauPt[TightLeptonIndex[i]], tauEta[TightLeptonIndex[i]], tauPhi[TightLeptonIndex[i]],mass);
-	    tmpEta = tauEta[TightLeptonIndex[i]];
-	    tmpPhi = tauPhi[TightLeptonIndex[i]];
-	  }
-
+	  events->lep1Type = GoodLeptonType[i];
+	  events->lep1.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  
 	  events->lep1MatchedGenLepIndex = -1;
-	  if ( abs(TightLeptonType[i]) == abs(events->genlep1Type) &&
-	       deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
+	  if ( abs(GoodLeptonType[i]) == abs(events->genlep1Type) &&
+	       deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 	       ) {
 	    events->lep1MatchedGenLepIndex = 1;
 	  }
-	  if (abs(TightLeptonType[i]) == abs(events->genlep2Type)
-	      && deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
+	  if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
+	      && deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 	      ) {
 	    events->lep1MatchedGenLepIndex = 2;
 	  }
-	  events->lep1PassTight = true;
-	  events->lep1PassLoose = true;
-	  events->lep1PassVeto = true;
+	  events->lep1PassTight = GoodLeptonIsTight[i];
+	  events->lep1PassLoose = GoodLeptonIsLoose[i];
+	  events->lep1PassVeto = GoodLeptonIsVeto[i];
 	  lep1Found = true;
 	} else {
 	  if (!lep2Found) {
-	    events->lep2Type = TightLeptonType[i];
-	    double mass = 0.000511;
-	    double tmpEta = 0;
-	    double tmpPhi = 0;
-	    if (abs(TightLeptonType[i]) == 11) {
-	      events->lep2.SetPtEtaPhiM(elePt[TightLeptonIndex[i]], eleEta[TightLeptonIndex[i]], elePhi[TightLeptonIndex[i]],mass);	      
-	      tmpEta = eleEta[TightLeptonIndex[i]];
-	      tmpPhi = elePhi[TightLeptonIndex[i]];
-	    } else if (abs(TightLeptonType[i]) == 13) {
-	      mass = 0.1057;
-	      events->lep2.SetPtEtaPhiM(muonPt[TightLeptonIndex[i]], muonEta[TightLeptonIndex[i]], muonPhi[TightLeptonIndex[i]],mass);
-	      tmpEta = muonEta[TightLeptonIndex[i]];
-	      tmpPhi = muonPhi[TightLeptonIndex[i]];
-	    } else if (abs(TightLeptonType[i]) == 15) {		
-	      mass = 1.777;
-	      events->lep2.SetPtEtaPhiM(tauPt[TightLeptonIndex[i]], tauEta[TightLeptonIndex[i]], tauPhi[TightLeptonIndex[i]],mass);
-	      tmpEta = tauEta[TightLeptonIndex[i]];
-	      tmpPhi = tauPhi[TightLeptonIndex[i]];
-	    }
-
+	    events->lep2Type = GoodLeptonType[i];
+	    events->lep2.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  	  	   
 	    events->lep2MatchedGenLepIndex = -1;
-	    if (abs(TightLeptonType[i]) == abs(events->genlep1Type)
-		&& deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
+	    if (abs(GoodLeptonType[i]) == abs(events->genlep1Type)
+		&& deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
 		) {
 	      events->lep2MatchedGenLepIndex = 1;
 	    }
-	    if (abs(TightLeptonType[i]) == abs(events->genlep2Type)
-		&& deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
+	    if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
+		&& deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		) {
 	      events->lep2MatchedGenLepIndex = 2;
 	    }
-	    events->lep2PassTight = true;
-	    events->lep2PassLoose = true;
-	    events->lep2PassVeto = true;
+	    events->lep2PassTight = GoodLeptonIsTight[i];
+	    events->lep2PassLoose = GoodLeptonIsLoose[i];
+	    events->lep2PassVeto = GoodLeptonIsVeto[i];
 	    lep2Found = true;
 	  }
 	}
       } //loop over Tight leptons	
 
-
-      for (uint i=0; i<LooseLeptonType.size(); i++) {
-	if (!lep1Found) {
-	  events->lep1Type = LooseLeptonType[i];
-	  double mass = 0.000511;
-	  double tmpEta = 0;
-	  double tmpPhi = 0;
-	  if (abs(LooseLeptonType[i]) == 11) {
-	    events->lep1.SetPtEtaPhiM(elePt[LooseLeptonIndex[i]], eleEta[LooseLeptonIndex[i]], elePhi[LooseLeptonIndex[i]],mass);	      
-	    tmpEta = eleEta[LooseLeptonIndex[i]];
-	    tmpPhi = elePhi[LooseLeptonIndex[i]];
-	  } else if (abs(LooseLeptonType[i]) == 13) {
-	    mass = 0.1057;
-	    events->lep1.SetPtEtaPhiM(muonPt[LooseLeptonIndex[i]], muonEta[LooseLeptonIndex[i]], muonPhi[LooseLeptonIndex[i]],mass);
-	    tmpEta = muonEta[LooseLeptonIndex[i]];
-	    tmpPhi = muonPhi[LooseLeptonIndex[i]];
-	  } else if (abs(LooseLeptonType[i]) == 15) {
-	    mass = 1.777;
-	    events->lep1.SetPtEtaPhiM(tauPt[LooseLeptonIndex[i]], tauEta[LooseLeptonIndex[i]], tauPhi[LooseLeptonIndex[i]],mass);
-	    tmpEta = tauEta[LooseLeptonIndex[i]];
-	    tmpPhi = tauPhi[LooseLeptonIndex[i]];
-	  }
-
-	  events->lep1MatchedGenLepIndex = -1;
-	  if (abs(LooseLeptonType[i]) == abs(events->genlep1Type)
-	      && deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-	      ) {
-	    events->lep1MatchedGenLepIndex = 1;
-	  }
-	  if (abs(LooseLeptonType[i]) == abs(events->genlep2Type)
-	      && deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-	      ) {
-	    events->lep1MatchedGenLepIndex = 2;
-	  }
-	  events->lep1PassTight = false;
-	  events->lep1PassLoose = true;
-	  events->lep1PassVeto = true;
-	  lep1Found = true;
-	} else {
-	  if (!lep2Found) {
-	    events->lep2Type = LooseLeptonType[i];
-	    double mass = 0.000511;
-	    double tmpEta = 0;
-	    double tmpPhi = 0;
-	    if (abs(LooseLeptonType[i]) == 11) {
-	      events->lep2.SetPtEtaPhiM(elePt[LooseLeptonIndex[i]], eleEta[LooseLeptonIndex[i]], elePhi[LooseLeptonIndex[i]],mass);	      
-	      tmpEta = eleEta[LooseLeptonIndex[i]];
-	      tmpPhi = elePhi[LooseLeptonIndex[i]];
-	    } else if (abs(LooseLeptonType[i]) == 13) {
-	      mass = 0.1057;
-	      events->lep2.SetPtEtaPhiM(muonPt[LooseLeptonIndex[i]], muonEta[LooseLeptonIndex[i]], muonPhi[LooseLeptonIndex[i]],mass);
-	      tmpEta = muonEta[LooseLeptonIndex[i]];
-	      tmpPhi = muonPhi[LooseLeptonIndex[i]];
-	    } else if (abs(LooseLeptonType[i]) == 15) {
-	      mass = 1.777;
-	      events->lep2.SetPtEtaPhiM(tauPt[LooseLeptonIndex[i]], tauEta[LooseLeptonIndex[i]], tauPhi[LooseLeptonIndex[i]],mass);
-	      tmpEta = tauEta[LooseLeptonIndex[i]];
-	      tmpPhi = tauPhi[LooseLeptonIndex[i]];
-	    }
-
-	    events->lep2MatchedGenLepIndex = -1;
-	    if (abs(LooseLeptonType[i]) == abs(events->genlep1Type)
-		&& deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		) {
-	      events->lep2MatchedGenLepIndex = 1;
-	    }
-	    if (abs(LooseLeptonType[i]) == abs(events->genlep2Type)
-		&& deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		) {
-	      events->lep2MatchedGenLepIndex = 2;
-	    }
-	    events->lep2PassTight = false;
-	    events->lep2PassLoose = true;
-	    events->lep2PassVeto = true;
-	    lep2Found = true;
-	  }
-	}
-      } //loop over Loose leptons
-
-      for (uint i=0; i<VetoLeptonType.size(); i++) {
-	if (!lep1Found) {
-	  events->lep1Type = VetoLeptonType[i];
-	  double mass = 0.000511;
-	  double tmpEta = 0;
-	  double tmpPhi = 0;
-	  if (abs(VetoLeptonType[i]) == 11) {
-	    events->lep1.SetPtEtaPhiM(elePt[VetoLeptonIndex[i]], eleEta[VetoLeptonIndex[i]], elePhi[VetoLeptonIndex[i]],mass);	      
-	    tmpEta = eleEta[VetoLeptonIndex[i]];
-	    tmpPhi = elePhi[VetoLeptonIndex[i]];
-	  } else if (abs(VetoLeptonType[i]) == 13) {
-	    mass = 0.1057;
-	    events->lep1.SetPtEtaPhiM(muonPt[VetoLeptonIndex[i]], muonEta[VetoLeptonIndex[i]], muonPhi[VetoLeptonIndex[i]],mass);
-	    tmpEta = muonEta[VetoLeptonIndex[i]];
-	    tmpPhi = muonPhi[VetoLeptonIndex[i]];
-	  } else if (abs(VetoLeptonType[i]) == 15) {
-	    mass = 1.777;
-	    events->lep1.SetPtEtaPhiM(tauPt[VetoLeptonIndex[i]], tauEta[VetoLeptonIndex[i]], tauPhi[VetoLeptonIndex[i]],mass);
-	    tmpEta = tauEta[VetoLeptonIndex[i]];
-	    tmpPhi = tauPhi[VetoLeptonIndex[i]];
-	  }
-
-	  events->lep1MatchedGenLepIndex = -1;
-	  if ( abs(VetoLeptonType[i]) == abs(events->genlep1Type)
-	       && deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-	       ) {
-	    events->lep1MatchedGenLepIndex = 1;
-	  }
-	  if (abs(VetoLeptonType[i]) == abs(events->genlep2Type)
-	      && deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-	      ) {
-	    events->lep1MatchedGenLepIndex = 2;
-	  }
-	  events->lep1PassTight = false;
-	  events->lep1PassLoose = false;
-	  events->lep1PassVeto = true;
-	  lep1Found = true;
-	} else {
-	  if (!lep2Found) {
-	    events->lep2Type = VetoLeptonType[i];
-	    double mass = 0.000511;
-	    double tmpEta = 0;
-	    double tmpPhi = 0;
-	    if (abs(VetoLeptonType[i]) == 11) {
-	      events->lep2.SetPtEtaPhiM(elePt[VetoLeptonIndex[i]], eleEta[VetoLeptonIndex[i]], elePhi[VetoLeptonIndex[i]],mass);	      
-	      tmpEta = eleEta[VetoLeptonIndex[i]];
-	      tmpPhi = elePhi[VetoLeptonIndex[i]];
-	    } else if (abs(VetoLeptonType[i]) == 13) {
-	      mass = 0.1057;
-	      events->lep2.SetPtEtaPhiM(muonPt[VetoLeptonIndex[i]], muonEta[VetoLeptonIndex[i]], muonPhi[VetoLeptonIndex[i]],mass);
-	      tmpEta = muonEta[VetoLeptonIndex[i]];
-	      tmpPhi = muonPhi[VetoLeptonIndex[i]];
-	    } else if (abs(VetoLeptonType[i]) == 15) {
-	      mass = 1.777;
-	      events->lep2.SetPtEtaPhiM(tauPt[VetoLeptonIndex[i]], tauEta[VetoLeptonIndex[i]], tauPhi[VetoLeptonIndex[i]],mass);
-	      tmpEta = tauEta[VetoLeptonIndex[i]];
-	      tmpPhi = tauPhi[VetoLeptonIndex[i]];
-	    }
-
-	    events->lep2MatchedGenLepIndex = -1;
-	    if (abs(VetoLeptonType[i]) == abs(events->genlep1Type)
-		&& deltaR(tmpEta,tmpPhi,events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		) {
-	      events->lep2MatchedGenLepIndex = 1;
-	    }
-	    if (abs(VetoLeptonType[i]) == abs(events->genlep2Type)
-		&& deltaR(tmpEta,tmpPhi,events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-		) {
-	      events->lep2MatchedGenLepIndex = 2;
-	    }
-	    events->lep2PassTight = false;
-	    events->lep2PassLoose = false;
-	    events->lep2PassVeto = true;
-	    lep2Found = true;
-	  }
-	}
-      } //loop over Veto leptons
-
-	//save this for the 1-lepton mini ntuples
+    
+      //save this for the 1-lepton mini ntuples
       if (lep1Found) {
 	events->lep1Pt = events->lep1.Pt();
 	events->lep1Eta = events->lep1.Eta();
@@ -703,11 +533,66 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	cout << "lep1: " << events->lep1Type << " | " << events->lep1.Pt() << " " << events->lep1.Eta() << " " << events->lep1.Phi() << " | Tight = " << events->lep1PassTight << " Loose = " << events->lep1PassLoose << " Veto = " << events->lep1PassVeto << "\n";
 	cout << "lep2: " << events->lep2Type << " | " << events->lep2.Pt() << " " << events->lep2.Eta() << " " << events->lep2.Phi() << " | Tight = " << events->lep2PassTight << " Loose = " << events->lep2PassLoose << " Veto = " << events->lep2PassVeto << "\n";	 
       }
+    
 
+      //****************************************************//
+      //             Select photons                         //
+      //****************************************************//
+      vector<TLorentzVector> GoodPhotons;
+      int nPhotonsAbove40GeV = 0;
+
+      if (treeTypeOption == 5 || treeTypeOption == 15) {
+	for(int i = 0; i < nPhotons; i++){
+
+
+	  if(phoPt[i] < 10) continue;
+	  if(fabs(phoEta[i]) > 2.5) continue;
+	  if(!isTightPhoton(i)) continue;
+
+	  if(phoPt[i] > 40) nPhotonsAbove40GeV++;
+	  TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], phoE[i]);
+	  GoodPhotons.push_back(thisPhoton);
+	}
+      }     
+      events->nSelectedPhotons = nPhotonsAbove40GeV;
+      
+      //Sort Photon Collection
+      sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
+    
+      //****************************************************//
+      // Set Photon HLT Bits
+      //****************************************************//
+      for(int i = 62; i <= 67; i++){
+	if(HLTDecision[i] == 1) events->HLT_Photon = true;
+      }
+	
+      if(isData && events->HLT_Photon){
+	//save the trigger bits
+	if(HLTDecision[67] == 1){
+	  events->HLT_Photon165 = true;
+	}
+	if(HLTDecision[66] == 1){
+	  events->HLT_Photon120 = true;
+	}
+	if(HLTDecision[65] == 1){
+	  events->HLT_Photon90 = true;
+	}
+	if(HLTDecision[64] == 1){
+	  events->HLT_Photon75 = true;
+	}
+	if(HLTDecision[63]== 1){
+	  events->HLT_Photon50 = true;
+	}
+	if(HLTDecision[62]== 1){
+	  events->HLT_Photon36 = true;
+	}
+      }
+
+    
 
 
       //************************************************************************
-      //Find all Relevent Jets	
+      //Select Jets
       //************************************************************************
       bool bjet1Found = false;
       bool bjet2Found = false;
@@ -732,7 +617,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
       for(int i = 0; i < nJets; i++){
 
-	//exclude selected muons and electrons from the jet collection
+	//exclude Good leptons from the jet collection
 	double dR = -1;
 	for(auto& lep : GoodLeptons){
 	  double thisDR = deltaR(jetEta[i],jetPhi[i],lep.Eta(),lep.Phi());
@@ -751,8 +636,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	       << " | passID = " << jetPassIDTight[i] << " passPUJetID = " << bool((jetPileupIdFlag[i] & (1 << 2)) != 0) 
 	       << " | csv = " << jetCSV[i] << " passCSVL = " << isOldCSVL(i) << " passCSVM = " << isOldCSVM(i) << " " << "\n";
 	}
-
-
 
 	//*******************************************************
 	//apply jet iD
@@ -796,10 +679,11 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - UnCorrJet.Px() << " " << thisJet.Py() - UnCorrJet.Py() << "\n";
 	}
 
-	//*******************************************************
-	//apply  Pileup Jet ID
-	//*******************************************************
-	int level = 2; //loose jet ID
+
+	//**********************************************************************************************
+	//apply  Pileup Jet ID, don't do this yet for Run2 because we don't know the cut to make yet
+	//**********************************************************************************************
+	// int level = 2; //loose jet ID
 	//if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
 
 
@@ -847,26 +731,16 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
 	if(fabs(jetEta[i]) > 3.0) continue;
 	 
-
 	numJetsAbove40GeV++;
 	if(jetPt[i]*JEC*jetEnergySmearFactor > 80) numJetsAbove80GeV++;	  
 	GoodJets.push_back(thisJet);	  
 	  
       } //loop over jets
+    
 
-
-	//sort good jets
-      TLorentzVector tmpjet;
-      for (int i=0;i<int(GoodJets.size());i++) {
-	for (int j=0;j<int(GoodJets.size()-1);j++) {
-	  if (GoodJets[j+1].Pt() > GoodJets[j].Pt()) {
-	    tmpjet = GoodJets[j]; //swap elements
-	    GoodJets[j] = GoodJets[j+1];
-	    GoodJets[j+1] = tmpjet;
-	  }
-	}
-      }
-
+      //sort good jets
+      sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());
+   
       //Fill two leading jets
       events->jet1.SetPtEtaPhiM(0,0,0,0);
       events->jet2.SetPtEtaPhiM(0,0,0,0);
@@ -890,9 +764,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if(((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) events->jet2PassCSVTight = true; 	   	
 	}
       }
-
+    
+      //***************************************************************
       //compute minDPhi variables
+      //***************************************************************
+    
       double JER = 0.1; //average jet energy resolution
+    
       for (int i=0;i<int(GoodJets.size());i++) {
 	if (i>2) continue; //only consider first 3 jets for minDPhi 	  
 	double dPhi = fmin( fabs(deltaPhi(metPhi,GoodJets[i].Phi())) , fabs( 3.1415926 - fabs(deltaPhi(metPhi,GoodJets[i].Phi()))));
@@ -900,13 +778,15 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	double deltaT = 0;
 	for(auto& jet2 : GoodJets) {
 	  deltaT += pow(JER*jet2.Pt()*sin(fabs(deltaPhi(GoodJets[i].Phi(),jet2.Phi()))),2);
-	}
+	}      
 	double dPhiN = dPhi / atan2( sqrt(deltaT) , metPt);
 	if (dPhiN < events->minDPhiN) events->minDPhiN = dPhiN;
       }
 
-
-      //Compute the razor variables using the selected jets and possibly leptons
+    
+      //***************************************************************************
+      //Compute the razor variables using the selected jets and good leptons
+      //***************************************************************************
       vector<TLorentzVector> GoodPFObjects;
       for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
       for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
@@ -914,8 +794,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
       double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
 
+      
       TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
       TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+      TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
+      TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
+      TLorentzVector MyMET = PFMETType1;
 
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
@@ -925,14 +809,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->MR = 0;
       events->Rsq = 0;
 	
-
-      //only compute razor variables if we have 2 jets above 80 GeV
-      if (GoodPFObjects.size() >= 2 && GoodJets.size() < 20
-	  //&& numJetsAbove80GeV >= 2 //Si: I think we don't need this requirement at this point
+      //only compute razor variables if we have 2 jets
+      //Use Type 1 PFMet for MET
+      if (GoodPFObjects.size() >= 2 
+	  && GoodJets.size() < 20 //this is a protection again crazy events
 	  ) {
 	vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
 	events->MR = computeMR(hemispheres[0], hemispheres[1]); 
-	events->Rsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
+	events->Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
       }
 	
 
@@ -940,10 +824,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	cout << "MR = " << events->MR << " Rsq = " << events->Rsq << " | "
 	     << " Mll = " << (events->lep1 + events->lep2).M() << " | " 
 	     << " NJets80 = " << numJetsAbove80GeV << " NJets40 = " << numJetsAbove40GeV << " GoodPFObjects.size() = " << GoodPFObjects.size() << " "
-	     << " MET = " << metPt << " MetPhi = " << metPhi << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
+	     << " MET = " << MyMET.Pt() << " MetPhi = " << MyMET.Phi() << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
       }
 
-      events->MET = PFMET.Pt();
+      events->MET = MyMET.Pt();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
       events->NBJetsLoose = nBJetsLoose20GeV;
@@ -960,7 +844,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for(int k=0; k<100; ++k) {
 	events->HLTDecision[k] = HLTDecision[k];
       }
-	
+    	
       //MET Filter
       events->Flag_HBHENoiseFilter = Flag_HBHENoiseFilter;
       events->Flag_CSCTightHaloFilter = Flag_CSCTightHaloFilter;
@@ -977,67 +861,16 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->Flag_METFilters = Flag_METFilters;	
 
 
-      ///////////////////////////////
-      ////// Photon Ntuple Part /////
-      ///////////////////////////////
-      for(int i = 29; i <= 34; i++){
-	if(HLTDecision[i] == 1) events->HLT_Photon = true;
-      }
-	
-      if(isData && events->HLT_Photon){
-	//save the trigger bits
-	if(HLTDecision[34] == 1){
-	  events->HLT_Photon160 = true;
-	}
-	if(HLTDecision[33] == 1){
-	  events->HLT_Photon150 = true;
-	}
-	if(HLTDecision[32] == 1){
-	  events->HLT_Photon135 = true;
-	}
-	if(HLTDecision[31] == 1){
-	  events->HLT_Photon90 = true;
-	}
-	if(HLTDecision[30] == 1){
-	  events->HLT_Photon75 = true;
-	}
-	if(HLTDecision[29] == 1){
-	  events->HLT_Photon50 = true;
-	}
-      }
-
-      //****************************************************//
-      //             Select photons                         //
-      //****************************************************//
-      vector<TLorentzVector> GoodPhotons;
-      int nPhotonsAbove40GeV = 0;
-
-      for(int i = 0; i < nPhotons; i++){
-
-
-	if(phoPt[i] < 10) continue;
-	if(fabs(phoEta[i]) > 2.5) continue;
-	if(!isTightPhoton(i)) continue;
-
-	if(phoPt[i] > 40) nPhotonsAbove40GeV++;
-	TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], pho_RegressionE[i]);
-	GoodPhotons.push_back(thisPhoton);
-      }
-
-      events->nSelectedPhotons = nPhotonsAbove40GeV;
-
-      //****************************************************//
-      //    Compute razor vars for DY, W, Gamma samples     //
-      //****************************************************//
-      //photons
-      events->pho1.SetPtEtaPhiM(0,0,0,0);
+      //***********************************************************************//
+      //    Compute razor vars adding photon to the MET
+      //***********************************************************************//
+      events->pho1.SetPtEtaPhiM(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].M());
 	
       if(GoodPhotons.size()>0){
-	sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
 
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];
-	TLorentzVector m2 = PFMET;
+	TLorentzVector m2 = MyMET;
 	TLorentzVector photonPlusMet_perp = makeTLorentzVectorPtEtaPhiM((m1 + m2).Pt(), 0., (m1 + m2).Phi(), 0.0);
 
 	events->MET_NoPho = photonPlusMet_perp.Pt();
@@ -1074,202 +907,176 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->dPhiRazor_NoPho = fabs(hemispheresNoLeadPhoton[0].DeltaPhi(hemispheresNoLeadPhoton[1]));
 	}
 
-	events->pho1 = GoodPhotons[0];
       }
-	
-      //****************************************************//
-      //               Select muons                         //
-      //****************************************************//
-      vector<TLorentzVector> GoodMuons; 
-      vector<TLorentzVector> GoodMuonsTight;
-      int nvetomuons = 0;
-      int nloosemuons = 0;
-      int ntightmuons = 0;
+    
+      //***********************************************************************//
+      //    Compute razor vars adding good leptons to the MET
+      //***********************************************************************//
 
-      for(int i = 0; i < nMuons; i++){
-	  
-	if(!isLooseMuon(i)) continue;
-	if(muonPt[i] < 10) continue;
-	if(abs(muonEta[i]) > 2.4) continue;
-	TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
-	  
-	if(isVetoMuon(i)) nvetomuons++;
-	if(isTightMuon(i)){
-	  ntightmuons++;
-	  GoodMuonsTight.push_back(thisMuon);
-	    
-	  nloosemuons++;
-	    
-	  GoodMuons.push_back(thisMuon);
-	}
-      }
-      events->nVetoMuons  = nvetomuons;
-      events->nTightMuons = ntightmuons;
-      events->nLooseMuons = nloosemuons;
-	
       //remove selected muons from collection of selected jets and add them to the MET
-      vector<TLorentzVector> GoodJetsNoMuons = GoodJets;
-      TLorentzVector TotalMuonVec;
-      for(auto& mu : GoodMuons){
-	TotalMuonVec = TotalMuonVec + mu; //add this muon's momentum to the sum
-	int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoMuons);
+      vector<TLorentzVector> GoodJetsNoLeptons = GoodJets;
+      TLorentzVector TotalLepVec;
+      int NLeptonsAdded = 0;
+      for(auto& lep : GoodLeptons){
+	NLeptonsAdded++;
+	TotalLepVec = TotalLepVec + lep; //add this muon's momentum to the sum
+	int subtractedIndex = SubtractParticleFromCollection(lep, GoodJetsNoLeptons);
 	if(subtractedIndex >= 0){
-	  if(GoodJetsNoMuons[subtractedIndex].Pt() < 40){ //erase this jet
-	    GoodJetsNoMuons.erase(GoodJetsNoMuons.begin()+subtractedIndex);
+	  if(GoodJetsNoLeptons[subtractedIndex].Pt() < 40){ //erase this jet
+	    GoodJetsNoLeptons.erase(GoodJetsNoLeptons.begin()+subtractedIndex);
 	  }
 	}
-      }
 	
-      //remove selected TIGHT muons from collection of selected jets and add them to the MET
-      vector<TLorentzVector> GoodJetsNoTightMuons = GoodJets;
-      TLorentzVector TotalTightMuonVec;
-      for(auto& mu : GoodMuonsTight){
-	TotalTightMuonVec = TotalTightMuonVec + mu; //add this muon's momentum to the sum
-	int subtractedIndex = SubtractParticleFromCollection(mu, GoodJetsNoTightMuons);
-	if(subtractedIndex >= 0){
-	  if(GoodJetsNoTightMuons[subtractedIndex].Pt() < 40){ //erase this jet
-	    GoodJetsNoTightMuons.erase(GoodJetsNoTightMuons.begin()+subtractedIndex);
-	  }
+	//only count 1 lepton for 1-lepton option. 
+	if (treeTypeOption == 2) {
+	  if (NLeptonsAdded >= 1) break;
 	}
-      }
 
+	//only count 2 lepton for 2-lepton option. 
+	if (treeTypeOption == 4) {
+	  if (NLeptonsAdded >= 2) break;
+	}
+
+     }
+	
       //make the MET vector with the muons (or gen muons) added
-      TLorentzVector ZPlusMet_perp = makeTLorentzVector((TotalMuonVec + PFMET).Pt(), 0., (TotalMuonVec + PFMET).Phi(), 0.);
-      events->MET_NoZ = ZPlusMet_perp.Pt();
-      events->METPhi_NoZ = ZPlusMet_perp.Phi();
-
-      TLorentzVector WPlusMet_perp = makeTLorentzVector((TotalTightMuonVec + PFMET).Pt(), 0., (TotalTightMuonVec + PFMET).Phi(), 0.);
-      events->MET_NoW = WPlusMet_perp.Pt();
-      events->METPhi_NoW = WPlusMet_perp.Phi(); 
+      TLorentzVector LepPlusMet_perp = makeTLorentzVector((TotalLepVec + MyMET).Pt(), 0., (TotalLepVec + MyMET).Phi(), 0.);
 
       //count jets and compute HT
-      //Z
-      int njets80noZ = 0;
-      int njets80noW = 0;
-      float ht_noZ   = 0.;
-      float ht_noW   = 0.;
-      events->NJets_NoZ = GoodJetsNoMuons.size();
-      for(auto& jet : GoodJetsNoMuons){
-	ht_noZ += jet.Pt();
-	if(jet.Pt() > 80) njets80noZ++;
-      }
-      events->HT_NoZ = ht_noZ;
-      events->NJets80_NoZ = njets80noZ;
-	 
-      //W
-      events->NJets_NoW = GoodJetsNoTightMuons.size();
-      for(auto& jet : GoodJetsNoTightMuons){
-	ht_noW += jet.Pt();
-	if(jet.Pt() > 80) njets80noW++; 
-      }
-      events->HT_NoW = ht_noW;
-      events->NJets80_NoW = njets80noW;
- 
-      //get reco Z information
-      if(GoodMuons.size() >= 1){
-	events->recoZpt = TotalMuonVec.Pt();
-	events->recoZmass = TotalMuonVec.M();
+      int njets80NoLep = 0;
+      float ht_NoLep   = 0.;
+      for(auto& jet : GoodJetsNoLeptons){
+	ht_NoLep += jet.Pt();
+	if(jet.Pt() > 80) njets80NoLep++;
       }
 
-      //compute reco Z information and razor variables for DY
-      if(events->NJets_NoZ > 1 && GoodJets.size()<20)
-        {
-	  vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoMuons);
-	  events->Rsq_NoZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], ZPlusMet_perp);
-	  events->MR_NoZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
-	  events->dPhiRazor_NoZ = fabs(hemispheresNoZ[0].DeltaPhi(hemispheresNoZ[1])); 
-        }
-      //razor variables using tight muons (for W)
-      if(events->NJets_NoW > 1 && GoodJets.size()<20){
-	vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoTightMuons);
-	events->Rsq_NoW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], WPlusMet_perp);
-	events->MR_NoW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
-	events->dPhiRazor_NoW = fabs(hemispheresNoW[0].DeltaPhi(hemispheresNoW[1])); 
+
+      //**********************************************************
+      //1-lepton Add to MET Variables
+      //**********************************************************
+      if (treeTypeOption == 2) {
+	events->MET_NoW = LepPlusMet_perp.Pt();
+	events->METPhi_NoW = LepPlusMet_perp.Phi();
+	events->NJets_NoW = GoodJetsNoLeptons.size();
+	events->HT_NoW = ht_NoLep;
+	events->NJets80_NoW = njets80NoLep;
+
+	//compute razor variables 
+	if(events->NJets_NoW > 1 && GoodJets.size()<20){
+	  vector<TLorentzVector> hemispheresNoW = getHemispheres(GoodJetsNoLeptons);
+	  events->Rsq_NoW = computeRsq(hemispheresNoW[0], hemispheresNoW[1], LepPlusMet_perp);
+	  events->MR_NoW = computeMR(hemispheresNoW[0], hemispheresNoW[1]); 
+	  events->dPhiRazor_NoW = fabs(hemispheresNoW[0].DeltaPhi(hemispheresNoW[1])); 
+	}
+
+	//more W kinematics
+	events->recoWpt = (GoodLeptons[0] + MyMET).Pt();
+	events->recoWphi = (GoodLeptons[0] + MyMET).Phi();
       }
 
-      //for W, also get the transverse mass of the first tight muon and the MET
-      if(GoodMuonsTight.size() > 0) 
-        {
-	  TLorentzVector m1 = GoodMuonsTight[0];
-	  TLorentzVector m2 = PFMET;
-	  double deltaPhiLepMet = m1.DeltaPhi(m2);
 
-	  //Only use this lep1MT if we are using the option with leptons added to MET
-	  if  (option == 2 || option == 102) {
-	    events->lep1MT = sqrt(2*m2.Pt()*m1.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); //transverse mass calculation
+      //**********************************************************
+      //2-lepton Add to MET Variables
+      //**********************************************************
+      if (treeTypeOption == 4) {
+	events->MET_NoZ = LepPlusMet_perp.Pt();
+	events->METPhi_NoZ = LepPlusMet_perp.Phi();
+	events->NJets_NoZ = GoodJetsNoLeptons.size();
+	events->HT_NoZ = ht_NoLep;
+	events->NJets80_NoZ = njets80NoLep;
+
+	//Z kinematics
+	if(NLeptonsAdded >= 2){
+	  events->recoZpt = TotalLepVec.Pt();
+	  events->recoZmass = TotalLepVec.M();
+	} else {
+	  events->recoZpt = -1;
+	  events->recoZmass = -1;
+	}
+
+	//compute razor variables 
+	if(events->NJets_NoZ > 1 && GoodJets.size()<20)
+	  {
+	    vector<TLorentzVector> hemispheresNoZ = getHemispheres(GoodJetsNoLeptons);
+	    events->Rsq_NoZ = computeRsq(hemispheresNoZ[0], hemispheresNoZ[1], LepPlusMet_perp);
+	    events->MR_NoZ = computeMR(hemispheresNoZ[0], hemispheresNoZ[1]); 
+	    events->dPhiRazor_NoZ = fabs(hemispheresNoZ[0].DeltaPhi(hemispheresNoZ[1])); 
 	  }
+      }
+    
 
-	  //store reco W information
-	  events->recoWpt = (m1+m2).Pt();
-	  events->recoWphi = (m1+m2).Phi();
-        }
-	
-      ////////////////////////////////////
-      ////// End Photon Ntuple Part //////
-      ////////////////////////////////////
-      //skim events
-      bool passSkim = false;
-      if (option < 100) passSkim = true;
-       
+
+      //****************************************************************************
+      //Event Skimming
+      //****************************************************************************
+      bool passSkim = true;
+
       // Dilepton skim
-      if (option == 203 || option == 204) { 
-	if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
-	     && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
-	     && events->lep1PassLoose && events->lep2PassLoose
-	     && events->lep1.Pt() > 20 && events->lep2.Pt() > 20) passSkim = true;
+      if (leptonSkimOption == 2) {
+	if (!(
+	      (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
+	      && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
+	      && events->lep1PassLoose && events->lep2PassLoose
+	      && events->lep1.Pt() > 20 && events->lep2.Pt() > 20
+	      )
+	    ) passSkim = false;
       }
 
       //single lepton skim
-      if (option == 101 || option == 111) { 
-	if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
-	     //&& events->lep1PassTight
-	     && events->lep1.Pt() > 30) passSkim = true;
+      if (leptonSkimOption == 1) {
+	if (!( 
+	      (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
+	      && events->lep1PassLoose
+	      && events->lep1.Pt() > 30
+	       )
+	    ) passSkim = false;
       }
 
-      //single tight lepton plus razor skim
-      if (option == 1101) { 
-	if ( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
-	     && events->lep1PassTight
-	     && events->lep1.Pt() > 30
-	     && ( (events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20)
-	     ) {
-	  passSkim = true;
+      //Photon Skim
+      if(leptonSkimOption == 5)
+	{
+	  if (!(
+		GoodPhotons.size() > 0
+		&& GoodPhotons[0].Pt() > 50	
+		)
+	      ) passSkim = false;	
 	}
+      
+      //razor skim
+      if (razorSkimOption == 1) {
+	if ( !( 
+	       (events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20
+		)
+	     ) passSkim = false;
       }
 
-      //Razor skim
-      if (option == 1000) { 
-	if ((events->MR > 300 && events->Rsq > 0.1) || GoodJets.size() >= 20) passSkim = true;
-      }
-
-      //Single lepton skim for 1L CR with adding lepton to MET
-      if(option == 1102) // kTreeType_OneLeptonAdd2MET_Reduced
+      //1-lepton add to MET razor skim
+      if(razorSkimOption == 2)
 	{
-	  passSkim = true;
-	  if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
-	  if(events->MR < 300 && events->MR_NoW < 300) passSkim = false;
-	  if(events->Rsq < 0.15 && events->Rsq_NoW < 0.15) passSkim = false;
-	  if(GoodMuons.size() == 0) passSkim = false; //don't save event if no muons or photons
+	  if (!(
+		events->MR_NoW > 300 && events->Rsq_NoW > 0.15
+		)
+	      ) passSkim = false;		
 	}
+      
 
-
-      //Dilepton skim with adding leptons to MET
-      if(option == 1204) 
+      //Dilepton add to MET razor skim
+      if(razorSkimOption == 3) 
 	{
-	  passSkim = true;
-	  if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
-	  if(events->MR < 300 && events->MR_NoZ < 300) passSkim = false;
-	  if(events->Rsq < 0.15 && events->Rsq_NoZ < 0.15) passSkim = false;
-	  if(GoodMuons.size() < 2 ) passSkim = false; //don't save event if no muons or photons
+	  if (!(
+		events->MR_NoZ > 300 && events->Rsq_NoZ > 0.15
+		)
+	      ) passSkim = false;
 	}
-
-      //Photon+Jet Skim
-      if(option == 5) // kTreeType_Photon_Reduced
+      
+      //Photon Skim
+      if(razorSkimOption == 5)
 	{
-	  passSkim = true;	    
-	  if(events->NJets80 < 2) passSkim = false; //event fails to have two 80 GeV jets
-	  if(events->MR < 300 && events->MR_NoPho < 300) passSkim = false;
-	  if(events->Rsq < 0.15 && events->Rsq_NoPho < 0.15) passSkim = false;
+	  if (!(
+		events->MR_NoPho < 300
+		&& events->Rsq_NoPho > 0.15
+		)
+	      ) passSkim = false;	
 	}
 
       //fill event 
