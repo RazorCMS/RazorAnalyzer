@@ -87,9 +87,9 @@ void FullControlRegionBasedPrediction(){
     bool doLeptonPtCut = false;
     float leptonPtCut = 30;
 
-    //bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
-    bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
-    int minNBTags = 0; //TODO: bin in nBTags instead of cutting
+    bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
+    //bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
+    int minNBTags = 1; //TODO: bin in nBTags instead of cutting
 
     //declare which boxes to check
     map<RazorAnalyzer::RazorBox, string> boxes;
@@ -117,7 +117,7 @@ void FullControlRegionBasedPrediction(){
     else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
 
     //output directory for plots
-    string plotDir = "/afs/cern.ch/work/d/duanders/public/plots0btagForReadinessReview2";
+    string plotDir = "/afs/cern.ch/work/d/duanders/public/plots1btagForReadinessReview2";
 
     //define cuts for 1D MR and Rsq plots
     float MRCutFor1DPlots = 400;
@@ -129,13 +129,13 @@ void FullControlRegionBasedPrediction(){
     string mcPrefix;
     if(doMiscCorrections){
         //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
-        mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/";
+        mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run1Analysis/RunOneRazorInclusive/done/June10/";
     }
     else{
-        mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
+        mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run1Analysis/RunOneRazorInclusive/done/MC_NoCorrectionFactors/";//location of MC ntuples
     }
     //string dataPrefix = "/afs/cern.ch/work/d/duanders/run2Studies/CMSSW_7_3_0_pre1/src/RazorAnalyzer/normtest/June10/"; //location of data ntuples
-    string dataPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorInclusive/done/June10/"; //location of data ntuples
+    string dataPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run1Analysis/RunOneRazorInclusive/done/June10/"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
     mcfiles["DYJets"] = TFile::Open(Form("%s/DYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
@@ -226,10 +226,12 @@ void FullControlRegionBasedPrediction(){
     SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
 
     //load ZNuNu scale factor histograms
-    TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
+    //TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("WJetsScaleFactors");
-    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
+    //SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
+    TFile *SFFileZJetsNuNu = new TFile("mcScaleFactorsRunOne.root"); //use the scale factors derived using the control region macro
+    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("ZNuNuDileptonScaleFactors");
 
     //load ZNuNu-->DYJets weighting factors
     TFile *ZNuNuToDYWeightFile = new TFile("data/ScaleFactors/Run1/ZNuNuToDYScaleFactorsRun1.root");

@@ -1011,17 +1011,17 @@ class ControlSampleEvents {
               if(!passedTrigger) return false;
           }
           //leptons = two loose ele or mu with pt > 25, mass inside Z window
-          if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
-          if(abs(lep2Type) != 11 && abs(lep2Type) != 13) return false;
-          if(!lep1PassLoose) return false;
-          if(!lep2PassLoose) return false;
+          //if(abs(lep1Type) != 11 && abs(lep1Type) != 13) return false;
+          //if(abs(lep2Type) != 11 && abs(lep2Type) != 13) return false;
+          //if(!lep1PassLoose) return false;
+          //if(!lep2PassLoose) return false;
           if(lep1.Pt() < 25) return false;
           if(lep2.Pt() < 25) return false;
           float mLL = (lep1+lep2).M();
           if(mLL < 80 || mLL > 110) return false;
 
           //b-tag requirement
-          if(NBJetsMedium > 0) return false;
+          if(NBJetsMedium > 0) return false; 
 
           //razor baseline cut
           if(MR_NoZ < 300 || Rsq_NoZ < 0.15) return false;

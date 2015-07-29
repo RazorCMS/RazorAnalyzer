@@ -38,6 +38,9 @@ void SetHistogramColor(TH1 *hist, string name){
 }
 
 void CompareDataFitCRs(){
+    //bool makeScaleFactors = true; //compute the scale factors for each control region
+    bool makeScaleFactors = false; 
+
     gROOT->SetBatch();
 
     int lumiInData = 19700; //in pb
@@ -97,6 +100,7 @@ void CompareDataFitCRs(){
     datafilenames["SingleLeptonRazorSkim"]["SingleElectron"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_Data_SingleElectron"+dataSuffix;
     datafilenames["DileptonRazorSkim"]["DoubleMuon"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleMuParked"+dataSuffix;
     datafilenames["DileptonRazorSkim"]["DoubleElectron"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleElectron"+dataSuffix;
+    datafilenames["DileptonRazorSkim"]["MuE"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_MuEG"+dataSuffix;
     datafilenames["ZNuNuDileptonRazorSkim"]["DoubleMuon"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_Data_DoubleMuParked"+dataSuffix;
     //datafilenames["PhotonRazorSkim"]["Photon"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_Data_Photon"+dataSuffix;
 
@@ -112,7 +116,7 @@ void CompareDataFitCRs(){
 
     map<string, vector<string> > controlRegionData;
     controlRegionData["TTBarSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
-    controlRegionData["TTBarDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron"};
+    controlRegionData["TTBarDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron", "MuE"};
     controlRegionData["WSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
     controlRegionData["ZLLDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron"};
     controlRegionData["ZNuNuDilepton"] = vector<string> {"DoubleMuon"};
@@ -173,10 +177,13 @@ void CompareDataFitCRs(){
     SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
 
     //load ZNuNu scale factor histograms
-    TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
+    TFile *SFFileZJetsNuNu = new TFile("mcScaleFactorsRunOne.root"); //use the scale factors derived using this macro
+    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("ZNuNuDileptonScaleFactors");
+
+    //TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("WJetsScaleFactors");
-    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
+    //SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
 
     //load ZNuNu-->DYJets weighting factors
     TFile *ZNuNuToDYWeightFile = new TFile("data/ScaleFactors/Run1/ZNuNuToDYScaleFactorsRun1.root");
@@ -229,7 +236,7 @@ void CompareDataFitCRs(){
                 eventWeight *= curTree->getMCCorrection(pileupWeightHist, region.first);
 
                 //Data/MC scale factors
-                if(region.first != "ZNuNuDilepton" && region.first != "ZNuNuSingleLepton" && region.first != "ZNuNuPhoton"){
+                if(!makeScaleFactors && region.first != "ZNuNuDilepton" && region.first != "ZNuNuSingleLepton" && region.first != "ZNuNuPhoton"){
                     if(sample == "TTJets" || sample == "WJets" || sample == "DYJets" || sample == "ZJetsNuNu"){
                         pair<double, double> sfAndErr = getDataMCSFAndError(SFHists[sample], curTree->MR, curTree->Rsq);
                         eventWeight *= sfAndErr.first; //multiply event weight by scale factor
@@ -297,6 +304,16 @@ void CompareDataFitCRs(){
     // Get data distributions
     ///////////////////////////////////////////////////////////
     map<string, TH2F*> razorHistosData; //apply only efficiency and acceptance corrections
+    map<string, string> signalNames; //desired sample to isolate in each control region
+    signalNames["TTBarSingleLepton"] = "TTJets";
+    signalNames["TTBarDilepton"] = "TTJets";
+    signalNames["WSingleLepton"] = "WJets";
+    signalNames["ZLLDilepton"] = "DYJets";
+    signalNames["ZNuNuDilepton"] = "DYJets";
+    //signalNames["ZNuNuSingleLepton"] = "WJets";
+    //signalNames["ZNuNuPhoton"] = "GJets";
+    TFile *outSFFile;
+    if(makeScaleFactors) outSFFile = new TFile("mcScaleFactorsRunOne.root", "RECREATE");
     for(auto &region : controlRegionData){
         cout << "Filling data histograms for control region " << region.first << endl;
         razorHistosData[region.first] = new TH2F(Form("razordata%s", region.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
@@ -365,9 +382,23 @@ void CompareDataFitCRs(){
                 else{
                     razorHistosData[region.first]->Fill(curTree->MR, curTree->Rsq, eventWeight);
                 }
-            }
-        }
-    }
+            } //end event loop
+        } //end loop over datasets 
+        //create background subtracted histogram in each control region
+        if(makeScaleFactors){
+            outSFFile->cd();
+            for(auto &sample : controlRegionMC[region.first]){ //loop over samples
+                if(sample != signalNames[region.first]){ //subtract contribution from this process
+                    cout << "Removing " << sample << " from " << region.first << " data" << endl;
+                    razorHistosData[region.first]->Add(razorHistosMC[region.first][sample], -1);
+                } //end if
+            } //end loop over samples
+            //create data/MC scale factor histogram and save it
+            TH2F *dataOverMC = (TH2F*)razorHistosData[region.first]->Clone(Form("%sScaleFactors", region.first.c_str()));
+            dataOverMC->Divide(razorHistosMC[region.first][signalNames[region.first]]);
+            dataOverMC->Write();
+        } //end if
+    } //end loop over control regions
 
     ///////////////////////////////////////////////////////////
     // Make plots
