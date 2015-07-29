@@ -864,9 +864,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //***********************************************************************//
       //    Compute razor vars adding photon to the MET
       //***********************************************************************//
-      events->pho1.SetPtEtaPhiM(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].M());
 	
       if(GoodPhotons.size()>0){
+
+	events->pho1.SetPtEtaPhiM(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].M());
 
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];
