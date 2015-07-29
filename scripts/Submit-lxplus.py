@@ -83,9 +83,9 @@ for ijob in range(njobs):
     outputfile.write( "\neval `scramv1 run -sh`;" )
     outputfile.write( "\n./RazorRun " + inputfilename  
                       + " " + appName 
-                      + " data"
+                      + " 1"
                       + " " + rootOutput
-                      )
+                      + " 204")
         
     outputfile.close
     os.system("bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName)
