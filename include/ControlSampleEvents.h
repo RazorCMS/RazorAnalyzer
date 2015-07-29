@@ -1,6 +1,6 @@
 #ifndef ControlSampleEvents_H
 #define ControlSampleEvents_H
-// Test test test
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TError.h"
@@ -532,6 +532,10 @@ class ControlSampleEvents {
 
     if (treeType == kTreeType_OneLeptonAdd2MET_Full ) {
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
+      tree_->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
+      tree_->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
+      tree_->Branch("lep1Type", &lep1Type, "lep1Type/I");
+      tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
       tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
       tree_->Branch("Rsq_NoW",&Rsq_NoW,"Rsq_NoW/F");
       tree_->Branch("MET_NoW",&MET_NoW,"MET_NoW/F");
@@ -554,6 +558,11 @@ class ControlSampleEvents {
     if (treeType == kTreeType_DileptonAdd2MET_Full ) {
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
       tree_->Branch("lep2",    "TLorentzVector", &lep2Ptr);
+      tree_->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
+      tree_->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
+      tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
+      tree_->Branch("lep2Type",&lep2Type,"lep2Type/I");
+      tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("MR_NoZ",&MR_NoZ,"MR_NoZ/F");
       tree_->Branch("Rsq_NoZ",&Rsq_NoZ,"Rsq_NoZ/F");
       tree_->Branch("MET_NoZ",&MET_NoZ,"MET_NoZ/F");
@@ -781,8 +790,12 @@ class ControlSampleEvents {
 
     if (treeType == kTreeType_OneLeptonAdd2MET_Full ) {
       tree_->SetBranchAddress("lep1",&lep1Ptr);
+      tree_->SetBranchAddress("lep1Pt",&lep1Pt);
+      tree_->SetBranchAddress("lep1Eta",&lep1Eta);
+      tree_->SetBranchAddress("lep1Type",&lep1Type);
       tree_->SetBranchAddress("MR_NoW", &MR_NoW);
       tree_->SetBranchAddress("Rsq_NoW",&Rsq_NoW);
+      tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("MET_NoW",&MET_NoW);
       tree_->SetBranchAddress("METPhi_NoW",&METPhi_NoW);
       tree_->SetBranchAddress("HT_NoW",&HT_NoW);
@@ -803,8 +816,13 @@ class ControlSampleEvents {
     if (treeType == kTreeType_DileptonAdd2MET_Full ) {
       tree_->SetBranchAddress("lep1",          &lep1Ptr);
       tree_->SetBranchAddress("lep2",          &lep2Ptr);
+      tree_->SetBranchAddress("lep1Pt",&lep1Pt);
+      tree_->SetBranchAddress("lep1Eta",&lep1Eta);
+      tree_->SetBranchAddress("lep1Type",&lep1Type);
+      tree_->SetBranchAddress("lep2Type",&lep2Type);
       tree_->SetBranchAddress("MR_NoZ",        &MR_NoZ);
       tree_->SetBranchAddress("Rsq_NoZ",       &Rsq_NoZ);
+      tree_->SetBranchAddress("MET",	       &MET);
       tree_->SetBranchAddress("MET_NoZ",       &MET_NoZ);
       tree_->SetBranchAddress("METPhi_NoZ",    &METPhi_NoZ);
       tree_->SetBranchAddress("HT_NoZ",        &HT_NoZ);
