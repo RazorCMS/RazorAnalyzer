@@ -615,6 +615,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->minDPhi = 9999;
       events->minDPhiN = 9999;
 
+      float mhx = 0., mhy = 0., mhx_nohf = 0., mhy_nohf = 0.;
+
       for(int i = 0; i < nJets; i++){
 
 	//exclude Good leptons from the jet collection
@@ -729,6 +731,20 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) nBJetsTight20GeV++;
 
 	if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
+
+	// calculate MHT
+	if(jetPt[i]*JEC*jetEnergySmearFactor > 20)
+	  {
+	    mhx -= jetPt[i]*JEC*jetEnergySmearFactor*cos(jetPhi[i]);
+	    mhy -= jetPt[i]*JEC*jetEnergySmearFactor*sin(jetPhi[i]);
+	    
+	    if (fabs(jetEta[i]) < 3.0)
+	      {
+		mhx_nohf -= jetPt[i]*JEC*jetEnergySmearFactor*cos(jetPhi[i]);
+		mhy_nohf -= jetPt[i]*JEC*jetEnergySmearFactor*sin(jetPhi[i]);
+	      }
+	  }
+	
 	if(fabs(jetEta[i]) > 3.0) continue;
 	 
 	numJetsAbove40GeV++;
@@ -737,6 +753,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  
       } //loop over jets
     
+      events->MHT = sqrt(mhx*mhx + mhy*mhy);
+      events->MHTnoHF = sqrt(mhx_nohf*mhx_nohf + mhy_nohf*mhy_nohf);
 
       //sort good jets
       sort(GoodJets.begin(), GoodJets.end(), greater_than_pt());

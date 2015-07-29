@@ -125,6 +125,8 @@ class ControlSampleEvents {
   UInt_t                  NBJetsMedium;
   UInt_t                  NBJetsTight;
   Float_t                 HT;
+  Float_t                 MHT;
+  Float_t                 MHTnoHF;
   Float_t                 lep1MT;
   Float_t                 mll;
   Bool_t                  Flag_HBHENoiseFilter;//
@@ -300,6 +302,8 @@ class ControlSampleEvents {
     NBJetsMedium         = 0;
     NBJetsTight          = 0;
     HT                   = 0.0;      
+    MHT                  = 0.;
+    MHTnoHF              = 0.;
     lep1MT               = 0.0;  
     mll                  = 0.0;
     Flag_HBHENoiseFilter = 0.0;//
@@ -424,6 +428,11 @@ class ControlSampleEvents {
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
+      tree_->Branch("HT",&HT,"HT/F");
+      tree_->Branch("lep1Pt",&lep1Pt,"lep1Pt/F");
+      tree_->Branch("lep1Eta",&lep1Eta,"lep1Eta/F");
+      tree_->Branch("MHT",&MHT,"MHT/F");
+      tree_->Branch("MHTnoHF",&MHTnoHF,"MHTnoHF/F");
     }
   
     if (treeType == kTreeType_OneLepton_Full) {
@@ -665,6 +674,12 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
       tree_->SetBranchAddress("lep1MT",&lep1MT);	
       tree_->SetBranchAddress("MET",&MET);
+      tree_->SetBranchAddress("HT",&HT);
+      tree_->SetBranchAddress("HLTDecision",&HLTDecision);
+      tree_->SetBranchAddress("lep1Pt",&lep1Pt);
+      tree_->SetBranchAddress("lep1Eta",&lep1Eta);
+      tree_->SetBranchAddress("MHT",&MHT);
+      tree_->SetBranchAddress("MHTnoHF",&MHTnoHF);
     }
 
     if (treeType == kTreeType_OneLepton_Full) {
