@@ -64,6 +64,7 @@ void RazorAnalyzer::EnableMuons(){
     fChain->SetBranchStatus("muonPhi", 1);
     fChain->SetBranchStatus("muonCharge", 1);
     fChain->SetBranchStatus("muonIsLoose", 1);
+    fChain->SetBranchStatus("muonIsMedium", 1);
     fChain->SetBranchStatus("muonIsTight", 1);
     fChain->SetBranchStatus("muon_d0", 1);
     fChain->SetBranchStatus("muon_dZ", 1);
