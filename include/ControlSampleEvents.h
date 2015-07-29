@@ -532,10 +532,8 @@ class ControlSampleEvents {
 
     if (treeType == kTreeType_OneLeptonAdd2MET_Full ) {
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
-      tree_->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
-      tree_->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
       tree_->Branch("lep1Type", &lep1Type, "lep1Type/I");
-      tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
+      tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
       tree_->Branch("Rsq_NoW",&Rsq_NoW,"Rsq_NoW/F");
       tree_->Branch("MET_NoW",&MET_NoW,"MET_NoW/F");
@@ -558,8 +556,6 @@ class ControlSampleEvents {
     if (treeType == kTreeType_DileptonAdd2MET_Full ) {
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
       tree_->Branch("lep2",    "TLorentzVector", &lep2Ptr);
-      tree_->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
-      tree_->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
       tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
       tree_->Branch("lep2Type",&lep2Type,"lep2Type/I");
       tree_->Branch("MET",&MET,"MET/F");
@@ -790,8 +786,6 @@ class ControlSampleEvents {
 
     if (treeType == kTreeType_OneLeptonAdd2MET_Full ) {
       tree_->SetBranchAddress("lep1",&lep1Ptr);
-      tree_->SetBranchAddress("lep1Pt",&lep1Pt);
-      tree_->SetBranchAddress("lep1Eta",&lep1Eta);
       tree_->SetBranchAddress("lep1Type",&lep1Type);
       tree_->SetBranchAddress("MR_NoW", &MR_NoW);
       tree_->SetBranchAddress("Rsq_NoW",&Rsq_NoW);
@@ -816,8 +810,6 @@ class ControlSampleEvents {
     if (treeType == kTreeType_DileptonAdd2MET_Full ) {
       tree_->SetBranchAddress("lep1",          &lep1Ptr);
       tree_->SetBranchAddress("lep2",          &lep2Ptr);
-      tree_->SetBranchAddress("lep1Pt",&lep1Pt);
-      tree_->SetBranchAddress("lep1Eta",&lep1Eta);
       tree_->SetBranchAddress("lep1Type",&lep1Type);
       tree_->SetBranchAddress("lep2Type",&lep2Type);
       tree_->SetBranchAddress("MR_NoZ",        &MR_NoZ);
