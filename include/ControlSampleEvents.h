@@ -1,6 +1,6 @@
 #ifndef ControlSampleEvents_H
 #define ControlSampleEvents_H
-
+// Test test test
 #include "TFile.h"
 #include "TTree.h"
 #include "TError.h"
@@ -47,6 +47,7 @@ class ControlSampleEvents {
   };
 
   /// variables
+  Int_t                   option;
   Float_t                 weight;
   UInt_t                  run;
   UInt_t                  lumi;
@@ -124,6 +125,8 @@ class ControlSampleEvents {
   UInt_t                  NBJetsMedium;
   UInt_t                  NBJetsTight;
   Float_t                 HT;
+  Float_t                 MHT;
+  Float_t                 MHTnoHF;
   Float_t                 lep1MT;
   Float_t                 mll;
   Bool_t                  Flag_HBHENoiseFilter;//
@@ -159,12 +162,12 @@ class ControlSampleEvents {
   Bool_t                  HLT_SingleMu;
   Bool_t                  HLT_Photon;
   Bool_t                  HLT_Razor;
+  Bool_t                  HLT_Photon36;
   Bool_t                  HLT_Photon50;
   Bool_t                  HLT_Photon75;
   Bool_t                  HLT_Photon90;
-  Bool_t                  HLT_Photon135;
-  Bool_t                  HLT_Photon150;
-  Bool_t                  HLT_Photon160;
+  Bool_t                  HLT_Photon120;
+  Bool_t                  HLT_Photon165;
   Float_t                 MR_NoZ;
   Float_t                 Rsq_NoZ;
   Float_t                 MR_NoW;
@@ -221,6 +224,7 @@ class ControlSampleEvents {
     
   /// initialize varibles and fill list of available variables
   void InitVariables() {
+    option               = -1;
     weight               = 0.0;
     run                  = 0;
     lumi                 = 0;
@@ -298,6 +302,8 @@ class ControlSampleEvents {
     NBJetsMedium         = 0;
     NBJetsTight          = 0;
     HT                   = 0.0;      
+    MHT                  = 0.;
+    MHTnoHF              = 0.;
     lep1MT               = 0.0;  
     mll                  = 0.0;
     Flag_HBHENoiseFilter = 0.0;//
@@ -334,12 +340,12 @@ class ControlSampleEvents {
     HLT_SingleMu = false;
     HLT_Photon = false;
     HLT_Razor = false;
+    HLT_Photon36 = false;
     HLT_Photon50 = false;
     HLT_Photon75 = false;
     HLT_Photon90 = false;
-    HLT_Photon135 = false;
-    HLT_Photon150 = false;
-    HLT_Photon160 = false;
+    HLT_Photon120 = false;
+    HLT_Photon165 = false;
     MR_NoZ = 0.0 ; 
     Rsq_NoZ = 0.0 ; 
     MR_NoW = 0.0 ; 
@@ -382,6 +388,7 @@ class ControlSampleEvents {
     f_ = 0;
 
     //book the branches that go in all types of trees
+    tree_->Branch("option",&option,"option/I");
     tree_->Branch("weight",&weight,"weight/F");
     tree_->Branch("run",&run,"run/i");
     tree_->Branch("lumi",&lumi,"lumi/i");
@@ -421,6 +428,11 @@ class ControlSampleEvents {
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
+      tree_->Branch("HT",&HT,"HT/F");
+      tree_->Branch("lep1Pt",&lep1Pt,"lep1Pt/F");
+      tree_->Branch("lep1Eta",&lep1Eta,"lep1Eta/F");
+      tree_->Branch("MHT",&MHT,"MHT/F");
+      tree_->Branch("MHTnoHF",&MHTnoHF,"MHTnoHF/F");
     }
   
     if (treeType == kTreeType_OneLepton_Full) {
@@ -581,13 +593,12 @@ class ControlSampleEvents {
       tree_->Branch("pho1PassMedium",&pho1PassMedium,"pho1PassMedium/O");
       tree_->Branch("pho1PassTight", &pho1PassTight, "pho1PassTight/O");
       tree_->Branch("HLT_Photon", &HLT_Photon, "HLT_Photon/O");
+      tree_->Branch("HLT_Photon36", &HLT_Photon36, "HLT_Photon36/O");
       tree_->Branch("HLT_Photon50", &HLT_Photon50, "HLT_Photon50/O");
       tree_->Branch("HLT_Photon75", &HLT_Photon75, "HLT_Photon75/O");
       tree_->Branch("HLT_Photon90", &HLT_Photon90, "HLT_Photon90/O");
-      tree_->Branch("HLT_Photon50", &HLT_Photon50, "HLT_Photon50/O");
-      tree_->Branch("HLT_Photon135", &HLT_Photon135, "HLT_Photon135/O");
-      tree_->Branch("HLT_Photon150", &HLT_Photon150, "HLT_Photon150/O");
-      tree_->Branch("HLT_Photon160", &HLT_Photon160, "HLT_Photon160/O");
+      tree_->Branch("HLT_Photon120", &HLT_Photon120, "HLT_Photon120/O");
+      tree_->Branch("HLT_Photon165", &HLT_Photon165, "HLT_Photon165/O");
 
       tree_->Branch("nSelectedPhotons",&nSelectedPhotons,"nSelectedPhotons/i");
       tree_->Branch("NJets_NoPho",&NJets_NoPho,"NJets_NoPho/i");
@@ -625,6 +636,7 @@ class ControlSampleEvents {
     //Set branch address
     Int_t currentState = gErrorIgnoreLevel;
 
+    tree_->SetBranchAddress("option",&option);
     tree_->SetBranchAddress("weight",&weight);
     tree_->SetBranchAddress("run",&run);
     tree_->SetBranchAddress("lumi",&lumi);
@@ -662,6 +674,12 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
       tree_->SetBranchAddress("lep1MT",&lep1MT);	
       tree_->SetBranchAddress("MET",&MET);
+      tree_->SetBranchAddress("HT",&HT);
+      tree_->SetBranchAddress("HLTDecision",&HLTDecision);
+      tree_->SetBranchAddress("lep1Pt",&lep1Pt);
+      tree_->SetBranchAddress("lep1Eta",&lep1Eta);
+      tree_->SetBranchAddress("MHT",&MHT);
+      tree_->SetBranchAddress("MHTnoHF",&MHTnoHF);
     }
 
     if (treeType == kTreeType_OneLepton_Full) {
@@ -824,12 +842,12 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("pho1PassMedium",&pho1PassMedium);
       tree_->SetBranchAddress("pho1PassTight", &pho1PassTight);
       tree_->SetBranchAddress("HLT_Photon", &HLT_Photon);
+      tree_->SetBranchAddress("HLT_Photon36", &HLT_Photon36);
       tree_->SetBranchAddress("HLT_Photon50", &HLT_Photon50);
       tree_->SetBranchAddress("HLT_Photon75", &HLT_Photon75);
       tree_->SetBranchAddress("HLT_Photon90", &HLT_Photon90);
-      tree_->SetBranchAddress("HLT_Photon135", &HLT_Photon135);
-      tree_->SetBranchAddress("HLT_Photon150", &HLT_Photon150);
-      tree_->SetBranchAddress("HLT_Photon160", &HLT_Photon160);
+      tree_->SetBranchAddress("HLT_Photon120", &HLT_Photon120);
+      tree_->SetBranchAddress("HLT_Photon165", &HLT_Photon165);
 
       tree_->SetBranchAddress("nSelectedPhotons",&nSelectedPhotons);
       tree_->SetBranchAddress("NJets_NoPho",&NJets_NoPho);

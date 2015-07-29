@@ -452,20 +452,23 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	HLTDecision[k] = HLTDecision[k];
       }
       
+      //*************************************************************************
+      //Skimming
+      //*************************************************************************
       bool passSkim = true;
       if (option == 1) {
-	if (!(MR>300 && Rsq>0.05)) {
-	  passSkim = false;
-	}
+      	if (!(MR>300 && Rsq>0.05)) {
+      	  passSkim = false;
+      	}
       }
 
-      outTree->Fill();
+      //*************************************************************************
+      //Fill Tree
+      //*************************************************************************
+       if (passSkim) {
+	outTree->Fill();
+      }
       
-
-
-
-
-
 
       //*************************************************************
       //DEBUG
@@ -481,7 +484,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	cout << "\n";
 
 	cout << "Objects: " << "\n";
-	for (int i=0; i < GoodPFObjects.size() ; ++i) {
+	for (int i=0; i < int(GoodPFObjects.size()) ; ++i) {
 	  cout << "Obj " << i << " : " << GoodPFObjects[i].Pt() << " " << GoodPFObjects[i].Eta() << " " << GoodPFObjects[i].Phi() << " \n";
 	}
 	cout << "\n";

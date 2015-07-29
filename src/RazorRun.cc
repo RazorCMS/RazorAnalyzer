@@ -22,8 +22,7 @@ int main(int argc, char* argv[]){
         cerr << "Usage: RazorRun <input list> <analysis type> <isData> <output filename (optional)> [option number] [optional label]" << endl;
         cerr << "Analyses available: " << endl 
 	     << "razor                --   inclusive razor analysis" << endl 
-	     << "hggrazor             --   run1 higgs->diphoton razor analysis" << endl
-	     << "run2hggrazor         --   run2 higgs->diphoton razor analysis" << endl
+	     << "hggrazor             --   higgs->diphoton razor analysis" << endl
 	     << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
 	     << "razorVetoLeptonStudy --   study lepton veto" << endl
 	     << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
@@ -148,17 +147,6 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
         analyzer.EnablePhotons();
         analyzer.HggRazor(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
-    }
-    else if(analysisType == "run2hggrazor"){
-      cout << "Executing run2 higgs->diphoton razor analysis..." << endl;
-      analyzer.EnableEventInfo();
-      analyzer.EnableJets();
-      analyzer.EnableMet();
-      analyzer.EnableElectrons();
-      analyzer.EnableMuons();
-      analyzer.EnableTaus();
-      analyzer.EnablePhotons();
-      analyzer.HggRazorRun2(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "matchedrazor"){
       cout << "Executing genjet-matched razor inclusive analysis..." << endl;
