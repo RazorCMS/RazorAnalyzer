@@ -1,6 +1,8 @@
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_1.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_10.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_11.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_12.root
+root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_13.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_14.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_15.root
 root://eoscms//eos/cms//store/group/phys_susy/razor/run2/Run2RazorNtupleV1.15/Data/50ns/v3/sixie/DoubleEG/Run2RazorNtuplerV1p15_ToCERN_Data_50ns_Run2015B-PromptReco-v1_v3_v1/150729_191243/0000/razorNtuple_16.root
