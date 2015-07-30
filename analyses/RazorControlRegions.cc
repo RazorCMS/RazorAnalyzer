@@ -864,8 +864,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->lep1MT = sqrt(events->lep1.M2() + 2*PFMET.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(PFMET.Phi(),events->lep1.Phi()))));
 	
       //save HLT Decisions
-      for(int k=0; k<100; ++k) {
-	events->HLTDecision[k] = HLTDecision[k];
+      for(int k=0; k<150; ++k) {
+	events->HLTDecision[k] = HLTDecision[k];	
       }
     	
       //MET Filter
