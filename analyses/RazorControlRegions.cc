@@ -936,7 +936,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //***********************************************************************//
       //    Compute razor vars adding good leptons to the MET
       //***********************************************************************//
-
       //remove selected muons from collection of selected jets and add them to the MET
       vector<TLorentzVector> GoodJetsNoLeptons = GoodJets;
       TLorentzVector TotalLepVec;
@@ -962,7 +961,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
      }
-	
+
       //make the MET vector with the muons (or gen muons) added
       TLorentzVector LepPlusMet_perp = makeTLorentzVector((TotalLepVec + MyMET).Pt(), 0., (TotalLepVec + MyMET).Phi(), 0.);
 
@@ -994,8 +993,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
 	//more W kinematics
-	events->recoWpt = (GoodLeptons[0] + MyMET).Pt();
-	events->recoWphi = (GoodLeptons[0] + MyMET).Phi();
+	if (GoodLeptons.size() > 0) {
+	  events->recoWpt = (GoodLeptons[0] + MyMET).Pt();
+	  events->recoWphi = (GoodLeptons[0] + MyMET).Phi();
+	}
       }
 
 
