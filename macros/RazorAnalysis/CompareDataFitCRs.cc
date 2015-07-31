@@ -38,8 +38,8 @@ void SetHistogramColor(TH1 *hist, string name){
 }
 
 void CompareDataFitCRs(){
-    //bool makeScaleFactors = true; //compute the scale factors for each control region
-    bool makeScaleFactors = false; 
+    bool makeScaleFactors = true; //compute the scale factors for each control region
+    //bool makeScaleFactors = false; 
 
     gROOT->SetBatch();
 
@@ -104,12 +104,15 @@ void CompareDataFitCRs(){
     datafilenames["ZNuNuDileptonRazorSkim"]["DoubleMuon"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_Data_DoubleMuParked"+dataSuffix;
     //datafilenames["PhotonRazorSkim"]["Photon"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_Data_Photon"+dataSuffix;
 
+    //list of control regions
+    vector<string> controlRegions {"TTBarSingleLepton", "TTBarDilepton", "WSingleLepton", "ZNuNuDilepton"};
+
     //assign datasets to control regions
     map<string, vector<string> > controlRegionMC;
     controlRegionMC["TTBarSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "WJets", "TTJets"};
     controlRegionMC["TTBarDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "DYJets", "TTJets"};
     controlRegionMC["WSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
-    controlRegionMC["ZLLDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
+    //controlRegionMC["ZLLDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
     controlRegionMC["ZNuNuDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
     //controlRegionMC["ZNuNuSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
     //controlRegionMC["ZNuNuPhoton"] = vector<string> {"TTG", "VG", "QCD", "GJets"};
@@ -118,7 +121,7 @@ void CompareDataFitCRs(){
     controlRegionData["TTBarSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
     controlRegionData["TTBarDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron", "MuE"};
     controlRegionData["WSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
-    controlRegionData["ZLLDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron"};
+    //controlRegionData["ZLLDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron"};
     controlRegionData["ZNuNuDilepton"] = vector<string> {"DoubleMuon"};
     //controlRegionData["ZNuNuSingleLepton"] = vector<string> {"SingleMuon"};
     //controlRegionData["ZNuNuPhoton"] = vector<string> {"Photon"};
@@ -127,7 +130,7 @@ void CompareDataFitCRs(){
     controlRegionSkim["TTBarSingleLepton"] = "SingleLeptonRazorSkim";
     controlRegionSkim["TTBarDilepton"] = "DileptonRazorSkim";
     controlRegionSkim["WSingleLepton"] = "SingleLeptonRazorSkim";
-    controlRegionSkim["ZLLDilepton"] = "DileptonRazorSkim";
+    //controlRegionSkim["ZLLDilepton"] = "DileptonRazorSkim";
     controlRegionSkim["ZNuNuDilepton"] = "ZNuNuDileptonRazorSkim";
     //controlRegionSkim["ZNuNuSingleLepton"] = "SingleLeptonRazorSkim";
     //controlRegionSkim["ZNuNuPhoton"] = "PhotonRazorSkim";
@@ -153,13 +156,6 @@ void CompareDataFitCRs(){
             dataevents[skim.first][file.first]->LoadTree(file.second.c_str(), kTreeTypes[skim.first]);
         }
     }
-
-    //luminosities collected by the various photon triggers
-    float lumi_HLTPhoton50  = 1.353e0 + 4.921e0 + 7.947e0 + 8.131e0;
-    float lumi_HLTPhoton75  = 8.111e0 + 2.953e1 + 4.768e1 + 4.879e1;
-    float lumi_HLTPhoton90  = 1.622e1 + 6.408e1 + 1.010e2 + 9.948e1;
-    float lumi_HLTPhoton135 = 8.893e2 + 1.476e2 + 5.429e3 + 7.318e3;
-    float lumi_HLTPhoton150 = 8.893e2 + 4.429e3 + 7.152e3 + 7.318e3;
 
     map<string, TH2F*> SFHists;
     //load TTbar scale factor histograms
@@ -202,23 +198,41 @@ void CompareDataFitCRs(){
     assert(pileupWeightHist);
 
     ///////////////////////////////////////////////////////////
-    // Get MC distributions
+    // Fill Histograms
     ///////////////////////////////////////////////////////////
     map<string, map<string, TH2F*> > razorHistosMC;
     map<string, map<string, TH2F*> > razorErrorHistosMC; //store sum(w^2*error(SF)^2)
+    map<string, TH2F*> razorHistosData; 
     ControlSampleEvents *curTree;
-    for(auto &region : controlRegionMC){ //region.first is the CR name, region.second is the list of MC samples associated with it
-        cout << "Filling MC histograms for control region " << region.first << endl;
-        for(auto &sample : region.second){
+
+    //stuff for scale factor calculation
+    map<string, string> signalNames; //desired sample to isolate in each control region
+    signalNames["TTBarSingleLepton"] = "TTJets";
+    signalNames["TTBarDilepton"] = "TTJets";
+    signalNames["WSingleLepton"] = "WJets";
+    //signalNames["ZLLDilepton"] = "DYJets";
+    signalNames["ZNuNuDilepton"] = "DYJets";
+    //signalNames["ZNuNuSingleLepton"] = "WJets";
+    //signalNames["ZNuNuPhoton"] = "GJets";
+    TFile *outSFFile;
+    if(makeScaleFactors) outSFFile = new TFile("mcScaleFactorsRunOne.root", "RECREATE");
+    map<string, TH2F* > newScaleFactors;
+
+    for(auto &region : controlRegions){ 
+        string theSkim = controlRegionSkim[region];
+        ///////////////////////////////////////////////////////////
+        // Get MC distribution
+        ///////////////////////////////////////////////////////////
+        cout << "Filling MC histograms for control region " << region << endl;
+        for(auto &sample : controlRegionMC[region]){
             cout << "   Filling MC histograms: " << sample << endl;
-            string theSkim = controlRegionSkim[region.first];
             curTree = mcevents[theSkim][sample];
 
             //make histograms
-            razorHistosMC[region.first][sample] = new TH2F(Form("razormc%s%s", region.first.c_str(), sample.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorErrorHistosMC[region.first][sample] = new TH2F(Form("razorErrormc%s%s", sample.c_str(), region.first.c_str()), "sum(w^2*error(SF)^2); MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-            razorHistosMC[region.first][sample]->Sumw2();
-            razorErrorHistosMC[region.first][sample]->Sumw2();
+            razorHistosMC[region][sample] = new TH2F(Form("razormc%s%s", region.c_str(), sample.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorErrorHistosMC[region][sample] = new TH2F(Form("razorErrormc%s%s", sample.c_str(), region.c_str()), "sum(w^2*error(SF)^2); MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+            razorHistosMC[region][sample]->Sumw2();
+            razorErrorHistosMC[region][sample]->Sumw2();
 
             //loop over entries
             uint nEntries = curTree->tree_->GetEntries();
@@ -230,15 +244,24 @@ void CompareDataFitCRs(){
                 float sysErrorSquared = 0.0;
 
                 //selection cuts
-                if(!curTree->inControlSample(region.first)) continue;
+                if(!curTree->inControlSample(region)) continue;
 
                 // Apply scale factors
-                eventWeight *= curTree->getMCCorrection(pileupWeightHist, region.first);
+                eventWeight *= curTree->getMCCorrection(pileupWeightHist, region);
 
-                //Data/MC scale factors
-                if(!makeScaleFactors && region.first != "ZNuNuDilepton" && region.first != "ZNuNuSingleLepton" && region.first != "ZNuNuPhoton"){
-                    if(sample == "TTJets" || sample == "WJets" || sample == "DYJets" || sample == "ZJetsNuNu"){
+                //Data/MC scale factors -- apply existing SFs
+                if(!makeScaleFactors){
+                    if(SFHists.count(sample) > 0){
+                        //cout << "Applying " << sample << " scale factor from file" << endl;
                         pair<double, double> sfAndErr = getDataMCSFAndError(SFHists[sample], curTree->MR, curTree->Rsq);
+                        eventWeight *= sfAndErr.first; //multiply event weight by scale factor
+                        sysErrorSquared += curTree->weight*curTree->weight*sfAndErr.second*sfAndErr.second; //add (w*sigma)^2 to the systematic uncertainty
+                    }
+                }
+                else{ //apply SFs computed so far
+                    if(newScaleFactors.count(sample) > 0 && sample != signalNames[region]){
+                        //cout << "Applying " << sample << " scale factor calculated earlier" << endl;
+                        pair<double, double> sfAndErr = getDataMCSFAndError(newScaleFactors[sample], curTree->MR, curTree->Rsq);
                         eventWeight *= sfAndErr.first; //multiply event weight by scale factor
                         sysErrorSquared += curTree->weight*curTree->weight*sfAndErr.second*sfAndErr.second; //add (w*sigma)^2 to the systematic uncertainty
                     }
@@ -249,32 +272,32 @@ void CompareDataFitCRs(){
                 ///////////////////////////////////////////////////////////
 
                 //ZNuNuDilepton CR
-                if(region.first == "ZNuNuDilepton"){
-                    razorHistosMC[region.first][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
-                    razorErrorHistosMC[region.first][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, sysErrorSquared);
+                if(region == "ZNuNuDilepton"){
+                    razorHistosMC[region][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
+                    razorErrorHistosMC[region][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, sysErrorSquared);
                 }
                 //ZNuNuSingleLepton CR
-                else if(region.first == "ZNuNuSingleLepton"){
-                    //razorHistosMC[region.first][sample]->Fill(curTree->MR_noW, curTree->Rsq_noW, eventWeight);
-                    //razorErrorHistosMC[region.first][sample]->Fill(curTree->MR_noW, curTree->Rsq_noW, sysErrorSquared);
+                else if(region == "ZNuNuSingleLepton"){
+                    //razorHistosMC[region][sample]->Fill(curTree->MR_noW, curTree->Rsq_noW, eventWeight);
+                    //razorErrorHistosMC[region][sample]->Fill(curTree->MR_noW, curTree->Rsq_noW, sysErrorSquared);
                 }
                 //ZNuNuPhoton CR
-                else if(region.first == "ZNuNuPhoton"){
-                    //razorHistosMC[region.first][sample]->Fill(curTree->MR_noPho, curTree->Rsq_noPho, eventWeight);
-                    //razorErrorHistosMC[region.first][sample]->Fill(curTree->MR_noPho, curTree->Rsq_noPho, sysErrorSquared);
+                else if(region == "ZNuNuPhoton"){
+                    //razorHistosMC[region][sample]->Fill(curTree->MR_noPho, curTree->Rsq_noPho, eventWeight);
+                    //razorErrorHistosMC[region][sample]->Fill(curTree->MR_noPho, curTree->Rsq_noPho, sysErrorSquared);
                 }
                 //other CRs
                 else{
-                    razorHistosMC[region.first][sample]->Fill(curTree->MR, curTree->Rsq, eventWeight);
-                    razorErrorHistosMC[region.first][sample]->Fill(curTree->MR, curTree->Rsq, sysErrorSquared);
+                    razorHistosMC[region][sample]->Fill(curTree->MR, curTree->Rsq, eventWeight);
+                    razorErrorHistosMC[region][sample]->Fill(curTree->MR, curTree->Rsq, sysErrorSquared);
                 }
             } //end of event loop
 
             //update errors to take into account systematic uncertainties
-            for(int i = 0; i < razorHistosMC[region.first][sample]->GetNbinsX()+1; i++){
-                for(int j = 0; j < razorHistosMC[region.first][sample]->GetNbinsY()+1; j++){
-                    double squaredError = razorErrorHistosMC[region.first][sample]->GetBinContent(i, j);
-                    razorHistosMC[region.first][sample]->SetBinError(i, j, sqrt(pow(razorHistosMC[region.first][sample]->GetBinError(i, j), 2) + squaredError));
+            for(int i = 0; i < razorHistosMC[region][sample]->GetNbinsX()+1; i++){
+                for(int j = 0; j < razorHistosMC[region][sample]->GetNbinsY()+1; j++){
+                    double squaredError = razorErrorHistosMC[region][sample]->GetBinContent(i, j);
+                    razorHistosMC[region][sample]->SetBinError(i, j, sqrt(pow(razorHistosMC[region][sample]->GetBinError(i, j), 2) + squaredError));
                 }
             }
 
@@ -284,44 +307,30 @@ void CompareDataFitCRs(){
             double qcdErrorFrac = 1.0;
             //only do this for rare processes 
             if(sample != "DYJets" && sample != "WJets" && sample != "ZJetsNuNu" && sample != "TTJets"){
-                for(int i = 0; i < razorHistosMC[region.first][sample]->GetNbinsX()+1; i++){
-                    for(int j = 0; j < razorHistosMC[region.first][sample]->GetNbinsY()+1; j++){
+                for(int i = 0; i < razorHistosMC[region][sample]->GetNbinsX()+1; i++){
+                    for(int j = 0; j < razorHistosMC[region][sample]->GetNbinsY()+1; j++){
                         double error = 0.0;
                         if(sample == "QCD"){
-                            error = qcdErrorFrac*razorHistosMC[region.first][sample]->GetBinContent(i, j);
+                            error = qcdErrorFrac*razorHistosMC[region][sample]->GetBinContent(i, j);
                         }
                         else{
-                            error = sysErrorFrac*razorHistosMC[region.first][sample]->GetBinContent(i, j);
+                            error = sysErrorFrac*razorHistosMC[region][sample]->GetBinContent(i, j);
                         }
-                        razorHistosMC[region.first][sample]->SetBinError(i, j, sqrt(pow(razorHistosMC[region.first][sample]->GetBinError(i, j), 2) + error*error));
+                        razorHistosMC[region][sample]->SetBinError(i, j, sqrt(pow(razorHistosMC[region][sample]->GetBinError(i, j), 2) + error*error));
                     }
                 }
             } //end if
-        } //end of loop over samples
-    } //end of loop over control regions
+        } //end of loop over MC samples
 
-    ///////////////////////////////////////////////////////////
-    // Get data distributions
-    ///////////////////////////////////////////////////////////
-    map<string, TH2F*> razorHistosData; //apply only efficiency and acceptance corrections
-    map<string, string> signalNames; //desired sample to isolate in each control region
-    signalNames["TTBarSingleLepton"] = "TTJets";
-    signalNames["TTBarDilepton"] = "TTJets";
-    signalNames["WSingleLepton"] = "WJets";
-    signalNames["ZLLDilepton"] = "DYJets";
-    signalNames["ZNuNuDilepton"] = "DYJets";
-    //signalNames["ZNuNuSingleLepton"] = "WJets";
-    //signalNames["ZNuNuPhoton"] = "GJets";
-    TFile *outSFFile;
-    if(makeScaleFactors) outSFFile = new TFile("mcScaleFactorsRunOne.root", "RECREATE");
-    for(auto &region : controlRegionData){
-        cout << "Filling data histograms for control region " << region.first << endl;
-        razorHistosData[region.first] = new TH2F(Form("razordata%s", region.first.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
-        razorHistosData[region.first]->Sumw2();
+        ///////////////////////////////////////////////////////////
+        // Get data distributions
+        ///////////////////////////////////////////////////////////
+        cout << "Filling data histograms for control region " << region << endl;
+        razorHistosData[region] = new TH2F(Form("razordata%s", region.c_str()), "; MR (GeV); Rsq", nMRBins, MRBinLowEdges, nRsqBins, RsqBinLowEdges);
+        razorHistosData[region]->Sumw2();
 
-        for(auto &sample : region.second){
+        for(auto &sample : controlRegionData[region]){
             cout << "   Filling data histograms: " << sample << endl;
-            string theSkim = controlRegionSkim[region.first];
             curTree = dataevents[theSkim][sample];
 
             //loop over entries
@@ -334,32 +343,14 @@ void CompareDataFitCRs(){
                 if(!(curTree->Flag_HBHENoiseFilter) || !(curTree->Flag_CSCTightHaloFilter) || !(curTree->Flag_eeBadScFilter) ) continue;
 
                 //apply selection cuts
-                if(!curTree->inControlSample(region.first)) continue;
+                if(!curTree->inControlSample(region)) continue;
 
                 float eventWeight = 1.0;
 
                 //reweight for photon triggers
-                if(region.first == "ZNuNuPhoton"){
-                    double triggerWeightRestricted = 0.0;
-                    //get weight if associate each photon trigger with a particular pt range
-                    if(curTree->HLT_Photon150 && curTree->pho1.Pt() > 165){ 
-                        triggerWeightRestricted = 1.0;
-                    }
-                    else if(curTree->HLT_Photon135 && curTree->pho1.Pt() > 150 && curTree->pho1.Pt() < 165){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton135;
-                    }
-                    else if(curTree->HLT_Photon90 && curTree->pho1.Pt() > 100 && curTree->pho1.Pt() < 150){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton90;
-                    }
-                    else if(curTree->HLT_Photon75 && curTree->pho1.Pt() > 90 && curTree->pho1.Pt() < 100){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton75; 
-                    }
-                    else if(curTree->HLT_Photon50 && curTree->pho1.Pt() < 90){
-                        triggerWeightRestricted = lumi_HLTPhoton150/lumi_HLTPhoton50;
-                    }
-                    eventWeight *= triggerWeightRestricted;
-
+                if(region == "ZNuNuPhoton"){
                     if(curTree->pho1.Pt()>5000) continue; // reject noise
+                    eventWeight *= curTree->getPhotonTriggerWeight();
                 }
 
                 ///////////////////////////////////////////////////////////
@@ -367,124 +358,127 @@ void CompareDataFitCRs(){
                 ///////////////////////////////////////////////////////////
 
                 //ZNuNuDilepton CR
-                if(region.first == "ZNuNuDilepton"){
-                    razorHistosData[region.first]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
+                if(region == "ZNuNuDilepton"){
+                    razorHistosData[region]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
                 }
                 //ZNuNuSingleLepton CR
-                else if(region.first == "ZNuNuSingleLepton"){
-                    //razorHistosData[region.first]->Fill(curTree->MR_noW, curTree->Rsq_noW, eventWeight);
+                else if(region == "ZNuNuSingleLepton"){
+                    //razorHistosData[region]->Fill(curTree->MR_noW, curTree->Rsq_noW, eventWeight);
                 }
                 //ZNuNuPhoton CR
-                else if(region.first == "ZNuNuPhoton"){
-                    //razorHistosData[region.first]->Fill(curTree->MR_noPho, curTree->Rsq_noPho, eventWeight);
+                else if(region == "ZNuNuPhoton"){
+                    //razorHistosData[region]->Fill(curTree->MR_noPho, curTree->Rsq_noPho, eventWeight);
                 }
                 //other CRs
                 else{
-                    razorHistosData[region.first]->Fill(curTree->MR, curTree->Rsq, eventWeight);
+                    razorHistosData[region]->Fill(curTree->MR, curTree->Rsq, eventWeight);
                 }
             } //end event loop
         } //end loop over datasets 
+
         //create background subtracted histogram in each control region
         if(makeScaleFactors){
             outSFFile->cd();
-            for(auto &sample : controlRegionMC[region.first]){ //loop over samples
-                if(sample != signalNames[region.first]){ //subtract contribution from this process
-                    cout << "Removing " << sample << " from " << region.first << " data" << endl;
-                    razorHistosData[region.first]->Add(razorHistosMC[region.first][sample], -1);
+            for(auto &sample : controlRegionMC[region]){ //loop over samples
+                if(sample != signalNames[region]){ //subtract contribution from this process
+                    cout << "Removing " << sample << " from " << region << " data" << endl;
+                    razorHistosData[region]->Add(razorHistosMC[region][sample], -1);
                 } //end if
             } //end loop over samples
             //create data/MC scale factor histogram and save it
-            TH2F *dataOverMC = (TH2F*)razorHistosData[region.first]->Clone(Form("%sScaleFactors", region.first.c_str()));
-            dataOverMC->Divide(razorHistosMC[region.first][signalNames[region.first]]);
-            dataOverMC->Write();
+            cout << "Creating scale factor histogram for " << region << endl;
+            TH2F *newSFHist = (TH2F*)razorHistosData[region]->Clone(Form("%sScaleFactors", region.c_str()));
+            newSFHist->Divide(razorHistosMC[region][signalNames[region]]);
+            newSFHist->Write();
+            if(region == "ZNuNuDilepton" || region == "ZNuNuSingleLepton" || region == "ZNuNuPhoton"){
+                if(newScaleFactors.count("ZJetsNuNu") == 0){
+                    newScaleFactors["ZJetsNuNu"] = newSFHist;
+                }
+            }
+            else if(newScaleFactors.count(signalNames[region]) == 0){
+                newScaleFactors[signalNames[region]] = newSFHist;
+            }
         } //end if
-    } //end loop over control regions
+
+    } //end of loop over control regions
 
     ///////////////////////////////////////////////////////////
     // Make plots
     ///////////////////////////////////////////////////////////
     cout << "Saving output plots..." << endl;
     TCanvas c("c", "c", 800, 600);
-    for(auto &cr : controlRegionMC){
-        cout << "Control region: " << cr.first << endl;
+    for(auto &cr : controlRegions){
+        cout << "Control region: " << cr << endl;
         gStyle->SetPaintTextFormat("1.0f");
         c.SetLogx();
 
         //create legend
         TLegend *RazorLegend = new TLegend(0.6, 0.6, 0.9, 0.9);
         cout << "Building legend: ";
-        for(int i = cr.second.size() - 1; i >= 0; i--){
-            string name = cr.second[i];
-            SetHistogramColor(razorHistosMC[cr.first][name], name);
-            RazorLegend->AddEntry(razorHistosMC[cr.first][name], name.c_str());
+        for(int i = controlRegionMC[cr].size() - 1; i >= 0; i--){
+            string name = (controlRegionMC[cr])[i];
+            SetHistogramColor(razorHistosMC[cr][name], name);
+            RazorLegend->AddEntry(razorHistosMC[cr][name], name.c_str());
             cout << name.c_str() << " ";
         }
         cout << endl;
-        razorHistosData[cr.first]->SetMarkerStyle(20);
-        razorHistosData[cr.first]->SetMarkerSize(1);
-        RazorLegend->AddEntry(razorHistosData[cr.first], "2012 Data");
+        razorHistosData[cr]->SetMarkerStyle(20);
+        razorHistosData[cr]->SetMarkerSize(1);
+        RazorLegend->AddEntry(razorHistosData[cr], "2012 Data");
 
         //plot slices of MR and Rsq
         for(int i = 0; i < nRsqBins; i++){
             map<string, TH1F*> ThisRsqSliceMCMap;    
-            TH1F *ThisRsqSliceData = (TH1F*)razorHistosData[cr.first]->ProjectionX(Form("ThisRsqSliceData%d%s", i, cr.first.c_str()), i+1, i+1);
-            THStack *ThisRsqSliceMC = new THStack("ThisRsqSliceMC", Form("MR (%.2f < Rsq < %.2f), %s Box", RsqBinLowEdges[i], RsqBinLowEdges[i+1], cr.first.c_str()));
-            for(auto &sample : cr.second){
+            TH1F *ThisRsqSliceData = (TH1F*)razorHistosData[cr]->ProjectionX(Form("ThisRsqSliceData%d%s", i, cr.c_str()), i+1, i+1);
+            THStack *ThisRsqSliceMC = new THStack("ThisRsqSliceMC", Form("MR (%.2f < Rsq < %.2f), %s Box", RsqBinLowEdges[i], RsqBinLowEdges[i+1], cr.c_str()));
+            for(auto &sample : controlRegionMC[cr]){
                 TH1F *thisHist;
-                thisHist = (TH1F*)razorHistosMC[cr.first][sample]->ProjectionX(Form("hist%s%d%s", sample.c_str(), i, cr.first.c_str()), i+1, i+1);
+                thisHist = (TH1F*)razorHistosMC[cr][sample]->ProjectionX(Form("hist%s%d%s", sample.c_str(), i, cr.c_str()), i+1, i+1);
                 SetHistogramColor(thisHist, sample);
                 ThisRsqSliceMCMap[sample] = thisHist;
+                ThisRsqSliceMC->Add(ThisRsqSliceMCMap[sample]);
             }
-            for(auto &name : cr.second){
-                ThisRsqSliceMC->Add(ThisRsqSliceMCMap[name]);
-            }
-            DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRExclusiveSlice"+to_string(i)+cr.first, true);
+            DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRExclusiveSlice"+to_string(i)+cr, true);
         }
         for(int i = 0; i < nMRBins; i++){
             map<string, TH1F*> ThisMRSliceMCMap;    
-            TH1F *ThisMRSliceData = (TH1F*)razorHistosData[cr.first]->ProjectionY(Form("ThisMRSliceData%d%s", i, cr.first.c_str()), i+1, i+1);
-            THStack *ThisMRSliceMC = new THStack("ThisMRSliceMC", Form("Rsq (%0.f < MR < %.0f), %s Box", MRBinLowEdges[i], MRBinLowEdges[i+1], cr.first.c_str()));
-            for(auto &sample : cr.second){
+            TH1F *ThisMRSliceData = (TH1F*)razorHistosData[cr]->ProjectionY(Form("ThisMRSliceData%d%s", i, cr.c_str()), i+1, i+1);
+            THStack *ThisMRSliceMC = new THStack("ThisMRSliceMC", Form("Rsq (%0.f < MR < %.0f), %s Box", MRBinLowEdges[i], MRBinLowEdges[i+1], cr.c_str()));
+            for(auto &sample : controlRegionMC[cr]){
                 TH1F *thisHist;
-                thisHist = (TH1F*)razorHistosMC[cr.first][sample]->ProjectionY(Form("hist%s%d%s", sample.c_str(), i, cr.first.c_str()), i+1, i+1);
+                thisHist = (TH1F*)razorHistosMC[cr][sample]->ProjectionY(Form("hist%s%d%s", sample.c_str(), i, cr.c_str()), i+1, i+1);
                 SetHistogramColor(thisHist, sample);
                 ThisMRSliceMCMap[sample] = thisHist;
+                ThisMRSliceMC->Add(ThisMRSliceMCMap[sample]);
             }
-            for(auto &name : cr.second){
-                ThisMRSliceMC->Add(ThisMRSliceMCMap[name]);
-            }
-            DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqExclusiveSlice"+to_string(i)+cr.first, true);
+            DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqExclusiveSlice"+to_string(i)+cr, true);
         }
         //inclusive slices
         for(int i = 0; i < nRsqBins; i++){
             map<string, TH1F*> ThisRsqSliceMCMap;    
-            TH1F *ThisRsqSliceData = (TH1F*)razorHistosData[cr.first]->ProjectionX(Form("ThisRsqIncSliceData%d%s", i, cr.first.c_str()), i+1);
-            THStack *ThisRsqSliceMC = new THStack("ThisRsqIncSliceMC", Form("MR (Rsq > %.2f), %s Box", RsqBinLowEdges[i], cr.first.c_str()));
-            for(auto &sample : cr.second){
+            TH1F *ThisRsqSliceData = (TH1F*)razorHistosData[cr]->ProjectionX(Form("ThisRsqIncSliceData%d%s", i, cr.c_str()), i+1);
+            THStack *ThisRsqSliceMC = new THStack("ThisRsqIncSliceMC", Form("MR (Rsq > %.2f), %s Box", RsqBinLowEdges[i], cr.c_str()));
+            for(auto &sample : controlRegionMC[cr]){
                 TH1F *thisHist;
-                thisHist = (TH1F*)razorHistosMC[cr.first][sample]->ProjectionX(Form("histinc%s%d%s", sample.c_str(), i, cr.first.c_str()), i+1);
+                thisHist = (TH1F*)razorHistosMC[cr][sample]->ProjectionX(Form("histinc%s%d%s", sample.c_str(), i, cr.c_str()), i+1);
                 SetHistogramColor(thisHist, sample);
                 ThisRsqSliceMCMap[sample] = thisHist;
+                ThisRsqSliceMC->Add(ThisRsqSliceMCMap[sample]);
             }
-            for(auto &name : cr.second){
-                ThisRsqSliceMC->Add(ThisRsqSliceMCMap[name]);
-            }
-            DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRInclusiveSlice"+to_string(i)+cr.first, true);
+            DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRInclusiveSlice"+to_string(i)+cr, true);
         }
         for(int i = 0; i < nMRBins; i++){
             map<string, TH1F*> ThisMRSliceMCMap;    
-            TH1F *ThisMRSliceData = (TH1F*)razorHistosData[cr.first]->ProjectionY(Form("ThisMRSliceIncData%d%s", i, cr.first.c_str()), i+1);
-            THStack *ThisMRSliceMC = new THStack("ThisMRSliceMC", Form("Rsq (MR > %.0f), %s Box", MRBinLowEdges[i], cr.first.c_str()));
-            for(auto &sample : cr.second){
+            TH1F *ThisMRSliceData = (TH1F*)razorHistosData[cr]->ProjectionY(Form("ThisMRSliceIncData%d%s", i, cr.c_str()), i+1);
+            THStack *ThisMRSliceMC = new THStack("ThisMRSliceMC", Form("Rsq (MR > %.0f), %s Box", MRBinLowEdges[i], cr.c_str()));
+            for(auto &sample : controlRegionMC[cr]){
                 TH1F *thisHist;
-                thisHist = (TH1F*)razorHistosMC[cr.first][sample]->ProjectionY(Form("histinc%s%d%s", sample.c_str(), i, cr.first.c_str()), i+1);
+                thisHist = (TH1F*)razorHistosMC[cr][sample]->ProjectionY(Form("histinc%s%d%s", sample.c_str(), i, cr.c_str()), i+1);
                 SetHistogramColor(thisHist, sample);
                 ThisMRSliceMCMap[sample] = thisHist;
+                ThisMRSliceMC->Add(ThisMRSliceMCMap[sample]);
             }
-            for(auto &name : cr.second){
-                ThisMRSliceMC->Add(ThisMRSliceMCMap[name]);
-            }
-            DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqInclusiveSlice"+to_string(i)+cr.first, true);
+            DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqInclusiveSlice"+to_string(i)+cr, true);
         }
 
         delete RazorLegend;

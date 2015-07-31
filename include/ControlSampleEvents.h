@@ -1146,7 +1146,7 @@ class ControlSampleEvents {
               corrFactor *= singleEleTriggerSF;
           }
           //trigger scale factors: double muon
-          else if((HLTDecision[3] || HLTDecision[4]) && (sampleName == "TTBarDilepton" || sampleName == "ZLLDilepton" || sampleName == "ZNuNuFromDY" || sampleName == "ZLLDilepton")){
+          else if((HLTDecision[3] || HLTDecision[4]) && (sampleName == "TTBarDilepton" || sampleName == "ZLLDilepton" || sampleName == "ZNuNuDilepton" || sampleName == "ZLLDilepton")){
               corrFactor *= doubleMuTriggerSF;
               corrFactor *= doubleMuNormalizationSF;
           }
