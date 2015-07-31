@@ -279,16 +279,19 @@ bool RazorAnalyzer::passTightElectronID(int i){
 bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 
   Int_t subdet = 0;
-  if (fabs(eleEta_SC[i]) < 1.479) subdet = 0;
-  else subdet = 1;
+  if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
+  else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
+  else subdet = 2;
   Int_t ptBin = 0;
   if (elePt[i] > 10.0) ptBin = 1;
 
   Double_t MVACut = -999;
-  if (subdet == 0 && ptBin == 0) MVACut = 0.0;
-  if (subdet == 1 && ptBin == 0) MVACut = 0.6;
-  if (subdet == 0 && ptBin == 1) MVACut = -0.3;
-  if (subdet == 1 && ptBin == 1) MVACut = 0.5;
+  if (subdet == 0 && ptBin == 0) MVACut = -0.143;
+  if (subdet == 1 && ptBin == 0) MVACut = -0.519;
+  if (subdet == 2 && ptBin == 0) MVACut = -0.180;
+  if (subdet == 0 && ptBin == 1) MVACut = -0.304;
+  if (subdet == 1 && ptBin == 1) MVACut = -0.526;
+  if (subdet == 2 && ptBin == 1) MVACut = -0.693;
 
   bool pass = false;
   if (ele_IDMVANonTrig[i] > MVACut
