@@ -282,7 +282,7 @@ void RazorAnalyzer::RazorZAnalysis(string outFileName, bool combineTrees)
       GoodJets.push_back(thisJet);
       nSelectedJets++;
 
-      if(isOldCSVM(i)){ 
+      if(isCSVM(i)){ 
     	nBTaggedJets++;
       }
     }

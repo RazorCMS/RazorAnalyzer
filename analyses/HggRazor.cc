@@ -590,9 +590,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       /*
 	Change to isCSVL and isCSVM if you want CISV
       */
-      if( isOldCSVL(i) ){
+      if( isCSVL(i) ){
 	nLooseBTaggedJets++;
-	if( isOldCSVM(i) ){ 
+	if( isCSVM(i) ){ 
 	  nMediumBTaggedJets++;
 	  GoodCSVLJets.push_back(make_pair(thisJet, true));
 	}

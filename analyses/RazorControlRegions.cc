@@ -641,7 +641,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 									 fixedGridRhoAll, jetJetArea[i], 
 									 JetCorrector) << " "
 	       << " | passID = " << jetPassIDTight[i] << " passPUJetID = " << bool((jetPileupIdFlag[i] & (1 << 2)) != 0) 
-	       << " | csv = " << jetCSV[i] << " passCSVL = " << isOldCSVL(i) << " passCSVM = " << isOldCSVM(i) << " " << "\n";
+	       << " | csv = " << jetCSV[i] << " passCSVL = " << isCSVL(i) << " passCSVM = " << isCSVM(i) << " " << "\n";
 	}
 
 	//*******************************************************
@@ -701,9 +701,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    events->bjet1PassLoose = false;
 	    events->bjet1PassMedium = false;
 	    events->bjet1PassTight = false;
-	    if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) events->bjet1PassLoose = true;	      
-	    if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) events->bjet1PassMedium = true;
-	    if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet1PassTight = true;	      
+	    if(isCSVL(i)) events->bjet1PassLoose = true;	      
+	    if(isCSVM(i)) events->bjet1PassMedium = true;
+	    if(isCSVT(i)) events->bjet1PassTight = true;	      
 	  } else if ( thisJet.Pt() > events->bjet1.Pt() ) {
 	    events->bjet2.SetPtEtaPhiM(events->bjet1.Pt(), events->bjet1.Eta(), events->bjet1.Phi(), events->bjet1.M());
 	    events->bjet2PassLoose = events->bjet1PassLoose;
@@ -714,9 +714,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    events->bjet1PassLoose = false;
 	    events->bjet1PassMedium = false;
 	    events->bjet1PassTight = false;
-	    if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) events->bjet1PassLoose = true;	      
-	    if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) events->bjet1PassMedium = true;
-	    if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet1PassTight = true;	      
+	    if(isCSVL(i)) events->bjet1PassLoose = true;	      
+	    if(isCSVM(i)) events->bjet1PassMedium = true;
+	    if(isCSVT(i)) events->bjet1PassTight = true;	      
 	  } else {
 	    if (!bjet2Found || thisJet.Pt() > events->bjet2.Pt() ) {
 	      bjet2Found = true;
@@ -724,16 +724,16 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      events->bjet2PassLoose = false;
 	      events->bjet2PassMedium = false;
 	      events->bjet2PassTight = false;
-	      if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) events->bjet2PassLoose = true;	      
-	      if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) events->bjet2PassMedium = true;
-	      if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) events->bjet2PassTight = true;	   	    
+	      if(isCSVL(i)) events->bjet2PassLoose = true;	      
+	      if(isCSVM(i)) events->bjet2PassMedium = true;
+	      if(isCSVT(i)) events->bjet2PassTight = true;	   	    
 	    }
 	  }
 	} //if it's a bjet
 
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) nBJetsLoose20GeV++;
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) nBJetsMedium20GeV++;
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) nBJetsTight20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVL(i) ) nBJetsLoose20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVM(i) ) nBJetsMedium20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVT(i) ) nBJetsTight20GeV++;
 
 	if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
 
@@ -776,15 +776,15 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for (int i=0;i<int(GoodJets.size());i++) {
 	if (i==0) {
 	  events->jet1.SetPtEtaPhiM(GoodJets[i].Pt(), GoodJets[i].Eta(),GoodJets[i].Phi(),GoodJets[i].M());
-	  if(((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) events->jet1PassCSVLoose = true;	      
-	  if(((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) events->jet1PassCSVMedium = true;
-	  if(((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) events->jet1PassCSVTight = true;	
+	  if(isCSVL(i)) events->jet1PassCSVLoose = true;	      
+	  if(isCSVM(i)) events->jet1PassCSVMedium = true;
+	  if(isCSVT(i)) events->jet1PassCSVTight = true;	
 	}
 	if (i==1) {
 	  events->jet2.SetPtEtaPhiM(GoodJets[i].Pt(), GoodJets[i].Eta(),GoodJets[i].Phi(),GoodJets[i].M());
-	  if(((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) events->jet2PassCSVLoose = true;	      
-	  if(((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) events->jet2PassCSVMedium = true;
-	  if(((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) events->jet2PassCSVTight = true; 	   	
+	  if(isCSVL(i)) events->jet2PassCSVLoose = true;	      
+	  if(isCSVM(i)) events->jet2PassCSVMedium = true;
+	  if(isCSVT(i)) events->jet2PassCSVTight = true; 	   	
 	}
       }
     

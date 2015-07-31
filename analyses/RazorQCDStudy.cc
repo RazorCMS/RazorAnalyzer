@@ -329,9 +329,9 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	DRNeutrinoClosestToJet[i] = minDRNeutrino;
 	
 
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) nBJetsLoose20GeV++;
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) nBJetsMedium20GeV++;
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) nBJetsTight20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVL(i)) nBJetsLoose20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVM(i)) nBJetsMedium20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVT(i)) nBJetsTight20GeV++;
 	
 	if (jetPt[i]*JEC*jetEnergySmearFactor > 40 && fabs(jetEta[i]) < 3) {
 	  numJetsAbove40GeV++;

@@ -1,31 +1,17 @@
 #include "RazorAnalyzer.h"
 
-//B-tag working points for 53X Summer13 studies at 8 TeV (with 22Jan2013 ReReco Data)
-//https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagPerformanceOP
-bool RazorAnalyzer::isOldCSVL(int i){
-    return jetCSV[i] > 0.244;
-}
-
-bool RazorAnalyzer::isOldCSVM(int i){
-    return jetCSV[i] > 0.679;
-}
-
-bool RazorAnalyzer::isOldCSVT(int i){
-    return jetCSV[i] > 0.898;
-}
-
-//From https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagging
+//From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
 //Preliminary operating points derived from ttbar events
 bool RazorAnalyzer::isCSVL(int i){
-    return jetCISV[i] > 0.423;
+    return jetCISV[i] > 0.605;
 }
 
 bool RazorAnalyzer::isCSVM(int i){
-    return jetCISV[i] > 0.814;
+    return jetCISV[i] > 0.890;
 }
 
 bool RazorAnalyzer::isCSVT(int i){
-    return jetCISV[i] > 0.941;
+    return jetCISV[i] > 0.970;
 }
 
 

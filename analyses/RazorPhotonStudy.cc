@@ -801,17 +801,10 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(fabs(jetEta[i]) > 3.0) continue;
 
             //apply jet PU ID
-            if(isRunOne){
-                int level = 2; //loose jet ID
-                if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
-                if(isOldCSVM(i)) nBTaggedJets++;
-            }
-            else{
-                if(isCSVM(i)){ 
-                    nBTaggedJets++;
-                }
-            }
-
+	    if(isCSVM(i)){ 
+	      nBTaggedJets++;
+	    }
+ 
 	    // bjets in MC
 	    if(!isData)
 	      if (abs(jetPartonFlavor[i]) == 5) {
@@ -821,9 +814,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 		  bjet1PassLoose  = false;
 		  bjet1PassMedium = false;
 		  bjet1PassTight  = false;
-		  if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) bjet1PassLoose = true;	      
-		  if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) bjet1PassMedium = true;
-		  if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) bjet1PassTight = true;	      
+		  if(isCSVL(i)) bjet1PassLoose = true;	      
+		  if(isCSVM(i)) bjet1PassMedium = true;
+		  if(isCSVT(i)) bjet1PassTight = true;	      
 		} else if ( jetPt[i] > bjet1Pt ) {		  
 		  bjet2Pt = bjet1Pt;
 		  bjet2PassLoose  = bjet1PassLoose;
@@ -834,9 +827,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 		  bjet1PassLoose  = false;
 		  bjet1PassMedium = false;
 		  bjet1PassTight  = false;
-		  if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) bjet1PassLoose = true;	      
-		  if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) bjet1PassMedium = true;
-		  if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) bjet1PassTight = true;	      
+		  if(isCSVL(i)) bjet1PassLoose = true;	      
+		  if(isCSVM(i)) bjet1PassMedium = true;
+		  if(isCSVT(i)) bjet1PassTight = true;	      
 		} else {
 		  if (!bjet2Found || jetPt[i] > bjet2Pt ) {
 		    bjet2Found = true;
@@ -844,9 +837,9 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
 		    bjet2PassLoose  = false;
 		    bjet2PassMedium = false;
 		    bjet2PassTight  = false;
-		    if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) bjet2PassLoose = true;	      
-		    if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) bjet2PassMedium = true;
-		    if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) bjet2PassTight = true;	   	    
+		    if(isCSVL(i)) bjet2PassLoose = true;	      
+		    if(isCSVM(i)) bjet2PassMedium = true;
+		    if(isCSVT(i)) bjet2PassTight = true;	   	    
 		  }
 		}
 	      } //if it's a bjet		
