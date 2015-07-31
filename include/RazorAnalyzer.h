@@ -86,6 +86,8 @@ class RazorAnalyzer: public RazorEvents {
         bool passTightMuonIso(int i);
         bool passRunOneHZZMuonPreselection(int i);
         bool isRunOneHZZMuon(int i);
+	bool matchMuonHLTFilters( int i, string HLTFilter);
+	bool matchTagMuonHLTFilters( int i);
 
         //functions in RazorAuxElectron.cc
         bool isEGammaPOGVetoElectron(int i);
