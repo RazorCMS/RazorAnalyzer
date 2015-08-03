@@ -269,12 +269,12 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
   if (elePt[i] > 10.0) ptBin = 1;
 
   Double_t MVACut = -999;
-  if (subdet == 0 && ptBin == 0) MVACut = -0.143;
-  if (subdet == 1 && ptBin == 0) MVACut = -0.519;
-  if (subdet == 2 && ptBin == 0) MVACut = -0.180;
-  if (subdet == 0 && ptBin == 1) MVACut = -0.304;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.526;
-  if (subdet == 2 && ptBin == 1) MVACut = -0.693;
+  if (subdet == 0 && ptBin == 0) MVACut = -0.1;
+  if (subdet == 1 && ptBin == 0) MVACut = -0.75;
+  if (subdet == 2 && ptBin == 0) MVACut = -0.1;
+  if (subdet == 0 && ptBin == 1) MVACut = -0.5;
+  if (subdet == 1 && ptBin == 1) MVACut = -0.8;
+  if (subdet == 2 && ptBin == 1) MVACut = -0.3;
 
   bool pass = false;
   if (ele_IDMVANonTrig[i] > MVACut
