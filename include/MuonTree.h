@@ -35,6 +35,7 @@
 
       //ID bits
       Bool_t                  fMuIsTight;
+      Bool_t                  fMuIsMedium;
       Bool_t                  fMuIsLoose;
 
       // Typical Selection Working Points
@@ -123,6 +124,7 @@
         fPdgId			   = 13;
 	fDRToClosestParton         = 9999;
 	fMuIsTight                 = false;
+	fMuIsMedium                = false;
 	fMuIsLoose                 = false;
 	fPassVetoSelection         = false;
 	fPassLooseSelection         = false;
@@ -205,6 +207,7 @@
         tree_->Branch("pdgid",&fPdgId,"pdgid/I"); 
         tree_->Branch("DRToClosestParton",&fDRToClosestParton,"DRToClosestParton/F"); 
 	tree_->Branch("IsTight",&fMuIsTight,"IsTight/O"); 
+	tree_->Branch("IsMedium",&fMuIsMedium,"IsMedium/O"); 
 	tree_->Branch("IsLoose",&fMuIsLoose,"IsLoose/O"); 
 	tree_->Branch("PassVetoSelection",&fPassVetoSelection,"PassVetoSelection/O"); 
 	tree_->Branch("PassLooseSelection",&fPassLooseSelection,"PassLooseSelection/O"); 	
@@ -287,6 +290,7 @@
         tree_->SetBranchAddress("pdgid",&fPdgId);
         tree_->SetBranchAddress("DRToClosestParton",&fDRToClosestParton);
 	tree_->SetBranchAddress("IsTight",&fMuIsTight); 
+	tree_->SetBranchAddress("IsMedium",&fMuIsMedium); 
 	tree_->SetBranchAddress("IsLoose",&fMuIsLoose); 
 	tree_->SetBranchAddress("PassVetoSelection",&fPassVetoSelection); 
 	tree_->SetBranchAddress("PassLooseSelection",&fPassLooseSelection); 

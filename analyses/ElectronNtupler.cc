@@ -74,10 +74,10 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fElePFIso04 = (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i];
 	    eleTree->fIDMVATrig = ele_IDMVATrig[i];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[i];
-	    eleTree->fPassVetoSelection = isVetoElectron(i);
-	    eleTree->fPassLooseSelection = isRunOneLooseElectron(i);
-	    eleTree->fPassTightSelection = isRunOneTightElectron(i);
-	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(i);
+	    eleTree->fPassVetoSelection = isEGammaPOGVetoElectron(i);
+	    eleTree->fPassLooseSelection = isLooseElectron(i);
+	    eleTree->fPassTightSelection = isTightElectron(i);
+	    eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(i);
 	    eleTree->fPtRel = ele_ptrel[i];
 	    eleTree->fMiniIso = ele_miniiso[i];
 
@@ -223,10 +223,10 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fElePFIso04 = (ele_chargedIso[matchedIndex] + fmax(0.0,  ele_photonIso[matchedIndex] + ele_neutralHadIso[matchedIndex] - 0.5*ele_pileupIso[matchedIndex])) / elePt[matchedIndex];
 	    eleTree->fIDMVATrig = ele_IDMVATrig[matchedIndex];
 	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[matchedIndex];
-	    eleTree->fPassVetoSelection = isVetoElectron(matchedIndex);
-	    eleTree->fPassLooseSelection = isRunOneLooseElectron(matchedIndex);
-	    eleTree->fPassTightSelection = isRunOneTightElectron(matchedIndex);
-	    eleTree->fPassMVANonTrigVetoSelection = isMVANonTrigVetoElectron(matchedIndex);
+	    eleTree->fPassVetoSelection = isEGammaPOGVetoElectron(matchedIndex);
+	    eleTree->fPassLooseSelection = isLooseElectron(matchedIndex);
+	    eleTree->fPassTightSelection = isTightElectron(matchedIndex);
+	    eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(matchedIndex);
 	    eleTree->fPtRel = ele_ptrel[matchedIndex];
 	    eleTree->fMiniIso = ele_miniiso[matchedIndex];
 	  } else {

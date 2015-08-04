@@ -304,7 +304,7 @@ void RazorAnalyzer::HbbRazor(string outFileName, bool combineTrees, bool isData,
 	  else MCEff = 0.66;				 
 	
 	  //if pass CSV Medium
-	  if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) {
+	  if(isCSVM(i)) {
 	    tmpBTagCorrFactor = tmpCorrFactor;
 	  } else {
 	    tmpBTagCorrFactor = ( 1/MCEff - tmpCorrFactor) / ( 1/MCEff - 1);
@@ -341,7 +341,7 @@ void RazorAnalyzer::HbbRazor(string outFileName, bool combineTrees, bool isData,
       if(jetCorrPt > 80) numJetsAbove80GeV++;
       GoodJets.push_back(thisJet);
 
-      if((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))){ 
+      if(isCSVT(i)){ 
     	nBTaggedJets++;
 	TLorentzVector thisBJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);       
 	BJetCandidates.push_back(thisBJet);

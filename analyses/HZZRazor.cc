@@ -603,7 +603,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
 	  else MCEff = 0.66;				 
 	
 	  //if pass CSV Medium
-	  if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) {
+	  if( isCSVM(i)) {
 	    tmpBTagCorrFactor = tmpCorrFactor;
 	  } else {
 	    tmpBTagCorrFactor = ( 1/MCEff - tmpCorrFactor) / ( 1/MCEff - 1);
@@ -649,14 +649,14 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       jet_Eta[n_Jets] = thisJet.Eta();
       jet_Phi[n_Jets] = thisJet.Phi();
       jet_CSV[n_Jets] = ( (isRunOne) ? jetCSV[i] : jetCISV[i]);
-      jet_LooseBTag[n_Jets] = ( (isRunOne) ? isOldCSVL(i) : isCSVL(i) );
-      jet_MediumBTag[n_Jets] = ( (isRunOne) ? isOldCSVM(i) : isCSVM(i) );
+      jet_LooseBTag[n_Jets] = isCSVL(i);
+      jet_MediumBTag[n_Jets] = isCSVM(i);
       n_Jets++;
 
-      if((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))){ 
+      if(isCSVL(i)){ 
     	nLooseBTaggedJets++;
       }
-      if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))){ 
+      if(isCSVM(i)){ 
     	nMediumBTaggedJets++;
       }
     }

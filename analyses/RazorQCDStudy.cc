@@ -329,9 +329,9 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	DRNeutrinoClosestToJet[i] = minDRNeutrino;
 	
 
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVL(i)) || (isRunOne && isOldCSVL(i))) ) nBJetsLoose20GeV++;
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) ) nBJetsMedium20GeV++;
-	if (jetPt[i]*JEC > 20 && ((!isRunOne && isCSVT(i)) || (isRunOne && isOldCSVT(i))) ) nBJetsTight20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVL(i)) nBJetsLoose20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVM(i)) nBJetsMedium20GeV++;
+	if (jetPt[i]*JEC > 20 && isCSVT(i)) nBJetsTight20GeV++;
 	
 	if (jetPt[i]*JEC*jetEnergySmearFactor > 40 && fabs(jetEta[i]) < 3) {
 	  numJetsAbove40GeV++;
@@ -452,20 +452,23 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	HLTDecision[k] = HLTDecision[k];
       }
       
+      //*************************************************************************
+      //Skimming
+      //*************************************************************************
       bool passSkim = true;
       if (option == 1) {
-	if (!(MR>300 && Rsq>0.05)) {
-	  passSkim = false;
-	}
+      	if (!(MR>300 && Rsq>0.05)) {
+      	  passSkim = false;
+      	}
       }
 
-      outTree->Fill();
+      //*************************************************************************
+      //Fill Tree
+      //*************************************************************************
+       if (passSkim) {
+	outTree->Fill();
+      }
       
-
-
-
-
-
 
       //*************************************************************
       //DEBUG
@@ -481,7 +484,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	cout << "\n";
 
 	cout << "Objects: " << "\n";
-	for (int i=0; i < GoodPFObjects.size() ; ++i) {
+	for (int i=0; i < int(GoodPFObjects.size()) ; ++i) {
 	  cout << "Obj " << i << " : " << GoodPFObjects[i].Pt() << " " << GoodPFObjects[i].Eta() << " " << GoodPFObjects[i].Phi() << " \n";
 	}
 	cout << "\n";

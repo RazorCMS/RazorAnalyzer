@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
                 inputTree->GetEntry(n);
                 //weight = 1.0;
                 if(normalizationWeight >= 0){		  
-		  weight = ( inputweight > 0 ? 1 : -1 ) * normalizationWeight;
+		  weight = inputweight * normalizationWeight;
                 } 
                 normalizedTree->Fill(); 
             }

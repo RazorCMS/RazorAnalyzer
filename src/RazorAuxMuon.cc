@@ -1,10 +1,44 @@
 #include "RazorAnalyzer.h"
 
+bool RazorAnalyzer::isMuonPOGLooseMuon(int i){
+  bool pass = false;
+  if (muonIsLoose[i] 
+      && fabs(muon_ip3dSignificance[i]) < 4
+      && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.2
+      ) {
+    pass = true;
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::isMuonPOGMediumMuon(int i){
+  bool pass = false;
+  if (muonIsMedium[i] 
+      && fabs(muon_ip3dSignificance[i]) < 4
+      && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12
+      ) {
+    pass = true;
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::isMuonPOGTightMuon(int i){
+  bool pass = false;
+  if (
+      muonIsTight[i] 
+      && fabs(muon_ip3dSignificance[i]) < 4
+      && fabs(muon_d0[i]) < 0.2
+      && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12     
+      ) {
+    pass = true;
+  }
+  return pass;
+}   
+
 bool RazorAnalyzer::isVetoMuon(int i){
   bool pass = false;
   if (muonIsLoose[i] 
       && fabs(muon_ip3dSignificance[i]) < 4
-      //&& ( ( muonPt[i] > 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.4 )
       && ( ( muonPt[i] > 20 && muon_miniiso[i] < 0.2 )
 	   ||
 	   ( muonPt[i] <= 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) < 10 ) 
@@ -19,7 +53,7 @@ bool RazorAnalyzer::isLooseMuon(int i){
   bool pass = false;
   if (muonIsLoose[i] 
       && fabs(muon_ip3dSignificance[i]) < 4
-      && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.2
+      && muon_miniiso[i] < 0.2
       ) {
     pass = true;
   }
@@ -29,10 +63,10 @@ bool RazorAnalyzer::isLooseMuon(int i){
 bool RazorAnalyzer::isTightMuon(int i){
   bool pass = false;
   if (
-      muonIsTight[i] 
+      muonIsMedium[i] 
       && fabs(muon_ip3dSignificance[i]) < 4
       && fabs(muon_d0[i]) < 0.2
-      && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12     
+      && muon_miniiso[i] < 0.2
       ) {
     pass = true;
   }
@@ -64,7 +98,7 @@ bool RazorAnalyzer::passLooseMuonID(int i){
 bool RazorAnalyzer::passTightMuonID(int i){
   bool pass = false;
   if (
-      muonIsTight[i] 
+      muonIsMedium[i] 
       && fabs(muon_ip3dSignificance[i]) < 4
       && abs(muon_d0[i]) < 0.2
       ) {
@@ -73,9 +107,35 @@ bool RazorAnalyzer::passTightMuonID(int i){
   return pass;
 }   
 
+bool RazorAnalyzer::passMuonPOGLooseMuonIso(int i){
+  bool pass = false;
+  if ( (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.2
+      ) {
+    pass = true;
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::passMuonPOGMediumMuonIso(int i){
+  bool pass = false;
+  if ( (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12     
+      ) {
+    pass = true;
+  }
+  return pass;
+}   
+
+bool RazorAnalyzer::passMuonPOGTightMuonIso(int i){
+  bool pass = false;
+  if ( (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12     
+      ) {
+    pass = true;
+  }
+  return pass;
+}   
+
 bool RazorAnalyzer::passVetoMuonIso(int i){
   bool pass = false;
-  //if ( ( ( muonPt[i] > 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.4 )
   if ( ( ( muonPt[i] > 20 && muon_miniiso[i] < 0.2 )
 	 ||
 	 ( muonPt[i] <= 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i]))  < 10 ) 
@@ -88,7 +148,7 @@ bool RazorAnalyzer::passVetoMuonIso(int i){
 
 bool RazorAnalyzer::passLooseMuonIso(int i){
   bool pass = false;
-  if ( (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.2
+  if ( muon_miniiso[i] < 0.2
       ) {
     pass = true;
   }
@@ -97,7 +157,7 @@ bool RazorAnalyzer::passLooseMuonIso(int i){
 
 bool RazorAnalyzer::passTightMuonIso(int i){
   bool pass = false;
-  if ( (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12     
+  if ( muon_miniiso[i] < 0.2
       ) {
     pass = true;
   }
@@ -130,3 +190,59 @@ bool RazorAnalyzer::isRunOneHZZMuon(int i){
   return pass;
 }
 
+
+
+bool RazorAnalyzer::matchTagMuonHLTFilters(int i){
+  return  matchMuonHLTFilters(i, "SingleMuon");
+}
+
+
+bool RazorAnalyzer::matchMuonHLTFilters(int i, string HLTFilter){
+  bool match = false;
+
+  if (HLTFilter == "SingleMuon") {
+    if ( 
+	//Data filters
+	muon_passHLTFilter[i][1]      // IsoMu17_eta2p1
+	|| muon_passHLTFilter[i][3]   // IsoMu20
+	|| muon_passHLTFilter[i][4]   // HLT_IsoMu20_eta2p1
+	|| muon_passHLTFilter[i][6]   // HLT_IsoMu24_eta2p1
+	|| muon_passHLTFilter[i][8]   // IsoMu27
+	|| muon_passHLTFilter[i][9]   // IsoTkMu20
+	|| muon_passHLTFilter[i][10]  // IsoTkMu20_eta2p1 
+	|| muon_passHLTFilter[i][11]  // IsoTkMu24_eta2p1
+	|| muon_passHLTFilter[i][12]  // IsoTkMu27
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "DoubleMuonLeg1") {
+    if ( 
+	//Data filters : 17_8 Triggers
+	muon_passHLTFilter[i][19] || muon_passHLTFilter[i][27] 
+	 ) {
+      match = true;
+    }
+  }
+
+  if (HLTFilter == "DoubleMuonLeg2") {
+    if ( 
+	//Data filters : 17_8 triggers
+	muon_passHLTFilter[i][25] || muon_passHLTFilter[i][28]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "DoubleMuonLeg2DZ") {
+    if ( 
+	//Data filters : 17_8 triggers
+	muon_passHLTFilter[i][26] || muon_passHLTFilter[i][29]
+	 ) {
+      match = true;
+    }
+  }
+   
+  return match;
+}
