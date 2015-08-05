@@ -19,6 +19,13 @@ def fixPars(w, label, doFix=True, setVal=None):
             if setVal is not None: par.setVal(setVal)
 
 def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
+    
+    if x is None or y is None or z is None:
+        x = array('d', cfg.getBinning(box)[0]) # MR binning
+        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
     for parameter in parameters:
@@ -34,17 +41,12 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
         # float normalization parameters
         fixPars(w,"Ntot",False)
         
-        # turn off shape parameters if no events in b-tag bin:
-        for i in [0, 1, 2, 3]:
-            if "Ntot" in paramName and "%ib"%i in paramName:
-                w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag==%i"%i) ))
-                if not w.var(paramName).getVal():
-                    fixPars(w,"%ib"%i)    
-    if x is None or y is None or z is None:
-        x = array('d', cfg.getBinning(box)[0]) # MR binning
-        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
-        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
-    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+        # turn off shape parameters if no events in b-tag bin (not done yet)
+        for k in range(0,len(z)-1):
+            if "Ntot" in paramName and "%ib"%z[k] in paramName:
+                w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag>=%i && nBtag<%i"% (z[k],z[k+1] )) ))
+                #if not w.var(paramName).getVal():
+                #    fixPars(w,"%ib"%z[k])    
 
     w.factory('th1x[0,0,%i]'%nBins)
     w.var('th1x').setBins(nBins)
@@ -166,7 +168,7 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h', x = array('d',[
     return myTH1
 
 
-def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
+def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty):
         obsRate = w.data("data_obs").sumEntries()
         nBkgd = len(bkgs)
         rootFileName = txtfileName.replace('.txt','.root')
@@ -201,7 +203,13 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w):
         # now nuisances
         datacard+=lumiString
         for paramName in paramNames:
-            datacard += "%s  	flatParam\n"%(paramName)
+            if penalty:
+                fixPars(w,paramName)
+                #paramVal = w.var(paramName).getVal()
+                #datacard += "%s	param	%e    %e\n"%(paramName,paramVal, 1.e-2*abs(paramVal))
+            else:
+                datacard += "%s  	flatParam\n"%(paramName)
+            
         txtfile = open(txtfileName,"w")
         txtfile.write(datacard)
         txtfile.close()
@@ -251,6 +259,8 @@ if __name__ == '__main__':
                   help="perform a fit first")
     parser.add_option('--print-yields',dest="printYields",default=False,action='store_true',
                   help="print yields")
+    parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
+                  help="penalty terms on background parameters")
 
     (options,args) = parser.parse_args()
     
@@ -331,11 +341,11 @@ if __name__ == '__main__':
         outFile = 'razor_combine_%s_%s_lumi-%.1f_%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,box)
     
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
-    w.Write()
     if noFit:
         writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
     else:
-        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w)
+        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty)
+    w.Write()
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))
 
     
