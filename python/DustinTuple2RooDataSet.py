@@ -96,7 +96,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
     if 'SMS' in f:
-        k = [1. for z_bin in z]
+        k = [1. for z_bin in z[:-1]]
     elif 'TTJets' in f:
         k = [k_T*k_btag for k_btag in k_QCD[box]]
     elif 'DYJets' in f or 'ZJets' in f:
