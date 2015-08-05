@@ -36,11 +36,15 @@ if __name__ == '__main__':
                 if fit=='Sideband':
                     fitString = '--fit-region LowMR,LowRsq'
                     
+                outDir = "ControlSampleFits/%s/"%(box)
+                exec_me('mkdir -p %s' %(outDir),dryRun)
+                outDir = "ControlSampleFits/%s/%s/"%(box,fit)
+                exec_me('mkdir -p %s' %(outDir),dryRun)
                 dsName = 'ControlSampleFits/RunTwoRazorControlRegions_OneLeptonFull_Run2015B_GoodLumiDCS_NoDuplicates_lumi-%s_%s_%s.root'%(lumiString,btag,box)
-                exec_me('python python/BinnedFit.py -c %s -b %s -l %f -d ControlSampleFits/%s/%s/ %s %s --data' %(cfg,box,lumi,box,fit,fitString,dsName),dryRun)
-                #exec_me('python python/RunToys.py -c %s -b %s -i ControlSampleFits/%s/%s/BinnedFitResults_%s.root -d ControlSampleFits/%s/%s/ -t 3000'%(cfg,box,box,fit,box,box,fit),dryRun)
-                #exec_me('python python/PlotFit.py -c %s -b %s -l %f -i ControlSampleFits/%s/%s/BinnedFitResults_%s.root -d ControlSampleFits/%s/%s/ -t ControlSampleFits/%s/%s/toys_Bayes_%s.root --data' %(cfg,box,lumi,box,fit,box,box,fit,box,fit,box),dryRun)
-                exec_me('python python/PlotFit.py -c %s -b %s -l %f -i ControlSampleFits/%s/%s/BinnedFitResults_%s.root -d ControlSampleFits/%s/%s/ %s --data' %(cfg,box,lumi,box,fit,box,box,fit,fitString),dryRun)
+                exec_me('python python/BinnedFit.py -c %s -b %s -l %f -d %s %s %s --data' %(cfg,box,lumi,outDir,fitString,dsName),dryRun)
+                #exec_me('python python/RunToys.py -c %s -b %s -i %s/BinnedFitResults_%s.root -d %s -t 3000'%(cfg,box,outDir,box,outDir),dryRun)
+                #exec_me('python python/PlotFit.py -c %s -b %s -l %f -i %s/BinnedFitResults_%s.root -d %s -t %s/toys_Bayes_%s.root --data' %(cfg,box,lumi,outDir,box,outDir,outDir,box),dryRun)
+                exec_me('python python/PlotFit.py -c %s -b %s -l %f -i %s/BinnedFitResults_%s.root -d %s %s --data' %(cfg,box,lumi,outDir,box,outDir,fitString),dryRun)
                       
             
             
