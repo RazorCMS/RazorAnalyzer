@@ -22,6 +22,7 @@
 #include "THStack.h"
 #include "TLegend.h"
 #include "TPad.h"
+#include "TLatex.h"
 
 #include "include/RazorAnalyzer.h"
 
@@ -41,7 +42,7 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 }
 
 //plotting macro for data and MC, including ratio plot
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX){
+void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, string intLumi="40 pb^{-1}"){
     TCanvas c("c", "c", 800, 600);
     c.Clear();
     c.cd();
@@ -52,14 +53,14 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     pad1.Draw();
     pad1.cd();
     mcStack->Draw("hist");
-    mcStack->SetMaximum(max(mcStack->GetMaximum(), dataHist->GetMaximum()));
-    mcStack->GetYaxis()->SetTitle("Number of events in 19.7/fb");
+    mcStack->GetYaxis()->SetTitle("Number of events");
     mcStack->GetYaxis()->SetLabelSize(0.03);
     mcStack->GetYaxis()->SetTitleOffset(0.45);
     mcStack->GetYaxis()->SetTitleSize(0.05);
+    mcStack->SetMinimum(0.1);
     dataHist->SetMarkerStyle(20);
     dataHist->SetMarkerSize(1);
-    dataHist->GetYaxis()->SetTitle("Number of events in 19.7/fb");
+    dataHist->GetYaxis()->SetTitle("Number of events");
     dataHist->Draw("pesame");
     pad1.Modified();
     gPad->Update();
@@ -67,14 +68,13 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     TList * histList = (TList*)mcStack->GetHists();
     TIter next(histList);
     TH1 *mcTotal = (TH1*) histList->First()->Clone();
-    //mcTotal->Sumw2();
     TObject *obj;
     while((obj = next())){
         if(obj == histList->First()) continue;
         mcTotal->Add((TH1*)obj);
     }
     TH1F *dataOverMC = (TH1F*)dataHist->Clone();
-    //dataOverMC->Sumw2();
+    dataOverMC->SetTitle("");
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
@@ -87,7 +87,33 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->GetYaxis()->SetTitleSize(0.08);
     dataOverMC->GetXaxis()->SetTitleSize(0.08);
     dataOverMC->SetStats(0);
+
+    string histoName = dataHist->GetName() ;
+    // if(histoName.find("NJets40") != std::string::npos  )
+      {
+        cout<<"Number of events in data: "<<dataHist->Integral()<<" "<<dataHist->GetName()<<endl;
+        cout<<"Number of events in MC: "<<mcTotal->Integral()<<" "<<endl;
+      }
+    if(histoName.find("datadeltaPhi") != std::string::npos  )
+      {
+        leg->SetX1NDC(0.1); leg->SetX2NDC(0.3); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
+      }
+    else 
+      {
+        leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
+      }
     leg->Draw();
+
+    TLatex t1(0.1,0.94, "CMS Preliminary");
+    TLatex t2(0.65,0.94, Form("#sqrt{s}=13 TeV, L = %s", intLumi.c_str()));
+    t1.SetNDC();
+    t2.SetNDC();
+    t1.SetTextSize(0.06);
+    t2.SetTextSize(0.06);
+    
+    t1.Draw();
+    t2.Draw();
+    
     c.cd();
     TPad pad2("pad2","pad2",0,0.0,1,0.4);
     pad2.SetTopMargin(0);
@@ -95,17 +121,17 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     pad2.SetBottomMargin(0.25);
     pad2.SetGridy();
     if(logX) pad2.SetLogx();
+    if(dataOverMC->GetMaximum() > 1.5) dataOverMC->SetMaximum(1.5);
     pad2.Draw();
     pad2.cd();
     dataOverMC->Draw("pe");
+    // if(histoName.find("dataNvtx0") != std::string::npos  )
+    //   dataOverMC->SaveAs("Nvtx.root");
     pad2.Modified();
     gPad->Update();
-    c.Print(Form("%sLog.gif", printString.c_str()));
-    //c.Print(Form("%s.root", printString.c_str()));
-    pad1.SetLogy(kFALSE);
-    pad1.Modified();
-    gPad->Update();
-    c.Print(Form("%sLinear.gif", printString.c_str()));
+
+    c.Print(Form("%s.png", printString.c_str()));
+    // c.Print(Form("%s.root", printString.c_str()));
 }
 
 //check if the given box is a muon box
