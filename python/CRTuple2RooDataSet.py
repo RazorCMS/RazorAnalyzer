@@ -12,7 +12,7 @@ k_W = 3.*20508.9/50100.0
 k_QCD = {}
     
 boxes = {'TTBarSingleLepton':'( ( abs(lep1Type) == 11 || abs(lep1Type) == 13) && (lep1PassTight) && (lep1.Pt()>30) && (MET > 30) && (lep1MT > 30 && lep1MT < 100) )',
-         'WSingleLepton':'( ( abs(lep1Type) == 11 || abs(lep1Type) == 13) && (lep1PassTight) && (lep1.Pt()>30) && (MET > 30) && (lep1MT > 30 && lep1MT < 100) )'}
+         'WSingleLepton':'( ( abs(lep1Type) == 11 || abs(lep1Type) == 13) && (lep1PassTight) && (lep1.Pt()>30) && (MET > 50) && (lep1MT > 30 && lep1MT < 100) )'}
 
 
 def initializeWorkspace(w,cfg,box):
@@ -252,26 +252,26 @@ if __name__ == '__main__':
     
     if len(inFiles)==1:
         if btagMax>btagMin+1:
-            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
+            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.4f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
             outFile = outFile.replace('_1pb','')
             if not useWeight:
                 outFile = outFile.replace("weighted","unweighted")
         else:
-            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
+            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.4f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
             outFile = outFile.replace('_1pb','')
             if not useWeight:
                 outFile = outFile.replace("weighted","unweighted")
     else:
         if btagMax>btagMin+1:
             if useWeight:
-                outFile = 'RazorControlRegions_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+                outFile = 'RazorControlRegions_SMCocktail_weighted_lumi-%.4f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
             else:
-                outFile = 'RazorControlRegions_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+                outFile = 'RazorControlRegions_SMCocktail_unweighted_lumi-%.4f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         else:
             if useWeight:
-                outFile = 'RazorControlRegions_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+                outFile = 'RazorControlRegions_SMCocktail_weighted_lumi-%.4f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
             else:
-                outFile = 'RazorControlRegions_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+                outFile = 'RazorControlRegions_SMCocktail_unweighted_lumi-%.4f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
     numEntriesByBtag = []
