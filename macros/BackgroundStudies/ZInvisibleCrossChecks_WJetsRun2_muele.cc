@@ -20,6 +20,8 @@
 #include "assert.h"
 #include "math.h"
 
+#include "include/MacroHelper.h"
+
 using namespace std;
 
 bool debug = false;
@@ -31,9 +33,7 @@ bool debug = false;
 //false: find the translation factors from DY, W, G to Z->nunu
 bool computeDataOverMCSFs = false;
 
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX);
-
-void ZInvisibleCrossChecks(){
+void ZInvisibleCrossChecks_WJetsRun2_muele(){
     gROOT->SetBatch();
 
     float maxMuonPt = 999;
@@ -51,6 +51,14 @@ void ZInvisibleCrossChecks(){
     suffixes["Top"] = "";
     // suffixes["TTW"] = "_noW";
     // suffixes["TTZ"] = "_noW";
+
+    //load file with fit results
+    TFile *fitResultFile = new TFile("ControlSampleFits.root", "READ");
+    vector<TH1F*> fitHists;
+    if(fitResultFile){
+        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
+        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
+    }
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -196,10 +204,10 @@ void ZInvisibleCrossChecks(){
     }
 
     //load efficiency/acceptance histograms
-    TFile *effFile = new TFile("./Run1LeptonPhotonEfficiency.root", "READ");
-    TH2F muonLooseEffHisto = *(TH2F *)effFile->Get("MuonEfficiency");
-    TH2F muonTightEffHisto = *(TH2F *)effFile->Get("MuonEfficiencyTight");
-    TH2F zAccHisto = *(TH2F *)effFile->Get("MuonAcceptance");
+    //TFile *effFile = new TFile("./Run1LeptonPhotonEfficiency.root", "READ");
+    //TH2F muonLooseEffHisto = *(TH2F *)effFile->Get("MuonEfficiency");
+    //TH2F muonTightEffHisto = *(TH2F *)effFile->Get("MuonEfficiencyTight");
+    //TH2F zAccHisto = *(TH2F *)effFile->Get("MuonAcceptance");
 
     //load muon efficiency scale factor histogram
     TFile muIdSFFile("data/ScaleFactors/MuonEfficiencies_ID_Run2012ReReco_53X.root");
@@ -449,11 +457,15 @@ void ZInvisibleCrossChecks(){
     colors["TTJets"] = kAzure+10;
     // colors["TTW"] = kRed+2;
     // colors["TTZ"] = kOrange-3;
+    fitHists[0]->SetLineWidth(2);
+    fitHists[0]->SetLineWidth(2);
     TLegend *legend = new TLegend(0.5, 0.5, 0.9, 0.9);
     legend->AddEntry(dataNJets40[0], "Data");
     legend->AddEntry(mcNJets40["WJets"][0], "W+Jets MC");
     legend->AddEntry(mcNJets40["TTJets"][0], "TTJets MC MC");
     legend->AddEntry(mcNJets40["Top"][0], "Single Top MC");
+    TLegend *legendWithFit = (TLegend*)legend->Clone();
+    legendWithFit->AddEntry(fitHists[0], "Fit");
     // legend->AddEntry(mcNJets40["TTW"][0], "TTW MC");
     // legend->AddEntry(mcNJets40["TTZ"][0], "TTZ MC");
     cout<<"HERRE 2"<<endl;
@@ -501,7 +513,7 @@ void ZInvisibleCrossChecks(){
         }
 	DrawDataVsMCRatioPlot(dataNJets40[cut], &NumJets40MC, legend, "Number of jets 40 GeV", "ControlRegionPlots_EleAndMu_NumJets40"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ControlRegionPlots_EleAndMu_NumJets80"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
         DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ControlRegionPlots_EleAndMu_Rsq"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ControlRegionPlots_EleAndMu_MET"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ControlRegionPlots_EleAndMu_NVtx"+to_string(cut), false);
@@ -547,7 +559,7 @@ void ZInvisibleCrossChecks(){
     // mcfiles["TTZ"]->Close();
     datafiles["WJets"]->Close();
     pileupWeightFile->Close();
-    effFile->Close();
+    //effFile->Close();
     delete mcfiles["WJets"];
     delete mcfiles["Top"];
     delete mcfiles["TTJets"];
@@ -555,106 +567,14 @@ void ZInvisibleCrossChecks(){
     // delete mcfiles["TTZ"];
     delete datafiles["WJets"];
     delete pileupWeightFile;
-    delete effFile;
+    //delete effFile;
     cout<<"HERRE 5"<<endl;
 
 }
 
 int main(){
-    ZInvisibleCrossChecks();
+    ZInvisibleCrossChecks_WJetsRun2_muele();
     cout<<"BLA"<<endl;
     return 0;
     cout<<"BLA2"<<endl;
-}
-
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX){
-    TCanvas c("c", "c", 800, 600);
-    c.Clear();
-    c.cd();
-    TPad pad1("pad1","pad1",0,0.4,1,1);
-    pad1.SetBottomMargin(0);
-    pad1.SetLogy();
-    if(logX) pad1.SetLogx();
-    pad1.Draw();
-    pad1.cd();
-    mcStack->Draw("hist");
-    mcStack->GetYaxis()->SetTitle("Number of events");
-    mcStack->GetYaxis()->SetLabelSize(0.03);
-    mcStack->GetYaxis()->SetTitleOffset(0.45);
-    mcStack->GetYaxis()->SetTitleSize(0.05);
-    mcStack->SetMinimum(0.1);
-    dataHist->SetMarkerStyle(20);
-    dataHist->SetMarkerSize(1);
-    dataHist->GetYaxis()->SetTitle("Number of events");
-    dataHist->Draw("pesame");
-    pad1.Modified();
-    gPad->Update();
-    //make ratio histogram
-    TList * histList = (TList*)mcStack->GetHists();
-    TIter next(histList);
-    TH1 *mcTotal = (TH1*) histList->First()->Clone();
-    TObject *obj;
-    while((obj = next())){
-        if(obj == histList->First()) continue;
-        mcTotal->Add((TH1*)obj);
-    }
-    TH1F *dataOverMC = (TH1F*)dataHist->Clone();
-    dataOverMC->SetTitle("");
-    dataOverMC->Divide(mcTotal);
-    dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
-    dataOverMC->GetYaxis()->SetTitle("Data / MC");
-    dataOverMC->SetMinimum(0.5);
-    dataOverMC->SetMaximum(1.5);
-    dataOverMC->GetXaxis()->SetLabelSize(0.1);
-    dataOverMC->GetYaxis()->SetLabelSize(0.08);
-    dataOverMC->GetYaxis()->SetTitleOffset(0.35);
-    dataOverMC->GetXaxis()->SetTitleOffset(1.00);
-    dataOverMC->GetYaxis()->SetTitleSize(0.08);
-    dataOverMC->GetXaxis()->SetTitleSize(0.08);
-    dataOverMC->SetStats(0);
-
-    string histoName = dataHist->GetName() ;
-    // if(histoName.find("NJets40") != std::string::npos  )
-      {
-	cout<<"Number of events in data: "<<dataHist->Integral()<<" "<<dataHist->GetName()<<endl;
-	cout<<"Number of events in MC: "<<mcTotal->Integral()<<" "<<endl;
-      }
-    if(histoName.find("datadeltaPhi") != std::string::npos  )
-      {
-	leg->SetX1NDC(0.1); leg->SetX2NDC(0.3); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
-      }
-    else 
-      {
-	leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
-      }
-    leg->Draw();
-
-    TLatex t1(0.1,0.94, "CMS Preliminary");
-    TLatex t2(0.65,0.94, "#sqrt{s}=13 TeV, L = 40 pb^{-1}");
-    t1.SetNDC();
-    t2.SetNDC();
-    t1.SetTextSize(0.06);
-    t2.SetTextSize(0.06);
-    
-    t1.Draw();
-    t2.Draw();
-    
-    c.cd();
-    TPad pad2("pad2","pad2",0,0.0,1,0.4);
-    pad2.SetTopMargin(0);
-    pad2.SetTopMargin(0.008);
-    pad2.SetBottomMargin(0.25);
-    pad2.SetGridy();
-    if(logX) pad2.SetLogx();
-    if(dataOverMC->GetMaximum() > 1.5) dataOverMC->SetMaximum(1.5);
-    pad2.Draw();
-    pad2.cd();
-    dataOverMC->Draw("pe");
-    // if(histoName.find("dataNvtx0") != std::string::npos  )
-    //   dataOverMC->SaveAs("Nvtx.root");
-    pad2.Modified();
-    gPad->Update();
-
-    c.Print(Form("%s.png", printString.c_str()));
-    // c.Print(Form("%s.root", printString.c_str()));
 }
