@@ -27,15 +27,29 @@ QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8                       0.00682981
 QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8                        0.000165445
 
 #13 TeV Spring15 50ns MC -- cross-sections from MCM
-WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                     60290
+WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                     60290*1.0195
 DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8            18610
 DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                6141
 TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          502.2*1.656
-TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8     670.3
+<<<<<<< HEAD
+TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                         670.3
+ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1     38.09*0.9346
+ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1         38.09*0.9346
+ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1 80.95*0.324
+ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1     103.02*0.428
+||||||| merged common ancestors
+TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.cern.txt     670.3
 ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1     38.09
 ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1         38.09
 ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1 80.95
 ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1     103.02
+=======
+TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.cern.txt                670.3
+ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1     38.09*0.9346
+ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1         38.09*0.9346
+ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1 80.95*0.324
+ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1     103.02*0.428
+>>>>>>> f0ffc6be797fbbb4fcd8b54ee1a193e11f0f37e2
 WWTo2L2Nu_13TeV-powheg                                                 63.21*(1-0.0305)*(0.1080*3)*(0.1080*3)*1.2151
 WW_TuneCUETP8M1_13TeV-pythia8                                          63.21
 WZ_TuneCUETP8M1_13TeV-pythia8                                          22.82

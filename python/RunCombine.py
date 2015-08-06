@@ -37,6 +37,10 @@ if __name__ == '__main__':
                   help="minimizer tolerance (default = 0.001)")
     parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
                   help="Just print out commands to run")
+    parser.add_option('-u','--unweighted',dest="unweighted",default=False,action='store_true',
+                  help="use unweighted dataset")
+    parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
+                  help="penalty terms on background parameters")
 
     (options,args) = parser.parse_args()
 
@@ -67,17 +71,21 @@ if __name__ == '__main__':
                 btag = '%i-%ibtag'%(btagMin,btagMax-1)
             else:
                 btag = '%ibtag'%(btagMin)    
-            #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,lumi,btag,box)
-            #backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root'%(lumi,btag,box)
-            signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,3.0,btag,box)
-            backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(3.0,btag,box)
-            if not glob.glob(signalDsName):
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(options.config,box,model,massPoint),options.dryRun)
-            if not glob.glob(backgroundDsName):                
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box),options.dryRun)
-                #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -l %f -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box,1000.*lumi),options.dryRun)
-                #exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(options.config,box,lumi,btag,box),options.dryRun)
-            exec_me('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s'%(1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName),options.dryRun)
+             
+            signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.1f_%s_%s.root'%(model,massPoint,lumi,btag,box)
+            backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(lumi,btag,box)
+            exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/RazorInclusive_SMS-%s_2J_%s_*.root'%(options.config,box,model,massPoint),options.dryRun)
+            exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box),options.dryRun)
+            
+            if options.unweighted:                
+                backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root'%(lumi,btag,box)
+                exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(options.config,box,lumi,btag,box),options.dryRun)
+
+            
+            penaltyString = ''
+            if options.penalty: penaltyString = '--penalty'
+                
+            exec_me('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s --fit %s'%(1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.1f_%s.txt -n %s_%s_lumi-%.1f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)

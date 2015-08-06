@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sstream>
 
 #include "TTree.h"
 #include "TFile.h"
@@ -51,52 +52,104 @@ float RSQBINLOWEDGES[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 0.8, 1.5};
 void createCSVOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags);
 void createLatexTableOutputFile(map<string, TH2F> &razorHistos, map<string, TH2F> &razorSignals, string boxName, int nBTags, bool leptonBox=false, bool splitTableInTwo=true);
 
-void RunTwoControlRegionBasedPrediction(){
+void RunTwoControlRegionBasedPrediction(string config="macros/RazorAnalysis/controlregionconfig.cfg"){
     gROOT->SetBatch();
 
     //set color palette 
     const Int_t NCont = 101;
     gStyle->SetNumberContours(NCont);
 
-    bool doData = false;
-    bool addSMS = true; //add SUSY signals to yield table
+    //TODO: make the config its own class
+    //set up config options
+    vector<string> boolOptions {"doData", "addSMS", "doSFCorrections", "doSystematicUncertainties", "scaleZNuNuToDY", "doDPhiRazorCut", "doMetCut", "doMTCut", "doLeptonPtCut", "bTagsInclusive"};
+    vector<bool> boolDefaults {1,1,1,1,0,1,0,0,0,1};
+    vector<string> intOptions {"mTLowerCut", "mTUpperCut", "leptonPtCut", "metCut", "minNBTags", "lumiInData", "lumiInMC"};
+    vector<int> intDefaults {30,100,30,30,1,40,1};
+    vector<string> floatOptions {"dPhiRazorCut"};
+    vector<float> floatDefaults {2.7};
+    vector<string> stringOptions {"plotDir", "mcPrefix", "dataPrefix"};
+    vector<string> stringDefaults {"./plots", "./", "./"};
+    map<string, bool> oB; //bool options
+    map<string, int> oI; //int options
+    map<string, float> oF; //float options
+    map<string, string> oS; //string options
 
     //////////////////////////////////////////////////
     //Define baseline cuts
     //////////////////////////////////////////////////
-    //TODO: put these into a config file 
 
-    bool doSFCorrections = false; //apply TT, W, Z, DY scale factors
-    //bool doSFCorrections = true; //apply TT, W, Z, DY scale factors
+    //read config options
+    ifstream configIn(config);
+    string line;
+    if(configIn.is_open()){
+        while(getline(configIn,line)){
+            istringstream cfg_line(line);
+            string cfg_key;
+            if(getline(cfg_line, cfg_key, '=')){
+                string cfg_value;
+                if(getline(cfg_line, cfg_value, ' ')){
+                    if(find(boolOptions.begin(), boolOptions.end(), cfg_key) != boolOptions.end()){
+                        oB[cfg_key] = (cfg_value == "1" || cfg_value == "true");
+                    }
+                    else if(find(intOptions.begin(), intOptions.end(), cfg_key) != intOptions.end()){
+                        oI[cfg_key] = atoi(cfg_value.c_str());
+                    }
+                    else if(find(floatOptions.begin(), floatOptions.end(), cfg_key) != floatOptions.end()){
+                        oF[cfg_key] = atof(cfg_value.c_str());
+                    }
+                    else if(find(stringOptions.begin(), stringOptions.end(), cfg_key) != stringOptions.end()){
+                        oS[cfg_key] = cfg_value;
+                    }
+                    else{
+                        cout << "Invalid option: " << cfg_key << endl;
+                    }
+                }
+            }
+        }
+        configIn.close();
+    }
+    else{ 
+        cout << endl << "Error! Config file " << config << " << not found!" << endl;
+        return;
+    }
+    cout << endl << "Using config options: " << endl;
+    for(auto &key : oB) cout << key.first << ": " << key.second << endl;
+    for(auto &key : oI) cout << key.first << ": " << key.second << endl;
+    for(auto &key : oF) cout << key.first << ": " << key.second << endl;
+    for(auto &key : oS) cout << key.first << ": " << key.second << endl;
+    cout << endl;
 
-    bool doSystematicUncertainties = false; //apply non-statistical uncertainties on MC sample yields
+    //check for missing options and use default values
+    for(uint i = 0; i < boolOptions.size(); i++){
+        string key = boolOptions[i];
+        if(oB.count(key) == 0){
+            cout << "No value for " << key << " provided.  Using default value of " << boolDefaults[i] << endl;
+            oB[key] = boolDefaults[i];
+        }
+    }
+    for(uint i = 0; i < intOptions.size(); i++){
+        string key = intOptions[i];
+        if(oI.count(key) == 0){
+            cout << "No value for " << key << " provided.  Using default value of " << intDefaults[i] << endl;
+            oI[key] = intDefaults[i];
+        }
+    }
+    for(uint i = 0; i < floatOptions.size(); i++){
+        string key = floatOptions[i];
+        if(oF.count(key) == 0){
+            cout << "No value for " << key << " provided.  Using default value of " << floatDefaults[i] << endl;
+            oF[key] = floatDefaults[i];
+        }
+    }
+    for(uint i = 0; i < stringOptions.size(); i++){
+        string key = stringOptions[i];
+        if(oS.count(key) == 0){
+            cout << "No value for " << key << " provided.  Using default value of " << stringDefaults[i] << endl;
+            oS[key] = stringDefaults[i];
+        }
+    }
 
-    //bool scaleZNuNuToDY = true; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
-    bool scaleZNuNuToDY = false; //scale Z->nunu MC razor variable distribution to match that of DY+Jets MC
-
-    bool doDPhiRazorCut = true;
-    //bool doDPhiRazorCut = false;
-    float dPhiRazorCut = 2.7; //cut on the angle between the two razor hemispheres
-
-    bool doMetCut = false;
-    //bool doMetCut = true;
-    float metCut = 30;
-
-    //bool doMTCut = true;
-    bool doMTCut = false;
-    //float mTLowerCut = 100;
-    float mTLowerCut = 30;
-    float mTUpperCut = 1e6;
-    //float mTUpperCut = 100;
-
-    //bool doLeptonPtCut = true;
-    bool doLeptonPtCut = false;
-    float leptonPtCut = 30;
-
-    bool bTagsInclusive = true; //true = require >= minNBTags, false = require = minNBTags
-    //bool bTagsInclusive = false; //true = require >= minNBTags, false = require = minNBTags
-    int minNBTags = 1; 
-    //TODO: bin in nBTags instead of cutting
+    cout << endl;
 
     //declare which boxes to check
     map<RazorAnalyzer::RazorBox, string> boxes;
@@ -119,47 +172,40 @@ void RunTwoControlRegionBasedPrediction(){
     boxes[RazorAnalyzer::LooseLeptonMultiJet] = "LooseLeptonMultiJet";
     boxes[RazorAnalyzer::MuMultiJet] = "MuMultiJet";
     boxes[RazorAnalyzer::EleMultiJet] = "EleMultiJet";
-    if(minNBTags == 0) boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; 
+    if(oI["minNBTags"] == 0) boxes[RazorAnalyzer::NONE] = "WJetsSingleLepton"; 
     else boxes[RazorAnalyzer::NONE] = "TTJetsSingleLepton";  
-
-    //output directory for plots
-    string plotDir = "/afs/cern.ch/work/d/duanders/public/plotsForReadinessReview2";
 
     //define cuts for 1D MR and Rsq plots
     float MRCutFor1DPlots = 400;
     float RsqCutFor1DPlots = 0.25;
 
     //get input files -- output of RazorInclusive analyzer
-    int lumiInData = 3000; //in /pb
-    int lumiInMC = 1; //luminosity used to normalize MC ntuples
     //NOTE: all data-MC correction factors should already be applied EXCEPT for the hadronic recoil scale factors obtained from the control regions 
-    string mcPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/MCReadinessReview2/RazorInclusive_";
-    string dataPrefix = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/MCReadinessReview2/RazorInclusive_"; //location of data ntuples
 
     map<string, TFile*> mcfiles;
-    mcfiles["DYJets"] = TFile::Open(Form("%sDYJetsToLL_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["WJets"] = TFile::Open(Form("%sWJetsToLNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["ZJetsNuNu"] = TFile::Open(Form("%sZJetsToNuNu_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["TTJets"] = TFile::Open(Form("%sTTJets_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["SingleTop"] = TFile::Open(Form("%sSingleTop_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["QCD"] = TFile::Open(Form("%sQCD_HTBinned_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-    mcfiles["VV"] = TFile::Open(Form("%sMultiboson_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    mcfiles["DYJets"] = TFile::Open(Form("%sDYJetsToLL_HTBinned_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+    mcfiles["WJets"] = TFile::Open(Form("%sWJetsToLNu_HTBinned_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+    mcfiles["ZJetsNuNu"] = TFile::Open(Form("%sZJetsToNuNu_HTBinned_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+    mcfiles["TTJets"] = TFile::Open(Form("%sTTJets_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+    mcfiles["SingleTop"] = TFile::Open(Form("%sSingleTop_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+    mcfiles["QCD"] = TFile::Open(Form("%sQCD_HTBinned_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+    mcfiles["VV"] = TFile::Open(Form("%sMultiboson_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
 
     map<string, TFile*> signalfiles;
-    if(addSMS){
-        signalfiles["T1qqqq1400/100"] = TFile::Open(Form("%sSMS-T1qqqq_2J_mGl-1400_mLSP-100_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-        signalfiles["T1qqqq1000/800"] = TFile::Open(Form("%sSMS-T1qqqq_2J_mGl-1000_mLSP-800_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-        signalfiles["T1bbbb1500/100"] = TFile::Open(Form("%sSMS-T1bbbb_2J_mGl-1500_mLSP-100_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-        signalfiles["T1bbbb1000/900"] = TFile::Open(Form("%sSMS-T1bbbb_2J_mGl-1000_mLSP-900_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-        signalfiles["T1tttt1500/100"] = TFile::Open(Form("%sSMS-T1tttt_2J_mGl-1500_mLSP-100_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
-        signalfiles["T1tttt1200/800"] = TFile::Open(Form("%sSMS-T1tttt_2J_mGl-1200_mLSP-800_20bx25_%dpb_weighted.root", mcPrefix.c_str(), lumiInMC));
+    if(oB["addSMS"]){
+        signalfiles["T1qqqq1400/100"] = TFile::Open(Form("%sSMS-T1qqqq_2J_mGl-1400_mLSP-100_20bx25_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+        signalfiles["T1qqqq1000/800"] = TFile::Open(Form("%sSMS-T1qqqq_2J_mGl-1000_mLSP-800_20bx25_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+        signalfiles["T1bbbb1500/100"] = TFile::Open(Form("%sSMS-T1bbbb_2J_mGl-1500_mLSP-100_20bx25_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+        signalfiles["T1bbbb1000/900"] = TFile::Open(Form("%sSMS-T1bbbb_2J_mGl-1000_mLSP-900_20bx25_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+        signalfiles["T1tttt1500/100"] = TFile::Open(Form("%sSMS-T1tttt_2J_mGl-1500_mLSP-100_20bx25_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
+        signalfiles["T1tttt1200/800"] = TFile::Open(Form("%sSMS-T1tttt_2J_mGl-1200_mLSP-800_20bx25_%dpb_weighted.root", oS["mcPrefix"].c_str(), oI["lumiInMC"]));
     }
 
     //data
     map<string, TFile*> datafiles;
-    if(doData){
+    if(oB["doData"]){
         vector<string> datanames{"HTMHT", "SingleMu", "SingleElectron", "DoubleMuParked", "DoubleElectron", "MuEG"};
-        for(auto &name : datanames) datafiles[name] = TFile::Open(Form("%s/Data_%s_GoodLumi.root", dataPrefix.c_str(), name.c_str()));
+        for(auto &name : datanames) datafiles[name] = TFile::Open(Form("%s/Data_%s_GoodLumi.root", oS["dataPrefix"].c_str(), name.c_str()));
     }
 
     //get trees and set branches
@@ -197,7 +243,7 @@ void RunTwoControlRegionBasedPrediction(){
         mctrees[file.first]->SetBranchAddress("leadingTightElePt", &leadingTightElePt);
     }
 
-    if(addSMS){
+    if(oB["addSMS"]){
         for(auto &file : signalfiles){
             signaltrees[file.first] = (TTree*)file.second->Get("RazorInclusive");
             signaltrees[file.first]->SetBranchStatus("*", 0);
@@ -255,7 +301,7 @@ void RunTwoControlRegionBasedPrediction(){
     map<string, TH2F*> SFHists;
     //TODO: data/MC scale factors, once available
 
-    //if(doSFCorrections){
+    //if(oB["doSFCorrections"]){
     //load TTbar scale factor histograms
     //TFile *SFFileTTJets = TFile::Open("data/ScaleFactors/TTBarSingleLeptonScaleFactors.root");
     //SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
@@ -299,19 +345,19 @@ void RunTwoControlRegionBasedPrediction(){
 
     //make directories for plots
     struct stat st;
-    if (stat(plotDir.c_str(), &st) == -1) {
-        mkdir(plotDir.c_str(), 0777);
+    if (stat(oS["plotDir"].c_str(), &st) == -1) {
+        mkdir(oS["plotDir"].c_str(), 0777);
     }
-    if (stat(Form("%s/RunTwoRazorInclusive", plotDir.c_str()), &st) == -1) {
-        mkdir(Form("%s/RunTwoRazorInclusive", plotDir.c_str()), 0777);
+    if (stat(Form("%s/RunTwoRazorInclusive", oS["plotDir"].c_str()), &st) == -1) {
+        mkdir(Form("%s/RunTwoRazorInclusive", oS["plotDir"].c_str()), 0777);
     }
     for(auto &ibox : boxes){
         //check if directory exists
-        if (stat(Form("%s/RunTwoRazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), &st) == -1) {
-            mkdir(Form("%s/RunTwoRazorInclusive/%s", plotDir.c_str(), ibox.second.c_str()), 0777);
+        if (stat(Form("%s/RunTwoRazorInclusive/%s", oS["plotDir"].c_str(), ibox.second.c_str()), &st) == -1) {
+            mkdir(Form("%s/RunTwoRazorInclusive/%s", oS["plotDir"].c_str(), ibox.second.c_str()), 0777);
         }
     }       
-    string plotPath = plotDir+"/RunTwoRazorInclusive";
+    string plotPath = oS["plotDir"]+"/RunTwoRazorInclusive";
 
     //////////////////////////////////////////////////
     //Make histograms for each box, and fill them
@@ -352,33 +398,33 @@ void RunTwoControlRegionBasedPrediction(){
             RazorAnalyzer::RazorBox razorbox = static_cast<RazorAnalyzer::RazorBox>(box);
 
             //enforce correct number of B-tags
-            if(bTagsInclusive){
-                if(nBTaggedJets < minNBTags) continue;
+            if(oB["bTagsInclusive"]){
+                if(nBTaggedJets < oI["minNBTags"]) continue;
             }
             else {
-                if(nBTaggedJets != minNBTags) continue;
+                if(nBTaggedJets != oI["minNBTags"]) continue;
             }
             //cut on MR and Rsq
             if(MR < MRBINLOWEDGES[0] || Rsq < RSQBINLOWEDGES[0]) continue;
             //cut on dPhiRazor
-            if(doDPhiRazorCut && fabs(dPhiRazor) > dPhiRazorCut) continue;
+            if(oB["doDPhiRazorCut"] && fabs(dPhiRazor) > oF["dPhiRazorCut"]) continue;
             //cut on met
-            if(doMetCut && met < metCut) continue;
+            if(oB["doMetCut"] && met < oI["metCut"]) continue;
             //cut on mT
-            if(doMTCut && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
-                if(mT < mTLowerCut || mT > mTUpperCut) continue;
+            if(oB["doMTCut"] && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
+                if(mT < oI["mTLowerCut"] || mT > oI["mTUpperCut"]) continue;
             }
             //cut on lepton pt
-            if(doLeptonPtCut){
-                if(isSingleMuonBox(razorbox) && leadingTightMuPt < leptonPtCut) continue;
-                if(isSingleElectronBox(razorbox) && leadingTightElePt < leptonPtCut) continue;
+            if(oB["doLeptonPtCut"]){
+                if(isSingleMuonBox(razorbox) && leadingTightMuPt < oI["leptonPtCut"]) continue;
+                if(isSingleElectronBox(razorbox) && leadingTightElePt < oI["leptonPtCut"]) continue;
             }
 
-            float eventWeight = weight*lumiInData*1.0/lumiInMC;
+            float eventWeight = weight*oI["lumiInData"]*1.0/oI["lumiInMC"];
             float sysErrorSquared = 0.0;
 
             //Data/MC scale factors
-            if(doSFCorrections){
+            if(oB["doSFCorrections"]){
                 if(tree.first == "TTJets" || tree.first == "WJets" || tree.first == "DYJets" || tree.first == "ZJetsNuNu"){
                     pair<double, double> sfAndErr = getDataMCSFAndError(SFHists[tree.first], MR, Rsq);
                     eventWeight *= sfAndErr.first; //multiply event weight by scale factor
@@ -387,7 +433,7 @@ void RunTwoControlRegionBasedPrediction(){
 
                 if(tree.first == "ZJetsNuNu"){
                     //scale ZNuNu so it looks like DYJets
-                    if(scaleZNuNuToDY){
+                    if(oB["scaleZNuNuToDY"]){
                         //pair<double, double> sfAndErr = getDataMCSFAndError(ZNuNuToDYWeightHist, MR, Rsq);
                         //eventWeight *= sfAndErr.first;
                         //sysErrorSquared += weight*weight*sfAndErr.second*sfAndErr.second;
@@ -440,7 +486,7 @@ void RunTwoControlRegionBasedPrediction(){
     }
 
     map<RazorAnalyzer::RazorBox, map<string, TH2F> > razorHistosSignal;
-    if(addSMS){
+    if(oB["addSMS"]){
         for(auto &tree : signaltrees){
             cout << "Filling signal histograms: " << tree.first << endl;
 
@@ -458,29 +504,29 @@ void RunTwoControlRegionBasedPrediction(){
                 RazorAnalyzer::RazorBox razorbox = static_cast<RazorAnalyzer::RazorBox>(box);
 
                 //enforce correct number of B-tags
-                if(bTagsInclusive){
-                    if(nBTaggedJets < minNBTags) continue;
+                if(oB["bTagsInclusive"]){
+                    if(nBTaggedJets < oI["minNBTags"]) continue;
                 }
                 else {
-                    if(nBTaggedJets != minNBTags) continue;
+                    if(nBTaggedJets != oI["minNBTags"]) continue;
                 }
                 //cut on MR and Rsq
                 if(MR < MRBINLOWEDGES[0] || Rsq < RSQBINLOWEDGES[0]) continue;
                 //cut on dPhiRazor
-                if(doDPhiRazorCut && fabs(dPhiRazor) > dPhiRazorCut) continue;
+                if(oB["doDPhiRazorCut"] && fabs(dPhiRazor) > oF["dPhiRazorCut"]) continue;
                 //cut on met
-                if(doMetCut && met < metCut) continue;
+                if(oB["doMetCut"] && met < oI["metCut"]) continue;
                 //cut on mT
-                if(doMTCut && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
-                    if(mT < mTLowerCut || mT > mTUpperCut) continue;
+                if(oB["doMTCut"] && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
+                    if(mT < oI["mTLowerCut"] || mT > oI["mTUpperCut"]) continue;
                 }
                 //cut on lepton pt
-                if(doLeptonPtCut){
-                    if(isSingleMuonBox(razorbox) && leadingTightMuPt < leptonPtCut) continue;
-                    if(isSingleElectronBox(razorbox) && leadingTightElePt < leptonPtCut) continue;
+                if(oB["doLeptonPtCut"]){
+                    if(isSingleMuonBox(razorbox) && leadingTightMuPt < oI["leptonPtCut"]) continue;
+                    if(isSingleElectronBox(razorbox) && leadingTightElePt < oI["leptonPtCut"]) continue;
                 }
 
-                float eventWeight = weight*lumiInData*1.0/lumiInMC;
+                float eventWeight = weight*oI["lumiInData"]*1.0/oI["lumiInMC"];
 
                 //fill each quantity
                 if(boxes.find(razorbox) == boxes.end()){
@@ -511,15 +557,15 @@ void RunTwoControlRegionBasedPrediction(){
     }
 
     //write the MC yields to a CSV file
-    if(addSMS){
+    if(oB["addSMS"]){
         for(auto &box : razorHistosMC){
-            createCSVOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags);
-            createLatexTableOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], minNBTags, isLeptonicBox(box.first), true);
+            createCSVOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], oI["minNBTags"]);
+            createLatexTableOutputFile(box.second, razorHistosSignal[box.first], boxes[box.first], oI["minNBTags"], isLeptonicBox(box.first), true);
         }
     }
 
     //update errors to take into account systematic uncertainties
-    if(doSystematicUncertainties){
+    if(oB["doSystematicUncertainties"]){
         for(auto &tree : mctrees){
             for(auto &ibox : boxes){
                 for(int i = 0; i < razorHistosMC[ibox.first][tree.first].GetNbinsX()+1; i++){
@@ -612,26 +658,26 @@ void RunTwoControlRegionBasedPrediction(){
             if(tree.first != boxDatasets[razorbox]) continue;
 
             //enforce correct number of B-tags
-            if(bTagsInclusive){
-                if(nBTaggedJets < minNBTags) continue;
+            if(oB["bTagsInclusive"]){
+                if(nBTaggedJets < oI["minNBTags"]) continue;
             }
             else {
-                if(nBTaggedJets != minNBTags) continue;
+                if(nBTaggedJets != oI["minNBTags"]) continue;
             }
             //cut on MR and Rsq
             if(MR < MRBINLOWEDGES[0] || Rsq < RSQBINLOWEDGES[0]) continue;
             //cut on dPhiRazor
-            if(doDPhiRazorCut && fabs(dPhiRazor) > dPhiRazorCut) continue;
+            if(oB["doDPhiRazorCut"] && fabs(dPhiRazor) > oF["dPhiRazorCut"]) continue;
             //cut on met
-            if(doMetCut && met < metCut) continue;
+            if(oB["doMetCut"] && met < oI["metCut"]) continue;
             //cut on mT
-            if(doMTCut && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
-                if(mT < mTLowerCut || mT > mTUpperCut) continue;
+            if(oB["doMTCut"] && (isSingleMuonBox(razorbox) || isSingleElectronBox(razorbox))){
+                if(mT < oI["mTLowerCut"] || mT > oI["mTUpperCut"]) continue;
             }
             //cut on lepton pt
-            if(doLeptonPtCut){
-                if(isSingleMuonBox(razorbox) && leadingTightMuPt < leptonPtCut) continue;
-                if(isSingleElectronBox(razorbox) && leadingTightElePt < leptonPtCut) continue;
+            if(oB["doLeptonPtCut"]){
+                if(isSingleMuonBox(razorbox) && leadingTightMuPt < oI["leptonPtCut"]) continue;
+                if(isSingleElectronBox(razorbox) && leadingTightElePt < oI["leptonPtCut"]) continue;
             }
 
             float eventWeight = 1.0;

@@ -66,10 +66,10 @@ protected:
    Int_t xBins;        // X bins
    Int_t yBins;        // Y bins
    Int_t zBins;        // Z bins
-   Double_t xArray[20]; // xArray[xBins+1]
-   Double_t yArray[20]; // yArray[yBins+1]
+   Double_t xArray[21]; // xArray[xBins+1]
+   Double_t yArray[21]; // yArray[yBins+1]
    Double_t zArray[5]; // zArray[zBins+1]
-   Double_t histArray[1444]; // histArray[xBins*yBins*zBins]
+   Double_t histArray[1600]; // histArray[xBins*yBins*zBins]
    //Double_t xArray[21]; // xArray[xBins+1]
    //Double_t yArray[21]; // yArray[yBins+1]
    //Double_t zArray[5]; // zArray[zBins+1]

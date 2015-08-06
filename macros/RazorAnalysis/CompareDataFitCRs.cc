@@ -37,9 +37,7 @@ void SetHistogramColor(TH1 *hist, string name){
     if(name == "TTG") hist->SetFillColor(7);
 }
 
-void CompareDataFitCRs(){
-    bool makeScaleFactors = true; //compute the scale factors for each control region
-    //bool makeScaleFactors = false; 
+void CompareDataFitCRs(bool makeScaleFactors=false){
 
     gROOT->SetBatch();
 
@@ -60,7 +58,10 @@ void CompareDataFitCRs(){
     //get input files
     map<string, map<string, string> > mcfilenames;
     map<string, map<string, string> > datafilenames;
-    string baseDir = "root://eoscms://store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/";
+    string baseDir = "root://eoscms://store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/";
+    string oneLepPre = "/OneLeptonReduced/RunTwoRazorControlRegions_OneLeptonReduced_";
+    string twoLepPre = "/DileptonFull_1p15_v4/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_";
+    //string ztwoLepPre = "/ZNuNuDileptonSkim/RunTwoRazorControlRegions_ZNuNuDileptonSkim_";
     string mcSuffix = "_1pb_weighted.root";
     string dataSuffix = "_GoodLumi.root";
 
@@ -69,69 +70,73 @@ void CompareDataFitCRs(){
     mcfilenames["ZNuNuDileptonRazorSkim"] = map<string, string>();
     datafilenames["SingleLeptonRazorSkim"] = map<string, string>();
     datafilenames["DileptonRazorSkim"] = map<string, string>();
-    datafilenames["ZNuNuDileptonRazorSkim"] = map<string, string>();
+    //datafilenames["ZNuNuDileptonRazorSkim"] = map<string, string>();
 
-    mcfilenames["SingleLeptonRazorSkim"]["DYJets"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_DYJetsToLL_HTBinned"+mcSuffix;
-    mcfilenames["SingleLeptonRazorSkim"]["TTJets"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_TTJets"+mcSuffix;
-    mcfilenames["SingleLeptonRazorSkim"]["WJets"] = baseDir+"SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_WJetsToLNu_HTBinned"+mcSuffix;
-    mcfilenames["SingleLeptonRazorSkim"]["TTV"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_TTV"+mcSuffix;
-    mcfilenames["SingleLeptonRazorSkim"]["VV"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_VV"+mcSuffix;
-    mcfilenames["SingleLeptonRazorSkim"]["QCD"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_QCD"+mcSuffix;
-    mcfilenames["SingleLeptonRazorSkim"]["SingleTop"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_SingleTop"+mcSuffix;
-    mcfilenames["DileptonRazorSkim"]["DYJets"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_DYJetsToLL_HTBinned"+mcSuffix;
-    mcfilenames["DileptonRazorSkim"]["TTJets"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTJets"+mcSuffix;
-    mcfilenames["DileptonRazorSkim"]["WJets"] = baseDir+"DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_WJetsToLNu_HTBinned"+mcSuffix;
-    mcfilenames["DileptonRazorSkim"]["TTV"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTV"+mcSuffix;
-    mcfilenames["DileptonRazorSkim"]["VV"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_VV"+mcSuffix;
-    mcfilenames["DileptonRazorSkim"]["SingleTop"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_SingleTop"+mcSuffix;
-    mcfilenames["ZNuNuDileptonRazorSkim"]["DYJets"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_DYJetsToLL_HTBinned"+mcSuffix;
-    mcfilenames["ZNuNuDileptonRazorSkim"]["TTJets"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_TTJets"+mcSuffix;
-    mcfilenames["ZNuNuDileptonRazorSkim"]["WJets"] = baseDir+"ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_WJetsToLNu_HTBinned"+mcSuffix;
-    mcfilenames["ZNuNuDileptonRazorSkim"]["TTV"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_TTV"+mcSuffix;
-    mcfilenames["ZNuNuDileptonRazorSkim"]["VV"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_VV"+mcSuffix;
-    mcfilenames["ZNuNuDileptonRazorSkim"]["SingleTop"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_SingleTop"+mcSuffix;
-    //mcfilenames["PhotonRazorSkim"]["GJets"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_GJets_HTBinned"+mcSuffix;
-    //mcfilenames["PhotonRazorSkim"]["VG"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_VG"+mcSuffix;
-    //mcfilenames["PhotonRazorSkim"]["TTG"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_TTG"+mcSuffix;
-    //mcfilenames["PhotonRazorSkim"]["QCD"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_QCD"+mcSuffix;
+    //mcfilenames["SingleLeptonRazorSkim"]["DYJets"] = baseDir+oneLepPre+"DYJetsToLL_HTBinned"+mcSuffix;
+    mcfilenames["SingleLeptonRazorSkim"]["TTJets"] = baseDir+oneLepPre+"TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"+mcSuffix;
+    mcfilenames["SingleLeptonRazorSkim"]["WJets"] = baseDir+oneLepPre+"WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8"+mcSuffix;
+    //mcfilenames["SingleLeptonRazorSkim"]["TTV"] = baseDir+oneLepPre+"TTV"+mcSuffix;
+    //mcfilenames["SingleLeptonRazorSkim"]["VV"] = baseDir+oneLepPre+"VV"+mcSuffix;
+    //mcfilenames["SingleLeptonRazorSkim"]["QCD"] = baseDir+oneLepPre+"QCD"+mcSuffix;
+    mcfilenames["SingleLeptonRazorSkim"]["SingleTop"] = baseDir+oneLepPre+"SingleTop"+mcSuffix;
+    mcfilenames["DileptonRazorSkim"]["DYJets"] = baseDir+twoLepPre+"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8"+mcSuffix;
+    mcfilenames["DileptonRazorSkim"]["TTJets"] = baseDir+twoLepPre+"TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"+mcSuffix;
+    mcfilenames["DileptonRazorSkim"]["WJets"] = baseDir+twoLepPre+"WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8"+mcSuffix;
+    //mcfilenames["DileptonRazorSkim"]["TTV"] = baseDir+twoLepPre+"TTV"+mcSuffix;
+    //mcfilenames["DileptonRazorSkim"]["VV"] = baseDir+twoLepPre+"VV"+mcSuffix;
+    mcfilenames["DileptonRazorSkim"]["SingleTop"] = baseDir+twoLepPre+"SingleTop"+mcSuffix;
+    //mcfilenames["ZNuNuDileptonRazorSkim"]["DYJets"] = baseDir+ztwoLepPre+"DYJetsToLL_HTBinned"+mcSuffix;
+    //mcfilenames["ZNuNuDileptonRazorSkim"]["TTJets"] = baseDir+ztwoLepPre+"TTJets"+mcSuffix;
+    //mcfilenames["ZNuNuDileptonRazorSkim"]["WJets"] = baseDirztwoLepPre+"WJetsToLNu_HTBinned"+mcSuffix;
+    //mcfilenames["ZNuNuDileptonRazorSkim"]["TTV"] = baseDir+ztwoLepPre+"TTV"+mcSuffix;
+    //mcfilenames["ZNuNuDileptonRazorSkim"]["VV"] = baseDir+ztwoLepPre+"VV"+mcSuffix;
+    //mcfilenames["ZNuNuDileptonRazorSkim"]["SingleTop"] = baseDir+ztwoLepPre+"SingleTop"+mcSuffix;
+    //mcfilenames["PhotonRazorSkim"]["GJets"] = baseDir+"/PhotonRazorSkim/RunTwoRazorControlRegions_PhotonRazorSkim_GJets_HTBinned"+mcSuffix;
+    //mcfilenames["PhotonRazorSkim"]["VG"] = baseDir+"/PhotonRazorSkim/RunTwoRazorControlRegions_PhotonRazorSkim_VG"+mcSuffix;
+    //mcfilenames["PhotonRazorSkim"]["TTG"] = baseDir+"/PhotonRazorSkim/RunTwoRazorControlRegions_PhotonRazorSkim_TTG"+mcSuffix;
+    //mcfilenames["PhotonRazorSkim"]["QCD"] = baseDir+"/PhotonRazorSkim/RunTwoRazorControlRegions_PhotonRazorSkim_QCD"+mcSuffix;
 
     //data
-    datafilenames["SingleLeptonRazorSkim"]["SingleMuon"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_Data_SingleMu"+dataSuffix;
-    datafilenames["SingleLeptonRazorSkim"]["SingleElectron"] = baseDir+"/SingleLeptonRazorSkim/RunOneRazorControlRegions_SingleLeptonRazorSkim_Data_SingleElectron"+dataSuffix;
-    datafilenames["DileptonRazorSkim"]["DoubleMuon"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleMuParked"+dataSuffix;
-    datafilenames["DileptonRazorSkim"]["DoubleElectron"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleElectron"+dataSuffix;
-    datafilenames["DileptonRazorSkim"]["MuE"] = baseDir+"/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_MuEG"+dataSuffix;
-    datafilenames["ZNuNuDileptonRazorSkim"]["DoubleMuon"] = baseDir+"/ZNuNuDileptonSkim/RunOneRazorControlRegions_ZNuNuDileptonSkim_Data_DoubleMuParked"+dataSuffix;
-    //datafilenames["PhotonRazorSkim"]["Photon"] = baseDir+"/PhotonRazorSkim/RunOneRazorControlRegions_PhotonRazorSkim_Data_Photon"+dataSuffix;
+    datafilenames["SingleLeptonRazorSkim"]["SingleMuonSingleElectron"] = baseDir+oneLepPre+"Run2015B_GoodLumiDCS_NoDuplicates.root";
+    //datafilenames["SingleLeptonRazorSkim"]["SingleElectron"] = baseDir+oneLepPre+"Data_SingleElectron"+dataSuffix;
+    datafilenames["DileptonRazorSkim"]["DoubleMuonDoubleElectron"] = baseDir+twoLepPre+"MuonEG_Run2015B"+dataSuffix;
+    //datafilenames["DileptonRazorSkim"]["DoubleElectron"] = baseDir+twoLepPre+"Data_DoubleElectron"+dataSuffix;
+    //datafilenames["DileptonRazorSkim"]["MuE"] = baseDir+twoLepPre+"Data_MuEG"+dataSuffix;
+    //datafilenames["ZNuNuDileptonRazorSkim"]["DoubleMuon"] = baseDir+ztwoLepPre+"Data_DoubleMuParked"+dataSuffix;
+    //datafilenames["PhotonRazorSkim"]["Photon"] = baseDir+"/PhotonRazorSkim/RunTwoRazorControlRegions_PhotonRazorSkim_Data_Photon"+dataSuffix;
 
     //list of control regions
-    vector<string> controlRegions {"TTBarSingleLepton", "TTBarDilepton", "WSingleLepton", "ZNuNuDilepton"};
+    vector<string> controlRegions {"TTBarSingleLepton", "WSingleLepton"};
 
     //assign datasets to control regions
     map<string, vector<string> > controlRegionMC;
-    controlRegionMC["TTBarSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "WJets", "TTJets"};
-    controlRegionMC["TTBarDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "DYJets", "TTJets"};
-    controlRegionMC["WSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
+    controlRegionMC["TTBarSingleLepton"] = vector<string> {"SingleTop", "WJets", "TTJets"};
+    //controlRegionMC["TTBarSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "WJets", "TTJets"};
+    //controlRegionMC["TTBarDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "DYJets", "TTJets"};
+    controlRegionMC["WSingleLepton"] = vector<string> {"SingleTop", "TTJets", "WJets"};
+    //controlRegionMC["WSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
     //controlRegionMC["ZLLDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
-    controlRegionMC["ZNuNuDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
+    //controlRegionMC["ZNuNuDilepton"] = vector<string> {"TTV", "VV", "SingleTop", "WJets", "TTJets", "DYJets"};
     //controlRegionMC["ZNuNuSingleLepton"] = vector<string> {"TTV", "VV", "QCD", "SingleTop", "DYJets", "TTJets", "WJets"};
     //controlRegionMC["ZNuNuPhoton"] = vector<string> {"TTG", "VG", "QCD", "GJets"};
 
     map<string, vector<string> > controlRegionData;
-    controlRegionData["TTBarSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
-    controlRegionData["TTBarDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron", "MuE"};
-    controlRegionData["WSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
+    controlRegionData["TTBarSingleLepton"] = vector<string> {"SingleMuonSingleElectron"};
+    //controlRegionData["TTBarSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
+    //controlRegionData["TTBarDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron", "MuE"};
+    controlRegionData["WSingleLepton"] = vector<string> {"SingleMuonSingleElectron"};
+    //controlRegionData["WSingleLepton"] = vector<string> {"SingleMuon", "SingleElectron"};
     //controlRegionData["ZLLDilepton"] = vector<string> {"DoubleMuon", "DoubleElectron"};
-    controlRegionData["ZNuNuDilepton"] = vector<string> {"DoubleMuon"};
+    //controlRegionData["ZNuNuDilepton"] = vector<string> {"DoubleMuon"};
     //controlRegionData["ZNuNuSingleLepton"] = vector<string> {"SingleMuon"};
     //controlRegionData["ZNuNuPhoton"] = vector<string> {"Photon"};
 
     map<string, string> controlRegionSkim;
     controlRegionSkim["TTBarSingleLepton"] = "SingleLeptonRazorSkim";
-    controlRegionSkim["TTBarDilepton"] = "DileptonRazorSkim";
+    //controlRegionSkim["TTBarDilepton"] = "DileptonRazorSkim";
     controlRegionSkim["WSingleLepton"] = "SingleLeptonRazorSkim";
     //controlRegionSkim["ZLLDilepton"] = "DileptonRazorSkim";
-    controlRegionSkim["ZNuNuDilepton"] = "ZNuNuDileptonRazorSkim";
+    //controlRegionSkim["ZNuNuDilepton"] = "ZNuNuDileptonRazorSkim";
     //controlRegionSkim["ZNuNuSingleLepton"] = "SingleLeptonRazorSkim";
     //controlRegionSkim["ZNuNuPhoton"] = "PhotonRazorSkim";
 
@@ -140,12 +145,12 @@ void CompareDataFitCRs(){
     map<string, map<string, ControlSampleEvents*> > dataevents;
     mcevents["SingleLeptonRazorSkim"] = map<string, ControlSampleEvents*>();
     mcevents["DileptonRazorSkim"] = map<string, ControlSampleEvents*>();
-    mcevents["ZNuNuDileptonRazorSkim"] = map<string, ControlSampleEvents*>();
+    //mcevents["ZNuNuDileptonRazorSkim"] = map<string, ControlSampleEvents*>();
     //mcevents["PhotonRazorSkim"] = map<string, ControlSampleEvents*>();
     map<string, int> kTreeTypes;
     kTreeTypes["SingleLeptonRazorSkim"] = 1;
     kTreeTypes["DileptonRazorSkim"] = 5;
-    kTreeTypes["ZNuNuDileptonRazorSkim"] = 7;
+    //kTreeTypes["ZNuNuDileptonRazorSkim"] = 7;
     for(auto &skim : mcfilenames){
         for(auto &file : mcfilenames[skim.first]){
             mcevents[skim.first][file.first] = new ControlSampleEvents;
@@ -159,43 +164,37 @@ void CompareDataFitCRs(){
 
     map<string, TH2F*> SFHists;
     //load TTbar scale factor histograms
-    TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarSingleLeptonScaleFactors.root");
-    SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
-    //TFile *SFFileTTJets = new TFile("data/ScaleFactors/Run1/TTBarDileptonScaleFactors.root");
+    //TFile *SFFileTTJets = new TFile("");
+    //SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarSingleLeptonScaleFactor");
+    //TFile *SFFileTTJets = new TFile("");
     //SFHists["TTJets"] = (TH2F*)SFFileTTJets->Get("TTBarDileptonScaleFactor");
 
     //load WJets scale factor histogram
-    TFile *SFFileWJets = new TFile("data/ScaleFactors/Run1/WJetsSingleLeptonScaleFactors.root");
-    SFHists["WJets"] = (TH2F*)SFFileWJets->Get("WJetsSingleLeptonScaleFactor");
+    //TFile *SFFileWJets = new TFile("");
+    //SFHists["WJets"] = (TH2F*)SFFileWJets->Get("WJetsSingleLeptonScaleFactor");
 
     //load DYJets scale factor histogram
-    TFile *SFFileDYJets = new TFile("data/ScaleFactors/Run1/ZToLLScaleFactors.root");
-    SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
+    //TFile *SFFileDYJets = new TFile("");
+    //SFHists["DYJets"] = (TH2F*)SFFileDYJets->Get("ZToLLDileptonScaleFactor");
 
     //load ZNuNu scale factor histograms
-    TFile *SFFileZJetsNuNu = new TFile("mcScaleFactorsRunOne.root"); //use the scale factors derived using this macro
-    SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("ZNuNuDileptonScaleFactors");
-
     //TFile *SFFileZJetsNuNu = new TFile("data/ScaleFactors/Run1/ZInvisibleScaleFactorsRun1.root");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("DYJetsScaleFactors");
     //TH2F *SFHistZJetsNuNu = (TH2F*)SFFileZJetsNuNu->Get("WJetsScaleFactors");
     //SFHists["ZJetsNuNu"] = (TH2F*)SFFileZJetsNuNu->Get("GJetsScaleFactors");
 
-    //load ZNuNu-->DYJets weighting factors
-    TFile *ZNuNuToDYWeightFile = new TFile("data/ScaleFactors/Run1/ZNuNuToDYScaleFactorsRun1.root");
-    TH2F *ZNuNuToDYWeightHist = (TH2F*)ZNuNuToDYWeightFile->Get("razormcDYJets");
-    float maxMRZNuNuToDY = ZNuNuToDYWeightHist->GetXaxis()->GetXmax() - 1;
-    float maxRsqZNuNuToDY = ZNuNuToDYWeightHist->GetYaxis()->GetXmax() - 0.01;
-
-    //load muon efficiency scale factor histogram
-    TFile muIdSFFile("data/ScaleFactors/MuonEfficiencies_ID_Run2012ReReco_53X.root");
-    TFile muIsoSFFile("data/ScaleFactors/MuonEfficiencies_ISO_Run_2012ReReco_53X.root");
-    //TODO: use muon efficiency scale factors
-
     //load pileup reweighting histogram
     TFile *pileupWeightFile = new TFile("data/Run1PileupWeights.root", "READ");
     TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PUWeight_Run1");
     assert(pileupWeightHist);
+
+    //load file with fit results
+    TFile *fitResultFile = new TFile("ControlSampleFits.root", "READ");
+    map<string, TH2*> fitHists;
+    if(fitResultFile){
+        fitHists["TTBarSingleLepton"] = (TH2*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_RsqMR");
+        fitHists["WSingleLepton"] = (TH2*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_RsqMR");
+    }
 
     ///////////////////////////////////////////////////////////
     // Fill Histograms
@@ -211,11 +210,11 @@ void CompareDataFitCRs(){
     signalNames["TTBarDilepton"] = "TTJets";
     signalNames["WSingleLepton"] = "WJets";
     //signalNames["ZLLDilepton"] = "DYJets";
-    signalNames["ZNuNuDilepton"] = "DYJets";
+    //signalNames["ZNuNuDilepton"] = "DYJets";
     //signalNames["ZNuNuSingleLepton"] = "WJets";
     //signalNames["ZNuNuPhoton"] = "GJets";
     TFile *outSFFile;
-    if(makeScaleFactors) outSFFile = new TFile("mcScaleFactorsRunOne.root", "RECREATE");
+    if(makeScaleFactors) outSFFile = new TFile("mcScaleFactorsRunTwo.root", "RECREATE");
     map<string, TH2F* > newScaleFactors;
 
     for(auto &region : controlRegions){ 
@@ -237,6 +236,7 @@ void CompareDataFitCRs(){
             //loop over entries
             uint nEntries = curTree->tree_->GetEntries();
             for(uint i = 0; i < nEntries; i++){
+                if(i % 10000 == 0) cout << "        Processing entry " << i << endl;
                 //get entry
                 curTree->tree_->GetEntry(i); 
 
@@ -273,8 +273,8 @@ void CompareDataFitCRs(){
 
                 //ZNuNuDilepton CR
                 if(region == "ZNuNuDilepton"){
-                    razorHistosMC[region][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
-                    razorErrorHistosMC[region][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, sysErrorSquared);
+                    //razorHistosMC[region][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
+                    //razorErrorHistosMC[region][sample]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, sysErrorSquared);
                 }
                 //ZNuNuSingleLepton CR
                 else if(region == "ZNuNuSingleLepton"){
@@ -347,19 +347,13 @@ void CompareDataFitCRs(){
 
                 float eventWeight = 1.0;
 
-                //reweight for photon triggers
-                if(region == "ZNuNuPhoton"){
-                    if(curTree->pho1.Pt()>5000) continue; // reject noise
-                    eventWeight *= curTree->getPhotonTriggerWeight();
-                }
-
                 ///////////////////////////////////////////////////////////
                 // Fill histograms
                 ///////////////////////////////////////////////////////////
 
                 //ZNuNuDilepton CR
                 if(region == "ZNuNuDilepton"){
-                    razorHistosData[region]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
+                    //razorHistosData[region]->Fill(curTree->MR_NoZ, curTree->Rsq_NoZ, eventWeight);
                 }
                 //ZNuNuSingleLepton CR
                 else if(region == "ZNuNuSingleLepton"){
@@ -377,7 +371,7 @@ void CompareDataFitCRs(){
         } //end loop over datasets 
 
         //create background subtracted histogram in each control region
-        if(makeScaleFactors){
+        if(makeScaleFactors && outSFFile){
             outSFFile->cd();
             for(auto &sample : controlRegionMC[region]){ //loop over samples
                 if(sample != signalNames[region]){ //subtract contribution from this process
@@ -427,6 +421,7 @@ void CompareDataFitCRs(){
         RazorLegend->AddEntry(razorHistosData[cr], "2012 Data");
 
         //plot slices of MR and Rsq
+        TH1F* thisFitSlice;
         for(int i = 0; i < nRsqBins; i++){
             map<string, TH1F*> ThisRsqSliceMCMap;    
             TH1F *ThisRsqSliceData = (TH1F*)razorHistosData[cr]->ProjectionX(Form("ThisRsqSliceData%d%s", i, cr.c_str()), i+1, i+1);
@@ -438,7 +433,11 @@ void CompareDataFitCRs(){
                 ThisRsqSliceMCMap[sample] = thisHist;
                 ThisRsqSliceMC->Add(ThisRsqSliceMCMap[sample]);
             }
-            DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRExclusiveSlice"+to_string(i)+cr, true);
+            if(fitHists.count(cr) > 0 && fitHists[cr]){
+                thisFitSlice = (TH1F*)fitHists[cr]->ProjectionX(Form("ThisRsqSliceFit%d%s", i, cr.c_str()), i+1, i+1);
+                DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRExclusiveSlice"+to_string(i)+cr, true, thisFitSlice);
+            }
+            else DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRExclusiveSlice"+to_string(i)+cr, true);
         }
         for(int i = 0; i < nMRBins; i++){
             map<string, TH1F*> ThisMRSliceMCMap;    
@@ -451,7 +450,11 @@ void CompareDataFitCRs(){
                 ThisMRSliceMCMap[sample] = thisHist;
                 ThisMRSliceMC->Add(ThisMRSliceMCMap[sample]);
             }
-            DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqExclusiveSlice"+to_string(i)+cr, true);
+            if(fitHists.count(cr) > 0 && fitHists[cr]){
+                thisFitSlice = (TH1F*)fitHists[cr]->ProjectionY(Form("ThisMRSliceFit%d%s", i, cr.c_str()), i+1, i+1);
+                DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq (GeV)", "RsqExclusiveSlice"+to_string(i)+cr, true, thisFitSlice);
+            }
+            else DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqExclusiveSlice"+to_string(i)+cr, true);
         }
         //inclusive slices
         for(int i = 0; i < nRsqBins; i++){
@@ -465,7 +468,11 @@ void CompareDataFitCRs(){
                 ThisRsqSliceMCMap[sample] = thisHist;
                 ThisRsqSliceMC->Add(ThisRsqSliceMCMap[sample]);
             }
-            DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRInclusiveSlice"+to_string(i)+cr, true);
+            if(fitHists.count(cr) > 0 && fitHists[cr]){
+                thisFitSlice = (TH1F*)fitHists[cr]->ProjectionX(Form("ThisRsqIncSliceFit%d%s", i, cr.c_str()), i+1);
+                DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRInclusiveSlice"+to_string(i)+cr, true, thisFitSlice);
+            }
+            else DrawDataVsMCRatioPlot(ThisRsqSliceData, ThisRsqSliceMC, RazorLegend, "MR (GeV)", "MRInclusiveSlice"+to_string(i)+cr, true);
         }
         for(int i = 0; i < nMRBins; i++){
             map<string, TH1F*> ThisMRSliceMCMap;    
@@ -477,6 +484,10 @@ void CompareDataFitCRs(){
                 SetHistogramColor(thisHist, sample);
                 ThisMRSliceMCMap[sample] = thisHist;
                 ThisMRSliceMC->Add(ThisMRSliceMCMap[sample]);
+            }
+            if(fitHists.count(cr) > 0 && fitHists[cr]){
+                thisFitSlice = (TH1F*)fitHists[cr]->ProjectionY(Form("ThisMRIncSliceFit%d%s", i, cr.c_str()), i+1);
+                DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq (GeV)", "RsqInclusiveSlice"+to_string(i)+cr, true, thisFitSlice);
             }
             DrawDataVsMCRatioPlot(ThisMRSliceData, ThisMRSliceMC, RazorLegend, "Rsq", "RsqInclusiveSlice"+to_string(i)+cr, true);
         }

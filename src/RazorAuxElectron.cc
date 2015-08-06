@@ -177,40 +177,23 @@ bool RazorAnalyzer::isTightElectron(int i){
 
 bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
 
-  Int_t subdet = 0;
-  if (fabs(eleEta_SC[i]) < 1.479) subdet = 0;
-  else subdet = 1;
-  Int_t ptBin = 0;
-  if (elePt[i] > 10.0) ptBin = 1;
-
-  Double_t MVACut = -999;
-  if (subdet == 0 && ptBin == 0) MVACut = 0.0;
-  if (subdet == 1 && ptBin == 0) MVACut = 0.6;
-  if (subdet == 0 && ptBin == 1) MVACut = -0.3;
-  if (subdet == 1 && ptBin == 1) MVACut = 0.5;
-
   bool pass = false;
-  if (ele_IDMVANonTrig[i] > MVACut
-      &&
-      ( (fabs(eleEta_SC[i]) < 1.479 && fabs(ele_d0[i]) < 0.0166)
-      	||
-      	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
-      	)
-      && ( (elePt[i] > 20 && ele_miniiso[i] < 0.2)
-	   ||
-	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i]))  < 5)
-	   )
-      ) {
+  if ( passMVANonTrigVetoElectronID(i) 
+       &&
+       ( (fabs(eleEta_SC[i]) < 1.479 && fabs(ele_d0[i]) < 0.0166)
+	 ||
+	 (fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.098)
+	 )
+       && ( (elePt[i] > 20 && ele_miniiso[i] < 0.2)
+	    ||
+	    (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i]))  < 5)
+	    )
+       ) {
     pass = true;
   }
-
-
+  
   return pass;
-
 }
-
-
-
 
 bool RazorAnalyzer::passLooseElectronID(int i){
   bool pass = false;
@@ -286,12 +269,12 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
   if (elePt[i] > 10.0) ptBin = 1;
 
   Double_t MVACut = -999;
-  if (subdet == 0 && ptBin == 0) MVACut = -0.143;
-  if (subdet == 1 && ptBin == 0) MVACut = -0.519;
-  if (subdet == 2 && ptBin == 0) MVACut = -0.180;
-  if (subdet == 0 && ptBin == 1) MVACut = -0.304;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.526;
-  if (subdet == 2 && ptBin == 1) MVACut = -0.693;
+  if (subdet == 0 && ptBin == 0) MVACut = -0.1;
+  if (subdet == 1 && ptBin == 0) MVACut = -0.75;
+  if (subdet == 2 && ptBin == 0) MVACut = -0.1;
+  if (subdet == 0 && ptBin == 1) MVACut = -0.5;
+  if (subdet == 1 && ptBin == 1) MVACut = -0.8;
+  if (subdet == 2 && ptBin == 1) MVACut = -0.3;
 
   bool pass = false;
   if (ele_IDMVANonTrig[i] > MVACut

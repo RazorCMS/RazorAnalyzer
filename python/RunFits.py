@@ -5,52 +5,44 @@ from array import *
 import sys
 import glob
 from RunCombine import exec_me
+import datetime
 
 if __name__ == '__main__':
-
-
-    #boxes = ['MultiJet','FourJet','SixJet','DiJet']
-    #configs = ['config/run2_rsqturnoff_0btag.config','config/run2_0btag.config','config/run2_rsqturnoff_1btag.config','config/run2_1btag.config']
-
-    #boxes = ['MuEle','EleEle','MuMu','MuMultiJet','MuJet','EleMultiJet','EleJet','LooseLeptonMultiJet','MultiJet','DiJet']
-    boxes = ['MuMultiJet','MuJet','EleMultiJet','EleJet','LooseLeptonMultiJet','MultiJet','DiJet']
-    boxes.extend(['MuFourJet','MuSixJet','EleFourJet','EleSixJet','SixJet','FourJet','LooseLeptonSixJet','LooseLeptonFourJet'])
-
     
     boxes = ['MultiJet','MuMultiJet','EleMultiJet','LooseLeptonMultiJet','DiJet']
-    configs = ['config/run2_1-3btag.config']
-    
+    fits = ['Sideband','Full']
+    configs = ['config/run2.config']
     
     lumi = 3000
+    dryRun = False
+    btag = '0-3btag'
     
     for box in boxes:
         for cfg in configs:
-            if box in ['MuEle','EleEle','MuMu']:
-                btag = '0-1btag'
-            elif '1-3btag' in cfg:
-                btag = '1-3btag'
-            else:
-                btag = '0-3btag'
                 
             backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(lumi/1000.,btag,box)
-            if not glob.glob(backgroundDsName):                
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(cfg,box),False)
+            exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(cfg,box),dryRun)
             backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root'%(lumi/1000.,btag,box)
-            if not glob.glob(backgroundDsName):
-                exec_me('python python/RooDataSet2UnweightedDataset.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(cfg,box,lumi/1000.,btag,box),False)
-            
-            exec_me('mkdir -p fits_07102015/weighted/%s_%s/' %(box,btag),False)
-            exec_me('mkdir -p fits_07102015/unweighted/%s_%s/' %(box,btag),False)
-            #  --fit-region LowMR,LowRsq 
-            #exec_me('python python/Fit.py -c %s -d fits_06212015/unbinned/%s_%s/ --fit-region LowMR,LowRsq -b %s Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root' %(cfg,box,btag,box,lumi/1000,btag,box),False)
+            exec_me('python python/RooDataSet2UnweightedDataset.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root'%(cfg,box,lumi/1000.,btag,box),dryRun)
+            lumiString = '%.1f'%(lumi/1000)
+            lumiString = lumiString.replace('.','p')
 
-            #exec_me('python python/BinnedFit.py -c %s -d fits_07102015/weighted/%s_%s/ -b %s Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.1f_%s_%s.root' %(cfg,box,btag,box,lumi/1000,btag,box),False)
-            #exec_me('python python/RunToys.py -c %s -d fits_07102015/weighted/%s_%s/ -b %s -i fits_07102015/weighted/%s_%s/BinnedFitResults_%s.root -t 10000' %(cfg,box,btag,box,box,btag,box),False)
-            exec_me('python python/PlotFit.py -c %s -d fits_07102015/weighted/%s_%s/ -b %s -i fits_07102015/weighted/%s_%s/BinnedFitResults_%s.root -t fits_07102015/weighted/%s_%s/toys_Bayes_%s.root --print-errors' %(cfg,box,btag,box,box,btag,box,box,btag,box),False)
-                        
-            #exec_me('python python/BinnedFit.py -c %s -d fits_07102015/unweighted/%s_%s/ -b %s Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%s_%s.root' %(cfg,box,btag,box,lumi/1000,btag,box),False)
-            #exec_me('python python/RunToys.py -c %s -d fits_07102015/unweighted/%s_%s/ -b %s -i fits_07102015/unweighted/%s_%s/BinnedFitResults_%s.root -t 10000' %(cfg,box,btag,box,box,btag,box),False)
-            exec_me('python python/PlotFit.py -c %s -d fits_07102015/unweighted/%s_%s/ -b %s -i fits_07102015/unweighted/%s_%s/BinnedFitResults_%s.root -t fits_07102015/unweighted/%s_%s/toys_Bayes_%s.root --print-errors' %(cfg,box,btag,box,box,btag,box,box,btag,box),False)
+            for weight in ["weighted","unweighted"]:
+                backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_%s_lumi-%.1f_%s_%s.root'%(weight,lumi/1000.,btag,box)
+                for fit in fits:                    
+                    
+                    fitString = ''
+                    if fit=='Sideband':
+                        fitString = '--fit-region LowMR,LowRsq'
+
+                    dateString = str(datetime.date.today())
+                    
+                    outDir = "fits_%s/%s_lumi-%s/%s_%s_%s/"%(dateString,weight,lumiString,box,btag,fit)
+                    exec_me('mkdir -p %s' %(outDir),dryRun)
+                    exec_me('python python/BinnedFit.py -c %s -d %s/ -b %s -l %f %s %s' %(cfg,outDir,box,lumi,backgroundDsName,fitString),dryRun)
+                    #exec_me('python python/RunToys.py -c %s -d %s/ -b %s -l %f -i %s/BinnedFitResults_%s.root -t 10000' %(cfg,outDir,box,lumi,outDir,box),dryRun)
+                    #exec_me('python python/PlotFit.py -c %s -d %s/ -b %s -l %f -i %s/BinnedFitResults_%s.root -t %s/toys_Bayes_%s.root %s' %(cfg,outdir,box,lumi,outDir,box,outDir,box,fitString),dryRun)
+                    exec_me('python python/PlotFit.py -c %s -d %s/ -b %s -l %f -i %s/BinnedFitResults_%s.root %s' %(cfg,outDir,box,lumi,outDir,box,fitString),dryRun)
                       
             
             

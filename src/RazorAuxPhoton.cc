@@ -4,7 +4,7 @@
 
 bool RazorAnalyzer::photonPassesElectronVeto(int i){
     //use presence of a pixel seed as proxy for an electron veto
-    return !(pho_passEleVeto[i]);
+    return (pho_passEleVeto[i]);
 }
 
 
@@ -173,6 +173,8 @@ bool RazorAnalyzer::isLoosePhoton(int i){
 
   if(!photonPassesElectronVeto(i)) pass = false;
   if(!photonPassLooseIso(i)) pass = false;
+
+  //cout << "Loose Photon ? : " << bool(pho_HoverE[i] > 0.05) << " " << bool(phoFull5x5SigmaIetaIeta[i] > 0.0103) << " " << photonPassesElectronVeto(i) << " " << photonPassLooseIso(i) << "\n";
 
   return pass;
 }
