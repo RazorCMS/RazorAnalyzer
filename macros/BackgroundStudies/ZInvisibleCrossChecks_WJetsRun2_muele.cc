@@ -513,7 +513,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
         }
 	DrawDataVsMCRatioPlot(dataNJets40[cut], &NumJets40MC, legend, "Number of jets 40 GeV", "ControlRegionPlots_EleAndMu_NumJets40"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ControlRegionPlots_EleAndMu_NumJets80"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
+        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legendWithFit, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
         DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ControlRegionPlots_EleAndMu_Rsq"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ControlRegionPlots_EleAndMu_MET"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ControlRegionPlots_EleAndMu_NVtx"+to_string(cut), false);
