@@ -42,7 +42,6 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 }
 
 //plotting macro for data and MC, including ratio plot
-<<<<<<< HEAD
 //parameters: 
 //dataHist: TH1F with data points (to draw as black dots)
 //mcStack: a THStack containing all MC histograms (to draw as filled bar histograms)
