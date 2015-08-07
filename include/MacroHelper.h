@@ -42,7 +42,13 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 }
 
 //plotting macro for data and MC, including ratio plot
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, string intLumi="40 pb^{-1}"){
+//parameters: 
+//dataHist: TH1F with data points (to draw as black dots)
+//mcStack: a THStack containing all MC histograms (to draw as filled bar histograms)
+//leg: TLegend containing all of the entries in the desired order
+//printString: name of output file
+//fitHist: optional fit result histogram (to draw as a solid line)
+void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, string intLumi="40 pb^{-1}", TH1F *fitHist=0){
     TCanvas c("c", "c", 800, 600);
     c.Clear();
     c.cd();
@@ -62,6 +68,10 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataHist->SetMarkerSize(1);
     dataHist->GetYaxis()->SetTitle("Number of events");
     dataHist->Draw("pesame");
+    if(fitHist){
+        fitHist->SetLineWidth(2);
+        fitHist->Draw("lsame");
+    }
     pad1.Modified();
     gPad->Update();
     //make ratio histogram

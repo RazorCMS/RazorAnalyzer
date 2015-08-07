@@ -11,25 +11,27 @@ k_W = 3.*20508.9/50100.0
 
 k_QCD = {}
     
-boxes = {'MuEle':[0],
-         'MuMu':[1],
-         'EleEle':[2],
-         'MuSixJet':[3],
-         'MuFourJet':[4],
-         'MuMultiJet':[3,4],
-         'MuJet':[5],
-         'EleSixJet':[6],
-         'EleFourJet':[7],
-         'EleMultiJet':[6,7],
-         'EleJet':[8],
-         'LooseLeptonSixJet':[9],
-         'LooseLeptonFourJet':[10],
-         'LooseLeptonMultiJet':[9,10],
-         'SixJet':[11],
-         'FourJet':[12],
-         'MultiJet':[11,12],
-         'LooseLeptonDiJet':[13],
-         'DiJet':[14]}
+boxes = {'MuEle':'(box==0)',
+         'MuMu':'(box==1)',
+         'EleEle':'(box==2)',
+         'MuSixJet':'(box==3)',
+         'MuFourJet':'(box==4)',
+         'MuMultiJet':'(box==3||box==4)',
+         'MuJet':'(box==5)',
+         'EleSixJet':'(box==6)',
+         'EleFourJet':'(box==7)',
+         'EleMultiJet':'(box==6||box==7)',
+         'EleJet':'(box==8)',
+         'LooseLeptonSixJet':'(box==9)',
+         'LooseLeptonFourJet':'(box==10)',
+         'LooseLeptonMultiJet':'(box==9||box==10)',
+         'SixJet':'(box==11)',
+         'FourJet':'(box==12)',
+         'FourToSixJet':'((box==11||box==12)&&(nSelectedJets>=4&&nSelectedJets<7))',
+         'SevenJet':'((box==11||box==12)&&(nSelectedJets>=7))',
+         'MultiJet':'(box==11||box==12)',
+         'LooseLeptonDiJet':'(box==13)',
+         'DiJet':'(box==14)'}
 
 dPhiCut = 2.7
 
@@ -73,7 +75,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
-    boxCut = '(' + ' || '.join(['box==%i'%boxNum for boxNum in boxes[box]]) + ')'
+    boxCut = boxes[box]
 
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp_%s'%label,'htemp_%s'%label,len(z)-1,z)
@@ -127,7 +129,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
-    boxCut = '(' + ' || '.join(['box==%i'%boxNum for boxNum in boxes[box]]) + ')'
+    boxCut = boxes[box]
     
     tree.Draw('>>elist',
               'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut),
@@ -203,13 +205,10 @@ if __name__ == '__main__':
     
     w = rt.RooWorkspace("w"+box)
 
-    variables = initializeWorkspace(w,cfg,box)
-    
-    
+    variables = initializeWorkspace(w,cfg,box)    
     
     ds = []
-
-    
+        
     btagMin =  w.var('nBtag').getMin()
     btagMax =  w.var('nBtag').getMax()
 
