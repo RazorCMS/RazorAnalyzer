@@ -33,6 +33,8 @@ if __name__ == '__main__':
                   help="Output directory to store cards")
     parser.add_option('--fit',dest="fit",default=False,action='store_true',
                   help="Turn on pre-fit")
+    parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
+                  help="no fit, just use MC")
     parser.add_option('--min-tol',dest="min_tol",default=0.001,type="float",
                   help="minimizer tolerance (default = 0.001)")
     parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
@@ -61,6 +63,9 @@ if __name__ == '__main__':
     fit = ''
     if options.fit:
         fit = '--fit'
+    elif options.noFit:
+        fit = '--no-fit'
+        
         
     for lumi in lumiArray:
         for box in boxes:            
