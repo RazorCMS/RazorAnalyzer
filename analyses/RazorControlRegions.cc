@@ -1009,6 +1009,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->NJets_NoZ = GoodJetsNoLeptons.size();
 	events->HT_NoZ = ht_NoLep;
 	events->NJets80_NoZ = njets80NoLep;
+    events->METPhi = MyMET.Phi();
+
+    // Compute the recoil for Z
+    TVector2 vZPt((TotalLepVec.Pt())*cos(TotalLepVec.Phi()),(TotalLepVec.Pt())*sin(TotalLepVec.Phi())); // Z bosont pT
+    TVector2 vMet((MyMET.Pt())*cos(MyMET.Phi()), (MyMET.Pt())*sin(MyMET.Phi())); // MET vector
+    TVector2 vU = -1.0*(vZPt+vMet); // recoil vector
+    events->u1 = ((TotalLepVec.Px())*(vU.Px()) + (TotalLepVec.Py())*(vU.Py()))/(TotalLepVec.Pt());  // u1 = (pT . u)/|pT|
+    events->u2 = ((TotalLepVec.Px())*(vU.Py()) - (TotalLepVec.Py())*(vU.Px()))/(TotalLepVec.Pt());  // u2 = (pT x u)/|pT|
 
 	//Z kinematics
 	if(NLeptonsAdded >= 2){

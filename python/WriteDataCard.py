@@ -177,7 +177,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty):
         processes = ["%s_%s"%(box,model)]
         processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
         lumiErrs = [1.05]
-        lumiErrs.extend([1 for bkg in bkgs])
+        lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
                    "jmax %i number of backgrounds\n"%nBkgd + \
@@ -216,31 +216,60 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty):
 
         
 def writeDataCard_noFit(box,model,txtfileName,bkgs,paramNames,w):
-        txtfile = open(txtfileName,"w")
-        txtfile.write("imax 1 number of channels\n")
-        nBkgd = 3
-        txtfile.write("jmax %i number of backgrounds\n"%nBkgd)
-        txtfile.write("kmax * number of nuisance parameters\n")
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("observation	%.3f\n"%
-                      w.data("data_obs").sumEntries())
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%
-                      (txtfileName.replace('.txt','.root'),box,box))
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("bin		%s			%s			%s			%s\n"%(box,box,box,box))
-        txtfile.write("process		%s_%s 	%s_%s	%s_%s	%s_%s\n"%
-                        (box,model,box,bkgs[0],box,bkgs[1],box,bkgs[2]))
-        txtfile.write("process        	0          		1			2			3\n")
-        txtfile.write("rate            %.3f		%.3f		%.3f		%.3f\n"%
-                        (w.data("%s_%s"%(box,model)).sumEntries(),w.data("%s_%s"%(box,"TTj1b")).sumEntries(),
-                        w.data("%s_%s"%(box,"TTj2b")).sumEntries(), w.data("%s_%s"%(box,"TTj3b")).sumEntries()))
+        obsRate = w.data("data_obs").sumEntries()
+        nBkgd = len(bkgs)
+        rootFileName = txtfileName.replace('.txt','.root')
+        rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+        rates.extend([w.data("%s_%s"%(box,bkg)).sumEntries() for bkg in bkgs])
+        processes = ["%s_%s"%(box,model)]
+        processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
+        lumiErrs = [1.05]
+        lumiErrs.extend([1.00 for bkg in bkgs])
+        mcErrs = {} #dictionary of uncorrelated mc bkgd lnN uncertainties
+        for bkg in bkgs:
+                mcErrs[bkg] = [1.00]
+                mcErrs[bkg].extend([1.00 + 0.10*(bkg==bkg1) for bkg1 in bkgs])
+                
+        divider = "------------------------------------------------------------\n"
+        datacard = "imax 1 number of channels\n" + \
+                   "jmax %i number of backgrounds\n"%nBkgd + \
+                   "kmax * number of nuisance parameters\n" + \
+                   divider + \
+                   "observation	%.3f\n"%obsRate + \
+                   divider + \
+                   "shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%(rootFileName,box,box) + \
+                   divider
+                   
+        binString = "bin"
+        processString = "process"
+        processNumberString = "process"
+        rateString = "rate"
+        lumiString = "lumi\tlnN"
+        for i in range(0,len(bkgs)+1):
+            binString +="\t%s"%box
+            processString += "\t%s"%processes[i]
+            processNumberString += "\t%i"%i
+            rateString += "\t%.3f" %rates[i]
+            lumiString += "\t%.3f"%lumiErrs[i]
+        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
+            
+        mcErrStrings = {}
+        for bkg in bkgs:
+                mcErrStrings[bkg] = "%s_%s_norm\tlnN"%(box,bkg)
+                for i in range(0,len(bkgs)+1):                
+                        mcErrStrings[bkg] += "\t%.3f"%mcErrs[bkg][i]
+                mcErrStrings[bkg]+="\n"
+                
+        datacard+=binString+processString+processNumberString+rateString+divider
         
-        txtfile.write("------------------------------------------------------------\n")
-        txtfile.write("lumi			lnN	%.3f       1.00	1.00 1.00\n"%(1.05))
-        txtfile.write("ttj1b_%s			lnN	1.00       %.3f	1.00 1.00\n"%(box,1.1))
-        txtfile.write("ttj2b_%s			lnN	1.00       1.00	%.3f 1.00\n"%(box,1.1))
-        txtfile.write("ttj3b_%s			lnN	1.00       1.00	1.00 %.3f\n"%(box,1.1))
+        # now nuisances
+        datacard+=lumiString
+        
+        for bkg in bkgs:
+                datacard+=mcErrStrings[bkg]
+
+        txtfile = open(txtfileName,"w")
+        txtfile.write(datacard)
         txtfile.close()
         
 if __name__ == '__main__':
@@ -301,24 +330,14 @@ if __name__ == '__main__':
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     rootTools.Utils.importToWS(w,dataHist)
     
-    if noFit:
-        data1b = data.reduce("nBtag==1")
-        myTH11b = convertDataset2TH1(data1b, cfg, box, w)
-        myTH11b.Scale(lumi/lumi_in)
-        dataHist1b = rt.RooDataHist("%s_%s"%(box,"TTj1b"),"%s_%s"%(box,"TTj1b"),rt.RooArgList(th1x), myTH11b)
-        rootTools.Utils.importToWS(w,dataHist1b)
-        
-        data2b = data.reduce("nBtag==2")
-        myTH12b = convertDataset2TH1(data2b, cfg, box, w)
-        myTH12b.Scale(lumi/lumi_in)
-        dataHist2b = rt.RooDataHist("%s_%s"%(box,"TTj2b"),"%s_%s"%(box,"TTj2b"),rt.RooArgList(th1x), myTH12b)
-        rootTools.Utils.importToWS(w,dataHist2b)
-        
-        data3b = data.reduce("nBtag==3")
-        myTH13b = convertDataset2TH1(data3b, cfg, box, w)
-        myTH13b.Scale(lumi/lumi_in)
-        dataHist3b = rt.RooDataHist("%s_%s"%(box,"TTj3b"),"%s_%s"%(box,"TTj3b"),rt.RooArgList(th1x), myTH13b)
-        rootTools.Utils.importToWS(w,dataHist3b)
+    if noFit:        
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        for k in range(0,len(z)-1):
+            data_red = data.reduce("nBtag>=%i && nBtag<%i"%(z[k],z[k+1]))
+            myTH1_red = convertDataset2TH1(data_red, cfg, box, w)
+            myTH1_red.Scale(lumi/lumi_in)
+            dataHist_red = rt.RooDataHist("%s_%s"%(box,"TTj%ib"%z[k]),"%s_%s"%(box,"TTj%ib"%z[k]),rt.RooArgList(th1x), myTH1_red)
+            rootTools.Utils.importToWS(w,dataHist_red)
 
     elif options.fit:
         fr = w.pdf('extRazorPdf').fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.PrintLevel(-1),rt.RooFit.SumW2Error(False),rt.RooFit.PrintEvalErrors(-1))
@@ -342,7 +361,7 @@ if __name__ == '__main__':
     
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     if noFit:
-        writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj1b","TTj2b","TTj3b"],paramNames,w)
+        writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj%ib"%iz for iz in z[:-1]],paramNames,w)
     else:
         writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty)
     w.Write()
