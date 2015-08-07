@@ -152,7 +152,7 @@ public :
    Float_t         pho_superClusterEta[40];   //[nPhotons]
    Float_t         pho_superClusterPhi[40];   //[nPhotons]
    Bool_t          pho_hasPixelSeed[40];   //[nPhotons]
-   Bool_t          pho_passHLTFilter[1][40];   //[nPhotons]
+   Bool_t          pho_passHLTFilter[40][100];   //[nPhotons]
    Int_t           nJets;
    Float_t         jetE[50];   //[nJets]
    Float_t         jetPt[50];   //[nJets]
