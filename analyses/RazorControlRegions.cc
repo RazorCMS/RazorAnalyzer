@@ -867,6 +867,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for(int k=0; k<150; ++k) {
 	events->HLTDecision[k] = HLTDecision[k];	
       }
+
+      events->METnoHF = metNoHFPt;
     	
       //MET Filter
       events->Flag_HBHENoiseFilter = Flag_HBHENoiseFilter;

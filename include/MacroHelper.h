@@ -24,7 +24,7 @@
 #include "TPad.h"
 #include "TLatex.h"
 
-#include "include/RazorAnalyzer.h"
+#include "RazorAnalyzer.h"
 
 //returns the Data/MC scale factor, and its error, at the desired value of MR and Rsq
 pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
@@ -49,10 +49,10 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 //printString: name of output file
 //fitHist: optional fit result histogram (to draw as a solid line)
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, string intLumi="40 pb^{-1}", TH1F *fitHist=0){
-    TCanvas c("c", "c", 800, 600);
+    TCanvas c("c", "c", 800, 700);
     c.Clear();
     c.cd();
-    TPad pad1("pad1","pad1",0,0.4,1,1);
+    TPad pad1("pad1","pad1",0,0.2,1,1);
     pad1.SetBottomMargin(0);
     pad1.SetLogy();
     if(logX) pad1.SetLogx();
@@ -69,8 +69,14 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataHist->GetYaxis()->SetTitle("Number of events");
     dataHist->Draw("pesame");
     if(fitHist){
-        fitHist->SetLineWidth(2);
-        fitHist->Draw("lsame");
+      TH1F *fitHistCopy = (TH1F*) fitHist->Clone();
+      fitHistCopy->SetLineColor(kTeal+3);
+      fitHistCopy->SetLineWidth(2);
+      fitHistCopy->Draw("hist same");
+      fitHist->SetLineWidth(2);
+      fitHist->SetFillColor(kGreen+2);
+      fitHist->SetFillStyle(3002);
+      fitHist->Draw("same le3");
     }
     pad1.Modified();
     gPad->Update();
@@ -108,24 +114,26 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
       {
         leg->SetX1NDC(0.1); leg->SetX2NDC(0.3); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
       }
-    else 
-      {
-        leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9);
-      }
+    /* else  */
+    /*   { */
+    /*     leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9); */
+    /*   } */
     leg->Draw();
 
-    TLatex t1(0.1,0.94, "CMS Preliminary");
-    TLatex t2(0.65,0.94, Form("#sqrt{s}=13 TeV, L = %s", intLumi.c_str()));
+    TLatex t1(0.1,0.92, "CMS Preliminary");
+    TLatex t2(0.6,0.92, "#sqrt{s}=13 TeV, L = 40 pb^{-1}");
     t1.SetNDC();
     t2.SetNDC();
-    t1.SetTextSize(0.06);
-    t2.SetTextSize(0.06);
+    t1.SetTextSize(0.05);
+    t2.SetTextSize(0.05);
+    t1.SetTextFont(42);
+    t2.SetTextFont(42);
     
     t1.Draw();
     t2.Draw();
     
     c.cd();
-    TPad pad2("pad2","pad2",0,0.0,1,0.4);
+    TPad pad2("pad2","pad2",0,0.0,1,0.2);
     pad2.SetTopMargin(0);
     pad2.SetTopMargin(0.008);
     pad2.SetBottomMargin(0.25);
@@ -141,7 +149,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     gPad->Update();
 
     c.Print(Form("%s.png", printString.c_str()));
-    // c.Print(Form("%s.root", printString.c_str()));
+    /* c.Print(Form("%s.root", printString.c_str())); */
 }
 
 //check if the given box is a muon box

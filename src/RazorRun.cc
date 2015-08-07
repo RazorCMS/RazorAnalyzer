@@ -255,6 +255,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableElectrons();
       analyzer.EnableMuons();
       analyzer.EnableTaus();
+      analyzer.EnablePhotons();
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      

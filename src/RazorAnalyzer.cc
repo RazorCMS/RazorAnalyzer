@@ -179,6 +179,7 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_superClusterEta", 1);
     fChain->SetBranchStatus("pho_superClusterPhi", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
+    fChain->SetBranchStatus("pho_passHLTFilter", 1);
 }
 
 void RazorAnalyzer::EnableJets(){
@@ -221,6 +222,8 @@ void RazorAnalyzer::EnableFatJets(){
 void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metPt", 1);
     fChain->SetBranchStatus("metPhi", 1);
+    fChain->SetBranchStatus("metNoHFPt", 1);
+    fChain->SetBranchStatus("metNoHFPhi", 1);
     fChain->SetBranchStatus("metType0Pt", 1);
     fChain->SetBranchStatus("metType0Phi", 1);
     fChain->SetBranchStatus("metType1Pt", 1);

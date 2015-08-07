@@ -20,12 +20,12 @@
 #include "assert.h"
 #include "math.h"
 
-#include "include/MacroHelper.h"
+#include "MacroHelper.h"
 
 using namespace std;
 
 bool debug = false;
-//bool debug = true;
+// bool debug = true;
 
 //lepton Pt, Yields, NJets 40, Electrons
 
@@ -53,12 +53,12 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     // suffixes["TTZ"] = "_noW";
 
     //load file with fit results
-    TFile *fitResultFile = new TFile("ControlSampleFits.root", "READ");
-    vector<TH1F*> fitHists;
-    if(fitResultFile){
-        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
-        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
-    }
+    // TFile *fitResultFile = new TFile("./ControlSampleFits.root", "READ");
+    // vector<TH1F*> fitHists;
+    // if(fitResultFile){
+    //     fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
+    //     fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
+    // }
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -240,14 +240,23 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     vector<string> cutSequence;
     vector<string> cutName;
 
-    cutSequence.push_back( "NBJetsMedium == 0 && lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET>50" );
+    cutSequence.push_back( "NBJetsMedium == 0 && lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.1 && MET>50" );
     cutName.push_back( "" );
 
-    cutSequence.push_back( "NBJetsMedium >=1 && lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET > 30" );
+    cutSequence.push_back( "NBJetsMedium >=1 && lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.1 && MET > 30" );
     cutName.push_back( "" );
 
-    map<string, vector<TH1F *> > mcNJets40, mcNJets80, mcMR, mcRsq,  mcMet, mcNvtx,  mcHT, mcMT, mcLep1Pt, mcMHT, mcMHTnoHF;
-    vector<TH1F *>  dataNJets40, dataNJets80, dataMR, dataRsq, dataMet, dataNvtx, dataHT, dataMT, dataLep1Pt, dataMHT, dataMHTnoHF;
+    cutSequence.push_back( "NBJetsMedium == 0 && lep1PassTight == 1 && lep1Pt > 25 && TMath::Abs(lep1Eta)<1.4 && MET > 50" );
+    cutName.push_back( "" );
+
+    cutSequence.push_back( "NBJetsMedium == 0 && lep1PassTight == 1 && lep1Pt > 25 && lep1Eta<-1.4 && lep1Eta>-2.1  && MET > 50 " );
+    cutName.push_back( "" );
+
+    cutSequence.push_back( "NBJetsMedium == 0 && lep1PassTight == 1 && lep1Pt > 25 && lep1Eta>1.4 && lep1Eta<2.1  && MET > 50" );
+    cutName.push_back( "" );
+
+    map<string, vector<TH1F *> > mcNJets40, mcNJets80, mcMR, mcRsq,  mcMet, mcNvtx,  mcHT, mcMT, mcLep1Pt, mcLep1Eta, mcMHT, mcMHTnoHF;
+    vector<TH1F *>  dataNJets40, dataNJets80, dataMR, dataRsq, dataMet, dataNvtx, dataHT, dataMT, dataLep1Pt, dataLep1Eta, dataMHT, dataMHTnoHF;
     for(auto &tree : mctrees){
         mcNvtx[tree.first] = vector<TH1F *>();
         mcNJets40[tree.first] = vector<TH1F *>();
@@ -258,6 +267,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
         mcHT[tree.first] = vector<TH1F *>();
         mcMT[tree.first] = vector<TH1F *>();
         mcLep1Pt[tree.first] = vector<TH1F *>();
+        mcLep1Eta[tree.first] = vector<TH1F *>();
         mcMHT[tree.first] = vector<TH1F *>();
         mcMHTnoHF[tree.first] = vector<TH1F *>();
     }
@@ -274,6 +284,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
             mcMHT[tree.first].push_back(new TH1F(Form("mcMHT%s%d", tree.first.c_str(), cut), Form("%s; MHT (GeV)", cutName[cut].c_str()), 50, 0, 500));
             mcMHTnoHF[tree.first].push_back(new TH1F(Form("mcMHTnoHF%s%d", tree.first.c_str(), cut), Form("%s; MHT noHF (GeV)", cutName[cut].c_str()), 50, 0, 500));
             mcLep1Pt[tree.first].push_back(new TH1F(Form("mcLep1Pt%s%d", tree.first.c_str(), cut), Form("%s; Lepton Pt (GeV)", cutName[cut].c_str()), 50, 0, 500));
+            mcLep1Eta[tree.first].push_back(new TH1F(Form("mcLep1Eta%s%d", tree.first.c_str(), cut), Form("%s; Lepton Eta", cutName[cut].c_str()), 50, -4, 4));
 
             mcNJets40[tree.first][cut]->Sumw2();
             mcNJets80[tree.first][cut]->Sumw2();
@@ -284,6 +295,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    mcHT[tree.first][cut]->Sumw2();	    
 	    mcMT[tree.first][cut]->Sumw2();	    
 	    mcLep1Pt[tree.first][cut]->Sumw2();	    
+	    mcLep1Eta[tree.first][cut]->Sumw2();	    
 	    mcMHT[tree.first][cut]->Sumw2();	    
 	    mcMHTnoHF[tree.first][cut]->Sumw2();	    
         }
@@ -296,6 +308,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
         dataHT.push_back(new TH1F(Form("dataHT%d", cut), Form("%s; HT (GeV)", cutName[cut].c_str()), 50, 0, 1000));
         dataMT.push_back(new TH1F(Form("dataMT%d", cut), Form("%s; MT (GeV)", cutName[cut].c_str()), 50, 0, 500));
         dataLep1Pt.push_back(new TH1F(Form("datalep1Pt%d", cut), Form("%s; Lepton Pt (GeV)", cutName[cut].c_str()), 50, 0, 500));
+        dataLep1Eta.push_back(new TH1F(Form("datalep1Eta%d", cut), Form("%s; Lepton Eta", cutName[cut].c_str()), 50, -4, 4));
         dataMHT.push_back(new TH1F(Form("dataMHT%d", cut), Form("%s; MHT (GeV)", cutName[cut].c_str()), 50, 0, 500));
         dataMHTnoHF.push_back(new TH1F(Form("dataMHTnoHF%d", cut), Form("%s; MHT noHF (GeV)", cutName[cut].c_str()), 50, 0, 500));
 
@@ -314,7 +327,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     for(auto &tree : mctrees){
         cout << "Filling MC histograms: " << tree.first << endl;
         uint nEntries = tree.second->GetEntries();
-        if(debug) nEntries = 100000;
+        if(debug) nEntries = 1000;
         //make TTreeFormulas for selection cuts
         vector<TTreeFormula *> cuts;
         for(uint cut = 0; cut < cutSequence.size(); cut++){
@@ -345,10 +358,11 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    
 	    if (HLTNames[0] == true && abs(lep1Type) == 13) trigger_passed = true; //muon triggers
 	    if (HLTNames[27] == true && abs(lep1Type) == 11) trigger_passed = true; //electron triggers
+	    if (abs(lep1Type) == 13) continue;
 
 	    if (trigger_passed == false) continue;
 
-	    if(abs(lep1Type) == 11 && lep1Pt<35.) continue;
+	    if(abs(lep1Type) == 13 && lep1Pt<35.) continue;
 	    
 	    //trigger and normalization scale factors
 	    // eventWeight *= singleMuTriggerSF;
@@ -375,6 +389,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 		(mcHT[tree.first])[cut]->Fill(hts[tree.first], eventWeight);
 		(mcMT[tree.first])[cut]->Fill(mTLepMet, eventWeight);
 		(mcLep1Pt[tree.first])[cut]->Fill(lep1Pt, eventWeight);
+		(mcLep1Eta[tree.first])[cut]->Fill(lep1Eta, eventWeight);
 		(mcMHT[tree.first])[cut]->Fill(mhts[tree.first], eventWeight);
 		(mcMHTnoHF[tree.first])[cut]->Fill(mhtnohfs[tree.first], eventWeight);
             }
@@ -388,7 +403,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     for(auto &tree : datatrees){
         cout << "Filling data histograms: " << tree.first << endl;
         uint nEntries = tree.second->GetEntries();
-        if(debug) nEntries = 100000;
+        if(debug) nEntries = 1000;
         //make TTreeFormulas for selection cuts
         vector<TTreeFormula *> cuts;
         for(uint cut = 0; cut < cutSequence.size(); cut++){
@@ -410,6 +425,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    if (trigger_passed == false) continue;
 
 	    if(abs(lep1Type) == 11 && lep1Pt<35.) continue;
+	    if (abs(lep1Type) == 13) continue;
 
 	    // if(!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) continue;
 	    
@@ -437,6 +453,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 		dataHT[cut]->Fill(hts[tree.first], eventWeight);
 		dataMT[cut]->Fill(mTLepMet, eventWeight);
 		dataLep1Pt[cut]->Fill(lep1Pt, eventWeight);
+		dataLep1Eta[cut]->Fill(lep1Eta, eventWeight);
 		dataMHT[cut]->Fill(mhts[tree.first], eventWeight);
 		dataMHTnoHF[cut]->Fill(mhtnohfs[tree.first], eventWeight);
            }
@@ -445,9 +462,9 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
             delete cuts[cut];
         }
     }
-    cout<<"HERRE "<<endl;
+
     //print out plots
-    TCanvas c("c", "c", 800, 600);
+    TCanvas c("c", "c", 800, 700);
     c.SetLogy();
 
     //colors and legend
@@ -455,20 +472,26 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     colors["WJets"] = kRed;
     colors["Top"] = kBlue;
     colors["TTJets"] = kAzure+10;
-    // colors["TTW"] = kRed+2;
-    // colors["TTZ"] = kOrange-3;
-    fitHists[0]->SetLineWidth(2);
-    fitHists[0]->SetLineWidth(2);
-    TLegend *legend = new TLegend(0.5, 0.5, 0.9, 0.9);
+    // fitHists[0]->Draw("hist");
+    // fitHists[0]->SetLineWidth(2);
+    // fitHists[0]->SetFillColor(kGreen+2);
+    // fitHists[0]->SetFillStyle(3002);
+    // fitHists[0]->Draw("same e3");
+
+    TLegend *legend = new TLegend(0.6, 0.54, 0.9, 0.84);
+    legend->SetTextSize(0.04);
+    legend->SetBorderSize(0);
+    legend->SetFillStyle(0);
+
+
+    // TLegend *legend = new TLegend(0.5, 0.5, 0.9, 0.9);
     legend->AddEntry(dataNJets40[0], "Data");
     legend->AddEntry(mcNJets40["WJets"][0], "W+Jets MC");
-    legend->AddEntry(mcNJets40["TTJets"][0], "TTJets MC MC");
+    legend->AddEntry(mcNJets40["TTJets"][0], "TTJets MC");
     legend->AddEntry(mcNJets40["Top"][0], "Single Top MC");
-    TLegend *legendWithFit = (TLegend*)legend->Clone();
-    legendWithFit->AddEntry(fitHists[0], "Fit");
-    // legend->AddEntry(mcNJets40["TTW"][0], "TTW MC");
-    // legend->AddEntry(mcNJets40["TTZ"][0], "TTZ MC");
-    cout<<"HERRE 2"<<endl;
+    // TLegend *legendWithFit = (TLegend*)legend->Clone();
+    // legend->AddEntry(fitHists[0], "Fit");
+
     for(uint cut = 0; cut < cutSequence.size(); cut++){
         //create histogram stacks for MC
         THStack NumJets40MC(Form("NumJets40Stack%d", cut), cutName[cut].c_str());
@@ -480,6 +503,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	THStack HTMC(Form("HTStack%d", cut), cutName[cut].c_str());
 	THStack MTMC(Form("MTMC%d", cut), cutName[cut].c_str());
 	THStack LEP1PTMC(Form("LEP1PTMC%d", cut), cutName[cut].c_str());
+	THStack LEP1ETAMC(Form("LEP1ETAMC%d", cut), cutName[cut].c_str());
 	THStack MHTMC(Form("MHTMC%d", cut), cutName[cut].c_str());
 	THStack MHTNOHFMC(Form("MHTNOHFMC%d", cut), cutName[cut].c_str());
 	
@@ -496,9 +520,36 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    mcHT[tree][cut]->SetFillColor(colors[tree]);
 	    mcMT[tree][cut]->SetFillColor(colors[tree]);
 	    mcLep1Pt[tree][cut]->SetFillColor(colors[tree]);
+	    mcLep1Eta[tree][cut]->SetFillColor(colors[tree]);
 	    mcMHT[tree][cut]->SetFillColor(colors[tree]);
 	    mcMHTnoHF[tree][cut]->SetFillColor(colors[tree]);
 	    
+	    mcNJets40[tree][cut]->SetLineColor(colors[tree]);
+            mcNJets80[tree][cut]->SetLineColor(colors[tree]);
+            mcMR[tree][cut]->SetLineColor(colors[tree]);
+            mcRsq[tree][cut]->SetLineColor(colors[tree]);
+            mcMet[tree][cut]->SetLineColor(colors[tree]);
+            mcNvtx[tree][cut]->SetLineColor(colors[tree]);
+	    mcHT[tree][cut]->SetLineColor(colors[tree]);
+	    mcMT[tree][cut]->SetLineColor(colors[tree]);
+	    mcLep1Pt[tree][cut]->SetLineColor(colors[tree]);
+	    mcLep1Eta[tree][cut]->SetLineColor(colors[tree]);
+	    mcMHT[tree][cut]->SetLineColor(colors[tree]);
+	    mcMHTnoHF[tree][cut]->SetLineColor(colors[tree]);
+
+	    mcNJets40[tree][cut]->SetMarkerColor(colors[tree]);
+            mcNJets80[tree][cut]->SetMarkerColor(colors[tree]);
+            mcMR[tree][cut]->SetMarkerColor(colors[tree]);
+            mcRsq[tree][cut]->SetMarkerColor(colors[tree]);
+            mcMet[tree][cut]->SetMarkerColor(colors[tree]);
+            mcNvtx[tree][cut]->SetMarkerColor(colors[tree]);
+	    mcHT[tree][cut]->SetMarkerColor(colors[tree]);
+	    mcMT[tree][cut]->SetMarkerColor(colors[tree]);
+	    mcLep1Pt[tree][cut]->SetMarkerColor(colors[tree]);
+	    mcLep1Eta[tree][cut]->SetMarkerColor(colors[tree]);
+	    mcMHT[tree][cut]->SetMarkerColor(colors[tree]);
+	    mcMHTnoHF[tree][cut]->SetMarkerColor(colors[tree]);
+
             NumJets40MC.Add(mcNJets40[tree][cut]);
             NumJets80MC.Add(mcNJets80[tree][cut]);
             MRMC.Add(mcMR[tree][cut]);
@@ -508,18 +559,20 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    HTMC.Add(mcHT[tree][cut]);
 	    MTMC.Add(mcMT[tree][cut]);
 	    LEP1PTMC.Add(mcLep1Pt[tree][cut]);
+	    LEP1ETAMC.Add(mcLep1Eta[tree][cut]);
 	    MHTMC.Add(mcMHT[tree][cut]);
 	    MHTNOHFMC.Add(mcMHTnoHF[tree][cut]);
         }
 	DrawDataVsMCRatioPlot(dataNJets40[cut], &NumJets40MC, legend, "Number of jets 40 GeV", "ControlRegionPlots_EleAndMu_NumJets40"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ControlRegionPlots_EleAndMu_NumJets80"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legendWithFit, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
+        // DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
         DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ControlRegionPlots_EleAndMu_Rsq"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ControlRegionPlots_EleAndMu_MET"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ControlRegionPlots_EleAndMu_NVtx"+to_string(cut), false);
 	DrawDataVsMCRatioPlot(dataHT[cut], &HTMC, legend, "HT", "ControlRegionPlots_EleAndMu_HT"+to_string(cut), false);
 	DrawDataVsMCRatioPlot(dataMT[cut], &MTMC, legend, "MT", "ControlRegionPlots_EleAndMu_MT"+to_string(cut), false);
 	DrawDataVsMCRatioPlot(dataLep1Pt[cut], &LEP1PTMC, legend, "Lep1Pt", "ControlRegionPlots_EleAndMu_Lep1Pt"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataLep1Eta[cut], &LEP1ETAMC, legend, "Lep1Eta", "ControlRegionPlots_EleAndMu_Lep1Eta"+to_string(cut), false);
 	DrawDataVsMCRatioPlot(dataMHT[cut], &MHTMC, legend, "MHT", "ControlRegionPlots_EleAndMu_MHT"+to_string(cut), false);
 	DrawDataVsMCRatioPlot(dataMHTnoHF[cut], &MHTNOHFMC, legend, "MHTnoHF", "ControlRegionPlots_EleAndMu_MHTnoHF"+to_string(cut), false);
     }
@@ -535,6 +588,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	delete dataHT[cut];
 	delete dataMT[cut];
 	delete dataLep1Pt[cut];
+	delete dataLep1Eta[cut];
 	delete dataMHT[cut];
 	delete dataMHTnoHF[cut];
 	for(auto &tree : mctrees){
@@ -547,6 +601,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	  delete mcHT[tree.first][cut];
 	  delete mcMT[tree.first][cut];
 	  delete mcLep1Pt[tree.first][cut];
+	  delete mcLep1Eta[tree.first][cut];
 	  delete mcMHT[tree.first][cut];
 	  delete mcMHTnoHF[tree.first][cut];
         }
@@ -574,7 +629,5 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 
 int main(){
     ZInvisibleCrossChecks_WJetsRun2_muele();
-    cout<<"BLA"<<endl;
     return 0;
-    cout<<"BLA2"<<endl;
 }

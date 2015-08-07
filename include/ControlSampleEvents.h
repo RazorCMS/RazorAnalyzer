@@ -114,6 +114,7 @@ class ControlSampleEvents {
   Float_t                 MR_NoLeadJet;
   Float_t                 Rsq_NoLeadJet;
   Float_t                 MET;
+  Float_t                 METnoHF;
   Float_t                 MET_NoDilepton;
   Float_t                 MET_NoLeadJet;
   Float_t                 minDPhi;
@@ -293,6 +294,7 @@ class ControlSampleEvents {
     MR_NoLeadJet         = 0.0;
     Rsq_NoLeadJet        = 0.0;
     MET                  = 0.0;
+    METnoHF              = 0.0;
     MET_NoDilepton       = 0.0;
     MET_NoLeadJet        = 0.0;
     minDPhi              = 0.0;
@@ -436,8 +438,7 @@ class ControlSampleEvents {
       tree_->Branch("HT",&HT,"HT/F");
       tree_->Branch("lep1Pt",&lep1Pt,"lep1Pt/F");
       tree_->Branch("lep1Eta",&lep1Eta,"lep1Eta/F");
-      tree_->Branch("MHT",&MHT,"MHT/F");
-      tree_->Branch("MHTnoHF",&MHTnoHF,"MHTnoHF/F");
+      tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
     }
   
     if (treeType == kTreeType_OneLepton_Full) {
