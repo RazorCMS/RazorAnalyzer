@@ -54,6 +54,7 @@ WWTo2L2Nu_13TeV-powheg                                                 63.21*(1-
 WW_TuneCUETP8M1_13TeV-pythia8                                          63.21
 WZ_TuneCUETP8M1_13TeV-pythia8                                          22.82
 ZZ_TuneCUETP8M1_13TeV-pythia8                                          10.32
+GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8                       365896
 
 #13 TeV SM backgrounds -- LO cross sections from MCM
 TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola         424.5
