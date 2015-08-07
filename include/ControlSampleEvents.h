@@ -186,6 +186,7 @@ class ControlSampleEvents {
   Float_t                 METPhi_NoPho;
   Float_t                 METPhi_NoW;
   Float_t                 METPhi_NoZ;
+  Float_t                 METPhi;
   UInt_t                  NJets_NoZ;
   UInt_t                  NJets_NoW;
   UInt_t                  NJets_NoPho;
@@ -364,6 +365,7 @@ class ControlSampleEvents {
     METPhi_NoPho = -99.;
     METPhi_NoZ = -99.;
     METPhi_NoW = -99.;
+    METPhi = -99.;
     NJets_NoZ = 0; 
     NJets_NoW = 0; 
     NJets_NoPho = 0 ; 
@@ -817,6 +819,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("MET",	       &MET);
       tree_->SetBranchAddress("MET_NoZ",       &MET_NoZ);
       tree_->SetBranchAddress("METPhi_NoZ",    &METPhi_NoZ);
+      tree_->SetBranchAddress("METPhi",         &METPhi);
       tree_->SetBranchAddress("HT_NoZ",        &HT_NoZ);
       tree_->SetBranchAddress("dPhiRazor_NoZ", &dPhiRazor_NoZ);
       tree_->SetBranchAddress("recoZmass",     &recoZmass);

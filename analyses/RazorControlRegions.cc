@@ -1009,6 +1009,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->NJets_NoZ = GoodJetsNoLeptons.size();
 	events->HT_NoZ = ht_NoLep;
 	events->NJets80_NoZ = njets80NoLep;
+    events->METPhi = MyMET.Phi();
 
 	//Z kinematics
 	if(NLeptonsAdded >= 2){
