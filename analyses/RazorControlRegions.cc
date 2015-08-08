@@ -817,13 +817,18 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
       double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
 
-      
+      double PFMetnoHFX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
+      double PFMetnoHFY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
+    
       TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
       TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
       TLorentzVector MyMET = PFMETType1;
 
+      TLorentzVector PFMETnoHFType1;
+      PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
+	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
 	cout << "Corrected PFMET: " << PFMET.Pt() << " " << PFMET.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
@@ -851,6 +856,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       }
 
       events->MET = MyMET.Pt();
+      events->METnoHF = PFMETnoHFType1.Pt();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
       events->NBJetsLoose = nBJetsLoose20GeV;
@@ -861,14 +867,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for(auto& pfobj : GoodPFObjects) events->HT += pfobj.Pt();
 	
       //compute M_T for lep1 and MET
-      events->lep1MT = sqrt(events->lep1.M2() + 2*PFMET.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(PFMET.Phi(),events->lep1.Phi()))));
+      events->lep1MT = sqrt(events->lep1.M2() + 2*MyMET.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(MyMET.Phi(),events->lep1.Phi()))));
+      events->lep1MTnoHF = sqrt(events->lep1.M2() + 2*PFMETnoHFType1.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(PFMETnoHFType1.Phi(),events->lep1.Phi()))));
 	
       //save HLT Decisions
       for(int k=0; k<150; ++k) {
 	events->HLTDecision[k] = HLTDecision[k];	
       }
-
-      events->METnoHF = metNoHFPt;
     	
       //MET Filter
       events->Flag_HBHENoiseFilter = Flag_HBHENoiseFilter;

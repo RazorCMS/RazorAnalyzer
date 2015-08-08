@@ -129,6 +129,7 @@ class ControlSampleEvents {
   Float_t                 MHT;
   Float_t                 MHTnoHF;
   Float_t                 lep1MT;
+  Float_t                 lep1MTnoHF;
   Float_t                 mll;
   Float_t                 u1, u2; // Parallel and perpendicular component of the recoil vector to Z
   Bool_t                  Flag_HBHENoiseFilter;//
@@ -309,6 +310,7 @@ class ControlSampleEvents {
     MHT                  = 0.;
     MHTnoHF              = 0.;
     lep1MT               = 0.0;  
+    lep1MTnoHF           = 0.0;  
     mll                  = 0.0;
     Flag_HBHENoiseFilter = 0.0;//
     Flag_CSCTightHaloFilter = 0.0;
@@ -433,6 +435,7 @@ class ControlSampleEvents {
       tree_->Branch("lep1PassTight",&lep1PassTight,"lep1PassTight/O");
       tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
+      tree_->Branch("lep1MTnoHF",&lep1MTnoHF,"lep1MTnoHF/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
       tree_->Branch("HT",&HT,"HT/F");
