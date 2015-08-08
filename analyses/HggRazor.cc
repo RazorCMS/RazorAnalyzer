@@ -49,6 +49,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 {
     //initialization: create one TTree for each analysis box 
   if ( _info) std::cout << "Initializing..." << std::endl;
+  cout << "Combine Trees = " << combineTrees << "\n";
   if (outFileName.empty()){
     if ( _info ) std::cout << "HggRazor: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
     outFileName = "HggRazor.root";
@@ -57,17 +58,21 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
-  /*
-  correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
-  correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
-  correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
-  correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
-  */
-  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L1FastJet_AK4PF.txt") );
-  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2Relative_AK4PF.txt") );
-  correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L3Absolute_AK4PF.txt") );
-  //correctionParameters.push_back( JetCorrectorParameters("data/PHYS14_V2_MC_L2L3Residual_AK4PF.txt") );
-  
+  //get correct directory for JEC files (different for lxplus and t3-higgs)
+  char* cmsswPath;
+  cmsswPath = getenv("CMSSW_BASE");
+  string pathname;
+  if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+  cout << "Getting JEC parameters from " << pathname << endl;
+  if (isData) {
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+  } else {
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+  }  
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
 
   //I n i t i a l i z i n g   E f f e c t i v e   A r e a   A r r a y; 
@@ -76,10 +81,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
-  /*
-    combine Trees
-  */
-  combineTrees = false;
 
   /*
     This is to debug and sync with Alex's events
@@ -125,6 +126,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
   //tree variables
+  int NPU;
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   float theMR;
@@ -150,6 +152,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("run", &run, "run/i");
     razorTree->Branch("lumi", &lumi, "lumi/i");
     razorTree->Branch("event", &event, "event/i");
+    razorTree->Branch("NPU", &NPU, "npu/i");
     razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
     razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -203,6 +206,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+    razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
   }
   //set branches on all trees
   else{ 
@@ -210,6 +214,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       thisBox.second->Branch("run", &run, "run/i");
       thisBox.second->Branch("lumi", &lumi, "lumi/i");
       thisBox.second->Branch("event", &event, "event/i");
+      thisBox.second->Branch("NPU", &NPU, "npu/i");
       thisBox.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
       thisBox.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
       thisBox.second->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
@@ -262,6 +267,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       thisBox.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
       thisBox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       thisBox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+      thisBox.second->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
     }
   }
   
@@ -326,6 +332,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	jet_Phi[i] = -99.;
       }
     
+    //Fill Pileup Info
+    for (int i=0; i < nBunchXing; ++i) {
+      if (BunchXing[i] == 0) {
+	NPU = nPUmean[i];
+      }
+    }
+
     /*
       std::stringstream ss;
       ss << run << event;
@@ -339,7 +352,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     
     //TODO: triggers!
     bool passedDiphotonTrigger = true;
-    if(!passedDiphotonTrigger) continue;
+    passedDiphotonTrigger = (HLTDecision[44] || HLTDecision[46]);
+    //if(!passedDiphotonTrigger) continue;
     
     //muon selection
     for(int i = 0; i < nMuons; i++){
@@ -521,6 +535,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
 	Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	Pho_passIso[_pho_index]            = tmpPho._passIso;
+
 	_pho_index++;
       }
     
@@ -536,7 +551,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     if( HiggsCandidate.Pt() < 20.0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: Higgs Pt < 20 GeV, H pt: " << HiggsCandidate.Pt() << std::endl; 
-	continue;
+	//continue;
       }
     
     //if the best candidate pair has a photon in the endcap, reject the event
