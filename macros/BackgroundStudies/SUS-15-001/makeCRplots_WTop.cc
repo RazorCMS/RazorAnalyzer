@@ -243,7 +243,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     cutSequence.push_back( "NBJetsMedium == 0 && lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.5 && METnoHF > 50" );
     cutName.push_back( "" );
 
-    cutSequence.push_back( "NBJetsMedium >=1 && lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.5 && METnoHF > 30" );
+    cutSequence.push_back( "NBJetsMedium > 0 && lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.5 && METnoHF > 30" );
     cutName.push_back( "" );
 
     map<string, vector<TH1F *> > mcNJets40, mcNJets80, mcMR, mcRsq,  mcMet, mcNvtx,  mcHT, mcMT, mcMTnoHF, mcLep1Pt, mcLep1Eta, mcMETnoHF;
@@ -267,7 +267,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
             mcNvtx[tree.first].push_back(new TH1F(Form("mcNvtx%s%d", tree.first.c_str(), cut), Form("%s; NVtx (GeV)", cutName[cut].c_str()), 50, 0, 50));
             mcNJets40[tree.first].push_back(new TH1F(Form("mcNJets40%s%d", tree.first.c_str(), cut), Form("%s; Number of jets 40 GeV", cutName[cut].c_str()), 10, 0, 10));
             mcNJets80[tree.first].push_back(new TH1F(Form("mcNJets80%s%d", tree.first.c_str(), cut), Form("%s; Number of jets 80 GeV", cutName[cut].c_str()), 10, 0, 10));
-            mcMR[tree.first].push_back(new TH1F(Form("mcMR%s%d", tree.first.c_str(), cut), Form("%s; MR [GeV/c^2]", cutName[cut].c_str()), 20, 300, 4000));
+            mcMR[tree.first].push_back(new TH1F(Form("mcMR%s%d", tree.first.c_str(), cut), Form("%s; MR [GeV/c^2]", cutName[cut].c_str()), 20, 300, 4300));
             mcRsq[tree.first].push_back(new TH1F(Form("mcRsq%s%d", tree.first.c_str(), cut), Form("%s; Rsq (GeV)", cutName[cut].c_str()), nRsqBins, RsqBinLowEdges));
             mcMet[tree.first].push_back(new TH1F(Form("mcMet%s%d", tree.first.c_str(), cut), Form("%s; MET (GeV)", cutName[cut].c_str()), 200, 0, 1000));
             mcMT[tree.first].push_back(new TH1F(Form("mcMT%s%d", tree.first.c_str(), cut), Form("%s; MT (GeV)", cutName[cut].c_str()), 50, 0, 500));
@@ -292,7 +292,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
         }
         dataNJets40.push_back(new TH1F(Form("dataNJets40%d", cut), Form("%s; Number of jets 40 GeV", cutName[cut].c_str()), 10, 0, 10));
         dataNJets80.push_back(new TH1F(Form("dataNJets80%d", cut), Form("%s; Number of jets 80 GeV", cutName[cut].c_str()), 10, 0, 10));
-        dataMR.push_back(new TH1F(Form("dataMR%d", cut), Form("%s; MR [GeV/c^2]", cutName[cut].c_str()), 20, 300, 4000));
+        dataMR.push_back(new TH1F(Form("dataMR%d", cut), Form("%s; MR [GeV/c^2]", cutName[cut].c_str()), 20, 300, 4300));
         dataRsq.push_back(new TH1F(Form("dataRsq%d", cut), Form("%s; Rsq (GeV)", cutName[cut].c_str()), nRsqBins, RsqBinLowEdges));
         dataMet.push_back(new TH1F(Form("dataMet%d", cut), Form("%s; mcMet (GeV)", cutName[cut].c_str()), 200, 0, 1000));
         dataNvtx.push_back(new TH1F(Form("dataNvtx%d", cut), Form("%s; NVtx (GeV)", cutName[cut].c_str()), 50, 0, 50));
@@ -346,16 +346,11 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    // }
 
 	    bool trigger_passed = false;
-	    
-	    if (HLTNames[0] == true && abs(lep1Type) == 13) trigger_passed = true; //muon triggers
-	    if (HLTNames[27] == true && abs(lep1Type) == 11) trigger_passed = true; //electron triggers
-	    // if (abs(lep1Type) == 13) continue;
+	    if (HLTNames[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
+	    if (HLTNames[27] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35) trigger_passed = true; //electron triggers
 
 	    if (trigger_passed == false) continue;
 
-	    if(abs(lep1Type) == 11 && lep1Pt<35.) continue;
-	    if(abs(lep1Type) == 13 && fabs(lep1Eta)<2.4) continue;
-	    
 	    //trigger and normalization scale factors
 	    // eventWeight *= singleMuTriggerSF;
 	    
@@ -411,15 +406,18 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
             //get event weight
             float eventWeight = 1.0;
 	    
-	    bool trigger_passed = false;
-	    if (HLTNames[0] == true && abs(lep1Type) == 13) trigger_passed = true; //muon triggers
-	    if (HLTNames[29] == true && abs(lep1Type) == 11) trigger_passed = true; //electron triggers
+// ((HLTDecision[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))	    
+
+            bool trigger_passed = false;
+	    if (HLTNames[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
+	    if (HLTNames[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35) trigger_passed = true; //electron triggers
 	    // if (abs(lep1Type) == 13) continue;
 
 	    if (trigger_passed == false) continue;
 
-	    if(abs(lep1Type) == 11 && lep1Pt<35.) continue;
-	    if(abs(lep1Type) == 13 && fabs(lep1Eta)<2.4) continue;
+	    // if(TMath::Abs(lep1Type) == 11 && lep1Pt<35.) continue;
+	    // if(TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) continue;
+	    
 
 	    // if(!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) continue;
 	    
