@@ -109,6 +109,7 @@ class ControlSampleEvents {
   Bool_t                  jet2PassCSVTight;
   Float_t                 MR;
   Float_t                 Rsq;
+  Float_t                 RsqnoHF;
   Float_t                 MR_NoDilepton;
   Float_t                 Rsq_NoDilepton;
   Float_t                 MR_NoLeadJet;
@@ -290,6 +291,7 @@ class ControlSampleEvents {
     jet2PassCSVTight     = 0.0;
     MR                   = 0.0;
     Rsq                  = 0.0;
+    RsqnoHF              = 0.0;
     MR_NoDilepton        = 0.0;
     Rsq_NoDilepton       = 0.0;
     MR_NoLeadJet         = 0.0;
@@ -401,6 +403,7 @@ class ControlSampleEvents {
     tree_->Branch("weight",&weight,"weight/F");
     tree_->Branch("run",&run,"run/i");
     tree_->Branch("lumi",&lumi,"lumi/i");
+    tree_->Branch("event",&event,"event/i");
     tree_->Branch("NPU_0",&NPU_0,"NPU_0/i");
     tree_->Branch("NPV",&NPV,"NPV/i");
     tree_->Branch("MR",&MR,"MR/F");
@@ -442,6 +445,7 @@ class ControlSampleEvents {
       tree_->Branch("lep1Pt",&lep1Pt,"lep1Pt/F");
       tree_->Branch("lep1Eta",&lep1Eta,"lep1Eta/F");
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
+      tree_->Branch("RsqnoHF", &RsqnoHF, "RsqnoHF/F");
     }
   
     if (treeType == kTreeType_OneLepton_Full) {

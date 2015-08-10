@@ -845,6 +845,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
 	events->MR = computeMR(hemispheres[0], hemispheres[1]); 
 	events->Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
+	events->RsqnoHF = computeRsq(hemispheres[0], hemispheres[1], PFMETnoHFType1);
       }
 	
 
