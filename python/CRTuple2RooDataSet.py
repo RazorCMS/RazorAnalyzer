@@ -11,12 +11,10 @@ k_W = 3.*20508.9/50100.0
 
 k_QCD = {}
     
-boxes = {'TTBarSingleLepton':'lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET>30 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))',
-        'WSingleLepton':'lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET > 50 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))'}
-#boxes = {'TTBarSingleLepton':'( ( abs(lep1Type) == 11 || abs(lep1Type) == 13) && (lep1PassTight) && (lep1.Pt()>30) && (MET > 30) && (lep1MT > 30 && lep1MT < 100) )',
-#        'WSingleLepton':'( ( abs(lep1Type) == 11 || abs(lep1Type) == 13) && (lep1PassTight) && (lep1.Pt()>30) && (MET > 50) && (lep1MT > 30 && lep1MT < 100) )'}
-
-
+boxes = {'TTBarSingleLepton':'lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && METnoHF>30 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))',
+        'WSingleLepton':'lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && METnoHF > 50 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))'}
+#boxes = {'TTBarSingleLepton':'lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET>30 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))',
+#        'WSingleLepton':'lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET > 50 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))'}
 
 def initializeWorkspace(w,cfg,box):
     variables = cfg.getVariablesRange(box,"variables",w)
@@ -62,11 +60,13 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     if useWeight:
         tree.Project(htemp.GetName(),
                     'min(NBJetsMedium,%i)'%btagCutoff,
-                    '(%f/%f) * %f * weight * (MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (lumi,lumi_in,k,mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut))
+                    '(%f/%f) * %f * weight * (MR > %f && MR < %f && RsqnoHF > %f && RsqnoHF < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (lumi,lumi_in,k,mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut))
+                    #'(%f/%f) * %f * weight * (MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (lumi,lumi_in,k,mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut))
     else:
         tree.Project(htemp.GetName(),
                     'min(NBJetsMedium,%i)'%btagCutoff,
-                    '(MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut))
+                    '(MR > %f && MR < %f && RsqnoHF > %f && RsqnoHF < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut))
+                    #'(MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut))
         
     return [htemp.GetBinContent(i) for i in range(1,len(z))]
         
@@ -109,7 +109,8 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     boxCut = boxes[box]
     
     tree.Draw('>>elist',
-              '(MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut),
+              '(MR > %f && MR < %f && RsqnoHF > %f && RsqnoHF < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut),
+              #'(MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(NBJetsMedium,%i) >= %i && min(NBJetsMedium,%i) < %f && %s)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut),
               'entrylist')
         
     elist = rt.gDirectory.Get('elist')
@@ -124,7 +125,8 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
         a = rt.RooArgSet(args)
         
         a.setRealValue('MR',tree.MR)
-        a.setRealValue('Rsq',tree.Rsq)
+        a.setRealValue('Rsq',tree.RsqnoHF)
+        #a.setRealValue('Rsq',tree.Rsq)
         a.setRealValue('nBtag',min(tree.NBJetsMedium,btagCutoff))
         
         if useWeight:
