@@ -52,13 +52,13 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     // suffixes["TTW"] = "_noW";
     // suffixes["TTZ"] = "_noW";
 
-    //load file with fit results
-    // TFile *fitResultFile = new TFile("./ControlSampleFits.root", "READ");
-    // vector<TH1F*> fitHists;
-    // if(fitResultFile){
-    //     fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
-    //     fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
-    // }
+    // load file with fit results
+    TFile *fitResultFile = new TFile("./ControlSampleFits_forPAS.root", "READ");
+    vector<TH1F*> fitHists;
+    if(fitResultFile){
+        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
+        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
+    }
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
@@ -464,11 +464,6 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     colors["WJets"] = kRed;
     colors["Top"] = kBlue;
     colors["TTJets"] = kAzure+10;
-    // fitHists[0]->Draw("hist");
-    // fitHists[0]->SetLineWidth(2);
-    // fitHists[0]->SetFillColor(kGreen+2);
-    // fitHists[0]->SetFillStyle(3002);
-    // fitHists[0]->Draw("same e3");
 
     TLegend *legend = new TLegend(0.6, 0.54, 0.9, 0.84);
     legend->SetTextSize(0.04);
@@ -481,8 +476,8 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     legend->AddEntry(mcNJets40["WJets"][0], "W+Jets MC");
     legend->AddEntry(mcNJets40["TTJets"][0], "TTJets MC");
     legend->AddEntry(mcNJets40["Top"][0], "Single Top MC");
-    // TLegend *legendWithFit = (TLegend*)legend->Clone();
-    // legend->AddEntry(fitHists[0], "Fit");
+    TLegend *legendWithFit = (TLegend*)legend->Clone();
+    legend->AddEntry(fitHists[0], "Fit");
 
     for(uint cut = 0; cut < cutSequence.size(); cut++){
         //create histogram stacks for MC
@@ -557,8 +552,8 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
         }
 	DrawDataVsMCRatioPlot(dataNJets40[cut], &NumJets40MC, legend, "Number of jets 40 GeV", "ControlRegionPlots_EleAndMu_NumJets40"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ControlRegionPlots_EleAndMu_NumJets80"+to_string(cut), false);
-        // DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "M_{R} [GeV]", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
+        // DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ControlRegionPlots_EleAndMu_Rsq"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ControlRegionPlots_EleAndMu_MET"+to_string(cut), false);
         DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ControlRegionPlots_EleAndMu_NVtx"+to_string(cut), false);

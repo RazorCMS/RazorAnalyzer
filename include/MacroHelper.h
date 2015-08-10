@@ -61,7 +61,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     mcStack->Draw("hist");
     mcStack->GetYaxis()->SetTitle("Number of events");
     mcStack->GetYaxis()->SetLabelSize(0.03);
-    mcStack->GetYaxis()->SetTitleOffset(0.45);
+    mcStack->GetYaxis()->SetTitleOffset(0.7);
     mcStack->GetYaxis()->SetTitleSize(0.05);
     mcStack->SetMinimum(0.1);
     dataHist->SetMarkerStyle(20);
@@ -96,12 +96,13 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
     dataOverMC->SetMinimum(0.5);
     dataOverMC->SetMaximum(1.5);
+
     dataOverMC->GetXaxis()->SetLabelSize(0.1);
     dataOverMC->GetYaxis()->SetLabelSize(0.08);
-    dataOverMC->GetYaxis()->SetTitleOffset(0.35);
+    dataOverMC->GetYaxis()->SetTitleOffset(0.25);
     dataOverMC->GetXaxis()->SetTitleOffset(1.00);
-    dataOverMC->GetYaxis()->SetTitleSize(0.08);
-    dataOverMC->GetXaxis()->SetTitleSize(0.08);
+    dataOverMC->GetYaxis()->SetTitleSize(0.1);
+    dataOverMC->GetXaxis()->SetTitleSize(0.1);
     dataOverMC->SetStats(0);
 
     string histoName = dataHist->GetName() ;
