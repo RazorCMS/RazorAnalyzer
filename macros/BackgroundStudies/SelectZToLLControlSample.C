@@ -24,10 +24,31 @@
 #include <TLegend.h> 
 #include <THStack.h> 
 #include <TRandom3.h> 
+#include <TLatex.h> 
 
 #include "RazorAnalyzer/include/ControlSampleEvents.h"
 
 #endif
+
+//*************************************************************************************************
+//Normalize Hist
+//*************************************************************************************************
+TH1D* NormalizeHist(TH1D *originalHist) {
+  TH1D* hist = (TH1D*)originalHist->Clone((string(originalHist->GetName())+"_normalized").c_str());
+  Double_t norm = 0;
+  hist->SetTitle("");
+  for (UInt_t b=0; int(b)<hist->GetXaxis()->GetNbins()+2; ++b) {
+    norm += hist->GetBinContent(b);
+  }
+  for (UInt_t b=0; int(b)<hist->GetXaxis()->GetNbins()+2; ++b) {
+    hist->SetBinContent(b,hist->GetBinContent(b) / norm);
+    hist->SetBinError(b,hist->GetBinError(b) / norm);
+  }
+
+  return hist;
+}
+
+
 
 void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label ) {
 
@@ -98,12 +119,26 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->SetMinimum( 0.1 );
 
     if (hasData) {
-      hist[0]->SetLineWidth(2);
+      hist[0]->SetMarkerStyle(20);      
+      hist[0]->SetMarkerSize(1);
+      hist[0]->SetLineWidth(1);
       hist[0]->SetLineColor(color[0]);
-      hist[0]->Draw("e1same");
+      hist[0]->Draw("pesame");
     }
     legend->Draw();
   }
+
+
+  TLatex *tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.050);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.1,0.92,"CMS Preliminary");
+  tex->DrawLatex(0.6, 0.92, "#sqrt{s} = 13 TeV, L = 40 pb^{-1}");
+  tex->Draw();
+ 
+
   cv->cd();
   cv->Update();
 
@@ -112,6 +147,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   pad2->SetTopMargin(0.01);
   pad2->SetBottomMargin(0.37);
   pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
   pad2->Draw();
   pad2->cd();
     
@@ -150,14 +186,22 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->GetXaxis()->SetLabelSize(0.125);
   histDataOverMC->GetXaxis()->SetTitleSize(0.15);
   histDataOverMC->GetXaxis()->SetTitleOffset(1.0);
+  histDataOverMC->SetLineColor(kBlack);
+  histDataOverMC->SetMarkerStyle(20);      
+  histDataOverMC->SetMarkerSize(1);
   histDataOverMC->SetStats(false);
-  histDataOverMC->Draw("e1");
+  histDataOverMC->Draw("pe");
   
   pad1->SetLogy(false);
-  cv->SaveAs(Form("Razor_ZToLLCR_%s%s.gif",varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("Razor_ZToLLCR_%s%s.png",varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("Razor_ZToLLCR_%s%s.pdf",varName.c_str(), label.c_str()));
   
   pad1->SetLogy(true);
-  cv->SaveAs(Form("Razor_ZToLLCR_%s%s_Logy.gif",varName.c_str(),label.c_str()));
+  cv->SaveAs(Form("Razor_ZToLLCR_%s%s_Logy.png",varName.c_str(),label.c_str()));
+  cv->SaveAs(Form("Razor_ZToLLCR_%s%s_Logy.pdf",varName.c_str(),label.c_str()));
+
+
+ 
 
 }
 
@@ -212,6 +256,10 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   //============================================================================================================== 
   bool printdebug = false;
 
+  TFile *NVtxWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/NVtxReweight_ZToMuMu.root", "READ");
+  TH1D *NVtxWeightHist = (TH1D*)NVtxWeightFile->Get("NVtxReweight");
+  assert(NVtxWeightHist);
+
   TFile *pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
   TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PUWeight_Run1");
   assert(pileupWeightHist);
@@ -245,6 +293,9 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
      color.push_back(bkgColors[i]);
   }
 
+  TH1D* histNVtxData = new TH1D( "histNVtxData", ";Number of Reconstructed Primary Vertices;Number of Events", 40, -0.5,39.5);
+  TH1D* histNVtxAllBkg = new TH1D( "histNVtxAllBkg", ";Number of Reconstructed Primary Vertices;Number of Events", 40, -0.5,39.5);
+
   vector<TH1D*> histNVtx;
   vector<TH1D*> histMR;
   vector<TH1D*> histRsq;
@@ -258,10 +309,10 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
     histNVtx.push_back(new TH1D(Form("histNVtx_%s",processLabels[i].c_str()), "; Number of Primary Vertices; R^{2}; Number of Events", 100, -0.5, 99.5));
-    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 100, 400, 2500));
-    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 100, 0.05, 1.0));
-    histDileptonMass.push_back(new TH1D(Form("histDileptonMass_%s",processLabels[i].c_str()), "; M_{ll} [GeV/c^{2}]; Number of Events", 100, 0, 200));
-    histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV/c] ; Number of Events", 100, 0, 1000));
+    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 50, 200, 2700));
+    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 20, 0.00, 1.0));
+    histDileptonMass.push_back(new TH1D(Form("histDileptonMass_%s",processLabels[i].c_str()), "; M_{ll} [GeV/c^{2}]; Number of Events", 60, 60, 120));
+    histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV/c] ; Number of Events", 50, 0, 200));
     histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", 15, -0.5, 14.5));
     histNJets80.push_back(new TH1D(Form("histNJets80_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 80); Number of Events", 10, -0.5, 9.5));
     histNBtags.push_back(new TH1D(Form("histNBtags_%s",processLabels[i].c_str()), "; Number of B tags; Number of Events", 10, -0.5,9.5));
@@ -285,7 +336,7 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   //*******************************************************************************************                
   for (uint i=0; i < inputfiles.size(); ++i) {
     ControlSampleEvents *events = new ControlSampleEvents;
-    events->LoadTree(inputfiles[i].c_str());
+    events->LoadTree(inputfiles[i].c_str(), ControlSampleEvents::kTreeType_Dilepton_Full);
 
     cout << "process: " << processLabels[i] << " | Total Entries: " << events->tree_->GetEntries() << "\n";
     for(UInt_t ientry=0; ientry < events->tree_->GetEntries(); ientry++) {       	
@@ -294,8 +345,11 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
       if (ientry % 100000 == 0) cout << "Event " << ientry << endl;      
       //if (ientry > 1000000) break;
 
+      double NVtxWeight = NVtxWeightHist->GetBinContent(NVtxWeightHist->GetXaxis()->FindFixBin(events->NPV));
       double puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
-      double weight = lumi * events->weight * puWeight;
+      //double weight = lumi * events->weight * puWeight;
+      double weight = lumi * events->weight * NVtxWeight;
+      //double weight = lumi * events->weight;
 
       //******************************
       //Trigger Selection
@@ -303,19 +357,22 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
       bool passTrigger = false;
 
       //DiMuon Triggers: Mu17Mu8 , Mu17TkMu8
-      if (events->HLTDecision[3] ==true || events->HLTDecision[4] ==true) passTrigger = true;
+      if (events->HLTDecision[17] || events->HLTDecision[19] ) passTrigger = true;
 
       //DiElectron Triggers:
-      if (events->HLTDecision[12] ==true) passTrigger = true;
+      if ( events->HLTDecision[33] 
+	  || events->HLTDecision[34]	
+	  ) passTrigger = true;
 
       if (!passTrigger) continue;
 
       //******************************
       //Selection Cuts 
       //******************************
+
       if (!( (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	     &&
-	     (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
+	     (abs(events->lep2Type) == 11 || abs(events->lep2Type) == 13)
 	     )
 	  ) continue;
 
@@ -328,7 +385,7 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
       if ( (events->lep1+events->lep2).M() < 20) continue;
 
       // BTag Veto
-      if ( !( events->NBJetsMedium == 0)) continue;
+      //if ( !( events->NBJetsMedium == 0)) continue;
 
       //Razor signal region cuts
       if (option == "TwoJet80") {
@@ -337,6 +394,10 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
       
       if (option == "MR300Rsq0p05") {
 	if (!(events->MR > 300 && events->Rsq > 0.05 )) continue;
+      }
+      
+      if (option == "MR200") {
+	if (!(events->MR > 200 )) continue;
       }
       
     
@@ -368,36 +429,38 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
       //******************************
       //Apply Scale Factors
       //******************************
-      if (!(hasData && i==0)) {
-      	double triggerEffScaleFactor = 1.0;
-      	if ( (abs(events->lep1Type) == 13 && abs(events->lep2Type) == 13)) triggerEffScaleFactor = 0.970; 
+      // if (!(hasData && i==0)) {
+      // 	double triggerEffScaleFactor = 1.0;
+      // 	if ( (abs(events->lep1Type) == 13 && abs(events->lep2Type) == 13)) triggerEffScaleFactor = 0.970; 
 	
-	double leptonEffScaleFactor = 1.0;
-	if (abs(events->lep1Type) == 11) {
-	  leptonEffScaleFactor *= eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())) , 
-							       eleEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),10.01)));	 
-	}
-	if (abs(events->lep2Type) == 11) {
-	  leptonEffScaleFactor *= eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep2.Eta())) , 
-							       eleEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),10.01)));
-	}
+      // 	double leptonEffScaleFactor = 1.0;
+      // 	if (abs(events->lep1Type) == 11) {
+      // 	  leptonEffScaleFactor *= eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())) , 
+      // 							       eleEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),10.01)));	 
+      // 	}
+      // 	if (abs(events->lep2Type) == 11) {
+      // 	  leptonEffScaleFactor *= eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep2.Eta())) , 
+      // 							       eleEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),10.01)));
+      // 	}
 	
-	//extra scale factor for MC to agree with data yield
-	double normalizationScaleFactor = 1.0;
-	if ( (abs(events->lep1Type) == 13 && abs(events->lep2Type) == 13)) normalizationScaleFactor = 0.970;
-	if ( (abs(events->lep1Type) == 11 && abs(events->lep2Type) == 11)) normalizationScaleFactor = 0.970;
+      // 	//extra scale factor for MC to agree with data yield
+      // 	double normalizationScaleFactor = 1.0;
+      // 	if ( (abs(events->lep1Type) == 13 && abs(events->lep2Type) == 13)) normalizationScaleFactor = 0.970;
+      // 	if ( (abs(events->lep1Type) == 11 && abs(events->lep2Type) == 11)) normalizationScaleFactor = 0.970;
 	
-      	weight *= leptonEffScaleFactor;
-      	weight *= triggerEffScaleFactor;
-	weight *= normalizationScaleFactor;
-      }
+      // 	weight *= leptonEffScaleFactor;
+      // 	weight *= triggerEffScaleFactor;
+      // 	weight *= normalizationScaleFactor;
+      // }
 
 
       //******************************
       //Fill histograms
       //******************************
       if (hasData && i==0) {
-	if ((events->lep1+events->lep2).M() > 80 && (events->lep1+events->lep2).M() < 100) {
+	histNVtxData->Fill(events->NPV);
+	if ((events->lep1+events->lep2).M() > 60 && (events->lep1+events->lep2).M() < 120) {
+	  histNVtx[i]->Fill(events->NPV);	  
 	  histMR[i]->Fill(events->MR);
 	  histRsq[i]->Fill(events->Rsq);
 	  histDileptonMass[i]->Fill((events->lep1+events->lep2).M());      
@@ -411,7 +474,9 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
 	  dataYield += 1.0;
 	}
       } else {
-	if ((events->lep1+events->lep2).M() > 80 && (events->lep1+events->lep2).M() < 100) {
+	histNVtxAllBkg->Fill(events->NPV, weight);
+	if ((events->lep1+events->lep2).M() > 60 && (events->lep1+events->lep2).M() < 120) {
+	  histNVtx[i]->Fill(events->NPV,weight);
 	  histMR[i]->Fill(events->MR, weight );
 	  histRsq[i]->Fill(events->Rsq, weight );
 	  histDileptonMass[i]->Fill((events->lep1+events->lep2).M(), weight );      
@@ -445,6 +510,29 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   //     }
   //   }
   // }
+
+
+  //*******************************************************************************************
+  //Make NVtx Reweighting Function
+  //*******************************************************************************************
+  TH1D *NVtxDataNormalized = NormalizeHist( histNVtxData );
+  TH1D *NVtxBkgNormalized = NormalizeHist( histNVtxAllBkg );
+
+  TH1D *NVtxReweight = (TH1D*)NVtxDataNormalized->Clone("NVtxReweight");  
+  for (int i=1; i<NVtxReweight->GetXaxis()->GetNbins()+1; i++) {
+
+    double data = 0;
+    double bkg = 0;
+    if (NVtxBkgNormalized->GetBinContent(i) > 0) {
+      NVtxReweight->SetBinContent(i,NVtxDataNormalized->GetBinContent(i)/NVtxBkgNormalized->GetBinContent(i));
+    } else if (NVtxDataNormalized->GetBinContent(i) == 0){
+      NVtxReweight->SetBinContent(i,0.0);
+    } else {
+      NVtxReweight->SetBinContent(i,1.0);
+    }
+  }
+
+
 
    //--------------------------------------------------------------------------------------------------------------
   // Subtract Non WJets Bkg
@@ -532,13 +620,21 @@ void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vect
   PlotDataAndStackedBkg( histNJets40, processLabels, color, hasData, "NJets40", Label);
   PlotDataAndStackedBkg( histNJets80, processLabels, color, hasData, "NJets80", Label);
   PlotDataAndStackedBkg( histNBtags, processLabels, color, hasData, "NBtags", Label);
+  PlotDataAndStackedBkg( histNVtx, processLabels, color, hasData, "NVtx", Label);
   
 
 
   // //--------------------------------------------------------------------------------------------------------------
   // // Output
   // //==============================================================================================================
-  TFile *file = TFile::Open(("ZToLLControlRegionPlots"+Label+".root").c_str(), "UPDATE");
+  TFile *file = TFile::Open("NVtxReweight_ZToMuMu.root", "UPDATE");
+  file->cd();
+  file->WriteTObject(NVtxReweight, "NVtxReweight", "WriteDelete");
+  file->Close();
+  delete file;
+
+
+  file = TFile::Open(("ZToLLControlRegionPlots"+Label+".root").c_str(), "UPDATE");
   file->cd();
 
   for(int i=0; i<int(inputfiles.size()); i++) {
@@ -576,69 +672,68 @@ void SelectZToLLControlSample( int option = 0) {
 
   //Inclusive sample
   if (option == 11) {
-    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DoubleMuParked_GoodLumi.root";
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DoubleMuon_Run2015B_GoodLumi.root";
   } else if (option == 10) {
-    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DoubleElectron_GoodLumi.root";
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DoubleEG_Run2015B_GoodLumi.root";
+  } else if (option == 2 || option == 12) {
+    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DoubleEGDoubleMuon_Run2015B_GoodLumi.root";
   }
-  if (option == 10 || option == 11) {
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_TTJets_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_VV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_SingleTop_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_TTV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonSkim/RunOneRazorControlRegions_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
-  }
-
-  // //Razor Skim sample
-  if (option == 1) {
-    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleMuParked_GoodLumi.root";
-  } else if (option == 0) {
-    datafile = "/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_Data_DoubleElectron_GoodLumi.root";
-  }
-  if (option == 0 || option == 1) {
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_DYJetsToLL_HTBinned_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTJets_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_VV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_SingleTop_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_TTV_1pb_weighted.root");
-    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/DileptonRazorSkim/RunOneRazorControlRegions_DileptonRazorSkim_WJetsToLNu_HTBinned_1pb_weighted.root");
+  if ( 0 == 0 
+       //option == 10 || option == 11 || option == 12
+       ) {
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+    //inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted.root");
+    inputfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p16/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
   }
 
+ 
   processLabels.push_back("DY");
   processLabels.push_back("TTJets");  
-  processLabels.push_back("VV");
+  //processLabels.push_back("VV");
   processLabels.push_back("SingleTop");
-  processLabels.push_back("TT+V");
+  // processLabels.push_back("TT+V");
   processLabels.push_back("WJets");
 
   colors.push_back(kGreen+2);
-  colors.push_back(kRed);
-  colors.push_back(kOrange+1);
-  colors.push_back(kBlack);
-  colors.push_back(kGray);
+  colors.push_back(kAzure+10);
+  //colors.push_back(kOrange+1);
   colors.push_back(kBlue);
+  // colors.push_back(kGray);
+  colors.push_back(kRed);
  
 
   //*********************************************************************
   //EE Control Region
   //*********************************************************************
   if (option == 0) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 19789,"MR300Rsq0p05", 2,  "MR300Rsq0p05_ee");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 40.0,"MR300Rsq0p05", 2,  "MR300Rsq0p05_ee");
   }
   if (option == 10) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 19789,"Inclusive", 2,  "Inclusive_ee");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 40.0,"Inclusive", 2,  "Inclusive_ee");
   }
   //*********************************************************************
   //MM Control Region
   //*********************************************************************
   if ( option == 1) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 19751, "MR300Rsq0p05", 3, "MR300Rsq0p05_mumu");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "MR300Rsq0p05", 3, "MR300Rsq0p05_mumu");
   }
   if ( option == 11) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 19751, "Inclusive", 3, "Inclusive_mumu");    
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "Inclusive", 3, "Inclusive_mumu");    
   }
   
- 
+  //*********************************************************************
+  //EE+MM Control Region
+  //*********************************************************************
+  if ( option == 2) {
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "MR200", 1, "MR200_all");
+  }
+  if ( option == 12) {
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "Inclusive", 1, "Inclusive_all");    
+  }
+
+
 }
 
 
