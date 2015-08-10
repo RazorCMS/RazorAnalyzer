@@ -69,7 +69,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     mcfiles["Top"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/SingleTop_1pb_weighted.root");
     mcfiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
 
-    datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/SingleMuonAndElectron_Run2015B-GOLDEN.root");
+    datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS/SingleMuonAndElectron_Run2015B-GOLDEN.root");
 
     //get trees and set branches
     map<string, TTree*> mctrees;
