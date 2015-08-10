@@ -11,8 +11,8 @@ k_W = 3.*20508.9/50100.0
 
 k_QCD = {}
     
-boxes = {'TTBarSingleLepton':'lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && METnoHF>30 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))',
-        'WSingleLepton':'lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && METnoHF > 50 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))'}
+boxes = {'TTBarSingleLepton':'lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && METnoHF>30 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta) < 2.4) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35 && TMath::Abs(lep1Eta) < 2.5))',
+        'WSingleLepton':'lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && METnoHF > 50 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta) < 2.4) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35 && TMath::Abs(lep1Eta) < 2.5))'}
 #boxes = {'TTBarSingleLepton':'lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET>30 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))',
 #        'WSingleLepton':'lep1PassTight == 1 && lep1MT > 30 && lep1MT < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta<2.1) && MET > 50 && ((HLTDecision[0] && TMath::Abs(lep1Type) == 13) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))'}
 
