@@ -128,7 +128,8 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
     }
     
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
+    JetCorrectorParameters *JetResolutionParameters = 
+      new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     //*************************************************************************
@@ -152,14 +153,14 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
     Long64_t nbytes = 0, nb = 0;
 
     for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
-
+      
       //begin event
       if(jentry % 100000 == 0) cout << "Processing entry " << jentry << endl;
-
+      
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
-
+      
       printSyncDebug = false;
       if (printSyncDebug) {
 	cout << "\n****************************************************************\n";
@@ -167,10 +168,16 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       }
 
       //fill normalization histogram
-      NEvents->Fill(genWeight);
-     
+
+      if (isData) {
+	NEvents->Fill(1);
+	TPPair->weight = 1;
+      }
+      else {
+	NEvents->Fill(genWeight);
+	TPPair->weight = genWeight;     
+      }
       //event info
-      TPPair->weight = genWeight;
       TPPair->run = runNum;
       TPPair->lumi = lumiNum;
       TPPair->event = eventNum;
@@ -296,8 +303,17 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (denominatorType == 1) {
 	      // reco object doesn't require any additional cuts
 	    }
+	    if (denominatorType == 3) {
+	      if ( !isLooseElectron(indexProbe) ) continue;
+	    }
 	    if (denominatorType == 5) {
 	      if ( !isTightElectron(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 7) {
+	      if ( !passLooseElectronID(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 9) {
+	      if ( !passTightElectronID(indexProbe) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -309,19 +325,27 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    TPPair->phi = elePhi[indexProbe];
 	    TPPair->charge = eleCharge[indexProbe];
 
-
 	    //****************************************
 	    //PASS OR FAIL
 	    //****************************************
 	    bool pass = false;
-	    if (numeratorType == 2) {
-	      pass = isVetoElectron(indexProbe);
-	    }
 	    if (numeratorType == 3) {
 	      pass = isLooseElectron(indexProbe);
 	    }
 	    if (numeratorType == 5) {
 	      pass = isTightElectron(indexProbe);
+	    }
+	    if (numeratorType == 7) {
+	      pass = passLooseElectronID(indexProbe);
+	    }
+	    if (numeratorType == 9) {
+	      pass = passTightElectronID(indexProbe);
+	    }
+	    if (numeratorType == 11) {
+	      pass = passLooseElectronIso(indexProbe);
+	    }
+	    if (numeratorType == 13) {
+	      pass = passTightElectronIso(indexProbe);
 	    }
 	    if (numeratorType == 23) {
 	      pass = isEGammaPOGLooseElectron(indexProbe);
@@ -367,7 +391,8 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	//*******************************************************
 	for(int indexTag = 0; indexTag < nMuons; indexTag++){
 
-	  if(muonPt[indexTag] < 30) continue;
+	  //if(muonPt[indexTag] < 30) continue;
+	  if(muonPt[indexTag] < 25) continue;
 	  if(fabs(muonEta[indexTag]) > 2.5) continue;
 
 	  //For MC, Match to Gen level electron
@@ -422,8 +447,23 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (denominatorType == 1) {
 	      // reco object doesn't require any additional cuts
 	    }
+	    if (denominatorType == 2) {
+	      if ( !isVetoMuon(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 3) {
+	      if ( !isLooseMuon(indexProbe) ) continue;
+	    }
 	    if (denominatorType == 5) {
 	      if ( !isTightMuon(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 6) {
+	      if ( !passVetoMuonID(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 7) {
+	      if ( !passLooseMuonID(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 9) {
+	      if ( !passTightMuonID(indexProbe) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -448,24 +488,25 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (numeratorType == 5) {
 	      pass = isTightMuon(indexProbe);
 	    }
-	    if (numeratorType == 23) {
-	      pass = isMuonPOGLooseMuon(indexProbe);
+	    if (numeratorType == 6) {
+	      pass = passVetoMuonID(indexProbe);
 	    }
-	    if (numeratorType == 25) {
-	      pass = isMuonPOGTightMuon(indexProbe);
+	    if (numeratorType == 7) {
+	      pass = passLooseMuonID(indexProbe);
+	    }
+	    if (numeratorType == 9) {
+	      pass = passTightMuonID(indexProbe);
+	    }
+	    if (numeratorType == 10) {
+	      pass = passVetoMuonIso(indexProbe);
+	    }
+	    if (numeratorType == 11) {
+	      pass = passLooseMuonIso(indexProbe);
+	    }
+	    if (numeratorType == 13) {
+	      pass = passTightMuonIso(indexProbe);
 	    }
 	    if (numeratorType == 50) {
-	      // cout << "pass: " << matchElectronHLTFilters(indexProbe, "SingleElectron") << " : "
-	      // 	   << ele_passHLTFilter[indexProbe][1] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][5] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][6] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][12] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][13] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][3] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][8] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][10] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][15] << " " 
-	      // 	   << " \n";
 	      pass = matchMuonHLTFilters(indexProbe, "SingleMuon");
 	    }
 	    TPPair->pass = pass;

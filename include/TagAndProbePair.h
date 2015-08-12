@@ -41,6 +41,7 @@ class TagAndProbePair {
   Float_t                 HT;
   Float_t                 MinDRToParton;
   UInt_t                  NJets;
+  Float_t                 miniIso;
 
 
  public:
@@ -79,6 +80,7 @@ class TagAndProbePair {
     HT                    = 0;
     MinDRToParton         = 0;
     NJets                 = 0;
+    miniIso               = 0;
   }
     
   /// load a TagAndProbePair
@@ -116,6 +118,7 @@ class TagAndProbePair {
       tree_->Branch("HT",&HT,"HT/F");
       tree_->Branch("MinDRToParton",&MinDRToParton,"MinDRToParton/F");
       tree_->Branch("NJets",&NJets,"NJets/i");
+      tree_->Branch("miniIso",&miniIso,"miniIso/F");
     }    
   }
   
@@ -149,6 +152,7 @@ class TagAndProbePair {
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("MinDRToParton",&MinDRToParton);
       tree_->SetBranchAddress("NJets",&NJets);
+      tree_->SetBranchAddress("miniIso",&miniIso);
     }    
 
     gErrorIgnoreLevel = currentState;

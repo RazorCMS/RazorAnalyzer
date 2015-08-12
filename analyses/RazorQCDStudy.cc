@@ -19,6 +19,7 @@ struct greater_than_pt{
  
 void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isData, bool isRunOne)
 {
+
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
@@ -28,24 +29,24 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
 
-    if (isRunOne) {
-      if (isData) {
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L1FastJet_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2Relative_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L3Absolute_AK5PF.txt")); 
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2L3Residual_AK5PF.txt")); 
-      } else {
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L1FastJet_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L2Relative_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L3Absolute_AK5PF.txt")); 
-      }
+    char* cmsswPath;
+    cmsswPath = getenv("CMSSW_BASE");
+    string pathname;
+    if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+    cout << "Getting JEC parameters from " << pathname << endl;
+
+    if (isData) {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     } else {
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
+
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
+    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
 
@@ -83,6 +84,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     Float_t                 genJetRsq;
     Float_t                 genJetDPhiRazor;    
     Float_t                 genJetHT;
+    Float_t                 maxJetGenDiff;
     int NJets;
     float JetE[99];
     float JetPt[99];
@@ -95,9 +97,13 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     bool  JetIDTight[99];
     float PtNeutrinoClosestToJet[99]; 
     float DRNeutrinoClosestToJet[99];
-    float JetEMFraction[99];
+    float JetChargedEMEnergyFraction[99];
+    float JetNeutralEMEnergyFraction[99];
+    float JetChargedHadEnergyFraction[99];
+    float JetNeutralHadEnergyFraction[99];
     float JetPartonFlavor[99];
     float JetPileupID[99];
+    float JetGenDiff[99];
     
     //book the branches that go in all types of trees
     outTree->Branch("weight",&weight,"weight/F");
@@ -128,6 +134,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("genJetHT",&genJetHT,"genJetHT/F");	  
     outTree->Branch("genMET",&genMetPt,"genMET/F");	         
     outTree->Branch("genMETPhi",&genMetPhi,"genMETPhi/F");	         
+    outTree->Branch("maxJetGenDiff",&maxJetGenDiff,"maxJetGenDiff/F");
     outTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
     outTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
     outTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
@@ -150,10 +157,14 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("GenJetPt", GenJetPt,"GenJetPt[nJets]/F");
     outTree->Branch("GenJetEta", GenJetEta,"GenJetEta[nJets]/F");
     outTree->Branch("GenJetPhi", GenJetPhi,"GenJetPhi[nJets]/F");
+    outTree->Branch("JetGenDiff", JetGenDiff,"JetGenDiff[nJets]/F");
     outTree->Branch("JetIDTight", JetIDTight,"JetIDTight[nJets]/O");
     outTree->Branch("PtNeutrinoClosestToJet", PtNeutrinoClosestToJet,"PtNeutrinoClosestToJet[nJets]/F");
     outTree->Branch("DRNeutrinoClosestToJet", DRNeutrinoClosestToJet,"DRNeutrinoClosestToJet[nJets]/F");
-    outTree->Branch("JetEMFraction", JetEMFraction,"JetEMFraction[nJets]/F");
+    outTree->Branch("JetChargedEMEnergyFraction", JetChargedEMEnergyFraction,"JetChargedEMEnergyFraction[nJets]/F");
+    outTree->Branch("JetNeutralEMEnergyFraction", JetNeutralEMEnergyFraction,"JetNeutralEMEnergyFraction[nJets]/F");
+    outTree->Branch("JetChargedHadEnergyFraction", JetChargedHadEnergyFraction,"JetChargedHadEnergyFraction[nJets]/F");
+    outTree->Branch("JetNeutralHadEnergyFraction", JetNeutralHadEnergyFraction,"JetNeutralHadEnergyFraction[nJets]/F");
     outTree->Branch("JetPartonFlavor", JetPartonFlavor,"JetPartonFlavor[nJets]/F");
     outTree->Branch("JetPileupID", JetPileupID,"JetPileupID[nJets]/F");
 
@@ -161,7 +172,6 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     //histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
-
     //*************************************************************************
     //Look over Input File Events
     //*************************************************************************
@@ -169,17 +179,16 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     cout << "Total Events: " << fChain->GetEntries() << "\n";
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
-
-    //for (Long64_t jentry=0; jentry<1000;jentry++) {
-    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+    
+    for (Long64_t jentry=0; jentry<10000;jentry++) {
+    //for (Long64_t jentry=0; jentry<nentries;jentry++) {
 
       //begin event
-      if(jentry % 1000 == 0) cout << "Processing entry " << jentry << endl;
+      if(jentry % 1000000 == 0) cout << "Processing entry " << jentry << endl;
 
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
-
 
       printSyncDebug = false;
 
@@ -207,7 +216,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       NPV = nPV;
  
       //************************************************************************
-      //Find all Relevent Jets	
+      //Find all Relevant Jets	
       //************************************************************************
       vector<TLorentzVector> GoodJets;
       int numJetsAbove80GeV = 0;
@@ -219,7 +228,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       int nBJetsTight20GeV = 0;
       minDPhi = 9999;
       minDPhiN = 9999;
-
+      maxJetGenDiff=0;
       if (printSyncDebug) cout << "NJets: " << nJets << "\n";
       NJets = nJets;
       for(int i = 0; i < nJets; i++){
@@ -269,19 +278,21 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	}
 
 	//*******************************************************
-	//Jet Variab;es
+	//Jet Variables
 	//*******************************************************
 	JetE[i] = jetE[i]*JEC*jetEnergySmearFactor;
 	JetPt[i] = jetPt[i]*JEC*jetEnergySmearFactor;
 	JetEta[i] = jetEta[i];
 	JetPhi[i] = jetPhi[i];
 	JetIDTight[i] = jetPassIDTight[i];
-	//JetEMFraction[i] = jetEMFraction[i];
+	JetChargedEMEnergyFraction[i] = jetChargedEMEnergyFraction[i];
+	JetNeutralEMEnergyFraction[i] = jetNeutralEMEnergyFraction[i];
+	JetChargedHadEnergyFraction[i] = jetChargedHadronEnergyFraction[i];
+	JetNeutralHadEnergyFraction[i] = jetNeutralHadronEnergyFraction[i];
 	JetPartonFlavor[i] = jetPartonFlavor[i];
 	JetPileupID[i] = jetPileupId[i];
 
 	//Match To GenJet
-	//cout << "Jet: " << jetPt[i]*JEC*jetEnergySmearFactor << " " << jetEta[i] << " " << jetPhi[i] << " : " << jetPt[i]*JEC << " " << jetPt[i] << " \n";
 	GenJetE[i] = -999;
 	GenJetPt[i] = -999;
 	GenJetEta[i] = -999;
@@ -290,31 +301,56 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	for(int j = 0; j < nGenJets; j++){
 	  double DR = deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i]);
 	  if (DR > 0.4) continue;
-	  //cout << "genJet: " << genJetPt[j] << " " << genJetEta[j] << " " << genJetPhi[j] << " : " << DR << "\n";
+
 	  if (DR < minDRToGenJet) {
 	    minDRToGenJet = DR;
 	    GenJetE[i] = genJetE[j];
 	    GenJetPt[i] = genJetPt[j];
 	    GenJetEta[i] = genJetEta[j];
 	    GenJetPhi[i] = genJetPhi[j];
+	    JetGenDiff[i] = JetPt[i]-GenJetPt[i];
+	    if (fabs(JetGenDiff[i])>fabs(maxJetGenDiff)) maxJetGenDiff=JetGenDiff[i];
 	  }     
 	}
-
+	//./include/RazorAnalyzer.h:double deltaR(double eta1, double phi1, double eta2, double phi2);
 	
-	// if ( jetPt[i]*JEC*jetEnergySmearFactor > 50 && GenJetPt[i] > 0 && (jetPt[i]*JEC*jetEnergySmearFactor - GenJetPt[i])/GenJetPt[i] > 1) {
-	//   cout << "DEBUG\n";
-	//   cout << "GenJet: " << GenJetPt[i] << " " << GenJetEta[i] << " " << GenJetPhi[i] << " : " << (jetPt[i]*JEC*jetEnergySmearFactor - GenJetPt[i])/GenJetPt[i] << " " << minDRToGenJet << "\n";
+	if (abs(JetGenDiff[i])>100 && abs(JetGenDiff[i]/GenJetPt[i]) > 0.2) {
+	  cout << "  --------------- " << endl;
+	  cout << "JetPt[i] - GenJetPt[i] = " << JetPt[i] << " - " << GenJetPt[i] << " = " << JetGenDiff[i] << endl;
+	  cout << "(JetPt[i]-GenJetPt[i])/GenJetPt[i] = " << JetGenDiff[i]/GenJetPt[i] << endl;
+	  cout << JetChargedEMEnergyFraction[i]+JetNeutralEMEnergyFraction[i] << endl;
 
-	//   cout << "Gen Particles\n";
-	//   for(int j = 0; j < nGenParticle; j++){
-	//     if (deltaR(gParticleEta[j] , gParticlePhi[j], jetEta[i], jetPhi[i]) < 0.4) {
-	//       cout << "particle: " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
-	//     }
-	//   }
-	//   cout << "\n\n";
+	  for (int j = 0; j < nGenParticle; j++) {
+	    double DR = deltaR( gParticleEta[j], gParticlePhi[j], jetEta[i], jetPhi[i]);
+	    if (DR>0.4) continue;
+	    cout << " gen particle pt: " << gParticlePt[j] << ", eta: " << gParticleEta[j] << ", phi: " << gParticlePhi[j] << ", pdgId: " << gParticleId[j] << endl;
+	  }
+	  //loop over pf candidates
+	  for (int j = 0; j < nIsoPFCandidates; j++) {
+	    double DR = deltaR( isoPFCandidateEta[j], isoPFCandidatePhi[j], jetEta[i], jetPhi[i]);
+	    cout << DR << endl;
+	    cout << " pf candidate pt: " << isoPFCandidatePt[j] << ", eta: " << isoPFCandidateEta[j] << ", phi: " << isoPFCandidatePhi[j] << ", pdgId: " << isoPFCandidatePdgId[j] << endl;
+	  }
+	  
+	  for (int j = 0; j < nPhotons; j++) {
+	    double DR = deltaR(phoEta[j], phoPhi[j], jetEta[i], jetPhi[i]);
+	    if (DR>0.4) continue;
+	    cout << " photon pt: " << phoPt[j] << ", E: " << phoE[j] << ", eta: " << phoEta[j] << ", phi: " << phoPhi[j] << endl;
+	  }
 
-	// }
+	  for (int j = 0; j < nElectrons; j++) {
+	    double DR = deltaR(eleEta[j], elePhi[j], jetEta[i], jetPhi[i]);
+	    if (DR>0.4) continue;
+	    cout << " electron pt: " << elePt[j] << ", eta: " << eleEta[j] << ", phi: " << elePhi[j] << endl;
+	  }
 
+	  for (int j = 0; j < nMuons; j++) {
+	    double DR = deltaR(muonEta[j], muonPhi[j], jetEta[i], jetPhi[i]);
+	    if (DR>0.4) continue;
+	    cout << " muon pt: " << muonPt[j] << ", eta: " << muonEta[j] << ", phi: " << muonPhi[j] << endl;
+	  }
+
+	}	
 	//Check for neutrinos near jet
 	PtNeutrinoClosestToJet[i] = -999;
 	double minDRNeutrino = 9999;
@@ -373,11 +409,14 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       vector<TLorentzVector> GoodPFObjects;
       for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
 
-      double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
-      double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
+      //double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
+      //double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
+      double PFMetX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
+      double PFMetY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
 
       TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
-      TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+      //TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+      TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metNoHFPt, 0, metNoHFPhi, 0);
 
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
@@ -457,7 +496,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       //*************************************************************************
       bool passSkim = true;
       if (option == 1) {
-      	if (!(MR>300 && Rsq>0.05)) {
+      	if (!(MR>1000 && Rsq>0.25)) {
       	  passSkim = false;
       	}
       }
@@ -473,7 +512,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       //*************************************************************
       //DEBUG
       //*************************************************************
-      if (MR > 4000) printSyncDebug = true;
+      //if (MR > 4000) printSyncDebug = true;
 
       if (printSyncDebug) {
 	cout << "\n****************************************************************\n";
@@ -536,13 +575,13 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	
 	  cout << "Closest GenJet: " << GenJetPt[i] << " " << GenJetEta[i] << " " << GenJetPhi[i] << " : " << (jetPt[i]*JEC*jetEnergySmearFactor - GenJetPt[i])/GenJetPt[i] << " " << minDRToGenJet << "\n";
 	
-	  // cout << "Gen Particles\n";
-	  // for(int j = 0; j < nGenParticle; j++){
-	  //   if (deltaR(gParticleEta[j] , gParticlePhi[j], jetEta[i], jetPhi[i]) < 0.4) {
-	  //     cout << "particle: " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
+	  //cout << "Gen Particles\n";
+	  //for(int j = 0; j < nGenParticle; j++){
+	    //if (deltaR(gParticleEta[j] , gParticlePhi[j], jetEta[i], jetPhi[i]) < 0.4) {
+	    //cout << "particle: " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
 	  //   }
-	  // }
-	  // cout << "\n\n";
+	  //}
+	  //cout << "\n\n";
 	} //loop over jets
 
       }
