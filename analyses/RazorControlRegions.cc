@@ -17,7 +17,7 @@ struct greater_than_pt{
     }
 };
  
-void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isData, bool isRunOne)
+void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isData)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
@@ -33,22 +33,17 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
     cout << "Getting JEC parameters from " << pathname << endl;
 
-    if (isRunOne) {
-      if (isData) {
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L1FastJet_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2Relative_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L3Absolute_AK5PF.txt")); 
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Winter14_V8_DATA_L2L3Residual_AK5PF.txt")); 
-      } else {
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L1FastJet_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L2Relative_AK5PF.txt"));
-	correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Summer13_V4_MC_L3Absolute_AK5PF.txt")); 
-      }
+    if (isData) {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
+    
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
     JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
@@ -653,7 +648,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//Correct Jet Energy Scale and Resolution
 	//*******************************************************
 	double tmpRho = fixedGridRhoFastjetAll;
-	if (isRunOne) tmpRho = fixedGridRhoAll;
+
 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
 					       tmpRho, jetJetArea[i], 
 					       JetCorrector);   
@@ -668,7 +663,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
 		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
-	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
+	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
 	}
 	if (printSyncDebug) {
 	  cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";

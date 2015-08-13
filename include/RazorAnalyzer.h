@@ -58,7 +58,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root", int Option = -1); 
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorInclusive.root", bool combineTrees = false);
-	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false, bool isRunOne = false);
+	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false);
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
         virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false, bool filterEvents = true, bool isRunOne = true);
         virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
@@ -125,6 +125,9 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
         bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
+	bool photonPassLooseIDWithoutEleVeto(int i);
+	bool photonPassMediumIDWithoutEleVeto(int i);
+	bool photonPassTightIDWithoutEleVeto(int i);
 	bool photonPassLooseID(int i);
 	bool photonPassMediumID(int i);
 	bool photonPassTightID(int i);
@@ -134,6 +137,10 @@ class RazorAnalyzer: public RazorEvents {
         bool isLoosePhoton(int i);
         bool isMediumPhoton(int i);
         bool isTightPhoton(int i);
+        bool isLoosePhotonWithoutEleVeto(int i);
+        bool isMediumPhotonWithoutEleVeto(int i);
+        bool isTightPhotonWithoutEleVeto(int i);
+	bool matchPhotonHLTFilters( int i, string HLTFilter);
 
 	/* //function in HggRazorAuxPhoton.cc */
 	/* // R u n 1   C u t   B a s e d   I D */
