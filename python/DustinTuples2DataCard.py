@@ -4,96 +4,10 @@ import rootTools
 from framework import Config
 import sys
 from array import *
-
-k_T = 689.1/424.5
-k_Z = 3.*2008.4/5482.
-k_W = 3.*20508.9/50100.0
-
-k_QCD = {}
-    
-boxes = {'MuEle':'(box==0)',
-         'MuMu':'(box==1)',
-         'EleEle':'(box==2)',
-         'MuSixJet':'(box==3)',
-         'MuFourJet':'(box==4)',
-         'MuMultiJet':'(box==3||box==4)',
-         'MuJet':'(box==5)',
-         'EleSixJet':'(box==6)',
-         'EleFourJet':'(box==7)',
-         'EleMultiJet':'(box==6||box==7)',
-         'EleJet':'(box==8)',
-         'LooseLeptonSixJet':'(box==9)',
-         'LooseLeptonFourJet':'(box==10)',
-         'LooseLeptonMultiJet':'(box==9||box==10)',
-         'SixJet':'(box==11)',
-         'FourJet':'(box==12)',
-         'FourToSixJet':'((box==11||box==12)&&(nSelectedJets>=4&&nSelectedJets<7))',
-         'SevenJet':'((box==11||box==12)&&(nSelectedJets>=7))',
-         'MultiJet':'(box==11||box==12)',
-         'LooseLeptonDiJet':'(box==13)',
-         'DiJet':'(box==14)'}
+from DustinTuple2RooDataSet import initializeWorkspace, getSumOfWeights, boxes, k_T, k_Z, k_W, k_QCD, dPhiCut, MTCut
 
 backgrounds = ['dyjetstoll_htbinned', 'qcd_htbinned', 'ttjets', 'zjetstonunu_htbinned', 'multiboson', 'singletop', 'wjetstolnu_htbinned']
 
-dPhiCut = 2.7
-
-MTCut = -1
-
-def initializeWorkspace(w,cfg,box):
-    variables = cfg.getVariablesRange(box,"variables",w)
-    
-    w.factory('W[1.,0.,+INF]')
-    w.set('variables').add(w.var('W'))
-    return w
-
-def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
-    if f.find('SMS')!=-1:
-        k = 1.
-    elif f.find('TTJets')!=-1:
-        k = k_T
-    elif f.find('DYJets')!=-1 or f.find('ZJets')!=-1:
-        k = k_Z
-    elif f.find('WJets')!=-1:
-        k = k_W
-    else:
-        k = 1.
-        
-    args = workspace.set("variables")
-    
-    #we cut away events outside our MR window
-    mRmin = args['MR'].getMin()
-    mRmax = args['MR'].getMax()
-
-    #we cut away events outside our Rsq window
-    rsqMin = args['Rsq'].getMin()
-    rsqMax = args['Rsq'].getMax()
-
-    btagMin =  args['nBtag'].getMin()
-    btagMax =  args['nBtag'].getMax()
-    
-    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
-    
-    btagCutoff = 3
-    if box in ["MuEle", "MuMu", "EleEle"]:
-        btagCutoff = 1
-        
-    boxCut = boxes[box]
-
-    label = f.replace('.root','').split('/')[-1]
-    htemp = rt.TH1D('htemp_%s'%label,'htemp_%s'%label,len(z)-1,z)
-
-    if useWeight:
-        tree.Project(htemp.GetName(),
-                    'min(nBTaggedJets,%i)'%btagCutoff,
-                    '(%f/%f) * %f * weight * (MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %f && %s && abs(dPhiRazor) < %f)' % (lumi,lumi_in,k,mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut))
-    else:
-        tree.Project(htemp.GetName(),
-                    'MR',
-                    '(MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %f && %s && abs(dPhiRazor) < %f)' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut))
-        
-    return [htemp.GetBinContent(i) for i in range(1,len(z))]
-        
-    
 def convertTree2TH1(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName):
     """Create 3D histogram for direct use with Combine"""
     
@@ -196,8 +110,8 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     rates.extend([hists[bkg].Integral() for bkg in bkgs])
     processes = [model]
     processes.extend(bkgs)
-    lumiErrs = [1.05]
-    lumiErrs.extend([1.05 for bkg in bkgs])
+    lumiErrs = [1.05] #5% lumi systematic on signal
+    lumiErrs.extend([1.05 for bkg in bkgs]) #5% lumi systematic on each background
     mcErrs = {} #dictionary of uncorrelated mc bkgd lnN uncertainties
     for bkg in bkgs:
             mcErrs[bkg] = [1.00]
@@ -236,11 +150,12 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     datacard+=binString+processString+processNumberString+rateString+divider
     
     # now nuisances
-    datacard+=lumiString
+    datacard+=lumiString #lumi uncertainty
     
     for bkg in bkgs:
-        datacard+=mcErrStrings[bkg]
+        datacard+=mcErrStrings[bkg] #MC normalization uncertainties
 
+    #write card
     txtfile = open(txtfileName,"w")
     txtfile.write(datacard)
     txtfile.close()
