@@ -1,7 +1,7 @@
 import ROOT as rt
 
 def makeTreeDict(fileDict, treeName, debug=False):
-    """Opens each file in fileDict, gets a tree called treeName, and returns a dict of trees"""
+    """gets a tree called treeName from each file in fileDict, and returns a dict of trees"""
     trees = {}
     for name in fileDict:
         if debug: print("Loading tree "+treeName)
@@ -34,20 +34,28 @@ def fillHist(hists, name, value, weight, debug):
     else: 
         if debug: print("Warning in macro.py: histogram "+name+" not found!")
 
-def loopTree(tree, cutF, weightF, weightHists, fillF, hists, maxEvents=-1, debug=False):
+def loopTree(tree, cutF, weightF, weightHists, fillF, hists, maxEvents=-1, scale=1.0, debug=False):
     """Loop over a single tree and fill histograms"""
     if debug: print ("Looping tree "+tree.GetName())
+    nEvents = tree.GetEntries()
+    if maxEvents > 0 and maxEvents < nEvents:
+        scale *= nEvents*1.0/maxEvents
+        print("Processing "+str(maxEvents)+" of "+str(nEvents)+" events.  Scaling weights by "+str(nEvents*1.0/maxEvents))
+    else: 
+        print("Processing all "+str(nEvents)+" events")
     for i,event in enumerate(tree):
         if maxEvents >= 0 and i >= maxEvents: break
         if i % 100000 == 0: print("Processing entry "+str(i))
         if not cutF(event, debug): continue
-        w = weightF(event, weightHists, debug)
+        w = weightF(event, weightHists, scale, debug)
         fillF(event, hists, w, debug)
 
-def loopTrees(treeDict, cutF, weightF, weightHists, fillF, histDict, maxEvents=-1, debug=False):
+def loopTrees(treeDict, cutF, weightF, weightHists, fillF, histDict, maxEvents=-1, scale=1.0, debug=False):
     """calls loopTree on each tree in the dictionary"""
     for name in treeDict: 
-        loopTree(treeDict[name], cutF, weightF, weightHists, fillF, histDict[name], maxEvents, debug)
+        if name not in histDict: continue
+        print("Filling histograms for tree "+name)
+        loopTree(treeDict[name], cutF, weightF, weightHists, fillF, histDict[name], maxEvents, scale, debug)
 
 def makeStack(hists, ordering, title="Stack"):
     """Takes a dict of histograms and an ordered list of names, and returns a THStack containing the histograms stacked in the desired order"""
@@ -68,15 +76,7 @@ def makeLegend(hists, names, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
 
 def setHistColor(hist, name):
     """Sets histogram color according to the colors listed here"""
-    colors = {}
-    colors["WJets"] = 900
-    colors["DYJets"] = 901
-    colors["TTJets"] = 902
-    colors["ZJetsNuNu"] = 903
-    colors["QCD"] = 904
-    colors["SingleTop"] = 905
-    colors["VV"] = 906
-    colors["TTV"] = 907
+    colors = {"WJets":900, "DYJets":901, "TTJets":902, "ZJetsNuNu":903, "QCD":904, "SingleTop":905, "VV":906, "TTV":907}
     red = rt.gROOT.GetColor(900)
     red.SetRGB(.42, .125, .125)
     blue = rt.gROOT.GetColor(901)
@@ -97,10 +97,9 @@ def setHistColor(hist, name):
     if name in colors: hist.SetFillColor(colors[name])
     else: print("Warning in macro.py: histogram fill color not set")
 
-def plot_basic(mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=0.1, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=0.1, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
-    c = rt.TCanvas("c", "c", 800, 600)
     c.Clear()
     c.cd()
     if data and mc: pad1 = rt.TPad("pad1", "pad1", 0, 0.4, 1, 1)
@@ -138,7 +137,7 @@ def plot_basic(mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events",
         mcTotal = histList.First().Clone()
         mcTotal.Reset()
         for h in histList:
-            mcTotal.Add(obj)
+            mcTotal.Add(h)
         dataOverMC = data.Clone()
         dataOverMC.Divide(mcTotal)
         dataOverMC.SetTitle("")
