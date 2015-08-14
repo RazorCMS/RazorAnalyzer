@@ -82,7 +82,7 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     return true;
 }
 
-bool RazorAnalyzer::photonPassLooseID(int i){
+bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i){
 
   bool pass = true;
 
@@ -94,6 +94,43 @@ bool RazorAnalyzer::photonPassLooseID(int i){
     if(phoFull5x5SigmaIetaIeta[i] > 0.0277) pass = false;    
   }
 
+  return pass;
+}
+
+bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto(int i){
+  bool pass = true;
+
+  if(fabs(pho_superClusterEta[i]) < 1.479){    
+    if(pho_HoverE[i] > 0.05) pass = false;
+    if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
+  } else { 
+    if(pho_HoverE[i] > 0.05) pass = false;
+    if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
+  }
+
+  return pass;
+}
+
+bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i){
+  bool pass = true;
+
+  if(fabs(pho_superClusterEta[i]) < 1.479){    
+    if(pho_HoverE[i] > 0.05) pass = false;
+    if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
+  } else { 
+    if(pho_HoverE[i] > 0.05) pass = false;
+    if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
+  }
+
+  return pass;
+}
+
+
+bool RazorAnalyzer::photonPassLooseID(int i){
+
+  bool pass = true;
+
+  if (!photonPassLooseIDWithoutEleVeto(i)) pass = false;
   if(!photonPassesElectronVeto(i)) pass = false;
 
   return pass;
@@ -102,14 +139,7 @@ bool RazorAnalyzer::photonPassLooseID(int i){
 bool RazorAnalyzer::photonPassMediumID(int i){
   bool pass = true;
 
-  if(fabs(pho_superClusterEta[i]) < 1.479){    
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
-  } else { 
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
-  }
-
+  if (!photonPassMediumIDWithoutEleVeto(i)) pass = false;
   if(!photonPassesElectronVeto(i)) pass = false;
 
   return pass;
@@ -118,14 +148,7 @@ bool RazorAnalyzer::photonPassMediumID(int i){
 bool RazorAnalyzer::photonPassTightID(int i){
   bool pass = true;
 
-  if(fabs(pho_superClusterEta[i]) < 1.479){    
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
-  } else { 
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
-  }
-
+  if (!photonPassTightIDWithoutEleVeto(i)) pass = false;
   if(!photonPassesElectronVeto(i)) pass = false;
 
   return pass;
@@ -162,19 +185,8 @@ bool RazorAnalyzer::photonPassTightIso(int i){
 bool RazorAnalyzer::isLoosePhoton(int i){
 
   bool pass = true;
-
-  if(fabs(pho_superClusterEta[i]) < 1.479){    
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
-  } else { 
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0277) pass = false;    
-  }
-
+  if(!isLoosePhotonWithoutEleVeto(i)) pass = false;
   if(!photonPassesElectronVeto(i)) pass = false;
-  if(!photonPassLooseIso(i)) pass = false;
-
-  //cout << "Loose Photon ? : " << bool(pho_HoverE[i] > 0.05) << " " << bool(phoFull5x5SigmaIetaIeta[i] > 0.0103) << " " << photonPassesElectronVeto(i) << " " << photonPassLooseIso(i) << "\n";
 
   return pass;
 }
@@ -182,34 +194,71 @@ bool RazorAnalyzer::isLoosePhoton(int i){
 bool RazorAnalyzer::isMediumPhoton(int i){
   bool pass = true;
 
-  if(fabs(pho_superClusterEta[i]) < 1.479){    
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
-  } else { 
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
-  }
-
+  if(!isMediumPhotonWithoutEleVeto(i)) pass = false;
   if(!photonPassesElectronVeto(i)) pass = false;
-  if(!photonPassMediumIso(i)) pass = false;
 
   return pass;
 }
 
 bool RazorAnalyzer::isTightPhoton(int i){
   bool pass = true;
-
-  if(fabs(pho_superClusterEta[i]) < 1.479){    
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
-  } else { 
-    if(pho_HoverE[i] > 0.05) pass = false;
-    if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
-  }
-
+  if (!isTightPhotonWithoutEleVeto(i)) pass = false;
   if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isLoosePhotonWithoutEleVeto(int i){
+
+  bool pass = true;
+
+  if (!photonPassLooseIDWithoutEleVeto(i)) pass = false;
+  if(!photonPassLooseIso(i)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isMediumPhotonWithoutEleVeto(int i){
+  bool pass = true;
+
+  if (!photonPassMediumIDWithoutEleVeto(i)) pass = false;
+  if(!photonPassMediumIso(i)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isTightPhotonWithoutEleVeto(int i){
+  bool pass = true;
+
+  if (!photonPassTightIDWithoutEleVeto(i)) pass = false;
   if(!photonPassTightIso(i)) pass = false;
 
   return pass;
 }
 
+
+bool RazorAnalyzer::matchPhotonHLTFilters(int i, string HLTFilter){
+  bool match = false;
+
+  if (HLTFilter == "DiPhoton30_18_WithPixMatch_Leg1") {
+    if ( 
+	//Data filters
+	pho_passHLTFilter[i][8] 
+	//MC filters
+
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "DiPhoton30_18_WithPixMatch_Leg2") {
+    if ( 
+	//Data filters
+	pho_passHLTFilter[i][9] 
+	 ) {
+      match = true;
+    }
+  }
+   
+  return match;
+}
