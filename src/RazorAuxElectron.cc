@@ -4,29 +4,29 @@
 bool RazorAnalyzer::isEGammaPOGVetoElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.016315
-	 && fabs(ele_dPhi[i]) < 0.252044
-	 && eleFull5x5SigmaIetaIeta[i] < 0.011100
-	 && ele_HoverE[i] < 0.345843
-	 && fabs(ele_d0[i]) < 0.060279
-	 && fabs(ele_dZ[i]) < 0.800538
-	 && ele_OneOverEminusOneOverP[i] < 0.248070
-	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.164369
+    if ( fabs(ele_dEta[i]) < 0.013625
+	 && fabs(ele_dPhi[i]) < 0.230374
+	 && eleFull5x5SigmaIetaIeta[i] < 0.011586
+	 && ele_HoverE[i] < 0.181130
+	 && fabs(ele_d0[i]) < 0.094095
+	 && fabs(ele_dZ[i]) < 0.713070
+	 && ele_OneOverEminusOneOverP[i] < 0.295751
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.158721
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 2
 	) {
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.010671
-	 && fabs(ele_dPhi[i]) < 0.245263
-	 && eleFull5x5SigmaIetaIeta[i] < 0.033987
-	 && ele_HoverE[i] < 0.134691
-	 && fabs(ele_d0[i]) < 0.273097
-	 && fabs(ele_dZ[i]) < 0.885860
-	 && ele_OneOverEminusOneOverP[i] < 0.157160
-	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.212604
-	&& ele_PassConvVeto[i]
+    if (fabs(ele_dEta[i]) < 0.011932
+	 && fabs(ele_dPhi[i]) < 0.255450
+	 && eleFull5x5SigmaIetaIeta[i] < 0.031849
+	 && ele_HoverE[i] < 0.223870
+	 && fabs(ele_d0[i]) < 0.342293
+	 && fabs(ele_dZ[i]) < 0.953461
+	 && ele_OneOverEminusOneOverP[i] < 0.155501
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.177032
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 3
 	) {
       pass = true;
@@ -38,29 +38,29 @@ bool RazorAnalyzer::isEGammaPOGVetoElectron(int i){
 bool RazorAnalyzer::isEGammaPOGLooseElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.012442
-	 && fabs(ele_dPhi[i]) < 0.072624
-	 && eleFull5x5SigmaIetaIeta[i] < 0.010557
-	 && ele_HoverE[i] < 0.121476
-	 && fabs(ele_d0[i]) < 0.022664
-	 && fabs(ele_dZ[i]) < 0.173670
-	 && ele_OneOverEminusOneOverP[i] < 0.221803
-	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.120026
+    if ( fabs(ele_dEta[i]) < 0.009277
+	 && fabs(ele_dPhi[i]) < 0.094739
+	 && eleFull5x5SigmaIetaIeta[i] < 0.010331
+	 && ele_HoverE[i] < 0.093068
+	 && fabs(ele_d0[i]) < 0.035904
+	 && fabs(ele_dZ[i]) < 0.075496
+	 && ele_OneOverEminusOneOverP[i] < 0.189968
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.130136
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.010654
-	 && fabs(ele_dPhi[i]) < 0.145129
-	 && eleFull5x5SigmaIetaIeta[i] < 0.032602
-	 && ele_HoverE[i] < 0.131862
-	 && fabs(ele_d0[i]) < 0.097358
-	 && fabs(ele_dZ[i]) < 0.198444
-	 && ele_OneOverEminusOneOverP[i] < 0.142283
-	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.162914
-	&& ele_PassConvVeto[i]
+    if (fabs(ele_dEta[i]) < 0.009833
+	 && fabs(ele_dPhi[i]) < 0.149934
+	 && eleFull5x5SigmaIetaIeta[i] < 0.031838
+	 && ele_HoverE[i] < 0.115754
+	 && fabs(ele_d0[i]) < 0.099266
+	 && fabs(ele_dZ[i]) < 0.197897
+	 && ele_OneOverEminusOneOverP[i] < 0.140662
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.163368
+ 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
@@ -69,33 +69,67 @@ bool RazorAnalyzer::isEGammaPOGLooseElectron(int i){
   return pass;
 }
 
-bool RazorAnalyzer::isEGammaPOGTightElectron(int i){
+bool RazorAnalyzer::isEGammaPOGMediumElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.006574
-	 && fabs(ele_dPhi[i]) < 0.022868
-	 && eleFull5x5SigmaIetaIeta[i] < 0.010181
-	 && ele_HoverE[i] < 0.037553
-	 && fabs(ele_d0[i]) < 0.009924
-	 && fabs(ele_dZ[i]) < 0.015310
-	 && ele_OneOverEminusOneOverP[i] < 0.131191
-	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.074355
+    if ( fabs(ele_dEta[i]) < 0.008925
+	 && fabs(ele_dPhi[i]) < 0.035973
+	 && eleFull5x5SigmaIetaIeta[i] < 0.009996
+	 && ele_HoverE[i] < 0.050537
+	 && fabs(ele_d0[i]) < 0.012235
+	 && fabs(ele_dZ[i]) < 0.042020
+	 && ele_OneOverEminusOneOverP[i] < 0.091942
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.107587
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.005681
-	 && fabs(ele_dPhi[i]) < 0.032046
-	 && eleFull5x5SigmaIetaIeta[i] < 0.028766
-	 && ele_HoverE[i] < 0.081902
-	 && fabs(ele_d0[i]) < 0.027261
-	 && fabs(ele_dZ[i]) < 0.147154
-	 && ele_OneOverEminusOneOverP[i] < 0.106055
-	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.090185
-	&& ele_PassConvVeto[i]
+    if (fabs(ele_dEta[i]) < 0.007429
+	 && fabs(ele_dPhi[i]) < 0.067879
+	 && eleFull5x5SigmaIetaIeta[i] < 0.030135
+	 && ele_HoverE[i] < 0.086782
+	 && fabs(ele_d0[i]) < 0.036719
+	 && fabs(ele_dZ[i]) < 0.138142
+	 && ele_OneOverEminusOneOverP[i] < 0.100683
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.113254
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::isEGammaPOGTightElectron(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.006046
+	 && fabs(ele_dPhi[i]) < 0.028092
+	 && eleFull5x5SigmaIetaIeta[i] < 0.009947
+	 && ele_HoverE[i] < 0.045772
+	 && fabs(ele_d0[i]) < 0.008790
+	 && fabs(ele_dZ[i]) < 0.021226
+	 && ele_OneOverEminusOneOverP[i] < 0.020118
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.069537
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.007057
+	 && fabs(ele_dPhi[i]) < 0.030159
+	 && eleFull5x5SigmaIetaIeta[i] < 0.028237
+	 && ele_HoverE[i] < 0.067778
+	 && fabs(ele_d0[i]) < 0.027984
+	 && fabs(ele_dZ[i]) < 0.133431
+	 && ele_OneOverEminusOneOverP[i] < 0.098919
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.078265
+ 	 && ele_PassConvVeto[i]
+ 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
@@ -110,13 +144,13 @@ bool RazorAnalyzer::isVetoElectron(int i){
 bool RazorAnalyzer::isLooseElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.012442
-	 && fabs(ele_dPhi[i]) < 0.072624
-	 && eleFull5x5SigmaIetaIeta[i] < 0.010557
-	 && ele_HoverE[i] < 0.121476
-	 && fabs(ele_d0[i]) < 0.022664
-	 && fabs(ele_dZ[i]) < 0.173670
-	 && ele_OneOverEminusOneOverP[i] < 0.221803
+    if ( fabs(ele_dEta[i]) < 0.009277
+	 && fabs(ele_dPhi[i]) < 0.094739
+	 && eleFull5x5SigmaIetaIeta[i] < 0.010331
+	 && ele_HoverE[i] < 0.093068
+	 && fabs(ele_d0[i]) < 0.035904
+	 && fabs(ele_dZ[i]) < 0.075496
+	 && ele_OneOverEminusOneOverP[i] < 0.189968
 	 && ele_miniiso[i] < 0.1
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
@@ -124,15 +158,15 @@ bool RazorAnalyzer::isLooseElectron(int i){
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.010654
-	 && fabs(ele_dPhi[i]) < 0.145129
-	 && eleFull5x5SigmaIetaIeta[i] < 0.032602
-	 && ele_HoverE[i] < 0.131862
-	 && fabs(ele_d0[i]) < 0.097358
-	 && fabs(ele_dZ[i]) < 0.198444
-	 && ele_OneOverEminusOneOverP[i] < 0.142283
+    if (fabs(ele_dEta[i]) < 0.009833
+	 && fabs(ele_dPhi[i]) < 0.149934
+	 && eleFull5x5SigmaIetaIeta[i] < 0.031838
+	 && ele_HoverE[i] < 0.115754
+	 && fabs(ele_d0[i]) < 0.099266
+	 && fabs(ele_dZ[i]) < 0.197897
+	 && ele_OneOverEminusOneOverP[i] < 0.140662
 	 && ele_miniiso[i] < 0.1
-	&& ele_PassConvVeto[i]
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
@@ -141,16 +175,16 @@ bool RazorAnalyzer::isLooseElectron(int i){
   return pass;
 }
 
-bool RazorAnalyzer::isTightElectron(int i){
+bool RazorAnalyzer::isMediumElectron(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.006574
-	 && fabs(ele_dPhi[i]) < 0.022868
-	 && eleFull5x5SigmaIetaIeta[i] < 0.010181
-	 && ele_HoverE[i] < 0.037553
-	 && fabs(ele_d0[i]) < 0.009924
-	 && fabs(ele_dZ[i]) < 0.015310
-	 && ele_OneOverEminusOneOverP[i] < 0.131191
+    if ( fabs(ele_dEta[i]) < 0.008925
+	 && fabs(ele_dPhi[i]) < 0.035973
+	 && eleFull5x5SigmaIetaIeta[i] < 0.009996
+	 && ele_HoverE[i] < 0.050537
+	 && fabs(ele_d0[i]) < 0.012235
+	 && fabs(ele_dZ[i]) < 0.042020
+	 && ele_OneOverEminusOneOverP[i] < 0.091942
 	 && ele_miniiso[i] < 0.1
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
@@ -158,16 +192,50 @@ bool RazorAnalyzer::isTightElectron(int i){
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.005681
-	 && fabs(ele_dPhi[i]) < 0.032046
-	 && eleFull5x5SigmaIetaIeta[i] < 0.028766
-	 && ele_HoverE[i] < 0.081902
-	 && fabs(ele_d0[i]) < 0.027261
-	 && fabs(ele_dZ[i]) < 0.147154
-	 && ele_OneOverEminusOneOverP[i] < 0.106055
+    if (fabs(ele_dEta[i]) < 0.007429
+	 && fabs(ele_dPhi[i]) < 0.067879
+	 && eleFull5x5SigmaIetaIeta[i] < 0.030135
+	 && ele_HoverE[i] < 0.086782
+	 && fabs(ele_d0[i]) < 0.036719
+	 && fabs(ele_dZ[i]) < 0.138142
+	 && ele_OneOverEminusOneOverP[i] < 0.100683
 	 && ele_miniiso[i] < 0.1
-	&& ele_PassConvVeto[i]
+  	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::isTightElectron(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.006046
+	 && fabs(ele_dPhi[i]) < 0.028092
+	 && eleFull5x5SigmaIetaIeta[i] < 0.009947
+	 && ele_HoverE[i] < 0.045772
+	 && fabs(ele_d0[i]) < 0.008790
+	 && fabs(ele_dZ[i]) < 0.021226
+	 && ele_OneOverEminusOneOverP[i] < 0.020118
+	 && ele_miniiso[i] < 0.1
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.007057
+	 && fabs(ele_dPhi[i]) < 0.030159
+	 && eleFull5x5SigmaIetaIeta[i] < 0.028237
+	 && ele_HoverE[i] < 0.067778
+	 && fabs(ele_d0[i]) < 0.027984
+	 && fabs(ele_dZ[i]) < 0.133431
+	 && ele_OneOverEminusOneOverP[i] < 0.098919
+	 && ele_miniiso[i] < 0.1
+ 	 && ele_PassConvVeto[i]
+ 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
@@ -195,30 +263,62 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i){
   return pass;
 }
 
+bool RazorAnalyzer::passVetoElectronID(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.013625
+	 && fabs(ele_dPhi[i]) < 0.230374
+	 && eleFull5x5SigmaIetaIeta[i] < 0.011586
+	 && ele_HoverE[i] < 0.181130
+	 && fabs(ele_d0[i]) < 0.094095
+	 && fabs(ele_dZ[i]) < 0.713070
+	 && ele_OneOverEminusOneOverP[i] < 0.295751
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 2
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.011932
+	 && fabs(ele_dPhi[i]) < 0.255450
+	 && eleFull5x5SigmaIetaIeta[i] < 0.031849
+	 && ele_HoverE[i] < 0.223870
+	 && fabs(ele_d0[i]) < 0.342293
+	 && fabs(ele_dZ[i]) < 0.953461
+	 && ele_OneOverEminusOneOverP[i] < 0.155501
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 3
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
 bool RazorAnalyzer::passLooseElectronID(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.012442
-	 && fabs(ele_dPhi[i]) < 0.072624
-	 && eleFull5x5SigmaIetaIeta[i] < 0.010557
-	 && ele_HoverE[i] < 0.121476
-	 && fabs(ele_d0[i]) < 0.0221803
-	 && fabs(ele_dZ[i]) < 0.173670
-	 && ele_OneOverEminusOneOverP[i] < 0.221803
+    if ( fabs(ele_dEta[i]) < 0.009277
+	 && fabs(ele_dPhi[i]) < 0.094739
+	 && eleFull5x5SigmaIetaIeta[i] < 0.010331
+	 && ele_HoverE[i] < 0.093068
+	 && fabs(ele_d0[i]) < 0.035904
+	 && fabs(ele_dZ[i]) < 0.075496
+	 && ele_OneOverEminusOneOverP[i] < 0.189968
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.010654
-	 && fabs(ele_dPhi[i]) < 0.145129
-	 && eleFull5x5SigmaIetaIeta[i] < 0.032602
-	 && ele_HoverE[i] < 0.131862
-	 && fabs(ele_d0[i]) < 0.097358
-	 && fabs(ele_dZ[i]) < 0.198444
-	 && ele_OneOverEminusOneOverP[i] < 0.142283
-	&& ele_PassConvVeto[i]
+    if (fabs(ele_dEta[i]) < 0.009833
+	 && fabs(ele_dPhi[i]) < 0.149934
+	 && eleFull5x5SigmaIetaIeta[i] < 0.031838
+	 && ele_HoverE[i] < 0.115754
+	 && fabs(ele_d0[i]) < 0.099266
+	 && fabs(ele_dZ[i]) < 0.197897
+	 && ele_OneOverEminusOneOverP[i] < 0.140662
+ 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
@@ -227,31 +327,65 @@ bool RazorAnalyzer::passLooseElectronID(int i){
   return pass;
 }
 
-bool RazorAnalyzer::passTightElectronID(int i){
+bool RazorAnalyzer::passMediumElectronID(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( fabs(ele_dEta[i]) < 0.006574
-	 && fabs(ele_dPhi[i]) < 0.022868
-	 && eleFull5x5SigmaIetaIeta[i] < 0.010181
-	 && ele_HoverE[i] < 0.037553
-	 && fabs(ele_d0[i]) < 0.009924
-	 && fabs(ele_dZ[i]) < 0.015310
-	 && ele_OneOverEminusOneOverP[i] < 0.131191
+    if ( fabs(ele_dEta[i]) < 0.008925
+	 && fabs(ele_dPhi[i]) < 0.035973
+	 && eleFull5x5SigmaIetaIeta[i] < 0.009996
+	 && ele_HoverE[i] < 0.050537
+	 && fabs(ele_d0[i]) < 0.012235
+	 && fabs(ele_dZ[i]) < 0.042020
+	 && ele_OneOverEminusOneOverP[i] < 0.091942
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.107587
 	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
   } else {
-    if (fabs(ele_dEta[i]) < 0.005681
-	 && fabs(ele_dPhi[i]) < 0.032046
-	 && eleFull5x5SigmaIetaIeta[i] < 0.028766
-	 && ele_HoverE[i] < 0.081902
-	 && fabs(ele_d0[i]) < 0.027261
-	 && fabs(ele_dZ[i]) < 0.147154
-	 && ele_OneOverEminusOneOverP[i] < 0.106055
-	&& ele_PassConvVeto[i]
+    if (fabs(ele_dEta[i]) < 0.007429
+	 && fabs(ele_dPhi[i]) < 0.067879
+	 && eleFull5x5SigmaIetaIeta[i] < 0.030135
+	 && ele_HoverE[i] < 0.086782
+	 && fabs(ele_d0[i]) < 0.036719
+	 && fabs(ele_dZ[i]) < 0.138142
+	 && ele_OneOverEminusOneOverP[i] < 0.100683
+	 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.113254
+	 && ele_PassConvVeto[i]
 	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  }
+  return pass;
+}
+
+bool RazorAnalyzer::passTightElectronID(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( fabs(ele_dEta[i]) < 0.006046
+	 && fabs(ele_dPhi[i]) < 0.028092
+	 && eleFull5x5SigmaIetaIeta[i] < 0.009947
+	 && ele_HoverE[i] < 0.045772
+	 && fabs(ele_d0[i]) < 0.008790
+	 && fabs(ele_dZ[i]) < 0.021226
+	 && ele_OneOverEminusOneOverP[i] < 0.020118
+	 && ele_PassConvVeto[i]
+	 && ele_MissHits[i] < 1
+	) {
+      pass = true;
+    }
+  } else {
+    if (fabs(ele_dEta[i]) < 0.007057
+	 && fabs(ele_dPhi[i]) < 0.030159
+	 && eleFull5x5SigmaIetaIeta[i] < 0.028237
+	 && ele_HoverE[i] < 0.067778
+	 && fabs(ele_d0[i]) < 0.027984
+	 && fabs(ele_dZ[i]) < 0.133431
+	 && ele_OneOverEminusOneOverP[i] < 0.098919
+ 	 && ele_PassConvVeto[i]
+ 	 && ele_MissHits[i] < 1
 	) {
       pass = true;
     }
@@ -287,21 +421,51 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
     pass = true;
   }
 
-
   return pass;
 
 }
 
-
-bool RazorAnalyzer::passEGammaPOGLooseElectronIso(int i){
+bool RazorAnalyzer::passEGammaPOGVetoElectronIso(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.120026
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.158721
 	) {
       pass = true;
     }
   } else {
-    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.162914
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.177032
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
+bool RazorAnalyzer::passEGammaPOGLooseElectronIso(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.130136
+	) {
+      pass = true;
+    }
+  } else {
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.163368
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
+bool RazorAnalyzer::passEGammaPOGMediumElectronIso(int i){
+  bool pass = false;
+  if(fabs(eleEta_SC[i]) < 1.479) {
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.107587
+	) {
+      pass = true;
+    }
+  } else {
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.113254
 	) {
       pass = true;
     }
@@ -312,12 +476,12 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronIso(int i){
 bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i){
   bool pass = false;
   if(fabs(eleEta_SC[i]) < 1.479) {
-    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.074355
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.069537
 	) {
       pass = true;
     }
   } else {
-    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.090185
+    if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i] < 0.078265
 	) {
       pass = true;
     }
@@ -327,7 +491,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i){
 
 bool RazorAnalyzer::passLooseElectronIso(int i){
   bool pass = false;
-  if ( ele_miniiso[i] < 0.1 ){
+  if ( ele_miniiso[i] < 0.4 ){
     pass = true;
   }
   return pass;
@@ -355,7 +519,6 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
   return pass;
 
 }
-
 
 bool RazorAnalyzer::passRunOneHZZElectronPreselection(int i){
 

@@ -92,15 +92,21 @@ class RazorAnalyzer: public RazorEvents {
         //functions in RazorAuxElectron.cc
         bool isEGammaPOGVetoElectron(int i);
         bool isEGammaPOGLooseElectron(int i);
+        bool isEGammaPOGMediumElectron(int i);
         bool isEGammaPOGTightElectron(int i);
         bool isVetoElectron(int i);
         bool isLooseElectron(int i);
+        bool isMediumElectron(int i);
         bool isTightElectron(int i);
 	bool isMVANonTrigVetoElectron(int i);
-        bool passTightElectronID(int i);
+        bool passVetoElectronID(int i);
         bool passLooseElectronID(int i);
+        bool passMediumElectronID(int i);
+        bool passTightElectronID(int i);
 	bool passMVANonTrigVetoElectronID(int i);
+        bool passEGammaPOGVetoElectronIso(int i);
         bool passEGammaPOGLooseElectronIso(int i);
+        bool passEGammaPOGMediumElectronIso(int i);
         bool passEGammaPOGTightElectronIso(int i);
         bool passLooseElectronIso(int i);
         bool passTightElectronIso(int i);

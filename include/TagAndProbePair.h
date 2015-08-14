@@ -37,11 +37,11 @@ class TagAndProbePair {
   Float_t                 phi;
   Float_t                 mass;
   Int_t                   charge;
+  Float_t                 miniIso;
   Float_t                 Activity;
   Float_t                 HT;
   Float_t                 MinDRToParton;
   UInt_t                  NJets;
-  Float_t                 miniIso;
 
 
  public:
@@ -76,11 +76,11 @@ class TagAndProbePair {
     phi                   = 0;
     mass                  = 0;
     charge                = 0;
+    miniIso               = 0;
     Activity              = 0;
     HT                    = 0;
     MinDRToParton         = 0;
     NJets                 = 0;
-    miniIso               = 0;
   }
     
   /// load a TagAndProbePair
@@ -113,12 +113,12 @@ class TagAndProbePair {
     tree_->Branch("phi",&phi,"phi/F");           
     tree_->Branch("mass",&mass,"mass/F");    
     tree_->Branch("charge",&charge,"charge/I");
+    tree_->Branch("miniIso",&miniIso,"miniIso/F");
     if (treeType == kTPType_Full) {
       tree_->Branch("Activity",&Activity,"Activity/F");
       tree_->Branch("HT",&HT,"HT/F");
       tree_->Branch("MinDRToParton",&MinDRToParton,"MinDRToParton/F");
       tree_->Branch("NJets",&NJets,"NJets/i");
-      tree_->Branch("miniIso",&miniIso,"miniIso/F");
     }    
   }
   
@@ -147,12 +147,12 @@ class TagAndProbePair {
     tree_->SetBranchAddress("phi",&phi);
     tree_->SetBranchAddress("mass",&mass);
     tree_->SetBranchAddress("charge",&charge);
+    tree_->SetBranchAddress("miniIso",&miniIso);
     if (treeType == kTPType_Full) {
       tree_->SetBranchAddress("Activity",&Activity);
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("MinDRToParton",&MinDRToParton);
       tree_->SetBranchAddress("NJets",&NJets);
-      tree_->SetBranchAddress("miniIso",&miniIso);
     }    
 
     gErrorIgnoreLevel = currentState;
