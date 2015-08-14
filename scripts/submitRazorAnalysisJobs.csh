@@ -5,10 +5,94 @@
 # Version 1.0                                                                      November 14, 2008
 #===================================================================================================
 
+##########################
+# QCD Study
+##########################
+foreach sample( \
+QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15_25ns \
+QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15_25ns \
+QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15_25ns \
+QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Spring15_25ns \
+)
+  echo "Sample " $sample
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p12/MC/25ns/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorQCDStudy_${sample}_${jobnumber}.out -J RazorQCDStudy_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorQCDStudy $inputfilelist false -1 $filesPerJob $jobnumber RazorQCDStudy_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/Spring15/jobs/
+    sleep 0.1
+  end
+
+end
+
+
 
 ##########################
 # Baseline Razor Analysis
 ##########################
+foreach sample( \
+DoubleEG_Run2015B\
+DoubleMuon_Run2015B\
+HTMHT_Run2015B\
+JetHT_Run2015B\
+Jet_Run2015B\
+MET_Run2015B\
+MuonEG_Run2015B\
+SingleElectron_Run2015B\
+SingleMuon_Run2015B\
+SingleMu_Run2015B\
+Tau_Run2015B\
+) 
+  echo "Sample " $sample
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/data/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorInclusive_${jobnumber}.out -J RazorInclusive_Razor_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh razor $inputfilelist true -1 $filesPerJob $jobnumber RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RazorInclusive/jobs/   
+    sleep 0.1
+  end
+
+end
+
+foreach sample( \
+QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8\
+) 
+  echo "Sample " $sample
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/MC/50ns/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorInclusive_${jobnumber}.out -J RazorInclusive_Razor_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh razor $inputfilelist false -1 $filesPerJob $jobnumber RazorInclusive_${sample}_50ns.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RazorInclusive/jobs/  
+    sleep 0.1
+  end
+
+end
+
+
+
+
 foreach sample( \
 SMS-T1tttt_2J_mGl-1500_mLSP-100_20bx25 \
 SMS-T1bbbb_2J_mGl-1500_mLSP-100_20bx25 \
@@ -74,118 +158,7 @@ TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola_30bx50_PHYS14
 
 end
 
-##########################
-# Run One RazorInclusive
-##########################
-foreach sample( \
-Data_DoubleElectron_Run2012A \
-Data_DoubleElectron_Run2012B \
-Data_DoubleElectron_Run2012C \
-Data_DoubleElectron_Run2012D \
-Data_DoubleMuParked_Run2012A \
-Data_DoubleMuParked_Run2012B \
-Data_DoubleMuParked_Run2012C \
-Data_DoubleMuParked_Run2012D \
-Data_MuEG_Run2012A \
-Data_MuEG_Run2012B \
-Data_MuEG_Run2012C \
-Data_MuEG_Run2012D \
-Data_SingleElectron_Run2012A \
-Data_SingleElectron_Run2012B \
-Data_SingleElectron_Run2012C \
-Data_SingleElectron_Run2012D \
-Data_SingleMu_Run2012A \
-Data_SingleMu_Run2012B \
-Data_SingleMu_Run2012C \
-Data_SingleMu_Run2012D \
-Data_HT_Run2012A \
-Data_HTMHTParked_Run2012B \
-Data_HTMHTParked_Run2012C \
-Data_HTMHTParked_Run2012D \
-) 
-  setenv LSB_JOB_REPORT_MAIL N
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p8-Run1/${sample}.cern.txt"
-  set filesPerJob = 1
-  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
-  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
-  echo "Sample " $sample " maxjob = " $maxjob
 
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/public/condor/res/Run2SUSY/RazorAnalysis/RazorInclusive_${sample}_${jobnumber}.out -J RazorInclusive_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazor $inputfilelist true 1 $filesPerJob $jobnumber RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/
-	
-        while ( `bjobs | grep RUN | wc | awk '{print $1}' | awk '{if($1 > 50){print "yes"}else{print "no"}}'` == "yes")
-	   sleep 10
-        end
-    endif
-  end
-end
-
-foreach sample( \
-DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball \
-WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball \
-TTJets_FullLeptMGDecays_8TeV-madgraph-tauola \
-T_s-channel_TuneZ2star_8TeV-powheg-tauola \
-T_t-channel_TuneZ2star_8TeV-powheg-tauola \
-T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
-Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola \
-Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola \
-Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
-WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
-WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
-WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola \
-ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
-ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
-ZZJetsTo4L_TuneZ2star_8TeV-madgraph-tauola \
-TTWJets_8TeV-madgraph \
-TTWWJets_8TeV-madgraph \
-TTZJets_8TeV-madgraph_v2 \
-TTTT_TuneZ2star_8TeV-madgraph-tauola \
-WJetsToLNu_HT-150To200_8TeV-madgraph \
-WJetsToLNu_HT-200To250_8TeV-madgraph \
-WJetsToLNu_HT-250To300_8TeV-madgraph \
-WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
-WJetsToLNu_HT-300To400_8TeV-madgraph \
-WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
-WJetsToLNu_HT-400ToInf_8TeV-madgraph \
-WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
-DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
-DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
-DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
-DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
-TTJets_HadronicMGDecays_8TeV-madgraph \
-TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola \
-QCD_HT-100To250_TuneZ2star_8TeV-madgraph-pythia \
-QCD_HT-250To500_TuneZ2star_8TeV-madgraph-pythia6 \
-QCD_HT-500To1000_TuneZ2star_8TeV-madgraph-pythia6 \
-QCD_HT-1000ToInf_TuneZ2star_8TeV-madgraph-pythia6 \
-ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph \
-ZJetsToNuNu_100_HT_200_TuneZ2Star_8TeV_madgraph_ext \
-ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph \
-ZJetsToNuNu_200_HT_400_TuneZ2Star_8TeV_madgraph_ext \
-ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph \
-ZJetsToNuNu_400_HT_inf_TuneZ2Star_8TeV_madgraph_ext \
-ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph \
-ZJetsToNuNu_50_HT_100_TuneZ2Star_8TeV_madgraph_ext \
-) 
-  setenv LSB_JOB_REPORT_MAIL N
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p8-Run1/${sample}.cern.txt"
-  set filesPerJob = 1
-  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
-  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
-  echo "Sample " $sample " maxjob = " $maxjob
-
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorInclusive_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazor $inputfilelist false 1 $filesPerJob $jobnumber RazorInclusive_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/run2/RunOneRazorInclusive/jobs/
-	while ( `bjobs | grep RUN | wc | awk '{print $1}' | awk '{if($1 > 50){print "yes"}else{print "no"}}'` == "yes")
-	   sleep 10
-        end
-    endif
-  end
-end
 
 
 
@@ -216,9 +189,15 @@ end
 # Object Ntuplers
 ##########################
 foreach sample( \
-TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns \
+TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 \
+DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 \
+ttHJetToGG_M120_13TeV_amcatnloFXFX_madspin_pythia8 \
+ttHJetToGG_M125_13TeV_amcatnloFXFX_madspin_pythia8 \
+ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8 \
+GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8 \
+QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8 \ 
 )
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/razorNtuplerV1p10-Run2/${sample}.cern.txt"
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p15/MC/50ns/${sample}.cern.txt"
   set filesPerJob = 1
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
@@ -282,206 +261,214 @@ end
 
 
 ##########################
-# Control Region Study
+# Run 2 Control Region Study
 ##########################
 foreach sample( \
-SMS-T1tttt_2J_mGl-1500_mLSP-100\
-SMS-T1bbbb_2J_mGl-1500_mLSP-100\
-SMS-T1tttt_2J_mGl-1200_mLSP-800\
-SMS-T1bbbb_2J_mGl-1000_mLSP-900\
-SMS-T1qqqq_2J_mGl-1400_mLSP-100\
-SMS-T1qqqq_2J_mGl-1000_mLSP-800\
-TTJets \
-WJetsToLNu_HT100To200 \
-WJetsToLNu_HT200To400 \
-WJetsToLNu_HT400To600 \
-WJetsToLNu_HT600ToInf \
-DYJetsToLL_HT100To200 \
-DYJetsToLL_HT200To400 \
-DYJetsToLL_HT400To600 \
-DYJetsToLL_HT600ToInf \
-T_tW \
-TBar_tW \
-TToLeptons_s \
-TBarToLeptons_s \
-TToLeptons_t \
-TBarToLeptons_t \
-WZJetsTo3LNu \
-TTWJets \
-TTZJets \
-QCDHT100To250 \
-QCDHT250To500 \
-QCDHT500To1000 \
-QCDHT1000ToInf \
-) 
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/lists/razorNtuplerV1p4-25ns_v1_v1/${sample}_20bx25.cern.txt"
-  set filesPerJob = 1
-  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
-  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
-  echo "Sample " $sample " maxjob = " $maxjob
-
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh RazorControlRegions $inputfilelist 4 $filesPerJob $jobnumber RazorControlRegions_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RazorControlRegions/jobs/
-    sleep 0.1
-  end
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/VetoLeptonEfficiencyDileptonControlRegion_${jobnumber}.out -J RazorAnalysis_VetoLeptonEfficiencyDileptonControlRegion_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh VetoLeptonEfficiencyControlRegion $inputfilelist 0 $filesPerJob $jobnumber VetoLeptonEfficiencyDileptonControlRegion_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/VetoLeptonEfficiencyDileptonControlRegion/jobs/
-    sleep 0.1
-  end
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nd -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/VetoLeptonEfficiencySingleLeptonControlRegion_${jobnumber}.out -J RazorAnalysis_VetoLeptonEfficiencySingleLeptonControlRegion_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh VetoLeptonEfficiencyControlRegion $inputfilelist 1 $filesPerJob $jobnumber VetoLeptonEfficiencySingleLeptonControlRegion_${sample}_25ns.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/VetoLeptonEfficiencySingleLeptonControlRegion/jobs/
-    sleep 0.1
-  end
-
-end
-
-
-
-##########################
-# Run One Control Region Study
-##########################
-foreach sample( \
-SingleMu \
-SingleElectron \
-DoubleMuParked \
-DoubleElectron \
-MuEG \
-HT \
-HTMHTParked \
+SingleMuon_Run2015B \
+SingleElectron_Run2015B \
+DoubleMuon_Run2015B \
+DoubleEG_Run2015B \
+MuonEG_Run2015B \
+JetHT_Run2015B \
+HTMHT_Run2015B \
+Jet_Run2015B \
 ) 
   setenv LSB_JOB_REPORT_MAIL N
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/data/${sample}.cern.txt"
   set filesPerJob = 1
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob
 
   foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/RunTwoRazorControlRegions_OneLeptonFull_${sample}.Job${jobnumber}Of${maxjob}.root ) then
 	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazorControlRegions $inputfilelist true 1 $filesPerJob $jobnumber RunOneRazorControlRegions_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/
-	sleep 0.1
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_${sample}_${jobnumber}.out -J RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorControlRegions $inputfilelist true 101 $filesPerJob $jobnumber RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/
+     endif
+
+     bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}_${jobnumber}.out -J RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorControlRegions $inputfilelist true 111 $filesPerJob $jobnumber RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/
+     sleep 0.1
+
+     if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}_${jobnumber}.out -J RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorControlRegions $inputfilelist true 203 $filesPerJob $jobnumber RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/
     endif
   end
-
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazorControlRegions $inputfilelist true 2 $filesPerJob $jobnumber RunOneRazorControlRegions_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/
-	sleep 0.1
-    endif
-  end
-
-
- foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_RazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh RunOneRazorControlRegions $inputfilelist true 10 $filesPerJob $jobnumber RunOneRazorControlRegions_RazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RunOneRazorControlRegions/jobs/
-	sleep 0.1
-    endif
-  end
-
-  foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_SingleLeptonRazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazorControlRegions $inputfilelist true 12 $filesPerJob $jobnumber RunOneRazorControlRegions_SingleLeptonRazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/
-	sleep 0.1
-    endif
-  end
-
 end
-
-
 
 foreach sample( \
-DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
-QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6 \
-DYToEE_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-DYToMuMu_M-20_CT10_TuneZ2star_8TeV-powheg-pythia6 \
-DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph \
-DYJetsToLL_HT-200To400_TuneZ2Star_8TeV-madgraph_ext \
-DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph \
-DYJetsToLL_HT-400ToInf_TuneZ2Star_8TeV-madgraph_ext \
-DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball \
-TTJets_FullLeptMGDecays_8TeV-madgraph-tauola \
-TTJets_SemiLeptMGDecays_8TeV-madgraph-tauola \
-TTJets_HadronicMGDecays_8TeV-madgraph \
-WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball \
-WJetsToLNu_HT-150To200_8TeV-madgraph \
-WJetsToLNu_HT-200To250_8TeV-madgraph \
-WJetsToLNu_HT-250To300_8TeV-madgraph_v2 \
-WJetsToLNu_HT-300To400_8TeV-madgraph_v2 \
-WJetsToLNu_HT-400ToInf_8TeV-madgraph_v2 \
-T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
-T_s-channel_TuneZ2star_8TeV-powheg-tauola \
-T_t-channel_TuneZ2star_8TeV-powheg-tauola \
-Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola \
-Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola \
-Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola \
-WWJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
-WZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola\
-WZJetsTo3LNu_8TeV_TuneZ2Star_madgraph_tauola \
-ZZJetsTo2L2Nu_TuneZ2star_8TeV-madgraph-tauola \
-ZZJetsTo2L2Q_TuneZ2star_8TeV-madgraph-tauola \
-TTWJets_8TeV-madgraph \
-TTWWJets_8TeV-madgraph \
-TTZJets_8TeV-madgraph_v2 \
-TTTT_TuneZ2star_8TeV-madgraph-tauola \
-) 
+TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8\
+WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1\
+ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1\
+ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1\
+ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1\
+DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8\
+DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8\
+DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8\
+DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8\
+WWTo2L2Nu_13TeV-powheg\
+WZJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+ZZTo2L2Nu_13TeV_powheg_pythia8\
+TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+)
   setenv LSB_JOB_REPORT_MAIL N
-  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/lists/razorNtuplerV1p6-Run1/${sample}.cern.txt"
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/MC/50ns/${sample}.cern.txt"
   set filesPerJob = 1
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob
 
   foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/RunTwoRazorControlRegions_OneLeptonFull_${sample}.Job${jobnumber}Of${maxjob}.root ) then
 	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazorControlRegions $inputfilelist false 1 $filesPerJob $jobnumber RunOneRazorControlRegions_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RunTwoRazorControlRegions_OneLeptonFull_${sample}_${jobnumber}.out -J RunTwoRazorControlRegions_OneLeptonFull_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorControlRegions $inputfilelist false 1 $filesPerJob $jobnumber RunTwoRazorControlRegions_OneLeptonFull_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/
+	sleep 0.1
+    endif
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}_${jobnumber}.out -J RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorControlRegions $inputfilelist false 111 $filesPerJob $jobnumber RunTwoRazorControlRegions_OneLeptonReduced_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/
+	sleep 0.1
+    endif
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}_${jobnumber}.out -J RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorControlRegions $inputfilelist false 203 $filesPerJob $jobnumber RunTwoRazorControlRegions_DileptonFull_DileptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/
 	sleep 0.1
     endif
   end
+end
+
+
+##########################
+# Tag And Probe
+##########################
+foreach sample( \
+SingleElectron_Run2015B \
+DoubleEG_Run2015B \
+SingleMuon_Run2015B \
+DoubleMuon_Run2015B \
+) 
+  setenv LSB_JOB_REPORT_MAIL N
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/data/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
 
   foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
 	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazorControlRegions $inputfilelist false 2 $filesPerJob $jobnumber RunOneRazorControlRegions_SingleLeptonSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/
-	sleep 0.1
-    endif
-  end
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_EleSingleEleTriggerEffDenominatorTight_${sample}_${jobnumber}.out -J TagAndProbe_EleSingleEleTriggerEffDenominatorTight_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 10550 $filesPerJob $jobnumber TagAndProbe_EleSingleEleTriggerEffDenominatorTight_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/EleSingleEleTriggerEffDenominatorTight/jobs/
 
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_EleTightEffDenominatorReco_${sample}_${jobnumber}.out -J TagAndProbe_EleTightEffDenominatorReco_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 10105 $filesPerJob $jobnumber TagAndProbe_EleTightEffDenominatorReco_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/EleTightEffDenominatorReco/jobs/
 
- foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_RazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN.csh RunOneRazorControlRegions $inputfilelist false 10 $filesPerJob $jobnumber RunOneRazorControlRegions_RazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root /afs/cern.ch/user/s/sixie/work/public/Run2SUSY/RunOneRazorControlRegions/jobs/
-	sleep 0.1
-    endif
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoLooseEffDenominatorReco_${sample}_${jobnumber}.out -J TagAndProbe_PhoLooseEffDenominatorReco_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 30103 $filesPerJob $jobnumber TagAndProbe_PhoLooseEffDenominatorReco_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoLooseEffDenominatorReco/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoTightEffDenominatorReco_${sample}_${jobnumber}.out -J TagAndProbe_PhoTightEffDenominatorReco_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 30105 $filesPerJob $jobnumber TagAndProbe_PhoTightEffDenominatorReco_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoTightEffDenominatorReco/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoHLTLeg1EffDenominatorLoose_${sample}_${jobnumber}.out -J TagAndProbe_PhoHLTLeg1EffDenominatorLoose_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 30350 $filesPerJob $jobnumber TagAndProbe_PhoHLTLeg1EffDenominatorLoose_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoHLTLeg1EffDenominatorLoose/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoHLTLeg2EffDenominatorLoose_${sample}_${jobnumber}.out -J TagAndProbe_PhoHLTLeg2EffDenominatorLoose_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 30351 $filesPerJob $jobnumber TagAndProbe_PhoHLTLeg2EffDenominatorLoose_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoHLTLeg2EffDenominatorLoose/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoHLTLeg1EffDenominatorMedium_${sample}_${jobnumber}.out -J TagAndProbe_PhoHLTLeg1EffDenominatorMedium_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 30450 $filesPerJob $jobnumber TagAndProbe_PhoHLTLeg1EffDenominatorMedium_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoHLTLeg1EffDenominatorMedium/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoHLTLeg2EffDenominatorMedium_${sample}_${jobnumber}.out -J TagAndProbe_PhoHLTLeg2EffDenominatorMedium_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist true 30451 $filesPerJob $jobnumber TagAndProbe_PhoHLTLeg2EffDenominatorMedium_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoHLTLeg2EffDenominatorMedium/jobs/
+
   end
+end
+
+foreach sample( \
+DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+)
+  setenv LSB_JOB_REPORT_MAIL N
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/MC/50ns/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
 
   foreach jobnumber(`seq 0 1 $maxjob`)
-    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/RunOneRazorControlRegions_SingleLeptonRazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root ) then
-	echo "job " $jobnumber " out of " $maxjob
-	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/RazorControlRegions_${sample}_${jobnumber}.out -J RazorAnalysis_RazorControlRegions_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RunOneRazorControlRegions $inputfilelist false 12 $filesPerJob $jobnumber RunOneRazorControlRegions_SingleLeptonRazorSkim_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/RunOneRazorControlRegions/jobs/
-	sleep 0.1
-    endif
-  end
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_EleSingleEleTriggerEffDenominatorTight_${sample}_${jobnumber}.out -J TagAndProbe_EleSingleEleTriggerEffDenominatorTight_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist false 10550 $filesPerJob $jobnumber TagAndProbe_EleSingleEleTriggerEffDenominatorTight_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/EleSingleEleTriggerEffDenominatorTight/jobs/ 
 
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_EleTightEffDenominatorReco_${sample}_${jobnumber}.out -J TagAndProbe_EleTightEffDenominatorReco_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist false 10105 $filesPerJob $jobnumber TagAndProbe_EleTightEffDenominatorReco_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/EleTightEffDenominatorReco/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoLooseEffDenominatorReco_${sample}_${jobnumber}.out -J TagAndProbe_PhoLooseEffDenominatorReco_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist false 30103 $filesPerJob $jobnumber TagAndProbe_PhoLooseEffDenominatorReco_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoLooseEffDenominatorReco/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoTightEffDenominatorReco_${sample}_${jobnumber}.out -J TagAndProbe_PhoTightEffDenominatorReco_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist false 30105 $filesPerJob $jobnumber TagAndProbe_PhoTightEffDenominatorReco_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoTightEffDenominatorReco/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoHLTLeg1EffDenominatorLoose_${sample}_${jobnumber}.out -J TagAndProbe_PhoHLTLeg1EffDenominatorLoose_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist false 30350 $filesPerJob $jobnumber TagAndProbe_PhoHLTLeg1EffDenominatorLoose_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoHLTLeg1EffDenominatorLoose/jobs/
+
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/TagAndProbe_PhoHLTLeg2EffDenominatorLoose_${sample}_${jobnumber}.out -J TagAndProbe_PhoHLTLeg2EffDenominatorLoose_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh RazorTagAndProbe $inputfilelist false 30351 $filesPerJob $jobnumber TagAndProbe_PhoHLTLeg2EffDenominatorLoose_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/TagAndProbe/PhoHLTLeg2EffDenominatorLoose/jobs/
+
+
+  end
 end
 
 
 
 
+
+##########################
+# Hgg Razor Analysis
+##########################
+foreach sample( \
+DoubleEG_Run2015B \
+SinglePhoton_Run2015B \
+)
+  setenv LSB_JOB_REPORT_MAIL N
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/data/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/jobs/HggRazor_OneLeptonFull_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/HggRazor_${sample}_${jobnumber}.out -J HggRazor_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh hggrazor $inputfilelist true -1 $filesPerJob $jobnumber HggRazor_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/HggRazor/jobs/
+    endif
+  end
+end
+
+foreach sample( \
+QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8\
+QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8\
+GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8\
+GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8\
+DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa\
+DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8\
+TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8\
+QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8\
+QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8\
+)
+  setenv LSB_JOB_REPORT_MAIL N
+  set inputfilelist="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/lists/Run2/razorNtuplerV1p16/MC/50ns/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+  echo "Sample " $sample " maxjob = " $maxjob
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/jobs/RunTwoRazorControlRegions_OneLeptonFull_${sample}.Job${jobnumber}Of${maxjob}.root ) then
+	echo "job " $jobnumber " out of " $maxjob
+	bsub -q 8nm -o /afs/cern.ch/user/s/sixie/work/private/condor/res/Run2SUSY/RazorAnalysis/HggRazor_${sample}_${jobnumber}.out -J HggRazor_${sample}_${jobnumber} /afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh hggrazor $inputfilelist false -1 $filesPerJob $jobnumber HggRazor_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/HggRazor/jobs/
+	sleep 0.1
+    endif  
+  end
+end
 
 
 
