@@ -126,6 +126,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
   //tree variables
+  float weight;
   int NPU;
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
@@ -143,12 +144,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
   float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
   bool  Pho_passEleVeto[2], Pho_passIso[2];
-  
+  int   Pho_motherID[2];
+
   //jet information
   float jet_E[10], jet_Pt[10], jet_Eta[10], jet_Phi[10];
   
   //set branches on big tree
   if(combineTrees){
+    razorTree->Branch("weight", &weight, "weight/F");
     razorTree->Branch("run", &run, "run/i");
     razorTree->Branch("lumi", &lumi, "lumi/i");
     razorTree->Branch("event", &event, "event/i");
@@ -183,6 +186,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
     razorTree->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
     razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
+    razorTree->Branch("pho1MotherID", &Pho_motherID[0], "pho1MotherID/I");
     
     razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
     razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
@@ -197,7 +201,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     razorTree->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
     razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
     razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
-    
+    razorTree->Branch("pho2MotherID", &Pho_motherID[1], "pho2MotherID/I");
+
     razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
     razorTree->Branch("mbbH", &mbbH, "mbbH/F");
     
@@ -211,6 +216,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
   //set branches on all trees
   else{ 
     for(auto& thisBox : razorBoxes){
+      thisBox.second->Branch("weight", &weight, "weight/F");
       thisBox.second->Branch("run", &run, "run/i");
       thisBox.second->Branch("lumi", &lumi, "lumi/i");
       thisBox.second->Branch("event", &event, "event/i");
@@ -282,9 +288,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     
-    //fill normalization histogram
-    NEvents->Fill(1.0);
-    
+    //fill normalization histogram    
+    NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
+    weight = genWeight;
+
     //reset tree variables
     n_Jets = 0;
     nLooseBTaggedJets = 0;
@@ -396,7 +403,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     for(int i = 0; i < nPhotons; i++){
       //ID cuts -- apply isolation after candidate pair selection
       if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-      if ( !photonPassLooseID(i) ) {
+      if ( !photonPassLooseIDWithoutEleVeto(i) ) {
 	if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
 	continue;
       }
@@ -496,7 +503,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
 	    std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
 	  }
 	
-	if( diphotonMass < 100 )
+	if( diphotonMass < 50 )
 	  {
 	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
 	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
@@ -576,7 +583,37 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     mGammaGamma = HiggsCandidate.M();
     pTGammaGamma = HiggsCandidate.Pt();
     
-    
+
+    //***********************************************************
+    //get mother ID of photons
+    //***********************************************************
+    // cout << "Photon1 : " << Pho_Pt[0] << " " << Pho_Eta[0] << " " << Pho_Phi[0] << "\n";
+    for(int g = 0; g < nGenParticle; g++){
+      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.5) ) continue;
+      if(gParticleStatus[g] != 1) continue;
+      if(gParticleId[g] != 22) continue;
+      Pho_motherID[0] = gParticleMotherId[g];
+      //cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
+    }
+
+    // cout << "Photon2 : " << Pho_Pt[1] << " " << Pho_Eta[1] << " " << Pho_Phi[1] << "\n";
+    for(int g = 0; g < nGenParticle; g++){
+      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.5) ) continue;
+      if(gParticleStatus[g] != 1) continue;
+      if(gParticleId[g] != 22) continue;
+      Pho_motherID[1] = gParticleMotherId[g];      
+      //cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
+    }
+
+    // cout << "\nGenParticles:\n";
+    // for(int g = 0; g < nGenParticle; g++){
+    //   cout << "GenParticle: " << gParticleId[g] << " " << gParticleStatus[g] << " : " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
+    // }
+    // cout << "\n\n";
+
+
+
+
     //Jets
     vector<TLorentzVector> GoodJets;
     vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
