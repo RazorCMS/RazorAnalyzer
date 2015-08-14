@@ -251,15 +251,6 @@ int main(int argc, char* argv[]){
 
       analyzer.RazorDM(outputFileName);
     }
-    else if (analysisType == "TagAndProbe"){
-      cout << "Executing TagAndProbe analysis..." << endl;
-      analyzer.EnableElectrons();
-      analyzer.EnableMuons();
-      analyzer.EnableEventInfo();
-      analyzer.EnableMC();
-
-      analyzer.TagAndProbe(outputFileName);
-    }
     else if(analysisType == "RazorControlRegions"){
       cout << "Executing RazorControlRegions analysis..." << endl;
       analyzer.EnableEventInfo();
