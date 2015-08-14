@@ -119,6 +119,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     Long64_t nbytes = 0, nb = 0;
 
     for (Long64_t jentry=0; jentry<fChain->GetEntries();jentry++) {
+      //initialize all varabiles
+      events->InitVariables();
 
       //begin event
       if(jentry % 1000 == 0) cout << "Processing entry " << jentry << endl;
@@ -819,10 +821,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
-      TLorentzVector MyMET = PFMETType1;
+      // TLorentzVector MyMET = PFMETType1;
 
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
+      
+      TLorentzVector MyMET = PFMETnoHFType1;
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
