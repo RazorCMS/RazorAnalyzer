@@ -56,13 +56,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   cout << "Getting JEC parameters from " << pathname << endl;
   
   if (isData) {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
   } else {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
   }
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -530,15 +531,16 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //*************************************************************
     //Apply Type1 Met Correction
     //*************************************************************
-    double PFMetCustomType1CorrectedX = metPt*cos(metPhi) + MetX_Type1Corr;
-    double PFMetCustomType1CorrectedY = metPt*sin(metPhi) + MetY_Type1Corr;
+    double PFMetCustomType1CorrectedX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
+    double PFMetCustomType1CorrectedY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
     TLorentzVector PFMETCustomType1Corrected; 
     PFMETCustomType1Corrected.SetPxPyPzE(PFMetCustomType1CorrectedX, PFMetCustomType1CorrectedY, 0, 
 					 sqrt( pow(PFMetCustomType1CorrectedX,2) + pow(PFMetCustomType1CorrectedY,2)));      
     TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
     TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
     TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
-    TLorentzVector MyMET = PFMETType1; //This is the MET that will be used below.
+    TLorentzVector PFMETNoHF = makeTLorentzVectorPtEtaPhiM(metNoHFPt, 0, metNoHFPhi, 0);
+    TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
 
     HT = 0;
     for(auto& obj : GoodPFObjects) HT += obj.Pt();
