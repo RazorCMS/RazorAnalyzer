@@ -16,18 +16,50 @@ def fillRazor3D(tree, hist, weight, btagCutoff, opt=""):
     if opt == "": #MR, Rsq, nBtags
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
         
-    #test systematic -- change MR by 50
+    #test systematic -- change MR by 5%
     elif opt == "madeupSystematicUp": 
-        hist.Fill(tree.MR+50, tree.Rsq, nBTags, weight)
+        hist.Fill(tree.MR*1.05, tree.Rsq, nBTags, weight)
     elif opt == "madeupSystematicDown":
-        hist.Fill(tree.MR-50, tree.Rsq, nBTags, weight)
+        hist.Fill(tree.MR/1.05, tree.Rsq, nBTags, weight)
 
     else: 
         print("Error in fillRazor3D: option "+opt+" not recognized!")
         sys.exit()
 
+def uncorrelate(hists, sysName):
+    """Replaces each histogram whose name contains 'sysName' with many copies that represent uncorrelated bin-by-bin systematics"""
+    #get all histograms that match the input string
+    toUncorrelate = [name for name in hists if sysName in name]
+    print("Treating the following distributions as uncorrelated: ")
+    for name in toUncorrelate: print name
+    
+    for name in toUncorrelate:
+        print("Uncorrelating "+name)
+        #get histogram with central values
+        centerName = name.split("_")[:-1]
+        centerName = '_'.join(centerName)
+        systName = name.split("_")[-1].replace("Up","").replace("Down","")
+        print("Central values taken from "+centerName)
+        #for each bin create a new histogram in which that bin is up/down and the rest are centered
+        for b in range(1,hists[name].GetNbinsX()+1):
+            if "Up" in name: 
+                newHistName = centerName+"_"+systName+str(b)+"Up"
+            elif "Down" in name:
+                newHistName = centerName+"_"+systName+str(b)+"Down"
+            else: 
+                print("Error: shape histogram name "+name+" needs to contain 'Up' or 'Down'")
+                return
+            hists[newHistName] = hists[centerName].Clone(newHistName)
+            hists[newHistName].SetDirectory(0)
+            hists[newHistName].SetBinContent(b, hists[name].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
+            hists[newHistName].SetBinError(b, hists[name].GetBinError(b))
+
+        #remove the original histogram
+        del hists[name]
+
+
 def convertTree2TH1(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName, option=""):
-    """Create 3D histogram for direct use with Combine"""
+    """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -73,8 +105,8 @@ def convertTree2TH1(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, tree
         
     boxCut = boxes[box]
     cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut)
-    if option == "madeupSystematicUp": cuts = cuts.replace("MR", "MR+50")
-    if option == "madeupSystematicDown": cuts = cuts.replace("MR", "MR-50")
+    if option == "madeupSystematicUp": cuts = cuts.replace("MR", "MR*1.05")
+    if option == "madeupSystematicDown": cuts = cuts.replace("MR", "MR/1.05")
 
     #get list of entries passing the cuts
     tree.Draw('>>elist', cuts, 'entrylist')
@@ -177,7 +209,7 @@ def writeDataCard_th1(box,model,txtfileName,hists):
             for i in range(0,len(bkgs)+1):                
                     mcErrStrings[bkg] += "\t%.3f"%mcErrs[bkg][i]
             mcErrStrings[bkg]+="\n"
-    shapeErrStrings = {name:name+"\tshapeN2" for name in shapeNames}
+    shapeErrStrings = {name:name+"\tshape" for name in shapeNames}
     for name in shapeNames: 
         for i in range(0, len(bkgs)+1):
             shapeErrStrings[name] += "\t"+shapeErrs[name][i]
@@ -225,7 +257,9 @@ if __name__ == '__main__':
     #list of shape systematics to apply
     #shapes = ["madeupSystematic"]
     shapes = []
-    #TODO: add option for a systematic to be exclusive to a particular process
+    #uncorrShapes = ["madeupSystematic"] #shapes not listed here are assumed to be fully correlated bin by bin
+    uncorrShapes = [] #shapes not listed here are assumed to be fully correlated bin by bin
+    #TODO: add option for a systematic to affect only particular process(es)
 
     print 'Input files are %s' % ', '.join(args)
     
@@ -297,10 +331,18 @@ if __name__ == '__main__':
                 modelString = model+'_'+massPoint
                 #add histogram to output file
                 ds.append(convertTree2TH1(tree, cfg, box, w, True, f ,lumi, lumi_in, modelString))
-                for shape in shapes:
-                    for updown in ["Up", "Down"]:
-                        ds.append(convertTree2TH1(tree, cfg, box, w, True, f, lumi, lumi_in, modelString+"_"+shape+updown, option=shape+updown))
+                #for shape in shapes:
+                #    for updown in ["Up", "Down"]:
+                #        ds.append(convertTree2TH1(tree, cfg, box, w, True, f, lumi, lumi_in, modelString+"_"+shape+updown, option=shape+updown))
             rootFile.Close()
+
+    #convert dataset list to dict
+    dsDict = {}
+    for d in ds: dsDict[d.GetName()] = d
+
+    #perform uncorrelation procedure 
+    for shape in uncorrShapes:
+        uncorrelate(dsDict, shape)
 
     #make data histograms
     #(as a proxy for now, use the sum of the MC)
@@ -315,23 +357,20 @@ if __name__ == '__main__':
     else:
         outFileName = 'RazorInclusive_Histograms_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
 
-    #output histograms
+    #output file
     print "Output File: %s"%(options.outDir+"/"+outFileName)
     outFile = rt.TFile.Open(options.outDir+"/"+outFileName,'recreate')
     outFile.cd()
 
-    for hist in ds:
-        print("Writing histogram: "+hist.GetName())
-        hist.Write()
+    for name in dsDict:
+        print("Writing histogram: "+dsDict[name].GetName())
+        dsDict[name].Write()
     print("Writing histogram: "+data.GetName())
     data.Write()
    
     outFile.Close()
 
-    #convert dataset list to dict for writing data card
-    dsDict = {}
+    #add data for writing card
     dsDict["data_obs"] = data
-    for d in ds: dsDict[d.GetName()] = d
-
     #create data card
     writeDataCard_th1(box,modelString,(options.outDir+"/"+outFileName).replace('.root','.txt'),dsDict)
