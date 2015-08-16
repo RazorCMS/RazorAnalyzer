@@ -64,28 +64,19 @@ class RazorAnalyzer: public RazorEvents {
         virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
 	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
         virtual void HbbRazor(string outFileName = "HbbRazor.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
-        virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false, bool isRunOne = false);
+        virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false);
 	virtual void RazorQCDStudy(string outFileName = "RazorQCDStudy.root", int option = -1, bool isData = false, bool isRunOne = false);
 	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
 
         //functions in RazorAuxMuon.cc
-	bool isMuonPOGLooseMuon(int i);
-	bool isMuonPOGMediumMuon(int i);
-        bool isMuonPOGTightMuon(int i);
-	bool isVetoMuon(int i);
-	bool isLooseMuon(int i);
-        bool isTightMuon(int i);
-	bool passVetoMuonID(int i);
-	bool passLooseMuonID(int i);
-        bool passTightMuonID(int i);
-	bool passMuonPOGLooseMuonIso(int i);
- 	bool passMuonPOGMediumMuonIso(int i);
-        bool passMuonPOGTightMuonIso(int i);
-	bool passVetoMuonIso(int i);
-	bool passLooseMuonIso(int i);
-        bool passTightMuonIso(int i);
-        bool passRunOneHZZMuonPreselection(int i);
-        bool isRunOneHZZMuon(int i);
+	bool isMuonPOGLooseMuon(int i, bool applyID = true, bool applyIso = true);
+	bool isMuonPOGMediumMuon(int i, bool applyID = true, bool applyIso = true);
+        bool isMuonPOGTightMuon(int i, bool applyID = true, bool applyIso = true);
+	bool isVetoMuon(int i, bool applyID = true, bool applyIso = true);
+	bool isLooseMuon(int i, bool applyID = true, bool applyIso = true);
+        bool isTightMuon(int i, bool applyID = true, bool applyIso = true);
+        bool passHZZMuonPreselection(int i);
+        bool isHZZMuon(int i);
 	bool matchMuonHLTFilters( int i, string HLTFilter);
 	bool matchTagMuonHLTFilters( int i);
 

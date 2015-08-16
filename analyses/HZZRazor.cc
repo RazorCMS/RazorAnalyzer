@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
+void RazorAnalyzer::HZZRazor(string outFileName, bool IsData)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
@@ -21,22 +21,18 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
   // //Pileup Weights
   // TFile *pileupWeightFile = 0;
   // TH1D *pileupWeightHist = 0;
-  // if (isRunOne) {
   //   pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/Run1PileupWeights.root", "READ");
   //   pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
   //   assert(pileupWeightHist);
-  // }
 
   // //Lepton Efficiency Correction Factors
   // TH2D *eleLooseEffSFHist = 0;
   // TH2D *eleTightEffSFHist = 0;
-  // if (isRunOne) {
   //   TFile *eleEffSFFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/ScaleFactors/Run1/ElectronSelection_Run2012ReReco_53X.root","READ");
   //   eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
   //   assert(eleLooseEffSFHist);
   //   eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("sfTIGHT");
   //   assert(eleTightEffSFHist);
-  // }
 
   if (outFileName.empty()){
     cout << "HZZRazor: Output filename not specified!" << endl << "Using default output name HZZRazor.root" << endl;
@@ -50,41 +46,24 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
   //initialize jet energy corrections
   TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
   std::vector<JetCorrectorParameters> correctionParameters;
-  //get correct directory for JEC files (different for lxplus and t3-higgs)
-  struct stat sb;
-  string dir;
-  if(stat("/afs/cern.ch/work/s/sixie/public", &sb) == 0 && S_ISDIR(sb.st_mode)){ //check if Si's directory exists
-    if (isRunOne) {
-      dir = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data";
-    } else {
-      dir = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data";
-    }
-    cout << "Getting JEC parameters from " << dir << endl;
-  }
-  else{ //we are on t3-higgs (for running locally on your laptop we need a separate solution)
-    dir = Form("%s/src/RazorAnalyzer/data/", getenv("CMSSW_BASE"));
-    cout << "Getting JEC parameters from " << dir << endl;
-  }
-
-  if (isRunOne) {
-    if (IsData) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L1FastJet_AK5PF.txt", dir.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2Relative_AK5PF.txt", dir.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L3Absolute_AK5PF.txt", dir.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Winter14_V8_DATA_L2L3Residual_AK5PF.txt", dir.c_str())));
-    } else {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L1FastJet_AK5PF.txt", dir.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L2Relative_AK5PF.txt", dir.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer13_V4_MC_L3Absolute_AK5PF.txt", dir.c_str())));
-    }
+  char* cmsswPath;
+  cmsswPath = getenv("CMSSW_BASE");
+  string pathname;
+  if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+  cout << "Getting JEC parameters from " << pathname << endl;  
+  if (IsData) {
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
   } else {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt", dir.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L2Relative_AK4PFchs.txt", dir.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt", dir.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
   }
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-  JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",dir.c_str()));
+  JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
   SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
 
@@ -120,8 +99,8 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
   bool jet_LooseBTag[10], jet_MediumBTag[10];
   float mHem1, ptHem1, etaHem1, phiHem1, mHem2, ptHem2, etaHem2, phiHem2;
 
-  float pileupWeight = 1.0;
-  float lepEffCorrFactor = 1.0;
+  //float pileupWeight = 1.0;
+  //float lepEffCorrFactor = 1.0;
   float btagCorrFactor = 1.0;
 
   //set branches on big tree
@@ -320,17 +299,17 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
 	//apply muon efficiency scale factors
       }
 
-      //cout << "Muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << passRunOneHZZMuonPreselection(i) << " " << isRunOneHZZMuon(i) << " | " << "\n";
+      //cout << "Muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << passHZZMuonPreselection(i) << " " << isHZZMuon(i) << " | " << "\n";
 
-      if(!passRunOneHZZMuonPreselection(i)) continue;  
-      if (isRunOneHZZMuon(i)) nSelectedMuons++;
+      if(!passHZZMuonPreselection(i)) continue;  
+      if (isHZZMuon(i)) nSelectedMuons++;
 
       preselType.push_back(13);
       preselIndex.push_back(i);
       preselCharge.push_back(muonCharge[i]);
       TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
       preselLeptons.push_back(thisMuon);
-      if(isRunOneHZZMuon(i)) GoodLeptons.push_back(thisMuon);
+      if(isHZZMuon(i)) GoodLeptons.push_back(thisMuon);
     }
     for(int i = 0; i < nElectrons; i++){
       if(elePt[i] < 5) continue;
@@ -341,7 +320,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       for(auto& lep : preselLeptons){
 	if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.05) overlap = true;
       }
-      //cout << "Electron " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : overlap=" << overlap << " " << passRunOneHZZElectronPreselection(i) << " " << isHZZElectron(i) << "\n";
+      //cout << "Electron " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : overlap=" << overlap << " " << passHZZElectronPreselection(i) << " " << isHZZElectron(i) << "\n";
 
       if(overlap) continue;
 
@@ -367,10 +346,10 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       for (int j = i+1 ; j < int(preselType.size()); ++j) {
 
 	//leptons must pass full selection criteria
-	if (!( (preselType[i] == 13 && isRunOneHZZMuon(preselIndex[i]) )
+	if (!( (preselType[i] == 13 && isHZZMuon(preselIndex[i]) )
 	       || (preselType[i] == 11 && isHZZElectron(preselIndex[i]) )
 	       )) continue;
-	if (!( (preselType[j] == 13 && isRunOneHZZMuon(preselIndex[j]) )
+	if (!( (preselType[j] == 13 && isHZZMuon(preselIndex[j]) )
 	       || (preselType[j] == 11 && isHZZElectron(preselIndex[j]) )
 	       )) continue;
 	
@@ -405,10 +384,10 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       for (int j = i+1 ; j < int(preselType.size()); ++j) {
 	
 	//leptons must pass full selection criteria
-	if (!( (preselType[i] == 13 && isRunOneHZZMuon(preselIndex[i]) )
+	if (!( (preselType[i] == 13 && isHZZMuon(preselIndex[i]) )
 	       || (preselType[i] == 11 && isHZZElectron(preselIndex[i]) )
 	       )) continue;
-	if (!( (preselType[j] == 13 && isRunOneHZZMuon(preselIndex[j]) )
+	if (!( (preselType[j] == 13 && isHZZMuon(preselIndex[j]) )
 	       || (preselType[j] == 11 && isHZZElectron(preselIndex[j]) )
 	       )) continue;
 	
@@ -563,24 +542,19 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       //*****************************************************************
       //apply Jet ID
       //*****************************************************************
-      if (isRunOne) {
-	if (!jetPassIDLoose[i]) continue;
-      }
+      if (!jetPassIDLoose[i]) continue;
 
       //*****************************************************************
       //Apply Jet Energy and Resolution Corrections
       //*****************************************************************
       double tmpRho = fixedGridRhoFastjetAll;
-      if (isRunOne) tmpRho = fixedGridRhoAll;
       double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
     					     tmpRho, jetJetArea[i], 
     					     JetCorrector);   
 
       double jetEnergySmearFactor = 1.0;
       if (!isData) {
-	if (isRunOne) {
-	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], npu, JetResolutionCalculator, random);
-	}
+	jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], npu, JetResolutionCalculator, random);
       }
       
       TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
@@ -590,47 +564,41 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       //*******************************
       //B-Tagging Correction Factor
       //*******************************
-      if (isRunOne) {
-	if (abs(jetPartonFlavor[i]) == 5 &&jetCorrPt > 20) {
-	  double tmpBTagCorrFactor = 1.0;
+      if (abs(jetPartonFlavor[i]) == 5 &&jetCorrPt > 20) {
+	double tmpBTagCorrFactor = 1.0;
 	
-	  double tmpCorrFactor = 0.938887 + 0.00017124 * jetCorrPt + (-2.76366e-07) * jetCorrPt * jetCorrPt ;
-	  double MCEff = 1.0;
-	  if (jetCorrPt < 50) MCEff = 0.65;
-	  else if (jetCorrPt < 80) MCEff = 0.70;
-	  else if (jetCorrPt < 120) MCEff = 0.73;
-	  else if (jetCorrPt < 210) MCEff = 0.73;
-	  else MCEff = 0.66;				 
+	double tmpCorrFactor = 0.938887 + 0.00017124 * jetCorrPt + (-2.76366e-07) * jetCorrPt * jetCorrPt ;
+	double MCEff = 1.0;
+	if (jetCorrPt < 50) MCEff = 0.65;
+	else if (jetCorrPt < 80) MCEff = 0.70;
+	else if (jetCorrPt < 120) MCEff = 0.73;
+	else if (jetCorrPt < 210) MCEff = 0.73;
+	else MCEff = 0.66;				 
 	
-	  //if pass CSV Medium
-	  if( isCSVM(i)) {
-	    tmpBTagCorrFactor = tmpCorrFactor;
-	  } else {
-	    tmpBTagCorrFactor = ( 1/MCEff - tmpCorrFactor) / ( 1/MCEff - 1);
-	  }
-
-	  btagCorrFactor *= tmpBTagCorrFactor;
+	//if pass CSV Medium
+	if( isCSVM(i)) {
+	  tmpBTagCorrFactor = tmpCorrFactor;
+	} else {
+	  tmpBTagCorrFactor = ( 1/MCEff - tmpCorrFactor) / ( 1/MCEff - 1);
 	}
+
+	btagCorrFactor *= tmpBTagCorrFactor;
       }
 
       //*******************************
       //Add to Type1 Met Correction
       //*******************************
-      if (isRunOne) {
-	if (jetPt[i]*JEC*jetEnergySmearFactor > 20) {
-	  MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
-	  MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
-	}
+      if (jetPt[i]*JEC*jetEnergySmearFactor > 20) {
+	MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
+	MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
       }
 
       //*******************************************************
       //apply  Pileup Jet ID
       //*******************************************************
       bool passPUJetID = true;
-      if (isRunOne) {
-	int level = 2; //loose jet ID
-	if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) passPUJetID = false;
-      }
+      // int level = 2; //loose jet ID
+      // if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) passPUJetID = false;
       
       //*******************************************************
       //apply Jet cuts
@@ -648,7 +616,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       jet_Pt[n_Jets] = thisJet.Pt();
       jet_Eta[n_Jets] = thisJet.Eta();
       jet_Phi[n_Jets] = thisJet.Phi();
-      jet_CSV[n_Jets] = ( (isRunOne) ? jetCSV[i] : jetCISV[i]);
+      jet_CSV[n_Jets] = jetCISV[i];
       jet_LooseBTag[n_Jets] = isCSVL(i);
       jet_MediumBTag[n_Jets] = isCSVM(i);
       n_Jets++;
@@ -676,11 +644,7 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
     double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
     double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
     TLorentzVector PFMETCorr; 
-    if (isRunOne) {
-      PFMETCorr.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));      
-    } else {
-      PFMETCorr.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));      
-    }
+    PFMETCorr.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));      
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
     TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
 
@@ -744,11 +708,9 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
     //**********************************************************************
     //Compute correction factor weight
     //**********************************************************************
-    if (isRunOne) {
-      weight *= pileupWeight;
-      weight *= lepEffCorrFactor;
-      weight *= btagCorrFactor;    
-    }
+    // weight *= pileupWeight;
+    // weight *= lepEffCorrFactor;
+    // weight *= btagCorrFactor;    
 
 
     //**********************************************************************

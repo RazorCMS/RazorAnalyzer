@@ -456,13 +456,13 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      if ( !isTightMuon(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 6) {
-	      if ( !passVetoMuonID(indexProbe) ) continue;
+	      if ( !isVetoMuon(indexProbe, true, false) ) continue;
 	    }
 	    if (denominatorType == 7) {
-	      if ( !passLooseMuonID(indexProbe) ) continue;
+	      if ( !isLooseMuon(indexProbe, true, false) ) continue;
 	    }
 	    if (denominatorType == 9) {
-	      if ( !passTightMuonID(indexProbe) ) continue;
+	      if ( !isTightMuon(indexProbe, true, false) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -488,22 +488,22 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = isTightMuon(indexProbe);
 	    }
 	    if (numeratorType == 6) {
-	      pass = passVetoMuonID(indexProbe);
+	      pass = isVetoMuon(indexProbe, true, false);
 	    }
 	    if (numeratorType == 7) {
-	      pass = passLooseMuonID(indexProbe);
+	      pass = isLooseMuon(indexProbe, true, false);
 	    }
 	    if (numeratorType == 9) {
-	      pass = passTightMuonID(indexProbe);
+	      pass = isTightMuon(indexProbe, true, false);
 	    }
 	    if (numeratorType == 10) {
-	      pass = passVetoMuonIso(indexProbe);
+	      pass = isVetoMuon(indexProbe, false, true);
 	    }
 	    if (numeratorType == 11) {
-	      pass = passLooseMuonIso(indexProbe);
+	      pass = isLooseMuon(indexProbe, false, true);
 	    }
 	    if (numeratorType == 13) {
-	      pass = passTightMuonIso(indexProbe);
+	      pass = isTightMuon(indexProbe, false, true);
 	    }
 	    if (numeratorType == 50) {
 	      pass = matchMuonHLTFilters(indexProbe, "SingleMuon");
