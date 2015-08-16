@@ -310,10 +310,10 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      if ( !isTightElectron(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 7) {
-	      if ( !passLooseElectronID(indexProbe) ) continue;
+	      if ( !passEGammaPOGLooseElectronID(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 9) {
-	      if ( !passTightElectronID(indexProbe) ) continue;
+	      if ( !passEGammaPOGTightElectronID(indexProbe) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -336,16 +336,16 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = isTightElectron(indexProbe);
 	    }
 	    if (numeratorType == 7) {
-	      pass = passLooseElectronID(indexProbe);
+	      pass = isLooseElectron(indexProbe, true, false);
 	    }
 	    if (numeratorType == 9) {
-	      pass = passTightElectronID(indexProbe);
+	      pass = isTightElectron(indexProbe, true, false);
 	    }
 	    if (numeratorType == 11) {
-	      pass = passLooseElectronIso(indexProbe);
+	      pass = isLooseElectron(indexProbe, false, true);
 	    }
 	    if (numeratorType == 13) {
-	      pass = passTightElectronIso(indexProbe);
+	      pass = isTightElectron(indexProbe, false, true);
 	    }
 	    if (numeratorType == 23) {
 	      pass = isEGammaPOGLooseElectron(indexProbe);

@@ -212,8 +212,8 @@ void RazorAnalyzer::RazorZAnalysis(string outFileName, bool combineTrees)
       if(elePt[i] < 5) continue;
       if(fabs(eleEta[i]) > 2.5) continue;
       if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
-      if(isRunOneLooseElectron(i) && elePt[i] > 10 ) nLooseElectrons++;
-      if(isRunOneTightElectron(i) && elePt[i] > 10 ) nTightElectrons++;
+      if(isLooseElectron(i) && elePt[i] > 10 ) nLooseElectrons++;
+      if(isTightElectron(i) && elePt[i] > 10 ) nTightElectrons++;
 
       //remove overlaps
       bool overlap = false;
@@ -225,7 +225,7 @@ void RazorAnalyzer::RazorZAnalysis(string outFileName, bool combineTrees)
       if(!isMVANonTrigVetoElectron(i)) continue; 
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       GoodLeptons.push_back(thisElectron);  
-      if (isRunOneLooseElectron(i) && elePt[i] > 10 ) LooseLeptons.push_back(thisElectron);
+      if (isLooseElectron(i) && elePt[i] > 10 ) LooseLeptons.push_back(thisElectron);
     }
 
     for(uint i = 0; i < nIsoPFCandidates; i++){
@@ -383,7 +383,7 @@ void RazorAnalyzer::RazorZAnalysis(string outFileName, bool combineTrees)
     //   //remove overlaps
 
     //   if(!isMVANonTrigVetoElectron(i)) continue; 
-    //   cout << "ele: " << elePt[i] << " " << eleEta[i] << " " << elePhi[i]  << " : " << isMVANonTrigVetoElectron(i) << " " << isRunOneLooseElectron(i) << " " << isRunOneTightElectron(i) << "\n";
+    //   cout << "ele: " << elePt[i] << " " << eleEta[i] << " " << elePhi[i]  << " : " << isMVANonTrigVetoElectron(i) << " " << isLooseElectron(i) << " " << isTightElectron(i) << "\n";
     // }
 
 

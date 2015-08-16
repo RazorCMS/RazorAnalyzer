@@ -65,11 +65,8 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
         virtual void HbbRazor(string outFileName = "HbbRazor.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
         virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false, bool isRunOne = false);
-
-	
 	virtual void RazorQCDStudy(string outFileName = "RazorQCDStudy.root", int option = -1, bool isData = false, bool isRunOne = false);
 	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
-
 
         //functions in RazorAuxMuon.cc
 	bool isMuonPOGLooseMuon(int i);
@@ -93,33 +90,30 @@ class RazorAnalyzer: public RazorEvents {
 	bool matchTagMuonHLTFilters( int i);
 
         //functions in RazorAuxElectron.cc
-        bool isEGammaPOGVetoElectron(int i);
-        bool isEGammaPOGLooseElectron(int i);
-        bool isEGammaPOGMediumElectron(int i);
-        bool isEGammaPOGTightElectron(int i);
-        bool isVetoElectron(int i);
-        bool isLooseElectron(int i);
-        bool isMediumElectron(int i);
-        bool isTightElectron(int i);
-	bool isMVANonTrigVetoElectron(int i);
-        bool passVetoElectronID(int i);
-        bool passLooseElectronID(int i);
-        bool passMediumElectronID(int i);
-        bool passTightElectronID(int i);
+	float GetEffectiveAreaMean(int i);
+	float GetEffectiveArea90(int i);
+        bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isEGammaPOGTightElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isVetoElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isLooseElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isMediumElectron(int i, bool applyID = true, bool applyIso = true);
+        bool isTightElectron(int i, bool applyID = true, bool applyIso = true);
+	bool isMVANonTrigVetoElectron(int i, bool applyID = true, bool applyIso = true);
+        bool passEGammaPOGVetoElectronID(int i);
+        bool passEGammaPOGLooseElectronID(int i);
+        bool passEGammaPOGMediumElectronID(int i);
+        bool passEGammaPOGTightElectronID(int i);
 	bool passMVANonTrigVetoElectronID(int i);
         bool passEGammaPOGVetoElectronIso(int i);
         bool passEGammaPOGLooseElectronIso(int i);
         bool passEGammaPOGMediumElectronIso(int i);
         bool passEGammaPOGTightElectronIso(int i);
-        bool passLooseElectronIso(int i);
-        bool passTightElectronIso(int i);
 	bool passMVANonTrigVetoElectronIso(int i);
-	bool passRunOneHZZElectronIso(int i);
-	bool passRunOneHZZElectronPreselection(int i);
-	bool isRunOneHZZElectron(int i);
-        bool isRunOneLooseElectron(int i);
-        bool isRunOneTightElectron(int i);
-	double getElectronEfficiencyRunOne( string selectionType, double pt, double eta);
+	bool passHZZElectronIso(int i);
+	bool passHZZElectronPreselection(int i);
+	bool isHZZElectron(int i);
 	bool matchElectronHLTFilters( int i, string HLTFilter);
 	bool matchProbeElectronHLTFilters( int i);
 	bool matchProbeSCHLTFilters( int i);

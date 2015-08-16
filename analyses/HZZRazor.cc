@@ -341,19 +341,19 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
       for(auto& lep : preselLeptons){
 	if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.05) overlap = true;
       }
-      //cout << "Electron " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : overlap=" << overlap << " " << passRunOneHZZElectronPreselection(i) << " " << isRunOneHZZElectron(i) << "\n";
+      //cout << "Electron " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : overlap=" << overlap << " " << passRunOneHZZElectronPreselection(i) << " " << isHZZElectron(i) << "\n";
 
       if(overlap) continue;
 
-      if(!passRunOneHZZElectronPreselection(i)) continue; 
-      if (isRunOneHZZElectron(i)) nSelectedElectrons++;
+      if(!passHZZElectronPreselection(i)) continue; 
+      if (isHZZElectron(i)) nSelectedElectrons++;
 
       preselType.push_back(11);
       preselIndex.push_back(i);
       preselCharge.push_back(muonCharge[i]);
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       preselLeptons.push_back(thisElectron); 
-      if(isRunOneHZZElectron(i)) GoodLeptons.push_back(thisElectron);
+      if(isHZZElectron(i)) GoodLeptons.push_back(thisElectron);
     }
 
     
@@ -368,10 +368,10 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
 
 	//leptons must pass full selection criteria
 	if (!( (preselType[i] == 13 && isRunOneHZZMuon(preselIndex[i]) )
-	       || (preselType[i] == 11 && isRunOneHZZElectron(preselIndex[i]) )
+	       || (preselType[i] == 11 && isHZZElectron(preselIndex[i]) )
 	       )) continue;
 	if (!( (preselType[j] == 13 && isRunOneHZZMuon(preselIndex[j]) )
-	       || (preselType[j] == 11 && isRunOneHZZElectron(preselIndex[j]) )
+	       || (preselType[j] == 11 && isHZZElectron(preselIndex[j]) )
 	       )) continue;
 	
 	//look for opp sign, same flavor pairs
@@ -406,10 +406,10 @@ void RazorAnalyzer::HZZRazor(string outFileName, bool IsData, bool isRunOne)
 	
 	//leptons must pass full selection criteria
 	if (!( (preselType[i] == 13 && isRunOneHZZMuon(preselIndex[i]) )
-	       || (preselType[i] == 11 && isRunOneHZZElectron(preselIndex[i]) )
+	       || (preselType[i] == 11 && isHZZElectron(preselIndex[i]) )
 	       )) continue;
 	if (!( (preselType[j] == 13 && isRunOneHZZMuon(preselIndex[j]) )
-	       || (preselType[j] == 11 && isRunOneHZZElectron(preselIndex[j]) )
+	       || (preselType[j] == 11 && isHZZElectron(preselIndex[j]) )
 	       )) continue;
 	
 	//cannot be one of the Z1 leptons

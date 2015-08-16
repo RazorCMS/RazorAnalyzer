@@ -321,11 +321,11 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	     events->lep1PassTight = isTightElectron(i);
 	     events->lep1PassLoose = isLooseElectron(i);
 	     events->lep1PassVeto = isMVANonTrigVetoElectron(i);
-	     events->lep1PassTightID = passTightElectronID(i);
-	     events->lep1PassLooseID = passLooseElectronID(i);
+	     events->lep1PassTightID = isTightElectron(i, true, false);
+	     events->lep1PassLooseID = isLooseElectron(i, true, false);
 	     events->lep1PassVetoID = passMVANonTrigVetoElectronID(i);
-	     events->lep1PassTightIso = passTightElectronIso(i);
-	     events->lep1PassLooseIso = passLooseElectronIso(i);
+	     events->lep1PassTightIso = isTightElectron(i, false, true);
+	     events->lep1PassLooseIso = isLooseElectron(i, false, true);
 	     events->lep1PassVetoIso = passMVANonTrigVetoElectronIso(i);
 	     
 	   }
@@ -452,11 +452,11 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	    events->lep2PassTight = isTightElectron(i);
 	    events->lep2PassLoose = isLooseElectron(i);
 	    events->lep2PassVeto = isMVANonTrigVetoElectron(i);
-	    events->lep2PassTightID = passTightElectronID(i);
-	    events->lep2PassLooseID = passLooseElectronID(i);
+	    events->lep2PassTightID = isTightElectron(i, true, false);
+	    events->lep2PassLooseID = isLooseElectron(i, true, false);
 	    events->lep2PassVetoID = passMVANonTrigVetoElectronID(i);
-	    events->lep2PassTightIso = passTightElectronIso(i);
-	    events->lep2PassLooseIso = passLooseElectronIso(i);
+	    events->lep2PassTightIso = isTightElectron(i, false, true);
+	    events->lep2PassLooseIso = isLooseElectron(i, false, true);
 	    events->lep2PassVetoIso = passMVANonTrigVetoElectronIso(i);
 	    
 	  }
