@@ -254,7 +254,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
 	  if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue;
 
 	  //ADDED LINES
-	  int level = 2; //3rd bit of jetPileupIdFlag
+	  //int level = 2; //3rd bit of jetPileupIdFlag
 	  
 	  /*
 	    In the case of v1p5 ntuples the jetPassIDLoose flag is not implemented,

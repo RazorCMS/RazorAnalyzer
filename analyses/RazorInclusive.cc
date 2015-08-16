@@ -19,16 +19,16 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   bool printdebug = false;
 
   //Pileup Weights
-  TFile *pileupWeightFile = 0;
-  TH1D *pileupWeightHist = 0;
+  // TFile *pileupWeightFile = 0;
+  // TH1D *pileupWeightHist = 0;
   // No pileup reweighting procedure for Run2 yet
   // pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run1Analysis/ScaleFactors/Run1/Run1PileupWeights.root");
   // pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
   // assert(pileupWeightHist);
 
   //Lepton Efficiency Correction Factors
-  TH2D *eleLooseEffSFHist = 0;
-  TH2D *eleTightEffSFHist = 0;
+  // TH2D *eleLooseEffSFHist = 0;
+  // TH2D *eleTightEffSFHist = 0;
   //No Scale factors for Run2 yet
   // TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/Run2/ElectronSelection.root");
   // eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
@@ -104,10 +104,10 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float HT;
   float mT, leadingTightMuPt, leadingTightElePt;
   float weight = 1.0;
-  float pileupWeight = 1.0;
-  float lepEffCorrFactor = 1.0;
+  //float pileupWeight = 1.0;
+  //float lepEffCorrFactor = 1.0;
   //float lepTrigCorrFactor = 1.0;
-  float btagCorrFactor = 1.0;
+  //float btagCorrFactor = 1.0;
   //bool  hltDecision[100];
      
   RazorBox box;
@@ -264,14 +264,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
 
-    if (pileupWeightHist) {
-      pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
-    }
+    // if (pileupWeightHist) {
+    //   pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+    // }
 
     //*****************************************
     //Select Leptons
     //*****************************************
-    lepEffCorrFactor  = 1.0;
+    //lepEffCorrFactor  = 1.0;
 
     vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
     TLorentzVector leadingTightMu, leadingTightEle; //used for mT calculation
@@ -416,7 +416,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 
 
     //initialize B-Tagging Correction Factor
-    btagCorrFactor = 1.0;
+    //btagCorrFactor = 1.0;
 
     //***********************************************
     //Variables for Type1 Met Correction

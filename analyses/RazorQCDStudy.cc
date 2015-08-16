@@ -180,8 +180,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
     
-    for (Long64_t jentry=0; jentry<10000;jentry++) {
-    //for (Long64_t jentry=0; jentry<nentries;jentry++) {
+    //for (Long64_t jentry=0; jentry<10000;jentry++) {
+    for (Long64_t jentry=0; jentry<nentries;jentry++) {
 
       //begin event
       if(jentry % 1000000 == 0) cout << "Processing entry " << jentry << endl;
@@ -326,7 +326,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	    cout << " gen particle pt: " << gParticlePt[j] << ", eta: " << gParticleEta[j] << ", phi: " << gParticlePhi[j] << ", pdgId: " << gParticleId[j] << endl;
 	  }
 	  //loop over pf candidates
-	  for (int j = 0; j < nIsoPFCandidates; j++) {
+	  for (int j = 0; j < int(nIsoPFCandidates); j++) {
 	    double DR = deltaR( isoPFCandidateEta[j], isoPFCandidatePhi[j], jetEta[i], jetPhi[i]);
 	    cout << DR << endl;
 	    cout << " pf candidate pt: " << isoPFCandidatePt[j] << ", eta: " << isoPFCandidateEta[j] << ", phi: " << isoPFCandidatePhi[j] << ", pdgId: " << isoPFCandidatePdgId[j] << endl;

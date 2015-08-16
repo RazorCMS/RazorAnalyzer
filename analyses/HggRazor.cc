@@ -358,8 +358,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     if(combineTrees) razorbox = LowRes;
     
     //TODO: triggers!
-    bool passedDiphotonTrigger = true;
-    passedDiphotonTrigger = (HLTDecision[44] || HLTDecision[46]);
+    // bool passedDiphotonTrigger = true;
+    // passedDiphotonTrigger = (HLTDecision[44] || HLTDecision[46]);
     //if(!passedDiphotonTrigger) continue;
     
     //muon selection

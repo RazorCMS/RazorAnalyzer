@@ -112,7 +112,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
     Float_t ELE_MASS = 0.000511;
     Float_t MU_MASS  = 0.105658;
 
-    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -127,10 +127,10 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));  
     }
     
-    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = 
-      new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
-    SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+    //FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+    // JetCorrectorParameters *JetResolutionParameters = 
+    //   new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
+    //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     //*************************************************************************
     //Set up Output File
