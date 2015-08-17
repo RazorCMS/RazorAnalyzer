@@ -19,16 +19,16 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   bool printdebug = false;
 
   //Pileup Weights
-  TFile *pileupWeightFile = 0;
-  TH1D *pileupWeightHist = 0;
+  // TFile *pileupWeightFile = 0;
+  // TH1D *pileupWeightHist = 0;
   // No pileup reweighting procedure for Run2 yet
   // pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run1Analysis/ScaleFactors/Run1/Run1PileupWeights.root");
   // pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
   // assert(pileupWeightHist);
 
   //Lepton Efficiency Correction Factors
-  TH2D *eleLooseEffSFHist = 0;
-  TH2D *eleTightEffSFHist = 0;
+  // TH2D *eleLooseEffSFHist = 0;
+  // TH2D *eleTightEffSFHist = 0;
   //No Scale factors for Run2 yet
   // TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/Run2/ElectronSelection.root");
   // eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("sfLOOSE");
@@ -56,13 +56,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   cout << "Getting JEC parameters from " << pathname << endl;
   
   if (isData) {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
   } else {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
   }
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -103,10 +104,10 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float HT;
   float mT, leadingTightMuPt, leadingTightElePt;
   float weight = 1.0;
-  float pileupWeight = 1.0;
-  float lepEffCorrFactor = 1.0;
+  //float pileupWeight = 1.0;
+  //float lepEffCorrFactor = 1.0;
   //float lepTrigCorrFactor = 1.0;
-  float btagCorrFactor = 1.0;
+  //float btagCorrFactor = 1.0;
   //bool  hltDecision[100];
      
   RazorBox box;
@@ -263,14 +264,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
 
-    if (pileupWeightHist) {
-      pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
-    }
+    // if (pileupWeightHist) {
+    //   pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+    // }
 
     //*****************************************
     //Select Leptons
     //*****************************************
-    lepEffCorrFactor  = 1.0;
+    //lepEffCorrFactor  = 1.0;
 
     vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
     TLorentzVector leadingTightMu, leadingTightEle; //used for mT calculation
@@ -415,7 +416,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 
 
     //initialize B-Tagging Correction Factor
-    btagCorrFactor = 1.0;
+    //btagCorrFactor = 1.0;
 
     //***********************************************
     //Variables for Type1 Met Correction
@@ -530,15 +531,16 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //*************************************************************
     //Apply Type1 Met Correction
     //*************************************************************
-    double PFMetCustomType1CorrectedX = metPt*cos(metPhi) + MetX_Type1Corr;
-    double PFMetCustomType1CorrectedY = metPt*sin(metPhi) + MetY_Type1Corr;
+    double PFMetCustomType1CorrectedX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
+    double PFMetCustomType1CorrectedY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
     TLorentzVector PFMETCustomType1Corrected; 
     PFMETCustomType1Corrected.SetPxPyPzE(PFMetCustomType1CorrectedX, PFMetCustomType1CorrectedY, 0, 
 					 sqrt( pow(PFMetCustomType1CorrectedX,2) + pow(PFMetCustomType1CorrectedY,2)));      
     TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
     TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
     TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
-    TLorentzVector MyMET = PFMETType1; //This is the MET that will be used below.
+    TLorentzVector PFMETNoHF = makeTLorentzVectorPtEtaPhiM(metNoHFPt, 0, metNoHFPhi, 0);
+    TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
 
     HT = 0;
     for(auto& obj : GoodPFObjects) HT += obj.Pt();

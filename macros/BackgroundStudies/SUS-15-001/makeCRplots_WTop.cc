@@ -19,7 +19,8 @@
 #include "TLatex.h"
 #include "assert.h"
 #include "math.h"
-
+#include "tdrstyle.C"
+#include "CMS_lumi.C"
 #include "MacroHelper.h"
 
 using namespace std;
@@ -43,7 +44,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     gStyle->SetNumberContours(NCont);
     gStyle->SetPaintTextFormat("1.0f");
 
-    const int lumi = 40.028;
+    const int lumi = 42.0*1.2;
     
     map<string, string> suffixes;
     suffixes["WJets"] = "";
@@ -53,7 +54,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     // suffixes["TTZ"] = "_noW";
 
     // load file with fit results
-    TFile *fitResultFile = new TFile("./ControlSampleFits_forPAS.root", "READ");
+    TFile *fitResultFile = new TFile("./ControlSampleFits_v3.root", "READ");
     vector<TH1F*> fitHists;
     if(fitResultFile){
         fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
@@ -65,11 +66,11 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     map<string, TFile*> datafiles;
 
     // Reduced
-    mcfiles["TTJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
-    mcfiles["Top"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/SingleTop_1pb_weighted.root");
-    mcfiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+    mcfiles["TTJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+    mcfiles["Top"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/SingleTop_1pb_weighted.root");
+    mcfiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
 
-    datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS/SingleMuonAndElectron_Run2015B-GOLDEN.root");
+    datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/SingleMuonAndElectron_Run2015B-GOLDEN.root");
 
     //get trees and set branches
     map<string, TTree*> mctrees;
@@ -244,6 +245,9 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     cutName.push_back( "" );
 
     cutSequence.push_back( "NBJetsMedium > 0 && lep1PassTight == 1 && lep1MTnoHF > 30 && lep1MTnoHF < 100 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.5 && METnoHF > 30" );
+    cutName.push_back( "" );
+
+    cutSequence.push_back( "lep1PassTight == 1 && lep1Pt > 25 && TMath::Abs(lep1Eta)<2.5" );
     cutName.push_back( "" );
 
     map<string, vector<TH1F *> > mcNJets40, mcNJets80, mcMR, mcRsq,  mcMet, mcNvtx,  mcHT, mcMT, mcMTnoHF, mcLep1Pt, mcLep1Eta, mcMETnoHF;

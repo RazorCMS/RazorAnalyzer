@@ -112,7 +112,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
     Float_t ELE_MASS = 0.000511;
     Float_t MU_MASS  = 0.105658;
 
-    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -127,10 +127,10 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));  
     }
     
-    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = 
-      new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
-    SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+    //FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+    // JetCorrectorParameters *JetResolutionParameters = 
+    //   new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
+    //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     //*************************************************************************
     //Set up Output File
@@ -202,7 +202,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       //******************************************
       vector<int> genLeptonIndex;      
       //find gen electrons
-      if (objectTypeOption == 1) {
+      if (objectTypeOption == 1 || objectTypeOption == 3 ) {
 	for(int j = 0; j < nGenParticle; j++){
 
 	  //look for electrons
@@ -282,7 +282,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (!isData) {
 	      bool genmatch = false;
 	      for (int q=0;q<int(genLeptonIndex.size()); q++) {
-		if ( deltaR(eleEta[indexTag],elePhi[indexTag],
+		if ( deltaR(eleEta[indexProbe],elePhi[indexProbe],
 			    gParticleEta[genLeptonIndex[q]], 
 			    gParticlePhi[genLeptonIndex[q]]) < 0.1) {
 		  genmatch = true;
@@ -310,10 +310,10 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      if ( !isTightElectron(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 7) {
-	      if ( !passLooseElectronID(indexProbe) ) continue;
+	      if ( !passEGammaPOGLooseElectronID(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 9) {
-	      if ( !passTightElectronID(indexProbe) ) continue;
+	      if ( !passEGammaPOGTightElectronID(indexProbe) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -336,16 +336,16 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = isTightElectron(indexProbe);
 	    }
 	    if (numeratorType == 7) {
-	      pass = passLooseElectronID(indexProbe);
+	      pass = isLooseElectron(indexProbe, true, false);
 	    }
 	    if (numeratorType == 9) {
-	      pass = passTightElectronID(indexProbe);
+	      pass = isTightElectron(indexProbe, true, false);
 	    }
 	    if (numeratorType == 11) {
-	      pass = passLooseElectronIso(indexProbe);
+	      pass = isLooseElectron(indexProbe, false, true);
 	    }
 	    if (numeratorType == 13) {
-	      pass = passTightElectronIso(indexProbe);
+	      pass = isTightElectron(indexProbe, false, true);
 	    }
 	    if (numeratorType == 23) {
 	      pass = isEGammaPOGLooseElectron(indexProbe);
@@ -391,7 +391,6 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	//*******************************************************
 	for(int indexTag = 0; indexTag < nMuons; indexTag++){
 
-	  //if(muonPt[indexTag] < 30) continue;
 	  if(muonPt[indexTag] < 25) continue;
 	  if(fabs(muonEta[indexTag]) > 2.5) continue;
 
@@ -432,7 +431,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (!isData) {
 	      bool genmatch = false;
 	      for (int q=0;q<int(genLeptonIndex.size()); q++) {
-		if ( deltaR(muonEta[indexTag],muonPhi[indexTag],
+		if ( deltaR(muonEta[indexProbe],muonPhi[indexProbe],
 			    gParticleEta[genLeptonIndex[q]], 
 			    gParticlePhi[genLeptonIndex[q]]) < 0.1) {
 		  genmatch = true;
@@ -457,13 +456,13 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      if ( !isTightMuon(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 6) {
-	      if ( !passVetoMuonID(indexProbe) ) continue;
+	      if ( !isVetoMuon(indexProbe, true, false) ) continue;
 	    }
 	    if (denominatorType == 7) {
-	      if ( !passLooseMuonID(indexProbe) ) continue;
+	      if ( !isLooseMuon(indexProbe, true, false) ) continue;
 	    }
 	    if (denominatorType == 9) {
-	      if ( !passTightMuonID(indexProbe) ) continue;
+	      if ( !isTightMuon(indexProbe, true, false) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -489,22 +488,22 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = isTightMuon(indexProbe);
 	    }
 	    if (numeratorType == 6) {
-	      pass = passVetoMuonID(indexProbe);
+	      pass = isVetoMuon(indexProbe, true, false);
 	    }
 	    if (numeratorType == 7) {
-	      pass = passLooseMuonID(indexProbe);
+	      pass = isLooseMuon(indexProbe, true, false);
 	    }
 	    if (numeratorType == 9) {
-	      pass = passTightMuonID(indexProbe);
+	      pass = isTightMuon(indexProbe, true, false);
 	    }
 	    if (numeratorType == 10) {
-	      pass = passVetoMuonIso(indexProbe);
+	      pass = isVetoMuon(indexProbe, false, true);
 	    }
 	    if (numeratorType == 11) {
-	      pass = passLooseMuonIso(indexProbe);
+	      pass = isLooseMuon(indexProbe, false, true);
 	    }
 	    if (numeratorType == 13) {
-	      pass = passTightMuonIso(indexProbe);
+	      pass = isTightMuon(indexProbe, false, true);
 	    }
 	    if (numeratorType == 50) {
 	      pass = matchMuonHLTFilters(indexProbe, "SingleMuon");
@@ -528,7 +527,126 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       //*********************************************************
       if (objectTypeOption == 3) {
 
-      }
+	//*******************************************************
+	//Loop over Tag electrons
+	//*******************************************************
+	for(int indexTag = 0; indexTag < nElectrons; indexTag++){
+
+	  if(elePt[indexTag] < 30) continue;
+	  if(fabs(eleEta[indexTag]) > 2.5) continue;
+	  
+	  //For MC, Match to Gen level electron
+	  if (!isData) {
+	    bool genmatch = false;
+	    for (int q=0;q<int(genLeptonIndex.size()); q++) {	      
+	      if ( deltaR(eleEta[indexTag],elePhi[indexTag],
+			  gParticleEta[genLeptonIndex[q]], 
+			  gParticlePhi[genLeptonIndex[q]]) < 0.1) {
+		genmatch = true;
+	      }
+	    }
+	    if (!genmatch) continue;
+	  }
+
+
+	  //tag must pass tight cuts
+	  if ( !isEGammaPOGTightElectron(indexTag) ) continue;
+
+	  //Tag must match single electron HLT Filters OR tag leg filter of the dedicated T&P trigger
+	  if ( !matchTagElectronHLTFilters(indexTag)) continue;
+
+	  TLorentzVector vtag;
+	  vtag.SetPtEtaPhiM(elePt[indexTag], eleEta[indexTag], elePhi[indexTag], ELE_MASS);
+
+	  //*******************************************************
+	  //Loop over Probe electrons
+	  //*******************************************************
+
+	  for(int indexProbe = 0; indexProbe < nPhotons; indexProbe++){
+	    
+	    if(phoPt[indexProbe] < 5) continue;
+	    if(fabs(phoEta[indexProbe]) > 2.5) continue;
+	  
+	    //don't overlap with tag
+	    if ( deltaR(eleEta[indexTag],elePhi[indexTag], phoEta[indexProbe], phoPhi[indexProbe]) < 0.4 ) continue;
+
+	    //For MC, Match to Gen level electron
+	    if (!isData) {
+	      bool genmatch = false;
+	      for (int q=0;q<int(genLeptonIndex.size()); q++) {
+		if ( deltaR(phoEta[indexProbe],elePhi[indexProbe],
+			    gParticleEta[genLeptonIndex[q]], 
+			    gParticlePhi[genLeptonIndex[q]]) < 0.1) {
+		  genmatch = true;
+		}
+	      }
+	      if (!genmatch) continue;
+	    }
+	    
+	    // //Probe must match probe leg filter of the dedicated T&P trigger
+	    // if ( !matchProbeElectronHLTFilters(indexTag)) continue;
+	    // if ( !matchProbeSCHLTFilters(indexTag)) continue;
+
+	    //cout << "Probe: " << phoPt[indexProbe] << " " << phoEta[indexProbe] << " " <<  phoPhi[indexProbe] << " : " << isLoosePhotonWithoutEleVeto(indexProbe) << "\n";
+
+	    //*******************************************************
+	    //denominator selection
+	    //*******************************************************
+	    if (denominatorType == 1) {
+	      // reco object doesn't require any additional cuts
+	    }
+	    if (denominatorType == 3) {
+	      if ( !isLoosePhotonWithoutEleVeto(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 4) {
+	      if ( !isMediumPhotonWithoutEleVeto(indexProbe) ) continue;
+	    }
+	    if (denominatorType == 5) {
+	      if ( !isTightPhotonWithoutEleVeto(indexProbe) ) continue;
+	    }
+
+	    TLorentzVector vprobe;
+	    vprobe.SetPtEtaPhiM(elePt[indexProbe], eleEta[indexProbe], elePhi[indexProbe], ELE_MASS);
+
+	    TPPair->mass = (vtag+vprobe).M();
+	    TPPair->pt = elePt[indexProbe];
+	    TPPair->eta = eleEta[indexProbe];
+	    TPPair->phi = elePhi[indexProbe];
+	    TPPair->charge = eleCharge[indexProbe];
+
+
+	    //****************************************
+	    //PASS OR FAIL
+	    //****************************************
+	    bool pass = false;
+	    if (numeratorType == 3) {
+	      pass = isLoosePhotonWithoutEleVeto(indexProbe);
+	    }
+	    if (numeratorType == 4) {
+	      pass = isMediumPhotonWithoutEleVeto(indexProbe);
+	    }
+	    if (numeratorType == 5) {
+	      pass = isTightPhotonWithoutEleVeto(indexProbe);
+	    }
+	    if (numeratorType == 50) {	     
+	      pass = matchPhotonHLTFilters(indexProbe, "DiPhoton30_18_WithPixMatch_Leg1");
+	    }
+	    if (numeratorType == 51) {	     
+	      pass = matchPhotonHLTFilters(indexProbe, "DiPhoton30_18_WithPixMatch_Leg2");
+	    }
+	    TPPair->pass = pass;
+	    // cout << " TP Pass: " << TPPair->pass << "\n";
+
+	    //****************************************
+	    //Fill Output Tree
+	    //****************************************
+	    TPPair->tree_->Fill();
+	    
+	  } //loop over probe electrons
+
+	} // loop over tag electrons
+
+      } //end if photon object
 
                                                                                                  
     }//end of event loop

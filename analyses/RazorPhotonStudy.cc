@@ -727,14 +727,8 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
             if(fabs(eleEta[i]) > 2.5) continue;
             if(isMVANonTrigVetoElectron(i)) nVetoElectrons++;
 
-            if(isRunOne){
-                if(!isRunOneLooseElectron(i)) continue;
-                if(isRunOneTightElectron(i)) nTightElectrons++;
-            }
-            else{
-                if(!isLooseElectron(i)) continue;
-                if(isTightElectron(i)) nTightElectrons++;
-            }
+	    if(!isLooseElectron(i)) continue;
+	    if(isTightElectron(i)) nTightElectrons++;
 
             TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
             nLooseElectrons++;
@@ -768,21 +762,15 @@ void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool fi
         for(int i = 0; i < nJets; i++){
             //apply JEC
             double JEC = 1.0;
-            if(isRunOne){
-                JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoAll, jetJetArea[i], JetCorrector);   
-            }
-            else{
-                JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoFastjetAll, jetJetArea[i], JetCorrector);   
-            }
+	    JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], fixedGridRhoFastjetAll, jetJetArea[i], JetCorrector);   
+
             //apply jet resolution smearing to MC
             double jetEnergySmearFactor = 1.0;
             if(!isData){
                 jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], nPU_mean, JetResolutionCalculator, random);
             }
             //check for noise
-            if(isRunOne){
-                if(!jetPassIDTight[i]) continue;
-            }   
+	    if(!jetPassIDTight[i]) continue;
             
             //jet TLorentzVector, with corrections included
             TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);

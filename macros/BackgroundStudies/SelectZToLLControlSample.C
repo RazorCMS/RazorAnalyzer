@@ -27,6 +27,8 @@
 #include <TLatex.h> 
 
 #include "RazorAnalyzer/include/ControlSampleEvents.h"
+#include "RazorAnalyzer/macros/tdrstyle.C"
+#include "RazorAnalyzer/macros/CMS_lumi.C"
 
 #endif
 
@@ -112,7 +114,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->Draw("hist");
     stack->GetHistogram()->GetXaxis()->SetTitle(((TH1D*)(stack->GetHists()->At(0)))->GetXaxis()->GetTitle());
     stack->GetHistogram()->GetYaxis()->SetTitle(((TH1D*)(stack->GetHists()->At(0)))->GetYaxis()->GetTitle());
-    stack->GetHistogram()->GetYaxis()->SetTitleOffset(0.8);
+    stack->GetHistogram()->GetYaxis()->SetTitleOffset(1.0);
     stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
     stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
     stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
@@ -128,16 +130,13 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     legend->Draw();
   }
 
-
-  TLatex *tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.050);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.1,0.92,"CMS Preliminary");
-  tex->DrawLatex(0.6, 0.92, "#sqrt{s} = 13 TeV, L = 40 pb^{-1}");
-  tex->Draw();
- 
+  //****************************
+  //Add CMS and Lumi Labels
+  //****************************
+  lumi_13TeV = "42 pb^{-1}";
+  writeExtraText = true;
+  relPosX = 0.13;
+  CMS_lumi(pad1,4,0);
 
   cv->cd();
   cv->Update();
@@ -246,7 +245,12 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
 
 
 void RunSelectZToLLControlSample( string datafile, vector<string> bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "") {
-  
+
+  //****************************************
+  //Set Plot Style
+  //****************************************
+  setTDRStyle();
+
   string Label = "";
   if (label != "") Label = "_" + label;
   TRandom3 *random = new TRandom3;
@@ -708,29 +712,29 @@ void SelectZToLLControlSample( int option = 0) {
   //EE Control Region
   //*********************************************************************
   if (option == 0) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 40.0,"MR300Rsq0p05", 2,  "MR300Rsq0p05_ee");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 41.9*0.952,"MR300Rsq0p05", 2,  "MR300Rsq0p05_ee");
   }
   if (option == 10) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 40.0,"Inclusive", 2,  "Inclusive_ee");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels,colors, 41.9*0.952,"Inclusive", 2,  "Inclusive_ee");
   }
   //*********************************************************************
   //MM Control Region
   //*********************************************************************
   if ( option == 1) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "MR300Rsq0p05", 3, "MR300Rsq0p05_mumu");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 41.9*0.952, "MR300Rsq0p05", 3, "MR300Rsq0p05_mumu");
   }
   if ( option == 11) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "Inclusive", 3, "Inclusive_mumu");    
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 41.9*0.952, "Inclusive", 3, "Inclusive_mumu");    
   }
   
   //*********************************************************************
   //EE+MM Control Region
   //*********************************************************************
   if ( option == 2) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "MR200", 1, "MR200_all");
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 41.9*0.952, "MR200", 1, "MR200_all");
   }
   if ( option == 12) {
-    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 40.0, "Inclusive", 1, "Inclusive_all");    
+    RunSelectZToLLControlSample(datafile, inputfiles,processLabels, colors, 41.9*0.952, "Inclusive", 1, "Inclusive_all");    
   }
 
 

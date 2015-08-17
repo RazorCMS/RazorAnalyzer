@@ -294,12 +294,12 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	    events->lep1PassTight = isTightMuon(i);
 	    events->lep1PassLoose = isLooseMuon(i);
 	    events->lep1PassVeto = isVetoMuon(i);
-	    events->lep1PassTightID = passTightMuonID(i);
-	    events->lep1PassLooseID = passLooseMuonID(i);
-	    events->lep1PassVetoID = passVetoMuonID(i);
-	    events->lep1PassTightIso = passTightMuonIso(i);
-	    events->lep1PassLooseIso = passLooseMuonIso(i);
-	    events->lep1PassVetoIso = passVetoMuonIso(i);
+	    events->lep1PassTightID = isTightMuon(i, true, false);
+	    events->lep1PassLooseID = isLooseMuon(i, true, false);
+	    events->lep1PassVetoID = isVetoMuon(i, true, false);
+	    events->lep1PassTightIso = isTightMuon(i, false, true);
+	    events->lep1PassLooseIso = isLooseMuon(i, false, true);
+	    events->lep1PassVetoIso = isVetoMuon(i, false, true);
 	  }		  
         }
 
@@ -321,11 +321,11 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	     events->lep1PassTight = isTightElectron(i);
 	     events->lep1PassLoose = isLooseElectron(i);
 	     events->lep1PassVeto = isMVANonTrigVetoElectron(i);
-	     events->lep1PassTightID = passTightElectronID(i);
-	     events->lep1PassLooseID = passLooseElectronID(i);
+	     events->lep1PassTightID = isTightElectron(i, true, false);
+	     events->lep1PassLooseID = isLooseElectron(i, true, false);
 	     events->lep1PassVetoID = passMVANonTrigVetoElectronID(i);
-	     events->lep1PassTightIso = passTightElectronIso(i);
-	     events->lep1PassLooseIso = passLooseElectronIso(i);
+	     events->lep1PassTightIso = isTightElectron(i, false, true);
+	     events->lep1PassLooseIso = isLooseElectron(i, false, true);
 	     events->lep1PassVetoIso = passMVANonTrigVetoElectronIso(i);
 	     
 	   }
@@ -405,7 +405,7 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
         for(int i = 0; i < nMuons; i++){
 
 	  if(abs(muonEta[i]) > 2.4) continue;
-	  if(!(passVetoMuonID(i) && muonPt[i] >= 5)) continue;
+	  if(!(isVetoMuon(i, true, false) && muonPt[i] >= 5)) continue;
 	  
 	  //don't overlap with lepton 1
 	  if (events->lep1.Pt() > 0) {
@@ -422,12 +422,12 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	    events->lep2PassTight = isTightMuon(i);
 	    events->lep2PassLoose = isLooseMuon(i);
 	    events->lep2PassVeto = isVetoMuon(i);
-	    events->lep2PassTightID = passTightMuonID(i);
-	    events->lep2PassLooseID = passLooseMuonID(i);
-	    events->lep2PassVetoID = passVetoMuonID(i);
-	    events->lep2PassTightIso = passTightMuonIso(i);
-	    events->lep2PassLooseIso = passLooseMuonIso(i);
-	    events->lep2PassVetoIso = passVetoMuonIso(i);
+	    events->lep2PassTightID = isTightMuon(i, true, false);
+	    events->lep2PassLooseID = isLooseMuon(i, true, false);
+	    events->lep2PassVetoID = isVetoMuon(i, true, false);
+	    events->lep2PassTightIso = isTightMuon(i, false, true);
+	    events->lep2PassLooseIso = isLooseMuon(i, false, true);
+	    events->lep2PassVetoIso = isVetoMuon(i, false, true);
 	    lep2Iso = (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i];
 	  }		  
         }
@@ -452,11 +452,11 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	    events->lep2PassTight = isTightElectron(i);
 	    events->lep2PassLoose = isLooseElectron(i);
 	    events->lep2PassVeto = isMVANonTrigVetoElectron(i);
-	    events->lep2PassTightID = passTightElectronID(i);
-	    events->lep2PassLooseID = passLooseElectronID(i);
+	    events->lep2PassTightID = isTightElectron(i, true, false);
+	    events->lep2PassLooseID = isLooseElectron(i, true, false);
 	    events->lep2PassVetoID = passMVANonTrigVetoElectronID(i);
-	    events->lep2PassTightIso = passTightElectronIso(i);
-	    events->lep2PassLooseIso = passLooseElectronIso(i);
+	    events->lep2PassTightIso = isTightElectron(i, false, true);
+	    events->lep2PassLooseIso = isLooseElectron(i, false, true);
 	    events->lep2PassVetoIso = passMVANonTrigVetoElectronIso(i);
 	    
 	  }
@@ -793,7 +793,7 @@ void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, in
 	  for(int i = 0; i < nMuons; i++){
             if(muonPt[i] < 5) continue;
             if(abs(muonEta[i]) > 2.4) continue;                                  	   
-	    cout << "Muon : " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << passVetoMuonID(i) << " " << passVetoMuonIso(i) << " " << isVetoMuon(i) << "\n";
+	    cout << "Muon : " << i << " : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : " << isVetoMuon(i, true, false) << " " << isVetoMuon(i, false, true) << " " << isVetoMuon(i) << "\n";
 	  }
 	  for(int i = 0; i < nElectrons; i++){
             if(elePt[i] < 5) continue;

@@ -11,6 +11,9 @@
 #include <map>
 #include <iostream>
 
+#include "RazorAnalyzer/macros/tdrstyle.C"
+#include "RazorAnalyzer/macros/CMS_lumi.C"
+
 const Int_t NComponents = 10;
 int color[NComponents] = {kRed, kGreen+2, kBlue, kViolet, kAzure+10, kBlack, kOrange+1, kGray, kBlack, kBlack};
 
@@ -100,6 +103,8 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processType, vec
   stack->Draw("hist");
   stack->GetHistogram()->GetXaxis()->SetTitle(((TH1D*)(stack->GetHists()->At(0)))->GetXaxis()->GetTitle());
   stack->GetHistogram()->GetYaxis()->SetTitle(((TH1D*)(stack->GetHists()->At(0)))->GetYaxis()->GetTitle());
+  stack->GetHistogram()->GetYaxis()->SetTitleOffset(1.0);
+  stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
 
   double max = fmax(stack->GetHistogram()->GetMaximum() , dataHist->GetMaximum());
   stack->SetMaximum(1.25*max);
@@ -118,14 +123,13 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processType, vec
 
   legend->Draw();
 
-  tex = new TLatex();
-  tex->SetNDC();
-  tex->SetTextSize(0.050);
-  tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.1,0.92,"CMS Preliminary");
-  tex->DrawLatex(0.6, 0.92, "#sqrt{s} = 13 TeV, L = 40 pb^{-1}");
-  tex->Draw();
+  //****************************
+  //Add CMS and Lumi Labels
+  //****************************
+  lumi_13TeV = "42 pb^{-1}";
+  writeExtraText = true;
+  relPosX = 0.13;
+  CMS_lumi(pad1,4,0);
 
   cv->cd();
   cv->Update();
@@ -212,7 +216,7 @@ void RunMakeRazorDataPlots ( string datafile, string dataLabel,
   assert(NVtxWeightHist);
 
 
-  double intLumi = 40.0 * (1.0 / 2.473122e+02); //in units of pb^-1
+  double intLumi = 40.0 * (1.0 / (8.126350e-01*2.473122e+02)); //in units of pb^-1
   string Label = "";
   if (label != "") Label = "_" + label;
 

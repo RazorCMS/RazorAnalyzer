@@ -31,7 +31,8 @@ int main(int argc, char* argv[]){
 	     << "muonNtupler          --   study muon variables" << endl
 	     << "jetNtupler           --   study jet variables" << endl
 	     << "photonntupler        --   study photon variables" << endl
-	     << "dummy                --   do nothing useful" << endl;
+	     << "dummy                --   do nothing useful" << endl
+	     << "razorDM              --   run MultiJet razor dark matter analysis" << endl;
         return -1;
     }
     string inputFileName(argv[1]);
@@ -146,6 +147,9 @@ int main(int argc, char* argv[]){
         analyzer.EnableMuons();
         analyzer.EnableTaus();
         analyzer.EnablePhotons();
+	analyzer.EnableMC();
+	analyzer.EnableGenParticles();
+	analyzer.EnablePileup();      
         analyzer.HggRazor(outputFileName, true); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "matchedrazor"){
@@ -259,21 +263,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.EnableGenParticles();
       analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option, isData, false);
-    }
-    else if(analysisType == "RunOneRazorControlRegions"){
-      cout << "Executing RunOneRazorControlRegions analysis..." << endl;
-      analyzer.EnableEventInfo();
-      analyzer.EnableJets();
-      analyzer.EnableMet();
-      analyzer.EnableElectrons();
-      analyzer.EnableMuons();
-      analyzer.EnablePhotons();
-      analyzer.EnableTaus();
-      analyzer.EnableMC();
-      analyzer.EnableGenParticles();
-      analyzer.EnablePileup();      
-      analyzer.RazorControlRegions(outputFileName, option, isData, true);
+      analyzer.RazorControlRegions(outputFileName, option, isData);
     }
     else if(analysisType == "VetoLeptonEfficiencyControlRegion"){
       cout << "Executing VetoLeptonEfficiencyDileptonControlRegion analysis..." << endl;
@@ -339,19 +329,6 @@ int main(int argc, char* argv[]){
 	analyzer.EnableGenParticles();
         analyzer.HbbRazor(outputFileName, true, isData, false); 
     }
-    else if(analysisType == "hzzRunOneRazor"){
-        cout << "Executing razor inclusive analysis..." << endl;
-	analyzer.EnableEventInfo();
-	analyzer.EnablePileup();
-	analyzer.EnableJets();
-        analyzer.EnableMet();
-        analyzer.EnableElectrons();
-        analyzer.EnableMuons();
-        analyzer.EnableTaus();
-	analyzer.EnableMC();
-	analyzer.EnableGenParticles();
-        analyzer.HZZRazor(outputFileName, isData, true); //change the bool to true if you want all analysis boxes combined in one tree
-    }
     else if(analysisType == "hzzRazor"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
@@ -363,7 +340,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
-        analyzer.HZZRazor(outputFileName, isData, false); //change the bool to true if you want all analysis boxes combined in one tree
+        analyzer.HZZRazor(outputFileName, isData); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "RazorQCDStudy" || analysisType == "RazorRunOneQCDStudy" ){
       cout << "Executing razor QCD analysis..." << endl;
@@ -388,6 +365,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableMet();
       analyzer.EnableElectrons();
       analyzer.EnableMuons();
+      analyzer.EnablePhotons();
       analyzer.EnableTaus();
       analyzer.EnableMC();
       analyzer.EnableGenParticles();

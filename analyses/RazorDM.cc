@@ -131,8 +131,6 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
 	    box.second->Branch("metType0Plus1Pt", &metType0Plus1Pt, "metType0Plus1Pt/F");
 	    box.second->Branch("metType0Plus1Phi", &metType0Plus1Phi, "metType0Plus1Phi/F");
 
-
-
 	    box.second->Branch("nGenJets",&nGenJets, "nGenJets/I");
             box.second->Branch("genJetE", genJetE, "genJetE[nGenJets]/F");
             box.second->Branch("genJetPt", genJetPt, "genJetPt[nGenJets]/F");
@@ -147,6 +145,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
 	    
 	    box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
 	    box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
+
+	    box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[100]/O");
         }
     }
     
@@ -254,7 +254,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
 	  if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue;
 
 	  //ADDED LINES
-	  int level = 2; //3rd bit of jetPileupIdFlag
+	  //int level = 2; //3rd bit of jetPileupIdFlag
 	  
 	  /*
 	    In the case of v1p5 ntuples the jetPassIDLoose flag is not implemented,
@@ -291,7 +291,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees)
           }
           if(deltaR > 0.0 && deltaR < 0.3) continue; //jet matches a Loose Electron
           
-	  if(jetPt[i] > 80.0) numJetsAbove80GeV++;
+	  if(thisJet.Pt() > 80.0) numJetsAbove80GeV++;
 	  GoodJets_uncorr.push_back(thisJet_uncorr);
 	  
 	  GoodJets.push_back(thisJet);

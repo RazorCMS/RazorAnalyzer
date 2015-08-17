@@ -608,18 +608,6 @@ class ControlSampleEvents {
       tree_->Branch("dPhiRazor_NoPho",&dPhiRazor_NoPho,"dPhiRazor_NoPho/F");
       tree_->Branch("NJets_NoPho",&NJets_NoPho,"NJets_NoPho/i");
       tree_->Branch("NJets80_NoPho",&NJets80_NoPho,"NJets80_NoPho/i");
-      tree_->Branch("MT2",&MT2,"MT2/F");
-
-      tree_->Branch("pho1PassLoose", &pho1PassLoose, "pho1PassLoose/O");
-      tree_->Branch("pho1PassMedium",&pho1PassMedium,"pho1PassMedium/O");
-      tree_->Branch("pho1PassTight", &pho1PassTight, "pho1PassTight/O");
-      tree_->Branch("HLT_Photon", &HLT_Photon, "HLT_Photon/O");
-      tree_->Branch("HLT_Photon36", &HLT_Photon36, "HLT_Photon36/O");
-      tree_->Branch("HLT_Photon50", &HLT_Photon50, "HLT_Photon50/O");
-      tree_->Branch("HLT_Photon75", &HLT_Photon75, "HLT_Photon75/O");
-      tree_->Branch("HLT_Photon90", &HLT_Photon90, "HLT_Photon90/O");
-      tree_->Branch("HLT_Photon120", &HLT_Photon120, "HLT_Photon120/O");
-      tree_->Branch("HLT_Photon165", &HLT_Photon165, "HLT_Photon165/O");
 
       tree_->Branch("nSelectedPhotons",&nSelectedPhotons,"nSelectedPhotons/i");
       tree_->Branch("NJets_NoPho",&NJets_NoPho,"NJets_NoPho/i");
