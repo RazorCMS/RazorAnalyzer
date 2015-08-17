@@ -120,18 +120,22 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     /*     leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9); */
     /*   } */
     leg->Draw();
+    lumi_13TeV = "42 pb^{-1}";
+    writeExtraText = true;
+    relPosX = 0.13;
+    CMS_lumi(&pad1,4,0);
 
-    TLatex t1(0.1,0.92, "CMS Preliminary");
-    TLatex t2(0.6,0.92, "#sqrt{s}=13 TeV, L = 40 pb^{-1}");
-    t1.SetNDC();
-    t2.SetNDC();
-    t1.SetTextSize(0.05);
-    t2.SetTextSize(0.05);
-    t1.SetTextFont(42);
-    t2.SetTextFont(42);
+    /* TLatex t1(0.1,0.92, "CMS Preliminary"); */
+    /* TLatex t2(0.6,0.92, "#sqrt{s}=13 TeV, L = 40 pb^{-1}"); */
+    /* t1.SetNDC(); */
+    /* t2.SetNDC(); */
+    /* t1.SetTextSize(0.05); */
+    /* t2.SetTextSize(0.05); */
+    /* t1.SetTextFont(42); */
+    /* t2.SetTextFont(42); */
     
-    t1.Draw();
-    t2.Draw();
+    /* t1.Draw(); */
+    /* t2.Draw(); */
     
     c.cd();
     TPad pad2("pad2","pad2",0,0.0,1,0.2);
