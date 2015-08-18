@@ -105,8 +105,11 @@ def convertTree2TH1(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, tree
         
     boxCut = boxes[box]
     cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut)
+    if box in ["MuJet", "MuMultiJet", "MuFourJet", "MuSixJet", "EleJet", "EleMultiJet", "EleFourJet", "EleSixJet"]: cuts = cuts+" && mT > "+str(MTCut)
     if option == "madeupSystematicUp": cuts = cuts.replace("MR", "MR*1.05")
     if option == "madeupSystematicDown": cuts = cuts.replace("MR", "MR/1.05")
+
+    print("Cuts: "+cuts)
 
     #get list of entries passing the cuts
     tree.Draw('>>elist', cuts, 'entrylist')
@@ -244,6 +247,10 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('-q','--remove-qcd',dest="removeQCD",default=False,action='store_true',
                   help="remove QCD, while augmenting remaining MC backgrounds")
+    parser.add_option('--dphi-cut',dest="dPhiCut",default=-1.0,type="float",
+                  help="set delta phi cut on the razor hemispheres")
+    parser.add_option('--mt-cut',dest="MTCut",default=-1.0,type="float",
+                  help="set transverse mass cut")
 
     (options,args) = parser.parse_args()
     
@@ -253,6 +260,8 @@ if __name__ == '__main__':
     lumi = options.lumi
     lumi_in = options.lumi_in
     removeQCD = options.removeQCD
+    if options.dPhiCut >= 0: dPhiCut = options.dPhiCut
+    if options.MTCut >= 0: MTCut = options.MTCut
     
     #list of shape systematics to apply
     #shapes = ["madeupSystematic"]
