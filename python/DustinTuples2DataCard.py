@@ -6,7 +6,10 @@ import sys
 from array import *
 from DustinTuple2RooDataSet import initializeWorkspace, getSumOfWeights, boxes, k_T, k_Z, k_W, k_QCD, dPhiCut, MTCut
 
-backgrounds = ['dyjetstoll_htbinned', 'qcd_htbinned', 'ttjets', 'zjetstonunu_htbinned', 'multiboson', 'singletop', 'wjetstolnu_htbinned']
+backgrounds = ['dyjetstoll_htbinned', 'qcd_htbinned', 'ttjets', 'zjetstonunu_htbinned', 'multiboson', 'singletop', 'wjetstolnu_htbinned', 'ttv']
+
+jet1Cut = 80 #cut on leading jet pt
+jet2Cut = 80 #cut on subleading jet pt
 
 def fillRazor3D(tree, hist, weight, btagCutoff, opt=""):
     """Fill hist for one event, using opt to determine the values to fill"""
@@ -104,8 +107,9 @@ def convertTree2TH1(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, tree
         btagCutoff = 1
         
     boxCut = boxes[box]
-    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut)
+    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f && leadingJetPt > %f && subleadingJetPt > %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut,jet1Cut,jet2Cut)
     if box in ["MuJet", "MuMultiJet", "MuFourJet", "MuSixJet", "EleJet", "EleMultiJet", "EleFourJet", "EleSixJet"]: cuts = cuts+" && mT > "+str(MTCut)
+    if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]: cuts = cuts+" && mTLoose > "+str(MTCut)
     if option == "madeupSystematicUp": cuts = cuts.replace("MR", "MR*1.05")
     if option == "madeupSystematicDown": cuts = cuts.replace("MR", "MR/1.05")
 
@@ -175,9 +179,9 @@ def writeDataCard_th1(box,model,txtfileName,hists):
             shapeName = (name.split("_")[-1]).replace("Down","") #extract the name of the shape histogram
             if shapeName not in shapeNames: shapeNames.append(shapeName)
     #strings listing shape uncertainties for each bkg
-    shapeErrs = {name:["0.5"] if model+"_"+name+"Down" in hists else ["-"] for name in shapeNames}
+    shapeErrs = {name:["1.0"] if model+"_"+name+"Down" in hists else ["-"] for name in shapeNames}
     for name in shapeNames: 
-        shapeErrs[name].extend(["0.5" if bkg+"_"+name+"Down" in hists else "-" for bkg in bkgs])
+        shapeErrs[name].extend(["1.0" if bkg+"_"+name+"Down" in hists else "-" for bkg in bkgs])
 
     for bkg in bkgs:
         mcErrs[bkg] = [1.00]
@@ -251,6 +255,10 @@ if __name__ == '__main__':
                   help="set delta phi cut on the razor hemispheres")
     parser.add_option('--mt-cut',dest="MTCut",default=-1.0,type="float",
                   help="set transverse mass cut")
+    parser.add_option('--jet1-cut',dest="jet1Cut",default=-1.0,type="float",
+                  help="set leading jet pt cut")
+    parser.add_option('--jet2-cut',dest="jet2Cut",default=-1.0,type="float",
+                  help="set subleading jet pt cut")
 
     (options,args) = parser.parse_args()
     
@@ -262,6 +270,8 @@ if __name__ == '__main__':
     removeQCD = options.removeQCD
     if options.dPhiCut >= 0: dPhiCut = options.dPhiCut
     if options.MTCut >= 0: MTCut = options.MTCut
+    if options.jet1Cut >= 0: jet1Cut = options.jet1Cut
+    if options.jet2Cut >= 0: jet2Cut = options.jet2Cut
     
     #list of shape systematics to apply
     #shapes = ["madeupSystematic"]
