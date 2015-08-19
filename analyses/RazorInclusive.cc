@@ -102,7 +102,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float theRsq;  
   float met;
   float HT;
-  float mT, leadingTightMuPt, leadingTightElePt;
+  float mT, mTLoose, leadingJetPt, subleadingJetPt, leadingTightMuPt, leadingTightElePt;
   float weight = 1.0;
   //float pileupWeight = 1.0;
   //float lepEffCorrFactor = 1.0;
@@ -129,8 +129,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     razorTree->Branch("met", &met, "met/F");
     razorTree->Branch("HT", &HT, "HT/F");
     razorTree->Branch("mT", &mT, "mT/F");
+    razorTree->Branch("mTLoose", &mTLoose, "mTLoose/F");//for LooseLepton boxes
     razorTree->Branch("leadingTightMuPt", &leadingTightMuPt, "leadingTightMuPt/F");
     razorTree->Branch("leadingTightElePt", &leadingTightElePt, "leadingTightElePt/F");
+    razorTree->Branch("leadingJetPt", &leadingJetPt, "leadingJetPt/F");
+    razorTree->Branch("subleadingJetPt", &subleadingJetPt, "subleadingJetPt/F");
     razorTree->Branch("box", &box, "box/I");
     razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
 
@@ -178,6 +181,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       box.second->Branch("HT", &HT, "HT/F");
       box.second->Branch("Rsq", &theRsq, "Rsq/F");
       box.second->Branch("mT", &mT, "mT/F");
+      box.second->Branch("mTLoose", &mTLoose, "mTLoose/F");
+      box.second->Branch("leadingJetPt", &leadingJetPt, "leadingJetPt/F");
+      box.second->Branch("subleadingJetPt", &subleadingJetPt, "subleadingJetPt/F");
       box.second->Branch("leadingTightMuPt", &leadingTightMuPt, "leadingTightMuPt/F");
       box.second->Branch("leadingTightElePt", &leadingTightElePt, "leadingTightElePt/F");
       if (!isData) {    
@@ -224,6 +230,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     theMR = -1;
     theRsq = -1;
     mT = -1;
+    mTLoose = -1;
+    leadingJetPt = -1;
+    subleadingJetPt = -1;
     leadingTightMuPt = -1;
     leadingTightElePt = -1;
     if(combineTrees) box = NONE;
@@ -523,6 +532,17 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     nJets80 = numJetsAbove80GeV;
     //if(numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets    
 
+    //get leading and subleading jet pt
+    for(auto &jet : GoodJets){
+        if(jet.Pt() > leadingJetPt){
+            subleadingJetPt = leadingJetPt;
+            leadingJetPt = jet.Pt();
+        }
+        else if(jet.Pt() > subleadingJetPt){
+            subleadingJetPt = jet.Pt();
+        }
+    }
+
     //Compute the razor variables using the selected jets and possibly leptons
     vector<TLorentzVector> GoodPFObjects;
     for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
@@ -559,6 +579,22 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 
         float deltaPhiLepMet = leadingLepton.DeltaPhi(MyMET);
         mT = sqrt(2*leadingLepton.Pt()*MyMET.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) ); 
+    }
+    //mT with leading lepton, regardless of quality
+    if(GoodLeptons.size() > 0){
+        //get the highest pt lepton
+        float maxLepPt = -1;
+        int maxLepIndex = -1;
+        for(uint i = 0; i < GoodLeptons.size(); i++){
+            if(GoodLeptons[i].Pt() > maxLepPt){
+                maxLepPt = GoodLeptons[i].Pt();
+                maxLepIndex = i;
+            }
+        }
+        if(maxLepIndex >= 0){
+            float deltaPhiLepMet = GoodLeptons[maxLepIndex].DeltaPhi(MyMET);
+            mTLoose = sqrt(2*GoodLeptons[maxLepIndex].Pt()*MyMET.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) );
+        }
     }
 
     //cout << "Check: " << eventNum << " : " << theMR << " " << theRsq << " " << dPhiRazor << "\n";
