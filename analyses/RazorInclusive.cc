@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool isData, bool isRunOne)
+void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool isData)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
@@ -245,23 +245,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     bool passedSingleLeptonTrigger = false;
     bool passedLeptonicTrigger = false;
     bool passedHadronicTrigger= false;
-    if (isRunOne) {
-      if (HLTDecision[46] || HLTDecision[47] ||HLTDecision[48] ||HLTDecision[49] ||HLTDecision[50]) passedHadronicTrigger = true;
-      if (HLTDecision[3] || HLTDecision[4] || HLTDecision[6] || HLTDecision[7]|| HLTDecision[12]) passedDileptonTrigger = true;
-      if (isData) {
-	if (HLTDecision[0] || HLTDecision[1] ||HLTDecision[8] ||HLTDecision[9]) passedSingleLeptonTrigger = true;
-      } else {
-	if (HLTDecision[0] || HLTDecision[1] || HLTDecision[9]) passedSingleLeptonTrigger = true;
-      }
-      passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
-      if(!(passedLeptonicTrigger || passedHadronicTrigger)) continue; //ensure event passed a trigger
-    } else {
-      passedDileptonTrigger = true;
-      passedSingleLeptonTrigger = true;
-      passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
-      passedHadronicTrigger = true;
-    }
-        
+    passedDileptonTrigger = true;
+    passedSingleLeptonTrigger = true;
+    passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
+    passedHadronicTrigger = true;
+    
 
     //*****************************************
     //Get Pileup Information
@@ -316,11 +304,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	if (RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i])) {
 	  //No Efficiency Scale Factors for Run2 Yet
 	  
-	//   double effLoose = getElectronEfficiencyRunOne("loose",elePt[i],eleEta[i]);	  
+	//   double effLoose = getElectronEfficiency("loose",elePt[i],eleEta[i]);	  
 	//   double effLooseSF = eleLooseEffSFHist->GetBinContent( eleLooseEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
 	// 							eleLooseEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
 	//   double tmpLooseSF = 1.0;
-	//   if( (!isRunOne && isLooseElectron(i)) || (isRunOne && isRunOneLooseElectron(i)) ) {
+	//   if( isLooseElectron(i) ) {
 	//     tmpLooseSF = effLooseSF;
 	//   } else {
 	//     tmpLooseSF = ( 1/effLoose - effLooseSF) / ( 1/effLoose - 1);
@@ -328,11 +316,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 
 	//   if (tmpLooseSF != tmpLooseSF) cout << tmpLooseSF << " " << effLoose << " " << effLooseSF << "\n";
 
-	//   double effTight = getElectronEfficiencyRunOne("tight",elePt[i],eleEta[i]);	  
+	//   double effTight = getElectronEfficiency("tight",elePt[i],eleEta[i]);	  
 	//   double effTightSF = eleTightEffSFHist->GetBinContent( eleTightEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
 	// 							eleTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
 	//   double tmpTightSF = 1.0;
-	//   if( (!isRunOne && isTightElectron(i)) || (isRunOne && isRunOneTightElectron(i)) ) {
+	//   if( isTightElectron(i) ) {
 	//     tmpTightSF = effTightSF;
 	//   } else {
 	//     tmpTightSF = ( 1/effTight - effTightSF) / ( 1/effTight - 1);
@@ -369,27 +357,25 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //******************************
     //Only Do Taus for Run2
     //******************************
-    if (!isRunOne) {
-      for(int i = 0; i < nTaus; i++){	 
-	if (tauPt[i] < 20) continue;
-	if (fabs(tauEta[i]) > 2.4) continue;
+    for(int i = 0; i < nTaus; i++){	 
+      if (tauPt[i] < 20) continue;
+      if (fabs(tauEta[i]) > 2.4) continue;
 	
-	if(isLooseTau(i)) nLooseTaus++;
-	if(isTightTau(i)) nTightTaus++;
+      if(isLooseTau(i)) nLooseTaus++;
+      if(isTightTau(i)) nTightTaus++;
 	
-	//remove overlaps
-	bool overlap = false;
-	for(auto& lep : GoodLeptons){
-	  if (RazorAnalyzer::deltaR(tauEta[i],tauPhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
-	}
-	if(overlap) continue;
-	
-	if (!isLooseTau(i)) continue;
-	TLorentzVector thisTau; thisTau.SetPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
-	GoodLeptons.push_back(thisTau);  
+      //remove overlaps
+      bool overlap = false;
+      for(auto& lep : GoodLeptons){
+	if (RazorAnalyzer::deltaR(tauEta[i],tauPhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
       }
+      if(overlap) continue;
+	
+      if (!isLooseTau(i)) continue;
+      TLorentzVector thisTau; thisTau.SetPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
+      GoodLeptons.push_back(thisTau);  
     }
-        
+         
     vector<TLorentzVector> GoodJets;
     int numJetsAbove80GeV = 0;
 
@@ -466,9 +452,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 
       double jetEnergySmearFactor = 1.0;
       if (!isData) {
-	if (isRunOne) {
-	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
-	}
+	// jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
       }
       
       TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
@@ -491,7 +475,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       // 	else MCEff = 0.66;				 
 	
       // 	//if pass CSV Medium
-      // 	if((!isRunOne && isCSVM(i)) || (isRunOne && isOldCSVM(i))) {
+      // 	if( isCSVM(i) ) {
       // 	  tmpBTagCorrFactor = tmpCorrFactor;
       // 	} else {
       // 	  tmpBTagCorrFactor = ( 1/MCEff - tmpCorrFactor) / ( 1/MCEff - 1);
@@ -560,7 +544,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
     TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
     TLorentzVector PFMETNoHF = makeTLorentzVectorPtEtaPhiM(metNoHFPt, 0, metNoHFPhi, 0);
-    TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
+    TLorentzVector MyMET = PFMETType1; //This is the MET that will be used below.
 
     HT = 0;
     for(auto& obj : GoodPFObjects) HT += obj.Pt();
