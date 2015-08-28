@@ -66,6 +66,7 @@ ST_tW_top_5f_DS_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1             38
 ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1                38.09
 WJetsToQQ_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                  95.14
 WW_TuneCUETP8M1_13TeV-pythia8                                                 63.21
+WWTo4Q_13TeV-powheg                                                 45.31
 WWToLNuQQ_13TeV-powheg                                             118.7
 WWTo2L2Nu_13TeV-powheg                                             118.7
 WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8                     10.96
