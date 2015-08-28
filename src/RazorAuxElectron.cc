@@ -360,7 +360,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i){
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
  
   bool pass = false;
-  if (  ( (elePt[i] > 20 && ele_miniiso[i] < 0.4 )
+  if (  ( (elePt[i] > 20 && ele_miniiso[i] < 0.1 )
 	  ||
 	  (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) < 5)
 	  )
