@@ -677,7 +677,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//*******************************
 	//Add to Type1 Met Correction
 	//*******************************
-	if (jetPt[i]*JEC > 20) {
+	if (jetPt[i]*JEC > 20 && fabs(jetEta[i]) < 3.0) {
 	  MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
 	  MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
 	  if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - UnCorrJet.Px() << " " << thisJet.Py() - UnCorrJet.Py() << "\n";
