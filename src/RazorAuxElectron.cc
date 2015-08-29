@@ -483,6 +483,46 @@ bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter){
     }
   }
    
+  if (HLTFilter == "Ele27Loose") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][5] 
+	//MC filters
+	|| ele_passHLTFilter[i][8]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele27Tight") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][6] 
+	//MC filters
+	|| ele_passHLTFilter[i][10]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele32Tight") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][13] 
+	//MC filters
+	|| ele_passHLTFilter[i][15]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele105") {
+    if ( ele_passHLTFilter[i][17] ) match = true;
+  }
+  if (HLTFilter == "Ele115") {
+    if ( ele_passHLTFilter[i][19] ) match = true;
+  }
+   
   if (HLTFilter == "DoubleElectronLeg1") {
     if ( 
 	//Data filters

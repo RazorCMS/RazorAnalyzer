@@ -81,6 +81,13 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPtRel = ele_ptrel[i];
 	    eleTree->fMiniIso = ele_miniiso[i];
 
+	    eleTree->fEleTriggerBit = 0;
+	    if (matchElectronHLTFilters(i, "Ele27Loose")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
+	    if (matchElectronHLTFilters(i, "Ele27Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
+	    if (matchElectronHLTFilters(i, "Ele32Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
+	    if (matchElectronHLTFilters(i, "Ele105")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105;
+	    if (matchElectronHLTFilters(i, "Ele115")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115;
+
 	    //Match to Gen particle
 	    int matchedIndex = -1;
 	    float minDR = 9999;
@@ -229,6 +236,14 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(matchedIndex);
 	    eleTree->fPtRel = ele_ptrel[matchedIndex];
 	    eleTree->fMiniIso = ele_miniiso[matchedIndex];
+	    eleTree->fEleTriggerBit = 0;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele27Loose")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele27Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele32Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele105")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele115")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115;
+
+
 	  } else {
 	    eleTree->fCharge = 0;
 	    eleTree->fElePt = 0;
@@ -256,6 +271,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassMVANonTrigVetoSelection = false;
 	    eleTree->fPtRel = 0;
 	    eleTree->fMiniIso = 0;
+	    eleTree->fEleTriggerBit = 0;
 	  }
 	  
 	  //***********************

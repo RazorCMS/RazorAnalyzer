@@ -16,9 +16,11 @@ class ElectronTree {
   //*******************************************
   //=== ElectronTriggerBits  ====
   //*******************************************
-  enum ElectronTriggerBits { kEleTrigger_Ele                                    = 0x000001, 
-			     kEleTrigger_Ele_CaloIdL_CaloIsoVL                  = 0x000002, 
-			     kEleTrigger_Ele_CaloIdT_TrkIdVL_CaloIsoVL_TrkIsoVL = 0x000004 
+  enum ElectronTriggerBits { kEleTrigger_Ele27Loose                             = 0x000001, 
+			     kEleTrigger_Ele27Tight                             = 0x000002, 
+			     kEleTrigger_Ele32Tight                             = 0x000004,
+			     kEleTrigger_Ele105                                 = 0x000008,
+			     kEleTrigger_Ele115                                 = 0x000010,
   };
 
   //******************************************* 
@@ -366,6 +368,7 @@ class ElectronTree {
     tree_->Branch("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection,"PassMVANonTrigVetoSelection/O"); 
     tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
     tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
+    tree_->Branch("triggerBit",&fEleTriggerBit,"triggerBit/i"); 
 
 
     if (version == kEleTreeStd ) {
@@ -373,7 +376,6 @@ class ElectronTree {
       tree_->Branch("scPhi",&fEleSCPhi,"scPhi/F"); 
       tree_->Branch("ecalenergy",&fEleEcalEnergy,"ecalenergy/F"); 
       tree_->Branch("ecaldriven",&fEleIsEcalDriven,"ecaldriven/O"); 
-      tree_->Branch("triggerBit",&fEleTriggerBit,"triggerBit/i"); 
       tree_->Branch("rho",&fRho,"rho/F"); 
       tree_->Branch("ip3d",&fEleIP3d,"ip3d/F"); 
       tree_->Branch("ip3ds",&fEleIP3dSig,"ip3ds/F"); 
@@ -507,13 +509,13 @@ class ElectronTree {
     tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection);
     tree_->SetBranchAddress("PtRel",&fPtRel);
     tree_->SetBranchAddress("MiniIso",&fMiniIso);
-    
+    tree_->SetBranchAddress("triggerBit",&fEleTriggerBit);
+       
     if (version == kEleTreeStd ) {
       tree_->SetBranchAddress("scEt",&fEleSCEt);
       tree_->SetBranchAddress("scPhi",&fEleSCPhi);
       tree_->SetBranchAddress("ecalenergy",&fEleEcalEnergy);
       tree_->SetBranchAddress("ecaldriven",&fEleIsEcalDriven);
-      tree_->SetBranchAddress("triggerBit",&fEleTriggerBit);
       tree_->SetBranchAddress("rho",&fRho);
       tree_->SetBranchAddress("ip3d",&fEleIP3d);
       tree_->SetBranchAddress("ip3ds",&fEleIP3dSig);

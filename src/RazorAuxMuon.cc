@@ -214,6 +214,32 @@ bool RazorAnalyzer::matchMuonHLTFilters(int i, string HLTFilter){
     }
   }
    
+  if (HLTFilter == "IsoMu20") {
+    if ( muon_passHLTFilter[i][3] ) match = true;    
+  }
+  if (HLTFilter == "IsoTkMu20") {
+    if ( muon_passHLTFilter[i][9] ) match = true;    
+  }
+  if (HLTFilter == "IsoMu27") {
+    if ( muon_passHLTFilter[i][8] ) match = true;    
+  }
+  if (HLTFilter == "IsoTkMu27") {
+    if ( muon_passHLTFilter[i][12] ) match = true;    
+  }
+  if (HLTFilter == "Mu50") {
+    if ( muon_passHLTFilter[i][14] ) match = true;    
+  }
+  if (HLTFilter == "Mu55") {
+    if ( muon_passHLTFilter[i][15] ) match = true;    
+  }
+  if (HLTFilter == "Mu45_eta2p1") {
+    if ( muon_passHLTFilter[i][16] ) match = true;    
+  }
+  if (HLTFilter == "Mu50_eta2p1") {
+    if ( muon_passHLTFilter[i][17] ) match = true;    
+  }
+   
+
   if (HLTFilter == "DoubleMuonLeg1") {
     if ( 
 	//Data filters : 17_8 Triggers

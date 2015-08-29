@@ -11,6 +11,19 @@
 
     public:
 
+      //*******************************************
+      //=== MuonTriggerBits  ====
+      //*******************************************
+      enum MuonTriggerBits { kMuTrigger_IsoMu20                             = 0x000001, 
+			     kMuTrigger_IsoTkMu20                           = 0x000002, 
+			     kMuTrigger_IsoMu27                             = 0x000004,
+			     kMuTrigger_IsoTkMu27                           = 0x000008, 
+			     kMuTrigger_Mu50                                = 0x000010, 
+			     kMuTrigger_Mu55                                = 0x000020, 
+			     kMuTrigger_Mu45_eta2p1                         = 0x000040, 
+			     kMuTrigger_Mu50_eta2p1                         = 0x000080, 
+      };
+      
       //******************************************* 
       //=== tree versions ===
       //*******************************************
@@ -37,6 +50,7 @@
       Bool_t                  fMuIsTight;
       Bool_t                  fMuIsMedium;
       Bool_t                  fMuIsLoose;
+      UInt_t                  fMuTriggerBit;
 
       // Typical Selection Working Points
       Bool_t                  fPassVetoSelection;
@@ -126,6 +140,7 @@
 	fMuIsTight                 = false;
 	fMuIsMedium                = false;
 	fMuIsLoose                 = false;
+	fMuTriggerBit              = 0;
 	fPassVetoSelection         = false;
 	fPassLooseSelection         = false;
 	fPassTightSelection         = false;
@@ -218,6 +233,7 @@
 	tree_->Branch("IP3dSig",&fMuIP3dSig,"IP3dSig/F"); 
 	tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
 	tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
+	tree_->Branch("triggerBit",&fMuTriggerBit,"triggerBit/i"); 
 
 	if (version == kMuTreeStd ) {
           tree_->Branch("typeBits",&fMuTypeBits,"typeBits/i"); 
@@ -301,6 +317,7 @@
 	tree_->SetBranchAddress("IP3dSig",&fMuIP3dSig);
 	tree_->SetBranchAddress("PtRel",&fPtRel);
 	tree_->SetBranchAddress("MiniIso",&fMiniIso);
+	tree_->SetBranchAddress("triggerBit",&fMuTriggerBit);
 
         if (version == kMuTreeStd ) {
           tree_->SetBranchAddress("typeBits",&fMuTypeBits);
