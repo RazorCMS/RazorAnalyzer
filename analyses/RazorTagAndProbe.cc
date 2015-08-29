@@ -353,19 +353,17 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (numeratorType == 25) {
 	      pass = isEGammaPOGTightElectron(indexProbe);
 	    }
-	    if (numeratorType == 50) {
-	      // cout << "pass: " << matchElectronHLTFilters(indexProbe, "SingleElectron") << " : "
-	      // 	   << ele_passHLTFilter[indexProbe][1] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][5] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][6] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][12] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][13] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][3] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][8] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][10] << " " 
-	      // 	   << ele_passHLTFilter[indexProbe][15] << " " 
-	      // 	   << " \n";
+	    if (numeratorType == 50) {	    
 	      pass = matchElectronHLTFilters(indexProbe, "SingleElectron");
+	    }
+	    if (numeratorType == 51) {	     
+	      pass = matchElectronHLTFilters(indexProbe, "Ele27Loose");
+	    }
+	    if (numeratorType == 52) {	     
+	      pass = matchElectronHLTFilters(indexProbe, "Ele27Tight");
+	    }
+	    if (numeratorType == 53) {	     
+	      pass = matchElectronHLTFilters(indexProbe, "Ele32Tight");
 	    }
 	    TPPair->pass = pass;
 	    // cout << " TP Pass: " << TPPair->pass << "\n";
@@ -507,6 +505,18 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    }
 	    if (numeratorType == 50) {
 	      pass = matchMuonHLTFilters(indexProbe, "SingleMuon");
+	    }
+	    if (numeratorType == 51) {
+	      pass = matchMuonHLTFilters(indexProbe, "IsoMu20");
+	    }
+	    if (numeratorType == 52) {
+	      pass = matchMuonHLTFilters(indexProbe, "IsoTkMu20");
+	    }
+	    if (numeratorType == 53) {
+	      pass = matchMuonHLTFilters(indexProbe, "IsoMu27");
+	    }
+	    if (numeratorType == 54) {
+	      pass = matchMuonHLTFilters(indexProbe, "IsoTkMu27");
 	    }
 	    TPPair->pass = pass;
 	    //cout << " TP Pass: " << TPPair->pass << "\n";
