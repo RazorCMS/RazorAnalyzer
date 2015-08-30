@@ -39,7 +39,10 @@ bool PassSelection( MuonTree* MuTree, int wp ) {
   //Tight Selection
   //**********************************
   if (wp == 3) {
-    if (MuTree->fMuPt > 0 && MuTree->fMuIsTight && fabs(MuTree->fMuIP3dSig)<4 && fabs(MuTree->fMuD0) < 0.2 && MuTree->fMuPFIso04 < 0.12) {
+    if (MuTree->fMuPt > 0 
+	&& MuTree->fPassTightSelection
+	//&& MuTree->fMuIsTight && fabs(MuTree->fMuIP3dSig)<4 && fabs(MuTree->fMuD0) < 0.2 && MuTree->fMuPFIso04 < 0.12
+	) {
       pass = true;
     }
   } 
@@ -48,7 +51,10 @@ bool PassSelection( MuonTree* MuTree, int wp ) {
   //Loose Selection
   //**********************************
   if (wp == 2) {
-    if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.2) {
+    if (MuTree->fMuPt > 0 
+	&& MuTree->fPassLooseSelection
+	//&& MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04 < 0.2
+	) {
       pass = true;
     }
   }
@@ -56,20 +62,24 @@ bool PassSelection( MuonTree* MuTree, int wp ) {
   //**********************************
   //Veto Selection
   //**********************************
-  // if (wp == 1) {
-  //   if (MuTree->fMuPt > 20) {
-  //     if (MuTree->fMuPt > 0 
-  // 	  && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 
-  // 	  && MuTree->fMiniIso / MuTree->fMuPt < 0.2
-  // 	  ) {
-  // 	pass = true;
-  //     }
-  //   } else {
-  //     if (MuTree->fMuPt > 0 && MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04*MuTree->fMuPt < 10) {
-  // 	pass = true;
-  //     }
-  //   }
-  // }
+  if (wp == 1 || wp == 10) {
+    if (MuTree->fMuPt > 20) {
+      if (MuTree->fMuPt > 0 
+	  && MuTree->fPassVetoSelection
+  	  //&& MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 
+  	  //&& MuTree->fMiniIso < 0.2
+  	  ) {
+  	pass = true;
+      }
+    } else {
+      if (MuTree->fMuPt > 0 
+	  && MuTree->fPassVetoSelection
+	  //&& MuTree->fMuIsLoose && fabs(MuTree->fMuIP3dSig)<4 && MuTree->fMuPFIso04*MuTree->fMuPt < 10
+	  ) {
+  	pass = true;
+      }
+    }
+  }
 
   //**********************************
   //Relative Isolation Veto Selection
@@ -87,6 +97,42 @@ bool PassSelection( MuonTree* MuTree, int wp ) {
 	pass = true;
       }
     }
+  }
+
+  if (wp == 100) {
+    // cout << "wp = 100\n";
+    // cout << MuTree->fMuTriggerBit << "\n";
+    // cout << bool((MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoMu20) == MuonTree::kMuTrigger_IsoMu20) << " " 
+    // 	 << bool ((MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoTkMu20) == MuonTree::kMuTrigger_IsoTkMu20) << " "
+    // 	 << bool( (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoMu20) == MuonTree::kMuTrigger_IsoMu20
+    // 		  || (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoTkMu20) == MuonTree::kMuTrigger_IsoTkMu20) << "\n";
+
+    if ( (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoMu20) == MuonTree::kMuTrigger_IsoMu20
+	 || (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoTkMu20) == MuonTree::kMuTrigger_IsoTkMu20
+	 ) pass = true;
+  }
+
+  if (wp == 101) {
+    if ( (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoMu27) == MuonTree::kMuTrigger_IsoMu27
+	 || (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoTkMu27) == MuonTree::kMuTrigger_IsoTkMu27
+	 ) pass = true;
+  }
+
+  if (wp == 102) {
+    if ( (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_Mu50) == MuonTree::kMuTrigger_Mu50
+	 ) pass = true;
+  }
+
+  if (wp == 103) {
+    if ( (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_Mu50_eta2p1) == MuonTree::kMuTrigger_Mu50_eta2p1
+	 ) pass = true;
+  }
+
+  if (wp == 110) {
+    if ( (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoMu27) == MuonTree::kMuTrigger_IsoMu27
+	 || (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_IsoTkMu27) == MuonTree::kMuTrigger_IsoTkMu27
+	 || (MuTree->fMuTriggerBit & MuonTree::kMuTrigger_Mu50) == MuonTree::kMuTrigger_Mu50
+	 ) pass = true;
   }
 
 
@@ -107,12 +153,12 @@ void plotMuonEfficiency() {
 
   TFile *fileRelIso = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_NumeratorRelIso0p4_DenominatorLooseIDAndIPCut.root","READ");
   TFile *fileImprovedIso = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Muon_NumeratorImprovedIso_DenominatorLooseIDAndIPCut.root","READ");
-  TFile *fileVeto = new TFile("Efficiency_PromptMuon_TTJets_25ns_Veto.root","READ");
-  TFile *fileLoose = new TFile("Efficiency_PromptMuon_TTJets_25ns_Loose.root","READ");
-  TFile *fileTight = new TFile("Efficiency_PromptMuon_TTJets_25ns_Tight.root","READ");
-  TFile *fileFakesVeto = new TFile("Efficiency_FakeMuon_TTJets_25ns_Veto.root","READ");
-  TFile *fileFakesLoose = new TFile("Efficiency_FakeMuon_TTJets_25ns_Loose.root","READ");
-  TFile *fileFakesTight = new TFile("Efficiency_FakeMuon_TTJets_25ns_Tight.root","READ");
+  TFile *fileVeto = new TFile("Efficiency_PromptMuon_TTJets_50ns_Veto.root","READ");
+  TFile *fileLoose = new TFile("Efficiency_PromptMuon_TTJets_50ns_Loose.root","READ");
+  TFile *fileTight = new TFile("Efficiency_PromptMuon_TTJets_50ns_Tight.root","READ");
+  TFile *fileFakesVeto = new TFile("Efficiency_FakeMuon_TTJets_50ns_Veto.root","READ");
+  TFile *fileFakesLoose = new TFile("Efficiency_FakeMuon_TTJets_50ns_Loose.root","READ");
+  TFile *fileFakesTight = new TFile("Efficiency_FakeMuon_TTJets_50ns_Tight.root","READ");
 
   TGraphAsymmErrors* effPtRelIso = (TGraphAsymmErrors*)fileRelIso->Get("Efficiency_Pt");
   TGraphAsymmErrors* effPtImprovedIso = (TGraphAsymmErrors*)fileImprovedIso->Get("Efficiency_Pt");
@@ -167,7 +213,6 @@ void plotMuonEfficiency() {
   cv->SaveAs("MuonIsolationEfficiencyVsPt.pdf");
 
 
-  return;
 
   cv = new TCanvas("cv","cv", 800,600);
 
@@ -371,6 +416,100 @@ void plotMuonEfficiency() {
 }
 
 
+void plotMuonTriggerEfficiency() {
+  TCanvas *cv =0;
+  TLegend *legend =0;
+
+  TFile *fileTriggerIsoMu20 = new TFile("Efficiency_PromptMuon_TTJets_50ns_MuTriggerIsoMu20.root","READ");
+  TFile *fileTriggerIsoMu27 = new TFile("Efficiency_PromptMuon_TTJets_50ns_MuTriggerIsoMu27.root","READ");
+  TFile *fileTriggerMu50 = new TFile("Efficiency_PromptMuon_TTJets_50ns_MuTriggerMu50.root","READ");
+  TFile *fileTriggerMuCombined = new TFile("Efficiency_PromptMuon_TTJets_50ns_MuTriggerCombined.root","READ");
+  
+  TGraphAsymmErrors* effPtTriggerIsoMu20 = (TGraphAsymmErrors*)fileTriggerIsoMu20->Get("Efficiency_Pt");
+  TGraphAsymmErrors* effPtTriggerIsoMu27 = (TGraphAsymmErrors*)fileTriggerIsoMu27->Get("Efficiency_Pt");
+  TGraphAsymmErrors* effPtTriggerMu50 = (TGraphAsymmErrors*)fileTriggerMu50->Get("Efficiency_Pt");
+  TGraphAsymmErrors* effPtTriggerMuCombined = (TGraphAsymmErrors*)fileTriggerMuCombined->Get("Efficiency_Pt");
+
+  TGraphAsymmErrors* effEtaTriggerIsoMu20 = (TGraphAsymmErrors*)fileTriggerIsoMu20->Get("Efficiency_Eta");
+  TGraphAsymmErrors* effEtaTriggerIsoMu27 = (TGraphAsymmErrors*)fileTriggerIsoMu27->Get("Efficiency_Eta");
+  TGraphAsymmErrors* effEtaTriggerMu50 = (TGraphAsymmErrors*)fileTriggerMu50->Get("Efficiency_Eta");
+  TGraphAsymmErrors* effEtaTriggerMuCombined = (TGraphAsymmErrors*)fileTriggerMuCombined->Get("Efficiency_Eta");
+
+  cv = new TCanvas("cv","cv", 800,600);
+
+  legend = new TLegend(0.50,0.34,0.90,0.54);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(effPtTriggerIsoMu20, "IsoMu20", "LP");
+  legend->AddEntry(effPtTriggerIsoMu27, "IsoMu27", "LP");
+  legend->AddEntry(effPtTriggerMu50, "Mu50", "LP");
+  legend->AddEntry(effPtTriggerMuCombined, "IsoMu27 OR Mu50", "LP");
+
+  effPtTriggerIsoMu20->SetLineWidth(3);
+  effPtTriggerIsoMu20->SetLineColor(kBlack);
+  effPtTriggerIsoMu20->GetXaxis()->SetTitle("Muon p_{T} [GeV/c]");
+  effPtTriggerIsoMu20->GetYaxis()->SetTitle("Trigger Efficiency");
+  effPtTriggerIsoMu20->GetYaxis()->SetTitleOffset(1.2);
+
+  effPtTriggerIsoMu27->SetLineWidth(3);
+  effPtTriggerIsoMu27->SetLineColor(kBlue);
+  effPtTriggerMu50->SetLineWidth(3);
+  effPtTriggerMu50->SetLineColor(kRed);
+  effPtTriggerMuCombined->SetLineWidth(3);
+  effPtTriggerMuCombined->SetLineColor(kGreen+2);
+
+  effPtTriggerIsoMu20->Draw("AP");
+  effPtTriggerIsoMu27->Draw("Psame");
+  effPtTriggerMu50->Draw("Psame");
+  effPtTriggerMuCombined->Draw("Psame");
+  
+  legend->Draw();  
+  cv->SaveAs("SingleMuTriggerEfficiencyVsPt.gif");
+  cv->SaveAs("SingleMuTriggerEfficiencyVsPt.pdf");
+
+
+
+  cv = new TCanvas("cv","cv", 800,600);
+
+  legend = new TLegend(0.50,0.34,0.90,0.54);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(effEtaTriggerIsoMu20, "IsoMu20", "LP");
+  legend->AddEntry(effEtaTriggerIsoMu27, "IsoMu27", "LP");
+  legend->AddEntry(effEtaTriggerMu50, "Mu50", "LP");
+  legend->AddEntry(effEtaTriggerMuCombined, "IsoMu27 OR Mu50", "LP");
+
+  effEtaTriggerIsoMu20->SetLineWidth(3);
+  effEtaTriggerIsoMu20->SetLineColor(kBlack);
+  effEtaTriggerIsoMu20->GetXaxis()->SetTitle("Muon #eta");
+  effEtaTriggerIsoMu20->GetYaxis()->SetTitle("Trigger Efficiency");
+  effEtaTriggerIsoMu20->GetYaxis()->SetTitleOffset(1.2);
+
+  effEtaTriggerIsoMu27->SetLineWidth(3);
+  effEtaTriggerIsoMu27->SetLineColor(kBlue);
+  effEtaTriggerMu50->SetLineWidth(3);
+  effEtaTriggerMu50->SetLineColor(kRed);
+  effEtaTriggerMuCombined->SetLineWidth(3);
+  effEtaTriggerMuCombined->SetLineColor(kGreen+2);
+
+  effEtaTriggerIsoMu20->Draw("AP");
+  effEtaTriggerIsoMu27->Draw("Psame");
+  effEtaTriggerMu50->Draw("Psame");
+  effEtaTriggerMuCombined->Draw("Psame");
+  
+  legend->Draw();  
+  cv->SaveAs("SingleMuTriggerEfficiencyVsEta.gif");
+  cv->SaveAs("SingleMuTriggerEfficiencyVsEta.pdf");
+
+
+
+
+
+}
+
+
 
 
 //=== MAIN MACRO ================================================================================================= 
@@ -429,6 +568,11 @@ void ProduceMuonEfficiencyPlots(const string inputfile, int wp = 0,  int option 
     if (wp == 10 || wp == 11) {
       if (!(MuTree->fMuPt > 0 && MuTree->fMuIsLoose  && fabs(MuTree->fMuIP3dSig)<4)) continue;
     } 
+
+    //For Trigger efficiency require tight selection
+    if (wp >= 100 ){
+      if (!(MuTree->fPassTightSelection)) continue;
+    }
 
     if (option==0) {
       //**** PT - ETA ****
@@ -519,7 +663,7 @@ void ProduceMuonEfficiencyPlots(const string inputfile, int wp = 0,  int option 
 
 
       //**** Eta ****
-      if (fabs(MuTree->fMuPt) > 30) {
+      if (fabs(MuTree->fMuPt) > 55) {
 	histDenominatorEta->Fill(MuTree->fMuEta);
 
 	//Numerator
@@ -646,24 +790,27 @@ void ProduceMuonEfficiencyPlots(const string inputfile, int wp = 0,  int option 
 void MakeMuonEfficiencyPlots(int option = 0) {
   
   if (option == 1) {
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 0, "PromptMuon_TTJets_25ns_Veto");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 0, "PromptMuon_TTJets_25ns_Loose");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 0, "PromptMuon_TTJets_25ns_Tight");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 1, 0, "PromptMuon_TTJets_50ns_Veto");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 2, 0, "PromptMuon_TTJets_50ns_Loose");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 3, 0, "PromptMuon_TTJets_50ns_Tight");
     
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 1, "FakeMuon_TTJets_25ns_Veto");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 2, 1, "FakeMuon_TTJets_25ns_Loose");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 3, 1, "FakeMuon_TTJets_25ns_Tight");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 1, 1, "FakeMuon_TTJets_50ns_Veto");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 2, 1, "FakeMuon_TTJets_50ns_Loose");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 3, 1, "FakeMuon_TTJets_50ns_Tight");
+  }
 
-   
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 1, 0, "PromptMuon_TTJets_25ns_Veto");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 2, 0, "PromptMuon_TTJets_25ns_Loose");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 3, 0, "PromptMuon_TTJets_25ns_Tight");    
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_Fake_TTJets.root", 1, 1, "FakeMuon_TTJets_25ns_Veto");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_Fake_TTJets.root", 2, 1, "FakeMuon_TTJets_25ns_Loose");
-    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_Fake_TTJets.root", 3, 1, "FakeMuon_TTJets_25ns_Tight");
+  if (option == 2) {
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 100, 1, "PromptMuon_TTJets_50ns_MuTriggerIsoMu20");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 101, 1, "PromptMuon_TTJets_50ns_MuTriggerIsoMu27");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 102, 1, "PromptMuon_TTJets_50ns_MuTriggerMu50");
+    ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/MuonNtuple/MuonNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 110, 1, "PromptMuon_TTJets_50ns_MuTriggerCombined");
+    plotMuonTriggerEfficiency();
+    return;
+  }
+
+  if (option == 10) {   
     ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 10, 0, "Muon_NumeratorImprovedIso_DenominatorLooseIDAndIPCut");
     ProduceMuonEfficiencyPlots("/afs/cern.ch/user/s/sixie/work/public/Run2SUSY/MuonNtuple/MuonNtuple_PromptGenLevel_TTJets_20bx25.root", 11, 0, "Muon_NumeratorRelIso0p4_DenominatorLooseIDAndIPCut");
-
   }
 
   plotMuonEfficiency();
