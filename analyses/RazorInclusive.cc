@@ -245,11 +245,18 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     bool passedSingleLeptonTrigger = false;
     bool passedLeptonicTrigger = false;
     bool passedHadronicTrigger= false;
-    passedDileptonTrigger = true;
-    passedSingleLeptonTrigger = true;
-    passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
-    passedHadronicTrigger = true;
     
+    if (isData) {
+      passedDileptonTrigger = true;    
+      passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
+	HLTDecision[28] || HLTDecision[29] || HLTDecision[31] || HLTDecision[32]  ;
+      passedHadronicTrigger = true;
+    } else {
+      passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
+	HLTDecision[27] || HLTDecision[30] ;
+    }
+    passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
+
 
     //*****************************************
     //Get Pileup Information
@@ -600,7 +607,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //**********************************************************************
 
     //MuEle Box
-    if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
+    if(passedDileptonTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = MuEle;
@@ -610,7 +617,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
     //MuMu Box
-    else if(passedLeptonicTrigger && nTightMuons > 0 && nLooseMuons > 1){
+    else if(passedDileptonTrigger && nTightMuons > 0 && nLooseMuons > 1){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = MuMu;
@@ -620,7 +627,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
     //EleEle Box
-    else if(passedLeptonicTrigger && nTightElectrons > 0 && nLooseElectrons > 1 ){
+    else if(passedDileptonTrigger && nTightElectrons > 0 && nLooseElectrons > 1 ){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = EleEle;
@@ -630,7 +637,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
     //MuSixJet Box
-    else if(passedLeptonicTrigger && nTightMuons > 0 && nSelectedJets > 5){
+    else if(passedSingleLeptonTrigger && nTightMuons > 0 && nSelectedJets > 5){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = MuSixJet;
@@ -640,7 +647,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
     //MuFourJet Box
-    else if(passedLeptonicTrigger && nTightMuons > 0 && nSelectedJets > 3){
+    else if(passedSingleLeptonTrigger && nTightMuons > 0 && nSelectedJets > 3){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = MuFourJet;
@@ -650,7 +657,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
     //MuJet Box
-    else if(passedLeptonicTrigger && nTightMuons > 0 ){
+    else if(passedSingleLeptonTrigger && nTightMuons > 0 ){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = MuJet;
@@ -660,7 +667,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
     //EleSixJet Box
-    else if(passedLeptonicTrigger && nTightElectrons > 0 && nSelectedJets > 5 ) {
+    else if(passedSingleLeptonTrigger && nTightElectrons > 0 && nSelectedJets > 5 ) {
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = EleSixJet;
@@ -670,7 +677,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
     //EleMultiJet Box
-    else if(passedLeptonicTrigger && nTightElectrons > 0 && nSelectedJets > 3 ){
+    else if(passedSingleLeptonTrigger && nTightElectrons > 0 && nSelectedJets > 3 ){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = EleFourJet;
@@ -680,7 +687,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
     //EleJet Box
-    else if(passedLeptonicTrigger && nTightElectrons > 0 ){
+    else if(passedSingleLeptonTrigger && nTightElectrons > 0 ){
       if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = EleJet;
