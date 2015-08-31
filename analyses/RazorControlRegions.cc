@@ -66,11 +66,15 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //4: Dilepton Add To MET
     //5: Photon Add To MET
     //6: Zero Lepton
+    //7: Single Veto-Lepton
+    //8: Loose Lepton + Veto-Lepton
     //11: Single-Lepton Reduced
     //12: Single-Lepton Add To MET Reduced
     //13: Dilepton Reduced
     //14: Dilepton Add To MET Reduced
     //15: Photon Reduced
+    //17: Single Veto-Lepton Reduced
+    //18: Loose Lepton + Veto-Lepton Reduced
     //hundreds digit refers to lepton skim option
     //0: no skim
     //1: 1 lepton skim
@@ -101,6 +105,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->CreateTree(ControlSampleEvents::kTreeType_Photon_Full);
     else if (treeTypeOption == 6)
       events->CreateTree(ControlSampleEvents::kTreeType_ZeroLepton_Full);
+    else if (treeTypeOption == 7)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
+    else if (treeTypeOption == 8)
+      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
     else {
       events->CreateTree(ControlSampleEvents::kTreeType_Default);
     }
@@ -334,6 +342,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
 	  if (isLooseMuon(i)) isGoodLepton = true;
 	}
+	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18) {
+	  if (isVetoMuon(i) || isLooseMuon(i)) isGoodLepton = true;
+	}
 
 	if (isGoodLepton) {
 	  GoodLeptons.push_back(thisMuon);
@@ -390,6 +401,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
 	  if (isLooseElectron(i)) isGoodLepton = true;
+	}
+	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18) {
+	  if (isVetoElectron(i) || isLooseElectron(i)) isGoodLepton = true;
 	}
 
 	if (isGoodLepton) {
@@ -473,50 +487,127 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
       bool lep1Found = false;
       bool lep2Found = false;
-      for (uint i=0; i<GoodLeptons.size(); i++) {
-	if (!lep1Found) {
-	  events->lep1Type = GoodLeptonType[i];
-	  events->lep1.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  
-	  events->lep1MatchedGenLepIndex = -1;
-	  if ( abs(GoodLeptonType[i]) == abs(events->genlep1Type) &&
-	       deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-	       ) {
-	    events->lep1MatchedGenLepIndex = 1;
-	  }
-	  if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
-	      && deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
-	      ) {
-	    events->lep1MatchedGenLepIndex = 2;
-	  }
-	  events->lep1PassTight = GoodLeptonIsTight[i];
-	  events->lep1PassLoose = GoodLeptonIsLoose[i];
-	  events->lep1PassVeto = GoodLeptonIsVeto[i];
-	  lep1Found = true;
-	} else {
-	  if (!lep2Found) {
-	    events->lep2Type = GoodLeptonType[i];
-	    events->lep2.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  	  	   
-	    events->lep2MatchedGenLepIndex = -1;
-	    if (abs(GoodLeptonType[i]) == abs(events->genlep1Type)
-		&& deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
-		) {
-	      events->lep2MatchedGenLepIndex = 1;
+      
+      //************************************************************************
+      //For single lepton and dilepton Control Regions
+      //************************************************************************
+      if ( treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12 
+	   || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
+	   || treeTypeOption == 7 || treeTypeOption == 17
+	   ) {
+	for (uint i=0; i<GoodLeptons.size(); i++) {
+	  if (!lep1Found) {
+	    events->lep1Type = GoodLeptonType[i];
+	    events->lep1.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  
+	    events->lep1MatchedGenLepIndex = -1;
+	    if ( abs(GoodLeptonType[i]) == abs(events->genlep1Type) &&
+		 deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
+		 ) {
+	      events->lep1MatchedGenLepIndex = 1;
 	    }
 	    if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
 		&& deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
 		) {
-	      events->lep2MatchedGenLepIndex = 2;
+	      events->lep1MatchedGenLepIndex = 2;
 	    }
-	    events->lep2PassTight = GoodLeptonIsTight[i];
-	    events->lep2PassLoose = GoodLeptonIsLoose[i];
-	    events->lep2PassVeto = GoodLeptonIsVeto[i];
-	    lep2Found = true;
+	    events->lep1PassTight = GoodLeptonIsTight[i];
+	    events->lep1PassLoose = GoodLeptonIsLoose[i];
+	    events->lep1PassVeto = GoodLeptonIsVeto[i];
+	    lep1Found = true;
+	  } else {
+	    if (!lep2Found) {
+	      events->lep2Type = GoodLeptonType[i];
+	      events->lep2.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  	  	   
+	      events->lep2MatchedGenLepIndex = -1;
+	      if (abs(GoodLeptonType[i]) == abs(events->genlep1Type)
+		  && deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
+		  ) {
+		events->lep2MatchedGenLepIndex = 1;
+	      }
+	      if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
+		  && deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
+		  ) {
+		events->lep2MatchedGenLepIndex = 2;
+	      }
+	      events->lep2PassTight = GoodLeptonIsTight[i];
+	      events->lep2PassLoose = GoodLeptonIsLoose[i];
+	      events->lep2PassVeto = GoodLeptonIsVeto[i];
+	      lep2Found = true;
+	    }
+	  }
+	} //loop over good leptons	
+
+	
+      } // if using 1-lepton or 2-lepton control region option
+      
+      
+      //************************************************************************
+      //For Loose Lepton + Veto lepton control region option
+      //First select a Loose Lepton, assign it to lep1
+      //Next select a Veto Lepton
+       //************************************************************************
+      if ( treeTypeOption == 8 || treeTypeOption == 18 ) {
+	
+	//look for a loose lepton first
+	for (uint i=0; i<GoodLeptons.size(); i++) {
+	  if (!GoodLeptonIsLoose[i]) continue;
+	  if (!lep1Found) {
+	    events->lep1Type = GoodLeptonType[i];
+	    events->lep1.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  
+	    events->lep1MatchedGenLepIndex = -1;
+	    if ( abs(GoodLeptonType[i]) == abs(events->genlep1Type) &&
+		 deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
+		 ) {
+	      events->lep1MatchedGenLepIndex = 1;
+	    }
+	    if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
+		&& deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
+		) {
+	      events->lep1MatchedGenLepIndex = 2;
+	    }
+	    events->lep1PassTight = GoodLeptonIsTight[i];
+	    events->lep1PassLoose = GoodLeptonIsLoose[i];
+	    events->lep1PassVeto = GoodLeptonIsVeto[i];
+	    lep1Found = true;
+	    break;
 	  }
 	}
-      } //loop over Tight leptons	
 
-    
+	//next look for a veto lepton
+	if (lep1Found) {
+	  for (uint i=0; i<GoodLeptons.size(); i++) {
+	    if (!GoodLeptonIsVeto[i]) continue; 
+
+	    //skip the object already saved as lep1
+	    if ( deltaR( GoodLeptons[i].Eta(),GoodLeptons[i].Phi(), events->lep1.Eta(), events->lep1.Phi()) < 0.01) continue;
+
+	    if (!lep2Found) {
+	      events->lep2Type = GoodLeptonType[i];
+	      events->lep2.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  	  	   
+	      events->lep2MatchedGenLepIndex = -1;
+	      if (abs(GoodLeptonType[i]) == abs(events->genlep1Type)
+		  && deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep1.Eta(),events->genlep1.Phi()) < 0.1
+		  ) {
+		events->lep2MatchedGenLepIndex = 1;
+	      }
+	      if (abs(GoodLeptonType[i]) == abs(events->genlep2Type)
+		  && deltaR(GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),events->genlep2.Eta(),events->genlep2.Phi()) < 0.1
+		  ) {
+		events->lep2MatchedGenLepIndex = 2;
+	      }
+	      events->lep2PassTight = GoodLeptonIsTight[i];
+	      events->lep2PassLoose = GoodLeptonIsLoose[i];
+	      events->lep2PassVeto = GoodLeptonIsVeto[i];
+	      lep2Found = true;
+	    }
+	  }
+	}
+		
+      } //if using loose lepton + veto lepton control region option
+
+      //************************************************************************
       //save this for the 1-lepton mini ntuples
+      //************************************************************************
       if (lep1Found) {
 	events->lep1Pt = events->lep1.Pt();
 	events->lep1Eta = events->lep1.Eta();
@@ -524,12 +615,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	events->lep1Pt = -99;
 	events->lep1Eta = -99;
       }
-
+      
+      //************************************************************************
       //save for dilepton ntuples
+      //************************************************************************
       if (lep1Found && lep2Found) {
 	events->mll = (events->lep1 + events->lep2).M();
       }
-
+      
       if (printSyncDebug) {
 	cout << "\n\n";
 	cout << "lep1: " << events->lep1Type << " | " << events->lep1.Pt() << " " << events->lep1.Eta() << " " << events->lep1.Phi() << " | Tight = " << events->lep1PassTight << " Loose = " << events->lep1PassLoose << " Veto = " << events->lep1PassVeto << "\n";
@@ -622,6 +715,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for(int i = 0; i < nJets; i++){
 
 	//exclude Good leptons from the jet collection
+	//NB: Currently the code excludes ALL identified "Good" leptons from the jet collection
+	//even if the event is interpreted as a single lepton or two lepton event. This may cause
+	//inconsistencies in the future.
 	double dR = -1;
 	for(auto& lep : GoodLeptons){
 	  double thisDR = deltaR(jetEta[i],jetPhi[i],lep.Eta(),lep.Phi());
