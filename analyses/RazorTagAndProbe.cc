@@ -365,6 +365,19 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (numeratorType == 53) {	     
 	      pass = matchElectronHLTFilters(indexProbe, "Ele32Tight");
 	    }
+	    if (numeratorType == 60) {	     
+	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Tight") ||
+			   matchElectronHLTFilters(indexProbe, "Ele32Tight"));
+	    }
+	    if (numeratorType == 61) {	     
+	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Tight") ||
+			   matchElectronHLTFilters(indexProbe, "Ele32Tight") || 
+			   matchElectronHLTFilters(indexProbe, "Ele105") ||
+			   matchElectronHLTFilters(indexProbe, "Ele115") 
+			   );
+	    }
 	    TPPair->pass = pass;
 	    // cout << " TP Pass: " << TPPair->pass << "\n";
 
@@ -507,16 +520,17 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = matchMuonHLTFilters(indexProbe, "SingleMuon");
 	    }
 	    if (numeratorType == 51) {
-	      pass = matchMuonHLTFilters(indexProbe, "IsoMu20");
+	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu20") || matchMuonHLTFilters(indexProbe, "IsoTkMu20"));
 	    }
 	    if (numeratorType == 52) {
-	      pass = matchMuonHLTFilters(indexProbe, "IsoTkMu20");
+	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu27") || matchMuonHLTFilters(indexProbe, "IsoTkMu27"));
 	    }
 	    if (numeratorType == 53) {
-	      pass = matchMuonHLTFilters(indexProbe, "IsoMu27");
+	      pass = matchMuonHLTFilters(indexProbe, "Mu50");
 	    }
-	    if (numeratorType == 54) {
-	      pass = matchMuonHLTFilters(indexProbe, "IsoTkMu27");
+	    if (numeratorType == 60) {
+	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu27") || matchMuonHLTFilters(indexProbe, "IsoTkMu27") 
+			  || matchMuonHLTFilters(indexProbe, "Mu50"));
 	    }
 	    TPPair->pass = pass;
 	    //cout << " TP Pass: " << TPPair->pass << "\n";
