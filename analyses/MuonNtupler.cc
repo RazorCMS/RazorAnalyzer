@@ -70,7 +70,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fPassLooseSelection = isLooseMuon(i);
 	  muTree->fPassTightSelection = isTightMuon(i);
 	  muTree->fPtRel = muon_ptrel[i];
-	  muTree->fMiniIso = muon_miniiso[i];
+	  muTree->fMiniIso = muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i] - 0.5*muon_chargedPileupMiniIso[i];
 	  muTree->fMuTriggerBit = 0;
 	  if (matchMuonHLTFilters(i, "IsoMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu20;
 	  if (matchMuonHLTFilters(i, "IsoTkMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu20;
@@ -240,7 +240,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fPassLooseSelection = isLooseMuon(matchedIndex);
 	    muTree->fPassTightSelection = isTightMuon(matchedIndex);
 	    muTree->fPtRel = muon_ptrel[matchedIndex];
-	    muTree->fMiniIso = muon_miniiso[matchedIndex];
+	    muTree->fMiniIso = muon_chargedMiniIso[matchedIndex] + muon_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*muon_chargedPileupMiniIso[matchedIndex];
 	    muTree->fMuTriggerBit = 0;
 	    if (matchMuonHLTFilters(matchedIndex, "IsoMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu20;
 	    if (matchMuonHLTFilters(matchedIndex, "IsoTkMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu20;

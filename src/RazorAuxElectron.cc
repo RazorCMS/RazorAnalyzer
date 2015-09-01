@@ -94,7 +94,7 @@ bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso){
     if (!passEGammaPOGLooseElectronID(i)) pass = false;
   }
   if (applyIso) {
-    if (!(ele_miniiso[i] < 0.1)) pass = false;
+    if (!((ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1)) pass = false;
   }
   return pass;
 }
@@ -105,7 +105,7 @@ bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso){
     if (!passEGammaPOGMediumElectronID(i)) pass = false;
   }
   if (applyIso) {
-    if (!(ele_miniiso[i] < 0.1)) pass = false;
+    if (!((ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1)) pass = false;
   }
   return pass;
 }
@@ -116,7 +116,7 @@ bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso){
     if (!passEGammaPOGTightElectronID(i)) pass = false;
   }
   if (applyIso) {
-    if (!(ele_miniiso[i] < 0.1)) pass = false;
+    if (!((ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1)) pass = false;
   }
   return pass;
 }
@@ -360,7 +360,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i){
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
  
   bool pass = false;
-  if (  ( (elePt[i] > 20 && ele_miniiso[i] < 0.1 )
+  if (  ( (elePt[i] > 20 && (ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1 )
 	  ||
 	  (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) < 5)
 	  )
