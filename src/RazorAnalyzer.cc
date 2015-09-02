@@ -77,7 +77,10 @@ void RazorAnalyzer::EnableMuons(){
     fChain->SetBranchStatus("muon_photonIso", 1);
     fChain->SetBranchStatus("muon_neutralHadIso", 1);
     fChain->SetBranchStatus("muon_ptrel", 1);
-    fChain->SetBranchStatus("muon_miniiso", 1);
+    fChain->SetBranchStatus("muon_chargedMiniIso", 1);
+    fChain->SetBranchStatus("muon_photonAndNeutralHadronMiniIso", 1);
+    fChain->SetBranchStatus("muon_chargedPileupMiniIso", 1);
+    fChain->SetBranchStatus("muon_activityMiniIsoAnnulus", 1);
     fChain->SetBranchStatus("muon_passSingleMuTagFilter", 1);
     fChain->SetBranchStatus("muon_passHLTFilter", 1);
 }
@@ -110,7 +113,10 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_RegressionE", 1);
     fChain->SetBranchStatus("ele_CombineP4", 1);
     fChain->SetBranchStatus("ele_ptrel", 1);
-    fChain->SetBranchStatus("ele_miniiso", 1); 
+    fChain->SetBranchStatus("ele_chargedMiniIso", 1);
+    fChain->SetBranchStatus("ele_photonAndNeutralHadronMiniIso", 1);
+    fChain->SetBranchStatus("ele_chargedPileupMiniIso", 1);
+    fChain->SetBranchStatus("ele_activityMiniIsoAnnulus", 1);
     fChain->SetBranchStatus("ele_passSingleEleTagFilter", 1); 
     fChain->SetBranchStatus("ele_passTPOneTagFilter", 1); 
     fChain->SetBranchStatus("ele_passTPTwoTagFilter", 1); 
