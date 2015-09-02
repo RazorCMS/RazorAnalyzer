@@ -118,22 +118,23 @@ class RazorAnalyzer: public RazorEvents {
         //functions in RazorAuxPhoton.cc
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut);
-	bool photonPassLooseIDWithoutEleVeto(int i);
-	bool photonPassMediumIDWithoutEleVeto(int i);
-	bool photonPassTightIDWithoutEleVeto(int i);
-	bool photonPassLooseID(int i);
-	bool photonPassMediumID(int i);
-	bool photonPassTightID(int i);
-	bool photonPassLooseIso(int i);
-	bool photonPassMediumIso(int i);
-	bool photonPassTightIso(int i);
-        bool isLoosePhoton(int i);
-        bool isMediumPhoton(int i);
-        bool isTightPhoton(int i);
-        bool isLoosePhotonWithoutEleVeto(int i);
-        bool isMediumPhotonWithoutEleVeto(int i);
-        bool isTightPhotonWithoutEleVeto(int i);
+	void getPhotonEffArea95( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea95);
+	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
+	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
+	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
+	bool photonPassLooseID(int i, bool use25nsCuts = true);
+	bool photonPassMediumID(int i, bool use25nsCuts = true);
+	bool photonPassTightID(int i, bool use25nsCuts = true);
+	bool photonPassLooseIso(int i, bool use25nsCuts = true);
+	bool photonPassMediumIso(int i, bool use25nsCuts = true);
+	bool photonPassTightIso(int i, bool use25nsCuts = true);
+        bool isLoosePhoton(int i, bool use25nsCuts = true);
+        bool isMediumPhoton(int i, bool use25nsCuts = true);
+        bool isTightPhoton(int i, bool use25nsCuts = true);
+        bool isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+        bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+        bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool matchPhotonHLTFilters( int i, string HLTFilter);
 
 	/* //function in HggRazorAuxPhoton.cc */
