@@ -125,6 +125,7 @@ class ElectronTree {
   Float_t                 fNeutralHadronIso_DR0p4To0p5;
   Float_t                 fPtRel;
   Float_t                 fMiniIso;
+  Float_t                 fMiniIsoDBCorr;
 
   Bool_t                  fElePassTriggerDenominator;
 
@@ -273,6 +274,7 @@ class ElectronTree {
     fNeutralHadronIso_DR0p4To0p5   = 0.0;
     fPtRel                         = 0.0;
     fMiniIso                       = 0.0;
+    fMiniIsoDBCorr                 = 0.0;
     fElePassTriggerDenominator     = 0.0;
     fIsEB                          = 0.0;           
     fIsEE                          = 0.0;           
@@ -338,6 +340,7 @@ class ElectronTree {
     tree_->Branch("lumi",&fLumiSectionNumber,"lumi/i");
     tree_->Branch("event",&fEventNumber,"event/i");
     tree_->Branch("EventNumberParity",&fEleEventNumberParity,"EventNumberParity/O"); 
+    tree_->Branch("rho",&fRho,"rho/F"); 
     tree_->Branch("pt",&fElePt,"pt/F"); 
     tree_->Branch("eta",&fEleEta,"eta/F"); 
     tree_->Branch("phi",&fElePhi,"phi/F");
@@ -368,6 +371,7 @@ class ElectronTree {
     tree_->Branch("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection,"PassMVANonTrigVetoSelection/O"); 
     tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
     tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
+    tree_->Branch("MiniIsoDBCorr",&fMiniIsoDBCorr,"MiniIsoDBCorr/F"); 
     tree_->Branch("triggerBit",&fEleTriggerBit,"triggerBit/i"); 
 
 
@@ -376,7 +380,6 @@ class ElectronTree {
       tree_->Branch("scPhi",&fEleSCPhi,"scPhi/F"); 
       tree_->Branch("ecalenergy",&fEleEcalEnergy,"ecalenergy/F"); 
       tree_->Branch("ecaldriven",&fEleIsEcalDriven,"ecaldriven/O"); 
-      tree_->Branch("rho",&fRho,"rho/F"); 
       tree_->Branch("ip3d",&fEleIP3d,"ip3d/F"); 
       tree_->Branch("ip3ds",&fEleIP3dSig,"ip3ds/F"); 
       tree_->Branch("dcot",&fEleConvDCot,"dcot/F"); 
@@ -479,6 +482,7 @@ class ElectronTree {
     tree_->SetBranchAddress("lumi",&fLumiSectionNumber);
     tree_->SetBranchAddress("event",&fEventNumber);
     tree_->SetBranchAddress("EventNumberParity",&fEleEventNumberParity);
+    tree_->SetBranchAddress("rho",&fRho);
     tree_->SetBranchAddress("pt",&fElePt);
     tree_->SetBranchAddress("eta",&fEleEta);
     tree_->SetBranchAddress("phi",&fElePhi);
@@ -509,6 +513,7 @@ class ElectronTree {
     tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection);
     tree_->SetBranchAddress("PtRel",&fPtRel);
     tree_->SetBranchAddress("MiniIso",&fMiniIso);
+    tree_->SetBranchAddress("MiniIsoDBCorr",&fMiniIsoDBCorr);
     tree_->SetBranchAddress("triggerBit",&fEleTriggerBit);
        
     if (version == kEleTreeStd ) {
@@ -516,7 +521,6 @@ class ElectronTree {
       tree_->SetBranchAddress("scPhi",&fEleSCPhi);
       tree_->SetBranchAddress("ecalenergy",&fEleEcalEnergy);
       tree_->SetBranchAddress("ecaldriven",&fEleIsEcalDriven);
-      tree_->SetBranchAddress("rho",&fRho);
       tree_->SetBranchAddress("ip3d",&fEleIP3d);
       tree_->SetBranchAddress("ip3ds",&fEleIP3dSig);
       tree_->SetBranchAddress("dcot",&fEleConvDCot);
