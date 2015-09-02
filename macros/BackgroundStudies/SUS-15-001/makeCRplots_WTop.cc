@@ -44,7 +44,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     gStyle->SetNumberContours(NCont);
     gStyle->SetPaintTextFormat("1.0f");
 
-    const int lumi = 42.0*1.2;
+    const int lumi = 42.0*1.3;
     
     map<string, string> suffixes;
     suffixes["WJets"] = "";

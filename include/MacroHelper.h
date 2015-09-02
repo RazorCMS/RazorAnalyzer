@@ -49,24 +49,46 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 //printString: name of output file
 //fitHist: optional fit result histogram (to draw as a solid line)
 void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, string intLumi="40 pb^{-1}", TH1F *fitHist=0){
-    TCanvas c("c", "c", 800, 700);
-    c.Clear();
-    c.cd();
-    TPad pad1("pad1","pad1",0,0.2,1,1);
-    pad1.SetBottomMargin(0);
-    pad1.SetLogy();
-    if(logX) pad1.SetLogx();
-    pad1.Draw();
-    pad1.cd();
+  TCanvas *cv =0;
+  TLegend *legend = 0;
+
+  cv = new TCanvas("cv","cv", 800,700);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  TPad *pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+  pad1->SetLogy();
+
+
+    /* TCanvas c("c", "c", 800, 700); */
+    /* c.Clear(); */
+    /* c.cd(); */
+    /* TPad pad1("pad1","pad1",0,0.2,1,1); */
+    /* pad1.SetBottomMargin(0); */
+    /* pad1.SetLogy(); */
+    /* if(logX) pad1.SetLogx(); */
+    /* pad1.Draw(); */
+    /* pad1.cd(); */
     mcStack->Draw("hist");
-    mcStack->GetYaxis()->SetTitle("Number of events");
+    mcStack->GetYaxis()->SetTitle("Number of events / 200 GeV");
     mcStack->GetYaxis()->SetLabelSize(0.03);
     mcStack->GetYaxis()->SetTitleOffset(0.7);
     mcStack->GetYaxis()->SetTitleSize(0.05);
     mcStack->SetMinimum(0.1);
     dataHist->SetMarkerStyle(20);
     dataHist->SetMarkerSize(1);
-    dataHist->GetYaxis()->SetTitle("Number of events");
+    dataHist->GetYaxis()->SetTitle("Number of events / 200 GeV");
     dataHist->Draw("pesame");
     if(fitHist){
       TH1F *fitHistCopy = (TH1F*) fitHist->Clone();
@@ -78,7 +100,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
       fitHist->SetFillStyle(3002);
       fitHist->Draw("same le3");
     }
-    pad1.Modified();
+    pad1->Modified();
     gPad->Update();
     //make ratio histogram
     TList * histList = (TList*)mcStack->GetHists();
@@ -123,7 +145,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     lumi_13TeV = "42 pb^{-1}";
     writeExtraText = true;
     relPosX = 0.13;
-    CMS_lumi(&pad1,4,0);
+    CMS_lumi(pad1,4,0);
 
     /* TLatex t1(0.1,0.92, "CMS Preliminary"); */
     /* TLatex t2(0.6,0.92, "#sqrt{s}=13 TeV, L = 40 pb^{-1}"); */
@@ -136,24 +158,48 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     
     /* t1.Draw(); */
     /* t2.Draw(); */
+
     
-    c.cd();
-    TPad pad2("pad2","pad2",0,0.0,1,0.2);
-    pad2.SetTopMargin(0);
-    pad2.SetTopMargin(0.008);
-    pad2.SetBottomMargin(0.25);
-    pad2.SetGridy();
-    if(logX) pad2.SetLogx();
+    cv->cd();
+  TPad *pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+
+  /* TPad pad2("pad2","pad2",0,0.0,1,0.2); */
+  /*   pad2.SetTopMargin(0); */
+  /*   pad2.SetTopMargin(0.008); */
+  /*   pad2.SetBottomMargin(0.25); */
+  /*   pad2.SetGridy(); */
+    if(logX) pad2->SetLogx();
     if(dataOverMC->GetMaximum() > 1.5) dataOverMC->SetMaximum(1.5);
-    pad2.Draw();
-    pad2.cd();
-    dataOverMC->Draw("pe");
+    pad2->Draw();
+    pad2->cd();
+  dataOverMC->GetYaxis()->SetTitle("Data/MC");
+  dataOverMC->GetYaxis()->SetNdivisions(306);
+  dataOverMC->GetYaxis()->SetTitleSize(0.10);
+  dataOverMC->GetYaxis()->SetTitleOffset(0.3);
+  dataOverMC->GetYaxis()->SetRangeUser(0.5,1.5);
+  dataOverMC->GetYaxis()->SetLabelSize(0.10);
+  dataOverMC->GetXaxis()->SetLabelSize(0.125);
+  dataOverMC->GetXaxis()->SetTitleSize(0.15);
+  dataOverMC->GetXaxis()->SetTitleOffset(1.0);
+  dataOverMC->SetLineColor(kBlack);
+  dataOverMC->SetMarkerStyle(20);      
+  dataOverMC->SetMarkerSize(1);
+  dataOverMC->SetStats(false);
+  dataOverMC->Draw("pe");
+    
+    /* dataOverMC->Draw("pe"); */
     // if(histoName.find("dataNvtx0") != std::string::npos  )
     //   dataOverMC->SaveAs("Nvtx.root");
-    pad2.Modified();
+    pad2->Modified();
     gPad->Update();
 
-    c.Print(Form("%s.png", printString.c_str()));
+    cv->Print(Form("%s.png", printString.c_str()));
     /* c.Print(Form("%s.root", printString.c_str())); */
 }
 
