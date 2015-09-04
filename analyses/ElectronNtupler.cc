@@ -63,6 +63,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fNVertices = nPV; 
 	    eleTree->fEleD0 = ele_d0[i]; 
 	    eleTree->fEleDZ = ele_dZ[i]; 
+	    eleTree->fEleIP3d = ele_ip3d[i];
+	    eleTree->fEleIP3dSig = ele_ip3dSignificance[i];
 	    eleTree->fElePassConversion = ele_PassConvVeto[i];
 	    eleTree->fEleNMissHits =ele_MissHits[i];
 	    eleTree->fEleOneOverEMinusOneOverP = ele_OneOverEminusOneOverP[i];
@@ -108,7 +110,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	      eleTree->fEleGenPt = gParticlePt[matchedIndex];
 	      eleTree->fEleGenEta = gParticleEta[matchedIndex];
 	      eleTree->fEleGenPhi = gParticlePhi[matchedIndex];
-	      if (gParticleMotherId[matchedIndex] > 50 || 
+	      if (abs(gParticleMotherId[matchedIndex]) > 50 || 
 		  abs(gParticleMotherId[matchedIndex]) == 15) {
 		matchedID = gParticleMotherId[matchedIndex];
 	      } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
@@ -142,6 +144,32 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    }
 	    eleTree->fDRToClosestParton = minDRToParton;
 
+
+
+	    // if (matchedID == 0 && ele_IDMVANonTrig[i] > 0.9) {
+	    //   std::cout << "DEBUG: \n";
+	    //   std::cout << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : " <<  ele_IDMVANonTrig[i] << "\n";
+	    //   cout << "match : " << matchedIndex << " ";
+	    //   if (matchedIndex >= 0) cout << gParticleMotherId[matchedIndex];
+	    //   cout << "\n";
+
+	    //   if (abs(gParticleMotherId[matchedIndex]) > 50 || 
+	    // 	  abs(gParticleMotherId[matchedIndex]) == 15) {
+	    // 	cout << "matched HF\n";
+	    //   } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
+	    // 	cout << "match prompt\n";
+	    //   } else {
+	    // 	cout << "nothing\n";
+	    //   }
+
+	    //   for(int j = 0; j < nGenParticle; j++){
+	    // 	std::cout << "particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j]  << " " 
+	    // 		  << gParticlePt[j] << " " <<  gParticleEta[j] << " " << gParticlePhi[j] << " " 
+	    // 	     <<  deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) << "\n";
+	    //   }    
+	    //   std::cout << "\n";
+	    // }
+	
 
 	    //***********************
 	    //Fill Electron
@@ -220,6 +248,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fEleTriggerBit = 0;
 	    eleTree->fEleD0 = ele_d0[matchedIndex]; 
 	    eleTree->fEleDZ = ele_dZ[matchedIndex]; 
+	    eleTree->fEleIP3d = ele_ip3d[matchedIndex];
+	    eleTree->fEleIP3dSig = ele_ip3dSignificance[matchedIndex];
 	    eleTree->fElePassConversion = ele_PassConvVeto[matchedIndex];
 	    eleTree->fEleNMissHits =ele_MissHits[matchedIndex];
 	    eleTree->fEleOneOverEMinusOneOverP = ele_OneOverEminusOneOverP[matchedIndex];

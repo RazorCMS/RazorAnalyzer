@@ -373,6 +373,7 @@ class ElectronTree {
     tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
     tree_->Branch("MiniIsoDBCorr",&fMiniIsoDBCorr,"MiniIsoDBCorr/F"); 
     tree_->Branch("triggerBit",&fEleTriggerBit,"triggerBit/i"); 
+    tree_->Branch("ip3ds",&fEleIP3dSig,"ip3ds/F"); 
 
 
     if (version == kEleTreeStd ) {
@@ -381,7 +382,6 @@ class ElectronTree {
       tree_->Branch("ecalenergy",&fEleEcalEnergy,"ecalenergy/F"); 
       tree_->Branch("ecaldriven",&fEleIsEcalDriven,"ecaldriven/O"); 
       tree_->Branch("ip3d",&fEleIP3d,"ip3d/F"); 
-      tree_->Branch("ip3ds",&fEleIP3dSig,"ip3ds/F"); 
       tree_->Branch("dcot",&fEleConvDCot,"dcot/F"); 
       tree_->Branch("dist",&fEleConvDist,"dist/F"); 
       tree_->Branch("nbrems",&fEleNBrem,"nbrems/F"); 
@@ -515,14 +515,14 @@ class ElectronTree {
     tree_->SetBranchAddress("MiniIso",&fMiniIso);
     tree_->SetBranchAddress("MiniIsoDBCorr",&fMiniIsoDBCorr);
     tree_->SetBranchAddress("triggerBit",&fEleTriggerBit);
-       
+    tree_->SetBranchAddress("ip3ds",&fEleIP3dSig);
+    
     if (version == kEleTreeStd ) {
       tree_->SetBranchAddress("scEt",&fEleSCEt);
       tree_->SetBranchAddress("scPhi",&fEleSCPhi);
       tree_->SetBranchAddress("ecalenergy",&fEleEcalEnergy);
       tree_->SetBranchAddress("ecaldriven",&fEleIsEcalDriven);
       tree_->SetBranchAddress("ip3d",&fEleIP3d);
-      tree_->SetBranchAddress("ip3ds",&fEleIP3dSig);
       tree_->SetBranchAddress("dcot",&fEleConvDCot);
       tree_->SetBranchAddress("dist",&fEleConvDist);
       tree_->SetBranchAddress("nbrems",&fEleNBrem);
