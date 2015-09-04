@@ -118,8 +118,10 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
     razorTree->Branch("nBTaggedJets", &nBTaggedJets, "nBTaggedJets/I");
     razorTree->Branch("nJets80", &nJets80, "nJets80/I");
+    razorTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
     razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
     razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+    razorTree->Branch("nVetoElectrons", &nVetoElectrons, "nVetoElectrons/I");
     razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
     razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
     razorTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
@@ -249,14 +251,16 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     if (isData) {
       passedDileptonTrigger = true;    
       passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
-	HLTDecision[28] || HLTDecision[29] || HLTDecision[31] || HLTDecision[32]  ;
+	HLTDecision[20] || HLTDecision[22] || HLTDecision[24] || HLTDecision[25]  ;
       passedHadronicTrigger = true;
     } else {
+      passedDileptonTrigger = true;  
       passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
-	HLTDecision[27] || HLTDecision[30] ;
+	HLTDecision[17] || HLTDecision[18] || HLTDecision[19] || HLTDecision[24]|| HLTDecision[25] ;
+      passedHadronicTrigger = true;
     }
     passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
-
+    
 
     //*****************************************
     //Get Pileup Information
