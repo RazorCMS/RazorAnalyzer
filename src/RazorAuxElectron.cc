@@ -84,48 +84,51 @@ bool RazorAnalyzer::isEGammaPOGTightElectron(int i, bool applyID, bool applyIso,
   return pass;
 }
 
-bool RazorAnalyzer::isVetoElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
-  return isMVANonTrigVetoElectron(i, applyID, applyIso, use25nsCuts);
+bool RazorAnalyzer::isVetoElectron(int i, bool applyID, bool applyIso){
+  return isMVANonTrigVetoElectron(i, applyID, applyIso);
 }
 
 bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
   bool pass = true;
+  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
     if (!passEGammaPOGLooseElectronID(i,use25nsCuts)) pass = false;
   }
   if (applyIso) {
-    if (!((ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1)) pass = false;
+    if (!((ele_chargedMiniIso[i] + fmin(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
   }
   return pass;
 }
 
 bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
   bool pass = true;
+  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
     if (!passEGammaPOGMediumElectronID(i,use25nsCuts)) pass = false;
   }
   if (applyIso) {
-    if (!((ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1)) pass = false;
+    if (!((ele_chargedMiniIso[i] +  fmin(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
   }
   return pass;
 }
 
 bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
   bool pass = true;
+  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
     if (!passEGammaPOGTightElectronID(i,use25nsCuts)) pass = false;
   }
   if (applyIso) {
-    if (!((ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1)) pass = false;
+    if (!((ele_chargedMiniIso[i] + fmin(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
   }
   return pass;
 }
 
-bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso){
 
   bool pass = true;
   if (applyID) {
-    if (!passMVANonTrigVetoElectronID(i,use25nsCuts)) pass = false;
+    if (!passMVANonTrigVetoElectronID(i)) pass = false;
   }
   if (applyIso) {
     if (!passMVANonTrigVetoElectronIso(i)) pass = false;
@@ -397,7 +400,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
   return pass;
 }
 
-bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i, bool use25nsCuts){
+bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 
   Int_t subdet = 0;
   if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
@@ -407,20 +410,16 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i, bool use25nsCuts){
   if (elePt[i] > 10.0) ptBin = 1;
 
   Double_t MVACut = -999;
-  if (subdet == 0 && ptBin == 0) MVACut = -0.1;
-  if (subdet == 1 && ptBin == 0) MVACut = -0.75;
-  if (subdet == 2 && ptBin == 0) MVACut = -0.1;
-  if (subdet == 0 && ptBin == 1) MVACut = -0.5;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.8;
-  if (subdet == 2 && ptBin == 1) MVACut = -0.3;
+  if (subdet == 0 && ptBin == 0) MVACut = -0.11;
+  if (subdet == 1 && ptBin == 0) MVACut = -0.55;
+  if (subdet == 2 && ptBin == 0) MVACut = -0.60;
+  if (subdet == 0 && ptBin == 1) MVACut = -0.16;
+  if (subdet == 1 && ptBin == 1) MVACut = -0.65;
+  if (subdet == 2 && ptBin == 1) MVACut = -0.74;
 
   bool pass = false;
   if (ele_IDMVANonTrig[i] > MVACut
-      &&
-      ( (fabs(eleEta_SC[i]) < 1.479 && fabs(ele_d0[i]) < 0.02)
-	||
-	(fabs(eleEta_SC[i]) >= 1.479 && fabs(ele_d0[i]) < 0.1)
-	)
+      && fabs(ele_ip3dSignificance[i]) < 4
       ) {
     pass = true;
   }
@@ -568,9 +567,10 @@ bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i, bool use25nsCuts){
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){
  
   bool pass = false;
-  if (  ( (elePt[i] > 20 && (ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i])/elePt[i] < 0.1 )
+  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+  if (  ( (elePt[i] > 20 && (ele_chargedMiniIso[i] + fmin(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.2 )
 	  ||
-	  (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) < 5)
+	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) < 5)
 	  )
 	) {
     pass = true;
