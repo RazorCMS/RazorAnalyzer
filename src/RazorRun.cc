@@ -137,7 +137,7 @@ int main(int argc, char* argv[]){
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
 	analyzer.EnablePileup();      
-        analyzer.HggRazor(outputFileName, true); //change the bool to true if you want all analysis boxes combined in one tree
+        analyzer.HggRazor(outputFileName, true, isData, option); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "matchedrazor"){
       cout << "Executing genjet-matched razor inclusive analysis..." << endl;

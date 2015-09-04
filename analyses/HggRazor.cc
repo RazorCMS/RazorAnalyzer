@@ -45,8 +45,15 @@ struct evt
 #define _debug    0
 #define _info     1
 
-void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
+void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
 {
+  //*****************************************************************************
+  //Settings
+  //*****************************************************************************
+  bool use25nsSelection = false;
+  if (option == 1) use25nsSelection = true;
+
+
     //initialization: create one TTree for each analysis box 
   if ( _info) std::cout << "Initializing..." << std::endl;
   cout << "Combine Trees = " << combineTrees << "\n";
@@ -376,13 +383,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     }
     //electron selection
     for(int i = 0; i < nElectrons; i++){
-      if(!isLooseElectron(i)) continue; 
+      if(!isLooseElectron(i,use25nsSelection)) continue; 
       if(elePt[i] < 10) continue;
       if(abs(eleEta[i]) > 2.5) continue;
       
       nLooseElectrons++;
       
-      if(isTightElectron(i))
+      if(isTightElectron(i,use25nsSelection))
 	{ 
 	  nTightElectrons++;
 	}
@@ -403,7 +410,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
     for(int i = 0; i < nPhotons; i++){
       //ID cuts -- apply isolation after candidate pair selection
       if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-      if ( !photonPassLooseIDWithoutEleVeto(i) ) {
+      if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) {
 	if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
 	continue;
       }
@@ -452,7 +459,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees)
       tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
       tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
       tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-      tmp_phoCand._passIso = photonPassLooseIso(i);
+      tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
       phoCand.push_back( tmp_phoCand );
       
       nSelectedPhotons++;
