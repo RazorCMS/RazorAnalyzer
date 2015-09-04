@@ -48,7 +48,7 @@ class RazorAnalyzer: public RazorEvents {
         //------ LIST OF ANALYSES ------//
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false);
-        virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false);
+        virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false, int option = 0, bool isData = false );
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
 	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
@@ -87,16 +87,16 @@ class RazorAnalyzer: public RazorEvents {
         bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+        bool isVetoElectron(int i, bool applyID = true, bool applyIso = true);
         bool isLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-	bool isMVANonTrigVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+	bool isMVANonTrigVetoElectron(int i, bool applyID = true, bool applyIso = true);
         bool passEGammaPOGVetoElectronID(int i, bool use25nsCuts = true);
         bool passEGammaPOGLooseElectronID(int i, bool use25nsCuts = true);
         bool passEGammaPOGMediumElectronID(int i, bool use25nsCuts = true);
         bool passEGammaPOGTightElectronID(int i, bool use25nsCuts = true);
-	bool passMVANonTrigVetoElectronID(int i, bool use25nsCuts = true);
+	bool passMVANonTrigVetoElectronID(int i);
         bool passEGammaPOGVetoElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGLooseElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGMediumElectronIso(int i, bool use25nsCuts = true);
