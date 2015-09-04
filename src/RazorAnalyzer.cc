@@ -101,6 +101,8 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_HoverE", 1);
     fChain->SetBranchStatus("ele_d0", 1);
     fChain->SetBranchStatus("ele_dZ", 1);
+    fChain->SetBranchStatus("ele_ip3d", 1);
+    fChain->SetBranchStatus("ele_ip3dSignificance", 1);
     fChain->SetBranchStatus("ele_pileupIso", 1);
     fChain->SetBranchStatus("ele_chargedIso", 1);
     fChain->SetBranchStatus("ele_photonIso", 1);
