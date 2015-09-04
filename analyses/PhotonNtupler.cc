@@ -15,7 +15,7 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
     phoTree->tree_->SetAutoFlush(0);
     
     cout << "Run With Option = " << Option << "\n";
-
+    bool use25nsSelection = false;
     UInt_t NPhotonsFilled = 0;
 
 
@@ -77,15 +77,15 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	  phoTree->fPhoHasPixelSeed = pho_hasPixelSeed[i];
 
 
-	  phoTree->fPhoIsLoose = isLoosePhoton(i);
-	  phoTree->fPhoIsMedium = isMediumPhoton(i);
-	  phoTree->fPhoIsTight = isTightPhoton(i);
-	  phoTree->fPhoPassLooseID = photonPassLooseID(i);
-	  phoTree->fPhoPassMediumID = photonPassMediumID(i);
-	  phoTree->fPhoPassTightID = photonPassTightID(i);
-	  phoTree->fPhoPassLooseIso = photonPassLooseIso(i);
-	  phoTree->fPhoPassMediumIso = photonPassMediumIso(i);
-	  phoTree->fPhoPassTightIso = photonPassTightIso(i);
+	  phoTree->fPhoIsLoose = isLoosePhoton(i,use25nsSelection);
+	  phoTree->fPhoIsMedium = isMediumPhoton(i,use25nsSelection);
+	  phoTree->fPhoIsTight = isTightPhoton(i,use25nsSelection);
+	  phoTree->fPhoPassLooseID = photonPassLooseID(i,use25nsSelection);
+	  phoTree->fPhoPassMediumID = photonPassMediumID(i,use25nsSelection);
+	  phoTree->fPhoPassTightID = photonPassTightID(i,use25nsSelection);
+	  phoTree->fPhoPassLooseIso = photonPassLooseIso(i,use25nsSelection);
+	  phoTree->fPhoPassMediumIso = photonPassMediumIso(i,use25nsSelection);
+	  phoTree->fPhoPassTightIso = photonPassTightIso(i,use25nsSelection);
 
 	  bool foundMatch = false;
 	  int phoMatchingGenPhotonIndex = -1;
@@ -248,15 +248,15 @@ void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
 	       phoTree->fPhoIDMVA = pho_IDMVA[matchedIndex];
 	       phoTree->fPhoSCEta = pho_superClusterEta[matchedIndex];
 	       phoTree->fPhoHasPixelSeed = pho_hasPixelSeed[matchedIndex];
-	       phoTree->fPhoIsLoose = isLoosePhoton(matchedIndex);
-	       phoTree->fPhoIsMedium = isMediumPhoton(matchedIndex);
-	       phoTree->fPhoIsTight = isTightPhoton(matchedIndex);
-	       phoTree->fPhoPassLooseID = photonPassLooseID(matchedIndex);
-	       phoTree->fPhoPassMediumID = photonPassMediumID(matchedIndex);
-	       phoTree->fPhoPassTightID = photonPassTightID(matchedIndex);
-	       phoTree->fPhoPassLooseIso = photonPassLooseIso(matchedIndex);
-	       phoTree->fPhoPassMediumIso = photonPassMediumIso(matchedIndex);
-	       phoTree->fPhoPassTightIso = photonPassTightIso(matchedIndex);
+	       phoTree->fPhoIsLoose = isLoosePhoton(matchedIndex,use25nsSelection);
+	       phoTree->fPhoIsMedium = isMediumPhoton(matchedIndex,use25nsSelection);
+	       phoTree->fPhoIsTight = isTightPhoton(matchedIndex,use25nsSelection);
+	       phoTree->fPhoPassLooseID = photonPassLooseID(matchedIndex,use25nsSelection);
+	       phoTree->fPhoPassMediumID = photonPassMediumID(matchedIndex,use25nsSelection);
+	       phoTree->fPhoPassTightID = photonPassTightID(matchedIndex,use25nsSelection);
+	       phoTree->fPhoPassLooseIso = photonPassLooseIso(matchedIndex,use25nsSelection);
+	       phoTree->fPhoPassMediumIso = photonPassMediumIso(matchedIndex,use25nsSelection);
+	       phoTree->fPhoPassTightIso = photonPassTightIso(matchedIndex,use25nsSelection);
 	     }
 
 	     bool doFillPhoton = false;
