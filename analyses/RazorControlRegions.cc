@@ -37,7 +37,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      //correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
@@ -68,6 +68,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //6: Zero Lepton
     //7: Single Veto-Lepton
     //8: Loose Lepton + Veto-Lepton
+    //9: Single Tau
     //11: Single-Lepton Reduced
     //12: Single-Lepton Add To MET Reduced
     //13: Dilepton Reduced
@@ -75,6 +76,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //15: Photon Reduced
     //17: Single Veto-Lepton Reduced
     //18: Loose Lepton + Veto-Lepton Reduced
+    //19: Single Tau Reduced
     //hundreds digit refers to lepton skim option
     //0: no skim
     //1: 1 lepton skim
@@ -330,6 +332,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (printSyncDebug) cout << "muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : Tight = " << isTightMuon(i) << " Loose = " << isLooseMuon(i) << " Veto = " << isVetoMuon(i) << " \n";
                         	   
 	TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
+	thisMuon.SetPtEtaPhiM( muonPt[i], muonEta[i], muonPhi[i], 0.1057);
 
 	//*******************************************************
 	//For Single Lepton Options, use only tight leptons
@@ -342,7 +345,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
 	  if (isLooseMuon(i)) isGoodLepton = true;
 	}
-	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18) {
+	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18
+	    || treeTypeOption == 9 || treeTypeOption == 19 ) {
 	  if (isVetoMuon(i) || isLooseMuon(i)) isGoodLepton = true;
 	}
 
@@ -389,7 +393,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	if(!isVetoElectron(i)) continue; 
 
-	TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+	TLorentzVector thisElectron; // = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+	thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
 
 	//*******************************************************
 	//For Single Lepton Options, use only tight leptons
@@ -402,7 +407,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
 	  if (isLooseElectron(i)) isGoodLepton = true;
 	}
-	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18) {
+	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18
+	    || treeTypeOption == 9 || treeTypeOption == 19 ) {
 	  if (isVetoElectron(i) || isLooseElectron(i)) isGoodLepton = true;
 	}
 
@@ -435,7 +441,27 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  LooseLeptonType.push_back(15);
 	  LooseLeptonIndex.push_back(i);
 	  LooseLeptonPt.push_back(tauPt[i]);
-	}	 	  
+	}
+
+	TLorentzVector thisTau;
+	thisTau.SetPtEtaPhiM( tauPt[i], tauEta[i], tauPhi[i], 1.777);
+
+	//*******************************************************
+	//For Single Lepton Options, use only tight leptons
+	//For Dilepton Options, use only loose leptons
+	//*******************************************************
+	bool isGoodLepton = false;
+	if (treeTypeOption == 9 || treeTypeOption == 19 ) {
+	  if (isLooseTau(i)) isGoodLepton = true;
+	}
+
+	if (isGoodLepton) {
+	  GoodLeptons.push_back(thisTau);        
+	  GoodLeptonType.push_back(15);
+	  GoodLeptonIsTight.push_back( isTightTau(i) );
+	  GoodLeptonIsLoose.push_back( isLooseTau(i) );
+	  GoodLeptonIsVeto.push_back( isLooseTau(i) );
+	}	  
       }
 
       //************************************************************************
@@ -494,8 +520,15 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       if ( treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12 
 	   || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
 	   || treeTypeOption == 7 || treeTypeOption == 17
+	   || treeTypeOption == 9 || treeTypeOption == 19
 	   ) {
 	for (uint i=0; i<GoodLeptons.size(); i++) {
+
+	  //For tau control region, consider only tau leptons
+	  if (treeTypeOption == 9 || treeTypeOption == 19) {
+	    if ( abs(GoodLeptonType[i]) != 15) continue;
+	  }
+
 	  if (!lep1Found) {
 	    events->lep1Type = GoodLeptonType[i];
 	    events->lep1.SetPtEtaPhiM(GoodLeptons[i].Pt(), GoodLeptons[i].Eta(),GoodLeptons[i].Phi(),GoodLeptons[i].M());	  
