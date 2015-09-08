@@ -324,6 +324,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    TPPair->eta = eleEta[indexProbe];
 	    TPPair->phi = elePhi[indexProbe];
 	    TPPair->charge = eleCharge[indexProbe];
+	    TPPair->Activity = ele_activityMiniIsoAnnulus[indexProbe];
 
 	    //****************************************
 	    //PASS OR FAIL
@@ -484,6 +485,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    TPPair->eta = muonEta[indexProbe];
 	    TPPair->phi = muonPhi[indexProbe];
 	    TPPair->charge = muonCharge[indexProbe];
+	    TPPair->Activity = muon_activityMiniIsoAnnulus[indexProbe];
 
 	    //****************************************
 	    //PASS OR FAIL
