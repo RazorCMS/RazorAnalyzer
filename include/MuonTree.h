@@ -45,6 +45,7 @@
       Float_t                 fMuPhi; 
       Int_t                   fPdgId;
       Float_t                 fDRToClosestParton;
+      Float_t                 fActivity;
 
       //ID bits
       Bool_t                  fMuIsTight;
@@ -138,6 +139,7 @@
         fMuPhi 			   = 0.0;
         fPdgId			   = 13;
 	fDRToClosestParton         = 9999;
+	fActivity                  = 9999;
 	fMuIsTight                 = false;
 	fMuIsMedium                = false;
 	fMuIsLoose                 = false;
@@ -223,6 +225,7 @@
         tree_->Branch("genphi",&fMuGenPhi,"genphi/F"); 
         tree_->Branch("pdgid",&fPdgId,"pdgid/I"); 
         tree_->Branch("DRToClosestParton",&fDRToClosestParton,"DRToClosestParton/F"); 
+        tree_->Branch("Activity",&fActivity,"Activity/F"); 
 	tree_->Branch("IsTight",&fMuIsTight,"IsTight/O"); 
 	tree_->Branch("IsMedium",&fMuIsMedium,"IsMedium/O"); 
 	tree_->Branch("IsLoose",&fMuIsLoose,"IsLoose/O"); 
@@ -308,6 +311,7 @@
         tree_->SetBranchAddress("genphi",&fMuGenPhi);
         tree_->SetBranchAddress("pdgid",&fPdgId);
         tree_->SetBranchAddress("DRToClosestParton",&fDRToClosestParton);
+        tree_->SetBranchAddress("Activity",&fActivity);
 	tree_->SetBranchAddress("IsTight",&fMuIsTight); 
 	tree_->SetBranchAddress("IsMedium",&fMuIsMedium); 
 	tree_->SetBranchAddress("IsLoose",&fMuIsLoose); 

@@ -59,6 +59,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fMuPhi = muonPhi[i]; 
 	  muTree->fRho = 0; 
 	  muTree->fNVertices = nPV; 
+	  muTree->fActivity = muon_activityMiniIsoAnnulus[i];
 	  muTree->fMuD0 = muon_d0[i]; 
 	  muTree->fMuIP3d = muon_ip3d[i];
 	  muTree->fMuIP3dSig = muon_ip3dSignificance[i];
@@ -228,6 +229,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  }	 
 
 	  if (matchedIndex >= 0) {
+	    muTree->fActivity = muon_activityMiniIsoAnnulus[matchedIndex];
 	    muTree->fMuPt = muonPt[matchedIndex]; 
 	    muTree->fMuEta = muonEta[matchedIndex]; 
 	    muTree->fMuPhi = muonPhi[matchedIndex]; 
@@ -254,6 +256,7 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    if (matchMuonHLTFilters(matchedIndex, "Mu45_eta2p1")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu45_eta2p1;
 	    if (matchMuonHLTFilters(matchedIndex, "Mu50_eta2p1")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50_eta2p1;
 	  } else {
+	    muTree->fActivity = 9999;
 	    muTree->fMuPt = 0;
 	    muTree->fMuEta = 0;
 	    muTree->fMuPhi = 0;

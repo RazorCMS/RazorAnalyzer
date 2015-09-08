@@ -50,6 +50,7 @@ class ElectronTree {
   Float_t                 fNVertices; 
   Int_t                   fPdgId;
   Float_t                 fDRToClosestParton;
+  Float_t                 fActivity;
 
   // Typical Selection Working Points
   Bool_t                  fPassVetoSelection;
@@ -213,6 +214,7 @@ class ElectronTree {
     fNVertices 		       = 0.0;
     fPdgId    		       = 11;
     fDRToClosestParton         = 9999;
+    fActivity                  = 9999;
     fPassVetoSelection                 = false;
     fPassLooseSelection                = false;
     fPassTightSelection                = false;
@@ -350,6 +352,7 @@ class ElectronTree {
     tree_->Branch("genphi",&fEleGenPhi,"genphi/F");
     tree_->Branch("pdgid",&fPdgId,"pdgid/I");
     tree_->Branch("DRToClosestParton",&fDRToClosestParton,"DRToClosestParton/F");
+    tree_->Branch("Activity",&fActivity,"Activity/F");
     tree_->Branch("scEta",&fEleSCEta,"scEta/F"); 
     tree_->Branch("d0",&fEleD0,"d0/F"); 
     tree_->Branch("dz",&fEleDZ,"dz/F"); 
@@ -491,6 +494,7 @@ class ElectronTree {
     tree_->SetBranchAddress("genphi",&fEleGenPhi);
     tree_->SetBranchAddress("pdgid",&fPdgId);
     tree_->SetBranchAddress("DRToClosestParton",&fDRToClosestParton);
+    tree_->SetBranchAddress("Activity",&fActivity);
     tree_->SetBranchAddress("Charge",&fCharge);
     tree_->SetBranchAddress("scEta",&fEleSCEta);
     tree_->SetBranchAddress("d0",&fEleD0);

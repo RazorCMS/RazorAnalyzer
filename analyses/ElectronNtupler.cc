@@ -61,6 +61,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fEleTriggerBit = 0;
 	    eleTree->fRho = fixedGridRhoFastjetAll; 
 	    eleTree->fNVertices = nPV; 
+	    eleTree->fActivity = ele_activityMiniIsoAnnulus[i];
 	    eleTree->fEleD0 = ele_d0[i]; 
 	    eleTree->fEleDZ = ele_dZ[i]; 
 	    eleTree->fEleIP3d = ele_ip3d[i];
@@ -240,6 +241,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	  }	 
 
 	  if (matchedIndex >= 0) {
+	    eleTree->fActivity = ele_activityMiniIsoAnnulus[matchedIndex];
 	    eleTree->fCharge = eleCharge[matchedIndex] ;
 	    eleTree->fElePt = elePt[matchedIndex]; 
 	    eleTree->fEleEta = eleEta[matchedIndex]; 
@@ -277,6 +279,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 
 
 	  } else {
+	    eleTree->fActivity = 9999;
 	    eleTree->fCharge = 0;
 	    eleTree->fElePt = 0;
 	    eleTree->fEleEta = 0;
