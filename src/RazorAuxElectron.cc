@@ -645,7 +645,7 @@ bool RazorAnalyzer::matchTagElectronHLTFilters(int i){
   if ( 
       //Data filters
       ele_passHLTFilter[i][1] || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
-      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53]
+      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53] || ele_passHLTFilter[i][57] || ele_passHLTFilter[i][60]
       //MC filters
       || ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
        ) {
@@ -659,6 +659,7 @@ bool RazorAnalyzer::matchProbeElectronHLTFilters(int i){
   bool match = false;
   if ( 
       ele_passHLTFilter[i][50] || ele_passHLTFilter[i][51]     
+      || ele_passHLTFilter[i][61]     || ele_passHLTFilter[i][62]     
        ) {
     match = true;
   }
@@ -669,7 +670,8 @@ bool RazorAnalyzer::matchProbeElectronHLTFilters(int i){
 bool RazorAnalyzer::matchProbeSCHLTFilters(int i){
   bool match = false;
   if ( 
-      ele_passHLTFilter[i][54] || ele_passHLTFilter[i][55]     
+      ele_passHLTFilter[i][54] || ele_passHLTFilter[i][55] 
+      || ele_passHLTFilter[i][58]    || ele_passHLTFilter[i][59]    
        ) {
     match = true;
   }
@@ -691,6 +693,16 @@ bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter){
     }
   }
    
+  if (HLTFilter == "Ele23Loose") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][1] 
+	//MC filters
+	|| ele_passHLTFilter[i][3]
+	 ) {
+      match = true;
+    }
+  }
   if (HLTFilter == "Ele27Loose") {
     if ( 
 	//Data filters
