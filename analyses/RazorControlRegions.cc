@@ -37,7 +37,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      //correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
@@ -79,8 +79,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //19: Single Tau Reduced
     //hundreds digit refers to lepton skim option
     //0: no skim
-    //1: 1 lepton skim
+    //1: 1 lepton skim (pT > 30 GeV)
     //2: 2 lepton skim
+    //3: 1 lepton skim (pT > 0 GeV)
     //5: photon skim
     //thousand digit refers to razor skim option
     //0: no skim
@@ -140,7 +141,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
 
-      printSyncDebug = false;
+      printSyncDebug = true;
       if (printSyncDebug) {
 	cout << "\n****************************************************************\n";
 	cout << "Debug Event : " << runNum << " " << lumiNum << " " << eventNum << "\n";
@@ -298,6 +299,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       vector<bool> GoodLeptonIsTight;//leptons used to compute hemispheres
       vector<bool> GoodLeptonIsLoose;//leptons used to compute hemispheres
       vector<bool> GoodLeptonIsVeto;//leptons used to compute hemispheres
+      vector<double> GoodLeptonActivity;//leptons used to compute hemispheres
 
 
 
@@ -356,6 +358,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  GoodLeptonIsTight.push_back( isTightMuon(i) );
 	  GoodLeptonIsLoose.push_back( isLooseMuon(i) );
 	  GoodLeptonIsVeto.push_back( isVetoMuon(i) );
+	  GoodLeptonActivity.push_back( muon_activityMiniIsoAnnulus[i] );
 	}
 
       } // loop over muons
@@ -418,6 +421,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  GoodLeptonIsTight.push_back( isTightElectron(i) );
 	  GoodLeptonIsLoose.push_back( isLooseElectron(i) );
 	  GoodLeptonIsVeto.push_back( isVetoElectron(i) );
+	  GoodLeptonActivity.push_back( ele_activityMiniIsoAnnulus[i] );
 	}
       }
 
@@ -461,6 +465,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  GoodLeptonIsTight.push_back( isTightTau(i) );
 	  GoodLeptonIsLoose.push_back( isLooseTau(i) );
 	  GoodLeptonIsVeto.push_back( isLooseTau(i) );
+	  GoodLeptonActivity.push_back( 9999 );
 	}	  
       }
 
@@ -477,18 +482,21 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    bool tmpIsTight = GoodLeptonIsTight[j];
 	    bool tmpIsLoose = GoodLeptonIsLoose[j];
 	    bool tmpIsVeto = GoodLeptonIsVeto[j];
+	    double tmpActivity = GoodLeptonActivity[j];
 
 	    GoodLeptons[j] = GoodLeptons[j+1];
 	    GoodLeptonType[j] = GoodLeptonType[j+1];
 	    GoodLeptonIsTight[j] = GoodLeptonIsTight[j+1];
 	    GoodLeptonIsLoose[j] = GoodLeptonIsLoose[j+1];
 	    GoodLeptonIsVeto[j] = GoodLeptonIsVeto[j+1];
+	    GoodLeptonActivity[j] = GoodLeptonActivity[j+1];
 
 	    GoodLeptons[j+1] = tmpV;
 	    GoodLeptonType[j+1] = tmpType;
 	    GoodLeptonIsTight[j+1] = tmpIsTight;
 	    GoodLeptonIsLoose[j+1] = tmpIsLoose;
 	    GoodLeptonIsVeto[j+1] = tmpIsVeto;	  
+	    GoodLeptonActivity[j+1] = tmpActivity;
 	  }
 	}
       }
@@ -546,6 +554,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    events->lep1PassTight = GoodLeptonIsTight[i];
 	    events->lep1PassLoose = GoodLeptonIsLoose[i];
 	    events->lep1PassVeto = GoodLeptonIsVeto[i];
+	    events->lep1Activity = GoodLeptonActivity[i];
 	    lep1Found = true;
 	  } else {
 	    if (!lep2Found) {
@@ -565,6 +574,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      events->lep2PassTight = GoodLeptonIsTight[i];
 	      events->lep2PassLoose = GoodLeptonIsLoose[i];
 	      events->lep2PassVeto = GoodLeptonIsVeto[i];
+	      events->lep2Activity = GoodLeptonActivity[i];
 	      lep2Found = true;
 	    }
 	  }
@@ -601,6 +611,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    events->lep1PassTight = GoodLeptonIsTight[i];
 	    events->lep1PassLoose = GoodLeptonIsLoose[i];
 	    events->lep1PassVeto = GoodLeptonIsVeto[i];
+	    events->lep1Activity = GoodLeptonActivity[i];
 	    lep1Found = true;
 	    break;
 	  }
@@ -631,6 +642,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      events->lep2PassTight = GoodLeptonIsTight[i];
 	      events->lep2PassLoose = GoodLeptonIsLoose[i];
 	      events->lep2PassVeto = GoodLeptonIsVeto[i];
+	      events->lep2Activity = GoodLeptonActivity[i];
 	      lep2Found = true;
 	    }
 	  }
@@ -1197,6 +1209,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	      && events->lep1PassLoose
 	      && events->lep1.Pt() > 30
+	       )
+	    ) passSkim = false;
+      }
+      //single lepton skim
+      if (leptonSkimOption == 3) {
+	if (!( events->lep1.Pt() > 0
 	       )
 	    ) passSkim = false;
       }

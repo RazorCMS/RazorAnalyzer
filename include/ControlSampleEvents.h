@@ -81,6 +81,7 @@ class ControlSampleEvents {
   Bool_t                  lep1PassLooseIso;
   Bool_t                  lep1PassTightIso;
   Float_t                 lep1MinDRToBJet;
+  Float_t                 lep1Activity;
   Bool_t                  lep2PassVeto;
   Bool_t                  lep2PassLoose;
   Bool_t                  lep2PassTight;
@@ -91,6 +92,7 @@ class ControlSampleEvents {
   Bool_t                  lep2PassLooseIso;
   Bool_t                  lep2PassTightIso;
   Float_t                 lep2MinDRToBJet;     
+  Float_t                 lep2Activity;
   TLorentzVector          bjet1;
   TLorentzVector          bjet2;
   Bool_t                  bjet1PassLoose;
@@ -263,6 +265,7 @@ class ControlSampleEvents {
     lep1PassLooseIso     = 0.0;
     lep1PassTightIso     = 0.0;
     lep1MinDRToBJet      = 0.0;
+    lep1Activity         = 0.0;
     lep2PassVeto         = 0.0;
     lep2PassLoose        = 0.0;
     lep2PassTight        = 0.0;
@@ -273,6 +276,7 @@ class ControlSampleEvents {
     lep2PassLooseIso     = 0.0;
     lep2PassTightIso     = 0.0;
     lep2MinDRToBJet      = 0.0;
+    lep2Activity         = 0.0;
     bjet1                = TLorentzVector();
     bjet2                = TLorentzVector();
     bjet1PassLoose       = 0.0;
@@ -461,6 +465,7 @@ class ControlSampleEvents {
       tree_->Branch("lep1PassTight",&lep1PassTight,"lep1PassTight/O");
       tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
+      tree_->Branch("lep1Activity",&lep1Activity,"lep1Activity/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
       tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
@@ -506,6 +511,7 @@ class ControlSampleEvents {
       tree_->Branch("lep1PassLooseIso",&lep1PassLooseIso,"lep1PassLooseIso/O");
       tree_->Branch("lep1PassTightIso",&lep1PassTightIso,"lep1PassTightIso/O");
       tree_->Branch("lep1MinDRToBJet",&lep1MinDRToBJet,"lep1MinDRToBJet/F");
+      tree_->Branch("lep1Activity",&lep1Activity,"lep1Activity/F");
       tree_->Branch("lep2PassVeto",&lep2PassVeto,"lep2PassVeto/O");
       tree_->Branch("lep2PassLoose",&lep2PassLoose,"lep2PassLoose/O");
       tree_->Branch("lep2PassTight",&lep2PassTight,"lep2PassTight/O");
@@ -516,6 +522,7 @@ class ControlSampleEvents {
       tree_->Branch("lep2PassLooseIso",&lep2PassLooseIso,"lep2PassLooseIso/O");
       tree_->Branch("lep2PassTightIso",&lep2PassTightIso,"lep2PassTightIso/O");
       tree_->Branch("lep2MinDRToBJet",&lep2MinDRToBJet,"lep2MinDRToBJet/F");
+      tree_->Branch("lep2Activity",&lep2Activity,"lep2Activity/F");
       tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
       tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
       tree_->Branch("bjet1PassTight",&bjet1PassTight,"bjet1PassTight/O");
@@ -704,6 +711,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1PassTight",&lep1PassTight);
       tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
       tree_->SetBranchAddress("lep1MT",&lep1MT);
+      tree_->SetBranchAddress("lep1Activity",&lep1Activity);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
       tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
@@ -749,6 +757,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1PassLooseIso",&lep1PassLooseIso);
       tree_->SetBranchAddress("lep1PassTightIso",&lep1PassTightIso);
       tree_->SetBranchAddress("lep1MinDRToBJet",&lep1MinDRToBJet);
+      tree_->SetBranchAddress("lep1Activity",&lep1Activity);
       tree_->SetBranchAddress("lep2PassVeto",&lep2PassVeto);
       tree_->SetBranchAddress("lep2PassLoose",&lep2PassLoose);
       tree_->SetBranchAddress("lep2PassTight",&lep2PassTight);
@@ -759,6 +768,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep2PassLooseIso",&lep2PassLooseIso);
       tree_->SetBranchAddress("lep2PassTightIso",&lep2PassTightIso);
       tree_->SetBranchAddress("lep2MinDRToBJet",&lep2MinDRToBJet);
+      tree_->SetBranchAddress("lep2Activity",&lep2Activity);
       tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
       tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
       tree_->SetBranchAddress("bjet1PassTight",&bjet1PassTight);
