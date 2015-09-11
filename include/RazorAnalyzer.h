@@ -49,6 +49,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false);
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false, int option = 0, bool isData = false );
+        virtual void FullRazorInclusive(string outFileName = "FullRazorInclusive.root", bool isData = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
 	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
@@ -164,7 +165,9 @@ class RazorAnalyzer: public RazorEvents {
 					  FactorizedJetCorrector *jetcorrector,  
 					  bool printDebug = false);
 	double JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, 
-  					SimpleJetResolution *JetResolutionCalculator, TRandom3 *random);
+  					SimpleJetResolution *JetResolutionCalculator, 
+                                        TRandom3 *random, string option="");
+        double BTagScaleFactor( double jetPt, bool CSVM, string option="");
 	
         //functions in RazorAuxMisc.cc
 	double deltaPhi(double phi1, double phi2);

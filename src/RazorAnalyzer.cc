@@ -27,7 +27,6 @@ void RazorAnalyzer::EnableAll(){
     EnablePileup();
     EnableMC();
     EnableGenParticles();
-    EnableRazor();
 }
 
 void RazorAnalyzer::EnableEventInfo(){

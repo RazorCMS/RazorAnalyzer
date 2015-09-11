@@ -22,6 +22,7 @@ int main(int argc, char* argv[]){
         cerr << "Usage: RazorRun <input list> <analysis type> <isData> <output filename (optional)> [option number] [optional label]" << endl;
         cerr << "Analyses available: " << endl 
 	     << "razor                --   inclusive razor analysis" << endl 
+             << "razorfull            --   larger razor ntuple used for setting limits w/systematics" << endl
 	     << "hggrazor             --   higgs->diphoton razor analysis" << endl
 	     << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
 	     << "razorVetoLeptonStudy --   study lepton veto" << endl
@@ -112,7 +113,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableMet();
         analyzer.DummyAnalysis();
     }
-    else if(analysisType == "razor"){
+    else if(analysisType == "razor" || analysisType == "RazorInclusive"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
 	analyzer.EnablePileup();
@@ -124,6 +125,11 @@ int main(int argc, char* argv[]){
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
         analyzer.RazorInclusive(outputFileName, true, isData); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "razorfull" || analysisType == "fullrazor" || analysisType == "FullRazorInclusive"){
+        cout << "Executing full razor inclusive analysis..." << endl;
+        analyzer.EnableAll();
+        analyzer.FullRazorInclusive(outputFileName, isData); 
     }
     else if(analysisType == "hggrazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;

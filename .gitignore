@@ -2,6 +2,7 @@ RazorRun
 eos
 plots*
 NormalizeNtuple
+SkimNtuple
 *.o
 *.root
 *.so
@@ -26,3 +27,8 @@ test.*
 *.tex
 *.gif
 *.png
+ControlSampleFits
+Datasets
+FitProjections
+FitResults
+cards
