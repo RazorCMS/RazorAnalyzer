@@ -33,8 +33,7 @@ boxes = {'MuEle':'(box==0)',
          'LooseLeptonDiJet':'(box==13)',
          'DiJet':'(box==14)'}
 
-dPhiCut = 2.7
-
+dPhiCut = 2.8
 MTCut = -1
 
 def initializeWorkspace(w,cfg,box):
@@ -128,12 +127,25 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
-        
+
+    #use the optimal cuts for each box
+    if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet"]: 
+        dPhiCut = 2.8
+        MTCut = -1
+    else: 
+        dPhiCut = 3.2
+        MTCut = 100
+
     boxCut = boxes[box]
+
+    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut)
+    if MTCut >= 0: #add MT cut
+        if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:
+            cuts = cuts + (' && mTLoose > %f' % MTCut)
+        else:
+            cuts = cuts + (' && mT > %f' % MTCut)
     
-    tree.Draw('>>elist',
-              'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut),
-              'entrylist')
+    tree.Draw('>>elist',cuts,'entrylist')
         
     elist = rt.gDirectory.Get('elist')
     
