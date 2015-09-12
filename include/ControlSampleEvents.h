@@ -468,6 +468,7 @@ class ControlSampleEvents {
       tree_->Branch("lep1Activity",&lep1Activity,"lep1Activity/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
+      tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
       tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
       tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
       tree_->Branch("bjet1PassTight",&bjet1PassTight,"bjet1PassTight/O");
@@ -540,6 +541,7 @@ class ControlSampleEvents {
       tree_->Branch("mll",&mll,"mll/F");      
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
+      tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
       tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
@@ -693,6 +695,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
       tree_->SetBranchAddress("lep1MT",&lep1MT);	
       tree_->SetBranchAddress("MET",&MET);
+      tree_->SetBranchAddress("METnoHF",&METnoHF);
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
       tree_->SetBranchAddress("lep1Pt",&lep1Pt);
@@ -716,6 +719,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1MT",&lep1MT);
       tree_->SetBranchAddress("lep1Activity",&lep1Activity);
       tree_->SetBranchAddress("MET",&MET);
+      tree_->SetBranchAddress("METnoHF",&METnoHF);
       tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
       tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
       tree_->SetBranchAddress("bjet1PassTight",&bjet1PassTight);
@@ -788,6 +792,7 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("mll",&mll);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("METPhi",&METPhi);
+      tree_->SetBranchAddress("METnoHF",&METnoHF);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("genlep1",  &genlep1Ptr);
