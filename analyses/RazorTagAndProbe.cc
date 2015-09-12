@@ -303,17 +303,23 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    if (denominatorType == 1) {
 	      // reco object doesn't require any additional cuts
 	    }
+	    if (denominatorType == 2) {
+	      if ( !isVetoElectron(indexProbe) ) continue;
+	    }
 	    if (denominatorType == 3) {
 	      if ( !isLooseElectron(indexProbe) ) continue;
 	    }
 	    if (denominatorType == 5) {
 	      if ( !isTightElectron(indexProbe) ) continue;
 	    }
+	    if (denominatorType == 6) {
+	      if ( !isVetoElectron(indexProbe, true, false) ) continue;
+	    }
 	    if (denominatorType == 7) {
-	      if ( !passEGammaPOGLooseElectronID(indexProbe) ) continue;
+	      if ( !isLooseElectron(indexProbe, true, false) ) continue;
 	    }
 	    if (denominatorType == 9) {
-	      if ( !passEGammaPOGTightElectronID(indexProbe) ) continue;
+	      if ( !isTightElectron(indexProbe,true, false) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -330,17 +336,26 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    //PASS OR FAIL
 	    //****************************************
 	    bool pass = false;
+	    if (numeratorType == 2) {
+	      pass = isVetoElectron(indexProbe);
+	    }
 	    if (numeratorType == 3) {
 	      pass = isLooseElectron(indexProbe);
 	    }
 	    if (numeratorType == 5) {
 	      pass = isTightElectron(indexProbe);
 	    }
+	    if (numeratorType == 6) {
+	      pass = isVetoElectron(indexProbe, true, false);
+	    }
 	    if (numeratorType == 7) {
 	      pass = isLooseElectron(indexProbe, true, false);
 	    }
 	    if (numeratorType == 9) {
 	      pass = isTightElectron(indexProbe, true, false);
+	    }
+	    if (numeratorType == 10) {
+	      pass = isVetoElectron(indexProbe, false, true);
 	    }
 	    if (numeratorType == 11) {
 	      pass = isLooseElectron(indexProbe, false, true);
@@ -358,21 +373,26 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = matchElectronHLTFilters(indexProbe, "SingleElectron");
 	    }
 	    if (numeratorType == 51) {	     
-	      pass = matchElectronHLTFilters(indexProbe, "Ele27Loose");
+	      pass = matchElectronHLTFilters(indexProbe, "Ele23Loose");
 	    }
 	    if (numeratorType == 52) {	     
-	      pass = matchElectronHLTFilters(indexProbe, "Ele27Tight");
+	      pass = matchElectronHLTFilters(indexProbe, "Ele27Loose");
 	    }
 	    if (numeratorType == 53) {	     
+	      pass = matchElectronHLTFilters(indexProbe, "Ele27Tight");
+	    }
+	    if (numeratorType == 54) {	     
 	      pass = matchElectronHLTFilters(indexProbe, "Ele32Tight");
 	    }
 	    if (numeratorType == 60) {	     
-	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
+	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele23Loose") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
 			   matchElectronHLTFilters(indexProbe, "Ele27Tight") ||
 			   matchElectronHLTFilters(indexProbe, "Ele32Tight"));
 	    }
 	    if (numeratorType == 61) {	     
-	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
+	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele23Loose") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
 			   matchElectronHLTFilters(indexProbe, "Ele27Tight") ||
 			   matchElectronHLTFilters(indexProbe, "Ele32Tight") || 
 			   matchElectronHLTFilters(indexProbe, "Ele105") ||
@@ -531,7 +551,15 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = matchMuonHLTFilters(indexProbe, "Mu50");
 	    }
 	    if (numeratorType == 60) {
-	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu27") || matchMuonHLTFilters(indexProbe, "IsoTkMu27") 
+	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu20") 
+			  || matchMuonHLTFilters(indexProbe, "IsoTkMu20") 
+			  || matchMuonHLTFilters(indexProbe, "IsoMu27") 
+			  || matchMuonHLTFilters(indexProbe, "IsoTkMu27") 
+			  || matchMuonHLTFilters(indexProbe, "Mu50"));
+	    }
+	    if (numeratorType == 61) {
+	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu20") 
+			  || matchMuonHLTFilters(indexProbe, "IsoTkMu20") 
 			  || matchMuonHLTFilters(indexProbe, "Mu50"));
 	    }
 	    TPPair->pass = pass;
