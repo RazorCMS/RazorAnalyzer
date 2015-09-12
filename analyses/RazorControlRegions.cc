@@ -997,6 +997,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       }
 
       events->MET = MyMET.Pt();
+      events->METPhi = MyMET.Phi();
       events->METnoHF = PFMETnoHFType1.Pt();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
@@ -1125,12 +1126,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //**********************************************************
       //1-lepton Add to MET Variables
       //**********************************************************
-      if (treeTypeOption == 2) {
+      if (treeTypeOption == 2) 
+      {
 	events->MET_NoW = LepPlusMet_perp.Pt();
 	events->METPhi_NoW = LepPlusMet_perp.Phi();
 	events->NJets_NoW = GoodJetsNoLeptons.size();
 	events->HT_NoW = ht_NoLep;
 	events->NJets80_NoW = njets80NoLep;
+    events->METPhi = MyMET.Phi();
 
 	//compute razor variables 
 	if(events->NJets_NoW > 1 && GoodJets.size()<20){
