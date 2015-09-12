@@ -82,6 +82,7 @@ class RazorAnalyzer: public RazorEvents {
 	bool matchTagMuonHLTFilters( int i);
 
         //functions in RazorAuxElectron.cc
+	float GetElectronScaleCorrection( double pt, double eta );
 	float GetEffectiveAreaMean(int i);
 	float GetEffectiveArea90(int i);
         bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
