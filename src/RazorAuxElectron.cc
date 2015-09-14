@@ -1,5 +1,15 @@
 #include "RazorAnalyzer.h"
 
+float RazorAnalyzer::GetElectronScaleCorrection( double pt, double eta ) {  
+  double scaleCorr = 1.0;
+  if ( pt > 0 && fabs(eta) < 1.5) {
+    scaleCorr = 1.015;
+  } else {
+    scaleCorr = 1.05;
+  }
+  return scaleCorr;
+}
+
 float RazorAnalyzer::GetEffectiveAreaMean(int i){ 
 
   double effArea = 0.0;
