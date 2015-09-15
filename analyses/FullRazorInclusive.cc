@@ -124,10 +124,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     float weight = 1.0;
     RazorBox box;
     //For lepton efficiency scale factor uncertainty
-    float weight_muonEffUp, weight_muonEffDown;
-    float weight_eleEffUp, weight_eleEffDown;
+    float sf_muonEffUp, sf_muonEffDown;
+    float sf_eleEffUp, sf_eleEffDown;
     //For btag scale factor uncertainty
-    float weight_btagUp, weight_btagDown;
+    float sf_btagUp, sf_btagDown;
     //For jet uncertainties
     float MR_JESUp, Rsq_JESUp, dPhiRazor_JESUp, leadingJetPt_JESUp, subleadingJetPt_JESUp; 
     float MR_JESDown, Rsq_JESDown, dPhiRazor_JESDown, leadingJetPt_JESDown, subleadingJetPt_JESDown;
@@ -153,12 +153,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     razorTree->Branch("box", &box, "box/I");
     if (!isData) {    
         razorTree->Branch("weight", &weight, "weight/F");
-        razorTree->Branch("weight_muonEffUp", &weight_muonEffUp, "weight_muonEffUp/F");
-        razorTree->Branch("weight_muonEffDown", &weight_muonEffDown, "weight_muonEffDown/F");
-        razorTree->Branch("weight_eleEffUp", &weight_eleEffUp, "weight_eleEffUp/F");
-        razorTree->Branch("weight_eleEffDown", &weight_eleEffDown, "weight_eleEffDown/F");
-        razorTree->Branch("weight_btagUp", &weight_btagUp, "weight_btagUp/F");
-        razorTree->Branch("weight_btagDown", &weight_btagDown, "weight_btagDown/F");
+        razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
+        razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
+        razorTree->Branch("sf_eleEffUp", &sf_eleEffUp, "sf_eleEffUp/F");
+        razorTree->Branch("sf_eleEffDown", &sf_eleEffDown, "sf_eleEffDown/F");
+        razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
+        razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
         razorTree->Branch("MR_JESUp", &MR_JESUp, "MR_JESUp/F");
         razorTree->Branch("Rsq_JESUp", &Rsq_JESUp, "Rsq_JESUp/F");
         razorTree->Branch("dPhiRazor_JESUp", &dPhiRazor_JESUp, "dPhiRazor_JESUp/F");
@@ -235,12 +235,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         box = NONE;
         weight = 1.0;
         if(!isData){
-            weight_muonEffUp = 1.0;
-            weight_muonEffDown = 1.0;
-            weight_eleEffUp = 1.0;
-            weight_eleEffDown = 1.0;
-            weight_btagUp = 1.0;
-            weight_btagDown = 1.0;
+            sf_muonEffUp = 1.0;
+            sf_muonEffDown = 1.0;
+            sf_eleEffUp = 1.0;
+            sf_eleEffDown = 1.0;
+            sf_btagUp = 1.0;
+            sf_btagDown = 1.0;
             MR_JESUp = -1;
             Rsq_JESUp = -1;
             dPhiRazor_JESUp = -9;
@@ -305,11 +305,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
             HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
             //Electron
             HLTDecision[17] || HLTDecision[18] || HLTDecision[21];
-        passedHadronicTrigger = 
+        passedHadronicTrigger = true;
             //Razor dijet
-            HLTDecision[136] || HLTDecision[138] || 
+            //HLTDecision[136] || HLTDecision[138] || 
             //Razor quadjet
-            HLTDecision[137] || HLTDecision[139];
+            //HLTDecision[137] || HLTDecision[139];
 
         if(!passedDileptonTrigger && !passedSingleLeptonTrigger && !passedHadronicTrigger) continue;
 
@@ -344,8 +344,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         TLorentzVector leadingTightMu;
         //Scale factor
         float muonEffCorrFactor = 1.0;
-        float muonEffCorrFactorUp = 1.0;
-        float muonEffCorrFactorDown = 1.0;
         //Cut parameters
         const float MUON_VETO_CUT = 5;
         const float MUON_LOOSE_CUT = 30;
@@ -383,8 +381,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
                 }
 
                 muonEffCorrFactor *= tmpTightSF;
-                muonEffCorrFactorUp *= tmpTightSFUp;
-                muonEffCorrFactorDown *= tmpTightSFDown;
+                sf_muonEffUp *= tmpTightSFUp;
+                sf_muonEffDown *= tmpTightSFDown;
             }
 
             //TLorentzVector for this muon
@@ -415,8 +413,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         int nTightElectrons = 0;
         TLorentzVector leadingTightEle; //used for mT calculation
         float eleEffCorrFactor = 1.0;
-        float eleEffCorrFactorUp = 1.0;
-        float eleEffCorrFactorDown = 1.0;
         //Cut parameters
         const float ELE_VETO_CUT = 5;
         const float ELE_LOOSE_CUT = 30;
@@ -455,8 +451,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
                 }
 
                 eleEffCorrFactor *= tmpTightSF;
-                eleEffCorrFactorUp *= tmpTightSFUp;
-                eleEffCorrFactorDown *= tmpTightSFDown;
+                sf_eleEffUp *= tmpTightSFUp;
+                sf_eleEffDown *= tmpTightSFDown;
             }
 
             //Remove overlaps
@@ -518,9 +514,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
 
         //BTag scale factor
         float btagCorrFactor = 1.0;
-        //BTag uncertainty scale factors
-        float btagCorrFactorUp = 1.0;
-        float btagCorrFactorDown = 1.0;
         //Propagate jet uncertainties to MET
         float MetXCorr_JESUp = 0;
         float MetYCorr_JESUp = 0;
@@ -568,8 +561,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
             //UNDER CONSTRUCTION (no b-tagging corrections for run 2 yet)
             if (!isData && abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 20) {
                 btagCorrFactor *= BTagScaleFactor(jetCorrPt, isCSVM(i));
-                btagCorrFactorUp *= BTagScaleFactor(jetCorrPt, isCSVM(i), "up");
-                btagCorrFactorDown *= BTagScaleFactor(jetCorrPt, isCSVM(i), "down");
+                sf_btagUp *= BTagScaleFactor(jetCorrPt, isCSVM(i), "up");
+                sf_btagDown *= BTagScaleFactor(jetCorrPt, isCSVM(i), "down");
             }
 
             //Apply pileup jet ID 
@@ -804,16 +797,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         weight *= muonEffCorrFactor;
         weight *= eleEffCorrFactor;
         weight *= btagCorrFactor;    
-
-        //For lepton scale factor uncertainty
-        weight_muonEffUp = weight*(muonEffCorrFactorUp/muonEffCorrFactor);
-        weight_muonEffDown = weight*(muonEffCorrFactorDown/muonEffCorrFactor);
-        weight_eleEffUp = weight*(eleEffCorrFactorUp/eleEffCorrFactor);
-        weight_eleEffDown = weight*(eleEffCorrFactorDown/eleEffCorrFactor);
-        
-        //For btag scale factor uncertainty
-        weight_btagUp = weight*(btagCorrFactorUp/btagCorrFactor);
-        weight_btagDown = weight*(btagCorrFactorDown/btagCorrFactor);
 
         /////////////////////////////////
         //Categorize into boxes
