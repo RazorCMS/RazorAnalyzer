@@ -34,14 +34,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Getting JEC parameters from " << pathname << endl;
 
     if (isData) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
     
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -141,7 +141,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
 
-      printSyncDebug = true;
+      printSyncDebug = false;
       if (printSyncDebug) {
 	cout << "\n****************************************************************\n";
 	cout << "Debug Event : " << runNum << " " << lumiNum << " " << eventNum << "\n";
@@ -345,7 +345,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if (isTightMuon(i)) isGoodLepton = true;
 	}
 	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
-	  if (isLooseMuon(i)) isGoodLepton = true;
+	  if (isLooseMuon(i) || isTightMuon(i)) isGoodLepton = true;
 	}
 	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18
 	    || treeTypeOption == 9 || treeTypeOption == 19 ) {
@@ -396,8 +396,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	if(!isVetoElectron(i)) continue; 
 
-	TLorentzVector thisElectron; // = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-	thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
+	TLorentzVector thisElectron;
+	if (isData) {
+	  thisElectron.SetPtEtaPhiM( elePt[i]*GetElectronScaleCorrection(elePt[i],eleEta[i]), eleEta[i], elePhi[i], 0.000511);
+	} else {
+	  thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
+	}
 
 	//*******************************************************
 	//For Single Lepton Options, use only tight leptons
@@ -408,7 +412,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if (isTightElectron(i)) isGoodLepton = true;
 	}
 	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
-	  if (isLooseElectron(i)) isGoodLepton = true;
+	  if (isLooseElectron(i) || isTightElectron(i)) isGoodLepton = true;
 	}
 	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18
 	    || treeTypeOption == 9 || treeTypeOption == 19 ) {
@@ -996,7 +1000,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	     << " MET = " << MyMET.Pt() << " MetPhi = " << MyMET.Phi() << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
       }
 
-      events->MET = MyMET.Pt();
+      events->MET = PFMET.Pt(); //MyMET.Pt();
+      events->METPhi = MyMET.Phi();
       events->METnoHF = PFMETnoHFType1.Pt();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
@@ -1125,12 +1130,14 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //**********************************************************
       //1-lepton Add to MET Variables
       //**********************************************************
-      if (treeTypeOption == 2) {
+      if (treeTypeOption == 2) 
+      {
 	events->MET_NoW = LepPlusMet_perp.Pt();
 	events->METPhi_NoW = LepPlusMet_perp.Phi();
 	events->NJets_NoW = GoodJetsNoLeptons.size();
 	events->HT_NoW = ht_NoLep;
 	events->NJets80_NoW = njets80NoLep;
+    events->METPhi = MyMET.Phi();
 
 	//compute razor variables 
 	if(events->NJets_NoW > 1 && GoodJets.size()<20){
@@ -1197,8 +1204,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if (!(
 	      (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
 	      && (abs(events->lep2Type) == 11  || abs(events->lep2Type) == 13 )
-	      && events->lep1PassLoose && events->lep2PassLoose
-	      && events->lep1.Pt() > 20 && events->lep2.Pt() > 20
+	      && events->lep1.Pt() > 0 && events->lep2.Pt() > 0
 	      )
 	    ) passSkim = false;
       }
@@ -1207,8 +1213,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       if (leptonSkimOption == 1) {
 	if (!( 
 	      (abs(events->lep1Type) == 11 || abs(events->lep1Type) == 13)
-	      && events->lep1PassLoose
-	      && events->lep1.Pt() > 30
+	      && events->lep1.Pt() > 15
 	       )
 	    ) passSkim = false;
       }
