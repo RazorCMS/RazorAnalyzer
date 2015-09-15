@@ -199,8 +199,8 @@ class ControlSampleEvents {
   UInt_t                  NJets80_NoZ;
   UInt_t                  NJets80_NoW;
   UInt_t                  NJets80_NoPho;
-
-
+  Int_t                   pho1_motherID;
+  Float_t                 pho1_sigmaietaieta; 
 
  public:
   /// this is the main element
@@ -385,7 +385,8 @@ class ControlSampleEvents {
     NJets80_NoZ = 0 ; 
     NJets80_NoW = 0 ; 
     NJets80_NoPho = 0 ; 
-
+    pho1_motherID = 0;
+    pho1_sigmaietaieta = -999.;
   }
     
   /// load a ControlSampleEvents
@@ -624,7 +625,8 @@ class ControlSampleEvents {
       tree_->Branch("nSelectedPhotons",&nSelectedPhotons,"nSelectedPhotons/i");
       tree_->Branch("NJets_NoPho",&NJets_NoPho,"NJets_NoPho/i");
       tree_->Branch("NJets80_NoPho",&NJets80_NoPho,"NJets80_NoPho/i");
-
+      tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
+      tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
     }
   
     if (treeType == kTreeType_QCD_Full) {

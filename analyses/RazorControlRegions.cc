@@ -94,6 +94,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     int leptonSkimOption = floor( float(option - razorSkimOption*1000) / 100);
     int treeTypeOption = option - razorSkimOption*10000 - leptonSkimOption*100;
 
+    cout<<"Info: razorSkimOption: "<<razorSkimOption<<", "<<"leptonSkimOption: "<<", "<<leptonSkimOption<<" "<<"treeTypeOption: "<<treeTypeOption<<endl;
+    
     if (treeTypeOption == 1)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
     else if (treeTypeOption == 11)
@@ -701,39 +703,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->nSelectedPhotons = nPhotonsAbove40GeV;
       
       //Sort Photon Collection
-      sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
-    
-      //****************************************************//
-      // Set Photon HLT Bits
-      //****************************************************//
-      for(int i = 62; i <= 67; i++){
-	if(HLTDecision[i] == 1) events->HLT_Photon = true;
-      }
-	
-      if(isData && events->HLT_Photon){
-	//save the trigger bits
-	if(HLTDecision[67] == 1){
-	  events->HLT_Photon165 = true;
-	}
-	if(HLTDecision[66] == 1){
-	  events->HLT_Photon120 = true;
-	}
-	if(HLTDecision[65] == 1){
-	  events->HLT_Photon90 = true;
-	}
-	if(HLTDecision[64] == 1){
-	  events->HLT_Photon75 = true;
-	}
-	if(HLTDecision[63]== 1){
-	  events->HLT_Photon50 = true;
-	}
-	if(HLTDecision[62]== 1){
-	  events->HLT_Photon36 = true;
-	}
-      }
-
-    
-
+      sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());    
 
       //************************************************************************
       //Select Jets
@@ -1000,7 +970,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	     << " MET = " << MyMET.Pt() << " MetPhi = " << MyMET.Phi() << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
       }
 
-      events->MET = PFMET.Pt(); //MyMET.Pt();
+      events->MET = MyMET.Pt();
       events->METPhi = MyMET.Phi();
       events->METnoHF = PFMETnoHFType1.Pt();
       events->NJets40 = numJetsAbove40GeV;
@@ -1045,6 +1015,17 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	events->pho1.SetPtEtaPhiM(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].M());
 
+	// match photons to gen particles to remove double counting between QCD and GJet samples
+	for(int g = 0; g < nGenParticle; g++){
+	  if (!(deltaR(gParticleEta[g] , gParticlePhi[g], GoodPhotons[0].Eta(),GoodPhotons[0].Phi()) < 0.5) ) continue;
+	  if(gParticleStatus[g] != 1) continue;
+	  if(gParticleId[g] != 22) continue;
+	  events->pho1_motherID = gParticleMotherId[g];
+	}
+
+	for(int ii = 0; ii < nPhotons; ii++){
+	  if( phoPt[ii] == GoodPhotons[0].Pt() ) events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
+	}
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];
 	TLorentzVector m2 = MyMET;
