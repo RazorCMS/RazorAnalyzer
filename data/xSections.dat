@@ -3,6 +3,7 @@
 ##
 
 #13 TeV Spring 15 MC
+QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8                        2022100000.0
 QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    27540000.0
 QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           1.74e+06
 QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           3.67e+05
