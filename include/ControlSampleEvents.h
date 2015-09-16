@@ -157,6 +157,8 @@ class ControlSampleEvents {
   Float_t                 recoZpt;
   Float_t                 recoWpt;
   Float_t                 recoWphi;
+  Float_t                 genWpt;
+  Float_t                 genWphi;
   Float_t                 MT2;
      
   TLorentzVector          pho1;
@@ -340,6 +342,8 @@ class ControlSampleEvents {
     recoZpt         = -99.;
     recoWpt         = -99.;
     recoWphi        = -99.;
+    genWpt          = -99.;
+    genWphi         = -99.;
     MT2             = -99.;
 	
     pho1 = TLorentzVector();
@@ -484,6 +488,8 @@ class ControlSampleEvents {
       tree_->Branch("jet2PassCSVTight",&jet2PassCSVTight,"jet2PassCSVTight/O");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
+      tree_->Branch("genWpt",&genWpt,"genWpt/F");
+      tree_->Branch("genWphi",&genWphi,"genWphi/F");
       tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
       tree_->Branch("bjet1",   "TLorentzVector", &bjet1Ptr);
@@ -574,6 +580,8 @@ class ControlSampleEvents {
       tree_->Branch("nTightMuons",&nTightMuons,"nTightMuons/i");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("HLT_SingleMu",&HLT_SingleMu,"HLT_SingleMu/O");
+      tree_->Branch("genWpt",&genWpt,"genWpt/F");
+      tree_->Branch("genWphi",&genWphi,"genWphi/F");
       tree_->Branch("recoWpt",&recoWpt,"recoWpt/F");
       tree_->Branch("recoWphi",&recoWphi,"recoWphi/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
@@ -735,6 +743,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("jet2PassCSVMedium",&jet2PassCSVMedium);
       tree_->SetBranchAddress("jet2PassCSVTight",&jet2PassCSVTight);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
+      tree_->SetBranchAddress("genWpt",&genWpt);
+      tree_->SetBranchAddress("genWphi",&genWphi);
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("genlep1",  &genlep1Ptr);
       tree_->SetBranchAddress("lep1",     &lep1Ptr);
@@ -828,6 +838,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("nTightMuons",&nTightMuons);
       tree_->SetBranchAddress("lep1MT",&lep1MT);
       tree_->SetBranchAddress("HLT_SingleMu",&HLT_SingleMu);
+      tree_->SetBranchAddress("genWpt",&genWpt);
+      tree_->SetBranchAddress("genWphi",&genWphi);
       tree_->SetBranchAddress("recoWpt",&recoWpt);
       tree_->SetBranchAddress("recoWphi",&recoWphi);
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);

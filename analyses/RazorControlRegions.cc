@@ -181,9 +181,33 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //******************************************
       //Find Generated leptons
       //******************************************
-      vector<int> genLeptonIndex;
+      TLorentzVector genLepton;
+      TLorentzVector genNeutrino; 
+      double genW_Pt = -99;
+      double genW_Phi = -99;
+      double genZ_Pt = -99;
+      double genZ_Phi = -99;
 
+      vector<int> genLeptonIndex;
       for(int j = 0; j < nGenParticle; j++){
+
+	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15 )) {
+	  genLepton = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16 )) {
+	  genNeutrino = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	
+	if ( abs(gParticleId[j]) == 24 ) {
+	  genW_Pt = gParticlePt[j];
+	  genW_Phi = gParticlePhi[j];
+	}
+
+	if ( abs(gParticleId[j]) == 23 ) {	  
+	  genZ_Pt = gParticlePt[j];
+	  genZ_Phi = gParticlePhi[j];
+	}
+
 	//look for electrons
 	if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
 	    && abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5
@@ -280,7 +304,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}				      
       }
 
+      events->genWpt = genW_Pt;
+      events->genWphi = genW_Phi;
 
+      if (genW_Pt < 0) {
+	events->genWpt = (genLepton + genNeutrino).Pt();
+	events->genWphi = (genLepton + genNeutrino).Phi();
+      }
 
 
       //*************************************************************************
