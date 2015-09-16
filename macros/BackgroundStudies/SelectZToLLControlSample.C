@@ -396,28 +396,28 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	bool passTrigger = false;
 
 	//Use Single Lepton Triggers
-	if ( events->HLTDecision[3] || events->HLTDecision[8] || events->HLTDecision[12] || events->HLTDecision[11] || events->HLTDecision[14])  
-	  passTrigger = true;
+	// if ( events->HLTDecision[3] || events->HLTDecision[8] || events->HLTDecision[12] || events->HLTDecision[11] || events->HLTDecision[14])  
+	//   passTrigger = true;
 
-	if (isData) {
-	  if ( events->HLTDecision[21] || events->HLTDecision[22] || events->HLTDecision[23] || 
-	       events->HLTDecision[24] || events->HLTDecision[25] ||
-	       events->HLTDecision[26] || events->HLTDecision[27]	  
-	       ) passTrigger = true;
-	} else {
-	  if ( events->HLTDecision[17] || events->HLTDecision[18] || events->HLTDecision[19] || 
-	       events->HLTDecision[20] ||
-	       events->HLTDecision[26] || events->HLTDecision[27]	  
-	       ) passTrigger = true;
-	}
+	// if (isData) {
+	//   if ( events->HLTDecision[21] || events->HLTDecision[22] || events->HLTDecision[23] || 
+	//        events->HLTDecision[24] || events->HLTDecision[25] ||
+	//        events->HLTDecision[26] || events->HLTDecision[27]	  
+	//        ) passTrigger = true;
+	// } else {
+	//   if ( events->HLTDecision[17] || events->HLTDecision[18] || events->HLTDecision[19] || 
+	//        events->HLTDecision[20] ||
+	//        events->HLTDecision[26] || events->HLTDecision[27]	  
+	//        ) passTrigger = true;
+	// }
 
 	// //DiMuon Triggers: Mu17Mu8 , Mu17TkMu8
-	// if (events->HLTDecision[39] || events->HLTDecision[41] ) passTrigger = true;
+	if (events->HLTDecision[39] || events->HLTDecision[41] ) passTrigger = true;
 
-	// //DiElectron Triggers:
-	// if ( events->HLTDecision[28] 
-	// 	  || events->HLTDecision[29]	
-	// 	  ) passTrigger = true;
+	//DiElectron Triggers:
+	if ( events->HLTDecision[28] 
+		  || events->HLTDecision[29]	
+		  ) passTrigger = true;
 
 	// //Razor Hadronic Triggers
 	// if (isData) {
@@ -498,8 +498,8 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	//dilepton mass cut
 	if ( (events->lep1+events->lep2).M() < 50) continue;
 
-	// BTag Veto
-	if ( !( events->NBJetsMedium == 0)) continue;
+	// // BTag Veto
+	// if ( !( events->NBJetsMedium == 0)) continue;
 
 	//Razor signal region cuts
 	if (option == "TwoJet80" || option == "MR300Rsq0p05" || option == "MR300") {
@@ -927,17 +927,19 @@ void SelectZToLLControlSample( int option = 0) {
 //**********************
 // Single Ele Triggers ( 30 - 20 )
 // Data: 6910
-// MC: 6979.32
+// MC: 6893.41
 
 // Double Ele Triggers ( 30 - 20 )
-// Data: 6672
-// MC: 6717.3
+//Data: 6595
+//MC: 6642.41
+
 // Double Ele Triggers ( 25 - 20 )
-// Data: 6903
-// MC: 6977.79
+// Data: 6813
+// MC: 6902.44
+
 // Double Ele Triggers ( 25 - 15 )
-// Data: 7112
-// MC: 7225.59
+// Data: 6997
+// MC: 7156.66
 
 //Razor Triggers
 //Data: 18
