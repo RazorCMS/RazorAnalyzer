@@ -17,8 +17,8 @@ void makeDummyScaleFactorFiles(){
     TFile *muonFile = new TFile("DummyRun2MuonWeights.root", "recreate");
     TH2F *muonLooseHist = new TH2F("MuonWeight_Run2_Loose", "MuonWeight_Run2_Loose", 1, -3, 3, 1, 0, 200);
     TH2F *muonTightHist = new TH2F("MuonWeight_Run2_Tight", "MuonWeight_Run2_Tight", 1, -3, 3, 1, 0, 200);
-    muonLooseHist->SetBinContent(1, 1, .99);
-    muonTightHist->SetBinContent(1, 1, .99);
+    muonLooseHist->SetBinContent(1, 1, 1.0);
+    muonTightHist->SetBinContent(1, 1, 1.0);
     muonLooseHist->SetBinError(1, 1, .01);
     muonTightHist->SetBinError(1, 1, .01);
     muonLooseHist->Write();
@@ -29,8 +29,8 @@ void makeDummyScaleFactorFiles(){
     TFile *electronFile = new TFile("DummyRun2EleWeights.root", "recreate");
     TH2F *electronLooseHist = new TH2F("EleWeight_Run2_Loose", "EleWeight_Run2_Loose", 1, -3, 3, 1, 0, 200);
     TH2F *electronTightHist = new TH2F("EleWeight_Run2_Tight", "EleWeight_Run2_Tight", 1, -3, 3, 1, 0, 200);
-    electronLooseHist->SetBinContent(1, 1, .99);
-    electronTightHist->SetBinContent(1, 1, .99);
+    electronLooseHist->SetBinContent(1, 1, 1.0);
+    electronTightHist->SetBinContent(1, 1, 1.0);
     electronLooseHist->SetBinError(1, 1, .01);
     electronTightHist->SetBinError(1, 1, .01);
     electronLooseHist->Write();

@@ -88,15 +88,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     cout << "Getting JEC parameters from " << pathname << endl;
     std::vector<JetCorrectorParameters> correctionParameters;
     if (isData) {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } 
     else {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
     //Set up JEC machinery 
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -106,10 +106,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     //Get JEC uncertainty file and set up JetCorrectionUncertainty
     string jecUncPath;
     if (isData) {
-        jecUncPath = pathname+"/Summer15_50nsV4_DATA_Uncertainty_AK4PFchs.txt";
+        jecUncPath = pathname+"/Summer15_25nsV2_DATA_Uncertainty_AK4PFchs.txt";
     }
     else {
-        jecUncPath = pathname+"/Summer15_50nsV4_MC_Uncertainty_AK4PFchs.txt";
+        jecUncPath = pathname+"/Summer15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
     }
     JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
 
@@ -292,24 +292,17 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         bool passedSingleLeptonTrigger = false;
         bool passedHadronicTrigger= false;
 
-        passedDileptonTrigger = 
-            //Double electron
-            HLTDecision[28] || HLTDecision[29] || 
-            //Double muon
-            HLTDecision[36] || HLTDecision[37] || HLTDecision[38] || 
-            HLTDecision[39] || HLTDecision[40] || HLTDecision[41] ||
-            //Muon+Electron
-            HLTDecision[45] || HLTDecision[46] || HLTDecision[47] || HLTDecision[48];
-        passedSingleLeptonTrigger = 
-            //Muon
-            HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
-            //Electron
-            HLTDecision[17] || HLTDecision[18] || HLTDecision[21];
-        passedHadronicTrigger = true;
-            //Razor dijet
-            //HLTDecision[136] || HLTDecision[138] || 
-            //Razor quadjet
-            //HLTDecision[137] || HLTDecision[139];
+        if (isData) {
+            passedDileptonTrigger = true;    
+            passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
+                HLTDecision[20] || HLTDecision[22] || HLTDecision[24] || HLTDecision[25]  ;
+            passedHadronicTrigger = true;
+        } else {
+            passedDileptonTrigger = true;  
+            passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
+                HLTDecision[17] || HLTDecision[18] || HLTDecision[19] || HLTDecision[24]|| HLTDecision[25] ;
+            passedHadronicTrigger = true;
+        }
 
         if(!passedDileptonTrigger && !passedSingleLeptonTrigger && !passedHadronicTrigger) continue;
 
