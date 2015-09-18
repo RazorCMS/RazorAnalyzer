@@ -157,6 +157,8 @@ class ControlSampleEvents {
   Float_t                 recoZpt;
   Float_t                 recoWpt;
   Float_t                 recoWphi;
+  Float_t                 genZpt;
+  Float_t                 genZphi;
   Float_t                 genWpt;
   Float_t                 genWphi;
   Float_t                 MT2;
@@ -344,6 +346,8 @@ class ControlSampleEvents {
     recoWphi        = -99.;
     genWpt          = -99.;
     genWphi         = -99.;
+    genZpt          = -99.;
+    genZphi         = -99.;
     MT2             = -99.;
 	
     pho1 = TLorentzVector();
@@ -551,6 +555,8 @@ class ControlSampleEvents {
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
+      tree_->Branch("genZpt",&genZpt,"genZpt/F");
+      tree_->Branch("genZphi",&genZphi,"genZphi/F");
       tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
       tree_->Branch("genlep2", "TLorentzVector", &genlep2Ptr);
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
@@ -604,6 +610,8 @@ class ControlSampleEvents {
       tree_->Branch("dPhiRazor_NoZ",&dPhiRazor_NoZ,"dPhiRazor_NoZ/F");
       tree_->Branch("recoZmass",&recoZmass,"recoZmass/F");
       tree_->Branch("recoZpt",&recoZpt,"recoZpt/F");
+      tree_->Branch("genZpt",&genZpt,"genZpt/F");
+      tree_->Branch("genZphi",&genZphi,"genZphi/F");
       tree_->Branch("NJets_NoZ",&NJets_NoZ,"NJets_NoZ/i");
       tree_->Branch("NJets80_NoZ",&NJets80_NoZ,"NJets80_NoZ/i");
       tree_->Branch("nVetoMuons",&nVetoMuons,"nVetoMuons/i");
@@ -807,6 +815,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("METnoHF",&METnoHF);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
       tree_->SetBranchAddress("HT",&HT);
+      tree_->SetBranchAddress("genZpt",&genZpt);
+      tree_->SetBranchAddress("genZphi",&genZphi);
       tree_->SetBranchAddress("genlep1",  &genlep1Ptr);
       tree_->SetBranchAddress("genlep2",  &genlep2Ptr);
       tree_->SetBranchAddress("lep1",     &lep1Ptr);
@@ -862,6 +872,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("dPhiRazor_NoZ", &dPhiRazor_NoZ);
       tree_->SetBranchAddress("recoZmass",     &recoZmass);
       tree_->SetBranchAddress("recoZpt",       &recoZpt);
+      tree_->SetBranchAddress("genZpt",        &genZpt);
+      tree_->SetBranchAddress("genZphi",       &genZphi);
       tree_->SetBranchAddress("NJets_NoZ",     &NJets_NoZ);
       tree_->SetBranchAddress("NJets80_NoZ",   &NJets80_NoZ);
       tree_->SetBranchAddress("nVetoMuons",    &nVetoMuons);

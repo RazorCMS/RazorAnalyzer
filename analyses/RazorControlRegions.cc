@@ -183,6 +183,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //******************************************
       TLorentzVector genLepton;
       TLorentzVector genNeutrino; 
+      TLorentzVector genZLepton1;
+      TLorentzVector genZLepton2;
       double genW_Pt = -99;
       double genW_Phi = -99;
       double genZ_Pt = -99;
@@ -196,6 +198,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16 )) {
 	  genNeutrino = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	if ( gParticleStatus[j] == 23 && (gParticleId[j] == 11 || gParticleId[j] == 13 || gParticleId[j] == 15 )) {
+	  genZLepton1 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	if ( gParticleStatus[j] == 23 && (gParticleId[j] == -11 || gParticleId[j] == -13 || gParticleId[j] == -15 )) {
+	  genZLepton2 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
 	}
 	
 	if ( abs(gParticleId[j]) == 24 ) {
@@ -271,7 +279,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       } //loop over gen particles
 	
 
-	//sort gen leptons by pt
+      //sort gen leptons by pt
       int tempIndex = -1;
       for(uint i = 0; i < genLeptonIndex.size() ; i++) {
 	for (uint j=0; j < genLeptonIndex.size()-1; j++) {
@@ -306,10 +314,23 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
       events->genWpt = genW_Pt;
       events->genWphi = genW_Phi;
+      events->genZpt = genZ_Pt;
+      events->genZphi = genZ_Phi;
 
       if (genW_Pt < 0) {
 	events->genWpt = (genLepton + genNeutrino).Pt();
 	events->genWphi = (genLepton + genNeutrino).Phi();
+      }
+      if (genZ_Pt < 0) {
+	events->genZpt = (genZLepton1 + genZLepton2).Pt();
+	events->genZphi = (genZLepton1 + genZLepton2).Phi();
+      }
+
+      if (events->genZpt < 0) {
+	cout << "\nDEBUG\n";
+	for(int j = 0; j < nGenParticle; j++){
+	  cout << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
+	}
       }
 
 
@@ -453,7 +474,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	if (isGoodLepton) {
 	  GoodLeptons.push_back(thisElectron);        
-	  GoodLeptonType.push_back(11 * -1 * muonCharge[i]);
+	  GoodLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  GoodLeptonIsTight.push_back( isTightElectron(i) );
 	  GoodLeptonIsLoose.push_back( isLooseElectron(i) );
 	  GoodLeptonIsVeto.push_back( isVetoElectron(i) );
