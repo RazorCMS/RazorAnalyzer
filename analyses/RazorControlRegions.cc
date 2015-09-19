@@ -178,32 +178,145 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
  
 
         
-      //******************************************
-      //Find Generated leptons
-      //******************************************
-      TLorentzVector genLepton;
-      TLorentzVector genNeutrino; 
-      TLorentzVector genZLepton1;
-      TLorentzVector genZLepton2;
+      //************************************************************************************
+      //Reconstructed vector boson momentum after pythia parton showering
+      //************************************************************************************
+      int genWBosonIndex = -1;
+      int genZBosonIndex = -1;
+      int genWLeptonIndex = -1;
+      int genWNeutrinoIndex = -1;
+      int genZLepton1Index = -1;
+      int genZLepton2Index = -1;
+      TLorentzVector genWVector;  genWVector.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genZVector;  genZVector.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genLepton;   genLepton.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genNeutrino; genNeutrino.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genZLepton1; genZLepton1.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genZLepton2; genZLepton2.SetPtEtaPhiE(0,0,0,0);
       double genW_Pt = -99;
       double genW_Phi = -99;
       double genZ_Pt = -99;
       double genZ_Phi = -99;
 
+      //First find W or Z boson
+      for(int j = 0; j < nGenParticle; j++){
+	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 24) genWBosonIndex = j;
+	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 23) genZBosonIndex = j;
+      }
+
+      //Next find the status 23 lepton and neutrinos from W or Z decay
+      //If W or Z boson was found in the first step, require that they are daughters of the W or Z boson, 
+      //if no W or Z boson was found, then don't require that.
+      for(int j = 0; j < nGenParticle; j++){
+	if ( gParticleStatus[j] == 23 && (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15 )
+	     && ( (genWBosonIndex >= 0 && gParticleMotherIndex[j] == genWBosonIndex) || genWBosonIndex == -1)		  
+	     ) { 
+	  genWLeptonIndex = j;
+	}
+      	if ( gParticleStatus[j] == 23 && (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16 )
+	     && ( (genWBosonIndex >= 0 && gParticleMotherIndex[j] == genWBosonIndex) || genWBosonIndex == -1)		  
+	     ) { 
+	  genWNeutrinoIndex = j;
+	}
+	if ( gParticleStatus[j] == 23 && ( gParticleId[j] == 11 || gParticleId[j] == 13 || gParticleId[j] == 15 )
+	     && ((genZBosonIndex >= 0 && gParticleMotherIndex[j] == genZBosonIndex) || genZBosonIndex == -1)
+	     ) { 
+	  genZLepton1Index = j;
+	}
+	if ( gParticleStatus[j] == 23 && ( gParticleId[j] == -11 || gParticleId[j] == -13 || gParticleId[j] == -15 )
+	     && ((genZBosonIndex >= 0 && gParticleMotherIndex[j] == genZBosonIndex) || genZBosonIndex == -1)
+	     ) { 
+	  genZLepton2Index = j;
+	}
+      }
+    
+      //Next collect all final state leptons and neutrinos from W or Z decay
+      for(int j = 0; j < nGenParticle; j++){
+
+	if (!(gParticleStatus[j] == 1 || (gParticleStatus[j] == 2 && abs(gParticleId[j]) == 15))) continue;
+	    
+	//if W was found, and lepton/neutrino daughter is stable
+	if ( genWBosonIndex >= 0 && (abs(gParticleId[j]) >= 11 && abs(gParticleId[j]) <= 16 )
+	     && gParticleMotherIndex[j] == genWBosonIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genWVector = genWVector + tmpVector;	  
+	  if ( abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15) {
+	    genLepton = genLepton + tmpVector;
+	  } else {
+	    genNeutrino = genNeutrino + tmpVector;
+	  }
+	}
+	    
+	//if status 22 lepton was found, find any daughters of it
+	if ( genWLeptonIndex >= 0 && ( gParticleId[j] == gParticleId[genWLeptonIndex] || gParticleId[j] == 22)
+	     && gParticleMotherIndex[j] == genWLeptonIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genWVector = genWVector + tmpVector;
+	  genLepton = genLepton + tmpVector;	
+	}
+	//if status 22 neutrino was found, find any daughters of it
+	if ( genWNeutrinoIndex >= 0 && ( gParticleId[j] == gParticleId[genWNeutrinoIndex] )
+	     && gParticleMotherIndex[j] == genWNeutrinoIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genWVector = genWVector + tmpVector;	    
+	  genNeutrino = genNeutrino + tmpVector;
+	}
+	 
+	//if Z was found, and lepton daughter is stable
+	if ( genZBosonIndex >= 0 && (abs(gParticleId[j]) >= 11 && abs(gParticleId[j]) <= 16 )
+	     && gParticleMotherIndex[j] == genZBosonIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genZVector = genZVector + tmpVector;	
+	  if ( gParticleId[j] > 0) {
+	    genZLepton1 = genZLepton1 +  tmpVector;	
+	  } else {
+	    genZLepton2 = genZLepton2 +  tmpVector;
+	  }
+	}
+	//if status 22 leptons were found, find any daughters of it
+	if ( (gParticleId[j] == gParticleId[genZLepton1Index] || gParticleId[j] == 22)
+	     && (genZLepton1Index >= 0 && gParticleMotherIndex[j] == genZLepton1Index)
+	     ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genZVector = genZVector + tmpVector;
+	  genZLepton1 = genZLepton1 +  tmpVector;	
+	}	   
+	if ( (gParticleId[j] == gParticleId[genZLepton2Index] || gParticleId[j] == 22)
+	     && ( genZLepton2Index >= 0 && gParticleMotherIndex[j] == genZLepton2Index)
+	     ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genZVector = genZVector + tmpVector;
+	  genZLepton2 = genZLepton2 +  tmpVector;
+	}
+      }
+  
+      events->genWpt = genWVector.Pt();
+      events->genWphi = genWVector.Phi();
+      events->genZpt = genZVector.Pt();
+      events->genZphi =  genZVector.Phi();
+
+
+      //******************************************
+      //Find Generated leptons
+      //******************************************
       vector<int> genLeptonIndex;
       for(int j = 0; j < nGenParticle; j++){
 
 	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15 )) {
-	  genLepton = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	  genWLeptonIndex  = j;
+	  //genLepton = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
 	}
 	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16 )) {
-	  genNeutrino = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	  genWNeutrinoIndex = j;
+	  //genNeutrino = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
 	}
 	if ( gParticleStatus[j] == 23 && (gParticleId[j] == 11 || gParticleId[j] == 13 || gParticleId[j] == 15 )) {
-	  genZLepton1 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	  genZLepton1Index = j;
+	  //genZLepton1 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
 	}
 	if ( gParticleStatus[j] == 23 && (gParticleId[j] == -11 || gParticleId[j] == -13 || gParticleId[j] == -15 )) {
-	  genZLepton2 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	  genZLepton2Index = j;
+	  //genZLepton2 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
 	}
 	
 	if ( abs(gParticleId[j]) == 24 ) {
@@ -311,28 +424,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->genlep2Type = gParticleId[genLeptonIndex[i]];
 	}				      
       }
-
-      events->genWpt = genW_Pt;
-      events->genWphi = genW_Phi;
-      events->genZpt = genZ_Pt;
-      events->genZphi = genZ_Phi;
-
-      if (genW_Pt < 0) {
-	events->genWpt = (genLepton + genNeutrino).Pt();
-	events->genWphi = (genLepton + genNeutrino).Phi();
-      }
-      if (genZ_Pt < 0) {
-	events->genZpt = (genZLepton1 + genZLepton2).Pt();
-	events->genZphi = (genZLepton1 + genZLepton2).Phi();
-      }
-
-      if (events->genZpt < 0) {
-	cout << "\nDEBUG\n";
-	for(int j = 0; j < nGenParticle; j++){
-	  cout << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
-	}
-      }
-
 
       //*************************************************************************
       //Find Reconstructed Leptons
