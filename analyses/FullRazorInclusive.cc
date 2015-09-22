@@ -35,6 +35,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
+    //TODO: move these to EOS
+    char* cmsswPath;
+    cmsswPath = getenv("CMSSW_BASE");
+    if (cmsswPath == NULL) {
+        cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
+        return;
+    }
+
     /////////////////////////////////
     //Pileup Weights
     /////////////////////////////////
@@ -43,7 +51,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     TH1D *pileupWeightHist = 0;
     // UNDER CONSTRUCTION (no Run 2 PU weights file available yet)
     if(!isData){
-        pileupWeightFile = TFile::Open("data/ScaleFactors/Placeholders/DummyRun2PileupWeights.root");
+        pileupWeightFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2PileupWeights.root", cmsswPath));
         pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run2");
         assert(pileupWeightHist);
     }
@@ -58,12 +66,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     TH2D *muTightEffSFHist = 0;
     // UNDER CONSTRUCTION (no Run 2 scale factor files available yet)
     if(!isData){
-        TFile *eleEffSFFile = TFile::Open("data/ScaleFactors/Placeholders/DummyRun2EleWeights.root");
+        TFile *eleEffSFFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2EleWeights.root", cmsswPath));
         eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("EleWeight_Run2_Loose");
         assert(eleLooseEffSFHist);
         eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("EleWeight_Run2_Tight");
         assert(eleTightEffSFHist);
-        TFile *muEffSFFile = TFile::Open("data/ScaleFactors/Placeholders/DummyRun2MuonWeights.root"); 
+        TFile *muEffSFFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2MuonWeights.root", cmsswPath)); 
         muLooseEffSFHist = (TH2D*)muEffSFFile->Get("MuonWeight_Run2_Loose"); 
         assert(muLooseEffSFHist);
         muTightEffSFHist = (TH2D*)muEffSFFile->Get("MuonWeight_Run2_Tight");
@@ -75,8 +83,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     /////////////////////////////////
 
     //Get directory for JEC files 
-    char* cmsswPath;
-    cmsswPath = getenv("CMSSW_BASE");
     string pathname;
     if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
     else {
@@ -88,15 +94,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     cout << "Getting JEC parameters from " << pathname << endl;
     std::vector<JetCorrectorParameters> correctionParameters;
     if (isData) {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } 
     else {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_50nsV4_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
     //Set up JEC machinery 
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -106,10 +112,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     //Get JEC uncertainty file and set up JetCorrectionUncertainty
     string jecUncPath;
     if (isData) {
-        jecUncPath = pathname+"/Summer15_50nsV4_DATA_Uncertainty_AK4PFchs.txt";
+        jecUncPath = pathname+"/Summer15_25nsV2_DATA_Uncertainty_AK4PFchs.txt";
     }
     else {
-        jecUncPath = pathname+"/Summer15_50nsV4_MC_Uncertainty_AK4PFchs.txt";
+        jecUncPath = pathname+"/Summer15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
     }
     JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
 
@@ -292,24 +298,17 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         bool passedSingleLeptonTrigger = false;
         bool passedHadronicTrigger= false;
 
-        passedDileptonTrigger = 
-            //Double electron
-            HLTDecision[28] || HLTDecision[29] || 
-            //Double muon
-            HLTDecision[36] || HLTDecision[37] || HLTDecision[38] || 
-            HLTDecision[39] || HLTDecision[40] || HLTDecision[41] ||
-            //Muon+Electron
-            HLTDecision[45] || HLTDecision[46] || HLTDecision[47] || HLTDecision[48];
-        passedSingleLeptonTrigger = 
-            //Muon
-            HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
-            //Electron
-            HLTDecision[17] || HLTDecision[18] || HLTDecision[21];
-        passedHadronicTrigger = true;
-            //Razor dijet
-            //HLTDecision[136] || HLTDecision[138] || 
-            //Razor quadjet
-            //HLTDecision[137] || HLTDecision[139];
+        if (isData) {
+            passedDileptonTrigger = true;    
+            passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
+                HLTDecision[20] || HLTDecision[22] || HLTDecision[24] || HLTDecision[25]  ;
+            passedHadronicTrigger = true;
+        } else {
+            passedDileptonTrigger = true;  
+            passedSingleLeptonTrigger = HLTDecision[1] || HLTDecision[2] || HLTDecision[8] ||
+                HLTDecision[17] || HLTDecision[18] || HLTDecision[19] || HLTDecision[24]|| HLTDecision[25] ;
+            passedHadronicTrigger = true;
+        }
 
         if(!passedDileptonTrigger && !passedSingleLeptonTrigger && !passedHadronicTrigger) continue;
 
@@ -548,8 +547,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
             double jetEnergySmearFactorDown = 1.0;
             if (!isData) {
                 jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
-                jetEnergySmearFactorUp = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random, "up");
-                jetEnergySmearFactorDown = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random, "down");
+                jetEnergySmearFactorUp = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "up");
+                jetEnergySmearFactorDown = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "down");
             }
 
             //TLorentzVector for this jet
