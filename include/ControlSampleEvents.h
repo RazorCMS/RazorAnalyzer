@@ -157,6 +157,10 @@ class ControlSampleEvents {
   Float_t                 recoZpt;
   Float_t                 recoWpt;
   Float_t                 recoWphi;
+  Float_t                 genZpt;
+  Float_t                 genZphi;
+  Float_t                 genWpt;
+  Float_t                 genWphi;
   Float_t                 MT2;
      
   TLorentzVector          pho1;
@@ -199,8 +203,8 @@ class ControlSampleEvents {
   UInt_t                  NJets80_NoZ;
   UInt_t                  NJets80_NoW;
   UInt_t                  NJets80_NoPho;
-
-
+  Int_t                   pho1_motherID;
+  Float_t                 pho1_sigmaietaieta; 
 
  public:
   /// this is the main element
@@ -340,6 +344,10 @@ class ControlSampleEvents {
     recoZpt         = -99.;
     recoWpt         = -99.;
     recoWphi        = -99.;
+    genWpt          = -99.;
+    genWphi         = -99.;
+    genZpt          = -99.;
+    genZphi         = -99.;
     MT2             = -99.;
 	
     pho1 = TLorentzVector();
@@ -385,7 +393,8 @@ class ControlSampleEvents {
     NJets80_NoZ = 0 ; 
     NJets80_NoW = 0 ; 
     NJets80_NoPho = 0 ; 
-
+    pho1_motherID = 0;
+    pho1_sigmaietaieta = -999.;
   }
     
   /// load a ControlSampleEvents
@@ -483,6 +492,8 @@ class ControlSampleEvents {
       tree_->Branch("jet2PassCSVTight",&jet2PassCSVTight,"jet2PassCSVTight/O");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
+      tree_->Branch("genWpt",&genWpt,"genWpt/F");
+      tree_->Branch("genWphi",&genWphi,"genWphi/F");
       tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
       tree_->Branch("bjet1",   "TLorentzVector", &bjet1Ptr);
@@ -544,6 +555,8 @@ class ControlSampleEvents {
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
+      tree_->Branch("genZpt",&genZpt,"genZpt/F");
+      tree_->Branch("genZphi",&genZphi,"genZphi/F");
       tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
       tree_->Branch("genlep2", "TLorentzVector", &genlep2Ptr);
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
@@ -573,6 +586,8 @@ class ControlSampleEvents {
       tree_->Branch("nTightMuons",&nTightMuons,"nTightMuons/i");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("HLT_SingleMu",&HLT_SingleMu,"HLT_SingleMu/O");
+      tree_->Branch("genWpt",&genWpt,"genWpt/F");
+      tree_->Branch("genWphi",&genWphi,"genWphi/F");
       tree_->Branch("recoWpt",&recoWpt,"recoWpt/F");
       tree_->Branch("recoWphi",&recoWphi,"recoWphi/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
@@ -595,6 +610,8 @@ class ControlSampleEvents {
       tree_->Branch("dPhiRazor_NoZ",&dPhiRazor_NoZ,"dPhiRazor_NoZ/F");
       tree_->Branch("recoZmass",&recoZmass,"recoZmass/F");
       tree_->Branch("recoZpt",&recoZpt,"recoZpt/F");
+      tree_->Branch("genZpt",&genZpt,"genZpt/F");
+      tree_->Branch("genZphi",&genZphi,"genZphi/F");
       tree_->Branch("NJets_NoZ",&NJets_NoZ,"NJets_NoZ/i");
       tree_->Branch("NJets80_NoZ",&NJets80_NoZ,"NJets80_NoZ/i");
       tree_->Branch("nVetoMuons",&nVetoMuons,"nVetoMuons/i");
@@ -624,7 +641,8 @@ class ControlSampleEvents {
       tree_->Branch("nSelectedPhotons",&nSelectedPhotons,"nSelectedPhotons/i");
       tree_->Branch("NJets_NoPho",&NJets_NoPho,"NJets_NoPho/i");
       tree_->Branch("NJets80_NoPho",&NJets80_NoPho,"NJets80_NoPho/i");
-
+      tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
+      tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
     }
   
     if (treeType == kTreeType_QCD_Full) {
@@ -733,6 +751,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("jet2PassCSVMedium",&jet2PassCSVMedium);
       tree_->SetBranchAddress("jet2PassCSVTight",&jet2PassCSVTight);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
+      tree_->SetBranchAddress("genWpt",&genWpt);
+      tree_->SetBranchAddress("genWphi",&genWphi);
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("genlep1",  &genlep1Ptr);
       tree_->SetBranchAddress("lep1",     &lep1Ptr);
@@ -795,6 +815,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("METnoHF",&METnoHF);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
       tree_->SetBranchAddress("HT",&HT);
+      tree_->SetBranchAddress("genZpt",&genZpt);
+      tree_->SetBranchAddress("genZphi",&genZphi);
       tree_->SetBranchAddress("genlep1",  &genlep1Ptr);
       tree_->SetBranchAddress("genlep2",  &genlep2Ptr);
       tree_->SetBranchAddress("lep1",     &lep1Ptr);
@@ -826,6 +848,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("nTightMuons",&nTightMuons);
       tree_->SetBranchAddress("lep1MT",&lep1MT);
       tree_->SetBranchAddress("HLT_SingleMu",&HLT_SingleMu);
+      tree_->SetBranchAddress("genWpt",&genWpt);
+      tree_->SetBranchAddress("genWphi",&genWphi);
       tree_->SetBranchAddress("recoWpt",&recoWpt);
       tree_->SetBranchAddress("recoWphi",&recoWphi);
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
@@ -848,6 +872,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("dPhiRazor_NoZ", &dPhiRazor_NoZ);
       tree_->SetBranchAddress("recoZmass",     &recoZmass);
       tree_->SetBranchAddress("recoZpt",       &recoZpt);
+      tree_->SetBranchAddress("genZpt",        &genZpt);
+      tree_->SetBranchAddress("genZphi",       &genZphi);
       tree_->SetBranchAddress("NJets_NoZ",     &NJets_NoZ);
       tree_->SetBranchAddress("NJets80_NoZ",   &NJets80_NoZ);
       tree_->SetBranchAddress("nVetoMuons",    &nVetoMuons);

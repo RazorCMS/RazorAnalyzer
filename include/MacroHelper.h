@@ -120,7 +120,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     /*     leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9); */
     /*   } */
     leg->Draw();
-    lumi_13TeV = "42 pb^{-1}";
+    lumi_13TeV = "20.38 pb^{-1}";
     writeExtraText = true;
     relPosX = 0.13;
     CMS_lumi(&pad1,4,0);
@@ -148,8 +148,8 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     pad2.Draw();
     pad2.cd();
     dataOverMC->Draw("pe");
-    // if(histoName.find("dataNvtx0") != std::string::npos  )
-    //   dataOverMC->SaveAs("Nvtx.root");
+    /* if(histoName.find("dataNvtx0") != std::string::npos  ) */
+    /*   dataOverMC->SaveAs("Nvtx.root"); */
     pad2.Modified();
     gPad->Update();
 

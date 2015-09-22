@@ -5,9 +5,11 @@ import sys
 #######################################
 ### usage  cmst3_submit_manyfilesperjob.py dataset njobs applicationName queue 
 #######################################
-if len(sys.argv) < 5:
-    print "usage Submit-lxplus.sh ProcessName sampleList.list files_per_job AppName"
-    print "e.g: python Submit-lxplus.sh ProcessName list.txt  files_per_job AppName"
+if len(sys.argv) < 6:
+#    print "usage Submit-lxplus.sh ProcessName sampleList.list files_per_job AppName"
+#    print "e.g: python Submit-lxplus.sh ProcessName list.txt  files_per_job AppName"
+    print "usage: Submit-lxplus.py          sampleList.list isData ProcessName files_per_job AppName (optional)Option"
+    print "e.g:   python Submit-lxplus.py       list.txt       0   ProcessName     10        AppName        4        "
     sys.exit(1)
 
 
@@ -21,11 +23,13 @@ pwd = os.environ['PWD']
 ############################
 #configuring Submission
 ############################
-process          = sys.argv[1]
-inputlist        =  sys.argv[2]
-files_per_job    = int(sys.argv[3])
-appName      = sys.argv[4]
-
+inputlist        =  sys.argv[1]
+isData           = sys.argv[2]
+process          = sys.argv[3]
+files_per_job    = int(sys.argv[4])
+appName          = sys.argv[5]
+if (len(sys.argv) == 7):
+    option       = sys.argv[6]
 #######################################
 #Splitting jobs
 #######################################
@@ -83,9 +87,9 @@ for ijob in range(njobs):
     outputfile.write( "\neval `scramv1 run -sh`;" )
     outputfile.write( "\n./RazorRun " + inputfilename  
                       + " " + appName 
-                      + " 1"
+                      + " " + isData
                       + " " + rootOutput
-                      + " 204")
+                      + " " + option)
         
     outputfile.close
     os.system("bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName)
