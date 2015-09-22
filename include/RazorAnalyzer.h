@@ -167,7 +167,10 @@ class RazorAnalyzer: public RazorEvents {
 					  bool printDebug = false);
 	double JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, 
   					SimpleJetResolution *JetResolutionCalculator, 
-                                        TRandom3 *random, string option="");
+                                        TRandom3 *random);
+        double UpDownJetEnergySmearingFactor(double unsmearedPt, double jetEta, double NPU, 
+                                             SimpleJetResolution *JetResolutionCalculator, 
+                                             double smearedPt, string option);
         double BTagScaleFactor( double jetPt, bool CSVM, string option="");
 	
         //functions in RazorAuxMisc.cc

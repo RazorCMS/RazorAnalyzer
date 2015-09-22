@@ -35,6 +35,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
+    //TODO: move these to EOS
+    char* cmsswPath;
+    cmsswPath = getenv("CMSSW_BASE");
+    if (cmsswPath == NULL) {
+        cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
+        return;
+    }
+
     /////////////////////////////////
     //Pileup Weights
     /////////////////////////////////
@@ -43,7 +51,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     TH1D *pileupWeightHist = 0;
     // UNDER CONSTRUCTION (no Run 2 PU weights file available yet)
     if(!isData){
-        pileupWeightFile = TFile::Open("data/ScaleFactors/Placeholders/DummyRun2PileupWeights.root");
+        pileupWeightFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2PileupWeights.root", cmsswPath));
         pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run2");
         assert(pileupWeightHist);
     }
@@ -58,12 +66,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     TH2D *muTightEffSFHist = 0;
     // UNDER CONSTRUCTION (no Run 2 scale factor files available yet)
     if(!isData){
-        TFile *eleEffSFFile = TFile::Open("data/ScaleFactors/Placeholders/DummyRun2EleWeights.root");
+        TFile *eleEffSFFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2EleWeights.root", cmsswPath));
         eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("EleWeight_Run2_Loose");
         assert(eleLooseEffSFHist);
         eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("EleWeight_Run2_Tight");
         assert(eleTightEffSFHist);
-        TFile *muEffSFFile = TFile::Open("data/ScaleFactors/Placeholders/DummyRun2MuonWeights.root"); 
+        TFile *muEffSFFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2MuonWeights.root", cmsswPath)); 
         muLooseEffSFHist = (TH2D*)muEffSFFile->Get("MuonWeight_Run2_Loose"); 
         assert(muLooseEffSFHist);
         muTightEffSFHist = (TH2D*)muEffSFFile->Get("MuonWeight_Run2_Tight");
@@ -75,8 +83,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     /////////////////////////////////
 
     //Get directory for JEC files 
-    char* cmsswPath;
-    cmsswPath = getenv("CMSSW_BASE");
     string pathname;
     if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
     else {
@@ -541,8 +547,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
             double jetEnergySmearFactorDown = 1.0;
             if (!isData) {
                 jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
-                jetEnergySmearFactorUp = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random, "up");
-                jetEnergySmearFactorDown = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random, "down");
+                jetEnergySmearFactorUp = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "up");
+                jetEnergySmearFactorDown = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "down");
             }
 
             //TLorentzVector for this jet
