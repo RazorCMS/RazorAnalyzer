@@ -44,7 +44,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     gStyle->SetNumberContours(NCont);
     gStyle->SetPaintTextFormat("1.0f");
 
-    const int lumi = 42.0*1.2;
+    const int lumi = 20.3844; 
     
     map<string, string> suffixes;
     suffixes["WJets"] = "";
@@ -53,24 +53,25 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     // suffixes["TTW"] = "_noW";
     // suffixes["TTZ"] = "_noW";
 
-    // load file with fit results
-    TFile *fitResultFile = new TFile("./ControlSampleFits_v3.root", "READ");
-    vector<TH1F*> fitHists;
-    if(fitResultFile){
-        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
-        fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
-    }
+    // // load file with fit results
+    // TFile *fitResultFile = new TFile("./ControlSampleFits_v3.root", "READ");
+    // vector<TH1F*> fitHists;
+    // if(fitResultFile){
+    //     fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/WSingleLepton/Sideband/h_MR"));
+    //     fitHists.push_back((TH1F*)fitResultFile->Get("ControlSampleFits/TTBarSingleLepton/Sideband/h_MR"));
+    // }
 
     //get input files -- assumes one TFile for each process, with weights for different HT bins 
     map<string, TFile*> mcfiles;
     map<string, TFile*> datafiles;
 
     // Reduced
-    mcfiles["TTJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
-    mcfiles["Top"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/SingleTop_1pb_weighted.root");
-    mcfiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+    mcfiles["TTJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p17/OneLeptonReduced/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+    mcfiles["Top"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p17/OneLeptonReduced/SingleTop_1pb_weighted.root");
+    mcfiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p17/OneLeptonReduced/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
 
-    datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_forPAS_v3/SingleMuonAndElectron_Run2015B-GOLDEN.root");
+    datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p17/OneLeptonReduced_v2/SingleMuon_Run2015C-GOLDEN.root");
+    //datafiles["WJets"] = new TFile("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p17/OneLeptonReduced/SingleElectron_Run2015C-GOLDEN.root");
 
     //get trees and set branches
     map<string, TTree*> mctrees;
@@ -95,7 +96,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     float lep1Pt, lep1Eta;
     float MR, Rsq;
     UInt_t nVtx, nBTaggedJets;
-    Bool_t HLTNames[116];
+    Bool_t HLTNames[156];
     Bool_t lep1passTight;
     Int_t lep1Type;
 
@@ -221,7 +222,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     //load pileup reweighting histogram
     // TFile *pileupWeightFile = new TFile("data/Run1PileupWeights.root", "READ");
     // TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PUWeight_Run1");
-    TFile *pileupWeightFile = new TFile("./NVtx_Run2015B_SingleMuon.root", "READ");
+    TFile *pileupWeightFile = new TFile("./NVtx_Run2015C_SingleMuon.root", "READ");
     TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("dataNvtx0");
     assert(pileupWeightHist);
 
@@ -339,31 +340,13 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
             float eventWeight = weight;
             eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nVtx));
 
-            //reweigh according to selection efficiency and acceptance
-	    // if(!computeDataOverMCSFs){
-	    //   double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindFixBin(min(lep1Pt, maxMuonPt), fabs(lep1Eta)));
-		    
-	    //   if(effFactor > 1e-5) eventWeight /= effFactor;
-	    //   else{ 
-	    // 	eventWeight = 0;
-	    //   }
-	    // }
-
 	    bool trigger_passed = false;
-	    if (HLTNames[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
-	    if (HLTNames[27] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35) trigger_passed = true; //electron triggers
+	    if (HLTNames[8] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
+	    //if (TMath::Abs(lep1Type) == 11 && lep1Pt > 35) trigger_passed = true; //electron triggers
 
 	    if (trigger_passed == false) continue;
-
-	    //trigger and normalization scale factors
-	    // eventWeight *= singleMuTriggerSF;
 	    
 	    eventWeight *= lumi;
-	    //TTJets SF
-	    // if(tree.first == "TTJets"){
-	    //   double ttjetsSF = TTBarDileptonScaleFactor->GetBinContent(TTBarDileptonScaleFactor->FindFixBin(min(MR, maxMRForTTJetsSF), min(Rsq, maxRsqForTTJetsSF)));
-	    //   if(ttjetsSF > 1e-5) eventWeight *= ttjetsSF;
-	    // }
 
             //apply selection cuts and fill the appropriate histograms
             for(uint cut = 0; cut < cutSequence.size(); cut++){
@@ -410,30 +393,11 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
             //get event weight
             float eventWeight = 1.0;
 	    
-// ((HLTDecision[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) || (HLTDecision[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35))	    
-
-            bool trigger_passed = false;
-	    if (HLTNames[0] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
-	    if (HLTNames[29] && TMath::Abs(lep1Type) == 11 && lep1Pt > 35) trigger_passed = true; //electron triggers
-	    // if (abs(lep1Type) == 13) continue;
+	    bool trigger_passed = false;
+	    if (HLTNames[8] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
+	    //if (TMath::Abs(lep1Type) == 11 && lep1Pt > 35) trigger_passed = true; //electron triggers
 
 	    if (trigger_passed == false) continue;
-
-	    // if(TMath::Abs(lep1Type) == 11 && lep1Pt<35.) continue;
-	    // if(TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) continue;
-	    
-
-	    // if(!Flag_HBHENoiseFilter || !Flag_CSCTightHaloFilter || !Flag_eeBadScFilter ) continue;
-	    
-            //reweigh according to selection efficiency and acceptance
-	    // if(!computeDataOverMCSFs){
-	    //   double effFactor = muonTightEffHisto.GetBinContent(muonTightEffHisto.FindFixBin(min(lep1Pt, maxMuonPt), fabs(lep1Eta)));
-
-	    //   if(effFactor > 1e-5) eventWeight /= effFactor;
-	    //   else{ 
-	    // 	eventWeight = 0;
-	    //   }
-	    // }
 
             //apply selection cuts and fill the appropriate histograms
             for(uint cut = 0; cut < cutSequence.size(); cut++){
@@ -480,8 +444,8 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
     legend->AddEntry(mcNJets40["WJets"][0], "W+Jets MC");
     legend->AddEntry(mcNJets40["TTJets"][0], "TTJets MC");
     legend->AddEntry(mcNJets40["Top"][0], "Single Top MC");
-    TLegend *legendWithFit = (TLegend*)legend->Clone();
-    legend->AddEntry(fitHists[0], "Fit");
+    // TLegend *legendWithFit = (TLegend*)legend->Clone();
+    // legend->AddEntry(fitHists[0], "Fit");
 
     for(uint cut = 0; cut < cutSequence.size(); cut++){
         //create histogram stacks for MC
@@ -554,19 +518,19 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    LEP1ETAMC.Add(mcLep1Eta[tree][cut]);
 	    METNOHFMC.Add(mcMETnoHF[tree][cut]);
         }
-	DrawDataVsMCRatioPlot(dataNJets40[cut], &NumJets40MC, legend, "Number of jets 40 GeV", "ControlRegionPlots_EleAndMu_NumJets40"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ControlRegionPlots_EleAndMu_NumJets80"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "M_{R} [GeV]", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
-        // DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_EleAndMu_MR"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ControlRegionPlots_EleAndMu_Rsq"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ControlRegionPlots_EleAndMu_MET"+to_string(cut), false);
-        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ControlRegionPlots_EleAndMu_NVtx"+to_string(cut), false);
-	DrawDataVsMCRatioPlot(dataHT[cut], &HTMC, legend, "HT", "ControlRegionPlots_EleAndMu_HT"+to_string(cut), false);
-	DrawDataVsMCRatioPlot(dataMT[cut], &MTMC, legend, "MT", "ControlRegionPlots_EleAndMu_MT"+to_string(cut), false);
-	DrawDataVsMCRatioPlot(dataMTnoHF[cut], &MTnoHFMC, legend, "MTnoHF", "ControlRegionPlots_EleAndMu_MTnoHF"+to_string(cut), false);
-	DrawDataVsMCRatioPlot(dataLep1Pt[cut], &LEP1PTMC, legend, "Lep1Pt", "ControlRegionPlots_EleAndMu_Lep1Pt"+to_string(cut), false);
-	DrawDataVsMCRatioPlot(dataLep1Eta[cut], &LEP1ETAMC, legend, "Lep1Eta", "ControlRegionPlots_EleAndMu_Lep1Eta"+to_string(cut), false);
-	DrawDataVsMCRatioPlot(dataMETnoHF[cut], &METNOHFMC, legend, "METnoHF", "ControlRegionPlots_EleAndMu_METnoHF"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataNJets40[cut], &NumJets40MC, legend, "Number of jets 40 GeV", "ControlRegionPlots_Mu_NumJets40"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNJets80[cut], &NumJets80MC, legend, "Number of jets 80 GeV", "ControlRegionPlots_Mu_NumJets80"+to_string(cut), false);
+        // DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "M_{R} [GeV]", "ControlRegionPlots_Mu_MR"+to_string(cut), false, "40 pb^{-1}", fitHists[cut]);
+        DrawDataVsMCRatioPlot(dataMR[cut], &MRMC, legend, "MR (GeV)", "ControlRegionPlots_Mu_MR"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataRsq[cut], &RsqMC, legend, "Rsq", "ControlRegionPlots_Mu_Rsq"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataMet[cut], &MetMC, legend, "Met", "ControlRegionPlots_Mu_MET"+to_string(cut), false);
+        DrawDataVsMCRatioPlot(dataNvtx[cut], &NVtxMC, legend, "NVtx", "ControlRegionPlots_Mu_NVtx"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataHT[cut], &HTMC, legend, "HT", "ControlRegionPlots_Mu_HT"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataMT[cut], &MTMC, legend, "MT", "ControlRegionPlots_Mu_MT"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataMTnoHF[cut], &MTnoHFMC, legend, "MTnoHF", "ControlRegionPlots_Mu_MTnoHF"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataLep1Pt[cut], &LEP1PTMC, legend, "Lep1Pt", "ControlRegionPlots_Mu_Lep1Pt"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataLep1Eta[cut], &LEP1ETAMC, legend, "Lep1Eta", "ControlRegionPlots_Mu_Lep1Eta"+to_string(cut), false);
+	DrawDataVsMCRatioPlot(dataMETnoHF[cut], &METNOHFMC, legend, "METnoHF", "ControlRegionPlots_Mu_METnoHF"+to_string(cut), false);
     }
 
     delete legend;
