@@ -52,7 +52,7 @@ double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta,
 
 //compute the smeared jet pt (if option = "up" or "down", will change the smear factor by +/- 1 sigma )
 //NOTE: these are Run 1 recommendations and should be replaced as soon as a Run 2 prescription is available.  
-double RazorAnalyzer::JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, TRandom3 *random, string option ) {
+double RazorAnalyzer::JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, TRandom3 *random ) {
 
   std::vector<float> fJetEta, fJetPtNPU;
   fJetEta.push_back(jetEta);  
@@ -61,39 +61,72 @@ double RazorAnalyzer::JetEnergySmearingFactor( double jetPt, double jetEta, doub
   double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
   
   double c = 1;
-  if(option == "up"){ //get c plus 1 sigma
-      if (fabs(jetEta) < 0.5) c = 1.105;
-      else if(fabs(jetEta) < 1.1) c = 1.127;
-      else if(fabs(jetEta) < 1.7) c = 1.150;
-      else if(fabs(jetEta) < 2.3) c = 1.254;
-      else if(fabs(jetEta) < 2.8) c = 1.316;
-      else if(fabs(jetEta) < 3.2) c = 1.458;
-      else if(fabs(jetEta) < 5.0) c = 1.247;
-  }
-  else if(option == "down"){ //get c minus 1 sigma
-      if (fabs(jetEta) < 0.5) c = 1.053;
-      else if(fabs(jetEta) < 1.1) c = 1.071;
-      else if(fabs(jetEta) < 1.7) c = 1.092;
-      else if(fabs(jetEta) < 2.3) c = 1.162;
-      else if(fabs(jetEta) < 2.8) c = 1.192;
-      else if(fabs(jetEta) < 3.2) c = 1.332;
-      else if(fabs(jetEta) < 5.0) c = 0.865;
-  }
-  else{ //get nominal value of c
-      if (fabs(jetEta) < 0.5) c = 1.079;
-      else if(fabs(jetEta) < 1.1) c = 1.099;
-      else if(fabs(jetEta) < 1.7) c = 1.121;
-      else if(fabs(jetEta) < 2.3) c = 1.208;
-      else if(fabs(jetEta) < 2.8) c = 1.254;
-      else if(fabs(jetEta) < 3.2) c = 1.395;
-      else if(fabs(jetEta) < 5.0) c = 1.056;
-  }
+  if (fabs(jetEta) < 0.5) c = 1.079;
+  else if(fabs(jetEta) < 1.1) c = 1.099;
+  else if(fabs(jetEta) < 1.7) c = 1.121;
+  else if(fabs(jetEta) < 2.3) c = 1.208;
+  else if(fabs(jetEta) < 2.8) c = 1.254;
+  else if(fabs(jetEta) < 3.2) c = 1.395;
+  else if(fabs(jetEta) < 5.0) c = 1.056;
 
   double sigma = sqrt( c*c - 1) * MCJetResolution;
 
   return fmax( 1.0 + random->Gaus(0, sigma) , 0);
 
 }
+
+//return smearing factor for up/down shift in JER 
+double RazorAnalyzer::UpDownJetEnergySmearingFactor(double unsmearedPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, double smearedPt, string option){
+    //get jet resolution
+    std::vector<float> fJetEta, fJetPtNPU;
+    fJetEta.push_back(jetEta);  
+    fJetPtNPU.push_back(unsmearedPt); 
+    fJetPtNPU.push_back(NPU); 
+    double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
+
+    //get sigma used to smear the jet
+    double c = 1;
+    if (fabs(jetEta) < 0.5) c = 1.079;
+    else if(fabs(jetEta) < 1.1) c = 1.099;
+    else if(fabs(jetEta) < 1.7) c = 1.121;
+    else if(fabs(jetEta) < 2.3) c = 1.208;
+    else if(fabs(jetEta) < 2.8) c = 1.254;
+    else if(fabs(jetEta) < 3.2) c = 1.395;
+    else if(fabs(jetEta) < 5.0) c = 1.056;
+    double sigma = sqrt( c*c - 1) * MCJetResolution;
+    //get number of sigmas the jet was smeared
+    double z = (smearedPt / unsmearedPt - 1) /sigma;
+
+    if(option == "up"){ //get c plus 1 sigma
+        double cUp = 1.0;
+        if (fabs(jetEta) < 0.5) cUp = 1.105;
+        else if(fabs(jetEta) < 1.1) cUp = 1.127;
+        else if(fabs(jetEta) < 1.7) cUp = 1.150;
+        else if(fabs(jetEta) < 2.3) cUp = 1.254;
+        else if(fabs(jetEta) < 2.8) cUp = 1.316;
+        else if(fabs(jetEta) < 3.2) cUp = 1.458;
+        else if(fabs(jetEta) < 5.0) cUp = 1.247;
+        double sigmaUp = sqrt( cUp*cUp - 1) * MCJetResolution;
+        return 1.0 + z*sigmaUp;
+    }
+    else if(option == "down"){ //get c minus 1 sigma
+        double cDown = 1.0;
+        if (fabs(jetEta) < 0.5) cDown = 1.053;
+        else if(fabs(jetEta) < 1.1) cDown = 1.071;
+        else if(fabs(jetEta) < 1.7) cDown = 1.092;
+        else if(fabs(jetEta) < 2.3) cDown = 1.162;
+        else if(fabs(jetEta) < 2.8) cDown = 1.192;
+        else if(fabs(jetEta) < 3.2) cDown = 1.332;
+        else if(fabs(jetEta) < 5.0) cDown = 0.865;
+        double sigmaDown = sqrt( cDown*cDown - 1) * MCJetResolution;
+        return 1.0 + z*sigmaDown;
+    }
+    else{ 
+        std::cout << "Error in UpDownJetEnergySmear: please specify option='up' or 'down'.  Returning 1.0" << std::endl;
+    }
+    return 1.0;
+}
+
 
 //b-tagging scale factors from https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation53XReReco/SFb-pt_WITHttbar_payload_EPS13.txt
 //(if option = "up" or "down", will change the scale factor by +/- 1 sigma)

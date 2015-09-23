@@ -1,5 +1,30 @@
 import ROOT as rt
 
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data"):
+    """Make stacked plots of quantities of interest, with data overlaid"""
+    #format MC histograms
+    for name in mcNames: 
+        for var in histDict[name]: setHistColor(histDict[name][var], name)
+    titles = {name:name for name in mcNames}
+
+    #get data histograms
+    dataHists = histDict[dataName]
+
+    for i,var in enumerate(varList): 
+        varHists = {name:histDict[name][var] for name in mcNames}
+        if i == 0:
+            legend = makeLegend(varHists, titles, reversed(mcNames))
+            legend.AddEntry(dataHists[var], dataName)
+        stack = makeStack(varHists, mcNames, var)
+        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName)
+
+def basicFill(tree, hists={}, weight=1.0, debug=False):
+    """Fills each histogram with the corresponding variable in the tree.
+    'hists' should be a dictionary of histograms, with keys being the variable names to fill.
+    Ex: hists['MR'] should be the histogram you want to fill with MR values."""
+    for varName, hist in hists.iteritems(): 
+        hist.Fill(getattr(tree, varName), weight)
+
 def makeTreeDict(fileDict, treeName, debug=False):
     """gets a tree called treeName from each file in fileDict, and returns a dict of trees"""
     trees = {}
@@ -13,49 +38,29 @@ def makeTreeDict(fileDict, treeName, debug=False):
         print trees
     return trees
 
-def loadWeightHists(debug=False):
-    """Returns a dict with necessary reweighting histograms"""
-    puWeightFileName = "TODO"
-    wHists = {}
-    #pileup weight histogram
-    #(comment out until PU weights are available)
-    #if debug: print("Opening pileup weight file "+puWeightFileName)
-    #puFile = rt.TFile(puWeightFileName)
-    #wHists["pileup"] = puFile.Get("TODO")
-    #wHists["pileup"].SetDirectory(0)
-    #assert wHists["pileup"]
-    return wHists
-
-def fillHist(hists, name, value, weight, debug):
-    """Fill hists[name] with (value, weight)"""
-    if name in hists:
-        if debug: print("Filling histogram: "+name)
-        hists[name].Fill(value, weight)
-    else: 
-        if debug: print("Warning in macro.py: histogram "+name+" not found!")
-
-def loopTree(tree, cutF, weightF, weightHists, fillF, hists, maxEvents=-1, scale=1.0, debug=False):
+def loopTree(tree, weightF, cuts="", varList=[], hists={}, weightHists={}, scale=1.0, fillF=basicFill, debug=False):
     """Loop over a single tree and fill histograms"""
-    if debug: print ("Looping tree "+tree.GetName())
-    nEvents = tree.GetEntries()
-    if maxEvents > 0 and maxEvents < nEvents:
-        scale *= nEvents*1.0/maxEvents
-        print("Processing "+str(maxEvents)+" of "+str(nEvents)+" events.  Scaling weights by "+str(nEvents*1.0/maxEvents))
-    else: 
-        print("Processing all "+str(nEvents)+" events")
-    for i,event in enumerate(tree):
-        if maxEvents >= 0 and i >= maxEvents: break
-        if i % 100000 == 0: print("Processing entry "+str(i))
-        if not cutF(event, debug): continue
-        w = weightF(event, weightHists, scale, debug)
-        fillF(event, hists, w, debug)
+    print ("Looping tree "+tree.GetName())
+    if debug: 
+        print ("Cuts: "+cuts)
+    #get list of entries passing the cuts
+    tree.Draw('>>elist', cuts, 'entrylist')
+    elist = rt.gDirectory.Get('elist')
+    while True:
+        #load the next entry
+        entry = elist.Next()
+        if entry == -1: break
+        tree.GetEntry(entry)
+        w = weightF(tree, weightHists, scale, debug)
+        fillF(tree, hists, w, debug)
 
-def loopTrees(treeDict, cutF, weightF, weightHists, fillF, histDict, maxEvents=-1, scale=1.0, debug=False):
-    """calls loopTree on each tree in the dictionary"""
+def loopTrees(treeDict, weightF, cuts="", varList=[], hists={}, weightHists={}, scale=1.0, fillF=basicFill, debug=False):
+    """calls loopTree on each tree in the dictionary.  
+    Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     for name in treeDict: 
-        if name not in histDict: continue
+        if name not in hists: continue
         print("Filling histograms for tree "+name)
-        loopTree(treeDict[name], cutF, weightF, weightHists, fillF, histDict[name], maxEvents, scale, debug)
+        loopTree(treeDict[name], weightF, cuts, varList, hists[name], weightHists, scale, fillF, debug)
 
 def makeStack(hists, ordering, title="Stack"):
     """Takes a dict of histograms and an ordered list of names, and returns a THStack containing the histograms stacked in the desired order"""
@@ -67,11 +72,11 @@ def makeStack(hists, ordering, title="Stack"):
             print("Warning in makeStack: histogram "+name+" not found in histogram dictionary!")
     return stack
 
-def makeLegend(hists, names, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
+def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
     """Takes a dict of histograms, a dict of histogram titles, and an ordered list of names, and returns a legend with the histograms in the desired order"""
     leg = rt.TLegend(x1, y1, x2, y2)
     for name in ordering: 
-        leg.AddEntry(hists[name], names[name])
+        leg.AddEntry(hists[name], titles[name])
     return leg
 
 def setHistColor(hist, name):
