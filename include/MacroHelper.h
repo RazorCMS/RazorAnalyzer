@@ -48,17 +48,18 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 //leg: TLegend containing all of the entries in the desired order
 //printString: name of output file
 //fitHist: optional fit result histogram (to draw as a solid line)
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, string intLumi="40 pb^{-1}", TH1F *fitHist=0){
+void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, bool logY=true, string intLumi="16 pb^{-1}", TH1F *fitHist=0){
     TCanvas c("c", "c", 800, 700);
     c.Clear();
     c.cd();
     TPad pad1("pad1","pad1",0,0.2,1,1);
     pad1.SetBottomMargin(0);
-    pad1.SetLogy();
     if(logX) pad1.SetLogx();
+    if(logY) pad1.SetLogy();
     pad1.Draw();
     pad1.cd();
-    mcStack->Draw("hist");
+    dataHist->Draw("pe");
+    mcStack->Draw("histsame");
     mcStack->GetYaxis()->SetTitle("Number of events");
     mcStack->GetYaxis()->SetLabelSize(0.03);
     mcStack->GetYaxis()->SetTitleOffset(0.7);
@@ -91,6 +92,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     }
     TH1F *dataOverMC = (TH1F*)dataHist->Clone();
     dataOverMC->SetTitle("");
+
     dataOverMC->Divide(mcTotal);
     dataOverMC->GetXaxis()->SetTitle(xaxisTitle.c_str());
     dataOverMC->GetYaxis()->SetTitle("Data / MC");
@@ -108,8 +110,8 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     string histoName = dataHist->GetName() ;
     // if(histoName.find("NJets40") != std::string::npos  )
       {
-        cout<<"Number of events in data: "<<dataHist->Integral()<<" "<<dataHist->GetName()<<endl;
-        cout<<"Number of events in MC: "<<mcTotal->Integral()<<" "<<endl;
+        cout<<"Number of events in data: "<<dataHist->Integral(0, dataHist->GetNbinsX()+1)<<" "<<dataHist->GetName()<<endl;
+        cout<<"Number of events in MC: "<<mcTotal->Integral(0, mcTotal->GetNbinsX()+1)<<" "<<endl;
       }
     if(histoName.find("datadeltaPhi") != std::string::npos  )
       {
@@ -120,7 +122,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     /*     leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9); */
     /*   } */
     leg->Draw();
-    lumi_13TeV = "20.38 pb^{-1}";
+    lumi_13TeV = "16.01 pb^{-1}";
     writeExtraText = true;
     relPosX = 0.13;
     CMS_lumi(&pad1,4,0);
@@ -154,7 +156,6 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     gPad->Update();
 
     c.Print(Form("%s.png", printString.c_str()));
-    /* c.Print(Form("%s.root", printString.c_str())); */
 }
 
 //check if the given box is a muon box
