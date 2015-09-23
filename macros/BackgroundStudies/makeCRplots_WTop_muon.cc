@@ -338,7 +338,7 @@ void ZInvisibleCrossChecks_WJetsRun2_muele(){
 	    if(i % 100000 == 0) cout << "Processing entry " << i << " of "<<tree.first<<endl;
             //get event weight
             float eventWeight = weight;
-            eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nVtx));
+            //eventWeight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nVtx));
 
 	    bool trigger_passed = false;
 	    if (HLTNames[8] && TMath::Abs(lep1Type) == 13 && TMath::Abs(lep1Eta)<2.4) trigger_passed = true; //muon triggers
