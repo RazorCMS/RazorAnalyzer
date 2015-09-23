@@ -158,7 +158,9 @@ class ControlSampleEvents {
   Float_t                 recoWpt;
   Float_t                 recoWphi;
   Float_t                 MT2;
-     
+  Float_t                 genJetMR;
+  Float_t                 genJetHT;
+
   TLorentzVector          pho1;
   TLorentzVector          pho2;
   Bool_t                  pho1PassLoose;
@@ -341,7 +343,9 @@ class ControlSampleEvents {
     recoWpt         = -99.;
     recoWphi        = -99.;
     MT2             = -99.;
-	
+    genJetHT        = -99.;
+    genJetMR        = -99.;
+
     pho1 = TLorentzVector();
     pho2 = TLorentzVector();
 
@@ -610,6 +614,7 @@ class ControlSampleEvents {
     if (treeType == kTreeType_Photon_Full) {
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
       tree_->Branch("pho1","TLorentzVector", &pho1Ptr);
+      tree_->Branch("pho2","TLorentzVector", &pho2Ptr);
       tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
       tree_->Branch("jet2",    "TLorentzVector", &jet2Ptr);
 	  
@@ -627,6 +632,8 @@ class ControlSampleEvents {
       tree_->Branch("NJets80_NoPho",&NJets80_NoPho,"NJets80_NoPho/i");
       tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
       tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
+      tree_->Branch("genJetHT",&genJetHT,"genJetHT/F");
+      tree_->Branch("genJetMR",&genJetMR,"genJetMR/F");
     }
   
     if (treeType == kTreeType_QCD_Full) {
@@ -864,6 +871,7 @@ class ControlSampleEvents {
     if (treeType == kTreeType_Photon_Full) {
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
       tree_->SetBranchAddress("pho1", &pho1Ptr);
+      tree_->SetBranchAddress("pho2", &pho2Ptr);
       tree_->SetBranchAddress("jet1" ,&jet1Ptr);
       tree_->SetBranchAddress("jet2" ,&jet2Ptr);
 	  
@@ -877,20 +885,13 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("NJets80_NoPho",&NJets80_NoPho);
       tree_->SetBranchAddress("MT2",&MT2);
 
-      tree_->SetBranchAddress("pho1PassLoose", &pho1PassLoose);
-      tree_->SetBranchAddress("pho1PassMedium",&pho1PassMedium);
-      tree_->SetBranchAddress("pho1PassTight", &pho1PassTight);
-      tree_->SetBranchAddress("HLT_Photon", &HLT_Photon);
-      tree_->SetBranchAddress("HLT_Photon36", &HLT_Photon36);
-      tree_->SetBranchAddress("HLT_Photon50", &HLT_Photon50);
-      tree_->SetBranchAddress("HLT_Photon75", &HLT_Photon75);
-      tree_->SetBranchAddress("HLT_Photon90", &HLT_Photon90);
-      tree_->SetBranchAddress("HLT_Photon120", &HLT_Photon120);
-      tree_->SetBranchAddress("HLT_Photon165", &HLT_Photon165);
-
       tree_->SetBranchAddress("nSelectedPhotons",&nSelectedPhotons);
       tree_->SetBranchAddress("NJets_NoPho",&NJets_NoPho);
       tree_->SetBranchAddress("NJets80_NoPho",&NJets80_NoPho);
+      tree_->SetBranchAddress("pho1_motherID",&pho1_motherID);
+      tree_->SetBranchAddress("pho1_sigmaietaieta",&pho1_sigmaietaieta);
+      tree_->SetBranchAddress("genJetMR",&genJetMR);
+      tree_->SetBranchAddress("genJetHT",&genJetHT);     
     }
     
    if (treeType == kTreeType_QCD_Full) {

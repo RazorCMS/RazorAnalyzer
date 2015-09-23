@@ -686,17 +686,25 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //****************************************************//
       vector<TLorentzVector> GoodPhotons;
       int nPhotonsAbove40GeV = 0;
+      
+      bool use25nsSelection = true;
 
       if (treeTypeOption == 5 || treeTypeOption == 15) {
 	for(int i = 0; i < nPhotons; i++){
 
+	  //mulitply by the same factor as electrons
+	  if(isData){
+	    phoPt[i] = phoPt[i]*GetElectronScaleCorrection(phoPt[i],phoEta[i]);
+	    phoE[i]  = phoE[i]*GetElectronScaleCorrection(phoPt[i],phoEta[i]);
+	  }
 
 	  if(phoPt[i] < 10) continue;
 	  if(fabs(phoEta[i]) > 2.5) continue;
-	  if(!isTightPhoton(i)) continue;
+	  if(!isTightPhoton(i, use25nsSelection)) continue;
 
 	  if(phoPt[i] > 40) nPhotonsAbove40GeV++;
-	  TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], phoE[i]);
+
+	  TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], phoE[i]); 
 	  GoodPhotons.push_back(thisPhoton);
 	}
       }     
@@ -1013,8 +1021,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	
       if(GoodPhotons.size()>0){
 
-	events->pho1.SetPtEtaPhiM(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].M());
-
+	events->pho1.SetPtEtaPhiE(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].E());
+	if(GoodPhotons.size()>1)
+	  events->pho2.SetPtEtaPhiE(GoodPhotons[1].Pt(),GoodPhotons[1].Eta(),GoodPhotons[1].Phi(),GoodPhotons[1].E());
+	  
 	// match photons to gen particles to remove double counting between QCD and GJet samples
 	for(int g = 0; g < nGenParticle; g++){
 	  if (!(deltaR(gParticleEta[g] , gParticlePhi[g], GoodPhotons[0].Eta(),GoodPhotons[0].Phi()) < 0.5) ) continue;
@@ -1042,6 +1052,21 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    GoodJetsNoLeadPhoton.erase(GoodJetsNoLeadPhoton.begin()+subtractedIndex);
 	  }
 	}
+
+	// GenJET MR and HT
+	vector<TLorentzVector> GenJetObjects;
+	for(int j = 0; j < nGenJets; j++){
+	  if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
+	    TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+	    GenJetObjects.push_back(thisGenJet);
+	    events->genJetHT += genJetPt[j];
+	  }
+	}
+	if (GenJetObjects.size() >= 2 ) {
+	  vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
+	  events->genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
+	}
+	
 	    
 	//count the number of jets above 80 GeV now
 	int numJets80_noPho = 0.;
@@ -1210,7 +1235,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	{
 	  if (!(
 		GoodPhotons.size() > 0
-		&& GoodPhotons[0].Pt() > 50	
+		&& GoodPhotons[0].Pt() > 25	
 		)
 	      ) passSkim = false;	
 	}
