@@ -1,6 +1,6 @@
 import ROOT as rt
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data"):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -10,20 +10,35 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data")
     #get data histograms
     dataHists = histDict[dataName]
 
+    legend=None
     for i,var in enumerate(varList): 
+        if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var] for name in mcNames}
-        if i == 0:
+        if not legend:
             legend = makeLegend(varHists, titles, reversed(mcNames))
             legend.AddEntry(dataHists[var], dataName)
         stack = makeStack(varHists, mcNames, var)
-        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName)
+        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx)
 
-def basicFill(tree, hists={}, weight=1.0, debug=False):
+def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, debug=False):
     """Fills each histogram with the corresponding variable in the tree.
     'hists' should be a dictionary of histograms, with keys being the variable names to fill.
-    Ex: hists['MR'] should be the histogram you want to fill with MR values."""
+    Ex: hists['MR'] should be the histogram you want to fill with MR values.
+    A key that is a tuple of variables (ex: ('MR','Rsq')) should be paired with a multidimensional histogram.
+    In this case, the given variables will be used to fill the histogram."""
     for varName, hist in hists.iteritems(): 
-        hist.Fill(getattr(tree, varName), weight)
+        if isinstance(varName, basestring): #if varName is a string
+            hist.Fill(getattr(tree, varName), weight)
+            if varName in sysErrSquaredHists: #for propagating systematic errors on the variables
+                sysErrSquared = weight*weight*sysErr*sysErr
+                sysErrSquaredHist[varName].Fill(getattr(tree, varName), sysErrSquared)
+        else: #treat it as a tuple of variables that should be filled
+            toFill = [getattr(tree, v) for v in varName]+[weight]
+            hist.Fill(*toFill)
+            if varName in sysErrSquaredHists:
+                sysErrSquared = weight*weight*sysErr*sysErr
+                toFillErr = [getattr(tree, v) for v in varName]+[sysErrSquared]
+                sysErrSquaredHists[varName].Fill(*toFillErr)
 
 def makeTreeDict(fileDict, treeName, debug=False):
     """gets a tree called treeName from each file in fileDict, and returns a dict of trees"""
@@ -38,33 +53,79 @@ def makeTreeDict(fileDict, treeName, debug=False):
         print trees
     return trees
 
-def loopTree(tree, weightF, cuts="", varList=[], hists={}, weightHists={}, scale=1.0, fillF=basicFill, debug=False):
+def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), debug=False):
+    #get variables
+    var = [getattr(tree, v) for v in sfVars]
+    #constrain variables to be within the bounds of the histogram
+    var[0] = min(var[0], sfHist.GetXaxis().GetXmax()*0.999)
+    var[0] = max(var[0], sfHist.GetXaxis().GetXmin()*1.001)
+    if len(var) > 1:
+        var[1] = min(var[1], sfHist.GetYaxis().GetXmax()*0.999)
+        var[1] = max(var[1], sfHist.GetYaxis().GetXmin()*1.001)
+    if len(var) > 2:
+        var[2] = min(var[2], sfHist.GetZaxis().GetXmax()*0.999)
+        var[2] = max(var[2], sfHist.GetZaxis().GetXmin()*1.001)
+    scaleFactor = sfHist.GetBinContent(sfHist.FindFixBin(*var))
+    scaleFactorErr = sfHist.GetBinError(sfHist.FindFixBin(*var))
+    if debug: print "Applying scale factor: ",scaleFactor
+    return (scaleFactor, scaleFactorErr)
+
+def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debug=False):
+    """For each histogram in hists, look for the corresponding histogram in sysErrSquaredHists.
+    Treats the values of sysErrSquaredHists as sums of (weight*error)^2 in each bin, and adds these errors in quadrature with the existing bin errors in hists"""
+    for name in hists:
+        if name in sysErrSquaredHists:
+            if debug: print "Including systematic errors on ",name
+            for bx in range(1, hists[name].GetNbinsX()+1):
+                for by in range(1, hists[name].GetNbinsY()+1):
+                    squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
+                    hists[name].SetBinError(bx,by,(hists[name].GetBinError(bx,by)**2 + squaredError)**(0.5))
+
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), debug=False):
     """Loop over a single tree and fill histograms"""
     print ("Looping tree "+tree.GetName())
-    if debug: 
-        print ("Cuts: "+cuts)
+    if debug: print ("Cuts: "+cuts)
     #get list of entries passing the cuts
     tree.Draw('>>elist', cuts, 'entrylist')
     elist = rt.gDirectory.Get('elist')
+    if debug: print "Total entries passing cuts:",elist.GetN()
+    #create histograms for systematics
+    sysErrSquaredHists = {}
+    for name in hists: 
+        if name == sysVars:
+            sysErrSquaredHists[name] = hists[name].Clone(hists[name].GetName()+"ERRORS")
+            sysErrSquaredHists[name].Reset()
+            if debug: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold",name,"systematic errors"
     while True:
         #load the next entry
         entry = elist.Next()
         if entry == -1: break
         tree.GetEntry(entry)
         w = weightF(tree, weightHists, scale, debug)
-        fillF(tree, hists, w, debug)
+        err = 0.0
+        if sfHist is not None: 
+            sf, err = getScaleFactorAndError(tree, sfHist, sfVars, debug)
+            w *= sf
+        fillF(tree, hists, w, sysErrSquaredHists, err, debug)
+    #propagate systematics to each histogram
+    addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists)
 
-def loopTrees(treeDict, weightF, cuts="", varList=[], hists={}, weightHists={}, scale=1.0, fillF=basicFill, debug=False):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debug=False):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     for name in treeDict: 
         if name not in hists: continue
         print("Filling histograms for tree "+name)
-        loopTree(treeDict[name], weightF, cuts, varList, hists[name], weightHists, scale, fillF, debug)
+        sfHistToUse = None
+        if name in sfHists: 
+            print("Using scale factors from histogram "+sfHists[name].GetName())
+            sfHistToUse = sfHists[name]
+        loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, debug)
 
 def makeStack(hists, ordering, title="Stack"):
     """Takes a dict of histograms and an ordered list of names, and returns a THStack containing the histograms stacked in the desired order"""
     stack = rt.THStack("thstack"+title.replace(" ",""), title)
+    rt.SetOwnership(stack, False)
     for name in ordering: 
         if name in hists:
             stack.Add(hists[name])
@@ -75,6 +136,7 @@ def makeStack(hists, ordering, title="Stack"):
 def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
     """Takes a dict of histograms, a dict of histogram titles, and an ordered list of names, and returns a legend with the histograms in the desired order"""
     leg = rt.TLegend(x1, y1, x2, y2)
+    rt.SetOwnership(leg, False)
     for name in ordering: 
         leg.AddEntry(hists[name], titles[name])
     return leg
@@ -102,13 +164,13 @@ def setHistColor(hist, name):
     if name in colors: hist.SetFillColor(colors[name])
     else: print("Warning in macro.py: histogram fill color not set")
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=0.1, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=0.1, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True, nDivisions=500):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
     c.cd()
-    if data and mc: pad1 = rt.TPad("pad1", "pad1", 0, 0.4, 1, 1)
-    else: pad1 = rt.TPad("pad1", "pad1", 0, 0.1, 1, 1)
+    if data and mc: pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.4, 1, 1)
+    else: pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.1, 1, 1)
     pad1.SetBottomMargin(0)
     pad1.SetLogx(logx)
     pad1.SetLogy(logy)
@@ -157,6 +219,8 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
         dataOverMC.GetYaxis().SetTitleSize(0.08)
         dataOverMC.GetXaxis().SetTitleSize(0.08)
         dataOverMC.SetStats(0)
+        dataOverMC.GetXaxis().SetNdivisions(nDivisions)
+        if logx: dataOverMC.GetXaxis().SetMoreLogLabels()
     #add legend and LaTeX 
     leg.Draw()
     t1 = rt.TLatex(0.1,0.94, "CMS Preliminary")
@@ -170,7 +234,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     #draw data/MC
     c.cd()
     if data and mc: 
-        pad2 = rt.TPad("pad2","pad2",0,0.0,1,0.4)
+        pad2 = rt.TPad(printstr+"pad2",printstr+"pad2",0,0.0,1,0.4)
         pad2.SetTopMargin(0)
         pad2.SetTopMargin(0.008)
         pad2.SetBottomMargin(0.25)
