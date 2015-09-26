@@ -23,7 +23,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    // TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -37,7 +37,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      //correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
@@ -919,7 +919,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
 					       tmpRho, jetJetArea[i], 
 					       JetCorrector);   
-
+	double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+					       tmpRho, jetJetArea[i], 
+						     JetCorrector, 0);   
 	double jetEnergySmearFactor = 1.0;
 	if (!isData) {
 	  std::vector<float> fJetEta, fJetPtNPU;
@@ -937,15 +939,19 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
 	TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
+	TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
 	TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
 
-	//*******************************
+	//**********************************************************************************************************
 	//Add to Type1 Met Correction
-	//*******************************
-	if (jetPt[i]*JEC > 20 && fabs(jetEta[i]) < 3.0) {
-	  MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
-	  MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
-	  if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - UnCorrJet.Px() << " " << thisJet.Py() - UnCorrJet.Py() << "\n";
+	//Note: pT cut should be 10 not 20, but we're saving only 20 GeV jets in the razor ntuple for now
+	//**********************************************************************************************************
+	if (jetPt[i]*JEC > 20 && 
+	    jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9	    
+	    ) {
+	  MetX_Type1Corr += -1 * ( thisJet.Px() - L1CorrJet.Px()  );
+	  MetY_Type1Corr += -1 * ( thisJet.Py() - L1CorrJet.Py()  );
+	  if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - L1CorrJet.Px() << " " << thisJet.Py() - L1CorrJet.Py() << "\n";
 	}
 
 
@@ -1076,26 +1082,26 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
       for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
 
-      double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
-      double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
+      double PFMetCustomType1X = metPt*cos(metPhi) + MetX_Type1Corr;
+      double PFMetCustomType1Y = metPt*sin(metPhi) + MetY_Type1Corr;
 
       double PFMetnoHFX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
       double PFMetnoHFY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
     
-      TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
       TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+      TLorentzVector PFMETCustomType1; 
+      PFMETCustomType1.SetPxPyPzE(PFMetCustomType1X, PFMetCustomType1Y, 0, 
+				  sqrt(PFMetCustomType1X*PFMetCustomType1X + PFMetCustomType1Y*PFMetCustomType1Y));
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
-      // TLorentzVector MyMET = PFMETType1;
-
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      TLorentzVector MyMET = PFMETnoHFType1;
+      TLorentzVector MyMET = PFMETCustomType1;
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
-	cout << "Corrected PFMET: " << PFMET.Pt() << " " << PFMET.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
+	cout << "Corrected PFMET: " << PFMETCustomType1.Pt() << " " << PFMETCustomType1.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
       }
 
       events->MR = 0;
@@ -1123,6 +1129,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->MET = MyMET.Pt();
       events->METPhi = MyMET.Phi();
       events->METnoHF = PFMETnoHFType1.Pt();
+      events->METnoHFPhi = PFMETnoHFType1.Phi();
+      events->METRaw = PFMETUnCorr.Pt();
+      events->METRawPhi = PFMETUnCorr.Phi();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
       events->NBJetsLoose = nBJetsLoose20GeV;
