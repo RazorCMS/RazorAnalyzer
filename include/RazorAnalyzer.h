@@ -164,6 +164,7 @@ class RazorAnalyzer: public RazorEvents {
 	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 					  double rho, double jetArea,
 					  FactorizedJetCorrector *jetcorrector,  
+					  int jetCorrectionLevel = -1,
 					  bool printDebug = false);
 	double JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, 
   					SimpleJetResolution *JetResolutionCalculator, 
