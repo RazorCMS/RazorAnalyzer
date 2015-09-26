@@ -117,6 +117,7 @@ class ControlSampleEvents {
   Float_t                 MR_NoLeadJet;
   Float_t                 Rsq_NoLeadJet;
   Float_t                 MET;
+  Float_t                 METRaw;
   Float_t                 METnoHF;
   Float_t                 MET_NoDilepton;
   Float_t                 MET_NoLeadJet;
@@ -199,6 +200,8 @@ class ControlSampleEvents {
   Float_t                 METPhi_NoW;
   Float_t                 METPhi_NoZ;
   Float_t                 METPhi;
+  Float_t                 METnoHFPhi;
+  Float_t                 METRawPhi;
   UInt_t                  NJets_NoZ;
   UInt_t                  NJets_NoW;
   UInt_t                  NJets_NoPho;
@@ -308,6 +311,7 @@ class ControlSampleEvents {
     Rsq_NoLeadJet        = 0.0;
     MET                  = 0.0;
     METnoHF              = 0.0;
+    METRaw               = 0.0;
     MET_NoDilepton       = 0.0;
     MET_NoLeadJet        = 0.0;
     minDPhi              = 0.0;
@@ -389,6 +393,8 @@ class ControlSampleEvents {
     METPhi_NoZ = -99.;
     METPhi_NoW = -99.;
     METPhi = -99.;
+    METRawPhi = -99.;
+    METnoHFPhi = -99.;
     u1 = -99.;
     u2 = -99.;
     NJets_NoZ = 0; 
@@ -482,6 +488,9 @@ class ControlSampleEvents {
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
+      tree_->Branch("METnoHFPhi",&METnoHFPhi,"METnoHFPhi/F");
+      tree_->Branch("METRaw",&METRaw,"METRaw/F");
+      tree_->Branch("METRawPhi",&METRawPhi,"METRawPhi/F");
       tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
       tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
       tree_->Branch("bjet1PassTight",&bjet1PassTight,"bjet1PassTight/O");
@@ -557,6 +566,9 @@ class ControlSampleEvents {
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
+      tree_->Branch("METnoHFPhi", &METnoHFPhi, "METnoHFPhi/F");
+      tree_->Branch("METRaw", &METRaw, "METRaw/F");
+      tree_->Branch("METRawPhi", &METRawPhi, "METRawPhi/F");
       tree_->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
       tree_->Branch("HT",&HT,"HT/F");	  
       tree_->Branch("genZpt",&genZpt,"genZpt/F");
@@ -820,6 +832,9 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("METPhi",&METPhi);
       tree_->SetBranchAddress("METnoHF",&METnoHF);
+      tree_->SetBranchAddress("METnoHFPhi",&METnoHFPhi);
+      tree_->SetBranchAddress("METRaw",&METRaw);
+      tree_->SetBranchAddress("METRawPhi",&METRawPhi);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
       tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("genZpt",&genZpt);
