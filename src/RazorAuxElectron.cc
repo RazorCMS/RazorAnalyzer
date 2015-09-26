@@ -2,11 +2,11 @@
 
 float RazorAnalyzer::GetElectronScaleCorrection( double pt, double eta ) {  
   double scaleCorr = 1.0;
-  if ( pt > 0 && fabs(eta) < 1.5) {
-    scaleCorr = 1.015;
-  } else {
-    scaleCorr = 1.05;
-  }
+  // if ( pt > 0 && fabs(eta) < 1.5) {
+  //   scaleCorr = 1.015;
+  // } else {
+  //   scaleCorr = 1.05;
+  // }
   return scaleCorr;
 }
 
