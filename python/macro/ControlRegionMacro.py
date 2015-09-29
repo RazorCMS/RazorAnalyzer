@@ -44,22 +44,19 @@ if __name__ == "__main__":
 
     #DYJets control sample
     dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
-                cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
-                binsMR=dyjetsDileptonMRBins, binsRsq=dyjetsDileptonRsqBins, 
+                cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, bins=dyjetsDileptonBins,
                 lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, debug=debug)
     appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, debug=debug) 
 
     #TTJets control sample
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
-                cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
-                binsMR=ttjetsSingleLeptonMRBins, binsRsq=ttjetsSingleLeptonRsqBins, 
+                cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, bins=ttjetsSingleLeptonBins,
                 lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, debug=debug)
     appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, debug=debug)
 
     #WJets control sample
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
-                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
-                binsMR=wjetsSingleLeptonMRBins, binsRsq=wjetsSingleLeptonRsqBins, 
+                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, bins=wjetsSingleLeptonBins,
                 lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, debug=debug)
     appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, debug=debug)
 
