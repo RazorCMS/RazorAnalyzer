@@ -47,6 +47,7 @@ class ElectronTree {
   Bool_t                  fEleIsEcalDriven;
   UInt_t                  fEleTriggerBit;
   Float_t                 fRho; 
+  Float_t                 fRhoNeutralCentral; 
   Float_t                 fNVertices; 
   Int_t                   fPdgId;
   Float_t                 fDRToClosestParton;
@@ -125,6 +126,8 @@ class ElectronTree {
   Float_t                 fNeutralHadronIso_DR0p3To0p4;
   Float_t                 fNeutralHadronIso_DR0p4To0p5;
   Float_t                 fPtRel;
+  Float_t                 fMiniIsoCharged;
+  Float_t                 fMiniIsoNeutral;
   Float_t                 fMiniIso;
   Float_t                 fMiniIsoDBCorr;
 
@@ -209,8 +212,9 @@ class ElectronTree {
     fEleSCPhi 		       = 0.0;
     fEleEcalEnergy 		       = 0.0;
     fEleIsEcalDriven	       = 0.0;
-    fEleTriggerBit		       = 0.0;
-    fRho  			       = 0.0;
+    fEleTriggerBit	       = 0.0;
+    fRho  		       = 0.0;
+    fRhoNeutralCentral         = 0.0;
     fNVertices 		       = 0.0;
     fPdgId    		       = 11;
     fDRToClosestParton         = 9999;
@@ -275,6 +279,8 @@ class ElectronTree {
     fNeutralHadronIso_DR0p3To0p4   = 0.0;
     fNeutralHadronIso_DR0p4To0p5   = 0.0;
     fPtRel                         = 0.0;
+    fMiniIsoCharged                = 0.0;
+    fMiniIsoNeutral                = 0.0;
     fMiniIso                       = 0.0;
     fMiniIsoDBCorr                 = 0.0;
     fElePassTriggerDenominator     = 0.0;
@@ -343,6 +349,7 @@ class ElectronTree {
     tree_->Branch("event",&fEventNumber,"event/i");
     tree_->Branch("EventNumberParity",&fEleEventNumberParity,"EventNumberParity/O"); 
     tree_->Branch("rho",&fRho,"rho/F"); 
+    tree_->Branch("rhoNeutralCentral",&fRhoNeutralCentral,"rhoNeutralCentral/F"); 
     tree_->Branch("pt",&fElePt,"pt/F"); 
     tree_->Branch("eta",&fEleEta,"eta/F"); 
     tree_->Branch("phi",&fElePhi,"phi/F");
@@ -373,6 +380,8 @@ class ElectronTree {
     tree_->Branch("PassTightSelection",&fPassTightSelection,"PassTightSelection/O"); 
     tree_->Branch("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection,"PassMVANonTrigVetoSelection/O"); 
     tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
+    tree_->Branch("MiniIsoCharged",&fMiniIsoCharged,"MiniIsoCharged/F"); 
+    tree_->Branch("MiniIsoNeutral",&fMiniIsoNeutral,"MiniIsoNeutral/F"); 
     tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
     tree_->Branch("MiniIsoDBCorr",&fMiniIsoDBCorr,"MiniIsoDBCorr/F"); 
     tree_->Branch("triggerBit",&fEleTriggerBit,"triggerBit/i"); 
@@ -486,6 +495,7 @@ class ElectronTree {
     tree_->SetBranchAddress("event",&fEventNumber);
     tree_->SetBranchAddress("EventNumberParity",&fEleEventNumberParity);
     tree_->SetBranchAddress("rho",&fRho);
+    tree_->SetBranchAddress("rhoNeutralCentral",&fRhoNeutralCentral);
     tree_->SetBranchAddress("pt",&fElePt);
     tree_->SetBranchAddress("eta",&fEleEta);
     tree_->SetBranchAddress("phi",&fElePhi);
@@ -516,6 +526,8 @@ class ElectronTree {
     tree_->SetBranchAddress("PassTightSelection",&fPassTightSelection);
     tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection);
     tree_->SetBranchAddress("PtRel",&fPtRel);
+    tree_->SetBranchAddress("MiniIsoCharged",&fMiniIsoCharged);
+    tree_->SetBranchAddress("MiniIsoNeutral",&fMiniIsoNeutral);
     tree_->SetBranchAddress("MiniIso",&fMiniIso);
     tree_->SetBranchAddress("MiniIsoDBCorr",&fMiniIsoDBCorr);
     tree_->SetBranchAddress("triggerBit",&fEleTriggerBit);

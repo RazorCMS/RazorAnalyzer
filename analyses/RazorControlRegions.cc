@@ -23,7 +23,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -193,10 +193,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       TLorentzVector genNeutrino; genNeutrino.SetPtEtaPhiE(0,0,0,0);
       TLorentzVector genZLepton1; genZLepton1.SetPtEtaPhiE(0,0,0,0);
       TLorentzVector genZLepton2; genZLepton2.SetPtEtaPhiE(0,0,0,0);
-      double genW_Pt = -99;
-      double genW_Phi = -99;
-      double genZ_Pt = -99;
-      double genZ_Phi = -99;
 
       //First find W or Z boson
       for(int j = 0; j < nGenParticle; j++){
@@ -319,16 +315,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  //genZLepton2 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
 	}
 	
-	if ( abs(gParticleId[j]) == 24 ) {
-	  genW_Pt = gParticlePt[j];
-	  genW_Phi = gParticlePhi[j];
-	}
-
-	if ( abs(gParticleId[j]) == 23 ) {	  
-	  genZ_Pt = gParticlePt[j];
-	  genZ_Phi = gParticlePhi[j];
-	}
-
 	//look for electrons
 	if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
 	    && abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5

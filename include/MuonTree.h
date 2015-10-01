@@ -36,6 +36,7 @@
       UInt_t                  fEventNumber;
       Bool_t                  fMuEventNumberParity;
       Float_t                 fRho; 
+      Float_t                 fRhoNeutralCentral; 
       Float_t                 fNVertices; 
       Float_t                 fMuGenPt; 
       Float_t                 fMuGenEta; 
@@ -103,6 +104,8 @@
       Float_t                 fNeutralHadronIso_DR0p3To0p4;
       Float_t                 fNeutralHadronIso_DR0p4To0p5;
       Float_t                 fPtRel;
+      Float_t                 fMiniIsoCharged;
+      Float_t                 fMiniIsoNeutral;
       Float_t                 fMiniIso;
       Float_t                 fMiniIsoDBCorr;
       Bool_t                  fMuPassTriggerDenominator;
@@ -130,6 +133,7 @@
         fEventNumber		   = 0.0;
         fMuEventNumberParity	   = 0.0;
         fRho 			   = 0.0;
+	fRhoNeutralCentral         = 0.0;
         fNVertices 		   = 0.0;
         fMuGenPt 		   = 0.0;
         fMuGenEta 		   = 0.0;
@@ -191,6 +195,8 @@
         fNeutralHadronIso_DR0p3To0p4 = 0.0;
         fNeutralHadronIso_DR0p4To0p5 = 0.0;
 	fPtRel                       = 0.0;
+	fMiniIsoCharged              = 0.0;
+	fMiniIsoNeutral              = 0.0;
 	fMiniIso                     = 0.0;
 	fMiniIsoDBCorr               = 0.0;
         fMuPassTriggerDenominator = kFALSE;
@@ -216,6 +222,7 @@
         tree_->Branch("event",&fEventNumber,"event/i");
         tree_->Branch("EventNumberParity",&fMuEventNumberParity,"EventNumberParity/O"); 
         tree_->Branch("Rho",&fRho,"Rho/F"); 
+	tree_->Branch("RhoNeutralCentral",&fRhoNeutralCentral,"RhoNeutralCentral/F"); 
         tree_->Branch("NVertices",&fNVertices,"NVertices/F"); 
         tree_->Branch("pt",&fMuPt,"pt/F"); 
         tree_->Branch("eta",&fMuEta,"eta/F"); 
@@ -237,6 +244,8 @@
 	tree_->Branch("IP3d",&fMuIP3d,"IP3d/F"); 
 	tree_->Branch("IP3dSig",&fMuIP3dSig,"IP3dSig/F"); 
 	tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
+	tree_->Branch("MiniIsoCharged",&fMiniIsoCharged,"MiniIsoCharged/F"); 
+	tree_->Branch("MiniIsoNeutral",&fMiniIsoNeutral,"MiniIsoNeutral/F"); 
 	tree_->Branch("MiniIso",&fMiniIso,"MiniIso/F"); 
 	tree_->Branch("MiniIsoDBCorr",&fMiniIsoDBCorr,"MiniIsoDBCorr/F"); 
 	tree_->Branch("triggerBit",&fMuTriggerBit,"triggerBit/i"); 
@@ -302,6 +311,7 @@
         tree_->SetBranchAddress("event",&fEventNumber);
         tree_->SetBranchAddress("EventNumberParity",&fMuEventNumberParity);
         tree_->SetBranchAddress("Rho",&fRho);
+	tree_->SetBranchAddress("RhoNeutralCentral",&fRhoNeutralCentral);
         tree_->SetBranchAddress("NVertices",&fNVertices);
         tree_->SetBranchAddress("pt",&fMuPt);
         tree_->SetBranchAddress("eta",&fMuEta);
@@ -323,6 +333,8 @@
 	tree_->SetBranchAddress("IP3d",&fMuIP3d);
 	tree_->SetBranchAddress("IP3dSig",&fMuIP3dSig);
 	tree_->SetBranchAddress("PtRel",&fPtRel);
+	tree_->SetBranchAddress("MiniIsoCharged",&fMiniIsoCharged);
+	tree_->SetBranchAddress("MiniIsoNeutral",&fMiniIsoNeutral);
 	tree_->SetBranchAddress("MiniIso",&fMiniIso);
 	tree_->SetBranchAddress("MiniIsoDBCorr",&fMiniIsoDBCorr);
 	tree_->SetBranchAddress("triggerBit",&fMuTriggerBit);

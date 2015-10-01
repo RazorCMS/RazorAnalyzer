@@ -1,5 +1,40 @@
 #include "RazorAnalyzer.h"
 
+float RazorAnalyzer::GetMuonEffectiveAreaMean(int i, string type ){ 
+
+  double effArea = 0.0;
+  //Effective areas below are for the sum of Neutral Hadrons + Photons
+  if (type == "neutral") {
+    if (fabs(muonEta[i]) < 0.8) {
+      effArea = 0.0735;
+    } else if (fabs(muonEta[i]) < 1.3) {
+      effArea = 0.0619;	
+    } else if (fabs(muonEta[i]) < 2.0) {
+      effArea = 0.0465;	
+    } else if (fabs(muonEta[i]) < 2.2) {
+      effArea = 0.0433;	
+    } else {
+      effArea = 0.0577;	
+    } 
+  } 
+  if (type == "charged") {
+    if (fabs(muonEta[i]) < 0.8) {
+      effArea = 0.0106;
+    } else if (fabs(muonEta[i]) < 1.3) {
+      effArea = 0.0096;	
+    } else if (fabs(muonEta[i]) < 2.0) {
+      effArea = 0.0079;	
+    } else if (fabs(muonEta[i]) < 2.2) {
+      effArea = 0.0058;	
+    } else {
+      effArea = 0.0053;	
+    } 
+  } 
+  return effArea;
+}
+
+
+
 bool RazorAnalyzer::isMuonPOGLooseMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
   if (applyID) {
@@ -35,14 +70,15 @@ bool RazorAnalyzer::isMuonPOGTightMuon(int i, bool applyID, bool applyIso){
 
 bool RazorAnalyzer::isVetoMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
+  double dr = fmax(0.05,fmin(0.2, 10/muonPt[i]));
   if (applyID) {
     if (!(muonIsLoose[i] && fabs(muon_ip3dSignificance[i]) < 4)) pass = false;
   }
   if (applyIso) {
     if (!(
-	  ( muonPt[i] > 20 && (muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i] - 0.5*muon_chargedPileupMiniIso[i])/muonPt[i] < 0.2 )
+	  ( muonPt[i] > 20 && (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)) )/muonPt[i] < 0.2 )
 	  ||
-	  ( muonPt[i] <= 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) < 10 ) 	  
+	  ( muonPt[i] <= 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i) )) < 10 )
 	  )) pass = false;
   }
   return pass;
@@ -50,22 +86,24 @@ bool RazorAnalyzer::isVetoMuon(int i, bool applyID, bool applyIso){
 
 bool RazorAnalyzer::isLooseMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
+  double dr = fmax(0.05,fmin(0.2, 10/muonPt[i]));
   if (applyID) {
     if (!(muonIsLoose[i] && fabs(muon_ip3dSignificance[i]) < 4)) pass = false;
   }
   if (applyIso) {
-    if (!( (muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i] - 0.5*muon_chargedPileupMiniIso[i])/muonPt[i] < 0.2)) pass = false;
+    if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/muonPt[i] < 0.2)) pass = false;
   }
   return pass;
 }
 
 bool RazorAnalyzer::isTightMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
+  double dr = fmax(0.05,fmin(0.2, 10/muonPt[i]));
   if (applyID) {
     if (!(muonIsMedium[i] && fabs(muon_ip3dSignificance[i]) < 4 && fabs(muon_d0[i]) < 0.2)) pass = false;
   }
   if (applyIso) {
-    if (!( (muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i] - 0.5*muon_chargedPileupMiniIso[i])/muonPt[i] < 0.2)) pass = false;
+    if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)) )/muonPt[i] < 0.2)) pass = false;
   }
   return pass;
 }   
