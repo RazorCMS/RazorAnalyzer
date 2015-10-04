@@ -70,6 +70,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
 
         //functions in RazorAuxMuon.cc
+	float GetMuonEffectiveAreaMean(int i, string type );
 	bool isMuonPOGLooseMuon(int i, bool applyID = true, bool applyIso = true);
 	bool isMuonPOGMediumMuon(int i, bool applyID = true, bool applyIso = true);
         bool isMuonPOGTightMuon(int i, bool applyID = true, bool applyIso = true);
@@ -83,8 +84,8 @@ class RazorAnalyzer: public RazorEvents {
 
         //functions in RazorAuxElectron.cc
 	float GetElectronScaleCorrection( double pt, double eta );
-	float GetEffectiveAreaMean(int i);
-	float GetEffectiveArea90(int i);
+	float GetElectronEffectiveAreaMean(int i, bool use25nsCuts = true);
+	float GetElectronEffectiveArea90(int i);
         bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
@@ -120,8 +121,8 @@ class RazorAnalyzer: public RazorEvents {
         //functions in RazorAuxPhoton.cc
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-	void getPhotonEffArea95( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea95);
+	void getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90);
 	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
@@ -164,10 +165,14 @@ class RazorAnalyzer: public RazorEvents {
 	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 					  double rho, double jetArea,
 					  FactorizedJetCorrector *jetcorrector,  
+					  int jetCorrectionLevel = -1,
 					  bool printDebug = false);
 	double JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, 
   					SimpleJetResolution *JetResolutionCalculator, 
-                                        TRandom3 *random, string option="");
+                                        TRandom3 *random);
+        double UpDownJetEnergySmearingFactor(double unsmearedPt, double jetEta, double NPU, 
+                                             SimpleJetResolution *JetResolutionCalculator, 
+                                             double smearedPt, string option);
         double BTagScaleFactor( double jetPt, bool CSVM, string option="");
 	
         //functions in RazorAuxMisc.cc

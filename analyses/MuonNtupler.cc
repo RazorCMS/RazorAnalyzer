@@ -57,7 +57,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fMuPt = muonPt[i]; 
 	  muTree->fMuEta = muonEta[i]; 
 	  muTree->fMuPhi = muonPhi[i]; 
-	  muTree->fRho = 0; 
+	  muTree->fRho = fixedGridRhoFastjetAll; 
+	  muTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral; 
 	  muTree->fNVertices = nPV; 
 	  muTree->fActivity = muon_activityMiniIsoAnnulus[i];
 	  muTree->fMuD0 = muon_d0[i]; 
@@ -71,6 +72,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fPassLooseSelection = isLooseMuon(i);
 	  muTree->fPassTightSelection = isTightMuon(i);
 	  muTree->fPtRel = muon_ptrel[i];
+	  muTree->fMiniIsoCharged = muon_chargedMiniIso[i];
+	  muTree->fMiniIsoNeutral = muon_photonAndNeutralHadronMiniIso[i];
 	  muTree->fMiniIso = muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i];
 	  muTree->fMiniIsoDBCorr = muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i] - 0.5*muon_chargedPileupMiniIso[i];
 
@@ -197,7 +200,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fMuGenPt = gParticlePt[i];
 	  muTree->fMuGenEta = gParticleEta[i];
 	  muTree->fMuGenPhi = gParticlePhi[i];
-	  muTree->fRho = 0; 
+	  muTree->fRho = fixedGridRhoFastjetAll; 
+	  muTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
 	  muTree->fNVertices = nPV; 
 	  muTree->fPdgId = gParticleId[i];
 
@@ -244,6 +248,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fPassLooseSelection = isLooseMuon(matchedIndex);
 	    muTree->fPassTightSelection = isTightMuon(matchedIndex);
 	    muTree->fPtRel = muon_ptrel[matchedIndex];
+	    muTree->fMiniIsoCharged = muon_chargedMiniIso[matchedIndex];
+	    muTree->fMiniIsoNeutral = muon_photonAndNeutralHadronMiniIso[matchedIndex];
 	    muTree->fMiniIso = muon_chargedMiniIso[matchedIndex] + muon_photonAndNeutralHadronMiniIso[matchedIndex] ;
 	    muTree->fMiniIsoDBCorr = muon_chargedMiniIso[matchedIndex] + muon_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*muon_chargedPileupMiniIso[matchedIndex];
 	    muTree->fMuTriggerBit = 0;

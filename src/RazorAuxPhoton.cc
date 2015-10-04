@@ -54,64 +54,64 @@ void RazorAnalyzer::getPhotonEffAreaRun2( float eta, double& effAreaChHad, doubl
     }
 };
 
-void RazorAnalyzer::getPhotonEffArea95( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
 {
   if( fabs( eta ) < 1.0 )
     {
-      effAreaChHad = 0.141;
-      effAreaNHad  = 0.075;
-      effAreaPho   = 0.052;
+      effAreaChHad = 0.0456;
+      effAreaNHad  = 0.0599;
+      effAreaPho   = 0.1271;
     }
   else if( fabs( eta ) < 1.479 )
     {
-      effAreaChHad = 0.117;
-      effAreaNHad  = 0.092;
-      effAreaPho   = 0.052;
+      effAreaChHad = 0.0500;
+      effAreaNHad  = 0.0819;
+      effAreaPho   = 0.1101;
     }
   else if( fabs( eta ) < 2.0 )
     {
-      effAreaChHad = 0.087;
-      effAreaNHad  = 0.069;
-      effAreaPho   = 0.041;
+      effAreaChHad = 0.0340;
+      effAreaNHad  = 0.0696;
+      effAreaPho   = 0.0756;
     }
   else if( fabs( eta ) < 2.2 )
     {
-      effAreaChHad = 0.135;
-      effAreaNHad  = 0.032;
-      effAreaPho   = 0.038;
+      effAreaChHad = 0.0383;
+      effAreaNHad  = 0.0360;
+      effAreaPho   = 0.1175;
     }
   else if( fabs( eta ) < 2.3 )
     {
-      effAreaChHad = 0.186;
-      effAreaNHad  = 0.038;
-      effAreaPho   = 0.033;
+      effAreaChHad = 0.0339;
+      effAreaNHad  = 0.0360;
+      effAreaPho   = 0.1498;
     }
   else if( fabs( eta ) < 2.4 )
     {
-      effAreaChHad = 0.215;
-      effAreaNHad  = 0.051;
-      effAreaPho   = 0.029;
+      effAreaChHad = 0.0303;
+      effAreaNHad  = 0.0462;
+      effAreaPho   = 0.1857;
     }
   else
     {
-      effAreaChHad = 0.250;
-      effAreaNHad  = 0.087;
-      effAreaPho   = 0.025;
+      effAreaChHad = 0.0240;
+      effAreaNHad  = 0.0656;
+      effAreaPho   = 0.2183;
     }
 };
 
 
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
-bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea95){
+bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90){
     //get effective area for isolation calculations
     double effAreaChargedHadrons = 0.0;
     double effAreaNeutralHadrons = 0.0;
     double effAreaPhotons = 0.0;
 
     //get the effective areas. results are passed to variables by reference
-    if (useEffectiveArea95) {
-      getPhotonEffArea95( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+    if (useEffectiveArea90) {
+      getPhotonEffArea90( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
     } else {
       getPhotonEffAreaRun2( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
     }
@@ -139,10 +139,10 @@ bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0106) pass = false;   
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0285) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0271) pass = false;    
     }
   } 
 
@@ -169,7 +169,7 @@ bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts){
       if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0264) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0266) pass = false;    
     }
   }
 
@@ -196,7 +196,7 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
       if(phoFull5x5SigmaIetaIeta[i] > 0.0099) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0264) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0266) pass = false;    
     }
   }
 
@@ -248,9 +248,9 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 2.73, 1.85+exp( 0.0050*phoPt[i] + 0.2907 ), 1.34 + 0.0038*phoPt[i], true );
+      return photonPassesIsolation(i, 2.78, 6.49 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.39 + 0.0053*phoPt[i], true );
     } else {
-      return photonPassesIsolation(i, 2.52, 18.51+exp( 0.0041*phoPt[i] + 0.8933 ), 0.95 + 0.0047*phoPt[i], true);
+      return photonPassesIsolation(i, 2.55, 5.20 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.74 + 0.0034*phoPt[i], true);
     }
   } 
 
@@ -268,9 +268,9 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 0.70, 1.01+exp( 0.0050*phoPt[i] + 0.2907 ), 0.68 + 0.0038*phoPt[i], true);
+      return photonPassesIsolation(i, 1.31, 2.46 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.05 + 0.0053*phoPt[i], true);
     } else {
-      return photonPassesIsolation(i, 0.58, 0.59+exp( 0.0041*phoPt[i] + 0.8933 ), 0.72 + 0.0047*phoPt[i], true);
+      return photonPassesIsolation(i, 0.95, 4.97 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.14 + 0.0034*phoPt[i], true);
     }
   }
 
@@ -288,9 +288,9 @@ bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.09, 0.99+exp( 0.0050*phoPt[i] + 0.2907 ), 0.26 + 0.0038*phoPt[i], true);
+        return photonPassesIsolation(i, 0.73, 1.14 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.05 + 0.0053*phoPt[i], true);
     } else {
-      return photonPassesIsolation(i, 0.02, 0.01+exp( 0.0041*phoPt[i] + 0.8933 ), 0.18 + 0.0047*phoPt[i], true);
+      return photonPassesIsolation(i, 0.27, 3.71 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.11 + 0.0034*phoPt[i], true);
     }
   } 
 

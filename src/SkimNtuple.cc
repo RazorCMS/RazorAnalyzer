@@ -7,6 +7,7 @@
 #include "TTreeFormula.h"
 #include "SimpleTable.h"
 #include "TKey.h"
+#include "TDirectoryFile.h"
 
 using namespace std;
 
@@ -55,6 +56,23 @@ int main(int argc, char* argv[]) {
         inputFile.Purge(); //purge unwanted TTree cycles in file
         TIter nextkey(inputFile.GetListOfKeys());
         TKey *key;
+        string dirName = "";
+
+        //if the first key is a TDirectoryFile, go inside it and skim there (temporary hack for cloning a single directory)
+        TKey *firstkey = (TKey*)nextkey();
+        string className = firstkey->GetClassName();
+        if(className.compare("TDirectoryFile") == 0){
+            TDirectoryFile* dir = (TDirectoryFile*)firstkey->ReadObj();
+            dirName = dir->GetName(); 
+            outputFile->mkdir(dirName.c_str());
+            cout << "Entering directory " << dirName << endl;
+            nextkey = TIter(dir->GetListOfKeys());
+        }
+        else { //reset it
+            nextkey.Reset();
+        }
+        //end temporary hack
+
         while((key = (TKey*)nextkey())){
             string className = key->GetClassName();
             cout << "Getting key from file.  Class type: " << className << endl;
@@ -67,7 +85,7 @@ int main(int argc, char* argv[]) {
             cout << "Processing tree " << inputTree->GetName() << endl;
 
             //create new normalized tree
-            outputFile->cd();
+            outputFile->cd(dirName.c_str());
             TTree *outputTree = inputTree->CloneTree(0);  
             cout << "Events in the ntuple: " << inputTree->GetEntries() << endl;
 

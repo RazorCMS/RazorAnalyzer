@@ -23,7 +23,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    // TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -37,7 +37,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      //correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
@@ -94,6 +94,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     int leptonSkimOption = floor( float(option - razorSkimOption*1000) / 100);
     int treeTypeOption = option - razorSkimOption*10000 - leptonSkimOption*100;
 
+    cout<<"Info: razorSkimOption: "<<razorSkimOption<<", "<<"leptonSkimOption: "<<", "<<leptonSkimOption<<" "<<"treeTypeOption: "<<treeTypeOption<<endl;
+    
     if (treeTypeOption == 1)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
     else if (treeTypeOption == 11)
@@ -176,12 +178,143 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
  
 
         
+      //************************************************************************************
+      //Reconstructed vector boson momentum after pythia parton showering
+      //************************************************************************************
+      int genWBosonIndex = -1;
+      int genZBosonIndex = -1;
+      int genWLeptonIndex = -1;
+      int genWNeutrinoIndex = -1;
+      int genZLepton1Index = -1;
+      int genZLepton2Index = -1;
+      TLorentzVector genWVector;  genWVector.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genZVector;  genZVector.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genLepton;   genLepton.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genNeutrino; genNeutrino.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genZLepton1; genZLepton1.SetPtEtaPhiE(0,0,0,0);
+      TLorentzVector genZLepton2; genZLepton2.SetPtEtaPhiE(0,0,0,0);
+
+      //First find W or Z boson
+      for(int j = 0; j < nGenParticle; j++){
+	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 24) genWBosonIndex = j;
+	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 23) genZBosonIndex = j;
+      }
+
+      //Next find the status 23 lepton and neutrinos from W or Z decay
+      //If W or Z boson was found in the first step, require that they are daughters of the W or Z boson, 
+      //if no W or Z boson was found, then don't require that.
+      for(int j = 0; j < nGenParticle; j++){
+	if ( gParticleStatus[j] == 23 && (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15 )
+	     && ( (genWBosonIndex >= 0 && gParticleMotherIndex[j] == genWBosonIndex) || genWBosonIndex == -1)		  
+	     ) { 
+	  genWLeptonIndex = j;
+	}
+      	if ( gParticleStatus[j] == 23 && (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16 )
+	     && ( (genWBosonIndex >= 0 && gParticleMotherIndex[j] == genWBosonIndex) || genWBosonIndex == -1)		  
+	     ) { 
+	  genWNeutrinoIndex = j;
+	}
+	if ( gParticleStatus[j] == 23 && ( gParticleId[j] == 11 || gParticleId[j] == 13 || gParticleId[j] == 15 )
+	     && ((genZBosonIndex >= 0 && gParticleMotherIndex[j] == genZBosonIndex) || genZBosonIndex == -1)
+	     ) { 
+	  genZLepton1Index = j;
+	}
+	if ( gParticleStatus[j] == 23 && ( gParticleId[j] == -11 || gParticleId[j] == -13 || gParticleId[j] == -15 )
+	     && ((genZBosonIndex >= 0 && gParticleMotherIndex[j] == genZBosonIndex) || genZBosonIndex == -1)
+	     ) { 
+	  genZLepton2Index = j;
+	}
+      }
+    
+      //Next collect all final state leptons and neutrinos from W or Z decay
+      for(int j = 0; j < nGenParticle; j++){
+
+	if (!(gParticleStatus[j] == 1 || (gParticleStatus[j] == 2 && abs(gParticleId[j]) == 15))) continue;
+	    
+	//if W was found, and lepton/neutrino daughter is stable
+	if ( genWBosonIndex >= 0 && (abs(gParticleId[j]) >= 11 && abs(gParticleId[j]) <= 16 )
+	     && gParticleMotherIndex[j] == genWBosonIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genWVector = genWVector + tmpVector;	  
+	  if ( abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15) {
+	    genLepton = genLepton + tmpVector;
+	  } else {
+	    genNeutrino = genNeutrino + tmpVector;
+	  }
+	}
+	    
+	//if status 22 lepton was found, find any daughters of it
+	if ( genWLeptonIndex >= 0 && ( gParticleId[j] == gParticleId[genWLeptonIndex] || gParticleId[j] == 22)
+	     && gParticleMotherIndex[j] == genWLeptonIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genWVector = genWVector + tmpVector;
+	  genLepton = genLepton + tmpVector;	
+	}
+	//if status 22 neutrino was found, find any daughters of it
+	if ( genWNeutrinoIndex >= 0 && ( gParticleId[j] == gParticleId[genWNeutrinoIndex] )
+	     && gParticleMotherIndex[j] == genWNeutrinoIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genWVector = genWVector + tmpVector;	    
+	  genNeutrino = genNeutrino + tmpVector;
+	}
+	 
+	//if Z was found, and lepton daughter is stable
+	if ( genZBosonIndex >= 0 && (abs(gParticleId[j]) >= 11 && abs(gParticleId[j]) <= 16 )
+	     && gParticleMotherIndex[j] == genZBosonIndex ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genZVector = genZVector + tmpVector;	
+	  if ( gParticleId[j] > 0) {
+	    genZLepton1 = genZLepton1 +  tmpVector;	
+	  } else {
+	    genZLepton2 = genZLepton2 +  tmpVector;
+	  }
+	}
+	//if status 22 leptons were found, find any daughters of it
+	if ( (gParticleId[j] == gParticleId[genZLepton1Index] || gParticleId[j] == 22)
+	     && (genZLepton1Index >= 0 && gParticleMotherIndex[j] == genZLepton1Index)
+	     ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genZVector = genZVector + tmpVector;
+	  genZLepton1 = genZLepton1 +  tmpVector;	
+	}	   
+	if ( (gParticleId[j] == gParticleId[genZLepton2Index] || gParticleId[j] == 22)
+	     && ( genZLepton2Index >= 0 && gParticleMotherIndex[j] == genZLepton2Index)
+	     ) {
+	  TLorentzVector tmpVector; tmpVector.SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	  genZVector = genZVector + tmpVector;
+	  genZLepton2 = genZLepton2 +  tmpVector;
+	}
+      }
+  
+      events->genWpt = genWVector.Pt();
+      events->genWphi = genWVector.Phi();
+      events->genZpt = genZVector.Pt();
+      events->genZphi =  genZVector.Phi();
+
+
       //******************************************
       //Find Generated leptons
       //******************************************
       vector<int> genLeptonIndex;
-
       for(int j = 0; j < nGenParticle; j++){
+
+	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15 )) {
+	  genWLeptonIndex  = j;
+	  //genLepton = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	if ( gParticleStatus[j] == 22 && (abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16 )) {
+	  genWNeutrinoIndex = j;
+	  //genNeutrino = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	if ( gParticleStatus[j] == 23 && (gParticleId[j] == 11 || gParticleId[j] == 13 || gParticleId[j] == 15 )) {
+	  genZLepton1Index = j;
+	  //genZLepton1 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	if ( gParticleStatus[j] == 23 && (gParticleId[j] == -11 || gParticleId[j] == -13 || gParticleId[j] == -15 )) {
+	  genZLepton2Index = j;
+	  //genZLepton2 = makeTLorentzVector(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);      
+	}
+	
 	//look for electrons
 	if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
 	    && abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5
@@ -245,7 +378,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       } //loop over gen particles
 	
 
-	//sort gen leptons by pt
+      //sort gen leptons by pt
       int tempIndex = -1;
       for(uint i = 0; i < genLeptonIndex.size() ; i++) {
 	for (uint j=0; j < genLeptonIndex.size()-1; j++) {
@@ -277,9 +410,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->genlep2Type = gParticleId[genLeptonIndex[i]];
 	}				      
       }
-
-
-
 
       //*************************************************************************
       //Find Reconstructed Leptons
@@ -421,7 +551,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 
 	if (isGoodLepton) {
 	  GoodLeptons.push_back(thisElectron);        
-	  GoodLeptonType.push_back(11 * -1 * muonCharge[i]);
+	  GoodLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  GoodLeptonIsTight.push_back( isTightElectron(i) );
 	  GoodLeptonIsLoose.push_back( isLooseElectron(i) );
 	  GoodLeptonIsVeto.push_back( isVetoElectron(i) );
@@ -684,56 +814,32 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //****************************************************//
       vector<TLorentzVector> GoodPhotons;
       int nPhotonsAbove40GeV = 0;
+      
+      bool use25nsSelection = true;
 
       if (treeTypeOption == 5 || treeTypeOption == 15) {
 	for(int i = 0; i < nPhotons; i++){
 
+	  //mulitply by the same factor as electrons
+	  if(isData){
+	    phoPt[i] = phoPt[i]*GetElectronScaleCorrection(phoPt[i],phoEta[i]);
+	    phoE[i]  = phoE[i]*GetElectronScaleCorrection(phoPt[i],phoEta[i]);
+	  }
 
 	  if(phoPt[i] < 10) continue;
 	  if(fabs(phoEta[i]) > 2.5) continue;
-	  if(!isTightPhoton(i)) continue;
+	  if(!isTightPhoton(i, use25nsSelection)) continue;
 
 	  if(phoPt[i] > 40) nPhotonsAbove40GeV++;
-	  TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], phoE[i]);
+
+	  TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], phoE[i]); 
 	  GoodPhotons.push_back(thisPhoton);
 	}
       }     
       events->nSelectedPhotons = nPhotonsAbove40GeV;
       
       //Sort Photon Collection
-      sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());
-    
-      //****************************************************//
-      // Set Photon HLT Bits
-      //****************************************************//
-      for(int i = 62; i <= 67; i++){
-	if(HLTDecision[i] == 1) events->HLT_Photon = true;
-      }
-	
-      if(isData && events->HLT_Photon){
-	//save the trigger bits
-	if(HLTDecision[67] == 1){
-	  events->HLT_Photon165 = true;
-	}
-	if(HLTDecision[66] == 1){
-	  events->HLT_Photon120 = true;
-	}
-	if(HLTDecision[65] == 1){
-	  events->HLT_Photon90 = true;
-	}
-	if(HLTDecision[64] == 1){
-	  events->HLT_Photon75 = true;
-	}
-	if(HLTDecision[63]== 1){
-	  events->HLT_Photon50 = true;
-	}
-	if(HLTDecision[62]== 1){
-	  events->HLT_Photon36 = true;
-	}
-      }
-
-    
-
+      sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());    
 
       //************************************************************************
       //Select Jets
@@ -799,7 +905,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
 					       tmpRho, jetJetArea[i], 
 					       JetCorrector);   
-
+	double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+					       tmpRho, jetJetArea[i], 
+						     JetCorrector, 0);   
 	double jetEnergySmearFactor = 1.0;
 	if (!isData) {
 	  std::vector<float> fJetEta, fJetPtNPU;
@@ -817,15 +925,19 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 
 	TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
+	TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
 	TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
 
-	//*******************************
+	//**********************************************************************************************************
 	//Add to Type1 Met Correction
-	//*******************************
-	if (jetPt[i]*JEC > 20 && fabs(jetEta[i]) < 3.0) {
-	  MetX_Type1Corr += -1 * ( thisJet.Px() - UnCorrJet.Px()  );
-	  MetY_Type1Corr += -1 * ( thisJet.Py() - UnCorrJet.Py()  );
-	  if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - UnCorrJet.Px() << " " << thisJet.Py() - UnCorrJet.Py() << "\n";
+	//Note: pT cut should be 10 not 20, but we're saving only 20 GeV jets in the razor ntuple for now
+	//**********************************************************************************************************
+	if (jetPt[i]*JEC > 20 && 
+	    jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9	    
+	    ) {
+	  MetX_Type1Corr += -1 * ( thisJet.Px() - L1CorrJet.Px()  );
+	  MetY_Type1Corr += -1 * ( thisJet.Py() - L1CorrJet.Py()  );
+	  if (printSyncDebug) cout << "Met Type1 Corr: " << thisJet.Px() - L1CorrJet.Px() << " " << thisJet.Py() - L1CorrJet.Py() << "\n";
 	}
 
 
@@ -956,26 +1068,26 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
       for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
 
-      double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
-      double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
+      double PFMetCustomType1X = metPt*cos(metPhi) + MetX_Type1Corr;
+      double PFMetCustomType1Y = metPt*sin(metPhi) + MetY_Type1Corr;
 
       double PFMetnoHFX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
       double PFMetnoHFY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
     
-      TLorentzVector PFMET; PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
       TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+      TLorentzVector PFMETCustomType1; 
+      PFMETCustomType1.SetPxPyPzE(PFMetCustomType1X, PFMetCustomType1Y, 0, 
+				  sqrt(PFMetCustomType1X*PFMetCustomType1X + PFMetCustomType1Y*PFMetCustomType1Y));
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
-      // TLorentzVector MyMET = PFMETType1;
-
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      TLorentzVector MyMET = PFMETnoHFType1;
+      TLorentzVector MyMET = PFMETCustomType1;
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
-	cout << "Corrected PFMET: " << PFMET.Pt() << " " << PFMET.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
+	cout << "Corrected PFMET: " << PFMETCustomType1.Pt() << " " << PFMETCustomType1.Phi() << " | X,Y Correction :  " << MetX_Type1Corr << " " << MetY_Type1Corr << "\n";
       }
 
       events->MR = 0;
@@ -1000,9 +1112,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	     << " MET = " << MyMET.Pt() << " MetPhi = " << MyMET.Phi() << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
       }
 
-      events->MET = PFMET.Pt(); //MyMET.Pt();
+      events->MET = MyMET.Pt();
       events->METPhi = MyMET.Phi();
       events->METnoHF = PFMETnoHFType1.Pt();
+      events->METnoHFPhi = PFMETnoHFType1.Phi();
+      events->METRaw = PFMETUnCorr.Pt();
+      events->METRawPhi = PFMETUnCorr.Phi();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
       events->NBJetsLoose = nBJetsLoose20GeV;
@@ -1043,8 +1158,21 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	
       if(GoodPhotons.size()>0){
 
-	events->pho1.SetPtEtaPhiM(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].M());
+	events->pho1.SetPtEtaPhiE(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].E());
+	if(GoodPhotons.size()>1)
+	  events->pho2.SetPtEtaPhiE(GoodPhotons[1].Pt(),GoodPhotons[1].Eta(),GoodPhotons[1].Phi(),GoodPhotons[1].E());
+	  
+	// match photons to gen particles to remove double counting between QCD and GJet samples
+	for(int g = 0; g < nGenParticle; g++){
+	  if (!(deltaR(gParticleEta[g] , gParticlePhi[g], GoodPhotons[0].Eta(),GoodPhotons[0].Phi()) < 0.5) ) continue;
+	  if(gParticleStatus[g] != 1) continue;
+	  if(gParticleId[g] != 22) continue;
+	  events->pho1_motherID = gParticleMotherId[g];
+	}
 
+	for(int ii = 0; ii < nPhotons; ii++){
+	  if( phoPt[ii] == GoodPhotons[0].Pt() ) events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
+	}
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];
 	TLorentzVector m2 = MyMET;
@@ -1061,6 +1189,21 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    GoodJetsNoLeadPhoton.erase(GoodJetsNoLeadPhoton.begin()+subtractedIndex);
 	  }
 	}
+
+	// GenJET MR and HT
+	vector<TLorentzVector> GenJetObjects;
+	for(int j = 0; j < nGenJets; j++){
+	  if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
+	    TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+	    GenJetObjects.push_back(thisGenJet);
+	    events->genJetHT += genJetPt[j];
+	  }
+	}
+	if (GenJetObjects.size() >= 2 ) {
+	  vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
+	  events->genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
+	}
+	
 	    
 	//count the number of jets above 80 GeV now
 	int numJets80_noPho = 0.;
@@ -1229,7 +1372,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	{
 	  if (!(
 		GoodPhotons.size() > 0
-		&& GoodPhotons[0].Pt() > 50	
+		&& GoodPhotons[0].Pt() > 25	
 		)
 	      ) passSkim = false;	
 	}
