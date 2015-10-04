@@ -28,6 +28,47 @@
 
 #endif
 
+double GetEffArea( double scEta ) {
+
+  double effArea = 0.0;
+  //Effective areas below are for the sum of Neutral Hadrons + Photons
+  // if (fabs(scEta) < 1.0) {
+  //   effArea = 0.0960;
+  // } else if (fabs(scEta) < 1.479) {
+  //   effArea = 0.0947;	
+  // } else if (fabs(scEta) < 2.0) {
+  //   effArea = 0.0580;	
+  // } else if (fabs(scEta) < 2.2) {
+  //   effArea = 0.0688;	
+  // } else if (fabs(scEta) < 2.3) {
+  //   effArea = 0.0967;	
+  // } else if (fabs(scEta) < 2.4) {
+  //   effArea = 0.1195;	
+  // } else if (fabs(scEta) < 2.5) {
+  //   effArea = 0.1475;	
+  // }  
+  
+  //Effective areas using 90% region
+  if (fabs(scEta) < 1.0) {
+    effArea = 0.1752;
+  } else if (fabs(scEta) < 1.479) {
+    effArea = 0.1862;
+  } else if (fabs(scEta) < 2.0) {
+    effArea = 0.1411;	
+  } else if (fabs(scEta) < 2.2) {
+    effArea = 0.1534;	
+  } else if (fabs(scEta) < 2.3) {
+    effArea = 0.1903;	
+  } else if (fabs(scEta) < 2.4) {
+    effArea = 0.2243;	
+  } else {
+    effArea = 0.2687;	
+  } 
+
+  return effArea;
+
+}
+
 Bool_t passPreselection( ElectronTree *eleTree) {
 
     bool pass = false;
@@ -51,111 +92,113 @@ Bool_t passPreselection( ElectronTree *eleTree) {
 
 
 
-Bool_t passCSA14Tight( ElectronTree *eleTree) {
+Bool_t passEGammaPOGTight( ElectronTree *eleTree) {
 
-    bool pass = false;
+  bool pass = false;
     if(fabs(eleTree->fEleSCEta) < 1.479) {
-      if ( fabs(eleTree->fEleDEtaIn) < 0.0091
-	   && fabs(eleTree->fEleDPhiIn) < 0.031
-	   && eleTree->fEleSigmaIEtaIEta < 0.0106
-	   && eleTree->fEleHoverE < 0.0532
-	   && fabs(eleTree->fEleD0) < 0.0126
-	   && fabs(eleTree->fEleDZ) < 0.0116
-	   && eleTree->fEleOneOverEMinusOneOverP < 0.0609
-	   && eleTree->fElePFIso04 < 0.1649
+      if ( fabs(eleTree->fEleDEtaIn) < 0.00926
+	   && fabs(eleTree->fEleDPhiIn) < 0.0336
+	   && eleTree->fEleSigmaIEtaIEta < 0.0101
+	   && eleTree->fEleHoverE < 0.0597
+	   && fabs(eleTree->fEleD0) < 0.0111
+	   && fabs(eleTree->fEleDZ) < 0.466
+	   && eleTree->fEleOneOverEMinusOneOverP < 0.012
+	   //&& eleTree->fElePFIso04 < 0.1649
 	   && eleTree->fElePassConversion
-	   && eleTree->fEleNMissHits < 1
+	   && eleTree->fEleNMissHits <= 2
 	   ) {
 	pass = true;
       }
     } else {
-      if (fabs(eleTree->fEleDEtaIn) < 0.0106
-	   && fabs(eleTree->fEleDPhiIn) < 0.0359
-	   && eleTree->fEleSigmaIEtaIEta < 0.0305 
-	   && eleTree->fEleHoverE < 0.0835 
-	  && fabs(eleTree->fEleD0) < 0.0163 
-	   && fabs(eleTree->fEleDZ) <  0.5999
-	   && eleTree->fEleOneOverEMinusOneOverP <  0.1126
-	  && eleTree->fElePFIso04 < 0.2075
+      if (fabs(eleTree->fEleDEtaIn) < 0.00724
+	  && fabs(eleTree->fEleDPhiIn) < 0.0918
+	  && eleTree->fEleSigmaIEtaIEta < 0.0279 
+	   && eleTree->fEleHoverE < 0.0615 
+	  && fabs(eleTree->fEleD0) < 0.0351 
+	   && fabs(eleTree->fEleDZ) <  0.417
+	   && eleTree->fEleOneOverEMinusOneOverP <  0.00999
+	  // && eleTree->fElePFIso04 < 0.2075
 	   && eleTree->fElePassConversion
-	   && eleTree->fEleNMissHits < 1
+	   && eleTree->fEleNMissHits <= 1
 	  ) {
 	pass = true;
       }
     } 
-    return pass;
+  return pass;
 }
 
-Bool_t passCSA14Loose( ElectronTree *eleTree) {
+Bool_t passEGammaPOGLoose( ElectronTree *eleTree) {
 
     bool pass = false;
     if(fabs(eleTree->fEleSCEta) < 1.479) {
-      if ( fabs(eleTree->fEleDEtaIn) < 0.0181
-	   && fabs(eleTree->fEleDPhiIn) < 0.0936
-	   && eleTree->fEleSigmaIEtaIEta < 0.0123
-	   && eleTree->fEleHoverE < 0.141
-	   && fabs(eleTree->fEleD0) < 0.0166
-	   && fabs(eleTree->fEleDZ) < 0.54342
-	   && eleTree->fEleOneOverEMinusOneOverP < 0.1353
-	   && eleTree->fElePFIso04 < 0.24
+      if ( fabs(eleTree->fEleDEtaIn) < 0.0105
+	   && fabs(eleTree->fEleDPhiIn) < 0.115
+	   && eleTree->fEleSigmaIEtaIEta < 0.0103
+	   && eleTree->fEleHoverE < 0.104
+	   //&& fabs(eleTree->fEleD0) < 0.0261
+	   && fabs(eleTree->fEleDZ) < 0.41
+	   && eleTree->fEleOneOverEMinusOneOverP < 0.102
+	   // && eleTree->fElePFIso04 < 0.24
 	   && eleTree->fElePassConversion
-	   && eleTree->fEleNMissHits < 1
+	   && eleTree->fEleNMissHits <= 2
 	   ) {
 	pass = true;
       }
     } else {
-      if (fabs(eleTree->fEleDEtaIn) < 0.0124
-	   && fabs(eleTree->fEleDPhiIn) < 0.0642
-	   && eleTree->fEleSigmaIEtaIEta < 0.035 
-	   && eleTree->fEleHoverE < 0.1115 
-	  && fabs(eleTree->fEleD0) < 0.098 
-	   && fabs(eleTree->fEleDZ) <  0.9187
-	   && eleTree->fEleOneOverEMinusOneOverP <  0.1443
-	  && eleTree->fElePFIso04 < 0.3529
-	   && eleTree->fElePassConversion
-	   && eleTree->fEleNMissHits < 1
-	  ) {
-	pass = true;
-      }
-    } 
-    return pass;
-}
-
-
-Bool_t passCSA14VetoID( ElectronTree *eleTree) {
-
-    bool pass = false;
-    if(fabs(eleTree->fEleSCEta) < 1.479) {
-      if ( fabs(eleTree->fEleDEtaIn) < 0.02
-	   && fabs(eleTree->fEleDPhiIn) < 0.2579
-	   && eleTree->fEleSigmaIEtaIEta < 0.0125
-	   && eleTree->fEleHoverE < 0.2564
-	   && fabs(eleTree->fEleD0) < 0.025
-	   && fabs(eleTree->fEleDZ) < 0.5863
-	   && eleTree->fEleOneOverEMinusOneOverP < 0.1508	   
-	   && eleTree->fElePassConversion
-	   && eleTree->fEleNMissHits < 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(eleTree->fEleDEtaIn) < 0.0141
-	   && fabs(eleTree->fEleDPhiIn) < 0.2591
-	   && eleTree->fEleSigmaIEtaIEta < 0.0371 
-	   && eleTree->fEleHoverE < 0.1335 
-	  && fabs(eleTree->fEleD0) < 0.2232
-	   && fabs(eleTree->fEleDZ) <  0.9513
-	   && eleTree->fEleOneOverEMinusOneOverP <  0.1542
+      if (fabs(eleTree->fEleDEtaIn) < 0.00814
+	  && fabs(eleTree->fEleDPhiIn) < 0.182
+	  && eleTree->fEleSigmaIEtaIEta < 0.0301 
+	  && eleTree->fEleHoverE < 0.0897 
+	  //&& fabs(eleTree->fEleD0) < 0.118 
+	  && fabs(eleTree->fEleDZ) <  0.822
+	  && eleTree->fEleOneOverEMinusOneOverP <  0.126
+	  //&& eleTree->fElePFIso04 < 0.3529
 	  && eleTree->fElePassConversion
-	  && eleTree->fEleNMissHits < 3
+	  && eleTree->fEleNMissHits <= 1
 	  ) {
 	pass = true;
       }
-    } 
+    }
     return pass;
 }
 
-Bool_t passCSA14VetoIso( ElectronTree *eleTree) {
+
+Bool_t passEGammaPOGVetoID( ElectronTree *eleTree) {
+
+  bool pass = false;
+  if(fabs(eleTree->fEleSCEta) < 1.479) {
+    if ( fabs(eleTree->fEleDEtaIn) < 0.0152
+	 && fabs(eleTree->fEleDPhiIn) < 0.216
+	 && eleTree->fEleSigmaIEtaIEta < 0.0114
+	 && eleTree->fEleHoverE < 0.181
+	 //&& fabs(eleTree->fEleD0) < 0.0564
+	 && fabs(eleTree->fEleDZ) < 0.472
+	 && eleTree->fEleOneOverEMinusOneOverP < 0.207
+	 // && eleTree->fElePFIso04 < 0.3313 
+	 && eleTree->fElePassConversion
+	 && eleTree->fEleNMissHits <= 2
+	 ) {
+      pass = true;
+    }
+  } else {
+    if (fabs(eleTree->fEleDEtaIn) < 0.0113
+	&& fabs(eleTree->fEleDPhiIn) < 0.237
+	&& eleTree->fEleSigmaIEtaIEta < 0.0352 
+	&& eleTree->fEleHoverE < 0.116 
+	//&& fabs(eleTree->fEleD0) < 0.222
+	&& fabs(eleTree->fEleDZ) <  0.921
+	&& eleTree->fEleOneOverEMinusOneOverP <  0.174
+	//&& eleTree->fElePFIso04 < 0.3816
+	&& eleTree->fElePassConversion
+	&& eleTree->fEleNMissHits <= 3
+	) {
+      pass = true;
+    }
+  } 
+  return pass;
+}
+
+Bool_t passEGammaPOGVetoIso( ElectronTree *eleTree) {
 
     bool pass = false;
     if(fabs(eleTree->fEleSCEta) < 1.479) {
@@ -176,7 +219,7 @@ Bool_t passImprovedIso( ElectronTree *eleTree) {
 
     bool pass = false;
     if(eleTree->fElePt > 20) {
-      pass = bool(eleTree->fMiniIso < 0.1);
+      pass = bool(eleTree->fMiniIsoDBCorr / eleTree->fElePt  < 0.2);
     } else {
       pass = bool(eleTree->fElePFIso04*eleTree->fElePt < 5);
     }
@@ -193,19 +236,16 @@ Bool_t passIDMVANonTrigVeto( ElectronTree *eleTree) {
   if (eleTree->fElePt > 10.0) ptBin = 1;
 
   Double_t MVACut = -999;
-  if (subdet == 0 && ptBin == 0) MVACut = -0.1;
-  if (subdet == 1 && ptBin == 0) MVACut = -0.75;
-  if (subdet == 2 && ptBin == 0) MVACut = -0.1;
-  if (subdet == 0 && ptBin == 1) MVACut = -0.5;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.8;
-  if (subdet == 2 && ptBin == 1) MVACut = -0.3;
+  if (subdet == 0 && ptBin == 0) MVACut = -0.11;
+  if (subdet == 1 && ptBin == 0) MVACut = -0.55;
+  if (subdet == 2 && ptBin == 0) MVACut = -0.60;
+  if (subdet == 0 && ptBin == 1) MVACut = -0.16;
+  if (subdet == 1 && ptBin == 1) MVACut = -0.65;
+  if (subdet == 2 && ptBin == 1) MVACut = -0.74;
 
   bool pass = false;
   if (eleTree->fIDMVANonTrig > MVACut 
-      && ( (fabs(eleTree->fEleSCEta) < 1.479 && fabs(eleTree->fEleD0) < 0.0166)
-  	   ||
-  	   (fabs(eleTree->fEleSCEta) >= 1.479 && fabs(eleTree->fEleD0) < 0.098)
-  	   )
+      && fabs(eleTree->fEleIP3dSig) < 4
       ) {
     pass = true;
   }   
@@ -248,22 +288,30 @@ Bool_t passIDMVANonTrigVeto( ElectronTree *eleTree) {
 bool PassSelection( ElectronTree* eleTree, int wp ) {
 
   bool pass = false;
+  double dr = fmax(0.05,fmin(0.2, 10/eleTree->fElePt));
 
   //Veto
   if (wp == 1) {
     if ( eleTree->fElePt > 0 
-	 //&&  eleTree->fPassMVANonTrigVetoSelection
-	  && passIDMVANonTrigVeto(eleTree)
-	  && passImprovedIso(eleTree) 
+	 &&  eleTree->fPassMVANonTrigVetoSelection
+	 // && passIDMVANonTrigVeto(eleTree)
+	 // && passImprovedIso(eleTree) 
 	 ) {
       pass = true;
     }
   }
 
   if (wp == 2) {
+    
+ 
     if ( eleTree->fElePt > 0 
 	 && eleTree->fPassLooseSelection
-	 //&& passCSA14Loose(eleTree) 
+	 // && passEGammaPOGLoose(eleTree) 
+	 //&& eleTree->fMiniIso / eleTree->fElePt < 0.1
+	 && eleTree->fMiniIsoDBCorr / eleTree->fElePt < 0.1
+	 //&& (eleTree->fMiniIsoCharged + fmax(0.0, eleTree->fMiniIso - eleTree->fRho*GetEffArea(eleTree->fEleSCEta)*pow(dr/0.3,2))) / eleTree->fElePt < 0.1
+	 //&& (eleTree->fMiniIsoCharged + fmax(0.0, eleTree->fMiniIso - eleTree->fRhoNeutralCentral*GetEffArea(eleTree->fEleSCEta)*pow(dr/0.3,2))) / eleTree->fElePt < 0.1
+	 
 	 ) {
       pass = true;
     }
@@ -272,7 +320,8 @@ bool PassSelection( ElectronTree* eleTree, int wp ) {
   if (wp == 3) {
     if ( eleTree->fElePt > 0 
 	 && eleTree->fPassTightSelection
-	 //&& passCSA14Tight(eleTree)
+	 // && passEGammaPOGTight(eleTree)
+	 // && (eleTree->fMiniIso - eleTree->fRho*GetEffArea(eleTree->fEleSCEta)*pow(dr/0.3,2)) / eleTree->fElePt < 0.1
 	 ) {
       pass = true;
     }
@@ -633,8 +682,8 @@ void plotElectronTriggerEfficiency() {
   effPtTriggerEleCombined->Draw("Psame");
   
   legend->Draw();  
-  cv->SaveAs("ElectronTriggerEfficiencyVsPt.gif");
-  cv->SaveAs("ElectronTriggerEfficiencyVsPt.pdf");
+  cv->SaveAs("SingleEleTriggerEfficiencyVsPt.gif");
+  cv->SaveAs("SingleEleTriggerEfficiencyVsPt.pdf");
 
 
 
@@ -668,8 +717,8 @@ void plotElectronTriggerEfficiency() {
   effEtaTriggerEleCombined->Draw("Psame");
   
   legend->Draw();  
-  cv->SaveAs("ElectronTriggerEfficiencyVsEta.gif");
-  cv->SaveAs("ElectronTriggerEfficiencyVsEta.pdf");
+  cv->SaveAs("SingleEleTriggerEfficiencyVsEta.gif");
+  cv->SaveAs("SingleEleTriggerEfficiencyVsEta.pdf");
 
 
 
@@ -677,6 +726,107 @@ void plotElectronTriggerEfficiency() {
 
 }
 
+
+
+
+void plotElectronMiniIsoEfficiency() {
+  TCanvas *cv =0;
+  TLegend *legend =0;
+
+  TFile *filePromptUnCorr = new TFile("Efficiency_PromptElectron_TTJets_25_MiniIsolationUnCorr.root","READ");
+  TFile *filePromptDBCorr = new TFile("Efficiency_PromptElectron_TTJets_25_MiniIsolationDBCorr.root","READ");
+  TFile *filePromptEACorr = new TFile("Efficiency_PromptElectron_TTJets_25_MiniIsolationEACorrRhoNeutralCentral.root","READ");
+  TFile *filePromptEACorr90 = new TFile("Efficiency_PromptElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral.root","READ");
+  TFile *fileFakeUnCorr = new TFile("Efficiency_FakeElectron_TTJets_25_MiniIsolationUnCorr.root","READ");
+  TFile *fileFakeDBCorr = new TFile("Efficiency_FakeElectron_TTJets_25_MiniIsolationDBCorr.root","READ");
+  TFile *fileFakeEACorr = new TFile("Efficiency_FakeElectron_TTJets_25_MiniIsolationEACorrRhoNeutralCentral.root","READ");
+  TFile *fileFakeEACorr90 = new TFile("Efficiency_FakeElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral.root","READ");
+
+  TGraphAsymmErrors* effNPVPromptUnCorr = (TGraphAsymmErrors*)filePromptUnCorr->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVPromptDBCorr = (TGraphAsymmErrors*)filePromptDBCorr->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVPromptEACorr = (TGraphAsymmErrors*)filePromptEACorr->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVPromptEACorr90 = (TGraphAsymmErrors*)filePromptEACorr90->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVFakeUnCorr = (TGraphAsymmErrors*)fileFakeUnCorr->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVFakeDBCorr = (TGraphAsymmErrors*)fileFakeDBCorr->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVFakeEACorr = (TGraphAsymmErrors*)fileFakeEACorr->Get("Efficiency_NPV");
+  TGraphAsymmErrors* effNPVFakeEACorr90 = (TGraphAsymmErrors*)fileFakeEACorr90->Get("Efficiency_NPV");
+
+ 
+  cv = new TCanvas("cv","cv", 800,600);
+
+  legend = new TLegend(0.50,0.60,0.90,0.80);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(effNPVPromptUnCorr, "Uncorrected", "LP");
+  legend->AddEntry(effNPVPromptDBCorr, "#Delta#beta Corr", "LP");
+  legend->AddEntry(effNPVPromptEACorr, "Eff Area Corr (Mean)", "LP");
+  legend->AddEntry(effNPVPromptEACorr90, "Eff Area Corr (90%)", "LP");
+
+  effNPVPromptDBCorr->SetLineWidth(3);
+  effNPVPromptDBCorr->SetLineColor(kBlack);
+  effNPVPromptDBCorr->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
+  effNPVPromptDBCorr->GetYaxis()->SetTitle("MiniIsolation Cut Efficiency");
+  effNPVPromptDBCorr->GetYaxis()->SetTitleOffset(1.4);
+
+  effNPVPromptUnCorr->SetLineWidth(3);
+  effNPVPromptUnCorr->SetLineColor(kGreen+2);
+  effNPVPromptEACorr->SetLineWidth(3);
+  effNPVPromptEACorr->SetLineColor(kBlue);
+  effNPVPromptEACorr90->SetLineWidth(3);
+  effNPVPromptEACorr90->SetLineColor(kRed);
+
+  effNPVPromptEACorr->Draw("AP");
+  effNPVPromptEACorr90->Draw("Psame");
+  effNPVPromptDBCorr->Draw("Psame");
+  effNPVPromptUnCorr->Draw("Psame");
+
+  effNPVPromptEACorr->GetYaxis()->SetRangeUser(0.90,1.0);
+  effNPVPromptEACorr->GetXaxis()->SetRangeUser(2,30);
+  
+  legend->Draw();  
+  cv->SaveAs("MiniIsoEfficiencyVsNPV_PromptElectrons.gif");
+
+
+  cv = new TCanvas("cv","cv", 800,600);
+
+  legend = new TLegend(0.50,0.65,0.90,0.85);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(effNPVFakeUnCorr, "Uncorrected", "LP");
+  legend->AddEntry(effNPVFakeDBCorr, "#Delta#beta Corr", "LP");
+  legend->AddEntry(effNPVFakeEACorr, "Eff Area Corr (Mean)", "LP");
+  legend->AddEntry(effNPVFakeEACorr90, "Eff Area Corr (90%)", "LP");
+
+  effNPVFakeDBCorr->SetLineWidth(3);
+  effNPVFakeDBCorr->SetLineColor(kBlack);
+  effNPVFakeDBCorr->GetXaxis()->SetTitle("Number of Reconstructed Primary Vertices");
+  effNPVFakeDBCorr->GetYaxis()->SetTitle("MiniIsolation Cut Efficiency");
+  effNPVFakeDBCorr->GetYaxis()->SetTitleOffset(1.4);
+
+  effNPVFakeUnCorr->SetLineWidth(3);
+  effNPVFakeUnCorr->SetLineColor(kGreen+2);
+  effNPVFakeEACorr->SetLineWidth(3);
+  effNPVFakeEACorr->SetLineColor(kBlue);
+  effNPVFakeEACorr90->SetLineWidth(3);
+  effNPVFakeEACorr90->SetLineColor(kRed);
+
+  effNPVFakeEACorr->Draw("AP");
+  effNPVFakeEACorr90->Draw("Psame");
+  effNPVFakeDBCorr->Draw("Psame");
+  effNPVFakeUnCorr->Draw("Psame");
+
+  effNPVFakeEACorr->GetYaxis()->SetRangeUser(0.0,0.30);
+  effNPVFakeEACorr->GetXaxis()->SetRangeUser(2,30);
+  
+  legend->Draw();  
+  cv->SaveAs("MiniIsoEfficiencyVsNPV_FakeElectrons.gif");
+
+
+
+
+}
 
 
 //=== MAIN MACRO ================================================================================================= 
@@ -727,7 +877,7 @@ void ProduceElectronEfficiencyPlots(const string inputfile, int wp, int option =
 
     //Cuts
     if (EleTree->fEleGenPt < 5) continue;
-    if (abs(EleTree->fEleGenEta) > 2.4) continue;
+    if (abs(EleTree->fEleGenEta) > 2.5) continue;
 
     //if (!(EleTree->fElePt > 5)) continue;
     //if (option == 1 && !passPreselection(EleTree)) continue;
@@ -741,6 +891,15 @@ void ProduceElectronEfficiencyPlots(const string inputfile, int wp, int option =
     if (wp >= 100) {
       if (!(EleTree->fPassTightSelection)) continue;
     }
+
+
+    // if (EleTree->fElePt < 5) continue;
+    //if (!passImprovedIso(EleTree)) continue;
+    // if (!(fabs(EleTree->fEleIP3dSig) < 4)) continue;
+    // if(!passIDMVANonTrigVeto(EleTree)) continue;
+
+    // //Temp: require loose ID
+    if (!passEGammaPOGLoose(EleTree)) continue;
 
 
     if (option == 0) {
@@ -868,7 +1027,7 @@ void ProduceElectronEfficiencyPlots(const string inputfile, int wp, int option =
 
       }
       //**** Npv ****
-      if (fabs(EleTree->fEleEta) < 2.4) {
+      if (EleTree->fElePt > 30 ) {
 	histDenominatorNpv->Fill(EleTree->fNVertices);
 
 	//Numerator
@@ -993,13 +1152,13 @@ void MakeElectronEfficiencyPlots( int option = 0) {
 
   if (option == 1) {
    
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 1, 0, "PromptElectron_TTJets_50ns_Veto");
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 2, 0, "PromptElectron_TTJets_50ns_Loose");
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 3, 0, "PromptElectron_TTJets_50ns_Tight");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 0, "PromptElectron_TTJets_25ns_Veto");
+     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 0, "PromptElectron_TTJets_25ns_Loose");
+     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 0, "PromptElectron_TTJets_25ns_Tight");
     
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 1, 1, "FakeElectron_TTJets_50ns_Veto");
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 2, 1, "FakeElectron_TTJets_50ns_Loose");
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 3, 1, "FakeElectron_TTJets_50ns_Tight");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 1, "FakeElectron_TTJets_25ns_Veto");
+     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25ns_Loose");
+     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 1, "FakeElectron_TTJets_25ns_Tight");
 
 
   }
@@ -1010,6 +1169,24 @@ void MakeElectronEfficiencyPlots( int option = 0) {
     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 102, 1, "PromptElectron_TTJets_50ns_TriggerEle32Tight");
     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 110, 1, "PromptElectron_TTJets_50ns_TriggerEleCombined");
     plotElectronTriggerEfficiency();
+    return;
+  }
+
+  //test miniisolation efficiency
+  if (option == 3) {
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationUnCorr");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationUnCorr");   
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationDBCorr");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationDBCorr");   
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationEACorrRhoNeutralCentral");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationEACorrRhoNeutralCentral");   
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral");   
+ 
+
+    //ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_DYJets_25_MiniIsolationEACorr");
+ 
+    plotElectronMiniIsoEfficiency();
     return;
   }
 
