@@ -86,7 +86,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fMiniIsoCharged = ele_chargedMiniIso[i];
 	    eleTree->fMiniIsoNeutral = ele_photonAndNeutralHadronMiniIso[i];
 	    eleTree->fMiniIso = ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i];
-	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i];
+	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i]);
 
 	    eleTree->fEleTriggerBit = 0;
 	    if (matchElectronHLTFilters(i, "Ele27Loose")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose);
@@ -275,7 +275,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fMiniIsoCharged = ele_chargedMiniIso[matchedIndex];
 	    eleTree->fMiniIsoNeutral = ele_photonAndNeutralHadronMiniIso[matchedIndex];
 	    eleTree->fMiniIso = ele_chargedMiniIso[matchedIndex] + ele_photonAndNeutralHadronMiniIso[matchedIndex];
-	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[matchedIndex] + ele_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*ele_chargedPileupMiniIso[matchedIndex];
+	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[matchedIndex] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*ele_chargedPileupMiniIso[matchedIndex]);
 	    eleTree->fEleTriggerBit = 0;
 	    if (matchElectronHLTFilters(matchedIndex, "Ele27Loose")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
 	    if (matchElectronHLTFilters(matchedIndex, "Ele27Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
