@@ -143,6 +143,9 @@ void RazorAnalyzer::EnableTaus(){
     fChain->SetBranchStatus("tau_passMuVetoTight", 1);
     fChain->SetBranchStatus("tau_ID", 1);
     fChain->SetBranchStatus("tau_combinedIsoDeltaBetaCorr3Hits", 1);
+    fChain->SetBranchStatus("tau_chargedIsoPtSum", 1);
+    fChain->SetBranchStatus("tau_neutralIsoPtSum", 1);
+    fChain->SetBranchStatus("tau_puCorrPtSum", 1);
     fChain->SetBranchStatus("tau_eleVetoMVA", 1);
     fChain->SetBranchStatus("tau_eleVetoCategory", 1);
     fChain->SetBranchStatus("tau_muonVetoMVA", 1);
@@ -216,6 +219,10 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetHOEnergyFraction", 1);
     fChain->SetBranchStatus("jetHFHadronEnergyFraction", 1);
     fChain->SetBranchStatus("jetHFEMEnergyFraction", 1);
+    fChain->SetBranchStatus("jetAllMuonPt", 1);
+    fChain->SetBranchStatus("jetAllMuonEta", 1);
+    fChain->SetBranchStatus("jetAllMuonPhi", 1);
+    fChain->SetBranchStatus("jetAllMuonM", 1);
 }
 
 void RazorAnalyzer::EnableFatJets(){
@@ -237,6 +244,8 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metType1Phi", 1);
     fChain->SetBranchStatus("metType0Plus1Pt", 1);
     fChain->SetBranchStatus("metType0Plus1Phi", 1);
+    fChain->SetBranchStatus("metPuppiPt", 1);
+    fChain->SetBranchStatus("metPuppiPhi", 1);
     fChain->SetBranchStatus("sumMET", 1);
     fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
     fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
@@ -277,6 +286,7 @@ void RazorAnalyzer::EnableMC(){
     fChain->SetBranchStatus("genQScale", 1);
     fChain->SetBranchStatus("genAlphaQCD", 1);
     fChain->SetBranchStatus("genAlphaQED", 1);
+    fChain->SetBranchStatus("lheComments", 1);
 }
 
 void RazorAnalyzer::EnableGenParticles(){
