@@ -932,7 +932,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//Add to Type1 Met Correction
 	//Note: pT cut should be 10 not 20, but we're saving only 20 GeV jets in the razor ntuple for now
 	//**********************************************************************************************************
-	if (jetPt[i]*JEC > 20 && 
+	if (jetPt[i]*JEC*jetEnergySmearFactor > 20 && 
 	    jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9	    
 	    ) {
 	  MetX_Type1Corr += -1 * ( thisJet.Px() - L1CorrJet.Px()  );
