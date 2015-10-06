@@ -11,8 +11,6 @@ import macro
 #####################################
 
 #Single lepton trigger indices
-#singleLeptonTriggerNumsData = [1,2,8,20,22,24,25] #used in razor inclusive
-#singleLeptonTriggerNumsMC = [1,2,8,17,18,19,24,25] #used in razor inclusive
 singleLeptonTriggerNumsData = [3,8,11,12,14,21,22,23,24,25,26,27]
 singleLeptonTriggerNumsMC = [3,8,11,12,14,17,18,19,20,26,27]
 
