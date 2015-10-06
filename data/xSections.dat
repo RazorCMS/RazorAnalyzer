@@ -105,6 +105,9 @@ TT_TuneCUETP8M1_13TeV-powheg-scaleup-pythia8                       730
 TT_TuneCUETP8M1_mtop1695_13TeV-powheg-pythia8                      730.0
 TT_TuneCUETP8M1_mtop1755_13TeV-powheg-pythia8                      600.4
 TT_TuneZ2star_13TeV-powheg-pythia6-tauola                          730
+QCD_Pt_5to10_TuneCUETP8M1_13TeV_pythia8                            61018300000
+QCD_Pt_10to15_TuneCUETP8M1_13TeV_pythia8                           5887580000
+QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8                           1837410000
 QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8                           140932000
 QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8                           19204300    
 QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8                          2762530      
