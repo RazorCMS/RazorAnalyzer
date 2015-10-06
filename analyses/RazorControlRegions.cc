@@ -23,7 +23,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    // TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
     std::vector<JetCorrectorParameters> correctionParameters;
@@ -37,7 +37,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      // correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
@@ -834,22 +834,22 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       if (treeTypeOption == 5 || treeTypeOption == 15) {
 	for(int i = 0; i < nPhotons; i++){
 
-	  //mulitply by the same factor as electrons
-	  if(isData){
-	    phoPt[i] = phoPt[i]*GetElectronScaleCorrection(phoPt[i],phoEta[i]);
-	    phoE[i]  = phoE[i]*GetElectronScaleCorrection(phoPt[i],phoEta[i]);
-	  }
+	  float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
+	  TVector3 vec;
+	  vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 
-	  if(phoPt[i] < 10) continue;
+	  if(pho_pt_corr < 10) continue;
 	  if(fabs(phoEta[i]) > 2.5) continue;
 	  if(!isTightPhoton(i, use25nsSelection)) continue;
 
-	  if(phoPt[i] > 40) nPhotonsAbove40GeV++;
+	  if(pho_pt_corr > 40) nPhotonsAbove40GeV++;
 
-	  TLorentzVector thisPhoton = makeTLorentzVector(phoPt[i], phoEta[i], phoPhi[i], phoE[i]); 
+	  TLorentzVector thisPhoton;
+	  thisPhoton.SetVectM( vec, .0 );
+
 	  GoodPhotons.push_back(thisPhoton);
 	}
-      }     
+      }
       events->nSelectedPhotons = nPhotonsAbove40GeV;
       
       //Sort Photon Collection
@@ -930,7 +930,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
 		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
-	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
+	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
 	}
 	if (printSyncDebug) {
 	  cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";
@@ -1086,12 +1086,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
-      // TLorentzVector MyMET = PFMETType1;
+      TLorentzVector MyMET = PFMETType1;
 
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      TLorentzVector MyMET = PFMETnoHFType1;
+      // TLorentzVector MyMET = PFMETnoHFType1;
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
@@ -1163,9 +1163,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	
       if(GoodPhotons.size()>0){
 
-	events->pho1.SetPtEtaPhiE(GoodPhotons[0].Pt(),GoodPhotons[0].Eta(),GoodPhotons[0].Phi(),GoodPhotons[0].E());
+	events->pho1 = GoodPhotons[0];
 	if(GoodPhotons.size()>1)
-	  events->pho2.SetPtEtaPhiE(GoodPhotons[1].Pt(),GoodPhotons[1].Eta(),GoodPhotons[1].Phi(),GoodPhotons[1].E());
+	  events->pho2 = GoodPhotons[1];
 	  
 	// match photons to gen particles to remove double counting between QCD and GJet samples
 	for(int g = 0; g < nGenParticle; g++){
@@ -1175,9 +1175,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->pho1_motherID = gParticleMotherId[g];
 	}
 
-	for(int ii = 0; ii < nPhotons; ii++){
-	  if( phoPt[ii] == GoodPhotons[0].Pt() ) events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
-	}
+	for(int ii = 0; ii < nPhotons; ii++)
+	  if( pho_RegressionE[ii]/cosh(phoEta[ii]) == GoodPhotons[0].Pt() ) events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
+
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];
 	TLorentzVector m2 = MyMET;
@@ -1193,22 +1193,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if(GoodJetsNoLeadPhoton[subtractedIndex].Pt() < 40){ //erase this jet
 	    GoodJetsNoLeadPhoton.erase(GoodJetsNoLeadPhoton.begin()+subtractedIndex);
 	  }
-	}
-
-	// GenJET MR and HT
-	vector<TLorentzVector> GenJetObjects;
-	for(int j = 0; j < nGenJets; j++){
-	  if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
-	    TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
-	    GenJetObjects.push_back(thisGenJet);
-	    events->genJetHT += genJetPt[j];
-	  }
-	}
-	if (GenJetObjects.size() >= 2 ) {
-	  vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
-	  events->genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
-	}
-	
+	}	
 	    
 	//count the number of jets above 80 GeV now
 	int numJets80_noPho = 0.;
@@ -1232,6 +1217,20 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->dPhiRazor_NoPho = fabs(hemispheresNoLeadPhoton[0].DeltaPhi(hemispheresNoLeadPhoton[1]));
 	}
 
+      }
+
+      // GenJET MR and HT
+      vector<TLorentzVector> GenJetObjects;
+      for(int j = 0; j < nGenJets; j++){
+	if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
+	  TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+	  GenJetObjects.push_back(thisGenJet);
+	  events->genJetHT += genJetPt[j];
+	}
+      }
+      if (GenJetObjects.size() >= 2 ) {
+	vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
+	events->genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
       }
     
       //***********************************************************************//
