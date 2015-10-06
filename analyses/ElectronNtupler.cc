@@ -60,6 +60,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fEleSCEta = eleEta_SC[i]; 
 	    eleTree->fEleTriggerBit = 0;
 	    eleTree->fRho = fixedGridRhoFastjetAll; 
+	    eleTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
 	    eleTree->fNVertices = nPV; 
 	    eleTree->fActivity = ele_activityMiniIsoAnnulus[i];
 	    eleTree->fEleD0 = ele_d0[i]; 
@@ -82,15 +83,17 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassTightSelection = isTightElectron(i);
 	    eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(i);
 	    eleTree->fPtRel = ele_ptrel[i];
+	    eleTree->fMiniIsoCharged = ele_chargedMiniIso[i];
+	    eleTree->fMiniIsoNeutral = ele_photonAndNeutralHadronMiniIso[i];
 	    eleTree->fMiniIso = ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i];
 	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i];
 
 	    eleTree->fEleTriggerBit = 0;
-	    if (matchElectronHLTFilters(i, "Ele27Loose")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
-	    if (matchElectronHLTFilters(i, "Ele27Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
-	    if (matchElectronHLTFilters(i, "Ele32Tight")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
-	    if (matchElectronHLTFilters(i, "Ele105")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105;
-	    if (matchElectronHLTFilters(i, "Ele115")) eleTree->fEleTriggerBit = eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115;
+	    if (matchElectronHLTFilters(i, "Ele27Loose")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose);
+	    if (matchElectronHLTFilters(i, "Ele27Tight")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight);
+	    if (matchElectronHLTFilters(i, "Ele32Tight")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight);
+	    if (matchElectronHLTFilters(i, "Ele105")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105);
+	    if (matchElectronHLTFilters(i, "Ele115")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115);
 
 	    //Match to Gen particle
 	    int matchedIndex = -1;
@@ -209,6 +212,7 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	  eleTree->fEleGenEta = gParticleEta[i];
 	  eleTree->fEleGenPhi = gParticlePhi[i];
 	  eleTree->fRho = fixedGridRhoFastjetAll; 
+	  eleTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
 	  eleTree->fNVertices = nPV; 
 	  eleTree->fPdgId = gParticleId[i];
 
@@ -268,6 +272,8 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fPassTightSelection = isTightElectron(matchedIndex);
 	    eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(matchedIndex);
 	    eleTree->fPtRel = ele_ptrel[matchedIndex];
+	    eleTree->fMiniIsoCharged = ele_chargedMiniIso[matchedIndex];
+	    eleTree->fMiniIsoNeutral = ele_photonAndNeutralHadronMiniIso[matchedIndex];
 	    eleTree->fMiniIso = ele_chargedMiniIso[matchedIndex] + ele_photonAndNeutralHadronMiniIso[matchedIndex];
 	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[matchedIndex] + ele_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*ele_chargedPileupMiniIso[matchedIndex];
 	    eleTree->fEleTriggerBit = 0;

@@ -19,7 +19,8 @@ bool RazorAnalyzer::isCSVT(int i){
 //Jet Energy Corrections
 double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 						 double rho, double jetArea,
-						 FactorizedJetCorrector *jetcorrector,  
+						 FactorizedJetCorrector *jetcorrector,
+						 int jetCorrectionLevel,
 						 bool printDebug) {
   if (!jetcorrector) {
     cout << "WWARNING: Jet corrector pointer is null. Returning JEC = 0. \n";
@@ -40,6 +41,10 @@ double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta,
 
   double cumulativeCorrection = 1.0;
   for (UInt_t j=0; j<corrections.size(); ++j) {
+
+    //only correct up to the required level. if -1, then do all correction levels
+    if (jetCorrectionLevel >= 0 && int(j) > jetCorrectionLevel) continue;
+
     double currentCorrection = corrections.at(j)/cumulativeCorrection;
     cumulativeCorrection = corrections.at(j);
     if (printDebug) cout << "Correction Level " << j << " : current correction = " << currentCorrection << " , cumulative correction = " << cumulativeCorrection << "\n";

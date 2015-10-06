@@ -70,6 +70,7 @@ class RazorAnalyzer: public RazorEvents {
 	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
 
         //functions in RazorAuxMuon.cc
+	float GetMuonEffectiveAreaMean(int i, string type );
 	bool isMuonPOGLooseMuon(int i, bool applyID = true, bool applyIso = true);
 	bool isMuonPOGMediumMuon(int i, bool applyID = true, bool applyIso = true);
         bool isMuonPOGTightMuon(int i, bool applyID = true, bool applyIso = true);
@@ -83,8 +84,8 @@ class RazorAnalyzer: public RazorEvents {
 
         //functions in RazorAuxElectron.cc
 	float GetElectronScaleCorrection( double pt, double eta );
-	float GetEffectiveAreaMean(int i);
-	float GetEffectiveArea90(int i);
+	float GetElectronEffectiveAreaMean(int i, bool use25nsCuts = true);
+	float GetElectronEffectiveArea90(int i);
         bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
@@ -164,6 +165,7 @@ class RazorAnalyzer: public RazorEvents {
 	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 					  double rho, double jetArea,
 					  FactorizedJetCorrector *jetcorrector,  
+					  int jetCorrectionLevel = -1,
 					  bool printDebug = false);
 	double JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, 
   					SimpleJetResolution *JetResolutionCalculator, 

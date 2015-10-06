@@ -6,15 +6,26 @@ import ROOT as rt
 import macro
 from razorAnalysis import *
 
-LUMI = 40 #in /pb
+LUMI = 16 #in /pb
 MCLUMI = 1 
 
-SAMPLES = ["TTJets", "WJets", "SingleTop"]
-FILENAMES = {
-            "TTJets"   :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
-            "WJets"    :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root",
-            "SingleTop":"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/SingleTop_1pb_weighted.root",
-            "Data"     :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/SingleMuonAndElectron_Run2015B-GOLDEN.root"
+SAMPLES_TTJ1L = ["SingleTop", "WJets", "TTJets"]
+SAMPLES_WJ1L = ["SingleTop", "TTJets", "WJets"]
+SAMPLES_DYJ2L = ["VV", "SingleTop", "WJets", "TTJets", "DYJets"]
+
+FILENAMES_1L = {
+            "TTJets"   :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_razorskim.root",
+            "WJets"    :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
+            "SingleTop":"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p16/OneLeptonReduced_new2/SingleTop_1pb_weighted_razorskim.root",
+            "Data"     :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/V1p17/OneLeptonReduced_v2/SingleLepton_Run2015C_GOLDEN_razorskim_noduplicates.root"
+            }
+FILENAMES_2L = {
+            "DYJets"   :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p17/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_HTBinned_1pb_weighted_razorskim.root",
+            "TTJets"   :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p17/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_razorskim.root",
+            "WJets"    :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p17/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
+            "SingleTop":"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p17/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted_razorskim.root",
+            "VV"       :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p17/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted_razorskim.root",
+            "Data"     :"root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p17/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleLepton_Run2015C_GoodLumi_razorskim_noduplicates.root",
             }
 
 if __name__ == "__main__":
@@ -27,34 +38,31 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debug = args.debug
 
-    #setup files and trees
-    inputs = FILENAMES
-    files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
-    for name in inputs: assert files[name] #check input files
-    trees = macro.makeTreeDict(files, "ControlSampleEvent", debug)
-
-    #load weight histograms
+    #initialize
     weightHists = loadWeightHists(debug)
+    sfHists = {}
 
-    #define histograms to fill
-    hists = {name:{} for name in inputs}
-    for name in inputs:
-        hists[name]["MR"] = rt.TH1F("MR"+name, "M_{R} (GeV)", 20, 300, 4000)
-        hists[name]["Rsq"] = rt.TH1F("Rsq"+name, "R^{2}", 20, 0.15, 1.5)
-        for var in hists[name]: 
-            hists[name][var].Sumw2()
-    listOfVars = hists.itervalues().next().keys() #list of the variable names
-    
-    #fill histograms
-    print("MC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=ttjetsSingleLeptonCutsMC, varList=listOfVars, hists={name:hists[name] for name in SAMPLES}, weightHists=weightHists, scale=LUMI*1.0/MCLUMI, debug=debug) 
+    #DYJets control sample
+    dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
+                cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, bins=dyjetsDileptonBins,
+                lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, debug=debug)
+    appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, debug=debug) 
 
-    print("Data:")
-    macro.loopTree(trees["Data"], weightF=weight_data, cuts=ttjetsSingleLeptonCutsData, varList=hists["Data"].keys(), hists=hists["Data"], weightHists=weightHists, debug=debug) 
+    #TTJets control sample
+    ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
+                cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, bins=ttjetsSingleLeptonBins,
+                lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, debug=debug)
+    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, debug=debug)
 
-    #print histograms
-    c = rt.TCanvas("c", "c", 800, 600)
-    macro.basicPrint(hists, mcNames=SAMPLES, varList=listOfVars, c=c, printName="TTJetsSingleLepton")
+    #WJets control sample
+    wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
+                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, bins=wjetsSingleLeptonBins,
+                lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, debug=debug)
+    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, debug=debug)
 
-    #close files
-    for f in files: files[f].Close()
+    #write scale factors
+    outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
+    for name in sfHists:
+        print "Writing scale factor histogram",sfHists[name].GetName(),"to file"
+        sfHists[name].Write()
+    outfile.Close()
