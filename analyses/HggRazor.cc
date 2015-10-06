@@ -547,7 +547,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
 	Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
 	Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
-	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
+	//Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
+	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
 	Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	Pho_passIso[_pho_index]            = tmpPho._passIso;
 
