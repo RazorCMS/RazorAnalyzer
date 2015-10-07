@@ -6,6 +6,7 @@
 //C++ includes
 #include <sys/stat.h>
 #include <assert.h>
+#include <sstream>
 
 //ROOT includes
 #include "TH1F.h"
@@ -13,7 +14,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
+void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isFastsimSMS)
 {
     /////////////////////////////////
     //Basic setup
@@ -27,10 +28,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         cout << "FullRazorInclusive: Output filename not specified!" << endl << "Using default output name FullRazorInclusive.root" << endl;
         outFileName = "FullRazorInclusive.root";
     }
-    TFile outFile(outFileName.c_str(), "RECREATE");
+    TFile *outFile = new TFile(outFileName.c_str(), "RECREATE");
 
     //Output tree
     TTree *razorTree = new TTree("RazorInclusive", "Info on selected razor inclusive events");
+
+    //For signal samples, create one output file and tree per signal mass point
+    map<pair<int,int>, TFile*> smsFiles;
+    map<pair<int,int>, TTree*> smsTrees;
+    map<pair<int,int>, TH1F*> smsNEvents;
 
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
@@ -142,6 +148,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
     int nSelectedJets_JESUp, nSelectedJets_JESDown, nSelectedJets_JERUp, nSelectedJets_JERDown;
     int nBTaggedJets_JESUp, nBTaggedJets_JESDown, nBTaggedJets_JERUp, nBTaggedJets_JERDown;
     RazorBox box_JESUp, box_JESDown, box_JERUp, box_JERDown;
+    //SMS parameters 
+    int mGluino, mLSP;
 
     //Set branches
     razorTree->Branch("nVtx", &nVtx, "nVtx/I");
@@ -197,6 +205,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         razorTree->Branch("nSelectedJets_JERDown", &nSelectedJets_JERDown, "nSelectedJets_JERDown/I");
         razorTree->Branch("nBTaggedJets_JERDown", &nBTaggedJets_JERDown, "nBTaggedJets_JERDown/I");
         razorTree->Branch("box_JERDown", &box_JERDown, "box_JERDown/I");
+        if(isFastsimSMS){
+            razorTree->Branch("mGluino", &mGluino, "mGluino/I");
+            razorTree->Branch("mLSP", &mLSP, "mLSP/I");
+        }
     } 
     else {
         razorTree->Branch("run", &runNum, "run/i");
@@ -279,6 +291,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
             nSelectedJets_JERDown = 0;
             nBTaggedJets_JERDown = 0;
             box_JERDown = NONE;
+            if(isFastsimSMS){
+                mGluino = -1;
+                mLSP = -1;
+            }
         }
 
         //Reset TLorentzVector collections
@@ -289,6 +305,39 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         vector<TLorentzVector> GoodJetsJESDown;
         vector<TLorentzVector> GoodJetsJERUp;
         vector<TLorentzVector> GoodJetsJERDown;
+
+        /////////////////////////////////
+        //SMS information
+        /////////////////////////////////
+
+        bool parsedLHE = false;
+        if(isFastsimSMS && lheComments->size() > 0){
+            //parse lhe comment string to get gluino and LSP masses
+            stringstream parser((*lheComments)[lheComments->size()-1]);
+            string item;
+            getline(parser, item, '_'); //prefix
+            if(getline(parser, item, '_')){ //gluino mass 
+                mGluino = atoi(item.c_str());
+                if(getline(parser, item, '_')){ //LSP mass 
+                    mLSP = atoi(item.c_str());
+                    pair<int,int> smsPair = make_pair(mGluino, mLSP);
+                    parsedLHE = true;
+                    if (smsFiles.count(smsPair) == 0){ //create file and tree
+                        //format file name
+                        string thisFileName = outFileName;
+                        thisFileName.erase(thisFileName.end()-5, thisFileName.end());
+                        thisFileName += "_" + to_string(mGluino) + "_" + to_string(mLSP) + ".root";
+                        
+                        smsFiles[smsPair] = new TFile(thisFileName.c_str(), "recreate");
+                        smsTrees[smsPair] = razorTree->CloneTree(0);
+                        smsNEvents[smsPair] = new TH1F(Form("NEvents%d%d", mGluino, mLSP), "NEvents", 1,1,2);
+                        cout << "Created new output file " << thisFileName << endl;
+                    }
+                    //Fill NEvents hist 
+                    smsNEvents[smsPair]->Fill(1.0);
+                }
+            }
+        }
 
         /////////////////////////////////
         //Trigger
@@ -926,14 +975,30 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData)
         if(box == NONE && box_JESUp == NONE && box_JESDown == NONE && box_JERUp == NONE && box_JERDown == NONE) continue; 
 
         //Fill tree
-        razorTree->Fill();
+        if(!isFastsimSMS){
+            razorTree->Fill();
+        }
+        else if(parsedLHE){
+            pair<int,int> smsPair = make_pair(mGluino, mLSP);
+            smsTrees[smsPair]->Fill();
+        }
 
     }//end of event loop
 
-    cout << "Writing output tree..." << endl;
-    outFile.cd();
-    razorTree->Write();
-    NEvents->Write();
+    if(!isFastsimSMS){
+        cout << "Writing output tree..." << endl;
+        outFile->cd();
+        razorTree->Write();
+        NEvents->Write();
+    }
+    else{
+        for(auto &filePtr : smsFiles){
+            cout << "Writing output tree (" << filePtr.second->GetName() << ")" << endl;
+            filePtr.second->cd();
+            smsTrees[filePtr.first]->Write();
+            smsNEvents[filePtr.first]->Write("NEvents");
+        }
+    }
 
-    outFile.Close();
+    outFile->Close();
 }
