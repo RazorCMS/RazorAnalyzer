@@ -15,47 +15,130 @@
 
 using namespace std;
 
+std::string ParseCommandLine( int argc, char* argv[], std::string opt )
+{
+  for (int i = 1; i < argc; i++ )
+    {
+      std::string tmp( argv[i] );
+      if ( tmp.find( opt ) != std::string::npos )
+        {
+          if ( tmp.find( "=" )  != std::string::npos ) return tmp.substr( tmp.find_last_of("=") + 1 );
+	  if ( tmp.find( "--" ) != std::string::npos ) return "yes";
+	}
+    }
+  
+  return "";
+};
+
+void usage()
+{
+  std::cerr << "Usage: RazorRun  <input list>  <analysis type>  [options]\n[options]:\n"
+	    << "-d  --isData\n"
+	    << "-f  --outputFile=<output filename> (optional)\n"
+	    << "-n  --optionNumber=<option number> (optional)\n"
+	    << "-l  --optionLabel=<option Label> (optional)\n" 
+	    << "-h  --help"
+	    << std::endl;
+  
+  std::cerr << "Analyses available:\n"
+	    << "razor                --   inclusive razor analysis\n"
+	    << "razorfull            --   larger razor ntuple used for setting limits w/systematics\n"
+	    << "hggrazor             --   higgs->diphoton razor analysis\n"
+	    << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets\n"
+	    << "razorVetoLeptonStudy --   study lepton veto\n"
+	    << "razorPhotonStudy     --   select events for Z->invisible control sample\n"
+	    << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events\n"
+	    << "electronNtupler      --   study electron variables\n"
+	    << "muonNtupler          --   study muon variables\n"
+	    << "jetNtupler           --   study jet variables\n"
+	    << "photonntupler        --   study photon variables\n"
+	    << "dummy                --   do nothing useful\n"
+	    << "razorDM              --   run MultiJet razor dark matter analysis" << std::endl;
+};
+
 int main(int argc, char* argv[]){
 
-    //get input files and analysis type from command line
-    if(argc < 4){
-        cerr << "Usage: RazorRun <input list> <analysis type> <isData> <output filename (optional)> [option number] [optional label]" << endl;
-        cerr << "Analyses available: " << endl 
-	     << "razor                --   inclusive razor analysis" << endl 
-             << "razorfull            --   larger razor ntuple used for setting limits w/systematics" << endl
-	     << "hggrazor             --   higgs->diphoton razor analysis" << endl
-	     << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
-	     << "razorVetoLeptonStudy --   study lepton veto" << endl
-	     << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
-	     << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events" << endl
-	     << "electronNtupler      --   study electron variables" << endl
-	     << "muonNtupler          --   study muon variables" << endl
-	     << "jetNtupler           --   study jet variables" << endl
-	     << "photonntupler        --   study photon variables" << endl
-	     << "dummy                --   do nothing useful" << endl
-	     << "razorDM              --   run MultiJet razor dark matter analysis" << endl;
-        return -1;
+  //get input files and analysis type from command line
+  if ( ParseCommandLine( argc, argv, "--help" ) != ""  || ParseCommandLine( argc, argv, "-h" ) != ""  || argc < 3 )
+    {
+      usage();
+      return -1;
     }
-    string inputFileName(argv[1]);
-    string analysisType(argv[2]);
+  
+  //----------------------------------------
+  //Getting <input list> and <analysis type>
+  //----------------------------------------
+  string inputFileName(argv[1]);
+  string analysisType(argv[2]);
+  
+  //--------------------------------
+  //G e t t i n g   d a t a  f l a g 
+  //--------------------------------
+  std::string _isData = ParseCommandLine( argc, argv, "--isData" );
+  std::string _d = ParseCommandLine( argc, argv, "-d" );
+  bool isData = false;
+  if ( _isData == "yes" || _d != "yes" ) isData = true;
 
-    string isDataOption = "";
-    isDataOption = argv[3];
-    bool isData = false;
-    if (isDataOption == "y" || isDataOption == "1" || isDataOption == "true") isData = true;
-        
-    string outputFileName = "";
-    if (argc >= 5)  outputFileName = argv[4];
-
-    int option = -1;
-    if (argc >= 6) {
-      option = atoi(argv[5]);
+  //---------------------------------------------
+  //G e t t i n g   o u t p u t F i l e   N a m e  
+  //---------------------------------------------
+  std::string _outFile = ParseCommandLine( argc, argv, "--outputFile=" );
+  std::string _f = ParseCommandLine( argc, argv, "-f=" );
+  string outputFileName = "";
+  if ( _outFile != "" )
+    {
+      outputFileName = _outFile;
     }
-    
-    string label = "";
-    if (argc >= 7) {
-      label = argv[6];
+  else if ( _f != "" )
+    {
+      outputFileName = _f;
     }
+  else
+    {
+      std::cerr << "[WARNING]: output ROOT file not provided, using default output" << std::endl;
+    }
+  
+  //-----------------------------------------
+  //G e t t i n g   o p t i o n   n u m b e r
+  //-----------------------------------------
+  int option = -1;
+  std::string _optionNumber = ParseCommandLine( argc, argv, "--optionNumber=" );
+  std::string _n = ParseCommandLine( argc, argv, "-n=" );
+  if ( _optionNumber != "" )
+    {
+      option = atoi( _optionNumber.c_str() );
+    }
+  else if ( _n != "" )
+    {
+      option = atoi( _n.c_str() );
+    } 
+  else
+    {
+      std::cerr << "[WARNING]: option number not provided, using default option number" << std::endl;
+    }
+  
+  string label = "";
+  std::string _optionLabel = ParseCommandLine( argc, argv, "--optionLabel=" );
+  std::string _l = ParseCommandLine( argc, argv, "-l=" );
+  if ( _optionLabel != "" ) 
+    {
+      label = _optionLabel;
+    }
+  else if ( _l != "" )
+    {
+      label = _l;
+    }
+  else
+    {
+      std::cerr << "[WARNING]: optional label not provided, using default optional label" << std::endl;
+    }
+  
+  std::cout << "[INFO]: <input list> --> " << inputFileName << std::endl;
+  std::cout << "[INFO]: <analysis type> --> " << analysisType << std::endl;
+  std::cout << "[INFO]: isData --> " << isData << std::endl;
+  std::cout << "[INFO]: outputFileName --> " << outputFileName << std::endl;
+  std::cout << "[INFO]: option --> " << option << std::endl;
+  std::cout << "[INFO]: optionalLabel --> " << label << std::endl;
     
     //build the TChain
     //tree name is set give the structure in the first root file, see while loop below
