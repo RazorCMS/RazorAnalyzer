@@ -90,12 +90,12 @@ if __name__ == '__main__':
 
                 
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
-            signalDsName = 'Datasets/SMS-%s_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
-            exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root'%(options.config,box,model,massPoint),options.dryRun)
+            signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
+            exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
             
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
-                exec_me('python python/DustinTuple2RooDataSet.py -b %s -c %s -d Datasets/ Run2015D/%s.root --data -l %i'% (box, options.config, dataset[box], 1000*lumi), options.dryRun )
+                exec_me('python python/DustinTuple2RooDataSet.py -b %s -c %s -d Datasets/ Run2015D/%s.root --data -l %f'% (box, options.config, dataset[box], 1000*lumi), options.dryRun )
             else:                
                 backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.3f_%s_%s.root'%(lumi,btag,box)
                 exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box),options.dryRun)
