@@ -16,7 +16,17 @@ def binnedFit(pdf, data, fitRange='Full'):
     #m.migrad()
     #m.hesse()
     #fr = m.save()
-    fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))    
+    #fr
+    
+    fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
+    if fr.covQual() < 3:
+        fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
+        
+    if fr.covQual() < 3:
+        print ""
+        print "CAUTION: COVARIANCE QUALITY < 3"
+        print ""
+        
     return fr
 
 def convertSideband(name,w,x,y,z):
@@ -99,8 +109,11 @@ if __name__ == '__main__':
   
     w = rt.RooWorkspace("w"+box)
     rootTools.Utils.importToWS(w,data)
-    
-    paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in)
+
+    if options.isData:        
+        paramNames, bkgs = initializeWorkspace(w,cfg,box)
+    else:
+        paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in)
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -119,7 +132,9 @@ if __name__ == '__main__':
     plotband = convertSideband(plotRegion,w,x,y,z)
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
-    myTH1.Scale(lumi/lumi_in)
+    
+    if not options.isData:        
+        myTH1.Scale(lumi/lumi_in)
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     rootTools.Utils.importToWS(w,dataHist)
     
@@ -150,9 +165,12 @@ if __name__ == '__main__':
     c = rt.TCanvas('c','c',500,400)
     rootFile = rt.TFile.Open(options.outDir + '/' + 'Plots_%s'%box + '.root','recreate')
     tdirectory = rootFile.GetDirectory(options.outDir)
+    print tdirectory
     if tdirectory==None:
+        print "making directory"
         rootFile.mkdir(options.outDir)
         tdirectory = rootFile.GetDirectory(options.outDir)
+        tdirectory.Print('v')
         
     h_th1x = asimov_reduce.createHistogram('h_th1x',th1x)
     h_data_th1x = dataHist_reduce.createHistogram('h_data_th1x',th1x)
@@ -210,9 +228,9 @@ if __name__ == '__main__':
         btagLabel = "%i-%i b-tag" % (z[0],z[-2])
 
     if options.isData:
-        lumiLabel = "%.1f pb^{-1} (13 TeV)" % (lumi)
+        lumiLabel = "%.0f pb^{-1} (13 TeV)" % (lumi)
     else:        
-        lumiLabel = "%.1f fb^{-1} (13 TeV)" % (lumi/1000)
+        lumiLabel = "%.0f fb^{-1} (13 TeV)" % (lumi/1000)
     boxLabel = "razor %s %s %s Fit" % (box,btagLabel,fitRegion)
 
     
@@ -221,7 +239,10 @@ if __name__ == '__main__':
     else:
         dataString = "Sim. Data"
         
-
+    for h in [h_nBtagRsqMR,h_data_nBtagRsqMR,h_RsqMR,h_data_RsqMR,h_MR,h_data_MR,h_Rsq,h_data_Rsq]:
+        tdirectory.cd()
+        h.Write()
+        
     print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]","Events",lumiLabel,boxLabel,options.isData,None,h_MR_components,h_colors,h_labels)
     print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}","Events",lumiLabel,boxLabel,options.isData,None,h_Rsq_components,h_colors,h_labels)    
     
