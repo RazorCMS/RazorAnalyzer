@@ -124,7 +124,8 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
-        analyzer.RazorInclusive(outputFileName, true, isData); //change the bool to true if you want all analysis boxes combined in one tree
+        bool isFastsimSMS = (option == 1); //specify option = 1 to split fastsim signal samples by mass point
+        analyzer.RazorInclusive(outputFileName, true, isData, isFastsimSMS); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "razorfull" || analysisType == "fullrazor" || analysisType == "FullRazorInclusive"){
         cout << "Executing full razor inclusive analysis..." << endl;
