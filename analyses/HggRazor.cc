@@ -142,7 +142,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   float theRsq, t1Rsq;
   float MET, t1MET;
   int nSelectedPhotons;
-  float mGammaGamma, pTGammaGamma;
+  float mGammaGamma, pTGammaGamma, sigmaMoverM;
   float mbbZ, mbbH;
   HggRazorBox razorbox = LowRes;
 
@@ -179,6 +179,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+    razorTree->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
     razorTree->Branch("box", &razorbox, "box/I");
     
     razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
@@ -244,6 +245,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       thisBox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
       thisBox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+      thisBox.second->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
       
       thisBox.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
       thisBox.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
@@ -285,6 +287,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     }
   }
   
+  use25nsSelection = true;
+  std::cout << "use25nsSelection-->" << use25nsSelection << std::endl;
   //begin loop
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntriesFast();
@@ -723,6 +727,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  }//end second jet loop
 	}//end first jet loop
       }
+    
+    
+    //------------------------------------------------
+    //I n v a ri a n t   m a s s   r e s o l u t i o n
+    //------------------------------------------------
+    sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
     
     if ( _debug ) std::cout << "mbbH: " << mbbH << " mbbZ: " << mbbZ << std::endl;
     //Writing output to tree
