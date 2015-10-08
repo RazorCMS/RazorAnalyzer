@@ -41,7 +41,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
-    //TODO: move these to EOS
     char* cmsswPath;
     cmsswPath = getenv("CMSSW_BASE");
     if (cmsswPath == NULL) {
@@ -57,8 +56,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH1D *pileupWeightHist = 0;
     // UNDER CONSTRUCTION (no Run 2 PU weights file available yet)
     if(!isData){
-        pileupWeightFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2PileupWeights.root", cmsswPath));
-        pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run2");
+        pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/NVtxReweight_ZToMuMu_2015D_25ns_20150923.root");
+        pileupWeightHist = (TH1D*)pileupWeightFile->Get("NVtxReweight");
         assert(pileupWeightHist);
     }
 
@@ -66,21 +65,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //Lepton Efficiency Correction Factors
     /////////////////////////////////
 
-    TH2D *eleLooseEffSFHist = 0;
     TH2D *eleTightEffSFHist = 0;
-    TH2D *muLooseEffSFHist = 0;
     TH2D *muTightEffSFHist = 0;
     // UNDER CONSTRUCTION (no Run 2 scale factor files available yet)
     if(!isData){
-        TFile *eleEffSFFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2EleWeights.root", cmsswPath));
-        eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("EleWeight_Run2_Loose");
-        assert(eleLooseEffSFHist);
-        eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("EleWeight_Run2_Tight");
+        TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20150924_PR_2015D/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D.root");
+        eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
         assert(eleTightEffSFHist);
-        TFile *muEffSFFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/Placeholders/DummyRun2MuonWeights.root", cmsswPath)); 
-        muLooseEffSFHist = (TH2D*)muEffSFFile->Get("MuonWeight_Run2_Loose"); 
-        assert(muLooseEffSFHist);
-        muTightEffSFHist = (TH2D*)muEffSFFile->Get("MuonWeight_Run2_Tight");
+        TFile *muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20150924_PR_2015D/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D.root"); 
+        muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
         assert(muTightEffSFHist);
     }
 
@@ -404,14 +397,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
             //Calculate MC->Data scale factors
             if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i])) {	
-                //UNDER CONSTRUCTION (no efficiencies or scale factors available yet
+                //UNDER CONSTRUCTION (no efficiencies or scale factors available yet)
                 double effTight = 0.9; //NOTE: placeholder value
                 double effTightSF = muTightEffSFHist->GetBinContent( 
-                        muTightEffSFHist->GetXaxis()->FindFixBin(fabs(muonEta[i])) , 
-                        muTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)));
+                        muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
                 double effTightSFErr = muTightEffSFHist->GetBinError( 
-                        muTightEffSFHist->GetXaxis()->FindFixBin(fabs(muonEta[i])) , 
-                        muTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)));
+                        muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
                 double effTightSFUp = effTightSF + effTightSFErr;
                 double effTightSFDown = effTightSF - effTightSFErr;
                 double tmpTightSF = 1.0;
@@ -477,11 +470,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 //Tight scale factor
                 double effTight = 0.9; //NOTE: placeholder value
                 double effTightSF = eleTightEffSFHist->GetBinContent( 
-                        eleTightEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
-                        eleTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
+                        eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
+                        eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
                 double effTightSFErr = eleTightEffSFHist->GetBinError( 
-                        eleTightEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
-                        eleTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
+                        eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
+                        eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
                 double effTightSFUp = effTightSF + effTightSFErr;
                 double effTightSFDown = effTightSF - effTightSFErr;
                 double tmpTightSF = 1.0;
