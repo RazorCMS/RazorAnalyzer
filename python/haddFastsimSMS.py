@@ -23,9 +23,30 @@ if __name__ == '__main__':
     fileLists = {}
     for f in inFiles:
         #parse filename to get gluino and LSP masses
+        if '.root' not in f: 
+            print "Skipping non-ROOT file/directory",f
+            continue
         splitF = f.replace('.root','').split('_')
-        mGluino = splitF[-2]
-        mLSP = splitF[-1]
+
+        #check sanity
+        if len(splitF) < 2:
+            print "Unexpected file",f,": skipping"
+            continue
+
+        try:
+            int(splitF[-2])
+            mGluino = splitF[-2]
+        except ValueError:
+            print "Cannot parse gluino mass from",f,": skipping"
+            continue
+
+        try:
+            int(splitF[-1])
+            mLSP = splitF[-1]
+        except ValueError:
+            print "Cannot parse LSP mass from",f,": skipping"
+            continue
+
         pair = (mGluino, mLSP)
 
         #add to dictionary if not present
