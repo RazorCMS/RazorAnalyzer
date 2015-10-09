@@ -55,41 +55,23 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
                   help="signal model name")
-    parser.add_option('--mGluino',dest="mGluino", default=-1,type="float",
-                  help="mass of gluino")
-    parser.add_option('--mStop',dest="mStop", default=-1,type="float",
-                  help="mass of stop")
-    parser.add_option('--mLSP',dest="mLSP", default=-1,type="float",
-                  help="mass of LSP")
     parser.add_option('--lumi',dest="lumi", default=0.210,type="float",
                   help="lumi in fb^-1, e.g.: 0.210")
-    parser.add_option('--signif',dest="signif",default=False,action='store_true',
-                  help="calculate significance instead of limit")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
     parser.add_option('--fit',dest="fit",default=False,action='store_true',
                   help="Turn on pre-fit")
-    parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
-                  help="no fit, just use MC")
-    parser.add_option('--min-tol',dest="min_tol",default=0.001,type="float",
-                  help="minimizer tolerance (default = 0.001)")
-    parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
-                  help="Just print out commands to run")
-    parser.add_option('-u','--unweighted',dest="unweighted",default=False,action='store_true',
-                  help="use unweighted dataset")
-    parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
-                  help="penalty terms on background parameters")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
-                  help="changes plots for data")
+                  help="changes for data")
     parser.add_option('--no-sub',dest="noSub", default=False,action='store_true',
-                  help="changes plots for data")
-
-
+                  help="no submission")
+    parser.add_option('-q','--queue',dest="queue",default="1nh",type="string",
+                  help="queue: 1nh, 8nh, 1nd, etc.")
 
     btag = '0-3btag'
-    for mg, mchi in gchipairs(model):
+    for mg, mchi in gchipairs(options.model):
         
-        outputname,ffDir = writeBashScript(box,btag,model,mg,mchi,options.config,options.outDir,options.isData,options.fit)
+        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.config,options.outDir,options.isData,options.fit)
         
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
         if not options.noSub:
