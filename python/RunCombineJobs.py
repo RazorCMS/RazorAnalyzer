@@ -21,8 +21,9 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit):
     # prepare the script to run
     outputname = submitDir+"/submit_"+model+"_"+massPoint+"_lumi-%.3f_"%(lumi)+btag+"_"+box+".src"
         
-    ffDir = outputDir+"/logs_"+model+"_"+massPoint+"_"+btag+"_"+box
+    ffDir = submitDir+"/logs_"+model+"_"+massPoint+"_"+btag+"_"+box
     user = os.environ['USER']
+    pwd = os.environ['PWD']
     
     combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer/cards_data/"%(user[0],user)
 
@@ -68,12 +69,20 @@ if __name__ == '__main__':
     parser.add_option('-q','--queue',dest="queue",default="1nh",type="string",
                   help="queue: 1nh, 8nh, 1nd, etc.")
 
+
+    (options,args) = parser.parse_args()
+
+
     btag = '0-3btag'
-    for mg, mchi in gchipairs(options.model):
+
+    for (mg, mchi) in gchipairs(options.model):
         
-        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.config,options.outDir,options.isData,options.fit)
+        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit)
         
+        pwd = os.environ['PWD']
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
         if not options.noSub:
             time.sleep(3)
             os.system("bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
+
+
