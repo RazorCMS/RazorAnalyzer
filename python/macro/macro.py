@@ -220,7 +220,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     #add legend and LaTeX 
     leg.Draw()
     t1 = rt.TLatex(0.1,0.94, "CMS Preliminary")
-    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV, L = "+lumistr)
+    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV"+((lumistr != "")*(", L = "+lumistr)))
     t1.SetNDC()
     t2.SetNDC()
     t1.SetTextSize(0.06)
