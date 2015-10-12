@@ -266,38 +266,45 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     bestFit = eval(sumName.replace('b','myTree.b'))
     myTree.Draw('%s>>htest%s'%(sumName,sumName.replace('+','')))
     htemp = rt.gPad.GetPrimitive("htest%s"%sumName.replace('+',''))
+    #myTree.Draw('%s>>htest'%(sumName))    
+    #htemp = rt.gPad.GetPrimitive("htest")
     xmax = int(max(htemp.GetXaxis().GetXmax()+1,nObs+1))
     xmin = int(max(0,htemp.GetXaxis().GetXmin()))
     mean = htemp.GetMean()
     
     # just make 20 bins if (xmax-xmin)>40 and mean>10 (because we're using KDE)
     useKDE = ((xmax-xmin)>40) and (mean>10)
+    useKDE = False
     if useKDE:
         if (xmax-xmin)%20:
             xmax = xmax + 20-(xmax-xmin)%20
         nbins=20
     else:
-        nbins = xmax-xmin    
+        nbins = xmax-xmin
+    
 
     myTree.Draw('%s>>htemp%s(%i,%f,%f)'%(sumName,sumName.replace('+',''),nbins,xmin,xmax))
     htemp = rt.gPad.GetPrimitive("htemp%s"%sumName.replace('+',''))
+    #myTree.Draw('%s>>htemp(%i,%f,%f)'%(sumName,nbins,xmin,xmax))
+    #htemp = rt.gPad.GetPrimitive("htemp")
     mean = htemp.GetMean()
     probRange = 0.6827
     mode,rangeMin,rangeMax = find68ProbRange(htemp,probRange)
     range68 = (rangeMax-rangeMin)
     rms = htemp.GetRMS()
-    func, rkpdf, dataset = getKDE(sumName,myTree,htemp)
     pvalue = getPValue(nObs,htemp)
     
-    if useKDE:
+    if useKDE:        
+        func, rkpdf, dataset = getKDE(sumName,myTree,htemp)
         pvalue,funcFillRight,funcFillLeft,drawLeft = getPValueFromKDE(nObs,xmax,func)
         mode,rangeMin,rangeMax,probRange,funcFill68 = find68ProbRangeFromKDEMode(xmax,func)
         range68 = (rangeMax-rangeMin)
     nsigma = getSigmaFromPval(nObs, bestFit, htemp, pvalue)
-    #print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
+    print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
 
-    if options.printErrors:            
-        htemp.Scale(1./htemp.Integral()/htemp.GetBinWidth(1))
+    if options.printErrors:
+        if htemp.Integral()>0.: 
+            htemp.Scale(1./htemp.Integral()/htemp.GetBinWidth(1))
         htemp.SetMinimum(0)
         htemp.SetMaximum(1.25*(htemp.GetMaximum()+htemp.GetBinError(htemp.GetMaximumBin())))
         htemp.SetMarkerStyle(20)
@@ -800,11 +807,11 @@ def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabe
     c.Write(os.path.splitext(printName)[0].split('/')[-1])
     c.SetLogy(0)
     c.SetLogx(0)
-    c.Print(printName.replace('log','lin'))
-    c.Print(os.path.splitext(printName.replace('log','lin'))[0]+'.C')
-    cWrite = c.Clone(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
-    rootFile.cd()
-    c.Write(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
+    #c.Print(printName.replace('log','lin'))
+    #c.Print(os.path.splitext(printName.replace('log','lin'))[0]+'.C')
+    #cWrite = c.Clone(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
+    #rootFile.cd()
+    #c.Write(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
     
 def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,x,y,isData=False,drawOpt="colz"):
     
@@ -847,11 +854,11 @@ def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,
     c.Write(os.path.splitext(printName)[0].split('/')[-1])
     c.SetLogy(0)
     c.SetLogx(0)
-    c.Print(printName.replace('log','lin'))
-    c.Print(os.path.splitext(printName.replace('log','lin'))[0]+'.C')
-    cWrite = c.Clone(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
-    rootFile.cd()
-    c.Write(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
+    #c.Print(printName.replace('log','lin'))
+    #c.Print(os.path.splitext(printName.replace('log','lin'))[0]+'.C')
+    #cWrite = c.Clone(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
+    #rootFile.cd()
+    #c.Write(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
         
 
 def get3DHistoFrom1D(h1D,x,y,z,name):   
@@ -1276,9 +1283,9 @@ if __name__ == '__main__':
         btagLabel = "%i-%i b-tag" % (z[0],z[-2])
 
     if options.isData:
-        lumiLabel = "%.1f pb^{-1} (13 TeV)" % (lumi)
+        lumiLabel = "%.0f pb^{-1} (13 TeV)" % (lumi)
     else:        
-        lumiLabel = "%.1f fb^{-1} (13 TeV)" % (lumi/1000)
+        lumiLabel = "%.0f fb^{-1} (13 TeV)" % (lumi/1000)
     boxLabel = "razor %s %s %s Fit" % (box,btagLabel,fitRegion)
         
     if options.isData:
