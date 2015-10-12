@@ -144,6 +144,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, sigmaMoverM;
   float mbbZ, mbbH;
+  bool passedDiphotonTrigger;
   HggRazorBox razorbox = LowRes;
 
   unsigned int run, lumi, event;
@@ -163,6 +164,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("run", &run, "run/i");
     razorTree->Branch("lumi", &lumi, "lumi/i");
     razorTree->Branch("event", &event, "event/i");
+    razorTree->Branch("passedDiphotonTrigger", &passedDiphotonTrigger, "passedDiphotonTrigger/O");
     razorTree->Branch("NPU", &NPU, "npu/i");
     razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
     razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
@@ -221,6 +223,17 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
     razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
+
+    //GenParticles
+    razorTree->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
+    razorTree->Branch("gParticleMotherId", gParticleMotherId, "gParticleMotherId[nGenParticle]/I");
+    razorTree->Branch("gParticleMotherIndex", gParticleMotherIndex, "gParticleMotherIndex[nGenParticle]/I");
+    razorTree->Branch("gParticleId", gParticleId, "gParticleId[nGenParticle]/I");
+    razorTree->Branch("gParticleStatus", gParticleStatus, "gParticleStatus[nGenParticle]/I");
+    razorTree->Branch("gParticleE", gParticleE, "gParticleE[nGenParticle]/F");
+    razorTree->Branch("gParticlePt", gParticlePt, "gParticlePt[nGenParticle]/F");
+    razorTree->Branch("gParticlePhi", gParticlePhi, "gParticlePhi[nGenParticle]/F");
+    razorTree->Branch("gParticleEta", gParticleEta, "gParticleEta[nGenParticle]/F");
   }
   //set branches on all trees
   else{ 
@@ -229,6 +242,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("run", &run, "run/i");
       thisBox.second->Branch("lumi", &lumi, "lumi/i");
       thisBox.second->Branch("event", &event, "event/i");
+      thisBox.second->Branch("passedDiphotonTrigger", &passedDiphotonTrigger, "passedDiphotonTrigger/O");
       thisBox.second->Branch("NPU", &NPU, "npu/i");
       thisBox.second->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
       thisBox.second->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
@@ -284,6 +298,17 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       thisBox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
       thisBox.second->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
+
+      //GenParticles
+      thisBox.second->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
+      thisBox.second->Branch("gParticleMotherId", gParticleMotherId, "gParticleMotherId[nGenParticle]/I");
+      thisBox.second->Branch("gParticleMotherIndex", gParticleMotherIndex, "gParticleMotherIndex[nGenParticle]/I");
+      thisBox.second->Branch("gParticleId", gParticleId, "gParticleId[nGenParticle]/I");
+      thisBox.second->Branch("gParticleStatus", gParticleStatus, "gParticleStatus[nGenParticle]/I");
+      thisBox.second->Branch("gParticleE", gParticleE, "gParticleE[nGenParticle]/F");
+      thisBox.second->Branch("gParticlePt", gParticlePt, "gParticlePt[nGenParticle]/F");
+      thisBox.second->Branch("gParticlePhi", gParticlePhi, "gParticlePhi[nGenParticle]/F");
+      thisBox.second->Branch("gParticleEta", gParticleEta, "gParticleEta[nGenParticle]/F");
     }
   }
   
@@ -323,6 +348,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     run = runNum;
     lumi = lumiNum; 
     event = eventNum;
+    passedDiphotonTrigger = false;
     
     //selected photons variables
     for ( int i = 0; i < 2; i++ )
@@ -371,7 +397,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     
     //TODO: triggers!
     // bool passedDiphotonTrigger = true;
-    // passedDiphotonTrigger = (HLTDecision[44] || HLTDecision[46]);
+    passedDiphotonTrigger = ( HLTDecision[40] );
     //if(!passedDiphotonTrigger) continue;
     
     //muon selection
@@ -690,14 +716,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
     
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
-    TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
+    //TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
+    TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
     
     vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
     theMR  = computeMR(hemispheres[0], hemispheres[1]); 
     theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
     t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
     MET = metPt;
-    t1MET = metType0Plus1Pt;
+    //t1MET = metType0Plus1Pt;
+    t1MET = metType1Pt;
     //if MR < 200, reject the event
     if ( theMR < 0.0 )
       {
