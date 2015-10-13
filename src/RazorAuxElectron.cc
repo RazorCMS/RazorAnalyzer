@@ -7,12 +7,10 @@ float RazorAnalyzer::GetElectronScaleCorrection( double pt, double eta ) {
   // } else {
   //   scaleCorr = 1.05;
   // }
-
   //some dummy code so that it compiler doesn't complain
   if (pt > 0 || eta > 0) {
     scaleCorr = 1.0;
   }
-
   return scaleCorr;
 }
 
