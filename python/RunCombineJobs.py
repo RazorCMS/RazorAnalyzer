@@ -7,7 +7,7 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
@@ -17,6 +17,10 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit):
     fitString = ''
     if fit:
         fitString = '--fit'
+        
+    penaltyString = ''
+    if penalty:
+        penaltyString = '--penalty'
         
     # prepare the script to run
     outputname = submitDir+"/submit_"+model+"_"+massPoint+"_lumi-%.3f_"%(lumi)+btag+"_"+box+".src"
@@ -37,7 +41,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit):
     script += "export CMSSW_BASE=/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5\n"%(user[0],user)
     script += 'eval `scramv1 runtime -sh`\n'
     script += 'source setup.sh\n'
-    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString)
+    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
     
     outputfile = open(outputname,'w')
     outputfile.write(script)
@@ -56,7 +60,7 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
                   help="signal model name")
-    parser.add_option('--lumi',dest="lumi", default=0.210,type="float",
+    parser.add_option('-l','--lumi',dest="lumi", default=0.210,type="float",
                   help="lumi in fb^-1, e.g.: 0.210")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
@@ -64,10 +68,17 @@ if __name__ == '__main__':
                   help="Turn on pre-fit")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
                   help="changes for data")
+    parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
+                  help="penalty terms on background parameters")
     parser.add_option('--no-sub',dest="noSub", default=False,action='store_true',
                   help="no submission")
     parser.add_option('-q','--queue',dest="queue",default="1nh",type="string",
                   help="queue: 1nh, 8nh, 1nd, etc.")
+    parser.add_option('--mg-geq',dest="mgMin",default=-1,type="float",
+                  help="mgMin ")
+    parser.add_option('--mg-lt',dest="mgMax",default=10000,type="float",
+                  help="mgMax ")
+
 
 
     (options,args) = parser.parse_args()
@@ -75,14 +86,20 @@ if __name__ == '__main__':
 
     btag = '0-3btag'
 
+    nJobs = 0
     for (mg, mchi) in gchipairs(options.model):
-        
-        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit)
+        if not (mg >= options.mgMin and mg < options.mgMax): continue
+        nJobs+=1
+        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty)
         
         pwd = os.environ['PWD']
-        os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
+        os.system("mkdir -p "+pwd+"/"+ffDir)
+        os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
+        #os.system("source "+pwd+"/"+outputname)
         if not options.noSub:
             time.sleep(3)
             os.system("bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
+
+    print "nJobs = %i"%nJobs
 
 

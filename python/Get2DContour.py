@@ -167,17 +167,16 @@ def getExpHist(logHist):
 def getModelSettings(model):
     if model=="T1bbbb":
         mgMin = 600.-12.5
-        mgMax = 2000. -12.5
+        mgMax = 2000.+12.5
         mchiMin = 0.-12.5
-        mchiMax = 1450.-12.5 
+        mchiMax = 1450.+12.5 
         binWidth = 25
         nRebins = 0
         xsecMin = 1.e-2
         xsecMax = 10.
-        #diagonalOffset = 25+12.5
-        diagonalOffset = 25
-        #smoothing = 200
-        smoothing = 0
+        diagonalOffset = 25+12.5
+        smoothing = 50
+        #smoothing = 0
     return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing
 
 if __name__ == '__main__':
@@ -256,6 +255,7 @@ if __name__ == '__main__':
         
         # do swiss cross average in real domain
         rebinXsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+        #rebinXsecUL[clsType] = xsecUL[clsType]
 
         # do scipy multi-quadratic interpolation in log domain
         rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
@@ -268,6 +268,10 @@ if __name__ == '__main__':
         xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
         xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
 
+        # fix axes
+        xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))
+        xsecUL[clsType].GetYaxis().SetRangeUser(xsecUL[clsType].GetYaxis().GetBinCenter(1),xsecUL[clsType].GetYaxis().GetBinCenter(xsecUL[clsType].GetNbinsY()))
+         
         
     thyXsec = {}
     thyXsecErr = {}
@@ -299,8 +303,8 @@ if __name__ == '__main__':
             yLow = xsecGluino.GetYaxis().GetBinCenter(j)
             if xLow >= yLow+diagonalOffset and xLow <= mgMax-binWidth/2:
                 xsecGluino.SetBinContent(i,j,xsecVal)
-                xsecGluinoPlus.SetBinContent(i,j,xsecVal*(1+xsecErr/2.))
-                xsecGluinoMinus.SetBinContent(i,j,xsecVal*(1-xsecErr/2.))
+                xsecGluinoPlus.SetBinContent(i,j,xsecVal*(1+xsecErr))
+                xsecGluinoMinus.SetBinContent(i,j,xsecVal*(1-xsecErr))
                 
     c = rt.TCanvas("c","c",500,500)
     
@@ -339,6 +343,7 @@ if __name__ == '__main__':
         conts = rt.gROOT.GetListOfSpecials().FindObject("contours")
 
         xsecUL[clsType].Draw("COLZ")
+        #subXsecUL[clsType].Draw("COLZ")
         
         contour0 = conts.At(0)
         curv = contour0.First()

@@ -124,7 +124,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = 3
+    btagCutoff = 2
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 

@@ -397,7 +397,8 @@ def setDataHist(h_data,xTitle,yTitle,color=rt.kBlack):
         h_data.SetMinimum(1e-2)
     else:        
         h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25)))
-        h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
+        #h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
+        h_data.SetMinimum(1e-2) # for signal+background fit
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
