@@ -1,4 +1,5 @@
 import ROOT as rt
+import copy
 
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, lumistr="40 pb^{-1}"):
     """Make stacked plots of quantities of interest, with data overlaid"""
@@ -161,7 +162,7 @@ def setHistColor(hist, name):
     if name in colors: hist.SetFillColor(colors[name])
     else: print("Warning in macro.py: histogram fill color not set")
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=0.1, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
@@ -183,7 +184,8 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
         if data: mc.GetYaxis().SetTitleOffset(0.45)
         else: mc.GetYaxis().SetTitleOffset(0.50)
         mc.GetYaxis().SetTitleSize(0.05)
-        mc.SetMinimum(ymin)
+        if ymin is not None: mc.SetMinimum(ymin)
+        if ymax is not None: mc.SetMaximum(ymax)
     #draw data
     if data:
         data.SetMarkerStyle(20)
@@ -220,7 +222,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     #add legend and LaTeX 
     leg.Draw()
     t1 = rt.TLatex(0.1,0.94, "CMS Preliminary")
-    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV, L = "+lumistr)
+    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV"+((lumistr != "")*(", L = "+lumistr)))
     t1.SetNDC()
     t2.SetNDC()
     t1.SetTextSize(0.06)
@@ -245,3 +247,16 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     if savepng: c.Print(printstr+".png")
     if savepdf: c.Print(printstr+".pdf")
     if saveroot: c.Print(printstr+".root")
+
+def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrdering=[], titles=[], mcTitle="Stack", xtitle="", ytitle="Number of events", printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", saveroot=False, savepdf=False, savepng=True, ymin=None, ymax=None):
+    #make stack
+    stack = makeStack(mcHists, mcOrdering, mcTitle)
+    #make legend
+    hists = copy.copy(mcHists)
+    hists[dataName] = dataHist
+    ordering = copy.copy(mcOrdering)
+    ordering.append(dataName)
+    leg = makeLegend(hists, titles, ordering)
+    #plot
+    plot_basic(canvas, stack, dataHist, leg=leg, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, logy=logy, lumistr=lumistr, saveroot=saveroot, savepdf=savepdf, savepng=savepng, ymin=ymin)
+
