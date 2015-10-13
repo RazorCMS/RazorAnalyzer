@@ -98,7 +98,7 @@ if __name__ == '__main__':
                 exec_me('python python/DustinTuple2RooDataSet.py -b %s -c %s -d Datasets/ Run2015D/%s.root --data -l %f'% (box, options.config, dataset[box], 1000*lumi), options.dryRun )
             else:                
                 backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.3f_%s_%s.root'%(lumi,btag,box)
-                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root'%(options.config,box),options.dryRun)
+                exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root -l %f'%(options.config,box, 1000*lumi),options.dryRun)
             
                 if options.unweighted:                
                     backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_unweighted_lumi-%.3f_%s_%s.root'%(lumi,btag,box)
