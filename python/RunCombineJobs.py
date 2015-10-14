@@ -30,10 +30,11 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     user = os.environ['USER']
     pwd = os.environ['PWD']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer/cards_data/"%(user[0],user)
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer/%s/"%(user[0],user,submitDir)
 
     script =  '#!/usr/bin/env bash -x\n'
-    script += 'mkdir -p %s\n'
+    script += 'mkdir -p %s\n'%combineDir
+    
     script += 'echo $SHELL\n'
     script += 'pwd\n'
     script += 'cd /afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer \n'%(user[0],user)
@@ -79,17 +80,27 @@ if __name__ == '__main__':
                   help="mgMin ")
     parser.add_option('--mg-lt',dest="mgMax",default=10000,type="float",
                   help="mgMax ")
-
-
+    parser.add_option('--done-file',dest="doneFile",default=None,type="string",
+                  help="file containing output files")
 
     (options,args) = parser.parse_args()
 
 
-    btag = '0-3btag'
+    btag = '0-2btag'
 
     nJobs = 0
+    donePairs = []
+    if options.doneFile is not None:
+        with open(options.doneFile,'r') as f:            
+            allFiles = [ line.replace('\n','') for line in f.readlines()]
+            for (mg, mchi) in gchipairs(options.model):
+                outputname = 'higgsCombine%s_%i_%i_lumi-%.3f_%s_%s.Asymptotic.mH120.root'%(options.model,mg,mchi,options.lumi,btag,options.box)
+                if outputname in allFiles: donePairs.append((mg,mchi))
+
+                    
     for (mg, mchi) in gchipairs(options.model):
         if not (mg >= options.mgMin and mg < options.mgMax): continue
+        if (mg, mchi) in donePairs: continue
         nJobs+=1
         outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty)
         
