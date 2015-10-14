@@ -99,57 +99,104 @@ def passHadronicTrigger(event, isData=False, debugLevel=0):
     if debugLevel > 1: print("Note: hadronic trigger requirement is a pass-through right now")
     return True
 
-def weight_mc(event, wHists, scale=1.0, debugLevel=0):
+def weight_mc(event, wHists, scale=1.0, opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     """Apply pileup weights and other known MC correction factors -- for razor control regions"""
     eventWeight = event.weight*scale
-    #pileup reweighting
-    if "pileup" in wHists:
-        pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(event.NPV))
-        #pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(event.NPU_0))
-        if debugLevel > 1: print "NPV weight:",pileupWeight,"( NPV=",event.NPV,")"
-        eventWeight *= pileupWeight
-    else:
-        print "Error in weight_mc: pileup reweighting histogram not found!"
-        sys.exit()
-    if not ("ele" in wHists):
-        print "Error in weight_mc: electron scale factor histogram not found!"
-        sys.exit()
-    if not ("muon" in wHists):
-        print "Error in weight_mc: muon scale factor histogram not found!"
-        sys.exit()
-    leptonWeight = 1.0
-    #leading muon 
-    if abs(event.lep1Type) == 13 and event.lep1.Pt() > 0:
-        leptonWeight *= wHists["muon"].GetBinContent(
-                wHists["muon"].GetXaxis().FindFixBin(max(min(event.lep1.Pt(), 199.9),15.01)),
-                #wHists["muon"].GetXaxis().FindFixBin(min(event.lep1.Pt(), wHists["muon"].GetXaxis().GetXmax()-1.0)),
-                wHists["muon"].GetYaxis().FindFixBin(abs(event.lep1.Eta())))
-    #leading electron
-    elif abs(event.lep1Type) == 11 and event.lep1.Pt() > 0:
-        leptonWeight *= wHists["ele"].GetBinContent(
-                wHists["ele"].GetXaxis().FindFixBin(max(min(event.lep1.Pt(), 199.9),15.01)),
-                #wHists["ele"].GetXaxis().FindFixBin(min(event.lep1.Pt(), wHists["ele"].GetXaxis().GetXmax()-1.0)),
-                wHists["ele"].GetYaxis().FindFixBin(abs(event.lep1.Eta())))
-    #subleading muon 
-    if abs(event.lep2Type) == 13 and event.lep2.Pt() > 0:
-        leptonWeight *= wHists["muon"].GetBinContent(
-                wHists["muon"].GetXaxis().FindFixBin(max(min(event.lep2.Pt(), 199.9),15.01)),
-                #wHists["muon"].GetXaxis().FindFixBin(min(event.lep2.Pt(), wHists["muon"].GetXaxis().GetXmax()-1.0)),
-                wHists["muon"].GetYaxis().FindFixBin(abs(event.lep2.Eta())))
-    #subleading electron
-    elif abs(event.lep2Type) == 11 and event.lep2.Pt() > 0:
-        leptonWeight *= wHists["ele"].GetBinContent(
-                wHists["ele"].GetXaxis().FindFixBin(max(min(event.lep2.Pt(), 199.9),15.01)),
-                #wHists["ele"].GetXaxis().FindFixBin(min(event.lep2.Pt(), wHists["ele"].GetXaxis().GetXmax()-1.0)),
-                wHists["ele"].GetYaxis().FindFixBin(abs(event.lep2.Eta())))
     if debugLevel > 1: 
-        print "lepton weight:",leptonWeight
-    eventWeight *= leptonWeight
+        print "Weight from ntuple:",event.weight
+        print "Scale by:",scale
+    #pileup reweighting
+    if "doPileupWeights" in opts:
+        if "pileup" in wHists:
+            pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(event.NPV))
+            #pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(event.NPU_0))
+            if debugLevel > 1: print "NPV weight:",pileupWeight,"( NPV=",event.NPV,")"
+            eventWeight *= pileupWeight
+        else:
+            print "Error in weight_mc: pileup reweighting histogram not found!"
+            sys.exit()
+
+    #lepton scale factors
+    if "doLep1Weights" in opts:
+        if not ("ele" in wHists):
+            print "Error in weight_mc: electron scale factor histogram not found!"
+            sys.exit()
+        if not ("muon" in wHists):
+            print "Error in weight_mc: muon scale factor histogram not found!"
+            sys.exit()
+        leptonWeight = 1.0
+        #leading muon 
+        if abs(event.lep1Type) == 13 and event.lep1.Pt() > 0:
+            leptonWeight *= wHists["muon"].GetBinContent(
+                    wHists["muon"].GetXaxis().FindFixBin(max(min(event.lep1.Pt(), 199.9),15.01)),
+                    #wHists["muon"].GetXaxis().FindFixBin(min(event.lep1.Pt(), wHists["muon"].GetXaxis().GetXmax()-1.0)),
+                    wHists["muon"].GetYaxis().FindFixBin(abs(event.lep1.Eta())))
+        #leading electron
+        elif abs(event.lep1Type) == 11 and event.lep1.Pt() > 0:
+            leptonWeight *= wHists["ele"].GetBinContent(
+                    wHists["ele"].GetXaxis().FindFixBin(max(min(event.lep1.Pt(), 199.9),15.01)),
+                    #wHists["ele"].GetXaxis().FindFixBin(min(event.lep1.Pt(), wHists["ele"].GetXaxis().GetXmax()-1.0)),
+                    wHists["ele"].GetYaxis().FindFixBin(abs(event.lep1.Eta())))
+        if "doLep2Weights" in opts:
+            #subleading muon 
+            if abs(event.lep2Type) == 13 and event.lep2.Pt() > 0:
+                leptonWeight *= wHists["muon"].GetBinContent(
+                        wHists["muon"].GetXaxis().FindFixBin(max(min(event.lep2.Pt(), 199.9),15.01)),
+                        #wHists["muon"].GetXaxis().FindFixBin(min(event.lep2.Pt(), wHists["muon"].GetXaxis().GetXmax()-1.0)),
+                        wHists["muon"].GetYaxis().FindFixBin(abs(event.lep2.Eta())))
+            #subleading electron
+            elif abs(event.lep2Type) == 11 and event.lep2.Pt() > 0:
+                leptonWeight *= wHists["ele"].GetBinContent(
+                        wHists["ele"].GetXaxis().FindFixBin(max(min(event.lep2.Pt(), 199.9),15.01)),
+                        #wHists["ele"].GetXaxis().FindFixBin(min(event.lep2.Pt(), wHists["ele"].GetXaxis().GetXmax()-1.0)),
+                        wHists["ele"].GetYaxis().FindFixBin(abs(event.lep2.Eta())))
+        if debugLevel > 1: 
+            print "lepton weight:",leptonWeight
+        eventWeight *= leptonWeight
+
+    #trigger scale factors
+    if "do1LepTrigWeights" in opts:
+        if not ("eletrig" in wHists):
+            print "Error in weight_mc: electron trigger scale factor histogram not found!"
+            sys.exit()
+        if not ("muontrig" in wHists):
+            print "Error in weight_mc: muon trigger scale factor histogram not found!"
+            sys.exit()
+        trigWeight = 1.0
+        #leading muon 
+        if abs(event.lep1Type) == 13 and event.lep1.Pt() > 0:
+            trigWeight *= wHists["muontrig"].GetBinContent(
+                    wHists["muontrig"].GetXaxis().FindFixBin(max(min(event.lep1.Pt(), 199.9),15.01)),
+                    #wHists["muontrig"].GetXaxis().FindFixBin(min(event.lep1.Pt(), wHists["muontrig"].GetXaxis().GetXmax()-1.0)),
+                    wHists["muontrig"].GetYaxis().FindFixBin(abs(event.lep1.Eta())))
+        #leading electron
+        elif abs(event.lep1Type) == 11 and event.lep1.Pt() > 0:
+            trigWeight *= wHists["eletrig"].GetBinContent(
+                    wHists["eletrig"].GetXaxis().FindFixBin(max(min(event.lep1.Pt(), 199.9),15.01)),
+                    #wHists["eletrig"].GetXaxis().FindFixBin(min(event.lep1.Pt(), wHists["eletrig"].GetXaxis().GetXmax()-1.0)),
+                    wHists["eletrig"].GetYaxis().FindFixBin(abs(event.lep1.Eta())))
+        if "doLep2TrigWeights" in opts:
+            #subleading muon 
+            if abs(event.lep2Type) == 13 and event.lep2.Pt() > 0:
+                trigWeight *= wHists["muontrig"].GetBinContent(
+                        wHists["muontrig"].GetXaxis().FindFixBin(max(min(event.lep2.Pt(), 199.9),15.01)),
+                        #wHists["muontrig"].GetXaxis().FindFixBin(min(event.lep2.Pt(), wHists["muontrig"].GetXaxis().GetXmax()-1.0)),
+                        wHists["muontrig"].GetYaxis().FindFixBin(abs(event.lep2.Eta())))
+            #subleading electron
+            elif abs(event.lep2Type) == 11 and event.lep2.Pt() > 0:
+                trigWeight *= wHists["eletrig"].GetBinContent(
+                        wHists["eletrig"].GetXaxis().FindFixBin(max(min(event.lep2.Pt(), 199.9),15.01)),
+                        #wHists["eletrig"].GetXaxis().FindFixBin(min(event.lep2.Pt(), wHists["eletrig"].GetXaxis().GetXmax()-1.0)),
+                        wHists["eletrig"].GetYaxis().FindFixBin(abs(event.lep2.Eta())))
+        if debugLevel > 1: 
+            print "1-lepton trigger weight:",trigWeight
+        eventWeight *= trigWeight
+
     if debugLevel > 1: 
         print "event weight:",eventWeight
     return eventWeight
 
-def weight_data(event, wHists, scale=1.0, debugLevel=0):
+def weight_data(event, wHists, scale=1.0, opts=[], debugLevel=0):
     eventWeight = scale
     if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
     return eventWeight
@@ -184,11 +231,13 @@ titles = {
     "mll": "m_{ll} (GeV)",
     }
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, logX=True, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", debugLevel=0):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, logX=True, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     #setup files and trees
     inputs = filenames
     files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
-    for name in inputs: assert files[name] #check input files
+    for name in inputs: 
+        assert files[name] #check input files
+        if debugLevel > 0: print "Opened file",inputs[name]
     trees = macro.makeTreeDict(files, treeName, debugLevel)
 
     #define histograms to fill
@@ -209,10 +258,10 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     
     #fill histograms
     print("Data:")
-    macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, debugLevel=debugLevel) 
+    macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, opts=[], debugLevel=debugLevel) 
 
     print("MC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, opts=opts, debugLevel=debugLevel) 
 
     #print histograms
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)

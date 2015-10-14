@@ -84,7 +84,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
                     hists[name].SetBinError(bx,by,(hists[name].GetBinError(bx,by)**2 + squaredError)**(0.5))
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     print ("Looping tree "+tree.GetName())
@@ -110,7 +110,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         elif debugLevel > 0 and count % 10000 == 0: print "Processing entry",count
         elif debugLevel > 1: print "Processing entry",count
         tree.GetEntry(entry)
-        w = weightF(tree, weightHists, scale, debugLevel)
+        w = weightF(tree, weightHists, scale, opts, debugLevel=debugLevel)
         err = 0.0
         if sfHist is not None: 
             sf, err = getScaleFactorAndError(tree, sfHist, sfVars, debugLevel)
@@ -123,7 +123,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -134,7 +134,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         if name in sfHists: 
             print("Using scale factors from histogram "+sfHists[name].GetName())
             sfHistToUse = sfHists[name]
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, opts, debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
 def makeStack(hists, ordering, title="Stack"):
