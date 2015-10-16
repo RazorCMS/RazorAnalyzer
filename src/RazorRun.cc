@@ -207,14 +207,16 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
-        analyzer.RazorInclusive(outputFileName, true, isData); //change the bool to true if you want all analysis boxes combined in one tree
+        bool isFastsimSMS = (option == 1); //specify option = 1 to split fastsim signal samples by mass point
+        analyzer.RazorInclusive(outputFileName, true, isData, isFastsimSMS); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "razorfull" || analysisType == "fullrazor" || analysisType == "FullRazorInclusive"){
         cout << "Executing full razor inclusive analysis..." << endl;
         analyzer.EnableAll();
-        analyzer.FullRazorInclusive(outputFileName, isData); 
+        bool isFastsimSMS = (option == 1); //specify option = 1 to split fastsim signal samples by mass point
+        analyzer.FullRazorInclusive(outputFileName, isData, isFastsimSMS); 
     }
-    else if(analysisType == "hggrazor"){
+    else if(analysisType == "hggrazor" || analysisType == "HggRazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;
         analyzer.EnableEventInfo();
         analyzer.EnableJets();
@@ -238,7 +240,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableMC();
         analyzer.MatchedRazorInclusive(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
-    else if(analysisType == "razorVetoLeptonStudy"){
+    else if(analysisType == "razorVetoLeptonStudy" || analysisType == "RazorVetoLeptonStudy"){
       cout << "Executing razorVetoLeptonStudy..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -257,7 +259,7 @@ int main(int argc, char* argv[]){
 	analyzer.RazorVetoLeptonStudy(outputFileName, false);
       }
     }
-    else if(analysisType == "razorZAnalysis"){
+    else if(analysisType == "razorZAnalysis" || analysisType == "RazorZAnalysis"){
       cout << "Executing razorZAnalysis..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -270,28 +272,28 @@ int main(int argc, char* argv[]){
       analyzer.EnableIsoPFCandidates();
       analyzer.RazorZAnalysis(outputFileName, true);
     }
-    else if(analysisType == "electronNtupler"){
+    else if(analysisType == "electronNtupler" || analysisType == "ElectronNtupler"){
       cout << "Executing electron ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableElectrons();
       analyzer.EnableGenParticles();
       analyzer.ElectronNtupler(outputFileName, option);
     }
-    else if(analysisType == "muonNtupler"){
+    else if(analysisType == "muonNtupler" || analysisType == "MuonNtupler"){
       cout << "Executing muon ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableMuons();
       analyzer.EnableGenParticles();
       analyzer.MuonNtupler(outputFileName, option);
     }
-    else if(analysisType == "tauNtupler"){
+    else if(analysisType == "tauNtupler" || analysisType == "TauNtupler"){
       cout << "Executing tau ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableTaus();
       analyzer.EnableGenParticles();
       analyzer.TauNtupler(outputFileName, option);
     }
-    else if(analysisType == "jetNtupler"){
+    else if(analysisType == "jetNtupler" || analysisType == "JetNtupler"){
       cout << "Executing jet ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -299,14 +301,14 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.JetNtupler(outputFileName, option);
     }
-    else if(analysisType == "photonNtupler"){
+    else if(analysisType == "photonNtupler" || analysisType == "PhotonNtupler"){
         cout << "Running photon ntupler..." << endl;
         analyzer.EnableEventInfo();
         analyzer.EnablePhotons();
         analyzer.EnableGenParticles();
         analyzer.PhotonNtupler(outputFileName, option);
     }
-    else if(analysisType == "met"){ // met analyzer to plot some histograms
+    else if(analysisType == "met" || analysisType == "RazorMetAna"){ // met analyzer to plot some histograms
         cout << "Executing razor MET analysis..." << endl;
         analyzer.EnableJets();
         analyzer.EnableMet();
@@ -354,7 +356,7 @@ int main(int argc, char* argv[]){
       analyzer.EnablePileup();      
       analyzer.VetoLeptonEfficiencyControlRegion(outputFileName, option);
     }
-    else if(analysisType == "razorPhotonStudy"){
+    else if(analysisType == "razorPhotonStudy" || analysisType == "RazorPhotonStudy"){
       cout << "Executing razorPhotonStudy..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -392,7 +394,7 @@ int main(int argc, char* argv[]){
           analyzer.RazorPhotonStudy(outputFileName, false, false, true); //run with MC -- don't filter events (Run 1)
       }
     } 
-    else if(analysisType == "hbbrazor"){
+    else if(analysisType == "hbbrazor" || analysisType == "HbbRazor"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
 	analyzer.EnablePileup();
@@ -405,7 +407,7 @@ int main(int argc, char* argv[]){
 	analyzer.EnableGenParticles();
         analyzer.HbbRazor(outputFileName, true, isData, false); 
     }
-    else if(analysisType == "hzzRazor"){
+    else if(analysisType == "hzzRazor" || analysisType == "HZZRazor"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
 	analyzer.EnablePileup();
