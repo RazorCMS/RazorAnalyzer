@@ -15,47 +15,130 @@
 
 using namespace std;
 
+std::string ParseCommandLine( int argc, char* argv[], std::string opt )
+{
+  for (int i = 1; i < argc; i++ )
+    {
+      std::string tmp( argv[i] );
+      if ( tmp.find( opt ) != std::string::npos )
+        {
+          if ( tmp.find( "=" )  != std::string::npos ) return tmp.substr( tmp.find_last_of("=") + 1 );
+	  if ( tmp.find( "--" ) != std::string::npos ) return "yes";
+	}
+    }
+  
+  return "";
+};
+
+void usage()
+{
+  std::cerr << "Usage: RazorRun  <input list>  <analysis type>  [options]\n[options]:\n"
+	    << "-d  --isData\n"
+	    << "-f  --outputFile=<output filename> (optional)\n"
+	    << "-n  --optionNumber=<option number> (optional)\n"
+	    << "-l  --optionLabel=<option Label> (optional)\n" 
+	    << "-h  --help"
+	    << std::endl;
+  
+  std::cerr << "Analyses available:\n"
+	    << "razor                --   inclusive razor analysis\n"
+	    << "razorfull            --   larger razor ntuple used for setting limits w/systematics\n"
+	    << "hggrazor             --   higgs->diphoton razor analysis\n"
+	    << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets\n"
+	    << "razorVetoLeptonStudy --   study lepton veto\n"
+	    << "razorPhotonStudy     --   select events for Z->invisible control sample\n"
+	    << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events\n"
+	    << "electronNtupler      --   study electron variables\n"
+	    << "muonNtupler          --   study muon variables\n"
+	    << "jetNtupler           --   study jet variables\n"
+	    << "photonntupler        --   study photon variables\n"
+	    << "dummy                --   do nothing useful\n"
+	    << "razorDM              --   run MultiJet razor dark matter analysis" << std::endl;
+};
+
 int main(int argc, char* argv[]){
 
-    //get input files and analysis type from command line
-    if(argc < 4){
-        cerr << "Usage: RazorRun <input list> <analysis type> <isData> <output filename (optional)> [option number] [optional label]" << endl;
-        cerr << "Analyses available: " << endl 
-	     << "razor                --   inclusive razor analysis" << endl 
-             << "razorfull            --   larger razor ntuple used for setting limits w/systematics" << endl
-	     << "hggrazor             --   higgs->diphoton razor analysis" << endl
-	     << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets" << endl 
-	     << "razorVetoLeptonStudy --   study lepton veto" << endl
-	     << "razorPhotonStudy     --   select events for Z->invisible control sample" << endl
-	     << "razorPhotonStudyEff  --   same tree content as razorPhotonStudy, but save all events" << endl
-	     << "electronNtupler      --   study electron variables" << endl
-	     << "muonNtupler          --   study muon variables" << endl
-	     << "jetNtupler           --   study jet variables" << endl
-	     << "photonntupler        --   study photon variables" << endl
-	     << "dummy                --   do nothing useful" << endl
-	     << "razorDM              --   run MultiJet razor dark matter analysis" << endl;
-        return -1;
+  //get input files and analysis type from command line
+  if ( ParseCommandLine( argc, argv, "--help" ) != ""  || ParseCommandLine( argc, argv, "-h" ) != ""  || argc < 3 )
+    {
+      usage();
+      return -1;
     }
-    string inputFileName(argv[1]);
-    string analysisType(argv[2]);
+  
+  //----------------------------------------
+  //Getting <input list> and <analysis type>
+  //----------------------------------------
+  string inputFileName(argv[1]);
+  string analysisType(argv[2]);
+  
+  //--------------------------------
+  //G e t t i n g   d a t a  f l a g 
+  //--------------------------------
+  std::string _isData = ParseCommandLine( argc, argv, "--isData" );
+  std::string _d = ParseCommandLine( argc, argv, "-d" );
+  bool isData = false;
+  if ( _isData == "yes" || _d != "yes" ) isData = true;
 
-    string isDataOption = "";
-    isDataOption = argv[3];
-    bool isData = false;
-    if (isDataOption == "y" || isDataOption == "1" || isDataOption == "true") isData = true;
-        
-    string outputFileName = "";
-    if (argc >= 5)  outputFileName = argv[4];
-
-    int option = -1;
-    if (argc >= 6) {
-      option = atoi(argv[5]);
+  //---------------------------------------------
+  //G e t t i n g   o u t p u t F i l e   N a m e  
+  //---------------------------------------------
+  std::string _outFile = ParseCommandLine( argc, argv, "--outputFile=" );
+  std::string _f = ParseCommandLine( argc, argv, "-f=" );
+  string outputFileName = "";
+  if ( _outFile != "" )
+    {
+      outputFileName = _outFile;
     }
-    
-    string label = "";
-    if (argc >= 7) {
-      label = argv[6];
+  else if ( _f != "" )
+    {
+      outputFileName = _f;
     }
+  else
+    {
+      std::cerr << "[WARNING]: output ROOT file not provided, using default output" << std::endl;
+    }
+  
+  //-----------------------------------------
+  //G e t t i n g   o p t i o n   n u m b e r
+  //-----------------------------------------
+  int option = -1;
+  std::string _optionNumber = ParseCommandLine( argc, argv, "--optionNumber=" );
+  std::string _n = ParseCommandLine( argc, argv, "-n=" );
+  if ( _optionNumber != "" )
+    {
+      option = atoi( _optionNumber.c_str() );
+    }
+  else if ( _n != "" )
+    {
+      option = atoi( _n.c_str() );
+    } 
+  else
+    {
+      std::cerr << "[WARNING]: option number not provided, using default option number" << std::endl;
+    }
+  
+  string label = "";
+  std::string _optionLabel = ParseCommandLine( argc, argv, "--optionLabel=" );
+  std::string _l = ParseCommandLine( argc, argv, "-l=" );
+  if ( _optionLabel != "" ) 
+    {
+      label = _optionLabel;
+    }
+  else if ( _l != "" )
+    {
+      label = _l;
+    }
+  else
+    {
+      std::cerr << "[WARNING]: optional label not provided, using default optional label" << std::endl;
+    }
+  
+  std::cout << "[INFO]: <input list> --> " << inputFileName << std::endl;
+  std::cout << "[INFO]: <analysis type> --> " << analysisType << std::endl;
+  std::cout << "[INFO]: isData --> " << isData << std::endl;
+  std::cout << "[INFO]: outputFileName --> " << outputFileName << std::endl;
+  std::cout << "[INFO]: option --> " << option << std::endl;
+  std::cout << "[INFO]: optionalLabel --> " << label << std::endl;
     
     //build the TChain
     //tree name is set give the structure in the first root file, see while loop below
@@ -124,14 +207,16 @@ int main(int argc, char* argv[]){
         analyzer.EnableTaus();
 	analyzer.EnableMC();
 	analyzer.EnableGenParticles();
-        analyzer.RazorInclusive(outputFileName, true, isData); //change the bool to true if you want all analysis boxes combined in one tree
+        bool isFastsimSMS = (option == 1); //specify option = 1 to split fastsim signal samples by mass point
+        analyzer.RazorInclusive(outputFileName, true, isData, isFastsimSMS); //change the bool to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "razorfull" || analysisType == "fullrazor" || analysisType == "FullRazorInclusive"){
         cout << "Executing full razor inclusive analysis..." << endl;
         analyzer.EnableAll();
-        analyzer.FullRazorInclusive(outputFileName, isData); 
+        bool isFastsimSMS = (option == 1); //specify option = 1 to split fastsim signal samples by mass point
+        analyzer.FullRazorInclusive(outputFileName, isData, isFastsimSMS); 
     }
-    else if(analysisType == "hggrazor"){
+    else if(analysisType == "hggrazor" || analysisType == "HggRazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;
         analyzer.EnableEventInfo();
         analyzer.EnableJets();
@@ -155,7 +240,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableMC();
         analyzer.MatchedRazorInclusive(outputFileName, false); //change the bool to true if you want all analysis boxes combined in one tree
     }
-    else if(analysisType == "razorVetoLeptonStudy"){
+    else if(analysisType == "razorVetoLeptonStudy" || analysisType == "RazorVetoLeptonStudy"){
       cout << "Executing razorVetoLeptonStudy..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -174,7 +259,7 @@ int main(int argc, char* argv[]){
 	analyzer.RazorVetoLeptonStudy(outputFileName, false);
       }
     }
-    else if(analysisType == "razorZAnalysis"){
+    else if(analysisType == "razorZAnalysis" || analysisType == "RazorZAnalysis"){
       cout << "Executing razorZAnalysis..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -187,28 +272,28 @@ int main(int argc, char* argv[]){
       analyzer.EnableIsoPFCandidates();
       analyzer.RazorZAnalysis(outputFileName, true);
     }
-    else if(analysisType == "electronNtupler"){
+    else if(analysisType == "electronNtupler" || analysisType == "ElectronNtupler"){
       cout << "Executing electron ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableElectrons();
       analyzer.EnableGenParticles();
       analyzer.ElectronNtupler(outputFileName, option);
     }
-    else if(analysisType == "muonNtupler"){
+    else if(analysisType == "muonNtupler" || analysisType == "MuonNtupler"){
       cout << "Executing muon ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableMuons();
       analyzer.EnableGenParticles();
       analyzer.MuonNtupler(outputFileName, option);
     }
-    else if(analysisType == "tauNtupler"){
+    else if(analysisType == "tauNtupler" || analysisType == "TauNtupler"){
       cout << "Executing tau ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableTaus();
       analyzer.EnableGenParticles();
       analyzer.TauNtupler(outputFileName, option);
     }
-    else if(analysisType == "jetNtupler"){
+    else if(analysisType == "jetNtupler" || analysisType == "JetNtupler"){
       cout << "Executing jet ntupler..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -216,14 +301,14 @@ int main(int argc, char* argv[]){
       analyzer.EnableMC();
       analyzer.JetNtupler(outputFileName, option);
     }
-    else if(analysisType == "photonNtupler"){
+    else if(analysisType == "photonNtupler" || analysisType == "PhotonNtupler"){
         cout << "Running photon ntupler..." << endl;
         analyzer.EnableEventInfo();
         analyzer.EnablePhotons();
         analyzer.EnableGenParticles();
         analyzer.PhotonNtupler(outputFileName, option);
     }
-    else if(analysisType == "met"){ // met analyzer to plot some histograms
+    else if(analysisType == "met" || analysisType == "RazorMetAna"){ // met analyzer to plot some histograms
         cout << "Executing razor MET analysis..." << endl;
         analyzer.EnableJets();
         analyzer.EnableMet();
@@ -271,7 +356,7 @@ int main(int argc, char* argv[]){
       analyzer.EnablePileup();      
       analyzer.VetoLeptonEfficiencyControlRegion(outputFileName, option);
     }
-    else if(analysisType == "razorPhotonStudy"){
+    else if(analysisType == "razorPhotonStudy" || analysisType == "RazorPhotonStudy"){
       cout << "Executing razorPhotonStudy..." << endl;
       analyzer.EnableEventInfo();
       analyzer.EnableJets();
@@ -309,7 +394,7 @@ int main(int argc, char* argv[]){
           analyzer.RazorPhotonStudy(outputFileName, false, false, true); //run with MC -- don't filter events (Run 1)
       }
     } 
-    else if(analysisType == "hbbrazor"){
+    else if(analysisType == "hbbrazor" || analysisType == "HbbRazor"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
 	analyzer.EnablePileup();
@@ -322,7 +407,7 @@ int main(int argc, char* argv[]){
 	analyzer.EnableGenParticles();
         analyzer.HbbRazor(outputFileName, true, isData, false); 
     }
-    else if(analysisType == "hzzRazor"){
+    else if(analysisType == "hzzRazor" || analysisType == "HZZRazor"){
         cout << "Executing razor inclusive analysis..." << endl;
 	analyzer.EnableEventInfo();
 	analyzer.EnablePileup();

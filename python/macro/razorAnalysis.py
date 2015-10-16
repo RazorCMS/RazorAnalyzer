@@ -11,8 +11,6 @@ import macro
 #####################################
 
 #Single lepton trigger indices
-#singleLeptonTriggerNumsData = [1,2,8,20,22,24,25] #used in razor inclusive
-#singleLeptonTriggerNumsMC = [1,2,8,17,18,19,24,25] #used in razor inclusive
 singleLeptonTriggerNumsData = [3,8,11,12,14,21,22,23,24,25,26,27]
 singleLeptonTriggerNumsMC = [3,8,11,12,14,17,18,19,20,26,27]
 
@@ -27,7 +25,7 @@ def appendTriggerCuts(cuts, trigNums):
 ### TTJets Single Lepton Control Region
 
 #cuts
-ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1Pt > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium > 0 && MR > 300 && Rsq > 0.15"
+ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium > 0 && MR > 300 && Rsq > 0.15"
 ttjetsSingleLeptonCutsData = appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsData)
 ttjetsSingleLeptonCutsMC = appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsMC)
 
@@ -40,7 +38,7 @@ ttjetsSingleLeptonBins = {
 ### WJets Single Lepton Control Region
 
 #cuts
-wjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1Pt > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && MR > 300 && Rsq > 0.15"
+wjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && MR > 300 && Rsq > 0.15"
 wjetsSingleLeptonCutsData = appendTriggerCuts(wjetsSingleLeptonCuts, singleLeptonTriggerNumsData)
 wjetsSingleLeptonCutsMC = appendTriggerCuts(wjetsSingleLeptonCuts, singleLeptonTriggerNumsMC)
 

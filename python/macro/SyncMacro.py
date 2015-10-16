@@ -15,7 +15,7 @@ LUMI = 157 #in /pb
 MCLUMI = 1 
 
 SAMPLES_DYJ2L = ["SingleTop", "WJets", "VV", "TTJets", "DYJets"]
-SAMPLES_TTJ2L = copy.copy(SAMPLES_DYJ2L)
+SAMPLES_TTJ2L = ["SingleTop", "WJets", "VV", "DYJets", "TTJets"]
 
 weightfilenames = {
         "muon": "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20150924_PR_2015D/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D.root",
@@ -28,7 +28,7 @@ weighthistnames = {
         "pileup": "NVtxReweight",
         }
 
-dir_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p18/"
+dir_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p18_OLD/"
 FILENAMES_1L = {
         "DYJets"   :dir_1L+"RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
         "TTJets"   :dir_1L+"RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
@@ -47,8 +47,8 @@ dyjetsDimuonCutsData = appendTriggerCuts(dyjetsDimuonCuts, singleLeptonTriggerNu
 dyjetsDimuonCutsMC = appendTriggerCuts(dyjetsDimuonCuts, singleLeptonTriggerNumsMC)
 
 dyjetsDileptonCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 20 && mll > 60 && mll < 120"
-dyjetsDileptonCutsData = '('+(' || '.join(['HLTDecision['+str(n)+']' for n in dileptonTriggerNumsData])) + ") && " + dyjetsDileptonCuts
-dyjetsDileptonCutsMC = '('+(' || '.join(['HLTDecision['+str(n)+']' for n in dileptonTriggerNumsMC])) + ") && " + dyjetsDileptonCuts
+dyjetsDileptonCutsData = appendTriggerCuts(dyjetsDileptonCuts, singleLeptonTriggerNumsData)
+dyjetsDileptonCutsMC = appendTriggerCuts(dyjetsDileptonCuts, singleLeptonTriggerNumsMC)
 
 dyjetsDileptonFullCutsMC = dyjetsDileptonCutsMC+" && NJets80 >= 2 && NBJetsMedium == 0 && MR > 300"
 dyjetsDileptonFullCutsData = dyjetsDileptonCutsData+" && NJets80 >= 2 && NBJetsMedium == 0 && MR > 300"
@@ -62,14 +62,20 @@ dyjetsDileptonBins = {
         "NJets80": np.arange(-0.5, 9.5, 1),
         }
 
-#ttjetsEMuCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 20 && abs(lep1Type) != abs(lep2Type) && NBJetsMedium >= 1 && MR > 300"
-#ttjetsEMuCutsData = '('+(' || '.join(['HLTDecision['+str(n)+']' for n in dileptonTriggerNumsData])) + ") && " + ttjetsEMuCuts
-#ttjetsEMuCutsMC = '('+(' || '.join(['HLTDecision['+str(n)+']' for n in dileptonTriggerNumsMC])) + ") && " + ttjetsEMuCuts
-#
-#ttjetsDileptonBins = {
-#        "MR"  : np.arange(0, 1500, 100),
-#        "Rsq" : np.arange(0, 1.5, 0.01)
-#        }
+ttjetsEMuCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 13) || (abs(lep1Type) == 13 && abs(lep2Type) == 11)) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 20 && mll > 20"
+ttjetsEMuCutsMC = appendTriggerCuts(ttjetsEMuCuts, singleLeptonTriggerNumsMC)
+ttjetsEMuCutsData = appendTriggerCuts(ttjetsEMuCuts, singleLeptonTriggerNumsData)
+
+ttjetsEMuFullCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 13) || (abs(lep1Type) == 13 && abs(lep2Type) == 11)) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 20 && mll > 50 && NBJetsMedium > 0"
+ttjetsEMuFullCutsMC = appendTriggerCuts(ttjetsEMuFullCuts, singleLeptonTriggerNumsMC)
+ttjetsEMuFullCutsData = appendTriggerCuts(ttjetsEMuFullCuts, singleLeptonTriggerNumsData)
+
+ttjetsDileptonBins = {
+        "MR"  : np.arange(0, 1500, 100),
+        "Rsq" : np.arange(0, 1.5, 0.01),
+        "MET" : np.arange(0, 500, 20),
+        "mll" : np.arange(0, 500, 12.5)
+        }
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -88,32 +94,32 @@ if __name__ == "__main__":
     sfHists = {}
 
     #DYJets control sample
-    dyjetsDielectronHists = makeControlSampleHists("DYJetsDielectron", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
-                cutsMC=dyjetsDielectronCutsMC, cutsData=dyjetsDielectronCutsData, 
-                bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-                weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
-
-    dyjetsDimuonHists = makeControlSampleHists("DYJetsDimuon", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
-                cutsMC=dyjetsDimuonCutsMC, cutsData=dyjetsDimuonCutsData, 
-                bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-                weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
-
-    dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
-                cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
-                bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-                weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
-    
-    dyjetsDileptonFullHists = makeControlSampleHists("DYJetsDileptonFull", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
-                cutsMC=dyjetsDileptonFullCutsMC, cutsData=dyjetsDileptonFullCutsData, 
-                bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-                weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
-
-    #makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
-    #            cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
+    #dyjetsDielectronHists = makeControlSampleHists("DYJetsDielectron", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
+    #            cutsMC=dyjetsDielectronCutsMC, cutsData=dyjetsDielectronCutsData, 
     #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
     #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
 
-    #makeControlSampleHists("TTJetsDilepton", filenames=FILENAMES_1L, samples=SAMPLES_TTJ2L, 
+    #dyjetsDimuonHists = makeControlSampleHists("DYJetsDimuon", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
+    #            cutsMC=dyjetsDimuonCutsMC, cutsData=dyjetsDimuonCutsData, 
+    #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+
+    #dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
+    #            cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
+    #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #
+    #dyjetsDileptonFullHists = makeControlSampleHists("DYJetsDileptonFull", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
+    #            cutsMC=dyjetsDileptonFullCutsMC, cutsData=dyjetsDileptonFullCutsData, 
+    #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+
+    #ttjetsEMuHists = makeControlSampleHists("TTJetsEMu", filenames=FILENAMES_1L, samples=SAMPLES_TTJ2L, 
     #            cutsMC=ttjetsEMuCutsMC, cutsData=ttjetsEMuCutsData, 
+    #            bins=ttjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+
+    #ttjetsEMuFullHists = makeControlSampleHists("TTJetsEMuFull", filenames=FILENAMES_1L, samples=SAMPLES_TTJ2L, 
+    #            cutsMC=ttjetsEMuFullCutsMC, cutsData=ttjetsEMuFullCutsData, 
     #            bins=ttjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
     #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)

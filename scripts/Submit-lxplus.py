@@ -25,7 +25,7 @@ pwd = os.environ['PWD']
 #configuring Submission
 ############################
 inputlist        =  sys.argv[1]
-isData           = sys.argv[2]
+isData           = bool(sys.argv[2])
 process          = sys.argv[3]
 files_per_job    = int(sys.argv[4])
 appName          = sys.argv[5]
@@ -86,11 +86,10 @@ for ijob in range(njobs):
     outputfile.write( "cd " + pwd )
     #outputfile.write( "\neval `scramv1 run -sh`;make clean;make -j 4")
     outputfile.write( "\neval `scramv1 run -sh`;" )
-    outputfile.write( "\n./RazorRun " + inputfilename  
-                      + " " + appName 
-                      + " " + isData
-                      + " " + rootOutput
-                      + " " + option)
+    if isData:
+        outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " --isData" + " -f=" + rootOutput + " -n=" + option )
+    else :
+        outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " -f=" + rootOutput + " -n=" + option )
         
     outputfile.close
     os.system("bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName)
