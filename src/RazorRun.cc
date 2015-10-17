@@ -77,7 +77,7 @@ int main(int argc, char* argv[]){
   std::string _isData = ParseCommandLine( argc, argv, "--isData" );
   std::string _d = ParseCommandLine( argc, argv, "-d" );
   bool isData = false;
-  if ( _isData == "yes" || _d != "yes" ) isData = true;
+  if ( _isData == "yes" || _d == "yes" ) isData = true;
 
   //---------------------------------------------
   //G e t t i n g   o u t p u t F i l e   N a m e  
