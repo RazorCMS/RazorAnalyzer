@@ -1,7 +1,7 @@
 import ROOT as rt
 import copy
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, lumistr="40 pb^{-1}"):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}"):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -19,7 +19,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             legend = makeLegend(varHists, titles, reversed(mcNames))
             legend.AddEntry(dataHists[var], dataName)
         stack = makeStack(varHists, mcNames, var)
-        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, saveroot=True)
+        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, saveroot=True)
 
 def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, debugLevel=0):
     """Fills each histogram with the corresponding variable in the tree.
@@ -178,6 +178,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     if mc:
         mc.SetTitle("")
         mc.Draw("hist")
+        if logy: mc.GetXaxis().SetMoreLogLabels()
         if not data: mc.GetXaxis().SetTitle(xtitle)
         mc.GetYaxis().SetTitle(ytitle)
         mc.GetYaxis().SetLabelSize(0.03)
@@ -260,3 +261,30 @@ def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrder
     #plot
     plot_basic(canvas, stack, dataHist, leg=leg, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, logy=logy, lumistr=lumistr, saveroot=saveroot, savepdf=savepdf, savepng=savepng, ymin=ymin)
 
+def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=False):
+    #check for input
+    if len(cols) == 0:
+        print "table_basic: no columns provided.  doing nothing."
+        return
+    #check that all columns have the same length
+    for col in cols:
+        if len(col) != len(cols[0]):
+            print "Error in table_basic: columns do not have equal lengths!"
+            return
+    #check that there is a header for each column
+    if len(headers) != len(cols):
+        print "Error in table_basic: number of headers does not equal number of columns!"
+        return
+
+    with open(printstr+'.tex', 'w') as f:
+        f.write('\\newgeometry{margin=0.2cm}\n')
+        if landscape: f.write('\\begin{landscape}\n')
+        f.write('\\begin{center}\n\\footnotesize\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
+        f.write('\\caption{'+caption+'}\n\\endhead\n\\hline\n')
+        f.write(' & '.join(headers)+' \\\\\n\\hline\n')
+        for row in range(len(cols[0])):
+            f.write((' & '.join([col[row] for col in cols]))+' \\\\\n\\hline\n')
+        f.write('\\end{longtable}\n\\end{center}\n')
+        if landscape: f.write('\\end{landscape}\n')
+        f.write('\\restoregeometry\n')
+        print "Created LaTeX scale factor table",(printstr+".tex")

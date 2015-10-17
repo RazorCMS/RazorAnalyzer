@@ -10,17 +10,23 @@ import macro
 ### RAZOR CONTROL REGION DEFINITIONS
 #####################################
 
-#Single lepton trigger indices
-singleLeptonTriggerNumsData = [3,8,11,12,14,21,22,23,24,25,26,27]
-singleLeptonTriggerNumsMC = [3,8,11,12,14,17,18,19,20,26,27]
+#Hadronic trigger indices
+hadronicTriggerNums = [134,135,136,137,138,139,140,141,142,143,144]
 
-#Dilepton trigger indices (NOTE: using single lepton paths for now)
-dileptonTriggerNumsData = singleLeptonTriggerNumsData
-dileptonTriggerNumsMC = singleLeptonTriggerNumsMC
+#Single lepton trigger indices
+singleLeptonTriggerNumsData = [2,7,11,12,15,22,23,24,25,26,27,28,29]
+singleLeptonTriggerNumsMC = [2,7,11,12,15,18,19,20,21,28,29]
+
+#Dilepton trigger indices
+dileptonTriggerNums = [41,43,30,31,47,48,49,50]
 
 def appendTriggerCuts(cuts, trigNums):
     """Append a string of the form "(HLTDecision[t1] || HLTDecision[t2] || ... || HLTDecision[tN]) && " to the provided cut string, where t1...tN are the desired trigger numbers"""
     return '('+(' || '.join(['HLTDecision['+str(n)+']' for n in trigNums])) + ") && " + cuts
+
+def appendBoxCuts(cuts, boxNums):
+    """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
+    return '('+(' || '.join(['box == '+str(n) for n in boxNums])) + ") && " + cuts
 
 ### TTJets Single Lepton Control Region
 
@@ -74,6 +80,77 @@ ttjetsDileptonBins = {
     "Rsq": [0.15,0.175,0.20,0.225,0.25,0.30,1.5]
     }
 
+### Signal region
+
+#boxes
+razorBoxes = {
+        "MuEle" : [0], 
+        "MuMu" : [1],
+        "EleEle" : [2],
+        "MuSixJet" : [3],
+        "MuFourJet" : [4],
+        "MuJet" : [5],
+        "EleSixJet" : [6],
+        "EleFourJet" : [7],
+        "EleJet" : [8],
+        "LooseLeptonSixJet" : [9],
+        "LooseLeptonFourJet" : [10],
+        "LooseLeptonDiJet" : [13],
+        "SixJet" : [11],
+        "FourJet" : [12],
+        "DiJet" : [14],	  
+        "MuMultiJet" : [3,4,18],
+        "EleMultiJet" : [6,7,19],
+        "LooseLeptonMultiJet" : [9,10,20],
+        "MultiJet" : [11,12,21],
+        }
+hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet"]
+looseLeptonRazorBoxes = ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]
+leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet"]
+dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
+
+#cuts 
+dileptonSignalRegionCuts = "MR > 300.000000 && Rsq > 0.150000 && abs(dPhiRazor) < 2.8"
+leptonicSignalRegionCuts = "MR > 300.000000 && Rsq > 0.150000 && mT > 100"
+looseLeptonSignalRegionCuts = "MR > 400.000000 && Rsq > 0.250000 && mT > 100"
+#looseLeptonSignalRegionCuts = "MR > 400.000000 && Rsq > 0.250000 && mT > 100 && nJets80 >= 2"
+hadronicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8"
+#hadronicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+
+razorCutsData = {}
+razorCutsMC = {}
+for box in razorBoxes:
+    if box in hadronicRazorBoxes: 
+        tmp = appendBoxCuts(hadronicSignalRegionCuts, razorBoxes[box])
+        razorCutsData[box] = appendTriggerCuts(tmp, hadronicTriggerNums)
+        razorCutsMC[box] = appendTriggerCuts(tmp, hadronicTriggerNums)
+    elif box in looseLeptonRazorBoxes:
+        tmp = appendBoxCuts(looseLeptonSignalRegionCuts, razorBoxes[box])
+        razorCutsData[box] = appendTriggerCuts(tmp, hadronicTriggerNums)
+        razorCutsMC[box] = appendTriggerCuts(tmp, hadronicTriggerNums)
+    elif box in leptonicRazorBoxes:
+        tmp = appendBoxCuts(leptonicSignalRegionCuts, razorBoxes[box])
+        razorCutsData[box] = appendTriggerCuts(tmp, singleLeptonTriggerNumsData)
+        razorCutsMC[box] = appendTriggerCuts(tmp, singleLeptonTriggerNumsMC)
+    elif box in dileptonRazorBoxes:
+        tmp = appendBoxCuts(dileptonSignalRegionCuts, razorBoxes[box])
+        razorCutsData[box] = appendTriggerCuts(tmp, dileptonTriggerNums)
+        razorCutsMC[box] = appendTriggerCuts(tmp, dileptonTriggerNums)
+
+leptonicSignalRegionBins = {
+    "MR" : [300, 400, 500, 600, 700, 900, 1200, 1600, 2500, 4000],
+    "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,0.8,1.5]
+    }
+
+hadronicSignalRegionBins = {
+    "MR" : [400, 500, 600, 700, 900, 1200, 1600, 2500, 4000],
+    "Rsq" : [0.25,0.30,0.41,0.52,0.64,0.8,1.5]
+    }
+
+#####################################
+### WEIGHT AND TRIGGER INFO
+#####################################
+
 def passTrigger(event, triggerNumList):
     """Checks if the event passed any trigger in the list"""
     passes = False
@@ -98,6 +175,17 @@ def passDileptonTrigger(event, isData=False, debugLevel=0):
 def passHadronicTrigger(event, isData=False, debugLevel=0):
     if debugLevel > 1: print("Note: hadronic trigger requirement is a pass-through right now")
     return True
+
+def weight_mc_signalregion(event, wHists, scale=1.0, opts=[], debugLevel=0):
+    """Assume pileup weight, lepton efficiency weight, and trigger weight, have been applied"""
+    eventWeight = event.weight*scale
+    if debugLevel > 1: 
+        print "Weight from ntuple:",event.weight
+        print "Scale by:",scale
+
+    if debugLevel > 1: 
+        print "event weight:",eventWeight
+    return eventWeight
 
 def weight_mc(event, wHists, scale=1.0, opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     """Apply pileup weights and other known MC correction factors -- for razor control regions"""
@@ -225,12 +313,15 @@ def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
         wFiles[name].Close()
     return wHists
 
+#####################################
+### PLOTTING/SCALE FACTOR MACROS
+#####################################
+
 titles = {
     "MR": "M_{R} (GeV)", 
     "Rsq": "R^{2}",
     "mll": "m_{ll} (GeV)",
     }
-
 def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, logX=True, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     #setup files and trees
     inputs = filenames
@@ -266,13 +357,13 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #print histograms
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
     rt.SetOwnership(c, False)
-    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logX, dataName=dataName, lumistr=str(lumiData)+" pb^{-1}")
+    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logX, dataName=dataName, ymin=0.1, lumistr=str(lumiData)+" pb^{-1}")
 
     #close files and return
     for f in files: files[f].Close()
     return hists
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, debugLevel=0):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, debugLevel=0):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to 20% shifts in the background normalization"""
     if debugLevel > 0: 
@@ -303,9 +394,8 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     sfHists[process+"NormDown"].SetDirectory(0)
 
     #subtract backgrounds in data
-    for mcProcess in hists:
-        if mcProcess == process: continue
-        if mcProcess == dataName: continue
+    bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName]
+    for mcProcess in bgProcesses:
         if var not in hists[mcProcess]:
             print "Error in appendScaleFactors: could not find",var," in hists[",mcProcess,"]!"
             return
@@ -335,3 +425,39 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     if debugLevel > 0:
         print "Scale factor histograms after adding",process,":"
         print sfHists
+
+    if printTable:
+        xbinLowEdges = []
+        xbinUpEdges = []
+        ybinLowEdges = []
+        ybinUpEdges = []
+        sysUncerts = {mcProcess:[] for mcProcess in bgProcesses}
+        statUncerts = []
+        sfs = []
+        #for each bin, get values for all table columns
+        for bx in range(1, sfHists[process].GetNbinsX()+1):
+            for by in range(1, sfHists[process].GetNbinsY()+1):
+                xbinLowEdges.append('%.0f' % (sfHists[process].GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (sfHists[process].GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(sfHists[process].GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(sfHists[process].GetYaxis().GetBinUpEdge(by)))
+                scaleFactor = sfHists[process].GetBinContent(bx,by)
+                sfs.append('%.3f' % (scaleFactor))
+                if scaleFactor > 0:
+                    statUncerts.append('%.1f\\%%' % (100*(sfHists[process].GetBinError(bx,by)/scaleFactor)))
+                else: 
+                    statUncerts.append('--')
+                for mcProcess in bgProcesses: 
+                    dataYield = hists[dataName][var].GetBinContent(bx,by)
+                    if dataYield > 0 and scaleFactor > 0:
+                        sysUncerts[mcProcess].append('%.1f\\%%' % (100*abs(hists[mcProcess][var].GetBinContent(bx,by)*normErrFraction*1.0/dataYield/scaleFactor)))
+                    else: 
+                        sysUncerts[mcProcess].append('--')
+        xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
+        yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
+        headers=[var[0], var[1], "Scale factor", "Stat.\\ unc."]
+        cols = [xRanges, yRanges, sfs, statUncerts]
+        for mcProcess in bgProcesses: 
+            headers.extend(["Unc.\\ from "+mcProcess])
+            cols.extend([sysUncerts[mcProcess]])
+        macro.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process)
