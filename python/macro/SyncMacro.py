@@ -77,6 +77,8 @@ ttjetsDileptonBins = {
         "mll" : np.arange(0, 500, 12.5)
         }
 
+weightOpts = ["doPileupWeights", "doLep1Weights", "doLep2Weights"]
+
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
@@ -97,29 +99,29 @@ if __name__ == "__main__":
     #dyjetsDielectronHists = makeControlSampleHists("DYJetsDielectron", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
     #            cutsMC=dyjetsDielectronCutsMC, cutsData=dyjetsDielectronCutsData, 
     #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", opts=weightOpts, debugLevel=debugLevel)
 
     #dyjetsDimuonHists = makeControlSampleHists("DYJetsDimuon", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
     #            cutsMC=dyjetsDimuonCutsMC, cutsData=dyjetsDimuonCutsData, 
     #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", opts=weightOpts, debugLevel=debugLevel)
 
     #dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
     #            cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
     #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", opts=weightOpts, debugLevel=debugLevel)
     #
     #dyjetsDileptonFullHists = makeControlSampleHists("DYJetsDileptonFull", filenames=FILENAMES_1L, samples=SAMPLES_DYJ2L, 
     #            cutsMC=dyjetsDileptonFullCutsMC, cutsData=dyjetsDileptonFullCutsData, 
     #            bins=dyjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", opts=weightOpts, debugLevel=debugLevel)
 
     #ttjetsEMuHists = makeControlSampleHists("TTJetsEMu", filenames=FILENAMES_1L, samples=SAMPLES_TTJ2L, 
     #            cutsMC=ttjetsEMuCutsMC, cutsData=ttjetsEMuCutsData, 
     #            bins=ttjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", opts=weightOpts, debugLevel=debugLevel)
 
     #ttjetsEMuFullHists = makeControlSampleHists("TTJetsEMuFull", filenames=FILENAMES_1L, samples=SAMPLES_TTJ2L, 
     #            cutsMC=ttjetsEMuFullCutsMC, cutsData=ttjetsEMuFullCutsData, 
     #            bins=ttjetsDileptonBins, logX=False, lumiMC=MCLUMI, lumiData=LUMI, 
-    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", debugLevel=debugLevel)
+    #            weightHists=weightHists, sfHists=sfHists, dataName="DataEMu", opts=weightOpts, debugLevel=debugLevel)

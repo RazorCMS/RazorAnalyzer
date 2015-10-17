@@ -6,6 +6,7 @@
 #include "TH1F.h"
 #include "SimpleTable.h"
 #include "TKey.h"
+#include <assert.h>
 
 using namespace std;
 
@@ -89,10 +90,11 @@ int main(int argc, char* argv[]) {
         TFile *outputFile = new TFile(Form("%s_%.0fpb_weighted.root", (fileName.substr(0, fileName.find_last_of("."))).c_str(), intLumi), "RECREATE");
 
         //loop over all TTrees in the file and add the weight branch to each of them
-        TFile inputFile(fileName.c_str(), "READ");
-        inputFile.cd();
-        inputFile.Purge(); //purge unwanted TTree cycles in file
-        TIter nextkey(inputFile.GetListOfKeys());
+        TFile *inputFile = TFile::Open(fileName.c_str(), "UPDATE");
+        assert(inputFile);
+        inputFile->cd();
+        inputFile->Purge(); //purge unwanted TTree cycles in file
+        TIter nextkey(inputFile->GetListOfKeys());
         TKey *key;
         while((key = (TKey*)nextkey())){
             string className = key->GetClassName();
@@ -142,9 +144,9 @@ int main(int argc, char* argv[]) {
 
             //save
             normalizedTree->Write();
-            inputFile.cd();
+            inputFile->cd();
         }
-        inputFile.Close();
+        inputFile->Close();
         cout << "Closing output file." << endl;
         outputFile->Close();
         delete outputFile;

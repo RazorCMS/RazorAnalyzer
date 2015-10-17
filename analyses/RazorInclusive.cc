@@ -308,29 +308,29 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     bool passedHadronicTrigger= false;
 
     if (isData) {
-        passedDileptonTrigger = bool( HLTDecision[39] || HLTDecision[41] 
-                || HLTDecision[28] || HLTDecision[29] 
-                || HLTDecision[45] || HLTDecision[46] || HLTDecision[47] || HLTDecision[48] );
-        passedSingleLeptonTrigger = bool(HLTDecision[3] || HLTDecision[8] || HLTDecision[12] || HLTDecision[11] || HLTDecision[14]
-                || HLTDecision[21] || HLTDecision[22] || HLTDecision[23] || 
-                HLTDecision[24] || HLTDecision[25] ||
-                HLTDecision[26] || HLTDecision[27]);      
-        passedHadronicTrigger = bool(HLTDecision[132] || HLTDecision[133] || HLTDecision[134] 
-                || HLTDecision[135] || HLTDecision[136] || HLTDecision[137] 
-                || HLTDecision[138] || HLTDecision[139] || HLTDecision[140] 
-                || HLTDecision[141] || HLTDecision[142]);
+      passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
+				    || HLTDecision[30] || HLTDecision[31] 
+				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
+      passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
+				       || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
+				       HLTDecision[26] || HLTDecision[27] ||
+				       HLTDecision[28] || HLTDecision[29]);      
+      passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
+				   || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
+				   || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
+				   || HLTDecision[143] || HLTDecision[144]);
     } else {
-        passedDileptonTrigger = bool(HLTDecision[39] || HLTDecision[41] 
-                || HLTDecision[28] || HLTDecision[29] 
-                || HLTDecision[45] || HLTDecision[46] || HLTDecision[47] || HLTDecision[48] );
-        passedSingleLeptonTrigger = bool( HLTDecision[3] || HLTDecision[8] || HLTDecision[12] 
-                || HLTDecision[11] || HLTDecision[14] 
-                || HLTDecision[17] || HLTDecision[18] || HLTDecision[19] 
-                || HLTDecision[20] || HLTDecision[26] || HLTDecision[27]);
-        passedHadronicTrigger = bool( HLTDecision[132] || HLTDecision[133] || HLTDecision[134] 
-                || HLTDecision[135] || HLTDecision[136] || HLTDecision[137] 
-                || HLTDecision[138] || HLTDecision[139] || HLTDecision[140] 
-                || HLTDecision[141] || HLTDecision[142]);      
+      passedDileptonTrigger = bool(HLTDecision[41] || HLTDecision[43] 
+				   || HLTDecision[30] || HLTDecision[31] 
+				   || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
+      passedSingleLeptonTrigger = bool( HLTDecision[2] || HLTDecision[7] || HLTDecision[12] 
+					|| HLTDecision[11] || HLTDecision[15] 
+					|| HLTDecision[18] || HLTDecision[19] || HLTDecision[20] 
+					|| HLTDecision[21] || HLTDecision[28] || HLTDecision[29]);
+      passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
+				   || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
+				   || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
+				   || HLTDecision[143] || HLTDecision[144]);    
     }
     passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
 
