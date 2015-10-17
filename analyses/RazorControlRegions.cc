@@ -34,10 +34,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Getting JEC parameters from " << pathname << endl;
 
     if (isData) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      //correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } else {
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
@@ -1081,12 +1081,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
 
-      //TLorentzVector MyMET = PFMETType1;
-
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
-      
-      // TLorentzVector MyMET = PFMETnoHFType1;
       
       TLorentzVector MyMET = PFMETCustomType1;
 	

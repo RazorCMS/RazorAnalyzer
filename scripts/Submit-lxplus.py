@@ -10,7 +10,7 @@ if len(sys.argv) < 6:
 #    print "usage Submit-lxplus.sh ProcessName sampleList.list files_per_job AppName"
 #    print "e.g: python Submit-lxplus.sh ProcessName list.txt  files_per_job AppName"
     print "usage: Submit-lxplus.py          sampleList.list isData ProcessName files_per_job AppName (optional)Option"
-    print "e.g:   python Submit-lxplus.py       list.txt       0   ProcessName     10        AppName        4        "
+    print "e.g:   python Submit-lxplus.py       list.txt    false  ProcessName     10        AppName        4        "
     sys.exit(1)
 
 
@@ -24,11 +24,16 @@ pwd = os.environ['PWD']
 ############################
 #configuring Submission
 ############################
-inputlist        =  sys.argv[1]
-isData           = bool(sys.argv[2])
+inputlist        = sys.argv[1]
+isData           = sys.argv[2]
 process          = sys.argv[3]
 files_per_job    = int(sys.argv[4])
 appName          = sys.argv[5]
+
+_isData = False
+if isData == "yes" or isData == "True":
+    _isData = True
+    
 if (len(sys.argv) == 7):
     option       = sys.argv[6]
 #######################################
@@ -86,7 +91,7 @@ for ijob in range(njobs):
     outputfile.write( "cd " + pwd )
     #outputfile.write( "\neval `scramv1 run -sh`;make clean;make -j 4")
     outputfile.write( "\neval `scramv1 run -sh`;" )
-    if isData:
+    if _isData:
         outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " --isData" + " -f=" + rootOutput + " -n=" + option )
     else :
         outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " -f=" + rootOutput + " -n=" + option )
