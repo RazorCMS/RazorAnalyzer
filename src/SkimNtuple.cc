@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
+#include <assert.h>
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1F.h"
@@ -51,15 +52,17 @@ int main(int argc, char* argv[]) {
         TFile *outputFile = new TFile(outputfilename.c_str(), "RECREATE");
 	
         //loop over all TTrees in the file and add the weight branch to each of them
-        TFile inputFile(fileName.c_str(), "READ");
-        inputFile.cd();
-        inputFile.Purge(); //purge unwanted TTree cycles in file
-        TIter nextkey(inputFile.GetListOfKeys());
+        TFile *inputFile = TFile::Open(fileName.c_str(), "UPDATE");
+        assert(inputFile);
+        //TFile inputFile(fileName.c_str(), "READ");
+        inputFile->cd();
+        inputFile->Purge(); //purge unwanted TTree cycles in file
+        TIter nextkey(inputFile->GetListOfKeys());
         TKey *key;
         string dirName = "";
 
         //if the first key is a TDirectoryFile, go inside it and skim there (temporary hack for cloning a single directory)
-        TKey *firstkey = (TKey*)nextkey();
+        /*TKey *firstkey = (TKey*)nextkey();
         string className = firstkey->GetClassName();
         if(className.compare("TDirectoryFile") == 0){
             TDirectoryFile* dir = (TDirectoryFile*)firstkey->ReadObj();
@@ -70,7 +73,7 @@ int main(int argc, char* argv[]) {
         }
         else { //reset it
             nextkey.Reset();
-        }
+        }*/
         //end temporary hack
 
         while((key = (TKey*)nextkey())){
@@ -114,9 +117,9 @@ int main(int argc, char* argv[]) {
 
             //save
             outputTree->Write();
-            inputFile.cd();
+            inputFile->cd();
         }
-        inputFile.Close();
+        inputFile->Close();
         cout << "Closing output file." << endl;
 
         outputFile->Close();

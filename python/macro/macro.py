@@ -1,6 +1,7 @@
 import ROOT as rt
+import copy
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, lumistr="40 pb^{-1}"):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}"):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -18,7 +19,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             legend = makeLegend(varHists, titles, reversed(mcNames))
             legend.AddEntry(dataHists[var], dataName)
         stack = makeStack(varHists, mcNames, var)
-        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, saveroot=True)
+        plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, saveroot=True)
 
 def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, debugLevel=0):
     """Fills each histogram with the corresponding variable in the tree.
@@ -83,7 +84,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
                     hists[name].SetBinError(bx,by,(hists[name].GetBinError(bx,by)**2 + squaredError)**(0.5))
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     print ("Looping tree "+tree.GetName())
@@ -109,7 +110,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         elif debugLevel > 0 and count % 10000 == 0: print "Processing entry",count
         elif debugLevel > 1: print "Processing entry",count
         tree.GetEntry(entry)
-        w = weightF(tree, weightHists, scale, debugLevel)
+        w = weightF(tree, weightHists, scale, opts, debugLevel=debugLevel)
         err = 0.0
         if sfHist is not None: 
             sf, err = getScaleFactorAndError(tree, sfHist, sfVars, debugLevel)
@@ -122,7 +123,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -133,7 +134,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         if name in sfHists: 
             print("Using scale factors from histogram "+sfHists[name].GetName())
             sfHistToUse = sfHists[name]
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, opts, debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
 def makeStack(hists, ordering, title="Stack"):
@@ -161,7 +162,7 @@ def setHistColor(hist, name):
     if name in colors: hist.SetFillColor(colors[name])
     else: print("Warning in macro.py: histogram fill color not set")
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=0.1, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
@@ -177,13 +178,15 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     if mc:
         mc.SetTitle("")
         mc.Draw("hist")
+        if logy: mc.GetXaxis().SetMoreLogLabels()
         if not data: mc.GetXaxis().SetTitle(xtitle)
         mc.GetYaxis().SetTitle(ytitle)
         mc.GetYaxis().SetLabelSize(0.03)
         if data: mc.GetYaxis().SetTitleOffset(0.45)
         else: mc.GetYaxis().SetTitleOffset(0.50)
         mc.GetYaxis().SetTitleSize(0.05)
-        mc.SetMinimum(ymin)
+        if ymin is not None: mc.SetMinimum(ymin)
+        if ymax is not None: mc.SetMaximum(ymax)
     #draw data
     if data:
         data.SetMarkerStyle(20)
@@ -220,7 +223,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     #add legend and LaTeX 
     leg.Draw()
     t1 = rt.TLatex(0.1,0.94, "CMS Preliminary")
-    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV, L = "+lumistr)
+    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV"+((lumistr != "")*(", L = "+lumistr)))
     t1.SetNDC()
     t2.SetNDC()
     t1.SetTextSize(0.06)
@@ -245,3 +248,43 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     if savepng: c.Print(printstr+".png")
     if savepdf: c.Print(printstr+".pdf")
     if saveroot: c.Print(printstr+".root")
+
+def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrdering=[], titles=[], mcTitle="Stack", xtitle="", ytitle="Number of events", printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", saveroot=False, savepdf=False, savepng=True, ymin=None, ymax=None):
+    #make stack
+    stack = makeStack(mcHists, mcOrdering, mcTitle)
+    #make legend
+    hists = copy.copy(mcHists)
+    hists[dataName] = dataHist
+    ordering = copy.copy(mcOrdering)
+    ordering.append(dataName)
+    leg = makeLegend(hists, titles, ordering)
+    #plot
+    plot_basic(canvas, stack, dataHist, leg=leg, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, logy=logy, lumistr=lumistr, saveroot=saveroot, savepdf=savepdf, savepng=savepng, ymin=ymin)
+
+def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=False):
+    #check for input
+    if len(cols) == 0:
+        print "table_basic: no columns provided.  doing nothing."
+        return
+    #check that all columns have the same length
+    for col in cols:
+        if len(col) != len(cols[0]):
+            print "Error in table_basic: columns do not have equal lengths!"
+            return
+    #check that there is a header for each column
+    if len(headers) != len(cols):
+        print "Error in table_basic: number of headers does not equal number of columns!"
+        return
+
+    with open(printstr+'.tex', 'w') as f:
+        f.write('\\newgeometry{margin=0.2cm}\n')
+        if landscape: f.write('\\begin{landscape}\n')
+        f.write('\\begin{center}\n\\footnotesize\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
+        f.write('\\caption{'+caption+'}\n\\endhead\n\\hline\n')
+        f.write(' & '.join(headers)+' \\\\\n\\hline\n')
+        for row in range(len(cols[0])):
+            f.write((' & '.join([col[row] for col in cols]))+' \\\\\n\\hline\n')
+        f.write('\\end{longtable}\n\\end{center}\n')
+        if landscape: f.write('\\end{landscape}\n')
+        f.write('\\restoregeometry\n')
+        print "Created LaTeX scale factor table",(printstr+".tex")
