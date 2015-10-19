@@ -313,6 +313,22 @@ def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
         wFiles[name].Close()
     return wHists
 
+def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], debugLevel=0):
+    """Returns a dict with available scale factor histograms"""
+    sfFile = rt.TFile.Open(sfFilename)
+    sfHists = {}
+    for name in processNames:
+        if debugLevel > 0: print "Looking for scale factor histogram for",name,"...",
+        tmp = sfFile.Get(name+"ScaleFactors")
+        if tmp: 
+            sfHists[name] = tmp
+            sfHists[name].SetDirectory(0)
+            if debugLevel > 0: print "Found!"
+        else:
+            if debugLevel > 0: print ""
+    sfFile.Close()
+    return sfHists
+
 #####################################
 ### PLOTTING/SCALE FACTOR MACROS
 #####################################

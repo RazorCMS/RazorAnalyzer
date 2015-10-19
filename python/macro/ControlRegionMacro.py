@@ -6,8 +6,7 @@ import ROOT as rt
 import macro
 from razorAnalysis import *
 
-LUMI_NONBLIND = 210 #in /pb
-LUMI_FULL = 378 #in /pb
+LUMI_FULL = 595 #in /pb
 MCLUMI = 1 
 
 SAMPLES_TTJ1L = ["SingleTop", "WJets", "TTJets"]
@@ -23,15 +22,6 @@ FILENAMES_1L = {
             "SingleTop": DIR_1L+"/"+PREFIX_1L+"_SingleTop_1pb_weighted_tight30razorskim.root",
             "Data"     : DIR_1L+"/"+PREFIX_1L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates.root_tight30razorskim.root"
             }
-
-DIR_SIGNAL = "RazorInclusiveSpring15Backgrounds"
-PREFIX_SIGNAL = "RazorInclusive"
-FILENAMES_SIGNAL = {
-        "TTJets"    : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_TTJets_1pb_weighted.root",
-        "WJets"     : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_WJetsToLNu_HTBinned_1pb_weighted.root",
-        "SingleTop" : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_SingleTop_1pb_weighted.root",
-        "Data"      : 'root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19/RazorInclusive_SingleLepton_Run2015D_GoodLumiUnblind_NoDuplicates.root_razorskim.root',
-        }
 
 WEIGHTDIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 weightfilenames = {
@@ -114,25 +104,3 @@ if __name__ == "__main__":
         print "Writing scale factor histogram",sfHists[name].GetName(),"to file"
         sfHists[name].Write()
     outfile.Close()
-
-    #estimate yields in signal region
-    for lepType in ["Mu", "Ele"]:
-        for jets in ["MultiJet"]:
-            boxName = lepType+jets
-            for btags in [0,1,2,3]:
-                #get correct cuts string
-                thisBoxCutsData = razorCutsData[boxName]
-                thisBoxCutsMC = razorCutsMC[boxName]
-                if btags < 3:
-                    thisBoxCutsData += " && nBTaggedJets == "+str(btags)
-                    thisBoxCutsMC += " && nBTaggedJets == "+str(btags)
-                else:
-                    thisBoxCutsData += " && nBTaggedJets >= "+str(btags)
-                    thisBoxCutsMC += " && nBTaggedJets >= "+str(btags)
-
-                makeControlSampleHists((boxName+str(btags)+"BTag"), 
-                        filenames=FILENAMES_SIGNAL, samples=SAMPLES_SIGNAL, 
-                        cutsMC=thisBoxCutsMC, cutsData=thisBoxCutsData, 
-                        bins=leptonicSignalRegionBins, lumiMC=MCLUMI, lumiData=LUMI_NONBLIND, 
-                        weightHists=weightHists, sfHists=sfHists, opts=[], 
-                        debugLevel=debugLevel)
