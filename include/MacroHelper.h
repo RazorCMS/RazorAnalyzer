@@ -48,7 +48,7 @@ pair<double, double> getDataMCSFAndError(TH2* sfHist, float MR, float Rsq){
 //leg: TLegend containing all of the entries in the desired order
 //printString: name of output file
 //fitHist: optional fit result histogram (to draw as a solid line)
-void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, bool logY=true, string intLumi="16 pb^{-1}", TH1F *fitHist=0){
+void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, string xaxisTitle, string printString, bool logX, bool logY=true, string intLumi="451.489 pb^{-1}", TH1F *fitHist=0){
     TCanvas c("c", "c", 800, 700);
     c.Clear();
     c.cd();
@@ -122,7 +122,7 @@ void DrawDataVsMCRatioPlot(TH1F *dataHist, THStack *mcStack, TLegend *leg, strin
     /*     leg->SetX1NDC(0.7); leg->SetX2NDC(0.9); leg->SetY1NDC(0.7); leg->SetY2NDC(0.9); */
     /*   } */
     leg->Draw();
-    lumi_13TeV = "16.01 pb^{-1}";
+    lumi_13TeV = "451.489 pb^{-1}";
     writeExtraText = true;
     relPosX = 0.13;
     CMS_lumi(&pad1,4,0);
