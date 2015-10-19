@@ -46,15 +46,14 @@ int main(int argc, char* argv[]) {
 
         //create output file
 	string outputfilename = Form("%s/%s_%s.root", outputDir.c_str(), 
-				     fileName.substr(fileName.find_last_of("/")+1, fileName.find_last_of(".")).c_str(),
+				     fileName.substr(fileName.find_last_of("/")+1, fileName.find_last_of(".")-fileName.find_last_of("/")-1).c_str(),
 				     outputfileLabel.c_str());
 	cout << "Output file: " << outputfilename << "\n";
         TFile *outputFile = new TFile(outputfilename.c_str(), "RECREATE");
 	
         //loop over all TTrees in the file and add the weight branch to each of them
-        TFile *inputFile = TFile::Open(fileName.c_str(), "UPDATE");
+        TFile *inputFile = new TFile(fileName.c_str(), "UPDATE");
         assert(inputFile);
-        //TFile inputFile(fileName.c_str(), "READ");
         inputFile->cd();
         inputFile->Purge(); //purge unwanted TTree cycles in file
         TIter nextkey(inputFile->GetListOfKeys());
