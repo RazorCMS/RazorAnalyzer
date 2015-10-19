@@ -7,6 +7,7 @@ import os
 import sys
 from itertools import *
 from operator import *
+import BinnedFit
 
 seed = 1988
 
@@ -307,8 +308,10 @@ if __name__ == '__main__':
             workspace = rootFile.Get('w'+box)
             if f.lower().find('t1')!=-1 or f.lower().find('t2')!=-1:
                 signalDs = workspace.data('RMRTree')
-                model = f.split('-')[1].split('_')[0]
-                massPoint = '_'.join(f.split('_')[3:5])
+                #model = f.split('-')[1].split('_')[0]
+                #massPoint = '_'.join(f.split('_')[3:5])
+                model = f.split('.root')[0].split('-')[1].split('_')[0]
+                massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
             else:
                 data = workspace.data('RMRTree')
             lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
@@ -339,8 +342,8 @@ if __name__ == '__main__':
             dataHist_red = rt.RooDataHist("%s_%s"%(box,"TTj%ib"%z[k]),"%s_%s"%(box,"TTj%ib"%z[k]),rt.RooArgList(th1x), myTH1_red)
             rootTools.Utils.importToWS(w,dataHist_red)
 
-    elif options.fit:
-        fr = w.pdf('extRazorPdf').fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.PrintLevel(-1),rt.RooFit.SumW2Error(False),rt.RooFit.PrintEvalErrors(-1))
+    elif options.fit:        
+        fr = BinnedFit.binnedFit(w.pdf('extRazorPdf'), dataHist, fitRange='Full')
         fr.Print('v')
         #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov(),rt.RooFit.Name('data_obs'))
         #rootTools.Utils.importToWS(w,asimov)
@@ -355,9 +358,9 @@ if __name__ == '__main__':
     btagMin = z[0]
     btagMax = z[-1]        
     if btagMax>btagMin+1:            
-        outFile = 'razor_combine_%s_%s_lumi-%.1f_%i-%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,btagMax-1,box)
+        outFile = 'razor_combine_%s_%s_lumi-%.3f_%i-%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,btagMax-1,box)
     else:
-        outFile = 'razor_combine_%s_%s_lumi-%.1f_%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,box)
+        outFile = 'razor_combine_%s_%s_lumi-%.3f_%ibtag_%s.root'%(model,massPoint,lumi/1000.,btagMin,box)
     
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     if noFit:

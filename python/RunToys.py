@@ -122,7 +122,6 @@ def runToys(w,options,cfg):
     myTree.Fill()
         
     iToy = 0
-    #rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
     
     nBadPars = 0
     while iToy < options.nToys:
@@ -149,25 +148,50 @@ def runToys(w,options,cfg):
                 badPars.append(w.var('R0_%s_%s'%(bkgd,options.box)).getVal()  >=  w.var('Rsq').getMin())
         if any(badPars):
             nBadPars+=1
-            print "bad pars toy=%i"%iToy
+            #print "bad pars toy=%i"%iToy
             continue
-        
+
+        #print "good pars"        
+        #for bkgd in ['TTj0b','TTj1b','TTj2b','TTj3b']:
+        #    if w.var('n_%s_%s'%(bkgd,options.box))!=None:                
+        #        print 'n_%s_%s = %f'%(bkgd,options.box,w.var('n_%s_%s'%(bkgd,options.box)).getVal())
+        #    if w.var('b_%s_%s'%(bkgd,options.box))!=None:                                
+        #        print 'b_%s_%s = %f'%(bkgd,options.box,w.var('b_%s_%s'%(bkgd,options.box)).getVal())
+        #    if w.var('MR0_%s_%s'%(bkgd,options.box))!=None:                                
+        #        print 'MR0_%s_%s = %f'%(bkgd,options.box,w.var('MR0_%s_%s'%(bkgd,options.box)).getVal())
+        #    if w.var('R0_%s_%s'%(bkgd,options.box))!=None:                   
+        #        print 'R0_%s_%s = %f'%(bkgd,options.box,w.var('R0_%s_%s'%(bkgd,options.box)).getVal())
+                
         errorCountBefore = rt.RooMsgService.instance().errorCount()
+        th1x.setVal(0.5) # check number of events in first bin
         pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+        pdfVal0 = extRazorPdf.getValV(0) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore:            
-            print "can't evaulate pdf toy=%i"%iToy
+            #print "can't evaulate pdf toy=%i"%iToy
             continue
         
-        errorCountBefore = rt.RooMsgService.instance().errorCount()
+        if pdfValV<=0.0 and pdfVal0<=0.0:
+            #print "pdf valv = %f"%(pdfValV)
+            #print "pdf val0 = %f"%(pdfVal0)
+            continue
+        
+        errorCountBefore = rt.RooMsgService.instance().errorCount()        
+        #print "start generating toy=%i"%iToy
         if options.noStat:
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
+            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
+            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
         else:
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy))
+            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy))
+            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'))
+
+        #print "toy entries = %i"%asimov.sumEntries()
         errorCountAfter = rt.RooMsgService.instance().errorCount()   
         if errorCountAfter > errorCountBefore:
-            print "can't generate toy=%i"%iToy
+            #print "can't generate toy=%i"%iToy
             continue
+
+        #print "SUCCESS: generated toy=%i"%iToy
 
         pSetSave = pSet
         if options.freq:

@@ -43,7 +43,7 @@ def initializeWorkspace(w,cfg,box):
     w.set('variables').add(w.var('W'))
     return w
 
-def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
+def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
     if f.find('SMS')!=-1:
         k = 1.
     elif f.find('TTJets')!=-1:
@@ -91,7 +91,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in):
     return [htemp.GetBinContent(i) for i in range(1,len(z))]
         
     
-def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, treeName='RMRTree'):
+def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, treeName='RMRTree',isData=False):
     """This defines the format of the RooDataSet"""
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
@@ -124,7 +124,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = 3
+    btagCutoff = 2
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 
@@ -144,6 +144,22 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
             cuts = cuts + (' && mTLoose > %f' % MTCut)
         else:
             cuts = cuts + (' && mT > %f' % MTCut)
+
+    if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
+        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in range(134,145)])
+        cuts = cuts + ' && ( ' + triggerCuts + ' ) '
+
+    if isData and box in ['MuSixJet', 'MuFourJet', 'MuMultiJet', 'MuJet', 'EleSixJet', 'EleFourJet', 'EleMultiJet', 'EleJet']:
+        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in [7, 12, 11, 15, 22, 23, 24, 25, 26, 27, 28, 29]])
+        cuts = cuts + ' && ( ' + triggerCuts + ' ) '
+        
+    if isData and box in ['MuMu', 'MuEle', 'EleEle']:
+        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in [41, 43, 30, 31, 47, 48, 49, 50]])
+        cuts = cuts + ' && ( ' + triggerCuts + ' ) '
+        
+    if isData:
+        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_CSCTightHaloFilter','Flag_goodVertices','Flag_eeBadScFilter','Flag_EcalDeadCellTriggerPrimitiveFilter'])
+        cuts = cuts + ' && ( ' + flagCuts + ' ) '
     
     tree.Draw('>>elist',cuts,'entrylist')
         
@@ -162,9 +178,11 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, lumi, lumi_in, 
         a.setRealValue('Rsq',tree.Rsq)
         a.setRealValue('nBtag',min(tree.nBTaggedJets,btagCutoff))
         
-        if useWeight:
+        if useWeight and 'SMS' in f:
+            a.setRealValue('W',scaleFactor)            
+        elif useWeight:
             btag_bin = htemp.FindBin(min(tree.nBTaggedJets,btagCutoff)) - 1
-            a.setRealValue('W',tree.weight*lumi*k[btag_bin]/lumi_in)
+            a.setRealValue('W',tree.weight*k[btag_bin]*scaleFactor)
         else:
             a.setRealValue('W',1.0)
         data.add(a)
@@ -201,7 +219,10 @@ if __name__ == '__main__':
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('-q','--remove-qcd',dest="removeQCD",default=False,action='store_true',
-                  help="remove QCD, while augmenting remaining MC backgrounds")
+                  help="remove QCD, while augmenting remaining MC backgrounds")    
+    parser.add_option('--data',dest="isData", default=False,action='store_true',
+                  help="flag to use trigger decision and MET flags")
+
 
     (options,args) = parser.parse_args()
     
@@ -235,7 +256,7 @@ if __name__ == '__main__':
                 if f.lower().find('sms')==-1:
                     
                     label = f.replace('.root','').split('/')[-1]
-                    sumW[label] = getSumOfWeights(tree, cfg, box, w, useWeight, f, lumi, lumi_in)
+                    sumW[label] = getSumOfWeights(tree, cfg, box, w, useWeight, f, lumi/lumi_in)
                     if label.find('QCD')!=-1: sumWQCD = sumW[label]
         # get total sum of weights
         sumWTotal = [sum(allW) for allW in zip( * sumW.values() )]
@@ -258,12 +279,36 @@ if __name__ == '__main__':
                 if removeQCD and f.find('QCD')!=-1:
                     continue # do not add QCD
                 else:
-                    ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi, lumi_in,  'RMRTree_%i'%i))
+                    ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi/lumi_in,  'RMRTree_%i'%i, options.isData))
                 
             else:
-                model = f.split('-')[1].split('_')[0]
-                massPoint = '_'.join(f.split('_')[2:4])
-                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f ,lumi, lumi_in, 'signal'))
+                model = f.split('.root')[0].split('-')[1].split('_')[0]
+                massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+                               
+                thyXsec = -1
+                thyXsecErr = -1
+                mGluino = -1
+                mStop = -1
+                if "T1" in model:
+                    mGluino = massPoint.split("_")[0]
+                if "T2" in model:
+                    mStop = massPoint.split("_")[0]
+    
+                if mGluino!=-1:
+                    for line in open('data/gluino13TeV.txt','r'):
+                        line = line.replace('\n','')
+                        if str(int(mGluino))==line.split(',')[0]:
+                            thyXsec = float(line.split(',')[1]) #pb
+                            thyXsecErr = 0.01*float(line.split(',')[2])
+                if mStop!=-1:
+                    for line in open('data/stop13TeV.txt','r'):
+                        line = line.replace('\n','')
+                        if str(int(mStop))==line.split(',')[0]:
+                            thyXsec = float(line.split(',')[1]) #pb
+                            thyXsecErr = 0.01*float(line.split(',')[2]) 
+                
+                nEvents = rootFile.Get('NEvents').Integral()
+                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f , thyXsec*lumi/lumi_in/nEvents, 'signal'))
                 
     wdata = ds[0].Clone('RMRTree')
     for ids in range(1,len(ds)):
@@ -288,26 +333,26 @@ if __name__ == '__main__':
     
     if len(inFiles)==1:
         if btagMax>btagMin+1:
-            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
+            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.3f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box))
             outFile = outFile.replace('_1pb','')
             if not useWeight:
                 outFile = outFile.replace("weighted","unweighted")
         else:
-            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
+            outFile = inFiles[0].split('/')[-1].replace('.root','_lumi-%.3f_%ibtag_%s.root'%(lumi/1000.,btagMin,box))
             outFile = outFile.replace('_1pb','')
             if not useWeight:
                 outFile = outFile.replace("weighted","unweighted")
     else:
         if btagMax>btagMin+1:
             if useWeight:
-                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
+                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.3f_%i-%ibtag_%s.root'%(lumi/1000.,btagMin,btagMax-1,box)
             else:
-                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.3f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         else:
             if useWeight:
-                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+                outFile = 'RazorInclusive_SMCocktail_weighted_lumi-%.3f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
             else:
-                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
+                outFile = 'RazorInclusive_SMCocktail_unweighted_lumi-%.3f_%ibtag_%s.root'%(lumi/1000.,btagMin,box)
         
 
     numEntriesByBtag = []

@@ -87,7 +87,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
 def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
-    print ("Looping tree "+tree.GetName())
+    if debugLevel > 0: print ("Looping tree "+tree.GetName())
     if debugLevel > 0: print ("Cuts: "+cuts)
     #get list of entries passing the cuts
     tree.Draw('>>elist', cuts, 'entrylist')
@@ -156,11 +156,11 @@ def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
         leg.AddEntry(hists[name], titles[name])
     return leg
 
-colors = {"WJets":rt.kRed+1, "DYJets":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZJetsNuNu":rt.kCyan+1, "QCD":rt.kOrange+3, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7}
+colors = {"WJets":rt.kRed+1, "DYJets":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZInv":rt.kCyan+1, "QCD":rt.kOrange+3, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7}
 def setHistColor(hist, name):
     """Sets histogram color"""
     if name in colors: hist.SetFillColor(colors[name])
-    else: print("Warning in macro.py: histogram fill color not set")
+    else: print "Warning in macro.py: histogram fill color not set for",name
 
 def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", ratiomin=0.5, ratiomax=1.5, saveroot=False, savepdf=False, savepng=True):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
