@@ -670,11 +670,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             double jetEnergySmearFactor = 1.0;
             double jetEnergySmearFactorUp = 1.0;
             double jetEnergySmearFactorDown = 1.0;
-            if (!isData) {
-                jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
-                jetEnergySmearFactorUp = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "up");
-                jetEnergySmearFactorDown = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "down");
-            }
+            //UNDER CONSTRUCTION
+            //if (!isData) {
+            //    jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
+            //    jetEnergySmearFactorUp = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "up");
+            //    jetEnergySmearFactorDown = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "down");
+            //}
 
             //TLorentzVector for this jet
             double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
