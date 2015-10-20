@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Oct  5 00:04:52 2015 by ROOT version 6.02/05
+// Sat Oct 17 00:18:40 2015 by ROOT version 6.02/05
 // from TTree RazorEvents/selected miniAOD information
-// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.19/MC/RunIISpring15DR74_Fastsim/v2/sixie/SMS-T1bbbb_mGluino-625_mLSP-400to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV1p19_ToCERN_MC_Fastsim_RunIISpring15FSPremix-MCRUN2_74_V9-v1_v2_v1/151003_042052/0000/razorNtuple_70.root
+// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -15,7 +15,7 @@
 // Header file for the classes stored in the TTree if any.
 #include <vector>
 #include <string>
-
+ 
 class RazorEvents {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
@@ -219,9 +219,12 @@ public :
    Float_t         metPuppiPt;
    Float_t         metPuppiPhi;
    Bool_t          Flag_HBHENoiseFilter;
+   Bool_t          Flag_HBHETightNoiseFilter;
+   Bool_t          Flag_HBHEIsoNoiseFilter;
    Bool_t          Flag_CSCTightHaloFilter;
    Bool_t          Flag_hcalLaserEventFilter;
    Bool_t          Flag_EcalDeadCellTriggerPrimitiveFilter;
+   Bool_t          Flag_EcalDeadCellBoundaryEnergyFilter;
    Bool_t          Flag_goodVertices;
    Bool_t          Flag_trackingFailureFilter;
    Bool_t          Flag_eeBadScFilter;
@@ -453,9 +456,12 @@ public :
    TBranch        *b_metPuppiPt;   //!
    TBranch        *b_metPuppiPhi;   //!
    TBranch        *b_Flag_HBHENoiseFilter;   //!
+   TBranch        *b_Flag_HBHETightNoiseFilter;   //!
+   TBranch        *b_Flag_HBHEIsoNoiseFilter;   //!
    TBranch        *b_Flag_CSCTightHaloFilter;   //!
    TBranch        *b_Flag_hcalLaserEventFilter;   //!
    TBranch        *b_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
+   TBranch        *b_Flag_EcalDeadCellBoundaryEnergyFilter;   //!
    TBranch        *b_Flag_goodVertices;   //!
    TBranch        *b_Flag_trackingFailureFilter;   //!
    TBranch        *b_Flag_eeBadScFilter;   //!
@@ -510,11 +516,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.19/MC/RunIISpring15DR74_Fastsim/v2/sixie/SMS-T1bbbb_mGluino-625_mLSP-400to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV1p19_ToCERN_MC_Fastsim_RunIISpring15FSPremix-MCRUN2_74_V9-v1_v2_v1/151003_042052/0000/razorNtuple_70.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.19/MC/RunIISpring15DR74_Fastsim/v2/sixie/SMS-T1bbbb_mGluino-625_mLSP-400to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV1p19_ToCERN_MC_Fastsim_RunIISpring15FSPremix-MCRUN2_74_V9-v1_v2_v1/151003_042052/0000/razorNtuple_70.root");
+         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.19/MC/RunIISpring15DR74_Fastsim/v2/sixie/SMS-T1bbbb_mGluino-625_mLSP-400to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV1p19_ToCERN_MC_Fastsim_RunIISpring15FSPremix-MCRUN2_74_V9-v1_v2_v1/151003_042052/0000/razorNtuple_70.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -759,9 +765,12 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("metPuppiPt", &metPuppiPt, &b_metPuppiPt);
    fChain->SetBranchAddress("metPuppiPhi", &metPuppiPhi, &b_metPuppiPhi);
    fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
+   fChain->SetBranchAddress("Flag_HBHETightNoiseFilter", &Flag_HBHETightNoiseFilter, &b_Flag_HBHETightNoiseFilter);
+   fChain->SetBranchAddress("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, &b_Flag_HBHEIsoNoiseFilter);
    fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
    fChain->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, &b_Flag_hcalLaserEventFilter);
    fChain->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, &b_Flag_EcalDeadCellTriggerPrimitiveFilter);
+   fChain->SetBranchAddress("Flag_EcalDeadCellBoundaryEnergyFilter", &Flag_EcalDeadCellBoundaryEnergyFilter, &b_Flag_EcalDeadCellBoundaryEnergyFilter);
    fChain->SetBranchAddress("Flag_goodVertices", &Flag_goodVertices, &b_Flag_goodVertices);
    fChain->SetBranchAddress("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, &b_Flag_trackingFailureFilter);
    fChain->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter, &b_Flag_eeBadScFilter);
