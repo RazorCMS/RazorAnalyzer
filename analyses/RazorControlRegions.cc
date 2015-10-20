@@ -918,7 +918,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
 		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
-	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
+	  //turn this off for now
+	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
 	}
 	if (printSyncDebug) {
 	  cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";
@@ -932,7 +933,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//Add to Type1 Met Correction
 	//Note: pT cut should be 10 not 20, but we're saving only 20 GeV jets in the razor ntuple for now
 	//**********************************************************************************************************
-	if (jetPt[i]*JEC*jetEnergySmearFactor > 20 && 
+	if (jetPt[i]*JEC*jetEnergySmearFactor > 15 && 
 	    jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9	    
 	    ) {
 	  MetX_Type1Corr += -1 * ( thisJet.Px() - L1CorrJet.Px()  );
