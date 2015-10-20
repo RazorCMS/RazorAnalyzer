@@ -50,11 +50,12 @@ QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8                                    
 QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8                                        0.12163
 QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8                                        0.00682981
 QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8                                         0.000165445
-GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         23080.0
-GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         9110.0
+GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         23730.0
+GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         9226.0
 GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         2281
 GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          273.0
 GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           94.5
+WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                              61526.7
 WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    1347*1.21
 WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                     360*1.21
 WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                      48.9*1.21
@@ -116,6 +117,7 @@ ZZ_TuneCUETP8M1_13TeV-pythia8                                                   
 WWJJToLNuQQ_LT_13TeV-madgraph-pythia8                                              25.973
 TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                            0.009103
 TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                        0.2043
+TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                         0.4062
 TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                0.2529
 TTZToQQ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                         0.5297
 tZq_ll_4f_13TeV-amcatnlo-pythia8_TuneCUETP8M1                                       0.0758
