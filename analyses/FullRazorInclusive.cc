@@ -76,6 +76,21 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     }
 
     /////////////////////////////////
+    //Trigger Efficiency Correction Factors
+    /////////////////////////////////
+
+    TH2D *eleTrigSFHist = 0;
+    TH2D *muTrigSFHist = 0;
+    if(!isData){
+        TFile *eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root");
+        eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
+        assert(eleTrigSFHist);
+        TFile *muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root"); 
+        muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+        assert(muTrigSFHist);
+    }
+
+    /////////////////////////////////
     //Jet Energy Corrections
     /////////////////////////////////
 
@@ -423,6 +438,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         TLorentzVector leadingTightMu;
         //Scale factor
         float muonEffCorrFactor = 1.0;
+        float muonTrigCorrFactor = 1.0;
         //Cut parameters
         const float MUON_VETO_CUT = 5;
         const float MUON_LOOSE_CUT = 20;
@@ -435,7 +451,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
             //Calculate MC->Data scale factors
             if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i])) {	
-                double effTight = 0.9; //NOTE: placeholder value
+                //double effTight = 0.9; //NOTE: placeholder value
                 double effTightSF = muTightEffSFHist->GetBinContent( 
                         muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
@@ -447,20 +463,31 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double tmpTightSF = 1.0;
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
+
                 if (isTightMuon(i)) {
                     tmpTightSF = effTightSF;
                     tmpTightSFUp = effTightSFUp;
                     tmpTightSFDown = effTightSFDown;
                 } 
-                else {
-                    tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
-                    tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
-                    tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
+                else { //NOTE: do not reweight for failed leptons
+                    //tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
+                    //tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
+                    //tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
                 }
-
                 muonEffCorrFactor *= tmpTightSF;
                 sf_muonEffUp *= tmpTightSFUp;
                 sf_muonEffDown *= tmpTightSFDown;
+            }
+
+            //Trigger scale factor
+            //NOTE: implemented for single lepton trigger only!  
+            if(!isData){
+                double trigSF = muTrigSFHist->GetBinContent( 
+                        muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                if (passedSingleLeptonTrigger && isTightMuon(i)){
+                    muonTrigCorrFactor *= trigSF;
+                }
             }
 
             //TLorentzVector for this muon
@@ -491,6 +518,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         int nTightElectrons = 0;
         TLorentzVector leadingTightEle; //used for mT calculation
         float eleEffCorrFactor = 1.0;
+        float eleTrigCorrFactor = 1.0;
         //Cut parameters
         const float ELE_VETO_CUT = 5;
         const float ELE_LOOSE_CUT = 25;
@@ -504,7 +532,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             //Calculate MC->Data scale factors
             if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i])) {
                 //Tight scale factor
-                double effTight = 0.9; //NOTE: placeholder value
+                //double effTight = 0.9; //NOTE: placeholder value
                 double effTightSF = eleTightEffSFHist->GetBinContent( 
                         eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
@@ -516,20 +544,31 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double tmpTightSF = 1.0;
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
+
                 if (isTightElectron(i)) {
                     tmpTightSF = effTightSF;
                     tmpTightSFUp = effTightSFUp;
                     tmpTightSFDown = effTightSFDown;
                 } 
-                else {
-                    tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
-                    tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
-                    tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
+                else { //Note: do not reweight for failed leptons
+                    //tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
+                    //tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
+                    //tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
                 }
-
                 eleEffCorrFactor *= tmpTightSF;
                 sf_eleEffUp *= tmpTightSFUp;
                 sf_eleEffDown *= tmpTightSFDown;
+            }
+
+            //Trigger scale factor
+            //NOTE: implemented for single lepton trigger only!
+            if(!isData){
+                double trigSF = eleTrigSFHist->GetBinContent( 
+                        eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
+                        eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                if (passedSingleLeptonTrigger && isTightElectron(i)){
+                    eleTrigCorrFactor *= trigSF;
+                }
             }
 
             //Remove overlaps
@@ -589,9 +628,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         //Jet selection
         /////////////////////////////////
 
-        //Type 1 MET correction (UNDER CONSTRUCTION)
-        //double MetX_Type1Corr = 0;
-        //double MetY_Type1Corr = 0;
+        //Type 1 MET correction 
+        double MetX_Type1Corr = 0;
+        double MetY_Type1Corr = 0;
         //BTag scale factor
         float btagCorrFactor = 1.0;
         //Propagate jet uncertainties to MET
@@ -623,10 +662,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     tmpRho, jetJetArea[i], JetCorrector);   
 
             //Get L1-only jet energy correction
-            //UNDER CONSTRUCTION (Disable this until raw MET is fixed)
-            //double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-            //        tmpRho, jetJetArea[i], 
-            //        JetCorrector, 0);   
+            double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+                    tmpRho, jetJetArea[i], 
+                    JetCorrector, 0);   
 
             //Get jet energy resolution correction, with up/down variants
             double jetEnergySmearFactor = 1.0;
@@ -642,14 +680,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
             double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
             TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
-            //TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
+            TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
 
             //Propagate L1 JEC to type1 MET
-            //(UNDER CONSTRUCTION)
-            //if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
-            //    MetX_Type1Corr += -1 * (thisJet.Px() - L1CorrJet.Px());
-            //    MetY_Type1Corr += -1 * (thisJet.Py() - L1CorrJet.Py());
-            //}
+            if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
+                MetX_Type1Corr += -1 * (thisJet.Px() - L1CorrJet.Px());
+                MetY_Type1Corr += -1 * (thisJet.Py() - L1CorrJet.Py());
+            }
 
             //Apply b-tagging correction factor 
             //UNDER CONSTRUCTION (no b-tagging corrections for run 2 yet)
@@ -809,15 +846,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         //Get MET
-        //UNDER CONSTRUCTION (problem with raw MET in the ntuples -> must use the type1 MET from miniAOD until fixed)
-        //double PFMetCustomType1CorrectedX = metPt*cos(metPhi) + MetX_Type1Corr;
-        //double PFMetCustomType1CorrectedY = metPt*sin(metPhi) + MetY_Type1Corr;
-        //TLorentzVector PFMETCustomType1Corrected; 
-        //PFMETCustomType1Corrected.SetPxPyPzE(PFMetCustomType1CorrectedX, PFMetCustomType1CorrectedY, 0, 
-        //        sqrt( pow(PFMetCustomType1CorrectedX,2) + pow(PFMetCustomType1CorrectedY,2)));  
-        //TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
-        TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
-        TLorentzVector MyMET = PFMETType1; //This is the MET that will be used below.
+        double PFMetCustomType1CorrectedX = metPt*cos(metPhi) + MetX_Type1Corr;
+        double PFMetCustomType1CorrectedY = metPt*sin(metPhi) + MetY_Type1Corr;
+        TLorentzVector PFMETCustomType1Corrected; 
+        PFMETCustomType1Corrected.SetPxPyPzE(PFMetCustomType1CorrectedX, PFMetCustomType1CorrectedY, 0, 
+                sqrt( pow(PFMetCustomType1CorrectedX,2) + pow(PFMetCustomType1CorrectedY,2)));  
+        TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
+        //TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
+        //TLorentzVector MyMET = PFMETType1; //This is the MET that will be used below.
 
         //Compute razor variables and dPhiRazor
         vector<TLorentzVector> hemispheres = getHemispheres(GoodJets);
@@ -901,10 +937,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         /////////////////////////////////
 
         //Nominal event weight
-        weight *= pileupWeight;
-        weight *= muonEffCorrFactor;
-        weight *= eleEffCorrFactor;
-        weight *= btagCorrFactor;    
+        if(!isData){
+            //weight *= pileupWeight; //NOTE: disable pileup reweighting at the analyzer stage
+            weight *= muonEffCorrFactor;
+            weight *= muonTrigCorrFactor;
+            weight *= eleEffCorrFactor;
+            weight *= eleTrigCorrFactor;
+            weight *= btagCorrFactor;    
+        }
 
         /////////////////////////////////
         //Categorize into boxes
