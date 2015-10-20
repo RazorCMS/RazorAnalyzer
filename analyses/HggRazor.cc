@@ -53,7 +53,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   bool use25nsSelection = false;
   if (option == 1) use25nsSelection = true;
 
-
+  std::cout << "[INFO]: use25nsSelection --> " << use25nsSelection << std::endl;
+  
     //initialization: create one TTree for each analysis box 
   if ( _info) std::cout << "Initializing..." << std::endl;
   cout << "Combine Trees = " << combineTrees << "\n";
@@ -72,11 +73,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
   cout << "Getting JEC parameters from " << pathname << endl;
   if (isData) {
+    std::cout << "[INFO]: getting data JEC" << std::endl;
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
   } else {
+    std::cout << "[INFO]: getting MC JEC" << std::endl;
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
     correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
@@ -438,33 +441,36 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     std::vector< PhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
     
     int nPhotonsAbove40GeV = 0;
-    for(int i = 0; i < nPhotons; i++){
-      //ID cuts -- apply isolation after candidate pair selection
-      if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-      if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) {
-	if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
-	continue;
-      }
-      
+    for(int i = 0; i < nPhotons; i++)
+      {
+	//ID cuts -- apply isolation after candidate pair selection
+	if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
+	if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) 
+	  {
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+	    continue;
+	  }
+	
       //Defining Corrected Photon momentum
       //float pho_pt = phoPt[i];//nominal pt
-      float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
-      TVector3 vec;
-      //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
-      vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
+	float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
+	TVector3 vec;
+	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
       
-      if ( phoPt[i] < 24.0 )
-	//if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
-	{
-	  if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	  continue;
-	}
-      
-      if( fabs(pho_superClusterEta[i]) > 2.5 ){
-	//allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
-	if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
-	continue; 
-      }
+	if ( phoPt[i] < 24.0 )
+	  //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
+	  {
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
+	    continue;
+	  }
+	
+	if( fabs(pho_superClusterEta[i]) > 2.5 )
+	  {
+	    //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
+	    continue; 
+	  }
       
       if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
 	{
@@ -473,7 +479,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  continue;
 	}
       //photon passes
-      if( phoPt[i] > 32.0 ) nPhotonsAbove40GeV++;
+      if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
       //setting up photon 4-momentum with zero mass
       TLorentzVector thisPhoton;
       thisPhoton.SetVectM( vec, .0 );
@@ -492,9 +498,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       tmp_phoCand._passEleVeto = pho_passEleVeto[i];
       tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
       phoCand.push_back( tmp_phoCand );
-      
+
       nSelectedPhotons++;
     }
+    
     //if there is no photon with pT above 40 GeV, reject the event
     if( nPhotonsAbove40GeV == 0 )
       {
@@ -585,6 +592,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	_pho_index++;
       }
     
+    //removing events with less than two good photon candidates
+    if ( _pho_index < 2 ) continue;
+    
     if ( _debug )
       {
 	std::cout << "[DEBUG]: best photon pair: " 
@@ -616,7 +626,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
 	  }
-	continue;
+	//continue;
       }
     //record higgs candidate info
     mGammaGamma = HiggsCandidate.M();
@@ -697,7 +707,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( n_Jets == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	continue;
+	//continue;
       }
     
     int iJet = 0;
@@ -737,7 +747,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 				    << " h1 pt: " << hemispheres[0].Pt() << " h1 eta: " << hemispheres[0].Eta()
 				    << " h2 pt: " << hemispheres[1].Pt() << " h2 eta: " << hemispheres[1].Eta() << std::endl;
 	  }
-	continue;
+	//continue;
       }
     
     //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
