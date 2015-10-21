@@ -15,9 +15,9 @@ def getTree(myTree,paramNames,nBins,box):
     
     rando = random.randint(1,999999)
     # first structure
-    stringMyStruct1= "void tempMacro_%d(){struct MyStruct1{float n2llr_%s; float chi2_%s; "%(rando,box,box)
+    stringMyStruct1= "void tempMacro_%d(){struct MyStruct1{float n2llr_%s; float chi2_%s; int covQual_%s;"%(rando,box,box,box)
     for paramName in paramNames:
-        stringMyStruct1 = stringMyStruct1+"float %s;" %(paramName)
+        stringMyStruct1 = stringMyStruct1+"float %s; float %s_error;" %(paramName,paramName)
     for iBinX in range(0,nBins):
         stringMyStruct1 = stringMyStruct1+"float b%i;" %(iBinX)
     #print stringMyStruct1+"};}"
@@ -33,8 +33,10 @@ def getTree(myTree,paramNames,nBins,box):
     s1 = MyStruct1()
     myTree.Branch('n2llr_%s'%box , rt.AddressOf(s1,'n2llr_%s'%box),'n2llr_%s/F' %box)
     myTree.Branch('chi2_%s'%box , rt.AddressOf(s1,'chi2_%s'%box),'chi2_%s/F' %box)
+    myTree.Branch('covQual_%s'%box , rt.AddressOf(s1,'covQual_%s'%box),'covQual_%s/I' %box)
     for paramName in paramNames:
         myTree.Branch(paramName , rt.AddressOf(s1,paramName),'%s/F' %paramName)
+        myTree.Branch('%s_error'%paramName , rt.AddressOf(s1,'%s_error'%paramName),'%s_error/F' %paramName)
     for ix in range(0, nBins):
         myTree.Branch("b%i" %(ix) , rt.AddressOf(s1,"b%i" %(ix)),'b%i/F' %ix)
 
@@ -48,8 +50,12 @@ def runToys(w,options,cfg):
     rt.RooRandom.randomGenerator().SetSeed(options.seed)
     
     extRazorPdf = w.pdf('extRazorPdf')
-    dataHist = w.data("data_obs")
+    dataHist = w.data("data_obs")        
     fr = w.obj('fitresult_extRazorPdf_data_obs')
+
+    if options.r>-1:
+        extSpBPdf = w.pdf('extSpBPdf')
+                
     #nll = w.function('nll_extRazorPdf_data_obs')
     nll = extRazorPdf.createNLL(dataHist,rt.RooFit.Extended(True))
     chi2 = extRazorPdf.createChi2(dataHist,rt.RooFit.Extended(True))
@@ -62,7 +68,8 @@ def runToys(w,options,cfg):
 
     [params.remove(p) for p in paramsToRemove]
     paramNames = [p.GetName() for p in rootTools.RootIterator.RootIterator(params)]
-    paramNames.sort()
+    paramNames.sort()    
+    if options.r>-1: paramNames.append('r')
     #params.remove(w.var('BtagCut_TTj1b'))
     #params.remove(w.var('BtagCut_TTj2b'))
     #params.remove(w.var('BtagCut_TTj3b'))
@@ -89,8 +96,13 @@ def runToys(w,options,cfg):
     if options.noStat: unc = "Bayes_noStat"
     if options.noSys: unc = "Bayes_noSys"
     if options.freq: unc = 'Freq'
-    
-    output = rt.TFile.Open(options.outDir+'/toys_%s_%s.root'%(unc,options.box),'recreate')
+
+    if options.r>-1:
+        rString = str('%.3f'%options.r).replace(".","p")
+        output = rt.TFile.Open(options.outDir+'/toys_%s_r%s_%s.root'%(unc,rString,options.box),'recreate')
+    else:
+        output = rt.TFile.Open(options.outDir+'/toys_%s_%s.root'%(unc,options.box),'recreate')
+        
     output.cd()
     myTree = rt.TTree("myTree", "myTree")
     
@@ -100,6 +112,10 @@ def runToys(w,options,cfg):
         w.var(p.GetName()).setVal(p.getVal())
         w.var(p.GetName()).setError(p.getError())
         value = setattr(s1, p.GetName(), p.getVal())
+        value = setattr(s1, p.GetName()+'_error', p.getError())
+    if options.r>-1:
+        value =  setattr(s1, 'r', 0)
+        value =  setattr(s1, 'r_error', 0)
         
     asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('central'),rt.RooFit.Asimov())
 
@@ -179,11 +195,19 @@ def runToys(w,options,cfg):
         errorCountBefore = rt.RooMsgService.instance().errorCount()        
         #print "start generating toy=%i"%iToy
         if options.noStat:
-            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
+            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())            
+            if options.r>-1:
+                w.var('r').setVal(options.r)            
+                asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
+            else:
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
         else:
             #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy))
-            asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'))
+            if options.r>-1:                
+                w.var('r').setVal(options.r)      
+                asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'))
+            else:
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'))
 
         #print "toy entries = %i"%asimov.sumEntries()
         errorCountAfter = rt.RooMsgService.instance().errorCount()   
@@ -194,9 +218,13 @@ def runToys(w,options,cfg):
         #print "SUCCESS: generated toy=%i"%iToy
 
         pSetSave = pSet
-        if options.freq:
-            fr_toy = extRazorPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
-            #if fr_toy.covQual() < 2: continue
+        if options.freq:                      
+            if options.r>-1:
+                fr_toy = extSpBPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
+            else:
+                fr_toy = extRazorPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
+            #if fr_toy.covQual() < 2: continue            
+            value = setattr(s1,'covQual_%s'%options.box, fr_toy.covQual())
             pSetSave = fr_toy.floatParsFinal()
             #if options.noStat:
             #    asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy),rt.RooFit.Asimov())
@@ -206,6 +234,7 @@ def runToys(w,options,cfg):
                 
         for p in rootTools.RootIterator.RootIterator(pSetSave):
             value = setattr(s1, p.GetName(), p.getVal())
+            value = setattr(s1, p.GetName()+"_error", p.getError())
 
         chi2_toy = 0
         n2llr_toy = 0
@@ -221,7 +250,7 @@ def runToys(w,options,cfg):
             value = setattr(s1, 'b%i'%iBinX, toy)
             if expected>0:
                 chi2_toy += ( toy - expected ) * ( toy - expected ) / ( expected )
-            if toy>0:
+            if toy>0 and expected>0:
                 n2llr_toy += 2 * ( toy*rt.TMath.Log(toy/expected) - toy )
             n2llr_toy += 2 * ( expected )
             
@@ -262,6 +291,8 @@ if __name__ == '__main__':
                   help="no systematic uncertainty, just statistical uncertainty, default is statstical + systematic uncertainty")
     parser.add_option('--freq',dest="freq",default=False,action='store_true',
                   help="refit each toy with only statistical fluctuations, as in frequentist approach; default is bayeseian")
+    parser.add_option('-r','--signal-strength',dest="r", default=-1,type="float",
+                  help="signal strength => do each fit the the SpB pdf")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",
                   help="input fit file")
 
@@ -292,6 +323,7 @@ if __name__ == '__main__':
         w = rt.RooWorkspace("w"+options.box)
     
         paramNames, bkgs = initializeWorkspace(w,cfg,options.box)
+            
         rootTools.Utils.importToWS(w,data)
     
         th1x = w.var('th1x')

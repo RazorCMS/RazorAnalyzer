@@ -20,6 +20,7 @@ def binnedFit(pdf, data, fitRange='Full'):
     
     fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
     if fr.covQual() < 3:
+        #fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
         fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
         
     if fr.covQual() < 3:
@@ -78,6 +79,10 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
+    parser.add_option('-s','--signal',dest="signalFileName", default="None",type="string",
+                  help="input dataset file for signal pdf")
+    parser.add_option('-r','--signal-strength',dest="r", default=-1,type="float",
+                  help="signal strength")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
                   help="Turn off fit (useful for visualizing initial parameters)")
     parser.add_option('--fit-region',dest="fitRegion",default="Full",type="string",
@@ -132,12 +137,39 @@ if __name__ == '__main__':
     plotband = convertSideband(plotRegion,w,x,y,z)
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
+
+    signalDs = None
+    doSignalInj = (options.signalFileName != "None") and (options.r > -1)
+    if doSignalInj:
+        sigRootFile = rt.TFile(options.signalFileName)
+        sigWorkspace = sigRootFile.Get('w'+box)
+        signalDs = sigWorkspace.data('RMRTree')
+        model = options.signalFileName.split('.root')[0].split('-')[1].split('_')[0]
+        massPoint = '_'.join(options.signalFileName.split('.root')[0].split('_')[1:3])    
+        sigTH1 = convertDataset2TH1(signalDs, cfg, box, w,"signal")
+        sigTH1.Scale(lumi/lumi_in)
+        sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
+        sigPdf = rt.RooHistPdf('%s_Signal'%box,'%s_Signal'%box,rt.RooArgSet(th1x), sigDataHist)
+        rootTools.Utils.importToWS(w,sigDataHist)
+        rootTools.Utils.importToWS(w,sigPdf)
+        w.factory('r[%f,-10.,30.]'%options.r)
+        w.factory('Ntot_Signal_%s_In[%f]'%(box,sigTH1.Integral()))
+        w.factory('expr::Ntot_Signal_%s("r*Ntot_Signal_%s_In",r,Ntot_Signal_%s_In)'%(box,box,box))
+        w.factory('SUM::extSpBPdf(Ntot_Signal_%s*%s_Signal,Ntot_TTj0b_%s*%s_TTj0b,Ntot_TTj1b_%s*%s_TTj1b,Ntot_TTj2b_%s*%s_TTj2b,Ntot_TTj3b_%s*%s_TTj3b)'%(box,box,box,box,box,box,box,box,box,box))
+        w.factory('SUM::extSignalPdf(Ntot_Signal_%s*%s_Signal)'%(box,box))
+        
+        w.Print('v')
     
     if not options.isData:        
-        myTH1.Scale(lumi/lumi_in)
+        myTH1.Scale(lumi/lumi_in)        
+        if doSignalInj:
+            if options.r > 0:
+                Npois = rt.RooRandom.randomGenerator().Poisson(options.r*sigTH1.Integral())             
+                myTH1.FillRandom(sigTH1,Npois) # "unweighted approach" - generating a real dataset
+                #myTH1.Add(sigTH1,options.r) # "weighted approach"
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     rootTools.Utils.importToWS(w,dataHist)
-    
+
     setStyle()
     
     extRazorPdf = w.pdf('extRazorPdf')
@@ -148,15 +180,20 @@ if __name__ == '__main__':
         fr = binnedFit(extRazorPdf,dataHist,sideband)
         fr.Print('v')    
         rootTools.Utils.importToWS(w,fr)
+        if doSignalInj:
+            extSpBPdf = w.pdf('extSpBPdf')
+            frSpB = binnedFit(extSpBPdf,dataHist,sideband)
+            frSpB.Print('v')    
+            rootTools.Utils.importToWS(w,frSpB)
     
     th1x.setBins(nBins)
 
     asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('central'),rt.RooFit.Asimov())
+        
     opt = []
     [opt.append(rt.RooFit.CutRange(myRange)) for myRange in plotband.split(',')]
     asimov_reduce = asimov.reduce(*opt)
     dataHist_reduce = dataHist.reduce(*opt)
-    
     rt.TH1D.SetDefaultSumw2()
     rt.TH2D.SetDefaultSumw2()
     rt.TH3D.SetDefaultSumw2()
@@ -185,11 +222,21 @@ if __name__ == '__main__':
     h_MR = h_nBtagRsqMR.Project3D("xe")
     h_Rsq = h_nBtagRsqMR.Project3D("ye")
     
+    if doSignalInj:        
+        extSignalPdf = w.pdf('extSignalPdf')
+        signal = extSignalPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('signal'),rt.RooFit.Asimov())
+        signal_reduce = signal.reduce(*opt)
+        h_sig_th1x = signal_reduce.createHistogram('h_sig_th1x',th1x)
+        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR")
+        h_sig_RsqMR = h_sig_nBtagRsqMR.Project3D("yxe")
+        h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
+        h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")    
+    
     if len(z)>1:
         h_MR_components = []
         h_Rsq_components = []
         h_labels = []        
-        h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
+        h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen,rt.kGray+2]
         for k in range(1,len(z)):
             h_MR_components.append(h_nBtagRsqMR.ProjectionX("MR_%ibtag"%z[k-1],0,-1,k,k,""))
             h_Rsq_components.append(h_nBtagRsqMR.ProjectionY("Rsq_%ibtag"%z[k-1],0,-1,k,k,""))
@@ -200,7 +247,11 @@ if __name__ == '__main__':
             else:            
                 h_labels.append("%i b-tag" % z[k-1] )
 
-    
+    if doSignalInj:
+        h_MR_components.append(h_sig_MR)
+        h_Rsq_components.append(h_sig_Rsq)
+        h_labels.append("signal")
+        
     h_data_nBtagRsqMR_fine = rt.TH3D("h_data_nBtagRsqMR_fine","h_data_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
     h_nBtagRsqMR_fine = rt.TH3D("h_nBtagRsqMR_fine","h_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
     w.data("RMRTree").fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
