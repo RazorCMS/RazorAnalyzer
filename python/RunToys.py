@@ -40,7 +40,7 @@ def getTree(myTree,paramNames,nBins,box):
     for ix in range(0, nBins):
         myTree.Branch("b%i" %(ix) , rt.AddressOf(s1,"b%i" %(ix)),'b%i/F' %ix)
 
-    #os.system("rm tempMacro_%d.C"%rando)
+    os.system("rm tempMacro_%d.C"%rando)
     return s1
 
 
