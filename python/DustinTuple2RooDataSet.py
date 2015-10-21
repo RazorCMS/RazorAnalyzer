@@ -5,9 +5,9 @@ from framework import Config
 import sys
 from array import *
 
-k_T = 689.1/424.5
-k_Z = 3.*2008.4/5482.
-k_W = 3.*20508.9/50100.0
+k_T = 1.
+k_Z = 1.
+k_W = 1.
 
 k_QCD = {}
     
@@ -124,7 +124,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = 2
+    btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 

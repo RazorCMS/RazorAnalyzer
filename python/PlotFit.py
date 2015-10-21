@@ -1242,7 +1242,10 @@ if __name__ == '__main__':
         for j in range(1,h_RsqMR_statnsigma.GetNbinsY()+1):
             fit = h_RsqMR.GetBinContent(i,j)
             dat = h_data_RsqMR.GetBinContent(i,j)
-            h_RsqMR_statnsigma.SetBinContent(i,j,(dat-fit)/rt.TMath.Sqrt(fit))
+            if fit > 0.0:
+                h_RsqMR_statnsigma.SetBinContent(i,j,(dat-fit)/rt.TMath.Sqrt(fit))
+            else:
+                print "ERROR FIT = 0, SKIPPING BIN"
     
     h_RsqMR_nsigma = h_RsqMR_statnsigma.Clone("h_RsqMR_nsigma")
     if computeErrors:
@@ -1262,7 +1265,10 @@ if __name__ == '__main__':
                 for j in range(1,h_RsqMR_statnsigma_btag.GetNbinsY()+1):
                     fit = h_RsqMR_components[k-1].GetBinContent(i,j)
                     dat = h_data_RsqMR_components[k-1].GetBinContent(i,j)
-                    h_RsqMR_statnsigma_btag.SetBinContent(i,j,(dat-fit)/rt.TMath.Sqrt(fit))
+                    if fit > 0.0:
+                        h_RsqMR_statnsigma_btag.SetBinContent(i,j,(dat-fit)/rt.TMath.Sqrt(fit))                        
+                    else:
+                        print "ERROR FIT = 0, SKIPPING BIN"
             h_RsqMR_statnsigma_components.append(h_RsqMR_statnsigma_btag)
             #h_RsqMR_percentdiff_btag = h_data_RsqMR_components[k-1].Clone("h_RsqMR_percentdiff_%ibtag"%z[k-1])
             #h_RsqMR_percentdiff_btag.Add(h_RsqMR_components[k-1],-1.)
