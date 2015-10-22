@@ -676,9 +676,11 @@ bool RazorAnalyzer::matchTagElectronHLTFilters(int i){
   bool match = false;
   if ( 
       //Data filters
-      ele_passHLTFilter[i][1] || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
-      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53] || ele_passHLTFilter[i][57] || ele_passHLTFilter[i][60]
+      ele_passHLTFilter[i][1] 
+      || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
+      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53] || ele_passHLTFilter[i][57] || ele_passHLTFilter[i][60]      
       //MC filters
+      || ele_passHLTFilter[i][64] 
       || ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
        ) {
     match = true;
@@ -730,7 +732,7 @@ bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter){
 	//Data filters
 	ele_passHLTFilter[i][1] 
 	//MC filters
-	|| ele_passHLTFilter[i][3]
+	|| ele_passHLTFilter[i][3] || ele_passHLTFilter[i][64]
 	 ) {
       match = true;
     }
