@@ -278,9 +278,9 @@ public :
    Float_t         genAlphaQCD;
    Float_t         genAlphaQED;
    std::vector<std::string>  *lheComments;
-   vector<float>   *scaleWeights;
-   vector<float>   *pdfWeights;
-   vector<float>   *alphasWeights;
+   std::vector<float>   *scaleWeights;
+   std::vector<float>   *pdfWeights;
+   std::vector<float>   *alphasWeights;
    Int_t           nGenParticle;
    Int_t           gParticleMotherId[4000];   //[nGenParticle]
    Int_t           gParticleMotherIndex[4000];   //[nGenParticle]
