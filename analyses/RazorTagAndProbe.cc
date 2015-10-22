@@ -67,6 +67,9 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
     //13: pass Iso tight
     //50 - 99: pass HLT Filter ( see specific mapping in the code below )
 
+    //Define 25ns for photons
+    bool _is25ns = true;
+    
     int objectTypeOption = floor(float(option) / 10000);
     int denominatorType = floor( float(option - objectTypeOption*10000) / 100);
     int numeratorType = option - objectTypeOption*10000 - denominatorType*100;
@@ -580,7 +583,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       //Photons
       //*********************************************************
       if (objectTypeOption == 3) {
-
+	
 	//*******************************************************
 	//Loop over Tag electrons
 	//*******************************************************
@@ -613,7 +616,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	  vtag.SetPtEtaPhiM(elePt[indexTag], eleEta[indexTag], elePhi[indexTag], ELE_MASS);
 
 	  //*******************************************************
-	  //Loop over Probe electrons
+	  //Loop over Probe electrons with photon ID
 	  //*******************************************************
 
 	  for(int indexProbe = 0; indexProbe < nPhotons; indexProbe++){
@@ -650,13 +653,13 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      // reco object doesn't require any additional cuts
 	    }
 	    if (denominatorType == 3) {
-	      if ( !isLoosePhotonWithoutEleVeto(indexProbe) ) continue;
+	      if ( !isLoosePhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
 	    }
 	    if (denominatorType == 4) {
-	      if ( !isMediumPhotonWithoutEleVeto(indexProbe) ) continue;
+	      if ( !isMediumPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
 	    }
 	    if (denominatorType == 5) {
-	      if ( !isTightPhotonWithoutEleVeto(indexProbe) ) continue;
+	      if ( !isTightPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -674,13 +677,13 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    //****************************************
 	    bool pass = false;
 	    if (numeratorType == 3) {
-	      pass = isLoosePhotonWithoutEleVeto(indexProbe);
+	      pass = isLoosePhotonWithoutEleVeto(indexProbe, _is25ns);
 	    }
 	    if (numeratorType == 4) {
-	      pass = isMediumPhotonWithoutEleVeto(indexProbe);
+	      pass = isMediumPhotonWithoutEleVeto(indexProbe, _is25ns);
 	    }
 	    if (numeratorType == 5) {
-	      pass = isTightPhotonWithoutEleVeto(indexProbe);
+	      pass = isTightPhotonWithoutEleVeto(indexProbe, _is25ns);
 	    }
 	    if (numeratorType == 50) {	     
 	      pass = matchPhotonHLTFilters(indexProbe, "DiPhoton30_18_WithPixMatch_Leg1");
