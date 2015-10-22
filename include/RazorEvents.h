@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sat Oct 17 00:18:40 2015 by ROOT version 6.02/05
+// Wed Oct 21 22:35:13 2015 by ROOT version 6.02/05
 // from TTree RazorEvents/selected miniAOD information
-// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root
+// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.21/MC/RunIISpring15DR74_25ns_MiniAODV2/v4/sixie/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p21_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1_v4_v1/151021_154408/0000/razorNtuple_99.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -15,7 +15,7 @@
 // Header file for the classes stored in the TTree if any.
 #include <vector>
 #include <string>
- 
+
 class RazorEvents {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
@@ -218,6 +218,34 @@ public :
    Float_t         metNoHFPhi;
    Float_t         metPuppiPt;
    Float_t         metPuppiPhi;
+   Float_t         metType1PtJetResUp;
+   Float_t         metType1PtJetResDown;
+   Float_t         metType1PtJetEnUp;
+   Float_t         metType1PtJetEnDown;
+   Float_t         metType1PtMuonEnUp;
+   Float_t         metType1PtMuonEnDown;
+   Float_t         metType1PtElectronEnUp;
+   Float_t         metType1PtElectronEnDown;
+   Float_t         metType1PtTauEnUp;
+   Float_t         metType1PtTauEnDown;
+   Float_t         metType1PtUnclusteredEnUp;
+   Float_t         metType1PtUnclusteredEnDown;
+   Float_t         metType1PtPhotonEnUp;
+   Float_t         metType1PtPhotonEnDown;
+   Float_t         metType1PhiJetResUp;
+   Float_t         metType1PhiJetResDown;
+   Float_t         metType1PhiJetEnUp;
+   Float_t         metType1PhiJetEnDown;
+   Float_t         metType1PhiMuonEnUp;
+   Float_t         metType1PhiMuonEnDown;
+   Float_t         metType1PhiElectronEnUp;
+   Float_t         metType1PhiElectronEnDown;
+   Float_t         metType1PhiTauEnUp;
+   Float_t         metType1PhiTauEnDown;
+   Float_t         metType1PhiUnclusteredEnUp;
+   Float_t         metType1PhiUnclusteredEnDown;
+   Float_t         metType1PhiPhotonEnUp;
+   Float_t         metType1PhiPhotonEnDown;
    Bool_t          Flag_HBHENoiseFilter;
    Bool_t          Flag_HBHETightNoiseFilter;
    Bool_t          Flag_HBHEIsoNoiseFilter;
@@ -250,6 +278,9 @@ public :
    Float_t         genAlphaQCD;
    Float_t         genAlphaQED;
    std::vector<std::string>  *lheComments;
+   std::vector<float>   *scaleWeights;
+   std::vector<float>   *pdfWeights;
+   std::vector<float>   *alphasWeights;
    Int_t           nGenParticle;
    Int_t           gParticleMotherId[4000];   //[nGenParticle]
    Int_t           gParticleMotherIndex[4000];   //[nGenParticle]
@@ -455,6 +486,34 @@ public :
    TBranch        *b_metNoHFPhi;   //!
    TBranch        *b_metPuppiPt;   //!
    TBranch        *b_metPuppiPhi;   //!
+   TBranch        *b_metType1PtJetResUp;   //!
+   TBranch        *b_metType1PtJetResDown;   //!
+   TBranch        *b_metType1PtJetEnUp;   //!
+   TBranch        *b_metType1PtJetEnDown;   //!
+   TBranch        *b_metType1PtMuonEnUp;   //!
+   TBranch        *b_metType1PtMuonEnDown;   //!
+   TBranch        *b_metType1PtElectronEnUp;   //!
+   TBranch        *b_metType1PtElectronEnDown;   //!
+   TBranch        *b_metType1PtTauEnUp;   //!
+   TBranch        *b_metType1PtTauEnDown;   //!
+   TBranch        *b_metType1PtUnclusteredEnUp;   //!
+   TBranch        *b_metType1PtUnclusteredEnDown;   //!
+   TBranch        *b_metType1PtPhotonEnUp;   //!
+   TBranch        *b_metType1PtPhotonEnDown;   //!
+   TBranch        *b_metType1PhiJetResUp;   //!
+   TBranch        *b_metType1PhiJetResDown;   //!
+   TBranch        *b_metType1PhiJetEnUp;   //!
+   TBranch        *b_metType1PhiJetEnDown;   //!
+   TBranch        *b_metType1PhiMuonEnUp;   //!
+   TBranch        *b_metType1PhiMuonEnDown;   //!
+   TBranch        *b_metType1PhiElectronEnUp;   //!
+   TBranch        *b_metType1PhiElectronEnDown;   //!
+   TBranch        *b_metType1PhiTauEnUp;   //!
+   TBranch        *b_metType1PhiTauEnDown;   //!
+   TBranch        *b_metType1PhiUnclusteredEnUp;   //!
+   TBranch        *b_metType1PhiUnclusteredEnDown;   //!
+   TBranch        *b_metType1PhiPhotonEnUp;   //!
+   TBranch        *b_metType1PhiPhotonEnDown;   //!
    TBranch        *b_Flag_HBHENoiseFilter;   //!
    TBranch        *b_Flag_HBHETightNoiseFilter;   //!
    TBranch        *b_Flag_HBHEIsoNoiseFilter;   //!
@@ -487,6 +546,9 @@ public :
    TBranch        *b_genAlphaQCD;   //!
    TBranch        *b_genAlphaQED;   //!
    TBranch        *b_lheComments;   //!
+   TBranch        *b_scaleWeights;   //!
+   TBranch        *b_pdfWeights;   //!
+   TBranch        *b_alphasWeights;   //!
    TBranch        *b_nGenParticle;   //!
    TBranch        *b_gParticleMotherId;   //!
    TBranch        *b_gParticleMotherIndex;   //!
@@ -516,11 +578,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.21/MC/RunIISpring15DR74_25ns_MiniAODV2/v4/sixie/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p21_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1_v4_v1/151021_154408/0000/razorNtuple_99.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root");
+         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.21/MC/RunIISpring15DR74_25ns_MiniAODV2/v4/sixie/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p21_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1_v4_v1/151021_154408/0000/razorNtuple_99.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.20/MC/RunIISpring15DR74_25ns_MiniAODV2/v2/sixie/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p20_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3_v2_v1/151011_164930/0000/razorNtuple_108.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV1.21/MC/RunIISpring15DR74_25ns_MiniAODV2/v4/sixie/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/Run2RazorNtuplerV1p21_ToCERN_MC_25ns_MiniAODV2_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1_v4_v1/151021_154408/0000/razorNtuple_99.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -564,6 +626,9 @@ void RazorEvents::Init(TTree *tree)
 
    // Set object pointer
    lheComments = 0;
+   scaleWeights = 0;
+   pdfWeights = 0;
+   alphasWeights = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -764,6 +829,34 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("metNoHFPhi", &metNoHFPhi, &b_metNoHFPhi);
    fChain->SetBranchAddress("metPuppiPt", &metPuppiPt, &b_metPuppiPt);
    fChain->SetBranchAddress("metPuppiPhi", &metPuppiPhi, &b_metPuppiPhi);
+   fChain->SetBranchAddress("metType1PtJetResUp", &metType1PtJetResUp, &b_metType1PtJetResUp);
+   fChain->SetBranchAddress("metType1PtJetResDown", &metType1PtJetResDown, &b_metType1PtJetResDown);
+   fChain->SetBranchAddress("metType1PtJetEnUp", &metType1PtJetEnUp, &b_metType1PtJetEnUp);
+   fChain->SetBranchAddress("metType1PtJetEnDown", &metType1PtJetEnDown, &b_metType1PtJetEnDown);
+   fChain->SetBranchAddress("metType1PtMuonEnUp", &metType1PtMuonEnUp, &b_metType1PtMuonEnUp);
+   fChain->SetBranchAddress("metType1PtMuonEnDown", &metType1PtMuonEnDown, &b_metType1PtMuonEnDown);
+   fChain->SetBranchAddress("metType1PtElectronEnUp", &metType1PtElectronEnUp, &b_metType1PtElectronEnUp);
+   fChain->SetBranchAddress("metType1PtElectronEnDown", &metType1PtElectronEnDown, &b_metType1PtElectronEnDown);
+   fChain->SetBranchAddress("metType1PtTauEnUp", &metType1PtTauEnUp, &b_metType1PtTauEnUp);
+   fChain->SetBranchAddress("metType1PtTauEnDown", &metType1PtTauEnDown, &b_metType1PtTauEnDown);
+   fChain->SetBranchAddress("metType1PtUnclusteredEnUp", &metType1PtUnclusteredEnUp, &b_metType1PtUnclusteredEnUp);
+   fChain->SetBranchAddress("metType1PtUnclusteredEnDown", &metType1PtUnclusteredEnDown, &b_metType1PtUnclusteredEnDown);
+   fChain->SetBranchAddress("metType1PtPhotonEnUp", &metType1PtPhotonEnUp, &b_metType1PtPhotonEnUp);
+   fChain->SetBranchAddress("metType1PtPhotonEnDown", &metType1PtPhotonEnDown, &b_metType1PtPhotonEnDown);
+   fChain->SetBranchAddress("metType1PhiJetResUp", &metType1PhiJetResUp, &b_metType1PhiJetResUp);
+   fChain->SetBranchAddress("metType1PhiJetResDown", &metType1PhiJetResDown, &b_metType1PhiJetResDown);
+   fChain->SetBranchAddress("metType1PhiJetEnUp", &metType1PhiJetEnUp, &b_metType1PhiJetEnUp);
+   fChain->SetBranchAddress("metType1PhiJetEnDown", &metType1PhiJetEnDown, &b_metType1PhiJetEnDown);
+   fChain->SetBranchAddress("metType1PhiMuonEnUp", &metType1PhiMuonEnUp, &b_metType1PhiMuonEnUp);
+   fChain->SetBranchAddress("metType1PhiMuonEnDown", &metType1PhiMuonEnDown, &b_metType1PhiMuonEnDown);
+   fChain->SetBranchAddress("metType1PhiElectronEnUp", &metType1PhiElectronEnUp, &b_metType1PhiElectronEnUp);
+   fChain->SetBranchAddress("metType1PhiElectronEnDown", &metType1PhiElectronEnDown, &b_metType1PhiElectronEnDown);
+   fChain->SetBranchAddress("metType1PhiTauEnUp", &metType1PhiTauEnUp, &b_metType1PhiTauEnUp);
+   fChain->SetBranchAddress("metType1PhiTauEnDown", &metType1PhiTauEnDown, &b_metType1PhiTauEnDown);
+   fChain->SetBranchAddress("metType1PhiUnclusteredEnUp", &metType1PhiUnclusteredEnUp, &b_metType1PhiUnclusteredEnUp);
+   fChain->SetBranchAddress("metType1PhiUnclusteredEnDown", &metType1PhiUnclusteredEnDown, &b_metType1PhiUnclusteredEnDown);
+   fChain->SetBranchAddress("metType1PhiPhotonEnUp", &metType1PhiPhotonEnUp, &b_metType1PhiPhotonEnUp);
+   fChain->SetBranchAddress("metType1PhiPhotonEnDown", &metType1PhiPhotonEnDown, &b_metType1PhiPhotonEnDown);
    fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
    fChain->SetBranchAddress("Flag_HBHETightNoiseFilter", &Flag_HBHETightNoiseFilter, &b_Flag_HBHETightNoiseFilter);
    fChain->SetBranchAddress("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, &b_Flag_HBHEIsoNoiseFilter);
@@ -796,6 +889,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genAlphaQCD", &genAlphaQCD, &b_genAlphaQCD);
    fChain->SetBranchAddress("genAlphaQED", &genAlphaQED, &b_genAlphaQED);
    fChain->SetBranchAddress("lheComments", &lheComments, &b_lheComments);
+   fChain->SetBranchAddress("scaleWeights", &scaleWeights, &b_scaleWeights);
+   fChain->SetBranchAddress("pdfWeights", &pdfWeights, &b_pdfWeights);
+   fChain->SetBranchAddress("alphasWeights", &alphasWeights, &b_alphasWeights);
    fChain->SetBranchAddress("nGenParticle", &nGenParticle, &b_nGenParticle);
    fChain->SetBranchAddress("gParticleMotherId", gParticleMotherId, &b_gParticleMotherId);
    fChain->SetBranchAddress("gParticleMotherIndex", gParticleMotherIndex, &b_gParticleMotherIndex);
