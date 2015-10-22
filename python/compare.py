@@ -1,6 +1,6 @@
 import argparse
 import ROOT as rt
-import macro
+from macro import macro
 
 titles={
         "Fastsim": "Fastsim",

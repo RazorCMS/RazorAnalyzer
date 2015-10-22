@@ -9,10 +9,10 @@ from framework import Config
 from DustinTuple2RooDataSet import initializeWorkspace, getSumOfWeights, boxes, k_T, k_Z, k_W, k_QCD, dPhiCut, MTCut
 from RunCombine import exec_me
 
-backgrounds = ['dyjetstoll', 'qcd', 'ttjets', 'zjetstonunu', 'multiboson', 'singletop', 'wjetstolnu', 'ttv']
-
 jet1Cut = 80 #cut on leading jet pt
 jet2Cut = 80 #cut on subleading jet pt
+
+backgrounds = ['dyjetstoll', 'qcd', 'ttjets', 'zjetstonunu', 'multiboson', 'singletop', 'wjetstolnu', 'ttv']
 
 def getScaleFactor(tree, treeName, sfs={}, opt=""):
     #get correct value of MR and Rsq
