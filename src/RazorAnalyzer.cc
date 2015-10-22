@@ -287,6 +287,9 @@ void RazorAnalyzer::EnableMC(){
     fChain->SetBranchStatus("genAlphaQCD", 1);
     fChain->SetBranchStatus("genAlphaQED", 1);
     fChain->SetBranchStatus("lheComments", 1);
+    fChain->SetBranchStatus("scaleWeights", 1);
+    fChain->SetBranchStatus("pdfWeights", 1);
+    fChain->SetBranchStatus("alphasWeights", 1);
 }
 
 void RazorAnalyzer::EnableGenParticles(){

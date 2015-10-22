@@ -1,5 +1,16 @@
 import ROOT as rt
 import copy
+import array
+
+def setFFColors(hNS, minZ=-5.1, maxZ=5.1):
+    Red = array.array('d',  [0.00, 0.70, 0.90, 1.00, 1.00, 1.00, 1.00])
+    Green = array.array('d',[0.00, 0.70, 0.90, 1.00, 0.90, 0.70, 0.00])
+    Blue = array.array('d', [1.00, 1.00, 1.00, 1.00, 0.90, 0.70, 0.00])
+    Length =array.array('d',[0.00, 0.20, 0.35, 0.50, 0.65, 0.8, 1.00]) # colors get darker faster at 4sigma
+    rt.TColor.CreateGradientColorTable(7,Length,Red,Green,Blue,999)
+    hNS.SetMaximum(maxZ)
+    hNS.SetMinimum(minZ) # so the binning is 0 2 4
+    hNS.SetContour(999)
 
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}"):
     """Make stacked plots of quantities of interest, with data overlaid"""
@@ -13,6 +24,15 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
 
     legend=None
     for i,var in enumerate(varList): 
+        #for MR and Rsq, make 2D plots
+        if var == ('MR','Rsq'):
+            mcPrediction = histDict[mcNames[0]][var].Clone("mcPrediction")
+            mcPrediction.Reset()
+            for name in mcNames: 
+                mcPrediction.Add(histDict[name][var])
+            commentstr = printName+" Box"
+            plot_basic_2D(c, mc=mcPrediction, data=dataHists[var], xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True)
+        #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var] for name in mcNames}
         if not legend:
@@ -21,7 +41,54 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         stack = makeStack(varHists, mcNames, var)
         plot_basic(c, mc=stack, data=dataHists[var], leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, saveroot=True)
 
-def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, debugLevel=0):
+def transformVarString(string, errorOpt, debugLevel=0):
+    outstring = copy.copy(string)
+    if errorOpt == "jesUp":
+        outstring = outstring.replace("MR", "MR_JESUp")
+        outstring = outstring.replace("Rsq", "Rsq_JESUp")
+        outstring = outstring.replace("nBTaggedJets", "nBTaggedJets_JESUp")
+        outstring = outstring.replace("dPhiRazor", "dPhiRazor_JESUp")
+        outstring = outstring.replace("leadingJetPt", "leadingJetPt_JESUp")
+        outstring = outstring.replace("subleadingJetPt", "subleadingJetPt_JESUp")
+        outstring = outstring.replace("nSelectedJets", "nSelectedJets_JESUp")
+        outstring = outstring.replace("nJets80", "nJets80_JESUp")
+        outstring = outstring.replace("box", "box_JESUp")
+    elif errorOpt == "jesDown":
+        outstring = outstring.replace("MR", "MR_JESDown")
+        outstring = outstring.replace("Rsq", "Rsq_JESDown")
+        outstring = outstring.replace("nBTaggedJets", "nBTaggedJets_JESDown")
+        outstring = outstring.replace("dPhiRazor", "dPhiRazor_JESDown")
+        outstring = outstring.replace("leadingJetPt", "leadingJetPt_JESDown")
+        outstring = outstring.replace("subleadingJetPt", "subleadingJetPt_JESDown")
+        outstring = outstring.replace("nSelectedJets", "nSelectedJets_JESDown")
+        outstring = outstring.replace("nJets80", "nJets80_JESDown")
+        outstring = outstring.replace("box", "box_JESDown")
+    if errorOpt == "jerUp":
+        outstring = outstring.replace("MR", "MR_JERUp")
+        outstring = outstring.replace("Rsq", "Rsq_JERUp")
+        outstring = outstring.replace("nBTaggedJets", "nBTaggedJets_JERUp")
+        outstring = outstring.replace("dPhiRazor", "dPhiRazor_JERUp")
+        outstring = outstring.replace("leadingJetPt", "leadingJetPt_JERUp")
+        outstring = outstring.replace("subleadingJetPt", "subleadingJetPt_JERUp")
+        outstring = outstring.replace("nSelectedJets", "nSelectedJets_JERUp")
+        outstring = outstring.replace("nJets80", "nJets80_JERUp")
+        outstring = outstring.replace("box", "box_JERUp")
+    elif errorOpt == "jerDown":
+        outstring = outstring.replace("MR", "MR_JERDown")
+        outstring = outstring.replace("Rsq", "Rsq_JERDown")
+        outstring = outstring.replace("nBTaggedJets", "nBTaggedJets_JERDown")
+        outstring = outstring.replace("dPhiRazor", "dPhiRazor_JERDown")
+        outstring = outstring.replace("leadingJetPt", "leadingJetPt_JERDown")
+        outstring = outstring.replace("subleadingJetPt", "subleadingJetPt_JERDown")
+        outstring = outstring.replace("nSelectedJets", "nSelectedJets_JERDown")
+        outstring = outstring.replace("nJets80", "nJets80_JERDown")
+        outstring = outstring.replace("box", "box_JERDown")
+
+    if debugLevel > 1:
+        if outstring != string: print "For option",errorOpt,"Replacing string '",string,"' with '",outstring,"'"
+    return outstring
+
+def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, errorOpt=None, debugLevel=0):
     """Fills each histogram with the corresponding variable in the tree.
     'hists' should be a dictionary of histograms, with keys being the variable names to fill.
     Ex: hists['MR'] should be the histogram you want to fill with MR values.
@@ -29,12 +96,16 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, deb
     In this case, the given variables will be used to fill the histogram."""
     for varName, hist in hists.iteritems(): 
         if isinstance(varName, basestring): #if varName is a string
+            #transform variable name
+            if errorOpt is not None: varName = transformVarString(varName, errorOpt, debugLevel=debugLevel)
             if debugLevel > 1: print "Filling",varName,"=",getattr(tree,varName),"with weight",weight
             hist.Fill(getattr(tree, varName), weight)
             if varName in sysErrSquaredHists: #for propagating systematic errors on the variables
                 sysErrSquared = weight*weight*sysErr*sysErr
                 sysErrSquaredHist[varName].Fill(getattr(tree, varName), sysErrSquared)
         else: #treat it as a tuple of variables that should be filled
+            #transform each variable
+            if errorOpt is not None: varName = tuple([transformVarString(v, errorOpt, debugLevel) for v in varName])
             toFill = [getattr(tree, v) for v in varName]+[weight]
             if debugLevel > 1: print "Filling",varName,":",toFill
             hist.Fill(*toFill)
@@ -84,11 +155,15 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
                     hists[name].SetBinError(bx,by,(hists[name].GetBinError(bx,by)**2 + squaredError)**(0.5))
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
     if debugLevel > 0: print ("Cuts: "+cuts)
+    #transform cuts 
+    if errorOpt is not None:
+        if debugLevel > 0: print "Error option is:",errorOpt
+        cuts = transformVarString(cuts, errorOpt, debugLevel=debugLevel+1)
     #get list of entries passing the cuts
     tree.Draw('>>elist', cuts, 'entrylist')
     elist = rt.gDirectory.Get('elist')
@@ -110,12 +185,12 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         elif debugLevel > 0 and count % 10000 == 0: print "Processing entry",count
         elif debugLevel > 1: print "Processing entry",count
         tree.GetEntry(entry)
-        w = weightF(tree, weightHists, scale, opts, debugLevel=debugLevel)
+        w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
         err = 0.0
         if sfHist is not None: 
             sf, err = getScaleFactorAndError(tree, sfHist, sfVars, debugLevel)
             w *= sf
-        fillF(tree, hists, w, sysErrSquaredHists, err, debugLevel)
+        fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, debugLevel)
         sumweight += w
         count += 1
     #propagate systematics to each histogram
@@ -123,7 +198,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, opts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -134,7 +209,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         if name in sfHists: 
             print("Using scale factors from histogram "+sfHists[name].GetName())
             sfHistToUse = sfHists[name]
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, opts, debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, weightOpts, errorOpt, debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
 def makeStack(hists, ordering, title="Stack"):
@@ -248,6 +323,89 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     if savepng: c.Print(printstr+".png")
     if savepdf: c.Print(printstr+".pdf")
     if saveroot: c.Print(printstr+".root")
+
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, saveroot=False, savepdf=False, savepng=True):
+    """Draw a single 2D histogram and print to file"""
+    if palette == "FF":
+        setFFColors(hist, -5.1, 5.1)
+    else:
+        rt.gStyle.SetPalette(palette)
+    c.Clear()
+    c.cd()
+    c.SetLogx(logx)
+    c.SetLogy(logy)
+    c.SetLogz(logz)
+    c.Draw()
+    c.cd()
+    hist.SetTitle("")
+    hist.GetXaxis().SetTitle(xtitle)
+    hist.GetYaxis().SetTitle(ytitle)
+    hist.GetZaxis().SetTitle(ztitle)
+    hist.GetYaxis().SetLabelSize(0.03)
+    hist.GetYaxis().SetTitleOffset(0.50)
+    hist.GetYaxis().SetTitleSize(0.05)
+    hist.SetStats(0)
+    if zmin is not None: hist.SetMinimum(zmin)
+    if zmax is not None: hist.SetMaximum(zmax)
+    hist.Draw("colz")
+    if dotext:
+        rt.gStyle.SetPaintTextFormat('4.1f')
+        hist.SetMarkerSize(2.0)
+        if not drawErrs: hist.Draw('textsame')
+        else: hist.Draw('textesame')
+    #add LaTeX 
+    t1 = rt.TLatex(0.1,0.94, "CMS Preliminary")
+    t2 = rt.TLatex(0.55,0.94, "#sqrt{s}=13 TeV"+((lumistr != "")*(", L = "+lumistr)))
+    t1.SetNDC()
+    t2.SetNDC()
+    t1.SetTextSize(0.05)
+    t2.SetTextSize(0.05)
+    t1.Draw()
+    t2.Draw()
+    if commentstr != "":
+        t3 = rt.TLatex(0.40, 0.84, commentstr)
+        t3.SetNDC()
+        t3.SetTextSize(0.04)
+        t3.Draw()
+    #save
+    if savepng: c.Print(printstr+".png")
+    if savepdf: c.Print(printstr+".pdf")
+    if saveroot: c.Print(printstr+".root")
+
+def make2DPullHistogram(h1, h2):
+    """Makes (h1 - h2)/sigma histogram, where sigma is the error on the difference"""
+    ret = h1.Clone(h1.GetName()+h2.GetName()+"Pulls")
+    ret.Add(h2, -1)
+    for bx in range(1, h1.GetNbinsX()+1):
+        for by in range(1, h1.GetNbinsY()+1):
+            content = ret.GetBinContent(bx,by)
+            err1 = h1.GetBinError(bx,by)
+            err2 = h2.GetBinError(bx,by)
+            err = (err1*err1 + err2*err2)**(0.5)
+            if err > 0:
+                ret.SetBinContent(bx,by,content*1.0/err)
+            else:
+                ret.SetBinContent(bx,by,0)
+    return ret
+
+def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number of events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=False, savepdf=False, savepng=True):
+    """Plotting macro for data, MC, and/or fit yields.  Creates french flag plots comparing data/MC/fit if able."""
+    #draw each histogram separately
+    if mc:
+        draw2DHist(c, mc, xtitle, ytitle, ztitle, zmin, zmax, printstr+'MC', lumistr=lumistr, commentstr=commentstr+", MC prediction")
+        if data: #do (data - mc)/unc
+            mcPulls = make2DPullHistogram(data,mc)
+            draw2DHist(c, mcPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCPulls', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/#sigma", palette="FF", logz=False)
+        if fit: #do (mc - fit)/unc
+            mcFitPulls = make2DPullHistogram(mc,fit)
+            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCFitPulls', lumistr=lumistr, commentstr=commentstr+", (MC - Fit)/#sigma", palette="FF", logz=False)
+    if data:
+        draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data")
+        if fit: #do (data - fit)/unc
+            dataFitPulls = make2DPullHistogram(data,fit)
+            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'DataFitPulls', lumistr=lumistr, commentstr=commentstr+", (Data - Fit)/#sigma", palette="FF", logz=False)
+    if fit:
+        draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction")
 
 def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrdering=[], titles=[], mcTitle="Stack", xtitle="", ytitle="Number of events", printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", saveroot=False, savepdf=False, savepng=True, ymin=None, ymax=None):
     #make stack

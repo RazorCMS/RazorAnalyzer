@@ -3,24 +3,25 @@ import argparse
 import ROOT as rt
 
 #local imports
-import macro
-from razorAnalysis import *
+from macro import macro
+from macro.razorAnalysis import *
+from macro.razorWeights import *
+from macro.razorMacros import *
 
-LUMI_FULL = 595 #in /pb
+LUMI_FULL = 1264 #in /pb
 MCLUMI = 1 
 
-SAMPLES_TTJ1L = ["SingleTop", "WJets", "TTJets"]
-SAMPLES_WJ1L = ["SingleTop", "TTJets", "WJets"]
-SAMPLES_DYJ2L = ["VV", "SingleTop", "WJets", "TTJets", "DYJets"]
-SAMPLES_SIGNAL = ["SingleTop", "WJets", "TTJets"]
+SAMPLES_TTJ1L = ["DYJets", "SingleTop", "WJets", "TTJets"]
+SAMPLES_WJ1L = ["DYJets", "SingleTop", "TTJets", "WJets"]
 
-DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p19/Tight30RazorSkim"
-PREFIX_1L = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
+DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p20"
+PREFIX_1L = "RazorControlRegions"
 FILENAMES_1L = {
-            "TTJets"   : DIR_1L+"/"+PREFIX_1L+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root_tight30razorskim.root",
-            "WJets"    : DIR_1L+"/"+PREFIX_1L+"_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root_tight30razorskim.root",
-            "SingleTop": DIR_1L+"/"+PREFIX_1L+"_SingleTop_1pb_weighted_tight30razorskim.root",
-            "Data"     : DIR_1L+"/"+PREFIX_1L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates.root_tight30razorskim.root"
+            "TTJets"   : DIR_1L+"/"+PREFIX_1L+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
+            "WJets"    : DIR_1L+"/"+PREFIX_1L+"_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
+            "SingleTop": DIR_1L+"/"+PREFIX_1L+"_SingleTop_1pb_weighted_razorskim.root",
+            "DYJets"   : DIR_1L+"/"+PREFIX_1L+"_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
+            "Data"     : DIR_1L+"/Tight30Skim/"+PREFIX_1L+"_SingleLepton_Run2015D_Tight30Skim_GoodLumiGolden_NoDuplicates_razorskim.root"
             }
 
 WEIGHTDIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
@@ -39,7 +40,7 @@ weighthistnames = {
         "pileup": "NVtxReweight",
         }
 
-weightOpts = ["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"]
+weightOpts = ["doNPVWeights", "doLep1Weights", "do1LepTrigWeights"]
 
 ttjetsSingleLeptonBinsReduced = {
         "MR" : [300, 400, 550, 700, 4000],
@@ -76,27 +77,21 @@ if __name__ == "__main__":
     weightHists = loadWeightHists(weightfilenames, weighthistnames, debugLevel)
     sfHists = {}
 
-    #DYJets control sample
-    #dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
-    #            cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, bins=dyjetsDileptonBins,
-    #            lumiMC=MCLUMI, lumiData=LUMI, weightHists=weightHists, sfHists=sfHists, opts=weightOpts, debugLevel=debugLevel)
-    #appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, debugLevel=debugLevel) 
+    #WJets control sample
+    wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
+                filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
+                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
+                bins=wjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
+                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, debugLevel=debugLevel)
+    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
 
     #TTJets control sample
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", 
                 filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
                 cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
                 bins=ttjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
-                weightHists=weightHists, sfHists=sfHists, opts=weightOpts, debugLevel=debugLevel)
-    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, debugLevel=debugLevel)
-
-    #WJets control sample
-    wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
-                filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
-                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
-                bins=wjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
-                weightHists=weightHists, sfHists=sfHists, opts=weightOpts, debugLevel=debugLevel)
-    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, debugLevel=debugLevel)
+                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, debugLevel=debugLevel)
+    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
 
     #write scale factors
     outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")

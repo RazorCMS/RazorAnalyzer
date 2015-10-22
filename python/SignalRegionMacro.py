@@ -3,25 +3,28 @@ import argparse
 import ROOT as rt
 
 #local imports
-import macro
-from razorAnalysis import *
+import macro.macro as macro
+from macro.razorAnalysis import *
+from macro.razorWeights import *
+from macro.razorMacros import *
 
-LUMI_NONBLIND = 149 #in /pb
+LUMI_NONBLIND = 133 #in /pb
 MCLUMI = 1 
 
 SAMPLES_SIGNAL = ["TTV", "VV", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
 
-DIR_SIGNAL = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC"
+DIR_MC= "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC_FullRazorInclusive/combined"
+DIR_DATA= "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data"
 PREFIX_SIGNAL = "RazorInclusive"
 FILENAMES_SIGNAL = {
-        "TTJets"    : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
-        "WJets"     : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
-        "SingleTop" : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_SingleTop_1pb_weighted_razorskim.root",
-        "VV" : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_VV_1pb_weighted_razorskim.root",
-        "TTV" : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_TTV_1pb_weighted_razorskim.root",
-        "DYJets"     : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_DYJetsToLL_M-50_HTBinned_1pb_weighted_razorskim.root",
-        "ZInv"     : DIR_SIGNAL+"/"+PREFIX_SIGNAL+"_ZJetsToNuNu_HTBinned_1pb_weighted_razorskim.root",
-        "Data"      : DIR_SIGNAL+'/'+PREFIX_SIGNAL+'_CombinedLeptonic_Run2015D_GoodLumiGolden_razorskim.root',
+        "TTJets"    : DIR_MC+"/"+PREFIX_SIGNAL+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root",
+        "WJets"     : DIR_MC+"/"+PREFIX_SIGNAL+"_WJets_1pb_weighted.root",
+        "SingleTop" : DIR_MC+"/"+PREFIX_SIGNAL+"_SingleTop_1pb_weighted.root",
+        "VV" : DIR_MC+"/"+PREFIX_SIGNAL+"_VV_1pb_weighted.root",
+        "TTV" : DIR_MC+"/"+PREFIX_SIGNAL+"_TTV_1pb_weighted.root",
+        "DYJets"     : DIR_MC+"/"+PREFIX_SIGNAL+"_DYJetsToLL_1pb_weighted.root",
+        "ZInv"     : DIR_MC+"/"+PREFIX_SIGNAL+"_ZJetsToNuNu_1pb_weighted.root",
+        "Data"      : DIR_DATA+'/'+PREFIX_SIGNAL+'_SingleLepton_Run2015D_GoodLumiUnblind_NoDuplicates_razorskim.root',
         }
 
 WEIGHTDIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
@@ -30,7 +33,7 @@ weightfilenames = {
         "ele": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
         "muontrig": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
         "eletrig": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
-        "pileup": WEIGHTDIR+"/PileupWeights/NVtxReweight_ZToMuMu_2015Dv3_378ipb.root",
+        "pileup": WEIGHTDIR+"/PileupWeights/NVtxReweight_ZToMuMu_2015D_unblind.root",
         }
 weighthistnames = {
         "muon": "ScaleFactor_TightMuonSelectionEffDenominatorReco",
@@ -39,7 +42,7 @@ weighthistnames = {
         "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
         "pileup": "NVtxReweight",
         }
-weightOpts = ["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"]
+weightOpts = ["doNVtxWeights"]
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -58,27 +61,31 @@ if __name__ == "__main__":
     sfHists = {}
 
     #get scale factor histograms
+    #sfHists = {}
     sfHists = loadScaleFactorHists(processNames=SAMPLES_SIGNAL, debugLevel=debugLevel)
 
     #estimate yields in signal region
     for lepType in ["Mu", "Ele"]:
         for jets in ["MultiJet"]:
             boxName = lepType+jets
-            for btags in [0,1,2,3]:
-                print "---",boxName,"Box,",btags,"B-tags ---"
+            btaglist = [0]
+            #btaglist = [0,1,2]
+            for btags in btaglist:
+                print "\n---",boxName,"Box,",btags,"B-tags ---"
                 #get correct cuts string
-                thisBoxCutsData = razorCutsData[boxName]
-                thisBoxCutsMC = razorCutsMC[boxName]
-                if btags < 3:
-                    thisBoxCutsData += " && nBTaggedJets == "+str(btags)
-                    thisBoxCutsMC += " && nBTaggedJets == "+str(btags)
+                thisBoxCuts = razorCuts[boxName]
+                if btags < len(btaglist)-1:
+                    thisBoxCuts += " && nBTaggedJets == "+str(btags)
                 else:
-                    thisBoxCutsData += " && nBTaggedJets >= "+str(btags)
-                    thisBoxCutsMC += " && nBTaggedJets >= "+str(btags)
+                    thisBoxCuts += " && nBTaggedJets >= "+str(btags)
 
-                makeControlSampleHists((boxName+str(btags)+"BTag"), 
+                if len(btaglist) > 1:
+                    extboxName = boxName+str(btags)+"BTag"
+                else:
+                    extboxName = boxName
+                makeControlSampleHists(extboxName, 
                         filenames=FILENAMES_SIGNAL, samples=SAMPLES_SIGNAL, 
-                        cutsMC=thisBoxCutsMC, cutsData=thisBoxCutsData, 
+                        cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                         bins=leptonicSignalRegionBins, lumiMC=MCLUMI, lumiData=LUMI_NONBLIND, 
-                        weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", opts=[], 
-                        debugLevel=debugLevel)
+                        weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
+                        weightOpts=weightOpts, shapeErrors=["muoneff", "eleeff", "jes"], debugLevel=debugLevel)
