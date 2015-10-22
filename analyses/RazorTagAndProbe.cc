@@ -424,7 +424,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	for(int indexTag = 0; indexTag < nMuons; indexTag++){
 
 	  if(muonPt[indexTag] < 25) continue;
-	  if(fabs(muonEta[indexTag]) > 2.5) continue;
+	  if(fabs(muonEta[indexTag]) > 2.4) continue;
 
 	  //For MC, Match to Gen level electron
 	  if (!isData) {
@@ -454,7 +454,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	  for(int indexProbe = 0; indexProbe < nMuons; indexProbe++){
 	    
 	    if(muonPt[indexProbe] < 5) continue;
-	    if(fabs(muonEta[indexProbe]) > 2.5) continue;
+	    if(fabs(muonEta[indexProbe]) > 2.4) continue;
 	  
 	    //skip the tag
 	    if (indexTag == indexProbe) continue;
