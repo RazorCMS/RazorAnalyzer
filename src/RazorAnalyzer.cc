@@ -265,6 +265,35 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_IsNotDeadEcalCluster", 1);    
     fChain->SetBranchStatus("Flag_EcalDeadDR", 1);    
     fChain->SetBranchStatus("Flag_EcalBoundaryDR", 1);    
+
+    fChain->SetBranchStatus("metType1PtJetResUp", 1);
+    fChain->SetBranchStatus("metType1PtJetResDown", 1);
+    fChain->SetBranchStatus("metType1PtJetEnUp", 1);
+    fChain->SetBranchStatus("metType1PtJetEnDown", 1);
+    fChain->SetBranchStatus("metType1PtMuonEnUp", 1);
+    fChain->SetBranchStatus("metType1PtMuonEnDown", 1);
+    fChain->SetBranchStatus("metType1PtElectronEnUp", 1);
+    fChain->SetBranchStatus("metType1PtElectronEnDown", 1);
+    fChain->SetBranchStatus("metType1PtTauEnUp", 1);
+    fChain->SetBranchStatus("metType1PtTauEnDown", 1);
+    fChain->SetBranchStatus("metType1PtUnclusteredEnUp", 1);
+    fChain->SetBranchStatus("metType1PtUnclusteredEnDown", 1);
+    fChain->SetBranchStatus("metType1PtPhotonEnUp", 1);
+    fChain->SetBranchStatus("metType1PtPhotonEnDown", 1);
+    fChain->SetBranchStatus("metType1PhiJetResUp", 1);
+    fChain->SetBranchStatus("metType1PhiJetResDown", 1);
+    fChain->SetBranchStatus("metType1PhiJetEnUp", 1);
+    fChain->SetBranchStatus("metType1PhiJetEnDown", 1);
+    fChain->SetBranchStatus("metType1PhiMuonEnUp", 1);
+    fChain->SetBranchStatus("metType1PhiMuonEnDown", 1);
+    fChain->SetBranchStatus("metType1PhiElectronEnUp", 1);
+    fChain->SetBranchStatus("metType1PhiElectronEnDown", 1);
+    fChain->SetBranchStatus("metType1PhiTauEnUp", 1);
+    fChain->SetBranchStatus("metType1PhiTauEnDown", 1);
+    fChain->SetBranchStatus("metType1PhiUnclusteredEnUp", 1);
+    fChain->SetBranchStatus("metType1PhiUnclusteredEnDown", 1);
+    fChain->SetBranchStatus("metType1PhiPhotonEnUp", 1);
+    fChain->SetBranchStatus("metType1PhiPhotonEnDown", 1);
 }
 
 void RazorAnalyzer::EnableRazor(){
