@@ -15,9 +15,11 @@ def getTree(myTree,paramNames,nBins,box):
     
     rando = random.randint(1,999999)
     # first structure
-    stringMyStruct1= "void tempMacro_%d(){struct MyStruct1{float n2llr_%s; float chi2_%s; int covQual_%s;"%(rando,box,box,box)
+    stringMyStruct1= "void tempMacro_%d(){struct MyStruct1{float n2llr_%s; float chi2_%s; int covQual_%s; int migrad_%s; int hesse_%s; int minos_%s;"%(rando,box,box,box,box,box,box)
     for paramName in paramNames:
         stringMyStruct1 = stringMyStruct1+"float %s; float %s_error;" %(paramName,paramName)
+        if paramName=='r':
+            stringMyStruct1 = stringMyStruct1+"float r_errorlo; float r_errorhi;"           
     for iBinX in range(0,nBins):
         stringMyStruct1 = stringMyStruct1+"float b%i;" %(iBinX)
     #print stringMyStruct1+"};}"
@@ -34,9 +36,15 @@ def getTree(myTree,paramNames,nBins,box):
     myTree.Branch('n2llr_%s'%box , rt.AddressOf(s1,'n2llr_%s'%box),'n2llr_%s/F' %box)
     myTree.Branch('chi2_%s'%box , rt.AddressOf(s1,'chi2_%s'%box),'chi2_%s/F' %box)
     myTree.Branch('covQual_%s'%box , rt.AddressOf(s1,'covQual_%s'%box),'covQual_%s/I' %box)
+    myTree.Branch('migrad_%s'%box , rt.AddressOf(s1,'migrad_%s'%box),'migrad_%s/I' %box)
+    myTree.Branch('hesse_%s'%box , rt.AddressOf(s1,'hesse_%s'%box),'hesse_%s/I' %box)
+    myTree.Branch('minos_%s'%box , rt.AddressOf(s1,'minos_%s'%box),'minos_%s/I' %box)
     for paramName in paramNames:
         myTree.Branch(paramName , rt.AddressOf(s1,paramName),'%s/F' %paramName)
         myTree.Branch('%s_error'%paramName , rt.AddressOf(s1,'%s_error'%paramName),'%s_error/F' %paramName)
+        if paramName=='r':            
+            myTree.Branch('r_errorlo' , rt.AddressOf(s1,'r_errorlo'),'r_errorlo/F')
+            myTree.Branch('r_errorhi' , rt.AddressOf(s1,'r_errorhi'),'r_errorhi/F')
     for ix in range(0, nBins):
         myTree.Branch("b%i" %(ix) , rt.AddressOf(s1,"b%i" %(ix)),'b%i/F' %ix)
 
@@ -50,8 +58,11 @@ def runToys(w,options,cfg):
     rt.RooRandom.randomGenerator().SetSeed(options.seed)
     
     extRazorPdf = w.pdf('extRazorPdf')
-    dataHist = w.data("data_obs")        
-    fr = w.obj('fitresult_extRazorPdf_data_obs')
+    dataHist = w.data("data_obs")    
+    if w.obj("fitresult_extRazorPdf_data_obs") != None:
+        fr = w.obj("fitresult_extRazorPdf_data_obs")
+    elif w.obj("nll_extRazorPdf_data_obs") != None:
+        fr = w.obj("nll_extRazorPdf_data_obs")
 
     if options.r>-1:
         extSpBPdf = w.pdf('extSpBPdf')
@@ -116,6 +127,8 @@ def runToys(w,options,cfg):
     if options.r>-1:
         value =  setattr(s1, 'r', 0)
         value =  setattr(s1, 'r_error', 0)
+        value =  setattr(s1, 'r_errorlo', 0)
+        value =  setattr(s1, 'r_errorhi', 0)
         
     asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('central'),rt.RooFit.Asimov())
 
@@ -128,7 +141,7 @@ def runToys(w,options,cfg):
         value = setattr(s1, 'b%i'%iBinX, expected)
         if expected>0:
             chi2_data += ( observed - expected ) * ( observed - expected ) / ( expected )
-        if observed>0:
+        if observed>0 and expected>0:
             n2llr_data += 2 * ( observed*rt.TMath.Log(observed/expected) - observed )
         n2llr_data += 2 * ( expected )
 
@@ -218,13 +231,34 @@ def runToys(w,options,cfg):
         #print "SUCCESS: generated toy=%i"%iToy
 
         pSetSave = pSet
+        migrad_status = -1
+        hesse_status = -1
+        minos_status = -1
         if options.freq:                      
             if options.r>-1:
-                fr_toy = extSpBPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
+                nll_toy = extSpBPdf.createNLL(asimov)
+                m = rt.RooMinuit(nll_toy)
+                m.setPrintLevel(-1)
+                m.setPrintEvalErrors(-1)
+                m.setNoWarn()
+                rSet = rt.RooArgSet(w.var('r'))
+                migrad_status = m.migrad()
+                hesse_status = m.hesse()                
+                #minos_status = m.minos(rSet)                
+                #fr_toy = extSpBPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
+                #fr_minos = extSpBPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False),rt.RooFit.Minos(rSet))
+                fr_toy = m.save()
+                #fr_toy.Print('v')
+                value = setattr(s1,'migrad_%s'%options.box, migrad_status)   
+                value = setattr(s1,'hesse_%s'%options.box, hesse_status)
+                value = setattr(s1,'minos_%s'%options.box, minos_status)
             else:
                 fr_toy = extRazorPdf.fitTo(asimov,rt.RooFit.Save(),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.Warnings(False))
             #if fr_toy.covQual() < 2: continue            
-            value = setattr(s1,'covQual_%s'%options.box, fr_toy.covQual())
+            value = setattr(s1,'covQual_%s'%options.box, fr_toy.covQual())   
+            value = setattr(s1,'migrad_%s'%options.box, migrad_status)   
+            value = setattr(s1,'hesse_%s'%options.box, hesse_status)
+            value = setattr(s1,'minos_%s'%options.box, minos_status)
             pSetSave = fr_toy.floatParsFinal()
             #if options.noStat:
             #    asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy),rt.RooFit.Asimov())
@@ -235,6 +269,10 @@ def runToys(w,options,cfg):
         for p in rootTools.RootIterator.RootIterator(pSetSave):
             value = setattr(s1, p.GetName(), p.getVal())
             value = setattr(s1, p.GetName()+"_error", p.getError())
+            if p.GetName()=='r':
+                value = setattr(s1, "r_errorlo", p.getAsymErrorLo())
+                value = setattr(s1, "r_errorhi", p.getAsymErrorHi())
+                
 
         chi2_toy = 0
         n2llr_toy = 0
@@ -310,7 +348,10 @@ if __name__ == '__main__':
     if inputFitFile is not None:
         rootFile = rt.TFile.Open(inputFitFile,"r")
         w = rootFile.Get("w"+options.box)
-        fr = w.obj("fitresult_extRazorPdf_data_obs")
+        if w.obj("fitresult_extRazorPdf_data_obs") != None:
+            fr = w.obj("fitresult_extRazorPdf_data_obs")
+        elif w.obj("nll_extRazorPdf_data_obs") != None:
+            fr = w.obj("nll_extRazorPdf_data_obs")
     else:
         for f in args:
             if f.lower().endswith('.root'):
