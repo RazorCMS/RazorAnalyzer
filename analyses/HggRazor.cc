@@ -45,6 +45,7 @@ struct evt
 #define _debug    0
 #define _info     1
 
+//Testing branching and merging
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
 {
   //*****************************************************************************
