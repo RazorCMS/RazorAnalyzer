@@ -663,13 +663,14 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    }
 
 	    TLorentzVector vprobe;
-	    vprobe.SetPtEtaPhiM(elePt[indexProbe], eleEta[indexProbe], elePhi[indexProbe], ELE_MASS);
+	    vprobe.SetPtEtaPhiM(phoPt[indexProbe], phoEta[indexProbe], phoPhi[indexProbe], ELE_MASS);
 
 	    TPPair->mass = (vtag+vprobe).M();
-	    TPPair->pt = elePt[indexProbe];
-	    TPPair->eta = eleEta[indexProbe];
-	    TPPair->phi = elePhi[indexProbe];
-	    TPPair->charge = eleCharge[indexProbe];
+	    TPPair->pt = phoPt[indexProbe];
+	    TPPair->eta = phoEta[indexProbe];
+	    TPPair->phi = phoPhi[indexProbe];
+	    //TPPair->charge = phoCharge[indexProbe];
+	    TPPair->charge = 0;
 
 
 	    //****************************************
