@@ -11,21 +11,26 @@ import math
 from PlotFit import *
 
 def binnedFit(pdf, data, fitRange='Full'):
-    #nll = pdf.createNLL(data)
-    #m = rt.RooMinuit(nll)
-    #m.migrad()
-    #m.hesse()
-    #fr = m.save()
-    #fr
+    nll = pdf.createNLL(data,rt.RooFit.Range(fitRange))
+    m2 = rt.RooMinimizer(nll)
+    migrad_status = m2.migrad()
+    hesse_status = m2.hesse()
+    #minimize_status = m2.minimize('Miniut2','improve')    
+    #minimize_status = m2.minimize('Miniut2','hesse')  
+    #m2.setMinimizerType('Miniut2')
+    #minos_status = m2.minos()
+    #hesse_status = m2.hesse()
+    fr = m2.save()
     
-    fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
-    if fr.covQual() < 3:
-        #fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
-        fr = pdf.fitTo(data,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.Range(fitRange),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
-        
-    if fr.covQual() < 3:
+    
+    if fr.covQual() != 3:
         print ""
         print "CAUTION: COVARIANCE QUALITY < 3"
+        print ""
+        
+    if migrad_status != 0:
+        print ""
+        print "CAUTION: MIGRAD STAUTS ! = 0"
         print ""
         
     return fr
@@ -65,7 +70,6 @@ def convertSideband(name,w,x,y,z):
         w.var('th1x').setRange("sideband%i"%(iSideband+minSideband),sidebandGroup[0],sidebandGroup[1])
         newsidebands+='sideband%i,'%(iSideband+minSideband)
     newsidebands = newsidebands[:-1]
-
     return newsidebands
  
     
@@ -152,7 +156,9 @@ if __name__ == '__main__':
         sigPdf = rt.RooHistPdf('%s_Signal'%box,'%s_Signal'%box,rt.RooArgSet(th1x), sigDataHist)
         rootTools.Utils.importToWS(w,sigDataHist)
         rootTools.Utils.importToWS(w,sigPdf)
-        w.factory('r[%f,-10.,30.]'%options.r)
+        #w.factory('r[%f,-10.,30.]'%options.r)
+        w.factory('r[%f]'%options.r)
+        w.var('r').setConstant(False)
         w.factory('Ntot_Signal_%s_In[%f]'%(box,sigTH1.Integral()))
         w.factory('expr::Ntot_Signal_%s("r*Ntot_Signal_%s_In",r,Ntot_Signal_%s_In)'%(box,box,box))
         w.factory('SUM::extSpBPdf(Ntot_Signal_%s*%s_Signal,Ntot_TTj0b_%s*%s_TTj0b,Ntot_TTj1b_%s*%s_TTj1b,Ntot_TTj2b_%s*%s_TTj2b,Ntot_TTj3b_%s*%s_TTj3b)'%(box,box,box,box,box,box,box,box,box,box))

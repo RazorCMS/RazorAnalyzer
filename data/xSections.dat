@@ -108,13 +108,15 @@ WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8                                     
 WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8                                          4.42965
 WZJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                                      5.29
 WZ_TuneCUETP8M1_13TeV-pythia8                                                      47.13
-WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.05565
 ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8                                         3.28
 ZZTo4L_13TeV-amcatnloFXFX-pythia8                                                   1.212
 ZZTo4L_13TeV_powheg_pythia8                                                         1.256
 ZZTo4Q_13TeV_amcatnloFXFX_madspin_pythia8                                           6.842
 ZZ_TuneCUETP8M1_13TeV-pythia8                                                      16.523
 WWJJToLNuQQ_LT_13TeV-madgraph-pythia8                                              25.973
+WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.05565
+WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.1651
+ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.01398
 TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                            0.009103
 TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                        0.2043
 TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                         0.4062
