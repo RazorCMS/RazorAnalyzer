@@ -53,7 +53,9 @@ void usage()
 	    << "jetNtupler           --   study jet variables\n"
 	    << "photonntupler        --   study photon variables\n"
 	    << "dummy                --   do nothing useful\n"
-	    << "razorDM              --   run MultiJet razor dark matter analysis" << std::endl;
+	    << "razorDM              --   run MultiJet razor dark matter analysis" 
+	    << "RazorTagAndProbe     --   run tag and probe using Z peak" 
+	    << std::endl;
 };
 
 int main(int argc, char* argv[]){

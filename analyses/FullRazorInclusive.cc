@@ -67,10 +67,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH2D *eleTightEffSFHist = 0;
     TH2D *muTightEffSFHist = 0;
     if(!isData){
-        TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root");
+        TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root");
         eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
         assert(eleTightEffSFHist);
-        TFile *muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root"); 
+        TFile *muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root"); 
         muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
         assert(muTightEffSFHist);
     }
@@ -82,14 +82,25 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH2D *eleTrigSFHist = 0;
     TH2D *muTrigSFHist = 0;
     if(!isData){
-        TFile *eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root");
+        TFile *eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root");
         eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
         assert(eleTrigSFHist);
-        TFile *muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root"); 
+        TFile *muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root"); 
         muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
         assert(muTrigSFHist);
     }
 
+    TH2D *eleTrigEffFromFullsimHist = 0;
+    TH2D *muTrigEffFromFullsimHist = 0;
+    if(isFastsimSMS){
+        TFile *eleTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleElectronTriggerEfficiencyFromFullsim.root");
+        eleTrigEffFromFullsimHist = (TH2D*)eleTrigEffFromFullsimFile->Get("hEffEtaPt");
+        assert(eleTrigEffFromFullsimHist);
+        TFile *muTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleMuonTriggerEfficiencyFromFullsim.root"); 
+        muTrigEffFromFullsimHist = (TH2D*)muTrigEffFromFullsimFile->Get("hEffEtaPt");
+        assert(muTrigEffFromFullsimHist);
+    }
+    
     /////////////////////////////////
     //Jet Energy Corrections
     /////////////////////////////////
@@ -404,11 +415,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         //Noise filters
         /////////////////////////////////
 
-        if(!Flag_HBHENoiseFilter) continue;
-        if(!Flag_CSCTightHaloFilter) continue;
-        if(!Flag_goodVertices) continue;
-        if(!Flag_eeBadScFilter) continue;
-        if(!Flag_EcalDeadCellTriggerPrimitiveFilter) continue;
+        if(!isFastsimSMS){
+	  if(!Flag_HBHENoiseFilter) continue;
+	  if(!Flag_CSCTightHaloFilter) continue;
+	  if(!Flag_goodVertices) continue;
+	  if(!Flag_eeBadScFilter) continue;
+	  if(!Flag_EcalDeadCellTriggerPrimitiveFilter) continue;
+	}
 
         /////////////////////////////////
         //Pileup reweighting
@@ -485,9 +498,21 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double trigSF = muTrigSFHist->GetBinContent( 
                         muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                if (passedSingleLeptonTrigger && isTightMuon(i)){
+                if (passedSingleLeptonTrigger && isTightMuon(i) && muonPt[i] >= MUON_LOOSE_CUT){
                     muonTrigCorrFactor *= trigSF;
                 }
+		if (isFastsimSMS) {
+		  if (passedSingleLeptonTrigger && isTightMuon(i) && muonPt[i] >= MUON_LOOSE_CUT) {
+		    double singleMuonTriggerEfficiencyFromFullsim = 
+		      muTrigEffFromFullsimHist->GetBinContent( muTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(muonEta[i])),
+							       muTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],999.9),15.01))); 
+		    muonTrigCorrFactor *= singleMuonTriggerEfficiencyFromFullsim;
+		    cout << "muon trigger eff: " << singleMuonTriggerEfficiencyFromFullsim << " : " << muonPt[i] << " " << muonEta[i] 
+			 << muTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(muonEta[i])) << " "
+			 << muTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],999.9),15.01))
+			 << "\n";
+		  }		  
+		}
             }
 
             //TLorentzVector for this muon
@@ -521,7 +546,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         float eleTrigCorrFactor = 1.0;
         //Cut parameters
         const float ELE_VETO_CUT = 5;
-        const float ELE_LOOSE_CUT = 25;
+        const float ELE_LOOSE_CUT = 30;
         //Loop electrons
         for (int i = 0; i < nElectrons; i++){
 
@@ -545,7 +570,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
 
-                if (isTightElectron(i)) {
+                if (isTightElectron(i) && elePt[i] > ELE_LOOSE_CUT) {
                     tmpTightSF = effTightSF;
                     tmpTightSFUp = effTightSFUp;
                     tmpTightSFDown = effTightSFDown;
@@ -566,9 +591,22 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double trigSF = eleTrigSFHist->GetBinContent( 
                         eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                if (passedSingleLeptonTrigger && isTightElectron(i)){
+                if (passedSingleLeptonTrigger && isTightElectron(i) && elePt[i] > ELE_LOOSE_CUT){
                     eleTrigCorrFactor *= trigSF;
                 }
+		
+		if (isFastsimSMS) {
+		  if (passedSingleLeptonTrigger && isTightElectron(i) && elePt[i] > ELE_LOOSE_CUT){
+		    double singleElectronTriggerEfficiencyFromFullsim = 
+		      eleTrigEffFromFullsimHist->GetBinContent( eleTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(eleEta[i])), 
+								eleTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],999.9),25.01))); 
+		    eleTrigCorrFactor *= singleElectronTriggerEfficiencyFromFullsim;
+		    cout << "ele trigger eff: " << singleElectronTriggerEfficiencyFromFullsim << " : " << elePt[i] << " " << eleEta[i] 
+			 << eleTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) << " " 
+			 << eleTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],999.9),25.01))
+			 << "\n";
+		  }
+		}
             }
 
             //Remove overlaps
