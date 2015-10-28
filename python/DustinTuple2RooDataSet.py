@@ -172,7 +172,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
         dPhiCut = 3.2
         MTCut = 100
 
-    cuts = getCuts(box)
+    cuts = getCuts(workspace,box)
 
     if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
         triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in range(134,145)])
