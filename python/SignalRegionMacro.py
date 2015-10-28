@@ -53,7 +53,8 @@ weighthistnames = {
         "pileup": "NVtxReweight",
         }
 weightOpts = ["doNVtxWeights"]
-shapeErrors = ["muoneff", "eleeff", "jes"]
+shapeErrors = []
+#shapeErrors = ["muoneff", "eleeff", "jes"]
 miscErrors = ["mt"]
 
 if __name__ == "__main__":
@@ -99,7 +100,7 @@ if __name__ == "__main__":
                 #check fit file and create if necessary
                 if not os.path.isfile(TOYS_FILES[boxName]):
                     print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-                    macro.runFitAndToys(FIT_DIR, boxName, LUMI, PREFIX_SIGNAL+'_'+DATA_NAME, DIR_DATA, config=config)
+                    runFitAndToys(FIT_DIR, boxName, LUMI, PREFIX_SIGNAL+'_'+DATA_NAME, DIR_DATA, config=config)
                     #check
                     if not os.path.isfile(TOYS_FILES[boxName]):
                         print "Error creating fit file",TOYS_FILES[boxName]

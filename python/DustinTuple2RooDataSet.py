@@ -43,6 +43,42 @@ def initializeWorkspace(w,cfg,box):
     w.set('variables').add(w.var('W'))
     return w
 
+def getCuts(workspace, box):
+    args = workspace.set("variables")
+
+    #get bounds
+    mRmin = args['MR'].getMin()
+    mRmax = args['MR'].getMax()
+    rsqMin = args['Rsq'].getMin()
+    rsqMax = args['Rsq'].getMax()
+    btagMin =  args['nBtag'].getMin()
+    btagMax =  args['nBtag'].getMax()
+    btagCutoff = 3
+    if box in ["MuEle", "MuMu", "EleEle"]:
+        btagCutoff = 1
+        
+    #get the optimal cuts for each box
+    if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet"]: 
+        dPhiCut = 2.8
+        MTCut = -1
+    else: 
+        dPhiCut = -1
+        MTCut = 100
+
+    boxCut = boxes[box]
+    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut)
+
+    #add deltaPhi and/or MT cut
+    if MTCut >= 0: 
+        if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:
+            cuts = cuts + (' && mTLoose > %f' % MTCut)
+        else:
+            cuts = cuts + (' && mT > %f' % MTCut)
+    if dPhiCut >= 0:
+        cuts = cuts + (' && abs(dPhiRazor) < %f' % dPhiCut)
+
+    return cuts
+
 def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
     if f.find('SMS')!=-1:
         k = 1.
@@ -136,14 +172,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
         dPhiCut = 3.2
         MTCut = 100
 
-    boxCut = boxes[box]
-
-    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut)
-    if MTCut >= 0: #add MT cut
-        if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:
-            cuts = cuts + (' && mTLoose > %f' % MTCut)
-        else:
-            cuts = cuts + (' && mT > %f' % MTCut)
+    cuts = getCuts(box)
 
     if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
         triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in range(134,145)])

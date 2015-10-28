@@ -6,6 +6,7 @@ from array import *
 #local imports
 from PlotFit import setFFColors
 from RunCombine import exec_me
+from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D
 
 def makeGrayGraphs(hNS):    
     if hNS is None or hNS == 0: return
@@ -29,28 +30,13 @@ def makeGrayGraphs(hNS):
             fGrayGraphs.append(fGray)
     return fGrayGraphs
 
-def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False):
-    #make folder
-    if not os.path.isdir(fitDir):
-        exec_me('mkdir -p '+fitDir, False)
-    #make RooDataSet
-    exec_me('python python/DustinTuple2RooDataSet.py -b '+boxName+' -c '+config+' -l '+str(lumi)+' --data -d '+fitDir+' '+dataDir+'/'+dataName+'.root', False)
-    #do fit
-    if not sideband:
-        exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' --data '+fitDir+'/'+dataName+'_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
-    else:
-        exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' --data --fit-region LowMR,LowRsq '+fitDir+'/'+dataName+'_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
-    #run toys
-    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t 1000', False)
-    #exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t 10000', False)
-
 def blindHistograms(histList, blindBins):
     """blindBins should be a list of ordered pairs corresponding to bin coordinates"""
     for hist in histList:
         for (x,y) in blindBins:
             hist.SetBinContent(x,y,-999)
 
-def makeHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName):
+def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName):
     hists = {name:{} for name in inputs}
     shapeHists = {name:{} for name in inputs}
     for name in inputs:
@@ -86,6 +72,39 @@ def makeHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataN
     for var in hists[dataName]:
         hists[dataName][var].SetBinErrorOption(rt.TH1.kPoisson)
     return hists,shapeHists
+
+def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors=[], boxName="", debugLevel=0):
+    for name in samples:
+        for var in bins:
+            for shape in shapeErrors:
+                if debugLevel > 0: print "Adding",shape,"uncertainty in quadrature with",name,"errors for",var
+                #loop over histogram bins
+                for bx in range(1, hists[name][var].GetNbinsX()+1):
+                    #use difference between Up and Down histograms as uncertainty
+                    sysErr = abs(shapeHists[name][shape+'Up'][var].GetBinContent(bx) - shapeHists[name][shape+'Down'][var].GetBinContent(bx))
+                    #add in quadrature with existing error
+                    oldErr = hists[name][var].GetBinError(bx)
+                    hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
+                    if debugLevel > 0: print shape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
+            for source in miscErrors:
+                if source.lower() == "mt" and var == "MR":
+                    applyMTUncertainty1D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
+        #2D case
+        if "MR" in bins and "Rsq" in bins:
+            for shape in shapeErrors:
+                if debugLevel > 0: print "Adding",shape,"uncertainty in quadrature with",name,"errors for razor histogram"
+                #loop over histogram bins
+                for bx in range(1, hists[name][("MR","Rsq")].GetNbinsX()+1):
+                    for by in range(1, hists[name][("MR","Rsq")].GetNbinsY()+1):
+                    #use difference between Up and Down histograms as uncertainty
+                        sysErr = abs(shapeHists[name][shape+'Up'][("MR","Rsq")].GetBinContent(bx,by) - shapeHists[name][shape+'Down'][("MR","Rsq")].GetBinContent(bx,by))
+                        #add in quadrature with existing error
+                        oldErr = hists[name][("MR","Rsq")].GetBinError(bx,by)
+                        hists[name][("MR","Rsq")].SetBinError(bx,by, (oldErr**2 + sysErr**2)**(0.5))
+                        if debugLevel > 0: print shape,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name][("MR","Rsq")].GetBinError(bx,by),"after adding",sysErr,"in quadrature"
+            for source in miscErrors:
+                if source.lower() == "mt":
+                    applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
 
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, blindBins=None):
     """Make stacked plots of quantities of interest, with data overlaid"""
