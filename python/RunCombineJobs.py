@@ -30,7 +30,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     user = os.environ['USER']
     pwd = os.environ['PWD']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer/%s/"%(user[0],user,submitDir)
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/"%(user[0],user)
 
     script =  '#!/usr/bin/env bash -x\n'
     script += 'mkdir -p %s\n'%combineDir
@@ -42,8 +42,19 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += "export SCRAM_ARCH=slc6_amd64_gcc481\n"
     script += "export CMSSW_BASE=/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5\n"%(user[0],user)
     script += 'eval `scramv1 runtime -sh`\n'
+    script += 'cd - \n'
+    script += "export TWD=${PWD}/%s_%s_lumi-%.3f_%s_%s\n"%(model,massPoint,lumi,btag,box)
+    script += "mkdir -p $TWD\n"
+    script += "cd $TWD\n"
+    script += 'pwd\n'
+    script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
+    script += 'cd RazorAnalyzer\n'
     script += 'source setup.sh\n'
+    script += 'make\n'
     script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+    script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
+    script += 'cd ..\n'
+    script += 'rm -r $TWD\n'
     
     outputfile = open(outputname,'w')
     outputfile.write(script)
@@ -86,7 +97,7 @@ if __name__ == '__main__':
     (options,args) = parser.parse_args()
 
 
-    btag = '0-2btag'
+    btag = '0-3btag'
 
     nJobs = 0
     donePairs = []
