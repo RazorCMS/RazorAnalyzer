@@ -459,11 +459,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
 	vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
       
-	if ( phoPt[i] < 24.0 )
+	if ( phoPt[i] < 20.0 )
 	  //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
 	  {
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	    continue;
+	    //continue;
 	  }
 	
 	if( fabs(pho_superClusterEta[i]) > 2.5 )
@@ -477,7 +477,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	{
 	  //Removing gap photons
 	  if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
-	  continue;
+	  //continue;
 	}
       //photon passes
       if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
@@ -507,7 +507,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( nPhotonsAbove40GeV == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " << phoCand.size() << std::endl;
-	continue;
+	//continue;
       }
     
     if ( phoCand.size() < 2 )
@@ -526,6 +526,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     int goodPhoIndex1 = -1;
     int goodPhoIndex2 = -1;
     double bestSumPt = -99.;
+    std::vector< PhotonCandidate > phoSelectedCand;
     for(size_t i = 0; i < phoCand.size(); i++){
       for(size_t j = i+1; j < phoCand.size(); j++){//I like this logic better, I find it easier to understand
 	PhotonCandidate pho1 = phoCand[i];
@@ -540,7 +541,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
 	  {
 	    if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
-	    continue;
+	    //continue;
 	  }
 	//need diphoton mass between > 100 GeV as in AN (April 1st)
 	double diphotonMass = (pho1.photon + pho2.photon).M();
@@ -560,17 +561,30 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt ){
 	  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
 	  HiggsCandidate = pho1.photon + pho2.photon;
-	  goodPhoIndex1 = pho1.Index;
-	  goodPhoIndex2 = pho2.Index;  
+	  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
+	    {
+	      phoSelectedCand.push_back(pho1);
+	      phoSelectedCand.push_back(pho2);
+	      goodPhoIndex1 = pho1.Index;
+	      goodPhoIndex2 = pho2.Index;  
+	    }
+	  else
+	    {
+	      phoSelectedCand.push_back(pho2);
+	      phoSelectedCand.push_back(pho1);
+	      goodPhoIndex1 = pho2.Index;
+              goodPhoIndex2 = pho1.Index;
+	    }
+	  
 	}
       }
     }   
-    
+
     
     //Filling Selected Photon Information
     TLorentzVector pho_cand_vec[2];
     int _pho_index = 0;
-    for ( auto& tmpPho : phoCand )
+    for ( auto& tmpPho : phoSelectedCand )
       {
 	if ( !( tmpPho.Index == goodPhoIndex1 || tmpPho.Index == goodPhoIndex2 ) ) continue;
 	if( _pho_index > 1 ) std::cerr << "[ERROR]: Photon index larger than 1!" << std::endl;
