@@ -33,6 +33,14 @@ if __name__ == '__main__':
     f = args[0]
     print 'Input file is %s' % f
 
+    ##################
+    #get pileup weight hist (remove this later)
+    pileupWeightFileName = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
+    pileupHistName = "NVtxReweight"
+    pileupWeightFile = rt.TFile.Open(pileupWeightFileName)
+    pileupWeightHist = pileupWeightFile.Get(pileupHistName)
+    ##################
+
     #list of shape systematics to apply.
     shapes = ["muoneff", "eleeff", "jes"]
 
@@ -59,11 +67,11 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+modelString)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+modelString+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+updown, sfs={}, option=shape+updown))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             rootFile.Close()
         else:
             print "Error: expected ROOT file!"

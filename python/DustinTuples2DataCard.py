@@ -204,7 +204,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={}, option=""):
+def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={}, sysErrOpt="", pileupWeightHist=None, hadronicTriggerWeight=None):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -234,7 +234,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={
     cuts = getCuts(workspace, box)
 
     #modify cuts based on histogram option
-    if option == "jesUp": 
+    if sysErrOpt == "jesUp": 
         cuts = cuts.replace("MR", "MR_JESUp")
         cuts = cuts.replace("Rsq", "Rsq_JESUp")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JESUp")
@@ -242,7 +242,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JESUp")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JESUp")
         cuts = cuts.replace("box", "box_JESUp")
-    if option == "jesDown": 
+    if sysErrOpt == "jesDown": 
         cuts = cuts.replace("MR", "MR_JESDown")
         cuts = cuts.replace("Rsq", "Rsq_JESDown")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JESDown")
@@ -250,7 +250,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JESDown")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JESDown")
         cuts = cuts.replace("box", "box_JESDown")
-    if option == "jerUp": 
+    if sysErrOpt == "jerUp": 
         cuts = cuts.replace("MR", "MR_JERUp")
         cuts = cuts.replace("Rsq", "Rsq_JERUp")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JERUp")
@@ -258,7 +258,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JERUp")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JERUp")
         cuts = cuts.replace("box", "box_JERUp")
-    if option == "jerDown": 
+    if sysErrOpt == "jerDown": 
         cuts = cuts.replace("MR", "MR_JERDown")
         cuts = cuts.replace("Rsq", "Rsq_JERDown")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JERDown")
@@ -286,7 +286,16 @@ def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={
         nBTags = min(tree.nBTaggedJets,btagCutoff)
         btag_bin = htemp.FindBin(nBTags) - 1
         theWeight = tree.weight*lumi*k/lumi_in
-        filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, option)
+        #########################
+        #temporary reweighting for pileup and hadronic trigger
+        if pileupWeightHist is not None:
+            pileupWeight = pileupWeightHist.GetBinContent(pileupWeightHist.GetXaxis().FindFixBin(tree.nVtx))
+            theWeight *= pileupWeight
+        if hadronicTriggerWeight is not None:
+            if box in ["MultiJet", "DiJet", "FourJet", "SixJet", "LooseLeptonMultiJet", "LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet"]:
+                theWeight *= hadronicTriggerWeight
+        #########################
+        filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, sysErrOpt)
         numEntriesByBtag[btag_bin] += 1
         sumEntriesByBtag[btag_bin] += filledWeight
 
@@ -535,10 +544,10 @@ if __name__ == '__main__':
                         for updown in ["Up", "Down"]:
                             if shapes[shape] == []:
                                 print("Building histogram for "+treeName+"_"+shape+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName+"_"+shape+updown, sfs=sfHists, option=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
                             elif treeName.lower() in [s.lower() for s in shapes[shape]]:
                                 print("Building histogram for "+treeName+"_"+shape+(treeName.replace('_',''))+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName+"_"+shape+(treeName.replace('_',''))+updown, sfs=sfHists, option=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName+"_"+shape+(treeName.replace('_',''))+updown, sfs=sfHists, sysErrOpt=shape+updown))
                 else: #signal process
                     model = f.split('-')[1].split('_')[0]
                     massPoint = '_'.join(f.split('_')[3:5])
@@ -550,10 +559,10 @@ if __name__ == '__main__':
                         for updown in ["Up", "Down"]:
                             if shapes[shape] == []:
                                 print("Building histogram for "+modelString+"_"+shape+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+updown, sfs=sfHists, option=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
                             elif "signal" in [s.lower() for s in shapes[shape]]:
                                 print("Building histogram for "+modelString+"_"+shape+(modelString.replace('_',''))+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+"signal"+updown, sfs=sfHists, option=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+"signal"+updown, sfs=sfHists, sysErrOpt=shape+updown))
 
                 rootFile.Close()
 
