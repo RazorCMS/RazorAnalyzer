@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     ##################
     #get pileup weight hist (remove this later)
-    pileupWeightFileName = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
+    pileupWeightFileName = "data/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
     pileupHistName = "NVtxReweight"
     pileupWeightFile = rt.TFile.Open(pileupWeightFileName)
     pileupWeightHist = pileupWeightFile.Get(pileupHistName)
@@ -56,22 +56,51 @@ if __name__ == '__main__':
         ds = []
             
         #make MC histograms
-        modelString = ""
+        model = ''
         if f.lower().endswith('.root'):
             rootFile = rt.TFile(f) #open file
             tree = rootFile.Get('RazorInclusive') #get tree
+
+            # get mass point information
+            modelString = f.split('.root')[0].split('_')[0].split('/')[1]
+            model = f.split('.root')[0].split('-')[1].split('_')[0]
+            massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+                               
+            thyXsec = -1
+            thyXsecErr = -1
+            mGluino = -1
+            mStop = -1
+            mLSP = massPoint.split("_")[1]
+            if "T1" in model:
+                mGluino = massPoint.split("_")[0]
+            if "T2" in model:
+                mStop = massPoint.split("_")[0]
+    
+            if mGluino!=-1:
+                for line in open('data/gluino13TeV.txt','r'):
+                    line = line.replace('\n','')
+                    if str(int(mGluino))==line.split(',')[0]:
+                        thyXsec = float(line.split(',')[1]) #pb
+                        thyXsecErr = 0.01*float(line.split(',')[2])
+            if mStop!=-1:
+                for line in open('data/stop13TeV.txt','r'):
+                    line = line.replace('\n','')
+                    if str(int(mStop))==line.split(',')[0]:
+                        thyXsec = float(line.split(',')[1]) #pb
+                        thyXsecErr = 0.01*float(line.split(',')[2]) 
+                
+            nEvents = rootFile.Get('NEvents').Integral()
             
             #get gluino and LSP masses
             tree.GetEntry(0)
-            modelString = (f.split('/')[-1]).replace('.root','') #assumes filename like SMS-T1bbbb_X_Y.root
 
             #add histogram to output file
-            print("Building histogram for "+modelString)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+            print("Building histogram for "+model)
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=thyXsec*lumi/lumi_in/nEvents, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
-                    print("Building histogram for "+modelString+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+                    print("Building histogram for "+model+"_"+shape+updown)
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=thyXsec*lumi/lumi_in/nEvents, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             rootFile.Close()
         else:
             print "Error: expected ROOT file!"
@@ -79,9 +108,15 @@ if __name__ == '__main__':
 
         #output file name
         if btagMax>btagMin+1:
-            outFileName = 'RazorInclusive_%s_lumi-%.1f_%i-%ibtag_%s.root'%(modelString,lumi/1000.,btagMin,btagMax-1,curBox)
+            if "T1" in modelString:
+                outFileName = '%s_%i_%i_lumi-%.3f_%i-%ibtag_%s.root'%(modelString,int(mGluino),int(mLSP),lumi/1000.,btagMin,btagMax-1,curBox)
+            else:
+                outFileName = '%s_%i_%i_lumi-%.3f_%i-%ibtag_%s.root'%(modelString,int(mStop),int(mLSP),lumi/1000.,btagMin,btagMax-1,curBox)
         else:
-            outFileName = 'RazorInclusive_%s_lumi-%.1f_%ibtag_%s.root'%(modelString,lumi/1000.,btagMin,curBox)
+            if "T1" in modelString:
+                outFileName = '%s_%i_%i_lumi-%.3f_%ibtag_%s.root'%(modelString,int(mGluino),int(mLSP),lumi/1000.,btagMin,curBox)
+            else:
+                outFileName = '%s_%i_%i_lumi-%.3f_%ibtag_%s.root'%(modelString,int(mStop),int(mLSP),lumi/1000.,btagMin,curBox)
 
         #output file
         print "Output File: %s"%(options.outDir+"/"+outFileName)

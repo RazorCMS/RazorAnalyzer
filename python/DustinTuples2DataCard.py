@@ -204,7 +204,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={}, sysErrOpt="", pileupWeightHist=None, hadronicTriggerWeight=None):
+def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", pileupWeightHist=None, hadronicTriggerWeight=None):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -285,7 +285,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, lumi, lumi_in, treeName, sfs={
         #get weight and fill
         nBTags = min(tree.nBTaggedJets,btagCutoff)
         btag_bin = htemp.FindBin(nBTags) - 1
-        theWeight = tree.weight*lumi*k/lumi_in
+        theWeight = tree.weight*k*globalScaleFactor
         #########################
         #temporary reweighting for pileup and hadronic trigger
         if pileupWeightHist is not None:
@@ -538,31 +538,31 @@ if __name__ == '__main__':
                         sys.exit()
                     #add histogram to output file
                     print("Building histogram for "+treeName)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName, sfs=sfHists))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName, sfs=sfHists))
                     ###get up/down histograms for shape systematics
                     for shape in shapes:
                         for updown in ["Up", "Down"]:
                             if shapes[shape] == []:
                                 print("Building histogram for "+treeName+"_"+shape+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
                             elif treeName.lower() in [s.lower() for s in shapes[shape]]:
                                 print("Building histogram for "+treeName+"_"+shape+(treeName.replace('_',''))+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, treeName+"_"+shape+(treeName.replace('_',''))+updown, sfs=sfHists, sysErrOpt=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+(treeName.replace('_',''))+updown, sfs=sfHists, sysErrOpt=shape+updown))
                 else: #signal process
                     model = f.split('-')[1].split('_')[0]
                     massPoint = '_'.join(f.split('_')[3:5])
                     modelString = model+'_'+massPoint
                     #add histogram to output file
                     print("Building histogram for "+modelString)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f ,lumi, lumi_in, modelString, sfs=sfHists))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f , globalScaleFactor=lumi/lumi_in, treeName=modelString, sfs=sfHists))
                     for shape in shapes:
                         for updown in ["Up", "Down"]:
                             if shapes[shape] == []:
                                 print("Building histogram for "+modelString+"_"+shape+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=modelString+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
                             elif "signal" in [s.lower() for s in shapes[shape]]:
                                 print("Building histogram for "+modelString+"_"+shape+(modelString.replace('_',''))+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, lumi, lumi_in, modelString+"_"+shape+"signal"+updown, sfs=sfHists, sysErrOpt=shape+updown))
+                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=modelString+"_"+shape+"signal"+updown, sfs=sfHists, sysErrOpt=shape+updown))
 
                 rootFile.Close()
 

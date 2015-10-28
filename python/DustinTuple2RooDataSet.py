@@ -79,7 +79,7 @@ def getCuts(workspace, box):
 
     return cuts
 
-def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
+def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, globalScaleFactor):
     if f.find('SMS')!=-1:
         k = 1.
     elif f.find('TTJets')!=-1:
@@ -127,7 +127,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
     return [htemp.GetBinContent(i) for i in range(1,len(z))]
         
     
-def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, treeName='RMRTree',isData=False):
+def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFactor, treeName='RMRTree',isData=False):
     """This defines the format of the RooDataSet"""
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
@@ -208,10 +208,10 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
         a.setRealValue('nBtag',min(tree.nBTaggedJets,btagCutoff))
         
         if useWeight and 'SMS' in f:
-            a.setRealValue('W',scaleFactor)            
+            a.setRealValue('W',tree.weight*globalScaleFactor)
         elif useWeight:
             btag_bin = htemp.FindBin(min(tree.nBTaggedJets,btagCutoff)) - 1
-            a.setRealValue('W',tree.weight*k[btag_bin]*scaleFactor)
+            a.setRealValue('W',tree.weight*k[btag_bin]*globalScaleFactor)
         else:
             a.setRealValue('W',1.0)
         data.add(a)
