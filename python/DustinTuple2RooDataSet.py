@@ -251,7 +251,7 @@ if __name__ == '__main__':
         sumWQCD = 0.
         for f in args:
             if f.lower().endswith('.root'):
-                rootFile = rt.TFile(f)
+                rootFile = rt.TFile.Open(f)
                 tree = rootFile.Get('RazorInclusive')
                 if f.lower().find('sms')==-1:
                     
@@ -273,7 +273,7 @@ if __name__ == '__main__':
 
     for i, f in enumerate(args):
         if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f)
+            rootFile = rt.TFile.Open(f)
             tree = rootFile.Get('RazorInclusive')
             if f.lower().find('sms')==-1:
                 if removeQCD and f.find('QCD')!=-1:

@@ -2,6 +2,7 @@
 import ROOT as rt
 from array import array
 import sys
+import copy
 
 #local imports
 import macro
@@ -27,6 +28,15 @@ def appendTriggerCuts(cuts, trigNums):
 def appendBoxCuts(cuts, boxNums):
     """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
     return '('+(' || '.join(['box == '+str(n) for n in boxNums])) + ") && " + cuts
+
+recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_CSCTightHaloFilter","Flag_goodVertices","Flag_eeBadScFilter","Flag_EcalDeadCellTriggerPrimitiveFilter"]
+def appendNoiseFilters(cuts, tree):
+    ret = copy.copy(cuts)
+    for bit in recommendedNoiseFilters:
+        if hasattr(tree, bit):
+            ret += " && " + bit
+    return ret
+
 
 ### TTJets Single Lepton Control Region
 
@@ -131,8 +141,21 @@ leptonicSignalRegionBins = {
     "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
 
+leptonicSidebandBins = {
+    "MR" : [300, 350, 450, 550, 700, 900, 1200, 1600, 2500, 4000],
+    "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,0.8,1.5]
+    }
+
+leptonicBlindBins = [(x,y) for x in range(3,len(leptonicSidebandBins["MR"])+1) for y in range(2,len(leptonicSidebandBins["Rsq"])+1)]
+
 hadronicSignalRegionBins = {
     "MR" : [400, 500, 600, 700, 900, 1200, 1600, 2500, 4000],
     "Rsq" : [0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
 
+hadronicSidebandBins = {
+    "MR" : [400, 450, 550, 700, 900, 1200, 1600, 2500, 4000],
+    "Rsq" : [0.25,0.30,0.41,0.52,0.64,0.8,1.5]
+    }
+
+hadronicBlindBins = [(x,y) for x in range(3,len(hadronicSidebandBins["MR"])+1) for y in range(2,len(hadronicSidebandBins["Rsq"])+1)]

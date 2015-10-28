@@ -3,9 +3,6 @@
 import ROOT as rt
 import sys
 
-#local imports
-import macro, razorAnalysis
-
 #####################################
 ### WEIGHT AND TRIGGER INFO
 #####################################
@@ -181,6 +178,101 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
     eventWeight = scale
     if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
     return eventWeight
+
+def getMTRelUncertainty(MR, bkg, box):
+    muonBoxes = ["MuMultiJet", "MuSixJet", "MuFourJet", "MuJet"]
+    eleBoxes = ["EleMultiJet", "EleSixJet", "EleFourJet", "EleJet"]
+    bkg = bkg.lower()
+    unc = 0.0
+    if bkg == "ttjets" or bkg == "ttbar":
+        if box in muonBoxes:
+            if MR < 400:
+                unc = 0.0614822 #inclusive value -- no uncertainty is available for MR < 400
+            elif MR < 600:
+                unc = 0.0843497
+            elif MR < 800:
+                unc = 0.0977245
+            elif MR < 1000:
+                unc = 0.124865
+            else:
+                unc = 0.0950384
+        if box in eleBoxes:
+            if MR < 400:
+                unc = 0.0337985
+            elif MR < 600:
+                unc = 0.0254958
+            elif MR < 800:
+                unc = 0.0338464
+            elif MR < 1000:
+                unc = 0.0376923
+            else:
+                unc = 0.0367005
+    elif bkg == "wjets":
+        if box in muonBoxes:
+            if MR < 400:
+                unc = 0.172134
+            elif MR < 600:
+                unc = 0.210269
+            elif MR < 800:
+                unc = 0.159052
+            elif MR < 1000:
+                unc = 0.242155
+            else:
+                unc = 0.263298
+        if box in eleBoxes:
+            if MR < 400:
+                unc = 0.147676
+            elif MR < 600:
+                unc = 0.0656713
+            elif MR < 800:
+                unc = 0.0871765
+            elif MR < 1000:
+                unc = 0.0979534
+            else:
+                unc = 0.164399
+    return unc
+
+def applyMTUncertainty1D(hist, process, debugLevel=0):
+    """hist is assumed to be a histogram of MR"""
+    if process == "": return 
+
+    bkg = process.split('_')[0].lower()
+    box = process.split('_')[1]
+    if bkg != "ttjets" and bkg != "ttbar" and bkg != "wjets": return
+
+    #propagate MT uncertainty to each bin
+    for bx in range(1,hist.GetNbinsX()+1):
+        MRAtBinCenter = hist.GetXaxis().GetBinCenter(bx)
+        mtRelUnc = getMTRelUncertainty(MRAtBinCenter, bkg, box)
+        mtUnc = mtRelUnc*hist.GetBinContent(bx) #convert relative error to absolute
+        if debugLevel > 0:
+            print "MT uncertainty on bin",bx,"(",bkg,box,") is",mtUnc,("(%1.3f of %1.3f)" % (mtRelUnc,hist.GetBinContent(bx)))
+        currUnc = hist.GetBinError(bx)
+        hist.SetBinError(bx, (mtUnc*mtUnc + currUnc*currUnc)**(0.5))
+        if debugLevel > 0:
+            print "Uncertainty on this bin increases from",currUnc,"to",hist.GetBinError(bx)
+
+def applyMTUncertainty2D(hist, process, debugLevel=0):
+    """hist is assumed to be a histogram with MR on the x-axis"""
+    if process == "": return 
+
+    bkg = process.split('_')[0].lower()
+    box = process.split('_')[1]
+    if bkg != "ttjets" and bkg != "ttbar" and bkg != "wjets": return
+
+    #propagate MT uncertainty to each bin
+    for bx in range(1,hist.GetNbinsX()+1):
+        MRAtBinCenter = hist.GetXaxis().GetBinCenter(bx)
+        mtRelUnc = getMTRelUncertainty(MRAtBinCenter, bkg, box)
+        for by in range(1,hist.GetNbinsY()+1):
+            mtUnc = mtRelUnc*hist.GetBinContent(bx,by) #convert relative error to absolute
+            if debugLevel > 0:
+                print "MT uncertainty on bin",bx,",",by,"(",bkg,box,") is",mtUnc,("(%1.3f of %1.3f)" % (mtRelUnc,hist.GetBinContent(bx,by)))
+
+            currUnc = hist.GetBinError(bx,by)
+            hist.SetBinError(bx,by, (mtUnc*mtUnc + currUnc*currUnc)**(0.5))
+            if debugLevel > 0:
+                print "Uncertainty on this bin increases from",currUnc,"to",hist.GetBinError(bx,by)
 
 def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
     """Returns a dict with necessary reweighting histograms"""
