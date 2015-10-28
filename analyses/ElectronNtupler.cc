@@ -29,157 +29,160 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
-        //begin event
-        if(jentry % 10000 == 0) cout << "Processing entry " << jentry << endl;
-        Long64_t ientry = LoadTree(jentry);
-        if (ientry < 0) break;
-        nb = fChain->GetEntry(jentry);   nbytes += nb;
+      //begin event
+      if(jentry % 10000 == 0) cout << "Processing entry " << jentry << endl;
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb = fChain->GetEntry(jentry);   nbytes += nb;
 
 
       //****************************************
       //Tree entries based on reco objects
       //****************************************
+      //initialize
+      eleTree->fEleTriggerBit = 0;
+
       if (Option < 10 ) {
 
         for(int i = 0; i < nElectrons; i++){
-            if(elePt[i] < 5) continue;
+	  if(elePt[i] < 5) continue;
 
-	    //***********************
-	    //Fill Electron Variables
-	    //***********************
+	  //***********************
+	  //Fill Electron Variables
+	  //***********************
    
-	    eleTree->fWeight = 1;
-	    eleTree->fRunNumber = runNum;
-	    eleTree->fLumiSectionNumber = lumiNum;
-	    eleTree->fEventNumber = eventNum;
-	    eleTree->fEleEventNumberParity = (eventNum % 2 == 0);
-	    eleTree->fCharge = eleCharge[i] ;
-	    eleTree->fElePt = elePt[i]; 
-	    eleTree->fEleEta = eleEta[i]; 
-	    eleTree->fElePhi = elePhi[i]; 
-	    eleTree->fEleSCEta = eleEta_SC[i]; 
-	    eleTree->fEleTriggerBit = 0;
-	    eleTree->fRho = fixedGridRhoFastjetAll; 
-	    eleTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
-	    eleTree->fNVertices = nPV; 
-	    eleTree->fActivity = ele_activityMiniIsoAnnulus[i];
-	    eleTree->fEleD0 = ele_d0[i]; 
-	    eleTree->fEleDZ = ele_dZ[i]; 
-	    eleTree->fEleIP3d = ele_ip3d[i];
-	    eleTree->fEleIP3dSig = ele_ip3dSignificance[i];
-	    eleTree->fElePassConversion = ele_PassConvVeto[i];
-	    eleTree->fEleNMissHits =ele_MissHits[i];
-	    eleTree->fEleOneOverEMinusOneOverP = ele_OneOverEminusOneOverP[i];
-	    eleTree->fEleDEtaIn = ele_dEta[i];					   
-	    eleTree->fEleDPhiIn = ele_dPhi[i];
-	    eleTree->fEleSigmaIEtaIEta = eleFull5x5SigmaIetaIeta[i];
-	    eleTree->fEleR9 = eleR9[i];
-	    eleTree->fEleHoverE = ele_HoverE[i];
-	    eleTree->fElePFIso04 = (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i];
-	    eleTree->fIDMVATrig = ele_IDMVATrig[i];
-	    eleTree->fIDMVANonTrig = ele_IDMVANonTrig[i];
-	    eleTree->fPassVetoSelection = isEGammaPOGVetoElectron(i);
-	    eleTree->fPassLooseSelection = isLooseElectron(i);
-	    eleTree->fPassTightSelection = isTightElectron(i);
-	    eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(i);
-	    eleTree->fPtRel = ele_ptrel[i];
-	    eleTree->fMiniIsoCharged = ele_chargedMiniIso[i];
-	    eleTree->fMiniIsoNeutral = ele_photonAndNeutralHadronMiniIso[i];
-	    eleTree->fMiniIso = ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i];
-	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i]);
+	  eleTree->fWeight = 1;
+	  eleTree->fRunNumber = runNum;
+	  eleTree->fLumiSectionNumber = lumiNum;
+	  eleTree->fEventNumber = eventNum;
+	  eleTree->fEleEventNumberParity = (eventNum % 2 == 0);
+	  eleTree->fCharge = eleCharge[i] ;
+	  eleTree->fElePt = elePt[i]; 
+	  eleTree->fEleEta = eleEta[i]; 
+	  eleTree->fElePhi = elePhi[i]; 
+	  eleTree->fEleSCEta = eleEta_SC[i]; 
+	  eleTree->fEleTriggerBit = 0;
+	  eleTree->fRho = fixedGridRhoFastjetAll; 
+	  eleTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
+	  eleTree->fNVertices = nPV; 
+	  eleTree->fActivity = ele_activityMiniIsoAnnulus[i];
+	  eleTree->fEleD0 = ele_d0[i]; 
+	  eleTree->fEleDZ = ele_dZ[i]; 
+	  eleTree->fEleIP3d = ele_ip3d[i];
+	  eleTree->fEleIP3dSig = ele_ip3dSignificance[i];
+	  eleTree->fElePassConversion = ele_PassConvVeto[i];
+	  eleTree->fEleNMissHits =ele_MissHits[i];
+	  eleTree->fEleOneOverEMinusOneOverP = ele_OneOverEminusOneOverP[i];
+	  eleTree->fEleDEtaIn = ele_dEta[i];					   
+	  eleTree->fEleDPhiIn = ele_dPhi[i];
+	  eleTree->fEleSigmaIEtaIEta = eleFull5x5SigmaIetaIeta[i];
+	  eleTree->fEleR9 = eleR9[i];
+	  eleTree->fEleHoverE = ele_HoverE[i];
+	  eleTree->fElePFIso04 = (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - 0.5*ele_pileupIso[i])) / elePt[i];
+	  eleTree->fIDMVATrig = ele_IDMVATrig[i];
+	  eleTree->fIDMVANonTrig = ele_IDMVANonTrig[i];
+	  eleTree->fPassVetoSelection = isEGammaPOGVetoElectron(i);
+	  eleTree->fPassLooseSelection = isLooseElectron(i);
+	  eleTree->fPassTightSelection = isTightElectron(i);
+	  eleTree->fPassMVANonTrigVetoSelection = isVetoElectron(i);
+	  eleTree->fPtRel = ele_ptrel[i];
+	  eleTree->fMiniIsoCharged = ele_chargedMiniIso[i];
+	  eleTree->fMiniIsoNeutral = ele_photonAndNeutralHadronMiniIso[i];
+	  eleTree->fMiniIso = ele_chargedMiniIso[i] + ele_photonAndNeutralHadronMiniIso[i];
+	  eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i]);
 
-	    eleTree->fEleTriggerBit = 0;
-	    if (matchElectronHLTFilters(i, "Ele27Loose")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose);
-	    if (matchElectronHLTFilters(i, "Ele27Tight")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight);
-	    if (matchElectronHLTFilters(i, "Ele32Tight")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight);
-	    if (matchElectronHLTFilters(i, "Ele105")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105);
-	    if (matchElectronHLTFilters(i, "Ele115")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115);
+	  eleTree->fEleTriggerBit = 0;
+	  if (matchElectronHLTFilters(i, "Ele27Loose")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose);
+	  if (matchElectronHLTFilters(i, "Ele27Tight")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight);
+	  if (matchElectronHLTFilters(i, "Ele32Tight")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight);
+	  if (matchElectronHLTFilters(i, "Ele105")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105);
+	  if (matchElectronHLTFilters(i, "Ele115")) eleTree->fEleTriggerBit = (eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115);
 
-	    //Match to Gen particle
-	    int matchedIndex = -1;
-	    float minDR = 9999;
+	  //Match to Gen particle
+	  int matchedIndex = -1;
+	  float minDR = 9999;
 
-	    for(int j = 0; j < nGenParticle; j++){
-	      if (abs(gParticleId[j]) != 11) continue;	      
-	      if ( deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) < 0.1
-		   && deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) < minDR
-		   ) {		
-		matchedIndex = j;
-		minDR = deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]);
-	      }
+	  for(int j = 0; j < nGenParticle; j++){
+	    if (abs(gParticleId[j]) != 11) continue;	      
+	    if ( deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) < 0.1
+		 && deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) < minDR
+		 ) {		
+	      matchedIndex = j;
+	      minDR = deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]);
 	    }
+	  }
 
-	    int matchedID = 0;
-	    if (matchedIndex >= 0) {
-	      eleTree->fEleGenPt = gParticlePt[matchedIndex];
-	      eleTree->fEleGenEta = gParticleEta[matchedIndex];
-	      eleTree->fEleGenPhi = gParticlePhi[matchedIndex];
-	      if (abs(gParticleMotherId[matchedIndex]) > 50 || 
-		  abs(gParticleMotherId[matchedIndex]) == 15) {
-		matchedID = gParticleMotherId[matchedIndex];
-	      } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
-		matchedID = gParticleId[matchedIndex];
-	      }
+	  int matchedID = 0;
+	  if (matchedIndex >= 0) {
+	    eleTree->fEleGenPt = gParticlePt[matchedIndex];
+	    eleTree->fEleGenEta = gParticleEta[matchedIndex];
+	    eleTree->fEleGenPhi = gParticlePhi[matchedIndex];
+	    if (abs(gParticleMotherId[matchedIndex]) > 50 || 
+		abs(gParticleMotherId[matchedIndex]) == 15) {
+	      matchedID = gParticleMotherId[matchedIndex];
+	    } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
+	      matchedID = gParticleId[matchedIndex];
 	    }
-	    eleTree->fPdgId = matchedID;
+	  }
+	  eleTree->fPdgId = matchedID;
 
-	    //select only fakes
-	    if (Option == 0) {
-	      if (!(matchedID == 0 || abs(matchedID) > 50)) continue;
-	      //if (abs(matchedID) == 11) continue;
-	    }
-	    //select only real prompt
-	    if (Option == 1) {
-	      if (!(abs(matchedID) == 11)) continue;
-	    }	   
+	  //select only fakes
+	  if (Option == 0) {
+	    if (!(matchedID == 0 || abs(matchedID) > 50)) continue;
+	    //if (abs(matchedID) == 11) continue;
+	  }
+	  //select only real prompt
+	  if (Option == 1) {
+	    if (!(abs(matchedID) == 11)) continue;
+	  }	   
 
 
-	    //Find Closest Parton
-	    float minDRToParton = 9999;
-	    for(int j = 0; j < nGenParticle; j++){
+	  //Find Closest Parton
+	  float minDRToParton = 9999;
+	  for(int j = 0; j < nGenParticle; j++){
 	      
-	      //only look for outgoing partons
-	      if  (!( ((abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21) 
-		      && gParticleStatus[j] == 23)
-		   ) continue;
+	    //only look for outgoing partons
+	    if  (!( ((abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21) 
+		    && gParticleStatus[j] == 23)
+		 ) continue;
 	      
-	      double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], eleEta[i], elePhi[i]);
-	      if ( tmpDR < minDRToParton ) minDRToParton = tmpDR;
-	    }
-	    eleTree->fDRToClosestParton = minDRToParton;
+	    double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], eleEta[i], elePhi[i]);
+	    if ( tmpDR < minDRToParton ) minDRToParton = tmpDR;
+	  }
+	  eleTree->fDRToClosestParton = minDRToParton;
 
 
 
-	    // if (matchedID == 0 && ele_IDMVANonTrig[i] > 0.9) {
-	    //   std::cout << "DEBUG: \n";
-	    //   std::cout << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : " <<  ele_IDMVANonTrig[i] << "\n";
-	    //   cout << "match : " << matchedIndex << " ";
-	    //   if (matchedIndex >= 0) cout << gParticleMotherId[matchedIndex];
-	    //   cout << "\n";
+	  // if (matchedID == 0 && ele_IDMVANonTrig[i] > 0.9) {
+	  //   std::cout << "DEBUG: \n";
+	  //   std::cout << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : " <<  ele_IDMVANonTrig[i] << "\n";
+	  //   cout << "match : " << matchedIndex << " ";
+	  //   if (matchedIndex >= 0) cout << gParticleMotherId[matchedIndex];
+	  //   cout << "\n";
 
-	    //   if (abs(gParticleMotherId[matchedIndex]) > 50 || 
-	    // 	  abs(gParticleMotherId[matchedIndex]) == 15) {
-	    // 	cout << "matched HF\n";
-	    //   } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
-	    // 	cout << "match prompt\n";
-	    //   } else {
-	    // 	cout << "nothing\n";
-	    //   }
+	  //   if (abs(gParticleMotherId[matchedIndex]) > 50 || 
+	  // 	  abs(gParticleMotherId[matchedIndex]) == 15) {
+	  // 	cout << "matched HF\n";
+	  //   } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
+	  // 	cout << "match prompt\n";
+	  //   } else {
+	  // 	cout << "nothing\n";
+	  //   }
 
-	    //   for(int j = 0; j < nGenParticle; j++){
-	    // 	std::cout << "particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j]  << " " 
-	    // 		  << gParticlePt[j] << " " <<  gParticleEta[j] << " " << gParticlePhi[j] << " " 
-	    // 	     <<  deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) << "\n";
-	    //   }    
-	    //   std::cout << "\n";
-	    // }
+	  //   for(int j = 0; j < nGenParticle; j++){
+	  // 	std::cout << "particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j]  << " " 
+	  // 		  << gParticlePt[j] << " " <<  gParticleEta[j] << " " << gParticlePhi[j] << " " 
+	  // 	     <<  deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) << "\n";
+	  //   }    
+	  //   std::cout << "\n";
+	  // }
 	
 
-	    //***********************
-	    //Fill Electron
-	    //***********************
-	    NElectronsFilled++;
-	    eleTree->tree_->Fill();	   
+	  //***********************
+	  //Fill Electron
+	  //***********************
+	  NElectronsFilled++;
+	  eleTree->tree_->Fill();	   
         }
       }
 

@@ -40,6 +40,8 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
       //****************************************
       //Tree entries based on reco objects
       //****************************************
+      muTree->fMuTriggerBit = 0;
+
       if (Option < 10 ) {
 
 	for(int i = 0; i < nMuons; i++){

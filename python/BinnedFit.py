@@ -3,26 +3,25 @@ import ROOT as rt
 import rootTools
 from framework import Config
 from array import *
-from WriteDataCard import *
+from itertools import *
+from operator import *
+from WriteDataCard import initializeWorkspace, convertDataset2TH1
 import os
 import random
 import sys
 import math
-from PlotFit import *
+from PlotFit import setStyle,print1DProj,print2DScatter,get3DHistoFrom1D,getBinEvents,convertSideband
 
-def binnedFit(pdf, data, fitRange='Full'):
-    nll = pdf.createNLL(data,rt.RooFit.Range(fitRange))
+def binnedFit(pdf, data, fitRange='Full'):    
+    nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
     m2 = rt.RooMinimizer(nll)
-    migrad_status = m2.migrad()
-    hesse_status = m2.hesse()
-    #minimize_status = m2.minimize('Miniut2','improve')    
-    #minimize_status = m2.minimize('Miniut2','hesse')  
-    #m2.setMinimizerType('Miniut2')
-    #minos_status = m2.minos()
-    #hesse_status = m2.hesse()
+    m2.setStrategy(2)
+    m2.setMaxFunctionCalls(10000)
+    m2.setMaxIterations(10000)
+    migrad_status = m2.minimize('Minuit2','migrad')
+    hesse_status = m2.minimize('Minuit2','hesse') 
     fr = m2.save()
-    
-    
+
     if fr.covQual() != 3:
         print ""
         print "CAUTION: COVARIANCE QUALITY < 3"
@@ -30,48 +29,15 @@ def binnedFit(pdf, data, fitRange='Full'):
         
     if migrad_status != 0:
         print ""
-        print "CAUTION: MIGRAD STAUTS ! = 0"
+        print "CAUTION: MIGRAD STATUS ! = 0"
+        print ""
+
+    if hesse_status != 0:
+        print ""
+        print "CAUTION: HESSE STATUS ! = 0"
         print ""
         
     return fr
-
-def convertSideband(name,w,x,y,z):
-    if name=="Full":
-        return "Full"
-    names = name.split(',')
-    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    iBinX = -1
-    sidebandBins = []
-    for ix in range(1,len(x)):
-        for iy in range(1,len(y)):
-            for iz in range(1,len(z)):
-                iBinX+=1
-                w.var('MR').setVal((x[ix]+x[ix-1])/2.)
-                w.var('Rsq').setVal((y[iy]+y[iy-1])/2.)
-                w.var('nBtag').setVal((z[iz]+z[iz-1])/2.)
-                inSideband = 0
-                for fitname in names:
-                    inSideband += ( w.var('MR').inRange(fitname) * w.var('Rsq').inRange(fitname) * w.var('nBtag').inRange(fitname) )
-                if inSideband: sidebandBins.append(iBinX)
-
-    sidebandGroups = []
-    for k, g in groupby(enumerate(sidebandBins), lambda (i,x):i-x):
-        consecutiveBins = map(itemgetter(1), g)
-        sidebandGroups.append([consecutiveBins[0],consecutiveBins[-1]+1])
-
-
-    newsidebands = ''
-    minSideband = 0
-    for iSideband in range(0,nBins):
-        if w.var('th1x').hasRange('sideband%i'%iSideband):
-            minSideband += 1
-        
-    for iSideband, sidebandGroup in enumerate(sidebandGroups):
-        w.var('th1x').setRange("sideband%i"%(iSideband+minSideband),sidebandGroup[0],sidebandGroup[1])
-        newsidebands+='sideband%i,'%(iSideband+minSideband)
-    newsidebands = newsidebands[:-1]
-    return newsidebands
- 
     
 if __name__ == '__main__':
     parser = OptionParser()
@@ -91,8 +57,12 @@ if __name__ == '__main__':
                   help="Turn off fit (useful for visualizing initial parameters)")
     parser.add_option('--fit-region',dest="fitRegion",default="Full",type="string",
                   help="Fit region")
+    parser.add_option('--plot-region',dest="plotRegion",default="Full",type="string",
+                  help="Plot region")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
                   help="changes plots for data")
+    parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",
+                  help="input fit file")
 
 
     (options,args) = parser.parse_args()
@@ -103,6 +73,7 @@ if __name__ == '__main__':
     lumi = options.lumi
     noFit = options.noFit
     fitRegion = options.fitRegion
+    plotRegion = options.plotRegion
     
     lumi_in = 0.
 
@@ -123,6 +94,21 @@ if __name__ == '__main__':
         paramNames, bkgs = initializeWorkspace(w,cfg,box)
     else:
         paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in)
+
+        
+    if options.inputFitFile is not None:
+        inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
+        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)
+        if wIn.obj("fitresult_extRazorPdf_data_obs") != None:
+            frIn = wIn.obj("fitresult_extRazorPdf_data_obs")
+        elif wIn.obj("nll_extRazorPdf_data_obs") != None:
+            frIn = wIn.obj("nll_extRazorPdf_data_obs")
+        print "restoring parameters from fit"
+        frIn.Print("V")
+        for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
+            w.var(p.GetName()).setVal(p.getVal())
+            w.var(p.GetName()).setError(p.getError())
+            
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -137,7 +123,6 @@ if __name__ == '__main__':
     th1x = w.var('th1x')
     
     sideband = convertSideband(fitRegion,w,x,y,z)
-    plotRegion = 'Full'
     plotband = convertSideband(plotRegion,w,x,y,z)
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
@@ -184,6 +169,25 @@ if __name__ == '__main__':
         fr = rt.RooFitResult()
     else:
         fr = binnedFit(extRazorPdf,dataHist,sideband)
+        total = extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+        nll = 0
+        iBinX = -1
+        observed_counts = []
+        for i in range(1,len(x)):
+            for j in range(1,len(y)):
+                for k in range(1,len(z)):
+                    iBinX += 1
+                    th1x.setVal(iBinX+0.5)
+                    inSideband = any([th1x.inRange(band) for band in sideband.split(',')])
+                    observed = float(dataHist.weight(rt.RooArgSet(th1x)))
+                    observed_counts.append(int(observed))
+                    if not inSideband: continue            
+                    expected, errorFlag = getBinEvents(i,j,k,x,y,z,w,box)
+                    if expected>0:
+                        nll -= observed*rt.TMath.Log(expected) - expected
+        print "fr      min -log(L) = ", fr.minNll()
+        print "by hand min -log(L) = ", nll
+            
         fr.Print('v')    
         rootTools.Utils.importToWS(w,fr)
         if doSignalInj:
@@ -196,10 +200,12 @@ if __name__ == '__main__':
 
     asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('central'),rt.RooFit.Asimov())
         
-    opt = []
-    [opt.append(rt.RooFit.CutRange(myRange)) for myRange in plotband.split(',')]
-    asimov_reduce = asimov.reduce(*opt)
-    dataHist_reduce = dataHist.reduce(*opt)
+    opt = [rt.RooFit.CutRange(myRange) for myRange in plotband.split(',')]
+    asimov_reduce = asimov.reduce(opt[0])
+    dataHist_reduce = dataHist.reduce(opt[0])
+    for iOpt in range(1,len(opt)):
+        asimov_reduce.add(asimov.reduce(opt[iOpt]))
+        dataHist_reduce.add(dataHist.reduce(opt[iOpt]))
     rt.TH1D.SetDefaultSumw2()
     rt.TH2D.SetDefaultSumw2()
     rt.TH3D.SetDefaultSumw2()
@@ -260,14 +266,25 @@ if __name__ == '__main__':
         
     h_data_nBtagRsqMR_fine = rt.TH3D("h_data_nBtagRsqMR_fine","h_data_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
     h_nBtagRsqMR_fine = rt.TH3D("h_nBtagRsqMR_fine","h_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
-    w.data("RMRTree").fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
+    opt = [rt.RooFit.CutRange(myRange) for myRange in plotRegion.split(',')]
+    data_reduce = w.data("RMRTree").reduce(opt[0])
+    for iOpt in range(1,len(opt)):
+        data_reduce.append(w.data("RMRTree").reduce(opt[iOpt]))
+    data_reduce.fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
+    
     for i in range(1,len(xFine)):
         for j in range(1,len(yFine)):
-            for k in range(1,len(zFine)):
+            for k in range(1,len(zFine)):                
+                w.var('MR').setVal((xFine[i]+xFine[i-1])/2.)
+                w.var('Rsq').setVal((yFine[j]+yFine[j-1])/2.)
+                w.var('nBtag').setVal((zFine[k]+zFine[k-1])/2.)
+                inSideband = 0
+                for myRange in plotRegion.split(','):
+                    inSideband += ( w.var('MR').inRange(myRange) * w.var('Rsq').inRange(myRange) * w.var('nBtag').inRange(myRange) )
+                if not inSideband: continue  
                 value, errorFlag= getBinEvents(i,j,k,xFine,yFine,zFine,w,box)
                 if not errorFlag:
                     h_nBtagRsqMR_fine.SetBinContent(i,j,k,value)
-
             
     h_data_RsqMR_fine = h_data_nBtagRsqMR_fine.Project3D("yxe")
     h_RsqMR_fine = h_nBtagRsqMR_fine.Project3D("yxe")
