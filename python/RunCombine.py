@@ -77,8 +77,8 @@ if __name__ == '__main__':
                'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumi%s'%json
                }
         
-    exec_me('mkdir -p Datasets')        
-    exec_me('mkdir -p %s'%options.outDir)
+    exec_me('mkdir -p Datasets',options.dryRun)        
+    exec_me('mkdir -p %s'%options.outDir,options.dryRun)
     for lumi in lumiArray:
         for box in boxes:            
             z = array('d', cfg.getBinning(box)[2]) # nBtag binning
