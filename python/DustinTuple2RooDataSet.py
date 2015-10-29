@@ -311,8 +311,9 @@ if __name__ == '__main__':
                     ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi/lumi_in,  'RMRTree_%i'%i, options.isData))
                 
             else:
-                model = f.split('.root')[0].split('-')[1].split('_')[0]
-                massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+                modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+                model = modelString.split('-')[-1]
+                massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
                                
                 thyXsec = -1
                 thyXsecErr = -1
