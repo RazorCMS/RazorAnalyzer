@@ -103,8 +103,20 @@ if __name__ == '__main__':
     (options,args) = parser.parse_args()
 
 
-    btag = '0-3btag'
+    cfg = Config.Config(options.config)
 
+    boxes = options.box.split('_')
+
+    btag = ''
+    for box in boxes:            
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        btagMin = z[0]
+        btagMax = z[-1]
+        if btagMax-1>btagMin:          
+            btag = '%i-%ibtag'%(btagMin,btagMax-1)
+        else:
+            btag = '%ibtag'%(btagMin)
+                
     nJobs = 0
     donePairs = []
     if options.doneFile is not None:
