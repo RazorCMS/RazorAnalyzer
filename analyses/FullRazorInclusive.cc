@@ -37,9 +37,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     map<pair<int,int>, TFile*> smsFiles;
     map<pair<int,int>, TTree*> smsTrees;
     map<pair<int,int>, TH1F*> smsNEvents;
+    map<pair<int,int>, TH1F*> smsSumWeights;
 
     //Histogram containing total number of processed events (for normalization)
-    TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+    TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
+    TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
 
     char* cmsswPath;
     cmsswPath = getenv("CMSSW_BASE");
@@ -55,7 +57,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TFile *pileupWeightFile = 0;
     TH1D *pileupWeightHist = 0;
     if(!isData){
-        pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors//PileupWeights/NVtxReweight_ZToMuMu_2015Dv3_378ipb.root");
+        pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors//PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root");
         pileupWeightHist = (TH1D*)pileupWeightFile->Get("NVtxReweight");
         assert(pileupWeightHist);
     }
@@ -258,9 +260,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         if (ientry < 0) break;
         fChain->GetEntry(jentry);
 
-        //Fill normalization histogram
-        NEvents->Fill(1.0);
-
         //Reset tree variables
         nVtx = nPV;
         nSelectedJets = 0;
@@ -336,39 +335,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         vector<TLorentzVector> GoodJetsJERDown;
 
         /////////////////////////////////
-        //SMS information
-        /////////////////////////////////
-
-        bool parsedLHE = false;
-        if(isFastsimSMS && lheComments->size() > 0){
-            //parse lhe comment string to get gluino and LSP masses
-            stringstream parser((*lheComments)[lheComments->size()-1]);
-            string item;
-            getline(parser, item, '_'); //prefix
-            if(getline(parser, item, '_')){ //gluino mass 
-                mGluino = atoi(item.c_str());
-                if(getline(parser, item, '_')){ //LSP mass 
-                    mLSP = atoi(item.c_str());
-                    pair<int,int> smsPair = make_pair(mGluino, mLSP);
-                    parsedLHE = true;
-                    if (smsFiles.count(smsPair) == 0){ //create file and tree
-                        //format file name
-                        string thisFileName = outFileName;
-                        thisFileName.erase(thisFileName.end()-5, thisFileName.end());
-                        thisFileName += "_" + to_string(mGluino) + "_" + to_string(mLSP) + ".root";
-                        
-                        smsFiles[smsPair] = new TFile(thisFileName.c_str(), "recreate");
-                        smsTrees[smsPair] = razorTree->CloneTree(0);
-                        smsNEvents[smsPair] = new TH1F(Form("NEvents%d%d", mGluino, mLSP), "NEvents", 1,1,2);
-                        cout << "Created new output file " << thisFileName << endl;
-                    }
-                    //Fill NEvents hist 
-                    smsNEvents[smsPair]->Fill(1.0);
-                }
-            }
-        }
-
-        /////////////////////////////////
         //Trigger
         /////////////////////////////////
 
@@ -408,20 +374,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             passedSingleLeptonTrigger = true;
             passedHadronicTrigger = true;
         }
-
-        if(!passedDileptonTrigger && !passedSingleLeptonTrigger && !passedHadronicTrigger) continue;
-
-        /////////////////////////////////
-        //Noise filters
-        /////////////////////////////////
-
-        if(!isFastsimSMS){
-	  if(!Flag_HBHENoiseFilter) continue;
-	  if(!Flag_CSCTightHaloFilter) continue;
-	  if(!Flag_goodVertices) continue;
-	  if(!Flag_eeBadScFilter) continue;
-	  if(!Flag_EcalDeadCellTriggerPrimitiveFilter) continue;
-	}
 
         /////////////////////////////////
         //Pileup reweighting
@@ -966,26 +918,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         /////////////////////////////////
-        //Make baseline razor cuts
-        /////////////////////////////////
-        if (MR < 300 && MR_JESUp < 300 && MR_JESDown < 300 && MR_JERUp < 300 && MR_JERDown < 300) continue;
-        if (Rsq < 0.15 && Rsq_JESUp < 0.15 && Rsq_JESDown < 0.15 && Rsq_JERUp < 0.15 && Rsq_JERDown < 0.15) continue;
-
-        /////////////////////////////////
-        //Apply scale factors
-        /////////////////////////////////
-
-        //Nominal event weight
-        if(!isData){
-            //weight *= pileupWeight; //NOTE: disable pileup reweighting at the analyzer stage
-            weight *= muonEffCorrFactor;
-            weight *= muonTrigCorrFactor;
-            weight *= eleEffCorrFactor;
-            weight *= eleTrigCorrFactor;
-            weight *= btagCorrFactor;    
-        }
-
-        /////////////////////////////////
         //Categorize into boxes
         /////////////////////////////////
 
@@ -1110,8 +1042,84 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             else box = DiJet;
         }
 
+        /////////////////////////////////
+        //Apply scale factors
+        /////////////////////////////////
+
+        //Nominal event weight
+        if(!isData){
+            weight *= pileupWeight; 
+            weight *= muonEffCorrFactor;
+            weight *= muonTrigCorrFactor;
+            weight *= eleEffCorrFactor;
+            weight *= eleTrigCorrFactor;
+            weight *= btagCorrFactor;    
+        }
+
+        //Fill normalization histogram
+        NEvents->Fill(1.0);
+        SumWeights->Fill(1.0, weight);
+
+        /////////////////////////////////
+        //SMS information
+        /////////////////////////////////
+
+        bool parsedLHE = false;
+        if(isFastsimSMS && lheComments->size() > 0){
+            //parse lhe comment string to get gluino and LSP masses
+            stringstream parser((*lheComments)[lheComments->size()-1]);
+            string item;
+            getline(parser, item, '_'); //prefix
+            if(getline(parser, item, '_')){ //gluino mass 
+                mGluino = atoi(item.c_str());
+                if(getline(parser, item, '_')){ //LSP mass 
+                    mLSP = atoi(item.c_str());
+                    pair<int,int> smsPair = make_pair(mGluino, mLSP);
+                    parsedLHE = true;
+                    if (smsFiles.count(smsPair) == 0){ //create file and tree
+                        //format file name
+                        string thisFileName = outFileName;
+                        thisFileName.erase(thisFileName.end()-5, thisFileName.end());
+                        thisFileName += "_" + to_string(mGluino) + "_" + to_string(mLSP) + ".root";
+                        
+                        smsFiles[smsPair] = new TFile(thisFileName.c_str(), "recreate");
+                        smsTrees[smsPair] = razorTree->CloneTree(0);
+                        smsNEvents[smsPair] = new TH1F(Form("NEvents%d%d", mGluino, mLSP), "NEvents", 1,0.5,1.5);
+                        smsSumWeights[smsPair] = new TH1F(Form("SumWeights%d%d", mGluino, mLSP), "SumWeights", 1,0.5,1.5);
+                        cout << "Created new output file " << thisFileName << endl;
+                    }
+                    //Fill NEvents hist 
+                    smsNEvents[smsPair]->Fill(1.0);
+                    smsSumWeights[smsPair]->Fill(1.0, weight);
+                }
+            }
+        }
+
+        /////////////////////////////////
+        //Baseline cuts
+        /////////////////////////////////
+
+        //Razor
+        if (MR < 300 && MR_JESUp < 300 && MR_JESDown < 300 && MR_JERUp < 300 && MR_JERDown < 300) continue;
+        if (Rsq < 0.15 && Rsq_JESUp < 0.15 && Rsq_JESDown < 0.15 && Rsq_JERUp < 0.15 && Rsq_JERDown < 0.15) continue;
+
         //Continue if this event is not in any box
         if(box == NONE && box_JESUp == NONE && box_JESDown == NONE && box_JERUp == NONE && box_JERDown == NONE) continue; 
+
+        //Trigger
+        if(!passedDileptonTrigger && !passedSingleLeptonTrigger && !passedHadronicTrigger) continue;
+
+        /////////////////////////////////
+        //Noise filters
+        /////////////////////////////////
+
+        if(!isFastsimSMS){
+	  if(!Flag_HBHENoiseFilter) continue;
+	  if(!Flag_CSCTightHaloFilter) continue;
+	  if(!Flag_goodVertices) continue;
+	  if(!Flag_eeBadScFilter) continue;
+	  if(!Flag_EcalDeadCellTriggerPrimitiveFilter) continue;
+	}
 
         //Fill tree
         if(!isFastsimSMS){
@@ -1129,6 +1137,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         outFile->cd();
         razorTree->Write();
         NEvents->Write();
+        SumWeights->Write();
     }
     else{
         for(auto &filePtr : smsFiles){
@@ -1136,6 +1145,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             filePtr.second->cd();
             smsTrees[filePtr.first]->Write();
             smsNEvents[filePtr.first]->Write("NEvents");
+            smsSumWeights[filePtr.first]->Write("SumWeights");
         }
     }
 
