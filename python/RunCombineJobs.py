@@ -51,9 +51,11 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'cd RazorAnalyzer\n'
     script += 'source setup.sh\n'
     script += 'make\n'
+    script += 'mkdir -p Datasets\n'
+    script += 'mkdir -p %s\n'%submitDir
     script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
-    script += 'cd ..\n'
+    script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
     
     outputfile = open(outputname,'w')
