@@ -186,7 +186,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
         # now nuisances
         datacard+=lumiString
         for shape in shapes:
-            shapeString = '%s\t1.0'%shape
+            shapeString = '%s\tshape\t\t1.0'%shape
             for i in range(0,len(bkgs)):
                 shapeString += '\t-'
             shapeString += '\n'

@@ -51,10 +51,10 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'cd RazorAnalyzer\n'
     script += 'source setup.sh\n'
     script += 'make\n'
-    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ..\n'
-    script += 'rm -r $TWD\n'
+    script += 'rm -rf $TWD\n'
     
     outputfile = open(outputname,'w')
     outputfile.write(script)
@@ -91,6 +91,10 @@ if __name__ == '__main__':
                   help="mgMin ")
     parser.add_option('--mg-lt',dest="mgMax",default=10000,type="float",
                   help="mgMax ")
+    parser.add_option('--mchi-geq',dest="mchiMin",default=-1,type="float",
+                  help="mchiMin ")
+    parser.add_option('--mchi-lt',dest="mchiMax",default=10000,type="float",
+                  help="mchiMax ")
     parser.add_option('--done-file',dest="doneFile",default=None,type="string",
                   help="file containing output files")
 
@@ -111,6 +115,7 @@ if __name__ == '__main__':
                     
     for (mg, mchi) in gchipairs(options.model):
         if not (mg >= options.mgMin and mg < options.mgMax): continue
+        if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
         if (mg, mchi) in donePairs: continue
         nJobs+=1
         outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty)

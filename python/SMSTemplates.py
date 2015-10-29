@@ -58,13 +58,13 @@ if __name__ == '__main__':
         #make MC histograms
         model = ''
         if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f) #open file
+            rootFile = rt.TFile.Open(f) #open file
             tree = rootFile.Get('RazorInclusive') #get tree
 
             # get mass point information
-            modelString = f.split('.root')[0].split('_')[0].split('/')[1]
-            model = f.split('.root')[0].split('-')[1].split('_')[0]
-            massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+            modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+            model = modelString.split('-')[-1]
+            massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
                                
             thyXsec = -1
             thyXsecErr = -1

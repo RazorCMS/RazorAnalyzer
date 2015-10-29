@@ -77,7 +77,8 @@ if __name__ == '__main__':
                'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumi%s'%json
                }
         
-        
+    exec_me('mkdir -p Datasets')        
+    exec_me('mkdir -p %s'%options.outDir)
     for lumi in lumiArray:
         for box in boxes:            
             z = array('d', cfg.getBinning(box)[2]) # nBtag binning
@@ -88,7 +89,7 @@ if __name__ == '__main__':
             else:
                 btag = '%ibtag'%(btagMin)    
 
-                
+
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
@@ -109,7 +110,7 @@ if __name__ == '__main__':
             penaltyString = ''
             if options.penalty: penaltyString = '--penalty'
                 
-            exec_me('python python/WriteDataCard.py -i FitResults/BinnedFitResults.root -l %f -c %s -b %s -d %s %s %s %s %s'%(box,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
+            exec_me('python python/WriteDataCard.py -i FitResults/BinnedFitResults.root -l %f -c %s -b %s -d %s %s %s %s %s'%(1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
