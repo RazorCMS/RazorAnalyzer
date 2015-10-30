@@ -157,6 +157,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //For lepton efficiency scale factor uncertainty
     float sf_muonEffUp, sf_muonEffDown;
     float sf_eleEffUp, sf_eleEffDown;
+    float sf_muonTrigUp, sf_muonTrigDown;
+    float sf_eleTrigUp, sf_eleTrigDown;
     //For btag scale factor uncertainty
     float sf_btagUp, sf_btagDown;
     //For jet uncertainties
@@ -193,6 +195,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_eleEffUp", &sf_eleEffUp, "sf_eleEffUp/F");
         razorTree->Branch("sf_eleEffDown", &sf_eleEffDown, "sf_eleEffDown/F");
+        razorTree->Branch("sf_muonTrigUp", &sf_muonTrigUp, "sf_muonTrigUp/F");
+        razorTree->Branch("sf_muonTrigDown", &sf_muonTrigDown, "sf_muonTrigDown/F");
+        razorTree->Branch("sf_eleTrigUp", &sf_eleTrigUp, "sf_eleTrigUp/F");
+        razorTree->Branch("sf_eleTrigDown", &sf_eleTrigDown, "sf_eleTrigDown/F");
         razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
         razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
         razorTree->Branch("MR_JESUp", &MR_JESUp, "MR_JESUp/F");
@@ -281,6 +287,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             sf_muonEffDown = 1.0;
             sf_eleEffUp = 1.0;
             sf_eleEffDown = 1.0;
+            sf_muonTrigUp = 1.0;
+            sf_muonTrigDown = 1.0;
+            sf_eleTrigUp = 1.0;
+            sf_eleTrigDown = 1.0;
             sf_btagUp = 1.0;
             sf_btagDown = 1.0;
             MR_JESUp = -1;
@@ -440,8 +450,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     //tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
                 }
                 muonEffCorrFactor *= tmpTightSF;
-                sf_muonEffUp *= tmpTightSFUp;
-                sf_muonEffDown *= tmpTightSFDown;
+                sf_muonEffUp *= tmpTightSFUp/tmpTightSF;
+                sf_muonEffDown *= tmpTightSFDown/tmpTightSF;
             }
 
             //Trigger scale factor
@@ -450,8 +460,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double trigSF = muTrigSFHist->GetBinContent( 
                         muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                double trigSFErr = muTrigSFHist->GetBinError( 
+                        muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                double trigSFUp = trigSF + trigSFErr;
+                double trigSFDown = trigSF - trigSFErr;
                 if (passedSingleLeptonTrigger && isTightMuon(i) && muonPt[i] >= MUON_LOOSE_CUT){
                     muonTrigCorrFactor *= trigSF;
+                    sf_muonTrigUp *= trigSFUp/trigSF;
+                    sf_muonTrigDown *= trigSFDown/trigSF;
                 }
 		if (isFastsimSMS) {
 		  if (passedSingleLeptonTrigger && isTightMuon(i) && muonPt[i] >= MUON_LOOSE_CUT) {
@@ -533,8 +550,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     //tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
                 }
                 eleEffCorrFactor *= tmpTightSF;
-                sf_eleEffUp *= tmpTightSFUp;
-                sf_eleEffDown *= tmpTightSFDown;
+                sf_eleEffUp *= tmpTightSFUp/tmpTightSF;
+                sf_eleEffDown *= tmpTightSFDown/tmpTightSF;
             }
 
             //Trigger scale factor
@@ -543,8 +560,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double trigSF = eleTrigSFHist->GetBinContent( 
                         eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                double trigSFErr = eleTrigSFHist->GetBinError( 
+                        eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
+                        eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                double trigSFUp = trigSF + trigSFErr;
+                double trigSFDown = trigSF - trigSFErr;
                 if (passedSingleLeptonTrigger && isTightElectron(i) && elePt[i] > ELE_LOOSE_CUT){
                     eleTrigCorrFactor *= trigSF;
+                    sf_eleTrigUp *= trigSFUp/trigSF;
+                    sf_eleTrigDown *= trigSFDown/trigSF;
                 }
 		
 		if (isFastsimSMS) {
@@ -683,8 +707,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             //UNDER CONSTRUCTION (no b-tagging corrections for run 2 yet)
             //if (!isData && abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 20) {
             //    btagCorrFactor *= BTagScaleFactor(jetCorrPt, isCSVM(i));
-            //    sf_btagUp *= BTagScaleFactor(jetCorrPt, isCSVM(i), "up");
-            //    sf_btagDown *= BTagScaleFactor(jetCorrPt, isCSVM(i), "down");
+            //    sf_btagUp *= BTagScaleFactor(jetCorrPt, isCSVM(i), "up")/BTagScaleFactor(jetCorrPt, isCSVM(i));
+            //    sf_btagDown *= BTagScaleFactor(jetCorrPt, isCSVM(i), "down")/BTagScaleFactor(jetCorrPt, isCSVM(i));
             //}
 
             //Apply pileup jet ID 
