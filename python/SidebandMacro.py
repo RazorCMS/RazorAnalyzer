@@ -35,22 +35,6 @@ TOYS_FILES = {
         "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
         }
 
-WEIGHTDIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
-LEPTONWEIGHTDIR = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
-weightfilenames = {
-        "muon": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root",
-        "ele": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
-        "muontrig": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
-        "eletrig": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
-        "pileup": WEIGHTDIR+"/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root",
-        }
-weighthistnames = {
-        "muon": "ScaleFactor_TightMuonSelectionEffDenominatorReco",
-        "ele": "ScaleFactor_TightElectronSelectionEffDenominatorReco",
-        "muontrig": "ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight",
-        "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
-        "pileup": "NVtxReweight",
-        }
 weightOpts = ["doNVtxWeights"]
 shapeErrors = ["muoneff", "eleeff", "jes"]
 miscErrors = ["mt"]
@@ -70,7 +54,7 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
 
     #initialize
-    weightHists = loadWeightHists(weightfilenames, weighthistnames, debugLevel)
+    weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
     sfHists = {}
 
     #get scale factor histograms

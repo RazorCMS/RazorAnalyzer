@@ -106,7 +106,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                 if source.lower() == "mt":
                     applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, blindBins=None):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -117,12 +117,15 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     dataHists = histDict[dataName]
 
     #make correct comment string
-    if boxName is None or boxName == "":
-        commentstr = printName+" Box"
+    if comment:
+        if boxName is None or boxName == "":
+            commentstr = printName
+        else:
+            commentstr = boxName+ " Box"
+            if btags is not None and btags >= 0:
+                commentstr += ", "+str(btags)+" B-tag"
     else:
-        commentstr = boxName+ "Box"
-        if btags is not None and btags >= 0:
-            commentstr += ", "+str(btags)+" B-tag"
+        commentstr = ""
 
     legend=None
     plotFit = ("Fit" in histDict)
@@ -372,7 +375,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     #setup
     c.Clear()
     c.cd()
-    if data and mc: pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.4, 1, 1)
+    if (data and mc) or (data and fit) or (mc and fit): pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.4, 1, 1)
     else: pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.1, 1, 1)
     pad1.SetBottomMargin(0)
     pad1.SetLogx(logx)

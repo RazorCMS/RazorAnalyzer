@@ -7,6 +7,23 @@ import sys
 ### WEIGHT AND TRIGGER INFO
 #####################################
 
+WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
+LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
+weightfilenames_DEFAULT = {
+        "muon": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root",
+        "ele": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
+        "muontrig": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
+        "eletrig": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
+        "pileup": WEIGHTDIR_DEFAULT+"/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root",
+        }
+weighthistnames_DEFAULT = {
+        "muon": "ScaleFactor_TightMuonSelectionEffDenominatorReco",
+        "ele": "ScaleFactor_TightElectronSelectionEffDenominatorReco",
+        "muontrig": "ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight",
+        "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
+        "pileup": "NVtxReweight",
+        }
+
 def passTrigger(event, triggerNumList):
     """Checks if the event passed any trigger in the list"""
     passes = False

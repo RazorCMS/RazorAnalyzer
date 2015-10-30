@@ -76,6 +76,8 @@ if __name__ == "__main__":
     #initialize
     weightHists = loadWeightHists(weightfilenames, weighthistnames, debugLevel)
     sfHists = {}
+    #NOTE: applying scale factors as a cross check.
+    sfHists = loadScaleFactorHists(processNames=SAMPLES_WJ1L, debugLevel=debugLevel)
 
     #WJets control sample
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
@@ -83,7 +85,7 @@ if __name__ == "__main__":
                 cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
                 bins=wjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, debugLevel=debugLevel)
-    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
+    #appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
 
     #TTJets control sample
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", 
@@ -91,7 +93,7 @@ if __name__ == "__main__":
                 cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
                 bins=ttjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, debugLevel=debugLevel)
-    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
+    #appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
 
     #write scale factors
     #outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
