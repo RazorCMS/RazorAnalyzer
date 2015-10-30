@@ -227,12 +227,51 @@ void plotTauEfficiency() {
   cv->SaveAs("TauSelectionFakeRateVsNpv.gif");
   cv->SaveAs("TauSelectionFakeRateVsNpv.pdf");
 
+}
 
 
 
+void MakeFastsimToFullSimCorrectionFactors() {
+  TCanvas *cv =0;
+  TLegend *legend =0;
 
+  TFile *fileFullsimLoose = new TFile("Efficiency_PromptTau_TTJets_25ns_Loose_Fullsim.root","READ");
+  TFile *fileFastsimLoose = new TFile("Efficiency_PromptTau_TTJets_25ns_Loose_Fastsim.root","READ");
+
+  TH2F* histFullsimLoose = (TH2F*)fileFullsimLoose->Get("Efficiency_PtEta");
+  TH2F* histFastsimLoose = (TH2F*)fileFastsimLoose->Get("Efficiency_PtEta");
+
+  TH2F* histSFLoose = (TH2F*)histFullsimLoose->Clone("TauLoose_FastsimScaleFactor");
+  histSFLoose->GetXaxis()->SetTitle("Tau p_{T} [GeV/c]");
+  histSFLoose->GetYaxis()->SetTitle("Tau #eta");
+
+  //Loose WP
+  for (int b=1; b<histSFLoose->GetXaxis()->GetNbins()+1 ; ++b) {
+    for (int c=1; c<histSFLoose->GetYaxis()->GetNbins()+1 ; ++c) {
+      double sf = histFullsimLoose->GetBinContent(b,c) / histFastsimLoose->GetBinContent(b,c);
+      double sferr = 0;
+      if ( histFullsimLoose->GetBinContent(b,c) > 0 && histFastsimLoose->GetBinContent(b,c) > 0) {
+	sferr = sf*sqrt( pow(histFullsimLoose->GetBinError(b,c)/histFullsimLoose->GetBinContent(b,c),2) +
+				pow(histFastsimLoose->GetBinError(b,c)/histFastsimLoose->GetBinContent(b,c),2) );
+      }
+      histSFLoose->SetBinContent(b,c,sf);
+      histSFLoose->SetBinError(b,c,sferr);
+    }
+  }
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open("TauEffFastsimToFullsimCorrectionFactors.root", "UPDATE");
+  file->cd();
+  file->WriteTObject(histSFLoose, "TauLoose_FastsimScaleFactor", "WriteDelete");  
+  file->WriteTObject(histFullsimLoose, "TauEff_Loose_Fullsim", "WriteDelete");
+  file->WriteTObject(histFastsimLoose, "TauEff_Loose_Fastsim", "WriteDelete");
+  file->Close();
+  delete file;      
 
 }
+
 
 
 
@@ -267,8 +306,8 @@ void ProduceTauEfficiencyPlots(const string inputfile, int wp,  int option = -1,
   TH1F *histDenominatorNpu = new TH1F ("histDenominatorNpu",";Tau Npu; Number of Events", 50, 0 , 100);
   TH1F *histNumeratorNpu = new TH1F ("histNumeratorNpu",";Tau Npu; Number of Events", 50, 0 , 100);
 
-  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
-  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
+  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Tau p_{T} [GeV/c] ; Tau #eta; Number of Events", 34, 0 , 170, 60, -3.0, 3.0);
+  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Tau p_{T} [GeV/c] ; Tau #eta; Number of Events", 34, 0 , 170, 60, -3.0, 3.0);
 
   //*******************************************************************************************
   //Read file
@@ -527,10 +566,18 @@ void ProduceTauEfficiencyPlots(const string inputfile, int wp,  int option = -1,
 void MakeTauEfficiencyPlots(int option = 0) {
 
   if (option == 1) {
-    ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/TauNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 0, "PromptTau_TTJets_25ns_Loose") ;
-    ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/TauNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 10, "FakeTau_TTJets_25ns_Loose") ;
+    ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/V1p20/TauNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fullsim.root", 1, 0, "PromptTau_TTJets_25ns_Loose_Fullsim") ;
+    // ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/TauNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 1, 10, "FakeTau_TTJets_25ns_Loose") ;
   } 
 
-  plotTauEfficiency();
-  
+  if (option == 2) {
+    ProduceTauEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/TauNtuple/V1p20/TauNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fastsim.root", 1, 0, "PromptTau_TTJets_25ns_Loose_Fastsim") ;
+  } 
+
+  // plotTauEfficiency();
+
+  if (option == 100) {
+    MakeFastsimToFullSimCorrectionFactors();
+  }
+
 }
