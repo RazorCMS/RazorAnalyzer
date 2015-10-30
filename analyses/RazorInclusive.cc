@@ -119,7 +119,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   //float lepTrigCorrFactor = 1.0;
   //float btagCorrFactor = 1.0;
   //bool  hltDecision[100];
-  
+  int nGenMuons, nGenElectrons, nGenTauMuons, nGenTauElectrons, nGenHadTaus, nGenTaus;
+  float leadingGenMuonPt, leadingGenElectronPt, leadingGenTauPt;
+  float leadingGenMuonEta, leadingGenElectronEta, leadingGenTauEta;
+  float minDRGenLeptonToGenParton;
+  float genmet;
 
   RazorBox box;
 
@@ -178,6 +182,23 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
           razorTree->Branch("mGluino", &mGluino, "mGluino/I");
           razorTree->Branch("mLSP", &mLSP, "mLSP/I");
       }
+
+      //For extra MC information
+      razorTree->Branch("nGenMuons", &nGenMuons, "nGenMuons/I");
+      razorTree->Branch("nGenElectrons", &nGenElectrons, "nGenElectrons/I");
+      razorTree->Branch("nGenTauMuons", &nGenTauMuons, "nGenTauMuons/I");
+      razorTree->Branch("nGenTauElectrons", &nGenTauElectrons, "nGenTauElectrons/I");
+      razorTree->Branch("nGenHadTaus", &nGenHadTaus, "nGenHadTaus/I");
+      razorTree->Branch("nGenTaus", &nGenTaus, "nGenTaus/I");
+      razorTree->Branch("leadingGenMuonPt", &leadingGenMuonPt, "leadingGenMuonPt/F");
+      razorTree->Branch("leadingGenElectronPt", &leadingGenElectronPt, "leadingGenElectronPt/F");
+      razorTree->Branch("leadingGenTauPt", &leadingGenTauPt, "leadingGenTauPt/F");
+      razorTree->Branch("leadingGenMuonEta", &leadingGenMuonEta, "leadingGenMuonEta/F");
+      razorTree->Branch("leadingGenElectronEta", &leadingGenElectronEta, "leadingGenElectronEta/F");
+      razorTree->Branch("leadingGenTauEta", &leadingGenTauEta, "leadingGenTauEta/F");
+      razorTree->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
+      razorTree->Branch("genmet", &genmet, "genmet/F");
+      
     } else {
       razorTree->Branch("run", &runNum, "run/i");
       razorTree->Branch("lumi", &lumiNum, "lumi/i");
@@ -266,6 +287,20 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
         mGluino = -1;
         mLSP = -1;
     }
+    nGenMuons = 0;
+    nGenElectrons = 0;
+    nGenTauMuons = 0;
+    nGenTauElectrons = 0;
+    nGenHadTaus = 0;
+    nGenTaus = 0;
+    leadingGenMuonPt = 0;
+    leadingGenElectronPt = 0;
+    leadingGenTauPt = 0;
+    leadingGenMuonEta = -999;
+    leadingGenElectronEta = -999;
+    leadingGenTauEta = -999;
+    minDRGenLeptonToGenParton = 9999;
+    genmet = -999;
 
     /////////////////////////////////
     //SMS information
@@ -301,7 +336,108 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     }
 
     //*****************************************
-    //TODO: triggers!
+    //MC Information
+    //*****************************************
+    genmet = genMetPt;
+    for(int j = 0; j < nGenParticle; j++){
+      if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
+	  //&& abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5
+	  ) {
+	if (  (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23) ) {
+	  nGenElectrons++;
+	  if (gParticlePt[j] > leadingGenElectronPt) {
+	    leadingGenElectronPt = gParticlePt[j];
+	    leadingGenElectronEta = gParticleEta[j];
+	  }
+	}
+	if ( abs(gParticleMotherId[j]) == 15) {
+	  nGenTauElectrons++;
+	}
+      }
+      if (abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1  
+	  //&& abs(gParticleEta[j]) < 2.4 && gParticlePt[j] > 5
+	  ) {
+	if ( (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)) {
+	  nGenMuons++;
+	  if (gParticlePt[j] > leadingGenMuonPt) {
+	    leadingGenMuonPt = gParticlePt[j];
+	    leadingGenMuonEta = gParticleEta[j];
+	  }
+	}
+	if ( abs(gParticleMotherId[j]) == 15) {
+	  nGenTauMuons++;
+	}
+      }
+      if (abs(gParticleId[j]) == 15 && gParticleStatus[j] == 2 
+	  && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)
+	  //&& abs(gParticleEta[j]) < 2.4 && gParticlePt[j] > 20
+	  ) {
+	nGenTaus++;
+	bool isLeptonicTau = false;
+	for(int k = 0; k < nGenParticle; k++){
+	  if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == j) {
+	    isLeptonicTau = true;
+	    break;
+	  }
+	}
+	if (!isLeptonicTau) nGenHadTaus++;
+	if (!isLeptonicTau && gParticlePt[j] > leadingGenTauPt) {
+	  leadingGenTauPt = gParticlePt[j];
+	  leadingGenTauEta = gParticleEta[j];
+	}
+	   
+      }
+    }
+	
+    for(int j = 0; j < nGenParticle; j++){
+      float minDRToGenLepton = 9999;
+      //int closestLeptonIndex = -1;
+
+      //only look for outgoing partons
+      if  (!( ((abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21) 
+	      && gParticleStatus[j] == 23)
+	   ) continue;
+	       		      
+      //look for closest lepton
+      for(int k = 0; k < nGenParticle; k++){
+	if ( 
+	    (abs(gParticleId[k]) == 11 && gParticleStatus[k] == 1 	      
+	     && (abs(gParticleMotherId[k]) == 24 || abs(gParticleMotherId[k]) == 23)
+	     && abs(gParticleEta[k]) < 2.5 && gParticlePt[k] > 5)
+	    ||
+	    (abs(gParticleId[k]) == 13 && gParticleStatus[k] == 1  
+	     && (abs(gParticleMotherId[k]) == 24 || abs(gParticleMotherId[k]) == 23)
+	     && abs(gParticleEta[k]) < 2.4 && gParticlePt[k] > 5
+	     )
+	    ||
+	    (abs(gParticleId[k]) == 15 && gParticleStatus[k] == 2 
+	     && (abs(gParticleMotherId[k]) == 24 || abs(gParticleMotherId[k]) == 23)
+	     && abs(gParticleEta[k]) < 2.4 && gParticlePt[k] > 20
+	     )
+	     ) {	 
+	  double tmpDR = deltaR( gParticleEta[j], gParticlePhi[j], gParticleEta[k], gParticlePhi[k]);
+	  if ( tmpDR < minDRToGenLepton ) {
+	    minDRToGenLepton = tmpDR;
+	    //closestLeptonIndex = k;
+	  }
+	}
+      }
+
+      // cout << "Parton " << j << " : " << gParticleId[j] << " | " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " | " << gParticleMotherId[j] 
+      //      << " : " << minDRToGenLepton 
+      //      << " | " ;
+      // if (closestLeptonIndex >= 0 && minDRToGenLepton < 0.4) {
+      //   cout << gParticleId[closestLeptonIndex] << " " << gParticlePt[closestLeptonIndex] << " " << gParticleEta[closestLeptonIndex] << " " << gParticlePhi[closestLeptonIndex] << " " << gParticleMotherId[closestLeptonIndex];
+      // }
+      // cout << "\n";
+
+      if ( minDRToGenLepton < minDRGenLeptonToGenParton) minDRGenLeptonToGenParton = minDRToGenLepton;
+    }
+
+
+
+    //*****************************************
+    //Triggers
     //*****************************************
     bool passedDileptonTrigger = false;
     bool passedSingleLeptonTrigger = false;
@@ -720,7 +856,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //**********************************************************************
 
     //MuEle Box
-    if(passedDileptonTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
+    if(passedDileptonTrigger && nTightElectrons > 0 && nTightMuons > 0 ){
         if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
             if(combineTrees){
                 box = MuEle;
@@ -730,7 +866,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
         }
     }
     //MuMu Box
-    else if(passedDileptonTrigger && nTightMuons > 0 && nLooseMuons > 1){
+    else if(passedDileptonTrigger && nTightMuons > 1 ){
         if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
             if(combineTrees){
                 box = MuMu;
@@ -740,7 +876,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
         }
     }
     //EleEle Box
-    else if(passedDileptonTrigger && nTightElectrons > 0 && nLooseElectrons > 1 ){
+    else if(passedDileptonTrigger && nTightElectrons > 1 ){
         if(passesLeptonicRazorBaseline(theMR, theRsq)){ 
             if(combineTrees){
                 box = EleEle;
