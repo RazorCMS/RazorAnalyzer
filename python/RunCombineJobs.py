@@ -30,7 +30,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     user = os.environ['USER']
     pwd = os.environ['PWD']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer/%s/"%(user[0],user,submitDir)
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/"%(user[0],user)
 
     script =  '#!/usr/bin/env bash -x\n'
     script += 'mkdir -p %s\n'%combineDir
@@ -42,8 +42,21 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += "export SCRAM_ARCH=slc6_amd64_gcc481\n"
     script += "export CMSSW_BASE=/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5\n"%(user[0],user)
     script += 'eval `scramv1 runtime -sh`\n'
+    script += 'cd - \n'
+    script += "export TWD=${PWD}/%s_%s_lumi-%.3f_%s_%s\n"%(model,massPoint,lumi,btag,box)
+    script += "mkdir -p $TWD\n"
+    script += "cd $TWD\n"
+    script += 'pwd\n'
+    script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
+    script += 'cd RazorAnalyzer\n'
     script += 'source setup.sh\n'
-    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+    script += 'make\n'
+    script += 'mkdir -p Datasets\n'
+    script += 'mkdir -p %s\n'%submitDir
+    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+    script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
+    script += 'cd ../..\n'
+    script += 'rm -rf $TWD\n'
     
     outputfile = open(outputname,'w')
     outputfile.write(script)
@@ -80,14 +93,30 @@ if __name__ == '__main__':
                   help="mgMin ")
     parser.add_option('--mg-lt',dest="mgMax",default=10000,type="float",
                   help="mgMax ")
+    parser.add_option('--mchi-geq',dest="mchiMin",default=-1,type="float",
+                  help="mchiMin ")
+    parser.add_option('--mchi-lt',dest="mchiMax",default=10000,type="float",
+                  help="mchiMax ")
     parser.add_option('--done-file',dest="doneFile",default=None,type="string",
                   help="file containing output files")
 
     (options,args) = parser.parse_args()
 
 
-    btag = '0-2btag'
+    cfg = Config.Config(options.config)
 
+    boxes = options.box.split('_')
+
+    btag = ''
+    for box in boxes:            
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        btagMin = z[0]
+        btagMax = z[-1]
+        if btagMax-1>btagMin:          
+            btag = '%i-%ibtag'%(btagMin,btagMax-1)
+        else:
+            btag = '%ibtag'%(btagMin)
+                
     nJobs = 0
     donePairs = []
     if options.doneFile is not None:
@@ -100,6 +129,7 @@ if __name__ == '__main__':
                     
     for (mg, mchi) in gchipairs(options.model):
         if not (mg >= options.mgMin and mg < options.mgMax): continue
+        if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
         if (mg, mchi) in donePairs: continue
         nJobs+=1
         outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty)

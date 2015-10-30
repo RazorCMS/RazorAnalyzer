@@ -43,7 +43,43 @@ def initializeWorkspace(w,cfg,box):
     w.set('variables').add(w.var('W'))
     return w
 
-def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
+def getCuts(workspace, box):
+    args = workspace.set("variables")
+
+    #get bounds
+    mRmin = args['MR'].getMin()
+    mRmax = args['MR'].getMax()
+    rsqMin = args['Rsq'].getMin()
+    rsqMax = args['Rsq'].getMax()
+    btagMin =  args['nBtag'].getMin()
+    btagMax =  args['nBtag'].getMax()
+    btagCutoff = btagMax - 1
+    if box in ["MuEle", "MuMu", "EleEle"]:
+        btagCutoff = 1
+        
+    #get the optimal cuts for each box
+    if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet"]: 
+        dPhiCut = 2.8
+        MTCut = -1
+    else: 
+        dPhiCut = -1
+        MTCut = 100
+
+    boxCut = boxes[box]
+    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut)
+
+    #add deltaPhi and/or MT cut
+    if MTCut >= 0: 
+        if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:
+            cuts = cuts + (' && mTLoose > %f' % MTCut)
+        else:
+            cuts = cuts + (' && mT > %f' % MTCut)
+    if dPhiCut >= 0:
+        cuts = cuts + (' && abs(dPhiRazor) < %f' % dPhiCut)
+
+    return cuts
+
+def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, globalScaleFactor):
     if f.find('SMS')!=-1:
         k = 1.
     elif f.find('TTJets')!=-1:
@@ -70,7 +106,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
@@ -91,7 +127,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, scaleFactor):
     return [htemp.GetBinContent(i) for i in range(1,len(z))]
         
     
-def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, treeName='RMRTree',isData=False):
+def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFactor, treeName='RMRTree',isData=False):
     """This defines the format of the RooDataSet"""
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
@@ -124,7 +160,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 
@@ -136,14 +172,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
         dPhiCut = 3.2
         MTCut = 100
 
-    boxCut = boxes[box]
-
-    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s && abs(dPhiRazor) < %f' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut,dPhiCut)
-    if MTCut >= 0: #add MT cut
-        if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:
-            cuts = cuts + (' && mTLoose > %f' % MTCut)
-        else:
-            cuts = cuts + (' && mT > %f' % MTCut)
+    cuts = getCuts(workspace,box)
 
     if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
         triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in range(134,145)])
@@ -179,10 +208,10 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, scaleFactor, tr
         a.setRealValue('nBtag',min(tree.nBTaggedJets,btagCutoff))
         
         if useWeight and 'SMS' in f:
-            a.setRealValue('W',scaleFactor)            
+            a.setRealValue('W',tree.weight*globalScaleFactor)
         elif useWeight:
             btag_bin = htemp.FindBin(min(tree.nBTaggedJets,btagCutoff)) - 1
-            a.setRealValue('W',tree.weight*k[btag_bin]*scaleFactor)
+            a.setRealValue('W',tree.weight*k[btag_bin]*globalScaleFactor)
         else:
             a.setRealValue('W',1.0)
         data.add(a)
@@ -251,7 +280,7 @@ if __name__ == '__main__':
         sumWQCD = 0.
         for f in args:
             if f.lower().endswith('.root'):
-                rootFile = rt.TFile(f)
+                rootFile = rt.TFile.Open(f)
                 tree = rootFile.Get('RazorInclusive')
                 if f.lower().find('sms')==-1:
                     
@@ -273,7 +302,7 @@ if __name__ == '__main__':
 
     for i, f in enumerate(args):
         if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f)
+            rootFile = rt.TFile.Open(f)
             tree = rootFile.Get('RazorInclusive')
             if f.lower().find('sms')==-1:
                 if removeQCD and f.find('QCD')!=-1:
@@ -282,8 +311,9 @@ if __name__ == '__main__':
                     ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi/lumi_in,  'RMRTree_%i'%i, options.isData))
                 
             else:
-                model = f.split('.root')[0].split('-')[1].split('_')[0]
-                massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+                modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+                model = modelString.split('-')[-1]
+                massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
                                
                 thyXsec = -1
                 thyXsecErr = -1

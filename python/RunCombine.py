@@ -35,8 +35,8 @@ if __name__ == '__main__':
                   help="Turn on pre-fit")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
                   help="no fit, just use MC")
-    parser.add_option('--min-tol',dest="min_tol",default=0.0001,type="float",
-                  help="minimizer tolerance (default = 0.0001)")
+    parser.add_option('--min-tol',dest="min_tol",default=0.001,type="float",
+                  help="minimizer tolerance (default = 0.001)")
     parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
                   help="Just print out commands to run")
     parser.add_option('-u','--unweighted',dest="unweighted",default=False,action='store_true',
@@ -72,12 +72,13 @@ if __name__ == '__main__':
 
     
     json = 'Golden'
-    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumi%s'%json,
+    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_Oct05ReMiniAOD_GoodLumi%s'%json,
                'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_GoodLumi%s'%json,
                'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumi%s'%json
                }
         
-        
+    exec_me('mkdir -p Datasets',options.dryRun)        
+    exec_me('mkdir -p %s'%options.outDir,options.dryRun)
     for lumi in lumiArray:
         for box in boxes:            
             z = array('d', cfg.getBinning(box)[2]) # nBtag binning
@@ -88,14 +89,15 @@ if __name__ == '__main__':
             else:
                 btag = '%ibtag'%(btagMin)    
 
-                
+
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
-            exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
+            #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
+            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p21_ForFullStatus20151030/jobs/combined/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
             
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
-                exec_me('python python/DustinTuple2RooDataSet.py -b %s -c %s -d Datasets/ Run2015D/%s.root --data -l %f'% (box, options.config, dataset[box], 1000*lumi), options.dryRun )
+                exec_me('python python/DustinTuple2RooDataSet.py -b %s -c %s -d Datasets/ root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data/%s.root --data -l %f'% (box, options.config, dataset[box], 1000*lumi), options.dryRun )
             else:                
                 backgroundDsName = 'Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.3f_%s_%s.root'%(lumi,btag,box)
                 exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w -q Backgrounds/*.root -l %f'%(options.config,box, 1000*lumi),options.dryRun)
@@ -108,13 +110,13 @@ if __name__ == '__main__':
             penaltyString = ''
             if options.penalty: penaltyString = '--penalty'
                 
-            exec_me('python python/WriteDataCard.py -l %f -c %s -b %s -d %s %s %s %s %s'%(1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
+            exec_me('python python/WriteDataCard.py -i FitResults/BinnedFitResults.root -l %f -c %s -b %s -d %s %s %s %s %s'%(1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir),options.dryRun)
             else:
-                exec_me('combine -M Asymptotic --saveWorkspace %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol),options.dryRun)
+                exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)
         if len(boxes)>1:
             for box in boxes: exec_me('cp %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt .'%(options.outDir,model,massPoint,lumi,btag,box),options.dryRun)
@@ -125,7 +127,7 @@ if __name__ == '__main__':
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,btag,options.box),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir),options.dryRun)
             else:
-                exec_me('combine -M Asymptotic --saveWorkspace %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f'%(options.outDir,model,massPoint,lumi,btag,options.box,model,massPoint,lumi,btag,options.box,options.min_tol),options.dryRun)
+                exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f'%(options.outDir,model,massPoint,lumi,btag,options.box,model,massPoint,lumi,btag,options.box,options.min_tol),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir),options.dryRun)
             for box in boxes: exec_me('rm razor_combine_%s_%s_lumi-%.3f_%s_%s.txt'%(model,massPoint,lumi,btag,box),options.dryRun)
  
