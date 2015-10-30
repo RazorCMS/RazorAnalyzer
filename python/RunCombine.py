@@ -112,7 +112,7 @@ if __name__ == '__main__':
             penaltyString = ''
             if options.penalty: penaltyString = '--penalty'
                 
-            exec_me('python python/WriteDataCard.py -i %i -l %f -c %s -b %s -d %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
+            exec_me('python python/WriteDataCard.py -s %i -l %f -c %s -b %s -d %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
