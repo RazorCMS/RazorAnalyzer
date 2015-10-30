@@ -119,7 +119,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   //float lepTrigCorrFactor = 1.0;
   //float btagCorrFactor = 1.0;
   //bool  hltDecision[100];
-     
+  
+
   RazorBox box;
 
   //set branches on big tree
@@ -304,7 +305,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //*****************************************
     bool passedDileptonTrigger = false;
     bool passedSingleLeptonTrigger = false;
-    bool passedLeptonicTrigger = false;
     bool passedHadronicTrigger= false;
 
     if (isData) {
@@ -332,7 +332,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 				   || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
 				   || HLTDecision[143] || HLTDecision[144]);    
     }
-    passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
 
     //ignore trigger for Fastsim
     if(isFastsimSMS){
@@ -655,11 +654,27 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 
     HT = 0;
     for(auto& obj : GoodPFObjects) HT += obj.Pt();
-
-    vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
-    theMR = computeMR(hemispheres[0], hemispheres[1]); 
-    theRsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
-    dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+    
+    if ( GoodPFObjects.size() < 20) {
+      vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
+      theMR = computeMR(hemispheres[0], hemispheres[1]); 
+      theRsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
+      dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+    } else {
+      theMR = -999;
+      theRsq = -999;
+      dPhiRazor = -999;
+      cout << "WARNING: Event has  more than 20 objects\n";
+      cout << "NElectrons =  " << nVetoElectrons << "\n";
+      cout << "NMuons =  " << nVetoMuons << "\n";
+      cout << "NTaus = " << nLooseTaus << "\n";
+      for(auto& lep : GoodLeptons) {
+	cout << "lepton : " << lep.Pt() << " " << lep.Eta() << " " << lep.Phi() << " " << lep.M() << "\n";
+      }
+      for(auto& jet : GoodJets) {
+	cout << "jet: " << jet.Pt() << " " << jet.Eta() << " " << jet.Phi() << " " << jet.M() << "\n";
+      }      
+    }
     met = MyMET.Pt();
 
     //save transverse mass 
@@ -687,8 +702,6 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
             mTLoose = sqrt(2*GoodLeptons[maxLepIndex].Pt()*MyMET.Pt()*( 1.0 - cos( deltaPhiLepMet ) ) );
         }
     }
-
-    //cout << "Check: " << eventNum << " : " << theMR << " " << theRsq << " " << dPhiRazor << "\n";
 
     //**********************************************************************
     //Apply ECAL Dead Cells Filter : Not fixed in miniAOD yet
