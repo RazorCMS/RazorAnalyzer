@@ -8,7 +8,7 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
@@ -53,7 +53,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'make\n'
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
-    script += 'python python/RunCombine.py --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+    script += 'python python/RunCombine.py -i %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -99,12 +99,26 @@ if __name__ == '__main__':
                   help="mchiMax ")
     parser.add_option('--done-file',dest="doneFile",default=None,type="string",
                   help="file containing output files")
+    parser.add_option('-i','--input-fit-file',dest="inputFitFile", default='FitResults/BinnedFitResults.root',type="string",
+                  help="input fit file")
 
     (options,args) = parser.parse_args()
 
 
-    btag = '0-3btag'
+    cfg = Config.Config(options.config)
 
+    boxes = options.box.split('_')
+
+    btag = ''
+    for box in boxes:            
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        btagMin = z[0]
+        btagMax = z[-1]
+        if btagMax-1>btagMin:          
+            btag = '%i-%ibtag'%(btagMin,btagMax-1)
+        else:
+            btag = '%ibtag'%(btagMin)
+                
     nJobs = 0
     donePairs = []
     if options.doneFile is not None:
@@ -120,7 +134,7 @@ if __name__ == '__main__':
         if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
         if (mg, mchi) in donePairs: continue
         nJobs+=1
-        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty)
+        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile)
         
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)

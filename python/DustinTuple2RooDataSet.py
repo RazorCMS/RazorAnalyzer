@@ -53,7 +53,7 @@ def getCuts(workspace, box):
     rsqMax = args['Rsq'].getMax()
     btagMin =  args['nBtag'].getMin()
     btagMax =  args['nBtag'].getMax()
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
@@ -106,7 +106,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, globalScaleFactor):
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
@@ -160,7 +160,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 

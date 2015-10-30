@@ -34,7 +34,7 @@ bool PassSelection( JetTree* JetTree ) {
   bool pass = false;
 
   //Medium WP
-  if (JetTree->fJetCISV > 0.814) {
+  if (JetTree->fJetCISV > 0.890) {
     pass = true;
   }
 
@@ -435,8 +435,8 @@ void ProduceBTaggingEfficiencyPlots(const string inputfile, int option = -1, str
   TH1F *histDenominatorNpu = new TH1F ("histDenominatorNpu",";Electron Npu; Number of Events", 50, 0 , 100);
   TH1F *histNumeratorNpu = new TH1F ("histNumeratorNpu",";Electron Npu; Number of Events", 50, 0 , 100);
 
-  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
-  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
+  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Jet p_{T} [GeV/c] ; Jet #eta; Number of Events", 40, 0, 200, 60, -3.0, 3.0);
+  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Jet p_{T} [GeV/c] ; Jet #eta; Number of Events", 40, 0, 200, 60, -3.0, 3.0);
 
   //*******************************************************************************************
   //Read file
@@ -471,7 +471,7 @@ void ProduceBTaggingEfficiencyPlots(const string inputfile, int option = -1, str
 
     NCounts++;
 
-    if (NCounts > 1000000 || ientry > 10000000) break;
+    // if (NCounts > 1000000 || ientry > 10000000) break;
 
     //**** PT - ETA ****
     histDenominatorPtEta->Fill(jetTree->fJetGenPt,jetTree->fJetGenEta);
@@ -621,17 +621,66 @@ void ProduceBTaggingEfficiencyPlots(const string inputfile, int option = -1, str
 }
 
 
+void MakeFastsimToFullSimCorrectionFactors() {
+  TCanvas *cv =0;
+  TLegend *legend =0;
+
+  TFile *fileFullsimMedium = new TFile("Efficiency_BJets_25ns_Fullsim.root","READ");
+  TFile *fileFastsimMedium = new TFile("Efficiency_BJets_25ns_Fastsim.root","READ");
+  TH2F* histFullsimMedium = (TH2F*)fileFullsimMedium->Get("Efficiency_PtEta");
+  TH2F* histFastsimMedium = (TH2F*)fileFastsimMedium->Get("Efficiency_PtEta");
+
+  TH2F* histSFMedium = (TH2F*)histFullsimMedium->Clone("BTagMedium_FastsimScaleFactor");
+  histSFMedium->GetXaxis()->SetTitle("Jet p_{T} [GeV/c]");
+  histSFMedium->GetYaxis()->SetTitle("Jet #eta");
+
+  //Medium WP
+  for (int b=1; b<histSFMedium->GetXaxis()->GetNbins()+1 ; ++b) {
+    for (int c=1; c<histSFMedium->GetYaxis()->GetNbins()+1 ; ++c) {
+      double sf = histFullsimMedium->GetBinContent(b,c) / histFastsimMedium->GetBinContent(b,c);
+      double sferr = 0;
+      if ( histFullsimMedium->GetBinContent(b,c) > 0 && histFastsimMedium->GetBinContent(b,c) > 0) {
+	sferr = sf*sqrt( pow(histFullsimMedium->GetBinError(b,c)/histFullsimMedium->GetBinContent(b,c),2) +
+				pow(histFastsimMedium->GetBinError(b,c)/histFastsimMedium->GetBinContent(b,c),2) );
+      }
+      histSFMedium->SetBinContent(b,c,sf);
+      histSFMedium->SetBinError(b,c,sferr);
+    }
+  }
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open("BTagEffFastsimToFullsimCorrectionFactors.root", "UPDATE");
+  file->cd();
+  file->WriteTObject(histSFMedium, "BTagMedium_FastsimScaleFactor", "WriteDelete");  
+  file->WriteTObject(histFullsimMedium, "BTagEff_Medium_Fullsim", "WriteDelete");
+  file->WriteTObject(histFastsimMedium, "BTagEff_Medium_Fastsim", "WriteDelete");
+  file->Close();
+  delete file;      
+
+}
+
+
+
+
+
 void MakeBTaggingEfficiencyPlots( int Option = 0) {
  
   if (Option==1) {
-    ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 5 , "BJets_25ns");
-    ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 4 , "CharmJets_25ns");
-    ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 0 , "LightJets_25ns");
-    
+    ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/V1p20/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fullsim.root", 5 , "BJets_25ns_Fullsim");
+    // ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 4 , "CharmJets_25ns");
+    // ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_Spring15_25ns.root", 0 , "LightJets_25ns");    
+  }
+  
+  if (Option==2) {
+    ProduceBTaggingEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/JetNtuple/V1p20/JetNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fastsim.root", 5 , "BJets_25ns_Fastsim");
   }
   
   
-  plotBTaggingEfficiency();
- 
- 
+  //plotBTaggingEfficiency();
+  if (Option == 100) {
+    MakeFastsimToFullSimCorrectionFactors();
+  }
+
 }

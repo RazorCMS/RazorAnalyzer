@@ -515,7 +515,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         float eleTrigCorrFactor = 1.0;
         //Cut parameters
         const float ELE_VETO_CUT = 5;
-        const float ELE_LOOSE_CUT = 30;
+        const float ELE_LOOSE_CUT = 25;
         //Loop electrons
         for (int i = 0; i < nElectrons; i++){
 
@@ -947,19 +947,19 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
         //Get correct box under up/down JES/JER systematic
         if(!isData){
-            if(passedDileptonTrigger && nTightElectrons > 0 && nLooseMuons > 0){
+            if(passedDileptonTrigger && nTightElectrons > 0 && nTightMuons > 0){
                 box_JESUp = MuEle;
                 box_JESDown = MuEle;
                 box_JERUp = MuEle;
                 box_JERDown = MuEle;
             }
-            else if(passedDileptonTrigger && nTightMuons > 0 && nLooseMuons > 1){
+            else if(passedDileptonTrigger && nTightMuons > 1){
                 box_JESUp = MuMu;
                 box_JESDown = MuMu;
                 box_JERUp = MuMu;
                 box_JERDown = MuMu;
             }
-            else if(passedDileptonTrigger && nTightElectrons > 0 && nLooseElectrons > 1){
+            else if(passedDileptonTrigger && nTightElectrons>1){
                 box_JESUp = EleEle;
                 box_JESDown = EleEle;
                 box_JERUp = EleEle;
@@ -1036,13 +1036,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         //Nominal box
-        if (passedDileptonTrigger && nTightElectrons > 0 && nLooseMuons > 0){
+        if (passedDileptonTrigger && nTightElectrons > 0 && nTightMuons > 0){
             box = MuEle;
         }
-        else if (passedDileptonTrigger && nTightMuons > 0 && nLooseMuons > 1){
+        else if (passedDileptonTrigger && nTightMuons > 1){
             box = MuMu;
         }
-        else if (passedDileptonTrigger && nTightElectrons > 0 && nLooseElectrons > 1){
+        else if (passedDileptonTrigger && nTightElectrons > 1){
             box = EleEle;
         }
         else if (passedSingleLeptonTrigger && nTightMuons > 0){

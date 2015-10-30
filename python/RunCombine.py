@@ -45,6 +45,8 @@ if __name__ == '__main__':
                   help="penalty terms on background parameters")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
                   help="changes plots for data")
+    parser.add_option('-i','--input-fit-file',dest="inputFitFile", default='FitResults/BinnedFitResults.root',type="string",
+                  help="input fit file")
 
     (options,args) = parser.parse_args()
 
@@ -110,7 +112,7 @@ if __name__ == '__main__':
             penaltyString = ''
             if options.penalty: penaltyString = '--penalty'
                 
-            exec_me('python python/WriteDataCard.py -i FitResults/BinnedFitResults.root -l %f -c %s -b %s -d %s %s %s %s %s'%(1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
+            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
