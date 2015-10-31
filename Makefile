@@ -9,7 +9,7 @@ SCRATCHDIR = /tmp/
 
 AUX = $(wildcard $(SRCDIR)/RazorAux*.cc $(SRCDIR)/HggRazorAuxPhoton.cc $(SRCDIR)/Hemisphere.cc $(SRCDIR)/Davismt2.cc)
 ANALYSES = $(wildcard analyses/*.cc)
-JETCORR = $(SRCDIR)/JetCorrectorParameters.cc $(SRCDIR)/SimpleJetCorrectionUncertainty.cc  $(SRCDIR)/JetCorrectionUncertainty.cc $(SRCDIR)/SimpleJetCorrector.cc $(SRCDIR)/FactorizedJetCorrector.cc $(SRCDIR)/SimpleJetResolution.cc
+JETCORR = $(SRCDIR)/JetCorrectorParameters.cc $(SRCDIR)/SimpleJetCorrectionUncertainty.cc  $(SRCDIR)/JetCorrectionUncertainty.cc $(SRCDIR)/SimpleJetCorrector.cc $(SRCDIR)/FactorizedJetCorrector.cc $(SRCDIR)/SimpleJetResolution.cc $(SRCDIR)/BTagCalibrationStandalone.cc
 JETCORROBJ = $(JETCORR:cc=o)
 EXECUTABLES = RazorRun NormalizeNtuple SkimNtuple
 
