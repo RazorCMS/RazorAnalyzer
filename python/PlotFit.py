@@ -3,12 +3,47 @@ import ROOT as rt
 import rootTools
 from framework import Config
 from array import *
-from WriteDataCard import *
 import os
 import random
 import sys
 import math
 from scipy.integrate import quad
+from itertools import *
+from operator import *
+
+def convertSideband(name,w,x,y,z):
+    if name=="Full":
+        return "Full"
+    names = name.split(',')
+    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    iBinX = -1
+    sidebandBins = []
+    for ix in range(1,len(x)):
+        for iy in range(1,len(y)):
+            for iz in range(1,len(z)):
+                iBinX+=1
+                w.var('MR').setVal((x[ix]+x[ix-1])/2.)
+                w.var('Rsq').setVal((y[iy]+y[iy-1])/2.)
+                w.var('nBtag').setVal((z[iz]+z[iz-1])/2.)
+                inSideband = 0
+                for fitname in names:
+                    inSideband += ( w.var('MR').inRange(fitname) * w.var('Rsq').inRange(fitname) * w.var('nBtag').inRange(fitname) )
+                if inSideband: sidebandBins.append(iBinX)
+
+    sidebandGroups = []
+    for k, g in groupby(enumerate(sidebandBins), lambda (i,x):i-x):
+        consecutiveBins = map(itemgetter(1), g)
+        sidebandGroups.append([consecutiveBins[0],consecutiveBins[-1]+1])
+        
+    newsidebands = ''
+    nameNoComma = name.replace(',','')
+        
+    for iSideband, sidebandGroup in enumerate(sidebandGroups):
+        if not w.var('th1x').hasRange('%s%i'%(nameNoComma,iSideband)):
+            w.var('th1x').setRange("%s%i"%(nameNoComma,iSideband),sidebandGroup[0],sidebandGroup[1])
+        newsidebands+='%s%i,'%(nameNoComma,iSideband)
+    newsidebands = newsidebands[:-1]
+    return newsidebands
 
 def setStyle():
     rt.gStyle.SetOptStat(0)
@@ -292,14 +327,19 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     mode,rangeMin,rangeMax = find68ProbRange(htemp,probRange)
     range68 = (rangeMax-rangeMin)
     rms = htemp.GetRMS()
-    pvalue = getPValue(nObs,htemp)
-    
+    pvalue = getPValue(nObs,htemp)    
     if useKDE:        
         func, rkpdf, dataset = getKDE(sumName,myTree,htemp)
         pvalue,funcFillRight,funcFillLeft,drawLeft = getPValueFromKDE(nObs,xmax,func)
         mode,rangeMin,rangeMax,probRange,funcFill68 = find68ProbRangeFromKDEMode(xmax,func)
         range68 = (rangeMax-rangeMin)
+        
     nsigma = getSigmaFromPval(nObs, bestFit, htemp, pvalue)
+    
+    if pvalue <= 0.:
+        print "pvalue = 0 from histogram method: reverting to gaussian approximation"
+        nsigma = (nObs-bestFit)/rms
+        pvalue = 2.*rt.Math.gaussian_cdf_c(abs(nsigma))
     print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
 
     if options.printErrors:
@@ -941,13 +981,15 @@ def getBinEvents(i, j, k, x, y, z, workspace,box):
         #integral = (N/rt.TMath.Power(B*N,N))*(Gfun(xmin,ymin,X0,Y0,B,N)-Gfun(xmin,ymax,X0,Y0,B,N)-Gfun(xmax,ymin,X0,Y0,B,N)+Gfun(xmax,ymax,X0,Y0,B,N))
         integral = Gfun(xmin,ymin,X0,Y0,B,N)-Gfun(xmin,ymax,X0,Y0,B,N)-Gfun(xmax,ymin,X0,Y0,B,N)+Gfun(xmax,ymax,X0,Y0,B,N)
 
-    bin_events =  NTOT*integral/total_integral
+    if integral > 0. and total_integral > 0.:        
+        bin_events =  NTOT*integral/total_integral
 
-    if bin_events < 0:
+    else: 
         errorFlag = True
-        print "\nERROR: bin razor pdf integral =", integral
-        print "\nERROR: total razor pdf integral =", total_integral
+        #print "ERROR: bin razor pdf integral =", integral
+        #print "ERROR: total razor pdf integral =", total_integral
         return 0., errorFlag
+    
     return bin_events, errorFlag
 
 def getErrors1D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
@@ -994,6 +1036,8 @@ if __name__ == '__main__':
                   help="changes plots for data")
     parser.add_option('--fit-region',dest="fitRegion",default="Full",type="string",
                   help="Fit region")
+    parser.add_option('--plot-region',dest="plotRegion",default="Full",type="string",
+                  help="Plot region")
     
     (options,args) = parser.parse_args()
      
@@ -1001,6 +1045,7 @@ if __name__ == '__main__':
     lumi = options.lumi
     cfg = Config.Config(options.config)
     fitRegion = options.fitRegion
+    plotRegion = options.plotRegion
 
     inputFitFile = rt.TFile.Open(options.inputFitFile,"read")
 
@@ -1047,17 +1092,42 @@ if __name__ == '__main__':
     if tdirectory==None:
         rootFile.mkdir(options.outDir)
         tdirectory = rootFile.GetDirectory(options.outDir)
+
         
-    h_th1x = asimov.createHistogram('h_th1x',th1x)
-    h_data_th1x = dataHist.createHistogram('h_data_th1x',th1x)
+    plotband = convertSideband(plotRegion,w,x,y,z)
+    opt = [rt.RooFit.CutRange(myRange) for myRange in plotband.split(',')]
+    print plotband
+    print opt
+    asimov_reduce = asimov.reduce(opt[0])
+    dataHist_reduce = dataHist.reduce(opt[0])
+    for iOpt in range(1,len(opt)):
+        asimov_reduce.add(asimov.reduce(opt[iOpt]))
+        dataHist_reduce.add(dataHist.reduce(opt[iOpt]))
+
+        
+    h_th1x = asimov_reduce.createHistogram('h_th1x',th1x)
+    h_data_th1x = dataHist_reduce.createHistogram('h_data_th1x',th1x)
     
     h_data_nBtagRsqMR_fine = rt.TH3D("h_data_nBtagRsqMR_fine","h_data_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
     h_nBtagRsqMR_fine = rt.TH3D("h_nBtagRsqMR_fine","h_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
-    w.data("RMRTree").fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
+    
+    opt = [rt.RooFit.CutRange(myRange) for myRange in plotRegion.split(',')]
+    data_reduce = w.data("RMRTree").reduce(opt[0])
+    for iOpt in range(1,len(opt)):
+        data_reduce.append(w.data("RMRTree").reduce(opt[iOpt]))
+    data_reduce.fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
+    
     for i in range(1,len(xFine)):
         for j in range(1,len(yFine)):
             for k in range(1,len(zFine)):
-                value, errorFlag= getBinEvents(i,j,k,xFine,yFine,zFine,w,box)
+                w.var('MR').setVal((xFine[i]+xFine[i-1])/2.)
+                w.var('Rsq').setVal((yFine[j]+yFine[j-1])/2.)
+                w.var('nBtag').setVal((zFine[k]+zFine[k-1])/2.)
+                inSideband = 0
+                for myRange in plotRegion.split(','):
+                    inSideband += ( w.var('MR').inRange(myRange) * w.var('Rsq').inRange(myRange) * w.var('nBtag').inRange(myRange) )
+                if not inSideband: continue  
+                value, errorFlag = getBinEvents(i,j,k,xFine,yFine,zFine,w,box)
                 if not errorFlag:
                     h_nBtagRsqMR_fine.SetBinContent(i,j,k,value)
 
