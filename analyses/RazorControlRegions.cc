@@ -918,8 +918,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
 		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
-	  //turn this off for now
-	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
+	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
 	}
 	if (printSyncDebug) {
 	  cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";
@@ -933,7 +932,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//Add to Type1 Met Correction
 	//Note: pT cut should be 10 not 20, but we're saving only 20 GeV jets in the razor ntuple for now
 	//**********************************************************************************************************
-	if (jetPt[i]*JEC*jetEnergySmearFactor > 15 && 
+	if (jetPt[i]*JEC*jetEnergySmearFactor > 20 && 
 	    jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9	    
 	    ) {
 	  MetX_Type1Corr += -1 * ( thisJet.Px() - L1CorrJet.Px()  );
@@ -1085,7 +1084,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      TLorentzVector MyMET = PFMETCustomType1;
+      //      TLorentzVector MyMET = PFMETCustomType1;
+      TLorentzVector MyMET = PFMETType1;
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
@@ -1125,6 +1125,39 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->NBJetsLoose = nBJetsLoose20GeV;
       events->NBJetsMedium = nBJetsMedium20GeV;
       events->NBJetsTight = nBJetsTight20GeV;
+
+      ///
+      events-> metType1PtJetResUp          = metType1PtJetResUp;	      
+      events-> metType1PtJetResDown        = metType1PtJetResDown;
+      events-> metType1PtJetEnUp           = metType1PtJetEnUp;	 
+      events-> metType1PtJetEnDown         = metType1PtJetEnDown;
+      events-> metType1PtMuonEnUp          = metType1PtMuonEnUp;
+      events-> metType1PtMuonEnDown        = metType1PtMuonEnDown;
+      events-> metType1PtElectronEnUp      = metType1PtElectronEnUp;
+      events-> metType1PtElectronEnDown    = metType1PtElectronEnDown;
+      events-> metType1PtTauEnUp           = metType1PtTauEnUp;
+      events-> metType1PtTauEnDown         = metType1PtTauEnDown;
+      events-> metType1PtUnclusteredEnUp   = metType1PtUnclusteredEnUp;
+      events-> metType1PtUnclusteredEnDown = metType1PtUnclusteredEnDown;
+      events-> metType1PtPhotonEnUp        = metType1PtPhotonEnUp;
+      events-> metType1PtPhotonEnDown      = metType1PtPhotonEnDown;
+
+      events-> metType1PhiJetResUp          = metType1PhiJetResUp;	      
+      events-> metType1PhiJetResDown        = metType1PhiJetResDown;
+      events-> metType1PhiJetEnUp           = metType1PhiJetEnUp;	 
+      events-> metType1PhiJetEnDown         = metType1PhiJetEnDown;
+      events-> metType1PhiMuonEnUp          = metType1PhiMuonEnUp;
+      events-> metType1PhiMuonEnDown        = metType1PhiMuonEnDown;
+      events-> metType1PhiElectronEnUp      = metType1PhiElectronEnUp;
+      events-> metType1PhiElectronEnDown    = metType1PhiElectronEnDown;
+      events-> metType1PhiTauEnUp           = metType1PhiTauEnUp;
+      events-> metType1PhiTauEnDown         = metType1PhiTauEnDown;
+      events-> metType1PhiUnclusteredEnUp   = metType1PhiUnclusteredEnUp;
+      events-> metType1PhiUnclusteredEnDown = metType1PhiUnclusteredEnDown;
+      events-> metType1PhiPhotonEnUp        = metType1PhiPhotonEnUp;
+      events-> metType1PhiPhotonEnDown      = metType1PhiPhotonEnDown;
+      
+      ///
 
       events->HT = 0;
       for(auto& pfobj : GoodPFObjects) events->HT += pfobj.Pt();
