@@ -2,6 +2,7 @@
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
+#include "BTagCalibrationStandalone.h"
 
 //C++ includes
 #include <sys/stat.h>
@@ -63,7 +64,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     }
 
     /////////////////////////////////
-    //Lepton Efficiency 
+    //Lepton and b-tag Efficiency 
     /////////////////////////////////
 
     TH2D *eleTightEfficiencyHist = 0;
@@ -71,6 +72,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH2D *eleVetoEfficiencyHist = 0;
     TH2D *muVetoEfficiencyHist = 0;
     TH2D *tauLooseEfficiencyHist = 0;
+    TH2D *btagMediumEfficiencyHist = 0;
     if(!isData){
         TFile *eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
         eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
@@ -83,6 +85,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         TFile *tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
         tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
         assert(tauLooseEfficiencyHist);
+        TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
+        btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+        assert(btagMediumEfficiencyHist);
     }
 
     /////////////////////////////////
@@ -174,6 +179,18 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         jecUncPath = pathname+"/Summer15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
     }
     JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
+
+    /////////////////////////////////
+    //B-tagging scale factors
+    /////////////////////////////////
+
+    BTagCalibration btagcalib("csvv2", "data/ScaleFactors/CSVv2.csv");
+    BTagCalibrationReader btagreader(&btagcalib,               // calibration instance
+            BTagEntry::OP_MEDIUM,  // operating point
+            "mujets",               // measurement type
+            "central");           // systematics type
+    BTagCalibrationReader btagreader_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
+    BTagCalibrationReader btagreader_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
 
     /////////////////////////////////
     //Tree Initialization
@@ -506,7 +523,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
 
-                if (isTightMuon(i) && muonPt[i]) {
+                if (isTightMuon(i)) {
                     tmpTightSF = effTightSF;
                     tmpTightSFUp = effTightSFUp;
                     tmpTightSFDown = effTightSFDown;
@@ -876,12 +893,43 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             }
 
             //Apply b-tagging correction factor 
-            //UNDER CONSTRUCTION (no b-tagging corrections for run 2 yet)
-            //if (!isData && abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 20) {
-            //    btagCorrFactor *= BTagScaleFactor(jetCorrPt, isCSVM(i));
-            //    sf_btagUp *= BTagScaleFactor(jetCorrPt, isCSVM(i), "up")/BTagScaleFactor(jetCorrPt, isCSVM(i));
-            //    sf_btagDown *= BTagScaleFactor(jetCorrPt, isCSVM(i), "down")/BTagScaleFactor(jetCorrPt, isCSVM(i));
-            //}
+            if (!isData && abs(jetPartonFlavor[i]) == 5 && abs(jetEta[i]) < 2.4 && jetCorrPt > 40) { //NOTE: b-tags only go on 40 GeV jets (this may change)
+                double effMedium = btagMediumEfficiencyHist->GetBinContent(
+                        btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+                        btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+                //get scale factor
+                double jet_scalefactor = -1;
+                double jet_scalefactorUp = -1;
+                double jet_scalefactorDown = -1;
+                if (jetCorrPt < 670.) { //670 is the largest pt range listed in the CSV text file
+                    jet_scalefactor = btagreader.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt); 
+                    jet_scalefactorUp = btagreader_up.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
+                    jet_scalefactorDown = btagreader_do.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
+                }
+                else {
+                    jet_scalefactor = btagreader.eval(BTagEntry::FLAV_B, jetEta[i], 669);
+                }
+                //apply scale factor
+                if (jet_scalefactor <= 0 || jet_scalefactorUp <= 0 || jet_scalefactorDown <= 0){
+                    cout << "Warning: b-tag scale factor is <= 0!" << endl;
+                }
+                else if (isCSVM(i)){
+                    btagCorrFactor *= jet_scalefactor;
+                    sf_btagUp *= jet_scalefactorUp;
+                    sf_btagDown *= jet_scalefactorDown;
+                    cout << "b-tag scale factor: " << jet_scalefactor << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
+                    cout << "up: " << jet_scalefactorUp << endl;
+                    cout << "down: " << jet_scalefactorDown << endl;
+                }
+                else {
+                    btagCorrFactor *= (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
+                    sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1);
+                    sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1);
+                    cout << "b-tag scale factor: " << (1/effMedium - jet_scalefactor)/(1/effMedium-1) << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
+                    cout << "up: " << (1/effMedium - jet_scalefactorUp)/(1/effMedium-1) << endl;
+                    cout << "down: " << (1/effMedium - jet_scalefactorDown)/(1/effMedium-1) << endl;
+                }
+            } 
 
             //Apply pileup jet ID 
             //UNDER CONSTRUCTION (No working point yet for Run2)
