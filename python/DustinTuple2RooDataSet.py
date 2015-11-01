@@ -336,9 +336,15 @@ if __name__ == '__main__':
                         if str(int(mStop))==line.split(',')[0]:
                             thyXsec = float(line.split(',')[1]) #pb
                             thyXsecErr = 0.01*float(line.split(',')[2]) 
+
+                            
+                if isinstance( rootFile.Get('NEvents'), rt.TH1 ):
+                    nEvents = rootFile.Get('NEvents').Integral()
+                    globalScaleFactor = thyXsec*lumi/lumi_in/nEvents # FastSim samples
+                else:
+                    globalScaleFactor = lumi/lumi_in # FullSim samples
                 
-                nEvents = rootFile.Get('NEvents').Integral()
-                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f , thyXsec*lumi/lumi_in/nEvents, 'signal'))
+                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f , globalScaleFactor, 'signal'))
                 
     wdata = ds[0].Clone('RMRTree')
     for ids in range(1,len(ds)):

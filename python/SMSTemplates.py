@@ -88,19 +88,23 @@ if __name__ == '__main__':
                     if str(int(mStop))==line.split(',')[0]:
                         thyXsec = float(line.split(',')[1]) #pb
                         thyXsecErr = 0.01*float(line.split(',')[2]) 
+
+            if isinstance( rootFile.Get('NEvents'), rt.TH1 ):
+                nEvents = rootFile.Get('NEvents').Integral()
+                globalScaleFactor = thyXsec*lumi/lumi_in/nEvents # FastSim samples
+            else:
+                globalScaleFactor = lumi/lumi_in # FullSim samples
                 
-            nEvents = rootFile.Get('NEvents').Integral()
-            
             #get gluino and LSP masses
             tree.GetEntry(0)
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=thyXsec*lumi/lumi_in/nEvents, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=thyXsec*lumi/lumi_in/nEvents, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             rootFile.Close()
         else:
             print "Error: expected ROOT file!"
