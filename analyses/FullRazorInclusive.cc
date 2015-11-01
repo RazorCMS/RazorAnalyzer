@@ -592,10 +592,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 		      muTrigEffFromFullsimHist->GetBinContent( muTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(muonEta[i])),
 							       muTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],999.9),15.01))); 
 		    muonTrigCorrFactor *= singleMuonTriggerEfficiencyFromFullsim;
-		    cout << "muon trigger eff: " << singleMuonTriggerEfficiencyFromFullsim << " : " << muonPt[i] << " " << muonEta[i] 
-			 << muTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(muonEta[i])) << " "
-			 << muTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],999.9),15.01))
-			 << "\n";
 		  }		  
 		}
             }
@@ -729,11 +725,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 		    double singleElectronTriggerEfficiencyFromFullsim = 
 		      eleTrigEffFromFullsimHist->GetBinContent( eleTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(eleEta[i])), 
 								eleTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],999.9),25.01))); 
-		    eleTrigCorrFactor *= singleElectronTriggerEfficiencyFromFullsim;
-		    cout << "ele trigger eff: " << singleElectronTriggerEfficiencyFromFullsim << " : " << elePt[i] << " " << eleEta[i] 
-			 << eleTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) << " " 
-			 << eleTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],999.9),25.01))
-			 << "\n";
+		    eleTrigCorrFactor *= singleElectronTriggerEfficiencyFromFullsim;		    
 		  }
 		}
             }
