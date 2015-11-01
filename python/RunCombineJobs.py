@@ -8,12 +8,16 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
     if isData:
         dataString = '--data'
+        
+    signalSys = ''
+    if noSignalSys:
+        signalSys = '--no-signal-sys'
 
     fitString = ''
     if fit:
@@ -54,9 +58,9 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     if "T1" in model:
-        script += 'python python/RunCombine.py -i %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+        script += 'python python/RunCombine.py -i %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
     else:
-        script += 'python python/RunCombine.py -i %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString)
+        script += 'python python/RunCombine.py -i %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -104,6 +108,8 @@ if __name__ == '__main__':
                   help="file containing output files")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default='FitResults/BinnedFitResults.root',type="string",
                   help="input fit file")
+    parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
+                  help="no signal shape systematic uncertainties")
 
     (options,args) = parser.parse_args()
 
@@ -137,7 +143,7 @@ if __name__ == '__main__':
         if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
         if (mg, mchi) in donePairs: continue
         nJobs+=1
-        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile)
+        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys)
         
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)

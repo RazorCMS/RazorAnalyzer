@@ -277,6 +277,8 @@ if __name__ == '__main__':
                   help="penalty terms on background parameters")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",
                   help="input fit file")
+    parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
+                  help="no signal systematic shape uncertainties")
 
 
     (options,args) = parser.parse_args()
@@ -356,7 +358,10 @@ if __name__ == '__main__':
             sigDataHist = rt.RooDataHist(d.GetName(),d.GetName(),rt.RooArgList(th1x),d)
             rootTools.Utils.importToWS(w,sigDataHist)
 
-    shapes = ['muoneff','eleeff','jes']
+    if options.noSignalSys:
+        shapes = []
+    else:
+        shapes = ['muoneff','eleeff','jes']
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]

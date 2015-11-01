@@ -22,6 +22,8 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
+    parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
+                  help="no signal systematic templates")
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
@@ -42,7 +44,11 @@ if __name__ == '__main__':
     ##################
 
     #list of shape systematics to apply.
-    shapes = ["muoneff", "eleeff", "jes"]
+    
+    if options.noSignalSys:
+        shapes = []
+    else:
+        shapes = ['muoneff','eleeff','jes']
 
     for curBox in boxList:
         #create workspace
