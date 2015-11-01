@@ -49,6 +49,8 @@ if __name__ == '__main__':
                   help="changes plots for data")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default='FitResults/BinnedFitResults.root',type="string",
                   help="input fit file")
+    parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
+                  help="no signal shape systematic uncertainties")
 
     (options,args) = parser.parse_args()
 
@@ -68,6 +70,10 @@ if __name__ == '__main__':
         massPoint = '%i_%i'%(options.mStop,options.mLSP)
 
 
+    signalSys = ''
+    if options.noSignalSys:
+        signalSys = '--no-signal-sys'
+    
     fit = ''
     if options.fit:
         fit = '--fit'
@@ -82,7 +88,8 @@ if __name__ == '__main__':
                'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json
                }
 
-    eosLocationSMS = {'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/',
+    eosLocationSMS = {'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p21_ForFullStatus20151030/jobs/combined/',
+                      #'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/',
                       'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/combined/'
                     }
 
@@ -104,7 +111,7 @@ if __name__ == '__main__':
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
-            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f'%(options.config,box,eosLocationSMS[model],model,massPoint, 1000*lumi),options.dryRun)
+            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, 1000*lumi,signalSys),options.dryRun)
             
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
@@ -121,7 +128,7 @@ if __name__ == '__main__':
             penaltyString = ''
             if options.penalty: penaltyString = '--penalty'
                 
-            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString),options.dryRun)
+            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
