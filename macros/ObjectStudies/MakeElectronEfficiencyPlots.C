@@ -31,7 +31,7 @@
 double GetEffArea( double scEta ) {
 
   double effArea = 0.0;
-  //Effective areas below are for the sum of Neutral Hadrons + Photons
+  // //Effective areas below are for the sum of Neutral Hadrons + Photons
   // if (fabs(scEta) < 1.0) {
   //   effArea = 0.0960;
   // } else if (fabs(scEta) < 1.479) {
@@ -305,10 +305,10 @@ bool PassSelection( ElectronTree* eleTree, int wp ) {
     
  
     if ( eleTree->fElePt > 0 
-	 && eleTree->fPassLooseSelection
-	 // && passEGammaPOGLoose(eleTree) 
-	 //&& eleTree->fMiniIso / eleTree->fElePt < 0.1
-	 && eleTree->fMiniIsoDBCorr / eleTree->fElePt < 0.1
+	 //&& eleTree->fPassLooseSelection
+	  && passEGammaPOGLoose(eleTree) 
+	 && eleTree->fMiniIso / eleTree->fElePt < 0.1
+	 //&& eleTree->fMiniIsoDBCorr / eleTree->fElePt < 0.1
 	 //&& (eleTree->fMiniIsoCharged + fmax(0.0, eleTree->fMiniIso - eleTree->fRho*GetEffArea(eleTree->fEleSCEta)*pow(dr/0.3,2))) / eleTree->fElePt < 0.1
 	 //&& (eleTree->fMiniIsoCharged + fmax(0.0, eleTree->fMiniIso - eleTree->fRhoNeutralCentral*GetEffArea(eleTree->fEleSCEta)*pow(dr/0.3,2))) / eleTree->fElePt < 0.1
 	 
@@ -363,12 +363,12 @@ void plotElectronEfficiency() {
   TCanvas *cv =0;
   TLegend *legend =0;
 
-  TFile *fileVeto = new TFile("Efficiency_PromptElectron_TTJets_50ns_Veto.root","READ");
-  TFile *fileLoose = new TFile("Efficiency_PromptElectron_TTJets_50ns_Loose.root","READ");
-  TFile *fileTight = new TFile("Efficiency_PromptElectron_TTJets_50ns_Tight.root","READ");
-  TFile *fileFakesVeto = new TFile("Efficiency_FakeElectron_TTJets_50ns_Veto.root","READ");
-  TFile *fileFakesLoose = new TFile("Efficiency_FakeElectron_TTJets_50ns_Loose.root","READ");
-  TFile *fileFakesTight = new TFile("Efficiency_FakeElectron_TTJets_50ns_Tight.root","READ");
+  TFile *fileVeto = new TFile("Efficiency_PromptElectron_TTJets_25ns_Veto.root","READ");
+  TFile *fileLoose = new TFile("Efficiency_PromptElectron_TTJets_25ns_Loose.root","READ");
+  TFile *fileTight = new TFile("Efficiency_PromptElectron_TTJets_25ns_Tight.root","READ");
+  TFile *fileFakesVeto = new TFile("Efficiency_FakeElectron_TTJets_25ns_Veto.root","READ");
+  TFile *fileFakesLoose = new TFile("Efficiency_FakeElectron_TTJets_25ns_Loose.root","READ");
+  TFile *fileFakesTight = new TFile("Efficiency_FakeElectron_TTJets_25ns_Tight.root","READ");
 
   TFile *fileVetoIsoGivenID = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data//Efficiency_Electron_NumeratorImprovedVetoIso_DenominatorNonTrigMVAID.root","READ");
   TFile *fileCSA14VetoIsoGivenID = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/MyNotes/notes/AN-14-276/trunk/data/Efficiency_Electron_NumeratorCSA14VetoIso_DenominatorNonTrigMVAID.root","READ");
@@ -758,8 +758,8 @@ void plotElectronMiniIsoEfficiency() {
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
-  legend->AddEntry(effNPVPromptUnCorr, "Uncorrected", "LP");
-  legend->AddEntry(effNPVPromptDBCorr, "#Delta#beta Corr", "LP");
+  // legend->AddEntry(effNPVPromptUnCorr, "Uncorrected", "LP");
+  // legend->AddEntry(effNPVPromptDBCorr, "#Delta#beta Corr", "LP");
   legend->AddEntry(effNPVPromptEACorr, "Eff Area Corr (Mean)", "LP");
   legend->AddEntry(effNPVPromptEACorr90, "Eff Area Corr (90%)", "LP");
 
@@ -778,10 +778,10 @@ void plotElectronMiniIsoEfficiency() {
 
   effNPVPromptEACorr->Draw("AP");
   effNPVPromptEACorr90->Draw("Psame");
-  effNPVPromptDBCorr->Draw("Psame");
-  effNPVPromptUnCorr->Draw("Psame");
+  // effNPVPromptDBCorr->Draw("Psame");
+  // effNPVPromptUnCorr->Draw("Psame");
 
-  effNPVPromptEACorr->GetYaxis()->SetRangeUser(0.90,1.0);
+  effNPVPromptEACorr->GetYaxis()->SetRangeUser(0.85,0.95);
   effNPVPromptEACorr->GetXaxis()->SetRangeUser(2,30);
   
   legend->Draw();  
@@ -794,8 +794,8 @@ void plotElectronMiniIsoEfficiency() {
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
-  legend->AddEntry(effNPVFakeUnCorr, "Uncorrected", "LP");
-  legend->AddEntry(effNPVFakeDBCorr, "#Delta#beta Corr", "LP");
+  // legend->AddEntry(effNPVFakeUnCorr, "Uncorrected", "LP");
+  // legend->AddEntry(effNPVFakeDBCorr, "#Delta#beta Corr", "LP");
   legend->AddEntry(effNPVFakeEACorr, "Eff Area Corr (Mean)", "LP");
   legend->AddEntry(effNPVFakeEACorr90, "Eff Area Corr (90%)", "LP");
 
@@ -814,19 +814,84 @@ void plotElectronMiniIsoEfficiency() {
 
   effNPVFakeEACorr->Draw("AP");
   effNPVFakeEACorr90->Draw("Psame");
-  effNPVFakeDBCorr->Draw("Psame");
-  effNPVFakeUnCorr->Draw("Psame");
+  // effNPVFakeDBCorr->Draw("Psame");
+  // effNPVFakeUnCorr->Draw("Psame");
 
-  effNPVFakeEACorr->GetYaxis()->SetRangeUser(0.0,0.30);
+  // effNPVFakeEACorr->GetYaxis()->SetRangeUser(0.0,0.30);
+  effNPVFakeEACorr->GetYaxis()->SetRangeUser(0.005,0.025);
   effNPVFakeEACorr->GetXaxis()->SetRangeUser(2,30);
   
   legend->Draw();  
   cv->SaveAs("MiniIsoEfficiencyVsNPV_FakeElectrons.gif");
 
+}
 
 
+void MakeFastsimToFullSimCorrectionFactors() {
+  TCanvas *cv =0;
+  TLegend *legend =0;
+
+  TFile *fileFullsimTight = new TFile("Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root","READ");
+  TFile *fileFullsimVeto = new TFile("Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root","READ");
+  TFile *fileFastsimTight = new TFile("Efficiency_PromptElectron_TTJets_25ns_Tight_Fastsim.root","READ");
+  TFile *fileFastsimVeto = new TFile("Efficiency_PromptElectron_TTJets_25ns_Veto_Fastsim.root","READ");
+
+  TH2F* histFullsimTight = (TH2F*)fileFullsimTight->Get("Efficiency_PtEta");
+  TH2F* histFullsimVeto = (TH2F*)fileFullsimVeto->Get("Efficiency_PtEta");
+  TH2F* histFastsimTight = (TH2F*)fileFastsimTight->Get("Efficiency_PtEta");
+  TH2F* histFastsimVeto = (TH2F*)fileFastsimVeto->Get("Efficiency_PtEta");
+
+  TH2F* histSFTight = (TH2F*)histFullsimTight->Clone("ElectronTight_FastsimScaleFactor");
+  TH2F* histSFVeto = (TH2F*)histFullsimVeto->Clone("ElectronVeto_FastsimScaleFactor");
+  histSFTight->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
+  histSFTight->GetYaxis()->SetTitle("Electron #eta");
+  histSFVeto->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
+  histSFVeto->GetYaxis()->SetTitle("Electron #eta");
+
+  //Tight WP
+  for (int b=1; b<histSFTight->GetXaxis()->GetNbins()+1 ; ++b) {
+    for (int c=1; c<histSFTight->GetYaxis()->GetNbins()+1 ; ++c) {
+      double sf = histFullsimTight->GetBinContent(b,c) / histFastsimTight->GetBinContent(b,c);
+      double sferr = 0;
+      if ( histFullsimTight->GetBinContent(b,c) > 0 && histFastsimTight->GetBinContent(b,c) > 0) {
+	sferr = sf*sqrt( pow(histFullsimTight->GetBinError(b,c)/histFullsimTight->GetBinContent(b,c),2) +
+				pow(histFastsimTight->GetBinError(b,c)/histFastsimTight->GetBinContent(b,c),2) );
+      }
+      histSFTight->SetBinContent(b,c,sf);
+      histSFTight->SetBinError(b,c,sferr);
+    }
+  }
+
+  //Veto WP
+  for (int b=1; b<histSFVeto->GetXaxis()->GetNbins()+1 ; ++b) {
+    for (int c=1; c<histSFVeto->GetYaxis()->GetNbins()+1 ; ++c) {
+      double sf = histFullsimVeto->GetBinContent(b,c) / histFastsimVeto->GetBinContent(b,c);
+      double sferr = 0;
+      if ( histFullsimVeto->GetBinContent(b,c) > 0 && histFastsimVeto->GetBinContent(b,c) > 0) {
+	sferr = sf*sqrt( pow(histFullsimVeto->GetBinError(b,c)/histFullsimVeto->GetBinContent(b,c),2) +
+			 pow(histFastsimVeto->GetBinError(b,c)/histFastsimVeto->GetBinContent(b,c),2) );
+      }
+      histSFVeto->SetBinContent(b,c,sf);
+      histSFVeto->SetBinError(b,c,sferr);
+    }
+  }
+
+   //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.root", "UPDATE");
+  file->cd();
+  file->WriteTObject(histSFTight, "ElectronTight_FastsimScaleFactor", "WriteDelete");  
+  file->WriteTObject(histSFVeto, "ElectronVeto_FastsimScaleFactor", "WriteDelete");
+  file->WriteTObject(histFullsimTight, "ElectronEff_Tight_Fullsim", "WriteDelete");
+  file->WriteTObject(histFullsimVeto, "ElectronEff_Veto_Fullsim", "WriteDelete");
+  file->WriteTObject(histFastsimTight, "ElectronEff_Tight_Fastsim", "WriteDelete");
+  file->WriteTObject(histFastsimVeto, "ElectronEff_Veto_Fastsim", "WriteDelete");
+  file->Close();
+  delete file;      
 
 }
+
 
 
 //=== MAIN MACRO ================================================================================================= 
@@ -858,8 +923,8 @@ void ProduceElectronEfficiencyPlots(const string inputfile, int wp, int option =
   TH1F *histDenominatorNpu = new TH1F ("histDenominatorNpu",";Electron Npu; Number of Events", 50, 0 , 100);
   TH1F *histNumeratorNpu = new TH1F ("histNumeratorNpu",";Electron Npu; Number of Events", 50, 0 , 100);
 
-  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
-  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
+  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Electron p_{T} [GeV/c] ; Electron #eta; Number of Events", 34, 0 , 170, 60, -3.0, 3.0);
+  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Electron p_{T} [GeV/c] ; Electron #eta; Number of Events", 34, 0 , 170, 60, -3.0, 3.0);
 
   //*******************************************************************************************
   //Read file
@@ -899,7 +964,7 @@ void ProduceElectronEfficiencyPlots(const string inputfile, int wp, int option =
     // if(!passIDMVANonTrigVeto(EleTree)) continue;
 
     // //Temp: require loose ID
-    if (!passEGammaPOGLoose(EleTree)) continue;
+    //if (!passEGammaPOGLoose(EleTree)) continue;
 
 
     if (option == 0) {
@@ -1152,18 +1217,23 @@ void MakeElectronEfficiencyPlots( int option = 0) {
 
   if (option == 1) {
    
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 0, "PromptElectron_TTJets_25ns_Veto");
-     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 0, "PromptElectron_TTJets_25ns_Loose");
-     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 0, "PromptElectron_TTJets_25ns_Tight");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p20/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fullsim.root", 1, 0, "PromptElectron_TTJets_25ns_Veto_Fullsim");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p20/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fullsim.root", 3, 0, "PromptElectron_TTJets_25ns_Tight_Fullsim");    
+
     
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 1, "FakeElectron_TTJets_25ns_Veto");
-     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25ns_Loose");
-     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/n/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 1, "FakeElectron_TTJets_25ns_Tight");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p19//ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 1, "FakeElectron_TTJets_25ns_Veto");
+    //  ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p19//ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25ns_Loose");
+    //  ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p19//ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 1, "FakeElectron_TTJets_25ns_Tight");
 
 
   }
 
-  if (option == 2) {
+  if (option == 2) {   
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p20/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fastsim.root", 1, 0, "PromptElectron_TTJets_25ns_Veto_Fastsim");
+    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p20/ElectronNtuple_PromptGenLevel_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns_Fastsim.root", 3, 0, "PromptElectron_TTJets_25ns_Tight_Fastsim");    
+  }
+
+  if (option == 3) {
     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 100, 1, "PromptElectron_TTJets_50ns_TriggerEle27Loose");
     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 101, 1, "PromptElectron_TTJets_50ns_TriggerEle27Tight");
     ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_50ns.root", 102, 1, "PromptElectron_TTJets_50ns_TriggerEle32Tight");
@@ -1174,14 +1244,14 @@ void MakeElectronEfficiencyPlots( int option = 0) {
 
   //test miniisolation efficiency
   if (option == 3) {
-    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationUnCorr");
-    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationUnCorr");   
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationDBCorr");
-    ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationDBCorr");   
+     // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationUnCorr");
+     // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationUnCorr");   
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationDBCorr");
+    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationDBCorr");   
     // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationEACorrRhoNeutralCentral");
     // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationEACorrRhoNeutralCentral");   
-    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral");
-    // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral");   
+     // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral");
+     // ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Fake_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "FakeElectron_TTJets_25_MiniIsolationEACorr90RhoNeutralCentral");   
  
 
     //ProduceElectronEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ElectronNtuple/V1p18/ElectronNtuple_Prompt_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 1, "PromptElectron_DYJets_25_MiniIsolationEACorr");
@@ -1196,5 +1266,9 @@ void MakeElectronEfficiencyPlots( int option = 0) {
   }
 
   plotElectronEfficiency();
+
+  if (option == 100) {
+    MakeFastsimToFullSimCorrectionFactors();
+  }
 
 }

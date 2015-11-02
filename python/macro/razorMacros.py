@@ -89,12 +89,21 @@ def import2DRazorFitHistograms(hists, bins, fitToyFiles, boxName, c, dataName="D
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, logX=True, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName="", btags=-1, blindBins=None, makePlots=True, saveShapes=False, debugLevel=0):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0):
     titles = {
         "MR": "M_{R} (GeV)", 
         "Rsq": "R^{2}",
         "mll": "m_{ll} (GeV)",
         }
+
+    #get plotting options
+    if "logx" in plotOpts: logx = plotOpts["logx"]
+    else: logx = True
+    if "ymin" in plotOpts: ymin = plotOpts["ymin"]
+    else: ymin = 0.1
+    if "comment" in plotOpts: comment = plotOpts["comment"]
+    else: comment = True
+
     #setup files and trees
     inputs = filenames
     files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
@@ -124,9 +133,6 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         print "\n"+shape,"Down:"
         macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Down", boxName=boxName, debugLevel=debugLevel)
 
-    #export histograms to ROOT file
-        macro.writeToRootFile({hists[name][
-
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
 
@@ -138,7 +144,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logX, dataName=dataName, ymin=0.1, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins)
 
     #close files and return
     for f in files: files[f].Close()

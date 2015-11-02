@@ -22,6 +22,8 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
+    parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
+                  help="no signal systematic templates")
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
@@ -42,7 +44,11 @@ if __name__ == '__main__':
     ##################
 
     #list of shape systematics to apply.
-    shapes = ["muoneff", "eleeff", "jes"]
+    
+    if options.noSignalSys:
+        shapes = []
+    else:
+        shapes = ['muoneff','eleeff','jes']
 
     for curBox in boxList:
         #create workspace
@@ -58,13 +64,13 @@ if __name__ == '__main__':
         #make MC histograms
         model = ''
         if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f) #open file
+            rootFile = rt.TFile.Open(f) #open file
             tree = rootFile.Get('RazorInclusive') #get tree
 
             # get mass point information
-            modelString = f.split('.root')[0].split('_')[0].split('/')[1]
-            model = f.split('.root')[0].split('-')[1].split('_')[0]
-            massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+            modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+            model = modelString.split('-')[-1]
+            massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
                                
             thyXsec = -1
             thyXsecErr = -1
@@ -88,19 +94,23 @@ if __name__ == '__main__':
                     if str(int(mStop))==line.split(',')[0]:
                         thyXsec = float(line.split(',')[1]) #pb
                         thyXsecErr = 0.01*float(line.split(',')[2]) 
+
+            if isinstance( rootFile.Get('NEvents'), rt.TH1 ):
+                nEvents = rootFile.Get('NEvents').Integral()
+                globalScaleFactor = thyXsec*lumi/lumi_in/nEvents # FastSim samples
+            else:
+                globalScaleFactor = lumi/lumi_in # FullSim samples
                 
-            nEvents = rootFile.Get('NEvents').Integral()
-            
             #get gluino and LSP masses
             tree.GetEntry(0)
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=thyXsec*lumi/lumi_in/nEvents, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=thyXsec*lumi/lumi_in/nEvents, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
             rootFile.Close()
         else:
             print "Error: expected ROOT file!"

@@ -53,7 +53,7 @@ def getCuts(workspace, box):
     rsqMax = args['Rsq'].getMax()
     btagMin =  args['nBtag'].getMin()
     btagMax =  args['nBtag'].getMax()
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
@@ -106,7 +106,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, globalScaleFactor):
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
@@ -160,7 +160,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = 3
+    btagCutoff = btagMax - 1
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 
@@ -311,8 +311,9 @@ if __name__ == '__main__':
                     ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f, lumi/lumi_in,  'RMRTree_%i'%i, options.isData))
                 
             else:
-                model = f.split('.root')[0].split('-')[1].split('_')[0]
-                massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
+                modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+                model = modelString.split('-')[-1]
+                massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
                                
                 thyXsec = -1
                 thyXsecErr = -1
@@ -335,9 +336,15 @@ if __name__ == '__main__':
                         if str(int(mStop))==line.split(',')[0]:
                             thyXsec = float(line.split(',')[1]) #pb
                             thyXsecErr = 0.01*float(line.split(',')[2]) 
+
+                            
+                if isinstance( rootFile.Get('NEvents'), rt.TH1 ):
+                    nEvents = rootFile.Get('NEvents').Integral()
+                    globalScaleFactor = thyXsec*lumi/lumi_in/nEvents # FastSim samples
+                else:
+                    globalScaleFactor = lumi/lumi_in # FullSim samples
                 
-                nEvents = rootFile.Get('NEvents').Integral()
-                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f , thyXsec*lumi/lumi_in/nEvents, 'signal'))
+                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, f , globalScaleFactor, 'signal'))
                 
     wdata = ds[0].Clone('RMRTree')
     for ids in range(1,len(ds)):
