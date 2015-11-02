@@ -5,12 +5,6 @@ from framework import Config
 from array import *
 import os
 import sys
-from itertools import *
-from operator import *
-import BinnedFit
-
-seed = 1988
-
 
 def fixPars(w, label, doFix=True, setVal=None):
     parSet = w.allVars()
@@ -54,7 +48,6 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
 
     iBinX = -1
-    sidebandBins = []
     for ix in range(1,len(x)):
         for iy in range(1,len(y)):
             for iz in range(1,len(z)):
@@ -62,18 +55,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
                 emptyHist3D.SetBinContent(ix,iy,iz,1.)
                 w.var('MR').setVal(emptyHist3D.GetXaxis().GetBinCenter(ix))
                 w.var('Rsq').setVal(emptyHist3D.GetYaxis().GetBinCenter(iy))
-                w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz))
-                inSideband = ( w.var('MR').inRange('LowMR') * w.var('Rsq').inRange('LowMR') * w.var('nBtag').inRange('LowMR') )
-                inSideband += ( w.var('MR').inRange('LowRsq') * w.var('Rsq').inRange('LowRsq') * w.var('nBtag').inRange('LowRsq') )
-                if inSideband: sidebandBins.append(iBinX)
-                    
-    sidebandGroups = []
-    for k, g in groupby(enumerate(sidebandBins), lambda (i,x):i-x):
-        consecutiveBins = map(itemgetter(1), g)
-        sidebandGroups.append([consecutiveBins[0],consecutiveBins[-1]+1])
-
-    #for iSideband, sidebandGroup in enumerate(sidebandGroups):
-    #    w.var("th1x").setRange("sideband%i"%iSideband,sidebandGroup[0],sidebandGroup[1])        
+                w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz)) 
 
     w.Print('v')
     commands = cfg.getVariables(box, "combine_pdfs")
@@ -169,7 +151,7 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h', x = array('d',[
     return myTH1
 
 
-def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty):
+def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
         obsRate = w.data("data_obs").sumEntries()
         nBkgd = len(bkgs)
         rootFileName = txtfileName.replace('.txt','.root')
@@ -203,11 +185,15 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty):
         datacard+=binString+processString+processNumberString+rateString+divider
         # now nuisances
         datacard+=lumiString
+        for shape in shapes:
+            shapeString = '%s\tshape\t\t1.0'%shape
+            for i in range(0,len(bkgs)):
+                shapeString += '\t-'
+            shapeString += '\n'
+            datacard+=shapeString
         for paramName in paramNames:
             if penalty:
                 fixPars(w,paramName)
-                #paramVal = w.var(paramName).getVal()
-                #datacard += "%s	param	%e    %e\n"%(paramName,paramVal, 1.e-2*abs(paramVal))
             else:
                 datacard += "%s  	flatParam\n"%(paramName)
             
@@ -285,12 +271,15 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
                   help="Turn off fit (use MC directly)")
-    parser.add_option('--fit',dest="fit",default=False,action='store_true',
-                  help="perform a fit first")
     parser.add_option('--print-yields',dest="printYields",default=False,action='store_true',
                   help="print yields")
     parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
                   help="penalty terms on background parameters")
+    parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",
+                  help="input fit file")
+    parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
+                  help="no signal systematic shape uncertainties")
+
 
     (options,args) = parser.parse_args()
     
@@ -302,17 +291,19 @@ if __name__ == '__main__':
     printYields = options.printYields
 
     lumi_in = 0.
+    signalFileName = ''
+    model = ''
+    massPoint = ''
     for f in args:
         if f.lower().endswith('.root'):
-            rootFile = rt.TFile(f)
-            workspace = rootFile.Get('w'+box)
             if f.lower().find('t1')!=-1 or f.lower().find('t2')!=-1:
-                signalDs = workspace.data('RMRTree')
-                #model = f.split('-')[1].split('_')[0]
-                #massPoint = '_'.join(f.split('_')[3:5])
+                signalFileName = f
+                #signalDs = workspace.data('RMRTree')
                 model = f.split('.root')[0].split('-')[1].split('_')[0]
                 massPoint = '_'.join(f.split('.root')[0].split('_')[1:3])
             else:
+                rootFile = rt.TFile(f)
+                workspace = rootFile.Get('w'+box)
                 data = workspace.data('RMRTree')
             lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
 
@@ -342,18 +333,36 @@ if __name__ == '__main__':
             dataHist_red = rt.RooDataHist("%s_%s"%(box,"TTj%ib"%z[k]),"%s_%s"%(box,"TTj%ib"%z[k]),rt.RooArgList(th1x), myTH1_red)
             rootTools.Utils.importToWS(w,dataHist_red)
 
-    elif options.fit:        
-        fr = BinnedFit.binnedFit(w.pdf('extRazorPdf'), dataHist, fitRange='Full')
-        fr.Print('v')
-        #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov(),rt.RooFit.Name('data_obs'))
-        #rootTools.Utils.importToWS(w,asimov)
+    elif options.inputFitFile is not None:
+        inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
+        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)
+        if wIn.obj("fitresult_extRazorPdf_data_obs") != None:
+            frIn = wIn.obj("fitresult_extRazorPdf_data_obs")
+        elif wIn.obj("nll_extRazorPdf_data_obs") != None:
+            frIn = wIn.obj("nll_extRazorPdf_data_obs")
+        print "restoring parameters from fit"
+        frIn.Print("V")
+        for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
+            w.var(p.GetName()).setVal(p.getVal())
+            w.var(p.GetName()).setError(p.getError())
+            
     
-    
-    sigTH1 = convertDataset2TH1(signalDs, cfg, box, w,"signal")
-    sigTH1.Scale(lumi/lumi_in)
-    sigDataHist = rt.RooDataHist('%s_%s'%(box,model),'%s_%s'%(box,model),rt.RooArgList(th1x), sigTH1)
-    rootTools.Utils.importToWS(w,sigDataHist)
-    
+    signalHistos = []
+    signalFile = rt.TFile.Open(signalFileName)
+    names = [k.GetName() for k in signalFile.GetListOfKeys()]
+    for name in names:
+        d = signalFile.Get(name)
+        if isinstance(d, rt.TH1):
+            #d.SetDirectory(rt.gROOT)
+            signalHistos.append(d)
+            sigDataHist = rt.RooDataHist(d.GetName(),d.GetName(),rt.RooArgList(th1x),d)
+            rootTools.Utils.importToWS(w,sigDataHist)
+
+    if options.noSignalSys:
+        shapes = []
+    else:
+        shapes = ['muoneff','eleeff','jes']
+        
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
     btagMax = z[-1]        
@@ -366,7 +375,7 @@ if __name__ == '__main__':
     if noFit:
         writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj%ib"%iz for iz in z[:-1]],paramNames,w)
     else:
-        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty)
+        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty,shapes=shapes)
     w.Write()
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))
 

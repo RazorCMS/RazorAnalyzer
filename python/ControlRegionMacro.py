@@ -25,12 +25,13 @@ FILENAMES_1L = {
             }
 
 WEIGHTDIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
+LEPTONWEIGHTDIR = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
 weightfilenames = {
-        "muon": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root",
-        "ele": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
-        "muontrig": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
-        "eletrig": WEIGHTDIR+"/LeptonEfficiencies/20151013_PR_2015D_GoldenUnblind/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
-        "pileup": WEIGHTDIR+"/PileupWeights/NVtxReweight_ZToMuMu_2015Dv3_378ipb.root",
+        "muon": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root",
+        "ele": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
+        "muontrig": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
+        "eletrig": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
+        "pileup": WEIGHTDIR+"/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root",
         }
 weighthistnames = {
         "muon": "ScaleFactor_TightMuonSelectionEffDenominatorReco",
@@ -39,7 +40,6 @@ weighthistnames = {
         "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
         "pileup": "NVtxReweight",
         }
-
 weightOpts = ["doNPVWeights", "doLep1Weights", "do1LepTrigWeights"]
 
 ttjetsSingleLeptonBinsReduced = {
@@ -76,6 +76,8 @@ if __name__ == "__main__":
     #initialize
     weightHists = loadWeightHists(weightfilenames, weighthistnames, debugLevel)
     sfHists = {}
+    #NOTE: applying scale factors as a cross check.
+    sfHists = loadScaleFactorHists(processNames=SAMPLES_WJ1L, debugLevel=debugLevel)
 
     #WJets control sample
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
@@ -83,7 +85,7 @@ if __name__ == "__main__":
                 cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
                 bins=wjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, debugLevel=debugLevel)
-    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
+    #appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
 
     #TTJets control sample
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", 
@@ -91,11 +93,11 @@ if __name__ == "__main__":
                 cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
                 bins=ttjetsSingleLeptonBinsReduced, lumiMC=MCLUMI, lumiData=LUMI_FULL, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, debugLevel=debugLevel)
-    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
+    #appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_FULL, debugLevel=debugLevel)
 
     #write scale factors
-    outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
-    for name in sfHists:
-        print "Writing scale factor histogram",sfHists[name].GetName(),"to file"
-        sfHists[name].Write()
-    outfile.Close()
+    #outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
+    #for name in sfHists:
+    #    print "Writing scale factor histogram",sfHists[name].GetName(),"to file"
+    #    sfHists[name].Write()
+    #outfile.Close()

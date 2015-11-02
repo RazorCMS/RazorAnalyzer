@@ -86,19 +86,33 @@ if __name__ == '__main__':
                   help="for toys instead of asymptotic")
     parser.add_option('--xsec-file',dest="refXsecFile",default="./data/gluino13TeV.txt",type="string",
                   help="Input directory")
+    parser.add_option('-c','--config',dest="config",type="string",default="config/run2.config",
+                  help="Name of the config file to use")
 
     (options,args) = parser.parse_args()
 
     boxInput = options.box
     model = options.model
     lumi = options.lumi
-    btag = '0-3btag'
     directory = options.outDir
     doHybridNew = options.doHybridNew
     doSignificance = options.doSignificance
     refXsecFile = options.refXsecFile
-        
-    boxes = boxInput.split("_")
+    
+
+    cfg = Config.Config(options.config)
+
+    boxes = boxInput.split('_')
+
+    btag = ''
+    for box in boxes:            
+        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+        btagMin = z[0]
+        btagMax = z[-1]
+        if btagMax-1>btagMin:          
+            btag = '%i-%ibtag'%(btagMin,btagMax-1)
+        else:
+            btag = '%ibtag'%(btagMin)            
 
     #output = rt.TFile.Open("%s/combine_%s_%s.root"%(directory,model,boxInput),"RECREATE")
     #rt.TTree("combine","combine")
