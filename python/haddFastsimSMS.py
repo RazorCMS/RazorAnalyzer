@@ -22,6 +22,11 @@ if __name__ == '__main__':
     #build dict of files associated with the different signal mass points
     fileLists = {}
     for f in inFiles:
+
+        #skip files not corresponding to selected smsName
+        if smsName not in f:
+            continue
+
         #parse filename to get gluino and LSP masses
         if '.root' not in f: 
             print "Skipping non-ROOT file/directory",f
