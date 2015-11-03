@@ -58,9 +58,9 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     if "T1" in model:
-        script += 'python python/RunCombine.py -i %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
+        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
     else:
-        script += 'python python/RunCombine.py -i %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
+        script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
