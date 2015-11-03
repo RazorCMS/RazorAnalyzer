@@ -37,11 +37,19 @@ if __name__ == '__main__':
 
     ##################
     #get pileup weight hist (remove this later)
-    pileupWeightFileName = "data/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
-    pileupHistName = "NVtxReweight"
-    pileupWeightFile = rt.TFile.Open(pileupWeightFileName)
-    pileupWeightHist = pileupWeightFile.Get(pileupHistName)
+    #pileupWeightFileName = "data/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
+    #pileupHistName = "NVtxReweight"
+    #pileupWeightFile = rt.TFile.Open(pileupWeightFileName)
+    #pileupWeightHist = pileupWeightFile.Get(pileupHistName)
     ##################
+    pileupWeightHist = None
+    ##################
+    #hadronic trigger weight
+    #hadronicTriggerWeight = 0.935
+    ##################
+    hadronicTriggerWeight = 0.975
+    ##################
+    
 
     #list of shape systematics to apply.
     
@@ -106,11 +114,11 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=hadronicTriggerWeight))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=0.935))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=hadronicTriggerWeight))
             rootFile.Close()
         else:
             print "Error: expected ROOT file!"

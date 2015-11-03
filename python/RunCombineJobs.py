@@ -8,7 +8,7 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,min_tol,min_strat):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
@@ -58,9 +58,9 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     if "T1" in model:
-        script += 'python python/RunCombine.py -i %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
+        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat)
     else:
-        script += 'python python/RunCombine.py -i %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s\n'%(inputFitFile,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys)
+        script += 'python python/RunCombine.py -i %s -m %s   --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -110,6 +110,10 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal shape systematic uncertainties")
+    parser.add_option('--min-tol',dest="min_tol",default=0.001,type="float",
+                  help="minimizer tolerance (default = 0.001)")
+    parser.add_option('--min-strat',dest="min_strat",default=2,type="int",
+                  help="minimizer strategy (default = 2)")
 
     (options,args) = parser.parse_args()
 
@@ -143,7 +147,7 @@ if __name__ == '__main__':
         if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
         if (mg, mchi) in donePairs: continue
         nJobs+=1
-        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys)
+        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys,options.min_tol,options.min_strat)
         
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)
