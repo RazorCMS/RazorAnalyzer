@@ -15,6 +15,8 @@
 
 using namespace std;
 
+const int NUM_PDF_WEIGHTS = 60;
+
 void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isFastsimSMS)
 {
     /////////////////////////////////
@@ -39,10 +41,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     map<pair<int,int>, TTree*> smsTrees;
     map<pair<int,int>, TH1F*> smsNEvents;
     map<pair<int,int>, TH1F*> smsSumWeights;
+    map<pair<int,int>, TH1F*> smsSumScaleWeights;
+    //map<pair<int,int>, TH1F*> smsSumPdfWeights;
 
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
     TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
+    TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
+    //TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
 
     char* cmsswPath;
     cmsswPath = getenv("CMSSW_BASE");
@@ -212,6 +218,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     float sf_vetoEleEffUp, sf_vetoEleEffDown;
     //For btag scale factor uncertainty
     float sf_btagUp, sf_btagDown;
+    //For scale variation uncertainties
+    float sf_facScaleUp, sf_facScaleDown;
+    float sf_renScaleUp, sf_renScaleDown;
+    float sf_facRenScaleUp, sf_facRenScaleDown;
+    //For pdf uncertainties
     //For jet uncertainties
     float MR_JESUp, Rsq_JESUp, dPhiRazor_JESUp, leadingJetPt_JESUp, subleadingJetPt_JESUp; 
     float MR_JESDown, Rsq_JESDown, dPhiRazor_JESDown, leadingJetPt_JESDown, subleadingJetPt_JESDown;
@@ -260,6 +271,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("sf_eleTrigDown", &sf_eleTrigDown, "sf_eleTrigDown/F");
         razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
         razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
+        razorTree->Branch("sf_facScaleUp", &sf_facScaleUp, "sf_facScaleUp/F");
+        razorTree->Branch("sf_facScaleDown", &sf_facScaleDown, "sf_facScaleDown/F");
+        razorTree->Branch("sf_renScaleUp", &sf_renScaleUp, "sf_renScaleUp/F");
+        razorTree->Branch("sf_renScaleDown", &sf_renScaleDown, "sf_renScaleDown/F");
+        razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
+        razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
+        razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
         razorTree->Branch("MR_JESUp", &MR_JESUp, "MR_JESUp/F");
         razorTree->Branch("Rsq_JESUp", &Rsq_JESUp, "Rsq_JESUp/F");
         razorTree->Branch("dPhiRazor_JESUp", &dPhiRazor_JESUp, "dPhiRazor_JESUp/F");
@@ -366,6 +384,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             sf_tauEffDown = 1.0;
             sf_btagUp = 1.0;
             sf_btagDown = 1.0;
+            sf_facScaleUp = 1.0;
+            sf_facScaleDown = 1.0;
+            sf_renScaleUp = 1.0;
+            sf_renScaleDown = 1.0;
+            sf_facRenScaleUp = 1.0;
+            sf_facRenScaleDown = 1.0;
             MR_JESUp = -1;
             Rsq_JESUp = -1;
             dPhiRazor_JESUp = -9;
@@ -1330,6 +1354,24 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         /////////////////////////////////
+        //Scale and PDF variations
+        /////////////////////////////////
+
+        sf_facScaleUp = (*scaleWeights)[1];
+        sf_facScaleDown = (*scaleWeights)[2];
+        sf_renScaleUp = (*scaleWeights)[3];
+        sf_renScaleDown = (*scaleWeights)[6];
+        sf_facRenScaleUp = (*scaleWeights)[4];
+        sf_facRenScaleDown = (*scaleWeights)[8];
+
+        SumScaleWeights->Fill(0.0, sf_facScaleUp);
+        SumScaleWeights->Fill(1.0, sf_facScaleDown);
+        SumScaleWeights->Fill(2.0, sf_renScaleUp);
+        SumScaleWeights->Fill(3.0, sf_renScaleDown);
+        SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
+        SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+
+        /////////////////////////////////
         //Apply scale factors
         /////////////////////////////////
 
@@ -1386,6 +1428,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     //Fill NEvents hist 
                     smsNEvents[smsPair]->Fill(1.0);
                     smsSumWeights[smsPair]->Fill(1.0, weight);
+
+                    smsSumScaleWeights[smsPair]->Fill(0.0, sf_facScaleUp);
+                    smsSumScaleWeights[smsPair]->Fill(1.0, sf_facScaleDown);
+                    smsSumScaleWeights[smsPair]->Fill(2.0, sf_renScaleUp);
+                    smsSumScaleWeights[smsPair]->Fill(3.0, sf_renScaleDown);
+                    smsSumScaleWeights[smsPair]->Fill(4.0, sf_facRenScaleUp);
+                    smsSumScaleWeights[smsPair]->Fill(5.0, sf_facRenScaleDown);
                 }
             }
         }
@@ -1433,6 +1482,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Write();
         NEvents->Write();
         SumWeights->Write();
+        SumScaleWeights->Write();
     }
     else{
         for(auto &filePtr : smsFiles){
@@ -1441,6 +1491,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             smsTrees[filePtr.first]->Write();
             smsNEvents[filePtr.first]->Write("NEvents");
             smsSumWeights[filePtr.first]->Write("SumWeights");
+            smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
         }
     }
 
