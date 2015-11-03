@@ -38,7 +38,7 @@ if __name__ == '__main__':
     parser.add_option('--min-tol',dest="min_tol",default=0.001,type="float",
                   help="minimizer tolerance (default = 0.001)")
     parser.add_option('--min-strat',dest="min_strat",default=2,type="int",
-                  help="minimizer tolerance (default = 2)")
+                  help="minimizer strategy (default = 2)")
     parser.add_option('--dry-run',dest="dryRun",default=False,action='store_true',
                   help="Just print out commands to run")
     parser.add_option('-u','--unweighted',dest="unweighted",default=False,action='store_true',
