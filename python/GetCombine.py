@@ -4,6 +4,7 @@ import sys
 import rootTools
 import glob
 from math import *
+from framework import Config
 import os
 from array import *
 from GChiPairs import gchipairs
