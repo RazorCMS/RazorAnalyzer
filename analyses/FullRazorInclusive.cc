@@ -351,7 +351,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         leadingTightMuPt = -1;
         leadingTightElePt = -1;
         box = NONE;
-        weight = 1.0;
+        weight = genWeight;
         if(!isData){
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
@@ -1347,7 +1347,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         //Fill normalization histogram
-        NEvents->Fill(1.0);
+        NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
         SumWeights->Fill(1.0, weight);
 
         /////////////////////////////////
