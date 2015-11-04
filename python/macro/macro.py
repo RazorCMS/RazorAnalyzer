@@ -785,7 +785,7 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
         return
 
     with open(printstr+'.tex', 'w') as f:
-        f.write('\\newgeometry{margin=0.2cm}\n')
+        #f.write('\\newgeometry{margin=0.2cm}\n')
         if landscape: f.write('\\begin{landscape}\n')
         f.write('\\begin{center}\n\\footnotesize\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
         f.write('\\caption{'+caption+'}\n\\endhead\n\\hline\n')
@@ -794,5 +794,5 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
             f.write((' & '.join([col[row] for col in cols]))+' \\\\\n\\hline\n')
         f.write('\\end{longtable}\n\\end{center}\n')
         if landscape: f.write('\\end{landscape}\n')
-        f.write('\\restoregeometry\n')
+        #f.write('\\restoregeometry\n')
         print "Created LaTeX scale factor table",(printstr+".tex")
