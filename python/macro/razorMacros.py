@@ -6,6 +6,7 @@ import ROOT as rt
 from collections import namedtuple
 
 #local imports
+from framework import Config
 import macro
 from razorAnalysis import *
 from razorWeights import *
@@ -84,6 +85,74 @@ def import2DRazorFitHistograms(hists, bins, fitToyFiles, boxName, c, dataName="D
         bestFit, rms, pvalue, nsigma, c = getBestFitRms(toyTree,sumName,nObs,c,options=options,plotName="")
         hists["Fit"][("MR","Rsq")].SetBinContent(i,j,bestFit)
         hists["Fit"][("MR","Rsq")].SetBinError(i,j,rms)
+
+def get3DRazorFitHistogram(configFile, fitToyFile, boxName, debugLevel=0):
+    print "Getting 3D fit histogram from",fitToyFile
+    #load binning
+    cfg = Config.Config(configFile)
+    binsX = array('d', cfg.getBinning(boxName)[0])
+    binsY = array('d', cfg.getBinning(boxName)[1])
+    binsZ = array('d', cfg.getBinning(boxName)[2])
+    nBins = (len(binsX)-1)*(len(binsY)-1)*(len(binsZ)-1)
+
+    #load functions from Javier
+    from PlotFit import getBinSumDicts, getBestFitRms
+
+    #make fit histogram 
+    fitHist3D = rt.TH3F("fit"+boxName, "fit"+boxName, len(binsX)-1, binsX, len(binsY)-1, binsY, len(binsZ)-1, binsZ)
+
+    #load fit information, including toys
+    toyFile = rt.TFile(fitToyFile)
+    assert toyFile
+    if debugLevel > 0: print "Opened file",fitToyFile,"to get Bayesian toy results"
+    toyTree = toyFile.Get("myTree")
+    assert toyTree
+    if debugLevel > 0: print "Got tree myTree"
+
+    #make dummy options tuple
+    Opt = namedtuple("Opt", "printErrors")
+    options = Opt(False)
+
+    #store best fit and uncertainty in each bin
+    binSumDict = getBinSumDicts('zyx', 0,len(binsX)-1,0,len(binsY)-1,0,len(binsZ)-1,binsX,binsY,binsZ)
+    c = rt.TCanvas("placeholder","placeholder",800,600)
+    for (i,j,k),sumName in binSumDict.iteritems():
+        bestFit, rms, pvalue, nsigma, c = getBestFitRms(toyTree,sumName,0,c,options,"")
+        fitHist3D.SetBinContent(i,j,k,bestFit)
+        fitHist3D.SetBinError(i,j,k,rms)
+
+    return fitHist3D
+
+def makeRazor3DTable(hist, boxName):
+    """Print latex table with prediction and uncertainty in each bin"""
+    xbinLowEdges = []
+    xbinUpEdges = []
+    ybinLowEdges = []
+    ybinUpEdges = []
+    zbinLowEdges = []
+    zbinUpEdges = []
+    predictions = []
+    uncerts = []
+    #for each bin, get values for all table columns
+    for bx in range(1, hist.GetNbinsX()+1):
+        for by in range(1, hist.GetNbinsY()+1):
+            for bz in range(1, hist.GetNbinsZ()+1):
+                xbinLowEdges.append('%.0f' % (hist.GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (hist.GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(hist.GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(hist.GetYaxis().GetBinUpEdge(by)))
+                zbinLowEdges.append('%.0f' % (hist.GetZaxis().GetBinLowEdge(bz)))
+                zbinUpEdges.append('%.0f' % (hist.GetZaxis().GetBinUpEdge(bz)))
+                pred = hist.GetBinContent(bx,by,bz)
+                predictions.append('%.2f' % (pred))
+                unc = hist.GetBinError(bx,by,bz)
+                uncerts.append('%.2f' % (unc))
+    xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
+    yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
+    zRanges = copy.copy(zbinLowEdges)
+    headers=["$M_R$", "$R^2$", "B-tags", "Prediction", "Uncertainty"]
+    cols = [xRanges, yRanges, zRanges, predictions, uncerts]
+    macro.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
