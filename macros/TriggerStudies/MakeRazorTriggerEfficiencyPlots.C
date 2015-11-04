@@ -25,7 +25,6 @@
 #include <TLatex.h>                
 
 #include "RazorAnalyzer/macros/ObjectStudies/EfficiencyUtils.hh"
-#include "RazorAnalyzer/include/ElectronTree.h"
 
 #endif
 
@@ -36,7 +35,7 @@ bool PassSelection( bool *HLTDecision, int wp ) {
 
   bool pass = false;
 
-  //trigger
+ //trigger
   if (wp == 1) {
     pass = HLTDecision[94];
   }
@@ -56,23 +55,63 @@ bool PassSelection( bool *HLTDecision, int wp ) {
     pass = HLTDecision[96] || HLTDecision[97];
   }
 
+  // if (wp == 5) {
+  //   pass = HLTDecision[90];
+  // }
+  // if (wp == 6) {
+  //   pass = HLTDecision[91];
+  // }
+  // if (wp == 7) {
+  //   pass = HLTDecision[92];
+  // }
+  // if (wp == 8) {
+  //   pass = HLTDecision[93];
+  // }
+  // if (wp == 15) {
+  //   pass = HLTDecision[90] || HLTDecision[91];
+  // }
+  // if (wp == 16) {
+  //   pass = HLTDecision[92] || HLTDecision[93];
+  // }
+
+
+  // //trigger
+  // if (wp == 1) {
+  //   pass = HLTDecision[138];
+  // }
+  // if (wp == 2) {
+  //   pass = HLTDecision[139];
+  // }
+  // if (wp == 3) {
+  //   pass = HLTDecision[140];
+  // }
+  // if (wp == 4) {
+  //   pass = HLTDecision[141];
+  // }
+  // if (wp == 10) {
+  //   pass = HLTDecision[138] || HLTDecision[139];
+  // }
+  // if (wp == 11) {
+  //   pass = HLTDecision[140] || HLTDecision[141];
+  // }
+
   if (wp == 5) {
-    pass = HLTDecision[90];
+    pass = HLTDecision[134];
   }
   if (wp == 6) {
-    pass = HLTDecision[91];
+    pass = HLTDecision[135];
   }
   if (wp == 7) {
-    pass = HLTDecision[92];
+    pass = HLTDecision[136];
   }
   if (wp == 8) {
-    pass = HLTDecision[93];
+    pass = HLTDecision[137];
   }
   if (wp == 15) {
-    pass = HLTDecision[90] || HLTDecision[91];
+    pass = HLTDecision[134] || HLTDecision[135];
   }
   if (wp == 16) {
-    pass = HLTDecision[92] || HLTDecision[93];
+    pass = HLTDecision[136] || HLTDecision[137];
   }
 
   return pass;  
@@ -91,8 +130,8 @@ void plotRazorTriggerEfficiency() {
   TFile *fileTrigger_RsqMR300_Rsq0p09_MR200_TTJets = new TFile("Efficiency_RazorTrigger_RsqMR300_Rsq0p09_MR200_All_TTJets_25ns.root","READ");
   TFile *fileTrigger_RsqMR260_Rsq0p09_MR200_WJets = new TFile("Efficiency_RazorTrigger_RsqMR260_Rsq0p09_MR200_All_WJets_25ns.root","READ");
   TFile *fileTrigger_RsqMR300_Rsq0p09_MR200_WJets = new TFile("Efficiency_RazorTrigger_RsqMR300_Rsq0p09_MR200_All_WJets_25ns.root","READ");
-  TFile *fileTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015B.root","READ");
-  TFile *fileTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2015B.root","READ");
+  TFile *fileTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D.root","READ");
+  TFile *fileTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2015D.root","READ");
 
   TH2F* effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets = (TH2F*)fileTrigger_RsqMR260_Rsq0p09_MR200_TTJets->Get("Efficiency_MRRsq");
   TH2F* effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets = (TH2F*)fileTrigger_RsqMR300_Rsq0p09_MR200_TTJets->Get("Efficiency_MRRsq");
@@ -106,6 +145,8 @@ void plotRazorTriggerEfficiency() {
   cv->SetRightMargin(0.15);
   effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->SetStats(0);
   effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->GetYaxis()->SetRangeUser(0,0.8);
+  
   effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->Draw("colz");
 
   boxLabel = new TLatex();
@@ -187,6 +228,7 @@ void plotRazorTriggerEfficiency() {
   cv->SetRightMargin(0.15);
   effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->SetStats(0);
   effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->GetYaxis()->SetRangeUser(0,0.8);
   effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->Draw("colz");
 
   boxLabel = new TLatex();
@@ -241,20 +283,54 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
-  TH1F *histDenominatorMR = new TH1F ("histDenominatorMR",";M_{R} [GeV/c^{2}]; Number of Events", 40, 0 , 1000);
+  TH1F *histDenominatorMR = new TH1F ("histDenominatorMR",";M_{R} [GeV/c^{2}]; Number of Events", 40, 0, 1000);
   TH1F *histNumeratorMR = new TH1F ("histNumeratorMR",";M_{R} [GeV/c^{2}]; Number of Events", 40, 0 , 1000);
   TH1F *histDenominatorRsq = new TH1F ("histDenominatorRsq",";R^{2}; Number of Events", 30, 0 , 1.5);
   TH1F *histNumeratorRsq = new TH1F ("histNumeratorRsq",";R^{2}; Number of Events", 30, 0 , 1.5);
 
   TH2F *histDenominatorMRRsq = 0;
   TH2F *histNumeratorMRRsq = 0;
-  if (option >= 10) {
-    histDenominatorMRRsq = new TH2F ("histDenominatorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 20, 0 , 1000, 15, 0, 1.5);
-    histNumeratorMRRsq = new TH2F ("histNumeratorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 20, 0 , 1000, 15, 0, 1.5);
-  } else {
-    histDenominatorMRRsq = new TH2F ("histDenominatorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 40, 0 , 1000, 30, 0, 1.5);
-    histNumeratorMRRsq = new TH2F ("histNumeratorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 40, 0 , 1000, 30, 0, 1.5);
-  }
+  // if (option >= 10) {
+  //   histDenominatorMRRsq = new TH2F ("histDenominatorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 20, 0 , 1000, 15, 0, 1.5);
+  //   histNumeratorMRRsq = new TH2F ("histNumeratorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 20, 0 , 1000, 15, 0, 1.5);
+  // } else {
+  histDenominatorMRRsq = new TH2F ("histDenominatorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 1000, 0 , 1000, 400, 0, 10);
+  histNumeratorMRRsq = new TH2F ("histNumeratorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 1000, 0 , 1000, 400, 0, 10);
+    // histDenominatorMRRsq = new TH2F ("histDenominatorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 40, 0 , 1000, 30, 0, 1.5);
+    // histNumeratorMRRsq = new TH2F ("histNumeratorMRRsq",";M_{R} [GeV/c^{2}] ; R^{2} ; Number of Events", 40, 0 , 1000, 30, 0, 1.5);
+    
+    vector<double> MRBins;
+    vector<double> RsqBins;
+    // MRBins.push_back(200);
+    // MRBins.push_back(225); 
+    // MRBins.push_back(250); 
+    // MRBins.push_back(275); 
+    // MRBins.push_back(300); 
+    // MRBins.push_back(325); 
+    // MRBins.push_back(350); 
+    // MRBins.push_back(375); 
+    MRBins.push_back(400); 
+    // MRBins.push_back(425); 
+    // MRBins.push_back(450); 
+    // MRBins.push_back(500); 
+    // MRBins.push_back(550); 
+    // MRBins.push_back(600); 
+    // MRBins.push_back(800); 
+    MRBins.push_back(1000); 
+    // RsqBins.push_back(0.10);
+    // RsqBins.push_back(0.15);
+    // RsqBins.push_back(0.20);
+    RsqBins.push_back(0.25);
+    // RsqBins.push_back(0.30);
+    // RsqBins.push_back(0.40);
+    // RsqBins.push_back(0.60);
+    RsqBins.push_back(10);
+
+    histNumeratorMRRsq = rebin(histNumeratorMRRsq, MRBins, RsqBins);
+    histDenominatorMRRsq = rebin(histDenominatorMRRsq, MRBins, RsqBins);
+
+
+  // }
 
   //*******************************************************************************************
   //Read file
@@ -275,6 +351,8 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
   float Rsq = 0;
   float met = 0;
   bool  HLTDecision[150];
+  UInt_t run = 0;
+  UInt_t event = 0;
 
   tree->SetBranchAddress("weight",&weight);
   tree->SetBranchAddress("box",&box);
@@ -287,8 +365,14 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
   tree->SetBranchAddress("Rsq",&Rsq);
   tree->SetBranchAddress("met",&met);
   tree->SetBranchAddress("HLTDecision",&HLTDecision);
+  tree->SetBranchAddress("run",&run);
+  tree->SetBranchAddress("event",&event);
 
   cout << "Total Entries: " << tree->GetEntries() << "\n";
+
+  //for duplicate event checking
+  map<pair<uint,uint>, bool > processedRunEvents;
+
   for(UInt_t ientry=0; ientry < tree->GetEntries(); ientry++) {       	
     tree->GetEntry(ientry);
     
@@ -300,17 +384,50 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
 
     //Select Hadronic boxes
     if (option == 0) {
+      //hadronic boxes
       //if (!(box == 9 || box == 10 || box == 11 || box == 12 || box == 13 || box == 14)) continue;
-      if (!(box == 0 || box == 1 || box == 2)) continue;
+
+      //leptonic boxes
+      // if (!(box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;      
+      if (!(box == 6 || box == 7 || box ==  8)) continue;      
     }
 
-    //Select 1-lepton boxes
+    //Select 1L and 2L boxes
     if (option == 1 || option == 11) {
-      if (!(box == 0 || box == 1 || box == 2 || box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;
+      //1L and 2L boxes
+      bool passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
+				    || HLTDecision[30] || HLTDecision[31] 
+				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
+      bool passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
+				       || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
+				       HLTDecision[26] || HLTDecision[27] ||
+				       HLTDecision[28] || HLTDecision[29]);      
+      if (!(passedDileptonTrigger || passedSingleLeptonTrigger)) continue;
+      // if (!(box == 0 || box == 1 || box == 2 || box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;
+      
+      //only 1L boxes
       //if (!(box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;
+
+      if (!(box == 6 || box == 7 || box ==  8)) continue;
+
+
     }
 
 
+    //Use events triggered by HT
+    if (option == 2) {
+      if (!(HLTDecision[88] || HLTDecision[89])) continue;      
+    }
+
+    //Use events triggered by HT
+    if (option == 3) {
+      if (!(HLTDecision[98] || HLTDecision[99] || HLTDecision[100])) continue;      
+    }
+
+    //Use events triggered by MET
+    if (option == 4) {
+      if (!(HLTDecision[85] )) continue;      
+    }
 
 
     //**** MR - Rsq ****
@@ -321,10 +438,18 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     }
 
     //Cuts
-    if (!(MR > 400 && Rsq > 0.2)) continue;
+    if (!(MR > 400 && Rsq > 0.25)) continue;
+
+    //Remove double counted events        
+    if(!(processedRunEvents.find(make_pair(run, event)) == processedRunEvents.end())) {
+      continue;
+    } else {
+      processedRunEvents[make_pair(run, event)] = true;
+    }
+
 
     //**** MR ****
-    if (Rsq>0.20) { 
+    if (Rsq>0.25) { 
       histDenominatorMR->Fill(MR);
       //Numerator
       if(PassSelection(HLTDecision,wp)) {
@@ -348,8 +473,8 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
   // Make Efficiency Plots
   //==============================================================================================================
 
-  TGraphAsymmErrors *efficiency_MR = createEfficiencyGraph(histNumeratorMR, histDenominatorMR, "Efficiency_MR" , vector<double>() ,  -99, -99, 0, 1);
-  TGraphAsymmErrors *efficiency_Rsq = createEfficiencyGraph(histNumeratorRsq, histDenominatorRsq, "Efficiency_Rsq" , vector<double>() ,  -99, -99, 0, 1);
+  TGraphAsymmErrors *efficiency_MR = createEfficiencyGraph(histNumeratorMR, histDenominatorMR, "Efficiency_MR" , vector<double>() ,  -99, -99, 0.9, 1);
+  TGraphAsymmErrors *efficiency_Rsq = createEfficiencyGraph(histNumeratorRsq, histDenominatorRsq, "Efficiency_Rsq" , vector<double>() ,  -99, -99, 0.9, 1);
   TH2F *efficiency_MRRsq = createEfficiencyHist2D(histNumeratorMRRsq, histDenominatorMRRsq, "Efficiency_MRRsq" , vector<double>() ,vector<double>());  
 
 
@@ -400,13 +525,17 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
     //***************************************
     // TTbar MC : Use Hadronic Boxes
     //***************************************
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_TTJets_25ns");   
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_4jet_TTJets_25ns");   
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 0, "RazorTrigger_RsqMR300_Rsq0p09_MR200_TTJets_25ns");   
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 4, 0, "RazorTrigger_RsqMR300_Rsq0p09_MR200_4jet_TTJets_25ns");   
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 10, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_All_TTJets_25ns");   
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 11, 0, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_TTJets_25ns");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 1, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_TTJets_25ns");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 2, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_4jet_TTJets_25ns");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 3, 0, "RazorTrigger_RsqMR300_Rsq0p09_MR200_TTJets_25ns");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 4, 0, "RazorTrigger_RsqMR300_Rsq0p09_MR200_4jet_TTJets_25ns");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root", 10, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_All_TTJets_25ns");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 11, 0, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_TTJets_25ns");   
+ 
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root", 10, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_All_TTJets_25ns");   
 
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_25ns.root", 10, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_All_TTJets_25ns"); 
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Spring15_25ns/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_25ns.root", 10, 0, "RazorTrigger_RsqMR260_Rsq0p09_MR200_All_TTJets_25ns"); 
 
     //***************************************
     // W+Jets MC: Use Single Lepton Boxes
@@ -441,10 +570,28 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 6, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_4jet_AllLeptonData_2015B");   
     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 7, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData_2015B");   
     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 8, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_4jet_AllLeptonData_2015B");   
-     ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_SingleLeptonData_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015B");   
-     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 16, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2015B");   
+    //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/oldData/RazorInclusive_CombinedLeptonic_Run2015D_GoodLumiGolden.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");   
+    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/oldData/RazorInclusive_CombinedLeptonic_Run2015D_GoodLumiGolden.root", 16, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2015D");   
+
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data/RazorInclusive_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");   
+
+
   }
 
+  if (option == 3) {
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_JetHT_Run2015B_GoodLumi.root", 15, 2, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_HT800Data_2015B");   
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_JetHT_Run2015B_GoodLumi.root", 16, 2, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_HT800Data_2015B");   
+  }
+
+  if (option == 4) {
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_HTMHT_Run2015B_GoodLumi.root", 15, 3, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_RsqData_2015B");   
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_HTMHT_Run2015B_GoodLumi.root", 16, 3, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_RsqData_2015B");   
+  }
+
+  if (option == 5) {
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_MET_Run2015B_GoodLumi.root", 15, 4, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_METData_2015B");   
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_MET_Run2015B_GoodLumi.root", 16, 4, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_METData_2015B");   
+  }
 
   plotRazorTriggerEfficiency();
 
