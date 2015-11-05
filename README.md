@@ -95,7 +95,7 @@ Similarly you can run over the data,
 
 To perform the fit on the SM Cocktail,
 
-     python python/BinnedFit.py -b MultiJet -c config/run2_sideband.config -d FitResults Datasets/RazorInclusive_SMCocktail_weighted_lumi-4.000_0-3btag_MultiJet.root
+     python python/BinnedFit.py -b MultiJet -c config/run2_sideband.config -d FitResults -l 4000 Datasets/RazorInclusive_SMCocktail_weighted_lumi-4.000_0-3btag_MultiJet.root
 
 To produce the signal templates,
 
@@ -133,7 +133,7 @@ To make the final (expected) limit plot, we need to check out a different reposi
 Note you have to change the smoothed cross section limit file location
 in config/SUS15004/T1bbbb\_Exp\_SUS15004.cfg. Then you can run it,
 
-	 python python/makeSMSPlots.py config/SUS15004/T1bbbb_Exp_SUS15004.cfg T1bbbbAsymptotic
+	 python python/makeSMSplots.py config/SUS15004/T1bbbb_Exp_SUS15004.cfg T1bbbbAsymptotic
 
 To make an "unweighted" dataset (not needed for the preceding commands),
 execute
