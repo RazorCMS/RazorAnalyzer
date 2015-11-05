@@ -1388,7 +1388,7 @@ if __name__ == '__main__':
         for k in range(1,len(z)):            
             newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k-1],fitRegion)
             print1DSlice(c,tdirectory,zip(*h_MR_integral_components)[k-1],zip(*h_data_MR_integral_components)[k-1],options.outDir+"/h_MR_slicesRsq_%ibtag_%s.pdf"%(z[k-1],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,options.isData,None,more_colors,zip(*h_MR_integral_component_labels)[k-1])
-            print1DSlice(c,tdirectory,zip(*h_Rsq_integral_components)[k-1],zip(*h_data_Rsq_integral_components)[k-1],options.outDir+"/h_Rsq_slicesMR_%ibtag_%s.pdf"%(z[k-1],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,options.isData,None,more_colors,zip(*h_Rsq_integral_component_labels)[k-1])
+            print1DSlice(c,tdirectory,zip(*h_Rsq_integral_components)[k-1],zip(*h_data_Rsq_integral_components)[k-1],options.outDir+"/h_Rsq_slicesMR_%ibtag_%s.pdf"%(z[k-1],box),"R^{2}","Events",lumiLabel,newBoxLabel,options.isData,None,more_colors,zip(*h_Rsq_integral_component_labels)[k-1])
 
     print2DResiduals(c,tdirectory,h_RsqMR_residuals,options.outDir+"/h_RsqMR_residuals_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,boxLabel,x,y,options.isData)
     #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff,options.outDir+"/h_RsqMR_percentdiff_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,boxLabel,x,y,options.isData)
