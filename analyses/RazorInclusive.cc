@@ -259,7 +259,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     printdebug = false;
 
     //fill normalization histogram
-    NEvents->Fill(1.0);
+    NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
 
     //reset tree variables
     nVtx = nPV;
@@ -282,7 +282,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     leadingTightMuPt = -1;
     leadingTightElePt = -1;
     if(combineTrees) box = NONE;
-    weight = 1.0;
+    weight = genWeight;
     if(isFastsimSMS){
         mGluino = -1;
         mLSP = -1;
