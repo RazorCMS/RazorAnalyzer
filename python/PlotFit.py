@@ -295,6 +295,42 @@ def getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
             
     return binSumDict
 
+def getCorrelationCoefficient(myTree, sumName1, sumName2):
+    #get mean and standard deviation of each quantity
+    c = rt.TCanvas('empty','empty',400,300)
+    myTree.Draw('%s>>htest%s'%(sumName1,sumName1.replace('+','')))
+    htemp1 = rt.gPad.GetPrimitive("htest%s"%sumName1.replace('+',''))
+    mean1 = htemp1.GetMean()
+    sigma1 = htemp1.GetRMS()
+    myTree.Draw('%s>>htest%s'%(sumName2,sumName2.replace('+','')))
+    htemp2 = rt.gPad.GetPrimitive("htest%s"%sumName2.replace('+',''))
+    mean2 = htemp2.GetMean()
+    sigma2 = htemp2.GetRMS()
+
+    #get covariance
+    myTree.Draw('(%s - %f)*(%s - %f)>>hcov%s%s'%(sumName1,mean1,sumName2,mean2,sumName1.replace('+',''),sumName2.replace('+','')))
+    htempCov = rt.gPad.GetPrimitive('hcov%s%s'%(sumName1.replace('+',''),sumName2.replace('+','')))
+    covariance = htempCov.GetMean()
+
+    #compute correlation coefficient
+    corrCoeff = covariance/(sigma1*sigma2)
+    return corrCoeff
+
+def getCorrelationMatrix(myTree, sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
+    binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+
+    #histogram for output
+    nbins = len(binSumDict)
+    h = rt.TH2F("correlationMatrix", "correlationMatrix",nbins,0,nbins,nbins,0,nbins)
+    h.SetDirectory(0)
+
+    for iBin, (i,sumName1) in enumerate(binSumDict.iteritems()):
+        for jBin, (j,sumName2) in enumerate(binSumDict.iteritems()):
+            if jBin > iBin: break
+            corrCoeff = getCorrelationCoefficient(myTree, sumName1, sumName2)
+            h.SetBinContent(iBin,jBin,corrCoeff)
+            h.SetBinContent(jBin,iBin,corrCoeff)
+    return h
 
 def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     myTree.GetEntry(0)
