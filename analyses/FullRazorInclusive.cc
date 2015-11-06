@@ -190,7 +190,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //B-tagging scale factors
     /////////////////////////////////
 
-    BTagCalibration btagcalib("csvv2", "data/ScaleFactors/CSVv2.csv");
+    string bTagPathname = "";
+    if (cmsswPath != NULL) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
+    else bTagPathname = "data/ScaleFactors/";
+    BTagCalibration btagcalib("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
     BTagCalibrationReader btagreader(&btagcalib,               // calibration instance
             BTagEntry::OP_MEDIUM,  // operating point
             "mujets",               // measurement type
@@ -366,7 +369,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         leadingTightMuPt = -1;
         leadingTightElePt = -1;
         box = NONE;
-        weight = 1.0;
+        weight = genWeight;
         if(!isData){
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
@@ -927,23 +930,23 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 }
                 //apply scale factor
                 if (jet_scalefactor <= 0 || jet_scalefactorUp <= 0 || jet_scalefactorDown <= 0){
-                    cout << "Warning: b-tag scale factor is <= 0!" << endl;
+                    // cout << "Warning: b-tag scale factor is <= 0!" << endl;
                 }
                 else if (isCSVM(i)){
                     btagCorrFactor *= jet_scalefactor;
                     sf_btagUp *= jet_scalefactorUp;
                     sf_btagDown *= jet_scalefactorDown;
-                    cout << "b-tag scale factor: " << jet_scalefactor << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
-                    cout << "up: " << jet_scalefactorUp << endl;
-                    cout << "down: " << jet_scalefactorDown << endl;
+                    // cout << "b-tag scale factor: " << jet_scalefactor << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
+                    // cout << "up: " << jet_scalefactorUp << endl;
+                    // cout << "down: " << jet_scalefactorDown << endl;
                 }
                 else {
                     btagCorrFactor *= (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
                     sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1);
                     sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1);
-                    cout << "b-tag scale factor: " << (1/effMedium - jet_scalefactor)/(1/effMedium-1) << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
-                    cout << "up: " << (1/effMedium - jet_scalefactorUp)/(1/effMedium-1) << endl;
-                    cout << "down: " << (1/effMedium - jet_scalefactorDown)/(1/effMedium-1) << endl;
+                    // cout << "b-tag scale factor: " << (1/effMedium - jet_scalefactor)/(1/effMedium-1) << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
+                    // cout << "up: " << (1/effMedium - jet_scalefactorUp)/(1/effMedium-1) << endl;
+                    // cout << "down: " << (1/effMedium - jet_scalefactorDown)/(1/effMedium-1) << endl;
                 }
             } 
 
@@ -1382,11 +1385,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 weight *= tauEffCorrFactor;
                 weight *= hadronicTrigCorrFactor;
             }
-            weight *= btagCorrFactor;    
+            //weight *= btagCorrFactor;    
         }
 
         //Fill normalization histogram
-        NEvents->Fill(1.0);
+        NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
         SumWeights->Fill(1.0, weight);
 
         /////////////////////////////////

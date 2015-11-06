@@ -85,7 +85,8 @@ the QCD contirbution).
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_DYJetsToLL_M-5to50_HTBinned_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_SingleTop_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root \
-	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_TTV_1pb_weighted.rootRazorInclusive_VV_1pb_weighted.root \
+	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_TTV_1pb_weighted.root \
+	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_VV_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root 
 
@@ -95,7 +96,7 @@ Similarly you can run over the data,
 
 To perform the fit on the SM Cocktail,
 
-     python python/BinnedFit.py -b MultiJet -c config/run2_sideband.config -d FitResults Datasets/RazorInclusive_SMCocktail_weighted_lumi-4.000_0-3btag_MultiJet.root
+     python python/BinnedFit.py -b MultiJet -c config/run2_sideband.config -d FitResults -l 4000 Datasets/RazorInclusive_SMCocktail_weighted_lumi-4.000_0-3btag_MultiJet.root
 
 To produce the signal templates,
 
@@ -133,7 +134,7 @@ To make the final (expected) limit plot, we need to check out a different reposi
 Note you have to change the smoothed cross section limit file location
 in config/SUS15004/T1bbbb\_Exp\_SUS15004.cfg. Then you can run it,
 
-	 python python/makeSMSPlots.py config/SUS15004/T1bbbb_Exp_SUS15004.cfg T1bbbbAsymptotic
+	 python python/makeSMSplots.py config/SUS15004/T1bbbb_Exp_SUS15004.cfg T1bbbbAsymptotic
 
 To make an "unweighted" dataset (not needed for the preceding commands),
 execute

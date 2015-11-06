@@ -75,6 +75,9 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     Float_t                 dPhiRazor;
     Float_t                 MET;
     Float_t                 HT;
+    Float_t                 MHT;
+    Float_t                 MHTPhi;
+    Float_t                 diffMetMht;
     UInt_t                  NJets40;
     UInt_t                  NJets80;
     UInt_t                  NBJetsLoose;
@@ -126,7 +129,10 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("minDPhiN",&minDPhiN,"minDPhiN/F"); 
     outTree->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
     outTree->Branch("MET",&MET,"MET/F");
-    outTree->Branch("HT",&HT,"HT/F");	  
+    outTree->Branch("HT",&HT,"HT/F");
+    outTree->Branch("MHT",&MHT,"MHT/F");
+    outTree->Branch("MHTPhi",&MHTPhi,"MHTPhi/F");
+    outTree->Branch("diffMetMht",&diffMetMht,"diffMetMht/F");
     outTree->Branch("NJets40",&NJets40,"NJets40/i");
     outTree->Branch("NJets80",&NJets80,"NJets80/i");
     outTree->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
@@ -260,7 +266,6 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	passedDileptonTrigger = bool(HLTDecision[41] || HLTDecision[43]
 				     || HLTDecision[30] || HLTDecision[31] 
 				     || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-	//cout << HLTDecision[2] << ", " << HLTDecision[7] << ", " << HLTDecision[12] << endl;
 	passedSingleLeptonTrigger = bool( HLTDecision[2] || HLTDecision[7] || HLTDecision[12] 
 					  || HLTDecision[11] || HLTDecision[15] 
 					  || HLTDecision[18] || HLTDecision[19] || HLTDecision[20] 
@@ -497,44 +502,6 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	//}
 	//./include/RazorAnalyzer.h:double deltaR(double eta1, double phi1, double eta2, double phi2);
 	
-//if (printSyncDebug) {
-////if (abs(JetGenDiff[i])>100 && abs(JetGenDiff[i]/GenJetPt[i]) > 0.2) {
-//  cout << "  --------------- " << endl;
-//  cout << "JetPt[i] - GenJetPt[i] = " << JetPt[i] << " - " << GenJetPt[i] << " = " << JetGenDiff[i] << endl;
-//  cout << "(JetPt[i]-GenJetPt[i])/GenJetPt[i] = " << JetGenDiff[i]/GenJetPt[i] << endl;
-//  cout << JetChargedEMEnergyFraction[i]+JetNeutralEMEnergyFraction[i] << endl;
-//
-//  for (int j = 0; j < nGenParticle; j++) {
-//    double DR = deltaR( gParticleEta[j], gParticlePhi[j], jetEta[i], jetPhi[i]);
-//    if (DR>0.4) continue;
-//    cout << " gen particle pt: " << gParticlePt[j] << ", eta: " << gParticleEta[j] << ", phi: " << gParticlePhi[j] << ", pdgId: " << gParticleId[j] << endl;
-//  }
-//  //loop over pf candidates
-//  for (int j = 0; j < int(nIsoPFCandidates); j++) {
-//    double DR = deltaR( isoPFCandidateEta[j], isoPFCandidatePhi[j], jetEta[i], jetPhi[i]);
-//    cout << DR << endl;
-//    cout << " pf candidate pt: " << isoPFCandidatePt[j] << ", eta: " << isoPFCandidateEta[j] << ", phi: " << isoPFCandidatePhi[j] << ", pdgId: " << isoPFCandidatePdgId[j] << endl;
-//  }
-//  
-//  for (int j = 0; j < nPhotons; j++) {
-//    double DR = deltaR(phoEta[j], phoPhi[j], jetEta[i], jetPhi[i]);
-//    if (DR>0.4) continue;
-//    cout << " photon pt: " << phoPt[j] << ", E: " << phoE[j] << ", eta: " << phoEta[j] << ", phi: " << phoPhi[j] << endl;
-//  }
-//
-//  for (int j = 0; j < nElectrons; j++) {
-//    double DR = deltaR(eleEta[j], elePhi[j], jetEta[i], jetPhi[i]);
-//    if (DR>0.4) continue;
-//    cout << " electron pt: " << elePt[j] << ", eta: " << eleEta[j] << ", phi: " << elePhi[j] << endl;
-//  }
-//
-//  for (int j = 0; j < nMuons; j++) {
-//    double DR = deltaR(muonEta[j], muonPhi[j], jetEta[i], jetPhi[i]);
-//    if (DR>0.4) continue;
-//    cout << " muon pt: " << muonPt[j] << ", eta: " << muonEta[j] << ", phi: " << muonPhi[j] << endl;
-//  }
-//
-//}	
 	//Check for neutrinos near jet
 	//PtNeutrinoClosestToJet[i] = -999;
 	//double minDRNeutrino = 9999;
@@ -565,10 +532,6 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	GoodJets.push_back(thisJet);	  
 
       } //loop over jets
-
-      //if (numJetsAbove80GeV<2 || numJetsAbove40GeV<3) continue;
-
-      //if (jentry<100) cout << numJetsAbove80GeV << endl;
 
       ///sort good jets
       TLorentzVector tmpjet;
@@ -612,14 +575,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       TLorentzVector PFMETNoHF = makeTLorentzVectorPtEtaPhiM(metNoHFPt, 0, metNoHFPhi, 0);
       TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
 
-      //double PFMetX = metPt*cos(metPhi) + MetX_Type1Corr;
-      //double PFMetY = metPt*sin(metPhi) + MetY_Type1Corr;
-      //double PFMetX = metNoHFPt*cos(metNoHFPhi) + MetX_Type1Corr;
-      //double PFMetY = metNoHFPt*sin(metNoHFPhi) + MetY_Type1Corr;
-
       TLorentzVector PFMET = MyMET; //PFMET.SetPxPyPzE(PFMetX, PFMetY, 0, sqrt(PFMetX*PFMetX + PFMetY*PFMetY));
-      //TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
-      //TLorentzVector PFMETUnCorr = makeTLorentzVectorPtEtaPhiM(metNoHFPt, 0, metNoHFPhi, 0);
 
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
@@ -632,8 +588,9 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       MR = 0;
       Rsq = 0;
 
+      float MhtX=0, MhtY=0;
       HT = 0;
-      for(auto& obj : GoodPFObjects) HT += obj.Pt();
+      for(auto& obj : GoodPFObjects) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
 
       vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
       MR = computeMR(hemispheres[0], hemispheres[1]); 
@@ -641,57 +598,46 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
       MET = MyMET.Pt();
 
-      //only compute razor variables if we have 2 jets above 80 GeV
-//TLorentzVector hemisphereVector0;
-//TLorentzVector hemisphereVector1;
-//if (GoodPFObjects.size() >= 2 && GoodJets.size() < 20
-//	  //&& numJetsAbove80GeV >= 2 //Si: I think we don't need this requirement at this point
-//	  ) {
-//	vector<TLorentzVector> hemispheres = getHemispheres(GoodPFObjects);
-//	MR = computeMR(hemispheres[0], hemispheres[1]); 
-//	Rsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
-//	dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
-//	hemisphereVector0 = hemispheres[0];
-//	hemisphereVector1 = hemispheres[1];
-//}
-//
-////cout << jentry << ", " << MR << ", " << Rsq << ", " << dPhiRazor << endl;
-//   
-//MET = PFMET.Pt();
+      TLorentzVector MyMHT;
+      MyMHT.SetPxPyPzE(- MhtX, -MhtY, 0, sqrt( pow(MhtX,2) + pow(MhtY,2)));
+
+      MHT = MyMHT.Pt();
+      MHTPhi = MyMHT.Phi();
+
+      TLorentzVector diff = MyMHT - MyMET;
+      diffMetMht = abs(diff.Pt())/MyMET.Pt();
+
       NJets40 = numJetsAbove40GeV;
       NJets80 = numJetsAbove80GeV;
       NBJetsLoose = nBJetsLoose20GeV;
       NBJetsMedium = nBJetsMedium20GeV;
       NBJetsTight = nBJetsTight20GeV;
-//
-//HT = 0;
-//for(auto& pfobj : GoodPFObjects) HT += pfobj.Pt();
-//
-////*************************************************************************
-////Make GenJet vector for hemispheres
-////*************************************************************************
-//double GenMetX = genMetPt*cos(genMetPhi);
-//double GenMetY = genMetPt*sin(genMetPhi);
-//TLorentzVector GenMET; GenMET.SetPxPyPzE(GenMetX, GenMetY, 0, sqrt(GenMetX*GenMetX + GenMetY*GenMetY));
-//
-//genJetMR = 0;
-//genJetRsq = 0;
-//genJetDPhiRazor = 0;
-//genJetHT = 0;
-//vector<TLorentzVector> GenJetObjects;
-//for(int j = 0; j < nGenJets; j++){
-//	if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
-//	  TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
-//	  GenJetObjects.push_back(thisGenJet);
-//	  genJetHT += genJetPt[j];
-//	}
-//}
-//if (GenJetObjects.size() >= 2 ) {
-//	vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
-//	genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
-//	genJetRsq = computeRsq(tmpHemispheres[0], tmpHemispheres[1], GenMET);
-//	genJetDPhiRazor = deltaPhi(tmpHemispheres[0].Phi(),tmpHemispheres[1].Phi());
-//}      
+	
+      ////*************************************************************************
+      ////Make GenJet vector for hemispheres
+      ////*************************************************************************
+      //double GenMetX = genMetPt*cos(genMetPhi);
+      //double GenMetY = genMetPt*sin(genMetPhi);
+      //TLorentzVector GenMET; GenMET.SetPxPyPzE(GenMetX, GenMetY, 0, sqrt(GenMetX*GenMetX + GenMetY*GenMetY));
+      //
+      //genJetMR = 0;
+      //genJetRsq = 0;
+      //genJetDPhiRazor = 0;
+      //genJetHT = 0;
+      //vector<TLorentzVector> GenJetObjects;
+      //for(int j = 0; j < nGenJets; j++){
+      //	if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
+      //	  TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+      //	  GenJetObjects.push_back(thisGenJet);
+      //	  genJetHT += genJetPt[j];
+      //	}
+      //}
+      //if (GenJetObjects.size() >= 2 ) {
+      //	vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
+      //	genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
+      //	genJetRsq = computeRsq(tmpHemispheres[0], tmpHemispheres[1], GenMET);
+      //	genJetDPhiRazor = deltaPhi(tmpHemispheres[0].Phi(),tmpHemispheres[1].Phi());
+      //}      
      
       //*************************************************************************
       //save HLT Decisions
@@ -709,9 +655,6 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       	  passSkim = false;
       	}
       }
-      //else if (NJets40<3) {
-      //passSkim = false;
-      //}
 
       //*************************************************************************
       //Fill Tree
