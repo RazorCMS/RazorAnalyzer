@@ -1,57 +1,55 @@
+### fit MC cocktail to validate the fit function
+
 import sys,os
 import argparse
 import ROOT as rt
 
 #local imports
+from framework import Config
 import macro.macro as macro
 from macro.razorAnalysis import *
 from macro.razorWeights import *
 from macro.razorMacros import *
 
-LUMI = 1264 #in /pb
+LUMI = 32000 #in /pb
 MCLUMI = 1 
 
-SAMPLES = ["TTV", "VV", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
+SAMPLES = ["TTV", "VV", "DYJetsLow", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
 
-#DIR_MC= "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC_FullRazorInclusive/combined"
 DIR_MC= "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC"
-DIR_DATA= "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data"
 PREFIX = "RazorInclusive"
-DATA_NAME='SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_razorskim'
 FILENAMES = {
-        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root",
-        "WJets"     : DIR_MC+"/"+PREFIX+"_WJetsToLNu_HTBinned_1pb_weighted.root",
-        #"WJets"     : DIR_MC+"/"+PREFIX+"_WJets_1pb_weighted.root",
-        "SingleTop" : DIR_MC+"/"+PREFIX+"_SingleTop_1pb_weighted.root",
-        "VV" : DIR_MC+"/"+PREFIX+"_VV_1pb_weighted.root",
-        "TTV" : DIR_MC+"/"+PREFIX+"_TTV_1pb_weighted.root",
-        "DYJets"     : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-50_HTBinned_1pb_weighted.root",
-        #"DYJets"     : DIR_MC+"/"+PREFIX+"_DYJetsToLL_1pb_weighted.root",
-        "ZInv"     : DIR_MC+"/"+PREFIX+"_ZJetsToNuNu_HTBinned_1pb_weighted.root",
-        #"ZInv"     : DIR_MC+"/"+PREFIX+"_ZJetsToNuNu_1pb_weighted.root",
-        "Data"      : DIR_DATA+'/'+PREFIX+'_'+DATA_NAME+'.root',
+        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
+        "WJets"     : DIR_MC+"/"+PREFIX+"_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
+        "SingleTop" : DIR_MC+"/"+PREFIX+"_SingleTop_1pb_weighted_razorskim.root",
+        "DYJetsLow" : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-5to50_HTBinned_1pb_weighted.root",
+        "VV" : DIR_MC+"/"+PREFIX+"_VV_1pb_weighted_razorskim.root",
+        "TTV" : DIR_MC+"/"+PREFIX+"_TTV_1pb_weighted_razorskim.root",
+        "DYJets"     : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-50_HTBinned_1pb_weighted_razorskim.root",
+        "ZInv"     : DIR_MC+"/"+PREFIX+"_ZJetsToNuNu_HTBinned_1pb_weighted_razorskim.root",
         }
 
 config = "config/run2_sideband.config"
-FIT_DIR = "MyFitResults"
-#config = "config/backup.config"
-#FIT_DIR = "FitResultsSideband"
+FIT_DIR = "fits_2015_10_24"
 TOYS_FILES = {
-        "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/multijet_32ifb/Sideband/toys_Bayes_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/mumultijet_32ifb/Sideband/toys_Bayes_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/EleMultiJet_32ifb/Sideband/toys_Bayes_EleMultiJet.root",
         }
 
-weightOpts = ["doNVtxWeights"]
-#shapeErrors = ["muoneff", "eleeff", "jes"]
-#miscErrors = ["mt"]
-shapeErrors = []
-miscErrors = []
-
 cfg = Config.Config(config)
+binsMRHad = cfg.getBinning("MultiJet")[0]
+binsRsqHad = cfg.getBinning("MultiJet")[1]
+hadronicBinning = { "MR":binsMRHad, "Rsq":binsRsqHad }
 binsMRLep = cfg.getBinning("MuMultiJet")[0]
 binsRsqLep = cfg.getBinning("MuMultiJet")[1]
 leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep }
-blindBins = [(x,y) for x in range(3,len(leptonicBinning["MR"])+1) for y in range(2,len(leptonicBinning["Rsq"])+1)]
+binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning}
+
+#weightOpts = ["doNVtxWeights"]
+weightOpts = []
+shapeErrors = []
+miscErrors = []
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -70,14 +68,14 @@ if __name__ == "__main__":
     sfHists = {}
 
     #get scale factor histograms
-    sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
+    #sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
 
-    #estimate yields in signal region
-    for lepType in ["Mu", "Ele"]:
+    #estimate yields in leptonic signal region
+    for lepType in ["", "Mu", "Ele"]:
         for jets in ["MultiJet"]:
             boxName = lepType+jets
-            btaglist = [0]
-            #btaglist = [0,1,2,3]
+            #btaglist = [0]
+            btaglist = [0,1,2,3]
             for btags in btaglist:
                 print "\n---",boxName,"Box,",btags,"B-tags ---"
                 #get correct cuts string
@@ -104,8 +102,9 @@ if __name__ == "__main__":
                 makeControlSampleHists(extboxName, 
                         filenames=FILENAMES, samples=SAMPLES, 
                         cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
-                        bins=leptonicSignalRegionBins, lumiMC=MCLUMI, lumiData=LUMI, 
+                        bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                         weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                         weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
-                        fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBins,
+                        fitToyFiles=TOYS_FILES, boxName=boxName, 
                         btags=nBtags, debugLevel=debugLevel)
+

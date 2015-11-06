@@ -69,8 +69,9 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
                     shapeHists[name][shape+"Down"][var].SetDirectory(0)
                     shapeHists[name][shape+"Up"][var].SetDirectory(0)
     #deal correctly with Poisson errors on data
-    for var in hists[dataName]:
-        hists[dataName][var].SetBinErrorOption(rt.TH1.kPoisson)
+    if dataName in hists:
+        for var in hists[dataName]:
+            hists[dataName][var].SetBinErrorOption(rt.TH1.kPoisson)
     return hists,shapeHists
 
 def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors=[], boxName="", debugLevel=0):
@@ -106,7 +107,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                 if source.lower() == "mt":
                     applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -114,7 +115,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     titles = {name:name for name in mcNames}
 
     #get data histograms
-    dataHists = histDict[dataName]
+    if dataName in histDict: dataHists = histDict[dataName]
+    else: dataHists = None
 
     #make correct comment string
     if comment:
@@ -132,21 +134,27 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     for i,var in enumerate(varList): 
         #for MR and Rsq, make 2D plots
         if var == ('MR','Rsq'):
-            mcPrediction = histDict[mcNames[0]][var].Clone("mcPrediction")
-            mcPrediction.Reset()
-            for name in mcNames: 
-                mcPrediction.Add(histDict[name][var])
+            if len(mcNames) > 0:
+                mcPrediction = histDict[mcNames[0]][var].Clone("mcPrediction")
+                mcPrediction.Reset()
+                for name in mcNames: 
+                    mcPrediction.Add(histDict[name][var])
+            else:
+                mcPrediction = 0
             #copy data and fit histograms
-            obsData = dataHists[var].Clone("obsData")
+            if dataHists is not None: obsData = dataHists[var].Clone("obsData")
+            else: obsData = 0
             if not plotFit: 
                 fitPrediction = 0
             else: 
                 fitPrediction = histDict["Fit"][var]
             #blind signal region if necessary
-            if blindBins is not None:
+            if blindBins is not None and dataHists is not None:
                 blindHistograms([obsData], blindBins)
+                if nsigmaFitData is not None:
+                    blindHistograms([nsigmaFitData], blindBins)
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC)
             #print prediction in each bin
             if obsData != 0:
                 print "Results for razor data histogram:"
@@ -171,15 +179,20 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         varHists = {name:histDict[name][var] for name in mcNames}
         if not legend:
             legend = makeLegend(varHists, titles, reversed(mcNames))
-            if blindBins is None: legend.AddEntry(dataHists[var], dataName)
+            if blindBins is None and dataHists is not None: legend.AddEntry(dataHists[var], dataName)
             if plotFit: legend.AddEntry(histDict["Fit"][var], "Fit")
         stack = makeStack(varHists, mcNames, var)
+        if len(mcNames) == 0: stack = None #plotting function can't handle an empty stack
+        if dataHists is not None:
+            obsData = dataHists[var]
+        else:
+            obsData = None
         if not plotFit:
             fitPrediction = None
         else:
             fitPrediction = histDict["Fit"][var]
         if blindBins is None:
-            plot_basic(c, mc=stack, data=dataHists[var], fit=fitPrediction, leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
+            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
         else:
             plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
 
@@ -364,13 +377,13 @@ def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
         leg.AddEntry(hists[name], titles[name])
     return leg
 
-colors = {"WJets":rt.kRed+1, "DYJets":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZInv":rt.kCyan+1, "QCD":rt.kOrange+3, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7}
+colors = {"WJets":rt.kRed+1, "DYJets":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZInv":rt.kCyan+1, "QCD":rt.kOrange+3, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1}
 def setHistColor(hist, name):
     """Sets histogram color"""
     if name in colors: hist.SetFillColor(colors[name])
     else: print "Warning in macro.py: histogram fill color not set for",name
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kBlue, saveroot=False, savepdf=False, savepng=True):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kBlue, mcErrColor=rt.kRed, customPad2Hist=None, saveroot=False, savepdf=False, savepng=True):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
@@ -392,7 +405,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
         mcTotal.Reset()
         for h in histList:
             mcTotal.Add(h)
-        mcTotal.SetFillColor(rt.kBlue-10)
+        mcTotal.SetFillColor(mcErrColor-10)
         mcTotal.SetTitle("")
         mcTotal.GetYaxis().SetTitle(ytitle)
         mcTotal.GetYaxis().SetLabelSize(0.03)
@@ -451,9 +464,31 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
 
     #lower pad plot
     lowerPadHist = None
+
+    #set up custom histogram if provided
+    if customPad2Hist is not None:
+        customPad2Hist.SetTitle("")
+        customPad2Hist.GetXaxis().SetTitle(xtitle)
+        customPad2Hist.SetMinimum(ratiomin)
+        customPad2Hist.SetMaximum(ratiomax)
+        customPad2Hist.SetStats(0)
+        customPad2Hist.GetXaxis().SetLabelSize(0.1)
+        customPad2Hist.GetYaxis().SetLabelSize(0.08)
+        customPad2Hist.GetYaxis().SetTitleOffset(0.35)
+        customPad2Hist.GetXaxis().SetTitleOffset(1.00)
+        customPad2Hist.GetYaxis().SetTitleSize(0.08)
+        customPad2Hist.GetXaxis().SetTitleSize(0.08)
+        customPad2Hist.SetTitle("")
+        if logx: customPad2Hist.GetXaxis().SetMoreLogLabels()
+
     #make ratio data/MC
     if data and mc:
-        if pad2Opt.lower() == "ratio":
+        if customPad2Hist is not None:
+            lowerPadHist = customPad2Hist.Clone("lowerPadHist")
+            lowerPadHist.GetYaxis().SetTitle("Nsigma")
+            lowerPadHist.SetMarkerStyle(20)
+            lowerPadHist.SetMarkerSize(1)
+        elif pad2Opt.lower() == "ratio":
             lowerPadHist = make1DRatioHistogram(data, mcTotal, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("Data / MC")
         elif pad2Opt.lower() == "nsigma" or pad2Opt.lower() == "pulls" or pad2Opt.lower() == "ff":
@@ -464,7 +499,12 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
             lowerPadHist.GetYaxis().SetTitle("(Data - MC)/MC")
     #make ratio data/fit
     elif data and fit:
-        if pad2Opt.lower() == "ratio":
+        if customPad2Hist is not None:
+            lowerPadHist = customPad2Hist.Clone("lowerPadHist")
+            lowerPadHist.GetYaxis().SetTitle("Nsigma")
+            lowerPadHist.SetMarkerStyle(20)
+            lowerPadHist.SetMarkerSize(1)
+        elif pad2Opt.lower() == "ratio":
             lowerPadHist = make1DRatioHistogram(data, fit, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("Data / Fit")
         elif pad2Opt.lower() == "nsigma" or pad2Opt.lower() == "pulls" or pad2Opt.lower() == "ff":
@@ -475,7 +515,12 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
             lowerPadHist.GetYaxis().SetTitle("(Data - Fit)/Fit")
     #make ratio mc/fit
     elif mc and fit:
-        if pad2Opt.lower() == "ratio":
+        if customPad2Hist is not None:
+            lowerPadHist = customPad2Hist.Clone("lowerPadHist")
+            lowerPadHist.GetYaxis().SetTitle("Nsigma")
+            lowerPadHist.SetMarkerStyle(fit.GetMarkerStyle())
+            lowerPadHist.SetMarkerSize(fit.GetMarkerSize())
+        elif pad2Opt.lower() == "ratio":
             lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("Fit / MC")
         elif pad2Opt.lower() == "nsigma" or pad2Opt.lower() == "pulls" or pad2Opt.lower() == "ff":
@@ -503,7 +548,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
     if savepdf: c.Print(printstr+".pdf")
     if saveroot: c.Print(printstr+".root")
 
-def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=False, savepdf=False, savepng=True):
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=False, savepdf=False, savepng=True, numDigits=1):
     """Draw a single 2D histogram and print to file"""
     if palette == "FF":
         setFFColors(hist, -5.1, 5.1)
@@ -532,7 +577,7 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
     if grayGraphs is not None: 
         for g in grayGraphs: g.Draw("f")
     if dotext:
-        rt.gStyle.SetPaintTextFormat('4.1f')
+        rt.gStyle.SetPaintTextFormat('4.%df' % numDigits)
         hist.SetMarkerSize(2.0)
         if not drawErrs: hist.Draw('textsame')
         else: 
@@ -657,6 +702,16 @@ def make2DPercentDiffHistogram(h1, h2, suppress=True):
                     ret.SetBinContent(bx,by,-9999)
     return ret
 
+def make2DRelativeUncertaintyHistogram(h):
+    ret = h.Clone(h.GetName()+"RelUnc")
+    for bx in range(1, h.GetNbinsX()+1):
+        for by in range(1, h.GetNbinsY()+1):
+            if h.GetBinContent(bx,by) != 0:
+                ret.SetBinContent(bx,by,h.GetBinError(bx,by)*1.0/h.GetBinContent(bx,by))
+            else:
+                ret.SetBinContent(bx,by,-9999)
+    return ret
+
 def unroll2DHistograms(hists):
     out = [] 
     for hist in hists:
@@ -674,7 +729,7 @@ def unroll2DHistograms(hists):
         out.append(outHist)
     return out
 
-def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number of events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=False, savepdf=False, savepng=True):
+def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number of events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=False, savepdf=False, savepng=True, nsigmaFitData=None, nsigmaFitMC=None):
     """Plotting macro for data, MC, and/or fit yields.  Creates french flag plots comparing data/MC/fit if able."""
     #make a gray square for each -999 bin
     grayGraphs = [makeGrayGraphs(hist) for hist in [mc,fit,data]]
@@ -724,38 +779,70 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
             plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, commentstr=commentstr, ratiomin=-5.0,ratiomax=5.0, pad2Opt="ff", saveroot=True)
         if fit: 
             #do (fit - mc)/unc
-            mcFitPulls = make2DPullHistogram(fit,mc)
-            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCFitPulls', lumistr=lumistr, commentstr=commentstr+", (Fit - MC)/#sigma", palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            if nsigmaFitMC is None:
+                #do (MC - fit)/unc
+                mcFitPulls = make2DPullHistogram(fit,mc)
+                note="(MC - Fit)/#sigma"
+            else:
+                #make nsigma plot
+                note="Nsigmas"
+                mcFitPulls = nsigmaFitMC
+            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCFitPulls', lumistr=lumistr, commentstr=commentstr+note, palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
             #do (fit - mc)/mc
             mcFitPerc = make2DPercentDiffHistogram(fit,mc)
             draw2DHist(c, mcFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Fit - MC)/MC", palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
             #unroll and compare
+
+            nsigmaUnrolledFitMC = None
+            if nsigmaFitMC is not None:
+                nsigmaUnrolledFitMC = unroll2DHistograms([nsigmaFitMC])[0]
+                for bx in range(1, nsigmaUnrolledFitMC.GetNbinsX()+1):
+                    nsigmaUnrolledFitMC.SetBinError(bx,0.0)
+
             legMCFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
             rt.SetOwnership(legMCFit, False)
             legMCFit.AddEntry(unrolled[0], "MC Prediction")
             legMCFit.AddEntry(unrolled[2], "Fit Prediction")
-            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", saveroot=True)
+            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", saveroot=True, mcErrColor=rt.kRed, customPad2Hist=nsigmaUnrolledFitMC)
     if data:
         draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
         if fit: 
-            #do (data - fit)/unc
-            dataFitPulls = make2DPullHistogram(data,fit)
-            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'DataFitPulls', lumistr=lumistr, commentstr=commentstr+", (Data - Fit)/#sigma", dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            if nsigmaFitData is None:
+                #do (data - fit)/unc
+                dataFitPulls = make2DPullHistogram(data,fit)
+                note="(Data - Fit)/#sigma"
+            else:
+                #make nsigma plot
+                note="Nsigmas"
+                dataFitPulls = nsigmaFitData
+            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'DataFitNSigma', lumistr=lumistr, commentstr=commentstr+note, dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
             #do (data - fit)/fit
             dataFitPerc = make2DPercentDiffHistogram(data,fit)
             draw2DHist(c, dataFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'DataFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - Fit)/Fit", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
             #unroll and compare
             blindFit = unrolled[2].Clone("blindFit")
+
+            nsigmaUnrolled = None
+            if nsigmaFitData is not None:
+                nsigmaUnrolled = unroll2DHistograms([nsigmaFitData])[0]
+                for bx in range(1,nsigmaUnrolled.GetNbinsX()+1):
+                    nsigmaUnrolled.SetBinError(bx,0.0)
+
             for bx in range(1,blindFit.GetNbinsX()+1):
                 if unrolled[1].GetBinContent(bx) < 0:
                     blindFit.SetBinContent(bx, -999)
+
             legDataFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
             rt.SetOwnership(legDataFit, False)
             legDataFit.AddEntry(blindFit, "Fit Prediction")
             legDataFit.AddEntry(unrolled[1], "Data Prediction")
-            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kGreen, saveroot=True)
+
+            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kGreen, saveroot=True, customPad2Hist=nsigmaUnrolled)
     if fit:
         draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+        #make relative uncertainty histogram
+        relUncFitHist = make2DRelativeUncertaintyHistogram(fit)
+        draw2DHist(c, relUncFitHist, xtitle, ytitle, ztitle, 0.0, 2.0, printstr+'FitRelUnc', lumistr=lumistr, commentstr=commentstr+", Fit relative uncertainty", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=False, saveroot=saveroot, savepdf=savepdf, savepng=savepng, logz=False)
 
 def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrdering=[], titles=[], mcTitle="Stack", xtitle="", ytitle="Number of events", printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", saveroot=False, savepdf=False, savepng=True, ymin=None, ymax=None):
     #make stack
