@@ -15,7 +15,7 @@ def getTree(myTree,paramNames,nBins,box):
     
     rando = random.randint(1,999999)
     # first structure
-    stringMyStruct1= "void tempMacro_%d(){struct MyStruct1{float n2llr_%s; float chi2_%s; int covQual_%s; int migrad_%s; int hesse_%s; int minos_%s;"%(rando,box,box,box,box,box,box)
+    stringMyStruct1= "void tempMacro_%d(){struct MyStruct1{float nll_%s; float n2llr_%s; float chi2_%s; int covQual_%s; int migrad_%s; int hesse_%s; int minos_%s;"%(rando,box,box,box,box,box,box,box)
     for paramName in paramNames:
         stringMyStruct1 = stringMyStruct1+"float %s; float %s_error;" %(paramName,paramName)
         if paramName=='r':
@@ -33,6 +33,7 @@ def getTree(myTree,paramNames,nBins,box):
 
     # fills the bins list and associate the bins to the corresponding variables in the structure
     s1 = MyStruct1()
+    myTree.Branch('nll_%s'%box , rt.AddressOf(s1,'nll_%s'%box),'nll_%s/F' %box)
     myTree.Branch('n2llr_%s'%box , rt.AddressOf(s1,'n2llr_%s'%box),'n2llr_%s/F' %box)
     myTree.Branch('chi2_%s'%box , rt.AddressOf(s1,'chi2_%s'%box),'chi2_%s/F' %box)
     myTree.Branch('covQual_%s'%box , rt.AddressOf(s1,'covQual_%s'%box),'covQual_%s/I' %box)
@@ -64,6 +65,7 @@ def runToys(w,options,cfg):
     elif w.obj("nll_extRazorPdf_data_obs") != None:
         fr = w.obj("nll_extRazorPdf_data_obs")
 
+    fr.Print("V")
     if options.r>-1:
         extSpBPdf = w.pdf('extSpBPdf')
                 
@@ -105,9 +107,10 @@ def runToys(w,options,cfg):
 
     unc = 'Bayes'
     if options.noStat: unc = "Bayes_noStat"
-    if options.noSys: unc = "Bayes_noSys"
-    if options.freq: unc = 'Freq'
-
+    elif options.noSys: unc = "Bayes_noSys"
+    elif options.freq: unc = 'Freq'
+    elif options.oneSigma: unc = 'oneSigma'
+        
     if options.r>-1:
         rString = str('%.3f'%options.r).replace(".","p")
         output = rt.TFile.Open(options.outDir+'/toys_%s_r%s_%s.root'%(unc,rString,options.box),'recreate')
@@ -134,18 +137,21 @@ def runToys(w,options,cfg):
 
     chi2_data = 0
     n2llr_data = 0
+    nll_data = 0
+    bestFitByBin = []
     for iBinX in range(0,nBins):
         th1x.setVal(iBinX+0.5)
         expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+        bestFitByBin.append(expected)
         observed = float(dataHist.weight(rt.RooArgSet(th1x)))
         value = setattr(s1, 'b%i'%iBinX, expected)
         if expected>0:
             chi2_data += ( observed - expected ) * ( observed - expected ) / ( expected )
         if observed>0 and expected>0:
-            n2llr_data += 2 * ( observed*rt.TMath.Log(observed/expected) - observed )
-        n2llr_data += 2 * ( expected )
-
+            n2llr_data += 2 * ( observed*rt.TMath.Log(observed/expected) - observed ) + 2 * ( expected )
+            nll_data -= observed*rt.TMath.Log(expected) - expected
         
+    value = setattr(s1, 'nll_%s'%options.box, nll_data)
     value = setattr(s1, 'n2llr_%s'%options.box, n2llr_data)
     value = setattr(s1, 'chi2_%s'%options.box, chi2_data)
     myTree.Fill()
@@ -153,17 +159,31 @@ def runToys(w,options,cfg):
     iToy = 0
     
     nBadPars = 0
+    pBest = fr.floatParsFinal()
+    pBestVal = {}
+    pBestErr = {}
+    for p in rootTools.RootIterator.RootIterator(pBest):
+        pBestVal[p.GetName()] = p.getVal()
+        pBestErr[p.GetName()] = p.getError()
+        
     while iToy < options.nToys:
         if options.freq:
             pSet = fr.floatParsFinal()
+        elif options.oneSigma:
+            pSet = fr.randomizePars()
+            #for p in rootTools.RootIterator.RootIterator(pSet):
+            #    new_value = pBestVal[p.GetName()] + 2*pBestErr[p.GetName()]*rt.RooRandom.randomGenerator().Uniform(1) - pBestErr[p.GetName()]
+            #    p.setVal(new_value)
         else:
             if options.noSys:                
                 pSet = fr.floatParsFinal()
             else:                
                 pSet = fr.randomizePars()
+        #print "parameters"
         for p in rootTools.RootIterator.RootIterator(pSet):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
+            #print "%s = %f +- %f"%(p.GetName(),p.getVal(),p.getError())
 
         badPars = []
         for bkgd in ['TTj0b','TTj1b','TTj2b','TTj3b']:
@@ -180,30 +200,29 @@ def runToys(w,options,cfg):
             #print "bad pars toy=%i"%iToy
             continue
 
-        #print "good pars"        
-        #for bkgd in ['TTj0b','TTj1b','TTj2b','TTj3b']:
-        #    if w.var('n_%s_%s'%(bkgd,options.box))!=None:                
-        #        print 'n_%s_%s = %f'%(bkgd,options.box,w.var('n_%s_%s'%(bkgd,options.box)).getVal())
-        #    if w.var('b_%s_%s'%(bkgd,options.box))!=None:                                
-        #        print 'b_%s_%s = %f'%(bkgd,options.box,w.var('b_%s_%s'%(bkgd,options.box)).getVal())
-        #    if w.var('MR0_%s_%s'%(bkgd,options.box))!=None:                                
-        #        print 'MR0_%s_%s = %f'%(bkgd,options.box,w.var('MR0_%s_%s'%(bkgd,options.box)).getVal())
-        #    if w.var('R0_%s_%s'%(bkgd,options.box))!=None:                   
-        #        print 'R0_%s_%s = %f'%(bkgd,options.box,w.var('R0_%s_%s'%(bkgd,options.box)).getVal())
-                
+        #print "good pars"                        
         errorCountBefore = rt.RooMsgService.instance().errorCount()
-        th1x.setVal(0.5) # check number of events in first bin
-        pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
-        pdfVal0 = extRazorPdf.getValV(0) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+
+        badVal = False
+        for iBinX in range(0,nBins):
+            th1x.setVal(iBinX+0.5) # check number of events in each bin
+            pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+            pdfVal0 = extRazorPdf.getValV(0) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+            if pdfValV/bestFitByBin[iBinX] <= 1e-12:
+                #print "bin = %i"%iBinX
+                #print "best fit = %e"%(bestFitByBin[iBinX])
+                #print "pdf valv = %e"%(pdfValV)
+                #print "pdf val0 = %e"%(pdfVal0)
+                badVal = True                
+        if badVal:
+            #print "bad val"
+            continue
+        
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore:            
             #print "can't evaulate pdf toy=%i"%iToy
             continue
         
-        if pdfValV<=0.0 and pdfVal0<=0.0:
-            #print "pdf valv = %f"%(pdfValV)
-            #print "pdf val0 = %f"%(pdfVal0)
-            continue
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()        
         #print "start generating toy=%i"%iToy
@@ -264,7 +283,7 @@ def runToys(w,options,cfg):
             #    asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy),rt.RooFit.Asimov())
             #else:
             #    asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('pred_%i'%iToy))
-
+            
                 
         for p in rootTools.RootIterator.RootIterator(pSetSave):
             value = setattr(s1, p.GetName(), p.getVal())
@@ -276,6 +295,7 @@ def runToys(w,options,cfg):
 
         chi2_toy = 0
         n2llr_toy = 0
+        nll_toy = 0
         # restore best-fit to calculate expected values        
         for p in rootTools.RootIterator.RootIterator(pSetSave):
             w.var(p.GetName()).setVal(p.getVal())
@@ -284,16 +304,30 @@ def runToys(w,options,cfg):
             th1x.setVal(iBinX+0.5)
             expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
             toy = float(asimov.weight(rt.RooArgSet(th1x)))
-            observed = float(dataHist.weight(rt.RooArgSet(th1x)))
-            value = setattr(s1, 'b%i'%iBinX, toy)
+            observed = float(dataHist.weight(rt.RooArgSet(th1x)))  
+            if options.oneSigma:
+                toy = observed # to get nll with respect to original dataset
+                value = setattr(s1, 'b%i'%iBinX, expected) #save expected yield
+            else:          
+                value = setattr(s1, 'b%i'%iBinX, toy)
             if expected>0:
                 chi2_toy += ( toy - expected ) * ( toy - expected ) / ( expected )
             if toy>0 and expected>0:
-                n2llr_toy += 2 * ( toy*rt.TMath.Log(toy/expected) - toy )
-            n2llr_toy += 2 * ( expected )
+                n2llr_toy += 2 * ( toy*rt.TMath.Log(toy/expected) - toy ) + 2 * ( expected )
+                nll_toy -= toy*rt.TMath.Log(expected) - expected
+
+        if options.oneSigma:
+            nsigma = 1.0
+            nparam = fr.floatParsFinal().getSize()
+            #print "nll_toy", nll_toy
+            #print "nll_data", nll_data
+            #print "-2DeltaLL =", 2*(nll_toy-nll_data), " ? < cutoff =", rt.Math.chisquared_quantile(rt.Math.erf(nsigma/rt.TMath.Sqrt(2.)),nparam)
+            if 2*(nll_toy-nll_data) > rt.Math.chisquared_quantile(rt.Math.erf(nsigma/rt.TMath.Sqrt(2.)),nparam): continue
             
+        value = setattr(s1, 'nll_%s'%options.box, nll_toy)
         value = setattr(s1, 'n2llr_%s'%options.box, n2llr_toy)
         value = setattr(s1, 'chi2_%s'%options.box, chi2_toy)
+
         
         if iToy%100==0: print "generating %ith toy"%iToy
         myTree.Fill()
@@ -329,6 +363,8 @@ if __name__ == '__main__':
                   help="no systematic uncertainty, just statistical uncertainty, default is statstical + systematic uncertainty")
     parser.add_option('--freq',dest="freq",default=False,action='store_true',
                   help="refit each toy with only statistical fluctuations, as in frequentist approach; default is bayeseian")
+    parser.add_option('--one-sigma',dest="oneSigma",default=False,action='store_true',
+                  help="sample parameters uniformly (within 2-sigma) and save yields if NLL is within 1-sigma of minimum")
     parser.add_option('-r','--signal-strength',dest="r", default=-1,type="float",
                   help="signal strength => do each fit the the SpB pdf")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",

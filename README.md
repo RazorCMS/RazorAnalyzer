@@ -85,7 +85,8 @@ the QCD contirbution).
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_DYJetsToLL_M-5to50_HTBinned_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_SingleTop_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root \
-	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_TTV_1pb_weighted.rootRazorInclusive_VV_1pb_weighted.root \
+	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_TTV_1pb_weighted.root \
+	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_VV_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted.root \
 	 root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root 
 
