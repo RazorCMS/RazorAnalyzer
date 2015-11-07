@@ -124,6 +124,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   float leadingGenMuonEta, leadingGenElectronEta, leadingGenTauEta;
   float minDRGenLeptonToGenParton;
   float genmet;
+  float genHt;
 
   RazorBox box;
 
@@ -198,7 +199,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       razorTree->Branch("leadingGenTauEta", &leadingGenTauEta, "leadingGenTauEta/F");
       razorTree->Branch("minDRGenLeptonToGenParton", &minDRGenLeptonToGenParton, "minDRGenLeptonToGenParton/F");
       razorTree->Branch("genmet", &genmet, "genmet/F");
-      
+      razorTree->Branch("genHt", &genHt, "genHt/F");
+     
     } else {
       razorTree->Branch("run", &runNum, "run/i");
       razorTree->Branch("lumi", &lumiNum, "lumi/i");
@@ -301,6 +303,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     leadingGenTauEta = -999;
     minDRGenLeptonToGenParton = 9999;
     genmet = -999;
+    genHt  = 0.;
 
     /////////////////////////////////
     //SMS information
@@ -339,6 +342,14 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     //MC Information
     //*****************************************
     genmet = genMetPt;
+    // calculate gen Ht
+    for(int j = 0; j < nGenParticle; j++){
+      
+      if ( (abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) ||  (abs(gParticleId[j]) == 21) )
+	if (gParticleStatus[j] == 23 )
+          genHt += gParticlePt[j];
+    }
+
     for(int j = 0; j < nGenParticle; j++){
       if (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
 	  //&& abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5
