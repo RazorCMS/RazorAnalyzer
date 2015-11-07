@@ -227,15 +227,67 @@ def find68ProbRange(hToy, probVal=0.6827):
     minVal = 0.
     maxVal = 100000.
     mode = hToy.GetBinLowEdge(hToy.GetMaximumBin())
-    rms  = hToy.GetRMS()
-    if hToy.Integral()<=0: return mode,minVal,maxVal
-    minVal = mode-rms/2.
-    maxVal = mode+rms/2.
-    if minVal<0:
-        minValTemp = abs(minVal)
-        minVal = minVal+minValTemp #should evaluate to zero
-        maxVal = maxVal+minValTemp        
+    integral = hToy.Integral()
+    if integral<=0: 
+        return mode,minVal,maxVal
     
+    ### range calculation assumes a unimodal toy distribution
+
+    #get a good number of histogram bins 
+    targetNumBins = 100
+    rebinBy = int(hToy.GetNbinsX()/targetNumBins)
+    if rebinBy > 1: hToy = hToy.Rebin(rebinBy,hToy.GetName()+"rebinned")
+    mode = hToy.GetBinLowEdge(hToy.GetMaximumBin()) #recompute mode
+
+    #start at the mode
+    leftBin = hToy.GetMaximumBin()
+    rightBin = hToy.GetMaximumBin()
+    curProb = hToy.GetBinContent(leftBin)/integral
+
+    #edge case: the best fit bin has enough probability already
+    if curProb >= probVal:
+        binFractionToTake = probVal/curProb
+        minVal = hToy.GetXaxis().GetBinCenter(leftBin) - hToy.GetXaxis().GetBinWidth(leftBin)*binFractionToTake/2
+        maxVal = hToy.GetXaxis().GetBinCenter(leftBin) + hToy.GetXaxis().GetBinWidth(leftBin)*binFractionToTake/2
+
+    #add bins on either side of the best fit bin until probVal is reached
+    while curProb < probVal: 
+        if leftBin <= 1 and rightBin >= hToy.GetNbinsX():
+            print "Error in find68ProbRange: failed to reach the target probability value",probVal
+            return mode, minVal, maxVal
+
+        #get probabilities to the left and right
+        if leftBin-1 > 0:
+            leftProb = hToy.GetBinContent(leftBin-1)/integral
+        else:
+            leftProb = 0.0
+        if rightBin+1 < hToy.GetNbinsX()+1:
+            rightProb = hToy.GetBinContent(rightBin+1)/integral
+        else:
+            rightProb = 0.0
+
+        #decide which way to go
+        if leftProb > rightProb: 
+            #go left
+            leftBin -= 1
+            if curProb + leftProb >= probVal:
+                #get left edge (correct for overshooting)
+                binFractionToTake = (probVal-curProb)/leftProb
+                minVal = hToy.GetXaxis().GetBinUpEdge(leftBin) - hToy.GetXaxis().GetBinWidth(leftBin)*binFractionToTake
+                maxVal = hToy.GetXaxis().GetBinUpEdge(rightBin)
+            #update probability sum
+            curProb += leftProb
+        else: 
+            #go right
+            rightBin += 1
+            if curProb + rightProb >= probVal:
+                #get right edge (correct for overshooting)
+                binFractionToTake = (probVal-curProb)/rightProb
+                minVal = hToy.GetXaxis().GetBinLowEdge(leftBin)
+                maxVal = hToy.GetXaxis().GetBinLowEdge(rightBin) + hToy.GetXaxis().GetBinWidth(rightBin)*binFractionToTake
+            #update probability sum
+            curProb += rightProb
+
     return mode, minVal,maxVal
 
 def findMedian(myHisto):
@@ -448,7 +500,7 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
         os.system("mkdir -p "+options.outDir+"/errors")
         d.Print(options.outDir+"/errors/"+plotName)
         d.Print(options.outDir+"/errors/"+plotName.replace(".pdf",".C"))
-    return bestFit, rms, pvalue, nsigma, d
+    return bestFit, range68/2.0, pvalue, nsigma, d
 
 def getPads(c):    
     pad1 = rt.TPad(c.GetName()+"_pad1","pad1",0,0.25,1,1)
