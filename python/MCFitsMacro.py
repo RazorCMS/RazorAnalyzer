@@ -30,11 +30,11 @@ FILENAMES = {
         }
 
 config = "config/run2_sideband.config"
-FIT_DIR = "fits_2015_10_24"
+FIT_DIR = "FitPlots"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/multijet_32ifb/Sideband/toys_Bayes_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/mumultijet_32ifb/Sideband/toys_Bayes_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/EleMultiJet_32ifb/Sideband/toys_Bayes_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
         }
 
 cfg = Config.Config(config)
@@ -46,7 +46,6 @@ binsRsqLep = cfg.getBinning("MuMultiJet")[1]
 leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep }
 binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning}
 
-#weightOpts = ["doNVtxWeights"]
 weightOpts = []
 shapeErrors = []
 miscErrors = []
@@ -66,9 +65,6 @@ if __name__ == "__main__":
     #initialize
     weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
     sfHists = {}
-
-    #get scale factor histograms
-    #sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
 
     #estimate yields in leptonic signal region
     for lepType in ["", "Mu", "Ele"]:

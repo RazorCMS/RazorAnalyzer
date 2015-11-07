@@ -107,7 +107,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                 if source.lower() == "mt":
                     applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -176,25 +176,39 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 print "\n"
         #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
-        varHists = {name:histDict[name][var] for name in mcNames}
-        if not legend:
-            legend = makeLegend(varHists, titles, reversed(mcNames))
-            if blindBins is None and dataHists is not None: legend.AddEntry(dataHists[var], dataName)
-            if plotFit: legend.AddEntry(histDict["Fit"][var], "Fit")
+        varHists = {name:histDict[name][var].Clone(histDict[name][var].GetName()+"Clone") for name in mcNames}
+        if doDensity: #divide each histogram bin by its width
+            for name in varHists:
+                for bx in range(1,varHists[name].GetNbinsX()+1):
+                    varHists[name].SetBinContent(bx, varHists[name].GetBinContent(bx)*1.0/varHists[name].GetXaxis().GetBinWidth(bx))
         stack = makeStack(varHists, mcNames, var)
         if len(mcNames) == 0: stack = None #plotting function can't handle an empty stack
         if dataHists is not None:
-            obsData = dataHists[var]
+            obsData = dataHists[var].Clone(dataHists[var].GetName()+"obsData")
+            if doDensity:
+                for bx in range(1,obsData.GetNbinsX()+1):
+                    obsData.SetBinContent(bx, obsData.GetBinContent(bx)*1.0/obsData.GetXaxis().GetBinWidth(bx))
         else:
             obsData = None
         if not plotFit:
             fitPrediction = None
         else:
-            fitPrediction = histDict["Fit"][var]
-        if blindBins is None:
-            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
+            fitPrediction = histDict["Fit"][var].Clone(histDict["Fit"][var].GetName()+"FitPrediction")
+            if doDensity:
+                for bx in range(1,fitPrediction.GetNbinsX()+1):
+                    fitPrediction.SetBinContent(bx, fitPrediction.GetBinContent(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
+        if not legend:
+            legend = makeLegend(varHists, titles, reversed(mcNames))
+            if blindBins is None and obsData is not None: legend.AddEntry(obsData, dataName)
+            if plotFit and fitPrediction is not None: legend.AddEntry(fitPrediction, "Fit")
+        if doDensity:
+            ytitle = "Events / Bin Width"
         else:
-            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
+            ytitle = "Events"
+        if blindBins is None:
+            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
+        else:
+            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
 
 def transformVarsInString(string, varNames, suffix):
     outstring = copy.copy(string)
@@ -383,7 +397,7 @@ def setHistColor(hist, name):
     if name in colors: hist.SetFillColor(colors[name])
     else: print "Warning in macro.py: histogram fill color not set for",name
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kBlue, mcErrColor=rt.kRed, customPad2Hist=None, saveroot=False, savepdf=False, savepng=True):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kBlue, mcErrColor=rt.kRed, customPad2Hist=None, saveroot=False, savepdf=False, savepng=True, printdir='.'):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
@@ -544,11 +558,11 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Number of event
         rt.gPad.Update()
 
     #save
-    if savepng: c.Print(printstr+".png")
-    if savepdf: c.Print(printstr+".pdf")
-    if saveroot: c.Print(printstr+".root")
+    if savepng: c.Print(printdir+'/'+printstr+".png")
+    if savepdf: c.Print(printdir+'/'+printstr+".pdf")
+    if saveroot: c.Print(printdir+'/'+printstr+".root")
 
-def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=False, savepdf=False, savepng=True, numDigits=1):
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=False, savepdf=False, savepng=True, numDigits=1, printdir='.'):
     """Draw a single 2D histogram and print to file"""
     if palette == "FF":
         setFFColors(hist, -5.1, 5.1)
@@ -598,9 +612,9 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
         t3.SetTextSize(0.04)
         t3.Draw()
     #save
-    if savepng: c.Print(printstr+".png")
-    if savepdf: c.Print(printstr+".pdf")
-    if saveroot: c.Print(printstr+".root")
+    if savepng: c.Print(printdir+'/'+printstr+".png")
+    if savepdf: c.Print(printdir+'/'+printstr+".pdf")
+    if saveroot: c.Print(printdir+'/'+printstr+".root")
 
 def make1DRatioHistogram(num, denom, xtitle="", ratiomin=0.25, ratiomax=2.0, logx=False, forPad2=True):
     ratio = num.Clone()
