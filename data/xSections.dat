@@ -79,6 +79,7 @@ ZJetsToNuNu_HT-100To200_13TeV-madgraph                                          
 ZJetsToNuNu_HT-200To400_13TeV-madgraph                                             78.36*1.23
 ZJetsToNuNu_HT-400To600_13TeV-madgraph                                             10.94*1.23
 ZJetsToNuNu_HT-600ToInf_13TeV-madgraph                                              4.20*1.23
+DYJetsToNuNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                             3811.0
 TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           1.61
 TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          0.663
 TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         0.12
