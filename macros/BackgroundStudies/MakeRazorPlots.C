@@ -64,15 +64,19 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   //*******************************************************************************************
   //Define Histograms
   //*******************************************************************************************
-  TH1F* histMRAllBkg =  new TH1F( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 3000);
-  TH1F* histRsqAllBkg =  new TH1F( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 1.5);
-  TH1F* histMRAllBkg_AfterDPhiCut =  new TH1F("MRAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 3000);
-  TH1F* histRsqAllBkg_AfterDPhiCut =  new TH1F( "RsqAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 0, 1.5);
+  TH1F* histMRAllBkg =  new TH1F( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 100, 400, 2400);
+  TH1F* histRsqAllBkg =  new TH1F( "RsqAllBkg", ";R^{2};Number of Events", 24, 0.25, 1.45);
+  TH1F* histMRAllBkg_AfterDPhiCut =  new TH1F("MRAllBkg_AfterDPhiCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 400, 2400);
+  TH1F* histRsqAllBkg_AfterDPhiCut =  new TH1F( "RsqAllBkg_AfterDPhiCut", ";R^{2} ;Number of Events", 24, 0.25, 1.45);
   histMRAllBkg->SetStats(false);
   histMRAllBkg_AfterDPhiCut->SetStats(false);
   histRsqAllBkg->SetStats(false);
   histRsqAllBkg_AfterDPhiCut->SetStats(false);
   
+  TH1F* histMRAllBkg_AfterMTCut =  new TH1F("MRAllBkg_AfterMTCut", ";M_{R} [GeV/c^{2}];Number of Events", 100, 400, 2400);
+  TH1F* histRsqAllBkg_AfterMTCut =  new TH1F( "RsqAllBkg_AfterMTCut", ";R^{2} ;Number of Events", 24, 0.25, 1.45);
+  histMRAllBkg_AfterMTCut->SetStats(false);
+  histRsqAllBkg_AfterMTCut->SetStats(false);
 
   vector<TH1F*> histMR;
   vector<TH1F*> histRsq; 
@@ -130,6 +134,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     float dPhiRazor = 0;
     float MR = 0;
     float Rsq = 0;
+    float mT = 0;
 
     tree->SetBranchAddress("weight",&weight);
     tree->SetBranchAddress("box",&box);
@@ -137,7 +142,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     tree->SetBranchAddress("dPhiRazor",&dPhiRazor);
     tree->SetBranchAddress("MR",&MR);
     tree->SetBranchAddress("Rsq",&Rsq);
-
+    tree->SetBranchAddress("mT",&mT);
 
     cout << "Process : " << processLabels[i] << " : Total Events: " << tree->GetEntries() << "\n";
     for (int n=0;n<tree->GetEntries();n++) { 
@@ -150,33 +155,55 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
       //Box Options
       if (option == 0 ) {
-	if (!(nBTaggedJets == 0)) continue;
+	if (nBTaggedJets != 0) continue;
       }
       if (option == 1 ) {
-	if (!(nBTaggedJets >= 1)) continue;
+	if (nBTaggedJets != 1) continue;
+      }
+      if (option == 2 ) {
+	if (nBTaggedJets != 2) continue;
+      }
+      if (option == 3 ) {
+	if (nBTaggedJets < 3) continue;
+      }
+      if (option == 4 ) {
+	if (nBTaggedJets < 0) continue; // all b-tag categories combined
       }
 
-      if (boxOption == 0) {
-	if (box != 8) continue;
-      } else if (boxOption == 1) {
-	if (box != 7) continue;
-      } else if (boxOption == 2) {
-	if (box != 3) continue;
-      } else if (boxOption == 3) {
-	if (box != 5) continue;
-      } else if (boxOption == 11) {
-	if (!(box == 7 || box == 3 || box == 5)) continue;
-      }
+      // if (boxOption == 0) {
+      // 	if (box != 8) continue;
+      // } else if (boxOption == 1) {
+      // 	if (box != 7) continue;
+      // } else if (boxOption == 2) {
+      // 	if (box != 3) continue;
+      // } else if (boxOption == 3) {
+      // 	if (box != 5) continue;
+      // } else if (boxOption == 11) {
+      // 	if (!(box == 7 || box == 3 || box == 5)) continue;
+      // } else if (boxOption == 8) {
+      // 	if (box != 8) continue;
+      // }
+
+      if (boxOption == 0) { // Multijet Box for Jamboree
+	if( !(box == 11 || box == 12) ) continue;
+      } 
+      if (boxOption == 1) { // LeptonJet Box for Jamboree
+	if( !(box == 3 || box == 4 || box == 6 || box == 7) ) continue;
+      } 
 
       //apply baseline cuts
-      if (!(MR > 300 && Rsq > 0.1)) continue;
+      if (!(MR > 400 && Rsq > 0.25)) continue;
 
       if (!hasSignal || i>0) {
 	histMRAllBkg->Fill(MR, intLumi*weight);
 	histRsqAllBkg->Fill(Rsq, intLumi*weight);
-	if (fabs(dPhiRazor) < 2.7) {
+	if (fabs(dPhiRazor) < 2.8) {
 	  histMRAllBkg_AfterDPhiCut->Fill(MR, intLumi*weight);
 	  histRsqAllBkg_AfterDPhiCut->Fill(Rsq, intLumi*weight);
+	}
+	if (mT>100) {
+	  histMRAllBkg_AfterMTCut->Fill(MR, intLumi*weight);
+	  histRsqAllBkg_AfterMTCut->Fill(Rsq, intLumi*weight);
 	}
       }
 
@@ -186,12 +213,11 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 	  ) {
 	histDPhiRazor[i]->Fill(dPhiRazor, intLumi*weight);	
 	
-	if (fabs(dPhiRazor) < 2.7) {
+	if (fabs(dPhiRazor) < 2.8) {
 	  histMR[i]->Fill(MR, intLumi*weight);
 	  histRsq[i]->Fill(Rsq, intLumi*weight);	  
 	}
       }
-  
     }
 
     inputFile->Close();
@@ -272,7 +298,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   tex->DrawLatex(0.2, 0.92, Form("CMS Simulation #sqrt{s} = 13 TeV, #int L = %d fb^{-1}, %s",int(intLumi/1000), latexlabel.c_str()));
   tex->Draw();
   
-  cv->SaveAs(Form("MR%s.gif",Label.c_str()));
+  cv->SaveAs(Form("MR%s.pdf",Label.c_str()));
 
  
 
@@ -320,7 +346,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   // }
 
   // legend->Draw();
-  // cv->SaveAs(Form("Rsq%s.gif",Label.c_str()));
+  // cv->SaveAs(Form("Rsq%s.pdf",Label.c_str()));
 
  
 
@@ -369,11 +395,39 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   // }
 
   // legend->Draw();
-  // cv->SaveAs(Form("DPhiRazor%s.gif",Label.c_str()));
+  // cv->SaveAs(Form("DPhiRazor%s.pdf",Label.c_str()));
 
  
   // //*******************************************************************************************
   // //MR Before and After DPhi Cut
+  // //*******************************************************************************************
+  cv = new TCanvas("cv","cv", 800,600);
+  legend = new TLegend(0.50,0.54,0.90,0.84);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+
+  histMRAllBkg = NormalizeHist(histMRAllBkg);
+  histMRAllBkg_AfterDPhiCut = NormalizeHist(histMRAllBkg_AfterDPhiCut);
+
+  histMRAllBkg->SetLineColor(kBlue);
+  histMRAllBkg_AfterDPhiCut->SetLineColor(kRed);
+  histMRAllBkg->GetYaxis()->SetTitle("Fraction of Events");
+  histMRAllBkg->GetYaxis()->SetTitleOffset(1.2);
+  histMRAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
+
+  legend->AddEntry(histMRAllBkg, "No #Delta#phi_{Razor} cut", "L");
+  legend->AddEntry(histMRAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.8 cut", "L");
+
+  histMRAllBkg->Draw("hist");
+  histMRAllBkg_AfterDPhiCut->Draw("histsame");
+
+  legend->Draw();
+  cv->SetLogy();
+  cv->SaveAs(Form("MRBeforeAfterDPhiCut_%s.pdf",Label.c_str()));
+
+   // //*******************************************************************************************
+  // //MR Before and After mT Cut
   // //*******************************************************************************************
   // cv = new TCanvas("cv","cv", 800,600);
   // legend = new TLegend(0.50,0.54,0.90,0.84);
@@ -382,26 +436,55 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   // legend->SetFillStyle(0);
 
   // histMRAllBkg = NormalizeHist(histMRAllBkg);
-  // histMRAllBkg_AfterDPhiCut = NormalizeHist(histMRAllBkg_AfterDPhiCut);
+  // histMRAllBkg_AfterMTCut = NormalizeHist(histMRAllBkg_AfterMTCut);
 
   // histMRAllBkg->SetLineColor(kBlue);
-  // histMRAllBkg_AfterDPhiCut->SetLineColor(kRed);
+  // histMRAllBkg_AfterMTCut->SetLineColor(kRed);
   // histMRAllBkg->GetYaxis()->SetTitle("Fraction of Events");
   // histMRAllBkg->GetYaxis()->SetTitleOffset(1.2);
-  // histMRAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
+  // histMRAllBkg_AfterMTCut->GetYaxis()->SetTitle("Fraction of Events");
 
-  // legend->AddEntry(histMRAllBkg, "No #Delta#phi_{Razor} cut", "L");
-  // legend->AddEntry(histMRAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.7 cut", "L");
+  // legend->AddEntry(histMRAllBkg, "No M_{T} cut", "L");
+  // legend->AddEntry(histMRAllBkg_AfterMTCut, "M_{T}>100 GeV cut", "L");
 
   // histMRAllBkg->Draw("hist");
-  // histMRAllBkg_AfterDPhiCut->Draw("histsame");
+  // histMRAllBkg_AfterMTCut->Draw("histsame");
 
   // legend->Draw();
   // cv->SetLogy();
-  // cv->SaveAs(Form("MRBeforeAfterDPhiCut.gif",Label.c_str()));
+  // cv->SaveAs(Form("MRBeforeAfterMTCut_%s.pdf",Label.c_str()));
+
+ // //*******************************************************************************************
+  // //Rsq Before and After DPhi Cut
+  // //*******************************************************************************************
+  cv = new TCanvas("cv","cv", 800,600);
+  legend = new TLegend(0.50,0.54,0.90,0.84);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+
+  histRsqAllBkg = NormalizeHist(histRsqAllBkg);
+  histRsqAllBkg_AfterDPhiCut = NormalizeHist(histRsqAllBkg_AfterDPhiCut);
+
+  histRsqAllBkg->SetLineColor(kBlue);
+  histRsqAllBkg_AfterDPhiCut->SetLineColor(kRed);
+  histRsqAllBkg->GetYaxis()->SetTitle("Fraction of Events");
+  histRsqAllBkg->GetYaxis()->SetTitleOffset(1.2);
+  histRsqAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
+
+  legend->AddEntry(histRsqAllBkg, "No #Delta#phi_{Razor} cut", "L");
+  legend->AddEntry(histRsqAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.8 cut", "L");
+
+  histRsqAllBkg->Draw("hist");
+  histRsqAllBkg_AfterDPhiCut->Draw("histsame");
+
+  legend->Draw();
+  cv->SetLogy();
+  cv->SaveAs(Form("RsqBeforeAfterDPhiCut_%s.pdf",Label.c_str()));
+
 
   // //*******************************************************************************************
-  // //Rsq Before and After DPhi Cut
+  // //Rsq Before and After MT Cut
   // //*******************************************************************************************
   // cv = new TCanvas("cv","cv", 800,600);
   // legend = new TLegend(0.50,0.54,0.90,0.84);
@@ -410,26 +493,25 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   // legend->SetFillStyle(0);
 
   // histRsqAllBkg = NormalizeHist(histRsqAllBkg);
-  // histRsqAllBkg_AfterDPhiCut = NormalizeHist(histRsqAllBkg_AfterDPhiCut);
+  // histRsqAllBkg_AfterMTCut = NormalizeHist(histRsqAllBkg_AfterMTCut);
 
   // histRsqAllBkg->SetLineColor(kBlue);
-  // histRsqAllBkg_AfterDPhiCut->SetLineColor(kRed);
+  // histRsqAllBkg_AfterMTCut->SetLineColor(kRed);
   // histRsqAllBkg->GetYaxis()->SetTitle("Fraction of Events");
   // histRsqAllBkg->GetYaxis()->SetTitleOffset(1.2);
-  // histRsqAllBkg_AfterDPhiCut->GetYaxis()->SetTitle("Fraction of Events");
+  // histRsqAllBkg_AfterMTCut->GetYaxis()->SetTitle("Fraction of Events");
 
-  // legend->AddEntry(histRsqAllBkg, "No #Delta#phi_{Razor} cut", "L");
-  // legend->AddEntry(histRsqAllBkg_AfterDPhiCut, "#Delta#phi_{Razor} < 2.7 cut", "L");
+  // legend->AddEntry(histRsqAllBkg, "No M_{T} cut", "L");
+  // legend->AddEntry(histRsqAllBkg_AfterMTCut, "M_{T}>100 GeV cut", "L");
 
   // histRsqAllBkg->Draw("hist");
-  // histRsqAllBkg_AfterDPhiCut->Draw("histsame");
+  // histRsqAllBkg_AfterMTCut->Draw("histsame");
 
   // legend->Draw();
   // cv->SetLogy();
-  // cv->SaveAs(Form("RsqBeforeAfterDPhiCut.gif",Label.c_str()));
+  // cv->SaveAs(Form("RsqBeforeAfterMTCut_%s.pdf",Label.c_str()));
 
-
-  //*******************************************************************************************
+ //*******************************************************************************************
   //Summarize Counts
   //*******************************************************************************************
  
@@ -464,13 +546,13 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    vector<string> bkgfiles;
    vector<string> bkgLabels;
    
-   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_TTJets_25ns_weighted.root");  
-   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_DYJetsToLL_HT100ToInf_25ns_weighted.root");
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_WJetsToLNu_HT100ToInf_25ns_weighted.root");
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_ZJetsToNuNu_HT100ToInf_25ns_weighted.root");
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_QCDHT100ToInf_25ns_weighted.root"); 
-    bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_SingleTop_25ns_weighted.root"); 
-   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_Multiboson_25ns_weighted.root"); 
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/DYJetsToLL_M-5toInf_HT-100toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/WJetsToLNu_HT-100ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/ZJetsToNuNu_HT-100ToInf_13TeV-madgraph_1pb_weighted.root");
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/QCD_HT_100ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root"); 
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/SingleTop_1pb_weighted.root"); 
+   //   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_Multiboson_25ns_weighted.root"); 
     
    bkgLabels.push_back("TTJets");
    bkgLabels.push_back("DYJetsToLL");
@@ -478,7 +560,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgLabels.push_back("ZJetsToNuNu");
    bkgLabels.push_back("QCD");
    bkgLabels.push_back("SingleTop");
-   bkgLabels.push_back("Other");
+   //   bkgLabels.push_back("Other");
    
    //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,0,"T1qqqq_MultiJet_ZeroBTags", "MultiJet Box 0 b-tag");
    //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"T1bbbb_MultiJet_OneOrMoreBTags","MultiJet Box #geq 1 b-tag");
@@ -486,9 +568,20 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,1,1,"T1tttt_LooseLeptonMultiJet_OneOrMoreBTags","LooseLeptonMultiJet Box #geq 1 b-tag" );
    //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,2,1,"T1tttt_MuMultiJet_OneOrMoreBTags","MuMultiJet Box #geq 1 b-tag");
    //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,3,1,"T1tttt_EleMultiJet_OneOrMoreBTags","EleMultiJet Box #geq 1 b-tag");
-   RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,11,1,"T1tttt_LeptonMultiJet_OneOrMoreBTags","Lepton+MultiJet Box #geq 1 b-tag");
+   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,11,1,"T1tttt_LeptonMultiJet_OneOrMoreBTags","Lepton+MultiJet Box #geq 1 b-tag");
  
-   //RunMakeRazorPlots("","",bkgfiles,bkgLabels,8,0,"QCD_MultiJet_ZeroBTag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_ZeroBTag", "MultiJet Box 0 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_OneBTag", "MultiJet Box 1 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_TwoBTag", "MultiJet Box 2 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_ThreeBTag", "MultiJet Box 3 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,4,"MultiJet_CombinedBTag", "MultiJet Box All b-tag");
+
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,0,"LeptonJet_ZeroBTag", "LeptonJet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,1,"LeptonJet_OneBTag", "LeptonJet Box 1 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,2,"LeptonJet_TwoBTag", "LeptonJet Box 2 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,3,"LeptonJet_ThreeBTag", "LeptonJet Box 3 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,4,"LeptonJet_CombinedBTag", "LeptonJet Box All b-tag");
+
    //RunMakeRazorPlots("","",bkgfiles,bkgLabels,8,1,"QCD_MultiJet_OneOrMoreBTag");
  
  }
