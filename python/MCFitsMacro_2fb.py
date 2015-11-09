@@ -11,7 +11,7 @@ from macro.razorAnalysis import *
 from macro.razorWeights import *
 from macro.razorMacros import *
 
-LUMI = 17000 #in /pb
+LUMI = 2000 #in /pb
 MCLUMI = 1 
 
 SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
@@ -43,7 +43,7 @@ FILENAMES={
         }
 
 config = "config/run2_20151108_Preapproval.config"
-FIT_DIR = "FitPlots"
+FIT_DIR = "FitPlots_2fb"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
@@ -63,6 +63,8 @@ weightOpts = []
 shapeErrors = []
 miscErrors = []
 
+dirName = "ForJamboree_2fb"
+
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
@@ -79,12 +81,15 @@ if __name__ == "__main__":
     weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
     sfHists = {}
 
+    #make output directory
+    os.system('mkdir -p '+dirName)
+
     #estimate yields in leptonic signal region
     for lepType in ["", "Mu", "Ele"]:
         for jets in ["MultiJet"]:
             boxName = lepType+jets
-            btaglist = [0]
-            #btaglist = [0,1,2,3]
+            #btaglist = [0]
+            btaglist = [0,1,2,3]
             for btags in btaglist:
                 print "\n---",boxName,"Box,",btags,"B-tags ---"
                 #get correct cuts string
@@ -115,5 +120,5 @@ if __name__ == "__main__":
                         weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                         weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
                         fitToyFiles=TOYS_FILES, boxName=boxName, 
-                        btags=nBtags, debugLevel=debugLevel)
+                        btags=nBtags, debugLevel=debugLevel, printdir=dirName)
 

@@ -107,7 +107,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                 if source.lower() == "mt":
                     applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir="."):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -154,7 +154,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 if nsigmaFitData is not None:
                     blindHistograms([nsigmaFitData], blindBins)
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir)
             #print prediction in each bin
             if obsData != 0:
                 print "Results for razor data histogram:"
@@ -206,7 +206,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         else:
             ytitle = "Events"
         if blindBins is None:
-            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
+            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, printdir=printdir)
         else:
             plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
 
@@ -391,7 +391,7 @@ def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
         leg.AddEntry(hists[name], titles[name])
     return leg
 
-colors = {"WJets":rt.kRed+1, "DYJets":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZInv":rt.kCyan+1, "QCD":rt.kOrange+3, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1}
+colors = {"WJets":rt.kRed+1, "DYJets":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZInv":rt.kCyan+1, "QCD":rt.kOrange+3, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1, "Other":rt.kViolet+3}
 def setHistColor(hist, name):
     """Sets histogram color"""
     if name in colors: hist.SetFillColor(colors[name])
@@ -743,7 +743,7 @@ def unroll2DHistograms(hists):
         out.append(outHist)
     return out
 
-def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number of events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=False, savepdf=False, savepng=True, nsigmaFitData=None, nsigmaFitMC=None):
+def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number of events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=False, savepdf=False, savepng=True, nsigmaFitData=None, nsigmaFitMC=None, printdir="."):
     """Plotting macro for data, MC, and/or fit yields.  Creates french flag plots comparing data/MC/fit if able."""
     #make a gray square for each -999 bin
     grayGraphs = [makeGrayGraphs(hist) for hist in [mc,fit,data]]
@@ -772,14 +772,14 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
         unrolled[0].SetLineColor(rt.kBlack)
         unrolled[0].SetFillColor(38)
         mcStack = makeStack({"MC":unrolled[0]}, ["MC"], "MC")
-        draw2DHist(c, mc, xtitle, ytitle, ztitle, zmin, zmax, printstr+'MC', lumistr=lumistr, commentstr=commentstr+", MC prediction", dotext=dotext, grayGraphs=grayGraphs[0], drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+        draw2DHist(c, mc, xtitle, ytitle, ztitle, zmin, zmax, printstr+'MC', lumistr=lumistr, commentstr=commentstr+", MC prediction", dotext=dotext, grayGraphs=grayGraphs[0], drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
         if data: 
             #do (data - mc)/unc
             mcPulls = make2DPullHistogram(data,mc)
-            draw2DHist(c, mcPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCPulls', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/#sigma", dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            draw2DHist(c, mcPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCPulls', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/#sigma", dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #do (data - mc)/mc
             mcPerc = make2DPercentDiffHistogram(data,mc)
-            draw2DHist(c, mcPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/MC", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            draw2DHist(c, mcPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/MC", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #unroll and compare
             blindMC = unrolled[0].Clone("blindMC")
             for bx in range(1,blindMC.GetNbinsX()+1):
@@ -790,7 +790,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
             rt.SetOwnership(legDataMC, False)
             legDataMC.AddEntry(blindMC, "MC Prediction")
             legDataMC.AddEntry(unrolled[1], "Data")
-            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, commentstr=commentstr, ratiomin=-5.0,ratiomax=5.0, pad2Opt="ff", saveroot=True)
+            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, commentstr=commentstr, ratiomin=-5.0,ratiomax=5.0, pad2Opt="ff", saveroot=True, printdir=printdir)
         if fit: 
             #do (fit - mc)/unc
             if nsigmaFitMC is None:
@@ -801,10 +801,10 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
                 #make nsigma plot
                 note="Nsigmas"
                 mcFitPulls = nsigmaFitMC
-            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCFitPulls', lumistr=lumistr, commentstr=commentstr+note, palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCFitPulls', lumistr=lumistr, commentstr=commentstr+note, palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #do (fit - mc)/mc
             mcFitPerc = make2DPercentDiffHistogram(fit,mc)
-            draw2DHist(c, mcFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Fit - MC)/MC", palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            draw2DHist(c, mcFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Fit - MC)/MC", palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #unroll and compare
 
             nsigmaUnrolledFitMC = None
@@ -817,22 +817,22 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
             rt.SetOwnership(legMCFit, False)
             legMCFit.AddEntry(unrolled[0], "MC Prediction")
             legMCFit.AddEntry(unrolled[2], "Fit Prediction")
-            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", saveroot=True, mcErrColor=rt.kRed, customPad2Hist=nsigmaUnrolledFitMC)
+            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", saveroot=True, mcErrColor=rt.kRed, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
     if data:
-        draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+        draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
         if fit: 
             if nsigmaFitData is None:
                 #do (data - fit)/unc
                 dataFitPulls = make2DPullHistogram(data,fit)
-                note="(Data - Fit)/#sigma"
+                note=", (Data - Fit)/#sigma"
             else:
                 #make nsigma plot
-                note="Nsigmas"
+                note=", Nsigmas"
                 dataFitPulls = nsigmaFitData
-            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'DataFitNSigma', lumistr=lumistr, commentstr=commentstr+note, dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'DataFitNSigma', lumistr=lumistr, commentstr=commentstr+note, dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #do (data - fit)/fit
             dataFitPerc = make2DPercentDiffHistogram(data,fit)
-            draw2DHist(c, dataFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'DataFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - Fit)/Fit", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+            draw2DHist(c, dataFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'DataFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - Fit)/Fit", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #unroll and compare
             blindFit = unrolled[2].Clone("blindFit")
 
@@ -851,12 +851,12 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
             legDataFit.AddEntry(blindFit, "Fit Prediction")
             legDataFit.AddEntry(unrolled[1], "Data Prediction")
 
-            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kGreen, saveroot=True, customPad2Hist=nsigmaUnrolled)
+            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kGreen, saveroot=True, customPad2Hist=nsigmaUnrolled, printdir=printdir)
     if fit:
-        draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng)
+        draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
         #make relative uncertainty histogram
         relUncFitHist = make2DRelativeUncertaintyHistogram(fit)
-        draw2DHist(c, relUncFitHist, xtitle, ytitle, ztitle, 0.0, 2.0, printstr+'FitRelUnc', lumistr=lumistr, commentstr=commentstr+", Fit relative uncertainty", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=False, saveroot=saveroot, savepdf=savepdf, savepng=savepng, logz=False)
+        draw2DHist(c, relUncFitHist, xtitle, ytitle, ztitle, 0.0, 2.0, printstr+'FitRelUnc', lumistr=lumistr, commentstr=commentstr+", Fit relative uncertainty", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=False, saveroot=saveroot, savepdf=savepdf, savepng=savepng, logz=False, printdir=printdir)
 
 def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrdering=[], titles=[], mcTitle="Stack", xtitle="", ytitle="Number of events", printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", saveroot=False, savepdf=False, savepng=True, ymin=None, ymax=None):
     #make stack

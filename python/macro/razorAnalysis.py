@@ -120,10 +120,11 @@ leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
 #cuts 
-dileptonSignalRegionCuts = "MR > 300.000000 && Rsq > 0.150000 && abs(dPhiRazor) < 2.8"
-leptonicSignalRegionCuts = "MR > 300.000000 && Rsq > 0.150000 && mT > 100"
-looseLeptonSignalRegionCuts = "MR > 400.000000 && Rsq > 0.250000 && mTLoose > 100 && nJets80 >= 2"
-hadronicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+dileptonSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && abs(dPhiRazor) < 2.8"
+leptonicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && mT > 100"
+looseLeptonSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && mTLoose > 100 && nJets80 >= 2"
+#hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8"
 
 razorCuts = {}
 for box in razorBoxes:
