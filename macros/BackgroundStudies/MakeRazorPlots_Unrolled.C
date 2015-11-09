@@ -14,8 +14,9 @@
 
 const bool density = true;
 
-int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2}; // for multijet box
+// int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2}; // for multijet box
 // int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kBlack, kGreen-4}; // for lepton box
+int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kBlack}; // for multijet 0L vs 1L
 
 //*************************************************************************************************
 //Normalize Hist
@@ -189,13 +190,17 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 	if( !(box == 11 || box == 12) ) 
 	  if(fabs(dPhiRazor) > 2.8) continue;
       }
-      if (boxOption == 1) { // Lepton Box for Jamboree
-	if( !(box == 3 || box == 4 || box == 6 || box == 7) ) 
+      if (boxOption == 1) { // MuonMultijet Box for Jamboree
+	if( !(box == 3 || box == 4) ) 
+	  if(mT<100) continue;
+      } 
+      if (boxOption == 2) { // EleMultijet Box for Jamboree
+	if( !(box == 6 || box == 7) ) 
 	  if(mT<100) continue;
       } 
 
       //apply baseline cuts
-      if(boxOption == 1) 
+      if(boxOption == 1 || boxOption == 2) 
 	if (!(MR > 300 && Rsq > 0.15)) continue;
       
       if(boxOption == 0) 
@@ -206,22 +211,44 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 	histMRAllBkg->Fill(MR, intLumi*weight);
 	histRsqAllBkg->Fill(Rsq, intLumi*weight);
 
-	histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	if(strstr(processLabels[i].c_str(), "TTJets")==NULL)
+	  histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	
 	histMR[i]->Fill(MR, intLumi*weight);
 	histRsq[i]->Fill(Rsq, intLumi*weight);
 	
 	// separate by number of gen leptons for lepton boxes
-      	if(nGenMuons+nGenElectrons>=2){
-      	  if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "2L")!=NULL) 
-      	    histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-      	}
-      	else if(nGenMuons+nGenElectrons+nGenTaus>=2){
-      	  if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "Tau")!=NULL)
-      	      histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-      	}
-      	else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "1L")!=NULL) 
-      	  histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-     }
+	if(boxOption==1 || boxOption==2)
+	  {
+	    if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "2L")!=NULL) {
+	      if(nGenMuons+nGenElectrons>=2)
+		histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	    }
+	    else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "Tau")!=NULL){
+	      if(nGenMuons+nGenElectrons+nGenTaus>=2)		
+		histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	    }
+	    else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "1L")!=NULL) {
+	      if(nGenMuons+nGenElectrons==1)		
+		histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	    }
+	  }
+
+	// separate by number of gen leptons for multijet boxes
+      	if(boxOption==0)
+	  {
+	    if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "1L")!=NULL) {
+	      if(nGenMuons+nGenElectrons+nGenTaus>=1)
+	    	histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	    }
+	    else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "0L")!=NULL) {
+	      if(nGenMuons+nGenElectrons+nGenTaus==0)
+	    	histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	    }
+	    else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL)
+	  	histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	  }
+      }
     }
 
     inputFile->Close();
@@ -346,6 +373,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   }
   stackUnrolledPercentage->Draw();
   stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage->GetHists()->At(0)))->GetXaxis()->GetTitle());
+  stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetRangeUser(0, 35);
   stackUnrolledPercentage->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage->GetHists()->At(0)))->GetYaxis()->GetTitle());
   legend->Draw();
   t1.Draw();
@@ -372,25 +400,9 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
 
  void MakeRazorPlots_Unrolled() {
-
-    // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/newWithElectronD0Cut/Inclusive/RazorAnalysis_SMS-T1qqqq_2J_mGl-1400_mLSP-100_25ns_weighted.root";  
-    // string signalLabel = "T1qqqq m_{G}=1400 m_{LSP}=100";
-   // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/newWithElectronD0Cut/Inclusive/RazorAnalysis_SMS-T1bbbb_2J_mGl-1500_mLSP-100_25ns_weighted.root";  
-   // string signalLabel = "T1bbbb m_{G}=1500 m_{LSP}=100";
-     // string signalfile = "/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/newWithElectronD0Cut/Inclusive/RazorAnalysis_SMS-T1tttt_2J_mGl-1500_mLSP-100_25ns_weighted.root";  
-     //  string signalLabel = "T1tttt m_{G}=1500 m_{LSP}=100";
    
    vector<string> bkgfiles;
-   vector<string> bkgLabels;
-   
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/DYJetsToLL_M-5toInf_HT-100toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/WJetsToLNu_HT-100ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/ZJetsToNuNu_HT-100ToInf_13TeV-madgraph_1pb_weighted.root");
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/QCD_HT_100ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root"); 
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForPreappFreezing20151106/MC/SingleTop_1pb_weighted.root"); 
-   //   bkgfiles.push_back("/afs/cern.ch/work/s/sixie/public/Run2SUSY/RazorAnalysis/Inclusive/RazorAnalysis_Multiboson_25ns_weighted.root"); 
-   
+   vector<string> bkgLabels;      
 
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_Other_1pb_weighted_RazorSkim.root");
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_QCD_HTBinned_1pb_weighted_RazorSkim.root");
@@ -399,7 +411,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_ST_1pb_weighted_RazorSkim.root");
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root");
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root");
-   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root");
+   bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root");
    // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root");
 
    bkgLabels.push_back("Other");
@@ -408,23 +420,38 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgLabels.push_back("ZJetsToNuNu");
    bkgLabels.push_back("SingleTop");
    bkgLabels.push_back("WJetsToLNu");
-   bkgLabels.push_back("TTJets");
+   // bkgLabels.push_back("TTJets");
+   bkgLabels.push_back("TTJets 0L");
+   bkgLabels.push_back("TTJets 1L");
    // bkgLabels.push_back("TTJets 1L");
    // bkgLabels.push_back("TTJets 2L");
    // bkgLabels.push_back("TTJets L+Tau");
 
    //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,0,"T1qqqq_MultiJet_ZeroBTags", "MultiJet Box 0 b-tag");
  
-   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_0BTag", "MultiJet Box 0 b-tag");
-   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_1BTag", "MultiJet Box 1 b-tag");
-   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_2BTag", "MultiJet Box 2 b-tag");
-   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag", "MultiJet Box 3 b-tag");
-   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,4,"MultiJet_CombinedBTag", "MultiJet Box All b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_0BTag", "MultiJet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_1BTag", "MultiJet Box 1 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_2BTag", "MultiJet Box 2 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag", "MultiJet Box 3 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,4,"MultiJet_CombinedBTag", "MultiJet Box All b-tag");
 
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,0,"LeptonJet_0BTag", "LeptonJet Box 0 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,1,"LeptonJet_1BTag", "LeptonJet Box 1 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,2,"LeptonJet_2BTag", "LeptonJet Box 2 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,3,"LeptonJet_3BTag", "LeptonJet Box 3 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,4,"LeptonJet_CombinedBTag", "LeptonJet Box All b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,0,"EleMultijet_0BTag", "EleMultijet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,1,"EleMultijet_1BTag", "EleMultijet Box 1 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,2,"EleMultijet_2BTag", "EleMultijet Box 2 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,3,"EleMultijet_3BTag", "EleMultijet Box 3 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,4,"EleMultijet_CombinedBTag", "EleMultijet Box All b-tag");
+
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,0,"MuonMultijet_0BTag", "MuonMultijet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,1,"MuonMultijet_1BTag", "MuonMultijet Box 1 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,2,"MuonMultijet_2BTag", "MuonMultijet Box 2 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,3,"MuonMultijet_3BTag", "MuonMultijet Box 3 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,4,"MuonMultijet_CombinedBTag", "MuonMultijet Box All b-tag");
+
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_0BTag_byTopLeps", "MultiJet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_1BTag_byTopLeps", "MultiJet Box 1 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_2BTag_byTopLeps", "MultiJet Box 2 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag_byTopLeps", "MultiJet Box 3 b-tag");
+
+
  }
  
