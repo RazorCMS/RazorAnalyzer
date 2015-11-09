@@ -39,7 +39,7 @@ MTCut = -1
 def initializeWorkspace(w,cfg,box):
     variables = cfg.getVariablesRange(box,"variables",w)
     
-    w.factory('W[1.,0.,+INF]')
+    w.factory('W[1.]')
     w.set('variables').add(w.var('W'))
     return w
 
