@@ -16,7 +16,7 @@ from razorWeights import *
 ### RAZOR FIT
 ###########################################
 
-def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False):
+def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False, numToys=10000, noStat=False):
     #make folder
     if not os.path.isdir(fitDir):
         exec_me('mkdir -p '+fitDir, False)
@@ -28,9 +28,9 @@ def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/
     else:
         exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' --data --fit-region LowMR,LowRsq '+fitDir+'/'+dataName+'_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
     #run toys
-    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t 10000', False)
+    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t '+str(numToys)+((noStat)*" --no-stat"), False)
 
-def runFitAndToysMC(fitDir, boxName, lumi, fileNames, mcDir='./', config='config/run2.config', sideband=False):
+def runFitAndToysMC(fitDir, boxName, lumi, fileNames, mcDir='./', config='config/run2.config', sideband=False, numToys=4000, noStat=False):
     #make folder
     if not os.path.isdir(fitDir):
         exec_me('mkdir -p '+fitDir, False)
@@ -42,7 +42,7 @@ def runFitAndToysMC(fitDir, boxName, lumi, fileNames, mcDir='./', config='config
     else:
         exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' --fit-region LowMR,LowRsq '+fitDir+'/RazorInclusive_SMCocktail_weighted_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
     #run toys
-    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t 1000', False)
+    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t '+str(numToys)+((noStat)*" --no-stat"), False)
 
 def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, debugLevel=0):
     print "Making Nsigma histogram using fit information"
@@ -235,7 +235,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir="."):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True):
     titles = {
         "MR": "M_{R} (GeV)", 
         "Rsq": "R^{2}",
@@ -305,7 +305,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity)
 
     #close files and return
     for f in files: files[f].Close()

@@ -135,7 +135,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         #for MR and Rsq, make 2D plots
         if var == ('MR','Rsq'):
             if len(mcNames) > 0:
-                mcPrediction = histDict[mcNames[0]][var].Clone("mcPrediction")
+                mcPrediction = histDict[mcNames[0]][var].Clone(histDict[mcNames[0]][var].GetName()+"mcPrediction")
                 mcPrediction.Reset()
                 for name in mcNames: 
                     mcPrediction.Add(histDict[name][var])
@@ -181,6 +181,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             for name in varHists:
                 for bx in range(1,varHists[name].GetNbinsX()+1):
                     varHists[name].SetBinContent(bx, varHists[name].GetBinContent(bx)*1.0/varHists[name].GetXaxis().GetBinWidth(bx))
+                    varHists[name].SetBinError(bx, varHists[name].GetBinError(bx)*1.0/varHists[name].GetXaxis().GetBinWidth(bx))
         stack = makeStack(varHists, mcNames, var)
         if len(mcNames) == 0: stack = None #plotting function can't handle an empty stack
         if dataHists is not None:
@@ -188,6 +189,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             if doDensity:
                 for bx in range(1,obsData.GetNbinsX()+1):
                     obsData.SetBinContent(bx, obsData.GetBinContent(bx)*1.0/obsData.GetXaxis().GetBinWidth(bx))
+                    obsData.SetBinError(bx, obsData.GetBinError(bx)*1.0/obsData.GetXaxis().GetBinWidth(bx))
         else:
             obsData = None
         if not plotFit:
@@ -197,12 +199,14 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             if doDensity:
                 for bx in range(1,fitPrediction.GetNbinsX()+1):
                     fitPrediction.SetBinContent(bx, fitPrediction.GetBinContent(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
+                    fitPrediction.SetBinError(bx, fitPrediction.GetBinError(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
         if not legend:
             legend = makeLegend(varHists, titles, reversed(mcNames))
             if blindBins is None and obsData is not None: legend.AddEntry(obsData, dataName)
             if plotFit and fitPrediction is not None: legend.AddEntry(fitPrediction, "Fit")
         if doDensity:
             ytitle = "Events / Bin Width"
+            ymin = None
         else:
             ytitle = "Events"
         if blindBins is None:
@@ -716,13 +720,15 @@ def make2DPercentDiffHistogram(h1, h2, suppress=True):
                     ret.SetBinContent(bx,by,-9999)
     return ret
 
-def make2DRelativeUncertaintyHistogram(h):
+def make2DRelativeUncertaintyHistogram(h, suppress=True, suppressLevel=10.0):
     ret = h.Clone(h.GetName()+"RelUnc")
     for bx in range(1, h.GetNbinsX()+1):
         for by in range(1, h.GetNbinsY()+1):
             if h.GetBinContent(bx,by) != 0:
                 ret.SetBinContent(bx,by,h.GetBinError(bx,by)*1.0/h.GetBinContent(bx,by))
             else:
+                ret.SetBinContent(bx,by,-9999)
+            if suppress and ret.GetBinContent(bx,by) > suppressLevel:
                 ret.SetBinContent(bx,by,-9999)
     return ret
 
