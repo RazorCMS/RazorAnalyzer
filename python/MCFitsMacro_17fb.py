@@ -45,9 +45,9 @@ FILENAMES={
 config = "config/run2_20151108_Preapproval.config"
 FIT_DIR = "FitPlots_17fb"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/toys_Bayes_noStat_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/toys_Bayes_noStat_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/toys_Bayes_noStat_EleMultiJet.root",
         }
 
 cfg = Config.Config(config)
@@ -85,7 +85,8 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #estimate yields in leptonic signal region
-    for lepType in ["", "Mu", "Ele"]:
+    for lepType in ["Mu", "Ele"]:
+    #for lepType in ["", "Mu", "Ele"]:
         for jets in ["MultiJet"]:
             boxName = lepType+jets
             btaglist = [0]
@@ -108,7 +109,7 @@ if __name__ == "__main__":
                 #check fit file and create if necessary
                 if not os.path.isfile(TOYS_FILES[boxName]):
                     print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-                    runFitAndToysMC(FIT_DIR, boxName, LUMI, [FILENAMES[boxName][x] for x in FILENAMES[boxName]], DIR_MC, config=config, sideband=True)
+                    runFitAndToysMC(FIT_DIR, boxName, LUMI, [FILENAMES[boxName][x] for x in FILENAMES[boxName]], DIR_MC, config=config, sideband=True, noStat=True, numToys=3000)
                     #check
                     if not os.path.isfile(TOYS_FILES[boxName]):
                         print "Error creating fit file",TOYS_FILES[boxName]
