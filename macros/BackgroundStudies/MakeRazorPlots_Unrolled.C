@@ -1,4 +1,3 @@
-
 #include <TROOT.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -15,8 +14,8 @@
 const bool density = true;
 
 // int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2}; // for multijet box
-// int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kBlack, kGreen-4}; // for lepton box
-int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kBlack}; // for multijet 0L vs 1L
+// int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kGreen+4, kGreen-4}; // for lepton box
+int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kBlack, kGreen+2}; // for multijet 0L vs 1L
 
 //*************************************************************************************************
 //Normalize Hist
@@ -81,8 +80,9 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   vector<TH1F*> histUnrolled; 
   vector<TH1F*> histUnrolledPercentage; 
 
-  float MRBinLowEdges[] = {400, 450, 550, 700, 900, 1200, 1600, 2500, 4000};
-  float RsqBinLowEdges[] = {0.25, 0.30, 0.41, 0.52, 0.64, 0.80, 1.5};
+
+  float MRBinLowEdges[] = {500, 600, 700, 900, 1200, 1600, 2500, 4000};
+  float RsqBinLowEdges[] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
   const int nMRBins = sizeof(MRBinLowEdges)/sizeof(float)-1;
   const int nRsqBins = sizeof(RsqBinLowEdges)/sizeof(float)-1;
 
@@ -201,10 +201,10 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
       //apply baseline cuts
       if(boxOption == 1 || boxOption == 2) 
-	if (!(MR > 300 && Rsq > 0.15)) continue;
+	if (!(MR > 400 && Rsq > 0.15)) continue;
       
       if(boxOption == 0) 
-	if (!(MR > 400 && Rsq > 0.25)) continue;
+	if (!(MR > 500 && Rsq > 0.25)) continue;
       
       // fill the histos
       if (!hasSignal || i>0) {
@@ -341,13 +341,17 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
   TLatex t1(0.1,0.92, "CMS Preliminary");
   TLatex t2(0.6,0.92, "#sqrt{s}=13 TeV, L = 2 fb^{-1}");
+  TLatex t3(0.4,0.92, Form("%s",latexlabel.c_str()) );
   t1.SetNDC();
   t2.SetNDC();
+  t3.SetNDC();
   t1.SetTextSize(0.05);
   t2.SetTextSize(0.05);
+  t3.SetTextSize(0.02);
   t1.SetTextFont(42);
   t2.SetTextFont(42);
-  
+  t3.SetTextFont(42);
+
   stackUnrolled->Draw();
   cv->SetLogy();
   stackUnrolled->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackUnrolled->GetHists()->At(0)))->GetXaxis()->GetTitle());
@@ -355,6 +359,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   legend->Draw();
   t1.Draw();
   t2.Draw();
+  t3.Draw();
   cv->SaveAs(Form("Unrolled%s.pdf",Label.c_str()));
 
   //
@@ -373,11 +378,12 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   }
   stackUnrolledPercentage->Draw();
   stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage->GetHists()->At(0)))->GetXaxis()->GetTitle());
-  stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetRangeUser(0, 35);
+  // stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetRangeUser(0, 35);
   stackUnrolledPercentage->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage->GetHists()->At(0)))->GetYaxis()->GetTitle());
   legend->Draw();
   t1.Draw();
   t2.Draw();
+  t3.Draw();
   cv->SaveAs(Form("UnrolledPercentage%s.pdf",Label.c_str()));
 
    //--------------------------------------------------------------------------------------------------------------
@@ -421,8 +427,8 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgLabels.push_back("SingleTop");
    bkgLabels.push_back("WJetsToLNu");
    // bkgLabels.push_back("TTJets");
-   bkgLabels.push_back("TTJets 0L");
-   bkgLabels.push_back("TTJets 1L");
+   bkgLabels.push_back("TTJets 0L"); // by tops
+   bkgLabels.push_back("TTJets 1L"); // by tops
    // bkgLabels.push_back("TTJets 1L");
    // bkgLabels.push_back("TTJets 2L");
    // bkgLabels.push_back("TTJets L+Tau");
@@ -435,6 +441,11 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag", "MultiJet Box 3 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,4,"MultiJet_CombinedBTag", "MultiJet Box All b-tag");
 
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_0BTag_byTopLeps", "MultiJet Box 0 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_1BTag_byTopLeps", "MultiJet Box 1 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_2BTag_byTopLeps", "MultiJet Box 2 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag_byTopLeps", "MultiJet Box 3 b-tag");
+
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,0,"EleMultijet_0BTag", "EleMultijet Box 0 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,1,"EleMultijet_1BTag", "EleMultijet Box 1 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,2,"EleMultijet_2BTag", "EleMultijet Box 2 b-tag");
@@ -446,11 +457,6 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,2,"MuonMultijet_2BTag", "MuonMultijet Box 2 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,3,"MuonMultijet_3BTag", "MuonMultijet Box 3 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,4,"MuonMultijet_CombinedBTag", "MuonMultijet Box All b-tag");
-
-   RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_0BTag_byTopLeps", "MultiJet Box 0 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_1BTag_byTopLeps", "MultiJet Box 1 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_2BTag_byTopLeps", "MultiJet Box 2 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag_byTopLeps", "MultiJet Box 3 b-tag");
 
 
  }
