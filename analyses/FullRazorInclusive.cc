@@ -1454,6 +1454,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
         if(!isFastsimSMS){
 	  if(!Flag_HBHENoiseFilter) continue;
+	  if(!Flag_HBHETightNoiseFilter) continue;
 	  if(!Flag_CSCTightHaloFilter) continue;
 	  if(!Flag_goodVertices) continue;
 	  if(!Flag_eeBadScFilter) continue;
