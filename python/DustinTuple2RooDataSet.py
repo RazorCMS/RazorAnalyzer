@@ -171,7 +171,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
 
     if isData and box in ['MuSixJet', 'MuFourJet', 'MuMultiJet', 'MuJet', 'EleSixJet', 'EleFourJet', 'EleMultiJet', 'EleJet']:
-        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in [7, 12, 11, 15, 22, 23, 24, 25, 26, 27, 28, 29]])
+        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in [2, 7, 12, 11, 15, 22, 23, 24, 25, 26, 27, 28, 29]])
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData and box in ['MuMu', 'MuEle', 'EleEle']:
