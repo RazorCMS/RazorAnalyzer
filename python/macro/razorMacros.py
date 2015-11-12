@@ -6,6 +6,7 @@ import ROOT as rt
 from collections import namedtuple
 
 #local imports
+from RunCombine import exec_me
 from framework import Config
 import macro
 from razorAnalysis import *
@@ -15,7 +16,7 @@ from razorWeights import *
 ### RAZOR FIT
 ###########################################
 
-def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False):
+def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False, numToys=10000, noStat=False):
     #make folder
     if not os.path.isdir(fitDir):
         exec_me('mkdir -p '+fitDir, False)
@@ -27,7 +28,21 @@ def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/
     else:
         exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' --data --fit-region LowMR,LowRsq '+fitDir+'/'+dataName+'_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
     #run toys
-    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t 10000', False)
+    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t '+str(numToys)+((noStat)*" --no-stat"), False)
+
+def runFitAndToysMC(fitDir, boxName, lumi, fileNames, mcDir='./', config='config/run2.config', sideband=False, numToys=4000, noStat=False):
+    #make folder
+    if not os.path.isdir(fitDir):
+        exec_me('mkdir -p '+fitDir, False)
+    #make RooDataSet
+    exec_me('python python/DustinTuple2RooDataSet.py -w -b '+boxName+' -c '+config+' -l '+str(lumi)+' -d '+fitDir+' '+' '.join(fileNames), False)
+    #do fit
+    if not sideband:
+        exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' '+fitDir+'/RazorInclusive_SMCocktail_weighted_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
+    else:
+        exec_me('python python/BinnedFit.py -c '+config+' -d '+fitDir+' -l '+str(lumi)+' -b '+boxName+' --fit-region LowMR,LowRsq '+fitDir+'/RazorInclusive_SMCocktail_weighted_lumi-'+('%1.3f' % (lumi*1.0/1000))+'_0-3btag_'+boxName+'.root', False)
+    #run toys
+    exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t '+str(numToys)+((noStat)*" --no-stat"), False)
 
 def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, debugLevel=0):
     print "Making Nsigma histogram using fit information"
@@ -220,7 +235,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True):
     titles = {
         "MR": "M_{R} (GeV)", 
         "Rsq": "R^{2}",
@@ -290,7 +305,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity)
 
     #close files and return
     for f in files: files[f].Close()
@@ -300,7 +315,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
 #######################################
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, debugLevel=0):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, debugLevel=0, printdir="."):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to 20% shifts in the background normalization"""
     if debugLevel > 0: 
@@ -365,7 +380,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
 
     #plot scale factors in 2D
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
-    macro.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=str(lumiData)+" pb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2)
+    macro.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=str(lumiData)+" pb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
     if printTable:
         xbinLowEdges = []
@@ -401,4 +416,4 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         for mcProcess in bgProcesses: 
             headers.extend(["Unc.\\ from "+mcProcess])
             cols.extend([sysUncerts[mcProcess]])
-        macro.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process)
+        macro.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)

@@ -52,12 +52,12 @@ int main(int argc, char* argv[]) {
         TFile *outputFile = new TFile(outputfilename.c_str(), "RECREATE");
 	
         //loop over all TTrees in the file and add the weight branch to each of them
-        TFile *inputFile = new TFile(fileName.c_str(), "UPDATE");
+        TFile *inputFile = new TFile(fileName.c_str(), "READ");
         assert(inputFile);
         inputFile->cd();
-        inputFile->Purge(); //purge unwanted TTree cycles in file
         TIter nextkey(inputFile->GetListOfKeys());
         TKey *key;
+        TKey *previous = NULL;
         string dirName = "";
 
         //if the first key is a TDirectoryFile, go inside it and skim there (temporary hack for cloning a single directory)
@@ -78,10 +78,18 @@ int main(int argc, char* argv[]) {
         while((key = (TKey*)nextkey())){
             string className = key->GetClassName();
             cout << "Getting key from file.  Class type: " << className << endl;
+            //if this key is not a TTree, we skip it
             if(className.compare("TTree") != 0){
                 cout << "Skipping key (not a TTree)" << endl;
                 continue;
             }
+
+            //if this key has the same name as the previous one, it's an unwanted cycle and we skip it
+            if(previous != NULL && strcmp(key->GetName(), previous->GetName()) == 0)
+            {
+                continue;
+            }
+            previous = key;
 
             TTree *inputTree = (TTree*)key->ReadObj();
             cout << "Processing tree " << inputTree->GetName() << endl;

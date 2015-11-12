@@ -208,7 +208,7 @@ def runToys(w,options,cfg):
             th1x.setVal(iBinX+0.5) # check number of events in each bin
             pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
             pdfVal0 = extRazorPdf.getValV(0) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
-            if pdfValV/bestFitByBin[iBinX] <= 1e-12:
+            if bestFitByBin[iBinX] > 0 and pdfValV/bestFitByBin[iBinX] <= 1e-12:
                 #print "bin = %i"%iBinX
                 #print "best fit = %e"%(bestFitByBin[iBinX])
                 #print "pdf valv = %e"%(pdfValV)

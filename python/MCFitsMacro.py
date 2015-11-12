@@ -11,25 +11,38 @@ from macro.razorAnalysis import *
 from macro.razorWeights import *
 from macro.razorMacros import *
 
-LUMI = 32000 #in /pb
+LUMI = 17000 #in /pb
 MCLUMI = 1 
 
-SAMPLES = ["TTV", "VV", "DYJetsLow", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
+SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
 
-DIR_MC= "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC"
+DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
 PREFIX = "RazorInclusive"
-FILENAMES = {
-        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
-        "WJets"     : DIR_MC+"/"+PREFIX+"_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
-        "SingleTop" : DIR_MC+"/"+PREFIX+"_SingleTop_1pb_weighted_razorskim.root",
-        "DYJetsLow" : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-5to50_HTBinned_1pb_weighted.root",
-        "VV" : DIR_MC+"/"+PREFIX+"_VV_1pb_weighted_razorskim.root",
-        "TTV" : DIR_MC+"/"+PREFIX+"_TTV_1pb_weighted_razorskim.root",
-        "DYJets"     : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-50_HTBinned_1pb_weighted_razorskim.root",
-        "ZInv"     : DIR_MC+"/"+PREFIX+"_ZJetsToNuNu_HTBinned_1pb_weighted_razorskim.root",
+FILENAMES_HADRONIC = {
+        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root",
+        "WJets"     : DIR_MC+"/"+PREFIX+"_WJetsToLNu_AlternativeHTBinned_1pb_weighted_RazorSkim.root",
+        "SingleTop" : DIR_MC+"/"+PREFIX+"_ST_1pb_weighted_RazorSkim.root",
+        "Other" : DIR_MC+"/"+PREFIX+"_Other_1pb_weighted_RazorSkim.root",
+        "DYJets"     : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+        "ZInv"     : DIR_MC+"/"+PREFIX+"_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",
         }
 
-config = "config/run2_sideband.config"
+FILENAMES_LEPTONIC = {
+        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
+        "WJets"     : DIR_MC+"/"+PREFIX+"_WJetsToLNu_AlternativeHTBinned_1pb_weighted_RazorSkim.root",
+        "SingleTop" : DIR_MC+"/"+PREFIX+"_ST_1pb_weighted_RazorSkim.root",
+        "Other" : DIR_MC+"/"+PREFIX+"_Other_1pb_weighted_RazorSkim.root",
+        "DYJets"     : DIR_MC+"/"+PREFIX+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+        "ZInv"     : DIR_MC+"/"+PREFIX+"_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",
+        }
+
+FILENAMES={
+        "MultiJet":FILENAMES_HADRONIC,
+        "MuMultiJet":FILENAMES_LEPTONIC,
+        "EleMultiJet":FILENAMES_LEPTONIC,
+        }
+
+config = "config/run2_20151108_Preapproval.config"
 FIT_DIR = "FitPlots"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
@@ -70,8 +83,8 @@ if __name__ == "__main__":
     for lepType in ["", "Mu", "Ele"]:
         for jets in ["MultiJet"]:
             boxName = lepType+jets
-            #btaglist = [0]
-            btaglist = [0,1,2,3]
+            btaglist = [0]
+            #btaglist = [0,1,2,3]
             for btags in btaglist:
                 print "\n---",boxName,"Box,",btags,"B-tags ---"
                 #get correct cuts string
@@ -90,13 +103,13 @@ if __name__ == "__main__":
                 #check fit file and create if necessary
                 if not os.path.isfile(TOYS_FILES[boxName]):
                     print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-                    runFitAndToys(FIT_DIR, boxName, LUMI, PREFIX+'_'+DATA_NAME, DIR_DATA, config=config, sideband=True)
+                    runFitAndToysMC(FIT_DIR, boxName, LUMI, [FILENAMES[boxName][x] for x in FILENAMES[boxName]], DIR_MC, config=config, sideband=True)
                     #check
                     if not os.path.isfile(TOYS_FILES[boxName]):
                         print "Error creating fit file",TOYS_FILES[boxName]
                         sys.exit()
                 makeControlSampleHists(extboxName, 
-                        filenames=FILENAMES, samples=SAMPLES, 
+                        filenames=FILENAMES[boxName], samples=SAMPLES, 
                         cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                         bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                         weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
