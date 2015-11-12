@@ -63,7 +63,7 @@ def getCuts(workspace, box):
         MTCut = -1
     else: 
         dPhiCut = -1
-        MTCut = 100
+        MTCut = 120
 
     boxCut = boxes[box]
     cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut)
@@ -164,14 +164,6 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
 
-    #use the optimal cuts for each box
-    if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet"]: 
-        dPhiCut = 2.8
-        MTCut = -1
-    else: 
-        dPhiCut = 3.2
-        MTCut = 100
-
     cuts = getCuts(workspace,box)
 
     if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
@@ -187,9 +179,10 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData:
-        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_CSCTightHaloFilter','Flag_goodVertices','Flag_eeBadScFilter','Flag_EcalDeadCellTriggerPrimitiveFilter'])
+        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter'])
         cuts = cuts + ' && ( ' + flagCuts + ' ) '
     
+    print "Cuts:",cuts
     tree.Draw('>>elist',cuts,'entrylist')
         
     elist = rt.gDirectory.Get('elist')
