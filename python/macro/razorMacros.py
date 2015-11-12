@@ -16,7 +16,7 @@ from razorWeights import *
 ### RAZOR FIT
 ###########################################
 
-def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False, numToys=10000, noStat=False):
+def runFitAndToys(fitDir, boxName, lumi, dataName, dataDir='./', config='config/run2.config', sideband=False, numToys=4000, noStat=False):
     #make folder
     if not os.path.isdir(fitDir):
         exec_me('mkdir -p '+fitDir, False)

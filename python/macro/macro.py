@@ -39,6 +39,7 @@ def blindHistograms(histList, blindBins):
 def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName):
     hists = {name:{} for name in inputs}
     shapeHists = {name:{} for name in inputs}
+    if inputs is None: return
     for name in inputs:
         #1D histograms
         for var in bins:
@@ -46,7 +47,7 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
             else: title = var
             hists[name][var] = rt.TH1F(regionName+var+name, title, len(bins[var])-1, array('d',bins[var]))
             #add up/down histograms for each systematic uncertainty
-            if name in samples:
+            if samples is not None and name in samples:
                 for shape in shapeErrors:
                     if shape+"Down" not in shapeHists[name]: shapeHists[name][shape+"Down"] = {}
                     if shape+"Up" not in shapeHists[name]: shapeHists[name][shape+"Up"] = {}
@@ -55,14 +56,14 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
         #2D MR-Rsq histogram
         if "MR" in bins and "Rsq" in bins:
             hists[name][("MR","Rsq")] = rt.TH2F(regionName+"MRRsq"+name, "R^{2} vs M_{R}", len(bins["MR"])-1, array('d',bins["MR"]), len(bins["Rsq"])-1, array('d',bins["Rsq"]))
-            if name in samples: 
+            if samples is not None and name in samples: 
                 for shape in shapeErrors:
                     shapeHists[name][shape+"Down"][("MR","Rsq")] = hists[name][("MR","Rsq")].Clone(hists[name][("MR","Rsq")].GetName()+shape+"Down")
                     shapeHists[name][shape+"Up"][("MR","Rsq")] = hists[name][("MR","Rsq")].Clone(hists[name][("MR","Rsq")].GetName()+shape+"Up")
         for var in hists[name]: 
             hists[name][var].Sumw2()
             hists[name][var].SetDirectory(0)
-            if name in samples:
+            if samples is not None and name in samples:
                 for shape in shapeErrors:
                     shapeHists[name][shape+"Down"][var].Sumw2()
                     shapeHists[name][shape+"Up"][var].Sumw2()
@@ -212,7 +213,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         if blindBins is None:
             plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, printdir=printdir)
         else:
-            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True)
+            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, printdir=printdir)
 
 def transformVarsInString(string, varNames, suffix):
     outstring = copy.copy(string)
