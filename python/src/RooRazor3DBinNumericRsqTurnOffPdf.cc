@@ -161,6 +161,7 @@ Double_t RooRazor3DBinNumericRsqTurnOffPdf::evaluate() const
     params[0] = X0;    params[1] = Y0;
     params[2] = B;     params[3] = N;
     params[4] = Y1;    params[5] = Y2;
+    params[6] = xMin;  params[7] = xMax;
     func.SetParameters(params);
     ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
     ig.SetFunction(func,false);
@@ -229,7 +230,7 @@ Double_t RooRazor3DBinNumericRsqTurnOffPdf::analyticalIntegral(Int_t code, const
    params[0] = X0;    params[1] = Y0;
    params[2] = B;     params[3] = N;
    params[4] = Y1;    params[5] = Y2;
-   params[6] = yMin;  params[7] = yMax;
+   params[6] = xMin;  params[7] = xMax;
    func.SetParameters(params);
    ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
    ig.SetFunction(func,false);

@@ -159,6 +159,7 @@ Double_t RooRazor3DBinNumericMRSlopePdf::evaluate() const
     params[0] = X0;    params[1] = Y0;
     params[2] = B;     params[3] = N;
     params[4] = X1;    params[5] = xMin;
+    params[6] = yMin;  params[7] = yMax;
     func.SetParameters(params);
     ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
     ig.SetFunction(func,false);
