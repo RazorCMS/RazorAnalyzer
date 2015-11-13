@@ -30,6 +30,18 @@ def getScaleFactor(tree, treeName, sfs={}, opt=""):
     elif opt == "jerDown": 
         theMR = tree.MR_JERDown
         theRsq = tree.Rsq_JERDown
+    elif opt == "mesUp":
+        theMR = tree.MR_MESUp
+        theRsq = tree.Rsq_MESUp
+    elif opt == "mesDown":
+        theMR = tree.MR_MESDown
+        theRsq = tree.Rsq_MESDown
+    elif opt == "eesUp":
+        theMR = tree.MR_EESUp
+        theRsq = tree.Rsq_EESUp
+    elif opt == "eesDown":
+        theMR = tree.MR_EESDown
+        theRsq = tree.Rsq_EESDown
 
     #get name of scale factor histogram
     centerHistName = ""
@@ -87,6 +99,22 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt=""):
         weight = weight*tree.sf_eleEffDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
+    #muon trig scale factor up/down
+    elif opt == "muontrigUp":
+        weight = weight*tree.sf_muonTrigUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "muontrigDown":
+        weight = weight*tree.sf_muonTrigDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #ele trig scale factor up/down
+    elif opt == "eletrigUp":
+        weight = weight*tree.sf_eleTrigUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
+    elif opt == "eletrigDown":
+        weight = weight*tree.sf_eleTrigDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
     #btag scale factor up/down
     elif opt == "btagUp":
         weight = weight*tree.sf_btagUp
@@ -95,17 +123,84 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt=""):
         weight = weight*tree.sf_btagDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
+    #muon fastsim scale factor up/down
+    elif opt == "muonfastsimUp":
+        weight = weight*tree.sf_muonEffFastsimUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "muonfastsimDown":
+        weight = weight*tree.sf_muonEffFastsimDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #ele fastsim scale factor up/down
+    elif opt == "elefastsimUp":
+        weight = weight*tree.sf_eleEffFastsimUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
+    elif opt == "elefastsimDown":
+        weight = weight*tree.sf_eleEffFastsimDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #btag fastsim scale factor up/down
+    elif opt == "btagfastsimUp":
+        weight = weight*tree.sf_btagFastsimUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "btagfastsimDown":
+        weight = weight*tree.sf_btagFastsimDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #ren/fac scale factor up/down
+    elif opt == "facscaleUp":
+        weight = weight*tree.sf_facScaleUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "facscaleDown":
+        weight = weight*tree.sf_facScaleDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "renscaleUp":
+        weight = weight*tree.sf_renScaleUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "renscaleDown":
+        weight = weight*tree.sf_renScaleDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "facrenscaleUp":
+        weight = weight*tree.sf_facRenScaleUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "facrenscaleDown":
+        weight = weight*tree.sf_facRenScaleDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #pdf weights
+    elif 'pdfUp' in opt:
+        pdfNum = int(opt.replace('pdfUp',''))
+        weight = weight*tree.pdfWeight[pdfNum]/tree.genWeight
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif 'pdfDown' in opt:
+        pdfNum = int(opt.replace('pdfDown',''))
+        weight = weight/tree.pdfWeight[pdfNum]/tree.genWeight
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
     #jet energy scale up/down
     elif opt == "jesUp":
-        hist.Fill(tree.MR_JESUp, tree.Rsq_JESUp, min(tree.nBTaggedJets_JESUp, btagCutoff), weight);
+        hist.Fill(tree.MR_JESUp, tree.Rsq_JESUp, min(tree.nBTaggedJets_JESUp, btagCutoff), weight)
     elif opt == "jesDown":
-        hist.Fill(tree.MR_JESDown, tree.Rsq_JESDown, min(tree.nBTaggedJets_JESDown, btagCutoff), weight);
+        hist.Fill(tree.MR_JESDown, tree.Rsq_JESDown, min(tree.nBTaggedJets_JESDown, btagCutoff), weight)
 
     #jet energy resolution up/down
     elif opt == "jerUp":
-        hist.Fill(tree.MR_JERUp, tree.Rsq_JERUp, min(tree.nBTaggedJets_JERUp, btagCutoff), weight);
+        hist.Fill(tree.MR_JERUp, tree.Rsq_JERUp, min(tree.nBTaggedJets_JERUp, btagCutoff), weight)
     elif opt == "jerDown":
-        hist.Fill(tree.MR_JERDown, tree.Rsq_JERDown, min(tree.nBTaggedJets_JERDown, btagCutoff), weight);
+        hist.Fill(tree.MR_JERDown, tree.Rsq_JERDown, min(tree.nBTaggedJets_JERDown, btagCutoff), weight)
+
+    #muon energy scale
+    elif opt == 'mesUp':
+        hist.Fill(tree.MR_MESUp, tree.Rsq_MESUp, min(tree.nBTaggedJets_MESUp,btagCutoff), weight)
+    elif opt == 'mesDown':
+        hist.Fill(tree.MR_MESDown, tree.Rsq_MESDown, min(tree.nBTaggedJets_MESDown,btagCutoff), weight)
+
+    #electron energy scale
+    elif opt == 'eesUp':
+        hist.Fill(tree.MR_EESUp, tree.Rsq_EESUp, min(tree.nBTaggedJets_EESUp,btagCutoff), weight)
+    elif opt == 'eesDown':
+        hist.Fill(tree.MR_EESDown, tree.Rsq_EESDown, min(tree.nBTaggedJets_EESDown,btagCutoff), weight)
+
 
     else: 
         print("Error in fillRazor3D: option "+opt+" not recognized!")
@@ -237,7 +332,10 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     if sysErrOpt == "jesUp": 
         cuts = cuts.replace("MR", "MR_JESUp")
         cuts = cuts.replace("Rsq", "Rsq_JESUp")
+        cuts = cuts.replace("mT ", "mT_JESUp ")
+        cuts = cuts.replace("mTLoose", "mTLoose_JESUp")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JESUp")
+        cuts = cuts.replace("nJets80", "nJets80_JESUp")
         cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_JESUp")
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JESUp")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JESUp")
@@ -245,7 +343,10 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     if sysErrOpt == "jesDown": 
         cuts = cuts.replace("MR", "MR_JESDown")
         cuts = cuts.replace("Rsq", "Rsq_JESDown")
+        cuts = cuts.replace("mT ", "mT_JESDown ")
+        cuts = cuts.replace("mTLoose", "mTLoose_JESDown")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JESDown")
+        cuts = cuts.replace("nJets80", "nJets80_JESDown")
         cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_JESDown")
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JESDown")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JESDown")
@@ -253,7 +354,10 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     if sysErrOpt == "jerUp": 
         cuts = cuts.replace("MR", "MR_JERUp")
         cuts = cuts.replace("Rsq", "Rsq_JERUp")
+        cuts = cuts.replace("mT ", "mT_JERUp ")
+        cuts = cuts.replace("mTLoose", "mTLoose_JERUp")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JERUp")
+        cuts = cuts.replace("nJets80", "nJets80_JERUp")
         cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_JERUp")
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JERUp")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JERUp")
@@ -261,11 +365,66 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     if sysErrOpt == "jerDown": 
         cuts = cuts.replace("MR", "MR_JERDown")
         cuts = cuts.replace("Rsq", "Rsq_JERDown")
+        cuts = cuts.replace("mT ", "mT_JERUp ")
+        cuts = cuts.replace("mTLoose", "mTLoose_JERUp")
         cuts = cuts.replace("dPhiRazor", "dPhiRazor_JERDown")
+        cuts = cuts.replace("nJets80", "nJets80_JERDown")
         cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_JERDown")
         cuts = cuts.replace(" leadingJetPt", " leadingJetPt_JERDown")
         cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_JERDown")
         cuts = cuts.replace("box", "box_JERDown")
+    if sysErrOpt == "mesUp": 
+        cuts = cuts.replace("MR", "MR_MESUp")
+        cuts = cuts.replace("Rsq", "Rsq_MESUp")
+        cuts = cuts.replace("mT ", "mT_MESUp ")
+        cuts = cuts.replace("mTLoose", "mTLoose_MESUp")
+        cuts = cuts.replace("dPhiRazor", "dPhiRazor_MESUp")
+        cuts = cuts.replace("nJets80", "nJets80_MESUp")
+        cuts = cuts.replace('leadingTightMuPt', 'leadingTightMuPt_MESUp')
+        cuts = cuts.replace("nSelectedJets", "nSelectedJets_MESUp")
+        cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_MESUp")
+        cuts = cuts.replace(" leadingJetPt", " leadingJetPt_MESUp")
+        cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_MESUp")
+        cuts = cuts.replace("box", "box_MESUp")
+    if sysErrOpt == "mesDown": 
+        cuts = cuts.replace("MR", "MR_MESDown")
+        cuts = cuts.replace("Rsq", "Rsq_MESDown")
+        cuts = cuts.replace("mT ", "mT_MESDown ")
+        cuts = cuts.replace("mTLoose", "mTLoose_MESDown")
+        cuts = cuts.replace("dPhiRazor", "dPhiRazor_MESDown")
+        cuts = cuts.replace("nJets80", "nJets80_MESDown")
+        cuts = cuts.replace('leadingTightMuPt', 'leadingTightMuPt_MESDown')
+        cuts = cuts.replace("nSelectedJets", "nSelectedJets_MESDown")
+        cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_MESDown")
+        cuts = cuts.replace(" leadingJetPt", " leadingJetPt_MESDown")
+        cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_MESDown")
+        cuts = cuts.replace("box", "box_MESDown")
+    if sysErrOpt == "eesUp": 
+        cuts = cuts.replace("MR", "MR_EESUp")
+        cuts = cuts.replace("Rsq", "Rsq_EESUp")
+        cuts = cuts.replace("mT ", "mT_EESUp ")
+        cuts = cuts.replace("mTLoose", "mTLoose_EESUp")
+        cuts = cuts.replace("dPhiRazor", "dPhiRazor_EESUp")
+        cuts = cuts.replace("nJets80", "nJets80_EESUp")
+        cuts = cuts.replace('leadingTightMuPt', 'leadingTightMuPt_EESUp')
+        cuts = cuts.replace("nSelectedJets", "nSelectedJets_EESUp")
+        cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_EESUp")
+        cuts = cuts.replace(" leadingJetPt", " leadingJetPt_EESUp")
+        cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_EESUp")
+        cuts = cuts.replace("box", "box_EESUp")
+    if sysErrOpt == "eesDown": 
+        cuts = cuts.replace("MR", "MR_EESDown")
+        cuts = cuts.replace("Rsq", "Rsq_EESDown")
+        cuts = cuts.replace("mT ", "mT_EESDown ")
+        cuts = cuts.replace("mTLoose", "mTLoose_EESDown")
+        cuts = cuts.replace("dPhiRazor", "dPhiRazor_EESDown")
+        cuts = cuts.replace("nJets80", "nJets80_EESDown")
+        cuts = cuts.replace('leadingTightMuPt', 'leadingTightMuPt_EESDown')
+        cuts = cuts.replace("nSelectedJets", "nSelectedJets_EESDown")
+        cuts = cuts.replace("nBTaggedJets", "nBTaggedJets_EESDown")
+        cuts = cuts.replace(" leadingJetPt", " leadingJetPt_EESDown")
+        cuts = cuts.replace(" subleadingJetPt", " subleadingJetPt_EESDown")
+        cuts = cuts.replace("box", "box_EESDown")
 
     print("Cuts: "+cuts)
 
