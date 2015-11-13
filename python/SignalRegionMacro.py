@@ -26,7 +26,7 @@ FILENAMES_SIGNAL = {
         "TTV" : DIR_MC+"/"+PREFIX_SIGNAL+"_TTV_1pb_weighted.root",
         "DYJets"     : DIR_MC+"/"+PREFIX_SIGNAL+"_DYJetsToLL_1pb_weighted.root",
         "ZInv"     : DIR_MC+"/"+PREFIX_SIGNAL+"_ZJetsToNuNu_1pb_weighted.root",
-        "Data"      : DIR_DATA+'/'+PREFIX_SIGNAL+'_'+DATA_NAME+'.root',
+        #"Data"      : DIR_DATA+'/'+PREFIX_SIGNAL+'_'+DATA_NAME+'.root',
         }
 
 config = "config/backup.config"

@@ -15,6 +15,8 @@
 
 using namespace std;
 
+const int NUM_PDF_WEIGHTS = 60;
+
 void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isFastsimSMS)
 {
     /////////////////////////////////
@@ -39,10 +41,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     map<pair<int,int>, TTree*> smsTrees;
     map<pair<int,int>, TH1F*> smsNEvents;
     map<pair<int,int>, TH1F*> smsSumWeights;
+    map<pair<int,int>, TH1F*> smsSumScaleWeights;
+    //map<pair<int,int>, TH1F*> smsSumPdfWeights;
 
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
     TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
+    TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
+    //TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
 
     char* cmsswPath;
     cmsswPath = getenv("CMSSW_BASE");
@@ -73,21 +79,29 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH2D *muVetoEfficiencyHist = 0;
     TH2D *tauLooseEfficiencyHist = 0;
     TH2D *btagMediumEfficiencyHist = 0;
+    TH2D *eleTightEffFastsimSFHist = 0;
+    TH2D *muTightEffFastsimSFHist = 0;
+    TH2D *btagMediumEffFastsimSFHist = 0;
     if(!isData){
         TFile *eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
         eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
         eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
         assert(eleTightEfficiencyHist);
+        eleTightEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
+        assert(eleTightEffFastsimSFHist);
         TFile *muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
         muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
         muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
         assert(muTightEfficiencyHist);
+        muTightEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
+        assert(muTightEffFastsimSFHist);
         TFile *tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
         tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
         assert(tauLooseEfficiencyHist);
         TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
         btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
         assert(btagMediumEfficiencyHist);
+        btagMediumEffFastsimSFHist = (TH2D*)btagEfficiencyFile->Get("BTagMedium_FastsimScaleFactor");
     }
 
     /////////////////////////////////
@@ -155,15 +169,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     cout << "Getting JEC parameters from " << pathname << endl;
     std::vector<JetCorrectorParameters> correctionParameters;
     if (isData) {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
     } 
     else {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
     //Set up JEC machinery 
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -173,10 +187,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //Get JEC uncertainty file and set up JetCorrectionUncertainty
     string jecUncPath;
     if (isData) {
-        jecUncPath = pathname+"/Summer15_25nsV5_DATA_Uncertainty_AK4PFchs.txt";
+        jecUncPath = pathname+"/Summer15_25nsV6_DATA_Uncertainty_AK4PFchs.txt";
     }
     else {
-        jecUncPath = pathname+"/Summer15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
+        jecUncPath = pathname+"/Summer15_25nsV6_MC_Uncertainty_AK4PFchs.txt";
     }
     JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
 
@@ -184,7 +198,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //B-tagging scale factors
     /////////////////////////////////
 
-    BTagCalibration btagcalib("csvv2", "data/ScaleFactors/CSVv2.csv");
+    string bTagPathname = "";
+    if (cmsswPath != NULL) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
+    else bTagPathname = "data/ScaleFactors/";
+    BTagCalibration btagcalib("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
     BTagCalibrationReader btagreader(&btagcalib,               // calibration instance
             BTagEntry::OP_MEDIUM,  // operating point
             "mujets",               // measurement type
@@ -212,17 +229,35 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     float sf_vetoEleEffUp, sf_vetoEleEffDown;
     //For btag scale factor uncertainty
     float sf_btagUp, sf_btagDown;
+    //For scale variation uncertainties
+    float sf_facScaleUp, sf_facScaleDown;
+    float sf_renScaleUp, sf_renScaleDown;
+    float sf_facRenScaleUp, sf_facRenScaleDown;
+    //For Fastsim scale factor uncertainties
+    float sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown;
+    float sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown;
+    float sf_btagFastsimSFUp, sf_btagFastsimSFDown;
     //For jet uncertainties
     float MR_JESUp, Rsq_JESUp, dPhiRazor_JESUp, leadingJetPt_JESUp, subleadingJetPt_JESUp; 
     float MR_JESDown, Rsq_JESDown, dPhiRazor_JESDown, leadingJetPt_JESDown, subleadingJetPt_JESDown;
+    float MR_MESUp, Rsq_MESUp, dPhiRazor_MESUp, leadingTightMuPt_MESUp; 
+    float MR_MESDown, Rsq_MESDown, dPhiRazor_MESDown, leadingTightMuPt_MESDown;
+    float MR_EESUp, Rsq_EESUp, dPhiRazor_EESUp, leadingTightElePt_EESUp; 
+    float MR_EESDown, Rsq_EESDown, dPhiRazor_EESDown, leadingTightElePt_EESDown;
     float MR_JERUp, Rsq_JERUp, dPhiRazor_JERUp, leadingJetPt_JERUp, subleadingJetPt_JERUp;
     float MR_JERDown, Rsq_JERDown, dPhiRazor_JERDown, leadingJetPt_JERDown, subleadingJetPt_JERDown;
     int nSelectedJets_JESUp, nSelectedJets_JESDown, nSelectedJets_JERUp, nSelectedJets_JERDown;
     int nBTaggedJets_JESUp, nBTaggedJets_JESDown, nBTaggedJets_JERUp, nBTaggedJets_JERDown;
+    int nSelectedJets_MESUp, nSelectedJets_MESDown, nSelectedJets_EESUp, nSelectedJets_EESDown;
+    int nBTaggedJets_MESUp, nBTaggedJets_MESDown, nBTaggedJets_EESUp, nBTaggedJets_EESDown;
     int nJets80_JESUp, nJets80_JESDown, nJets80_JERUp, nJets80_JERDown;
+    int nJets80_MESUp, nJets80_MESDown, nJets80_EESUp, nJets80_EESDown;
     RazorBox box_JESUp, box_JESDown, box_JERUp, box_JERDown;
+    RazorBox box_MESUp, box_MESDown, box_EESUp, box_EESDown;
     float mT_JESUp, mT_JESDown, mT_JERUp, mT_JERDown;
     float mTLoose_JESUp, mTLoose_JESDown, mTLoose_JERUp, mTLoose_JERDown;
+    float mT_MESUp, mT_MESDown, mT_EESUp, mT_EESDown;
+    float mTLoose_MESUp, mTLoose_MESDown, mTLoose_EESUp, mTLoose_EESDown;
     //SMS parameters 
     int mGluino, mLSP;
 
@@ -260,6 +295,19 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("sf_eleTrigDown", &sf_eleTrigDown, "sf_eleTrigDown/F");
         razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
         razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
+        razorTree->Branch("sf_muonEffFastsimSFUp", &sf_muonEffFastsimSFUp, "sf_muonEffFastsimSFUp/F");
+        razorTree->Branch("sf_muonEffFastsimSFDown", &sf_muonEffFastsimSFDown, "sf_muonEffFastsimSFDown/F");
+        razorTree->Branch("sf_eleEffFastsimSFUp", &sf_eleEffFastsimSFUp, "sf_eleEffFastsimSFUp/F");
+        razorTree->Branch("sf_eleEffFastsimSFDown", &sf_eleEffFastsimSFDown, "sf_eleEffFastsimSFDown/F");
+        razorTree->Branch("sf_btagFastsimSFUp", &sf_btagFastsimSFUp, "sf_btagFastsimSFUp/F");
+        razorTree->Branch("sf_btagFastsimSFDown", &sf_btagFastsimSFDown, "sf_btagFastsimSFDown/F");
+        razorTree->Branch("sf_facScaleUp", &sf_facScaleUp, "sf_facScaleUp/F");
+        razorTree->Branch("sf_facScaleDown", &sf_facScaleDown, "sf_facScaleDown/F");
+        razorTree->Branch("sf_renScaleUp", &sf_renScaleUp, "sf_renScaleUp/F");
+        razorTree->Branch("sf_renScaleDown", &sf_renScaleDown, "sf_renScaleDown/F");
+        razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
+        razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
+        //razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
         razorTree->Branch("MR_JESUp", &MR_JESUp, "MR_JESUp/F");
         razorTree->Branch("Rsq_JESUp", &Rsq_JESUp, "Rsq_JESUp/F");
         razorTree->Branch("dPhiRazor_JESUp", &dPhiRazor_JESUp, "dPhiRazor_JESUp/F");
@@ -282,6 +330,46 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("mT_JESDown", &mT_JESDown, "mT_JESDown/F");
         razorTree->Branch("mTLoose_JESDown", &mTLoose_JESDown, "mTLoose_JESDown/F");
         razorTree->Branch("box_JESDown", &box_JESDown, "box_JESDown/I");
+        razorTree->Branch("MR_EESUp", &MR_EESUp, "MR_EESUp/F");
+        razorTree->Branch("Rsq_EESUp", &Rsq_EESUp, "Rsq_EESUp/F");
+        razorTree->Branch("dPhiRazor_EESUp", &dPhiRazor_EESUp, "dPhiRazor_EESUp/F");
+        razorTree->Branch("leadingTightElePt_EESUp", &leadingTightElePt_EESUp, "leadingTightElePt_EESUp/F");
+        razorTree->Branch("nSelectedJets_EESUp", &nSelectedJets_EESUp, "nSelectedJets_EESUp/I");
+        razorTree->Branch("nBTaggedJets_EESUp", &nBTaggedJets_EESUp, "nBTaggedJets_EESUp/I");
+        razorTree->Branch("nJets80_EESUp", &nJets80_EESUp, "nJets80_EESUp/I");
+        razorTree->Branch("mT_EESUp", &mT_EESUp, "mT_EESUp/F");
+        razorTree->Branch("mTLoose_EESUp", &mTLoose_EESUp, "mTLoose_EESUp/F");
+        razorTree->Branch("box_EESUp", &box_EESUp, "box_EESUp/I");
+        razorTree->Branch("MR_EESDown", &MR_EESDown, "MR_EESDown/F");
+        razorTree->Branch("Rsq_EESDown", &Rsq_EESDown, "Rsq_EESDown/F");
+        razorTree->Branch("dPhiRazor_EESDown", &dPhiRazor_EESDown, "dPhiRazor_EESDown/F");
+        razorTree->Branch("leadingTightElePt_EESDown", &leadingTightElePt_EESDown, "leadingTightElePt_EESDown/F");
+        razorTree->Branch("nSelectedJets_EESDown", &nSelectedJets_EESDown, "nSelectedJets_EESDown/I");
+        razorTree->Branch("nBTaggedJets_EESDown", &nBTaggedJets_EESDown, "nBTaggedJets_EESDown/I");
+        razorTree->Branch("nJets80_EESDown", &nJets80_EESDown, "nJets80_EESDown/I");
+        razorTree->Branch("mT_EESDown", &mT_EESDown, "mT_EESDown/F");
+        razorTree->Branch("mTLoose_EESDown", &mTLoose_EESDown, "mTLoose_EESDown/F");
+        razorTree->Branch("box_EESDown", &box_EESDown, "box_EESDown/I");
+        razorTree->Branch("MR_MESUp", &MR_MESUp, "MR_MESUp/F");
+        razorTree->Branch("Rsq_MESUp", &Rsq_MESUp, "Rsq_MESUp/F");
+        razorTree->Branch("dPhiRazor_MESUp", &dPhiRazor_MESUp, "dPhiRazor_MESUp/F");
+        razorTree->Branch("leadingTightMuPt_MESUp", &leadingTightMuPt_MESUp, "leadingTightMuPt_MESUp/F");
+        razorTree->Branch("nSelectedJets_MESUp", &nSelectedJets_MESUp, "nSelectedJets_MESUp/I");
+        razorTree->Branch("nBTaggedJets_MESUp", &nBTaggedJets_MESUp, "nBTaggedJets_MESUp/I");
+        razorTree->Branch("nJets80_MESUp", &nJets80_MESUp, "nJets80_MESUp/I");
+        razorTree->Branch("mT_MESUp", &mT_MESUp, "mT_MESUp/F");
+        razorTree->Branch("mTLoose_MESUp", &mTLoose_MESUp, "mTLoose_MESUp/F");
+        razorTree->Branch("box_MESUp", &box_MESUp, "box_MESUp/I");
+        razorTree->Branch("MR_MESDown", &MR_MESDown, "MR_MESDown/F");
+        razorTree->Branch("Rsq_MESDown", &Rsq_MESDown, "Rsq_MESDown/F");
+        razorTree->Branch("dPhiRazor_MESDown", &dPhiRazor_MESDown, "dPhiRazor_MESDown/F");
+        razorTree->Branch("leadingTightMuPt_MESDown", &leadingTightMuPt_MESDown, "leadingTightMuPt_MESDown/F");
+        razorTree->Branch("nSelectedJets_MESDown", &nSelectedJets_MESDown, "nSelectedJets_MESDown/I");
+        razorTree->Branch("nBTaggedJets_MESDown", &nBTaggedJets_MESDown, "nBTaggedJets_MESDown/I");
+        razorTree->Branch("nJets80_MESDown", &nJets80_MESDown, "nJets80_MESDown/I");
+        razorTree->Branch("mT_MESDown", &mT_MESDown, "mT_MESDown/F");
+        razorTree->Branch("mTLoose_MESDown", &mTLoose_MESDown, "mTLoose_MESDown/F");
+        razorTree->Branch("box_MESDown", &box_MESDown, "box_MESDown/I");
         razorTree->Branch("MR_JERUp", &MR_JERUp, "MR_JERUp/F");
         razorTree->Branch("Rsq_JERUp", &Rsq_JERUp, "Rsq_JERUp/F");
         razorTree->Branch("dPhiRazor_JERUp", &dPhiRazor_JERUp, "dPhiRazor_JERUp/F");
@@ -348,7 +436,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         leadingTightMuPt = -1;
         leadingTightElePt = -1;
         box = NONE;
-        weight = 1.0;
+        weight = genWeight;
         if(!isData){
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
@@ -366,6 +454,18 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             sf_tauEffDown = 1.0;
             sf_btagUp = 1.0;
             sf_btagDown = 1.0;
+            sf_facScaleUp = 1.0;
+            sf_facScaleDown = 1.0;
+            sf_renScaleUp = 1.0;
+            sf_renScaleDown = 1.0;
+            sf_facRenScaleUp = 1.0;
+            sf_facRenScaleDown = 1.0;
+            sf_muonEffFastsimSFUp = 1.0;
+            sf_muonEffFastsimSFDown = 1.0;
+            sf_eleEffFastsimSFUp = 1.0;
+            sf_eleEffFastsimSFDown = 1.0;
+            sf_btagFastsimSFUp = 1.0;
+            sf_btagFastsimSFDown = 1.0;
             MR_JESUp = -1;
             Rsq_JESUp = -1;
             dPhiRazor_JESUp = -9;
@@ -410,6 +510,46 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             mT_JERDown = -1;
             mTLoose_JERDown = -1;
             box_JERDown = NONE;
+            MR_MESUp = -1;
+            Rsq_MESUp = -1;
+            dPhiRazor_MESUp = -9;
+            leadingTightMuPt_MESUp = -1;
+            nSelectedJets_MESUp = 0;
+            nBTaggedJets_MESUp = 0;
+            nJets80_MESUp = 0;
+            mT_MESUp = -1;
+            mTLoose_MESUp = -1;
+            box_MESUp = NONE;
+            MR_MESDown = -1;
+            Rsq_MESDown = -1;
+            dPhiRazor_MESDown = -9;
+            leadingTightMuPt_MESDown = -1;
+            nSelectedJets_MESDown = 0;
+            nBTaggedJets_MESDown = 0;
+            nJets80_MESDown = 0;
+            mT_MESDown = -1;
+            mTLoose_MESDown = -1;
+            box_MESDown = NONE;
+            MR_EESUp = -1;
+            Rsq_EESUp = -1;
+            dPhiRazor_EESUp = -9;
+            leadingTightElePt_EESUp = -1;
+            nSelectedJets_EESUp = 0;
+            nBTaggedJets_EESUp = 0;
+            nJets80_EESUp = 0;
+            mT_EESUp = -1;
+            mTLoose_EESUp = -1;
+            box_EESUp = NONE;
+            MR_EESDown = -1;
+            Rsq_EESDown = -1;
+            dPhiRazor_EESDown = -9;
+            leadingTightElePt_EESDown = -1;
+            nSelectedJets_EESDown = 0;
+            nBTaggedJets_EESDown = 0;
+            nJets80_EESDown = 0;
+            mT_EESDown = -1;
+            mTLoose_EESDown = -1;
+            box_EESDown = NONE;
             if(isFastsimSMS){
                 mGluino = -1;
                 mLSP = -1;
@@ -511,6 +651,23 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double effTight = muTightEfficiencyHist->GetBinContent(
                         muTightEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muTightEfficiencyHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                double effTight_FastsimSFUp = effTight;
+                double effTight_FastsimSFDown = effTight;
+                if (isFastsimSMS) { //correct efficiency for Fastsim
+                    double sf = muTightEffFastsimSFHist->GetBinContent(
+                        muTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                    double sfErr = muTightEffFastsimSFHist->GetBinError(
+                        muTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                    effTight *= sf; 
+                    effTight_FastsimSFUp *= (sf + sfErr);
+                    effTight_FastsimSFDown *= (sf - sfErr);
+                    //edge case: efficiency goes above 1: panic and reset
+                    if (effTight_FastsimSFUp >= 1.0) {
+                        effTight_FastsimSFUp = effTight;
+                    }
+                }
                 double effTightSF = muTightEffSFHist->GetBinContent( 
                         muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
@@ -522,20 +679,28 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double tmpTightSF = 1.0;
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
+                double tmpTightSF_FastsimSFUp = 1.0;
+                double tmpTightSF_FastsimSFDown = 1.0;
 
                 if (isTightMuon(i)) {
                     tmpTightSF = effTightSF;
                     tmpTightSFUp = effTightSFUp;
                     tmpTightSFDown = effTightSFDown;
+                    tmpTightSF_FastsimSFUp = effTightSF;
+                    tmpTightSF_FastsimSFDown = effTightSF;
                 } 
                 else {
                     tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
                     tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
                     tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
+                    tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
+                    tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
                 }
                 muonEffCorrFactor *= tmpTightSF;
                 sf_muonEffUp *= tmpTightSFUp/tmpTightSF;
                 sf_muonEffDown *= tmpTightSFDown/tmpTightSF;
+                sf_muonEffFastsimSFUp *= tmpTightSF_FastsimSFUp/tmpTightSF;
+                sf_muonEffFastsimSFDown *= tmpTightSF_FastsimSFDown/tmpTightSF;
             }
 
             //veto lepton efficiency scale factor
@@ -571,7 +736,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             }
 
             //Trigger scale factor
-            //NOTE: implemented for single lepton trigger only!  
             if(!isData && muonPt[i] >= MUON_LOOSE_CUT){
                 double trigSF = muTrigSFHist->GetBinContent( 
                         muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
@@ -587,7 +751,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     sf_muonTrigDown *= trigSFDown/trigSF;
                 }
 		if (isFastsimSMS) {
-		  if (passedSingleLeptonTrigger && isTightMuon(i) && muonPt[i] >= MUON_LOOSE_CUT) {
+		  if (passedSingleLeptonTrigger && isTightMuon(i)) {
 		    double singleMuonTriggerEfficiencyFromFullsim = 
 		      muTrigEffFromFullsimHist->GetBinContent( muTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(muonEta[i])),
 							       muTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],999.9),15.01))); 
@@ -642,6 +806,23 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double effTight = eleTightEfficiencyHist->GetBinContent(
                         eleTightEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
                         eleTightEfficiencyHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                double effTight_FastsimSFUp = effTight;
+                double effTight_FastsimSFDown = effTight;
+                if (isFastsimSMS) { //correct efficiency for Fastsim
+                    double sf = eleTightEffFastsimSFHist->GetBinContent(
+                        eleTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
+                        eleTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                    double sfErr = eleTightEffFastsimSFHist->GetBinError(
+                        eleTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
+                        eleTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                    effTight *= sf;
+                    effTight_FastsimSFUp *= (sf + sfErr);
+                    effTight_FastsimSFDown *= (sf - sfErr);
+                    //edge case: efficiency goes above 1: panic and reset
+                    if (effTight_FastsimSFUp >= 1.0) {
+                        effTight_FastsimSFUp = effTight;
+                    }
+                }
                 double effTightSF = eleTightEffSFHist->GetBinContent( 
                         eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
@@ -650,24 +831,31 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
                 double effTightSFUp = effTightSF + effTightSFErr;
                 double effTightSFDown = effTightSF - effTightSFErr;
-
                 double tmpTightSF = 1.0;
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
+                double tmpTightSF_FastsimSFUp = 1.0;
+                double tmpTightSF_FastsimSFDown = 1.0;
 
                 if (isTightElectron(i)) {
                     tmpTightSF = effTightSF;
                     tmpTightSFUp = effTightSFUp;
                     tmpTightSFDown = effTightSFDown;
+                    tmpTightSF_FastsimSFUp = effTightSF;
+                    tmpTightSF_FastsimSFDown = effTightSF;
                 } 
                 else { 
                     tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
                     tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
                     tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
+                    tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
+                    tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
                 }
                 eleEffCorrFactor *= tmpTightSF;
                 sf_eleEffUp *= tmpTightSFUp/tmpTightSF;
                 sf_eleEffDown *= tmpTightSFDown/tmpTightSF;
+                sf_eleEffFastsimSFUp *= tmpTightSF_FastsimSFUp/tmpTightSF;
+                sf_eleEffFastsimSFDown *= tmpTightSF_FastsimSFDown/tmpTightSF;
             }
 
             //Veto scale factor
@@ -704,7 +892,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             }
 
             //Trigger scale factor
-            //NOTE: implemented for single lepton trigger only!
             if(!isData && elePt[i] > ELE_LOOSE_CUT){
                 double trigSF = eleTrigSFHist->GetBinContent( 
                         eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
@@ -836,7 +1023,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         float MetXCorr_JERDown = 0;
         float MetYCorr_JERDown = 0;
         //Hadronic trigger efficiency scale factor
-        float hadronicTrigCorrFactor = 0.972; //flat trigger scale factor
+        float hadronicTrigCorrFactor = 1.0; //flat trigger scale factor
+        if (isFastsimSMS) {
+            hadronicTrigCorrFactor *= 0.975;
+        }
         //Loop jets
         for (int i = 0; i < nJets; i++){
 
@@ -889,6 +1079,23 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double effMedium = btagMediumEfficiencyHist->GetBinContent(
                         btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
                         btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+                double effMedium_FastsimSFUp = effMedium;
+                double effMedium_FastsimSFDown = effMedium;
+                if (isFastsimSMS) { //correct efficiency for Fastsim
+                    double sf = btagMediumEffFastsimSFHist->GetBinContent(
+                        btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
+                        btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
+                    double sfErr = btagMediumEffFastsimSFHist->GetBinError(
+                        btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
+                        btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
+                    effMedium *= sf; 
+                    effMedium_FastsimSFUp *= (sf + sfErr);
+                    effMedium_FastsimSFDown *= (sf - sfErr);
+                    //edge case: efficiency goes above 1: panic and reset
+                    if (effMedium_FastsimSFUp >= 1.0) {
+                        effMedium_FastsimSFUp = effMedium;
+                    }
+                }
                 //get scale factor
                 double jet_scalefactor = -1;
                 double jet_scalefactorUp = -1;
@@ -903,23 +1110,20 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 }
                 //apply scale factor
                 if (jet_scalefactor <= 0 || jet_scalefactorUp <= 0 || jet_scalefactorDown <= 0){
-                    cout << "Warning: b-tag scale factor is <= 0!" << endl;
+                    // cout << "Warning: b-tag scale factor is <= 0!" << endl;
                 }
                 else if (isCSVM(i)){
                     btagCorrFactor *= jet_scalefactor;
-                    sf_btagUp *= jet_scalefactorUp;
-                    sf_btagDown *= jet_scalefactorDown;
-                    cout << "b-tag scale factor: " << jet_scalefactor << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
-                    cout << "up: " << jet_scalefactorUp << endl;
-                    cout << "down: " << jet_scalefactorDown << endl;
+                    sf_btagUp *= jet_scalefactorUp/jet_scalefactor;
+                    sf_btagDown *= jet_scalefactorDown/jet_scalefactor;
                 }
                 else {
-                    btagCorrFactor *= (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
-                    sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1);
-                    sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1);
-                    cout << "b-tag scale factor: " << (1/effMedium - jet_scalefactor)/(1/effMedium-1) << " (" << jetCorrPt << ", " << jetEta[i] << ")" << endl;
-                    cout << "up: " << (1/effMedium - jet_scalefactorUp)/(1/effMedium-1) << endl;
-                    cout << "down: " << (1/effMedium - jet_scalefactorDown)/(1/effMedium-1) << endl;
+                    double sf = (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
+                    btagCorrFactor *= sf;
+                    sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1) / sf;
+                    sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1) / sf;
+                    sf_btagFastsimSFUp *= (1/effMedium_FastsimSFUp - jet_scalefactor) / (1/effMedium_FastsimSFUp - 1) / sf;
+                    sf_btagFastsimSFDown *= (1/effMedium_FastsimSFDown - jet_scalefactor) / (1/effMedium_FastsimSFDown - 1) / sf;
                 }
             } 
 
@@ -1322,6 +1526,29 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         /////////////////////////////////
+        //Scale and PDF variations
+        /////////////////////////////////
+
+        sf_facScaleUp = (*scaleWeights)[1];
+        sf_facScaleDown = (*scaleWeights)[2];
+        sf_renScaleUp = (*scaleWeights)[3];
+        sf_renScaleDown = (*scaleWeights)[6];
+        sf_facRenScaleUp = (*scaleWeights)[4];
+        sf_facRenScaleDown = (*scaleWeights)[8];
+
+        SumScaleWeights->Fill(0.0, sf_facScaleUp);
+        SumScaleWeights->Fill(1.0, sf_facScaleDown);
+        SumScaleWeights->Fill(2.0, sf_renScaleUp);
+        SumScaleWeights->Fill(3.0, sf_renScaleDown);
+        SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
+        SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+
+        //for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) 
+        //{
+            //SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+        //}
+
+        /////////////////////////////////
         //Apply scale factors
         /////////////////////////////////
 
@@ -1344,7 +1571,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         //Fill normalization histogram
-        NEvents->Fill(1.0);
+        NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
         SumWeights->Fill(1.0, weight);
 
         /////////////////////////////////
@@ -1373,11 +1600,25 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         smsTrees[smsPair] = razorTree->CloneTree(0);
                         smsNEvents[smsPair] = new TH1F(Form("NEvents%d%d", mGluino, mLSP), "NEvents", 1,0.5,1.5);
                         smsSumWeights[smsPair] = new TH1F(Form("SumWeights%d%d", mGluino, mLSP), "SumWeights", 1,0.5,1.5);
+                        smsSumScaleWeights[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mGluino, mLSP), "SumScaleWeights", 6,-0.5,5.5);
+                        //smsSumPdfWeights[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mGluino, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
                         cout << "Created new output file " << thisFileName << endl;
                     }
                     //Fill NEvents hist 
-                    smsNEvents[smsPair]->Fill(1.0);
+                    smsNEvents[smsPair]->Fill(1.0, genWeight);
                     smsSumWeights[smsPair]->Fill(1.0, weight);
+
+                    smsSumScaleWeights[smsPair]->Fill(0.0, sf_facScaleUp);
+                    smsSumScaleWeights[smsPair]->Fill(1.0, sf_facScaleDown);
+                    smsSumScaleWeights[smsPair]->Fill(2.0, sf_renScaleUp);
+                    smsSumScaleWeights[smsPair]->Fill(3.0, sf_renScaleDown);
+                    smsSumScaleWeights[smsPair]->Fill(4.0, sf_facRenScaleUp);
+                    smsSumScaleWeights[smsPair]->Fill(5.0, sf_facRenScaleDown);
+
+                    //for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) 
+                    //{
+                        //smsSumPdfWeights[smsPair]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+                    //}
                 }
             }
         }
@@ -1402,10 +1643,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
         if(!isFastsimSMS){
 	  if(!Flag_HBHENoiseFilter) continue;
-	  if(!Flag_CSCTightHaloFilter) continue;
+	  if(!Flag_HBHEIsoNoiseFilter) continue;
 	  if(!Flag_goodVertices) continue;
 	  if(!Flag_eeBadScFilter) continue;
-	  if(!Flag_EcalDeadCellTriggerPrimitiveFilter) continue;
 	}
 
         //Fill tree
@@ -1425,6 +1665,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Write();
         NEvents->Write();
         SumWeights->Write();
+        SumScaleWeights->Write();
+        //SumPdfWeights->Write();
     }
     else{
         for(auto &filePtr : smsFiles){
@@ -1433,6 +1675,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             smsTrees[filePtr.first]->Write();
             smsNEvents[filePtr.first]->Write("NEvents");
             smsSumWeights[filePtr.first]->Write("SumWeights");
+            smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
+            //smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
         }
     }
 

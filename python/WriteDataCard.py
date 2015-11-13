@@ -105,7 +105,7 @@ def initializeWorkspace_noFit(w,cfg,box):
 
     return paramNames
 
-def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h', x = array('d',[]), y = array('d',[]), z = array('d',[])):
+def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h', x = array('d',[]), y = array('d',[]), z = array('d',[])):
     """Get the cocktail dataset from the file"""
     
     row = data.get()
@@ -133,7 +133,9 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h', x = array('d',[
     
     myTH3 = rt.TH3D(th1Name+box, th1Name+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
     myTH2 = rt.TH2D(th1Name+box+"2d", th1Name+box+"2d", len(x)-1, x, len(y)-1, y)
-    myTH2.Sumw2()
+    if useWeight:
+        myTH3.Sumw2()
+        myTH2.Sumw2()
 
     # fills automatically with weight
     data.fillHistogram(myTH3, varList,"MR>%f && MR<%f && Rsq>%f && Rsq<%f && nBtag >= %f && nBtag <= %f"%(x[0],x[-1],y[0],y[-1],z[0],z[-1]))
@@ -141,12 +143,15 @@ def convertDataset2TH1(data, cfg, box, workspace, th1Name = 'h', x = array('d',[
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",nBins,0,nBins)
+    if useWeight:
+        myTH1.Sumw2()
     i = 0
     for ix in range(1,len(x)):
         for iy in range(1,len(y)):
             for iz in range(1,len(z)):
                 i+= 1
                 myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
+                if useWeight: myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
 
     return myTH1
 
