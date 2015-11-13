@@ -43,7 +43,7 @@ struct evt
 
 #define _phodebug 0
 #define _debug    0
-#define _info     1
+#define _info     0
 
 //Testing branching and merging
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
@@ -160,7 +160,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   int   Pho_motherID[2];
 
   //jet information
-  float jet_E[10], jet_Pt[10], jet_Eta[10], jet_Phi[10];
+  float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
   
   //set branches on big tree
   if(combineTrees){
@@ -226,8 +226,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
-    razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
-
+    razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
+    
     //GenParticles
     razorTree->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
     razorTree->Branch("gParticleMotherId", gParticleMotherId, "gParticleMotherId[nGenParticle]/I");
@@ -301,7 +301,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
       thisBox.second->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       thisBox.second->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
-      thisBox.second->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
+      thisBox.second->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
 
       //GenParticles
       thisBox.second->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
@@ -325,6 +325,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     //begin event
     if( _info && (jentry % 10000 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
+    //std::cout << "[INFO]: Processing entry " << jentry << std::endl;
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
@@ -373,7 +374,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       }
     
     //jets
-    for ( int i = 0; i < 10; i++ )
+    for ( int i = 0; i < 50; i++ )
       {
 	jet_E[i]   = -99.;
 	jet_Pt[i]  = -99.;
@@ -452,13 +453,13 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    continue;
 	  }
 	
-      //Defining Corrected Photon momentum
-      //float pho_pt = phoPt[i];//nominal pt
+	//Defining Corrected Photon momentum
+	//float pho_pt = phoPt[i];//nominal pt
 	float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
 	TVector3 vec;
 	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
 	vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
-      
+	
 	if ( phoPt[i] < 20.0 )
 	  //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
 	  {
@@ -472,36 +473,36 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
 	    continue; 
 	  }
-      
-      if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
-	{
-	  //Removing gap photons
-	  if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
-	  //continue;
-	}
-      //photon passes
-      if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
-      //setting up photon 4-momentum with zero mass
-      TLorentzVector thisPhoton;
-      thisPhoton.SetVectM( vec, .0 );
-      
-      //Filling Photon Candidate
-      PhotonCandidate tmp_phoCand;
-      tmp_phoCand.Index = i;
-      tmp_phoCand.photon = thisPhoton;
-      tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
-      tmp_phoCand.R9 = phoR9[i];
-      tmp_phoCand.HoverE = pho_HoverE[i];
-      tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
-      tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
-      tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
-      tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
-      tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-      tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
-      phoCand.push_back( tmp_phoCand );
-
-      nSelectedPhotons++;
-    }
+	
+	if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
+	  {
+	    //Removing gap photons
+	    if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
+	    //continue;
+	  }
+	//photon passes
+	if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
+	//setting up photon 4-momentum with zero mass
+	TLorentzVector thisPhoton;
+	thisPhoton.SetVectM( vec, .0 );
+	
+	//Filling Photon Candidate
+	PhotonCandidate tmp_phoCand;
+	tmp_phoCand.Index = i;
+	tmp_phoCand.photon = thisPhoton;
+	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
+	tmp_phoCand.R9 = phoR9[i];
+	tmp_phoCand.HoverE = pho_HoverE[i];
+	tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
+	tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
+	tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
+	tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
+	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
+	tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
+	phoCand.push_back( tmp_phoCand );
+	
+	nSelectedPhotons++;
+      }
     
     //if there is no photon with pT above 40 GeV, reject the event
     if( nPhotonsAbove40GeV == 0 )
@@ -521,6 +522,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	continue;
       }
     
+
+    if ( _debug ) std::cout << "[DEBUG]: nphotons--> " << phoCand.size() << " " << nSelectedPhotons << std::endl;
     //find the "best" photon pair, higher Pt!
     TLorentzVector HiggsCandidate(0,0,0,0);
     int goodPhoIndex1 = -1;
@@ -563,6 +566,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  HiggsCandidate = pho1.photon + pho2.photon;
 	  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
 	    {
+	      if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
 	      phoSelectedCand.push_back(pho1);
 	      phoSelectedCand.push_back(pho2);
 	      goodPhoIndex1 = pho1.Index;
@@ -570,6 +574,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    }
 	  else
 	    {
+	      if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
 	      phoSelectedCand.push_back(pho2);
 	      phoSelectedCand.push_back(pho1);
 	      goodPhoIndex1 = pho2.Index;
@@ -637,7 +642,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       {
 	if ( _debug ) std::cout << "[DEBUG]: Failed ISO: pho1, pho2: " << Pho_passIso[0] << ", " << Pho_passIso[1] << std::endl;
 	if ( _debug ) std::cout << "[DEBUG]: pho1Pt: " << Pho_Pt[0] << " pho2Pt: " << Pho_Pt[1] << std::endl;
-	for ( auto& phoC : phoCand )
+	for ( auto& phoC : phoSelectedCand )
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
 	  }
@@ -646,6 +651,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     //record higgs candidate info
     mGammaGamma = HiggsCandidate.M();
     pTGammaGamma = HiggsCandidate.Pt();
+    if ( _debug ) std::cout << "[DEBUG]: mgg-> " << mGammaGamma << " pTgg->" << pTGammaGamma << std::endl;
     
 
     //***********************************************************
@@ -724,6 +730,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
 	//continue;
       }
+
+    //std::cout << "njets-->" << n_Jets << std::endl;
     
     int iJet = 0;
     for ( auto tmp_jet : GoodJets )
@@ -780,8 +788,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  }//end second jet loop
 	}//end first jet loop
       }
-    
-    
+  
+
     //------------------------------------------------
     //I n v a ri a n t   m a s s   r e s o l u t i o n
     //------------------------------------------------
@@ -793,8 +801,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if ( pTGammaGamma > 110.0 )
       {
 	if(combineTrees){
+	  if ( _debug ) std::cout << "[DEBUG]: combineTrees" << std::endl;
 	  razorbox = HighPt;
+	  if ( _debug ) std::cout << "[DEBUG]: combineTrees 1" << std::endl;
 	  razorTree->Fill();
+	  if ( _debug ) std::cout << "[DEBUG]: combineTrees 2" << std::endl;
 	}
 	else razorBoxes["HighPt"]->Fill();
       }
@@ -834,8 +845,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	}
 	else razorBoxes["LowRes"]->Fill();
       }
-    
-  }//end of event loop
+    if ( _debug ) std::cout << "[DEBUG]: combineTrees 3?" << std::endl;
+    //end of event loop
+  }
   
   if ( _info ) std::cout << "[INFO]: Number of events processed: " << NEvents->Integral() << std::endl;
   if ( _info ) std::cout << "[INFO]: Writing output trees..." << std::endl;
