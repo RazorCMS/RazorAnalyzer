@@ -53,7 +53,7 @@ def getCuts(workspace, box):
     rsqMax = args['Rsq'].getMax()
     btagMin =  args['nBtag'].getMin()
     btagMax =  args['nBtag'].getMax()
-    btagCutoff = btagMax - 1
+    btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
@@ -106,7 +106,7 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, globalScaleFactor):
     
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     
-    btagCutoff = btagMax - 1
+    btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
         
