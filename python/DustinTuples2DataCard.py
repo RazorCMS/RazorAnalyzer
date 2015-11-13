@@ -315,7 +315,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
         k = k_W
     else:
         k = 1.
-    btagCutoff = z[-1] - 1
+    btagCutoff = 3
 
     #make histogram with razor binning
     label = f.replace('.root','').split('/')[-1]
