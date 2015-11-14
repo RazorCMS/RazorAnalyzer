@@ -143,26 +143,26 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
 
     #muon fastsim scale factor up/down
     elif opt == "muonfastsimUp":
-        weight = weight*tree.sf_muonEffFastsimUp
+        weight = weight*tree.sf_muonEffFastsimSFUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "muonfastsimDown":
-        weight = weight*tree.sf_muonEffFastsimDown
+        weight = weight*tree.sf_muonEffFastsimSFDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #ele fastsim scale factor up/down
     elif opt == "elefastsimUp":
-        weight = weight*tree.sf_eleEffFastsimUp
+        weight = weight*tree.sf_eleEffFastsimSFUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
     elif opt == "elefastsimDown":
-        weight = weight*tree.sf_eleEffFastsimDown
+        weight = weight*tree.sf_eleEffFastsimSFDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #btag fastsim scale factor up/down
     elif opt == "btagfastsimUp":
-        weight = weight*tree.sf_btagFastsimUp
+        weight = weight*tree.sf_btagFastsimSFUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "btagfastsimDown":
-        weight = weight*tree.sf_btagFastsimDown
+        weight = weight*tree.sf_btagFastsimSFDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #ren/fac scale factor up/down
@@ -188,11 +188,11 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     #pdf weights
     elif 'pdfUp' in opt:
         pdfNum = int(opt.replace('pdfUp',''))
-        weight = weight*(tree.pdfWeight[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
+        weight = weight*(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif 'pdfDown' in opt:
         pdfNum = int(opt.replace('pdfDown',''))
-        weight = weight/(tree.pdfWeight[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
+        weight = weight/(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #lumi
