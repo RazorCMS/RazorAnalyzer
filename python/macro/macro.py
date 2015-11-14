@@ -673,7 +673,7 @@ def make1DPullHistogram(h1, h2, xtitle="", ymin=-5.0, ymax=5.0, logx=False, forP
 
 def make1DPercentDiffHistogram(h1, h2, xtitle="", ymin=-1.0, ymax=1.0, logx=False, forPad2=True):
     """Makes (h1 - h2)/h2 histogram"""
-    ret = h1.Clone(h1.GetName()+h2.GetName()+"Pulls")
+    ret = h1.Clone(h1.GetName()+h2.GetName()+"PercDiff")
     ret.Add(h2, -1)
     ret.Divide(h2)
     ret.SetMinimum(ymin)
@@ -804,11 +804,13 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
                 #do (MC - fit)/unc
                 mcFitPulls = make2DPullHistogram(fit,mc)
                 note="(MC - Fit)/#sigma"
+                printnote="MCFitPulls"
             else:
                 #make nsigma plot
                 note="Nsigmas"
+                printnote="MCFitNSigma"
                 mcFitPulls = nsigmaFitMC
-            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCFitPulls', lumistr=lumistr, commentstr=commentstr+note, palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
+            draw2DHist(c, mcFitPulls, xtitle, ytitle, ztitle, None, None, printstr+printnote, lumistr=lumistr, commentstr=commentstr+note, palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #do (fit - mc)/mc
             mcFitPerc = make2DPercentDiffHistogram(fit,mc)
             draw2DHist(c, mcFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Fit - MC)/MC", palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
@@ -832,11 +834,13 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
                 #do (data - fit)/unc
                 dataFitPulls = make2DPullHistogram(data,fit)
                 note=", (Data - Fit)/#sigma"
+                printnote="DataFitPulls"
             else:
                 #make nsigma plot
                 note=", Nsigmas"
+                printnote="DataFitNSigma"
                 dataFitPulls = nsigmaFitData
-            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+'DataFitNSigma', lumistr=lumistr, commentstr=commentstr+note, dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
+            draw2DHist(c, dataFitPulls, xtitle, ytitle, ztitle, None, None, printstr+printnote, lumistr=lumistr, commentstr=commentstr+note, dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #do (data - fit)/fit
             dataFitPerc = make2DPercentDiffHistogram(data,fit)
             draw2DHist(c, dataFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'DataFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - Fit)/Fit", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
@@ -856,7 +860,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Number o
             legDataFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
             rt.SetOwnership(legDataFit, False)
             legDataFit.AddEntry(blindFit, "Fit Prediction")
-            legDataFit.AddEntry(unrolled[1], "Data Prediction")
+            legDataFit.AddEntry(unrolled[1], "Data")
 
             plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kGreen, saveroot=True, customPad2Hist=nsigmaUnrolled, printdir=printdir)
     if fit:

@@ -70,10 +70,28 @@ def getScaleFactor(tree, treeName, sfs={}, opt=""):
 
     return scaleFactor
      
-def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt=""):
+def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None):
     """Fill hist for one event, using opt to specify any systematic, etc, that should be applied.
        Returns the weight that was filled."""
     nBTags = min(tree.nBTaggedJets,btagCutoff)
+
+    #check for any required weight histogram
+    if 'facscale' in opt or 'renscale' in opt or 'facrenscale' in opt or 'pdf' in opt:
+        if nevents is None:
+            print "Error in fillRazor3D: no NEvents histogram given!"
+            return 
+        else:
+            integral = nevents.Integral()
+
+    if 'facscale' in opt or 'renscale' in opt or 'facrenscale' in opt:
+        if sumScaleWeights is None:
+            print "Error in fillRazor3D: no SumScaleWeights histogram given!" 
+            return
+
+    if 'pdf' in opt:
+        if sumPdfWeights is None:
+            print "Error in fillRazor3D: no SumPdfWeights histogram given!"
+            return
 
     #multiply weight by appropriate scale factor
     scaleFactor = getScaleFactor(tree, treeName, sfs, opt)
@@ -149,32 +167,40 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt=""):
 
     #ren/fac scale factor up/down
     elif opt == "facscaleUp":
-        weight = weight*tree.sf_facScaleUp
+        weight = weight*tree.sf_facScaleUp*integral/sumScaleWeights.GetBinContent(1)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "facscaleDown":
-        weight = weight*tree.sf_facScaleDown
+        weight = weight*tree.sf_facScaleDown*integral/sumScaleWeights.GetBinContent(2)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "renscaleUp":
-        weight = weight*tree.sf_renScaleUp
+        weight = weight*tree.sf_renScaleUp*integral/sumScaleWeights.GetBinContent(3)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "renscaleDown":
-        weight = weight*tree.sf_renScaleDown
+        weight = weight*tree.sf_renScaleDown*integral/sumScaleWeights.GetBinContent(4)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "facrenscaleUp":
-        weight = weight*tree.sf_facRenScaleUp
+        weight = weight*tree.sf_facRenScaleUp*integral/sumScaleWeights.GetBinContent(5)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif opt == "facrenscaleDown":
-        weight = weight*tree.sf_facRenScaleDown
+        weight = weight*tree.sf_facRenScaleDown*integral/sumScaleWeights.GetBinContent(6)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #pdf weights
     elif 'pdfUp' in opt:
         pdfNum = int(opt.replace('pdfUp',''))
-        weight = weight*tree.pdfWeight[pdfNum]/tree.genWeight
+        weight = weight*(tree.pdfWeight[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif 'pdfDown' in opt:
         pdfNum = int(opt.replace('pdfDown',''))
-        weight = weight/tree.pdfWeight[pdfNum]/tree.genWeight
+        weight = weight/(tree.pdfWeight[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #lumi
+    elif 'lumiUp' in opt:
+        weight = weight*1.05
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif 'lumiDown' in opt:
+        weight = weight/1.05
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #jet energy scale up/down
@@ -299,7 +325,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", pileupWeightHist=None, hadronicTriggerWeight=None):
+def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", pileupWeightHist=None, hadronicTriggerWeight=None, sumPdfWeights=None, sumScaleWeights=None, nevents=None):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -454,7 +480,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
             if box in ["MultiJet", "DiJet", "FourJet", "SixJet", "LooseLeptonMultiJet", "LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet"]:
                 theWeight *= hadronicTriggerWeight
         #########################
-        filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, sysErrOpt)
+        filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, sysErrOpt, sumPdfWeights=sumPdfWeights, sumScaleWeights=sumScaleWeights, nevents=nevents)
         numEntriesByBtag[btag_bin] += 1
         sumEntriesByBtag[btag_bin] += filledWeight
 
