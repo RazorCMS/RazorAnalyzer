@@ -35,17 +35,54 @@ TH1D* NormalizeHist(TH1D *originalHist) {
   return hist;
 }
 
+void AddLargestWeightUncertainty(TH1D* hist) {
+ 
+  for (int i=0; i<hist->GetXaxis()->GetNbins()+2;++i) {
+    //hist->SetBinError(i, sqrt( pow(hist->GetBinError(i),2) + pow( 0.0054 , 2)));
+    hist->SetBinError(i, sqrt( pow(hist->GetBinError(i),2) + pow( 0.01 , 2)));
+  }
+
+}
+
+
+
+
 
 void PlotTwoBTagVsThreeBTagShapes() {
 
-  TFile *fileMultijet_TwoBTag = new TFile("RazorPlots_Multijet_TwoBTags.root","READ");
-  TFile *fileMultijet_ThreeBTag = new TFile("RazorPlots_Multijet_ThreeBTags.root","READ");
+  TFile *fileMultijet_TwoBTag = new TFile("RazorPlots_Multijet_TwoBTags_Inclusive.root","READ");
+  TFile *fileMultijet_ThreeBTag = new TFile("RazorPlots_Multijet_ThreeBTags_Inclusive.root","READ");
   TFile *fileLooseLeptonMultijet_TwoBTag = new TFile("RazorPlots_LooseLeptonMultijet_TwoBTags.root","READ");
   TFile *fileLooseLeptonMultijet_ThreeBTag = new TFile("RazorPlots_LooseLeptonMultijet_ThreeBTags.root","READ");
-  TFile *fileMuonMultijet_TwoBTag = new TFile("RazorPlots_MuonMultijet_TwoBTags.root","READ");
-  TFile *fileMuonMultijet_ThreeBTag = new TFile("RazorPlots_MuonMultijet_ThreeBTags.root","READ");
-  TFile *fileElectronMultijet_TwoBTag = new TFile("RazorPlots_ElectronMultijet_TwoBTags.root","READ");
-  TFile *fileElectronMultijet_ThreeBTag = new TFile("RazorPlots_ElectronMultijet_ThreeBTags.root","READ");
+  TFile *fileMuonMultijet_TwoBTag = new TFile("RazorPlots_MuonMultijet_TwoBTags_Inclusive.root","READ");
+  TFile *fileMuonMultijet_ThreeBTag = new TFile("RazorPlots_MuonMultijet_ThreeBTags_Inclusive.root","READ");
+  TFile *fileElectronMultijet_TwoBTag = new TFile("RazorPlots_ElectronMultijet_TwoBTags_Inclusive.root","READ");
+  TFile *fileElectronMultijet_ThreeBTag = new TFile("RazorPlots_ElectronMultijet_ThreeBTags_Inclusive.root","READ");
+  // TFile *fileMultijet_TwoBTag = new TFile("RazorPlots_Multijet_TwoBTags_Rsq0p15To0p3.root","READ");
+  // TFile *fileMultijet_ThreeBTag = new TFile("RazorPlots_Multijet_ThreeBTags_Rsq0p15To0p3.root","READ");
+  // TFile *fileLooseLeptonMultijet_TwoBTag = new TFile("RazorPlots_LooseLeptonMultijet_TwoBTags.root","READ");
+  // TFile *fileLooseLeptonMultijet_ThreeBTag = new TFile("RazorPlots_LooseLeptonMultijet_ThreeBTags.root","READ");
+  // TFile *fileMuonMultijet_TwoBTag = new TFile("RazorPlots_MuonMultijet_TwoBTags_Rsq0p15To0p3.root","READ");
+  // TFile *fileMuonMultijet_ThreeBTag = new TFile("RazorPlots_MuonMultijet_ThreeBTags_Rsq0p15To0p3.root","READ");
+  // TFile *fileElectronMultijet_TwoBTag = new TFile("RazorPlots_ElectronMultijet_TwoBTags_Rsq0p15To0p3.root","READ");
+  // TFile *fileElectronMultijet_ThreeBTag = new TFile("RazorPlots_ElectronMultijet_ThreeBTags_Rsq0p15To0p3.root","READ");
+
+  // // TFile *fileMultijet_TwoBTag = new TFile("RazorPlots_Multijet_TwoBTags_Rsq0p3To0p4.root","READ");
+  // // TFile *fileMultijet_ThreeBTag = new TFile("RazorPlots_Multijet_ThreeBTags_Rsq0p3To0p4.root","READ");
+  // // TFile *fileLooseLeptonMultijet_TwoBTag = new TFile("RazorPlots_LooseLeptonMultijet_TwoBTags.root","READ");
+  // // TFile *fileLooseLeptonMultijet_ThreeBTag = new TFile("RazorPlots_LooseLeptonMultijet_ThreeBTags.root","READ");
+  // // TFile *fileMuonMultijet_TwoBTag = new TFile("RazorPlots_MuonMultijet_TwoBTags_Rsq0p3To0p4.root","READ");
+  // // TFile *fileMuonMultijet_ThreeBTag = new TFile("RazorPlots_MuonMultijet_ThreeBTags_Rsq0p3To0p4.root","READ");
+  // // TFile *fileElectronMultijet_TwoBTag = new TFile("RazorPlots_ElectronMultijet_TwoBTags_Rsq0p3To0p4.root","READ");
+  // // TFile *fileElectronMultijet_ThreeBTag = new TFile("RazorPlots_ElectronMultijet_ThreeBTags_Rsq0p3To0p4.root","READ");
+  // TFile *fileMultijet_TwoBTag = new TFile("RazorPlots_Multijet_TwoBTags_Rsq0p4ToInf.root","READ");
+  // TFile *fileMultijet_ThreeBTag = new TFile("RazorPlots_Multijet_ThreeBTags_Rsq0p4ToInf.root","READ");
+  // TFile *fileLooseLeptonMultijet_TwoBTag = new TFile("RazorPlots_LooseLeptonMultijet_TwoBTags.root","READ");
+  // TFile *fileLooseLeptonMultijet_ThreeBTag = new TFile("RazorPlots_LooseLeptonMultijet_ThreeBTags.root","READ");
+  // TFile *fileMuonMultijet_TwoBTag = new TFile("RazorPlots_MuonMultijet_TwoBTags_Rsq0p4ToInf.root","READ");
+  // TFile *fileMuonMultijet_ThreeBTag = new TFile("RazorPlots_MuonMultijet_ThreeBTags_Rsq0p4ToInf.root","READ");
+  // TFile *fileElectronMultijet_TwoBTag = new TFile("RazorPlots_ElectronMultijet_TwoBTags_Rsq0p4ToInf.root","READ");
+  // TFile *fileElectronMultijet_ThreeBTag = new TFile("RazorPlots_ElectronMultijet_ThreeBTags_Rsq0p4ToInf.root","READ");
 
   TH1D *histMR_Multijet_TwoBTag = (TH1D*)fileMultijet_TwoBTag->Get("histMRAllBkg");
   TH1D *histRsq_Multijet_TwoBTag = (TH1D*)fileMultijet_TwoBTag->Get("histRsqAllBkg");
@@ -66,7 +103,21 @@ void PlotTwoBTagVsThreeBTagShapes() {
 
   TCanvas *cv = 0;
   TLegend *legend = 0;
- 
+  TPad *pad1 = 0;
+  TH1D *ratioHist = 0;
+  TPad *pad2 = 0;
+  double chisq = 0;
+  int ndof = 0;
+
+  AddLargestWeightUncertainty(histMR_Multijet_ThreeBTag);
+  AddLargestWeightUncertainty(histRsq_Multijet_ThreeBTag);
+  AddLargestWeightUncertainty(histMR_LooseLeptonMultijet_ThreeBTag);
+  AddLargestWeightUncertainty(histRsq_LooseLeptonMultijet_ThreeBTag);
+  AddLargestWeightUncertainty(histMR_MuonMultijet_ThreeBTag);
+  AddLargestWeightUncertainty(histRsq_MuonMultijet_ThreeBTag);
+  AddLargestWeightUncertainty(histMR_ElectronMultijet_ThreeBTag);
+  AddLargestWeightUncertainty(histRsq_ElectronMultijet_ThreeBTag);
+
   histMR_Multijet_TwoBTag = NormalizeHist(histMR_Multijet_TwoBTag);
   histRsq_Multijet_TwoBTag = NormalizeHist(histRsq_Multijet_TwoBTag);
   histMR_Multijet_ThreeBTag = NormalizeHist(histMR_Multijet_ThreeBTag);
@@ -88,13 +139,60 @@ void PlotTwoBTagVsThreeBTagShapes() {
   //Multijet MR Plot
   //*****************************************************
 
+  TFile *file = TFile::Open("BTagShapeCorrection.root", "UPDATE");
+  file->cd();
+  // file->WriteTObject(ratioHist, "ratio", "WriteDelete");   
+  // file->Close();
+  
+
   cv = new TCanvas("cv","cv", 800,600);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
   legend = new TLegend(0.60,0.70,0.90,0.84);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(histMR_Multijet_TwoBTag, "2 b-tags", "PL");
   legend->AddEntry(histMR_Multijet_ThreeBTag, "3 or more b-tags", "PL");
+
+  ratioHist = (TH1D*)histMR_Multijet_TwoBTag->Clone("histRatioMultijet");
+  chisq = 0;
+  ndof = 0;
+  for (int b=0; b<ratioHist->GetXaxis()->GetNbins()+2; ++b) {
+    double n = histMR_Multijet_ThreeBTag->GetBinContent(b);
+    double nErr = histMR_Multijet_ThreeBTag->GetBinError(b);
+    double d = histMR_Multijet_TwoBTag->GetBinContent(b);    
+    double dErr = histMR_Multijet_TwoBTag->GetBinError(b);    
+    if ( d > 0 ) {
+      ratioHist->SetBinContent(b, n/d);
+      if ( n > 0) {
+	ratioHist->SetBinError(b, (n/d)*sqrt(pow(nErr/n,2) + pow(dErr/d,2) ) );
+      } else {
+	ratioHist->SetBinError(b, 1.0 );
+      }
+      cout << "Ratio : " << b << " : " << ratioHist->GetBinContent(b) << " +/- " << ratioHist->GetBinError(b) << "\n";
+      chisq += fabs(ratioHist->GetBinContent(b) - 1) / ratioHist->GetBinError(b);
+      ndof++;
+    } else {
+      ratioHist->SetBinContent(b,0);
+      ratioHist->SetBinError(b,0);
+    }
+  }
+  cout << "chisq / dof = " << chisq << "/" << ndof << " = " << chisq / ndof << "\n";
 
   histMR_Multijet_TwoBTag->SetLineWidth(2);
   histMR_Multijet_ThreeBTag->SetLineWidth(2);
@@ -107,11 +205,41 @@ void PlotTwoBTagVsThreeBTagShapes() {
   histMR_Multijet_TwoBTag->GetYaxis()->SetTitle("Fraction of Events");
 
   legend->Draw();
-  cv->SaveAs("ShapeComparison_Multijet_MR_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_Multijet_MR_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
+
+  cv->cd();
+  cv->Update();
+
+  pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+    
+  ratioHist->GetYaxis()->SetTitle("Ratio");
+  ratioHist->GetYaxis()->SetNdivisions(306);
+  ratioHist->GetYaxis()->SetTitleSize(0.10);
+  ratioHist->GetYaxis()->SetTitleOffset(0.3);
+  ratioHist->GetYaxis()->SetRangeUser(0.0,2.5);
+  ratioHist->GetYaxis()->SetLabelSize(0.10);
+  ratioHist->GetXaxis()->SetLabelSize(0.125);
+  ratioHist->GetXaxis()->SetTitleSize(0.15);
+  ratioHist->GetXaxis()->SetTitleOffset(1.0);
+  ratioHist->SetLineColor(kBlack);
+  ratioHist->SetMarkerStyle(20);      
+  ratioHist->SetMarkerSize(1);
+  ratioHist->SetStats(false);
+  ratioHist->Draw("pe");
+  
+  // pad1->SetLogy(false);
+  // cv->SaveAs("ShapeComparison_Multijet_MR_TwoBTagVsThreeBTag.gif");
+  // cv->SaveAs("ShapeComparison_Multijet_MR_TwoBTagVsThreeBTag.pdf");
+  pad1->SetLogy(true);
   cv->SaveAs("ShapeComparison_Multijet_MR_TwoBTagVsThreeBTag_Logy.gif");
   cv->SaveAs("ShapeComparison_Multijet_MR_TwoBTagVsThreeBTag_Logy.pdf");
+
+  file->WriteTObject((TH1D*)ratioHist->Clone("ThreeBTagToTwoBTagRatio_MR_MultiJet"), "ThreeBTagToTwoBTagRatio_MR_MultiJet", "WriteDelete"); 
 
 
   //*****************************************************
@@ -119,12 +247,55 @@ void PlotTwoBTagVsThreeBTagShapes() {
   //*****************************************************
 
   cv = new TCanvas("cv","cv", 800,600);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
   legend = new TLegend(0.60,0.70,0.90,0.84);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(histRsq_Multijet_TwoBTag, "2 b-tags", "PL");
   legend->AddEntry(histRsq_Multijet_ThreeBTag, "3 or more b-tags", "PL");
+
+  ratioHist = (TH1D*)histRsq_Multijet_TwoBTag->Clone("histRatioMultijet");
+  chisq = 0;
+  ndof = 0;
+  for (int b=0; b<ratioHist->GetXaxis()->GetNbins()+2; ++b) {
+    double n = histRsq_Multijet_ThreeBTag->GetBinContent(b);
+    double nErr = histRsq_Multijet_ThreeBTag->GetBinError(b);
+    double d = histRsq_Multijet_TwoBTag->GetBinContent(b);    
+    double dErr = histRsq_Multijet_TwoBTag->GetBinError(b);    
+    if ( d > 0 ) {
+      ratioHist->SetBinContent(b, n/d);
+      if ( n > 0) {
+	ratioHist->SetBinError(b, (n/d)*sqrt(pow(nErr/n,2) + pow(dErr/d,2) ) );
+      } else {
+	ratioHist->SetBinError(b, 1.0 );
+      }
+      cout << "Ratio : " << b << " : " << ratioHist->GetBinContent(b) << " +/- " << ratioHist->GetBinError(b) << "\n";
+      if (b<16) {
+	chisq += fabs(ratioHist->GetBinContent(b) - 1) / ratioHist->GetBinError(b);
+	ndof++;
+      }
+    } else {
+      ratioHist->SetBinContent(b,0);
+      ratioHist->SetBinError(b,0);
+    }
+  }
+  cout << "chisq / dof = " << chisq << "/" << ndof << " = " << chisq / ndof << "\n";
 
   histRsq_Multijet_TwoBTag->SetLineWidth(2);
   histRsq_Multijet_ThreeBTag->SetLineWidth(2);
@@ -138,72 +309,43 @@ void PlotTwoBTagVsThreeBTagShapes() {
   histRsq_Multijet_TwoBTag->GetXaxis()->SetTitle("R^{2}");
 
   legend->Draw();
-  cv->SaveAs("ShapeComparison_Multijet_Rsq_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_Multijet_Rsq_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
+
+  cv->cd();
+  cv->Update();
+
+  pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+    
+  ratioHist->GetXaxis()->SetTitle("R^{2}");
+  ratioHist->GetYaxis()->SetTitle("Ratio");
+  ratioHist->GetYaxis()->SetNdivisions(306);
+  ratioHist->GetYaxis()->SetTitleSize(0.10);
+  ratioHist->GetYaxis()->SetTitleOffset(0.3);
+  ratioHist->GetYaxis()->SetRangeUser(0.0,2.5);
+  ratioHist->GetYaxis()->SetLabelSize(0.10);
+  ratioHist->GetXaxis()->SetLabelSize(0.125);
+  ratioHist->GetXaxis()->SetTitleSize(0.15);
+  ratioHist->GetXaxis()->SetTitleOffset(1.0);
+  ratioHist->SetLineColor(kBlack);
+  ratioHist->SetMarkerStyle(20);      
+  ratioHist->SetMarkerSize(1);
+  ratioHist->SetStats(false);
+  ratioHist->Draw("pe");
+  
+  // pad1->SetLogy(false);
+  // cv->SaveAs("ShapeComparison_Multijet_Rsq_TwoBTagVsThreeBTag.gif");
+  // cv->SaveAs("ShapeComparison_Multijet_Rsq_TwoBTagVsThreeBTag.pdf");
+  pad1->SetLogy(true);
   cv->SaveAs("ShapeComparison_Multijet_Rsq_TwoBTagVsThreeBTag_Logy.gif");
   cv->SaveAs("ShapeComparison_Multijet_Rsq_TwoBTagVsThreeBTag_Logy.pdf");
 
 
-  //*****************************************************
-  //LooseLeptonMultijet MR Plot
-  //*****************************************************
-
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.60,0.70,0.90,0.84);
-  legend->SetTextSize(0.04);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-  legend->AddEntry(histMR_LooseLeptonMultijet_TwoBTag, "2 b-tags", "PL");
-  legend->AddEntry(histMR_LooseLeptonMultijet_ThreeBTag, "3 or more b-tags", "PL");
-
-  histMR_LooseLeptonMultijet_TwoBTag->SetLineWidth(2);
-  histMR_LooseLeptonMultijet_ThreeBTag->SetLineWidth(2);
-  histMR_LooseLeptonMultijet_TwoBTag->SetLineColor(kBlue);
-  histMR_LooseLeptonMultijet_ThreeBTag->SetLineColor(kRed);
-  histMR_LooseLeptonMultijet_TwoBTag->Draw("e1");
-  histMR_LooseLeptonMultijet_ThreeBTag->Draw("e1same");
-
-  histMR_LooseLeptonMultijet_TwoBTag->GetYaxis()->SetTitleOffset(1.2);
-  histMR_LooseLeptonMultijet_TwoBTag->GetYaxis()->SetTitle("Fraction of Events");
-
-  legend->Draw();
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_MR_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_MR_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_MR_TwoBTagVsThreeBTag_Logy.gif");
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_MR_TwoBTagVsThreeBTag_Logy.pdf");
-
-
-  //*****************************************************
-  //LooseLeptonMultijet Rsq Plot
-  //*****************************************************
-
-  cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.60,0.70,0.90,0.84);
-  legend->SetTextSize(0.04);
-  legend->SetBorderSize(0);
-  legend->SetFillStyle(0);
-  legend->AddEntry(histRsq_LooseLeptonMultijet_TwoBTag, "2 b-tags", "PL");
-  legend->AddEntry(histRsq_LooseLeptonMultijet_ThreeBTag, "3 or more b-tags", "PL");
-
-  histRsq_LooseLeptonMultijet_TwoBTag->SetLineWidth(2);
-  histRsq_LooseLeptonMultijet_ThreeBTag->SetLineWidth(2);
-  histRsq_LooseLeptonMultijet_TwoBTag->SetLineColor(kBlue);
-  histRsq_LooseLeptonMultijet_ThreeBTag->SetLineColor(kRed);
-  histRsq_LooseLeptonMultijet_TwoBTag->Draw("e1");
-  histRsq_LooseLeptonMultijet_ThreeBTag->Draw("e1same");
-
-  histRsq_LooseLeptonMultijet_TwoBTag->GetYaxis()->SetTitleOffset(1.2);
-  histRsq_LooseLeptonMultijet_TwoBTag->GetYaxis()->SetTitle("Fraction of Events");
-  histRsq_LooseLeptonMultijet_TwoBTag->GetXaxis()->SetTitle("R^{2}");
-
-  legend->Draw();
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_Rsq_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_Rsq_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_Rsq_TwoBTagVsThreeBTag_Logy.gif");
-  cv->SaveAs("ShapeComparison_LooseLeptonMultijet_Rsq_TwoBTagVsThreeBTag_Logy.pdf");
+  file->WriteTObject((TH1D*)ratioHist->Clone("ThreeBTagToTwoBTagRatio_Rsq_MultiJet"), "ThreeBTagToTwoBTagRatio_Rsq_MultiJet", "WriteDelete"); 
 
 
   //*****************************************************
@@ -211,12 +353,54 @@ void PlotTwoBTagVsThreeBTagShapes() {
   //*****************************************************
 
   cv = new TCanvas("cv","cv", 800,600);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
   legend = new TLegend(0.60,0.70,0.90,0.84);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(histMR_MuonMultijet_TwoBTag, "2 b-tags", "PL");
   legend->AddEntry(histMR_MuonMultijet_ThreeBTag, "3 or more b-tags", "PL");
+
+  ratioHist = (TH1D*)histMR_MuonMultijet_TwoBTag->Clone("histRatioMuonMultijet");
+  chisq = 0;
+  ndof = 0;
+  for (int b=0; b<ratioHist->GetXaxis()->GetNbins()+2; ++b) {
+    double n = histMR_MuonMultijet_ThreeBTag->GetBinContent(b);
+    double nErr = histMR_MuonMultijet_ThreeBTag->GetBinError(b);
+    double d = histMR_MuonMultijet_TwoBTag->GetBinContent(b);    
+    double dErr = histMR_MuonMultijet_TwoBTag->GetBinError(b);    
+    if ( d > 0 ) {
+      ratioHist->SetBinContent(b, n/d);
+      if ( n > 0) {
+	ratioHist->SetBinError(b, (n/d)*sqrt(pow(nErr/n,2) + pow(dErr/d,2) ) );
+      } else {
+	ratioHist->SetBinError(b, 1.0 );
+      }
+      cout << "Ratio : " << b << " : " << ratioHist->GetBinContent(b) << " +/- " << ratioHist->GetBinError(b) << "\n";
+      chisq += fabs(ratioHist->GetBinContent(b) - 1) / ratioHist->GetBinError(b);
+      ndof++;
+      
+    } else {
+      ratioHist->SetBinContent(b,0);
+      ratioHist->SetBinError(b,0);
+    }
+  }
+  cout << "chisq / dof = " << chisq << "/" << ndof << " = " << chisq / ndof << "\n";
 
   histMR_MuonMultijet_TwoBTag->SetLineWidth(2);
   histMR_MuonMultijet_ThreeBTag->SetLineWidth(2);
@@ -229,24 +413,96 @@ void PlotTwoBTagVsThreeBTagShapes() {
   histMR_MuonMultijet_TwoBTag->GetYaxis()->SetTitle("Fraction of Events");
 
   legend->Draw();
-  cv->SaveAs("ShapeComparison_MuonMultijet_MR_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_MuonMultijet_MR_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
+
+  cv->cd();
+  cv->Update();
+
+  pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+    
+  ratioHist->GetYaxis()->SetTitle("Ratio");
+  ratioHist->GetYaxis()->SetNdivisions(306);
+  ratioHist->GetYaxis()->SetTitleSize(0.10);
+  ratioHist->GetYaxis()->SetTitleOffset(0.3);
+  ratioHist->GetYaxis()->SetRangeUser(0.0,2.5);
+  ratioHist->GetYaxis()->SetLabelSize(0.10);
+  ratioHist->GetXaxis()->SetLabelSize(0.125);
+  ratioHist->GetXaxis()->SetTitleSize(0.15);
+  ratioHist->GetXaxis()->SetTitleOffset(1.0);
+  ratioHist->SetLineColor(kBlack);
+  ratioHist->SetMarkerStyle(20);      
+  ratioHist->SetMarkerSize(1);
+  ratioHist->SetStats(false);
+  ratioHist->Draw("pe");
+  
+  // pad1->SetLogy(false);
+  // cv->SaveAs("ShapeComparison_MuonMultijet_MR_TwoBTagVsThreeBTag.gif");
+  // cv->SaveAs("ShapeComparison_MuonMultijet_MR_TwoBTagVsThreeBTag.pdf");
+  pad1->SetLogy(true);
   cv->SaveAs("ShapeComparison_MuonMultijet_MR_TwoBTagVsThreeBTag_Logy.gif");
   cv->SaveAs("ShapeComparison_MuonMultijet_MR_TwoBTagVsThreeBTag_Logy.pdf");
 
+  file->WriteTObject((TH1D*)ratioHist->Clone("ThreeBTagToTwoBTagRatio_MR_MuonMultiJet"), "ThreeBTagToTwoBTagRatio_MR_MuonMultiJet", "WriteDelete"); 
 
   //*****************************************************
   //MuonMultijet Rsq Plot
   //*****************************************************
 
   cv = new TCanvas("cv","cv", 800,600);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
   legend = new TLegend(0.60,0.70,0.90,0.84);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(histRsq_MuonMultijet_TwoBTag, "2 b-tags", "PL");
   legend->AddEntry(histRsq_MuonMultijet_ThreeBTag, "3 or more b-tags", "PL");
+
+  ratioHist = (TH1D*)histRsq_MuonMultijet_TwoBTag->Clone("histRatioMuonMultijet");
+  chisq = 0;
+  ndof = 0;
+  for (int b=0; b<ratioHist->GetXaxis()->GetNbins()+2; ++b) {
+    double n = histRsq_MuonMultijet_ThreeBTag->GetBinContent(b);
+    double nErr = histRsq_MuonMultijet_ThreeBTag->GetBinError(b);
+    double d = histRsq_MuonMultijet_TwoBTag->GetBinContent(b);    
+    double dErr = histRsq_MuonMultijet_TwoBTag->GetBinError(b);    
+    if ( d > 0 ) {
+      ratioHist->SetBinContent(b, n/d);
+      if ( n > 0) {
+	ratioHist->SetBinError(b, (n/d)*sqrt(pow(nErr/n,2) + pow(dErr/d,2) ) );
+      } else {
+	ratioHist->SetBinError(b, 1.0 );
+      }
+      cout << "Ratio : " << b << " : " << ratioHist->GetBinContent(b) << " +/- " << ratioHist->GetBinError(b) << "\n";
+      if (b<16){
+	chisq += fabs(ratioHist->GetBinContent(b) - 1) / ratioHist->GetBinError(b);
+	ndof++;
+      }
+    } else {
+      ratioHist->SetBinContent(b,0);
+      ratioHist->SetBinError(b,0);
+    }
+  }
+  cout << "chisq / dof = " << chisq << "/" << ndof << " = " << chisq / ndof << "\n";
 
   histRsq_MuonMultijet_TwoBTag->SetLineWidth(2);
   histRsq_MuonMultijet_ThreeBTag->SetLineWidth(2);
@@ -260,11 +516,43 @@ void PlotTwoBTagVsThreeBTagShapes() {
   histRsq_MuonMultijet_TwoBTag->GetXaxis()->SetTitle("R^{2}");
 
   legend->Draw();
-  cv->SaveAs("ShapeComparison_MuonMultijet_Rsq_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_MuonMultijet_Rsq_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
+
+  cv->cd();
+  cv->Update();
+
+  pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+    
+  ratioHist->GetXaxis()->SetTitle("R^{2}");
+  ratioHist->GetYaxis()->SetTitle("Ratio");
+  ratioHist->GetYaxis()->SetNdivisions(306);
+  ratioHist->GetYaxis()->SetTitleSize(0.10);
+  ratioHist->GetYaxis()->SetTitleOffset(0.3);
+  ratioHist->GetYaxis()->SetRangeUser(0.0,2.5);
+  ratioHist->GetYaxis()->SetLabelSize(0.10);
+  ratioHist->GetXaxis()->SetLabelSize(0.125);
+  ratioHist->GetXaxis()->SetTitleSize(0.15);
+  ratioHist->GetXaxis()->SetTitleOffset(1.0);
+  ratioHist->SetLineColor(kBlack);
+  ratioHist->SetMarkerStyle(20);      
+  ratioHist->SetMarkerSize(1);
+  ratioHist->SetStats(false);
+  ratioHist->Draw("pe");
+  
+  // pad1->SetLogy(false);
+  // cv->SaveAs("ShapeComparison_MuonMultijet_Rsq_TwoBTagVsThreeBTag.gif");
+  // cv->SaveAs("ShapeComparison_MuonMultijet_Rsq_TwoBTagVsThreeBTag.pdf");
+  pad1->SetLogy(true);
   cv->SaveAs("ShapeComparison_MuonMultijet_Rsq_TwoBTagVsThreeBTag_Logy.gif");
   cv->SaveAs("ShapeComparison_MuonMultijet_Rsq_TwoBTagVsThreeBTag_Logy.pdf");
+
+  file->WriteTObject((TH1D*)ratioHist->Clone("ThreeBTagToTwoBTagRatio_Rsq_MuonMultiJet"), "ThreeBTagToTwoBTagRatio_Rsq_MuonMultiJet", "WriteDelete"); 
+
 
 
   //*****************************************************
@@ -272,12 +560,53 @@ void PlotTwoBTagVsThreeBTagShapes() {
   //*****************************************************
 
   cv = new TCanvas("cv","cv", 800,600);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
   legend = new TLegend(0.60,0.70,0.90,0.84);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(histMR_ElectronMultijet_TwoBTag, "2 b-tags", "PL");
   legend->AddEntry(histMR_ElectronMultijet_ThreeBTag, "3 or more b-tags", "PL");
+
+  ratioHist = (TH1D*)histMR_ElectronMultijet_TwoBTag->Clone("histRatioElectronMultijet");
+  chisq = 0;
+  ndof = 0;
+  for (int b=0; b<ratioHist->GetXaxis()->GetNbins()+2; ++b) {
+    double n = histMR_ElectronMultijet_ThreeBTag->GetBinContent(b);
+    double nErr = histMR_ElectronMultijet_ThreeBTag->GetBinError(b);
+    double d = histMR_ElectronMultijet_TwoBTag->GetBinContent(b);    
+    double dErr = histMR_ElectronMultijet_TwoBTag->GetBinError(b);    
+    if ( d > 0 ) {
+      ratioHist->SetBinContent(b, n/d);
+      if ( n > 0) {
+	ratioHist->SetBinError(b, (n/d)*sqrt(pow(nErr/n,2) + pow(dErr/d,2) ) );
+      } else {
+	ratioHist->SetBinError(b, 1.0 );
+      }
+      cout << "Ratio : " << b << " : " << ratioHist->GetBinContent(b) << " +/- " << ratioHist->GetBinError(b) << "\n";
+      chisq += fabs(ratioHist->GetBinContent(b) - 1) / ratioHist->GetBinError(b);
+      ndof++;
+    } else {
+      ratioHist->SetBinContent(b,0);
+      ratioHist->SetBinError(b,0);
+    }
+  }
+  cout << "chisq / dof = " << chisq << "/" << ndof << " = " << chisq / ndof << "\n";
 
   histMR_ElectronMultijet_TwoBTag->SetLineWidth(2);
   histMR_ElectronMultijet_ThreeBTag->SetLineWidth(2);
@@ -290,24 +619,102 @@ void PlotTwoBTagVsThreeBTagShapes() {
   histMR_ElectronMultijet_TwoBTag->GetYaxis()->SetTitle("Fraction of Events");
 
   legend->Draw();
-  cv->SaveAs("ShapeComparison_ElectronMultijet_MR_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_ElectronMultijet_MR_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
+
+  cv->cd();
+  cv->Update();
+
+  pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+    
+  ratioHist->GetYaxis()->SetTitle("Ratio");
+  ratioHist->GetYaxis()->SetNdivisions(306);
+  ratioHist->GetYaxis()->SetTitleSize(0.10);
+  ratioHist->GetYaxis()->SetTitleOffset(0.3);
+  ratioHist->GetYaxis()->SetRangeUser(0.0,2.5);
+  ratioHist->GetYaxis()->SetLabelSize(0.10);
+  ratioHist->GetXaxis()->SetLabelSize(0.125);
+  ratioHist->GetXaxis()->SetTitleSize(0.15);
+  ratioHist->GetXaxis()->SetTitleOffset(1.0);
+  ratioHist->SetLineColor(kBlack);
+  ratioHist->SetMarkerStyle(20);      
+  ratioHist->SetMarkerSize(1);
+  ratioHist->SetStats(false);
+  ratioHist->Draw("pe");
+  
+  // pad1->SetLogy(false);
+  // cv->SaveAs("ShapeComparison_ElectronMultijet_MR_TwoBTagVsThreeBTag.gif");
+  // cv->SaveAs("ShapeComparison_ElectronMultijet_MR_TwoBTagVsThreeBTag.pdf");
+  pad1->SetLogy(true);
   cv->SaveAs("ShapeComparison_ElectronMultijet_MR_TwoBTagVsThreeBTag_Logy.gif");
   cv->SaveAs("ShapeComparison_ElectronMultijet_MR_TwoBTagVsThreeBTag_Logy.pdf");
 
+
+ // TFile *file = TFile::Open("ShapeTest.root", "UPDATE");
+ // file->cd();
+ // file->WriteTObject(ratioHist, "ratio", "WriteDelete");   
+ // file->Close();
+ 
+  file->WriteTObject((TH1D*)ratioHist->Clone("ThreeBTagToTwoBTagRatio_MR_ElectronMultiJet"), "ThreeBTagToTwoBTagRatio_MR_ElectronMultiJet", "WriteDelete"); 
 
   //*****************************************************
   //ElectronMultijet Rsq Plot
   //*****************************************************
 
   cv = new TCanvas("cv","cv", 800,600);
+  cv->SetHighLightColor(2);
+  cv->SetFillColor(0);
+  cv->SetBorderMode(0);
+  cv->SetBorderSize(2);
+  cv->SetLeftMargin(0.16);
+  cv->SetRightMargin(0.3);
+  cv->SetTopMargin(0.07);
+  cv->SetBottomMargin(0.12);
+  cv->SetFrameBorderMode(0);  
+
+  pad1 = new TPad("pad1","pad1", 0,0.25,1,1);
+  pad1->SetBottomMargin(0.0);
+  pad1->SetRightMargin(0.04);
+  pad1->Draw();
+  pad1->cd();
+
   legend = new TLegend(0.60,0.70,0.90,0.84);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(histRsq_ElectronMultijet_TwoBTag, "2 b-tags", "PL");
   legend->AddEntry(histRsq_ElectronMultijet_ThreeBTag, "3 or more b-tags", "PL");
+
+  ratioHist = (TH1D*)histRsq_ElectronMultijet_TwoBTag->Clone("histRatioElectronMultijet");
+  chisq = 0;
+  ndof = 0;
+  for (int b=0; b<ratioHist->GetXaxis()->GetNbins()+2; ++b) {
+    double n = histRsq_ElectronMultijet_ThreeBTag->GetBinContent(b);
+    double nErr = histRsq_ElectronMultijet_ThreeBTag->GetBinError(b);
+    double d = histRsq_ElectronMultijet_TwoBTag->GetBinContent(b);    
+    double dErr = histRsq_ElectronMultijet_TwoBTag->GetBinError(b);    
+    if ( d > 0 ) {
+      ratioHist->SetBinContent(b, n/d);
+      if ( n > 0) {
+	ratioHist->SetBinError(b, (n/d)*sqrt(pow(nErr/n,2) + pow(dErr/d,2) ) );
+      } else {
+	ratioHist->SetBinError(b, 1.0 );
+      }
+      cout << "Ratio : " << b << " : " << ratioHist->GetBinContent(b) << " +/- " << ratioHist->GetBinError(b) << "\n";
+      if (b<16){
+	chisq += fabs(ratioHist->GetBinContent(b) - 1) / ratioHist->GetBinError(b);
+	ndof++;
+      }
+    } else {
+      ratioHist->SetBinContent(b,0);
+      ratioHist->SetBinError(b,0);
+    }
+  }
+  cout << "chisq / dof = " << chisq << "/" << ndof << " = " << chisq / ndof << "\n";
 
   histRsq_ElectronMultijet_TwoBTag->SetLineWidth(2);
   histRsq_ElectronMultijet_ThreeBTag->SetLineWidth(2);
@@ -321,12 +728,44 @@ void PlotTwoBTagVsThreeBTagShapes() {
   histRsq_ElectronMultijet_TwoBTag->GetXaxis()->SetTitle("R^{2}");
 
   legend->Draw();
-  cv->SaveAs("ShapeComparison_ElectronMultijet_Rsq_TwoBTagVsThreeBTag.gif");
-  cv->SaveAs("ShapeComparison_ElectronMultijet_Rsq_TwoBTagVsThreeBTag.pdf");
-  cv->SetLogy();
+
+  cv->cd();
+  cv->Update();
+
+  pad2 = new TPad("pad2","pad2", 0,0,1,0.25);
+  pad2->SetTopMargin(0.01);
+  pad2->SetBottomMargin(0.37);
+  pad2->SetRightMargin(0.04);
+  pad2->SetGridy();
+  pad2->Draw();
+  pad2->cd();
+    
+  ratioHist->GetXaxis()->SetTitle("R^{2}");
+  ratioHist->GetYaxis()->SetTitle("Ratio");
+  ratioHist->GetYaxis()->SetNdivisions(306);
+  ratioHist->GetYaxis()->SetTitleSize(0.10);
+  ratioHist->GetYaxis()->SetTitleOffset(0.3);
+  ratioHist->GetYaxis()->SetRangeUser(0.0,2.5);
+  ratioHist->GetYaxis()->SetLabelSize(0.10);
+  ratioHist->GetXaxis()->SetLabelSize(0.125);
+  ratioHist->GetXaxis()->SetTitleSize(0.15);
+  ratioHist->GetXaxis()->SetTitleOffset(1.0);
+  ratioHist->SetLineColor(kBlack);
+  ratioHist->SetMarkerStyle(20);      
+  ratioHist->SetMarkerSize(1);
+  ratioHist->SetStats(false);
+  ratioHist->Draw("pe");
+  
+  // pad1->SetLogy(false);
+  // cv->SaveAs("ShapeComparison_ElectronMultijet_Rsq_TwoBTagVsThreeBTag.gif");
+  // cv->SaveAs("ShapeComparison_ElectronMultijet_Rsq_TwoBTagVsThreeBTag.pdf");
+  pad1->SetLogy(true);
   cv->SaveAs("ShapeComparison_ElectronMultijet_Rsq_TwoBTagVsThreeBTag_Logy.gif");
   cv->SaveAs("ShapeComparison_ElectronMultijet_Rsq_TwoBTagVsThreeBTag_Logy.pdf");
 
+  file->WriteTObject((TH1D*)ratioHist->Clone("ThreeBTagToTwoBTagRatio_Rsq_ElectronMultiJet"), "ThreeBTagToTwoBTagRatio_Rsq_ElectronMultiJet", "WriteDelete"); 
+
+  file->Close();
 
 
 
@@ -535,14 +974,31 @@ void RunMakeRazorPlots ( vector<vector<string> > bkgfiles, vector<string> bkgLab
   //*******************************************************************************************
   //Define Histograms
   //*******************************************************************************************
+  float MRBinLowEdges_MultiJet[] = {500, 600, 700, 900, 1200, 1600, 2500, 4000};
+  float RsqBinLowEdges_MultiJet[] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
+  const int nMRBins_MultiJet = sizeof(MRBinLowEdges_MultiJet)/sizeof(float)-1;
+  const int nRsqBins_MultiJet = sizeof(RsqBinLowEdges_MultiJet)/sizeof(float)-1;
+  float MRBinLowEdges_LeptonMultiJet[] = {400, 450, 500, 600, 700, 900, 1200, 1600, 2500, 4000};
+  float RsqBinLowEdges_LeptonMultiJet[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
+  const int nMRBins_LeptonMultiJet = sizeof(MRBinLowEdges_LeptonMultiJet)/sizeof(float)-1;
+  const int nRsqBins_LeptonMultiJet = sizeof(RsqBinLowEdges_LeptonMultiJet)/sizeof(float)-1;
+
+ 
   TH1D* histMRAllBkg = 0;
   TH1D* histRsqAllBkg = 0;
+  // if (boxOption == 100 || boxOption == 101) {
+  //   histMRAllBkg =  new TH1D( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 25, 400, 2400);
+  //   histRsqAllBkg =  new TH1D( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 25, 0.25, 1.5);
+  // } else {
+  //   histMRAllBkg =  new TH1D( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 25, 300, 2300);
+  //   histRsqAllBkg =  new TH1D( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 27, 0.15, 1.5);
+  // }
   if (boxOption == 100 || boxOption == 101) {
-    histMRAllBkg =  new TH1D( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 50, 400, 2400);
-    histRsqAllBkg =  new TH1D( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 25, 0.25, 1.5);
+    histMRAllBkg =  new TH1D( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", nMRBins_MultiJet, MRBinLowEdges_MultiJet);
+    histRsqAllBkg =  new TH1D( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", nRsqBins_MultiJet, RsqBinLowEdges_MultiJet);
   } else {
-    histMRAllBkg =  new TH1D( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", 50, 300, 2300);
-    histRsqAllBkg =  new TH1D( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", 27, 0.15, 1.5);
+    histMRAllBkg =  new TH1D( "MRAllBkg",";M_{R} [GeV/c^{2}];Number of Events", nMRBins_LeptonMultiJet, MRBinLowEdges_LeptonMultiJet);
+    histRsqAllBkg =  new TH1D( "RsqAllBkg", ";M_{R} [GeV/c^{2}];Number of Events", nRsqBins_LeptonMultiJet, RsqBinLowEdges_LeptonMultiJet);
   }
   histMRAllBkg->SetStats(false);
   histRsqAllBkg->SetStats(false);
@@ -676,14 +1132,20 @@ void RunMakeRazorPlots ( vector<vector<string> > bkgfiles, vector<string> bkgLab
 
 	//Make MR and Rsq baseline cuts
 	if (box == 11 || box == 12 || box == 9 || box == 10 || box == 13) {
-	  if (!(MR>400 && Rsq > 0.25)) continue;
+	  if (!(MR>500 && Rsq > 0.25)) continue;
 	} else if (box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box == 8 ) {
-	  if (!(MR>300 && Rsq > 0.15)) continue;
+	  if (!(MR>400 && Rsq > 0.15)) continue;
 	}
 
 	//***************************************************************
 	//Fill Histograms
 	//***************************************************************
+
+	//Plots for particular Rsq bins
+	//if (!(Rsq < 0.30)) continue;
+	//if (!(Rsq > 0.30 && Rsq < 0.40)) continue;
+	 if (!(Rsq > 0.40)) continue;
+
 	histMRAllBkg->Fill(MR, intLumi*weight);
 	histRsqAllBkg->Fill(Rsq, intLumi*weight);
 	histDPhiRazor[i]->Fill(dPhiRazor, intLumi*weight);		
@@ -732,7 +1194,7 @@ void RunMakeRazorPlots ( vector<vector<string> > bkgfiles, vector<string> bkgLab
  }
 
 
-void MakeRazorPlotsNewCategories() {
+void CompareRazorShapeVsBTag() {
 
   vector<string> datafiles;
   vector<vector<string> > bkgfiles;
@@ -744,8 +1206,11 @@ void MakeRazorPlotsNewCategories() {
   bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_QCD_HTBinned_1pb_weighted_RazorSkim.root");
   vector<string> bkgfiles_dy;
   bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root");
+  // vector<string> bkgfiles_ttbar;
+  // bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root");
   vector<string> bkgfiles_ttbar;
-  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root");
+  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");
+  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");
   vector<string> bkgfiles_znunu;
   bkgfiles_znunu.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root");
   vector<string> bkgfiles_singletop;
@@ -757,21 +1222,21 @@ void MakeRazorPlotsNewCategories() {
 
    // bkgfiles.push_back(bkgfiles_qcd);
   bkgfiles.push_back(bkgfiles_dy);
-   bkgfiles.push_back(bkgfiles_ttbar);
+    bkgfiles.push_back(bkgfiles_ttbar);
   bkgfiles.push_back(bkgfiles_singletop);
   bkgfiles.push_back(bkgfiles_wjets);
   bkgfiles.push_back(bkgfiles_other);
 
    // processLabels.push_back("QCD");
   processLabels.push_back("DY");
-   processLabels.push_back("TTJets");  
+    processLabels.push_back("TTJets");  
   processLabels.push_back("SingleTop");
   processLabels.push_back("WJets");
   processLabels.push_back("Other");
 
    // colors.push_back(kMagenta);
   colors.push_back(kGreen+2);
-   colors.push_back(kAzure+10);
+    colors.push_back(kAzure+10);
   colors.push_back(kBlue);
   colors.push_back(kRed);
   colors.push_back(kOrange+1);
@@ -782,16 +1247,16 @@ void MakeRazorPlotsNewCategories() {
 
   // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 100,2,"Multijet_TwoBTags","Multijet 2 b-tags");
   // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 100,3,"Multijet_ThreeBTags","Multijet 3 b-tags");
-  // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 101,2,"LooseLeptonMultijet_TwoBTags","LooseLeptonMultijet 2 b-tags");
-  // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 101,3,"LooseLeptonMultijet_ThreeBTags","LooseLeptonMultijet 3 b-tags");
+  // // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 101,2,"LooseLeptonMultijet_TwoBTags","LooseLeptonMultijet 2 b-tags");
+  // // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 101,3,"LooseLeptonMultijet_ThreeBTags","LooseLeptonMultijet 3 b-tags");
   // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 102,2,"MuonMultijet_TwoBTags","MuonMultijet 2 b-tags");
   // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 102,3,"MuonMultijet_ThreeBTags","MuonMultijet 3 b-tags");
   // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 103,2,"ElectronMultijet_TwoBTags","ElectronMultijet 2 b-tags");
   // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 103,3,"ElectronMultijet_ThreeBTags","ElectronMultijet 3 b-tags");
-  // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 105,2,"ElectronMultijet_TwoBTags","ElectronMultijet 2 b-tags");
-  // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 105,3,"ElectronMultijet_ThreeBTags","ElectronMultijet 3 b-tags");
+  // // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 105,2,"ElectronMultijet_TwoBTags","ElectronMultijet 2 b-tags");
+  // // RunMakeRazorPlots(bkgfiles, processLabels,colors,lumi, 105,3,"ElectronMultijet_ThreeBTags","ElectronMultijet 3 b-tags");
 
-  PlotTwoBTagVsThreeBTagShapes();
+   PlotTwoBTagVsThreeBTagShapes();
 
 }
  
