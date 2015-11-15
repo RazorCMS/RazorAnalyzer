@@ -42,13 +42,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     map<pair<int,int>, TH1F*> smsNEvents;
     map<pair<int,int>, TH1F*> smsSumWeights;
     map<pair<int,int>, TH1F*> smsSumScaleWeights;
-    //map<pair<int,int>, TH1F*> smsSumPdfWeights;
+    map<pair<int,int>, TH1F*> smsSumPdfWeights;
 
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
     TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
     TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
-    //TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
+    TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
 
     char* cmsswPath;
     cmsswPath = getenv("CMSSW_BASE");
@@ -335,7 +335,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("sf_renScaleDown", &sf_renScaleDown, "sf_renScaleDown/F");
         razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
         razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
-        //razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
+        razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
         razorTree->Branch("MR_JESUp", &MR_JESUp, "MR_JESUp/F");
         razorTree->Branch("Rsq_JESUp", &Rsq_JESUp, "Rsq_JESUp/F");
         razorTree->Branch("dPhiRazor_JESUp", &dPhiRazor_JESUp, "dPhiRazor_JESUp/F");
@@ -2115,10 +2115,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
         SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
 
-        //for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) 
-        //{
-            //SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-        //}
+        for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+        }
 
         /////////////////////////////////
         //Apply scale factors
@@ -2173,7 +2172,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         smsNEvents[smsPair] = new TH1F(Form("NEvents%d%d", mGluino, mLSP), "NEvents", 1,0.5,1.5);
                         smsSumWeights[smsPair] = new TH1F(Form("SumWeights%d%d", mGluino, mLSP), "SumWeights", 1,0.5,1.5);
                         smsSumScaleWeights[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mGluino, mLSP), "SumScaleWeights", 6,-0.5,5.5);
-                        //smsSumPdfWeights[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mGluino, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
+                        smsSumPdfWeights[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mGluino, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
                         cout << "Created new output file " << thisFileName << endl;
                     }
                     //Fill NEvents hist 
@@ -2187,10 +2186,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     smsSumScaleWeights[smsPair]->Fill(4.0, sf_facRenScaleUp);
                     smsSumScaleWeights[smsPair]->Fill(5.0, sf_facRenScaleDown);
 
-                    //for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) 
-                    //{
-                        //smsSumPdfWeights[smsPair]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-                    //}
+                    for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+		      smsSumPdfWeights[smsPair]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+                    }
                 }
             }
         }
@@ -2246,7 +2244,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         NEvents->Write();
         SumWeights->Write();
         SumScaleWeights->Write();
-        //SumPdfWeights->Write();
+        SumPdfWeights->Write();
     }
     else{
         for(auto &filePtr : smsFiles){
@@ -2256,7 +2254,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             smsNEvents[filePtr.first]->Write("NEvents");
             smsSumWeights[filePtr.first]->Write("SumWeights");
             smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
-            //smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
+            smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
         }
     }
 
