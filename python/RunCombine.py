@@ -83,22 +83,22 @@ if __name__ == '__main__':
     if options.penalty: penaltyString = '--penalty'
         
     json = 'Golden'
-    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json,
-               'LooseLeptonMultiJet':'RazorInclusive_HTMHT_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json,
-               'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json,
-               'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json
+    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
+               'LooseLeptonMultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
+               'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
+               'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json
                }
 
     eosLocationSMS = {#'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p21_ForFullStatus20151030/jobs/combined/',
                       #'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/combined/',
-                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/',
-                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/',
-                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/'                      
+                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/jobs/combined/',
+                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/jobs/combined/',
+                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/jobs/combined/'                      
                     }
 
-    eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data/'
+    eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
 
-    eosLocationBkg =  'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/'
+    eosLocationBkg =  'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
     
     bkgList = ['RazorInclusive_DYJetsToLL_M-50_HTBinned_1pb_weighted.root',
                'RazorInclusive_DYJetsToLL_M-5to50_HTBinned_1pb_weighted.root',
