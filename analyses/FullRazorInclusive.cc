@@ -741,31 +741,31 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     if (muonPtUp > MUON_VETO_CUT) {
                         nVetoMuons_MESUp++;
                         GoodLeptonsMESUp.push_back(thisMuonUp); 
-                        MetXCorr_MESUp += -1 * (thisMuon.Px() - thisMuonUp.Px());
-                        MetYCorr_MESUp += -1 * (thisMuon.Py() - thisMuonUp.Py());
+                        MetXCorr_MESUp += thisMuon.Px() - thisMuonUp.Px();
+                        MetYCorr_MESUp += thisMuon.Py() - thisMuonUp.Py();
                     }
                     if (muonPtDown > MUON_VETO_CUT) {
                         nVetoMuons_MESDown++;
                         GoodLeptonsMESDown.push_back(thisMuonDown);
-                        MetXCorr_MESDown += -1 * (thisMuon.Px() - thisMuonDown.Px());
-                        MetYCorr_MESDown += -1 * (thisMuon.Py() - thisMuonDown.Py());
+                        MetXCorr_MESDown += thisMuon.Px() - thisMuonDown.Px();
+                        MetYCorr_MESDown += thisMuon.Py() - thisMuonDown.Py();
                     }
                 }
                 //Tight selection
                 if (isTightMuon(i)) {
                     if (muonPtUp >= MUON_TIGHT_CUT) {
                         nTightMuons_MESUp++;
+                        if (muonPtUp > leadingTightMuPt_MESUp){
+                            leadingTightMuUp = thisMuonUp;
+                            leadingTightMuPt_MESUp = muonPtUp;
+                        }
                     }
                     if (muonPtDown >= MUON_TIGHT_CUT) {
                         nTightMuons_MESDown++;
-                    }
-                    if (muonPtUp > leadingTightMuPt_MESUp){
-                        leadingTightMuUp = thisMuonUp;
-                        leadingTightMuPt_MESUp = muonPtUp;
-                    }
-                    if (muonPtDown > leadingTightMuPt_MESDown){
-                        leadingTightMuDown = thisMuonDown;
-                        leadingTightMuPt_MESDown = muonPtDown;
+                        if (muonPtDown > leadingTightMuPt_MESDown){
+                            leadingTightMuDown = thisMuonDown;
+                            leadingTightMuPt_MESDown = muonPtDown;
+                        }
                     }
                 }
             }
@@ -891,6 +891,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             if (isVetoMuon(i)){
                 nVetoMuons++;
                 GoodLeptons.push_back(thisMuon); 
+                GoodLeptonsEESUp.push_back(thisMuon);
+                GoodLeptonsEESDown.push_back(thisMuon);
             }
             //Tight selection
             if (isTightMuon(i) && muonPt[i] >= MUON_TIGHT_CUT){
@@ -923,6 +925,13 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         const float ELE_TIGHT_CUT = 25;
         //Loop electrons
         for (int i = 0; i < nElectrons; i++){
+
+            //Remove overlaps
+            bool overlap = false;
+            for (auto& lep : GoodLeptons){
+                if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
+            }
+            if (overlap) continue;
 
             //TLorentzVector for this electron
             TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
@@ -960,31 +969,31 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     if (elePtUp > ELE_VETO_CUT) {
                         nVetoElectrons_EESUp++;
                         GoodLeptonsEESUp.push_back(thisElectronUp); 
-                        MetXCorr_EESUp += -1 * (thisElectron.Px() - thisElectronUp.Px());
-                        MetYCorr_EESUp += -1 * (thisElectron.Py() - thisElectronUp.Py());
+                        MetXCorr_EESUp += thisElectron.Px() - thisElectronUp.Px();
+                        MetYCorr_EESUp += thisElectron.Py() - thisElectronUp.Py();
                     }
                     if (elePtDown > ELE_VETO_CUT) {
                         nVetoElectrons_EESDown++;
                         GoodLeptonsEESDown.push_back(thisElectronDown);
-                        MetXCorr_EESDown += -1 * (thisElectron.Px() - thisElectronDown.Px());
-                        MetYCorr_EESDown += -1 * (thisElectron.Py() - thisElectronDown.Py());
+                        MetXCorr_EESDown += thisElectron.Px() - thisElectronDown.Px();
+                        MetYCorr_EESDown += thisElectron.Py() - thisElectronDown.Py();
                     }
                 }
                 //Tight selection
                 if (isTightElectron(i)) {
                     if (elePtUp >= ELE_TIGHT_CUT) {
                         nTightElectrons_EESUp++;
+                        if (elePtUp > leadingTightElePt_EESUp){
+                            leadingTightEleUp = thisElectronUp;
+                            leadingTightElePt_EESUp = elePtUp;
+                        }
                     }
                     if (elePtDown >= ELE_TIGHT_CUT) {
                         nTightElectrons_EESDown++;
-                    }
-                    if (elePtUp > leadingTightElePt_EESUp){
-                        leadingTightEleUp = thisElectronUp;
-                        leadingTightElePt_EESUp = elePtUp;
-                    }
-                    if (elePtDown > leadingTightElePt_EESDown){
-                        leadingTightEleDown = thisElectronDown;
-                        leadingTightElePt_EESDown = elePtDown;
+                        if (elePtDown > leadingTightElePt_EESDown){
+                            leadingTightEleDown = thisElectronDown;
+                            leadingTightElePt_EESDown = elePtDown;
+                        }
                     }
                 }
             }
@@ -1110,17 +1119,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 		}
             }
 
-            //Remove overlaps
-            bool overlap = false;
-            for (auto& lep : GoodLeptons){
-                if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
-            }
-            if (overlap) continue;
-
             //Veto selection
             if (isVetoElectron(i)){
                 nVetoElectrons++;
                 GoodLeptons.push_back(thisElectron);            
+                GoodLeptonsMESUp.push_back(thisElectron);
+                GoodLeptonsMESDown.push_back(thisElectron);
             }
             if (isTightElectron(i) && elePt[i] > ELE_TIGHT_CUT){
                 nTightElectrons++;
@@ -1188,6 +1192,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 nLooseTaus++;
                 TLorentzVector thisTau = makeTLorentzVectorPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
                 GoodLeptons.push_back(thisTau);  
+                GoodLeptonsMESUp.push_back(thisTau);
+                GoodLeptonsMESDown.push_back(thisTau);
+                GoodLeptonsEESUp.push_back(thisTau);
+                GoodLeptonsEESDown.push_back(thisTau);
             }
         }
 
@@ -1259,7 +1267,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                     if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
                 }
-                if (deltaR <= 0 || deltaR > 0.4) { 
+                if (deltaR < 0 || deltaR > 0.4) { 
                     if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
                         MetXCorr_MESUp += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_MESUp += -1 * (thisJet.Py() - L1CorrJet.Py());
@@ -1277,7 +1285,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                     if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
                 }
-                if (deltaR <= 0 || deltaR > 0.4){ 
+                if (deltaR < 0 || deltaR > 0.4){ 
                     if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
                         MetXCorr_MESDown += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_MESDown += -1 * (thisJet.Py() - L1CorrJet.Py());
@@ -1295,7 +1303,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                     if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
                 }
-                if (deltaR <= 0 || deltaR > 0.4) { 
+                if (deltaR < 0 || deltaR > 0.4) { 
                     if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
                         MetXCorr_EESUp += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_EESUp += -1 * (thisJet.Py() - L1CorrJet.Py());
@@ -1313,7 +1321,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                     if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
                 }
-                if (deltaR <= 0 || deltaR > 0.4) { 
+                if (deltaR < 0 || deltaR > 0.4) { 
                     if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
                         MetXCorr_EESDown += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_EESDown += -1 * (thisJet.Py() - L1CorrJet.Py());
@@ -1333,7 +1341,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                 if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
             }
-            if (deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
+            if (deltaR >= 0 && deltaR < 0.4) continue; //jet matches a selected lepton
 
             //Propagate L1 JEC to type1 MET
             if (jetCorrPt > 15 && jetChargedEMEnergyFraction[i] + jetNeutralEMEnergyFraction[i] <= 0.9) {
@@ -1648,8 +1656,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             dPhiRazor_JERDown = deltaPhi(hemispheres_JERDown[0].Phi(),hemispheres_JERDown[1].Phi());
 
             //MES up
-            float PFMetXMESUp = MyMET.Px() + MetXCorr_MESUp;
-            float PFMetYMESUp = MyMET.Py() + MetYCorr_MESUp;
+            float PFMetXMESUp = metPt*cos(metPhi) + MetXCorr_MESUp;
+            float PFMetYMESUp = metPt*sin(metPhi) + MetYCorr_MESUp;
             TLorentzVector PFMET_MESUp(PFMetXMESUp, PFMetYMESUp, 0, sqrt( pow(PFMetXMESUp,2) + pow(PFMetYMESUp,2) )); 
             vector<TLorentzVector> hemispheres_MESUp = getHemispheres(GoodJetsMESUp);
             MR_MESUp = computeMR(hemispheres_MESUp[0], hemispheres_MESUp[1]); 
@@ -1657,8 +1665,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             dPhiRazor_MESUp = deltaPhi(hemispheres_MESUp[0].Phi(),hemispheres_MESUp[1].Phi());
 
             //MES down
-            float PFMetXMESDown = MyMET.Px() + MetXCorr_MESDown;
-            float PFMetYMESDown = MyMET.Py() + MetYCorr_MESDown;
+            float PFMetXMESDown = metPt*cos(metPhi) + MetXCorr_MESDown;
+            float PFMetYMESDown = metPt*sin(metPhi) + MetYCorr_MESDown;
             TLorentzVector PFMET_MESDown(PFMetXMESDown, PFMetYMESDown, 0, sqrt( pow(PFMetXMESDown,2) + pow(PFMetYMESDown,2) )); 
             vector<TLorentzVector> hemispheres_MESDown = getHemispheres(GoodJetsMESDown);
             MR_MESDown = computeMR(hemispheres_MESDown[0], hemispheres_MESDown[1]); 
@@ -1666,8 +1674,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             dPhiRazor_MESDown = deltaPhi(hemispheres_MESDown[0].Phi(),hemispheres_MESDown[1].Phi());
 
             //EES up
-            float PFMetXEESUp = MyMET.Px() + MetXCorr_EESUp;
-            float PFMetYEESUp = MyMET.Py() + MetYCorr_EESUp;
+            float PFMetXEESUp = metPt*cos(metPhi) + MetXCorr_EESUp;
+            float PFMetYEESUp = metPt*sin(metPhi) + MetYCorr_EESUp;
             TLorentzVector PFMET_EESUp(PFMetXEESUp, PFMetYEESUp, 0, sqrt( pow(PFMetXEESUp,2) + pow(PFMetYEESUp,2) )); 
             vector<TLorentzVector> hemispheres_EESUp = getHemispheres(GoodJetsEESUp);
             MR_EESUp = computeMR(hemispheres_EESUp[0], hemispheres_EESUp[1]); 
@@ -1675,8 +1683,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             dPhiRazor_EESUp = deltaPhi(hemispheres_EESUp[0].Phi(),hemispheres_EESUp[1].Phi());
 
             //EES down
-            float PFMetXEESDown = MyMET.Px() + MetXCorr_EESDown;
-            float PFMetYEESDown = MyMET.Py() + MetYCorr_EESDown;
+            float PFMetXEESDown = metPt*cos(metPhi) + MetXCorr_EESDown;
+            float PFMetYEESDown = metPt*sin(metPhi) + MetYCorr_EESDown;
             TLorentzVector PFMET_EESDown(PFMetXEESDown, PFMetYEESDown, 0, sqrt( pow(PFMetXEESDown,2) + pow(PFMetYEESDown,2) )); 
             vector<TLorentzVector> hemispheres_EESDown = getHemispheres(GoodJetsEESDown);
             MR_EESDown = computeMR(hemispheres_EESDown[0], hemispheres_EESDown[1]); 
