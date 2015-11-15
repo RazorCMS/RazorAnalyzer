@@ -69,7 +69,6 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
     bkgs = []
     for command in commands:
         lower = command.lower()
-        print lower
         if lower.find('sum::')!=-1 or lower.find('prod::')!=-1 or lower.find('expr::')!=-1 or lower.find('roogaussian::')!=-1:
             w.factory(command)
         else:
@@ -213,7 +212,6 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
             elif 'Mean' in paramName or 'Sigma' in paramName:
                 continue
             elif 'MR1_' in paramName:
-                print paramName
                 mean = w.var(paramName.replace('MR1','MR1Mean')).getVal()
                 sigma = w.var(paramName.replace('MR1','MR1Sigma')).getVal()
                 datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)                
