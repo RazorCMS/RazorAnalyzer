@@ -30,19 +30,26 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
             paramNames.append(paramName)
             w.var(paramName).setConstant(False)
             
-        # fix Rsq MR cut parameters
-        fixPars(w,"Cut")
-
+        
         # float normalization parameters
         fixPars(w,"Ntot",False)
+
+        
+        # fix Rsq MR cut parameters
+        fixPars(w,"Cut")
+        
+        # fix Gaussian constraint parameters
+        fixPars(w,"In")
+        fixPars(w,"Mean")
+        fixPars(w,"Sigma")
         
         # turn off shape parameters if no events in b-tag bin (not done yet)
         for k in range(0,len(z)-1):
             if "Ntot" in paramName and "%ib"%z[k] in paramName:
                 w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag>=%i && nBtag<%i"% (z[k],z[k+1] )) ))
-                #if not w.var(paramName).getVal():
-                #    fixPars(w,"%ib"%z[k])    
-
+                if not w.var(paramName).getVal():
+                    fixPars(w,"%ib"%z[k])    
+        
     w.factory('th1x[0,0,%i]'%nBins)
     w.var('th1x').setBins(nBins)
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
@@ -62,7 +69,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
     bkgs = []
     for command in commands:
         lower = command.lower()
-        if lower.find('sum::')!=-1 or lower.find('prod::')!=-1 or lower.find('expr::')!=-1:
+        if lower.find('sum::')!=-1 or lower.find('prod::')!=-1 or lower.find('expr::')!=-1 or lower.find('roogaussian::')!=-1:
             w.factory(command)
         else:
             myclass = command.split('::')[0]
@@ -72,7 +79,10 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
             mylist = mytuple.split(',')
             arglist = [name, name]
             for myvar in mylist:
-                arglist.append(w.var(myvar))
+                if w.var(myvar)!=None:
+                    arglist.append(w.var(myvar))
+                else:
+                    arglist.append(w.function(myvar))
             args = tuple(arglist)
             pdf = getattr(rt,myclass)(*args)
             if hasattr(pdf,'setTH3Binning'):
@@ -199,8 +209,14 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
         for paramName in paramNames:
             if penalty:
                 fixPars(w,paramName)
+            elif 'Mean' in paramName or 'Sigma' in paramName:
+                continue
+            elif 'MR1_' in paramName:
+                mean = w.var(paramName.replace('MR1','MR1Mean')).getVal()
+                sigma = w.var(paramName.replace('MR1','MR1Sigma')).getVal()
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)                
             else:
-                datacard += "%s  	flatParam\n"%(paramName)
+                datacard += "%s\tflatParam\n"%(paramName)
             
         txtfile = open(txtfileName,"w")
         txtfile.write(datacard)
@@ -340,11 +356,15 @@ if __name__ == '__main__':
 
     elif options.inputFitFile is not None:
         inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
-        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)
+        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)            
         if wIn.obj("fitresult_extRazorPdf_data_obs") != None:
             frIn = wIn.obj("fitresult_extRazorPdf_data_obs")
         elif wIn.obj("nll_extRazorPdf_data_obs") != None:
             frIn = wIn.obj("nll_extRazorPdf_data_obs")
+        elif wIn.obj("fitresult_extRazorPdf_data_obs_with_constr") != None:
+            fr = wIn.obj("fitresult_extRazorPdf_data_obs_with_constr")
+        elif wIn.obj("nll_extRazorPdf_data_obs_with_constr") != None:
+            frIn = wIn.obj("nll_extRazorPdf_data_obs_with_constr")
         print "restoring parameters from fit"
         frIn.Print("V")
         for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
@@ -366,7 +386,8 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['muoneff','eleeff','jes']
+        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','lumi']
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale']
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
