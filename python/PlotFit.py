@@ -481,7 +481,7 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
 
         
         tleg = rt.TLegend(0.65,.6,.89,.89)
-        tleg.AddEntry(tlineObs,"observed = %d"%nObs,"l")
+        tleg.AddEntry(tlineObs,"observed = %.2f"%nObs,"l")
         tleg.AddEntry(tline,"best fit = %.2f"%bestFit,"l")
         #tleg.AddEntry(tgraph,"rms = %.2f"%rms,"f")
         if useKDE:
@@ -521,7 +521,7 @@ def getPads(c):
     return pad1, pad2
 
 
-def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):        
+def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
     h_data.SetMarkerColor(color)
     h_data.SetMarkerStyle(20)
     h_data.SetLineColor(color)
@@ -541,9 +541,10 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
     else:        
         h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25)))
         #h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
-        h_data.SetMinimum(1e-2) # for signal+background fit
-        if densityCorr and "h_MR" in h_data.GetName():
+        if densityCorr and "_MR_" in h_data.GetName():
             h_data.SetMinimum(1e-6)
+        else:
+            h_data.SetMinimum(1e-2) # for signal+background fit
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -867,7 +868,7 @@ def set2DHisto(h2D,xTitle,yTitle,zTitle):
     #h2D.GetXaxis().SetTicks("+-")
     return h2D
 
-def getGrayLines(x,y,sidebandFit=False):        
+def getGrayLines(x,y,sidebandFit=None):        
     # the gray lines
     xLines = []
     yLines = []
@@ -887,11 +888,13 @@ def getGrayLines(x,y,sidebandFit=False):
 
         
     if sidebandFit:
-        yLines.append(rt.TLine(x[2], y[1], x[2], y[-1]))
+        mrSide = sidebandFit[0]
+        rsqSide = sidebandFit[1]
+        yLines.append(rt.TLine(mrSide, rsqSide, mrSide, y[-1]))
         yLines[-1].SetLineStyle(2)
         yLines[-1].SetLineWidth(2)
         yLines[-1].SetLineColor(rt.kGreen)
-        xLines.append(rt.TLine(x[2], y[1], x[-1], y[1]))
+        xLines.append(rt.TLine(mrSide, rsqSide, x[-1], rsqSide))
         xLines[-1].SetLineStyle(2)
         xLines[-1].SetLineWidth(2)
         xLines[-1].SetLineColor(rt.kGreen)
@@ -948,7 +951,7 @@ def set2DCanvas(c):
     c.SetLogz(0)
     return c
 
-def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,zMin,zMax,isData=False,sidebandFit=False,drawOpt="colz"):
+def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,zMin,zMax,isData=False,sidebandFit=None,drawOpt="colz"):
 
     c = set2DCanvas(c)
     c.SetLogz(1)
@@ -991,7 +994,7 @@ def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabe
     #rootFile.cd()
     #c.Write(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
     
-def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,isData=False,sidebandFit=False,drawOpt="colz"):
+def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,isData=False,sidebandFit=None,drawOpt="colz"):
     
     c = set2DCanvas(c)
     absMax = max(abs(h_resi.GetMinimum()),abs(h_resi.GetMaximum()))    
@@ -1008,7 +1011,7 @@ def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,
     
     [xLine.Draw("l") for xLine in xLines]
     [yLine.Draw("l") for yLine in yLines]
-    [fGray.Draw("f") for fGray in fGrayGraphs]    
+    #[fGray.Draw("f") for fGray in fGrayGraphs]    
     [tlatex.Draw() for tlatex in tlatexList]
     
     l = rt.TLatex()
@@ -1147,10 +1150,9 @@ def getNsigma2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
     for (i,j), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i,j)
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
-        #h.SetBinContent(i,j,(nObs-bestFit)/rms)
         h.SetBinContent(i,j,nsigma)
-        if abs(nsigma)==0 and bestFit<1 and nObs==0:
-            h.SetBinContent(i,j,-999)
+        #if abs(nsigma)==0 and bestFit<1 and nObs==0:
+        #    h.SetBinContent(i,j,-999)
     return h
 
 
@@ -1508,9 +1510,11 @@ if __name__ == '__main__':
     boxLabel = "razor %s %s %s Fit" % (box,btagLabel,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
-    sidebandFit = False
+    sidebandFit = None
     if fitRegion=="LowMR,LowRsq":
-        sidebandFit = True
+        mrSide = w.var('MR').getMax('LowMR')
+        rsqSide = w.var('Rsq').getMax('LowRsq')
+        sidebandFit = [mrSide, rsqSide]
         
     if options.isData:
         dataString = "Data"
@@ -1545,7 +1549,7 @@ if __name__ == '__main__':
     #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff,options.outDir+"/h_RsqMR_percentdiff_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     print2DResiduals(c,tdirectory,h_RsqMR_statnsigma,options.outDir+"/h_RsqMR_statnsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (%s - Fit)/sqrt(Fit)"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     if computeErrors:
-        print2DResiduals(c,tdirectory,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,plotLabel,x,y,options.isData)
+        print2DResiduals(c,tdirectory,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
     print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", dataString,lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
 
