@@ -1167,9 +1167,9 @@ if __name__ == '__main__':
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default="BinnedFitResults_MultiJet.root",type="string",
-                  help="intput fit file")
+                  help="input fit file")
     parser.add_option('-t','--input-toy-file',dest="inputToyFile", default=None,type="string",
-                  help="intput toy file")
+                  help="input toy file")
     parser.add_option('--print-errors',dest="printErrors", default=False,action='store_true',
                   help="print plots of individual error calculation")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
@@ -1195,8 +1195,12 @@ if __name__ == '__main__':
 
     toyTree = None
     if options.inputToyFile is not None:
-        inputToyFile = rt.TFile.Open(options.inputToyFile,"read")
-        toyTree = inputToyFile.Get("myTree")
+        #inputToyFile = rt.TFile.Open(options.inputToyFile,"read")
+        #toyTree = inputToyFile.Get("myTree")
+        toyFiles = options.inputToyFile.split(',')
+        toyTree = rt.TChain("myTree")
+        for toyFile in toyFiles:
+            toyTree.Add(toyFile)
     computeErrors = (toyTree is not None)
 
     w = inputFitFile.Get("w"+box)
