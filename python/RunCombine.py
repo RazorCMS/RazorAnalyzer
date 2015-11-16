@@ -51,7 +51,7 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal shape systematic uncertainties")
-    parser.add_option('--rMax',dest="rMax",default=-1,type="int",
+    parser.add_option('--rMax',dest="rMax",default=-1,type="float",
                   help="maximum r value (for better precision)")
 
 
