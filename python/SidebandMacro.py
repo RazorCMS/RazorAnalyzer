@@ -10,18 +10,18 @@ from macro.razorAnalysis import razorCuts
 from macro.razorWeights import loadWeightHists, loadScaleFactorHists, weightfilenames_DEFAULT, weighthistnames_DEFAULT
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
 
-LUMI = 1546 #in /pb
+LUMI = 2093 #in /pb
 MCLUMI = 1 
 
 SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
-BOXES = ["MuMultiJet", "EleMultiJet", "MultiJet"]
+BOXES = ["MuMultiJet", "MultiJet", "EleMultiJet"]
 
 DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
 DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
 DATA_NAMES={
-    'MultiJet':'RazorInclusive_HTMHT_Run2015D_1546pb_GoodLumiGolden_RazorSkim_Filtered',
-    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_1546pb_GoodLumiGolden_RazorSkim_Filtered',
-    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_1546pb_GoodLumiGolden_RazorSkim_Filtered',
+    'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
+    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
+    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
     }
 FILENAMES_MC = {
         "TTJets"    : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
@@ -34,7 +34,7 @@ FILENAMES_MC = {
 FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
-config = "config/run2_20151108_Preapproval.config"
+config = "config/run2_20151108_Preapproval_2b3b_data.config"
 FIT_DIR = "MyFitResults_Sideband_PreapprovalFreeze"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
@@ -43,8 +43,6 @@ TOYS_FILES = {
         }
 
 weightOpts = []
-#shapeErrors = ["muoneff", "eleeff", "jes"]
-#miscErrors = ["mt"]
 shapeErrors = []
 miscErrors = []
 
@@ -76,10 +74,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
+    plotOpts = {}
     doSideband=(not args.full)
     if not doSideband:
         FIT_DIR = FIT_DIR.replace('Sideband','Full')
+        TOYS_FILES = {
+                "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
+                "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
+                "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
+            }
         dirName += '_Full'
+        special += 'full'
+        plotOpts['sideband'] = False
+    else:
+        plotOpts['sideband'] = True
+    if args.unblind:
+        dirName += '_Unblinded'
 
     #initialize
     weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
@@ -108,6 +118,7 @@ if __name__ == "__main__":
         #btaglist = [0]
         btaglist = [0,1,2,3]
         for btags in btaglist:
+            if btags == 3: continue #temporary
             print "\n---",boxName,"Box,",btags,"B-tags ---"
             #get correct cuts string
             thisBoxCuts = razorCuts[boxName]
@@ -137,4 +148,4 @@ if __name__ == "__main__":
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                     weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
                     fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, printdir=dirName)
+                    btags=nBtags, debugLevel=debugLevel, printdir=dirName, plotOpts=plotOpts)

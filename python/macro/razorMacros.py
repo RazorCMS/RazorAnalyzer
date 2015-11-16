@@ -9,6 +9,7 @@ from collections import namedtuple
 from RunCombine import exec_me
 from framework import Config
 import macro
+import plotting
 from razorAnalysis import *
 from razorWeights import *
 
@@ -229,7 +230,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
     if signalHist is not None:
         headers.append(signalName)
         cols.append(signal)
-    macro.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
+    plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
@@ -243,12 +244,18 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         }
 
     #get plotting options
+    special = ""
     if "logx" in plotOpts: logx = plotOpts["logx"]
     else: logx = True
     if "ymin" in plotOpts: ymin = plotOpts["ymin"]
     else: ymin = 0.1
     if "comment" in plotOpts: comment = plotOpts["comment"]
     else: comment = True
+    if "sideband" in plotOpts:
+        if plotOpts['sideband']:
+            special += 'sideband'
+        else:
+            special += 'full'
 
     #setup files and trees
     inputs = filenames
@@ -305,7 +312,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=str(lumiData)+" pb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity, special=special)
 
     #close files and return
     for f in files: files[f].Close()
@@ -380,7 +387,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
 
     #plot scale factors in 2D
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
-    macro.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=str(lumiData)+" pb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+    plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
     if printTable:
         xbinLowEdges = []
@@ -416,4 +423,4 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         for mcProcess in bgProcesses: 
             headers.extend(["Unc.\\ from "+mcProcess])
             cols.extend([sysUncerts[mcProcess]])
-        macro.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
+        plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
