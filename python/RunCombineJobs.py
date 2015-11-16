@@ -34,17 +34,18 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     user = os.environ['USER']
     pwd = os.environ['PWD']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/"%(user[0],user)
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/"%(user[0],user) # directory where combine output files will be copied
+    cmsswBase = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5"%(user[0],user) # directory where 'cmsenv' will be run (needs to have combine and RazorAnalyzer setup)
 
     script =  '#!/usr/bin/env bash -x\n'
     script += 'mkdir -p %s\n'%combineDir
     
     script += 'echo $SHELL\n'
     script += 'pwd\n'
-    script += 'cd /afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer \n'%(user[0],user)
+    script += 'cd %s/src/RazorAnalyzer \n'%(cmsswBase)
     script += 'pwd\n'
     script += "export SCRAM_ARCH=slc6_amd64_gcc481\n"
-    script += "export CMSSW_BASE=/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5\n"%(user[0],user)
+    script += "export CMSSW_BASE=%s\n"%(cmsswBase)
     script += 'eval `scramv1 runtime -sh`\n'
     script += 'cd - \n'
     script += "export TWD=${PWD}/%s_%s_lumi-%.3f_%s_%s\n"%(model,massPoint,lumi,btag,box)
@@ -60,7 +61,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     if "T1" in model:
         script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
     else:
-        script += 'python python/RunCombine.py -i %s -m %s   --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
+        script += 'python python/RunCombine.py -i %s -m %s   --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i --rMax %\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
