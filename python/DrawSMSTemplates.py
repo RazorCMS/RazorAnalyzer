@@ -53,6 +53,19 @@ if __name__ == "__main__":
             hists[shape+updown] = infile.Get('_'.join([box,model,shape+updown]))
             print "Loading histogram",'_'.join([box,model,shape+updown])
             assert hists[shape+updown]
+
+        #print some statistics about the size of this systematic
+        maxDeviation = 0
+        avgDeviation = 0
+        for bx in range(1, hists['nominal'].GetNbinsX()+1):
+            if hists['nominal'].GetBinContent(bx) > 0:
+                percentDiffUp =  abs(hists[shape+'Up'].GetBinContent(bx) - hists['nominal'].GetBinContent(bx))/hists['nominal'].GetBinContent(bx)
+                percentDiffDown =  abs(hists[shape+'Down'].GetBinContent(bx) - hists['nominal'].GetBinContent(bx))/hists['nominal'].GetBinContent(bx)
+                if percentDiffUp > maxDeviation: maxDeviation = percentDiffUp
+                if percentDiffDown > maxDeviation: maxDeviation = percentDiffDown
+                avgDeviation = (2*bx*avgDeviation + percentDiffDown + percentDiffUp)/(2*(bx+1))
+        print ('\n'+shape),": \nMax deviation",maxDeviation,'\nAvg deviation',avgDeviation
+
         toplot = [hists['nominal'],hists[shape+'Up'],hists[shape+'Down']]
         colors = [rt.kBlack, rt.kGreen, rt.kBlue]
         title = titles[shape]

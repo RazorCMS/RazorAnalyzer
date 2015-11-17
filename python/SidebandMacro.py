@@ -35,7 +35,7 @@ FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
-FIT_DIR = "MyFitResults_Sideband_PreapprovalFreeze"
+FIT_DIR = "FitResults/Archive_Data_2093ipb/sideband/"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
-    sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
+    #sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
 
     #estimate yields in signal region
     for boxName in BOXES:
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         #btaglist = [0]
         btaglist = [0,1,2,3]
         for btags in btaglist:
-            if btags == 3: continue #temporary
+            #if btags == 3: continue #temporary
             print "\n---",boxName,"Box,",btags,"B-tags ---"
             #get correct cuts string
             thisBoxCuts = razorCuts[boxName]

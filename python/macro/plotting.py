@@ -148,7 +148,7 @@ def plot_several(c, hists=0, leg=0, colors=[], xtitle="", ytitle="Events", ymin=
     if savepdf: c.Print(printdir+'/'+printstr+".pdf")
     if saveroot: c.Print(printdir+'/'+printstr+".root")
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kBlue, mcErrColor=rt.kRed, customPad2Hist=None, saveroot=False, savepdf=False, savepng=True, printdir='.', grayLines=None):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kRed, mcErrColor=rt.kRed, customPad2Hist=None, saveroot=False, savepdf=True, savepng=False, printdir='.', grayLines=None):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
@@ -190,19 +190,35 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         fit.SetStats(0)
         fit.SetMarkerStyle(21)
         fit.SetLineWidth(2)
-        fit.SetMarkerSize(1.2)
-        fit.SetLineColor(fitColor+2)
+        if mc:
+            fit.SetMarkerSize(1.2)
+            fit.SetLineColor(fitColor+2)
+        else:
+            fit.SetMarkerSize(0)
+            fit.SetLineColor(fitColor)
         fit.SetMarkerColor(fitColor)
+        fit.SetFillStyle(3001)
+        fit.SetFillColor(rt.kAzure+6)
         fit.GetYaxis().SetTitle(ytitle)
         fit.SetTitle("")
         if ymin is not None: fit.SetMinimum(ymin)
         if ymax is not None: fit.SetMaximum(ymax)
-        fit.Draw("pesame")
+        if mc:
+            fit.Draw("pesame")
+        else:
+            fit.Draw("e2same")
+            fitCopy = fit.Clone()
+            fitCopy.SetFillStyle(0)        
+            fitCopy.SetLineWidth(2)
+            fitCopy.Draw("histsame")
     #draw data
     if data:
         data.SetStats(0)
         data.SetMarkerStyle(20)
         data.SetMarkerSize(1)
+        data.SetLineWidth(2)
+        #data.SetMarkerColor(rt.kRed)
+        #data.SetLineColor(rt.kRed)
         data.GetYaxis().SetTitle(ytitle)
         data.SetTitle("")
         if ymin is not None: data.SetMinimum(ymin)
@@ -318,6 +334,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
     if savepng: c.Print(printdir+'/'+printstr+".png")
     if savepdf: c.Print(printdir+'/'+printstr+".pdf")
     if saveroot: c.Print(printdir+'/'+printstr+".root")
+
 
 def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=False, savepdf=False, savepng=True, numDigits=1, printdir='.'):
     """Draw a single 2D histogram and print to file"""
@@ -615,7 +632,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
             legDataFit.AddEntry(blindFit, "Fit Prediction")
             legDataFit.AddEntry(unrolled[1], "Data")
 
-            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kBlue-4, saveroot=True, customPad2Hist=nsigmaUnrolled, printdir=printdir, grayLines=grayLines)
+            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kBlue, saveroot=True, customPad2Hist=nsigmaUnrolled, printdir=printdir, grayLines=grayLines)
     if fit:
         draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
         #make relative uncertainty histogram
