@@ -208,17 +208,17 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
             datacard+=shapeString
         for paramName in paramNames:
             if fixed:
-                fixPars(w,paramName)                
-            elif penalty:
-                mean = w.var(paramName).getVal()
-                sigma = w.var(paramName).getError()
-                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)
+                fixPars(w,paramName)    
             elif 'Mean' in paramName or 'Sigma' in paramName:
-                continue
+                fixPars(w,paramName)
             elif 'MR1_' in paramName:
                 mean = w.var(paramName.replace('MR1','MR1Mean')).getVal()
                 sigma = w.var(paramName.replace('MR1','MR1Sigma')).getVal()
-                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)                
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)  
+            elif penalty:
+                mean = w.var(paramName).getVal()
+                sigma = w.var(paramName).getError()
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)             
             else:
                 datacard += "%s\tflatParam\n"%(paramName)
             
@@ -376,6 +376,13 @@ if __name__ == '__main__':
         for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
+            if "Ntot" in p.GetName():
+                normNameList = p.GetName().replace("Ntot_","").split("_")
+                normNameList.reverse()
+                normNameList.append("norm")
+                normName = "_".join(normNameList)
+                print normName
+                w.var(normName).setError(w.var(p.GetName()).getError()/w.var(p.GetName()).getVal())
             
     
     signalHistos = []
