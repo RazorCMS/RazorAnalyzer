@@ -215,10 +215,20 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
                 mean = w.var(paramName.replace('MR1','MR1Mean')).getVal()
                 sigma = w.var(paramName.replace('MR1','MR1Sigma')).getVal()
                 datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)  
-            elif penalty:
+            elif penalty:                    
                 mean = w.var(paramName).getVal()
-                sigma = w.var(paramName).getError()
-                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)             
+                sigma = w.var(paramName).getError()                
+                if "_norm" in paramName:
+                    effectString = "\t1.0"                    
+                    for bkg in bkgs:
+                        if bkg in paramName:
+                            effectString += "\t%.3f"%(1.0+sigma)                            
+                        else:
+                            effectString += "\t1.0"
+                    datacard += "%s\tlnN%s\n"%(paramName,effectString)
+                else:
+                    datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)
+                         
             else:
                 datacard += "%s\tflatParam\n"%(paramName)
             
