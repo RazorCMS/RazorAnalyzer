@@ -166,7 +166,7 @@ def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h'
     return myTH1
 
 
-def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
+def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[]):
         obsRate = w.data("data_obs").sumEntries()
         nBkgd = len(bkgs)
         rootFileName = txtfileName.replace('.txt','.root')
@@ -207,8 +207,12 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
             shapeString += '\n'
             datacard+=shapeString
         for paramName in paramNames:
-            if penalty:
-                fixPars(w,paramName)
+            if fixed:
+                fixPars(w,paramName)                
+            elif penalty:
+                mean = w.var(paramName).getVal()
+                sigma = w.var(paramName).getError()
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)
             elif 'Mean' in paramName or 'Sigma' in paramName:
                 continue
             elif 'MR1_' in paramName:
@@ -295,7 +299,9 @@ if __name__ == '__main__':
     parser.add_option('--print-yields',dest="printYields",default=False,action='store_true',
                   help="print yields")
     parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
-                  help="penalty terms on background parameters")
+                  help="penalty terms on background shape + norm parameters from input fit result")
+    parser.add_option('--fixed',dest="fixed",default=False,action='store_true',
+                  help="fixed background shape + norm parameters")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
@@ -387,7 +393,7 @@ if __name__ == '__main__':
         shapes = []
     else:
         #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','lumi']
-        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale']
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale'] #minimal list of shape systematics
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
@@ -401,7 +407,7 @@ if __name__ == '__main__':
     if noFit:
         writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj%ib"%iz for iz in z[:-1]],paramNames,w)
     else:
-        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty,shapes=shapes)
+        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty,options.fixed,shapes=shapes)
     w.Write()
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))
 
