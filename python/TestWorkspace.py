@@ -11,13 +11,14 @@ from framework import Config
 from PlotFit import *
 
 
-def testWorkspace(w,outFile,singleBox,options):
+def testWorkspace(w,outFile,box,options):
+    boxes = box.split("_")
+    
      
     rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
     rt.gStyle.SetOptTitle(0)
     rt.gStyle.SetOptStat(0)
     
-    w.Print("v")
     CMS_th1x = w.var("th1x")
     CMS_channel = w.cat("CMS_channel")
     
@@ -27,10 +28,17 @@ def testWorkspace(w,outFile,singleBox,options):
     
     data_obs = w.data("data_obs")
 
-    #model_b = w.pdf("model_b")
-    model_b = w.pdf("pdf_bin%s_bonly"%singleBox)
-    #model_s = w.pdf("model_s")
-    model_s = w.pdf("pdf_bin%s"%singleBox)
+
+    bPdfs = ["%s=pdf_bin%s_bonly"%(singleBox,singleBox) for singleBox in boxes]
+    sPdfs = ["%s=pdf_bin%s"%(singleBox,singleBox) for singleBox in boxes]
+    
+    w.factory("SIMUL::model_b2(CMS_channel,%s)"%(','.join(bPdfs)))
+    w.factory("SIMUL::model_s2(CMS_channel,%s)"%(','.join(sPdfs)))
+    w.Print("v")
+    model_b = w.pdf("model_b2")
+    #model_b = w.pdf("pdf_bin%s_bonly"%singleBox)
+    model_s = w.pdf("model_s2")
+    #model_s = w.pdf("pdf_bin%s"%singleBox)
 
     #data_obs = model_b.generateBinned(CMS_set,rt.RooFit.Asimov())
     
@@ -55,22 +63,16 @@ def testWorkspace(w,outFile,singleBox,options):
     
     minim = rt.RooMinimizer(nll)
 
-    strategy = rt.Math.MinimizerOptions.DefaultStrategy()
-
-    minim.setStrategy(strategy)
-    tol = rt.Math.MinimizerOptions.DefaultTolerance()
-    #tol = max(tol,1.0)
+    minim.setStrategy(2)
     tol = 0.001
     minim.setEps(tol)
-
     minim.optimizeConst(2)
-
-    minimizer = rt.Math.MinimizerOptions.DefaultMinimizerType()
-    algorithm = rt.Math.MinimizerOptions.DefaultMinimizerAlgo()
+    minimizer = 'Minuit2'
+    algorithm = 'migrad'
 
     status = minim.minimize(minimizer,algorithm)
     
-    fr_s = model_s.fitTo(data_obs,rt.RooFit.Save())
+    fr_s = minim.save()
     fr_s.Print("v")
     nll_s = fr_s.minNll()
 
@@ -86,60 +88,64 @@ def testWorkspace(w,outFile,singleBox,options):
     #fr_s = model_s.fitTo(data_obs,rt.RooFit.Save())
     
     norm = {}
-    for bkg in [0, 1, 2, 3]:
-        if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
-            norm[bkg] = w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).getVal()
-            w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(0.)
+    #for bkg in [0, 1, 2, 3]:
+    #    if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
+    #        norm[bkg] = w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).getVal()
+    #        w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(0.)
 
             
     asimov_s = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
     h_sig_th1x = asimov_s.createHistogram('h_th1x',CMS_th1x)
     
-    for bkg in [0, 1, 2, 3]:
-        if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
-            w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(norm[bkg])            
+    #for bkg in [0, 1, 2, 3]:
+    #    if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
+    #        w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(norm[bkg])            
             
-    cfg = Config.Config(options.config)    
-    x = array('d', cfg.getBinning(singleBox)[0]) # MR binning
-    y = array('d', cfg.getBinning(singleBox)[1]) # Rsq binning
-    z = array('d', cfg.getBinning(singleBox)[2]) # nBtag binning
-    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    
-    h_data_th1x = data_obs.createHistogram('h_data_th1x',CMS_th1x)
-    
-    h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,x,y,z,"h_data_nBtagRsqMR")
-    h_bkgd_nBtagRsqMR = get3DHistoFrom1D(h_bkgd_th1x,x,y,z,"h_bkgd_nBtagRsqMR")
-    h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR")
-    
-    h_data_MR = h_data_nBtagRsqMR.Project3D("xe")
-    h_data_Rsq = h_data_nBtagRsqMR.Project3D("ye")
-    h_bkgd_MR = h_bkgd_nBtagRsqMR.Project3D("xe")
-    h_bkgd_Rsq = h_bkgd_nBtagRsqMR.Project3D("ye")
-    h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
-    h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")
+    cfg = Config.Config(options.config)
 
-    h_total_MR = h_bkgd_MR.Clone("h_total_MR")
-    h_total_MR.Add(h_sig_MR)
-    h_colors = [rt.kGreen,rt.kRed]
-    h_MR_components = [h_bkgd_MR, h_sig_MR]
-    h_labels = ['bkgd','signal']
-
+    c = rt.TCanvas('d','d',500,400)
     
-    h_total_Rsq = h_bkgd_Rsq.Clone("h_total_Rsq")
-    h_total_Rsq.Add(h_sig_Rsq)
-    h_colors = [rt.kGreen,rt.kRed]
-    h_Rsq_components = [h_bkgd_Rsq, h_sig_Rsq]
-    h_labels = ['bkgd','signal']
-
-
-    btagLabel = "#geq %i b-tag" % z[0]
-    lumiLabel = "%.0f pb^{-1} (13 TeV)" % (options.lumi)
-    boxLabel = "razor %s %s" % (singleBox,btagLabel)
-    dataString = "Data"
+    for singleBox in boxes:
+        x = array('d', cfg.getBinning(singleBox)[0]) # MR binning
+        y = array('d', cfg.getBinning(singleBox)[1]) # Rsq binning
+        z = array('d', cfg.getBinning(singleBox)[2]) # nBtag binning
+        nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     
-    c = rt.TCanvas('d','d',500,400)  
-    print1DProj(c,outFile,h_total_MR,h_data_MR,"./h_MR_%s.pdf"%singleBox,"M_{R} [GeV]","Events",lumiLabel,boxLabel,True,None,h_MR_components,h_colors,h_labels)
-    print1DProj(c,outFile,h_total_Rsq,h_data_Rsq,"./h_Rsq_%s.pdf"%singleBox,"R^{2}","Events",lumiLabel,boxLabel,True,None,h_Rsq_components,h_colors,h_labels)
+        h_data_th1x = data_obs.createHistogram('h_data_th1x',CMS_th1x)
+    
+        h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,x,y,z,"h_data_nBtagRsqMR")
+        h_bkgd_nBtagRsqMR = get3DHistoFrom1D(h_bkgd_th1x,x,y,z,"h_bkgd_nBtagRsqMR")
+        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR")
+    
+        h_data_MR = h_data_nBtagRsqMR.Project3D("xe")
+        h_data_Rsq = h_data_nBtagRsqMR.Project3D("ye")
+        h_bkgd_MR = h_bkgd_nBtagRsqMR.Project3D("xe")
+        h_bkgd_Rsq = h_bkgd_nBtagRsqMR.Project3D("ye")
+        h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
+        h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")
+    
+        h_total_MR = h_bkgd_MR.Clone("h_total_MR")
+        h_total_MR.Add(h_sig_MR)
+        h_colors = [rt.kGreen,rt.kRed]
+        h_MR_components = [h_bkgd_MR, h_sig_MR]
+        h_labels = ['bkgd','signal']
+    
+    
+        h_total_Rsq = h_bkgd_Rsq.Clone("h_total_Rsq")
+        h_total_Rsq.Add(h_sig_Rsq)
+        h_colors = [rt.kGreen,rt.kRed]
+        h_Rsq_components = [h_bkgd_Rsq, h_sig_Rsq]
+        h_labels = ['bkgd','signal']
+
+
+        btagLabel = "#geq %i b-tag" % z[0]
+        lumiLabel = "%.0f pb^{-1} (13 TeV)" % (options.lumi)
+        boxLabel = "razor %s %s" % (singleBox,btagLabel)
+        dataString = "Data"
+        plotLabel = "Full Projection"
+    
+        print1DProj(c,outFile,h_total_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%singleBox,"M_{R} [GeV]","Events",lumiLabel,boxLabel,plotLabel,True,None,h_MR_components,h_colors,h_labels)
+        print1DProj(c,outFile,h_total_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%singleBox,"R^{2}","Events",lumiLabel,boxLabel,plotLabel,True,None,h_Rsq_components,h_colors,h_labels)
     
     pll = nll.createProfile(poi)
     n2ll = rt.RooFormulaVar("n2ll","2*@0-2*%f"%nll_s,rt.RooArgList(nll))
@@ -178,7 +184,7 @@ def testWorkspace(w,outFile,singleBox,options):
     frame.SetMaximum(6)
     
     frame.SetXTitle("r (signal strength)")
-    frame.SetYTitle("-2 #Delta log L(asimov)")
+    frame.SetYTitle("-2 #Delta log L(data)")
     frame.SetTitleSize(0.04,"X")
     frame.SetTitleOffset(0.85,"X")
     frame.SetTitleSize(0.04,"Y")
@@ -201,8 +207,8 @@ def testWorkspace(w,outFile,singleBox,options):
     l.SetTextFont(42)
     l.SetNDC()
     l.SetTextSize(0.04)
-    l.DrawLatex(0.12,0.85,"CMS Simulation, %.1f fb^{-1} (13 TeV)"%(options.lumi/1000))
-    l.DrawLatex(0.12,0.80, "razor %s"%singleBox)    
+    l.DrawLatex(0.12,0.85,"CMS preliminary, %.1f fb^{-1} (13 TeV)"%(options.lumi/1000))
+    l.DrawLatex(0.12,0.80, "razor %s"%options.box.replace("_","+"))    
     if options.mGluino!=-1:
         for line in open('data/gluino13TeV.txt','r'):
             line = line.replace('\n','')
@@ -231,6 +237,9 @@ def testWorkspace(w,outFile,singleBox,options):
         if options.model=="T2qq":
             l.DrawLatex(0.12,0.75, "pp#rightarrow#tilde{q}#tilde{q}, #tilde{q}#rightarrow q#tilde{#chi}^{0}, #sigma = %.1f fb"%thyXsec)
             l.DrawLatex(0.12,0.69,"m_{#tilde{q}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(options.mStop,options.mLSP))
+
+    c.Print(options.outDir+"/d.pdf")
+    c.Print(options.outDir+"/d.C")
     outFile.cd()
     c.Write()
     frame.Write()
@@ -253,7 +262,7 @@ if __name__ == '__main__':
                   help="mass of LSP")
     parser.add_option('--rMax',dest="rMax", default=3,type="float",
                   help="maximum of r (signal strength) in profile likelihood plot")
-    parser.add_option('-o','--output',dest="output",default="./test.root",type="string",
+    parser.add_option('-d','--outDir',dest="outDir",default="TestWorkspace/",type="string",
                   help="Output file to store results")
     parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
@@ -267,9 +276,7 @@ if __name__ == '__main__':
         if f.lower().endswith('.root'):
             workspaceFileName = f
     workspaceFile = rt.TFile.Open(workspaceFileName,"READ")
-    outFile = rt.TFile.Open(options.output,"RECREATE")
+    outFile = rt.TFile.Open(options.outDir+"/TestWorkspace.root","RECREATE")
     w = workspaceFile.Get("w")
-    singleBox = options.box
 
-    print "SINGLE BOX %s"%singleBox 
-    testWorkspace(w,outFile,singleBox,options)
+    testWorkspace(w,outFile,options.box,options)
