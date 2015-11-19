@@ -60,8 +60,8 @@ def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, debugLevel=
     if debugLevel > 0: print "Got tree myTree"
 
     #make dummy options tuple
-    Opt = namedtuple("Opt", "printErrors")
-    options = Opt(False)
+    Opt = namedtuple("Opt", ["printErrors","noStat"])
+    options = Opt(False,False)
 
     z = [0.,1.,2.,3.,4.] #b-tag binning
     if btags < 0: #be inclusive in b-tags
@@ -95,12 +95,16 @@ def getFitCorrelationMatrix(config, box, fitToyFile, debugLevel=0):
     corrMatrix = getCorrelationMatrix(toyTree,'yx',0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
     return corrMatrix
 
-def import2DRazorFitHistograms(hists, bins, fitToyFiles, boxName, c, dataName="Data", btags=-1, debugLevel=0):
+def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btags=-1, debugLevel=0, noStat=False):
     print "Loading fit histograms"
+    if noStat: 
+        print "Using only systematic errors on fit points"
+        if 'noStat' not in fitToyFile:
+            fitToyFile = fitToyFile.replace('Bayes','Bayes_noStat')
     #sanity check
     if "Fit" in hists:
         print "Error in import2DFitHistograms: fit histogram already exists!"
-        sys.exit()
+        return
     #make histogram for fit result
     hists["Fit"] = {}
     for v in ["MR","Rsq",("MR","Rsq")]:
@@ -108,9 +112,9 @@ def import2DRazorFitHistograms(hists, bins, fitToyFiles, boxName, c, dataName="D
     hists["Fit"][v].Reset()
 
     #load fit information, including toys
-    toyFile = rt.TFile(fitToyFiles[boxName])
+    toyFile = rt.TFile(fitToyFile)
     assert toyFile
-    if debugLevel > 0: print "Opened file",fitToyFiles[boxName],"to get Bayesian toy results"
+    if debugLevel > 0: print "Opened file",fitToyFile,"to get Bayesian toy results"
     toyTree = toyFile.Get("myTree")
     assert toyTree
     if debugLevel > 0: print "Got tree myTree"
@@ -127,8 +131,8 @@ def import2DRazorFitHistograms(hists, bins, fitToyFiles, boxName, c, dataName="D
         zmax = btags+1
 
     #make dummy options tuple
-    Opt = namedtuple("Opt", "printErrors")
-    options = Opt(False)
+    Opt = namedtuple("Opt", ["printErrors","noStat"])
+    options = Opt(False, noStat)
 
     #store best fit and uncertainty in each bin
     #1D
@@ -179,8 +183,8 @@ def get3DRazorFitHistogram(configFile, fitToyFile, boxName, debugLevel=0):
     if debugLevel > 0: print "Got tree myTree"
 
     #make dummy options tuple
-    Opt = namedtuple("Opt", "printErrors")
-    options = Opt(False)
+    Opt = namedtuple("Opt", ["printErrors","noStat"])
+    options = Opt(False, False)
 
     #store best fit and uncertainty in each bin
     binSumDict = getBinSumDicts('zyx', 0,len(binsX)-1,0,len(binsY)-1,0,len(binsZ)-1,binsX,binsY,binsZ)
@@ -231,6 +235,43 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         headers.append(signalName)
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
+
+def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
+    """Print latex table with prediction and uncertainty in each bin"""
+    xbinLowEdges = []
+    xbinUpEdges = []
+    ybinLowEdges = []
+    ybinUpEdges = []
+    zbinLowEdges = []
+    preds = []
+    obses = []
+    uncerts = []
+    #for each bin, get values for all table columns
+    for bx in range(1, pred.GetNbinsX()+1):
+        for by in range(1, pred.GetNbinsY()+1):
+            xbinLowEdges.append('%.0f' % (pred.GetXaxis().GetBinLowEdge(bx)))
+            xbinUpEdges.append('%.0f' % (pred.GetXaxis().GetBinUpEdge(bx)))
+            ybinLowEdges.append(str(pred.GetYaxis().GetBinLowEdge(by)))
+            ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
+            zbinLowEdges.append('%.0f' % (btags))
+            prediction = pred.GetBinContent(bx,by)
+            preds.append('%.2f' % (prediction))
+            observed = obs.GetBinContent(bx,by)
+            obses.append('%.2f' % (observed))
+            nsig = nsigma.GetBinContent(bx,by)
+            uncerts.append('%.2f' % (nsig))
+    xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
+    yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
+    zRanges = copy.copy(zbinLowEdges)
+    caption = "Comparison of observed and expected event yields for the "+boxName+" box"
+    if btags >= 0:
+        headers=["$M_R$", "$R^2$", "B-tags", "Prediction", "Observed", "Number of sigmas"]
+        cols = [xRanges, yRanges, zRanges, preds, obses, uncerts]
+        caption += " ("+str(btags)+" b-tags)"
+    else:
+        headers=["$M_R$", "$R^2$", "Prediction", "Observed", "Number of sigmas"]
+        cols = [xRanges, yRanges, preds, obses, uncerts]
+    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag")
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
@@ -296,10 +337,12 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     nsigmaFitData = None
     nsigmaFitMC = None
     if fitToyFiles and "MR" in bins and "Rsq" in bins:
-        import2DRazorFitHistograms(hists, bins, fitToyFiles, boxName, c, dataName, btags, debugLevel)
+        import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=True)
         if dataName in hists: 
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
             print "Making nsigma histogram using data and fit prediction"
+            makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=hists[dataName][("MR","Rsq")],
+                    nsigma=nsigmaFitData, boxName=boxName, btags=btags)
 
         if len(samples) > 0: #compare fit with MC
             #make total MC histogram
