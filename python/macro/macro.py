@@ -361,14 +361,3 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, weightOpts, errorOpt, process=name+"_"+boxName, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
-def makeStack(hists, ordering, title="Stack"):
-    """Takes a dict of histograms and an ordered list of names, and returns a THStack containing the histograms stacked in the desired order"""
-    stack = rt.THStack("thstack"+title.replace(" ",""), title)
-    rt.SetOwnership(stack, False)
-    for name in ordering: 
-        if name in hists:
-            stack.Add(hists[name])
-        else: 
-            print("Warning in makeStack: histogram "+name+" not found in histogram dictionary!")
-    return stack
-
