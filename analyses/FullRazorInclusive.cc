@@ -790,10 +790,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     effTight *= sf; 
                     effTight_FastsimSFUp *= (sf + sfErr);
                     effTight_FastsimSFDown *= (sf - sfErr);
-                    //edge case: efficiency goes above 1: panic and reset
-                    if (effTight_FastsimSFUp >= 1.0) {
-                        effTight_FastsimSFUp = effTight;
-                    }
                 }
                 double effTightSF = muTightEffSFHist->GetBinContent( 
                         muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
@@ -817,11 +813,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     tmpTightSF_FastsimSFDown = effTightSF;
                 } 
                 else {
-                    tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
-                    tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
-                    tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
-                    tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
-                    tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
+                    if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
+                    if (effTight*effTightSFUp < 1.0) tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
+                    if (effTight*effTightSFDown < 1.0) tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
+                    if (effTight_FastsimSFUp*effTightSF < 1.0) tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
+                    if (effTight_FastsimSFDown*effTightSF < 1.0) tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
                 }
                 muonEffCorrFactor *= tmpTightSF;
                 sf_muonEffUp *= tmpTightSFUp/tmpTightSF;
@@ -853,9 +849,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     tmpVetoSFDown = effVetoSFDown;
                 } 
                 else {
-                    tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
-                    tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
-                    tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
+                    if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
+                    if (effVeto*effVetoSFUp < 1.0) tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
+                    if (effVeto*effVetoSFUp < 1.0) tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
                 }
                 vetoMuonEffCorrFactor *= tmpVetoSF;
                 sf_vetoMuonEffUp *= tmpVetoSFUp/tmpVetoSF;
@@ -1020,10 +1016,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     effTight *= sf;
                     effTight_FastsimSFUp *= (sf + sfErr);
                     effTight_FastsimSFDown *= (sf - sfErr);
-                    //edge case: efficiency goes above 1: panic and reset
-                    if (effTight_FastsimSFUp >= 1.0) {
-                        effTight_FastsimSFUp = effTight;
-                    }
                 }
                 double effTightSF = eleTightEffSFHist->GetBinContent( 
                         eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
@@ -1047,11 +1039,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     tmpTightSF_FastsimSFDown = effTightSF;
                 } 
                 else { 
-                    tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
-                    tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
-                    tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
-                    tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
-                    tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
+                    if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
+                    if (effTight*effTightSFUp < 1.0) tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
+                    if (effTight*effTightSFDown < 1.0) tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
+                    if (effTight_FastsimSFUp*effTightSF < 1.0) tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
+                    if (effTight_FastsimSFDown*effTightSF < 1.0) tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
                 }
                 eleEffCorrFactor *= tmpTightSF;
                 sf_eleEffUp *= tmpTightSFUp/tmpTightSF;
@@ -1084,9 +1076,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     tmpVetoSFDown = effVetoSFDown;
                 } 
                 else { 
-                    tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
-                    tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
-                    tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
+                    if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
+                    if (effVeto*effVetoSFUp < 1.0) tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
+                    if (effVeto*effVetoSFDown < 1.0) tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
                 }
                 vetoEleEffCorrFactor *= tmpVetoSF;
                 sf_vetoEleEffUp *= tmpVetoSFUp/tmpVetoSF;
@@ -1171,9 +1163,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     tmpLooseSFDown = effLooseSFDown;
                 } 
                 else { 
-                    tmpLooseSF = (1/effLoose - effLooseSF) / (1/effLoose - 1);
-                    tmpLooseSFUp = (1/effLoose - effLooseSFUp) / (1/effLoose - 1);
-                    tmpLooseSFDown = (1/effLoose - effLooseSFDown) / (1/effLoose - 1);
+                    if (effLoose*effLooseSF < 1.0) tmpLooseSF = (1/effLoose - effLooseSF) / (1/effLoose - 1);
+                    if (effLoose*effLooseSFUp < 1.0) tmpLooseSFUp = (1/effLoose - effLooseSFUp) / (1/effLoose - 1);
+                    if (effLoose*effLooseSFDown < 1.0) tmpLooseSFDown = (1/effLoose - effLooseSFDown) / (1/effLoose - 1);
                 }
                 tauEffCorrFactor *= tmpLooseSF;
                 sf_tauEffUp *= tmpLooseSFUp/tmpLooseSF;
@@ -1366,7 +1358,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     effMedium *= sf; 
                     effMedium_FastsimSFUp *= (sf + sfErr);
                     effMedium_FastsimSFDown *= (sf - sfErr);
-                    //edge case: efficiency goes above 1: panic and reset
+                    //edge case: efficiency goes above 1: reset
                     if (effMedium_FastsimSFUp >= 1.0) {
                         effMedium_FastsimSFUp = effMedium;
                     }
