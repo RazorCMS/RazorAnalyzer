@@ -20,6 +20,7 @@ def testWorkspace(w,outFile,box,options):
     rt.gStyle.SetOptStat(0)
     
     CMS_th1x = w.var("th1x")
+    CMS_th1x.Print("V")
     CMS_channel = w.cat("CMS_channel")
     
     CMS_set = rt.RooArgSet()
@@ -52,7 +53,7 @@ def testWorkspace(w,outFile,box,options):
     r.setMax(20.)
     poi = w.set('POI')
     
-    allParams = model_b.getParameters(data_obs)
+    allParams = model_s.getParameters(data_obs)
     rt.RooStats.RemoveConstantParameters(allParams)
 
     opt = rt.RooLinkedList()
@@ -64,8 +65,7 @@ def testWorkspace(w,outFile,box,options):
     minim = rt.RooMinimizer(nll)
 
     minim.setStrategy(2)
-    tol = 0.001
-    minim.setEps(tol)
+    minim.setEps(0.001)
     minim.optimizeConst(2)
     minimizer = 'Minuit2'
     algorithm = 'migrad'
@@ -77,15 +77,6 @@ def testWorkspace(w,outFile,box,options):
     nll_s = fr_s.minNll()
 
     rBestFit = r.getVal()
-    r.setVal(0.)
-
-    asimov_b = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
-    h_bkgd_th1x = asimov_b.createHistogram('h_th1x',CMS_th1x)
-    
-    r.setVal(rBestFit)
-    #r.setVal(0.742214)
-    #r.setConstant()    
-    #fr_s = model_s.fitTo(data_obs,rt.RooFit.Save())
     
     norm = {}
     #for bkg in [0, 1, 2, 3]:
@@ -94,8 +85,8 @@ def testWorkspace(w,outFile,box,options):
     #        w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(0.)
 
             
-    asimov_s = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
-    h_sig_th1x = asimov_s.createHistogram('h_th1x',CMS_th1x)
+    #asimov_s = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
+    #h_sig_th1x = asimov_s.createHistogram('h_th1x',CMS_th1x)
     
     #for bkg in [0, 1, 2, 3]:
     #    if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
@@ -106,16 +97,36 @@ def testWorkspace(w,outFile,box,options):
     c = rt.TCanvas('d','d',500,400)
     
     for singleBox in boxes:
+        CMS_channel.Print("V")
+        CMS_channel.setLabel(singleBox)
         x = array('d', cfg.getBinning(singleBox)[0]) # MR binning
         y = array('d', cfg.getBinning(singleBox)[1]) # Rsq binning
         z = array('d', cfg.getBinning(singleBox)[2]) # nBtag binning
         nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+
+        #data_obs_red = data_obs.reduce(rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
+        frame = CMS_th1x.frame(rt.RooFit.Bins(nBins),rt.RooFit.Range(0,nBins),rt.RooFit.Title("th1x frame"))
+        data_obs.plotOn(frame,rt.RooFit.LineStyle(2),rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("data"),rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
+        model_s.plotOn(frame,rt.RooFit.LineColor(rt.kBlue),rt.RooFit.Name("signalpbkgd"),rt.RooFit.Slice(CMS_channel,singleBox),rt.RooFit.ProjWData(rt.RooArgSet(CMS_channel),data_obs))
+        frame.Draw()
+        c.Print(options.outDir+"/c_%s.pdf"%singleBox)
+        c.Print(options.outDir+"/c_%s.C"%singleBox)
+
+        asimov_s = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
+        h_sig_th1x = asimov_s.createHistogram('h_sig_th1_%s'%singleBox,CMS_th1x)
+        
+        r.setVal(0.)
+
+        asimov_b = model_b.generateBinned(CMS_set,rt.RooFit.Asimov())
+        h_bkgd_th1x = asimov_b.createHistogram('h_bkgd_th1x_%s'%singleBox,CMS_th1x)
     
-        h_data_th1x = data_obs.createHistogram('h_data_th1x',CMS_th1x)
+        r.setVal(rBestFit)
+        
+        h_data_th1x = data_obs.createHistogram('h_data_th1x_%s'%singleBox,CMS_th1x)
     
-        h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,x,y,z,"h_data_nBtagRsqMR")
-        h_bkgd_nBtagRsqMR = get3DHistoFrom1D(h_bkgd_th1x,x,y,z,"h_bkgd_nBtagRsqMR")
-        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR")
+        h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,x,y,z,"h_data_nBtagRsqMR_%s"%singleBox)
+        h_bkgd_nBtagRsqMR = get3DHistoFrom1D(h_bkgd_th1x,x,y,z,"h_bkgd_nBtagRsqMR_%s"%singleBox)
+        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR_%s"%singleBox)
     
         h_data_MR = h_data_nBtagRsqMR.Project3D("xe")
         h_data_Rsq = h_data_nBtagRsqMR.Project3D("ye")
@@ -124,18 +135,27 @@ def testWorkspace(w,outFile,box,options):
         h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
         h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")
     
-        h_total_MR = h_bkgd_MR.Clone("h_total_MR")
-        h_total_MR.Add(h_sig_MR)
-        h_colors = [rt.kGreen,rt.kRed]
-        h_MR_components = [h_bkgd_MR, h_sig_MR]
-        h_labels = ['bkgd','signal']
+        #h_total_MR = h_bkgd_MR.Clone("h_total_MR")
+        #h_total_MR.Add(h_sig_MR)
+        #h_colors = [rt.kGreen,rt.kRed]
+        #h_MR_components = [h_bkgd_MR, h_sig_MR]
+        #h_labels = ['bkgd','signal']
+        #h_total_Rsq = h_bkgd_Rsq.Clone("h_total_Rsq")
+        #h_total_Rsq.Add(h_sig_Rsq)
+        #h_colors = [rt.kGreen,rt.kRed]
+        #h_Rsq_components = [h_bkgd_Rsq, h_sig_Rsq]
+        #h_labels = ['bkgd','signal']
+
+        h_total_MR = h_sig_MR.Clone("h_total_MR_%s"%singleBox)
+        h_colors = [rt.kGreen]
+        h_MR_components = [h_bkgd_MR]
+        h_labels = ['bkgd']
     
     
-        h_total_Rsq = h_bkgd_Rsq.Clone("h_total_Rsq")
-        h_total_Rsq.Add(h_sig_Rsq)
-        h_colors = [rt.kGreen,rt.kRed]
-        h_Rsq_components = [h_bkgd_Rsq, h_sig_Rsq]
-        h_labels = ['bkgd','signal']
+        h_total_Rsq = h_sig_Rsq.Clone("h_total_Rsq_%s"%singleBox)
+        h_colors = [rt.kGreen]
+        h_Rsq_components = [h_bkgd_Rsq]
+        h_labels = ['bkgd']
 
 
         btagLabel = "#geq %i b-tag" % z[0]
@@ -150,23 +170,26 @@ def testWorkspace(w,outFile,box,options):
     pll = nll.createProfile(poi)
     n2ll = rt.RooFormulaVar("n2ll","2*@0-2*%f"%nll_s,rt.RooArgList(nll))
     p2ll = n2ll.createProfile(poi)
+    #p2ll.setAlwaysStartFromMin(False)
+    #minim2 = p2ll.minimizer()    
+    #minim2.setStrategy(0)
+    #minim2.setEps(0.001)
+    #minim2.optimizeConst(2)
     
     print "signal+background nll = %f at r = %f"%(nll_s,r.getVal())
-    #minim.optimizeConst(False)
 
     
     #c = rt.TCanvas('c','c',500,500)
-    frame = r.frame(rt.RooFit.Bins(10),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame"))
+    frame = r.frame(rt.RooFit.Bins(20),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame"))
     frame.SetMinimum(0)
     frame.SetMaximum(6)
 
-    
     #plot_opt = rt.RooLinkedList()
     #plot_opt.Add(rt.RooFit.ShiftToZero())
     #plot_opt.Add(rt.RooFit.LineColor(rt.kBlack))
     
     n2ll.plotOn(frame,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll"))
-    #p2ll.plotOn(frame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll"))
+    #p2ll.plotOn(frame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll"),rt.RooFit.Precision(-1))
 
     tlines = []
     cl = 0.95
