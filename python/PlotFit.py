@@ -417,6 +417,9 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
         if (xmax-xmin)%20:
             xmax = xmax + 20-(xmax-xmin)%20
         nbins=20
+    #no-stat bins should be much smaller (to avoid having too many nsigma=0 bins)
+    elif options.noStat:
+        nbins = (xmax-xmin)*50
     else:
         nbins = xmax-xmin
     
@@ -1180,6 +1183,8 @@ if __name__ == '__main__':
                   help="Plot region")
     parser.add_option('-w','--weight',dest="useWeight",default=False,action='store_true',
                   help="use weight")
+    parser.add_option('--no-stat', dest='noStat', default=False, action='store_true',
+                  help='toys thrown with systematic uncertainties only')
     
     (options,args) = parser.parse_args()
      
