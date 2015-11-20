@@ -10,187 +10,11 @@ from optparse import OptionParser
 from framework import Config
 from PlotFit import *
 
-
-def testWorkspace(w,outFile,box,options):
-    boxes = box.split("_")
-    
-     
-    rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
-    rt.gStyle.SetOptTitle(0)
-    rt.gStyle.SetOptStat(0)
-    
-    CMS_th1x = w.var("th1x")
-    CMS_th1x.Print("V")
-    CMS_channel = w.cat("CMS_channel")
-    
-    CMS_set = rt.RooArgSet()
-    CMS_set.add(CMS_channel)
-    CMS_set.add(CMS_th1x)
-    
-    data_obs = w.data("data_obs")
+strategy = 2
+tol = 1e-5
 
 
-    bPdfs = ["%s=pdf_bin%s_bonly"%(singleBox,singleBox) for singleBox in boxes]
-    sPdfs = ["%s=pdf_bin%s"%(singleBox,singleBox) for singleBox in boxes]
-    
-    w.factory("SIMUL::model_b2(CMS_channel,%s)"%(','.join(bPdfs)))
-    w.factory("SIMUL::model_s2(CMS_channel,%s)"%(','.join(sPdfs)))
-    w.Print("v")
-    model_b = w.pdf("model_b2")
-    #model_b = w.pdf("pdf_bin%s_bonly"%singleBox)
-    model_s = w.pdf("model_s2")
-    #model_s = w.pdf("pdf_bin%s"%singleBox)
-
-    #data_obs = model_b.generateBinned(CMS_set,rt.RooFit.Asimov())
-    
-    signalNuis = ["lumi"]
-            
-    for varName in signalNuis:
-        print varName
-        #w.var(varName).setConstant()
-
-    r = w.var('r')
-    r.setMax(20.)
-    poi = w.set('POI')
-    
-    allParams = model_s.getParameters(data_obs)
-    rt.RooStats.RemoveConstantParameters(allParams)
-
-    opt = rt.RooLinkedList()
-    opt.Add(rt.RooFit.CloneData(False))
-    opt.Add(rt.RooFit.Constrain(allParams))
-
-    nll = model_s.createNLL(data_obs,opt)
-    
-    minim = rt.RooMinimizer(nll)
-
-    minim.setStrategy(2)
-    minim.setEps(0.001)
-    minim.optimizeConst(2)
-    minimizer = 'Minuit2'
-    algorithm = 'migrad'
-
-    status = minim.minimize(minimizer,algorithm)
-    
-    fr_s = minim.save()
-    fr_s.Print("v")
-    nll_s = fr_s.minNll()
-
-    rBestFit = r.getVal()
-    
-    norm = {}
-    #for bkg in [0, 1, 2, 3]:
-    #    if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
-    #        norm[bkg] = w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).getVal()
-    #        w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(0.)
-
-            
-    #asimov_s = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
-    #h_sig_th1x = asimov_s.createHistogram('h_th1x',CMS_th1x)
-    
-    #for bkg in [0, 1, 2, 3]:
-    #    if w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox))!=None:            
-    #        w.var('shapeBkg_%s_TTj%ib_%s__norm'%(singleBox,bkg,singleBox)).setVal(norm[bkg])            
-            
-    cfg = Config.Config(options.config)
-
-    c = rt.TCanvas('d','d',500,400)
-    
-    for singleBox in boxes:
-        CMS_channel.Print("V")
-        CMS_channel.setLabel(singleBox)
-        x = array('d', cfg.getBinning(singleBox)[0]) # MR binning
-        y = array('d', cfg.getBinning(singleBox)[1]) # Rsq binning
-        z = array('d', cfg.getBinning(singleBox)[2]) # nBtag binning
-        nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-
-        #data_obs_red = data_obs.reduce(rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
-        frame = CMS_th1x.frame(rt.RooFit.Bins(nBins),rt.RooFit.Range(0,nBins),rt.RooFit.Title("th1x frame"))
-        data_obs.plotOn(frame,rt.RooFit.LineStyle(2),rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("data"),rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
-        model_s.plotOn(frame,rt.RooFit.LineColor(rt.kBlue),rt.RooFit.Name("signalpbkgd"),rt.RooFit.Slice(CMS_channel,singleBox),rt.RooFit.ProjWData(rt.RooArgSet(CMS_channel),data_obs))
-        frame.Draw()
-        c.Print(options.outDir+"/c_%s.pdf"%singleBox)
-        c.Print(options.outDir+"/c_%s.C"%singleBox)
-
-        asimov_s = model_s.generateBinned(CMS_set,rt.RooFit.Asimov())
-        h_sig_th1x = asimov_s.createHistogram('h_sig_th1_%s'%singleBox,CMS_th1x)
-        
-        r.setVal(0.)
-
-        asimov_b = model_b.generateBinned(CMS_set,rt.RooFit.Asimov())
-        h_bkgd_th1x = asimov_b.createHistogram('h_bkgd_th1x_%s'%singleBox,CMS_th1x)
-    
-        r.setVal(rBestFit)
-        
-        h_data_th1x = data_obs.createHistogram('h_data_th1x_%s'%singleBox,CMS_th1x)
-    
-        h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,x,y,z,"h_data_nBtagRsqMR_%s"%singleBox)
-        h_bkgd_nBtagRsqMR = get3DHistoFrom1D(h_bkgd_th1x,x,y,z,"h_bkgd_nBtagRsqMR_%s"%singleBox)
-        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR_%s"%singleBox)
-    
-        h_data_MR = h_data_nBtagRsqMR.Project3D("xe")
-        h_data_Rsq = h_data_nBtagRsqMR.Project3D("ye")
-        h_bkgd_MR = h_bkgd_nBtagRsqMR.Project3D("xe")
-        h_bkgd_Rsq = h_bkgd_nBtagRsqMR.Project3D("ye")
-        h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
-        h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")
-    
-        #h_total_MR = h_bkgd_MR.Clone("h_total_MR")
-        #h_total_MR.Add(h_sig_MR)
-        #h_colors = [rt.kGreen,rt.kRed]
-        #h_MR_components = [h_bkgd_MR, h_sig_MR]
-        #h_labels = ['bkgd','signal']
-        #h_total_Rsq = h_bkgd_Rsq.Clone("h_total_Rsq")
-        #h_total_Rsq.Add(h_sig_Rsq)
-        #h_colors = [rt.kGreen,rt.kRed]
-        #h_Rsq_components = [h_bkgd_Rsq, h_sig_Rsq]
-        #h_labels = ['bkgd','signal']
-
-        h_total_MR = h_sig_MR.Clone("h_total_MR_%s"%singleBox)
-        h_colors = [rt.kGreen]
-        h_MR_components = [h_bkgd_MR]
-        h_labels = ['bkgd']
-    
-    
-        h_total_Rsq = h_sig_Rsq.Clone("h_total_Rsq_%s"%singleBox)
-        h_colors = [rt.kGreen]
-        h_Rsq_components = [h_bkgd_Rsq]
-        h_labels = ['bkgd']
-
-
-        btagLabel = "#geq %i b-tag" % z[0]
-        lumiLabel = "%.0f pb^{-1} (13 TeV)" % (options.lumi)
-        boxLabel = "razor %s %s" % (singleBox,btagLabel)
-        dataString = "Data"
-        plotLabel = "Full Projection"
-    
-        print1DProj(c,outFile,h_total_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%singleBox,"M_{R} [GeV]","Events",lumiLabel,boxLabel,plotLabel,True,None,h_MR_components,h_colors,h_labels)
-        print1DProj(c,outFile,h_total_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%singleBox,"R^{2}","Events",lumiLabel,boxLabel,plotLabel,True,None,h_Rsq_components,h_colors,h_labels)
-    
-    pll = nll.createProfile(poi)
-    n2ll = rt.RooFormulaVar("n2ll","2*@0-2*%f"%nll_s,rt.RooArgList(nll))
-    p2ll = n2ll.createProfile(poi)
-    #p2ll.setAlwaysStartFromMin(False)
-    #minim2 = p2ll.minimizer()    
-    #minim2.setStrategy(0)
-    #minim2.setEps(0.001)
-    #minim2.optimizeConst(2)
-    
-    print "signal+background nll = %f at r = %f"%(nll_s,r.getVal())
-
-    
-    #c = rt.TCanvas('c','c',500,500)
-    frame = r.frame(rt.RooFit.Bins(20),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame"))
-    frame.SetMinimum(0)
-    frame.SetMaximum(6)
-
-    #plot_opt = rt.RooLinkedList()
-    #plot_opt.Add(rt.RooFit.ShiftToZero())
-    #plot_opt.Add(rt.RooFit.LineColor(rt.kBlack))
-    
-    n2ll.plotOn(frame,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll"))
-    #p2ll.plotOn(frame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll"),rt.RooFit.Precision(-1))
-
+def prepareFrame(c,rFrame,options,type='data'):
     tlines = []
     cl = 0.95
     crossing = rt.TMath.Power(rt.Math.normal_quantile(1-0.5*(1-cl), 1.0),2)
@@ -199,29 +23,29 @@ def testWorkspace(w,outFile,box,options):
     tline.SetLineWidth(2)
     tlines.append(tline)
     for tline in tlines:
-        frame.addObject(tline,"")
+        rFrame.addObject(tline,"")
 
         
-    frame.Draw()
-    frame.SetMinimum(0)
-    frame.SetMaximum(6)
+    rFrame.Draw()
+    rFrame.SetMinimum(0)
+    rFrame.SetMaximum(6)
     
-    frame.SetXTitle("r (signal strength)")
-    frame.SetYTitle("-2 #Delta log L(data)")
-    frame.SetTitleSize(0.04,"X")
-    frame.SetTitleOffset(0.85,"X")
-    frame.SetTitleSize(0.04,"Y")
-    frame.SetTitleOffset(0.8,"Y")
-    frame.SetLabelSize(0.04,"X")
-    frame.SetLabelSize(0.04,"Y")
-    frame.SetNdivisions(505,"X")
+    rFrame.SetXTitle("#mu (signal strength)")
+    rFrame.SetYTitle("-2 #Delta log L(%s)"%type)
+    rFrame.SetTitleSize(0.04,"X")
+    rFrame.SetTitleOffset(0.85,"X")
+    rFrame.SetTitleSize(0.04,"Y")
+    rFrame.SetTitleOffset(0.8,"Y")
+    rFrame.SetLabelSize(0.04,"X")
+    rFrame.SetLabelSize(0.04,"Y")
+    rFrame.SetNdivisions(505,"X")
     
     leg = rt.TLegend(0.7,0.15,0.89,0.3)
     leg.SetTextFont(42)
     leg.SetFillColor(rt.kWhite)
     leg.SetLineColor(rt.kWhite)
-    leg.AddEntry("p2ll", "stat + syst","l")
-    leg.AddEntry("n2ll", "stat only","l")
+    leg.AddEntry("p2ll_%s"%type, "stat + syst","l")
+    leg.AddEntry("n2ll_%s"%type, "stat only","l")
     leg.Draw()
     
     l = rt.TLatex()
@@ -261,13 +85,269 @@ def testWorkspace(w,outFile,box,options):
             l.DrawLatex(0.12,0.75, "pp#rightarrow#tilde{q}#tilde{q}, #tilde{q}#rightarrow q#tilde{#chi}^{0}, #sigma = %.1f fb"%thyXsec)
             l.DrawLatex(0.12,0.69,"m_{#tilde{q}} = %i GeV, m_{#tilde{#chi}} = %i GeV"%(options.mStop,options.mLSP))
 
-    c.Print(options.outDir+"/d.pdf")
-    c.Print(options.outDir+"/d.C")
-    outFile.cd()
-    c.Write()
-    frame.Write()
-    outFile.Close()
+    c.Print(options.outDir+"/deltaLL_%s_%s.pdf"%(type,options.box))
+    c.Print(options.outDir+"/deltaLL_%s_%s.C"%(type,options.box))
+
+
+def testWorkspace(w,outFile,box,options):
+    boxes = box.split("_")
     
+     
+    rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
+    rt.gStyle.SetOptTitle(0)
+    rt.gStyle.SetOptStat(0)
+    
+    CMS_th1x = w.var("th1x")
+    CMS_channel = w.cat("CMS_channel")
+    
+    CMS_set = rt.RooArgSet()
+    CMS_set.add(CMS_channel)
+    CMS_set.add(CMS_th1x)
+    
+    data_obs = w.data("data_obs")
+
+
+    bPdfs = ["%s=pdf_bin%s_bonly"%(singleBox,singleBox) for singleBox in boxes]
+    sbPdfs = ["%s=pdf_bin%s"%(singleBox,singleBox) for singleBox in boxes]
+    
+    w.factory("SIMUL::model_b2(CMS_channel,%s)"%(','.join(bPdfs)))
+    w.factory("SIMUL::model_s2(CMS_channel,%s)"%(','.join(sbPdfs)))
+    w.Print("v")
+    model_b = w.pdf("model_b")
+    #model_b = w.pdf("pdf_bin%s_bonly"%singleBox)
+    model_sb = w.pdf("model_s")
+    #model_s = w.pdf("pdf_bin%s"%singleBox)
+
+
+    r = w.var('r')
+    r.setMax(2.)
+    poi = w.set('POI')
+    
+    allParams = model_sb.getParameters(data_obs)
+    rt.RooStats.RemoveConstantParameters(allParams)
+
+    opt = rt.RooLinkedList()
+    opt.Add(rt.RooFit.CloneData(False))
+    opt.Add(rt.RooFit.Constrain(allParams))
+
+    nll_b = model_b.createNLL(data_obs,opt)
+    nll_sb = model_sb.createNLL(data_obs,opt)
+
+    r.setVal(0)
+    r.setConstant(True)
+    minim_b = rt.RooMinimizer(nll_b)
+    minim_b.setStrategy(strategy)
+    minim_b.setEps(tol)
+    minim_b.optimizeConst(2)
+    status_b = minim_b.minimize('Minuit2','migrad')
+    fr_b = minim_b.save()
+    fr_b.Print("v")
+
+    
+    asimov_b = model_b.generateBinned(CMS_set,rt.RooFit.Asimov())
+    asimov_b.Print("V")
+    
+    r.setConstant(False)
+    minim_sb = rt.RooMinimizer(nll_sb)
+    minim_sb.setStrategy(strategy)
+    minim_sb.setEps(tol)
+    minim_sb.optimizeConst(2)
+    status_sb = minim_sb.minimize('Minuit2','migrad')
+    fr_sb = minim_sb.save()
+    fr_sb.Print("v")
+
+    asimov_sb = model_sb.generateBinned(CMS_set,rt.RooFit.Asimov())
+    
+    minNll_b = fr_b.minNll()
+    minNll_sb = fr_sb.minNll()
+
+    rBestFit = r.getVal()
+            
+    cfg = Config.Config(options.config)
+
+    c = rt.TCanvas('d','d',500,400)
+    
+    for singleBox in boxes:
+        CMS_channel.setLabel(singleBox)
+        x = array('d', cfg.getBinning(singleBox)[0]) # MR binning
+        y = array('d', cfg.getBinning(singleBox)[1]) # Rsq binning
+        z = array('d', cfg.getBinning(singleBox)[2]) # nBtag binning
+        nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+
+
+        w.factory('SUM::pdf_bin%s_sonly(n_exp_final_bin%s_proc_%s_%s*shapeSig_%s_%s_%s_morph)'%(singleBox,singleBox,singleBox,options.model,singleBox,singleBox,options.model))
+        model_s = w.pdf('pdf_bin%s_sonly'%singleBox)
+        asimov_s = model_s.generateBinned(rt.RooArgSet(CMS_th1x),rt.RooFit.Asimov())
+        h_sig_th1x = asimov_s.createHistogram('h_sig_th1_%s'%singleBox,CMS_th1x)
+        
+        data_obs_red = data_obs.reduce(rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
+        h_data_th1x = data_obs_red.createHistogram('h_data_th1x_%s'%singleBox,CMS_th1x)
+        
+        asimov_sb_red = asimov_sb.reduce(rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
+        h_sigbkgd_th1x = asimov_sb_red.createHistogram('h_sigbkgd_th1_%s'%singleBox,CMS_th1x)
+
+        asimov_b_red = asimov_b.reduce(rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox))
+        h_bkgd_th1x = asimov_b_red.createHistogram('h_bkgd_th1x_%s'%singleBox,CMS_th1x)
+        
+        h_data_th1x.SetLineColor(rt.kBlack)
+        h_data_th1x.SetMarkerStyle(20)
+        h_sigbkgd_th1x.SetLineColor(rt.kBlue)
+        h_sigbkgd_th1x.SetLineWidth(2)
+        h_sig_th1x.SetLineColor(rt.kRed)
+        h_sig_th1x.SetLineWidth(2)
+        h_bkgd_th1x.SetLineColor(rt.kGreen)
+        h_bkgd_th1x.SetLineWidth(2)
+        
+        #c.SetLogy(1)
+        #frame = CMS_th1x.frame(rt.RooFit.Bins(nBins),rt.RooFit.Range(0,nBins),rt.RooFit.Title("th1x frame"))
+        #data_obs.plotOn(frame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("data"),rt.RooFit.Cut("CMS_channel==CMS_channel::%s"%singleBox),rt.RooFit.Invisible())
+        ##model_sb.plotOn(frame,rt.RooFit.LineColor(rt.kBlue),rt.RooFit.Name("sigbkgd"),rt.RooFit.Slice(CMS_channel,singleBox),rt.RooFit.ProjWData(rt.RooArgSet(CMS_channel),data_obs))
+        ##model_s.plotOn(frame,rt.RooFit.LineColor(rt.kRed),rt.RooFit.Name("sig"),rt.RooFit.ProjWData(rt.RooArgSet(CMS_channel),data_obs))
+        ##model_b.plotOn(frame,rt.RooFit.LineColor(rt.kGreen),rt.RooFit.Name("bkgd"),rt.RooFit.Slice(CMS_channel,singleBox),rt.RooFit.ProjWData(rt.RooArgSet(CMS_channel),data_obs))
+        #frame.addTH1(h_data_th1x,'pe')
+        #frame.addTH1(h_sigbkgd_th1x,'hist')
+        ##frame.addTH1(h_bkgd_th1x,'hist')
+        #frame.SetMinimum(1e-1)
+        #frame.Draw()
+        #c.Print(options.outDir+"/c_%s.pdf"%singleBox)
+        #c.Print(options.outDir+"/c_%s.C"%singleBox)
+        #c.SetLogy(0)                
+    
+        h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,x,y,z,"h_data_nBtagRsqMR_%s"%singleBox)
+        h_bkgd_nBtagRsqMR = get3DHistoFrom1D(h_bkgd_th1x,x,y,z,"h_bkgd_nBtagRsqMR_%s"%singleBox)
+        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR_%s"%singleBox)
+        h_sigbkgd_nBtagRsqMR = get3DHistoFrom1D(h_sigbkgd_th1x,x,y,z,"h_sigbkgd_nBtagRsqMR_%s"%singleBox)
+    
+        h_data_MR = h_data_nBtagRsqMR.Project3D("xe")
+        h_data_Rsq = h_data_nBtagRsqMR.Project3D("ye")
+        h_bkgd_MR = h_bkgd_nBtagRsqMR.Project3D("xe")
+        h_bkgd_Rsq = h_bkgd_nBtagRsqMR.Project3D("ye")
+        h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
+        h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")
+        h_sigbkgd_MR = h_sigbkgd_nBtagRsqMR.Project3D("xe")
+        h_sigbkgd_Rsq = h_sigbkgd_nBtagRsqMR.Project3D("ye")
+
+        h_colors = [rt.kRed]
+        h_th1x_components = [h_sig_th1x]
+        h_labels = ['signal']
+    
+        h_colors = [rt.kRed]
+        h_MR_components = [h_sig_MR]
+        h_labels = ['signal']    
+    
+        h_colors = [rt.kRed]
+        h_Rsq_components = [h_sig_Rsq]
+        h_labels = ['signal']
+
+        btagLabel = "#geq %i b-tag" % z[0]
+        lumiLabel = "%.0f pb^{-1} (13 TeV)" % (options.lumi)
+        boxLabel = "razor %s %s" % (singleBox,btagLabel)
+        dataString = "Data"
+        plotLabel = "Full Projection"
+    
+        print1DProj(c,outFile,h_sigbkgd_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%singleBox,"Bin Number","Events",lumiLabel,boxLabel,plotLabel,True,None,h_th1x_components,h_colors,h_labels)
+        print1DProj(c,outFile,h_sigbkgd_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%singleBox,"M_{R} [GeV]","Events",lumiLabel,boxLabel,plotLabel,True,None,h_MR_components,h_colors,h_labels)
+        print1DProj(c,outFile,h_sigbkgd_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%singleBox,"R^{2}","Events",lumiLabel,boxLabel,plotLabel,True,None,h_Rsq_components,h_colors,h_labels)
+
+        h_sigbkgd_MR_components = []
+        h_sigbkgd_Rsq_components = []
+        h_sigbkgd_RsqMR_components = []
+        h_sigbkgd_th1x_components = []
+        h_sig_MR_components = []
+        h_sig_Rsq_components = []
+        h_sig_RsqMR_components = []
+        h_sig_th1x_components = []
+        h_data_MR_components = []
+        h_data_Rsq_components = []
+        h_data_RsqMR_components = []
+        h_data_th1x_components = []
+        h_labels = []        
+        h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
+        if len(z)>2:
+            for k in range(1,len(z)):
+                h_sigbkgd_MR_components.append(h_sigbkgd_nBtagRsqMR.ProjectionX("h_sigbkgd_MR_%ibtag_%s"%(z[k-1],singleBox),0,-1,k,k,""))
+                h_sigbkgd_Rsq_components.append(h_sigbkgd_nBtagRsqMR.ProjectionY("h_sigbkgd_Rsq_%ibtag_%s"%(z[k-1],singleBox),0,-1,k,k,""))
+                h_sig_MR_components.append(h_sig_nBtagRsqMR.ProjectionX("h_sig_MR_%ibtag_%s"%(z[k-1],singleBox),0,-1,k,k,""))
+                h_sig_Rsq_components.append(h_sig_nBtagRsqMR.ProjectionY("h_sig_Rsq_%ibtag_%s"%(z[k-1],singleBox),0,-1,k,k,""))
+                h_data_MR_components.append(h_data_nBtagRsqMR.ProjectionX("h_MR_data_%ibtag_%s"%(z[k-1],singleBox),0,-1,k,k,""))
+                h_data_Rsq_components.append(h_data_nBtagRsqMR.ProjectionY("h_Rsq_data_%ibtag_%s"%(z[k-1],singleBox),0,-1,k,k,""))
+            
+                h_sigbkgd_nBtagRsqMR.GetZaxis().SetRange(k,k)
+                h_sigbkgd_RsqMR_components.append(h_sigbkgd_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
+                h_sigbkgd_th1x_components.append(get1DHistoFrom2D(h_sigbkgd_RsqMR_components[-1],x,y,'h_sigbgkd_th1x_%ibtag_%s'%(z[k-1],singleBox)))
+                
+                h_sig_nBtagRsqMR.GetZaxis().SetRange(k,k)
+                h_sig_RsqMR_components.append(h_sig_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
+                h_sig_th1x_components.append(get1DHistoFrom2D(h_sig_RsqMR_components[-1],x,y,'h_sig_th1x_%ibtag_%s'%(z[k-1],singleBox)))            
+            
+                h_data_nBtagRsqMR.GetZaxis().SetRange(k,k)
+                h_data_RsqMR_components.append(h_data_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
+                h_data_th1x_components.append(get1DHistoFrom2D(h_data_RsqMR_components[-1],x,y,'h_data_th1x_%ibtag_%s'%(z[k-1],singleBox)))
+                
+                if z[k-1]==3 and z[-1]==4:
+                    h_labels.append("#geq %i b-tag" % z[k-1] )
+                if z[k-1]==1 and z[-1]==4 and box in ['MuEle','MuMu','EleEle']:                
+                    h_labels.append("#geq %i b-tag" % z[k-1] )
+                else:            
+                    h_labels.append("%i b-tag" % z[k-1] )
+                
+        if len(z)>2:
+            for k in range(0,len(z)-1):
+                newBoxLabel = "razor %s %s"%(box,h_labels[k])
+                print1DProj(c,outFile,h_sigbkgd_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number","Events",lumiLabel,newBoxLabel,plotLabel,True,None,[h_sig_th1x_components[k]],[rt.kRed],['signal'])
+                print1DProj(c,outFile,h_sigbkgd_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,plotLabel,True,None,[h_sig_MR_components[k]],[rt.kRed],['signal'])
+                print1DProj(c,outFile,h_sigbkgd_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}","Events",lumiLabel,newBoxLabel,plotLabel,True,None,[h_sig_Rsq_components[k]],[rt.kRed],['signal'])
+                
+    pll = nll_sb.createProfile(poi)
+    n2ll = rt.RooFormulaVar("n2ll","2*@0-2*%f"%minNll_sb,rt.RooArgList(nll_sb))
+    p2ll = n2ll.createProfile(poi)
+    
+    print "signal+background nll = %f on data at r = %f"%(minNll_sb,rBestFit)
+
+    rFrame = r.frame(rt.RooFit.Bins(20),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame (data)"))
+    rFrame.SetMinimum(0)
+    rFrame.SetMaximum(6)
+    
+    n2ll.plotOn(rFrame,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll_data"))
+    p2ll.plotOn(rFrame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll_data"),rt.RooFit.Precision(-1))
+
+    prepareFrame(c,rFrame,options,type='data')
+
+    print "now doing asimov"
+    r.setVal(0.)
+    # now do asimov
+
+    nll_sb_asimov = model_sb.createNLL(asimov_b,opt)
+    
+    minim_sb_asimov = rt.RooMinimizer(nll_sb_asimov)
+    minim_sb_asimov.setStrategy(strategy)
+    minim_sb_asimov.setEps(tol)
+    minim_sb_asimov.optimizeConst(2)
+    status_sb_asimov = minim_sb_asimov.minimize('Minuit2','migrad')
+    fr_sb_asimov = minim_sb_asimov.save()
+    fr_sb_asimov.Print("v")
+    
+    minNll_sb_asimov = fr_sb.minNll()
+    rBestFit_asimov = r.getVal()
+    
+    pll_asimov = nll_sb_asimov.createProfile(poi)
+    n2ll_asimov = rt.RooFormulaVar("n2ll","2*@0-2*%f"%minNll_sb,rt.RooArgList(nll_sb))
+    p2ll_asimov = n2ll.createProfile(poi)
+    
+    print "signal+background nll = %f on asimov at r = %f"%(minNll_sb_asimov,rBestFit_asimov)
+
+    rFrame_asimov = r.frame(rt.RooFit.Bins(20),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame (asimov)"))
+    rFrame_asimov.SetMinimum(0)
+    rFrame_asimov.SetMaximum(6)
+    
+    n2ll_asimov.plotOn(rFrame_asimov,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll_asimov"))
+    p2ll_asimov.plotOn(rFrame_asimov,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll_asimov"),rt.RooFit.Precision(-1))
+
+    prepareFrame(c,rFrame_asimov,options,type='asimov')
+    
+    outFile.cd()
+    outFile.Close()
+        
 
 if __name__ == '__main__':
     parser = OptionParser()

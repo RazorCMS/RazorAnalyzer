@@ -543,8 +543,10 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
         #h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
         if densityCorr and "_MR_" in h_data.GetName():
             h_data.SetMinimum(1e-6)
+        elif 'Rsq' in h_data.GetName() or 'MR' in h_data.GetName():
+            h_data.SetMinimum(1e-2) 
         else:
-            h_data.SetMinimum(1e-2) # for signal+background fit
+            h_data.SetMinimum(1e-3) # for th1x
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -611,6 +613,9 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
     hClone.SetFillColor(rt.kBlue-10)
     
     h_data = setDataHist(h_data,xTitle,yTitle,densityCorr)
+
+    if 'th1x' in h_data.GetName() and '_MultiJet' in h_data.GetName() and h_data.GetNbinsX()>140:
+        h_data.GetXaxis().SetRange(0,140)
     
     h_data.Draw("pe")
     hClone.Draw("e2same")
@@ -630,6 +635,9 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
 
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Data/Fit")
     
+    if 'th1x' in hCloneDivide.GetName() and '_MultiJet' in hCloneDivide.GetName() and hCloneDivide.GetNbinsX()>140:
+        hCloneDivide.GetXaxis().SetRange(0,140)
+        
     hCloneDivide.Draw("e2")
     #hDivide.Draw("histsame")
     hDataDivide.Draw('pesame')
@@ -1054,6 +1062,19 @@ def get3DHistoFrom1D(h1D,x,y,z,name):
                 h3D.SetBinContent(i,j,k,h1D.GetBinContent(iBinX+1))
                 h3D.SetBinError(i,j,k,h1D.GetBinError(iBinX+1))
     return h3D
+
+
+def get1DHistoFrom2D(h2D,x,y,name):
+    nBins = (len(x)-1)*(len(y)-1)
+    h1D = rt.TH1D(name,name,nBins,0,nBins)
+
+    iBinX=-1
+    for i in range(1,len(x)):
+        for j in range(1,len(y)):
+                iBinX += 1
+                h1D.SetBinContent(iBinX+1,h2D.GetBinContent(i,j))
+                h1D.SetBinError(iBinX+1,h2D.GetBinError(i,j))
+    return h1D
 
 def Gamma(a, x):
     return rt.TMath.Gamma(a) * rt.Math.inc_gamma_c(a,x)
