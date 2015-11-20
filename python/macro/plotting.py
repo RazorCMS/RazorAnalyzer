@@ -16,6 +16,17 @@ def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
         leg.AddEntry(hists[name], titles[name])
     return leg
 
+def makeStack(hists, ordering, title="Stack"):
+    """Takes a dict of histograms and an ordered list of names, and returns a THStack containing the histograms stacked in the desired order"""
+    stack = rt.THStack("thstack"+title.replace(" ",""), title)
+    rt.SetOwnership(stack, False)
+    for name in ordering: 
+        if name in hists:
+            stack.Add(hists[name])
+        else: 
+            print("Warning in makeStack: histogram "+name+" not found in histogram dictionary!")
+    return stack
+
 def makeGrayGraphs(hNS):    
     if hNS is None or hNS == 0: return
     fGrayGraphs = []

@@ -35,11 +35,15 @@ FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
-FIT_DIR = "FitResults/Archive_Data_2093ipb/sideband/"
+FIT_DIR = "MyFitResults_Sideband_PreapprovalFreeze"
+#FIT_DIR = "eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2093ipb"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
         "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
+        #"MultiJet":FIT_DIR+"/MultiJet/sideband/toys_Bayes_MultiJet.root",
+        #"MuMultiJet":FIT_DIR+"/MuMultiJet/sideband/toys_Bayes_MuMultiJet.root",
+        #"EleMultiJet":FIT_DIR+"/EleMultiJet/sideband/toys_Bayes_EleMultiJet.root",
         }
 
 weightOpts = []
@@ -77,14 +81,9 @@ if __name__ == "__main__":
     plotOpts = {}
     doSideband=(not args.full)
     if not doSideband:
-        FIT_DIR = FIT_DIR.replace('Sideband','Full')
-        TOYS_FILES = {
-                "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
-                "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
-                "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
-            }
+        FIT_DIR = FIT_DIR.replace('Sideband','Full').replace('sideband','full')
+        TOYS_FILES = {b:TOYS_FILES[b].replace('sideband','full').replace('Sideband','full') for b in TOYS_FILES}
         dirName += '_Full'
-        special += 'full'
         plotOpts['sideband'] = False
     else:
         plotOpts['sideband'] = True

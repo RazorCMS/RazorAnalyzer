@@ -12,6 +12,8 @@ from RunCombine import exec_me
 jet1Cut = 80 #cut on leading jet pt
 jet2Cut = 80 #cut on subleading jet pt
 
+lumiUncertainty = 0.12
+
 backgrounds = ['dyjetstoll', 'qcd', 'ttjets', 'zjetstonunu', 'multiboson', 'singletop', 'wjetstolnu', 'ttv']
 
 def getScaleFactor(tree, treeName, sfs={}, opt=""):
@@ -197,10 +199,10 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
 
     #lumi
     elif 'lumiUp' in opt:
-        weight = weight*1.05
+        weight = weight*(1+lumiUncertainty)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif 'lumiDown' in opt:
-        weight = weight/1.05
+        weight = weight/(1+lumiUncertainty)
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #jet energy scale up/down
@@ -514,8 +516,8 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     rates.extend([hists[bkg].Integral() for bkg in bkgs])
     processes = [model]
     processes.extend(bkgs)
-    lumiErrs = [1.05] #5% lumi systematic on signal
-    lumiErrs.extend([1.05 for bkg in bkgs]) #5% lumi systematic on each background
+    lumiErrs = [1+lumiUnceratinty] 
+    lumiErrs.extend([1+lumiUnceratinty for bkg in bkgs]) 
     mcErrs = {} #dictionary of uncorrelated mc bkgd lnN uncertainties
 
     #get list of shape uncertainties
