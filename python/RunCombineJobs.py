@@ -177,9 +177,9 @@ if __name__ == '__main__':
             rExpM = expMinus.GetBinContent(expMinus.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
             rExpM2 = expMinus2.GetBinContent(expMinus2.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
             rMax = -1
-            rMaxThresholds = [20., 10., 5., 2., 1., 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
+            rMaxThresholds = [50.,20., 10., 5., 2., 1., 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
             for rMaxTest in rMaxThresholds:
-                if rExpM2<rMaxTest: rMax = rMaxTest
+                if rExpM2<rMaxTest: rMax = 2*rMaxTest
             print "expected limit (+2sigma) = %f"%rExpP2
             print "expected limit (+1sigma) = %f"%rExpP
             print "expected limit           = %f"%rExp
