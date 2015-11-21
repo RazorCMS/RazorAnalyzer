@@ -53,6 +53,8 @@ if __name__ == '__main__':
                   help="no signal shape systematic uncertainties")
     parser.add_option('--rMax',dest="rMax",default=-1,type="float",
                   help="maximum r value (for better precision)")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
+                  help='number of pdf nuisance parameters to use')
 
 
     (options,args) = parser.parse_args()
@@ -130,7 +132,7 @@ if __name__ == '__main__':
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
-            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, 1000*lumi,signalSys),options.dryRun)
+            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root --num-pdf-weights %d -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, options.numPdfWeights, 1000*lumi,signalSys),options.dryRun)
             
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
@@ -144,7 +146,7 @@ if __name__ == '__main__':
                     exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.3f_%s_%s.root'%(options.config,box,lumi,btag,box),options.dryRun)
 
                 
-            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
+            exec_me('python python/WriteDataCard.py --num-pdf-weights %d -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)

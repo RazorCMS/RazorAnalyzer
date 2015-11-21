@@ -335,6 +335,9 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic shape uncertainties")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
+                  help='number of pdf nuisance parameters to use')
+
 
 
     (options,args) = parser.parse_args()
@@ -427,8 +430,9 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','lumi']
-        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale'] #minimal list of shape systematics
+        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']  
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']  
+        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]

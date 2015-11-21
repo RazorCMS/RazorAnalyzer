@@ -189,11 +189,11 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
 
     #pdf weights
     elif 'pdfUp' in opt:
-        pdfNum = int(opt.replace('pdfUp',''))
+        pdfNum = int(opt.replace('pdfUp','').replace('n',''))
         weight = weight*(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
     elif 'pdfDown' in opt:
-        pdfNum = int(opt.replace('pdfDown',''))
+        pdfNum = int(opt.replace('pdfDown','').replace('n',''))
         weight = weight/(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
