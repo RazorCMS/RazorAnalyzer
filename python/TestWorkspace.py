@@ -9,10 +9,19 @@ import random
 from optparse import OptionParser
 from framework import Config
 from PlotFit import *
+import numpy as np
 
 strategy = 2
 tol = 1e-5
+maxFuncCalls = 100000
+maxIter = 100000
+npoints = 50
 
+def reset(w,fr):
+    for p in rootTools.RootIterator.RootIterator(fr.floatParsFinal()):
+        w.var(p.GetName()).setVal(p.getVal())
+        w.var(p.GetName()).setError(p.getError())
+    return True
 
 def prepareFrame(c,rFrame,options,type='data'):
     tlines = []
@@ -120,7 +129,8 @@ def testWorkspace(w,outFile,box,options):
 
 
     r = w.var('r')
-    r.setMax(2.)
+    r.setMin(0.)
+    r.setMax(2.*options.rMax)
     poi = w.set('POI')
     
     allParams = model_sb.getParameters(data_obs)
@@ -138,8 +148,11 @@ def testWorkspace(w,outFile,box,options):
     minim_b = rt.RooMinimizer(nll_b)
     minim_b.setStrategy(strategy)
     minim_b.setEps(tol)
-    minim_b.optimizeConst(2)
+    minim_b.optimizeConst(2)    
+    minim_b.setMaxFunctionCalls(maxFuncCalls)
+    minim_b.setMaxIterations(maxIter)
     status_b = minim_b.minimize('Minuit2','migrad')
+    status_b = minim_b.minimize('Minuit2','improve')
     fr_b = minim_b.save()
     fr_b.Print("v")
 
@@ -152,7 +165,10 @@ def testWorkspace(w,outFile,box,options):
     minim_sb.setStrategy(strategy)
     minim_sb.setEps(tol)
     minim_sb.optimizeConst(2)
+    minim_sb.setMaxFunctionCalls(maxFuncCalls)
+    minim_sb.setMaxIterations(maxIter)
     status_sb = minim_sb.minimize('Minuit2','migrad')
+    status_sb = minim_sb.minimize('Minuit2','improve')
     fr_sb = minim_sb.save()
     fr_sb.Print("v")
 
@@ -175,7 +191,12 @@ def testWorkspace(w,outFile,box,options):
         nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
 
 
-        w.factory('SUM::pdf_bin%s_sonly(n_exp_final_bin%s_proc_%s_%s*shapeSig_%s_%s_%s_morph)'%(singleBox,singleBox,singleBox,options.model,singleBox,singleBox,options.model))
+        if w.pdf('shapeSig_%s_%s_%s_morph'%(singleBox,singleBox,options.model)) != None:
+            # naming convention with shape systematics
+            w.factory('SUM::pdf_bin%s_sonly(n_exp_final_bin%s_proc_%s_%s*shapeSig_%s_%s_%s_morph)'%(singleBox,singleBox,singleBox,options.model,singleBox,singleBox,options.model))
+        else:
+            # naming convention without shape systematics
+            w.factory('SUM::pdf_bin%s_sonly(n_exp_bin%s_proc_%s_%s*shapeSig_%s_%s_%sPdf)'%(singleBox,singleBox,singleBox,options.model,singleBox,options.model,singleBox))
         model_s = w.pdf('pdf_bin%s_sonly'%singleBox)
         asimov_s = model_s.generateBinned(rt.RooArgSet(CMS_th1x),rt.RooFit.Asimov())
         h_sig_th1x = asimov_s.createHistogram('h_sig_th1_%s'%singleBox,CMS_th1x)
@@ -303,19 +324,54 @@ def testWorkspace(w,outFile,box,options):
     p2ll = n2ll.createProfile(poi)
     
     print "signal+background nll = %f on data at r = %f"%(minNll_sb,rBestFit)
-
-    rFrame = r.frame(rt.RooFit.Bins(20),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame (data)"))
+    
+    xs, ys = np.linspace(0, options.rMax, npoints + 1), []    
+    for x in xs:
+        r.setVal(x)
+        r.setConstant(True)
+        ys.append(2.*nll_sb.getVal() - 2.*minNll_sb)
+    xp, yp = np.linspace(0, options.rMax, npoints + 1), []
+    for x in xp:        
+        r.setVal(x)
+        r.setConstant(True)
+        minim_sb.minimize('Minuit2','migrad')
+        minim_sb.minimize('Minuit2','improve')
+        if nll_sb.getVal() - minNll_sb < 0:
+            reset(w,fr_sb)
+            r.setVal(x)
+            r.setConstant(True)
+            minim_sb.minimize('Minuit2','migrad')
+            minim_sb.minimize('Minuit2','improve')
+        yp.append(2.*nll_sb.getVal() - 2.*minNll_sb)
+        
+    gr_s = rt.TGraph(len(xs), array('f', xs), array('f', ys))
+    gr_s.SetLineStyle(2)
+    gr_s.SetLineColor(rt.kBlue)
+    gr_s.SetLineWidth(3)
+    gr_s.SetName("n2ll_data")
+    
+    gr_p = rt.TGraph(len(xp), array('f', xp), array('f', yp))
+    gr_p.SetLineColor(rt.kBlack)
+    gr_p.SetLineWidth(3)
+    gr_p.SetName("p2ll_data")
+    
+    rFrame = r.frame(rt.RooFit.Bins(npoints),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame (data)"))
     rFrame.SetMinimum(0)
     rFrame.SetMaximum(6)
-    
-    n2ll.plotOn(rFrame,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll_data"))
-    p2ll.plotOn(rFrame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll_data"),rt.RooFit.Precision(-1))
+
+    #n2ll.plotOn(rFrame,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll_data"))
+    #p2ll.plotOn(rFrame,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll_data"),rt.RooFit.Precision(-1))
+    rFrame.addObject(gr_s, 'L')
+    rFrame.addObject(gr_p, 'L')
 
     prepareFrame(c,rFrame,options,type='data')
 
     print "now doing asimov"
-    r.setVal(0.)
     # now do asimov
+    
+    reset(w,fr_b)
+    r.setVal(0.)
+    r.setConstant(False)
 
     nll_sb_asimov = model_sb.createNLL(asimov_b,opt)
     
@@ -323,27 +379,77 @@ def testWorkspace(w,outFile,box,options):
     minim_sb_asimov.setStrategy(strategy)
     minim_sb_asimov.setEps(tol)
     minim_sb_asimov.optimizeConst(2)
+    minim_sb_asimov.setMaxFunctionCalls(maxFuncCalls)
+    minim_sb_asimov.setMaxIterations(maxIter)
     status_sb_asimov = minim_sb_asimov.minimize('Minuit2','migrad')
+    status_sb_asimov = minim_sb_asimov.minimize('Minuit2','improve')
     fr_sb_asimov = minim_sb_asimov.save()
     fr_sb_asimov.Print("v")
     
-    minNll_sb_asimov = fr_sb.minNll()
+    minNll_sb_asimov = fr_sb_asimov.minNll()
     rBestFit_asimov = r.getVal()
     
     pll_asimov = nll_sb_asimov.createProfile(poi)
-    n2ll_asimov = rt.RooFormulaVar("n2ll","2*@0-2*%f"%minNll_sb,rt.RooArgList(nll_sb))
-    p2ll_asimov = n2ll.createProfile(poi)
+    n2ll_asimov = rt.RooFormulaVar("n2ll_asimov","2*@0-2*%f"%minNll_sb_asimov,rt.RooArgList(nll_sb_asimov))
+    p2ll_asimov = n2ll_asimov.createProfile(poi)
     
     print "signal+background nll = %f on asimov at r = %f"%(minNll_sb_asimov,rBestFit_asimov)
 
-    rFrame_asimov = r.frame(rt.RooFit.Bins(20),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame (asimov)"))
+    xs_a, ys_a = np.linspace(0, options.rMax, npoints + 1), []    
+    for x in xs_a:
+        r.setVal(x)
+        r.setConstant(True)
+        ys_a.append(2.*nll_sb_asimov.getVal() - 2.*minNll_sb_asimov)
+    xp_a, yp_a = np.linspace(0, options.rMax, npoints + 1), []
+    for x in xp_a:
+        r.setVal(x)
+        r.setConstant(True)
+        minim_sb_asimov.minimize('Minuit2','migrad')
+        minim_sb_asimov.minimize('Minuit2','improve')
+        if nll_sb_asimov.getVal() - minNll_sb_asimov < 0:
+            reset(w,fr_sb_asimov)
+            r.setVal(x)
+            r.setConstant(True)
+            minim_sb_asimov.minimize('Minuit2','migrad')
+            minim_sb_asimov.minimize('Minuit2','improve')
+        yp_a.append(2.*nll_sb_asimov.getVal() - 2.*minNll_sb_asimov)
+        
+    gr_sa = rt.TGraph(len(xs_a), array('f', xs_a), array('f', ys_a))
+    gr_sa.SetLineStyle(2)
+    gr_sa.SetLineColor(rt.kBlue)
+    gr_sa.SetLineWidth(3)
+    gr_sa.SetName("n2ll_asimov")
+    
+    gr_pa = rt.TGraph(len(xp_a), array('f', xp_a), array('f', yp_a))
+    gr_pa.SetLineColor(rt.kBlack)
+    gr_pa.SetLineWidth(3)
+    gr_pa.SetName("p2ll_asimov")
+    
+    rFrame_asimov = r.frame(rt.RooFit.Bins(npoints),rt.RooFit.Range(0.0,options.rMax),rt.RooFit.Title("r frame (asimov)"))
     rFrame_asimov.SetMinimum(0)
     rFrame_asimov.SetMaximum(6)
     
-    n2ll_asimov.plotOn(rFrame_asimov,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll_asimov"))
-    p2ll_asimov.plotOn(rFrame_asimov,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll_asimov"),rt.RooFit.Precision(-1))
+    #n2ll_asimov.plotOn(rFrame_asimov,rt.RooFit.ShiftToZero(),rt.RooFit.LineStyle(2),rt.RooFit.Name("n2ll_asimov"))
+    #p2ll_asimov.plotOn(rFrame_asimov,rt.RooFit.LineColor(rt.kBlack),rt.RooFit.Name("p2ll_asimov"),rt.RooFit.Precision(-1))
+    rFrame_asimov.addObject(gr_sa, 'L')
+    rFrame_asimov.addObject(gr_pa, 'L')
 
     prepareFrame(c,rFrame_asimov,options,type='asimov')
+
+    print ''
+    print "recap:\n"
+    
+    print "background-only   nll = %e on data at   r = %e"%(minNll_b,0)
+    print "signal+background nll = %e on data at   r = %e"%(minNll_sb,rBestFit)
+    print "signal+background nll = %e on asimov at r = %e"%(minNll_sb_asimov,rBestFit_asimov)
+    print ''
+    
+    print "signal+background n2ll profile scan on data:\n"
+    print np.array(zip(xp,yp))
+
+    print "signal+background n2ll scan on asimov:\n"
+    print np.array(zip(xp_a,yp_a))
+    
     
     outFile.cd()
     outFile.Close()
