@@ -24,7 +24,7 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic templates")
-    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=60,type="int",
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
                   help="Number of nuisance parameters to use for PDF uncertainties")
     (options,args) = parser.parse_args()
     
@@ -41,8 +41,8 @@ if __name__ == '__main__':
         shapes = []
     else:
         #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
-        #shapes.extend([str(n)+'pdf' for n in range(options.numPdfWeights)])        
-        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale'] #minimal list of shape systematics
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
+        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])        
 
     for curBox in boxList:
         #create workspace
@@ -62,7 +62,7 @@ if __name__ == '__main__':
             tree = rootFile.Get('RazorInclusive') #get tree
 
             #get histograms for sum of pdf and scale weights
-            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes or '0pdf' in shapes:
+            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes or 'n0pdf' in shapes:
                 nevents = rootFile.Get('NEvents')
                 assert nevents
             else:
@@ -74,7 +74,7 @@ if __name__ == '__main__':
             else:
                 sumScaleWeights = None
 
-            if '0pdf' in shapes:
+            if 'n0pdf' in shapes:
                 sumPdfWeights = rootFile.Get('SumPdfWeights')
                 assert sumPdfWeights
             else:
