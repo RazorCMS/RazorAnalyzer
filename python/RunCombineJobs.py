@@ -34,7 +34,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     user = os.environ['USER']
     pwd = os.environ['PWD']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/"%(user[0],user) # directory where combine output files will be copied
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/%s/"%(user[0],user,model) # directory where combine output files will be copied
     cmsswBase = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5"%(user[0],user) # directory where 'cmsenv' will be run (needs to have combine and RazorAnalyzer setup)
 
     script =  '#!/usr/bin/env bash -x\n'
@@ -52,7 +52,8 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += "mkdir -p $TWD\n"
     script += "cd $TWD\n"
     script += 'pwd\n'
-    script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
+    script += 'git clone -b git@github.com:RazorCMS/RazorAnalyzer\n'
+    script += 'git checkout -b Limits Limits20151121\n'
     script += 'cd RazorAnalyzer\n'
     script += 'source setup.sh\n'
     script += 'make\n'
