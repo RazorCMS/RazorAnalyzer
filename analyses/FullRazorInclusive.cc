@@ -169,15 +169,20 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     cout << "Getting JEC parameters from " << pathname << endl;
     std::vector<JetCorrectorParameters> correctionParameters;
     if (isData) {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-    } 
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+    }
+    else if (isFastsimSMS) {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    }
     else {
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-        correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
     //Set up JEC machinery 
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
@@ -188,6 +193,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     string jecUncPath;
     if (isData) {
         jecUncPath = pathname+"/Summer15_25nsV6_DATA_Uncertainty_AK4PFchs.txt";
+    }
+    else if (isFastsimSMS) {
+      jecUncPath = pathname+"/Fastsim_MCRUN2_74_V9_Uncertainty_AK4PFchs.txt";
     }
     else {
         jecUncPath = pathname+"/Summer15_25nsV6_MC_Uncertainty_AK4PFchs.txt";
