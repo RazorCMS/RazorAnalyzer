@@ -62,11 +62,25 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     /////////////////////////////////
 
     TFile *pileupWeightFile = 0;
-    TH1D *pileupWeightHist = 0;
+    TH1F *pileupWeightHist = 0;
+    TH1F *pileupWeightSysUpHist = 0;
+    TH1F *pileupWeightSysDownHist = 0;
     if(!isData){
-        pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors//PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root");
-        pileupWeightHist = (TH1D*)pileupWeightFile->Get("NVtxReweight");
-        assert(pileupWeightHist);
+
+      string pathname;
+      if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
+      else {
+        cout << "ERROR: CMSSW_BASE not detected. Exiting...";
+	assert(false);
+      }
+
+      pileupWeightFile = TFile::Open(Form("%s/PileupReweight_Spring15MCTo2015Data.root",pathname.c_str()));
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      assert(pileupWeightHist);
+      assert(pileupWeightSysUpHist);
+      assert(pileupWeightSysDownHist);
     }
 
     /////////////////////////////////
@@ -227,6 +241,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
           leadingJetPt, subleadingJetPt, leadingTightMuPt, leadingTightElePt;
     float weight = 1.0;
     RazorBox box;
+    //For signal ISR systematic uncertainty
+    float ISRSystWeightUp, ISRSystWeightDown;
+    //For pileup systematic uncertainty
+    float pileupWeightUp, pileupWeightDown;
     //For lepton efficiency scale factor uncertainty
     float sf_muonEffUp, sf_muonEffDown;
     float sf_eleEffUp, sf_eleEffDown;
@@ -315,6 +333,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     if (!isData) {    
         razorTree->Branch("genWeight", &genWeight, "genWeight/F");
         razorTree->Branch("weight", &weight, "weight/F");
+        razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
+        razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
+        razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
+        razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_vetoMuonEffUp", &sf_vetoMuonEffUp, "sf_vetoMuonEffUp/F");
@@ -487,6 +509,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         nTightElectrons = 0;
         nLooseTaus = 0;
         if(!isData){
+  	    ISRSystWeightUp = 1.0;
+  	    ISRSystWeightDown = 1.0;
+	    pileupWeightUp = 1.0;
+	    pileupWeightDown = 1.0;
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
             sf_vetoMuonEffUp = 1.0;
@@ -630,6 +656,80 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         vector<TLorentzVector> GoodLeptonsEESUp;
         vector<TLorentzVector> GoodLeptonsEESDown;
 
+
+        /////////////////////////////////
+        //MC particles
+        /////////////////////////////////	
+	if(isFastsimSMS){
+
+	  double GluinoPt = 0;
+	  TLorentzVector *gluino1PreShowering = 0;
+	  TLorentzVector *gluino2PreShowering = 0;
+	  TLorentzVector *gluino1PostShowering = 0;
+	  TLorentzVector *gluino2PostShowering = 0;
+	  for(int j = 0; j < nGenParticle; j++){
+	    //cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
+
+	    if (gParticleId[j] == 1000021 && gParticleStatus[j] == 22) {
+	      if (!gluino1PreShowering) {
+		gluino1PreShowering = new TLorentzVector;
+		gluino1PreShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	      } else if (!gluino2PreShowering) {
+		gluino2PreShowering = new TLorentzVector;
+		gluino2PreShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	      } else {
+		cout << "Warning More than 2 status 22 gluinos\n";
+	      }
+	    }
+	    
+	    if (gParticleId[j] == 1000021 && gParticleStatus[j] == 62) {
+	      if (!gluino1PostShowering) {
+		gluino1PostShowering = new TLorentzVector;
+		gluino1PostShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	      } else if (!gluino2PostShowering) {
+		gluino2PostShowering = new TLorentzVector;
+		gluino2PostShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+	      } else {
+		cout << "Warning More than 2 status 62 gluinos\n";
+	      }
+	    }
+
+	    if (gluino1PreShowering && gluino2PreShowering && gluino1PostShowering && gluino2PostShowering) break;
+	  }
+	
+	  if (gluino1PreShowering && gluino2PreShowering) {
+	    // cout << "PreShowering Gluino Pair System: " 
+	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Pt() << " "
+	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Eta() << " "
+	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Phi() << " "
+	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).M() << " "
+	    // 	 << " \n";	    
+	  }
+	  if (gluino1PostShowering && gluino2PostShowering) {
+	    // cout << "PostShowering Gluino Pair System: " 
+	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() << " "
+	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Eta() << " "
+	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Phi() << " "
+	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).M() << " "
+	    // 	 << " \n";	 
+
+	    ISRSystWeightUp = 1.0; 
+	    if ( ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() > 400 && 
+		 ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() <= 600 ) {
+	      ISRSystWeightUp = 1.15;
+	      ISRSystWeightDown = 0.85;
+	    } else if ( ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() > 600) {
+	      ISRSystWeightUp = 1.30;
+	      ISRSystWeightDown = 0.70;
+	    }		 
+	  }
+
+	  if (gluino1PreShowering) delete gluino1PreShowering;
+	  if (gluino2PreShowering) delete gluino2PreShowering;
+	  if (gluino1PostShowering) delete gluino1PostShowering;
+	  if (gluino2PostShowering) delete gluino2PostShowering;	 
+	} // end if fastsim signals
+	
         /////////////////////////////////
         //Trigger
         /////////////////////////////////
@@ -675,20 +775,23 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         //Pileup reweighting
         /////////////////////////////////
 
-        //double NPU = 0;
+        double NPU = 0;
         double pileupWeight = 1.0;
         if(!isData){
-            //Get number of PU interactions
-            for (int i = 0; i < nBunchXing; i++) {
-                if (BunchXing[i] == 0) {
-                    //NPU = nPUmean[i];
-                }
-            }
-            //NOTE: reweight with nPV for now
-            pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPV));
-            //pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+	  //Get number of PU interactions
+	  for (int i = 0; i < nBunchXing; i++) {
+	    if (BunchXing[i] == 0) {
+	      NPU = nPUmean[i];
+	    }
+	  }
+	  //NOTE: reweight with nPV for now
+	  //pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPV));
+	  pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+	  pileupWeightUp = pileupWeightSysUpHist->GetBinContent(pileupWeightSysUpHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;
+	  pileupWeightDown = pileupWeightSysDownHist->GetBinContent(pileupWeightSysDownHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;	    
+	  
         }
-
+	
         /////////////////////////////////
         //Muon selection
         /////////////////////////////////
