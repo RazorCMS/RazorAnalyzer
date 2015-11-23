@@ -24,6 +24,8 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic templates")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
+                  help="Number of nuisance parameters to use for PDF uncertainties")
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
@@ -35,28 +37,12 @@ if __name__ == '__main__':
     f = args[0]
     print 'Input file is %s' % f
 
-    ##################
-    #get pileup weight hist (remove this later)
-    #pileupWeightFileName = "data/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
-    #pileupHistName = "NVtxReweight"
-    #pileupWeightFile = rt.TFile.Open(pileupWeightFileName)
-    #pileupWeightHist = pileupWeightFile.Get(pileupHistName)
-    ##################
-    pileupWeightHist = None
-    ##################
-    #hadronic trigger weight
-    #hadronicTriggerWeight = 0.935
-    ##################
-    hadronicTriggerWeight = 0.975
-    ##################
-    
-
-    #list of shape systematics to apply.
-    
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['muoneff','eleeff','jes']
+        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
+        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])        
 
     for curBox in boxList:
         #create workspace
@@ -74,6 +60,25 @@ if __name__ == '__main__':
         if f.lower().endswith('.root'):
             rootFile = rt.TFile.Open(f) #open file
             tree = rootFile.Get('RazorInclusive') #get tree
+
+            #get histograms for sum of pdf and scale weights
+            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes or 'n0pdf' in shapes:
+                nevents = rootFile.Get('NEvents')
+                assert nevents
+            else:
+                nevents = None
+
+            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes:
+                sumScaleWeights = rootFile.Get('SumScaleWeights')
+                assert sumScaleWeights
+            else:
+                sumScaleWeights = None
+
+            if 'n0pdf' in shapes:
+                sumPdfWeights = rootFile.Get('SumPdfWeights')
+                assert sumPdfWeights
+            else:
+                sumPdfWeights = None
 
             # get mass point information
             modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
@@ -114,11 +119,11 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=hadronicTriggerWeight))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=hadronicTriggerWeight))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents))
             rootFile.Close()
         else:
             print "Error: expected ROOT file!"

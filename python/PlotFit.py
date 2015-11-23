@@ -417,6 +417,9 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
         if (xmax-xmin)%20:
             xmax = xmax + 20-(xmax-xmin)%20
         nbins=20
+    #no-stat bins should be much smaller (to avoid having too many nsigma=0 bins)
+    elif options.noStat:
+        nbins = (xmax-xmin)*50
     else:
         nbins = xmax-xmin
     
@@ -481,7 +484,7 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
 
         
         tleg = rt.TLegend(0.65,.6,.89,.89)
-        tleg.AddEntry(tlineObs,"observed = %d"%nObs,"l")
+        tleg.AddEntry(tlineObs,"observed = %.2f"%nObs,"l")
         tleg.AddEntry(tline,"best fit = %.2f"%bestFit,"l")
         #tleg.AddEntry(tgraph,"rms = %.2f"%rms,"f")
         if useKDE:
@@ -521,7 +524,7 @@ def getPads(c):
     return pad1, pad2
 
 
-def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):        
+def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
     h_data.SetMarkerColor(color)
     h_data.SetMarkerStyle(20)
     h_data.SetLineColor(color)
@@ -541,9 +544,12 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
     else:        
         h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25)))
         #h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
-        h_data.SetMinimum(1e-2) # for signal+background fit
-        if densityCorr and "h_MR" in h_data.GetName():
+        if densityCorr and "_MR_" in h_data.GetName():
             h_data.SetMinimum(1e-6)
+        elif 'Rsq' in h_data.GetName() or 'MR' in h_data.GetName():
+            h_data.SetMinimum(1e-2) 
+        else:
+            h_data.SetMinimum(2e-2) # for th1x
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -610,6 +616,9 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
     hClone.SetFillColor(rt.kBlue-10)
     
     h_data = setDataHist(h_data,xTitle,yTitle,densityCorr)
+
+    if 'th1x' in h_data.GetName() and '_MultiJet' in h_data.GetName() and h_data.GetNbinsX()>140:
+        h_data.GetXaxis().SetRange(0,140)
     
     h_data.Draw("pe")
     hClone.Draw("e2same")
@@ -629,6 +638,128 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
 
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Data/Fit")
     
+    if 'th1x' in hCloneDivide.GetName() and '_MultiJet' in hCloneDivide.GetName() and hCloneDivide.GetNbinsX()>140:
+        hCloneDivide.GetXaxis().SetRange(0,140)
+        
+    hCloneDivide.Draw("e2")
+    #hDivide.Draw("histsame")
+    hDataDivide.Draw('pesame')
+    hCloneDivide.Draw("axissame")
+
+
+    pad2.Update()
+    pad1.cd()
+    pad1.Update()
+    pad1.Draw()
+
+    if tLeg==None:
+        if len(h_components)>=7:
+            tLeg = rt.TLegend(0.7,0.3,0.9,0.8)
+        elif len(h_components)==6:
+            tLeg = rt.TLegend(0.7,0.35,0.9,0.8)
+        elif len(h_components)==5:
+            tLeg = rt.TLegend(0.7,0.4,0.9,0.8)
+        elif len(h_components)==4:
+            tLeg = rt.TLegend(0.7,0.45,0.9,0.8)
+        elif len(h_components)==3:
+            tLeg = rt.TLegend(0.7,0.5,0.9,0.8)
+        elif len(h_components)==2:
+            tLeg = rt.TLegend(0.7,0.55,0.9,0.8)            
+        else:
+            tLeg = rt.TLegend(0.7,0.6,0.9,0.8)
+        tLeg.SetFillColor(0)
+        tLeg.SetTextFont(42)
+        tLeg.SetLineColor(0)
+        if isData:
+            tLeg.AddEntry(h_data,"Data","lep")
+        else:
+            tLeg.AddEntry(h_data,"Sim. Data","lep")
+        tLeg.AddEntry(hClone,"Fit Total","lf")
+        for h_comp, color, label in zip(h_components, h_colors, h_labels):                
+            tLeg.AddEntry(h_comp,label,"l")
+            
+    tLeg.Draw("same")
+
+    l = rt.TLatex()
+    l.SetTextAlign(11)
+    l.SetTextSize(0.05)
+    l.SetTextFont(42)
+    l.SetNDC()
+    if isData:
+        l.DrawLatex(0.15,0.9,"CMS preliminary")
+    else:
+        l.DrawLatex(0.15,0.9,"CMS simulation")
+    l.DrawLatex(0.78,0.9,"%s"%lumiLabel)
+    l.SetTextFont(52)
+    l.SetTextSize(0.045)
+    l.DrawLatex(0.2,0.82,boxLabel)
+    l.DrawLatex(0.3,0.77,plotLabel)
+
+    c.cd()
+    
+    c.Print(printName)
+    c.Print(os.path.splitext(printName)[0]+'.C')
+    cWrite = c.Clone(os.path.splitext(printName)[0].split('/')[-1])
+    rootFile.cd()
+    c.Write(os.path.splitext(printName)[0].split('/')[-1])
+
+    
+def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
+    
+    if densityCorr:
+        h_densitycorr = densityCorrect(h)
+        h_data_densitycorr = densityCorrect(h_data)        
+        h_components_densitycorr = [densityCorrect(h_comp) for h_comp in h_components]
+        
+        h = h_densitycorr
+        h_data = h_data_densitycorr
+        h_components = h_components_densitycorr
+        
+    pad1, pad2 = getPads(c)
+
+    h.SetLineWidth(2)
+    h.SetLineColor(rt.kBlue)
+    hClone = h.Clone(h.GetName()+"Clone")
+    hClone.SetLineColor(rt.kBlue)
+    hClone.SetFillColor(rt.kBlue-10)
+    
+    h_data = setDataHist(h_data,xTitle,yTitle,densityCorr)
+
+    if 'th1x' in h_data.GetName() and '_MultiJet' in h_data.GetName() and h_data.GetNbinsX()>140:
+        h_data.GetXaxis().SetRange(0,140)
+    
+    h_data.Draw("pe")
+    hClone.Draw("e2same")
+    h.SetFillStyle(0)
+    for h_comp, color, label in zip(h_components, h_colors, h_labels):
+        h_comp.SetLineColor(color)
+        h_comp.SetLineWidth(2)            
+        h_comp.Draw("histsame")
+    h.DrawCopy("histsame")
+    h_data.Draw("pesame")
+    pad1.Draw()
+    c.Update()
+    c.cd()
+    pad2.Draw()
+    pad2.cd()
+    rt.gPad.SetLogy(0)
+
+    
+    hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "n#sigma")    
+    hDataDivideNs = get1DHistoFrom2D(h_ns,x,y,h_ns.GetName()+'1d')
+    hCloneDivide.SetMaximum(5.)
+    hCloneDivide.SetMinimum(-5.)
+    for i in range(1,hCloneDivide.GetNbinsX()+1):
+        hCloneDivide.SetBinContent(i,0)
+        hCloneDivide.SetBinError(i,1)
+        hDivide.SetBinContent(i,0)
+        hDivide.SetBinError(i,1)        
+        hDataDivide.SetBinContent(i,hDataDivideNs.GetBinContent(i))
+        hDataDivide.SetBinError(i,0)
+        
+    if 'th1x' in hCloneDivide.GetName() and '_MultiJet' in hCloneDivide.GetName() and hCloneDivide.GetNbinsX()>140:
+        hCloneDivide.GetXaxis().SetRange(0,140)
+        
     hCloneDivide.Draw("e2")
     #hDivide.Draw("histsame")
     hDataDivide.Draw('pesame')
@@ -867,7 +998,7 @@ def set2DHisto(h2D,xTitle,yTitle,zTitle):
     #h2D.GetXaxis().SetTicks("+-")
     return h2D
 
-def getGrayLines(x,y,sidebandFit=False):        
+def getGrayLines(x,y,sidebandFit=None):        
     # the gray lines
     xLines = []
     yLines = []
@@ -887,11 +1018,13 @@ def getGrayLines(x,y,sidebandFit=False):
 
         
     if sidebandFit:
-        yLines.append(rt.TLine(x[2], y[1], x[2], y[-1]))
+        mrSide = sidebandFit[0]
+        rsqSide = sidebandFit[1]
+        yLines.append(rt.TLine(mrSide, rsqSide, mrSide, y[-1]))
         yLines[-1].SetLineStyle(2)
         yLines[-1].SetLineWidth(2)
         yLines[-1].SetLineColor(rt.kGreen)
-        xLines.append(rt.TLine(x[2], y[1], x[-1], y[1]))
+        xLines.append(rt.TLine(mrSide, rsqSide, x[-1], rsqSide))
         xLines[-1].SetLineStyle(2)
         xLines[-1].SetLineWidth(2)
         xLines[-1].SetLineColor(rt.kGreen)
@@ -948,7 +1081,7 @@ def set2DCanvas(c):
     c.SetLogz(0)
     return c
 
-def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,zMin,zMax,isData=False,sidebandFit=False,drawOpt="colz"):
+def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,zMin,zMax,isData=False,sidebandFit=None,drawOpt="colz"):
 
     c = set2DCanvas(c)
     c.SetLogz(1)
@@ -991,7 +1124,7 @@ def print2DScatter(c,rootFile,h,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabe
     #rootFile.cd()
     #c.Write(os.path.splitext(printName.replace('log','lin'))[0].split('/')[-1])
     
-def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,isData=False,sidebandFit=False,drawOpt="colz"):
+def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,boxLabel,plotLabel,x,y,isData=False,sidebandFit=None,drawOpt="colz"):
     
     c = set2DCanvas(c)
     absMax = max(abs(h_resi.GetMinimum()),abs(h_resi.GetMaximum()))    
@@ -1008,7 +1141,7 @@ def print2DResiduals(c,rootFile,h_resi,printName,xTitle,yTitle,zTitle,lumiLabel,
     
     [xLine.Draw("l") for xLine in xLines]
     [yLine.Draw("l") for yLine in yLines]
-    [fGray.Draw("f") for fGray in fGrayGraphs]    
+    #[fGray.Draw("f") for fGray in fGrayGraphs]    
     [tlatex.Draw() for tlatex in tlatexList]
     
     l = rt.TLatex()
@@ -1051,6 +1184,33 @@ def get3DHistoFrom1D(h1D,x,y,z,name):
                 h3D.SetBinContent(i,j,k,h1D.GetBinContent(iBinX+1))
                 h3D.SetBinError(i,j,k,h1D.GetBinError(iBinX+1))
     return h3D
+
+
+def get1DHistoFrom2D(h2D,x,y,name):
+    nBins = (len(x)-1)*(len(y)-1)
+    h1D = rt.TH1D(name,name,nBins,0,nBins)
+
+    iBinX=-1
+    for i in range(1,len(x)):
+        for j in range(1,len(y)):
+            iBinX += 1
+            h1D.SetBinContent(iBinX+1,h2D.GetBinContent(i,j))
+            h1D.SetBinError(iBinX+1,h2D.GetBinError(i,j))
+    return h1D
+
+
+def get1DHistoFrom3D(h3D,x,y,name):
+    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    h1D = rt.TH1D(name,name,nBins,0,nBins)
+
+    iBinX=-1
+    for i in range(1,len(x)):
+        for j in range(1,len(y)):
+            for k in range(1,len(z)):
+                iBinX += 1
+                h1D.SetBinContent(iBinX+1,h3D.GetBinContent(i,j,k))
+                h1D.SetBinError(iBinX+1,h3D.GetBinError(i,j,k))
+    return h1D
 
 def Gamma(a, x):
     return rt.TMath.Gamma(a) * rt.Math.inc_gamma_c(a,x)
@@ -1140,17 +1300,36 @@ def getErrors1D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
         h.SetBinError(i,rms)
     return h
 
+def getErrors2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
+    binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+    
+    d = rt.TCanvas('d','d',500,400)
+    for (i,j), sumName in binSumDict.iteritems():
+        nObs = h_data.GetBinContent(i, j)
+        bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
+        h.SetBinError(i,j,rms)
+    return h
+
+def getErrors3D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
+    binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+    
+    d = rt.TCanvas('d','d',500,400)
+    for (i,j, k), sumName in binSumDict.iteritems():
+        nObs = h_data.GetBinContent(i, j, k)
+        bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i_%i.pdf"%(h.GetName(),i,j,k))
+        h.SetBinError(i,j,k,rms)
+    return h
 
 def getNsigma2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
     binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+    
     d = rt.TCanvas('d','d',500,400)
     for (i,j), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i,j)
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
-        #h.SetBinContent(i,j,(nObs-bestFit)/rms)
         h.SetBinContent(i,j,nsigma)
-        if abs(nsigma)==0 and bestFit<1 and nObs==0:
-            h.SetBinContent(i,j,-999)
+        #if abs(nsigma)==0 and bestFit<1 and nObs==0:
+        #    h.SetBinContent(i,j,-999)
     return h
 
 
@@ -1165,9 +1344,9 @@ if __name__ == '__main__':
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default="BinnedFitResults_MultiJet.root",type="string",
-                  help="intput fit file")
+                  help="input fit file")
     parser.add_option('-t','--input-toy-file',dest="inputToyFile", default=None,type="string",
-                  help="intput toy file")
+                  help="input toy file")
     parser.add_option('--print-errors',dest="printErrors", default=False,action='store_true',
                   help="print plots of individual error calculation")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
@@ -1178,6 +1357,8 @@ if __name__ == '__main__':
                   help="Plot region")
     parser.add_option('-w','--weight',dest="useWeight",default=False,action='store_true',
                   help="use weight")
+    parser.add_option('--no-stat', dest='noStat', default=False, action='store_true',
+                  help='toys thrown with systematic uncertainties only')
     
     (options,args) = parser.parse_args()
      
@@ -1193,8 +1374,12 @@ if __name__ == '__main__':
 
     toyTree = None
     if options.inputToyFile is not None:
-        inputToyFile = rt.TFile.Open(options.inputToyFile,"read")
-        toyTree = inputToyFile.Get("myTree")
+        #inputToyFile = rt.TFile.Open(options.inputToyFile,"read")
+        #toyTree = inputToyFile.Get("myTree")
+        toyFiles = options.inputToyFile.split(',')
+        toyTree = rt.TChain("myTree")
+        for toyFile in toyFiles:
+            toyTree.Add(toyFile)
     computeErrors = (toyTree is not None)
 
     w = inputFitFile.Get("w"+box)
@@ -1296,6 +1481,11 @@ if __name__ == '__main__':
     if computeErrors:
         h_MR = getErrors1D(h_MR,h_data_MR,toyTree,options,"x",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
         h_Rsq = getErrors1D(h_Rsq,h_data_Rsq,toyTree,options,"y",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        h_RsqMR = getErrors2D(h_RsqMR,h_data_RsqMR,toyTree,options,"yx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        h_nBtagRsqMR = getErrors3D(h_nBtagRsqMR,h_data_nBtagRsqMR,toyTree,options,"zyx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        
+        # convert after getting the 3D errors if provided
+        h_th1x = get1DHistoFrom3D(h_nBtagRsqMR,x,y,'h_th1x_wErrors')
         
     h_MR_slices = []
     h_MR_integrals = []
@@ -1414,6 +1604,9 @@ if __name__ == '__main__':
     h_data_Rsq_components = []
     h_data_RsqMR_components = []
     h_data_RsqMR_fine_components = []
+    h_th1x_components = []
+    h_data_th1x_components = []
+    
     h_labels = []        
     h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
     if len(z)>2:
@@ -1435,7 +1628,13 @@ if __name__ == '__main__':
             
             if computeErrors:
                 h_MR_components[-1] = getErrors1D(h_MR_components[-1],h_data_MR_components[-1],toyTree,options,"x",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
-                h_Rsq_components[-1] = getErrors1D(h_Rsq_components[-1],h_data_Rsq_components[-1],toyTree,options,"y",0,len(x)-1,0,len(y)-1,k,k,x,y,z)  
+                h_Rsq_components[-1] = getErrors1D(h_Rsq_components[-1],h_data_Rsq_components[-1],toyTree,options,"y",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
+                h_RsqMR_components[-1] = getErrors2D(h_RsqMR_components[-1],h_data_RsqMR_components[-1],toyTree,options,"yx",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
+
+            # convert after getting the 2D errors
+            h_th1x_components.append(get1DHistoFrom2D(h_RsqMR_components[-1],x,y,'h_th1x_%ibtag'%(z[k-1])))
+            h_data_th1x_components.append(get1DHistoFrom2D(h_data_RsqMR_components[-1],x,y,'h_th1x_data_%ibtag'%(z[k-1])))
+            
             if z[k-1]==3 and z[-1]==4:
                 h_labels.append("#geq %i b-tag" % z[k-1] )
             if z[k-1]==1 and z[-1]==4 and box in ['MuEle','MuMu','EleEle']:                
@@ -1508,9 +1707,11 @@ if __name__ == '__main__':
     boxLabel = "razor %s %s %s Fit" % (box,btagLabel,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
-    sidebandFit = False
+    sidebandFit = None
     if fitRegion=="LowMR,LowRsq":
-        sidebandFit = True
+        mrSide = w.var('MR').getMax('LowMR')
+        rsqSide = w.var('Rsq').getMax('LowRsq')
+        sidebandFit = [mrSide, rsqSide]
         
     if options.isData:
         dataString = "Data"
@@ -1526,6 +1727,7 @@ if __name__ == '__main__':
     if densityCorr:
         eventsLabel = "Events/Bin Width"
     
+    print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None)
     print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_MR_components,h_colors,h_labels)
     print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_Rsq_components,h_colors,h_labels)
     
@@ -1545,13 +1747,14 @@ if __name__ == '__main__':
     #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff,options.outDir+"/h_RsqMR_percentdiff_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     print2DResiduals(c,tdirectory,h_RsqMR_statnsigma,options.outDir+"/h_RsqMR_statnsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (%s - Fit)/sqrt(Fit)"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     if computeErrors:
-        print2DResiduals(c,tdirectory,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,plotLabel,x,y,options.isData)
+        print2DResiduals(c,tdirectory,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
     print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", dataString,lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
 
     if len(z)>2:
         for k in range(0,len(z)-1):
-            newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)
+            newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)            
+            print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             if computeErrors:
