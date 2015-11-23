@@ -549,7 +549,7 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
         elif 'Rsq' in h_data.GetName() or 'MR' in h_data.GetName():
             h_data.SetMinimum(1e-2) 
         else:
-            h_data.SetMinimum(1e-3) # for th1x
+            h_data.SetMinimum(2e-2) # for th1x
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -638,6 +638,125 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
 
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Data/Fit")
     
+    if 'th1x' in hCloneDivide.GetName() and '_MultiJet' in hCloneDivide.GetName() and hCloneDivide.GetNbinsX()>140:
+        hCloneDivide.GetXaxis().SetRange(0,140)
+        
+    hCloneDivide.Draw("e2")
+    #hDivide.Draw("histsame")
+    hDataDivide.Draw('pesame')
+    hCloneDivide.Draw("axissame")
+
+
+    pad2.Update()
+    pad1.cd()
+    pad1.Update()
+    pad1.Draw()
+
+    if tLeg==None:
+        if len(h_components)>=7:
+            tLeg = rt.TLegend(0.7,0.3,0.9,0.8)
+        elif len(h_components)==6:
+            tLeg = rt.TLegend(0.7,0.35,0.9,0.8)
+        elif len(h_components)==5:
+            tLeg = rt.TLegend(0.7,0.4,0.9,0.8)
+        elif len(h_components)==4:
+            tLeg = rt.TLegend(0.7,0.45,0.9,0.8)
+        elif len(h_components)==3:
+            tLeg = rt.TLegend(0.7,0.5,0.9,0.8)
+        elif len(h_components)==2:
+            tLeg = rt.TLegend(0.7,0.55,0.9,0.8)            
+        else:
+            tLeg = rt.TLegend(0.7,0.6,0.9,0.8)
+        tLeg.SetFillColor(0)
+        tLeg.SetTextFont(42)
+        tLeg.SetLineColor(0)
+        if isData:
+            tLeg.AddEntry(h_data,"Data","lep")
+        else:
+            tLeg.AddEntry(h_data,"Sim. Data","lep")
+        tLeg.AddEntry(hClone,"Fit Total","lf")
+        for h_comp, color, label in zip(h_components, h_colors, h_labels):                
+            tLeg.AddEntry(h_comp,label,"l")
+            
+    tLeg.Draw("same")
+
+    l = rt.TLatex()
+    l.SetTextAlign(11)
+    l.SetTextSize(0.05)
+    l.SetTextFont(42)
+    l.SetNDC()
+    if isData:
+        l.DrawLatex(0.15,0.9,"CMS preliminary")
+    else:
+        l.DrawLatex(0.15,0.9,"CMS simulation")
+    l.DrawLatex(0.78,0.9,"%s"%lumiLabel)
+    l.SetTextFont(52)
+    l.SetTextSize(0.045)
+    l.DrawLatex(0.2,0.82,boxLabel)
+    l.DrawLatex(0.3,0.77,plotLabel)
+
+    c.cd()
+    
+    c.Print(printName)
+    c.Print(os.path.splitext(printName)[0]+'.C')
+    cWrite = c.Clone(os.path.splitext(printName)[0].split('/')[-1])
+    rootFile.cd()
+    c.Write(os.path.splitext(printName)[0].split('/')[-1])
+
+    
+def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
+    
+    if densityCorr:
+        h_densitycorr = densityCorrect(h)
+        h_data_densitycorr = densityCorrect(h_data)        
+        h_components_densitycorr = [densityCorrect(h_comp) for h_comp in h_components]
+        
+        h = h_densitycorr
+        h_data = h_data_densitycorr
+        h_components = h_components_densitycorr
+        
+    pad1, pad2 = getPads(c)
+
+    h.SetLineWidth(2)
+    h.SetLineColor(rt.kBlue)
+    hClone = h.Clone(h.GetName()+"Clone")
+    hClone.SetLineColor(rt.kBlue)
+    hClone.SetFillColor(rt.kBlue-10)
+    
+    h_data = setDataHist(h_data,xTitle,yTitle,densityCorr)
+
+    if 'th1x' in h_data.GetName() and '_MultiJet' in h_data.GetName() and h_data.GetNbinsX()>140:
+        h_data.GetXaxis().SetRange(0,140)
+    
+    h_data.Draw("pe")
+    hClone.Draw("e2same")
+    h.SetFillStyle(0)
+    for h_comp, color, label in zip(h_components, h_colors, h_labels):
+        h_comp.SetLineColor(color)
+        h_comp.SetLineWidth(2)            
+        h_comp.Draw("histsame")
+    h.DrawCopy("histsame")
+    h_data.Draw("pesame")
+    pad1.Draw()
+    c.Update()
+    c.cd()
+    pad2.Draw()
+    pad2.cd()
+    rt.gPad.SetLogy(0)
+
+    
+    hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "n#sigma")    
+    hDataDivideNs = get1DHistoFrom2D(h_ns,x,y,h_ns.GetName()+'1d')
+    hCloneDivide.SetMaximum(5.)
+    hCloneDivide.SetMinimum(-5.)
+    for i in range(1,hCloneDivide.GetNbinsX()+1):
+        hCloneDivide.SetBinContent(i,0)
+        hCloneDivide.SetBinError(i,1)
+        hDivide.SetBinContent(i,0)
+        hDivide.SetBinError(i,1)        
+        hDataDivide.SetBinContent(i,hDataDivideNs.GetBinContent(i))
+        hDataDivide.SetBinError(i,0)
+        
     if 'th1x' in hCloneDivide.GetName() and '_MultiJet' in hCloneDivide.GetName() and hCloneDivide.GetNbinsX()>140:
         hCloneDivide.GetXaxis().SetRange(0,140)
         
@@ -1635,7 +1754,7 @@ if __name__ == '__main__':
     if len(z)>2:
         for k in range(0,len(z)-1):
             newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)            
-            print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+            print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             if computeErrors:
