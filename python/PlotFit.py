@@ -523,6 +523,24 @@ def getPads(c):
     rt.gPad.SetLogy(1)
     return pad1, pad2
 
+def getPadsNs(c):    
+    pad1 = rt.TPad(c.GetName()+"_pad1","pad1",0,0.25,1,1)
+    pad2 = rt.TPad(c.GetName()+"_pad2","pad2",0,0,1,0.25)
+    pad2.SetGridy(1)
+    pad1.Range(-213.4588,-0.3237935,4222.803,5.412602);
+    pad2.Range(-213.4588,-2.206896,4222.803,3.241379);
+    pad1.SetLeftMargin(0.15)
+    pad2.SetLeftMargin(0.15)
+    pad1.SetRightMargin(0.05)
+    pad2.SetRightMargin(0.05)
+    pad1.SetTopMargin(0.12)
+    pad2.SetTopMargin(0.)
+    pad1.SetBottomMargin(0.)
+    pad2.SetBottomMargin(0.47)
+    pad1.Draw()
+    pad1.cd()
+    rt.gPad.SetLogy(1)
+    return pad1, pad2
 
 def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
     h_data.SetMarkerColor(color)
@@ -549,7 +567,7 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
         elif 'Rsq' in h_data.GetName() or 'MR' in h_data.GetName():
             h_data.SetMinimum(1e-2) 
         else:
-            h_data.SetMinimum(2e-2) # for th1x
+            h_data.SetMinimum(5e-2) # for th1x
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -715,7 +733,7 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
         h_data = h_data_densitycorr
         h_components = h_components_densitycorr
         
-    pad1, pad2 = getPads(c)
+    pad1, pad2 = getPadsNs(c)
 
     h.SetLineWidth(2)
     h.SetLineColor(rt.kBlue)
@@ -745,24 +763,29 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
     rt.gPad.SetLogy(0)
 
     
-    hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "n#sigma")    
+    hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Stat.+Sys. n#sigma")    
     hDataDivideNs = get1DHistoFrom2D(h_ns,x,y,h_ns.GetName()+'1d')
-    hCloneDivide.SetMaximum(5.)
-    hCloneDivide.SetMinimum(-5.)
+    hDataDivideNs.SetMarkerStyle(20)
+    hCloneDivide.SetMaximum(6)
+    hCloneDivide.SetMinimum(-6)    
+    hCloneDivide.GetYaxis().SetNdivisions(503,True)
+    hCloneDivide.GetYaxis().SetTitleSize(0.16)
+    hCloneDivide.GetYaxis().SetTitleOffset(0.25)
     for i in range(1,hCloneDivide.GetNbinsX()+1):
         hCloneDivide.SetBinContent(i,0)
         hCloneDivide.SetBinError(i,1)
         hDivide.SetBinContent(i,0)
-        hDivide.SetBinError(i,1)        
+        hDivide.SetBinError(i,1)
         hDataDivide.SetBinContent(i,hDataDivideNs.GetBinContent(i))
         hDataDivide.SetBinError(i,0)
-        
+        hDataDivideNs.SetBinError(i,0)
+    
     if 'th1x' in hCloneDivide.GetName() and '_MultiJet' in hCloneDivide.GetName() and hCloneDivide.GetNbinsX()>140:
         hCloneDivide.GetXaxis().SetRange(0,140)
         
     hCloneDivide.Draw("e2")
     #hDivide.Draw("histsame")
-    hDataDivide.Draw('pesame')
+    hDataDivideNs.Draw('pesame')
     hCloneDivide.Draw("axissame")
 
 
@@ -1195,7 +1218,7 @@ def get1DHistoFrom2D(h2D,x,y,name):
         for j in range(1,len(y)):
             iBinX += 1
             h1D.SetBinContent(iBinX+1,h2D.GetBinContent(i,j))
-            h1D.SetBinError(iBinX+1,h2D.GetBinError(i,j))
+            h1D.SetBinError(iBinX+1,h2D.GetBinError(i,j))       
     return h1D
 
 
@@ -1754,10 +1777,11 @@ if __name__ == '__main__':
     if len(z)>2:
         for k in range(0,len(z)-1):
             newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)            
-            print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+            #print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
-            if computeErrors:
+            if computeErrors:                         
+                print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
                 print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit)   
             print2DResiduals(c,tdirectory,h_RsqMR_residuals_components[k],options.outDir+"/h_RsqMR_residuals_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit)
             #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff_components[k],options.outDir+"/h_RsqMR_percentdiff_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData)
