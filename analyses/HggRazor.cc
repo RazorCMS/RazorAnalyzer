@@ -478,7 +478,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  {
 	    //Removing gap photons
 	    if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
-	    //continue;
+	    continue;
 	  }
 	//photon passes
 	if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
@@ -508,7 +508,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( nPhotonsAbove40GeV == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " << phoCand.size() << std::endl;
-	//continue;
+	continue;
       }
     
     if ( phoCand.size() < 2 )
@@ -553,7 +553,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
 	  }
 	
-	if( diphotonMass < 50 )
+	if( diphotonMass < 100 )
 	  {
 	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
 	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
@@ -627,7 +627,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( HiggsCandidate.Pt() < 20.0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: Higgs Pt < 20 GeV, H pt: " << HiggsCandidate.Pt() << std::endl; 
-	//continue;
+	continue;
       }
     
     //if the best candidate pair has a photon in the endcap, reject the event
@@ -646,7 +646,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
 	  }
-	//continue;
+	continue;
       }
     //record higgs candidate info
     mGammaGamma = HiggsCandidate.M();
@@ -728,7 +728,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( n_Jets == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	//continue;
+	continue;
       }
 
     //std::cout << "njets-->" << n_Jets << std::endl;
