@@ -1074,9 +1074,23 @@ def get1DHistoFrom2D(h2D,x,y,name):
     iBinX=-1
     for i in range(1,len(x)):
         for j in range(1,len(y)):
+            iBinX += 1
+            h1D.SetBinContent(iBinX+1,h2D.GetBinContent(i,j))
+            h1D.SetBinError(iBinX+1,h2D.GetBinError(i,j))
+    return h1D
+
+
+def get1DHistoFrom3D(h3D,x,y,name):
+    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    h1D = rt.TH1D(name,name,nBins,0,nBins)
+
+    iBinX=-1
+    for i in range(1,len(x)):
+        for j in range(1,len(y)):
+            for k in range(1,len(z)):
                 iBinX += 1
-                h1D.SetBinContent(iBinX+1,h2D.GetBinContent(i,j))
-                h1D.SetBinError(iBinX+1,h2D.GetBinError(i,j))
+                h1D.SetBinContent(iBinX+1,h3D.GetBinContent(i,j,k))
+                h1D.SetBinError(iBinX+1,h3D.GetBinError(i,j,k))
     return h1D
 
 def Gamma(a, x):
@@ -1167,9 +1181,29 @@ def getErrors1D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
         h.SetBinError(i,rms)
     return h
 
+def getErrors2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
+    binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+    
+    d = rt.TCanvas('d','d',500,400)
+    for (i,j), sumName in binSumDict.iteritems():
+        nObs = h_data.GetBinContent(i, j)
+        bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
+        h.SetBinError(i,j,rms)
+    return h
+
+def getErrors3D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
+    binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+    
+    d = rt.TCanvas('d','d',500,400)
+    for (i,j, k), sumName in binSumDict.iteritems():
+        nObs = h_data.GetBinContent(i, j, k)
+        bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i_%i.pdf"%(h.GetName(),i,j,k))
+        h.SetBinError(i,j,k,rms)
+    return h
 
 def getNsigma2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
     binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
+    
     d = rt.TCanvas('d','d',500,400)
     for (i,j), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i,j)
@@ -1328,6 +1362,11 @@ if __name__ == '__main__':
     if computeErrors:
         h_MR = getErrors1D(h_MR,h_data_MR,toyTree,options,"x",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
         h_Rsq = getErrors1D(h_Rsq,h_data_Rsq,toyTree,options,"y",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        h_RsqMR = getErrors2D(h_RsqMR,h_data_RsqMR,toyTree,options,"yx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        h_nBtagRsqMR = getErrors3D(h_nBtagRsqMR,h_data_nBtagRsqMR,toyTree,options,"zyx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        
+        # convert after getting the 3D errors if provided
+        h_th1x = get1DHistoFrom3D(h_nBtagRsqMR,x,y,'h_th1x_wErrors')
         
     h_MR_slices = []
     h_MR_integrals = []
@@ -1446,6 +1485,9 @@ if __name__ == '__main__':
     h_data_Rsq_components = []
     h_data_RsqMR_components = []
     h_data_RsqMR_fine_components = []
+    h_th1x_components = []
+    h_data_th1x_components = []
+    
     h_labels = []        
     h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
     if len(z)>2:
@@ -1467,7 +1509,13 @@ if __name__ == '__main__':
             
             if computeErrors:
                 h_MR_components[-1] = getErrors1D(h_MR_components[-1],h_data_MR_components[-1],toyTree,options,"x",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
-                h_Rsq_components[-1] = getErrors1D(h_Rsq_components[-1],h_data_Rsq_components[-1],toyTree,options,"y",0,len(x)-1,0,len(y)-1,k,k,x,y,z)  
+                h_Rsq_components[-1] = getErrors1D(h_Rsq_components[-1],h_data_Rsq_components[-1],toyTree,options,"y",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
+                h_RsqMR_components[-1] = getErrors2D(h_RsqMR_components[-1],h_data_RsqMR_components[-1],toyTree,options,"yx",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
+
+            # convert after getting the 2D errors
+            h_th1x_components.append(get1DHistoFrom2D(h_RsqMR_components[-1],x,y,'h_th1x_%ibtag'%(z[k-1])))
+            h_data_th1x_components.append(get1DHistoFrom2D(h_data_RsqMR_components[-1],x,y,'h_th1x_data_%ibtag'%(z[k-1])))
+            
             if z[k-1]==3 and z[-1]==4:
                 h_labels.append("#geq %i b-tag" % z[k-1] )
             if z[k-1]==1 and z[-1]==4 and box in ['MuEle','MuMu','EleEle']:                
@@ -1560,6 +1608,7 @@ if __name__ == '__main__':
     if densityCorr:
         eventsLabel = "Events/Bin Width"
     
+    print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None)
     print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_MR_components,h_colors,h_labels)
     print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_Rsq_components,h_colors,h_labels)
     
@@ -1585,7 +1634,8 @@ if __name__ == '__main__':
 
     if len(z)>2:
         for k in range(0,len(z)-1):
-            newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)
+            newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)            
+            print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             if computeErrors:
