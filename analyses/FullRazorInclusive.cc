@@ -1204,8 +1204,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double trigSFErr = eleTrigSFHist->GetBinError( 
                         eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double trigSFUp = trigSF + trigSFErr;
-                double trigSFDown = trigSF - trigSFErr;
+                double trigSFUp = trigSF + trigSFErr + 0.02; //extra 2% systematic for 2015 dataset due to temporary beamspot move
+                double trigSFDown = trigSF - trigSFErr - 0.02;
                 if (passedSingleLeptonTrigger && isTightElectron(i)){
                     eleTrigCorrFactor *= trigSF;
                     sf_eleTrigUp *= trigSFUp/trigSF;
