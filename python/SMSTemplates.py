@@ -26,6 +26,8 @@ if __name__ == '__main__':
                   help="no signal systematic templates")
     parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
                   help="Number of nuisance parameters to use for PDF uncertainties")
+    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
@@ -40,7 +42,6 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
         shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
         shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])        
 
@@ -125,6 +126,47 @@ if __name__ == '__main__':
                     print("Building histogram for "+model+"_"+shape+updown)
                     ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents))
             rootFile.Close()
+
+            #make pdf envelope up/down (for SUS pdf uncertainty prescription)
+            if options.computePdfEnvelope:
+                print "Building pdf envelope up/down histograms"
+                #make summed histogram
+                pdfEnvelopeUp = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeUp')
+                pdfEnvelopeDown = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeDown')
+                pdfEnvelopeUp.Reset()
+                pdfEnvelopeDown.Reset()
+                for p in range(options.numPdfWeights):
+                    print "Adding pdf variation",p,"to envelope"
+                    #get correct pdf histogram
+                    thisVariationUp = None
+                    thisVariationDown = None
+                    for h in ds:
+                        if 'n'+str(p)+'pdfUp' in h.GetName():
+                            thisVariationUp = h
+                        elif 'n'+str(p)+'pdfDown' in h.GetName():
+                            thisVariationDown = h
+                    if thisVariationUp is None or thisVariationDown is None:
+                        print "Error: did not find pdf variation histogram",p
+                        continue
+                    for bx in range(1,ds[0].GetNbinsX()+1):
+                        #add (up - nominal) in quadrature
+                        newUp = ((pdfEnvelopeUp.GetBinContent(bx))**2 + (thisVariationUp.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
+                        pdfEnvelopeUp.SetBinContent(bx, newUp)
+                        #add (down - nominal) in quadrature
+                        newDown = -((pdfEnvelopeDown.GetBinContent(bx))**2 + (thisVariationDown.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
+                        pdfEnvelopeDown.SetBinContent(bx, newDown)
+                pdfEnvelopeUp.Add(ds[0])
+                pdfEnvelopeDown.Add(ds[0])
+                #zero any negative bins
+                for bx in range(1,ds[0].GetNbinsX()+1):
+                    if pdfEnvelopeDown.GetBinContent(bx) < 0:
+                        pdfEnvelopeDown.SetBinContent(bx,0)
+                #normalize
+                pdfEnvelopeUp.Scale(ds[0].Integral()*1.0/pdfEnvelopeUp.Integral())
+                pdfEnvelopeDown.Scale(ds[0].Integral()*1.0/pdfEnvelopeDown.Integral())
+                #append
+                ds.append(pdfEnvelopeUp)
+                ds.append(pdfEnvelopeDown)
         else:
             print "Error: expected ROOT file!"
             sys.exit()
@@ -147,7 +189,10 @@ if __name__ == '__main__':
         outFile.cd()
 
         for hist in ds:
+            if 'pdf' in hist.GetName() and options.computePdfEnvelope and not 'envelope' in hist.GetName(): 
+                continue
             print("Writing histogram: "+hist.GetName())
             hist.Write()
+
        
         outFile.Close()
