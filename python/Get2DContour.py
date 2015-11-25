@@ -172,10 +172,10 @@ def getModelSettings(model):
         mchiMax = 1450.+12.5 
         binWidth = 25
         nRebins = 0
-        xsecMin = 1.e-2
+        xsecMin = 1.e-3
         xsecMax = 10.
         diagonalOffset = 25+12.5
-        smoothing = 50        
+        smoothing = 50
     elif model=="T1tttt":
         mgMin = 600.-12.5
         mgMax = 1950.+12.5
@@ -183,7 +183,18 @@ def getModelSettings(model):
         mchiMax = 1450.+12.5 
         binWidth = 25
         nRebins = 0
-        xsecMin = 1.e-2
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 25+12.5
+        smoothing = 50        
+    elif model=="T1qqqq":
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1250.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
         xsecMax = 10.
         diagonalOffset = 25+12.5
         smoothing = 50

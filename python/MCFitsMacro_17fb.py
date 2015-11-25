@@ -16,10 +16,10 @@ MCLUMI = 1
 
 SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
 
-DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
+DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit/"
 PREFIX = "RazorInclusive"
 FILENAMES_HADRONIC = {
-        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_RazorSkim.root",
+        "TTJets"    : DIR_MC+"/"+PREFIX+"_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
         "WJets"     : DIR_MC+"/"+PREFIX+"_WJetsToLNu_AlternativeHTBinned_1pb_weighted_RazorSkim.root",
         "SingleTop" : DIR_MC+"/"+PREFIX+"_ST_1pb_weighted_RazorSkim.root",
         "Other" : DIR_MC+"/"+PREFIX+"_Other_1pb_weighted_RazorSkim.root",
@@ -43,11 +43,11 @@ FILENAMES={
         }
 
 config = "config/run2_20151108_Preapproval.config"
-FIT_DIR = "FitPlots_17fb"
+FIT_DIR = "/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_1_5/src/RazorAnalyzer/FitPlotArchive/AllBkg_V1p23_PreapprovalBinning"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/toys_Bayes_noStat_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/toys_Bayes_noStat_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/toys_Bayes_noStat_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/MultiJet/sideband/toys_Bayes_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/MuMultiJet/sideband/toys_Bayes_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/EleMultiJet/sideband/toys_Bayes_EleMultiJet.root",
         }
 
 cfg = Config.Config(config)
@@ -63,7 +63,7 @@ weightOpts = []
 shapeErrors = []
 miscErrors = []
 
-dirName = 'ForJamboree_17fb' 
+dirName = 'ForJamboree_17fb_TEST' 
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -85,12 +85,11 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #estimate yields in leptonic signal region
-    for lepType in ["Mu", "Ele"]:
-    #for lepType in ["", "Mu", "Ele"]:
+    for lepType in ["", "Ele", "Mu"]:
         for jets in ["MultiJet"]:
             boxName = lepType+jets
-            btaglist = [0]
-            #btaglist = [0,1,2,3]
+            #btaglist = [0]
+            btaglist = [0,1,2,3]
             for btags in btaglist:
                 print "\n---",boxName,"Box,",btags,"B-tags ---"
                 #get correct cuts string
@@ -109,7 +108,7 @@ if __name__ == "__main__":
                 #check fit file and create if necessary
                 if not os.path.isfile(TOYS_FILES[boxName]):
                     print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-                    runFitAndToysMC(FIT_DIR, boxName, LUMI, [FILENAMES[boxName][x] for x in FILENAMES[boxName]], DIR_MC, config=config, sideband=True, noStat=True, numToys=3000)
+                    runFitAndToysMC(FIT_DIR, boxName, LUMI, [FILENAMES[boxName][x] for x in FILENAMES[boxName]], DIR_MC, config=config, sideband=True, numToys=3000)
                     #check
                     if not os.path.isfile(TOYS_FILES[boxName]):
                         print "Error creating fit file",TOYS_FILES[boxName]

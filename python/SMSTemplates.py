@@ -24,6 +24,10 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic templates")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
+                  help="Number of nuisance parameters to use for PDF uncertainties")
+    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
@@ -35,28 +39,11 @@ if __name__ == '__main__':
     f = args[0]
     print 'Input file is %s' % f
 
-    ##################
-    #get pileup weight hist (remove this later)
-    #pileupWeightFileName = "data/NVtxReweight_ZToMuMu_2015D_1264ipb.root"
-    #pileupHistName = "NVtxReweight"
-    #pileupWeightFile = rt.TFile.Open(pileupWeightFileName)
-    #pileupWeightHist = pileupWeightFile.Get(pileupHistName)
-    ##################
-    pileupWeightHist = None
-    ##################
-    #hadronic trigger weight
-    #hadronicTriggerWeight = 0.935
-    ##################
-    hadronicTriggerWeight = 0.975
-    ##################
-    
-
-    #list of shape systematics to apply.
-    
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['muoneff','eleeff','jes']
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
+        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])        
 
     for curBox in boxList:
         #create workspace
@@ -74,6 +61,25 @@ if __name__ == '__main__':
         if f.lower().endswith('.root'):
             rootFile = rt.TFile.Open(f) #open file
             tree = rootFile.Get('RazorInclusive') #get tree
+
+            #get histograms for sum of pdf and scale weights
+            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes or 'n0pdf' in shapes:
+                nevents = rootFile.Get('NEvents')
+                assert nevents
+            else:
+                nevents = None
+
+            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes:
+                sumScaleWeights = rootFile.Get('SumScaleWeights')
+                assert sumScaleWeights
+            else:
+                sumScaleWeights = None
+
+            if 'n0pdf' in shapes:
+                sumPdfWeights = rootFile.Get('SumPdfWeights')
+                assert sumPdfWeights
+            else:
+                sumPdfWeights = None
 
             # get mass point information
             modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
@@ -114,12 +120,53 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=hadronicTriggerWeight))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, pileupWeightHist=pileupWeightHist, hadronicTriggerWeight=hadronicTriggerWeight))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents))
             rootFile.Close()
+
+            #make pdf envelope up/down (for SUS pdf uncertainty prescription)
+            if options.computePdfEnvelope:
+                print "Building pdf envelope up/down histograms"
+                #make summed histogram
+                pdfEnvelopeUp = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeUp')
+                pdfEnvelopeDown = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeDown')
+                pdfEnvelopeUp.Reset()
+                pdfEnvelopeDown.Reset()
+                for p in range(options.numPdfWeights):
+                    print "Adding pdf variation",p,"to envelope"
+                    #get correct pdf histogram
+                    thisVariationUp = None
+                    thisVariationDown = None
+                    for h in ds:
+                        if 'n'+str(p)+'pdfUp' in h.GetName():
+                            thisVariationUp = h
+                        elif 'n'+str(p)+'pdfDown' in h.GetName():
+                            thisVariationDown = h
+                    if thisVariationUp is None or thisVariationDown is None:
+                        print "Error: did not find pdf variation histogram",p
+                        continue
+                    for bx in range(1,ds[0].GetNbinsX()+1):
+                        #add (up - nominal) in quadrature
+                        newUp = ((pdfEnvelopeUp.GetBinContent(bx))**2 + (thisVariationUp.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
+                        pdfEnvelopeUp.SetBinContent(bx, newUp)
+                        #add (down - nominal) in quadrature
+                        newDown = -((pdfEnvelopeDown.GetBinContent(bx))**2 + (thisVariationDown.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
+                        pdfEnvelopeDown.SetBinContent(bx, newDown)
+                pdfEnvelopeUp.Add(ds[0])
+                pdfEnvelopeDown.Add(ds[0])
+                #zero any negative bins
+                for bx in range(1,ds[0].GetNbinsX()+1):
+                    if pdfEnvelopeDown.GetBinContent(bx) < 0:
+                        pdfEnvelopeDown.SetBinContent(bx,0)
+                #normalize
+                pdfEnvelopeUp.Scale(ds[0].Integral()*1.0/pdfEnvelopeUp.Integral())
+                pdfEnvelopeDown.Scale(ds[0].Integral()*1.0/pdfEnvelopeDown.Integral())
+                #append
+                ds.append(pdfEnvelopeUp)
+                ds.append(pdfEnvelopeDown)
         else:
             print "Error: expected ROOT file!"
             sys.exit()
@@ -142,7 +189,10 @@ if __name__ == '__main__':
         outFile.cd()
 
         for hist in ds:
+            if 'pdf' in hist.GetName() and options.computePdfEnvelope and not 'envelope' in hist.GetName(): 
+                continue
             print("Writing histogram: "+hist.GetName())
             hist.Write()
+
        
         outFile.Close()

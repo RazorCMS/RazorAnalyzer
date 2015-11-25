@@ -13,38 +13,48 @@ def fixPars(w, label, doFix=True, setVal=None):
             par.setConstant(doFix)
             if setVal is not None: par.setVal(setVal)
 
-def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
+def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=None):
     
     if x is None or y is None or z is None:
         x = array('d', cfg.getBinning(box)[0]) # MR binning
         y = array('d', cfg.getBinning(box)[1]) # Rsq binning
         z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    maxBins = 224
     
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
     for parameter in parameters:
+        if penalty and '_norm' in parameter:
+            continue
         w.factory(parameter)
         paramName = parameter.split('[')[0]
-        if not ("Cut" in paramName or "Ntot" in paramName):
+        if not ("Cut" in paramName):
             paramNames.append(paramName)
             w.var(paramName).setConstant(False)
             
-        # fix Rsq MR cut parameters
-        fixPars(w,"Cut")
-
+        
         # float normalization parameters
         fixPars(w,"Ntot",False)
+
+        
+        # fix Rsq MR cut parameters
+        fixPars(w,"Cut")
+        
+        # fix Gaussian constraint parameters
+        fixPars(w,"In")
+        fixPars(w,"Mean")
+        fixPars(w,"Sigma")
         
         # turn off shape parameters if no events in b-tag bin (not done yet)
         for k in range(0,len(z)-1):
             if "Ntot" in paramName and "%ib"%z[k] in paramName:
                 w.var(paramName).setVal(scaleFactor * (w.data("RMRTree").sumEntries("nBtag>=%i && nBtag<%i"% (z[k],z[k+1] )) ))
-                #if not w.var(paramName).getVal():
-                #    fixPars(w,"%ib"%z[k])    
-
-    w.factory('th1x[0,0,%i]'%nBins)
-    w.var('th1x').setBins(nBins)
+                if not w.var(paramName).getVal():
+                    fixPars(w,"%ib"%z[k])    
+        
+    w.factory('th1x[0,0,%i]'%maxBins)
+    w.var('th1x').setBins(maxBins)
     emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
 
     iBinX = -1
@@ -62,7 +72,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
     bkgs = []
     for command in commands:
         lower = command.lower()
-        if lower.find('sum::')!=-1 or lower.find('prod::')!=-1 or lower.find('expr::')!=-1:
+        if lower.find('sum::')!=-1 or lower.find('prod::')!=-1 or lower.find('expr::')!=-1 or lower.find('roogaussian::')!=-1:
             w.factory(command)
         else:
             myclass = command.split('::')[0]
@@ -72,7 +82,10 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,x=None,y=None,z=None):
             mylist = mytuple.split(',')
             arglist = [name, name]
             for myvar in mylist:
-                arglist.append(w.var(myvar))
+                if w.var(myvar)!=None:
+                    arglist.append(w.var(myvar))
+                else:
+                    arglist.append(w.function(myvar))
             args = tuple(arglist)
             pdf = getattr(rt,myclass)(*args)
             if hasattr(pdf,'setTH3Binning'):
@@ -100,8 +113,9 @@ def initializeWorkspace_noFit(w,cfg,box):
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+    maxBins = 224
     
-    w.factory('th1x[0,0,%i]'%nBins)
+    w.factory('th1x[0,0,%i]'%maxBins)
 
     return paramNames
 
@@ -142,7 +156,13 @@ def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h'
     data.fillHistogram(myTH2, varList2D,"MR>%f && MR<%f && Rsq>%f && Rsq<%f && nBtag >= %f && nBtag <= %f"%(x[0],x[-1],y[0],y[-1],z[0],z[-1]))
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",nBins,0,nBins)
+    maxBins = 244
+    
+    if maxBins >= nBins:
+        myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",maxBins,0,maxBins)
+    else:
+        myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",nBins,0,nBins)
+        
     if useWeight:
         myTH1.Sumw2()
     i = 0
@@ -156,7 +176,7 @@ def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h'
     return myTH1
 
 
-def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
+def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[]):
         obsRate = w.data("data_obs").sumEntries()
         nBkgd = len(bkgs)
         rootFileName = txtfileName.replace('.txt','.root')
@@ -197,10 +217,39 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,shapes=[]):
             shapeString += '\n'
             datacard+=shapeString
         for paramName in paramNames:
-            if penalty:
+            if fixed:
+                fixPars(w,paramName)    
+            elif 'Mean' in paramName or 'Sigma' in paramName:
                 fixPars(w,paramName)
+            elif 'MR1_' in paramName:
+                mean = w.var(paramName.replace('MR1','MR1Mean')).getVal()
+                sigma = w.var(paramName.replace('MR1','MR1Sigma')).getVal()
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)  
+            elif penalty:                    
+                mean = w.var(paramName).getVal()
+                sigma = w.var(paramName).getError()                
+                if "Ntot" in paramName:
+                    effectString = "\t1.0"                    
+                    for bkg in bkgs:
+                        if bkg in paramName:
+                            effectString += "\t%.3f"%(1.0+sigma/mean)                            
+                        else:
+                            effectString += "\t1.0"                    
+                    datacard += "%s\tlnN%s\n"%(paramName.replace("Ntot","Norm"),effectString)
+                else:
+                    datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)
+                         
             else:
-                datacard += "%s  	flatParam\n"%(paramName)
+                if "Ntot" in paramName:
+                    effectString = "\t1.0"                    
+                    for bkg in bkgs:
+                        if bkg in paramName:
+                            effectString += "\t2.0"                         
+                        else:
+                            effectString += "\t1.0"                    
+                    datacard += "%s\tlnU%s\n"%(paramName.replace("Ntot","Norm"),effectString)
+                else:
+                    datacard += "%s\tflatParam\n"%(paramName)
             
         txtfile = open(txtfileName,"w")
         txtfile.write(datacard)
@@ -279,11 +328,16 @@ if __name__ == '__main__':
     parser.add_option('--print-yields',dest="printYields",default=False,action='store_true',
                   help="print yields")
     parser.add_option('--penalty',dest="penalty",default=False,action='store_true',
-                  help="penalty terms on background parameters")
+                  help="penalty terms on background shape + norm parameters from input fit result")
+    parser.add_option('--fixed',dest="fixed",default=False,action='store_true',
+                  help="fixed background shape + norm parameters")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default=None,type="string",
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic shape uncertainties")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
+                  help='number of pdf nuisance parameters to use')
+
 
 
     (options,args) = parser.parse_args()
@@ -319,14 +373,14 @@ if __name__ == '__main__':
     if noFit:
         paramNames = initializeWorkspace_noFit(w,cfg,box)
     else:
-        paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in)
+        paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in,options.penalty)
     
     
     th1x = w.var('th1x')
     
     myTH1 = convertDataset2TH1(data, cfg, box, w)
     myTH1.Scale(lumi/lumi_in)
-    dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
+    dataHist = rt.RooDataHist("data_obs", "data_obs", rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     rootTools.Utils.importToWS(w,dataHist)
     
     if noFit:        
@@ -335,21 +389,31 @@ if __name__ == '__main__':
             data_red = data.reduce("nBtag>=%i && nBtag<%i"%(z[k],z[k+1]))
             myTH1_red = convertDataset2TH1(data_red, cfg, box, w)
             myTH1_red.Scale(lumi/lumi_in)
-            dataHist_red = rt.RooDataHist("%s_%s"%(box,"TTj%ib"%z[k]),"%s_%s"%(box,"TTj%ib"%z[k]),rt.RooArgList(th1x), myTH1_red)
+            dataHist_red = rt.RooDataHist("%s_%s"%(box, "TTj%ib"%z[k]), "%s_%s"%(box, "TTj%ib"%z[k]), rt.RooArgList(th1x), rt.RooFit.Import(myTH1_red))
             rootTools.Utils.importToWS(w,dataHist_red)
 
     elif options.inputFitFile is not None:
         inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
-        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)
+        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)            
         if wIn.obj("fitresult_extRazorPdf_data_obs") != None:
             frIn = wIn.obj("fitresult_extRazorPdf_data_obs")
         elif wIn.obj("nll_extRazorPdf_data_obs") != None:
             frIn = wIn.obj("nll_extRazorPdf_data_obs")
+        elif wIn.obj("fitresult_extRazorPdf_data_obs_with_constr") != None:
+            fr = wIn.obj("fitresult_extRazorPdf_data_obs_with_constr")
+        elif wIn.obj("nll_extRazorPdf_data_obs_with_constr") != None:
+            frIn = wIn.obj("nll_extRazorPdf_data_obs_with_constr")
         print "restoring parameters from fit"
         frIn.Print("V")
         for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
+            if "Ntot" in p.GetName():
+                normNameList = p.GetName().replace("Ntot_","").split("_")
+                normNameList.reverse()
+                normNameList.append("norm")
+                normName = "_".join(normNameList)
+                #w.var(normName).setError(w.var(p.GetName()).getError()/w.var(p.GetName()).getVal())
             
     
     signalHistos = []
@@ -360,13 +424,15 @@ if __name__ == '__main__':
         if isinstance(d, rt.TH1):
             #d.SetDirectory(rt.gROOT)
             signalHistos.append(d)
-            sigDataHist = rt.RooDataHist(d.GetName(),d.GetName(),rt.RooArgList(th1x),d)
+            sigDataHist = rt.RooDataHist(d.GetName(), d.GetName(), rt.RooArgList(th1x), rt.RooFit.Import(d))
             rootTools.Utils.importToWS(w,sigDataHist)
-
+    
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['muoneff','eleeff','jes']
+        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']  
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']  
+        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
@@ -380,11 +446,9 @@ if __name__ == '__main__':
     if noFit:
         writeDataCard_noFit(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),["TTj%ib"%iz for iz in z[:-1]],paramNames,w)
     else:
-        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty,shapes=shapes)
+        writeDataCard(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w,options.penalty,options.fixed,shapes=shapes)
     w.Write()
     os.system("cat %s"%options.outDir+"/"+outFile.replace(".root",".txt"))
-
-    
 
     if printYields:
         x = array('d', cfg.getBinning(box)[0]) # MR binning

@@ -29,7 +29,7 @@ def appendBoxCuts(cuts, boxNums):
     """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
     return '('+(' || '.join(['box == '+str(n) for n in boxNums])) + ") && " + cuts
 
-recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_CSCTightHaloFilter","Flag_goodVertices","Flag_eeBadScFilter","Flag_EcalDeadCellTriggerPrimitiveFilter"]
+recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter","Flag_goodVertices","Flag_eeBadScFilter"]
 def appendNoiseFilters(cuts, tree):
     ret = copy.copy(cuts)
     for bit in recommendedNoiseFilters:
@@ -121,7 +121,7 @@ dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
 #cuts 
 dileptonSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && abs(dPhiRazor) < 2.8"
-leptonicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && mT > 100"
+leptonicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && mT > 120"
 looseLeptonSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && mTLoose > 100 && nJets80 >= 2"
 #hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8"

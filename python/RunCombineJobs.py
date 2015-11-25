@@ -8,7 +8,7 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,min_tol,min_strat):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,min_tol,min_strat,rMax=-1):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
@@ -34,17 +34,18 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     user = os.environ['USER']
     pwd = os.environ['PWD']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/"%(user[0],user)
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/%s/"%(user[0],user,model) # directory where combine output files will be copied
+    cmsswBase = "/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5"%(user[0],user) # directory where 'cmsenv' will be run (needs to have combine and RazorAnalyzer setup)
 
     script =  '#!/usr/bin/env bash -x\n'
     script += 'mkdir -p %s\n'%combineDir
     
     script += 'echo $SHELL\n'
     script += 'pwd\n'
-    script += 'cd /afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5/src/RazorAnalyzer \n'%(user[0],user)
+    script += 'cd %s/src/RazorAnalyzer \n'%(cmsswBase)
     script += 'pwd\n'
     script += "export SCRAM_ARCH=slc6_amd64_gcc481\n"
-    script += "export CMSSW_BASE=/afs/cern.ch/work/%s/%s/RAZORRUN2/CMSSW_7_1_5\n"%(user[0],user)
+    script += "export CMSSW_BASE=%s\n"%(cmsswBase)
     script += 'eval `scramv1 runtime -sh`\n'
     script += 'cd - \n'
     script += "export TWD=${PWD}/%s_%s_lumi-%.3f_%s_%s\n"%(model,massPoint,lumi,btag,box)
@@ -53,14 +54,15 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'pwd\n'
     script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
     script += 'cd RazorAnalyzer\n'
+    script += 'git checkout -b Limits Limits20151120\n'
     script += 'source setup.sh\n'
     script += 'make\n'
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     if "T1" in model:
-        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat)
+        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
     else:
-        script += 'python python/RunCombine.py -i %s -m %s   --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %f --min-strat %i\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat)
+        script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -114,6 +116,8 @@ if __name__ == '__main__':
                   help="minimizer tolerance (default = 0.001)")
     parser.add_option('--min-strat',dest="min_strat",default=2,type="int",
                   help="minimizer strategy (default = 2)")
+    parser.add_option('--asymptotic-file',dest="asymptoticFile", default=None,type="string",
+                  help="input file with asymptotic limit results (to set rMax dynamically based on expected limit)")
 
     (options,args) = parser.parse_args()
 
@@ -141,13 +145,51 @@ if __name__ == '__main__':
                 outputname = 'higgsCombine%s_%i_%i_lumi-%.3f_%s_%s.Asymptotic.mH120.root'%(options.model,mg,mchi,options.lumi,btag,options.box)
                 if outputname in allFiles: donePairs.append((mg,mchi))
 
-                    
+    thyXsec = {}
+    if "T1" in options.model:
+        xsecFile = 'data/gluino13TeV.txt'
+    if "T2" in options.model:
+        xsecFile = 'data/stop13TeV.txt'
+        
+    for line in open(xsecFile,'r'):
+        for (mg, mchi) in gchipairs(options.model):
+            if str(int(mg))==line.split(',')[0]:
+                thyXsec[(mg,mchi)] = float(line.split(',')[1]) #pb
+
+    if options.asymptoticFile != None:        
+        print "INFO: Input ref xsec file!"
+        asymptoticRootFile = rt.TFile.Open(options.asymptoticFile,"READ")
+        expMinus2 = asymptoticRootFile.Get("xsecUL_ExpMinus2_%s_%s"%(options.model,options.box))
+        expPlus2 = asymptoticRootFile.Get("xsecUL_ExpPlus2_%s_%s"%(options.model,options.box))
+        expMinus = asymptoticRootFile.Get("xsecUL_ExpMinus_%s_%s"%(options.model,options.box))
+        expPlus = asymptoticRootFile.Get("xsecUL_ExpPlus_%s_%s"%(options.model,options.box))
+        exp = asymptoticRootFile.Get("xsecUL_Exp_%s_%s"%(options.model,options.box))
+        
     for (mg, mchi) in gchipairs(options.model):
         if not (mg >= options.mgMin and mg < options.mgMax): continue
         if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
         if (mg, mchi) in donePairs: continue
         nJobs+=1
-        outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys,options.min_tol,options.min_strat)
+
+        if options.asymptoticFile != None:
+            rExpP2 = expPlus2.GetBinContent(expPlus2.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
+            rExpP = expPlus.GetBinContent(expPlus.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
+            rExp = exp.GetBinContent(exp.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
+            rExpM = expMinus.GetBinContent(expMinus.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
+            rExpM2 = expMinus2.GetBinContent(expMinus2.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
+            rMax = -1
+            rMaxThresholds = [50.,20., 10., 5., 2., 1., 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
+            for rMaxTest in rMaxThresholds:
+                if rExpM2<rMaxTest: rMax = 2*rMaxTest
+            print "expected limit (+2sigma) = %f"%rExpP2
+            print "expected limit (+1sigma) = %f"%rExpP
+            print "expected limit           = %f"%rExp
+            print "expected limit (-1sigma) = %f"%rExpM
+            print "expected limit (-2sigma) = %f"%rExpM2
+            print "=>          setting rMax = %f"%rMax
+            outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys,options.min_tol,options.min_strat,rMax)
+        else:
+            outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys,options.min_tol,options.min_strat)
         
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)

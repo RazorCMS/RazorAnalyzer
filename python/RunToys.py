@@ -64,6 +64,10 @@ def runToys(w,options,cfg):
         fr = w.obj("fitresult_extRazorPdf_data_obs")
     elif w.obj("nll_extRazorPdf_data_obs") != None:
         fr = w.obj("nll_extRazorPdf_data_obs")
+    elif w.obj("fitresult_extRazorPdf_data_obs_with_constr") != None:
+        fr = w.obj("fitresult_extRazorPdf_data_obs_with_constr")
+    elif w.obj("nll_extRazorPdf_data_obs_with_constr") != None:
+        fr = w.obj("nll_extRazorPdf_data_obs_with_constr")
 
     fr.Print("V")
     if options.r>-1:
@@ -141,7 +145,11 @@ def runToys(w,options,cfg):
     bestFitByBin = []
     for iBinX in range(0,nBins):
         th1x.setVal(iBinX+0.5)
-        expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
+        print "bin = %i"%(iBinX)
+        expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))        
+        print "getvalv = %e"%expected
+        expected = float(asimov.weight(rt.RooArgSet(th1x)))
+        print "asmiov  = %e"%expected
         bestFitByBin.append(expected)
         observed = float(dataHist.weight(rt.RooArgSet(th1x)))
         value = setattr(s1, 'b%i'%iBinX, expected)
@@ -208,7 +216,7 @@ def runToys(w,options,cfg):
             th1x.setVal(iBinX+0.5) # check number of events in each bin
             pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
             pdfVal0 = extRazorPdf.getValV(0) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
-            if bestFitByBin[iBinX] > 0 and pdfValV/bestFitByBin[iBinX] <= 1e-12:
+            if bestFitByBin[iBinX] > 0 and pdfValV <= 0:
                 #print "bin = %i"%iBinX
                 #print "best fit = %e"%(bestFitByBin[iBinX])
                 #print "pdf valv = %e"%(pdfValV)
@@ -388,6 +396,11 @@ if __name__ == '__main__':
             fr = w.obj("fitresult_extRazorPdf_data_obs")
         elif w.obj("nll_extRazorPdf_data_obs") != None:
             fr = w.obj("nll_extRazorPdf_data_obs")
+        elif w.obj("fitresult_extRazorPdf_data_obs_with_constr") != None:
+            fr = w.obj("fitresult_extRazorPdf_data_obs_with_constr")
+        elif w.obj("nll_extRazorPdf_data_obs_with_constr") != None:
+            fr = w.obj("nll_extRazorPdf_data_obs_with_constr")
+                        
     else:
         for f in args:
             if f.lower().endswith('.root'):

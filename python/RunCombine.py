@@ -51,6 +51,11 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal shape systematic uncertainties")
+    parser.add_option('--rMax',dest="rMax",default=-1,type="float",
+                  help="maximum r value (for better precision)")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
+                  help='number of pdf nuisance parameters to use')
+
 
     (options,args) = parser.parse_args()
 
@@ -83,22 +88,22 @@ if __name__ == '__main__':
     if options.penalty: penaltyString = '--penalty'
         
     json = 'Golden'
-    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json,
-               'LooseLeptonMultiJet':'RazorInclusive_HTMHT_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json,
-               'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json,
-               'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_Oct05ReMiniAOD_PRv4_GoodLumi%s'%json
+    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
+               'LooseLeptonMultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
+               'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
+               'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json
                }
 
     eosLocationSMS = {#'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p21_ForFullStatus20151030/jobs/combined/',
                       #'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/combined/',
-                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/',
-                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/',
-                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p22_ForPreappFreezing20151106/jobs/combined/'                      
+                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/Signals_20151116/combined/',
+                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/Signals_20151116/combined/',
+                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/Signals_20151116/combined/'                      
                     }
 
-    eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data/'
+    eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
 
-    eosLocationBkg =  'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/MC/'
+    eosLocationBkg =  'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
     
     bkgList = ['RazorInclusive_DYJetsToLL_M-50_HTBinned_1pb_weighted.root',
                'RazorInclusive_DYJetsToLL_M-5to50_HTBinned_1pb_weighted.root',
@@ -127,7 +132,7 @@ if __name__ == '__main__':
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
-            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, 1000*lumi,signalSys),options.dryRun)
+            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root --num-pdf-weights %d -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, options.numPdfWeights, 1000*lumi,signalSys),options.dryRun)
             
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
@@ -141,13 +146,16 @@ if __name__ == '__main__':
                     exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.3f_%s_%s.root'%(options.config,box,lumi,btag,box),options.dryRun)
 
                 
-            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
+            exec_me('python python/WriteDataCard.py --num-pdf-weights %d -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir),options.dryRun)
             else:
-                exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat),options.dryRun)
+                if options.rMax>-1:
+                    exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --setPhysicsModelParameterRanges r=0,%f --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat,options.rMax),options.dryRun)
+                else:
+                    exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)
         if len(boxes)>1:
             for box in boxes: exec_me('cp %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt .'%(options.outDir,model,massPoint,lumi,btag,box),options.dryRun)
@@ -158,7 +166,10 @@ if __name__ == '__main__':
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s_%s'%(options.outDir,model,massPoint,lumi,options.box,model,massPoint,lumi,btag,options.box),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir),options.dryRun)
             else:
-                exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i'%(options.outDir,model,massPoint,lumi,btag,options.box,model,massPoint,lumi,btag,options.box,options.min_tol,options.min_strat),options.dryRun)
+                if options.rMax>-1:
+                    exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --setPhysicsModelParameterRanges r=0,%f --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,options.box,model,massPoint,lumi,btag,options.box,options.min_tol,options.min_strat,options.rMax),options.dryRun)
+                else:
+                    exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,options.box,model,massPoint,lumi,btag,options.box,options.min_tol,options.min_strat),options.dryRun)
                 exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,options.box,options.outDir),options.dryRun)
             for box in boxes: exec_me('rm razor_combine_%s_%s_lumi-%.3f_%s_%s.txt'%(model,massPoint,lumi,btag,box),options.dryRun)
  

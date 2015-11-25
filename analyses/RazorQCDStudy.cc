@@ -59,6 +59,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     TTree *outTree = new TTree("QCDTree", "Info on selected razor inclusive events");
     //tree variables
     Float_t                 weight;
+    Float_t                 puWeight;
     UInt_t                  run;
     UInt_t                  lumi;
     UInt_t                  event;
@@ -93,27 +94,28 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
     int nVetoMuons, nVetoElectrons, nLooseTaus;
     float mT, mTLoose, leadingJetPt, subleadingJetPt, leadingTightMuPt, leadingTightElePt;
-    //float JetE[99];
-    //float JetPt[99];
-    //float JetEta[99];
-    //float JetPhi[99];
-    //float GenJetE[99];
-    //float GenJetPt[99];
-    //float GenJetEta[99];
-    //float GenJetPhi[99];
-    //bool  JetIDTight[99];
-    //float PtNeutrinoClosestToJet[99]; 
-    //float DRNeutrinoClosestToJet[99];
-    //float JetChargedEMEnergyFraction[99];
-    //float JetNeutralEMEnergyFraction[99];
-    //float JetChargedHadEnergyFraction[99];
-    //float JetNeutralHadEnergyFraction[99];
-    //float JetPartonFlavor[99];
-    //float JetPileupID[99];
-    //float JetGenDiff[99];
+    float JetE[99];
+    float JetPt[99];
+    float JetEta[99];
+    float JetPhi[99];
+    float GenJetE[99];
+    float GenJetPt[99];
+    float GenJetEta[99];
+    float GenJetPhi[99];
+    bool  JetIDTight[99];
+    float PtNeutrinoClosestToJet[99]; 
+    float DRNeutrinoClosestToJet[99];
+    float JetChargedEMEnergyFraction[99];
+    float JetNeutralEMEnergyFraction[99];
+    float JetChargedHadEnergyFraction[99];
+    float JetNeutralHadEnergyFraction[99];
+    float JetPartonFlavor[99];
+    float JetPileupID[99];
+    float JetGenDiff[99];
     
     //book the branches that go in all types of trees
     outTree->Branch("weight",&weight,"weight/F");
+    outTree->Branch("puWeight",&puWeight,"puWeight/F");
     outTree->Branch("run",&run,"run/i");
     outTree->Branch("lumi",&lumi,"lumi/i");
     outTree->Branch("event",&event,"event/i");
@@ -150,6 +152,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
     outTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter,"Flag_EcalDeadCellTriggerPrimitiveFilter/O");
     outTree->Branch("Flag_goodVertices", &Flag_goodVertices,"Flag_goodVertices/O");
+    outTree->Branch("Flag_EcalDeadCellBoundaryEnergyFilter", &Flag_EcalDeadCellBoundaryEnergyFilter,"Flag_EcalDeadCellBoundaryEnergyFilter/O");
     outTree->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter,"Flag_trackingFailureFilter/O");
     outTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter,"Flag_eeBadScFilter/O");
     outTree->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter,"Flag_ecalLaserCorrFilter/O");
@@ -167,30 +170,27 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
     outTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
     outTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
-    //outTree->Branch("JetE", JetE,"JetE[nJets]/F");
-    //outTree->Branch("JetPt", JetPt,"JetPt[nJets]/F");
-    //outTree->Branch("JetEta", JetEta,"JetEta[nJets]/F");
-    //outTree->Branch("JetPhi", JetPhi,"JetPhi[nJets]/F");
-    //outTree->Branch("GenJetE", GenJetE,"GenJetE[nJets]/F");
-    //outTree->Branch("GenJetPt", GenJetPt,"GenJetPt[nJets]/F");
-    //outTree->Branch("GenJetEta", GenJetEta,"GenJetEta[nJets]/F");
-    //outTree->Branch("GenJetPhi", GenJetPhi,"GenJetPhi[nJets]/F");
-    //outTree->Branch("JetGenDiff", JetGenDiff,"JetGenDiff[nJets]/F");
-    //outTree->Branch("JetIDTight", JetIDTight,"JetIDTight[nJets]/O");
-    //outTree->Branch("PtNeutrinoClosestToJet", PtNeutrinoClosestToJet,"PtNeutrinoClosestToJet[nJets]/F");
-    //outTree->Branch("DRNeutrinoClosestToJet", DRNeutrinoClosestToJet,"DRNeutrinoClosestToJet[nJets]/F");
-    //outTree->Branch("JetChargedEMEnergyFraction", JetChargedEMEnergyFraction,"JetChargedEMEnergyFraction[nJets]/F");
-    //outTree->Branch("JetNeutralEMEnergyFraction", JetNeutralEMEnergyFraction,"JetNeutralEMEnergyFraction[nJets]/F");
-    //outTree->Branch("JetChargedHadEnergyFraction", JetChargedHadEnergyFraction,"JetChargedHadEnergyFraction[nJets]/F");
-    //outTree->Branch("JetNeutralHadEnergyFraction", JetNeutralHadEnergyFraction,"JetNeutralHadEnergyFraction[nJets]/F");
-    //outTree->Branch("JetPartonFlavor", JetPartonFlavor,"JetPartonFlavor[nJets]/F");
-    //outTree->Branch("JetPileupID", JetPileupID,"JetPileupID[nJets]/F");
-
+    outTree->Branch("JetE", JetE,"JetE[nJets]/F");
+    outTree->Branch("JetPt", JetPt,"JetPt[nJets]/F");
+    outTree->Branch("JetEta", JetEta,"JetEta[nJets]/F");
+    outTree->Branch("JetPhi", JetPhi,"JetPhi[nJets]/F");
+    outTree->Branch("GenJetE", GenJetE,"GenJetE[nJets]/F");
+    outTree->Branch("GenJetPt", GenJetPt,"GenJetPt[nJets]/F");
+    outTree->Branch("GenJetEta", GenJetEta,"GenJetEta[nJets]/F");
+    outTree->Branch("GenJetPhi", GenJetPhi,"GenJetPhi[nJets]/F");
+    outTree->Branch("JetGenDiff", JetGenDiff,"JetGenDiff[nJets]/F");
+    outTree->Branch("JetIDTight", JetIDTight,"JetIDTight[nJets]/O");
+    outTree->Branch("PtNeutrinoClosestToJet", PtNeutrinoClosestToJet,"PtNeutrinoClosestToJet[nJets]/F");
+    outTree->Branch("DRNeutrinoClosestToJet", DRNeutrinoClosestToJet,"DRNeutrinoClosestToJet[nJets]/F");
+    outTree->Branch("JetChargedEMEnergyFraction", JetChargedEMEnergyFraction,"JetChargedEMEnergyFraction[nJets]/F");
+    outTree->Branch("JetNeutralEMEnergyFraction", JetNeutralEMEnergyFraction,"JetNeutralEMEnergyFraction[nJets]/F");
+    outTree->Branch("JetChargedHadEnergyFraction", JetChargedHadEnergyFraction,"JetChargedHadEnergyFraction[nJets]/F");
+    outTree->Branch("JetNeutralHadEnergyFraction", JetNeutralHadEnergyFraction,"JetNeutralHadEnergyFraction[nJets]/F");
+    outTree->Branch("JetPartonFlavor", JetPartonFlavor,"JetPartonFlavor[nJets]/F");
+    outTree->Branch("JetPileupID", JetPileupID,"JetPileupID[nJets]/F");
 
     //histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
-
-    Int_t plz=0;
 
     //*************************************************************************
     //Look over Input File Events
@@ -210,7 +210,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 
       //fill normalization histogram
       NEvents->Fill(1.0);
-
+      box=0;
       nVetoMuons = 0;
       nLooseMuons = 0;
       nTightMuons = 0;
@@ -226,7 +226,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       leadingTightMuPt = -1;
       leadingTightElePt = -1;
       //event info
-      weight = 1.0;
+      weight = genWeight;
       run = runNum;
       lumi = lumiNum;
       event = eventNum;
@@ -468,52 +468,52 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	//*******************************************************
 	//Jet Variables
 	//*******************************************************
-	//JetE[i] = jetE[i]*JEC*jetEnergySmearFactor;
-	//JetPt[i] = jetPt[i]*JEC*jetEnergySmearFactor;
-	//JetEta[i] = jetEta[i];
-	//JetPhi[i] = jetPhi[i];
-	//JetIDTight[i] = jetPassIDTight[i];
-	//JetChargedEMEnergyFraction[i] = jetChargedEMEnergyFraction[i];
-	//JetNeutralEMEnergyFraction[i] = jetNeutralEMEnergyFraction[i];
-	//JetChargedHadEnergyFraction[i] = jetChargedHadronEnergyFraction[i];
-	//JetNeutralHadEnergyFraction[i] = jetNeutralHadronEnergyFraction[i];
-	//JetPartonFlavor[i] = jetPartonFlavor[i];
-	//JetPileupID[i] = jetPileupId[i];
+	JetE[i] = jetE[i]*JEC*jetEnergySmearFactor;
+	JetPt[i] = jetPt[i]*JEC*jetEnergySmearFactor;
+	JetEta[i] = jetEta[i];
+	JetPhi[i] = jetPhi[i];
+	JetIDTight[i] = jetPassIDTight[i];
+	JetChargedEMEnergyFraction[i] = jetChargedEMEnergyFraction[i];
+	JetNeutralEMEnergyFraction[i] = jetNeutralEMEnergyFraction[i];
+	JetChargedHadEnergyFraction[i] = jetChargedHadronEnergyFraction[i];
+	JetNeutralHadEnergyFraction[i] = jetNeutralHadronEnergyFraction[i];
+	JetPartonFlavor[i] = jetPartonFlavor[i];
+	JetPileupID[i] = jetPileupId[i];
 
 	//Match To GenJet
-	//GenJetE[i] = -999;
-	//GenJetPt[i] = -999;
-	//GenJetEta[i] = -999;
-	//GenJetPhi[i] = -999;
-	//double minDRToGenJet = 9999;	
-	//for(int j = 0; j < nGenJets; j++){
-	//  double DR = deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i]);
-	//  if (DR > 0.4) continue;
-	//
-	//  if (DR < minDRToGenJet) {
-	//    minDRToGenJet = DR;
-	//    GenJetE[i] = genJetE[j];
-	//    GenJetPt[i] = genJetPt[j];
-	//    GenJetEta[i] = genJetEta[j];
-	//    GenJetPhi[i] = genJetPhi[j];
-	//    JetGenDiff[i] = JetPt[i]-GenJetPt[i];
-	//    if (fabs(JetGenDiff[i])>fabs(maxJetGenDiff)) maxJetGenDiff=JetGenDiff[i];
-	//  }     
-	//}
+	GenJetE[i] = -999;
+	GenJetPt[i] = -999;
+	GenJetEta[i] = -999;
+	GenJetPhi[i] = -999;
+	double minDRToGenJet = 9999;	
+	for(int j = 0; j < nGenJets; j++){
+	  double DR = RazorAnalyzer::deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i]);
+	  if (DR > 0.4) continue;
+	
+	  if (DR < minDRToGenJet) {
+	    minDRToGenJet = DR;
+	    GenJetE[i] = genJetE[j];
+	    GenJetPt[i] = genJetPt[j];
+	    GenJetEta[i] = genJetEta[j];
+	    GenJetPhi[i] = genJetPhi[j];
+	    JetGenDiff[i] = JetPt[i]-GenJetPt[i];
+	    if (fabs(JetGenDiff[i])>fabs(maxJetGenDiff)) maxJetGenDiff=JetGenDiff[i];
+	  }     
+	}
 	//./include/RazorAnalyzer.h:double deltaR(double eta1, double phi1, double eta2, double phi2);
 	
 	//Check for neutrinos near jet
-	//PtNeutrinoClosestToJet[i] = -999;
-	//double minDRNeutrino = 9999;
-	//for(int j = 0; j < nGenParticle; j++){
-	//  if (!(abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16)) continue;
-	//  double DR = deltaR( jetEta[i], jetPhi[i], gParticleEta[j], gParticlePhi[j] );	  
-	//  if ( DR < minDRNeutrino ) {
-	//    minDRNeutrino = DR;
-	//    PtNeutrinoClosestToJet[i] = gParticlePt[j];
-	//  }
-	//}
-	//DRNeutrinoClosestToJet[i] = minDRNeutrino;
+	PtNeutrinoClosestToJet[i] = -999;
+	double minDRNeutrino = 9999;
+	for(int j = 0; j < nGenParticle; j++){
+	  if (!(abs(gParticleId[j]) == 12 || abs(gParticleId[j]) == 14 || abs(gParticleId[j]) == 16)) continue;
+	  double DR = RazorAnalyzer::deltaR( jetEta[i], jetPhi[i], gParticleEta[j], gParticlePhi[j] );	  
+	  if ( DR < minDRNeutrino ) {
+	    minDRNeutrino = DR;
+	    PtNeutrinoClosestToJet[i] = gParticlePt[j];
+	  }
+	}
+	DRNeutrinoClosestToJet[i] = minDRNeutrino;
 
 	if(jetCorrPt < 40) continue;
 	if(fabs(jetEta[i]) > 3.0) continue;
@@ -616,28 +616,28 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       ////*************************************************************************
       ////Make GenJet vector for hemispheres
       ////*************************************************************************
-      //double GenMetX = genMetPt*cos(genMetPhi);
-      //double GenMetY = genMetPt*sin(genMetPhi);
-      //TLorentzVector GenMET; GenMET.SetPxPyPzE(GenMetX, GenMetY, 0, sqrt(GenMetX*GenMetX + GenMetY*GenMetY));
-      //
-      //genJetMR = 0;
-      //genJetRsq = 0;
-      //genJetDPhiRazor = 0;
-      //genJetHT = 0;
-      //vector<TLorentzVector> GenJetObjects;
-      //for(int j = 0; j < nGenJets; j++){
-      //	if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
-      //	  TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
-      //	  GenJetObjects.push_back(thisGenJet);
-      //	  genJetHT += genJetPt[j];
-      //	}
-      //}
-      //if (GenJetObjects.size() >= 2 ) {
-      //	vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
-      //	genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
-      //	genJetRsq = computeRsq(tmpHemispheres[0], tmpHemispheres[1], GenMET);
-      //	genJetDPhiRazor = deltaPhi(tmpHemispheres[0].Phi(),tmpHemispheres[1].Phi());
-      //}      
+      double GenMetX = genMetPt*cos(genMetPhi);
+      double GenMetY = genMetPt*sin(genMetPhi);
+      TLorentzVector GenMET; GenMET.SetPxPyPzE(GenMetX, GenMetY, 0, sqrt(GenMetX*GenMetX + GenMetY*GenMetY));
+      
+      genJetMR = 0;
+      genJetRsq = 0;
+      genJetDPhiRazor = 0;
+      genJetHT = 0;
+      vector<TLorentzVector> GenJetObjects;
+      for(int j = 0; j < nGenJets; j++){
+      	if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
+      	  TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
+      	  GenJetObjects.push_back(thisGenJet);
+      	  genJetHT += genJetPt[j];
+      	}
+      }
+      if (GenJetObjects.size() >= 2 ) {
+      	vector<TLorentzVector> tmpHemispheres = getHemispheres(GenJetObjects);
+      	genJetMR = computeMR(tmpHemispheres[0], tmpHemispheres[1]); 
+      	genJetRsq = computeRsq(tmpHemispheres[0], tmpHemispheres[1], GenMET);
+      	genJetDPhiRazor = deltaPhi(tmpHemispheres[0].Phi(),tmpHemispheres[1].Phi());
+      }      
      
       //*************************************************************************
       //save HLT Decisions
@@ -660,14 +660,14 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       //Fill Tree
       //*************************************************************************
       bool combineTrees=true;
-
+      
       //MuEle Box
       if(passedDileptonTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = MuEle;
 	    //cout << jentry << ", " << box << endl;
-	    outTree->Fill();
+	    //outTree->Fill();
 	  }
 	  //else razorBoxes["MuEle"]->Fill();
 	}
@@ -677,7 +677,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = MuMu;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["MuMu"]->Fill();
@@ -688,7 +688,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = EleEle;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["EleEle"]->Fill();
@@ -699,7 +699,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = MuSixJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["MuSixJet"]->Fill();
@@ -710,7 +710,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = MuFourJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["MuFourJet"]->Fill();
@@ -721,7 +721,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = MuJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["MuJet"]->Fill();
@@ -732,7 +732,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = EleSixJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["EleSixJet"]->Fill();
@@ -743,7 +743,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = EleFourJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["EleFourJet"]->Fill();
@@ -754,7 +754,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = EleJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["EleJet"]->Fill();
@@ -765,7 +765,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesHadronicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = LooseLeptonSixJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["LooseLeptonSixJet"]->Fill();
@@ -776,7 +776,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesHadronicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = LooseLeptonFourJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["LooseLeptonFourJet"]->Fill();
@@ -787,7 +787,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	if(passesHadronicRazorBaseline(MR, Rsq)){ 
 	  if(combineTrees){
 	    box = SixJet;
-	    outTree->Fill();
+	    //outTree->Fill();
 	    //cout << jentry << ", " << box << endl;
 	  }
 	  //else razorBoxes["SixJet"]->Fill();
@@ -799,7 +799,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	  if(combineTrees){
 	    box = FourJet;
 	    //cout << jentry << ", " << box << endl;                                                                                                                 
-	    outTree->Fill();
+	    //outTree->Fill();
 	  }
 	  //else razorBoxes["FourJet"]->Fill();
         }
@@ -810,7 +810,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	  if(combineTrees){
 	    box = LooseLeptonDiJet;
 	    //cout << jentry << ", " << box << endl;                                                                                                                 
-	    outTree->Fill();
+	    //outTree->Fill();
 	  }
 	  //else razorBoxes["LooseLeptonDiJet"]->Fill();
         }
@@ -819,91 +819,15 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	  if(combineTrees){
 	    box = DiJet;
 	    //cout << jentry << ", " << box << endl;                                                                                                                 
-	    outTree->Fill();
+	    //outTree->Fill();
 	  }
 	  //else razorBoxes["DiJet"]->Fill();
         }
       }
+      if (box==0) continue;
+      outTree->Fill();
       
-      //*************************************************************
-      //DEBUG
-      //*************************************************************
-      //if (MR > 4000) printSyncDebug = true;
-
-      //if (printSyncDebug) {
-      //	cout << "\n****************************************************************\n";
-      //	cout << "Debug Event : " << runNum << " " << lumiNum << " " << eventNum << "\n";
-      //	cout << "PFObjs: " << GoodPFObjects.size() << "\n";
-      //	cout << "MR,Rsq: " << MR << " " << Rsq << " " << dPhiRazor << "\n";
-      //	cout << "HT,MET: " << HT << " " << MET << "\n";
-      //	cout << "\n";
-      //
-      //	cout << "Objects: " << "\n";
-      //	for (int i=0; i < int(GoodPFObjects.size()) ; ++i) {
-      //	  cout << "Obj " << i << " : " << GoodPFObjects[i].Pt() << " " << GoodPFObjects[i].Eta() << " " << GoodPFObjects[i].Phi() << " \n";
-      //	}
-      //	cout << "\n";
-      //
-      //	cout << "hemispheres\n";
-      //	cout << hemisphereVector0.Pt() << " " << hemisphereVector0.Eta() << " " << hemisphereVector0.Phi() << " " << hemisphereVector0.M() << " \n";
-      //	cout << hemisphereVector1.Pt() << " " << hemisphereVector1.Eta() << " " << hemisphereVector1.Phi() << " " << hemisphereVector1.M() << " \n";
-      //	cout << "\n";
-      //
-      //	cout << "NJets: " << nJets << "\n";
-      //	for(int i = 0; i < nJets; i++){
-      //
-      //	  //*******************************************************
-      //	  //Correct Jet Energy Scale and Resolution
-      //	  //*******************************************************
-      //	  double tmpRho = fixedGridRhoFastjetAll;
-      //	  if (isRunOne) tmpRho = fixedGridRhoAll;
-      //	  double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-      //						 tmpRho, jetJetArea[i], 
-      //						 JetCorrector);   
-      //	  Rho = tmpRho;
-      //
-      //	  double jetEnergySmearFactor = 1.0;
-      //	  if (!isData) {
-      //	    std::vector<float> fJetEta, fJetPtNPU;
-      //	    fJetEta.push_back(jetEta[i]);  
-      //	    fJetPtNPU.push_back(jetPt[i]*JEC); 
-      //	    fJetPtNPU.push_back(NPU_0); 
-      //		  
-      //	    jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], NPU_0, JetResolutionCalculator, random);
-      //	  }
-      //	
-      //	  //Match To GenJet
-      //	  cout << "Jet: " << jetPt[i]*JEC*jetEnergySmearFactor << " " << jetEta[i] << " " << jetPhi[i] << " : " << jetPt[i]*JEC << " " << jetPt[i] << " \n";
-      //
-      //	  double minDRToGenJet = 9999;	
-      //	  for(int j = 0; j < nGenJets; j++){
-      //	    double DR = deltaR( genJetEta[j], genJetPhi[j], jetEta[i], jetPhi[i]);
-      //	    if (DR > 0.4) continue;
-      //	    cout << "found genJet: " << genJetPt[j] << " " << genJetEta[j] << " " << genJetPhi[j] << " : " << DR << "\n";
-      //	    if (DR < minDRToGenJet) {
-      //	      minDRToGenJet = DR;
-      //	      GenJetE[i] = genJetE[j];
-      //	      GenJetPt[i] = genJetPt[j];
-      //	      GenJetEta[i] = genJetEta[j];
-      //	      GenJetPhi[i] = genJetPhi[j];
-      //	    }     
-      //	  }
-      //	
-      //	  cout << "Closest GenJet: " << GenJetPt[i] << " " << GenJetEta[i] << " " << GenJetPhi[i] << " : " << (jetPt[i]*JEC*jetEnergySmearFactor - GenJetPt[i])/GenJetPt[i] << " " << minDRToGenJet << "\n";
-      //	
-      //	  //cout << "Gen Particles\n";
-      //	  //for(int j = 0; j < nGenParticle; j++){
-      //	    //if (deltaR(gParticleEta[j] , gParticlePhi[j], jetEta[i], jetPhi[i]) < 0.4) {
-      //	    //cout << "particle: " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
-      //	  //   }
-      //	  //}
-      //	  //cout << "\n\n";
-      //	} //loop over jets
-      //
-      //}
-
-    }//end of event loop
-    
+    }
     cout << "Filled Total of " << NEvents->GetBinContent(1) << " Events\n";
     cout << "Writing output trees..." << endl;
     outFile->Write();
