@@ -115,7 +115,7 @@ def plot_several(c, hists=0, leg=0, colors=[], xtitle="", ytitle="Events", ymin=
     #add legend and LaTeX 
     leg.Draw()
     t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-    t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*(lumistr)+' (')+'13 TeV'+((lumistr != '')*(')')))
+    t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != '')*(')')))
     t1.SetNDC()
     t2.SetNDC()
     t1.SetTextSize(0.06)
