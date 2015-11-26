@@ -13,6 +13,7 @@ if __name__ == "__main__":
     #parse args
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-pdf-weights',dest="numPdfWeights",default=60,type=int, help="Number of nuisance parameters to use for PDF uncertainties")
+    parser.add_argument('--compute-pdf-envelope',dest='computePdfEnvelope',default=False,action='store_true', help='Collapse pdf variations into a single nuisance parameter')
     parser.add_argument("filename", help="Path to input file")
     args = parser.parse_args() 
 
@@ -22,14 +23,17 @@ if __name__ == "__main__":
 
     #specify shape uncertainties
     shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
-    shapes.extend([str(n)+'pdf' for n in range(args.numPdfWeights)])
+    if args.computePdfEnvelope:
+        shapes.append('pdfenvelope')
+    else:
+        shapes.extend([str(n)+'pdf' for n in range(args.numPdfWeights)])
     titles = {'muoneff':'Muon efficiency', 'eleeff':'Electron efficiency', 'jes':'Jet energy scale',
             'muontrig':'Muon trigger eff.', 'eletrig':'Electron trigger eff.',
             'btag':'B-tagging efficiency', 'muonfastsim':'Fastsim muon eff.',
             'elefastsim':'Fastsim electron eff.', 'btagfastsim':'Fastsim b-tagging eff.',
             'facscale':'Factorization scale', 'renscale':'Renormalization scale',
             'facrenscale':'Diag. scale variation', 'ees':'Electron energy scale',
-            'mes':'Muon energy scale'}
+            'mes':'Muon energy scale', 'pdfenvelope':'PDF variations'}
     for n in range(args.numPdfWeights):
         titles[str(n)+'pdf'] = 'Pdf variation '+str(n)
 
@@ -71,5 +75,13 @@ if __name__ == "__main__":
         title = titles[shape]
         d = {0:toplot[0],1:toplot[1],2:toplot[2]}
         t = {0:'Nominal',1:title+' Up',2:title+' Down'}
-        leg = plotting.makeLegend(d, t, [0,1,2], 0.4, 0.0, 0.6, 0.3)
+        ordering = [0,1,2]
+        if shape == 'pdfenvelope': 
+            toplot.pop()
+            colors.pop()
+            ordering.pop()
+            del t[2]
+            del d[2]
+        leg = plotting.makeLegend(d, t, ordering, 0.4, 0.0, 0.6, 0.3)
+
         plotting.plot_several(c, toplot, leg, colors, 'Bin', 'A.U.', printstr=box+model+shape, lumistr='', commentstr=model+' '+box, printdir=dirName)
