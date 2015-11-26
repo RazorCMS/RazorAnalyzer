@@ -3,8 +3,11 @@
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.h"
+#include "BTagCalibrationStandalone.h"
 
 //C++ includes
+#include <math.h>
+#include <assert.h>
 
 //ROOT includes
 #include "TH1F.h"
@@ -48,6 +51,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
+    //-------------------
+    //btagging efficiency
+    //-------------------
+    TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
+    btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+    assert(btagMediumEfficiencyHist);
+    
 
     //*************************************************************************
     //Set up Output File

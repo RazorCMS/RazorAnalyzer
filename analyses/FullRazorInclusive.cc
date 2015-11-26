@@ -29,7 +29,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //Output file
     if (outFileName.empty()){
         cout << "FullRazorInclusive: Output filename not specified!" << endl << "Using default output name FullRazorInclusive.root" << endl;
-        outFileName = "FullRazorInclusive.root";
+	outFileName = "FullRazorInclusive.root";
     }
     TFile *outFile = new TFile(outFileName.c_str(), "RECREATE");
 
