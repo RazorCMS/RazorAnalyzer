@@ -10,7 +10,9 @@
 #include <assert.h>
 
 //ROOT includes
-#include "TH1F.h"
+#include <TH1F.h>
+#include <TH1D.h>
+#include <TH2D.h>
 
 using namespace std;
 
@@ -55,10 +57,19 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //btagging efficiency
     //-------------------
     TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
-    btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+    TH2D* btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
     assert(btagMediumEfficiencyHist);
     
-
+    //btag reader
+    BTagCalibration btagcalib("csvv2", "/afs/cern.ch/work/c/cpena/public/CMSSW_7_5_3_patch1/src/RazorAnalyzer/data/ScaleFactors/CSVv2.csv" );
+    BTagCalibrationReader btagreader(&btagcalib,               // calibration instance                                   
+				     BTagEntry::OP_MEDIUM,  // operating point
+				     "mujets",               // measurement type
+				     "central");           // systematics type    
+    BTagCalibrationReader btagreader_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up                    
+    BTagCalibrationReader btagreader_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
+    
+    
     //*************************************************************************
     //Set up Output File
     //*************************************************************************
@@ -889,8 +900,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if(dR < 0 || thisDR < dR) dR = thisDR;
 	}
 	if(dR > 0 && dR < 0.4) continue; //jet matches a selected lepton
-	  
-	  
+	
+	
 	if (printSyncDebug)  {
 	  cout << "jet " << i << " : " << jetPt[i] << " " << jetEta[i] << " " << jetPhi[i] 
 	       << " : rho = " << fixedGridRhoAll << " area = " << jetJetArea[i] << " "
@@ -995,6 +1006,55 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
 	} //if it's a bjet
 
+	//---------------
+	//b-tag corrector
+	//---------------
+	double thisJetPt = jetPt[i]*JEC*jetEnergySmearFactor;
+	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > 20. )
+	  {
+	    double _pt  = fmax( fmin(thisJetPt, 199.9), 10. );//eff map goes up to 200
+	    int _ptBin  = btagMediumEfficiencyHist->GetXaxis()->FindFixBin(_pt);
+	    int _etaBin = btagMediumEfficiencyHist->GetYaxis()->FindFixBin( fabs(jetEta[i]) );
+	    double effMedWP = btagMediumEfficiencyHist->GetBinContent( _ptBin, _etaBin );
+
+	    double jetB_SF      = -1;
+	    double jetB_SF_up   = -1;
+	    double jetB_SF_down = -1;
+	    
+	    if ( thisJetPt < 670. )
+	      {
+		jetB_SF      = btagreader.eval(BTagEntry::FLAV_B, jetEta[i], thisJetPt);
+		jetB_SF_up   = btagreader_up.eval(BTagEntry::FLAV_B, jetEta[i], thisJetPt);
+		jetB_SF_down = btagreader_do.eval(BTagEntry::FLAV_B, jetEta[i], thisJetPt);
+	      }
+	    else
+	      {
+		jetB_SF      = btagreader.eval(BTagEntry::FLAV_B, jetEta[i], 669);
+                jetB_SF_up   = btagreader_up.eval(BTagEntry::FLAV_B, jetEta[i], 669);
+                jetB_SF_down = btagreader_do.eval(BTagEntry::FLAV_B, jetEta[i], 669);
+	      }
+
+	    if ( jetB_SF > 0 )
+	      {
+		if ( isCSVM(i) )
+		  {
+		    events->btagW      *= jetB_SF;
+		    events->btagW_up   *= jetB_SF_up;
+		    events->btagW_down *= jetB_SF_down;
+		  }
+		else
+		  {
+		    double sf_notag      = (1./effMedWP - jetB_SF)/(1./effMedWP - 1.);
+		    double sf_notag_up   = (1./effMedWP - jetB_SF_up)/(1./effMedWP - 1.);
+		    double sf_notag_down = (1./effMedWP - jetB_SF_down)/(1./effMedWP - 1.);
+		    events->btagW        *= sf_notag;
+		    events->btagW_up     *= sf_notag_up;
+		    events->btagW_down   *= sf_notag_down;
+		  }
+	      }
+	    
+	  }//btag correction
+
 	if (jetPt[i]*JEC > 20 && isCSVL(i) ) nBJetsLoose20GeV++;
 	if (jetPt[i]*JEC > 20 && isCSVM(i) ) nBJetsMedium20GeV++;
 	if (jetPt[i]*JEC > 20 && isCSVT(i) ) nBJetsTight20GeV++;
@@ -1022,6 +1082,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  
       } //loop over jets
     
+      /*
+      std::cout << "btagW:  " << events->btagW << std::endl;
+      std::cout << "btagW_up:  " << events->btagW_up << std::endl;
+      std::cout << "btag_down:  " << events->btagW_down << std::endl;
+      */
+      
       events->MHT = sqrt(mhx*mhx + mhy*mhy);
       events->MHTnoHF = sqrt(mhx_nohf*mhx_nohf + mhy_nohf*mhy_nohf);
 

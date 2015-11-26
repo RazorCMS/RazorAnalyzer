@@ -49,6 +49,9 @@ class ControlSampleEvents {
   /// variables
   Int_t                   option;
   Float_t                 weight;
+  Float_t                 btagW;
+  Float_t                 btagW_up;
+  Float_t                 btagW_down;
   UInt_t                  run;
   UInt_t                  lumi;
   UInt_t                  event;
@@ -280,6 +283,9 @@ class ControlSampleEvents {
   void InitVariables() {
     option               = -1;
     weight               = 0.0;
+    btagW                = 1.0;
+    btagW_up             = 1.0;
+    btagW_down           = 1.0;
     run                  = 0;
     lumi                 = 0;
     event                = 0;
@@ -502,6 +508,9 @@ class ControlSampleEvents {
     //book the branches that go in all types of trees
     tree_->Branch("option",&option,"option/I");
     tree_->Branch("weight",&weight,"weight/F");
+    tree_->Branch("btagW",&btagW,"btagW/F");
+    tree_->Branch("btagW_up",&btagW_up,"btagW_up/F");
+    tree_->Branch("btagW_down",&btagW_down,"btagW_down/F");
     tree_->Branch("run",&run,"run/i");
     tree_->Branch("lumi",&lumi,"lumi/i");
     tree_->Branch("event",&event,"event/i");
@@ -809,6 +818,9 @@ class ControlSampleEvents {
 
     tree_->SetBranchAddress("option",&option);
     tree_->SetBranchAddress("weight",&weight);
+    tree_->SetBranchAddress("btagW",&btagW);
+    tree_->SetBranchAddress("btagW_up",&btagW_up);
+    tree_->SetBranchAddress("btagW_down",&btagW_down);
     tree_->SetBranchAddress("run",&run);
     tree_->SetBranchAddress("lumi",&lumi);
     tree_->SetBranchAddress("NPU_0",&NPU_0);
