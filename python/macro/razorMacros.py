@@ -244,8 +244,9 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
     ybinUpEdges = []
     zbinLowEdges = []
     preds = []
-    obses = []
     uncerts = []
+    obses = []
+    nsigmas = []
     #for each bin, get values for all table columns
     for bx in range(1, pred.GetNbinsX()+1):
         for by in range(1, pred.GetNbinsY()+1):
@@ -255,22 +256,24 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
             ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
             zbinLowEdges.append('%.0f' % (btags))
             prediction = pred.GetBinContent(bx,by)
+            uncert = pred.GetBinError(bx,by)
             preds.append('%.2f' % (prediction))
+            uncerts.append('%.2f' % (uncert))
             observed = obs.GetBinContent(bx,by)
             obses.append('%.2f' % (observed))
             nsig = nsigma.GetBinContent(bx,by)
-            uncerts.append('%.2f' % (nsig))
+            nsigmas.append('%.2f' % (nsig))
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
     caption = "Comparison of observed and expected event yields for the "+boxName+" box"
     if btags >= 0:
-        headers=["$M_R$", "$R^2$", "B-tags", "Prediction", "Observed", "Number of sigmas"]
-        cols = [xRanges, yRanges, zRanges, preds, obses, uncerts]
+        headers=["$M_R$", "$R^2$", "B-tags", "Prediction", "Uncertainty", "Observed", "Number of sigmas"]
+        cols = [xRanges, yRanges, zRanges, preds, uncerts, obses, nsigmas]
         caption += " ("+str(btags)+" b-tags)"
     else:
-        headers=["$M_R$", "$R^2$", "Prediction", "Observed", "Number of sigmas"]
-        cols = [xRanges, yRanges, preds, obses, uncerts]
+        headers=["$M_R$", "$R^2$", "Prediction", "Uncertainty", "Observed", "Number of sigmas"]
+        cols = [xRanges, yRanges, preds, uncerts, obses, nsigmas]
     plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag")
 
 ###########################################
