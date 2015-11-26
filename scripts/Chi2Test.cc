@@ -5,6 +5,7 @@
 #include <TString.h>
 #include <TFile.h>
 #include <TH1D.h>
+#include <TH1F.h>
 #include <TF1.h>
 #include <TCanvas.h>
 #include <TGraph.h>
@@ -38,12 +39,11 @@ void Chi2Test()
 {
   TFile* f = new TFile("../BinnedFitResults_MultiJet.root", "READ");
   
-  //gSystem->Load("../python/lib/libRazorRun2.so");
+  RooRandom::randomGenerator()->SetSeed( 0 );
   RooWorkspace* ws = (RooWorkspace*)f->Get("wMultiJet");
   ws->Print();
   
 
-  //RooRealVar mr("MR","M_{R}", 100, 4000,"GeV");
   RooRealVar* th1x = ws->var("th1x");
   
   RooRealVar* mr = ws->var("MR");
@@ -60,46 +60,43 @@ void Chi2Test()
   
   RooRealVar* nBtag = ws->var("nBtag");
   nBtag->setBins(20);
-  //nBtag->setRange("low", 0, 10);
-  //nBtag->setRange("high", 0, 10);
-  //nBtag->setRange("Full", 0, 10);
   
-  RooDataSet* dataset = (RooDataSet*)ws->data("RMRTree");
-  
-  RooDataHist* dhist  = (RooDataHist*)ws->data("data_obs");
-  //RooDataSet*  dset2  = (RooDataSet*)dhist->reduce(" nBtag == 0 ");
-  //RooDataHist* dhist2 = (RooDataHist*)dhist->binnedClone();
-
+  //RooDataSet* dataset = (RooDataSet*)ws->data("RMRTree");
+  //RooDataHist* dhist  = (RooDataHist*)ws->data("data_obs");
   
   RooAbsPdf* pdf_0b = ws->pdf("MultiJet_TTj0b");
   RooAbsPdf* pdf_0b_copy = ws->pdf("MultiJet_TTj0b");
   RooRealVar* Ntot_TTj0b_MultiJet = ws->var("Ntot_TTj0b_MultiJet");
-  RooAddPdf* my_0b_pdf = new RooAddPdf( "my_0b_pdf","", RooArgList(*pdf_0b), RooArgList(*Ntot_TTj0b_MultiJet) );
+  double ndata = Ntot_TTj0b_MultiJet->getVal();
+  std::cout << ndata << std::endl;
+  RooAddPdf* my_0b_pdf = new RooAddPdf( "my_0b_pdf","", RooArgList(*pdf_0b_copy), RooArgList(*Ntot_TTj0b_MultiJet) );
   RooDataHist* gdhist;
 
+
+  RooWorkspace* myws = new RooWorkspace( "myws", "" );
+  RooFitResult* fit_res;
   TH1F* hdata;
   TH1F* hpdf;
   TH1F* h_chi2 = new TH1F("h_chi2", "chi2", 200, -100, 100);
   
   TTree* outTree = new TTree("outTree", "outTree of chi2");
-  double chi2;
+  float chi2;
   outTree->Branch("chi2", &chi2, "chi2/F");
   
-  for ( int i = 0; i < 10000; i++ )
+  for ( int i = 0; i < 5000; i++ )
     {
-      gdhist = pdf_0b->generateBinned(*th1x, 1000, kFALSE);
-      RooFitResult* bres = my_0b_pdf->fitTo( *gdhist, RooFit::Strategy(0), RooFit::Extended(kTRUE), RooFit::Save(kTRUE) );
-      hdata = (TH1F*)gdhist->createHistogram("gdth1", *th1x);
+      gdhist = pdf_0b->generateBinned(*th1x, (int)ndata, kFALSE);
+      fit_res = my_0b_pdf->fitTo( *gdhist, RooFit::Strategy(0), RooFit::Extended(kTRUE), RooFit::Save(kTRUE) );
+      hdata = (TH1F*)gdhist->createHistogram("gdth1_v", *th1x);
       hpdf = (TH1F*)my_0b_pdf->createHistogram("pdf_th1", *th1x);
       chi2 = 0;
-      for ( int j = 1; j <= hdata->GetNbinsX(); j++ )
+      for ( int k = 1; k <= hdata->GetNbinsX(); k++ )
 	{
-	  if ( hpdf->GetBinContent(j) > 0 ) chi2 += pow(hdata->GetBinContent(j)-hpdf->GetBinContent(j),2)/hpdf->GetBinContent(j);
-	  //if ( hpdf->GetBinContent(j) > 0 ) chi2 += (hdata->GetBinContent(j)-hpdf->GetBinContent(j))/sqrt(hpdf->GetBinContent(j));
-	  //std::cout << "-----------" << chi2 << std::endl;
+	  if ( hdata->GetBinContent(k) != 0 ) chi2 += pow( hdata->GetBinContent(k) - hpdf->GetBinContent(k),2 )/hpdf->GetBinContent(k);
 	}
+      std::cout << "-----------" << chi2 << std::endl;
       h_chi2->Fill( chi2 );
-      outTree->Fill( );
+      outTree->Fill();
     }
 
   //RooAbsPdf* pdf_0b = ws->pdf("MultiJet_TTj0b");
@@ -115,7 +112,14 @@ void Chi2Test()
   //hpdf->Draw("same");
   h_chi2->Draw();
 
-  TFile* fout = new TFile("outTree.root", "RECREATE");
+  myws->import(*gdhist);
+  myws->import(*my_0b_pdf);
+  myws->import(*pdf_0b);
+  myws->import(*fmr);
+  myws->import(*fit_res);
+  
+  TFile* fout = new TFile("outTreeTest.root", "RECREATE");
   outTree->Write();
+  myws->Write();
   fout->Close();
 }
