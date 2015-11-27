@@ -1,4 +1,3 @@
-
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
@@ -1010,13 +1009,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//b-tag corrector
 	//---------------
 	double thisJetPt = jetPt[i]*JEC*jetEnergySmearFactor;
-	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > 20. )
+	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > 30. )
 	  {
 	    double _pt  = fmax( fmin(thisJetPt, 199.9), 10. );//eff map goes up to 200
 	    int _ptBin  = btagMediumEfficiencyHist->GetXaxis()->FindFixBin(_pt);
-	    int _etaBin = btagMediumEfficiencyHist->GetYaxis()->FindFixBin( fabs(jetEta[i]) );
+	    int _etaBin = btagMediumEfficiencyHist->GetYaxis()->FindFixBin( jetEta[i] );
 	    double effMedWP = btagMediumEfficiencyHist->GetBinContent( _ptBin, _etaBin );
-
+	    
 	    double jetB_SF      = -1;
 	    double jetB_SF_up   = -1;
 	    double jetB_SF_down = -1;
@@ -1055,6 +1054,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    
 	  }//btag correction
 
+	/*std::cout << "jetPt: " << thisJetPt << " eta: " << jetEta[i] << " flavor: " << jetPartonFlavor[i]
+	  << " events->btagW: " << events->btagW << std::endl;*/
+	
 	if (jetPt[i]*JEC > 20 && isCSVL(i) ) nBJetsLoose20GeV++;
 	if (jetPt[i]*JEC > 20 && isCSVM(i) ) nBJetsMedium20GeV++;
 	if (jetPt[i]*JEC > 20 && isCSVT(i) ) nBJetsTight20GeV++;
