@@ -384,3 +384,10 @@ bool RazorAnalyzer::matchPhotonHLTFilters(int i, string HLTFilter){
    
   return match;
 }
+
+TLorentzVector RazorAnalyzer::GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE )
+{
+  TVector3 phoDir = phoPos - vtx;
+  TVector3 phoP3  = phoDir.Unit()*phoE;
+  return TLorentzVector( phoP3, phoE);
+};

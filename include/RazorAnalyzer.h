@@ -139,6 +139,7 @@ class RazorAnalyzer: public RazorEvents {
         bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
         bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool matchPhotonHLTFilters( int i, string HLTFilter);
+	TLorentzVector GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE );
 
 	/* //function in HggRazorAuxPhoton.cc */
 	/* // R u n 1   C u t   B a s e d   I D */

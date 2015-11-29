@@ -24,6 +24,9 @@ struct PhotonCandidate
 {                                                  
   int   Index;
   TLorentzVector photon;
+  TLorentzVector photonSC;
+  float scEta;
+  float scPhi;
   float SigmaIetaIeta;                                                                        
   float R9;                                                                                  
   float HoverE;                                                                        
@@ -44,6 +47,9 @@ struct evt
 #define _phodebug 0
 #define _debug    0
 #define _info     0
+
+const double EB_R = 129.0;
+const double EE_Z = 317.0;
 
 //Testing branching and merging
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
@@ -155,6 +161,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
+  float PhoSC_E[2], PhoSC_Pt[2], PhoSC_Eta[2], PhoSC_Phi[2];
   float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
   bool  Pho_passEleVeto[2], Pho_passIso[2];
   int   Pho_motherID[2];
@@ -192,6 +199,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
     razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
     razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
+    razorTree->Branch("pho1SC_E", &PhoSC_E[0], "pho1SC_E/F");
+    razorTree->Branch("pho1SC_Pt", &PhoSC_Pt[0], "pho1SC_Pt/F");
+    razorTree->Branch("pho1SC_Eta", &PhoSC_Eta[0], "pho1SC_Eta/F");
+    razorTree->Branch("pho1SC_Phi", &PhoSC_Phi[0], "pho1SC_Phi/F");
     razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
     razorTree->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
     razorTree->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
@@ -207,6 +218,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
     razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
     razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
+    razorTree->Branch("pho2SC_E", &PhoSC_E[1], "pho2SC_E/F");
+    razorTree->Branch("pho2SC_Pt", &PhoSC_Pt[1], "pho2SC_Pt/F");
+    razorTree->Branch("pho2SC_Eta", &PhoSC_Eta[1], "pho2SC_Eta/F");
+    razorTree->Branch("pho2SC_Phi", &PhoSC_Phi[1], "pho2SC_Phi/F");
     razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
     razorTree->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
     razorTree->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
@@ -269,6 +284,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
       thisBox.second->Branch("Pho1Eta", &Pho_Eta[0], "pho1Eta/F");
       thisBox.second->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
+      thisBox.second->Branch("pho1SC_E", &PhoSC_E[0], "pho1SC_E/F");
+      thisBox.second->Branch("pho1SC_Pt", &PhoSC_Pt[0], "pho1SC_Pt/F");
+      thisBox.second->Branch("pho1SC_Eta", &PhoSC_Eta[0], "pho1SC_Eta/F");
+      thisBox.second->Branch("pho1SC_Phi", &PhoSC_Phi[0], "pho1SC_Phi/F");
       thisBox.second->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
       thisBox.second->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
       thisBox.second->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
@@ -283,6 +302,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
       thisBox.second->Branch("Pho2Eta", &Pho_Eta[1], "pho2Eta/F");
       thisBox.second->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
+      thisBox.second->Branch("pho2SC_E", &PhoSC_E[1], "pho2SC_E/F");
+      thisBox.second->Branch("pho2SC_Pt", &PhoSC_Pt[1], "pho2SC_Pt/F");
+      thisBox.second->Branch("pho2SC_Eta", &PhoSC_Eta[1], "pho2SC_Eta/F");
+      thisBox.second->Branch("pho2SC_Phi", &PhoSC_Phi[1], "pho2SC_Phi/F");
       thisBox.second->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
       thisBox.second->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
       thisBox.second->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
@@ -362,6 +385,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	Pho_Pt[i]                 = -99.;
 	Pho_Eta[i]                = -99.;
 	Pho_Phi[i]                = -99.;
+	PhoSC_E[i]                = -99.;
+	PhoSC_Pt[i]               = -99.;
+	PhoSC_Eta[i]              = -99.;
+	PhoSC_Phi[i]              = -99.;
 	Pho_SigmaIetaIeta[i]      = -99.;
 	Pho_R9[i]                 = -99.;
 	Pho_HoverE[i]             = -99.;
@@ -485,11 +512,40 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	//setting up photon 4-momentum with zero mass
 	TLorentzVector thisPhoton;
 	thisPhoton.SetVectM( vec, .0 );
+
+	//uncorrected photon 4-momentum
+	TVector3 vtx( pvX, pvY, pvZ );
+	TVector3 phoPos;
+	if ( fabs( pho_superClusterEta[i] ) < 1.479 )
+	  {
+	    phoPos.SetXYZ( EB_R*cos( pho_superClusterPhi[i]), EB_R*sin( pho_superClusterPhi[i] ), EB_R*sinh( pho_superClusterEta[i] ) );
+	  }
+	else
+	  {
+	    double R = fabs( EE_Z/sinh( pho_superClusterEta[i] ) );
+	    
+	    if ( pho_superClusterEta[i] > .0 )
+	      {
+		phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), EE_Z);
+	      }
+	    else
+	      {
+		phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), -EE_Z);
+	      }
+	    
+	  }
 	
+	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
+	
+	//std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
+	//std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
 	//Filling Photon Candidate
 	PhotonCandidate tmp_phoCand;
 	tmp_phoCand.Index = i;
 	tmp_phoCand.photon = thisPhoton;
+	tmp_phoCand.photonSC = phoSC;
+	tmp_phoCand.scEta = pho_superClusterEta[i];
+	tmp_phoCand.scEta = pho_superClusterPhi[i];
 	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
 	tmp_phoCand.R9 = phoR9[i];
 	tmp_phoCand.HoverE = pho_HoverE[i];
@@ -598,6 +654,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	Pho_Pt[_pho_index]                 = tmpPho.photon.Pt();
 	Pho_Eta[_pho_index]                = tmpPho.photon.Eta();
 	Pho_Phi[_pho_index]                = tmpPho.photon.Phi();
+	PhoSC_E[_pho_index]                = tmpPho.photonSC.E();
+	PhoSC_Pt[_pho_index]               = tmpPho.photonSC.Pt();
+	PhoSC_Eta[_pho_index]              = tmpPho.photonSC.Eta();
+	PhoSC_Phi[_pho_index]              = tmpPho.photonSC.Phi();
 	Pho_SigmaIetaIeta[_pho_index]      = tmpPho.SigmaIetaIeta;
 	Pho_R9[_pho_index]                 = tmpPho.R9;
 	Pho_HoverE[_pho_index]             = tmpPho.HoverE;
