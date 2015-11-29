@@ -152,7 +152,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   float theRsq, t1Rsq;
   float MET, t1MET;
   int nSelectedPhotons;
-  float mGammaGamma, pTGammaGamma, sigmaMoverM;
+  float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
   float mbbZ, mbbH;
   bool passedDiphotonTrigger;
   HggRazorBox razorbox = LowRes;
@@ -192,6 +192,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+    razorTree->Branch("mGammaGammaSC", &mGammaGammaSC, "mGammaGammaSC/F");
+    razorTree->Branch("pTGammaGammaSC", &pTGammaGammaSC, "pTGammaGammaSC/F");
     razorTree->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
     razorTree->Branch("box", &razorbox, "box/I");
     
@@ -278,6 +280,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       thisBox.second->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       thisBox.second->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
       thisBox.second->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+      thisBox.second->Branch("mGammaGammaSC", &mGammaGammaSC, "mGammaGammaSC/F");
+      thisBox.second->Branch("pTGammaGammaSC", &pTGammaGammaSC, "pTGammaGammaSC/F");
       thisBox.second->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
       
       thisBox.second->Branch("pho1E", &Pho_E[0], "pho1E/F");
@@ -369,8 +373,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     theMR = -1;
     theRsq = -1;
     nSelectedPhotons = 0;
-    mGammaGamma = -1;
-    pTGammaGamma = -1;
+    mGammaGamma    = -1;
+    pTGammaGamma   = -1;
+    mGammaGammaSC  = -1;
+    pTGammaGammaSC = -1;
     mbbZ = 0;
     mbbH = 0;
     run = runNum;
@@ -513,7 +519,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	TLorentzVector thisPhoton;
 	thisPhoton.SetVectM( vec, .0 );
 
+	//-----------------------------
 	//uncorrected photon 4-momentum
+	//-----------------------------
 	TVector3 vtx( pvX, pvY, pvZ );
 	TVector3 phoPos;
 	if ( fabs( pho_superClusterEta[i] ) < 1.479 )
@@ -582,6 +590,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if ( _debug ) std::cout << "[DEBUG]: nphotons--> " << phoCand.size() << " " << nSelectedPhotons << std::endl;
     //find the "best" photon pair, higher Pt!
     TLorentzVector HiggsCandidate(0,0,0,0);
+    TLorentzVector HiggsCandidateSC(0,0,0,0);
     int goodPhoIndex1 = -1;
     int goodPhoIndex2 = -1;
     double bestSumPt = -99.;
@@ -620,6 +629,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt ){
 	  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
 	  HiggsCandidate = pho1.photon + pho2.photon;
+	  HiggsCandidateSC = pho1.photonSC + pho2.photonSC;
 	  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
 	    {
 	      if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
@@ -709,8 +719,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	continue;
       }
     //record higgs candidate info
-    mGammaGamma = HiggsCandidate.M();
-    pTGammaGamma = HiggsCandidate.Pt();
+    mGammaGamma    = HiggsCandidate.M();
+    pTGammaGamma   = HiggsCandidate.Pt();
+    mGammaGammaSC  = HiggsCandidateSC.M();
+    pTGammaGammaSC = HiggsCandidateSC.Pt();
     if ( _debug ) std::cout << "[DEBUG]: mgg-> " << mGammaGamma << " pTgg->" << pTGammaGamma << std::endl;
     
 
