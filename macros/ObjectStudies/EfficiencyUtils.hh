@@ -490,7 +490,8 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
   //define vectors to temporarily hold graph values
   vector<double> X; 
   vector<double> Y; 
-  vector<double> Xerr; 
+  vector<double> Xerrlow; 
+  vector<double> Xerrhigh; 
   vector<double> Yerrhigh;
   vector<double> Yerrlow; 
   
@@ -498,7 +499,8 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
   for (int b=0; b<nbins ; ++b) {
 
     Double_t xtemp = n->GetXaxis()->GetBinCenter(b+1); 
-    Double_t xerrtemp = 0.0;  
+    Double_t xerrlow =  n->GetXaxis()->GetBinCenter(b+1) - n->GetXaxis()->GetBinLowEdge(b+1);  
+    Double_t xerrhigh = n->GetXaxis()->GetBinUpEdge(b+1) - n->GetXaxis()->GetBinCenter(b+1);  
 
     Double_t ratio = 0;
     Double_t errLow = 0;
@@ -506,7 +508,7 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
 
     Double_t n1 = TMath::Nint(n->GetBinContent(b+1));
     Double_t n2 = TMath::Nint(d->GetBinContent(b+1));
-    //cout << "numerator: " << n1 << " and denominator: " << n2 << endl;
+    cout << "numerator: " << n1 << " and denominator: " << n2 << endl;
     if (n1 > n2) n1 = n2;
 
     if (n2>0) {
@@ -516,7 +518,7 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
       errHigh = TEfficiency::ClopperPearson((UInt_t)n2, (UInt_t)n1, 0.68269, kTRUE) - ratio;
     }
 
-//     cerr << " done bin " << b << " " << x[b] << " : " << n1 << "(" << n->GetBinContent(b+1) << ")" << " / " << n2 << "(" << d->GetBinContent(b+1) << ")" << " = " << ratio << " " << errLow << " " << errHigh << endl;
+    cout << " done bin " << b << " " << xtemp << " : " << n1 << "(" << n->GetBinContent(b+1) << ")" << " / " << n2 << "(" << d->GetBinContent(b+1) << ")" << " = " << ratio << " " << errLow << " " << errHigh << endl;
     Double_t ytemp = ratio;
     Double_t yerrlowtemp = errLow;
     Double_t yerrhightemp = errHigh;
@@ -530,9 +532,10 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
 
     X.push_back(xtemp);  
     Y.push_back(ytemp); 
-    Xerr.push_back(xerrtemp);
-    Yerrhigh.push_back(yerrhightemp);
+    Xerrlow.push_back(xerrlow);
+    Xerrhigh.push_back(xerrhigh);
     Yerrlow.push_back(yerrlowtemp);
+    Yerrhigh.push_back(yerrhightemp);
   
   }
 
@@ -541,7 +544,8 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
 
   Double_t x[nindices];
   Double_t y[nindices];
-  Double_t xErr[nindices];
+  Double_t xErrLow[nindices];
+  Double_t xErrHigh[nindices];
   Double_t yErrLow[nindices];
   Double_t yErrHigh[nindices];
 
@@ -549,12 +553,13 @@ TGraphAsymmErrors* createEfficiencyGraph(TH1F* numerator, TH1F* denominator,
   for (int i=0;i < nindices; i++) {
     x[i] = X.at(i);
     y[i] = Y.at(i);
-    xErr[i] = Xerr.at(i);
+    xErrLow[i] = Xerrlow.at(i);
+    xErrHigh[i] = Xerrhigh.at(i);
     yErrLow[i] = Yerrlow.at(i);
     yErrHigh[i] = Yerrhigh.at(i);
   }
 
-  TGraphAsymmErrors *efficiency = new TGraphAsymmErrors(nbins, x, y, xErr, xErr, yErrLow,yErrHigh );
+  TGraphAsymmErrors *efficiency = new TGraphAsymmErrors(nbins, x, y, xErrLow, xErrHigh, yErrLow,yErrHigh );
 //  efficiency->SetName(histname.c_str());
 //  efficiency->SetTitle(histname.c_str());
 //  efficiency->GetXaxis()->SetTitle(n->GetXaxis()->GetTitle());
