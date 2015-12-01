@@ -44,6 +44,7 @@ void usage()
 	    << "razor                --   inclusive razor analysis\n"
 	    << "razorfull            --   larger razor ntuple used for setting limits w/systematics\n"
 	    << "hggrazor             --   higgs->diphoton razor analysis\n"
+	    << "hggrazorExo15004     --   higgs->diphoton razor analysis using Exo15004\n"
 	    << "matchedrazor         --   inclusive razor analysis using only jets matched to genjets\n"
 	    << "razorVetoLeptonStudy --   study lepton veto\n"
 	    << "razorPhotonStudy     --   select events for Z->invisible control sample\n"
@@ -231,6 +232,20 @@ int main(int argc, char* argv[]){
 	analyzer.EnableGenParticles();
 	analyzer.EnablePileup();      
         analyzer.HggRazor(outputFileName, true, option, isData); //change the bool to true if you want all analysis boxes combined in one tree
+    }
+    else if(analysisType == "hggrazorExo15004" || analysisType == "hggrazorexo15004"){
+      cout << "Executing higgs->diphoton razor analysis (EXO15004)..." << endl;
+      analyzer.EnableEventInfo();
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnablePhotons();
+      analyzer.EnableMC();
+      analyzer.EnableGenParticles();
+      analyzer.EnablePileup();
+      analyzer.HggRazorExo15004(outputFileName, true, option, isData);
     }
     else if(analysisType == "matchedrazor"){
       cout << "Executing genjet-matched razor inclusive analysis..." << endl;

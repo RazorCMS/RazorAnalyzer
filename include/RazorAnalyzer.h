@@ -49,6 +49,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false, bool isFastsimSMS = false);
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false, int option = 0, bool isData = false );
+	virtual void HggRazorExo15004(string outFileName = "HggRazorExo15004.root", bool combineTrees = false, int option = 0, bool isData = false );
         virtual void FullRazorInclusive(string outFileName = "FullRazorInclusive.root", bool isData = false, bool isFastsimSMS = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
 	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
@@ -139,6 +140,10 @@ class RazorAnalyzer: public RazorEvents {
         bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
         bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool matchPhotonHLTFilters( int i, string HLTFilter);
+	void getPhotonEffAreaExo15004( float eta, double& effAreaPho );
+	bool photonPassLooseIDWithoutEleVetoExo15004(int i);
+	bool photonPassesIsolationExo15004(int i, double PFChHadIsoCut, double PFPhotIsoCut );
+	bool photonPassLooseIsoExo15004(int i);
 	TLorentzVector GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE );
 
 	/* //function in HggRazorAuxPhoton.cc */
