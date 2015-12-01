@@ -55,6 +55,8 @@ if __name__ == '__main__':
                   help="maximum r value (for better precision)")
     parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
                   help='number of pdf nuisance parameters to use')
+    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
 
 
     (options,args) = parser.parse_args()
@@ -96,9 +98,9 @@ if __name__ == '__main__':
 
     eosLocationSMS = {#'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p21_ForFullStatus20151030/jobs/combined/',
                       #'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/combined/',
-                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/Signals_20151116/combined/',
-                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/Signals_20151116/combined/',
-                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreappFreezing20151114/Signals_20151116/combined/'                      
+                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreapp20151122/jobs/combined/',
+                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreapp20151122/jobs/combined/',
+                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreapp20151122/jobs/combined/'                      
                     }
 
     eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
@@ -132,7 +134,11 @@ if __name__ == '__main__':
             #signalDsName = 'Datasets/RazorInclusive_SMS-%s_2J_%s_weighted_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             signalDsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(model,massPoint,lumi,btag,box)
             #exec_me('python python/DustinTuple2RooDataSet.py -c %s -b %s -d Datasets/ -w Signals/SMS-%s_%s.root -l %f'%(options.config,box,model,massPoint, 1000*lumi),options.dryRun)
-            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root --num-pdf-weights %d -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, options.numPdfWeights, 1000*lumi,signalSys),options.dryRun)
+            
+            computePdfEnvelopeString = ''
+            if options.computePdfEnvelope:
+                computePdfEnvelopeString = '--compute-pdf-envelope'
+            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root --num-pdf-weights %d %s -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, options.numPdfWeights, computePdfEnvelopeString, 1000*lumi,signalSys),options.dryRun)
             
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
