@@ -152,7 +152,7 @@ if __name__ == '__main__':
                     exec_me('python python/RooDataSet2UnweightedDataSet.py -c %s -b %s -d Datasets/ Datasets/RazorInclusive_SMCocktail_weighted_lumi-%.3f_%s_%s.root'%(options.config,box,lumi,btag,box),options.dryRun)
 
                 
-            exec_me('python python/WriteDataCard.py --num-pdf-weights %d -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
+            exec_me('python python/WriteDataCard.py --num-pdf-weights %d %s -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, computePdfEnvelopeString, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             
             if signif:
                 exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
