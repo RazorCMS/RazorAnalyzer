@@ -229,6 +229,21 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     elif opt == 'eesDown':
         hist.Fill(tree.MR_EESDown, tree.Rsq_EESDown, min(tree.nBTaggedJets_EESDown,btagCutoff), weight)
 
+    #pileup 
+    elif opt == 'pileupUp':
+        weight = weight*tree.pileupWeightUp 
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == 'pileupDown':
+        weight = weight*tree.pileupWeightDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #ISR 
+    elif opt == 'isrUp':
+        weight = weight*tree.ISRSystWeightUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == 'isrDown':
+        weight = weight*tree.ISRSystWeightDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     else: 
         print("Error in fillRazor3D: option "+opt+" not recognized!")

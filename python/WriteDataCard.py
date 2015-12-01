@@ -430,8 +430,7 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        #shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']  
-        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']  
+        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']  
         shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
