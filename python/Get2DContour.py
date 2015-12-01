@@ -9,8 +9,9 @@ from array import *
 import numpy as np
 from scipy.interpolate import Rbf
 import itertools
+from GChiPairs import gchipairs
 
-
+toFix = []
 def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0):
     x = array('d',[])
     y = array('d',[])
@@ -48,7 +49,23 @@ def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0):
 
 
 def fix_hist_byhand(hist, model, box, clsType):
-    pass
+    if clsType in 'Obs':
+        for (mg,mchi) in gchipairs(model):            
+            obs = xsecUL['Obs'].GetBinContent(xsecUL['Obs'].FindBin(mg,mchi))
+            exp = xsecUL['Exp'].GetBinContent(xsecUL['Exp'].FindBin(mg,mchi))
+            expPlus2 = xsecUL['ExpPlus2'].GetBinContent(xsecUL['ExpPlus2'].FindBin(mg,mchi))
+            expPlus = xsecUL['ExpPlus'].GetBinContent(xsecUL['ExpPlus'].FindBin(mg,mchi))
+            expMinus = xsecUL['ExpMinus'].GetBinContent(xsecUL['ExpMinus'].FindBin(mg,mchi))
+            expMinus2 = xsecUL['ExpMinus2'].GetBinContent(xsecUL['ExpMinus2'].FindBin(mg,mchi))
+            if hist.GetBinContent(hist.FindBin(mg,mchi))==0:
+                if (mg,mchi) not in toFix:                
+                    print "empty:", mg, mchi
+                    toFix.append((mg,mchi))
+            elif obs<expPlus or obs>expMinus:
+                #hist.SetBinContent(hist.FindBin(mg,mchi),0)
+                if (mg,mchi) not in toFix:
+                    print "outside 1s:", mg, mchi
+                    toFix.append((mg,mchi))
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:
@@ -185,13 +202,13 @@ def getModelSettings(model):
         nRebins = 0
         xsecMin = 1.e-3
         xsecMax = 10.
-        diagonalOffset = 25+12.5
-        smoothing = 50        
+        diagonalOffset = 225+12.5
+        smoothing = 100
     elif model=="T1qqqq":
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
         mchiMin = 0.-12.5
-        mchiMax = 1250.+12.5 
+        mchiMax = 1250.+12.5
         binWidth = 25
         nRebins = 0
         xsecMin = 1.e-3
@@ -240,7 +257,7 @@ if __name__ == '__main__':
     xsecGluinoPlus =  rt.TH2D("xsecGluinoPlus","xsecGluinoPlus",int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
     xsecGluinoMinus =  rt.TH2D("xsecGluinoMinus","xsecGluinoMinus",int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
     
-    clsTypes = ["Exp","ExpMinus","ExpMinus2","ExpPlus","ExpPlus2","ObsMinus","ObsPlus","Obs"]
+    clsTypes = ["Exp","ExpMinus","ExpMinus2","ExpPlus","ExpPlus2","Obs","ObsMinus","ObsPlus"]
 
     smooth = {}
     for clsType in clsTypes:
@@ -452,4 +469,6 @@ if __name__ == '__main__':
     smoothOutFile.cd()
     smoothXsecTree.Write()
     smoothOutFile.Close()
-    
+
+    #print len(toFix), "points to fix"
+    #print toFix
