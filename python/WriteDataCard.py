@@ -337,8 +337,8 @@ if __name__ == '__main__':
                   help="no signal systematic shape uncertainties")
     parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
                   help='number of pdf nuisance parameters to use')
-
-
+    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
 
     (options,args) = parser.parse_args()
     
@@ -431,7 +431,10 @@ if __name__ == '__main__':
         shapes = []
     else:
         shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']  
-        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
+        if options.computePdfEnvelope:
+            shapes.append('pdfenvelope')
+        else:
+            shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
