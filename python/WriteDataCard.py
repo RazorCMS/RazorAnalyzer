@@ -430,11 +430,15 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']  
+        shapes = ['jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']  
         if options.computePdfEnvelope:
             shapes.append('pdfenvelope')
         else:
             shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
+        if box in ["MultiJet", "DiJet", "FourJet", "SixJet", "LooseLeptonMultiJet", "LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet"]:
+            shapes.extend(['vetomuoneff','vetoeleeff'])
+        else:
+            shapes.extend(['tightmuoneff','tighteleeff'])
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]

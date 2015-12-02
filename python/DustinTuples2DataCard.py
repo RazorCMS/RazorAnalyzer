@@ -104,19 +104,31 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon scale factor up/down
-    elif opt == "muoneffUp":
+    elif opt == "tightmuoneffUp":
         weight = weight*tree.sf_muonEffUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
-    elif opt == "muoneffDown":
+    elif opt == "tightmuoneffDown":
         weight = weight*tree.sf_muonEffDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "vetomuoneffUp":
+        weight = weight*tree.sf_vetoMuonEffUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "vetomuoneffDown":
+        weight = weight*tree.sf_vetoMuonEffDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #ele scale factor up/down
-    elif opt == "eleeffUp":
+    elif opt == "tighteleeffUp":
         weight = weight*tree.sf_eleEffUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
-    elif opt == "eleeffDown":
+    elif opt == "tighteleeffDown":
         weight = weight*tree.sf_eleEffDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "vetoeleeffUp":
+        weight = weight*tree.sf_vetoEleEffUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
+    elif opt == "vetoeleeffDown":
+        weight = weight*tree.sf_vetoEleEffDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon trig scale factor up/down
