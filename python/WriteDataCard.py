@@ -21,6 +21,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
         z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     maxBins = 224
+    #maxBins = nBins
     
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
@@ -114,6 +115,7 @@ def initializeWorkspace_noFit(w,cfg,box):
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     maxBins = 224
+    #maxBins = nBins
     
     w.factory('th1x[0,0,%i]'%maxBins)
 
@@ -157,6 +159,7 @@ def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h'
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     maxBins = 244
+    #maxBins = nBins
     
     if maxBins >= nBins:
         myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",maxBins,0,maxBins)
@@ -184,7 +187,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
         processes = ["%s_%s"%(box,model)]
         processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-        lumiErrs = [1.05]
+        lumiErrs = [1.12]
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
