@@ -8,7 +8,7 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,min_tol,min_strat,rMax=-1):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,min_tol,min_strat,numPdfWeights,computePdfEnvelope,rMax=-1):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
@@ -26,6 +26,10 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     penaltyString = ''
     if penalty:
         penaltyString = '--penalty'
+
+    computePdfEnvelopeString = ''
+    if computePdfEnvelope:
+        computePdfEnvelopeString = '--compute-pdf-envelope'
         
     # prepare the script to run
     outputname = submitDir+"/submit_"+model+"_"+massPoint+"_lumi-%.3f_"%(lumi)+btag+"_"+box+".src"
@@ -54,15 +58,15 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'pwd\n'
     script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits Limits20151120\n'
+    script += 'git checkout -b Limits Limits20151201v4\n'
     script += 'source setup.sh\n'
     script += 'make\n'
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     if "T1" in model:
-        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
+        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --num-pdf-weights %d %s --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,numPdfWeights,computePdfEnvelopeString,rMax)
     else:
-        script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
+        script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --num-pdf-weights %d %s --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,numPdfWeights,computePdfEnvelopeString,rMax)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -118,6 +122,10 @@ if __name__ == '__main__':
                   help="minimizer strategy (default = 2)")
     parser.add_option('--asymptotic-file',dest="asymptoticFile", default=None,type="string",
                   help="input file with asymptotic limit results (to set rMax dynamically based on expected limit)")
+    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
+                  help='number of pdf nuisance parameters to use')
+    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
 
     (options,args) = parser.parse_args()
 
@@ -171,13 +179,13 @@ if __name__ == '__main__':
         if (mg, mchi) in donePairs: continue
         nJobs+=1
 
+        rMax = -1
         if options.asymptoticFile != None:
             rExpP2 = expPlus2.GetBinContent(expPlus2.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
             rExpP = expPlus.GetBinContent(expPlus.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
             rExp = exp.GetBinContent(exp.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
             rExpM = expMinus.GetBinContent(expMinus.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
             rExpM2 = expMinus2.GetBinContent(expMinus2.FindBin(mg,mchi)) / thyXsec[(mg,mchi)]
-            rMax = -1
             rMaxThresholds = [50.,20., 10., 5., 2., 1., 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
             for rMaxTest in rMaxThresholds:
                 if rExpM2<rMaxTest: rMax = 2*rMaxTest
@@ -187,9 +195,16 @@ if __name__ == '__main__':
             print "expected limit (-1sigma) = %f"%rExpM
             print "expected limit (-2sigma) = %f"%rExpM2
             print "=>          setting rMax = %f"%rMax
-            outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys,options.min_tol,options.min_strat,rMax)
-        else:
-            outputname,ffDir = writeBashScript(options.box,btag,options.model,mg,mchi,options.lumi,options.config,options.outDir,options.isData,options.fit,options.penalty,options.inputFitFile,options.noSignalSys,options.min_tol,options.min_strat)
+
+        outputname,ffDir = writeBashScript(options.box,btag,
+                                           options.model,mg,mchi,
+                                           options.lumi,options.config,
+                                           options.outDir,options.isData,
+                                           options.fit,options.penalty,
+                                           options.inputFitFile,options.noSignalSys,
+                                           options.min_tol,options.min_strat,
+                                           options.numPdfWeights,options.computePdfEnvelope,
+                                           rMax)
         
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)

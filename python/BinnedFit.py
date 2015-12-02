@@ -22,14 +22,27 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         hesse_status = -1
         
     else:
+        if fitRange != 'Full' and False:
+            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+            m2 = rt.RooMinimizer(nll)
+            m2.setStrategy(0)
+            #m2.setEps(1e-5)
+            #m2.setMaxFunctionCalls(100000)
+            #m2.setMaxIterations(100000)
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+        
         nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
         m2 = rt.RooMinimizer(nll)
         m2.setStrategy(2)
-        m2.setMaxFunctionCalls(10000)
-        m2.setMaxIterations(10000)
+        m2.setMaxFunctionCalls(100000)
+        m2.setMaxIterations(100000)
         migrad_status = m2.minimize('Minuit2','migrad')
-        #improve_status = m2.minimize('Minuit2','improve')
-        hesse_status = m2.minimize('Minuit2','hesse') 
+        improve_status = m2.minimize('Minuit2','improve')
+        hesse_status = m2.minimize('Minuit2','hesse')
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #hesse_status = m2.minimize('Minuit2','hesse')
+        #hesse_status = m2.minimize('Minuit2','hesse')
         fr = m2.save()
 
     if fr.covQual() != 3:
@@ -75,6 +88,9 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('-w','--weight',dest="useWeight",default=False,action='store_true',
                   help="use weight")
+    parser.add_option('--no-plots',dest="noPlots",default=False,action='store_true',
+                  help="no plots")
+
 
 
     (options,args) = parser.parse_args()
@@ -110,11 +126,16 @@ if __name__ == '__main__':
         
     if options.inputFitFile is not None:
         inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
-        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)
+        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)            
         if wIn.obj("fitresult_extRazorPdf_data_obs") != None:
             frIn = wIn.obj("fitresult_extRazorPdf_data_obs")
         elif wIn.obj("nll_extRazorPdf_data_obs") != None:
             frIn = wIn.obj("nll_extRazorPdf_data_obs")
+        elif wIn.obj("fitresult_extRazorPdf_data_obs_with_constr") != None:
+            frIn = wIn.obj("fitresult_extRazorPdf_data_obs_with_constr")
+        elif wIn.obj("nll_extRazorPdf_data_obs_with_constr") != None:
+            frIn = wIn.obj("nll_extRazorPdf_data_obs_with_constr")
+                        
         print "restoring parameters from fit"
         frIn.Print("V")
         for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
@@ -154,7 +175,6 @@ if __name__ == '__main__':
         sigPdf = rt.RooHistPdf('%s_Signal'%box,'%s_Signal'%box,rt.RooArgSet(th1x), sigDataHist)
         rootTools.Utils.importToWS(w,sigDataHist)
         rootTools.Utils.importToWS(w,sigPdf)
-        #w.factory('r[%f,-10.,30.]'%options.r)
         w.factory('r[%f]'%options.r)
         w.var('r').setConstant(False)
         w.factory('Ntot_Signal_%s_In[%f]'%(box,sigTH1.Integral()))
@@ -163,22 +183,33 @@ if __name__ == '__main__':
         w.factory('SUM::extSignalPdf(Ntot_Signal_%s*%s_Signal)'%(box,box))
         
         w.Print('v')
+
+        
+    extRazorPdf = w.pdf('extRazorPdf')
     
     if not options.isData:        
-        myTH1.Scale(lumi/lumi_in)        
+        myTH1.Scale(lumi/lumi_in)       
         if doSignalInj:
             if options.r > 0:
-                Npois = rt.RooRandom.randomGenerator().Poisson(options.r*sigTH1.Integral())             
-                #myTH1.FillRandom(sigTH1,Npois) # "unweighted approach" - generating a real dataset
-                #myTH1.Add(sigTH1,options.r) # "weighted approach"
+                #gendata = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj'),rt.Asimov()) #weighted approach
+                gendata = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj')) # real unweighted dataset
+                myTH1 = gendata.createHistogram('gendata',th1x)
+                Npois = rt.RooRandom.randomGenerator().Poisson(options.r*sigTH1.Integral())       
+                #myTH1.Add(sigTH1,options.r) # "weighted approach"      
+                myTH1.FillRandom(sigTH1,Npois) # "unweighted approach" - generating a real dataset
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
+    dataHist.Print('v')
+    
+    
     rootTools.Utils.importToWS(w,dataHist)
 
     setStyle()
     
-    extRazorPdf = w.pdf('extRazorPdf')
-
-    if noFit:
+    if noFit and options.inputFitFile is not None:
+        fr = frIn
+        fr.Print('v')    
+        rootTools.Utils.importToWS(w,fr)
+    elif noFit:
         fr = rt.RooFitResult()
     else:
         fr = binnedFit(extRazorPdf,dataHist,sideband,options.useWeight)
@@ -195,7 +226,8 @@ if __name__ == '__main__':
                     observed = float(dataHist.weight(rt.RooArgSet(th1x)))
                     observed_counts.append(int(observed))
                     if not inSideband: continue            
-                    expected, errorFlag = getBinEvents(i,j,k,x,y,z,w,box)
+                    #expected, errorFlag = getBinEvents(i,j,k,x,y,z,w,box)
+                    expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
                     if expected>0:
                         nll -= observed*rt.TMath.Log(expected) - expected
         print "fr      min -log(L) = ", fr.minNll()
@@ -272,12 +304,7 @@ if __name__ == '__main__':
                 h_labels.append("#geq %i b-tag" % z[k-1] )
             else:            
                 h_labels.append("%i b-tag" % z[k-1] )
-
-    if doSignalInj:
-        h_MR_components.append(h_sig_MR)
-        h_Rsq_components.append(h_sig_Rsq)
-        h_labels.append("signal")
-        
+                
     h_data_nBtagRsqMR_fine = rt.TH3D("h_data_nBtagRsqMR_fine","h_data_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
     h_nBtagRsqMR_fine = rt.TH3D("h_nBtagRsqMR_fine","h_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
     opt = [rt.RooFit.CutRange(myRange) for myRange in plotRegion.split(',')]
@@ -336,11 +363,20 @@ if __name__ == '__main__':
     if densityCorr:
         eventsLabel = "Events/Bin Width"
         
-    print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_MR_components,h_colors,h_labels)
-    print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_Rsq_components,h_colors,h_labels)
+    h_sig_total_th1x_components = []
+    if doSignalInj:
+        h_MR_components.append(h_sig_MR)
+        h_Rsq_components.append(h_sig_Rsq)
+        h_sig_total_th1x_components.append(h_sig_th1x)
+
+    if not options.noPlots:
+        
+        print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_sig_total_th1x_components)
+        print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_MR_components,h_colors,h_labels)
+        print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_Rsq_components,h_colors,h_labels)
     
-    print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,0.5,h_data_RsqMR_fine.GetMaximum(),options.isData)
-    print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,plotLabel,x,y,0.5,h_data_RsqMR_fine.GetMaximum(),options.isData)
+        #print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)
+        print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)
     
 
     outFileName = "BinnedFitResults_%s.root"%(box)
