@@ -130,7 +130,7 @@ def testWorkspace(w,outFile,box,options):
 
     r = w.var('r')
     r.setMin(0.)
-    r.setMax(2.*options.rMax)
+    r.setMax(options.rMax)
     poi = w.set('POI')
     
     allParams = model_sb.getParameters(data_obs)
@@ -143,9 +143,11 @@ def testWorkspace(w,outFile,box,options):
     nll_b = model_b.createNLL(data_obs,opt)
     nll_sb = model_sb.createNLL(data_obs,opt)
 
-    r.setVal(0)
+    r.setVal(0.)
     r.setConstant(True)
     minim_b = rt.RooMinimizer(nll_b)
+    minim_b.setPrintLevel(-1)
+    minim_b.setPrintEvalErrors(-1)
     minim_b.setStrategy(strategy)
     minim_b.setEps(tol)
     minim_b.optimizeConst(2)    
@@ -156,12 +158,14 @@ def testWorkspace(w,outFile,box,options):
     fr_b = minim_b.save()
     fr_b.Print("v")
 
-    
-    asimov_b = model_b.generateBinned(CMS_set,rt.RooFit.Asimov())
+    r.setVal(options.rAsimov)
+    asimov_b = model_sb.generateBinned(CMS_set,rt.RooFit.Asimov())
     asimov_b.Print("V")
     
     r.setConstant(False)
     minim_sb = rt.RooMinimizer(nll_sb)
+    minim_sb.setPrintLevel(-1)
+    minim_sb.setPrintEvalErrors(-1)
     minim_sb.setStrategy(strategy)
     minim_sb.setEps(tol)
     minim_sb.optimizeConst(2)
@@ -266,9 +270,9 @@ def testWorkspace(w,outFile,box,options):
         dataString = "Data"
         plotLabel = "Full Projection"
     
-        print1DProj(c,outFile,h_sigbkgd_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%singleBox,"Bin Number","Events",lumiLabel,boxLabel,plotLabel,True,None,h_th1x_components,h_colors,h_labels)
-        print1DProj(c,outFile,h_sigbkgd_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%singleBox,"M_{R} [GeV]","Events",lumiLabel,boxLabel,plotLabel,True,None,h_MR_components,h_colors,h_labels)
-        print1DProj(c,outFile,h_sigbkgd_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%singleBox,"R^{2}","Events",lumiLabel,boxLabel,plotLabel,True,None,h_Rsq_components,h_colors,h_labels)
+        print1DProj(c,outFile,h_sigbkgd_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%singleBox,"Bin Number","Events",lumiLabel,boxLabel,plotLabel,True,False,-1,None,h_th1x_components,h_colors,h_labels)
+        print1DProj(c,outFile,h_sigbkgd_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%singleBox,"M_{R} [GeV]","Events",lumiLabel,boxLabel,plotLabel,True,False,-1,None,h_MR_components,h_colors,h_labels)
+        print1DProj(c,outFile,h_sigbkgd_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%singleBox,"R^{2}","Events",lumiLabel,boxLabel,plotLabel,True,False,-1,None,h_Rsq_components,h_colors,h_labels)
 
         h_sigbkgd_MR_components = []
         h_sigbkgd_Rsq_components = []
@@ -315,9 +319,9 @@ def testWorkspace(w,outFile,box,options):
         if len(z)>2:
             for k in range(0,len(z)-1):
                 newBoxLabel = "razor %s %s"%(box,h_labels[k])
-                print1DProj(c,outFile,h_sigbkgd_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number","Events",lumiLabel,newBoxLabel,plotLabel,True,None,[h_sig_th1x_components[k]],[rt.kRed],['signal'])
-                print1DProj(c,outFile,h_sigbkgd_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,plotLabel,True,None,[h_sig_MR_components[k]],[rt.kRed],['signal'])
-                print1DProj(c,outFile,h_sigbkgd_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}","Events",lumiLabel,newBoxLabel,plotLabel,True,None,[h_sig_Rsq_components[k]],[rt.kRed],['signal'])
+                print1DProj(c,outFile,h_sigbkgd_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number","Events",lumiLabel,newBoxLabel,plotLabel,True,False,-1,None,[h_sig_th1x_components[k]],[rt.kRed],['signal'])
+                print1DProj(c,outFile,h_sigbkgd_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]","Events",lumiLabel,newBoxLabel,plotLabel,True,False,-1,None,[h_sig_MR_components[k]],[rt.kRed],['signal'])
+                print1DProj(c,outFile,h_sigbkgd_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}","Events",lumiLabel,newBoxLabel,plotLabel,True,False,-1,None,[h_sig_Rsq_components[k]],[rt.kRed],['signal'])
                 
     pll = nll_sb.createProfile(poi)
     n2ll = rt.RooFormulaVar("n2ll","2*@0-2*%f"%minNll_sb,rt.RooArgList(nll_sb))
@@ -335,7 +339,7 @@ def testWorkspace(w,outFile,box,options):
         r.setVal(x)
         r.setConstant(True)
         minim_sb.minimize('Minuit2','migrad')
-        minim_sb.minimize('Minuit2','improve')
+        minim_sb.minimize('Minuit2','improve')     
         if nll_sb.getVal() - minNll_sb < 0:
             reset(w,fr_sb)
             r.setVal(x)
@@ -370,13 +374,15 @@ def testWorkspace(w,outFile,box,options):
     # now do asimov
     
     reset(w,fr_b)
-    r.setVal(0.)
+    r.setVal(options.rAsimov)
     r.setConstant(False)
 
     nll_sb_asimov = model_sb.createNLL(asimov_b,opt)
     
     minim_sb_asimov = rt.RooMinimizer(nll_sb_asimov)
-    minim_sb_asimov.setStrategy(strategy)
+    minim_sb_asimov.setStrategy(strategy)   
+    minim_sb_asimov.setPrintLevel(-1)
+    minim_sb_asimov.setPrintEvalErrors(-1)
     minim_sb_asimov.setEps(tol)
     minim_sb_asimov.optimizeConst(2)
     minim_sb_asimov.setMaxFunctionCalls(maxFuncCalls)
@@ -471,6 +477,8 @@ if __name__ == '__main__':
                   help="mass of LSP")
     parser.add_option('--rMax',dest="rMax", default=3,type="float",
                   help="maximum of r (signal strength) in profile likelihood plot")
+    parser.add_option('--rAsimov',dest="rAsimov", default=0,type="float",
+                  help="r (signal strength) for asimov dataset generation")
     parser.add_option('-d','--outDir',dest="outDir",default="TestWorkspace/",type="string",
                   help="Output file to store results")
     parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
