@@ -384,3 +384,84 @@ bool RazorAnalyzer::matchPhotonHLTFilters(int i, string HLTFilter){
    
   return match;
 }
+
+TLorentzVector RazorAnalyzer::GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE )
+{
+  TVector3 phoDir = phoPos - vtx;
+  TVector3 phoP3  = phoDir.Unit()*phoE;
+  return TLorentzVector( phoP3, phoE);
+};
+
+bool RazorAnalyzer::photonPassLooseIDWithoutEleVetoExo15004( int i )
+{
+  bool pass = true;
+  if ( fabs(pho_superClusterEta[i]) < 1.4442 )
+    {
+      if( pho_HoverE[i] > 0.05 ) pass = false;
+      if( phoFull5x5SigmaIetaIeta[i] > 0.0105 ) pass = false;
+    }
+  else
+    {
+      if( pho_HoverE[i] > 0.05 ) pass = false;
+      if( phoFull5x5SigmaIetaIeta[i] > 0.0280 ) pass = false;
+    }
+  return pass;
+};
+
+bool RazorAnalyzer::photonPassesIsolationExo15004(int i, double PFChHadIsoCut, double PFPhotIsoCut )
+{
+  double effAreaPhotons = 0.0;
+  double eta = pho_superClusterEta[i];
+  getPhotonEffAreaExo15004( eta, effAreaPhotons );
+  
+  //Rho corrected PF charged hadron isolation
+  double PFIsoCorrected_ChHad = pho_sumChargedHadronPt[i];//No PU correction
+  if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
+    
+  //Rho corrected PF photon isolation
+  double PFIsoCorrected_Photons = pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons;//PU corr can go neg!
+  if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
+  
+  //photon passed all cuts
+  return true;
+};
+
+void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
+{
+  if ( fabs( eta ) < 0.9 )
+    {
+      effAreaPho = 0.17;
+    }
+  else if ( fabs( eta ) < 1.4442 )
+    {
+      effAreaPho = 0.14;
+    }
+  else if ( fabs( eta ) < 2.0 )
+    {
+      effAreaPho = 0.11;
+    }
+  else if ( fabs( eta ) < 2.2 )
+    {
+      effAreaPho = 0.14;
+    }
+  else
+    {
+      effAreaPho = 0.22;
+    }
+};
+
+bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
+{
+  if( fabs(pho_superClusterEta[i]) < 1.4442 )
+    {
+      return photonPassesIsolationExo15004(i, 5, 0.25 + 0.0045*phoPt[i] );
+    } 
+  else if ( abs(pho_superClusterEta[i]) < 2.0 )
+    {
+      return photonPassesIsolationExo15004(i, 5, -0.5 + 0.0045*phoPt[i] );
+    }
+  else
+    {
+      return photonPassesIsolationExo15004(i, 5, -0.5 + 0.0030*phoPt[i] );
+    }
+};
