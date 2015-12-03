@@ -20,7 +20,10 @@ def getTree(myTree,paramNames,nBins,box,z):
     # first structure
     stringMyStruct1 = "void tempMacro_%d(){struct MyStruct1{"%(rando)
     
-    stringMyStruct1 = stringMyStruct1+"int toy_num; int migrad_sf; int migrad_ff; int hesse_sf; int hesse_ff; int covQual_sf; int covQual_ff;" 
+    stringMyStruct1 = stringMyStruct1+"int toy_num; int migrad_sf; int migrad_ff; int hesse_sf; int hesse_ff; int covQual_sf; int covQual_ff;"
+    
+    for paramName in paramNames:
+        stringMyStruct1 = stringMyStruct1+'float %s_ff; float %s_ff_error; float %s_sf; float %s_sf_error;' %(paramName,paramName,paramName,paramName)
     for iBinX in range(0,nBins):
         stringMyStruct1 = stringMyStruct1+"float b%i_sf;" %(iBinX)        
     for iBinX in range(0,nBins):
@@ -44,6 +47,12 @@ def getTree(myTree,paramNames,nBins,box,z):
     myTree.Branch("hesse_ff", rt.AddressOf(s1,"hesse_ff"),'hesse_ff/I')
     myTree.Branch("covQual_sf", rt.AddressOf(s1,"covQual_sf"),'covQual_sf/I')
     myTree.Branch("covQual_ff", rt.AddressOf(s1,"covQual_ff"),'covQual_ff/I')
+    
+    for paramName in paramNames:
+        myTree.Branch('%s_ff'%paramName , rt.AddressOf(s1,'%s_ff'%paramName),'%s_ff/F' %paramName)
+        myTree.Branch('%s_ff_error'%paramName , rt.AddressOf(s1,'%s_ff_error'%paramName),'%s_ff_error/F' %paramName)
+        myTree.Branch('%s_sf'%paramName , rt.AddressOf(s1,'%s_sf'%paramName),'%s_sf/F' %paramName)
+        myTree.Branch('%s_sf_error'%paramName , rt.AddressOf(s1,'%s_sf_error'%paramName),'%s_sf_error/F' %paramName)
     
     for ix in range(0, nBins):
         myTree.Branch("b%i_sf" %(ix) , rt.AddressOf(s1,"b%i_sf" %(ix)),'b%i_sf/F' %ix)
@@ -134,6 +143,8 @@ def runToys(w,options,cfg,seed):
         for p in rootTools.RootIterator.RootIterator(pSet):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
+            if 'Ntot' in p.GetName():                
+                w.var(p.GetName()).setVal(options.scaleFactor*p.getVal())                
             #print "%s = %f +- %f"%(p.GetName(),p.getVal(),p.getError())
 
 
@@ -150,9 +161,12 @@ def runToys(w,options,cfg,seed):
         #print "SUCCESS: generated toy=%i"%iToy
 
         pSetSave = pSet
-        migrad_status = -1
-        hesse_status = -1
-        minos_status = -1
+        migrad_status_sf = -1
+        hesse_status_sf = -1
+        minos_status_sf = -1
+        migrad_status_ff = -1
+        hesse_status_ff = -1
+        minos_status_ff = -1
 
         
         sideband = convertSideband('LowMR,LowRsq',w,x,y,z)
@@ -160,11 +174,11 @@ def runToys(w,options,cfg,seed):
         nll_func_toy_ff = extRazorPdf.createNLL(asimov,rt.RooFit.Extended(True))     
         nll_func_toy_sf = extRazorPdf.createNLL(asimov,rt.RooFit.Extended(True),rt.RooFit.Range(sideband))                 
         m = rt.RooMinimizer(nll_func_toy_ff)
-        m.setStrategy(2)
+        m.setStrategy(0)
         m.setPrintLevel(-1)
         m.setPrintEvalErrors(-1)
         migrad_status_ff = m.minimize('Minuit2','migrad')
-        hesse_status_ff = m.minimize('Minuit2','hesse')
+        #hesse_status_ff = m.minimize('Minuit2','hesse')
         fr_ff = m.save()
         covQual_ff = fr_ff.covQual()
 
@@ -183,13 +197,18 @@ def runToys(w,options,cfg,seed):
                     toy = float(asimov.weight(rt.RooArgSet(th1x)))
                     value = setattr(s1, 'b%i_ff'%iBinX, expected) #save predicted full fit yield
                     value = setattr(s1, 'b%i_toy'%iBinX, toy) #save toy yield
+
+        # save full fit parameters
+        for p in rootTools.RootIterator.RootIterator(fr_ff.floatParsFinal()):
+            value = setattr(s1, p.GetName()+"_ff", p.getVal())
+            value = setattr(s1, p.GetName()+"_ff_error", p.getError())    
                   
         m = rt.RooMinimizer(nll_func_toy_sf)
-        m.setStrategy(2)
+        m.setStrategy(0)
         m.setPrintLevel(-1)
         m.setPrintEvalErrors(-1)
         migrad_status_sf = m.minimize('Minuit2','migrad')
-        hesse_status_sf = m.minimize('Minuit2','hesse')
+        #hesse_status_sf = m.minimize('Minuit2','hesse')
         fr_sf = m.save()
         covQual_sf = fr_sf.covQual()
         
@@ -204,6 +223,12 @@ def runToys(w,options,cfg,seed):
                     th1x.setVal(iBinX+0.5)
                     expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
                     value = setattr(s1, 'b%i_sf'%iBinX, expected) #save predicted sideband fit yield
+                    
+
+        # save sideband fit parameters
+        for p in rootTools.RootIterator.RootIterator(fr_sf.floatParsFinal()):
+            value = setattr(s1, p.GetName()+"_sf", p.getVal())
+            value = setattr(s1, p.GetName()+"_sf_error", p.getError())    
 
 
                     
@@ -238,6 +263,8 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('-t','--toys',dest="nToys", default=3000,type="int",
                   help="number of toys")
+    parser.add_option('--scale-factor',dest="scaleFactor", default=1,type="float",
+                  help="scale factor for toys")
 
     (options,args) = parser.parse_args()
     
@@ -259,36 +286,6 @@ if __name__ == '__main__':
             fr = w.obj("fitresult_extRazorPdf_data_obs_with_constr")
         elif w.obj("nll_extRazorPdf_data_obs_with_constr") != None:
             fr = w.obj("nll_extRazorPdf_data_obs_with_constr")
-                        
-    else:
-        for f in args:
-            if f.lower().endswith('.root'):
-                rootFile = rt.TFile(f)
-                workspace = rootFile.Get('w'+options.box)
-                data = workspace.data('RMRTree')
-                lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
-
-
-        w = rt.RooWorkspace("w"+options.box)
-    
-        paramNames, bkgs = initializeWorkspace(w,cfg,options.box)
-            
-        rootTools.Utils.importToWS(w,data)
-    
-        th1x = w.var('th1x')
-    
-        myTH1 = convertDataset2TH1(data, cfg, options.box, w)
-        myTH1.Scale(lumi/lumi_in)
-        dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), myTH1)
-        rootTools.Utils.importToWS(w,dataHist)
-
-        #m = rt.RooMinuit(nll)
-        #m.migrad()
-        #m.hesse()
-        #fr = m.save()
-        fr = extRazorPdf.fitTo(dataHist,rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','improve'),rt.RooFit.PrintLevel(-1),rt.RooFit.PrintEvalErrors(-1),rt.RooFit.SumW2Error(False))
-        fr.Print('v')
-        rootTools.Utils.importToWS(w,fr)
 
         
     outputName = runToys(w,options,cfg,options.seed)
