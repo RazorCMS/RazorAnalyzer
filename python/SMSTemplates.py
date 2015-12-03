@@ -42,7 +42,7 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['muoneff','eleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes']
+        shapes = ['tightmuoneff','tighteleeff','vetomuoneff','vetoeleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']
         shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])        
 
     for curBox in boxList:

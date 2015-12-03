@@ -324,6 +324,9 @@ def getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
     elif sumType.lower()=="y":
         for j in range(1,len(y)):
             binSumDict[j] = ''
+    elif sumType.lower()=="z":
+        for k in range(1,len(z)):
+            binSumDict[k] = ''
     elif sumType.lower()=="yx":
         for i in range(1,len(x)):
             for j in range(1,len(y)):
@@ -344,6 +347,8 @@ def getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
                         binSumDict[i] += 'b%i+'%iBinX
                     elif sumType.lower()=="y":
                         binSumDict[j] += 'b%i+'%iBinX
+                    elif sumType.lower()=="z":
+                        binSumDict[k] += 'b%i+'%iBinX
                     elif sumType.lower()=="yx":
                         binSumDict[i,j] += 'b%i+'%iBinX
                     elif sumType.lower()=="zyx":
@@ -354,7 +359,10 @@ def getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
             binSumDict[i] = binSumDict[i][0:-1]            
     elif sumType.lower()=="y":
         for j in range(1,len(y)):
-            binSumDict[j] = binSumDict[j][0:-1]      
+            binSumDict[j] = binSumDict[j][0:-1]          
+    elif sumType.lower()=="z":
+        for k in range(1,len(z)):
+            binSumDict[k] = binSumDict[k][0:-1]     
     elif sumType.lower()=="yx":
         for i in range(1,len(x)):
             for j in range(1,len(y)):
@@ -558,14 +566,16 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
     h_data.GetXaxis().SetTicks("+-")
     if "h_Rsq_" in h_data.GetName() and "MR" in h_data.GetName():
         h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.5)))
-        h_data.SetMinimum(1e-2)
+        h_data.SetMinimum(5e-2)
     else:        
         h_data.SetMaximum(max(10,math.pow(h_data.GetBinContent(h_data.GetMaximumBin()),1.25)))
         #h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
         if densityCorr and "_MR_" in h_data.GetName():
             h_data.SetMinimum(1e-6)
         elif 'Rsq' in h_data.GetName() or 'MR' in h_data.GetName():
-            h_data.SetMinimum(1e-2) 
+            h_data.SetMinimum(0.5) 
+        elif 'MR' in h_data.GetName():
+            h_data.SetMinimum(5e-2)
         else:
             h_data.SetMinimum(5e-2) # for th1x
     return h_data
@@ -614,7 +624,7 @@ def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
     
     return hDivide, hCloneDivide, hDataDivide
     
-def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
+def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,r=-1,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
     
     if densityCorr:
         h_densitycorr = densityCorrect(h)
@@ -645,6 +655,17 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
         h_comp.SetLineColor(color)
         h_comp.SetLineWidth(2)            
         h_comp.Draw("histsame")
+        
+    if doSignalInj:
+        c4 = rt.gROOT.GetColor(rt.kGray+2)
+        c4.SetAlpha(1.0)
+        #signal is always last component
+        h_components[-1].SetLineColor(rt.kBlack)
+        h_components[-1].SetFillColor(rt.kGray+2)
+        h_components[-1].SetLineStyle(2)
+        h_components[-1].SetFillStyle(3005)
+        h_components[-1].SetLineWidth(2)
+        h_components[-1].Draw("histfsame")
     h.DrawCopy("histsame")
     h_data.Draw("pesame")
     pad1.Draw()
@@ -695,6 +716,8 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
         tLeg.AddEntry(hClone,"Fit Total","lf")
         for h_comp, color, label in zip(h_components, h_colors, h_labels):                
             tLeg.AddEntry(h_comp,label,"l")
+        if doSignalInj:
+            tLeg.AddEntry(h_components[-1],'signal, #mu = %.1f'%r,'lf')
             
     tLeg.Draw("same")
 
@@ -722,7 +745,7 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
     c.Write(os.path.splitext(printName)[0].split('/')[-1])
 
     
-def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
+def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,r=-1,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
     
     if densityCorr:
         h_densitycorr = densityCorrect(h)
@@ -753,6 +776,17 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
         h_comp.SetLineColor(color)
         h_comp.SetLineWidth(2)            
         h_comp.Draw("histsame")
+
+    if doSignalInj:
+        c4 = rt.gROOT.GetColor(rt.kGray+2)
+        c4.SetAlpha(1.0)
+        #signal is always last component
+        h_components[-1].SetLineColor(rt.kBlack)
+        h_components[-1].SetFillColor(rt.kGray+2)
+        h_components[-1].SetLineStyle(2)
+        h_components[-1].SetFillStyle(3005)
+        h_components[-1].SetLineWidth(2)
+        h_components[-1].Draw("histfsame")
     h.DrawCopy("histsame")
     h_data.Draw("pesame")
     pad1.Draw()
@@ -765,6 +799,8 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
     
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Stat.+Sys. n#sigma")    
     hDataDivideNs = get1DHistoFrom2D(h_ns,x,y,h_ns.GetName()+'1d')
+    #hDataDivideNs.SetMarkerStyle(8)
+    #hDataDivideNs.SetMarkerSize(0.5)
     hDataDivideNs.SetMarkerStyle(20)
     hCloneDivide.SetMaximum(6)
     hCloneDivide.SetMinimum(-6)    
@@ -819,6 +855,8 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
         tLeg.AddEntry(hClone,"Fit Total","lf")
         for h_comp, color, label in zip(h_components, h_colors, h_labels):                
             tLeg.AddEntry(h_comp,label,"l")
+        if doSignalInj:
+            tLeg.AddEntry(h_components[-1],'signal, #mu = %.1f'%r,'lf')
             
     tLeg.Draw("same")
 
@@ -1382,6 +1420,10 @@ if __name__ == '__main__':
                   help="use weight")
     parser.add_option('--no-stat', dest='noStat', default=False, action='store_true',
                   help='toys thrown with systematic uncertainties only')
+    parser.add_option('-s','--signal',dest="signalFileName", default="None",type="string",
+                  help="input dataset file for signal pdf")
+    parser.add_option('-r','--signal-strength',dest="r", default=-1,type="float",
+                  help="signal strength")
     
     (options,args) = parser.parse_args()
      
@@ -1390,6 +1432,8 @@ if __name__ == '__main__':
     cfg = Config.Config(options.config)
     fitRegion = options.fitRegion
     plotRegion = options.plotRegion
+    doSignalInj = (options.signalFileName != "None") and (options.r > -1)
+    
     print "plotting in range:", plotRegion
     print "fit in range:", fitRegion 
 
@@ -1397,8 +1441,6 @@ if __name__ == '__main__':
 
     toyTree = None
     if options.inputToyFile is not None:
-        #inputToyFile = rt.TFile.Open(options.inputToyFile,"read")
-        #toyTree = inputToyFile.Get("myTree")
         toyFiles = options.inputToyFile.split(',')
         toyTree = rt.TChain("myTree")
         for toyFile in toyFiles:
@@ -1466,7 +1508,17 @@ if __name__ == '__main__':
     for iOpt in range(1,len(opt)):
         data_reduce.append(w.data("RMRTree").reduce(opt[iOpt]))
     data_reduce.fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
-    
+
+    if doSignalInj:        
+        extSignalPdf = w.pdf('extSignalPdf')
+        signal = extSignalPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('signal'),rt.RooFit.Asimov())
+        signal_reduce = signal.reduce(*opt)
+        h_sig_th1x = signal_reduce.createHistogram('h_sig_th1x',th1x)
+        h_sig_nBtagRsqMR = get3DHistoFrom1D(h_sig_th1x,x,y,z,"h_sig_nBtagRsqMR")
+        h_sig_RsqMR = h_sig_nBtagRsqMR.Project3D("yxe")
+        h_sig_MR = h_sig_nBtagRsqMR.Project3D("xe")
+        h_sig_Rsq = h_sig_nBtagRsqMR.Project3D("ye")
+        
     for i in range(1,len(xFine)):
         for j in range(1,len(yFine)):
             for k in range(1,len(zFine)):
@@ -1629,6 +1681,10 @@ if __name__ == '__main__':
     h_data_RsqMR_fine_components = []
     h_th1x_components = []
     h_data_th1x_components = []
+    h_sig_th1x_components = []
+    h_sig_MR_components = []
+    h_sig_Rsq_components = []
+    h_sig_RsqMR_components = []
     
     h_labels = []        
     h_colors = [rt.kOrange,rt.kViolet,rt.kRed,rt.kGreen]
@@ -1638,11 +1694,17 @@ if __name__ == '__main__':
             h_Rsq_components.append(h_nBtagRsqMR.ProjectionY("h_Rsq_%ibtag"%z[k-1],0,-1,k,k,""))
             h_data_MR_components.append(h_data_nBtagRsqMR.ProjectionX("h_MR_data_%ibtag"%z[k-1],0,-1,k,k,""))
             h_data_Rsq_components.append(h_data_nBtagRsqMR.ProjectionY("h_Rsq_data_%ibtag"%z[k-1],0,-1,k,k,""))
+            if doSignalInj:
+                h_sig_MR_components.append(h_sig_nBtagRsqMR.ProjectionX("h_MR_sig_%ibtag"%z[k-1],0,-1,k,k,""))
+                h_sig_Rsq_components.append(h_sig_nBtagRsqMR.ProjectionY("h_Rsq_sig_%ibtag"%z[k-1],0,-1,k,k,""))
             
             h_nBtagRsqMR.GetZaxis().SetRange(k,k)
             h_RsqMR_components.append(h_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
             h_nBtagRsqMR_fine.GetZaxis().SetRange(k,k)
             h_RsqMR_fine_components.append(h_nBtagRsqMR_fine.Project3D("%ibtag_yx"%z[k]))
+            if doSignalInj:
+                h_sig_nBtagRsqMR.GetZaxis().SetRange(k,k)
+                h_sig_RsqMR_components.append(h_sig_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
             
             h_data_nBtagRsqMR.GetZaxis().SetRange(k,k)
             h_data_RsqMR_components.append(h_data_nBtagRsqMR.Project3D("%ibtag_yx"%z[k]))
@@ -1657,6 +1719,8 @@ if __name__ == '__main__':
             # convert after getting the 2D errors
             h_th1x_components.append(get1DHistoFrom2D(h_RsqMR_components[-1],x,y,'h_th1x_%ibtag'%(z[k-1])))
             h_data_th1x_components.append(get1DHistoFrom2D(h_data_RsqMR_components[-1],x,y,'h_th1x_data_%ibtag'%(z[k-1])))
+            if doSignalInj:
+                h_sig_th1x_components.append(get1DHistoFrom2D(h_sig_RsqMR_components[-1],x,y,'h_th1x_sig_%ibtag'%(z[k-1])))
             
             if z[k-1]==3 and z[-1]==4:
                 h_labels.append("#geq %i b-tag" % z[k-1] )
@@ -1726,7 +1790,7 @@ if __name__ == '__main__':
     if options.isData:
         lumiLabel = "%.0f pb^{-1} (13 TeV)" % (lumi)
     else:        
-        lumiLabel = "%.0f fb^{-1} (13 TeV)" % (lumi/1000)
+        lumiLabel = "%.1f fb^{-1} (13 TeV)" % (lumi/1000)
     boxLabel = "razor %s %s %s Fit" % (box,btagLabel,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
@@ -1749,44 +1813,58 @@ if __name__ == '__main__':
     eventsLabel = "Events"
     if densityCorr:
         eventsLabel = "Events/Bin Width"
-    
-    print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None)
-    print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_MR_components,h_colors,h_labels)
-    print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,h_Rsq_components,h_colors,h_labels)
+
+    h_sig_total_th1x_components = []
+    if doSignalInj:
+        h_MR_components.append(h_sig_MR)
+        h_Rsq_components.append(h_sig_Rsq)
+        h_sig_total_th1x_components.append(h_sig_th1x)
+        
+    print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_sig_total_th1x_components)
+    print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_MR_components,h_colors,h_labels)
+    print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_Rsq_components,h_colors,h_labels)
     
     more_colors = [rt.kBlack,rt.kBlue]
     more_colors.extend(h_colors)
     more_colors.extend([rt.kMagenta,rt.kGray,rt.kCyan,rt.kYellow])
-    print1DSlice(c,tdirectory,h_MR_integrals,h_data_MR_integrals,options.outDir+"/h_MR_slicesRsq_%s.pdf"%(box),"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,more_colors,h_MR_integral_labels)
-    print1DSlice(c,tdirectory,h_Rsq_integrals,h_data_Rsq_integrals,options.outDir+"/h_Rsq_slicesMR_%s.pdf"%(box),"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,more_colors,h_Rsq_integral_labels)
+    #print1DSlice(c,tdirectory,h_MR_integrals,h_data_MR_integrals,options.outDir+"/h_MR_slicesRsq_%s.pdf"%(box),"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,more_colors,h_MR_integral_labels)
+    #print1DSlice(c,tdirectory,h_Rsq_integrals,h_data_Rsq_integrals,options.outDir+"/h_Rsq_slicesMR_%s.pdf"%(box),"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,None,more_colors,h_Rsq_integral_labels)
     
     if len(z)>2:
         for k in range(1,len(z)):            
             newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k-1],fitRegion)
-            print1DSlice(c,tdirectory,zip(*h_MR_integral_components)[k-1],zip(*h_data_MR_integral_components)[k-1],options.outDir+"/h_MR_slicesRsq_%ibtag_%s.pdf"%(z[k-1],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,None,more_colors,zip(*h_MR_integral_component_labels)[k-1])
-            print1DSlice(c,tdirectory,zip(*h_Rsq_integral_components)[k-1],zip(*h_data_Rsq_integral_components)[k-1],options.outDir+"/h_Rsq_slicesMR_%ibtag_%s.pdf"%(z[k-1],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,None,more_colors,zip(*h_Rsq_integral_component_labels)[k-1])
+            #print1DSlice(c,tdirectory,zip(*h_MR_integral_components)[k-1],zip(*h_data_MR_integral_components)[k-1],options.outDir+"/h_MR_slicesRsq_%ibtag_%s.pdf"%(z[k-1],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,None,more_colors,zip(*h_MR_integral_component_labels)[k-1])
+            #print1DSlice(c,tdirectory,zip(*h_Rsq_integral_components)[k-1],zip(*h_data_Rsq_integral_components)[k-1],options.outDir+"/h_Rsq_slicesMR_%ibtag_%s.pdf"%(z[k-1],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,None,more_colors,zip(*h_Rsq_integral_component_labels)[k-1])
 
-    print2DResiduals(c,tdirectory,h_RsqMR_residuals,options.outDir+"/h_RsqMR_residuals_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
+    #print2DResiduals(c,tdirectory,h_RsqMR_residuals,options.outDir+"/h_RsqMR_residuals_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff,options.outDir+"/h_RsqMR_percentdiff_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     print2DResiduals(c,tdirectory,h_RsqMR_statnsigma,options.outDir+"/h_RsqMR_statnsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (%s - Fit)/sqrt(Fit)"%dataString,lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
     if computeErrors:
         print2DResiduals(c,tdirectory,h_RsqMR_nsigma,options.outDir+"/h_RsqMR_nsigma_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,boxLabel,plotLabel,x,y,options.isData,sidebandFit)
-    print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
+    #print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
     print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", dataString,lumiLabel,boxLabel,plotLabel,x,y,h_data_RsqMR_fine.GetMinimum(),h_data_RsqMR_fine.GetMaximum(),options.isData,sidebandFit)
 
     if len(z)>2:
         for k in range(0,len(z)-1):
-            newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)            
-            #print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
-            print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
-            print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
-            if computeErrors:                         
-                print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+            newBoxLabel = "razor %s %s %s Fit"%(box,h_labels[k],fitRegion)
+            if doSignalInj:
+                #print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options.r,None,[h_sig_th1x_components[k]])
+                print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options.r,None,[h_sig_MR_components[k]])
+                print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options.r,None,[h_sig_Rsq_components[k]])
+            else:
+                #print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+                print1DProj(c,tdirectory,h_MR_components[k],h_data_MR_components[k],options.outDir+"/h_MR_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+                print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+            if computeErrors:
+                if doSignalInj:
+                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options.r,None,[h_sig_th1x_components[k]])
+                else:
+                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
                 print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit)   
-            print2DResiduals(c,tdirectory,h_RsqMR_residuals_components[k],options.outDir+"/h_RsqMR_residuals_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit)
+            #print2DResiduals(c,tdirectory,h_RsqMR_residuals_components[k],options.outDir+"/h_RsqMR_residuals_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit)
             #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff_components[k],options.outDir+"/h_RsqMR_percentdiff_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData)
             print2DResiduals(c,tdirectory,h_RsqMR_statnsigma_components[k],options.outDir+"/h_RsqMR_statnsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (%s - Fit)/sqrt(Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit)
-            print2DScatter(c,tdirectory,h_RsqMR_fine_components[k],options.outDir+"/h_RsqMR_scatter_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,newBoxLabel,plotLabel,x,y,h_data_RsqMR_fine_components[k].GetMinimum(),h_data_RsqMR_fine_components[k].GetMaximum(),options.isData,sidebandFit)
+            #print2DScatter(c,tdirectory,h_RsqMR_fine_components[k],options.outDir+"/h_RsqMR_scatter_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,newBoxLabel,plotLabel,x,y,h_data_RsqMR_fine_components[k].GetMinimum(),h_data_RsqMR_fine_components[k].GetMaximum(),options.isData,sidebandFit)
             print2DScatter(c,tdirectory,h_data_RsqMR_fine_components[k],options.outDir+"/h_RsqMR_scatter_data_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", dataString,lumiLabel,newBoxLabel,plotLabel,x,y,h_data_RsqMR_fine_components[k].GetMinimum(),h_data_RsqMR_fine_components[k].GetMaximum(),options.isData,sidebandFit)
 
 
