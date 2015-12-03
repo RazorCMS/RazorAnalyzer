@@ -10,7 +10,7 @@ import os
 import random
 import sys
 import math
-from PlotFit import setStyle,print1DProj,print2DScatter,get3DHistoFrom1D,getBinEvents,convertSideband,densityCorr,getBinSumDicts
+from PlotFit import setStyle,print1DProj,print2DScatter,get3DHistoFrom1D,getBinEvents,convertSideband,densityCorr,getBinSumDicts,getBestFitRms
 
 def getTrueValue(varName,toyTree):
     
@@ -19,26 +19,26 @@ def getTrueValue(varName,toyTree):
     
     return trueValue
 
-def getBiasHistos(varName,toyTree,name):
-    
-    toyTree.Draw('%s>>htest%s'%(varName,name),'migrad_ff==0&&migrad_sf==0&&toy_num>-1')
-    #toyTree.Draw('%s>>htest%s'%(varName,name),'toy_num>-1')
+def getBiasHistos(varName,toyTree,name,fitCuts=False):
+
+    if fitCuts:
+        cutExpression = 'migrad_ff>-1&&migrad_sf>-1&&toy_num>-1'
+        #cutExpression = 'migrad_ff>-1&&migrad_sf>-1&&covQual_ff>=2&&covQual_sf>=2&&toy_num>-1'
+    else:
+        cutExpression = 'toy_num>-1'
+    toyTree.Draw('%s>>htest%s'%(varName,name),cutExpression)
     htemp = rt.gPad.GetPrimitive("htest%s"%name)
-    #xmax = htemp.GetMean()+3.*htemp.GetRMS()
-    #xmin = htemp.GetMean()-3.*htemp.GetRMS()
     if htemp.GetXaxis().GetXmin()>=0:
         xmin = htemp.GetXaxis().GetXmin()
         xmax = htemp.GetXaxis().GetXmax()
     else:        
-        #xmax = max(abs(htemp.GetXaxis().GetXmax()),abs(htemp.GetXaxis().GetXmin()))
-        #xmin = -xmax        
         xmin = max(htemp.GetXaxis().GetXmin(),htemp.GetMean()-3.*htemp.GetRMS())
         xmax = min(htemp.GetXaxis().GetXmax(),htemp.GetMean()+3.*htemp.GetRMS())
         
     
     
     h = rt.TH1D('h_%s'%name,'h_%s'%name,20,xmin,xmax)
-    toyTree.Project('h_%s'%name,varName)
+    toyTree.Project('h_%s'%name,varName,cutExpression)
 
     return h
 
@@ -65,6 +65,7 @@ def printBiasHisto(h_data,xTitle,yTitle,lumi,boxLabel,btagLabel,printName):
         tLeg.AddEntry(h_data,"Toy Datasets","lep")
         tLeg.AddEntry(None,"Mean = %.2f"%h_data.GetMean(),"")
         tLeg.AddEntry(None,"RMS  = %.2f"%h_data.GetRMS(),"")
+        tLeg.AddEntry(None,"Toys = %i"%h_data.GetEntries(),"")
             
         tLeg.Draw("same")
 
@@ -98,6 +99,14 @@ if __name__ == '__main__':
                   help="input fit file")    
     parser.add_option('-t','--input-toy-file',dest="inputToyFile", default=None,type="string",
                   help="input toy file")
+    parser.add_option('--bayes-toy-file',dest="bayesToyFile", default=None,type="string",
+                  help="Bayesian toy file")
+    parser.add_option('--fit-cuts',dest="fitCuts", default=False,action='store_true',
+                  help="apply fit quality cuts")
+    parser.add_option('--print-errors',dest="printErrors", default=False,action='store_true',
+                  help="print plots of individual error calculation")
+    parser.add_option('--no-stat', dest='noStat', default=False, action='store_true',
+                  help='toys thrown with systematic uncertainties only')
     
     (options,args) = parser.parse_args()
     
@@ -117,10 +126,28 @@ if __name__ == '__main__':
     ixMin = 3
     iyMin = 3
     if box in ['MuMultiJet','EleMultiJet']:
-        ixMin = 2
+        if x[2]==500:
+            ixMin = 3
+        else:
+            ixMin = 2
         iyMin = 3
     binSumDict = getBinSumDicts("z", ixMin, len(x)-1, iyMin, len(y)-1, 0, len(z)-1, x, y, z)
-
+    
+    bayesTree = None
+    if options.bayesToyFile is not None:        
+        bayesFiles = options.bayesToyFile.split(',')
+        bayesTree = rt.TChain("myTree")
+        for bayesFile in bayesFiles:
+            bayesTree.Add(bayesFile)
+            
+        bayesFileOpen = rt.TFile.Open(bayesFile)
+            
+        d = rt.TCanvas('d','d',500,400)    
+        for k, sumName in binSumDict.iteritems():
+            print x[ixMin-1], y[iyMin-1], z[k-1]
+            nObs = bayesFileOpen.Get("w"+box).data('RMRTree').sumEntries('MR>%f&&Rsq>%f&&nBtag==%i'%( x[ixMin-1], y[iyMin-1], z[k-1]))
+            bestFit, rms, pvalue, nsigma, d = getBestFitRms(bayesTree,sumName,nObs,d,options,"h_error_%ibtag.pdf"%z[k-1])
+            print '%s, nObs %i, bestFit %.1f, range68/2 %.1f, pvalue %.3f, nsigma %.1f'%(sumName, nObs, bestFit,rms,pvalue,nsigma)
     
     toyTree = None
     if options.inputToyFile is not None:
@@ -151,13 +178,13 @@ if __name__ == '__main__':
         ffBinSum =  binSumDict[iz].replace('+','_ff+')+'_ff'
         toyBinSum =  binSumDict[iz].replace('+','_toy+')+'_toy'
         trueValue = getTrueValue(toyBinSum,toyTree)
-        h_sf_ff = getBiasHistos(sfBinSum+'-('+ffBinSum+')',toyTree,'h_sf_ff_%ibtag'%z[iz-1])
-        h_sf = getBiasHistos(sfBinSum,toyTree,'h_sf_%ibtag'%z[iz-1])
-        h_ff = getBiasHistos(ffBinSum,toyTree,'h_ff_%ibtag'%z[iz-1])
-        h_toy = getBiasHistos(toyBinSum,toyTree,'h_toy_%ibtag'%z[iz-1])
-        h_sf_ff_divtoy = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/('+toyBinSum+')',toyTree,'h_sf_ff_divtoy_%ibtag'%z[iz-1])
-        h_sf_ff_divff = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/('+ffBinSum+')',toyTree,'h_sf_ff_divff_%ibtag'%z[iz-1])
-        h_sf_ff_divtrue = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/(%f)'%trueValue,toyTree,'h_sf_ff_divtrue_%ibtag'%z[iz-1])
+        h_sf_ff = getBiasHistos(sfBinSum+'-('+ffBinSum+')',toyTree,'h_sf_ff_%ibtag'%z[iz-1],options.fitCuts)
+        h_sf = getBiasHistos(sfBinSum,toyTree,'h_sf_%ibtag'%z[iz-1],options.fitCuts)
+        h_ff = getBiasHistos(ffBinSum,toyTree,'h_ff_%ibtag'%z[iz-1],options.fitCuts)
+        h_toy = getBiasHistos(toyBinSum,toyTree,'h_toy_%ibtag'%z[iz-1],options.fitCuts)
+        h_sf_ff_divtoy = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/('+toyBinSum+')',toyTree,'h_sf_ff_divtoy_%ibtag'%z[iz-1],options.fitCuts)
+        h_sf_ff_divff = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/('+ffBinSum+')',toyTree,'h_sf_ff_divff_%ibtag'%z[iz-1],options.fitCuts)
+        h_sf_ff_divtrue = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/(%f)'%trueValue,toyTree,'h_sf_ff_divtrue_%ibtag'%z[iz-1],options.fitCuts)
 
         printBiasHisto(h_sf,'Sideband Fit Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_sf_%ibtag_%s.pdf"%(z[iz-1],box))
         printBiasHisto(h_ff,'Full Fit Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_ff_%ibtag_%s.pdf"%(z[iz-1],box))
