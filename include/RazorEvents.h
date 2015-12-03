@@ -160,7 +160,7 @@ public :
    Float_t         pho_RegressionE[40];   //[nPhotons]
    Float_t         pho_RegressionEUncertainty[40];   //[nPhotons]
    Float_t         pho_IDMVA[40];   //[nPhotons]
-   Float_t         pho_superClusterEnergy[40];//[nPhotons]
+   //Float_t         pho_superClusterEnergy[40];//[nPhotons]
    Float_t         pho_superClusterEta[40];   //[nPhotons]
    Float_t         pho_superClusterPhi[40];   //[nPhotons]
    Bool_t          pho_hasPixelSeed[40];   //[nPhotons]
@@ -429,7 +429,7 @@ public :
    TBranch        *b_pho_RegressionE;   //!
    TBranch        *b_pho_RegressionEUncertainty;   //!
    TBranch        *b_pho_IDMVA;   //!
-   TBranch        *b_pho_superClusterEnergy;   //!
+   //TBranch        *b_pho_superClusterEnergy;   //!
    TBranch        *b_pho_superClusterEta;   //!
    TBranch        *b_pho_superClusterPhi;   //!
    TBranch        *b_pho_hasPixelSeed;   //!
@@ -773,7 +773,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_RegressionE", pho_RegressionE, &b_pho_RegressionE);
    fChain->SetBranchAddress("pho_RegressionEUncertainty", pho_RegressionEUncertainty, &b_pho_RegressionEUncertainty);
    fChain->SetBranchAddress("pho_IDMVA", pho_IDMVA, &b_pho_IDMVA);
-   fChain->SetBranchAddress("pho_superClusterEnergy", pho_superClusterEnergy, &b_pho_superClusterEnergy );
+   //fChain->SetBranchAddress("pho_superClusterEnergy", pho_superClusterEnergy, &b_pho_superClusterEnergy );
    fChain->SetBranchAddress("pho_superClusterEta", pho_superClusterEta, &b_pho_superClusterEta);
    fChain->SetBranchAddress("pho_superClusterPhi", pho_superClusterPhi, &b_pho_superClusterPhi);
    fChain->SetBranchAddress("pho_hasPixelSeed", pho_hasPixelSeed, &b_pho_hasPixelSeed);

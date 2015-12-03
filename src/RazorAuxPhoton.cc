@@ -462,6 +462,6 @@ bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
     }
   else
     {
-      return photonPassesIsolationExo15004(i, 5, -0.5 + 0.003*phoPt[i] );
+      return photonPassesIsolationExo15004(i, 5, -0.5 + 0.0030*phoPt[i] );
     }
 };

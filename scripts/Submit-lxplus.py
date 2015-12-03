@@ -97,8 +97,8 @@ for ijob in range(njobs):
         outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " -f=" + rootOutput + " -n=" + option )
         
     outputfile.close
-    #os.system("bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName)
-    os.system("bsub -q 8nm source " + outputName + " -o " +logName+ " -e " +errName) 
+    os.system("bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName)
+    #os.system("bsub -q 8nm source " + outputName + " -o " +logName+ " -e " +errName) 
     os.system("sleep .1\n")
     scriptfile=pwd+"/"+outputName
     ijob = ijob+1

@@ -52,7 +52,7 @@ const double EB_R = 129.0;
 const double EE_Z = 317.0;
 
 //Testing branching and merging
-void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
+void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int option, bool isData )
 {
   //*****************************************************************************
   //Settings
@@ -66,8 +66,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   if ( _info) std::cout << "Initializing..." << std::endl;
   cout << "Combine Trees = " << combineTrees << "\n";
   if (outFileName.empty()){
-    if ( _info ) std::cout << "HggRazor: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
-    outFileName = "HggRazor.root";
+    if ( _info ) std::cout << "HggRazorExo15004: Output filename not specified!" << endl << "Using default output name HggRazorExo15004.root" << std::endl;
+    outFileName = "HggRazorExo15004.root";
   }
   TFile outFile(outFileName.c_str(), "RECREATE");
   
@@ -481,9 +481,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       {
 	//ID cuts -- apply isolation after candidate pair selection
 	if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) 
+	if ( !photonPassLooseIDWithoutEleVetoExo15004(i) ) 
 	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 ID" << std::endl;
 	    continue;
 	  }
 	
@@ -545,7 +545,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  }
 	
 	//TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
-	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] );
+	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] ); 
 	
 	//std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
 	//std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
@@ -564,7 +564,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
 	tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-	tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
+	tmp_phoCand._passIso = photonPassLooseIsoExo15004(i);
 	phoCand.push_back( tmp_phoCand );
 	
 	nSelectedPhotons++;
@@ -802,7 +802,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( n_Jets == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	continue;
+	//continue;
       }
 
     //std::cout << "njets-->" << n_Jets << std::endl;
@@ -838,7 +838,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	theRsq = -1.0;
 	t1Rsq  = -1.0;
       }
-    
     MET = metPt;
     //t1MET = metType0Plus1Pt;
     t1MET = metType1Pt;
