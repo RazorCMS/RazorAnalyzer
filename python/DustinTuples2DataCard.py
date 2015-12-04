@@ -515,7 +515,8 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
 
     #unroll into TH1F
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    maxBins = 244
+    maxBins = 224
+    #maxBins = nBins
     myTH1 = rt.TH1F(treeName,treeName,maxBins,0,maxBins)
     myTH1.SetDirectory(0) #prevent it from going out of scope
     myTH1.Sumw2()
