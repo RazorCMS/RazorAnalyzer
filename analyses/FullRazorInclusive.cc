@@ -95,6 +95,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH2D *btagMediumEfficiencyHist = 0;
     TH2D *eleTightEffFastsimSFHist = 0;
     TH2D *muTightEffFastsimSFHist = 0;
+    TH2D *eleVetoEffFastsimSFHist = 0;
+    TH2D *muVetoEffFastsimSFHist = 0;
     TH2D *btagMediumEffFastsimSFHist = 0;
     if(!isData){
         TFile *eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
@@ -102,13 +104,17 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
         assert(eleTightEfficiencyHist);
         eleTightEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
+        eleVetoEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronVeto_FastsimScaleFactor");
         assert(eleTightEffFastsimSFHist);
+        assert(eleVetoEffFastsimSFHist);
         TFile *muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
         muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
         muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
         assert(muTightEfficiencyHist);
         muTightEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
+        muVetoEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonVeto_FastsimScaleFactor");
         assert(muTightEffFastsimSFHist);
+        assert(muVetoEffFastsimSFHist);
         TFile *tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
         tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
         assert(tauLooseEfficiencyHist);
@@ -262,6 +268,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //For Fastsim scale factor uncertainties
     float sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown;
     float sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown;
+    float sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown;
+    float sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown;
     float sf_btagFastsimSFUp, sf_btagFastsimSFDown;
     //For jet uncertainties
     float MR_JESUp, Rsq_JESUp, dPhiRazor_JESUp, leadingJetPt_JESUp, subleadingJetPt_JESUp; 
@@ -359,6 +367,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("sf_eleEffFastsimSFDown", &sf_eleEffFastsimSFDown, "sf_eleEffFastsimSFDown/F");
         razorTree->Branch("sf_btagFastsimSFUp", &sf_btagFastsimSFUp, "sf_btagFastsimSFUp/F");
         razorTree->Branch("sf_btagFastsimSFDown", &sf_btagFastsimSFDown, "sf_btagFastsimSFDown/F");
+        razorTree->Branch("sf_vetoMuonEffFastsimSFUp", &sf_vetoMuonEffFastsimSFUp, "sf_vetoMuonEffFastsimSFUp/F");
+        razorTree->Branch("sf_vetoMuonEffFastsimSFDown", &sf_vetoMuonEffFastsimSFDown, "sf_vetoMuonEffFastsimSFDown/F");
+        razorTree->Branch("sf_vetoEleEffFastsimSFUp", &sf_vetoEleEffFastsimSFUp, "sf_vetoEleEffFastsimSFUp/F");
+        razorTree->Branch("sf_vetoEleEffFastsimSFDown", &sf_vetoEleEffFastsimSFDown, "sf_vetoEleEffFastsimSFDown/F");
         razorTree->Branch("sf_facScaleUp", &sf_facScaleUp, "sf_facScaleUp/F");
         razorTree->Branch("sf_facScaleDown", &sf_facScaleDown, "sf_facScaleDown/F");
         razorTree->Branch("sf_renScaleUp", &sf_renScaleUp, "sf_renScaleUp/F");
@@ -539,6 +551,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             sf_muonEffFastsimSFDown = 1.0;
             sf_eleEffFastsimSFUp = 1.0;
             sf_eleEffFastsimSFDown = 1.0;
+            sf_vetoMuonEffFastsimSFUp = 1.0;
+            sf_vetoMuonEffFastsimSFDown = 1.0;
+            sf_vetoEleEffFastsimSFUp = 1.0;
+            sf_vetoEleEffFastsimSFDown = 1.0;
             sf_btagFastsimSFUp = 1.0;
             sf_btagFastsimSFDown = 1.0;
             MR_JESUp = -1;
@@ -942,6 +958,19 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double effVeto = muVetoEfficiencyHist->GetBinContent(
                         muVetoEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muVetoEfficiencyHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                double effVeto_FastsimSFUp = effVeto;
+                double effVeto_FastsimSFDown = effVeto;
+                if (isFastsimSMS) { //correct efficiency for Fastsim
+                    double sf = muVetoEffFastsimSFHist->GetBinContent(
+                        muVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                    double sfErr = muVetoEffFastsimSFHist->GetBinError(
+                        muVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+                        muVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+                    effVeto *= sf; 
+                    effVeto_FastsimSFUp *= (sf + sfErr);
+                    effVeto_FastsimSFDown *= (sf - sfErr);
+                }
                 double effVetoSF = muVetoEffSFHist->GetBinContent( 
                         muVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
                         muVetoEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
@@ -953,20 +982,28 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double tmpVetoSF = 1.0;
                 double tmpVetoSFUp = 1.0;
                 double tmpVetoSFDown = 1.0;
+                double tmpVetoSF_FastsimSFUp = 1.0;
+                double tmpVetoSF_FastsimSFDown = 1.0;
 
-                if (isVetoMuon(i) && muonPt[i]) {
+                if (isVetoMuon(i)) {
                     tmpVetoSF = effVetoSF;
                     tmpVetoSFUp = effVetoSFUp;
                     tmpVetoSFDown = effVetoSFDown;
+                    tmpVetoSF_FastsimSFUp = effVetoSF;
+                    tmpVetoSF_FastsimSFDown = effVetoSF;
                 } 
                 else {
                     if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
                     if (effVeto*effVetoSFUp < 1.0) tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
                     if (effVeto*effVetoSFUp < 1.0) tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
+                    if (effVeto_FastsimSFUp*effVetoSF < 1.0) tmpVetoSF_FastsimSFUp = (1/effVeto_FastsimSFUp - effVetoSF) / (1/effVeto_FastsimSFUp - 1);
+                    if (effVeto_FastsimSFDown*effVetoSF < 1.0) tmpVetoSF_FastsimSFDown = (1/effVeto_FastsimSFDown - effVetoSF) / (1/effVeto_FastsimSFDown - 1);
                 }
                 vetoMuonEffCorrFactor *= tmpVetoSF;
                 sf_vetoMuonEffUp *= tmpVetoSFUp/tmpVetoSF;
                 sf_vetoMuonEffDown *= tmpVetoSFDown/tmpVetoSF;
+                sf_vetoMuonEffFastsimSFUp *= tmpVetoSF_FastsimSFUp/tmpVetoSF;
+                sf_vetoMuonEffFastsimSFDown *= tmpVetoSF_FastsimSFDown/tmpVetoSF;
             }
 
             //Trigger scale factor
@@ -1134,8 +1171,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double effTightSFErr = eleTightEffSFHist->GetBinError( 
                         eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double effTightSFUp = effTightSF + effTightSFErr;
-                double effTightSFDown = effTightSF - effTightSFErr;
+                //add 2% uncertainty in quadrature with existing error
+                double effTightSFUp = effTightSF + sqrt(effTightSFErr*effTightSFErr + (0.02*effTightSF)*(0.02*effTightSF));
+                double effTightSFDown = effTightSF - sqrt(effTightSFErr*effTightSFErr + (0.02*effTightSF)*(0.02*effTightSF));
                 double tmpTightSF = 1.0;
                 double tmpTightSFUp = 1.0;
                 double tmpTightSFDown = 1.0;
@@ -1168,32 +1206,54 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 double effVeto = eleVetoEfficiencyHist->GetBinContent(
                         eleVetoEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
                         eleVetoEfficiencyHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                double effVeto_FastsimSFUp = effVeto;
+                double effVeto_FastsimSFDown = effVeto;
+                if (isFastsimSMS) { //correct efficiency for Fastsim
+                    double sf = eleVetoEffFastsimSFHist->GetBinContent(
+                        eleVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
+                        eleVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                    double sfErr = eleVetoEffFastsimSFHist->GetBinError(
+                        eleVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
+                        eleVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+                    effVeto *= sf; 
+                    effVeto_FastsimSFUp *= (sf + sfErr);
+                    effVeto_FastsimSFDown *= (sf - sfErr);
+                }
                 double effVetoSF = eleVetoEffSFHist->GetBinContent( 
                         eleVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleVetoEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
                 double effVetoSFErr = eleVetoEffSFHist->GetBinError( 
                         eleVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
                         eleVetoEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double effVetoSFUp = effVetoSF + effVetoSFErr;
-                double effVetoSFDown = effVetoSF - effVetoSFErr;
+                //add 2% uncertainty in quadrature with existing error
+                double effVetoSFUp = effVetoSF + sqrt(effVetoSFErr*effVetoSFErr + (0.02*effVetoSF)*(0.02*effVetoSF));
+                double effVetoSFDown = effVetoSF - sqrt(effVetoSFErr*effVetoSFErr + (0.02*effVetoSF)*(0.02*effVetoSF));
 
                 double tmpVetoSF = 1.0;
                 double tmpVetoSFUp = 1.0;
                 double tmpVetoSFDown = 1.0;
+                double tmpVetoSF_FastsimSFUp = 1.0;
+                double tmpVetoSF_FastsimSFDown = 1.0;
 
                 if (isVetoElectron(i)) {
                     tmpVetoSF = effVetoSF;
                     tmpVetoSFUp = effVetoSFUp;
                     tmpVetoSFDown = effVetoSFDown;
+                    tmpVetoSF_FastsimSFUp = effVetoSF;
+                    tmpVetoSF_FastsimSFDown = effVetoSF;
                 } 
                 else { 
                     if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
                     if (effVeto*effVetoSFUp < 1.0) tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
                     if (effVeto*effVetoSFDown < 1.0) tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
+                    if (effVeto_FastsimSFUp*effVetoSF < 1.0) tmpVetoSF_FastsimSFUp = (1/effVeto_FastsimSFUp - effVetoSF) / (1/effVeto_FastsimSFUp - 1);
+                    if (effVeto_FastsimSFDown*effVetoSF < 1.0) tmpVetoSF_FastsimSFDown = (1/effVeto_FastsimSFDown - effVetoSF) / (1/effVeto_FastsimSFDown - 1);
                 }
                 vetoEleEffCorrFactor *= tmpVetoSF;
                 sf_vetoEleEffUp *= tmpVetoSFUp/tmpVetoSF;
                 sf_vetoEleEffDown *= tmpVetoSFDown/tmpVetoSF;
+                sf_vetoEleEffFastsimSFUp *= tmpVetoSF_FastsimSFUp/tmpVetoSF;
+                sf_vetoEleEffFastsimSFDown *= tmpVetoSF_FastsimSFDown/tmpVetoSF;
             }
 
             //Trigger scale factor
