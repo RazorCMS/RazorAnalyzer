@@ -100,7 +100,7 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     weight = weight*scaleFactor
                     
     #default
-    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown": 
+    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown" or "mcstatUp" or "mcstatDown": 
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon scale factor up/down
@@ -523,8 +523,16 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     for ix in range(1,len(x)):
         for iy in range(1,len(y)):
             for iz in range(1,len(z)):
-                i+= 1
-                myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
+                i += 1
+                if sysErrOpt == "mcstatUp":
+                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz) + myTH3.GetBinError(ix,iy,iz))
+                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+                elif sysErrOpt == "mcstatDown":
+                    myTH1.SetBinContent(i,max(0.,myTH3.GetBinContent(ix,iy,iz) - myTH3.GetBinError(ix,iy,iz)))
+                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+                else:                    
+                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
+                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
 
     print "Filename: %s"%f
     print "Sample: %s"%treeName

@@ -7,7 +7,7 @@ from array import *
 import rootTools
 from framework import Config
 from DustinTuple2RooDataSet import initializeWorkspace
-from DustinTuples2DataCard import convertTree2TH1
+from DustinTuples2DataCard import convertTree2TH1, uncorrelate
 from RunCombine import exec_me
 
 if __name__ == '__main__':
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['tightmuoneff','tighteleeff','vetomuoneff','vetoeleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']
-        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])        
+        shapes = ['tightmuoneff','tighteleeff','vetomuoneff','vetoeleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower()]
+        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])
 
     for curBox in boxList:
         #create workspace
@@ -55,6 +55,8 @@ if __name__ == '__main__':
         
         #list of histograms
         ds = []
+        #dictionary of histograms (same content - useful for uncorrelate function)
+        dsDict = {}
             
         #make MC histograms
         model = ''
@@ -167,6 +169,28 @@ if __name__ == '__main__':
                 #append
                 ds.append(pdfEnvelopeUp)
                 ds.append(pdfEnvelopeDown)
+                
+            #convert dataset list to dict
+            for d in ds: dsDict[d.GetName()] = d
+                
+            #perform uncorrelation procedure (for MC stat uncertainty)
+            if 'mcstat%s'%box.lower() in shapes:
+                uncorrelate(dsDict, 'mcstat%s'%box.lower())
+                # remove unnecessary MC stat bins (relative uncertainty < 10%) see htt recommendation
+                # https://indico.cern.ch/event/373752/session/6/contribution/14/attachments/744534/1021298/bbb-HCG.pdf
+                for bx in range(1,ds[0].GetNbinsX()+1):
+                    if ds[0].GetBinContent(bx) == 0 or ds[0].GetBinError(bx) == 0:
+                        print 'Relative MC stat uncertainty bin %i = %.1f%% is less than 10%%'%(bx,0.)
+                        print 'Removing histogram: %s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)
+                        print 'Removing histogram: %s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)
+                        del dsDict['%s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
+                        del dsDict['%s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
+                    elif ds[0].GetBinContent(bx) > 0 and ds[0].GetBinError(bx)/ds[0].GetBinContent(bx) < 0.1:
+                        print 'Relative MC stat uncertainty bin %i = %.1f%% is less than 10%%'%(bx,100.*ds[0].GetBinError(bx)/ds[0].GetBinContent(bx))
+                        print 'Removing histogram: %s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)
+                        print 'Removing histogram: %s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)
+                        del dsDict['%s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
+                        del dsDict['%s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
         else:
             print "Error: expected ROOT file!"
             sys.exit()
@@ -188,11 +212,12 @@ if __name__ == '__main__':
         outFile = rt.TFile.Open(options.outDir+"/"+outFileName,'recreate')
         outFile.cd()
 
-        for hist in ds:
-            if 'pdf' in hist.GetName() and options.computePdfEnvelope and not 'envelope' in hist.GetName(): 
+        
+        for name in dsDict:            
+            if 'pdf' in name and options.computePdfEnvelope and not 'envelope' in name:
                 continue
-            print("Writing histogram: "+hist.GetName())
-            hist.Write()
+            print("Writing histogram: "+dsDict[name].GetName())
+            dsDict[name].Write()
 
        
         outFile.Close()

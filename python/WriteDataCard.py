@@ -159,7 +159,6 @@ def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h'
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     maxBins = 244
-    #maxBins = nBins
     
     if maxBins >= nBins:
         myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",maxBins,0,maxBins)
@@ -433,7 +432,13 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr']  
+        shapes = ['jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower()]
+        if 'mcstat%s'%box.lower() in shapes:
+            for hist in signalHistos:
+                if 'mcstat%s'%box.lower() in hist.GetName() and 'Up' in hist.GetName():
+                    num = hist.GetName().split('mcstat%s'%box.lower())[-1].split('Up')[0]
+                    shapes.append('mcstat%s%s'%(box.lower(),num))                   
+            shapes.remove('mcstat%s'%box.lower())            
         if options.computePdfEnvelope:
             shapes.append('pdfenvelope')
         else:
