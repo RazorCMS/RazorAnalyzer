@@ -24,10 +24,11 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic templates")
-    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
-                  help="Number of nuisance parameters to use for PDF uncertainties")
-    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
-                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
+    #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
+    #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
+                  #help="Number of nuisance parameters to use for PDF uncertainties")
+    #parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  #help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
@@ -42,8 +43,9 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['tightmuoneff','tighteleeff','vetomuoneff','vetoeleeff','jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower()]
-        shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])
+        shapes = ['tightmuoneff','tighteleeff','vetomuoneff','vetoeleeff','jes','muontrig','eletrig','btag','tightmuonfastsim','tightelefastsim','vetomuonfastsim','vetoelefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower()]
+        shapes.append('pdf%s'%box.lower()) #this is for the flat 10% PDF uncertainty (uncorrelated across bins)
+        #shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])
 
     for curBox in boxList:
         #create workspace
@@ -130,50 +132,52 @@ if __name__ == '__main__':
             rootFile.Close()
 
             #make pdf envelope up/down (for SUS pdf uncertainty prescription)
-            if options.computePdfEnvelope:
-                print "Building pdf envelope up/down histograms"
-                #make summed histogram
-                pdfEnvelopeUp = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeUp')
-                pdfEnvelopeDown = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeDown')
-                pdfEnvelopeUp.Reset()
-                pdfEnvelopeDown.Reset()
-                for p in range(options.numPdfWeights):
-                    print "Adding pdf variation",p,"to envelope"
-                    #get correct pdf histogram
-                    thisVariationUp = None
-                    thisVariationDown = None
-                    for h in ds:
-                        if 'n'+str(p)+'pdfUp' in h.GetName():
-                            thisVariationUp = h
-                        elif 'n'+str(p)+'pdfDown' in h.GetName():
-                            thisVariationDown = h
-                    if thisVariationUp is None or thisVariationDown is None:
-                        print "Error: did not find pdf variation histogram",p
-                        continue
-                    for bx in range(1,ds[0].GetNbinsX()+1):
-                        #add (up - nominal) in quadrature
-                        newUp = ((pdfEnvelopeUp.GetBinContent(bx))**2 + (thisVariationUp.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
-                        pdfEnvelopeUp.SetBinContent(bx, newUp)
-                        #add (down - nominal) in quadrature
-                        newDown = -((pdfEnvelopeDown.GetBinContent(bx))**2 + (thisVariationDown.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
-                        pdfEnvelopeDown.SetBinContent(bx, newDown)
-                pdfEnvelopeUp.Add(ds[0])
-                pdfEnvelopeDown.Add(ds[0])
-                #zero any negative bins
-                for bx in range(1,ds[0].GetNbinsX()+1):
-                    if pdfEnvelopeDown.GetBinContent(bx) < 0:
-                        pdfEnvelopeDown.SetBinContent(bx,0)
-                #normalize
-                pdfEnvelopeUp.Scale(ds[0].Integral()*1.0/pdfEnvelopeUp.Integral())
-                pdfEnvelopeDown.Scale(ds[0].Integral()*1.0/pdfEnvelopeDown.Integral())
-                #append
-                ds.append(pdfEnvelopeUp)
-                ds.append(pdfEnvelopeDown)
+            #if options.computePdfEnvelope:
+            #    print "Building pdf envelope up/down histograms"
+            #    #make summed histogram
+            #    pdfEnvelopeUp = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeUp')
+            #    pdfEnvelopeDown = ds[0].Clone(ds[0].GetName()+'_pdfenvelopeDown')
+            #    pdfEnvelopeUp.Reset()
+            #    pdfEnvelopeDown.Reset()
+            #    for p in range(options.numPdfWeights):
+            #        print "Adding pdf variation",p,"to envelope"
+            #        #get correct pdf histogram
+            #        thisVariationUp = None
+            #        thisVariationDown = None
+            #        for h in ds:
+            #            if 'n'+str(p)+'pdfUp' in h.GetName():
+            #                thisVariationUp = h
+            #            elif 'n'+str(p)+'pdfDown' in h.GetName():
+            #                thisVariationDown = h
+            #        if thisVariationUp is None or thisVariationDown is None:
+            #            print "Error: did not find pdf variation histogram",p
+            #            continue
+            #        for bx in range(1,ds[0].GetNbinsX()+1):
+            #            #add (up - nominal) in quadrature
+            #            newUp = ((pdfEnvelopeUp.GetBinContent(bx))**2 + (thisVariationUp.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
+            #            pdfEnvelopeUp.SetBinContent(bx, newUp)
+            #            #add (down - nominal) in quadrature
+            #            newDown = -((pdfEnvelopeDown.GetBinContent(bx))**2 + (thisVariationDown.GetBinContent(bx) - ds[0].GetBinContent(bx))**2)**(0.5)   
+            #            pdfEnvelopeDown.SetBinContent(bx, newDown)
+            #    pdfEnvelopeUp.Add(ds[0])
+            #    pdfEnvelopeDown.Add(ds[0])
+            #    #zero any negative bins
+            #    for bx in range(1,ds[0].GetNbinsX()+1):
+            #        if pdfEnvelopeDown.GetBinContent(bx) < 0:
+            #            pdfEnvelopeDown.SetBinContent(bx,0)
+            #    #normalize
+            #    pdfEnvelopeUp.Scale(ds[0].Integral()*1.0/pdfEnvelopeUp.Integral())
+            #    pdfEnvelopeDown.Scale(ds[0].Integral()*1.0/pdfEnvelopeDown.Integral())
+            #    #append
+            #    ds.append(pdfEnvelopeUp)
+            #    ds.append(pdfEnvelopeDown)
                 
             #convert dataset list to dict
             for d in ds: dsDict[d.GetName()] = d
                 
-            #perform uncorrelation procedure (for MC stat uncertainty)
+            #perform uncorrelation procedure (for MC stat and pdf uncertainty)
+            if 'pdf%s'%box.lower() in shapes:
+                uncorrelate(dsDict, 'pdf%s'%box.lower())
             if 'mcstat%s'%box.lower() in shapes:
                 uncorrelate(dsDict, 'mcstat%s'%box.lower())
                 # remove unnecessary MC stat bins (relative uncertainty < 10%) see htt recommendation
@@ -214,8 +218,8 @@ if __name__ == '__main__':
 
         
         for name in dsDict:            
-            if 'pdf' in name and options.computePdfEnvelope and not 'envelope' in name:
-                continue
+            #if 'pdf' in name and options.computePdfEnvelope and not 'envelope' in name:
+            #    continue
             print("Writing histogram: "+dsDict[name].GetName())
             dsDict[name].Write()
 

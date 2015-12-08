@@ -78,7 +78,8 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     nBTags = min(tree.nBTaggedJets,btagCutoff)
 
     #check for any required weight histogram
-    if 'facscale' in opt or 'renscale' in opt or 'facrenscale' in opt or 'pdf' in opt:
+    if 'facscale' in opt or 'renscale' in opt or 'facrenscale' in opt:
+    #if 'facscale' in opt or 'renscale' in opt or 'facrenscale' in opt or 'pdf' in opt:
         if nevents is None:
             print "Error in fillRazor3D: no NEvents histogram given!"
             return 
@@ -90,17 +91,17 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
             print "Error in fillRazor3D: no SumScaleWeights histogram given!" 
             return
 
-    if 'pdf' in opt:
-        if sumPdfWeights is None:
-            print "Error in fillRazor3D: no SumPdfWeights histogram given!"
-            return
+    #if 'pdf' in opt:
+    #    if sumPdfWeights is None:
+    #        print "Error in fillRazor3D: no SumPdfWeights histogram given!"
+    #        return
 
     #multiply weight by appropriate scale factor
     scaleFactor = getScaleFactor(tree, treeName, sfs, opt)
     weight = weight*scaleFactor
                     
     #default
-    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown" or "mcstatUp" or "mcstatDown": 
+    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown" or opt == "mcstatUp" or opt == "mcstatDown" or opt == "pdfUp" or opt == "pdfDown": 
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon scale factor up/down
@@ -155,20 +156,36 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
         weight = weight*tree.sf_btagDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
-    #muon fastsim scale factor up/down
-    elif opt == "muonfastsimUp":
+    #tight muon fastsim scale factor up/down
+    elif opt == "tightmuonfastsimUp":
         weight = weight*tree.sf_muonEffFastsimSFUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
-    elif opt == "muonfastsimDown":
+    elif opt == "tightmuonfastsimDown":
         weight = weight*tree.sf_muonEffFastsimSFDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
-    #ele fastsim scale factor up/down
-    elif opt == "elefastsimUp":
+    #tight ele fastsim scale factor up/down
+    elif opt == "tightelefastsimUp":
         weight = weight*tree.sf_eleEffFastsimSFUp
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
-    elif opt == "elefastsimDown":
+    elif opt == "tightelefastsimDown":
         weight = weight*tree.sf_eleEffFastsimSFDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #veto muon fastsim scale factor up/down
+    elif opt == "vetomuonfastsimUp":
+        weight = weight*tree.sf_vetoMuonEffFastsimSFUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    elif opt == "vetomuonfastsimDown":
+        weight = weight*tree.sf_vetoMuonEffFastsimSFDown
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+
+    #veto ele fastsim scale factor up/down
+    elif opt == "vetoelefastsimUp":
+        weight = weight*tree.sf_vetoEleEffFastsimSFUp
+        hist.Fill(tree.MR, tree.Rsq, nBTags, weight) 
+    elif opt == "vetoelefastsimDown":
+        weight = weight*tree.sf_vetoEleEffFastsimSFDown
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #btag fastsim scale factor up/down
@@ -200,14 +217,14 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #pdf weights
-    elif 'pdfUp' in opt:
-        pdfNum = int(opt.replace('pdfUp','').replace('n',''))
-        weight = weight*(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
-        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
-    elif 'pdfDown' in opt:
-        pdfNum = int(opt.replace('pdfDown','').replace('n',''))
-        weight = weight/(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
-        hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    #elif 'pdfUp' in opt:
+    #    pdfNum = int(opt.replace('pdfUp','').replace('n',''))
+    #    weight = weight*(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
+    #    hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
+    #elif 'pdfDown' in opt:
+    #    pdfNum = int(opt.replace('pdfDown','').replace('n',''))
+    #    weight = weight/(tree.pdfWeights[pdfNum]/tree.genWeight*integral/sumPdfWeights.GetBinContent(pdfNum+1))
+    #    hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #lumi
     elif 'lumiUp' in opt:
@@ -531,6 +548,12 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
                 elif sysErrOpt == "mcstatDown":
                     myTH1.SetBinContent(i,max(0.,myTH3.GetBinContent(ix,iy,iz) - myTH3.GetBinError(ix,iy,iz)))
                     myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+                elif sysErrOpt == "pdfUp": #inflate bin contents by 10%
+                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz)*1.1)
+                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz)*1.1)
+                elif sysErrOpt == "pdfDown": #deflate bin contents by 10%
+                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz)/1.1)
+                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz)/1.1)
                 else:                    
                     myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
                     myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))

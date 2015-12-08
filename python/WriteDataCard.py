@@ -338,10 +338,11 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic shape uncertainties")
-    parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
-                  help='number of pdf nuisance parameters to use')
-    parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
-                  help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
+    #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
+    #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
+                  #help='number of pdf nuisance parameters to use')
+    #parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
+                  #help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
 
     (options,args) = parser.parse_args()
     
@@ -433,21 +434,27 @@ if __name__ == '__main__':
     if options.noSignalSys:
         shapes = []
     else:
-        shapes = ['jes','muontrig','eletrig','btag','muonfastsim','elefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower()]
+        shapes = ['jes','muontrig','eletrig','btag','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower(),'pdf%s'%box.lower()]
         if 'mcstat%s'%box.lower() in shapes:
             for hist in signalHistos:
                 if 'mcstat%s'%box.lower() in hist.GetName() and 'Up' in hist.GetName():
                     num = hist.GetName().split('mcstat%s'%box.lower())[-1].split('Up')[0]
                     shapes.append('mcstat%s%s'%(box.lower(),num))                   
             shapes.remove('mcstat%s'%box.lower())            
-        if options.computePdfEnvelope:
-            shapes.append('pdfenvelope')
-        else:
-            shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
+        if 'pdf%s'%box.lower() in shapes:
+            for hist in signalHistos:
+                if 'pdf%s'%box.lower() in hist.GetName() and 'Up' in hist.GetName():
+                    num = hist.GetName().split('pdf%s'%box.lower())[-1].split('Up')[0]
+                    shapes.append('pdf%s%s'%(box.lower(),num))                   
+            shapes.remove('pdf%s'%box.lower())            
+        #if options.computePdfEnvelope:
+            #shapes.append('pdfenvelope')
+        #else:
+            #shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)]) 
         if box in ["MultiJet", "DiJet", "FourJet", "SixJet", "LooseLeptonMultiJet", "LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet"]:
-            shapes.extend(['vetomuoneff','vetoeleeff'])
+            shapes.extend(['vetomuoneff','vetoeleeff','vetomuonfastsim','vetoelefastsim'])
         else:
-            shapes.extend(['tightmuoneff','tighteleeff'])
+            shapes.extend(['tightmuoneff','tighteleeff','tightmuonfastsim','tightelefastsim'])
         
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     btagMin = z[0]
