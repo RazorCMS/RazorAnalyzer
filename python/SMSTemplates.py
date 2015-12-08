@@ -178,6 +178,12 @@ if __name__ == '__main__':
             #perform uncorrelation procedure (for MC stat and pdf uncertainty)
             if 'pdf%s'%box.lower() in shapes:
                 uncorrelate(dsDict, 'pdf%s'%box.lower())
+                # remove empty bins 
+                for bx in range(1,ds[0].GetNbinsX()+1):
+                    if ds[0].GetBinContent(bx) == 0 or ds[0].GetBinError(bx) == 0:
+                        print 'Removing empty PDF uncertainty bin %i'%(bx)
+                        del dsDict['%s_pdf%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
+                        del dsDict['%s_pdf%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
             if 'mcstat%s'%box.lower() in shapes:
                 uncorrelate(dsDict, 'mcstat%s'%box.lower())
                 # remove unnecessary MC stat bins (relative uncertainty < 10%) see htt recommendation

@@ -101,7 +101,7 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     weight = weight*scaleFactor
                     
     #default
-    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown" or opt == "mcstatUp" or opt == "mcstatDown" or opt == "pdfUp" or opt == "pdfDown": 
+    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown" or "mcstat" in opt or "pdf" in opt: 
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon scale factor up/down
