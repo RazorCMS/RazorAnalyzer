@@ -69,4 +69,8 @@ if __name__ == '__main__':
     #hadd the files for each signal mass point
     for pair in fileLists:
         print "Signal:",smsName,pair
-        exec_me('hadd -f '+outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root '+' '.join([inDir+'/'+f+' ' for f in fileLists[pair]]), dryRun)
+        if (os.path.isfile(outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root')):
+            print "output file exists already. skip"
+        else:
+            exec_me('hadd -f '+outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root '+' '.join([inDir+'/'+f+' ' for f in fileLists[pair]]), dryRun)
+
