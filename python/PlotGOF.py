@@ -18,7 +18,11 @@ def getGOFHistos(varName,toyTree):
         
     toyTree.Draw('%s>>htest%s'%('%s_%s'%(varName,box),'%s_%s'%(varName,box)))
     htemp = rt.gPad.GetPrimitive("htest%s"%('%s_%s'%(varName,box)))
-    xmax = int(max(htemp.GetXaxis().GetXmax()+1,var_data+1))
+    rms = htemp.GetRMS()
+    mean = htemp.GetMean()
+    
+    xmax = max(mean+3.*rms,var_data+1)
+    
     xmin = int(max(0,htemp.GetXaxis().GetXmin()))
     
     h = rt.TH1D('h_%s'%varName,'h_%s'%varName,70,xmin,xmax)
@@ -42,7 +46,7 @@ def setHist(h_data,xTitle,yTitle,color=rt.kBlack):
     h_data.GetYaxis().SetTitleSize(0.05)
     #h_data.GetXaxis().SetTitleOffset(0.8)
     #h_data.GetYaxis().SetTitleOffset(0.7)
-    h_data.SetMaximum(pow(h_data.GetMaximum(),1.25))
+    h_data.SetMaximum(pow(h_data.GetMaximum(),1.7))
     h_data.SetMinimum(2e-1)
     return h_data
     
@@ -72,7 +76,7 @@ def print1DGOF(c,rootFile,h,h_cut,func,chi2_data,printName,xTitle,yTitle,lumiLab
         #graph.SetLineWidth(2)
         #graph.Draw("same")
     
-    pvalue = h_cut.Integral()/h.Integral()
+    pvalue = h_cut.Integral(0,h_cut.GetNbinsX()+1)/h.Integral(0,h.GetNbinsX()+1)
     for i in range(1,h_cut.GetNbinsX()+1):
         if h_cut.GetXaxis().GetBinLowEdge(i) < chi2_data:
             h_cut.SetBinContent(i,0)
@@ -197,10 +201,7 @@ if __name__ == '__main__':
     else:
         btagLabel = "%i-%i b-tag" % (z[0],z[-2])
 
-    if options.isData:
-        lumiLabel = "%.0f pb^{-1} (13 TeV)" % (lumi)
-    else:        
-        lumiLabel = "%.0f fb^{-1} (13 TeV)" % (lumi/1000)
+    lumiLabel = "%.1f fb^{-1} (13 TeV)" % (lumi/1000)
     boxLabel = "razor %s %s %s Fit" % (box,btagLabel,fitRegion)
 
     chi2 = rt.RooRealVar('chi2','chi2',0,0,10000)
@@ -209,7 +210,7 @@ if __name__ == '__main__':
     ndof.setVal(140-17) #roughly ndof
     chi2_func = chi2_pdf.asTF(rt.RooArgList(chi2))
     
-    print1DGOF(c,tdirectory,h_n2llr,h_n2llr_cut,chi2_func,n2llr_data,options.outDir+"/gof_n2llr_%s.pdf"%box,"#chi^{2}_{L}",eventsLabel,lumiLabel,boxLabel,'',options.isData,None)
+    print1DGOF(c,tdirectory,h_n2llr,h_n2llr_cut,chi2_func,n2llr_data,options.outDir+"/gof_n2llr_%s.pdf"%box,"-2 log #lambda",eventsLabel,lumiLabel,boxLabel,'',options.isData,None)
     print1DGOF(c,tdirectory,h_chi2,h_chi2_cut,chi2_func,chi2_data,options.outDir+"/gof_chi2_%s.pdf"%box,"#chi^{2}",eventsLabel,lumiLabel,boxLabel,'',options.isData,None)
     
     if len(z)>2:
@@ -220,7 +221,7 @@ if __name__ == '__main__':
             newBoxLabel = "razor %s %s %s Fit"%(box,newBtagLabel,fitRegion)
             ndof.setVal(34-5) #roughly ndof
             chi2_func = chi2_pdf.asTF(rt.RooArgList(chi2))
-            print1DGOF(c,tdirectory,h_n2llr_btag[k],h_n2llr_cut_btag[k],chi2_func,n2llr_data_btag[k],options.outDir+"/gof_n2llr_%ibtag_%s.pdf"%(z[k],box),"#chi^{2}_{L}",eventsLabel,lumiLabel,newBoxLabel,'',options.isData,None)
+            print1DGOF(c,tdirectory,h_n2llr_btag[k],h_n2llr_cut_btag[k],chi2_func,n2llr_data_btag[k],options.outDir+"/gof_n2llr_%ibtag_%s.pdf"%(z[k],box),"-2 log #lambda",eventsLabel,lumiLabel,newBoxLabel,'',options.isData,None)
             print1DGOF(c,tdirectory,h_chi2_btag[k],h_chi2_cut_btag[k],chi2_func,chi2_data_btag[k],options.outDir+"/gof_chi2_%ibtag_%s.pdf"%(z[k],box),"#chi^{2}",eventsLabel,lumiLabel,newBoxLabel,'',options.isData,None)
 
  

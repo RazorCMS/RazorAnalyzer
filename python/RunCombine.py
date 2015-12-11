@@ -47,6 +47,8 @@ if __name__ == '__main__':
                   help="penalty terms on background parameters")
     parser.add_option('--data',dest="isData", default=False,action='store_true',
                   help="changes plots for data")
+    parser.add_option('--just-combo',dest="justCombo", default=True,action='store_false',
+                  help="just do the combination, on by default")
     parser.add_option('-i','--input-fit-file',dest="inputFitFile", default='FitResults/BinnedFitResults.root',type="string",
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
@@ -159,15 +161,16 @@ if __name__ == '__main__':
             #exec_me('python python/WriteDataCard.py --num-pdf-weights %d %s -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, computePdfEnvelopeString, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             
-            if signif:
-                exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
-                exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir),options.dryRun)
-            else:
-                if options.rMax>-1:
-                    exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --setPhysicsModelParameterRanges r=0,%f --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat,options.rMax),options.dryRun)
+            if len(boxes)>1 and not options.justCombo:
+                if signif:
+                    exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
+                    exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir),options.dryRun)
                 else:
-                    exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat),options.dryRun)
-                exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)
+                    if options.rMax>-1:
+                        exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --setPhysicsModelParameterRanges r=0,%f --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat,options.rMax),options.dryRun)
+                    else:
+                        exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat),options.dryRun)
+                    exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)
         if len(boxes)>1:
             for box in boxes: exec_me('cp %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt .'%(options.outDir,model,massPoint,lumi,btag,box),options.dryRun)
             cmds = ['%s=razor_combine_%s_%s_lumi-%.3f_%s_%s.txt'%(box,model,massPoint,lumi,btag,box) for box in boxes]

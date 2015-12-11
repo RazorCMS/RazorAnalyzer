@@ -58,7 +58,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'pwd\n'
     script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits Limits20151209v4\n'
+    script += 'git checkout -b Limits Limits20151211\n'
     script += 'source setup.sh\n'
     script += 'make\n'
     script += 'mkdir -p Datasets\n'

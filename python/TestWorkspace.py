@@ -63,7 +63,10 @@ def prepareFrame(c,rFrame,options,type='data'):
     l.SetTextFont(42)
     l.SetNDC()
     l.SetTextSize(0.04)
-    l.DrawLatex(0.12,0.85,"CMS preliminary, %.1f fb^{-1} (13 TeV)"%(options.lumi/1000))
+    if options.isData:
+        l.DrawLatex(0.12,0.85,"CMS preliminary, %.1f fb^{-1} (13 TeV)"%(options.lumi/1000))
+    else:
+        l.DrawLatex(0.12,0.85,"CMS simulation, %.1f fb^{-1} (13 TeV)"%(options.lumi/1000))
     l.DrawLatex(0.12,0.80, "razor %s"%options.box.replace("_","+"))    
     if options.mGluino!=-1:
         for line in open('data/gluino13TeV.txt','r'):
@@ -483,6 +486,8 @@ if __name__ == '__main__':
                   help="Output file to store results")
     parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
+    parser.add_option('--data',dest="isData", default=False,action='store_true',
+                  help="changes plots for data")
 
     (options,args) = parser.parse_args()
 

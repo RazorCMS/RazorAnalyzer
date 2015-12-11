@@ -38,11 +38,12 @@ def getBiasHistos(varName,toyTree,name,fitCuts=False):
     
     
     h = rt.TH1D('h_%s'%name,'h_%s'%name,20,xmin,xmax)
+    #h = rt.TH1D('h_%s'%name,'h_%s'%name,int(xmax)-int(xmin),int(xmin),int(xmax))
     toyTree.Project('h_%s'%name,varName,cutExpression)
 
     return h
 
-def printBiasHisto(h_data,xTitle,yTitle,lumi,boxLabel,btagLabel,printName):
+def printBiasHisto(c,h_data,xTitle,yTitle,lumi,boxLabel,btagLabel,printName,nObs=-1,bestFit=-1):
         h_data.SetMarkerColor(rt.kBlack)
         h_data.SetMarkerStyle(20)
         h_data.SetLineColor(rt.kBlack)
@@ -65,6 +66,18 @@ def printBiasHisto(h_data,xTitle,yTitle,lumi,boxLabel,btagLabel,printName):
         tLeg.AddEntry(h_data,"Toy Datasets","lep")
         tLeg.AddEntry(None,"Mean = %.2f"%h_data.GetMean(),"")
         tLeg.AddEntry(None,"RMS  = %.2f"%h_data.GetRMS(),"")
+        if nObs>-1 and bestFit>-1:
+                tLeg.AddEntry(None,"Obs  = %.2f"%nObs,"")
+                tLeg.AddEntry(None,"Exp  = %.2f"%bestFit,"")                
+                tline = rt.TLine(bestFit,0,bestFit,h_data.GetMaximum())
+                tline.SetLineColor(rt.kBlue)
+                tline.SetLineWidth(2)
+                tlineObs = rt.TLine(nObs,0,nObs,h_data.GetMaximum())
+                tlineObs.SetLineColor(rt.kBlack)
+                tlineObs.SetLineWidth(2)
+                tline.Draw()
+                tlineObs.Draw()
+            
         tLeg.AddEntry(None,"Toys = %i"%h_data.GetEntries(),"")
             
         tLeg.Draw("same")
@@ -107,6 +120,8 @@ if __name__ == '__main__':
                   help="print plots of individual error calculation")
     parser.add_option('--no-stat', dest='noStat', default=False, action='store_true',
                   help='toys thrown with systematic uncertainties only')
+    parser.add_option('--scale-factor',dest="scaleFactor", default=1,type="float",
+                  help="scale factor for toys")
     
     (options,args) = parser.parse_args()
     
@@ -133,7 +148,7 @@ if __name__ == '__main__':
         iyMin = 3
     binSumDict = getBinSumDicts("z", ixMin, len(x)-1, iyMin, len(y)-1, 0, len(z)-1, x, y, z)
     
-    bayesTree = None
+    setStyle()
     if options.bayesToyFile is not None:        
         bayesFiles = options.bayesToyFile.split(',')
         bayesTree = rt.TChain("myTree")
@@ -141,14 +156,48 @@ if __name__ == '__main__':
             bayesTree.Add(bayesFile)
             
         bayesFileOpen = rt.TFile.Open(bayesFile)
-            
+        
         d = rt.TCanvas('d','d',500,400)    
+        d.SetLeftMargin(0.15)
+        d.SetRightMargin(0.1)
+        d.SetTopMargin(0.12)
+        d.SetBottomMargin(0.15)
+        bestFitTot = 0
+        nObsTot = 0
         for k, sumName in binSumDict.iteritems():
             print x[ixMin-1], y[iyMin-1], z[k-1]
             nObs = bayesFileOpen.Get("w"+box).data('RMRTree').sumEntries('MR>%f&&Rsq>%f&&nBtag==%i'%( x[ixMin-1], y[iyMin-1], z[k-1]))
             bestFit, rms, pvalue, nsigma, d = getBestFitRms(bayesTree,sumName,nObs,d,options,"h_error_%ibtag.pdf"%z[k-1])
+            nObsTot+=nObs
+            bestFitTot+=bestFit
             print '%s, nObs %i, bestFit %.1f, range68/2 %.1f, pvalue %.3f, nsigma %.1f'%(sumName, nObs, bestFit,rms,pvalue,nsigma)
-    
+            
+            h_toy = getBiasHistos(sumName,bayesTree,'h_toy_%ibtag'%z[k-1],False)
+            boxLabel = 'razor %s box'%box
+            btagLabel = 'M_{R} > %i GeV, R^{2} > %.2f, '%(x[ixMin-1],y[iyMin-1])
+            if z[k]==4:
+                btagLabel += "#geq %i b-tag" % z[k-1]
+            else:            
+                btagLabel += "%i b-tag" % z[k-1]
+            printBiasHisto(d,h_toy,'Toy Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_toy_%ibtag_%s.pdf"%(z[k-1],box),nObs,bestFit)
+
+        allSumName = ''        
+        for k, sumName in binSumDict.iteritems():
+            allSumName += sumName+'+'
+        allSumName = allSumName[:-1]
+            
+        nObs = bayesFileOpen.Get("w"+box).data('RMRTree').sumEntries('MR>%f&&Rsq>%f'%( x[ixMin-1], y[iyMin-1]))
+        bestFit, rms, pvalue, nsigma, d = getBestFitRms(bayesTree,allSumName,nObs,d,options,"h_error.pdf")
+        print '%s, nObs %i, bestFit %.1f, range68/2 %.1f, pvalue %.3f, nsigma %.1f'%(allSumName, nObs, bestFit,rms,pvalue,nsigma)
+            
+        h_toy = getBiasHistos(allSumName,bayesTree,'h_toy',False)
+        boxLabel = 'razor %s box'%box
+        btagLabel = 'M_{R} > %i GeV, R^{2} > %.2f, '%(x[ixMin-1],y[iyMin-1])
+        btagLabel += "#geq %i b-tag" % z[0]
+        printBiasHisto(d,h_toy,'Toy Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_toy_%s.pdf"%(box),nObs,bestFit)
+            
+        sys.exit()
+        
     toyTree = None
     if options.inputToyFile is not None:
         toyFiles = options.inputToyFile.split(',')
@@ -158,7 +207,6 @@ if __name__ == '__main__':
 
     biasHistos = []
 
-    setStyle()
     c = rt.TCanvas('c','c',500,400)
     
     c.SetLeftMargin(0.15)
@@ -177,7 +225,7 @@ if __name__ == '__main__':
         sfBinSum =  binSumDict[iz].replace('+','_sf+')+'_sf'
         ffBinSum =  binSumDict[iz].replace('+','_ff+')+'_ff'
         toyBinSum =  binSumDict[iz].replace('+','_toy+')+'_toy'
-        trueValue = getTrueValue(toyBinSum,toyTree)
+        trueValue = options.scaleFactor*getTrueValue(toyBinSum,toyTree)
         h_sf_ff = getBiasHistos(sfBinSum+'-('+ffBinSum+')',toyTree,'h_sf_ff_%ibtag'%z[iz-1],options.fitCuts)
         h_sf = getBiasHistos(sfBinSum,toyTree,'h_sf_%ibtag'%z[iz-1],options.fitCuts)
         h_ff = getBiasHistos(ffBinSum,toyTree,'h_ff_%ibtag'%z[iz-1],options.fitCuts)
@@ -185,11 +233,19 @@ if __name__ == '__main__':
         h_sf_ff_divtoy = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/('+toyBinSum+')',toyTree,'h_sf_ff_divtoy_%ibtag'%z[iz-1],options.fitCuts)
         h_sf_ff_divff = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/('+ffBinSum+')',toyTree,'h_sf_ff_divff_%ibtag'%z[iz-1],options.fitCuts)
         h_sf_ff_divtrue = getBiasHistos('('+sfBinSum+'-('+ffBinSum+'))/(%f)'%trueValue,toyTree,'h_sf_ff_divtrue_%ibtag'%z[iz-1],options.fitCuts)
+        h_sf_true_divtrue = getBiasHistos('('+sfBinSum+'-%f)/(%f)'%(trueValue,trueValue),toyTree,'h_sf_true_divtrue_%ibtag'%z[iz-1],options.fitCuts)
+        h_ff_true_divtrue = getBiasHistos('('+ffBinSum+'-%f)/(%f)'%(trueValue,trueValue),toyTree,'h_ff_true_divtrue_%ibtag'%z[iz-1],options.fitCuts)
+        h_sf_toy_divtoy = getBiasHistos('('+sfBinSum+'-('+toyBinSum+'))/('+toyBinSum+')',toyTree,'h_sf_toy_divtoy_%ibtag'%z[iz-1],options.fitCuts)
+        h_ff_toy_divtoy = getBiasHistos('('+ffBinSum+'-('+toyBinSum+'))/('+toyBinSum+')',toyTree,'h_ff_toy_divtoy_%ibtag'%z[iz-1],options.fitCuts)
 
-        printBiasHisto(h_sf,'Sideband Fit Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_sf_%ibtag_%s.pdf"%(z[iz-1],box))
-        printBiasHisto(h_ff,'Full Fit Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_ff_%ibtag_%s.pdf"%(z[iz-1],box))
-        printBiasHisto(h_toy,'Toy Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_toy_%ibtag_%s.pdf"%(z[iz-1],box))
-        printBiasHisto(h_sf_ff,'Sideband Fit - Full Fit','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_%ibtag_%s.pdf"%(z[iz-1],box))
-        printBiasHisto(h_sf_ff_divtoy,'(Sideband Fit - Full Fit) / Toy','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_divtoy_%ibtag_%s.pdf"%(z[iz-1],box))
-        printBiasHisto(h_sf_ff_divff,'(Sideband Fit - Full Fit) / Full Fit','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_divff_%ibtag_%s.pdf"%(z[iz-1],box))
-        printBiasHisto(h_sf_ff_divtrue,'(Sideband Fit - Full Fit) / True Value','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_divtrue_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf,'Sideband Fit Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_sf_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_ff,'Full Fit Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_ff_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_toy,'Toy Yield','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/yield_toy_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf_ff,'Sideband Fit - Full Fit','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf_ff_divtoy,'(Sideband Fit - Full Fit) / Toy','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_divtoy_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf_ff_divff,'(Sideband Fit - Full Fit) / Full Fit','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_divff_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf_ff_divtrue,'(Sideband Fit - Full Fit) / True Value','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_ff_divtrue_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf_true_divtrue,'(Sideband Fit - True Value) / True Value','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_true_divtrue_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_ff_true_divtrue,'(Full Fit - True Value) / True Value','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_ff_true_divtrue_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_sf_toy_divtoy,'(Sideband Fit - Toy) / Toy','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_sf_toy_divtoy_%ibtag_%s.pdf"%(z[iz-1],box))
+        printBiasHisto(c,h_ff_toy_divtoy,'(Full Fit - Toy) / Toy','Toy Datasets',lumi,boxLabel,btagLabel,options.outDir+"/bias_ff_toy_divtoy_%ibtag_%s.pdf"%(z[iz-1],box))

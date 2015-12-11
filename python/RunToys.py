@@ -104,9 +104,20 @@ def runToys(w,options,cfg,seed):
     th1x.setBins(nBins)
     
     fitband = convertSideband(options.fitRegion,w,x,y,z)
+    sideband = convertSideband('LowMR,LowRsq',w,x,y,z)
+    ixMin = 3
+    iyMin = 3
+    if options.box in ['MuMultiJet','EleMultiJet']:
+        if x[2]==500:
+            ixMin = 3
+        else:
+            ixMin = 2
+        iyMin = 3
 
     unc = 'Bayes'
-    if options.noStat: unc = "Bayes_noStat"
+    if options.varyN and options.noStat: unc = "Bayes_varyN_noStat"
+    elif options.varyN: unc = "Bayes_varyN"
+    elif options.noStat: unc = "Bayes_noStat"
     elif options.noSys: unc = "Bayes_noSys"
     elif options.freq: unc = 'Freq'
     elif options.oneSigma: unc = 'oneSigma'
@@ -154,7 +165,7 @@ def runToys(w,options,cfg,seed):
         for j in range(1,len(y)):
             for k in range(1,len(z)):
                 iBinX += 1
-                th1x.setVal(iBinX+0.5)
+                th1x.setVal(iBinX+0.5)                
                 #expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))  
                 expected = float(asimov.weight(rt.RooArgSet(th1x)))
                 bestFitByBin.append(expected)
@@ -200,13 +211,82 @@ def runToys(w,options,cfg,seed):
     pBest = fr.floatParsFinal()
     pBestVal = {}
     pBestErr = {}
+    #mu = rt.RooArgList()
+    #hesseParams = rt.RooArgList()
+    #iArray = 0
+    #nIndexArray = []
+    #xFactor = {}
     for p in rootTools.RootIterator.RootIterator(pBest):
         pBestVal[p.GetName()] = p.getVal()
         pBestErr[p.GetName()] = p.getError()
+        #p.setConstant(True)
+        #mu.add(p)
+        #hesseParams.add(w.var(p.GetName()))
+        #if 'n_TTj' in p.GetName() or 'b_TTj' in p.GetName():
+        #if 'MultiJet' in p.GetName():
+        #    nIndexArray.append(iArray)
+        #    if 'TTj0b' in p.GetName():
+        #        xFactor[iArray] = 1.7
+        #    elif 'TTj1b' in p.GetName():
+        #        xFactor[iArray] = 1.2
+        #    elif 'TTj2b' in p.GetName():
+        #        xFactor[iArray] = 1.15
+        #    elif 'TTj3b' in p.GetName():
+        #        xFactor[iArray] = 1.15
+        #iArray+=1
+    #maxArray = iArray
+        
+    #covMatrix = fr.covarianceMatrix()
+    #corrMatrix = fr.correlationMatrix()
+    #covMatrixClone = covMatrix.Clone(covMatrix.GetName()+"_varyN")
+    
+    # double the uncertainty for each n parameter
+    #print nIndexArray
+    #print xFactor
+    #for nIndex in nIndexArray:
+    #    for otherIndex in nIndexArray:        
+    #        covMatrixClone[nIndex][otherIndex] = xFactor[nIndex]*xFactor[otherIndex]*covMatrix[nIndex][otherIndex]
+    #        covMatrixClone[otherIndex][nIndex] = xFactor[otherIndex]*xFactor[nIndex]*covMatrix[otherIndex][nIndex]
 
+    #hesseParams.Print('v')
+    #mu.Print('v')
+    #covMatrix.Print('v')
+    #covMatrixClone.Print("V")
+    #hessePdf = rt.RooMultiVarGaussian('hessePdf','hessePdf',hesseParams,mu,covMatrixClone)
+    #hessePdf.Print('v')
+    #hesseDs = hessePdf.generate(params,int(100*options.nToys))
+    #corrMatrix.Print('v')
+    #c = rt.TCanvas('c','c',500,400)
+    #varName = 'n_TTj1b_MultiJet'
+    #varName2 = 'b_TTj1b_MultiJet'
+    #frame = w.var(varName).frame(rt.RooFit.Range(0,10))
+    #frame.Print('v')
+    #hesseDs.plotOn(frame)
+    #hessePdf.plotOn(frame)
+    #frame.Draw()
+    #c.Print(varName+'.2pdf')
+    #w.var(varName).setMin(0)
+    #w.var(varName2).setMin(0)
+    #w.var(varName).setMax(10)
+    #w.var(varName2).setMax(2.5)
+    #hist2d = hesseDs.createHistogram(w.var(varName),w.var(varName2),100,100)
+    #hist2d.GetXaxis().SetTitle(varName)
+    #hist2d.GetYaxis().SetTitle(varName2)    
+    #hist2d.Draw("colz")
+    #c.Print(varName+varName2+'.2pdf')
+    #sys.exit()
+                
+    if options.box == 'MultiJet':
+        xFactor = [1.8, 1.4, 1.4, 1.4] #xFactor for each b-tag bin
+    elif options.box == 'MuMultiJet':
+        xFactor = [2.0, 2.0, 2.0, 2.0] #xFactor for each b-tag bin
+    elif options.box == 'EleMultiJet':
+        xFactor = [2.0, 1.8, 1.2, 1.2] #xFactor for each b-tag bin
     widgets = ['Running %s toys '%unc, Percentage(), ' ', Bar(marker=RotatingMarker()),' ', ETA(), ' ', FileTransferSpeed()]
     pbar = ProgressBar(widgets=widgets, max_value=options.nToys).start()
-    while iToy < options.nToys:    
+    iAttempt = -1
+    while iToy < options.nToys:
+        iAttempt+=1
         if options.freq:
             pSet = fr.floatParsFinal()
         elif options.oneSigma:
@@ -214,6 +294,9 @@ def runToys(w,options,cfg,seed):
         else:
             if options.noSys:                
                 pSet = fr.floatParsFinal()
+            elif options.varyN:
+                #pSet = hesseDs.get(iAttempt)
+                pSet = fr.randomizePars()
             else:                
                 pSet = fr.randomizePars()
         for p in rootTools.RootIterator.RootIterator(pSet):
@@ -243,7 +326,8 @@ def runToys(w,options,cfg,seed):
             th1x.setVal(iBinX+0.5) # check number of events in each bin
             pdfValV = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
             pdfVal0 = extRazorPdf.getValV(0) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
-            if bestFitByBin[iBinX] > 0 and pdfValV <= 0:
+            if bestFitByBin[iBinX] > 0 and pdfValV/bestFitByBin[iBinX] <= 1e-12:
+            #if bestFitByBin[iBinX] > 0 and pdfValV <= 0:
                 #print "bin = %i"%iBinX
                 #print "best fit = %e"%(bestFitByBin[iBinX])
                 #print "pdf valv = %e"%(pdfValV)
@@ -261,23 +345,21 @@ def runToys(w,options,cfg,seed):
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()        
         #print "start generating toy=%i"%iToy
-        if options.noStat:
-            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy),rt.RooFit.Asimov())            
+        if options.noStat:         
             if options.r>-1:
                 w.var('r').setVal(options.r)            
                 asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
             else:
                 asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
         else:
-            #asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy_%i'%iToy))
             if options.r>-1:                
-                w.var('r').setVal(options.r)      
-                asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'))
+                w.var('r').setVal(options.r)                
+                asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Extended(True))
             else:
-                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'))
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Extended(True))
 
-        #print "toy entries = %i"%asimov.sumEntries()
-        errorCountAfter = rt.RooMsgService.instance().errorCount()   
+        #print "toy entries = %.2f"%asimov.sumEntries()
+        errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore:
             #print "can't generate toy=%i"%iToy
             continue
@@ -336,15 +418,42 @@ def runToys(w,options,cfg,seed):
         for p in rootTools.RootIterator.RootIterator(pSetSave):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
+
+        #if options.varyN:
+        #    xGaus = rt.RooRandom.randomGenerator().Gaus(0,1)                
             
-        iBinX = -1    
+        iBinX = -1
         for i in range(1,len(x)):
             for j in range(1,len(y)):
                 for k in range(1,len(z)):
                     iBinX += 1
-                    th1x.setVal(iBinX+0.5)
+                    th1x.setVal(iBinX+0.5)                    
+                    inSideband = False
+                    #print "x, y = ", x[i-1], y[j-1]
+                    #print "xMin, yMin = ", x[ixMin-1], y[iyMin-1]
+                    if x[i-1] < x[ixMin-1]:
+                        inSideband = True
+                    if y[j-1] < y[iyMin-1]:
+                        inSideband = True
+                    #print "inSideband = %s"%inSideband
                     expected = extRazorPdf.getValV(rt.RooArgSet(th1x)) * extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
-                    toy = float(asimov.weight(rt.RooArgSet(th1x)))
+                    if options.noStat and options.varyN:                        
+                        if inSideband:
+                            toy = float(asimov.weight(rt.RooArgSet(th1x)))
+                        else:
+                            xGaus = rt.RooRandom.randomGenerator().Gaus(0,1)                    
+                            toy = float(asimov.weight(rt.RooArgSet(th1x)))*rt.TMath.Power(xFactor[k-1],xGaus)
+                    elif options.varyN:                        
+                        if inSideband:
+                            toy = float(asimov.weight(rt.RooArgSet(th1x)))
+                        else:
+                            xGaus = rt.RooRandom.randomGenerator().Gaus(0,1)
+                            central = float(expected*rt.TMath.Power(xFactor[k-1],xGaus))
+                            toy = rt.RooRandom.randomGenerator().Poisson(central)
+                    elif options.noStat:
+                        toy = float(asimov.weight(rt.RooArgSet(th1x)))
+                    else:
+                        toy = float(asimov.weight(rt.RooArgSet(th1x)))
                     observed = float(dataHist.weight(rt.RooArgSet(th1x)))  
                     if options.oneSigma:
                         toy = observed # to get nll with respect to original dataset
@@ -433,7 +542,9 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--fit-region',dest="fitRegion",default="Full",type="string",
                   help="Fit region")
-
+    parser.add_option('--vary-n',dest="varyN",default=False,action='store_true',
+                  help="vary n parameters in addition to standard hesse pdf")
+    
     (options,args) = parser.parse_args()
     
     cfg = Config.Config(options.config)
