@@ -7,8 +7,27 @@
 #include "SimpleTable.h"
 #include "TKey.h"
 #include <assert.h>
+#include <TRandom3.h>
+#include "TTreeFormula.h"
 
 using namespace std;
+
+
+std::string ParseCommandLine( int argc, char* argv[], std::string opt )
+{
+  for (int i = 1; i < argc; i++ )
+    {
+      std::string tmp( argv[i] );
+      if ( tmp.find( opt ) != std::string::npos )
+        {
+          if ( tmp.find( "=" )  != std::string::npos ) return tmp.substr( tmp.find_last_of("=") + 1 );
+	  if ( tmp.find( "--" ) != std::string::npos ) return "yes";
+	}
+    }
+  
+  return "";
+};
+
 
 // Get total number of events in the sample and determine normalization weight factor
 double getNormalizationWeight(string filename, string datasetName, double intLumi) {
@@ -72,6 +91,21 @@ int main(int argc, char* argv[]) {
         if(curFilename.at(0) != '#') inputLines.push_back(curFilename); //'#' denotes a comment
         else cout << "(Skipping commented line in input)" << endl;
     }
+
+
+    //*************************************
+    //Option to do Unweighting
+    //*************************************
+    std::string _doUnweight = ParseCommandLine( argc, argv, "--doUnweight" );
+    bool doUnweight = false;
+    if ( _doUnweight == "yes" ) doUnweight = true;
+
+    
+    int randomSeed = 0;
+    std::string _randomSeed = ParseCommandLine( argc, argv, "--seed=" );
+    if (_randomSeed != "") randomSeed = atoi( _randomSeed.c_str());
+    cout << "Use Random Seed = " << randomSeed << "\n";
+    TRandom3 random(randomSeed);
 
     //open each ROOT file and add the normalization branch
     for(auto& line : inputLines){
@@ -139,7 +173,30 @@ int main(int argc, char* argv[]) {
 		    weight = normalizationWeight;
 		  }
                 } 
-                normalizedTree->Fill(); 
+
+		if (!doUnweight) {
+		  normalizedTree->Fill();
+		} else {
+		  double randomNum = random.Rndm();
+		  //cout << "random: " << randomNum << "\n";
+		  if (randomNum < (normalizationWeight)) {     
+		    //cout << normalizationWeight << " : " << 1 / (normalizationWeight) << " " << weight << " -> ";		    
+		    weight = weight / (normalizationWeight);
+
+		    //apply some filter cuts
+		    TTreeFormula *formula = new TTreeFormula("SkimCutString", "MR>300 && Rsq>0.15", normalizedTree);
+		    int EventsPassed = 0;
+		    bool passSkim = false;		
+		    passSkim = formula->EvalInstance();
+		    delete formula;
+
+		    if (passSkim) {
+		      normalizedTree->Fill(); 
+		    }
+		    
+		    //cout << weight << "\n";
+		  } 
+		}
             }
 
             //save
