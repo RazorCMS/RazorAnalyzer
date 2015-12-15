@@ -50,6 +50,21 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
+    TFile *pileupWeightFile = 0;
+    TH1F *pileupWeightHist = 0;
+    if(!isData){
+      
+      string pathname;
+      if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
+      else {
+	cout << "ERROR: CMSSW_BASE not detected. Exiting...";
+	assert(false);
+      }
+      pileupWeightFile = TFile::Open(Form("%s/PileupReweight_Spring15MCTo2015Data.root",pathname.c_str()));
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      assert(pileupWeightHist);
+    }
+    
     //*************************************************************************
     //Set up Output File
     //*************************************************************************
@@ -93,7 +108,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     int box;
     int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
     int nVetoMuons, nVetoElectrons, nLooseTaus;
-    float mT, mTLoose, leadingJetPt, subleadingJetPt, leadingTightMuPt, leadingTightElePt;
+    //float mT, mTLoose, leadingJetPt, subleadingJetPt, 
+    float leadingTightMuPt, leadingTightElePt;
     float JetE[99];
     float JetPt[99];
     float JetEta[99];
@@ -190,7 +206,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("JetPileupID", JetPileupID,"JetPileupID[nJets]/F");
 
     //histogram containing total number of processed events (for normalization)
-    TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+    TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
+    TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
 
     //*************************************************************************
     //Look over Input File Events
@@ -208,8 +225,10 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       printSyncDebug = false;
 
-      //fill normalization histogram
-      NEvents->Fill(1.0);
+      //Fill normalization histogram
+      NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
+      SumWeights->Fill(1.0, weight);
+
       box=0;
       nVetoMuons = 0;
       nLooseMuons = 0;
@@ -219,10 +238,10 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       nTightElectrons = 0;
       nLooseTaus = 0;
       nTightTaus = 0;
-      mT = -1;
-      mTLoose = -1;
-      leadingJetPt = -1;
-      subleadingJetPt = -1;
+      //mT = -1;
+      //mTLoose = -1;
+      //leadingJetPt = -1;
+      //subleadingJetPt = -1;
       leadingTightMuPt = -1;
       leadingTightElePt = -1;
       //event info
@@ -245,9 +264,12 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       }
       NPV = nPV;
 
+      puWeight = 1;
+      if (!isData) puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU_0));
+
       bool passedDileptonTrigger = false;
       bool passedSingleLeptonTrigger = false;
-      bool passedLeptonicTrigger = false;
+      //bool passedLeptonicTrigger = false;
       bool passedHadronicTrigger= false;
 
       if (isData) {
@@ -257,7 +279,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
 					 || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
 					 HLTDecision[26] || HLTDecision[27] ||
-					 HLTDecision[28] || HLTDecision[29]);      
+					 HLTDecision[28] || HLTDecision[29]);
 	passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
 				     || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
 				     || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
@@ -275,7 +297,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 				     || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
 				     || HLTDecision[143] || HLTDecision[144]);    
       }
-      passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
+      //passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
       
       vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
       TLorentzVector leadingTightMu, leadingTightEle; //used for mT calculation
@@ -649,12 +671,12 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       //*************************************************************************
       //Skimming
       //*************************************************************************
-      bool passSkim = true;
-      if (option == 1) {
-      	if (!(MR>1000 && Rsq>0.25)) {
-      	  passSkim = false;
-      	}
-      }
+      //bool passSkim = true;
+      //if (option == 1) {
+      //if (!(MR>1000 && Rsq>0.25)) {
+      //passSkim = false;
+      //}
+      //}
 
       //*************************************************************************
       //Fill Tree
