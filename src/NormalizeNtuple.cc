@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     int randomSeed = 0;
     std::string _randomSeed = ParseCommandLine( argc, argv, "--seed=" );
     if (_randomSeed != "") randomSeed = atoi( _randomSeed.c_str());
-    cout << "Use Random Seed = " << randomSeed << "\n";
+    if (doUnweight) cout << "Use Random Seed = " << randomSeed << "\n";
     TRandom3 random(randomSeed);
 
     //open each ROOT file and add the normalization branch
