@@ -124,12 +124,12 @@ int main(int argc, char* argv[]) {
         TFile *outputFile = new TFile(Form("%s_%.0fpb_weighted.root", (fileName.substr(0, fileName.find_last_of("."))).c_str(), intLumi), "RECREATE");
 
         //loop over all TTrees in the file and add the weight branch to each of them
-        TFile *inputFile = TFile::Open(fileName.c_str(), "UPDATE");
+        TFile *inputFile = TFile::Open(fileName.c_str(), "READ");
         assert(inputFile);
         inputFile->cd();
-        inputFile->Purge(); //purge unwanted TTree cycles in file
         TIter nextkey(inputFile->GetListOfKeys());
         TKey *key;
+        TKey *previous = NULL;
         while((key = (TKey*)nextkey())){
             string className = key->GetClassName();
             cout << "Getting key from file.  Class type: " << className << endl;
@@ -137,6 +137,13 @@ int main(int argc, char* argv[]) {
                 cout << "Skipping key (not a TTree)" << endl;
                 continue;
             }
+
+            //if this key has the same name as the previous one, it's an unwanted cycle and we skip it
+            if(previous != NULL && strcmp(key->GetName(), previous->GetName()) == 0)
+            {
+                continue;
+            }
+            previous = key;
 
             TTree *inputTree = (TTree*)key->ReadObj();
             cout << "Processing tree " << inputTree->GetName() << endl;
