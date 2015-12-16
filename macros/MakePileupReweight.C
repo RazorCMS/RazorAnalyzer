@@ -52,11 +52,16 @@ TH1F* NormalizeHist(TH1F *originalHist) {
 
 
 
-void MakePileupReweight() {
+void MakePileupReweight(int option = 0) {
 
 
-
-  TFile *pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015.root", "READ");
+  TFile *pileupTargetFile = 0;
+  if (option == 0) pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015.root", "READ");
+  else if (option == 1) pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015SysUp.root", "READ");
+  else if (option == 2) pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015SysDown.root", "READ");
+  else {
+    return;
+  }
   TH1F *pileupTargetHist = (TH1F*)pileupTargetFile->Get("pileup");
   assert(pileupTargetHist);
 
@@ -71,9 +76,9 @@ void MakePileupReweight() {
   TH1F *PileupTargetNormalized = NormalizeHist( pileupTargetHist );
   TH1F *PileupSourceNormalized = NormalizeHist( pileupSourceHist );
 
-  TH1F *PileupReweight = new TH1F ("PileupReweight",";NPU;Weight",50,-0.5,49.5);
+  TH1F *PileupReweight = new TH1F ("PileupReweight",";NPU;Weight",50,0,50);
 
-  for (int i=1; i<PileupReweight->GetXaxis()->GetNbins()+1; i++) {
+  for (int i=0; i<PileupReweight->GetXaxis()->GetNbins()+2; i++) {
 
     double data = 0;
     double bkg = 0;
@@ -89,19 +94,25 @@ void MakePileupReweight() {
       }
     }
 
-    cout << "Bin " << i << " : " << PileupReweight->GetBinCenter(i) << " : " << PileupTargetNormalized->GetBinContent(i) << " / " << PileupSourceNormalized->GetBinContent(i) << " = " << PileupReweight->GetBinContent(i) << "\n";
+    cout << "Bin " << i << " : " << PileupReweight->GetXaxis()->GetBinCenter(i) << " : " << PileupReweight->GetBinCenter(i) << " : " << PileupTargetNormalized->GetBinContent(i) << " / " << PileupSourceNormalized->GetBinContent(i) << " = " << PileupReweight->GetBinContent(i) << "\n";
   }
 
-
+  
+  double k = 0;
+  for (int i=0; i<PileupSourceNormalized->GetXaxis()->GetNbins()+2; i++) {
+    double weight = PileupReweight->GetBinContent(PileupReweight->GetXaxis()->FindFixBin(i-1));
+    cout << i << " : " << i-1 << " : " << weight << " : " << PileupSourceNormalized->GetBinContent(i) << " -> " << PileupSourceNormalized->GetBinContent(i)*weight << "\n";
+    k += PileupSourceNormalized->GetBinContent(i)*weight;    
+  }
+  cout << "int = " << k << "\n";
 
   TFile *file = TFile::Open("PileupReweight2015.root", "UPDATE");
   file->cd();
-  file->WriteTObject(PileupReweight, "PileupReweight", "WriteDelete");
+  if (option == 0) file->WriteTObject(PileupReweight, "PileupReweight", "WriteDelete");
+  else if (option == 1) file->WriteTObject(PileupReweight, "PileupReweightSysUp", "WriteDelete");
+  else if (option == 2) file->WriteTObject(PileupReweight, "PileupReweightSysDown", "WriteDelete");
   file->Close();
   delete file;
-
-
- 
 
 }
 
