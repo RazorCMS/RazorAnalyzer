@@ -78,14 +78,16 @@ if __name__ == "__main__":
     weightHists = loadWeightHists(weightfilenames, weighthistnames, debugLevel)
     sfHists = {}
 
+    printdir = "ControlSamplePlots"
+
     #DYJets control sample
     dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", 
                 filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
                 cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
                 bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir="ControlSamplePlots", debugLevel=debugLevel)
-    appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel)
+                printdir=printdir, debugLevel=debugLevel)
+    appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
     #WJets control sample
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
@@ -93,8 +95,8 @@ if __name__ == "__main__":
                 cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
                 bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir="ControlSamplePlots", debugLevel=debugLevel)
-    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel)
+                printdir=printdir, debugLevel=debugLevel)
+    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
     #TTJets control sample
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", 
@@ -102,8 +104,8 @@ if __name__ == "__main__":
                 cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
                 bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir="ControlSamplePlots", debugLevel=debugLevel)
-    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel)
+                printdir=printdir, debugLevel=debugLevel)
+    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
     #TTJets cross-check control sample
     ttjetsDileptonHists = makeControlSampleHists("TTJetsDilepton", 
@@ -111,7 +113,7 @@ if __name__ == "__main__":
                 cutsMC=ttjetsDileptonCutsMC, cutsData=ttjetsDileptonCutsData, 
                 bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir="ControlSamplePlots", debugLevel=debugLevel)
+                printdir=printdir, debugLevel=debugLevel)
 
     #write scale factors
     outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
