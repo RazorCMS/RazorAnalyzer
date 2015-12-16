@@ -1397,9 +1397,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
         //Loop jets
         for (int i = 0; i < nJets; i++){
-
-            //Apply Jet ID
-            if (!jetPassIDTight[i]) continue;
+	  
+	  //Apply Jet ID only on fullsim. fastsim jet ID is broken. 
+	  if (!isFastsimSMS) {
+	    if (!jetPassIDTight[i]) continue;
+	  }
 
             //Apply pileup jet ID 
             //UNDER CONSTRUCTION (No working point yet for Run2)
