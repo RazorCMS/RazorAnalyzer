@@ -662,7 +662,7 @@ def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrder
     #plot
     plot_basic(canvas, stack, dataHist, leg=leg, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, logy=logy, lumistr=lumistr, saveroot=saveroot, savepdf=savepdf, savepng=savepng, ymin=ymin)
 
-def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=False):
+def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=False, printdir='.'):
     #check for input
     if len(cols) == 0:
         print "table_basic: no columns provided.  doing nothing."
@@ -677,7 +677,7 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
         print "Error in table_basic: number of headers does not equal number of columns!"
         return
 
-    with open(printstr+'.tex', 'w') as f:
+    with open(printdir+'/'+printstr+'.tex', 'w') as f:
         #f.write('\\newgeometry{margin=0.2cm}\n')
         if landscape: f.write('\\begin{landscape}\n')
         f.write('\\begin{center}\n\\footnotesize\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
@@ -689,3 +689,4 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
         if landscape: f.write('\\end{landscape}\n')
         #f.write('\\restoregeometry\n')
         print "Created LaTeX scale factor table",(printstr+".tex")
+

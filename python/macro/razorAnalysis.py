@@ -66,7 +66,7 @@ wjetsSingleLeptonBins = {
 
 ### DYJets Dilepton Control Region
 
-#cuts (NOTE: requiring tight leptons at the moment)
+#cuts 
 dyjetsDileptonCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1PassLoose && lep2PassLoose && lep1.Pt() > 25 && lep2.Pt() > 25 && mll > 80 && mll < 110 && NBJetsMedium == 0 && MR > 300 && Rsq > 0.15"
 dyjetsDileptonCutsData = appendTriggerCuts(dyjetsDileptonCuts, singleLeptonTriggerNumsData)
 dyjetsDileptonCutsMC = appendTriggerCuts(dyjetsDileptonCuts, singleLeptonTriggerNumsMC)
@@ -79,7 +79,7 @@ dyjetsDileptonBins = {
 
 ### TTJets Dilepton Control Region
 
-#cuts (NOTE: requiring tight leptons at the moment)
+#cuts 
 ttjetsDileptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll > 76 && mll < 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15"
 ttjetsDileptonCutsData = appendTriggerCuts(ttjetsDileptonCuts, singleLeptonTriggerNumsData)
 ttjetsDileptonCutsMC = appendTriggerCuts(ttjetsDileptonCuts, singleLeptonTriggerNumsMC)
@@ -123,8 +123,7 @@ dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 dileptonSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && abs(dPhiRazor) < 2.8"
 leptonicSignalRegionCuts = "MR > 400.000000 && Rsq > 0.150000 && mT > 120"
 looseLeptonSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && mTLoose > 100 && nJets80 >= 2"
-#hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
-hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8"
+hadronicSignalRegionCuts = "MR > 500.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 
 razorCuts = {}
 for box in razorBoxes:
@@ -137,26 +136,22 @@ for box in razorBoxes:
     elif box in dileptonRazorBoxes:
         razorCuts[box] = appendBoxCuts(dileptonSignalRegionCuts, razorBoxes[box])
 
+#NOTE: razor binning should generally be taken directly from a config, to avoid conflicts with fit code
 leptonicSignalRegionBins = {
     "MR" : [300, 400, 500, 600, 700, 900, 1200, 1600, 2500, 4000],
     "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
-
 leptonicSidebandBins = {
     "MR" : [300, 350, 450, 550, 700, 900, 1200, 1600, 2500, 4000],
     "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
-
 leptonicBlindBins = [(x,y) for x in range(3,len(leptonicSidebandBins["MR"])+1) for y in range(2,len(leptonicSidebandBins["Rsq"])+1)]
-
 hadronicSignalRegionBins = {
     "MR" : [400, 500, 600, 700, 900, 1200, 1600, 2500, 4000],
     "Rsq" : [0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
-
 hadronicSidebandBins = {
     "MR" : [400, 450, 550, 700, 900, 1200, 1600, 2500, 4000],
     "Rsq" : [0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
-
 hadronicBlindBins = [(x,y) for x in range(3,len(hadronicSidebandBins["MR"])+1) for y in range(2,len(hadronicSidebandBins["Rsq"])+1)]

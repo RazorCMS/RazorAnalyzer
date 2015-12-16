@@ -10,12 +10,24 @@ from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D
 from plotting import *
 
 def blindHistograms(histList, blindBins):
-    """blindBins should be a list of ordered pairs corresponding to bin coordinates"""
+    """blindBins should be a list of ordered pairs corresponding to bin coordinates.
+    Sets blinded bin contents to -999."""
     for hist in histList:
         for (x,y) in blindBins:
             hist.SetBinContent(x,y,-999)
 
 def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName):
+    """Creates dictionary of histograms with specified binning.
+
+    regionName: used only in histogram names and titles
+    inputs: dictionary of process:filename pairs
+    samples: list of processes for which histograms should be made
+    bins: dictionary.  key = name of observable, value = list of bins for that observable
+    titles: dictionary.  key = name of observable, value = title for histograms of that quantity 
+    shapeErrors: list of shape uncertainties to apply
+    dataName: this is the name by which 
+    """
+
     hists = {name:{} for name in inputs}
     shapeHists = {name:{} for name in inputs}
     if inputs is None: return
@@ -55,6 +67,9 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
     return hists,shapeHists
 
 def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors=[], boxName="", debugLevel=0):
+    """For each bin of the central histogram, add the appropriate uncertainties in quadrature with the statistical uncertainty.
+    List of arguments is similar to razorMacros.makeControlSampleHists"""
+
     for name in samples:
         for var in bins:
             for shape in shapeErrors:

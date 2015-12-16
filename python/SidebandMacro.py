@@ -74,6 +74,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
     parser.add_argument('--no-mc', help="do not process MC, do data and fit only", action='store_true', dest="noMC")
+    parser.add_argument('--no-fit', help="do not load fit results, process data and MC only", action='store_true', dest='noFit')
     parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -89,6 +90,8 @@ if __name__ == "__main__":
         plotOpts['sideband'] = True
     if args.unblind:
         dirName += '_Unblinded'
+    if args.noFit: 
+        TOYS_FILES = None
 
     #initialize
     weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
@@ -98,7 +101,7 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
-    #sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
 
     #estimate yields in signal region
     for boxName in BOXES:
@@ -133,7 +136,7 @@ if __name__ == "__main__":
                 extboxName = boxName
                 nBtags = -1
             #check fit file and create if necessary
-            if not os.path.isfile(TOYS_FILES[boxName]):
+            if not args.noFit and not os.path.isfile(TOYS_FILES[boxName]):
                 print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
                 runFitAndToys(FIT_DIR, boxName, LUMI, DATA_NAMES[boxName], DIR_DATA, config=config, sideband=doSideband)
                 #check

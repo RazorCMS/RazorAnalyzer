@@ -281,27 +281,49 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
 ###########################################
 
 def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True):
+    """Basic function for filling histograms and making plots.
+
+    regionName: name of the box/bin/control region (used for plot labels)
+    filenames: dictionary of process:filename pairs for loading ntuples
+    samples: list of samples to process, in the order that they should appear in stacked plots, legends, etc
+    cutsMC, cutsData: strings, to be used with TTreeFormula to make selection cuts
+    bins: dictionary formatted like { "variable1":[bin0,bin1,bin2,...], "variable2":[bin0,bin1,bin2,...]}
+    plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
+    lumiMC, lumiData: in /pb
+    weightHists: dictionary of weight histograms, like that produced by razorWeights.loadWeightHists
+    sfHists: dictionary of scale factor histograms, like that produced by razorWeights.loadScaleFactorHists
+    treeName: name of the tree containing input events
+    weightOpts: list of strings with directives for applying weights to the MC
+    shapeErrors: list of MC shape uncertainties
+    miscErrors: optional -- list of misc uncertainty options (see below for supported options)
+    fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
+    boxName: optional -- name of razor box
+    btags: optional -- used only to specify which fit to load"""
+
     titles = {
         "MR": "M_{R} (GeV)", 
         "Rsq": "R^{2}",
         "mll": "m_{ll} (GeV)",
         }
 
-    #get plotting options
+    ##Get plotting options (for customizing plot behavior)
     special = ""
+    #set log scale
     if "logx" in plotOpts: logx = plotOpts["logx"]
     else: logx = True
     if "ymin" in plotOpts: ymin = plotOpts["ymin"]
     else: ymin = 0.1
+    #allow disabling comment string (normally written at the top of each plot)
     if "comment" in plotOpts: comment = plotOpts["comment"]
     else: comment = True
+    #use sideband fit result 
     if "sideband" in plotOpts:
         if plotOpts['sideband']:
             special += 'sideband'
         else:
             special += 'full'
 
-    #setup files and trees
+    #set up files and trees
     inputs = filenames
     files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
     for name in inputs: 
@@ -316,7 +338,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     
-    #fill histograms
+    #fill histograms by looping over all trees
     if dataName in trees:
         print("\nData:")
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
@@ -370,14 +392,22 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
 def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, debugLevel=0, printdir="."):
     """Subtract backgrounds and make the data/MC histogram for the given process.
-    Also makes up/down histograms corresponding to 20% shifts in the background normalization"""
+    Also makes up/down histograms corresponding to uncertainty on the background normalization (controlled by the normErrFraction argument).
+    
+    process: MC physics process for which scale factors should be computed
+    hists: dictionary of data and MC histograms like that produced by the macro.loopTrees function
+    sfHists: dictionary of existing scale factor histograms. the new scale factor histograms will be inserted into this dictionary.
+    var: variable or tuple of variables in which scale factors should be computed (usually ("MR","Rsq") is used)
+    """
+
+    ##Sanity checks
     if debugLevel > 0: 
         print "Scale factor histograms so far:"
         print sfHists
     #warn if this scale factor histogram already exists
     if process in sfHists:
         print "Warning in appendScaleFactors: ",process," scale factor histogram already exists!  Will overwrite..."
-    #get the target MC histogram
+    #warn if the needed histograms are not found
     if process not in hists:
         print "Error in appendScaleFactors: target MC histogram (",process,") was not found!"
         return
@@ -389,25 +419,30 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         return
     if var not in hists[dataName]:
         print "Error in appendScaleFactors: could not find ",var," in hists[",dataName,"]!"
+
+    #make the scale factor histogram (clone data hist; later subtract backgrounds and divide by MC hist)
     print "Making scale factor histogram for",process
     sfHists[process] = hists[dataName][var].Clone(process+"ScaleFactors")
     sfHists[process].SetDirectory(0)
-    #make systematic error histograms
+    #make up/down systematic error histograms (this is the systematic due to MC background normalization)
     sfHists[process+"NormUp"] = hists[dataName][var].Clone(process+"ScaleFactorsUp")
     sfHists[process+"NormUp"].SetDirectory(0)
     sfHists[process+"NormDown"] = hists[dataName][var].Clone(process+"ScaleFactorsDown")
     sfHists[process+"NormDown"].SetDirectory(0)
 
     #subtract backgrounds in data
-    bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName and mcProcess != "Fit"]
+    bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit, non-signal samples
     for mcProcess in bgProcesses:
+
+        #make sure relevant background histogram exists
         if var not in hists[mcProcess]:
-            print "Error in appendScaleFactors: could not find",var," in hists[",mcProcess,"]!"
+            print "Error in appendScaleFactors: could not find",var," in hists[",mcProcess,"]!  Returning from appendScaleFactors..."
             return
+        #subtract it
         if debugLevel > 0: print "Subtracting",mcProcess,"from",dataName,"distribution"
         sfHists[process].Add(hists[mcProcess][var], -1) 
-        if mcProcess not in sfHists: #background normalization uncertainty affects only processes with no scale factors
-            if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a 20% uncertainty"
+        if mcProcess not in sfHists: #if we have not computed scale factors for this process, apply a flat normalization uncertainty to its yield
+            if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a",int(normErrFraction*100)+"% uncertainty"
             sfHists[process+"NormUp"].Add(hists[mcProcess][var], -(1+normErrFraction)) 
             sfHists[process+"NormDown"].Add(hists[mcProcess][var], -(1/(1+normErrFraction))) 
         else: 
