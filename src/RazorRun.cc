@@ -450,8 +450,8 @@ int main(int argc, char* argv[]){
       analyzer.EnableGenParticles();
       analyzer.EnableIsoPFCandidates();
       bool isRunOne = false; 
-      if (analysisType == "RazorRunOneQCDStudy") isRunOne = true;
-      analyzer.RazorQCDStudy(outputFileName, isRunOne, false); //change the bool to true if you want all analysis boxes combined in one tree
+      if (analysisType == "RazorRunOneQCDStudy") { isRunOne = true; }
+      analyzer.RazorQCDStudy(outputFileName, isData, isRunOne); 
     }
     else if(analysisType == "RazorTagAndProbe"){
       cout << "Executing RazorTagAndProbe analysis..." << endl;

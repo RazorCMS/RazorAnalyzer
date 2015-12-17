@@ -1,4 +1,3 @@
-
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
@@ -17,7 +16,7 @@ struct greater_than_pt{
     }
 };
  
-void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isData, bool isRunOne)
+void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRunOne)
 {
 
     //initialization: create one TTree for each analysis box 
@@ -83,7 +82,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     UInt_t                  NPU_Plus1;
     UInt_t                  NPV;
     Float_t                 Rho;
-    //Bool_t                  HLTDecision[200];
+    //Bool_t                  HLTDecision[150];
+    //Int_t                   HLTPrescale[150];
     Float_t                 MR;
     Float_t                 Rsq;
     Float_t                 minDPhi;
@@ -108,7 +108,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     int box;
     int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
     int nVetoMuons, nVetoElectrons, nLooseTaus;
-    //float mT, mTLoose, leadingJetPt, subleadingJetPt, 
+    float leadingJetPt, subLeadingJetPt;
     float leadingTightMuPt, leadingTightElePt;
     float JetE[99];
     float JetPt[99];
@@ -140,7 +140,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
     outTree->Branch("NPV",&NPV,"NPV/i");
     outTree->Branch("Rho",&Rho,"Rho/F");
-    //outTree->Branch("HLTDecision",&HLTDecision,"HLTDecision[100]/O");
+    //outTree->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
+    //outTree->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[150]/I");
     outTree->Branch("MR",&MR,"MR/F");
     outTree->Branch("Rsq",&Rsq,"Rsq/F");
     outTree->Branch("minDPhi",&minDPhi,"minDPhi/F"); 
@@ -156,6 +157,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
     outTree->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
     outTree->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
+    outTree->Branch("leadingJetPt",&leadingJetPt,"leadingJetPt/F");
+    outTree->Branch("subLeadingJetPt",&subLeadingJetPt,"subLeadingJetPt/F");
     outTree->Branch("genJetMR",&genJetMR,"genJetMR/F");
     outTree->Branch("genJetRsq",&genJetRsq,"genJetRsq/F");
     outTree->Branch("genJetDPhiRazor",&genJetDPhiRazor,"genJetDPhiRazor/F");
@@ -164,6 +167,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
     outTree->Branch("genMETPhi",&genMetPhi,"genMETPhi/F");	         
     outTree->Branch("maxJetGenDiff",&maxJetGenDiff,"maxJetGenDiff/F");
     outTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
+    outTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
     outTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
     outTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
     outTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter,"Flag_EcalDeadCellTriggerPrimitiveFilter/O");
@@ -240,8 +244,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       nTightTaus = 0;
       //mT = -1;
       //mTLoose = -1;
-      //leadingJetPt = -1;
-      //subleadingJetPt = -1;
+      leadingJetPt = -1;
+      subLeadingJetPt = -1;
       leadingTightMuPt = -1;
       leadingTightElePt = -1;
       //event info
@@ -271,6 +275,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       bool passedSingleLeptonTrigger = false;
       //bool passedLeptonicTrigger = false;
       bool passedHadronicTrigger= false;
+      bool passedDijetTrigger= false;
 
       if (isData) {
 	passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
@@ -284,6 +289,9 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 				     || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
 				     || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
 				     || HLTDecision[143] || HLTDecision[144]);
+	passedDijetTrigger = bool( HLTDecision[105] || HLTDecision[106] || HLTDecision[107] || HLTDecision[108] 
+				   || HLTDecision[109] || HLTDecision[110] || HLTDecision[111] || HLTDecision[112] 
+				   || HLTDecision[113] );
       } else {
 	passedDileptonTrigger = bool(HLTDecision[41] || HLTDecision[43]
 				     || HLTDecision[30] || HLTDecision[31] 
@@ -296,9 +304,12 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 				     || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
 				     || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
 				     || HLTDecision[143] || HLTDecision[144]);    
+	passedDijetTrigger = bool( HLTDecision[105] || HLTDecision[106] || HLTDecision[107] || HLTDecision[108] 
+				   || HLTDecision[109] || HLTDecision[110] || HLTDecision[111] || HLTDecision[112] 
+				   || HLTDecision[113] );
       }
       //passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
-      
+
       vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
       TLorentzVector leadingTightMu, leadingTightEle; //used for mT calculation
       for(int i = 0; i < nMuons; i++){
@@ -502,6 +513,14 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	JetPartonFlavor[i] = jetPartonFlavor[i];
 	JetPileupID[i] = jetPileupId[i];
 
+	if (JetPt[i]>leadingJetPt && JetPt[i]<14000) {
+	  subLeadingJetPt=leadingJetPt;
+	  leadingJetPt=JetPt[i];
+	}
+	else if (JetPt[i]>subLeadingJetPt && JetPt[i]<14000) {
+	  subLeadingJetPt=JetPt[i];
+	}
+
 	//Match To GenJet
 	GenJetE[i] = -999;
 	GenJetPt[i] = -999;
@@ -664,8 +683,9 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
       //*************************************************************************
       //save HLT Decisions
       //*************************************************************************
-      //for(int k=0; k<100; ++k) {
-      //HLTDecision[k] = HLTDecision[k];
+      //for(int k=0; k<200; ++k) {
+      //	HLTDecision[k] = HLTDecision[k];
+      //	HLTPrescale[k] = HLTPrescale[k];
       //}
       
       //*************************************************************************
@@ -845,6 +865,18 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, int option, bool isDat
 	  }
 	  //else razorBoxes["DiJet"]->Fill();
         }
+      } else if (passedDijetTrigger) {
+	if (isData) {	
+	  vector<Float_t> prescales;
+	  //cout << "----" << endl;
+	  for (Int_t nHLT=105; nHLT<115; nHLT++) {
+	    //cout << HLTDecision[nHLT]*HLTPrescale[nHLT] << ", ";
+	    if (HLTDecision[nHLT]==kTRUE) { prescales.push_back(HLTPrescale[nHLT]); }
+	  }
+	  weight*= (*std::min_element(prescales.begin(), prescales.end()));
+	  //cout << endl << weight << endl;
+	}
+	box = 100;
       }
       if (box==0) continue;
       outTree->Fill();
