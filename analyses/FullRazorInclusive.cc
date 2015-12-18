@@ -1395,6 +1395,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         if (isFastsimSMS) {
             hadronicTrigCorrFactor *= 0.975;
         }
+        //Jet cuts
+        const int JET_CUT = 40;
+        const int BJET_CUT = 40;
         //Loop jets
         for (int i = 0; i < nJets; i++){
 	  
@@ -1447,10 +1450,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         MetXCorr_MESUp += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_MESUp += -1 * (thisJet.Py() - L1CorrJet.Py());
                     }
-                    if (jetCorrPt > 40 && fabs(jetEta[i]) < 3.0) {
+                    if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)) nBTaggedJets_MESUp++;
+                    if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < 3.0) {
                         GoodJetsMESUp.push_back(thisJet);
                         nSelectedJets_MESUp++;
-                        if (isCSVM(i)) nBTaggedJets_MESUp++;
                         if (jetCorrPt > 80) nJets80_MESUp++;
                     }
                 }
@@ -1465,10 +1468,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         MetXCorr_MESDown += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_MESDown += -1 * (thisJet.Py() - L1CorrJet.Py());
                     }
-                    if (jetCorrPt > 40 && fabs(jetEta[i]) < 3.0) {
+                    if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)) nBTaggedJets_MESDown++;
+                    if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < 3.0) {
                         GoodJetsMESDown.push_back(thisJet);
                         nSelectedJets_MESDown++;
-                        if (isCSVM(i)) nBTaggedJets_MESDown++;
                         if (jetCorrPt > 80) nJets80_MESDown++;
                     }
                 }
@@ -1483,10 +1486,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         MetXCorr_EESUp += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_EESUp += -1 * (thisJet.Py() - L1CorrJet.Py());
                     }
-                    if (jetCorrPt > 40 && fabs(jetEta[i]) < 3.0) {
+                    if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)) nBTaggedJets_EESUp++;
+                    if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < 3.0) {
                         GoodJetsEESUp.push_back(thisJet);
                         nSelectedJets_EESUp++;
-                        if (isCSVM(i)) nBTaggedJets_EESUp++;
                         if (jetCorrPt > 80) nJets80_EESUp++;
                     }
                 }
@@ -1501,10 +1504,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                         MetXCorr_EESDown += -1 * (thisJet.Px() - L1CorrJet.Px());
                         MetYCorr_EESDown += -1 * (thisJet.Py() - L1CorrJet.Py());
                     }
-                    if (jetCorrPt > 40 && fabs(jetEta[i]) < 3.0) {
+                    if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)) nBTaggedJets_EESDown++;
+                    if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < 3.0) {
                         GoodJetsEESDown.push_back(thisJet);
                         nSelectedJets_EESDown++;
-                        if (isCSVM(i)) nBTaggedJets_EESDown++;
                         if (jetCorrPt > 80) nJets80_EESDown++;
                     }
                 }
@@ -1525,7 +1528,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             }
 
             //Apply b-tagging correction factor 
-            if (!isData && abs(jetPartonFlavor[i]) == 5 && abs(jetEta[i]) < 2.4 && jetCorrPt > 40) { //NOTE: b-tags only go on 40 GeV jets (this may change)
+            if (!isData && abs(jetPartonFlavor[i]) == 5 && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
                 double effMedium = btagMediumEfficiencyHist->GetBinContent(
                         btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
                         btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
@@ -1629,41 +1632,40 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     MetYCorr_JERDown += -1 * (thisJetJERDown.Py() - thisJet.Py());
                 }
                 //Record jets that pass the cut
-                if(jetPtJESUp > 40){
+                if(jetPtJESUp > BJET_CUT && isCSVM(i)) nBTaggedJets_JESUp++;
+                if(jetPtJESDown > BJET_CUT && isCSVM(i)) nBTaggedJets_JESDown++;
+                if(jetPtJERUp > BJET_CUT && isCSVM(i)) nBTaggedJets_JERUp++;
+                if(jetPtJERDown > BJET_CUT && isCSVM(i)) nBTaggedJets_JERDown++;
+                if(jetPtJESUp > JET_CUT){
                     GoodJetsJESUp.push_back(thisJetJESUp);
                     nSelectedJets_JESUp++;
-                    if (isCSVM(i)) nBTaggedJets_JESUp++;
                     if (thisJetJESUp.Pt() > 80) nJets80_JESUp++;
                 }
-                if(jetPtJESDown > 40){
+                if(jetPtJESDown > JET_CUT){
                     GoodJetsJESDown.push_back(thisJetJESDown);
                     nSelectedJets_JESDown++;
-                    if (isCSVM(i)) nBTaggedJets_JESDown++;
                     if (thisJetJESDown.Pt() > 80) nJets80_JESDown++;
                 }
-                if(jetPtJERUp > 40){
+                if(jetPtJERUp > JET_CUT){
                     GoodJetsJERUp.push_back(thisJetJERUp);
                     nSelectedJets_JERUp++;
-                    if (isCSVM(i)) nBTaggedJets_JERUp++;
                     if (thisJetJERUp.Pt() > 80) nJets80_JERUp++;
                 }
-                if(jetPtJERDown > 40){
+                if(jetPtJERDown > JET_CUT){
                     GoodJetsJERDown.push_back(thisJetJERDown);
                     nSelectedJets_JERDown++;
-                    if (isCSVM(i)) nBTaggedJets_JERDown++;
                     if (thisJetJERDown.Pt() > 80) nJets80_JERDown++;
                 }
             }
 
+            //Record b-tag
+            if (jetCorrPt > BJET_CUT && isCSVM(i)) nBTaggedJets++;
             //Cut on jet pt
-            if (jetCorrPt < 40) continue;
+            if (jetCorrPt < JET_CUT) continue;
 
             //Record this jet
             GoodJets.push_back(thisJet);
             nSelectedJets++;
-            if (isCSVM(i)){ 
-                nBTaggedJets++;
-            }
 
             //Count 80 GeV jets
             if (jetCorrPt > 80) nJets80++;
@@ -2069,7 +2071,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 else if (nSelectedJets_MESUp > 3) box_MESUp = LooseLeptonFourJet;
                 else box_MESUp = LooseLeptonDiJet;
             }
-            else if (passedHadronicTrigger && nJets80_MESUp >= 2){
+            else if (passedHadronicTrigger && nJets80_MESUp >= 2 && nLooseTaus+nVetoElectrons+nVetoMuons_MESUp+nTightElectrons+nTightMuons_MESUp == 0){
                 if (nSelectedJets_MESUp > 5) box_MESUp = SixJet;
                 else if (nSelectedJets_MESUp > 3) box_MESUp = FourJet;
                 else box_MESUp = DiJet;
@@ -2099,7 +2101,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 else if (nSelectedJets_MESDown > 3) box_MESDown = LooseLeptonFourJet;
                 else box_MESDown = LooseLeptonDiJet;
             }
-            else if (passedHadronicTrigger && nJets80_MESDown >= 2){
+            else if (passedHadronicTrigger && nJets80_MESDown >= 2 && nLooseTaus+nVetoElectrons+nVetoMuons_MESDown+nTightElectrons+nTightMuons_MESDown == 0){
                 if (nSelectedJets_MESDown > 5) box_MESDown = SixJet;
                 else if (nSelectedJets_MESDown > 3) box_MESDown = FourJet;
                 else box_MESDown = DiJet;
@@ -2129,7 +2131,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 else if (nSelectedJets_EESUp > 3) box_EESUp = LooseLeptonFourJet;
                 else box_EESUp = LooseLeptonDiJet;
             }
-            else if (passedHadronicTrigger && nJets80_EESUp >= 2){
+            else if (passedHadronicTrigger && nJets80_EESUp >= 2 && nLooseTaus+nVetoElectrons_EESUp+nVetoMuons+nTightElectrons_EESUp+nTightMuons == 0){
                 if (nSelectedJets_EESUp > 5) box_EESUp = SixJet;
                 else if (nSelectedJets_EESUp > 3) box_EESUp = FourJet;
                 else box_EESUp = DiJet;
@@ -2159,7 +2161,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 else if (nSelectedJets_EESDown > 3) box_EESDown = LooseLeptonFourJet;
                 else box_EESDown = LooseLeptonDiJet;
             }
-            else if (passedHadronicTrigger && nJets80_EESDown >= 2){
+            else if (passedHadronicTrigger && nJets80_EESDown >= 2 && nLooseTaus+nVetoElectrons_EESDown+nVetoMuons+nTightElectrons_EESDown+nTightMuons == 0){
                 if (nSelectedJets_EESDown > 5) box_EESDown = SixJet;
                 else if (nSelectedJets_EESDown > 3) box_EESDown = FourJet;
                 else box_EESDown = DiJet;
@@ -2235,7 +2237,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 else if (nSelectedJets_JERDown > 3 && nJets80_JERDown >= 2) box_JERDown = LooseLeptonFourJet;
                 else if (nJets80_JERDown >= 2) box_JERDown = LooseLeptonDiJet;
             }
-            else if (passedHadronicTrigger){
+            else if (passedHadronicTrigger && nLooseTaus+nVetoElectrons+nVetoMuons+nTightElectrons+nTightMuons == 0){
                 if (nSelectedJets_JESUp > 5 && nJets80_JESUp >= 2) box_JESUp = SixJet;
                 else if (nSelectedJets_JESUp > 3 && nJets80_JESUp >= 2) box_JESUp = FourJet;
                 else if (nJets80_JESUp >= 2) box_JESUp = DiJet;
@@ -2279,7 +2281,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             else if (nSelectedJets > 3) box = LooseLeptonFourJet;
             else box = LooseLeptonDiJet;
         }
-        else if (passedHadronicTrigger && nJets80 >= 2){
+        else if (passedHadronicTrigger && nJets80 >= 2 && nLooseTaus+nVetoElectrons+nVetoMuons+nTightElectrons+nTightMuons == 0){
             if (nSelectedJets > 5) box = SixJet;
             else if (nSelectedJets > 3) box = FourJet;
             else box = DiJet;

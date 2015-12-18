@@ -1008,7 +1008,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }     
     }
     //SixJet Box
-    else if(passedHadronicTrigger && nJets80 >= 2 && nSelectedJets > 5){
+    else if(passedHadronicTrigger && nJets80 >= 2 && nSelectedJets > 5 && nLooseTaus+nVetoElectrons+nVetoMuons+nTightElectrons+nTightMuons == 0){
       if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = SixJet;
@@ -1018,7 +1018,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
     //MultiJet Box
-    else if(passedHadronicTrigger && nJets80 >= 2 && nSelectedJets > 3){
+    else if(passedHadronicTrigger && nJets80 >= 2 && nSelectedJets > 3 && nLooseTaus+nVetoElectrons+nVetoMuons+nTightElectrons+nTightMuons == 0){
       if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = FourJet;
@@ -1036,7 +1036,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
 	}
 	else razorBoxes["LooseLeptonDiJet"]->Fill();
       }     
-    } else if (passedHadronicTrigger && nJets80 >= 2 ) {
+    } else if (passedHadronicTrigger && nJets80 >= 2  && nLooseTaus+nVetoElectrons+nVetoMuons+nTightElectrons+nTightMuons == 0) {
       if(passesHadronicRazorBaseline(theMR, theRsq)){ 
 	if(combineTrees){
 	  box = DiJet;
