@@ -154,7 +154,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 if nsigmaFitData is not None:
                     blindHistograms([nsigmaFitData], blindBins)
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir)
             #print prediction in each bin
             if obsData != 0:
                 print "Results for razor data histogram:"
@@ -210,9 +210,9 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         else:
             ytitle = "Events"
         if blindBins is None:
-            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, printdir=printdir)
+            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
-            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, printdir=printdir)
+            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
 
 def transformVarsInString(string, varNames, suffix):
     outstring = copy.copy(string)

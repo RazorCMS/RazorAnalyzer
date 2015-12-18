@@ -38,29 +38,15 @@ FILENAMES_2L = {
             "Data"     : DIR_2L+"/"+PREFIX_2L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_razorskim.root"
             }
 
-WEIGHTDIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
-LEPTONWEIGHTDIR = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
-weightfilenames = {
-        "muon": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root",
-        "ele": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
-        "muontrig": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
-        "eletrig": WEIGHTDIR+"/"+LEPTONWEIGHTDIR+"/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
-        "pileup": WEIGHTDIR+"/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root",
-        }
-weighthistnames = {
-        "muon": "ScaleFactor_TightMuonSelectionEffDenominatorReco",
-        "ele": "ScaleFactor_TightElectronSelectionEffDenominatorReco",
-        "muontrig": "ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight",
-        "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
-        "pileup": "NVtxReweight",
-        }
-weightOpts = ["doNPVWeights", "doLep1Weights", "do1LepTrigWeights"]
+weightOpts = []
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
 cfg = Config.Config(config)
 binsMRLep = cfg.getBinning("MuMultiJet")[0]
 binsRsqLep = cfg.getBinning("MuMultiJet")[1]
 leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep }
+
+printdir="ControlSamplePlots"
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -75,10 +61,11 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
 
     #initialize
-    weightHists = loadWeightHists(weightfilenames, weighthistnames, debugLevel)
+    weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
     sfHists = {}
 
-    printdir = "ControlSamplePlots"
+    #make output directory
+    os.system('mkdir -p '+printdir)
 
     #DYJets control sample
     dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", 
