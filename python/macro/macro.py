@@ -134,11 +134,14 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     for i,var in enumerate(varList): 
         #for MR and Rsq, make 2D plots
         if var == ('MR','Rsq'):
+            mcDict = None 
             if len(mcNames) > 0:
+                mcDict = {} #for stacked unrolled plots
                 mcPrediction = histDict[mcNames[0]][var].Clone(histDict[mcNames[0]][var].GetName()+"mcPrediction")
                 mcPrediction.Reset()
                 for name in mcNames: 
                     mcPrediction.Add(histDict[name][var])
+                    mcDict[name] = histDict[name][var] #for stacked unrolled plots
             else:
                 mcPrediction = 0
             #copy data and fit histograms
@@ -154,7 +157,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 if nsigmaFitData is not None:
                     blindHistograms([nsigmaFitData], blindBins)
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, printdir=printdir)
             #print prediction in each bin
             if obsData != 0:
                 print "Results for razor data histogram:"
