@@ -10,7 +10,7 @@
 # Baseline Razor Analysis
 ##########################
 
-outputDir=/afs/cern.ch/work/j/jlawhorn/ecal_studies/
+outputDir=/afs/cern.ch/work/j/jlawhorn/qcd_extrapolation/
 isData=false
 listDir=`pwd`/../lists/Run2/razorNtuplerV1p23/
 if [[ "${isData}" == "false" ]]; then
@@ -23,8 +23,11 @@ echo ${outputDir}
 echo ${isData}
 echo ${listDir}
 
+for sample in DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
+
+#for sample in DoubleEG_Run2015D_Oct05ReMiniAOD DoubleMuon_Run2015D_Oct05ReMiniAOD DoubleEG_Run2015D_PRv4 DoubleMuon_Run2015D_PRv4
 #for sample in HTMHT_Run2015D_Oct05ReMiniAOD HTMHT_Run2015D_PRv4 JetHT_Run2015D_PRv4
-for sample in ZJetsToNuNu_HT-100To200_13TeV-madgraph ZJetsToNuNu_HT-200To400_13TeV-madgraph ZJetsToNuNu_HT-400To600_13TeV-madgraph ZJetsToNuNu_HT-600ToInf_13TeV-madgraph TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8  QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 
+#for sample in ZJetsToNuNu_HT-100To200_13TeV-madgraph ZJetsToNuNu_HT-200To400_13TeV-madgraph ZJetsToNuNu_HT-400To600_13TeV-madgraph ZJetsToNuNu_HT-600ToInf_13TeV-madgraph TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8  QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 
 do
 
     echo "Sample " $sample
