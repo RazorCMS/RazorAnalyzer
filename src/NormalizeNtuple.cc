@@ -192,7 +192,6 @@ int main(int argc, char* argv[]) {
 
 		    //apply some filter cuts
 		    TTreeFormula *formula = new TTreeFormula("SkimCutString", "MR>300 && Rsq>0.15", normalizedTree);
-		    int EventsPassed = 0;
 		    bool passSkim = false;		
 		    passSkim = formula->EvalInstance();
 		    delete formula;
