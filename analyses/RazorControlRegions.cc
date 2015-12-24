@@ -2,6 +2,7 @@
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.h"
+#include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
 
 //C++ includes
@@ -15,6 +16,8 @@
 
 using namespace std;
 
+const int NUM_PDF_WEIGHTS = 60;
+
 struct greater_than_pt{
     inline bool operator() (const TLorentzVector& p1, const TLorentzVector& p2){
         return p1.Pt() > p2.Pt();
@@ -27,40 +30,82 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
-
-    bool printSyncDebug = false;
-    std::vector<JetCorrectorParameters> correctionParameters;
     char* cmsswPath;
     cmsswPath = getenv("CMSSW_BASE");
-    string pathname;
-    if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
-    cout << "Getting JEC parameters from " << pathname << endl;
+    if (cmsswPath == NULL) {
+        cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
+        return;
+    }
+
+    TRandom3 *random = new TRandom3(33333); 
+    bool printSyncDebug = false;
+
+    //************************
+    //Pileup Weights
+    //************************
+    TFile *pileupWeightFile = 0;
+    TH1F *pileupWeightHist = 0;
+    TH1F *pileupWeightSysUpHist = 0;
+    TH1F *pileupWeightSysDownHist = 0;
+    if(!isData){
+      string tmpPathname;
+      if (cmsswPath != NULL) tmpPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
+      else {
+        cout << "ERROR: CMSSW_BASE not detected. Exiting...";
+	assert(false);
+      }
+      pileupWeightFile = TFile::Open(Form("%s/PileupReweight_Spring15MCTo2015Data.root",tmpPathname.c_str()));
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      assert(pileupWeightHist);
+      assert(pileupWeightSysUpHist);
+      assert(pileupWeightSysDownHist);
+    }
+
+    //**********************************************
+    //Initialize Jet Energy Corrections
+    //**********************************************
+    std::vector<JetCorrectorParameters> correctionParameters;
+    string JECPathname;
+    if(cmsswPath != NULL) JECPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+    cout << "Getting JEC parameters from " << JECPathname << endl;
 
     if (isData) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV5_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", JECPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", JECPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", JECPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", JECPathname.c_str())));
     } else {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", JECPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", JECPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", JECPathname.c_str())));
     }
     
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
+    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",JECPathname.c_str()));
     SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
-    //-------------------
-    //btagging efficiency
-    //-------------------
+    // //Get JEC uncertainty file and set up JetCorrectionUncertainty
+    // string jecUncPath;
+    // if (isData) jecUncPath = JECPathname+"/Summer15_25nsV6_DATA_Uncertainty_AK4PFchs.txt";
+    // else jecUncPath = JECPathname+"/Summer15_25nsV6_MC_Uncertainty_AK4PFchs.txt";
+    // JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
+
+
+    //***********************************************
+    //Initialize B-tagging Efficiency Corrections
+    //***********************************************
+    string bTagPathname = "";
+    if (cmsswPath != NULL) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
+    else { cout << "Error: CMSSW Path not initialized. \n"; assert(false); }
+
+    TH2D *btagMediumEfficiencyHist = 0;       
     TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
-    TH2D* btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+    btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
     assert(btagMediumEfficiencyHist);
     
-    //btag reader
-    BTagCalibration btagcalib("csvv2", "/afs/cern.ch/work/c/cpena/public/CMSSW_7_5_3_patch1/src/RazorAnalyzer/data/ScaleFactors/CSVv2.csv" );
+    BTagCalibration btagcalib("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
     BTagCalibrationReader btagreader(&btagcalib,               // calibration instance                                   
 				     BTagEntry::OP_MEDIUM,  // operating point
 				     "mujets",               // measurement type
@@ -68,7 +113,56 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     BTagCalibrationReader btagreader_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up                    
     BTagCalibrationReader btagreader_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
     
-    
+    //***********************************************
+    //Initialize Lepton Efficiency Corrections
+    //***********************************************
+    TH2D *eleTightEfficiencyHist = 0;
+    TH2D *muTightEfficiencyHist = 0;
+    TH2D *eleVetoEfficiencyHist = 0;
+    TH2D *muVetoEfficiencyHist = 0;
+    TH2D *tauLooseEfficiencyHist = 0;
+    TH2D *eleTightEffSFHist = 0;
+    TH2D *muTightEffSFHist = 0;
+    TH2D *eleVetoEffSFHist = 0;
+    TH2D *muVetoEffSFHist = 0;
+    TH2D *eleTrigSFHist = 0;
+    TH2D *muTrigSFHist = 0;
+    if(!isData){
+      TFile *eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
+      eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+      eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+      assert(eleTightEfficiencyHist);
+      assert(eleVetoEfficiencyHist);
+      TFile *muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
+      muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
+      muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
+      assert(muTightEfficiencyHist);
+      assert(muVetoEfficiencyHist);
+      TFile *tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
+      tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
+      assert(tauLooseEfficiencyHist);
+
+
+      TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root");
+      eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
+      assert(eleTightEffSFHist);
+      TFile *muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root"); 
+      muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
+      assert(muTightEffSFHist);
+      TFile *vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_VetoElectronSelectionEffDenominatorReco_2015D_Golden.root");
+      eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
+      assert(eleVetoEffSFHist);
+      TFile *vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_VetoMuonSelectionEffDenominatorReco_2015D_Golden.root"); 
+      muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
+      assert(muVetoEffSFHist);
+      TFile *eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root");
+      eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
+      assert(eleTrigSFHist);
+      TFile *muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root"); 
+      muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+      assert(muTrigSFHist);
+    }
+
     //*************************************************************************
     //Set up Output File
     //*************************************************************************
@@ -87,15 +181,16 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //5: Photon Add To MET
     //6: Zero Lepton
     //7: Single Veto-Lepton
-    //8: Loose Lepton + Veto-Lepton
+    //8: Tight-Lepton + Veto-Lepton
     //9: Single Tau
     //11: Single-Lepton Reduced
     //12: Single-Lepton Add To MET Reduced
     //13: Dilepton Reduced
     //14: Dilepton Add To MET Reduced
     //15: Photon Reduced
+    //16: Photon Reduced
     //17: Single Veto-Lepton Reduced
-    //18: Loose Lepton + Veto-Lepton Reduced
+    //18: Tight Lepton + Veto-Lepton Reduced
     //19: Single Tau Reduced
     //hundreds digit refers to lepton skim option
     //0: no skim
@@ -131,9 +226,11 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     else if (treeTypeOption == 6)
       events->CreateTree(ControlSampleEvents::kTreeType_ZeroLepton_Full);
     else if (treeTypeOption == 7)
-      events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
+      events->CreateTree(ControlSampleEvents::kTreeType_OneVetoLepton_Full);
     else if (treeTypeOption == 8)
-      events->CreateTree(ControlSampleEvents::kTreeType_Dilepton_Full);
+      events->CreateTree(ControlSampleEvents::kTreeType_TightPlusVetoLepton_Full);
+    else if (treeTypeOption == 9)
+      events->CreateTree(ControlSampleEvents::kTreeType_OneTauLepton_Full);
     else {
       events->CreateTree(ControlSampleEvents::kTreeType_Default);
     }
@@ -142,8 +239,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //histogram containing total number of processed events (for normalization)
     int NEventProcessed = 0;
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
-  
-
+ 
     //*************************************************************************
     //Look over Input File Events
     //*************************************************************************
@@ -176,7 +272,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       
       //event info
       events->option = option;
-      events->weight = genWeight;
+      events->genWeight = genWeight;
       events->run = runNum;
       events->lumi = lumiNum;
       events->event = eventNum;
@@ -432,9 +528,29 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       }
 
       //*************************************************************************
+      //Pileup Weights
+      //*************************************************************************
+      double NPU = 0;
+      double pileupWeight = 1.0;
+      if(!isData){
+	//Get number of PU interactions
+	for (int i = 0; i < nBunchXing; i++) {
+	  if (BunchXing[i] == 0) {
+	    NPU = nPUmean[i];
+	  }
+	}
+	pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+      }
+
+
+      //*************************************************************************
       //Find Reconstructed Leptons
       //*************************************************************************
-	
+      float muonEffCorrFactor = 1.0;
+      float muonTrigCorrFactor = 1.0;
+      float eleEffCorrFactor = 1.0;
+      float eleTrigCorrFactor = 1.0;
+
       vector<int> VetoLeptonIndex; 
       vector<int> VetoLeptonType;
       vector<int> VetoLeptonPt;
@@ -451,8 +567,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       vector<bool> GoodLeptonIsVeto;//leptons used to compute hemispheres
       vector<double> GoodLeptonActivity;//leptons used to compute hemispheres
 
-
-
+      //*******************************************************
+      //Loop Over Muons
+      //*******************************************************
       for(int i = 0; i < nMuons; i++){
 
 	if(muonPt[i] < 5) continue;
@@ -465,15 +582,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	if (alreadySelected) continue;
 
-	if(isTightMuon(i) && muonPt[i] >= 10) {
+	if(isTightMuon(i) && muonPt[i] >= 20) {
 	  TightLeptonType.push_back(13 * -1 * muonCharge[i]);
 	  TightLeptonIndex.push_back(i);
 	  TightLeptonPt.push_back(muonPt[i]);
-	}
-	else if(isLooseMuon(i) && muonPt[i] >= 10 ) {
-	  LooseLeptonType.push_back(13 * -1 * muonCharge[i]);
-	  LooseLeptonIndex.push_back(i);
-	  LooseLeptonPt.push_back(muonPt[i]);
 	}
 	else if(isVetoMuon(i)) {
 	  VetoLeptonType.push_back(13 * -1 * muonCharge[i]);
@@ -481,25 +593,30 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  VetoLeptonPt.push_back(muonPt[i]);
 	}
 
-	if (printSyncDebug) cout << "muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : Tight = " << isTightMuon(i) << " Loose = " << isLooseMuon(i) << " Veto = " << isVetoMuon(i) << " \n";
+	if (printSyncDebug) cout << "muon " << i << " " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " : Tight = " << isTightMuon(i) << " Veto = " << isVetoMuon(i) << " \n";
                         	   
 	TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
 	thisMuon.SetPtEtaPhiM( muonPt[i], muonEta[i], muonPhi[i], 0.1057);
 
 	//*******************************************************
-	//For Single Lepton Options, use only tight leptons
-	//For Dilepton Options, use only loose leptons
+	//For Single and Dilepton Options, use only tight leptons
+	//For Veto Options, use only veto leptons
 	//*******************************************************
 	bool isGoodLepton = false;
-	if (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
+	if (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
+	    || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
+	    ) {
 	  if (isTightMuon(i)) isGoodLepton = true;
 	}
-	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
-	  if (isLooseMuon(i) || isTightMuon(i)) isGoodLepton = true;
+
+	if (treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
+	    || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 	    
+	    ) {
+	  if (isVetoMuon(i)) isGoodLepton = true;
 	}
-	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18
-	    || treeTypeOption == 9 || treeTypeOption == 19 ) {
-	  if (isVetoMuon(i) || isLooseMuon(i)) isGoodLepton = true;
+	
+	if (treeTypeOption == 8 || treeTypeOption == 18) {
+	  if (isVetoMuon(i) || isTightMuon(i)) isGoodLepton = true;
 	}
 
 	if (isGoodLepton) {
@@ -509,6 +626,63 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  GoodLeptonIsLoose.push_back( isLooseMuon(i) );
 	  GoodLeptonIsVeto.push_back( isVetoMuon(i) );
 	  GoodLeptonActivity.push_back( muon_activityMiniIsoAnnulus[i] );
+	}
+
+	//*******************************************************
+	//Compute Muon Correction Factors
+	//*******************************************************
+	if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i])) {
+
+	  //For Single Lepton Options, use only tight leptons
+	  if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
+		|| treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
+		)	       
+	       && muonPt[i] > 20
+	       ) {	    
+	    double effTight = muTightEfficiencyHist->
+	      GetBinContent(muTightEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+			    muTightEfficiencyHist->GetYaxis()->FindFixBin(fabs(muonEta[i])));
+	    double effTightSF = muTightEffSFHist->
+	      GetBinContent(muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+			    muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i])));
+	    double tmpTightSF = 1.0;
+	    if (isTightMuon(i)) {
+	      tmpTightSF = effTightSF;	    
+	    } else {
+	      if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
+	      else tmpTightSF = 0; //if the correction brings efficiency above 100%, then take it to be 100% --> the inefficiency will be 0.
+	    }	  
+	    muonEffCorrFactor *= tmpTightSF; 
+
+	    //For single lepton samples, also get trigger efficiency correction
+	    if ( treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
+	      double trigSF = muTrigSFHist->
+		GetBinContent(muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),20.01)),
+			      muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+	      muonTrigCorrFactor *= trigSF;
+	    }
+	  }
+	
+
+	  //For Veto Lepton Options, use only veto leptons
+	  if ( treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
+	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
+	       ) {
+	    double effVeto = muVetoEfficiencyHist->
+	      GetBinContent(muVetoEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+			    muVetoEfficiencyHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+	     double effVetoSF = muVetoEffSFHist->
+	       GetBinContent(muVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
+			     muVetoEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
+	     double tmpVetoSF = 1.0;
+	     if (isVetoMuon(i)) {
+	       tmpVetoSF = effVetoSF;                  
+	     } else {
+	       if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);                   
+	       else tmpVetoSF = 0.0;
+	     }
+	     muonEffCorrFactor *= tmpVetoSF;
+	  }
 	}
 
       } // loop over muons
@@ -526,15 +700,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	if (alreadySelected) continue;
 
-	if( isTightElectron(i) && elePt[i] > 10 ) {
+	if( isTightElectron(i) && elePt[i] > 25 ) {
 	  TightLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  TightLeptonIndex.push_back(i);
 	  TightLeptonPt.push_back(elePt[i]);
-	}
-	else if( isLooseElectron(i) && elePt[i] > 10 ) {
-	  LooseLeptonType.push_back(11 * -1 * eleCharge[i]);
-	  LooseLeptonIndex.push_back(i);
-	  LooseLeptonPt.push_back(elePt[i]);
 	}
 	else if(isVetoElectron(i)) {
 	  VetoLeptonType.push_back(11 * -1 * eleCharge[i]);
@@ -542,13 +711,13 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  VetoLeptonPt.push_back(elePt[i]);
 	}
             
-	if (printSyncDebug) cout << "ele " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Loose = " << isLooseElectron(i) << " Veto = " << isVetoElectron(i) << " \n";
+	if (printSyncDebug) cout << "ele " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Veto = " << isVetoElectron(i) << " \n";
 
 	if(!isVetoElectron(i)) continue; 
 
 	TLorentzVector thisElectron;
 	if (isData) {
-	  thisElectron.SetPtEtaPhiM( elePt[i]*GetElectronScaleCorrection(elePt[i],eleEta[i]), eleEta[i], elePhi[i], 0.000511);
+	  thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
 	} else {
 	  thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
 	}
@@ -558,15 +727,18 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	//For Dilepton Options, use only loose leptons
 	//*******************************************************
 	bool isGoodLepton = false;
-	if (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
+	if (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
+	    || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
+	    ) {
 	  if (isTightElectron(i)) isGoodLepton = true;
 	}
-	if (treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14) {
-	  if (isLooseElectron(i) || isTightElectron(i)) isGoodLepton = true;
+	if ( treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
+	     || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
+	     ) {
+	  if (isVetoElectron(i) ) isGoodLepton = true;
 	}
-	if (treeTypeOption == 7 || treeTypeOption == 8 || treeTypeOption == 17 || treeTypeOption == 18
-	    || treeTypeOption == 9 || treeTypeOption == 19 ) {
-	  if (isVetoElectron(i) || isLooseElectron(i)) isGoodLepton = true;
+	if (treeTypeOption == 8 || treeTypeOption == 18) {
+	  if (isVetoElectron(i) || isTightElectron(i)) isGoodLepton = true;
 	}
 
 	if (isGoodLepton) {
@@ -577,7 +749,69 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  GoodLeptonIsVeto.push_back( isVetoElectron(i) );
 	  GoodLeptonActivity.push_back( ele_activityMiniIsoAnnulus[i] );
 	}
-      }
+
+	//*******************************************************
+	//Compute Electron Correction Factors
+	//*******************************************************
+	//For Single Lepton Options, use only tight leptons
+	if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i])) {
+	  
+	  
+	  //For Single Lepton Options, use only tight leptons
+	  if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
+		|| treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
+		)	       
+	       && muonPt[i] > 20
+	       ) {	    
+	    double effTight = eleTightEfficiencyHist->
+	      GetBinContent(eleTightEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),20.01)),
+			    eleTightEfficiencyHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+	    double effTightSF = eleTightEffSFHist->
+	      GetBinContent(eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
+			    eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+	    double tmpTightSF = 1.0;
+	    if (isTightElectron(i)) {
+	      tmpTightSF = effTightSF;	      
+	    } else { 
+	      if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);                  
+	      else tmpTightSF = 0;
+	    }
+	    eleEffCorrFactor *= tmpTightSF;
+
+	    //For single lepton samples, also get trigger efficiency correction
+	    if ( treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
+	      double trigSF = eleTrigSFHist->
+		GetBinContent( eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),25.01)), 
+			       eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i])));    
+	      eleTrigCorrFactor *= trigSF;
+	    }
+	    
+	  }
+	 
+
+	  //For Veto Lepton Options, use only veto leptons
+	  if ( treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
+	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
+	       ) {
+	    double effVeto = eleVetoEfficiencyHist->
+	      GetBinContent( eleVetoEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
+			     eleVetoEfficiencyHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+	    double effVetoSF = eleVetoEffSFHist->
+	      GetBinContent(eleVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
+			    eleVetoEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
+	    double tmpVetoSF = 1.0;
+	    if (isVetoElectron(i)) {
+	      tmpVetoSF = effVetoSF;                   
+	    } 
+	    else { 
+	      if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
+	      else tmpVetoSF = 0.0;
+	    }
+	    eleEffCorrFactor *= tmpVetoSF;
+	  }
+	}
+
+      } //loop over electrons
 
       for(int i = 0; i < nTaus; i++){
 	if (tauPt[i] < 20) continue;
@@ -590,12 +824,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
 	if (alreadySelected) continue;
 
-	if(isTightTau(i)){
-	  TightLeptonType.push_back(15);
-	  TightLeptonIndex.push_back(i);
-	  TightLeptonPt.push_back(tauPt[i]);
-	}
-	else if(isLooseTau(i)){
+	if(isLooseTau(i)){
 	  LooseLeptonType.push_back(15);
 	  LooseLeptonIndex.push_back(i);
 	  LooseLeptonPt.push_back(tauPt[i]);
@@ -655,8 +884,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	}
       }
 
-   
-
+      
       //************************************************************************
       //Fill Lepton Information using Good Leptons collection
       //************************************************************************
@@ -1447,6 +1675,16 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
       }
     
+
+      //****************************************************************************
+      //Compute All Event Weights
+      //****************************************************************************
+      
+      events->weight = events->genWeight
+	* pileupWeight
+	* muonEffCorrFactor * eleEffCorrFactor 
+	* muonTrigCorrFactor * eleTrigCorrFactor 
+	* events->btagW;
 
 
       //****************************************************************************
