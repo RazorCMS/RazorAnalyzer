@@ -80,14 +80,14 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	  muTree->fMiniIsoDBCorr = muon_chargedMiniIso[i] + muon_photonAndNeutralHadronMiniIso[i] - 0.5*muon_chargedPileupMiniIso[i];
 
 	  muTree->fMuTriggerBit = 0;
-	  if (matchMuonHLTFilters(i, "IsoMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu20;
-	  if (matchMuonHLTFilters(i, "IsoTkMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu20;
-	  if (matchMuonHLTFilters(i, "IsoMu27")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu27;
-	  if (matchMuonHLTFilters(i, "IsoTkMu27")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu27;
-	  if (matchMuonHLTFilters(i, "Mu50")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50;
-	  if (matchMuonHLTFilters(i, "Mu55")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu55;
-	  if (matchMuonHLTFilters(i, "Mu45_eta2p1")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu45_eta2p1;
-	  if (matchMuonHLTFilters(i, "Mu50_eta2p1")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50_eta2p1;
+	  if (matchMuonHLTFilters(i, "IsoMu20")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu20;
+	  if (matchMuonHLTFilters(i, "IsoTkMu20")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu20;
+	  if (matchMuonHLTFilters(i, "IsoMu27"))  muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu27;
+	  if (matchMuonHLTFilters(i, "IsoTkMu27")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu27;
+	  if (matchMuonHLTFilters(i, "Mu50")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50;
+	  if (matchMuonHLTFilters(i, "Mu55")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu55;
+	  if (matchMuonHLTFilters(i, "Mu45_eta2p1")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu45_eta2p1;
+	  if (matchMuonHLTFilters(i, "Mu50_eta2p1")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50_eta2p1;
 
 
 	  
@@ -255,14 +255,14 @@ void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
 	    muTree->fMiniIso = muon_chargedMiniIso[matchedIndex] + muon_photonAndNeutralHadronMiniIso[matchedIndex] ;
 	    muTree->fMiniIsoDBCorr = muon_chargedMiniIso[matchedIndex] + muon_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*muon_chargedPileupMiniIso[matchedIndex];
 	    muTree->fMuTriggerBit = 0;
-	    if (matchMuonHLTFilters(matchedIndex, "IsoMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu20;
-	    if (matchMuonHLTFilters(matchedIndex, "IsoTkMu20")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu20;
-	    if (matchMuonHLTFilters(matchedIndex, "IsoMu27")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu27;
-	    if (matchMuonHLTFilters(matchedIndex, "IsoTkMu27")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu27;
-	    if (matchMuonHLTFilters(matchedIndex, "Mu50")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50;
-	    if (matchMuonHLTFilters(matchedIndex, "Mu55")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu55;
-	    if (matchMuonHLTFilters(matchedIndex, "Mu45_eta2p1")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu45_eta2p1;
-	    if (matchMuonHLTFilters(matchedIndex, "Mu50_eta2p1")) muTree->fMuTriggerBit = muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50_eta2p1;
+	    if (matchMuonHLTFilters(matchedIndex, "IsoMu20")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu20;
+	    if (matchMuonHLTFilters(matchedIndex, "IsoTkMu20")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu20;
+	    if (matchMuonHLTFilters(matchedIndex, "IsoMu27")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoMu27;
+	    if (matchMuonHLTFilters(matchedIndex, "IsoTkMu27")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_IsoTkMu27;
+	    if (matchMuonHLTFilters(matchedIndex, "Mu50")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50;
+	    if (matchMuonHLTFilters(matchedIndex, "Mu55")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu55;
+	    if (matchMuonHLTFilters(matchedIndex, "Mu45_eta2p1")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu45_eta2p1;
+	    if (matchMuonHLTFilters(matchedIndex, "Mu50_eta2p1")) muTree->fMuTriggerBit |= MuonTree::kMuTrigger_Mu50_eta2p1;
 	  } else {
 	    muTree->fActivity = 9999;
 	    muTree->fMuPt = 0;
