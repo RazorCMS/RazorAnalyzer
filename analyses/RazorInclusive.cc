@@ -826,7 +826,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     
     //compute minimum dPhi Met to Jets
     minDPhiMetToJets = 9999;
-    for (int k=0; k<GoodJets.size(); ++k) {
+    for (int k=0; k < int(GoodJets.size()); ++k) {
       if (k>=4) break;
       if ( fabs(deltaPhi(MyMET.Phi(), GoodJets[k].Phi())) < minDPhiMetToJets ) {
 	minDPhiMetToJets = fabs(deltaPhi(MyMET.Phi(), GoodJets[k].Phi()));
