@@ -38,6 +38,8 @@ class TagAndProbePair {
   Float_t                 mass;
   Int_t                   charge;
   Float_t                 miniIso;
+  Float_t                 met;
+  Bool_t                  passTighterTag;
   Float_t                 Activity;
   Float_t                 HT;
   Float_t                 MinDRToParton;
@@ -77,6 +79,8 @@ class TagAndProbePair {
     mass                  = 0;
     charge                = 0;
     miniIso               = 0;
+    met                   = 0;
+    passTighterTag        = false;
     Activity              = 0;
     HT                    = 0;
     MinDRToParton         = 0;
@@ -114,6 +118,8 @@ class TagAndProbePair {
     tree_->Branch("mass",&mass,"mass/F");    
     tree_->Branch("charge",&charge,"charge/I");
     tree_->Branch("miniIso",&miniIso,"miniIso/F");
+    tree_->Branch("met",&met,"met/F");
+    tree_->Branch("passTighterTag",&passTighterTag,"passTighterTag/O");
     if (treeType == kTPType_Full) {
       tree_->Branch("Activity",&Activity,"Activity/F");
       tree_->Branch("HT",&HT,"HT/F");
@@ -148,6 +154,8 @@ class TagAndProbePair {
     tree_->SetBranchAddress("mass",&mass);
     tree_->SetBranchAddress("charge",&charge);
     tree_->SetBranchAddress("miniIso",&miniIso);
+    tree_->SetBranchAddress("met",&met);
+    tree_->SetBranchAddress("passTighterTag",&passTighterTag);
     if (treeType == kTPType_Full) {
       tree_->SetBranchAddress("Activity",&Activity);
       tree_->SetBranchAddress("HT",&HT);
