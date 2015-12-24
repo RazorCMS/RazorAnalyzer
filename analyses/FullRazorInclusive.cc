@@ -24,7 +24,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     /////////////////////////////////
 
     cout << "Initializing..." << endl;
-    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     //Output file
     if (outFileName.empty()){
@@ -206,8 +206,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     }
     //Set up JEC machinery 
     FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
-    SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+    // JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
+    //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     //Get JEC uncertainty file and set up JetCorrectionUncertainty
     string jecUncPath;
@@ -232,9 +232,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //Fullsim
     BTagCalibration btagcalib("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
     BTagCalibrationReader btagreader(&btagcalib,               // calibration instance
-            BTagEntry::OP_MEDIUM,  // operating point
-            "mujets",               // measurement type
-            "central");           // systematics type
+				     BTagEntry::OP_MEDIUM,  // operating point
+				     "mujets",               // measurement type
+				     "central");           // systematics type
     BTagCalibrationReader btagreader_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
     BTagCalibrationReader btagreader_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
 
@@ -688,7 +688,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         /////////////////////////////////	
 	if(isFastsimSMS){
 
-	  double GluinoPt = 0;
 	  TLorentzVector *gluino1PreShowering = 0;
 	  TLorentzVector *gluino2PreShowering = 0;
 	  TLorentzVector *gluino1PostShowering = 0;
