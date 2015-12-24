@@ -199,6 +199,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       }
       TPPair->NPV = nPV;
       TPPair->Rho = fixedGridRhoFastjetAll;
+      TPPair->met = metType1Pt;
 
       //******************************************
       //Find Generated leptons
@@ -270,6 +271,14 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	  TLorentzVector vtag;
 	  vtag.SetPtEtaPhiM(elePt[indexTag], eleEta[indexTag], elePhi[indexTag], ELE_MASS);
 
+	  TPPair->passTighterTag = false;
+	  if (
+	      ( (ele_chargedIso[indexTag] + fmax(0.0,  ele_photonIso[indexTag] + ele_neutralHadIso[indexTag] - GetElectronEffectiveAreaMean(indexTag)*fixedGridRhoFastjetAll)) / elePt[indexTag] < 0.02)
+	      && fabs(ele_d0[indexTag]) < 0.01
+	      ) {
+	    TPPair->passTighterTag = true;
+	  }
+
 	  //*******************************************************
 	  //Loop over Probe electrons
 	  //*******************************************************
@@ -323,6 +332,9 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    }
 	    if (denominatorType == 9) {
 	      if ( !isTightElectron(indexProbe,true, false) ) continue;
+	    }
+	    if (denominatorType == 10) {
+	      if ( !isVetoElectron(indexProbe, false, true) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
@@ -451,6 +463,15 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	  TLorentzVector vtag;
 	  vtag.SetPtEtaPhiM(muonPt[indexTag], muonEta[indexTag], muonPhi[indexTag], MU_MASS);
 
+	  TPPair->passTighterTag = false;
+	  if (
+	      ( (muon_chargedIso[indexTag] + fmax(0.0,  muon_photonIso[indexTag] + muon_neutralHadIso[indexTag] - 0.5*muon_pileupIso[indexTag])) / muonPt[indexTag] < 0.07)
+	      && fabs(muon_ip3dSignificance[indexTag]) < 3
+	      ) {
+	    TPPair->passTighterTag = true;
+	  }
+
+
 	  //*******************************************************
 	  //Loop over Probe muons
 	  //*******************************************************
@@ -498,6 +519,9 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	    }
 	    if (denominatorType == 9) {
 	      if ( !isTightMuon(indexProbe, true, false) ) continue;
+	    }
+	    if (denominatorType == 10) {
+	      if ( !isVetoMuon(indexProbe, false, true) ) continue;
 	    }
 
 	    TLorentzVector vprobe;
