@@ -14,8 +14,10 @@
 const bool density = true;
 
 // int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2}; // for multijet box
+// int color[] = {kBlack, kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2}; // for multijet box
 int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kGreen+4, kGreen-4}; // for lepton box
 // int color[] = {kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kBlack, kGreen+2}; // for multijet 0L vs 1L
+// int color[] = {10, 21, 32, 43, 54, 65, 76, 87, 28, 39, 40, kAzure+4, kMagenta, kBlue+1, kCyan+1, kOrange-3, kRed+1, kGreen+2, kGreen+4, kGreen-4}; // for lepton box
 
 //*************************************************************************************************
 //Normalize Hist
@@ -80,10 +82,20 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   vector<TH1F*> histUnrolledPercentage; 
   vector<TH1F*> histUnrolledPercentage2bins; 
 
-  float MRBinLowEdges[] = {500, 600, 700, 900, 1200, 1600, 2500, 4000};
-  float RsqBinLowEdges[] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
+  //  float MRBinLowEdges[] = {500, 600, 700, 900, 1200, 1600, 2500, 4000};
+  //  float RsqBinLowEdges[] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
+
+  // float MRBinLowEdges[] = {500, 600, 700, 900, 1200, 1600, 2500, 4000}; // Multijet Bins
+  // float RsqBinLowEdges[] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5}; // Multijet Bins
+
+  float MRBinLowEdges[] = {400, 500, 600, 700, 900, 1200, 1600, 2500, 4000}; // Lepton boxes
+  float RsqBinLowEdges[] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5};  // Lepton boxes
+
+
   const int nMRBins = sizeof(MRBinLowEdges)/sizeof(float)-1;
   const int nRsqBins = sizeof(RsqBinLowEdges)/sizeof(float)-1;
+
+  std::cout<<"AAAAAAA "<<nMRBins<<" "<<nRsqBins<<std::endl;
 
   assert (inputfiles.size() == processLabels.size());
 
@@ -110,7 +122,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     histMRRsq[i]->SetStats(false);
     histMRRsq[i]->Sumw2();
 
-    histUnrolled.push_back( new TH1F( Form("Unrolled_%s",processLabels[i].c_str()), ";Bin Number ;Event Density", nMRBins*nRsqBins, 0, nMRBins*nRsqBins));
+    histUnrolled.push_back( new TH1F( Form("Unrolled_%s",processLabels[i].c_str()), ";Bin Number ;Number of Events", nMRBins*nRsqBins, 0, nMRBins*nRsqBins));
     if (!hasSignal || i != 0) histUnrolled[i]->SetFillColor(color[i]);
     if (hasSignal && i==0) histUnrolled[i]->SetLineWidth(3);
     histUnrolled[i]->SetLineColor(color[i]);
@@ -190,7 +202,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
       tree->GetEntry(n);
       if (n % 1000000 == 0) cout << "Processing Event " << n << "\n";       
 
-      if (intLumi*weight > 100) continue;
+      // if (intLumi*weight > 100) continue;
 
       //Box Options
       if (option == 0 ) {
@@ -244,47 +256,50 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
       if (!hasSignal || i>0) {
 	histMRAllBkg->Fill(MR, intLumi*weight);
 	histRsqAllBkg->Fill(Rsq, intLumi*weight);
-
-	if(strstr(processLabels[i].c_str(), "TTJets")==NULL)
-	  histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-		
-	histMR[i]->Fill(MR, intLumi*weight);
-	histRsq[i]->Fill(Rsq, intLumi*weight);
-	
-	// separate by number of gen leptons for lepton boxes
-	if(boxOption==1 || boxOption==2)
-	  {
-	    if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "2L")!=NULL) {
-	      if(nGenMuons+nGenElectrons>=2)
-		histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-	    }
-	    else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "Tau")!=NULL){
-	      if((nGenMuons+nGenElectrons+nGenTaus>=2) && !(nGenMuons+nGenElectrons>=2))
-		histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-	    }
-	    else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "1L")!=NULL) {
-	      if(!(nGenMuons+nGenElectrons>=2) && !(nGenMuons+nGenElectrons+nGenTaus>=2))
-		histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
-	    }
+      }
+            
+      if(strstr(processLabels[i].c_str(), "TTJets")==NULL && strstr(processLabels[i].c_str(), "T1bbbb")==NULL)
+      	histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+      
+      // if(strstr(processLabels[i].c_str(), "T1bbbb")!=NULL)
+      // 	histMRRsq[i]->Fill(MR, Rsq, intLumi*weight*2.69506e-07);
+      
+      histMR[i]->Fill(MR, intLumi*weight);
+      histRsq[i]->Fill(Rsq, intLumi*weight);
+      
+      // separate by number of gen leptons for lepton boxes
+      if(boxOption==1 || boxOption==2)
+	{
+	  if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "2L")!=NULL) {
+	    if(nGenMuons+nGenElectrons>=2)
+	      histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
 	  }
-
+	  else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "Tau")!=NULL) {
+	    if((nGenMuons+nGenElectrons+nGenTaus>=2) && !(nGenMuons+nGenElectrons>=2))
+	      histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	  }
+	  else if(strstr(processLabels[i].c_str(), "TTJets")!=NULL && strstr(bkgLabels[i].c_str(), "1L")!=NULL) {
+	    if(!(nGenMuons+nGenElectrons>=2) && !(nGenMuons+nGenElectrons+nGenTaus>=2))
+	      histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
+	  }
+	}
+      
 	// Multijet box top
       	if(boxOption==0)
 	  if(strstr(processLabels[i].c_str(), "TTJets")!=NULL) {
 	    histMRRsq[i]->Fill(MR, Rsq, intLumi*weight);
 	  }
       }
-    }
 
     inputFile->Close();
     delete inputFile;
   }
-
+  
   //*******************************************************************************************
   //Draw Plots
   //*******************************************************************************************
   cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.7,0.63,0.90,0.88);
+  legend = new TLegend(0.7,0.53,0.90,0.88);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -314,7 +329,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     for(int ii = 0; ii<nMRBins; ii++)
       for (int jj = 0; jj<nRsqBins; jj++)      
   	{      
-  	  float value = (histMRRsq[i]->GetBinContent(jj+1, ii+1) > 0) ? histMRRsq[i]->GetBinContent(jj+1, ii+1) : 0. ;
+  	  float value = (histMRRsq[i]->GetBinContent(ii+1, jj+1) > 0) ? histMRRsq[i]->GetBinContent(ii+1, jj+1) : 0. ;
 	  
 	  float Xrange = histMRRsq[i]->GetXaxis()->GetBinLowEdge(ii+2) - histMRRsq[i]->GetXaxis()->GetBinLowEdge(ii+1);
 	  float Yrange = histMRRsq[i]->GetYaxis()->GetBinLowEdge(jj+2) - histMRRsq[i]->GetYaxis()->GetBinLowEdge(jj+1);
@@ -324,8 +339,9 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 	  if(density) area = Xrange*Yrange; //normalize each bin by its area
 
 	  histUnrolled[i]->SetBinContent(binN+1, value/area);
-	  
-	  bintotal[binN+1] += value/area;	 
+
+	  if(!hasSignal || i>0)
+	    bintotal[binN+1] += value/area;	 
 	  
 	  if(ii<1 || jj<1)
 	    total_SB += value/area;
@@ -338,12 +354,16 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
     histUnrolled2bins[i]->SetBinContent(1, total_SB);
     histUnrolled2bins[i]->SetBinContent(2, total_SR);
 
+    histUnrolled[i]->SetMinimum(0.00001);
+
     if ( histUnrolled[i]->Integral() > 0) {
-      stackUnrolled->Add(histUnrolled[i]);
+      if( !hasSignal || i > 0 )
+	stackUnrolled->Add(histUnrolled[i]);
     }
 
     if ( histUnrolled[i]->Integral() > 0) {
-      stackUnrolled2bins->Add(histUnrolled2bins[i]);
+      if( !hasSignal || i > 0 )
+	stackUnrolled2bins->Add(histUnrolled2bins[i]);
     }
 
     cout << "Process : " << processLabels[i] << "\n";	  
@@ -355,29 +375,35 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   float AllBkg_SR = 0;
 
   for (uint i=0; i < histMRRsq.size(); ++i) {
-    AllBkg_SB += histUnrolled2bins[i]->GetBinContent(1);
-    AllBkg_SR += histUnrolled2bins[i]->GetBinContent(2);
+    if( !hasSignal || i > 0 ){
+      AllBkg_SB += histUnrolled2bins[i]->GetBinContent(1);
+      AllBkg_SR += histUnrolled2bins[i]->GetBinContent(2);
+    }
   }
 
   for (uint i=0; i < histMRRsq.size(); ++i) {
-    histUnrolledPercentage2bins[i]->SetBinContent(1, histUnrolled2bins[i]->GetBinContent(1)/AllBkg_SB);
-    histUnrolledPercentage2bins[i]->SetBinContent(2, histUnrolled2bins[i]->GetBinContent(2)/AllBkg_SR);
-
+    if( !hasSignal || i > 0 ){
+      histUnrolledPercentage2bins[i]->SetBinContent(1, histUnrolled2bins[i]->GetBinContent(1)/AllBkg_SB);
+      histUnrolledPercentage2bins[i]->SetBinContent(2, histUnrolled2bins[i]->GetBinContent(2)/AllBkg_SR);
+    }
+    
     if ( histUnrolled2bins[i]->Integral() > 0) {
-      stackUnrolledPercentage2bins->Add(histUnrolledPercentage2bins[i]);
+      if( !hasSignal || i > 0 )
+	stackUnrolledPercentage2bins->Add(histUnrolledPercentage2bins[i]);
     }
   }
   
   ///
   // fill out the unrolled percentage histograms 
   for (uint i=0; i < histMRRsq.size(); ++i) {
-    
+    if( hasSignal && i == 0 ) continue;
+      
     int binN = 0;
 
     for(int ii = 0; ii<nMRBins; ii++)
       for (int jj = 0; jj<nRsqBins; jj++)      
   	{      
-  	  float value = (histMRRsq[i]->GetBinContent(jj+1, ii+1) > 0) ? histMRRsq[i]->GetBinContent(jj+1, ii+1) : 0. ;
+  	  float value = (histMRRsq[i]->GetBinContent(ii+1, jj+1) > 0) ? histMRRsq[i]->GetBinContent(ii+1, jj+1) : 0. ;
 	  
 	  float Xrange = histMRRsq[i]->GetXaxis()->GetBinLowEdge(ii+2) - histMRRsq[i]->GetXaxis()->GetBinLowEdge(ii+1);
 	  float Yrange = histMRRsq[i]->GetYaxis()->GetBinLowEdge(jj+2) - histMRRsq[i]->GetYaxis()->GetBinLowEdge(jj+1);
@@ -391,10 +417,9 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
 	  binN++;
 	}
-
 		
     if ( histUnrolled[i]->Integral() > 0) {
-      stackUnrolledPercentage->Add(histUnrolledPercentage[i]);
+	stackUnrolledPercentage->Add(histUnrolledPercentage[i]);
     }
 
     cout << "Unrolling Percentage for Process : " << processLabels[i] << "\n";	  
@@ -415,9 +440,13 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   t3.SetTextFont(42);
 
   stackUnrolled->Draw();
+  stackUnrolled->SetMinimum(0.0001);
+  // stackUnrolled->SetMaximum(1000);
   cv->SetLogy();
   stackUnrolled->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackUnrolled->GetHists()->At(0)))->GetXaxis()->GetTitle());
   stackUnrolled->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackUnrolled->GetHists()->At(0)))->GetYaxis()->GetTitle());
+  stackUnrolled->Draw();
+  if(hasSignal) histUnrolled[0]->Draw("same hist");
   legend->Draw();
   t1.Draw();
   t2.Draw();
@@ -426,7 +455,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
   // Unrolled plots in percentages
   cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.85,0.50,0.95,0.80);
+  legend = new TLegend(0.85,0.20,0.95,0.80);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
 
@@ -441,6 +470,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage->GetHists()->At(0)))->GetXaxis()->GetTitle());
   // stackUnrolledPercentage->GetHistogram()->GetXaxis()->SetRangeUser(0, 35);
   stackUnrolledPercentage->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage->GetHists()->At(0)))->GetYaxis()->GetTitle());
+  if(hasSignal) histUnrolledPercentage[0]->Draw("same hist"); 
   legend->Draw();
   t1.Draw();
   t2.Draw();
@@ -449,7 +479,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
   // Unrolled plots in sideband vs signal box
   cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.85,0.50,0.95,0.80);
+  legend = new TLegend(0.85,0.20,0.95,0.80);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
 
@@ -463,6 +493,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   stackUnrolled2bins->Draw();
   stackUnrolled2bins->GetHistogram()->GetXaxis()->SetTitle(((TH1F*)(stackUnrolled2bins->GetHists()->At(0)))->GetXaxis()->GetTitle());
   stackUnrolled2bins->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackUnrolled2bins->GetHists()->At(0)))->GetYaxis()->GetTitle());
+  if(hasSignal) histUnrolled2bins[0]->Draw("same hist");
   legend->Draw();
   t1.Draw();
   t2.Draw();
@@ -471,7 +502,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
 
   // Unrolled plots in sideband vs signal box in fractions
   cv = new TCanvas("cv","cv", 800,600);
-  legend = new TLegend(0.7,0.63,0.90,0.88);
+  legend = new TLegend(0.7,0.23,0.90,0.88);
   legend->SetTextSize(0.03);
   legend->SetBorderSize(0);
 
@@ -488,6 +519,7 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
   stackUnrolledPercentage2bins->GetHistogram()->GetYaxis()->SetTitle(((TH1F*)(stackUnrolledPercentage2bins->GetHists()->At(0)))->GetYaxis()->GetTitle());
   stackUnrolledPercentage2bins->GetHistogram()->GetXaxis()->SetBinLabel(1, "Sideband");
   stackUnrolledPercentage2bins->GetHistogram()->GetXaxis()->SetBinLabel(2, "Signal Sensitive Region");
+  if(hasSignal) histUnrolledPercentage2bins[0]->Draw("same hist");
   legend->Draw();
   t1.Draw();
   t2.Draw();
@@ -523,7 +555,25 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    vector<string> bkgfiles;
    vector<string> bkgLabels;      
 
+   //   string signalfile = "eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_Other_1pb_weighted_RazorSkim.root";
+   // string signalfile = "eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForPreapp20151122/jobs/combined/SMS-T1bbbb_1500_100.root";
+   // string signalLabel = "T1bbbb m_{G}=1500 m_{LSP}=100";
+
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_Other_1pb_weighted_RazorSkim.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_WW_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_WZ_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_ZZ_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_TTZToQQ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_1pb_weighted.root");
+   // bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+
+
+
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_QCD_HTBinned_1pb_weighted_RazorSkim.root");
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root");
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root");
@@ -534,6 +584,18 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgfiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorSkim/RazorInclusive_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root");
 
    bkgLabels.push_back("Other");
+   // bkgLabels.push_back("WW");
+   // bkgLabels.push_back("WZ");
+   // bkgLabels.push_back("ZZ");
+   // bkgLabels.push_back("WWZ");
+   // bkgLabels.push_back("WZZ");
+   // bkgLabels.push_back("ZZZ");
+   // bkgLabels.push_back("TTZToLLNuNu");
+   // bkgLabels.push_back("TTZToQQ");
+   // bkgLabels.push_back("TTWToQQ");
+   // bkgLabels.push_back("TTWToLnu");
+   // bkgLabels.push_back("TTTT");
+
    bkgLabels.push_back("QCD");
    bkgLabels.push_back("DYJetsToLL");
    bkgLabels.push_back("ZJetsToNuNu");
@@ -544,7 +606,15 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    bkgLabels.push_back("TTJets 2L");
    bkgLabels.push_back("TTJets L+Tau");
 
-   //RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,0,"T1qqqq_MultiJet_ZeroBTags", "MultiJet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,0,"MuonMultijet_0BTag_Others", "MuonMultijet Box 0 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,1,"MuonMultijet_1BTag_Others", "MuonMultijet Box 1 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,2,"MuonMultijet_2BTag_Others", "MuonMultijet Box 2 b-tag");
+   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,3,"MuonMultijet_3BTag_Others", "MuonMultijet Box 3 b-tag");
+ 
+  // RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,0,"T1bbbb_1500_100_MultiJet_0BTag", "MultiJet Box 0 b-tag");
+  // RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,1,"T1bbbb_1500_100_MultiJet_1BTag", "MultiJet Box 1 b-tag");
+  // RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,2,"T1bbbb_1500_100_MultiJet_2BTag", "MultiJet Box 2 b-tag");
+  // RunMakeRazorPlots(signalfile,signalLabel,bkgfiles,bkgLabels,0,3,"T1bbbb_1500_100_MultiJet_3BTag", "MultiJet Box 3 b-tag");
  
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,0,"MultiJet_0BTag", "MultiJet Box 0 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,1,"MultiJet_1BTag", "MultiJet Box 1 b-tag");
@@ -557,10 +627,10 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,2,"MultiJet_2BTag_byTopLeps", "MultiJet Box 2 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,0,3,"MultiJet_3BTag_byTopLeps", "MultiJet Box 3 b-tag");
 
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,0,"EleMultijet_0BTag", "EleMultijet Box 0 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,1,"EleMultijet_1BTag", "EleMultijet Box 1 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,2,"EleMultijet_2BTag", "EleMultijet Box 2 b-tag");
-   // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,3,"EleMultijet_3BTag", "EleMultijet Box 3 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,0,"EleMultijet_0BTag", "EleMultijet Box 0 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,1,"EleMultijet_1BTag", "EleMultijet Box 1 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,2,"EleMultijet_2BTag", "EleMultijet Box 2 b-tag");
+   RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,3,"EleMultijet_3BTag", "EleMultijet Box 3 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,2,4,"EleMultijet_CombinedBTag", "EleMultijet Box All b-tag");
 
    RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,0,"MuonMultijet_0BTag", "MuonMultijet Box 0 b-tag");
@@ -568,6 +638,8 @@ void RunMakeRazorPlots ( string signalfile, string signalLabel,  vector<string> 
    RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,2,"MuonMultijet_2BTag", "MuonMultijet Box 2 b-tag");
    RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,3,"MuonMultijet_3BTag", "MuonMultijet Box 3 b-tag");
    // RunMakeRazorPlots("","",bkgfiles,bkgLabels,1,4,"MuonMultijet_CombinedBTag", "MuonMultijet Box All b-tag");
+
+
 
 
  }
