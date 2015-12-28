@@ -572,6 +572,8 @@ class ControlSampleEvents {
       tree_->Branch("lep1Eta",&lep1Eta,"lep1Eta/F");
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
       tree_->Branch("RsqnoHF", &RsqnoHF, "RsqnoHF/F");
+      tree_->Branch("MHT", &MHT, "MHT/F");
+      tree_->Branch("MHTnoHF", &MHTnoHF, "MHTnoHF/F");
       tree_->Branch("lep1" ,&lep1Ptr);
 
       tree_->Branch("metType1PtJetResUp", &metType1PtJetResUp, "metType1PtJetResUp/F");
