@@ -649,7 +649,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    if (isTightMuon(i)) {
 	      tmpTightSF = effTightSF;	    
 	    } else {
-	      if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
+	      if (effTight >= 1) tmpTightSF = 1.0;
+	      else if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
 	      else tmpTightSF = 0; //if the correction brings efficiency above 100%, then take it to be 100% --> the inefficiency will be 0.
 	    }	  
 	    muonEffCorrFactor *= tmpTightSF; 
@@ -678,7 +679,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	     if (isVetoMuon(i)) {
 	       tmpVetoSF = effVetoSF;                  
 	     } else {
-	       if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);                   
+	       if (effVeto >= 1) tmpVetoSF = 1.0;
+	       else if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);                   
 	       else tmpVetoSF = 0.0;
 	     }
 	     muonEffCorrFactor *= tmpVetoSF;
@@ -773,7 +775,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	    if (isTightElectron(i)) {
 	      tmpTightSF = effTightSF;	      
 	    } else { 
-	      if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);                  
+	      if (effTight >= 1.0) tmpTightSF = 1.0;
+	      else if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);                  
 	      else tmpTightSF = 0;
 	    }
 	    eleEffCorrFactor *= tmpTightSF;
@@ -804,7 +807,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	      tmpVetoSF = effVetoSF;                   
 	    } 
 	    else { 
-	      if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
+	      if (effVeto >= 1.0) tmpVetoSF = 1.0;
+	      else if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
 	      else tmpVetoSF = 0.0;
 	    }
 	    eleEffCorrFactor *= tmpVetoSF;
@@ -1685,7 +1689,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	* muonEffCorrFactor * eleEffCorrFactor 
 	* muonTrigCorrFactor * eleTrigCorrFactor 
 	* events->btagW;
-
 
       //****************************************************************************
       //Event Skimming
