@@ -288,29 +288,23 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
   //============================================================================================================== 
   bool printdebug = false;
 
-  TFile *NVtxWeightFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/NVtxReweight_ZToMuMu_2015D_2093ipb.root", "READ");
-  TH1D *NVtxWeightHist = (TH1D*)NVtxWeightFile->Get("NVtxReweight");
-  assert(NVtxWeightHist);
-
-  TFile *pileupWeightFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupReweight_Spring15MCTo2015Data.root", "READ");
+  TFile *pileupWeightFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupReweight_Spring15MCTo2015Data.root", "READ");
   TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
   assert(pileupWeightHist);
 
-  // TFile *eleEffSFFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/20151013_PR_2015D_Golden_1264/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root","READ");
-  TFile *eleEffSFFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root","READ");
+  TFile *eleEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root","READ");
   TH2D *eleEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
   assert(eleEffSFHist);
 
-  // TFile *muonEffSFFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root","READ");
-  TFile *muonEffSFFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root","READ");
+  TFile *muonEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root","READ");
   TH2D *muonEffSFHist = (TH2D*)muonEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
   assert(muonEffSFHist);
 
-  TFile *eleTriggerEffSFFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015Final_Golden.root","READ");
+  TFile *eleTriggerEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015Final_Golden.root","READ");
   TH2D *eleTriggerEffSFHist = (TH2D*)eleTriggerEffSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
   assert(eleTriggerEffSFHist);
 
-  TFile *muonTriggerEffSFFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015Final_Golden.root","READ");
+  TFile *muonTriggerEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015Final_Golden.root","READ");
   TH2D *muonTriggerEffSFHist = (TH2D*)muonTriggerEffSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
   assert(muonTriggerEffSFHist);
 
@@ -351,6 +345,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
   vector<TH1D*> histMR;
   vector<TH1D*> histRsq;
   vector<TH1D*> histDileptonMass;
+  vector<TH1D*> histDileptonPt;
   vector<TH1D*> histMET;
   vector<TH1D*> histMETPhi;
   vector<TH1D*> histMETNoHF;
@@ -371,6 +366,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
     histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Events / 50 GeV", 50, 200, 2700));
     histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 20, 0.00, 1.0));
     histDileptonMass.push_back(new TH1D(Form("histDileptonMass_%s",processLabels[i].c_str()), "; M_{ll} [GeV/c^{2}]; Number of Events", 60, 60, 120));
+    histDileptonPt.push_back(new TH1D(Form("histDileptonPt_%s",processLabels[i].c_str()), "; p_{T, ll} [GeV/c^{2}]; Number of Events", 100, 0, 500));
     histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV/c] ; Number of Events", 50, 0, 200));
     histMETPhi.push_back(new TH1D(Form("histMETPhi_%s",processLabels[i].c_str()), "; METPhi [GeV/c] ; Number of Events", 50, -3.2, 3.1));
     histMETNoHF.push_back(new TH1D(Form("histMETNoHF_%s",processLabels[i].c_str()), "; MET (NoHF) [GeV/c] ; Number of Events", 50, 0, 200));
@@ -387,6 +383,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
     histMR[i]->Sumw2();
     histRsq[i]->Sumw2();
     histDileptonMass[i]->Sumw2();
+    histDileptonPt[i]->Sumw2();
     histMET[i]->Sumw2();
     histMETPhi[i]->Sumw2();
     histNJets40[i]->Sumw2();
@@ -418,16 +415,14 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	events->tree_->GetEntry(ientry);
       
 	if (ientry % 100000 == 0) cout << "Event " << ientry << endl;      
-	//if (ientry > 1000000) break;
 
 	double puWeight = 1;      
 	double weight = 1;
 	if (!isData) {
-	  //puWeight = NVtxWeightHist->GetBinContent(NVtxWeightHist->GetXaxis()->FindFixBin(events->NPV));
-	  puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
-	  weight = lumi * events->weight * puWeight;
+	  // puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
+	  // weight = lumi * events->weight * puWeight;
+	  weight = lumi * events->weight;
 	}
-
 
 	//******************************
 	//Trigger Selection
@@ -435,13 +430,13 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	bool passTrigger = false;
 
 	//Use Single Lepton Triggers
-	// if ( events->HLTDecision[2] || 
-	//      events->HLTDecision[7] ||  
-	//      events->HLTDecision[11] ||
-	//      events->HLTDecision[12] ||
-	//      events->HLTDecision[15]
-	//      )  
-	//   passTrigger = true;
+	if ( events->HLTDecision[2] || 
+	     events->HLTDecision[7] ||  
+	     events->HLTDecision[11] ||
+	     events->HLTDecision[12] ||
+	     events->HLTDecision[15]
+	     )  
+	  passTrigger = true;
 
 	if (isData) {
 	  if ( events->HLTDecision[22] || events->HLTDecision[23] || events->HLTDecision[24] || 
@@ -456,7 +451,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	}
 
 	//DiMuon Triggers: Mu17Mu8 , Mu17TkMu8
-	if (events->HLTDecision[39] || events->HLTDecision[41] || events->HLTDecision[43] ) passTrigger = true;
+	//if (events->HLTDecision[39] || events->HLTDecision[41] || events->HLTDecision[43] ) passTrigger = true;
 
 	// //DiElectron Triggers:
 	// if ( events->HLTDecision[28] 
@@ -496,15 +491,11 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	    ) continue;
 
 
-	// if(! (fabs(l1.Eta()) < 1.42 && fabs(l2.Eta()) < 1.42 )) continue;
-	//if(! (fabs(l1.Eta()) > 1.5 && fabs(l2.Eta()) > 1.5)) continue;
-
 	//dilepton mass cut
 	if ( (events->lep1+events->lep2).M() < 50) continue;
 
 	// BTag Veto
 	//if ( !( events->NBJetsMedium == 0)) continue;
-
 
 	//Check for duplicate data events
 	if (isData) {
@@ -519,18 +510,18 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	}
 
 
-	// //Razor signal region cuts
-	// if (option == "TwoJet80" || option == "MR300Rsq0p05" || option == "MR300") {
-	//   if (!(events->NJets80 >= 2 )) continue;
-	// }
+	//Razor signal region cuts
+	if (option == "TwoJet80" || option == "MR300Rsq0p05" || option == "MR300") {
+	  if (!(events->NJets80 >= 2 )) continue;
+	}
       
-	// if (option == "MR300Rsq0p05") {
-	//   if (!(events->MR > 300 && events->Rsq > 0.05 )) continue;
-	// }
+	if (option == "MR300Rsq0p05") {
+	  if (!(events->MR > 300 && events->Rsq > 0.05 )) continue;
+	}
       
-	// if (option == "MR300") {
-	//   if (!(events->MR > 300 )) continue;
-	// }
+	if (option == "MR300") {
+	  if (!(events->MR > 300 )) continue;
+	}
       
 	//******************************
 	//Options
@@ -603,14 +594,16 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	  //      << abs(events->lep2Type) << " "
 	  //      << "\n";
 	  // cout << "lepton SF: " << leptonEffScaleFactor << " " << weight << " \n";
-	    
- 
-
-	  weight *= leptonEffScaleFactor;
-	  weight *= triggerEffScaleFactor;
+	     
+	  // weight *= leptonEffScaleFactor;
+	  // weight *= triggerEffScaleFactor;
 
 	}
 
+	if (isnan(events->weight) || isinf(events->weight)) {
+	  cout << "...bad event: " << weight << " " << (l1+l2).M() << "\n";
+	  continue;
+	}
 
 	//******************************
 	//Fill histograms
@@ -629,6 +622,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	    histMR[i]->Fill(events->MR);
 	    histRsq[i]->Fill(events->Rsq);
 	    histDileptonMass[i]->Fill((l1+l2).M());      
+	    histDileptonPt[i]->Fill((l1+l2).Pt());      
 	    histMET[i]->Fill(events->MET);  
 	    histMETPhi[i]->Fill(events->METPhi);  
 	    histMETNoHF[i]->Fill(events->METnoHF);  
@@ -655,7 +649,8 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	    histMR[i]->Fill(events->MR, weight );
 	    histRsq[i]->Fill(events->Rsq, weight );
 	    histDileptonMass[i]->Fill((l1+l2).M(), weight );      
-	  
+	    histDileptonPt[i]->Fill((l1+l2).Pt(), weight);      
+
 	    histMET[i]->Fill(events->MET, weight);  
 	    histMETPhi[i]->Fill(events->METPhi, weight);  
 	    histMETNoHF[i]->Fill(events->METnoHF, weight);  
@@ -668,6 +663,9 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	  if ((l1+l2).M() > 60 && (l1+l2).M() < 120) {
 	    MCYield += weight;
 	  }
+
+	  //if (!isnormal(MCYield) ) cout << "bad event: " << weight << " " << (l1+l2).M() << " " << MCYield << "\n";
+
 	}
       }
     }
@@ -796,6 +794,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
   PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
   PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
   PlotDataAndStackedBkg( histDileptonMass, processLabels, color, true, "DileptonMass", Label);
+  PlotDataAndStackedBkg( histDileptonPt, processLabels, color, true, "DileptonPt", Label);
   PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET", Label);
   PlotDataAndStackedBkg( histMETPhi, processLabels, color, true, "METPhi", Label);
   PlotDataAndStackedBkg( histMETNoHF, processLabels, color, true, "METNoHF", Label);
@@ -855,52 +854,56 @@ void SelectZToLLControlSample( int option = 0) {
 
   //Inclusive sample
   if (option == 1 || option == 11) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
-    // datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_New/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DoubleMuon_Run2015D_Oct05ReMiniAOD_GoodLumiGolden.root");
-    // datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_New/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DoubleMuon_Run2015D_PRv4_GoodLumiGolden.root");
-
+    //datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");    
   } else if (option == 0 || option == 10) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root");
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root");
   } else if (option == 2 || option == 12) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root"); 
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root"); 
   }
 
   vector<string> bkgfiles_dy;
-  bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_New/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+  // bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+  //bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+  bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/done/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.Job45Of602.root");
+  // bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/done/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.Job46Of602.root");
+  // bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/done/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.Job47Of602.root");
+  // bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/done/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.Job48Of602.root");
+  // bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/done/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.Job49Of602.root");
+
 
   vector<string> bkgfiles_ttbar;
-  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
   vector<string> bkgfiles_vv;
-  bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted.root");
+  bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted.root");
   vector<string> bkgfiles_singletop;
-  bkgfiles_singletop.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted.root");
+  bkgfiles_singletop.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted.root");
   vector<string> bkgfiles_wjets;
-  bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+  bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
 
   bkgfiles.push_back(bkgfiles_dy);
-  bkgfiles.push_back(bkgfiles_ttbar);
-  bkgfiles.push_back(bkgfiles_vv);
-  bkgfiles.push_back(bkgfiles_singletop);
-  // bkgfiles.push_back(bkgfiles_wjets);
+  //  bkgfiles.push_back(bkgfiles_ttbar);
+  //  bkgfiles.push_back(bkgfiles_vv);
+  //  bkgfiles.push_back(bkgfiles_singletop);
+  // // bkgfiles.push_back(bkgfiles_wjets);
   
-  processLabels.push_back("DY");
-  processLabels.push_back("TTJets");  
-  processLabels.push_back("VV");
-  processLabels.push_back("SingleTop");
-  // processLabels.push_back("WJets");
-  // processLabels.push_back("TT+V");
+   processLabels.push_back("DY");
+  //  processLabels.push_back("TTJets");  
+  //  processLabels.push_back("VV");
+  //  processLabels.push_back("SingleTop");
+  // // processLabels.push_back("WJets");
+  // // processLabels.push_back("TT+V");
 
-  colors.push_back(kGreen+2);
-  colors.push_back(kAzure+10);
-  colors.push_back(kGray);
-  colors.push_back(kBlue);
-  // colors.push_back(kRed);
-  // colors.push_back(kOrange+1);
+   colors.push_back(kGreen+2);
+  //  colors.push_back(kAzure+10);
+  //  colors.push_back(kGray);
+  //  colors.push_back(kBlue);
+  // // colors.push_back(kRed);
+  // // colors.push_back(kOrange+1);
 
 
    double lumi = 0;
-   lumi = 2137;
+   lumi = 2185;
 
   //*********************************************************************
   //EE Control Region
@@ -939,12 +942,12 @@ void SelectZToLLControlSample( int option = 0) {
 //Mu-Mu Yields
 //**********************
 // Single Mu Triggers ( 30 - 20 )
-// Data: 1.52257e+06
-// MC: 1.43049e+06 (new PU weights, only DY)
+// Data: 1.55554e+06
+// MC: 1.49996e+06
 
 // Double Mu Triggers (30-20)
-// Data: 1.36959e+06
-// MC: 1.37669e+06
+// Data: 1.39837e+06
+// MC: 1.43669e+06
 
 // DY: 99.4%
 // TTBAR: 0.3%
@@ -952,41 +955,11 @@ void SelectZToLLControlSample( int option = 0) {
 // W+jets: nothing
 // VV: 0.2%
 
-//Only IsoMu
-//Data: 1.51388e+06
-//MC: 1.42669e+06 (DY only)
-
-//Only IsoTkMu
-//Data: 1.49898e+06
-//MC: 1.42098e+06
-
-//30-30
-//Data: 1.19584e+06
-//MC: 1.1206e+06
-
-// Re-miniAOD (575 ipb)
-// Data: 396431
-// MC: 385646
-
-// 1016
-// Data: 726978
-// MC: 681420
-
-
-// 1562 
-// Data: 1.12677e+06
-// MC: 1.04762e+06
-//1562 Double Mu
-//Data: 1.01021e+06
-//MC: 1.00009e+06
-
-
-
 //**********************
 //E-E Yields
 //**********************
 // Single Ele Triggers ( 30 - 20 )
 // Data: 931286
-// MC: 920790 ( Nov result )
-//MC: 927400 (only DY, new PU weights)
+// Data: 948204
+// MC: 976317
 
