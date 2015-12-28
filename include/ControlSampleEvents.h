@@ -856,6 +856,22 @@ class ControlSampleEvents {
 	|| treeType == kTreeType_OneVetoLepton_Reduced
 	|| treeType == kTreeType_OneTauLepton_Reduced
 	) {
+      tree_->SetBranchStatus("*", 0);
+      tree_->SetBranchStatus("lep1Type", 1);
+      tree_->SetBranchStatus("lep1PassTight", 1);
+      tree_->SetBranchStatus("lep1MT", 1);
+      tree_->SetBranchStatus("lep1Pt", 1);
+      tree_->SetBranchStatus("lep1Eta", 1);
+      tree_->SetBranchStatus("MET", 1);
+      tree_->SetBranchStatus("weight", 1);
+      tree_->SetBranchStatus("MR", 1);
+      tree_->SetBranchStatus("Rsq", 1);
+      tree_->SetBranchStatus("NJets40", 1);
+      tree_->SetBranchStatus("NJets80", 1);
+      tree_->SetBranchStatus("NBJetsLoose", 1);
+      tree_->SetBranchStatus("NBJetsMedium", 1);
+      tree_->SetBranchStatus("HLTDecision", 1);
+      
       tree_->SetBranchAddress("genlep1Type",&genlep1Type);
       tree_->SetBranchAddress("lep1Type",&lep1Type);
       tree_->SetBranchAddress("lep1PassVeto",&lep1PassVeto);
