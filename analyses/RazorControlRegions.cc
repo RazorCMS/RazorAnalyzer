@@ -1477,7 +1477,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->lep1MTnoHF = sqrt(events->lep1.M2() + 2*PFMETnoHFType1.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(PFMETnoHFType1.Phi(),events->lep1.Phi()))));
 	
       //save HLT Decisions
-      for(int k=0; k<150; ++k) {
+      for(int k=0; k<200; ++k) {
 	events->HLTDecision[k] = HLTDecision[k];	
       }
     	

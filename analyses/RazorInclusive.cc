@@ -485,7 +485,7 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       passedSingleLeptonTrigger = bool( HLTDecision[2] || HLTDecision[7] || HLTDecision[12] 
 					|| HLTDecision[11] || HLTDecision[15] 
 					|| HLTDecision[18] || HLTDecision[19] || HLTDecision[20] 
-					|| HLTDecision[21] || HLTDecision[28] || HLTDecision[29]);
+					|| HLTDecision[21] || HLTDecision[28] || HLTDecision[29] || HLTDecision[160]);
       passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
 				   || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
 				   || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
