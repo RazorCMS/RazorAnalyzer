@@ -442,7 +442,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         if debugLevel > 0: print "Subtracting",mcProcess,"from",dataName,"distribution"
         sfHists[process].Add(hists[mcProcess][var], -1) 
         if mcProcess not in sfHists: #if we have not computed scale factors for this process, apply a flat normalization uncertainty to its yield
-            if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a",int(normErrFraction*100)+"% uncertainty"
+            if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a ",int(normErrFraction*100),"% uncertainty"
             sfHists[process+"NormUp"].Add(hists[mcProcess][var], -(1+normErrFraction)) 
             sfHists[process+"NormDown"].Add(hists[mcProcess][var], -(1/(1+normErrFraction))) 
         else: 
