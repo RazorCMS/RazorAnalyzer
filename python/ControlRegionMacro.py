@@ -8,7 +8,7 @@ from macro.razorAnalysis import wjetsSingleLeptonCutsMC, wjetsSingleLeptonCutsDa
 from macro.razorWeights import *
 from macro.razorMacros import *
 
-LUMI_DATA = 2138 #in /pb
+LUMI_DATA = 2185 #in /pb
 MCLUMI = 1 
 
 SAMPLES_TTJ1L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
@@ -16,35 +16,51 @@ SAMPLES_WJ1L = ["Other", "DYJets", "SingleTop", "TTJets", "WJets"]
 SAMPLES_TTJ2L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
 SAMPLES_DYJ2L = ["Other", "SingleTop", "WJets", "TTJets", "DYJets"]
 
-DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23/RazorSkim"
+DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/"
 PREFIX_1L = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
 FILENAMES_1L = {
-            "TTJets"   : DIR_1L+"/"+PREFIX_1L+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
-            "WJets"    : DIR_1L+"/"+PREFIX_1L+"_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
-            "SingleTop": DIR_1L+"/"+PREFIX_1L+"_SingleTop_1pb_weighted_razorskim.root",
-            "DYJets"   : DIR_1L+"/"+PREFIX_1L+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_razorskim.root",
-            "Other"    : DIR_1L+"/"+PREFIX_1L+"_Other_1pb_weighted_razorskim.root",
-            "Data"     : DIR_1L+"/"+PREFIX_1L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_razorskim.root"
+            "TTJets"   : DIR_1L+"/"+PREFIX_1L+"_TTJets_1pb_weighted_RazorSkim.root",
+            "WJets"    : DIR_1L+"/"+PREFIX_1L+"_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
+            "SingleTop": DIR_1L+"/"+PREFIX_1L+"_SingleTop_1pb_weighted_RazorSkim.root",
+            "DYJets"   : DIR_1L+"/"+PREFIX_1L+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+            "Other"    : DIR_1L+"/"+PREFIX_1L+"_Other_1pb_weighted_RazorSkim.root",
+            "Data"     : DIR_1L+"/"+PREFIX_1L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_RazorSkim.root"
             }
 
-DIR_2L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23/RazorSkim"
+DIR_2L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/"
 PREFIX_2L = "RunTwoRazorControlRegions_DileptonFull_DileptonSkim"
 FILENAMES_2L = {
-            "TTJets"   : DIR_2L+"/"+PREFIX_2L+"_TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_razorskim.root",
-            "WJets"    : DIR_2L+"/"+PREFIX_2L+"_WJetsToLNu_HTBinned_1pb_weighted_razorskim.root",
-            "SingleTop": DIR_2L+"/"+PREFIX_2L+"_SingleTop_1pb_weighted_razorskim.root",
-            "DYJets"   : DIR_2L+"/"+PREFIX_2L+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_razorskim.root",
-            "Other"    : DIR_2L+"/"+PREFIX_2L+"_VV_1pb_weighted_razorskim.root",
-            "Data"     : DIR_2L+"/"+PREFIX_2L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_razorskim.root"
+            "TTJets"   : DIR_2L+"/"+PREFIX_2L+"_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root",
+            "WJets"    : DIR_2L+"/"+PREFIX_2L+"_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
+            "SingleTop": DIR_2L+"/"+PREFIX_2L+"_SingleTop_1pb_weighted_RazorSkim.root",
+            "DYJets"   : DIR_2L+"/"+PREFIX_2L+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+            "Other"    : DIR_2L+"/"+PREFIX_2L+"_VV_1pb_weighted_RazorSkim.root",
+            "Data"     : DIR_2L+"/"+PREFIX_2L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_RazorSkim.root"
             }
+
+
+DIR_Veto = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/VetoLeptonFull_1p23_2015Final/RazorSkim/"
+PREFIX_Veto = "RunTwoRazorControlRegions_VetoLeptonFull"
+FILENAMES_Veto = {
+            "TTJets"   : DIR_1L+"/"+PREFIX_1L+"_TTJets_1pb_weighted_RazorSkim.root",
+            "WJets"    : DIR_1L+"/"+PREFIX_1L+"_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
+            "SingleTop": DIR_1L+"/"+PREFIX_1L+"_SingleTop_1pb_weighted_RazorSkim.root",
+            "DYJets"   : DIR_1L+"/"+PREFIX_1L+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+            "QCD"      : DIR_1L+"/"+PREFIX_1L+"_QCD_HTBinned_1pb_weighted_RazorSkim.root",
+            "ZNuNu"      : DIR_1L+"/"+PREFIX_1L+"_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",            
+            "Other"    : DIR_1L+"/"+PREFIX_1L+"_Other_1pb_weighted_RazorSkim.root",
+            "Data"     : DIR_1L+"/"+PREFIX_1L+"_HTMHT_Run2015D_GoodLumiGolden_RazorSkim.root"
+            }
+
+
 
 weightOpts = []
 
-config = "config/run2_20151108_Preapproval_2b3b_data.config"
+config = "config/run2_20151229_ControlRegion.config"
 cfg = Config.Config(config)
-binsMRLep = cfg.getBinning("MuMultiJet")[0]
-binsRsqLep = cfg.getBinning("MuMultiJet")[1]
-leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep }
+binsMRLep = cfg.getBinning("WJetControlRegion")[0]
+binsRsqLep = cfg.getBinning("WJetControlRegion")[1]
+ControlRegionBinning = { "MR":binsMRLep, "Rsq":binsRsqLep }
 
 printdir="ControlSamplePlots"
 
@@ -61,26 +77,27 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
 
     #initialize
-    weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
+    #weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
+    weightHists = {}
     sfHists = {}
 
     #make output directory
     os.system('mkdir -p '+printdir)
 
     #DYJets control sample
-    dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", 
-                filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
-                cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
-                bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir=printdir, debugLevel=debugLevel)
-    appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
+    # dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", 
+    #             filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
+    #             cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
+    #             bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #             weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+    #             printdir=printdir, debugLevel=debugLevel)
+    #appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
     #WJets control sample
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
                 filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
                 cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
-                bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, debugLevel=debugLevel)
     appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
@@ -89,18 +106,19 @@ if __name__ == "__main__":
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", 
                 filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
                 cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
-                bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, debugLevel=debugLevel)
     appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
-    #TTJets cross-check control sample
+    # #TTJets dilepton control sample
     ttjetsDileptonHists = makeControlSampleHists("TTJetsDilepton", 
                 filenames=FILENAMES_2L, samples=SAMPLES_TTJ2L, 
                 cutsMC=ttjetsDileptonCutsMC, cutsData=ttjetsDileptonCutsData, 
-                bins=leptonicBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, debugLevel=debugLevel)
+    appendScaleFactors("TTJetsDilepton", ttjetsDileptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
     #write scale factors
     outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
