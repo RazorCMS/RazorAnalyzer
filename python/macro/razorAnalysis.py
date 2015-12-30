@@ -16,7 +16,7 @@ hadronicTriggerNums = [134,135,136,137,138,139,140,141,142,143,144]
 
 #Single lepton trigger indices
 singleLeptonTriggerNumsData = [2,7,11,12,15,22,23,24,25,26,27,28,29]
-singleLeptonTriggerNumsMC = [2,7,11,12,15,18,19,20,21,28,29]
+singleLeptonTriggerNumsMC = [2,7,11,12,15,18,19,20,21,28,29,160]
 
 #Dilepton trigger indices
 dileptonTriggerNums = [41,43,30,31,47,48,49,50]
@@ -41,7 +41,7 @@ def appendNoiseFilters(cuts, tree):
 ### TTJets Single Lepton Control Region
 
 #cuts
-ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium > 0 && MR > 300 && Rsq > 0.15"
+ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium > 0 && NJets80 >= 2 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
 ttjetsSingleLeptonCutsData = appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsData)
 ttjetsSingleLeptonCutsMC = appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsMC)
 
@@ -54,7 +54,7 @@ ttjetsSingleLeptonBins = {
 ### WJets Single Lepton Control Region
 
 #cuts
-wjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && MR > 300 && Rsq > 0.15"
+wjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 30 && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && NJets80 >= 2 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
 wjetsSingleLeptonCutsData = appendTriggerCuts(wjetsSingleLeptonCuts, singleLeptonTriggerNumsData)
 wjetsSingleLeptonCutsMC = appendTriggerCuts(wjetsSingleLeptonCuts, singleLeptonTriggerNumsMC)
 
@@ -67,7 +67,7 @@ wjetsSingleLeptonBins = {
 ### DYJets Dilepton Control Region
 
 #cuts 
-dyjetsDileptonCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1PassLoose && lep2PassLoose && lep1.Pt() > 25 && lep2.Pt() > 25 && mll > 80 && mll < 110 && NBJetsMedium == 0 && MR > 300 && Rsq > 0.15"
+dyjetsDileptonCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 20 && mll > 80 && mll < 110 && NBJetsMedium == 0 && NJets80 >= 2 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
 dyjetsDileptonCutsData = appendTriggerCuts(dyjetsDileptonCuts, singleLeptonTriggerNumsData)
 dyjetsDileptonCutsMC = appendTriggerCuts(dyjetsDileptonCuts, singleLeptonTriggerNumsMC)
 
@@ -80,7 +80,7 @@ dyjetsDileptonBins = {
 ### TTJets Dilepton Control Region
 
 #cuts 
-ttjetsDileptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll > 76 && mll < 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15"
+ttjetsDileptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && ((abs(lep2Type) == 11 && lep2.Pt() > 25) || (abs(lep2Type) == 13 && lep2.Pt() > 20)) && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && NJets80 >= 2 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
 ttjetsDileptonCutsData = appendTriggerCuts(ttjetsDileptonCuts, singleLeptonTriggerNumsData)
 ttjetsDileptonCutsMC = appendTriggerCuts(ttjetsDileptonCuts, singleLeptonTriggerNumsMC)
 
@@ -89,6 +89,21 @@ ttjetsDileptonBins = {
     "MR" : [300, 350, 400, 450, 500, 550, 700],
     "Rsq": [0.15,0.175,0.20,0.225,0.25,0.30,1.5]
     }
+
+### Veto Lepton Control Region
+#vetoLeptonControlRegionCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+vetoLeptonControlRegionCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+vetoLeptonControlRegionCutsData = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
+vetoLeptonControlRegionCutsMC = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
+
+vetoLeptonControlRegionBins = {
+    "MR" : [400, 450, 500, 550, 700],
+    "Rsq": [0.25,0.30,0.41,0.52, 0.64, 1.5]
+    }
+
+
+
+
 
 ### Signal region
 
