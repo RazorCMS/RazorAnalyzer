@@ -126,6 +126,11 @@ TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                    
 TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                         0.4062
 TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                0.2529
 TTZToQQ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                         0.5297
+TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8                                  2.967
+TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8                             3.697
+WGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph                               0.834
+WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                                  489.0
+ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                                   117.864
 tZq_ll_4f_13TeV-amcatnlo-pythia8_TuneCUETP8M1                                       0.0758
 tZq_nunu_4f_13TeV-amcatnlo-pythia8_TuneCUETP8M1                                     0.1379
 GluGluHToWWTo2L2Nu_M120_13TeV_powheg_JHUgen_pythia8                                32.72
@@ -142,6 +147,7 @@ TT_TuneCUETP8M1_mtop1695_13TeV-powheg-pythia8                                   
 TT_TuneCUETP8M1_mtop1755_13TeV-powheg-pythia8                                     831.76
 TT_TuneZ2star_13TeV-powheg-pythia6-tauola                                         831.76
 DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa                                           84.0
+GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8                                     364375
 GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8                               365896
 GJet_Pt-20toInf_DoubleEMEnriched_MGG-40to80_TuneCUETP8M1_13TeV_Pythia8         154500*0.02155
 GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8         137751*0.001587
