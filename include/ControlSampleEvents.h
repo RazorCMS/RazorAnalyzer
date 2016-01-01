@@ -73,6 +73,7 @@ class ControlSampleEvents {
   Int_t                   genlep1Type;
   Int_t                   genlep2Type;
   Bool_t                  HLTDecision[200];
+  Int_t                   HLTPrescale[200];
   Float_t                 lep1Pt;
   Float_t                 lep1Eta;
   TLorentzVector          lep1;
@@ -220,6 +221,8 @@ class ControlSampleEvents {
   UInt_t                  NJets80_NoPho;
   Int_t                   pho1_motherID;
   Float_t                 pho1_sigmaietaieta; 
+  Float_t                 pho1_chargediso;
+  Float_t                 pho1_pfiso;
 
   float metType1PtJetResUp;
   float metType1PtJetResDown;
@@ -308,6 +311,7 @@ class ControlSampleEvents {
     genlep1Type          = 0.0;
     genlep2Type          = 0.0;
     for(int i=0;i<200;++i) HLTDecision[i] = false;
+    for(int i=0;i<200;++i) HLTPrescale[i] = 0;
     lep1Pt               = 0.0;
     lep1Eta              = 0.0;
     lep1                 = TLorentzVector();
@@ -457,6 +461,8 @@ class ControlSampleEvents {
     NJets80_NoPho = 0 ; 
     pho1_motherID = 0;
     pho1_sigmaietaieta = -999.;
+    pho1_chargediso = -999.;
+    pho1_pfiso = -999.;
 
     metType1PtJetResUp=-999.;
     metType1PtJetResDown=-999.;
@@ -784,6 +790,7 @@ class ControlSampleEvents {
     // fill the photon tree
     if (treeType == kTreeType_Photon_Full) {
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
+      tree_->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[200]/I");
       tree_->Branch("pho1","TLorentzVector", &pho1Ptr);
       tree_->Branch("pho2","TLorentzVector", &pho2Ptr);
       tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
@@ -803,6 +810,8 @@ class ControlSampleEvents {
       tree_->Branch("NJets80_NoPho",&NJets80_NoPho,"NJets80_NoPho/i");
       tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
       tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
+      tree_->Branch("pho1_chargediso",&pho1_chargediso,"pho1_chargediso/F");
+      tree_->Branch("pho1_pfiso",&pho1_pfiso,"pho1_pfiso/F");
       tree_->Branch("genJetHT",&genJetHT,"genJetHT/F");
       tree_->Branch("genJetMR",&genJetMR,"genJetMR/F");
     }  
@@ -1065,6 +1074,7 @@ class ControlSampleEvents {
     // fill the photon tree
     if (treeType == kTreeType_Photon_Full) {
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
+      tree_->SetBranchAddress("HLTPrescale",&HLTPrescale);
       tree_->SetBranchAddress("pho1", &pho1Ptr);
       tree_->SetBranchAddress("pho2", &pho2Ptr);
       tree_->SetBranchAddress("jet1" ,&jet1Ptr);
@@ -1085,6 +1095,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("NJets80_NoPho",&NJets80_NoPho);
       tree_->SetBranchAddress("pho1_motherID",&pho1_motherID);
       tree_->SetBranchAddress("pho1_sigmaietaieta",&pho1_sigmaietaieta);
+      tree_->SetBranchAddress("pho1_chargediso",&pho1_chargediso);
+      tree_->SetBranchAddress("pho1_pfiso",&pho1_pfiso);
       tree_->SetBranchAddress("genJetMR",&genJetMR);
       tree_->SetBranchAddress("genJetHT",&genJetHT);     
     }
