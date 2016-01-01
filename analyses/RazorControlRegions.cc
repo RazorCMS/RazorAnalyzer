@@ -207,9 +207,9 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
     //*********************************************
     int razorSkimOption = floor(float(option) / 1000);
     int leptonSkimOption = floor( float(option - razorSkimOption*1000) / 100);
-    int treeTypeOption = option - razorSkimOption*10000 - leptonSkimOption*100;
+    int treeTypeOption = option - razorSkimOption*1000 - leptonSkimOption*100;
 
-    cout<<"Info: razorSkimOption: "<<razorSkimOption<<", "<<"leptonSkimOption: "<<", "<<leptonSkimOption<<" "<<"treeTypeOption: "<<treeTypeOption<<endl;
+    cout<<"Info: razorSkimOption: "<<razorSkimOption<<", "<<"leptonSkimOption: " <<leptonSkimOption<<" , "<<"treeTypeOption: "<<treeTypeOption<<endl;
     
     if (treeTypeOption == 1)
       events->CreateTree(ControlSampleEvents::kTreeType_OneLepton_Full);
@@ -1065,6 +1065,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //             Select photons                         //
       //****************************************************//
       vector<TLorentzVector> GoodPhotons;
+      vector<int> GoodPhotonIndex;
       int nPhotonsAbove40GeV = 0;
       
       bool use25nsSelection = true;
@@ -1076,16 +1077,31 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  TVector3 vec;
 	  vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 
-	  if(pho_pt_corr < 10) continue;
+	  if(pho_pt_corr < 30) continue;
 	  if(fabs(phoEta[i]) > 2.5) continue;
-	  if(!isTightPhoton(i, use25nsSelection)) continue;
-
+	  
+	  double tmpEffAreaChargedHadrons = 0.0;
+	  double tmpEffAreaNeutralHadrons = 0.0;
+	  double tmpEffAreaPhotons = 0.0;
+	  getPhotonEffArea90( phoEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
+	  
+	  //don't make tight selection here, makea  very loose selection instead
+	  //if(!isTightPhoton(i, use25nsSelection)) continue;
+	  if (!( ( (fabs(phoEta[i]) < 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.015) || 
+		   (fabs(phoEta[i]) >= 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.035) 
+		   ) 
+		 && 
+		 max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 20
+		 )
+	      ) continue;
+	  
 	  if(pho_pt_corr > 40) nPhotonsAbove40GeV++;
 
 	  TLorentzVector thisPhoton;
 	  thisPhoton.SetVectM( vec, .0 );
 
 	  GoodPhotons.push_back(thisPhoton);
+	  GoodPhotonIndex.push_back(i);
 	}
       }
       events->nSelectedPhotons = nPhotonsAbove40GeV;
@@ -1479,6 +1495,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       //save HLT Decisions
       for(int k=0; k<200; ++k) {
 	events->HLTDecision[k] = HLTDecision[k];	
+	events->HLTPrescale[k] = HLTPrescale[k];	
       }
     	
       //MET Filter
@@ -1515,8 +1532,20 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->pho1_motherID = gParticleMotherId[g];
 	}
 
-	for(int ii = 0; ii < nPhotons; ii++)
-	  if( pho_RegressionE[ii]/cosh(phoEta[ii]) == GoodPhotons[0].Pt() ) events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
+	for(int ii = 0; ii < nPhotons; ii++) {
+	  if( pho_RegressionE[ii]/cosh(phoEta[ii]) == GoodPhotons[0].Pt() ) {
+	    events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
+
+	    double effAreaChargedHadrons = 0.0;
+	    double effAreaNeutralHadrons = 0.0;
+	    double effAreaPhotons = 0.0;
+	    getPhotonEffArea90( pho_superClusterEta[ii] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+	    events->pho1_chargediso = max(pho_sumChargedHadronPt[ii] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+	    events->pho1_pfiso = max(pho_sumChargedHadronPt[ii] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.) +
+	      max(pho_sumNeutralHadronEt[ii] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.) +
+	      max(pho_sumPhotonEt[ii] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+	  }
+	}
 
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];
