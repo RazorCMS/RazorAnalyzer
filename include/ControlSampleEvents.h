@@ -735,6 +735,9 @@ class ControlSampleEvents {
     if (treeType == kTreeType_OneLeptonAdd2MET_Full ) {
       tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
       tree_->Branch("lep1Type", &lep1Type, "lep1Type/I");
+      tree_->Branch("lep1PassVeto",&lep1PassVeto,"lep1PassVeto/O");
+      tree_->Branch("lep1PassLoose",&lep1PassLoose,"lep1PassLoose/O");
+      tree_->Branch("lep1PassTight",&lep1PassTight,"lep1PassTight/O");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
@@ -763,6 +766,12 @@ class ControlSampleEvents {
       tree_->Branch("lep2",    "TLorentzVector", &lep2Ptr);
       tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
       tree_->Branch("lep2Type",&lep2Type,"lep2Type/I");
+      tree_->Branch("lep1PassVeto",&lep1PassVeto,"lep1PassVeto/O");
+      tree_->Branch("lep1PassLoose",&lep1PassLoose,"lep1PassLoose/O");
+      tree_->Branch("lep1PassTight",&lep1PassTight,"lep1PassTight/O");
+      tree_->Branch("lep2PassVeto",&lep2PassVeto,"lep2PassVeto/O");
+      tree_->Branch("lep2PassLoose",&lep2PassLoose,"lep2PassLoose/O");
+      tree_->Branch("lep2PassTight",&lep2PassTight,"lep2PassTight/O");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("u1",&u1,"u1/F");
       tree_->Branch("u2",&u2,"u2/F");
