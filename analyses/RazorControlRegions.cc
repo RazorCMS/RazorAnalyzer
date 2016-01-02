@@ -1085,13 +1085,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  double tmpEffAreaPhotons = 0.0;
 	  getPhotonEffArea90( phoEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
 	  
-	  //don't make tight selection here, makea  very loose selection instead
-	  //if(!isTightPhoton(i, use25nsSelection)) continue;
-	  if (!( ( (fabs(phoEta[i]) < 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.015) || 
-		   (fabs(phoEta[i]) >= 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.035) 
-		   ) 
-		 && 
-		 max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 20
+	  if (!( 
+		( (fabs(phoEta[i]) < 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.011) || 
+		  (fabs(phoEta[i]) >= 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.031) 
+		  ) 
+		&& 
+		max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 10
 		 )
 	      ) continue;
 	  
