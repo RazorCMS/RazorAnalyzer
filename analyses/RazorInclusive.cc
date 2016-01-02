@@ -111,7 +111,9 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
   int nVetoMuons, nVetoElectrons, nLooseTaus;
   float dPhiRazor;
   float theMR;
-  float theRsq;  
+  float theRsq;
+  float MRForSF;
+  float RsqForSF;
   float met;
   float HT;
   float mT, mTLoose, leadingJetPt, subleadingJetPt, leadingTightMuPt, leadingTightElePt;
@@ -151,6 +153,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     razorTree->Branch("MR", &theMR, "MR/F");
     razorTree->Branch("dPhiRazor", &dPhiRazor, "dPhiRazor/F");
     razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+    razorTree->Branch("MRForSF", &MRForSF, "MRForSF/F");
+    razorTree->Branch("RsqForSF", &RsqForSF, "RsqForSF/F");
     razorTree->Branch("met", &met, "met/F");
     razorTree->Branch("HT", &HT, "HT/F");
     razorTree->Branch("mT", &mT, "mT/F");
@@ -289,6 +293,8 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
     nTightTaus = 0;
     theMR = -1;
     theRsq = -1;
+    MRForSF = -1;
+    RsqForSF = -1;
     mT = -1;
     mTLoose = -1;
     leadingJetPt = -1;
@@ -802,10 +808,114 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       }
     }
 
+    //*************************************************************
     //Compute the razor variables using the selected jets and possibly leptons
+    //*************************************************************
     vector<TLorentzVector> GoodPFObjects;
     for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
     for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
+
+    //*************************************************************
+    //Make Alternative GoodPFObject List for Scale Factor Lookup
+    //*************************************************************
+    vector<TLorentzVector> GoodPFObjectsForSF;
+    for(auto& jet : GoodJets) GoodPFObjectsForSF.push_back(jet);
+    for(auto& lep : GoodLeptons) GoodPFObjectsForSF.push_back(lep);
+    
+    //Find Gen-Leptons within acceptance (consider electrons or muons only, including from tau decay)
+    for(int j = 0; j < nGenParticle; j++){
+
+      //Find Gen-Leptons within acceptance
+      if ( 
+	  //gen electron
+	  (abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 	      
+	   && abs(gParticleEta[j]) < 2.5 && gParticlePt[j] > 5
+	   && ( abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23 || abs(gParticleMotherId[j]) == 15)
+	   )
+	  ||
+	  //gen muon
+	  ( abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1  
+	    && abs(gParticleEta[j]) < 2.4 && gParticlePt[j] > 5
+	    && ( (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23) || abs(gParticleMotherId[j]) == 15 )
+	    )
+	   ) {
+
+	bool isSelected = false;
+	
+	//Find if the gen lepton has been selected as a lepton
+	for(auto& lep : GoodLeptons) {
+	  if ( deltaR( gParticleEta[j], gParticlePhi[j], lep.Eta(), lep.Phi()) < 0.1 ) isSelected = true;
+	}
+
+	//Find if the gen lepton was within a selected jet
+	for(auto& jet : GoodJets) {
+	  if ( deltaR( gParticleEta[j], gParticlePhi[j], jet.Eta(), jet.Phi()) < 0.4 ) isSelected = true;
+	}
+	
+	//if the gen lepton was not within a selected lepton nor a selected jet, then include it in the GoodPFObjectsForSF list
+	if (!isSelected) {
+	  TLorentzVector thisLepton; 
+	  thisLepton.SetPtEtaPhiE(gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j]);
+	  GoodPFObjectsForSF.push_back(thisLepton);
+
+	  // ******************************************************
+	  //For debug info
+	  // ******************************************************
+	  // cout << "\nFound gen lepton that was not selected: " << gParticleId[j] << " " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " : " << gParticleMotherId[j] << "\n";
+	  // for(int i = 0; i < nMuons; i++){
+	  //   if(muonPt[i] < 5) continue;
+	  //   if(abs(muonEta[i]) > 2.4) continue;
+     
+	  //   cout << "Muon Candidate : " << muonPt[i] << " " << muonEta[i] << " " << muonPhi[i] << " " 
+	  // 	 << deltaR( gParticleEta[j], gParticlePhi[j], muonEta[i], muonPhi[i]) << " : "
+	  // 	 << muonType[i] << " : "
+	  // 	 << isTightMuon(i) << " " << isLooseMuon(i) << " " << isVetoMuon(i) << " : "
+	  // 	 << isTightMuon(i,true,false) << " " << isLooseMuon(i,true,false) << " " << isVetoMuon(i,true,false) << " : "
+	  // 	 << isTightMuon(i,false,true) << " " << isLooseMuon(i,false,true) << " " << isVetoMuon(i,false,true) << " : "
+	  // 	 << "\n";
+	  // }
+
+	  // for(int i = 0; i < nElectrons; i++){
+	  //   if(elePt[i] < 5) continue;
+	  //   if(fabs(eleEta[i]) > 2.5) continue;
+	  //   cout << "Ele Candidate : " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " " 
+	  // 	 << deltaR( gParticleEta[j], gParticlePhi[j], eleEta[i], elePhi[i] ) << " : "
+	  // 	 << isTightElectron(i) << " " << isLooseElectron(i) << " " << isVetoElectron(i) << " "
+	  // 	 << isTightElectron(i,true,false) << " " << isLooseElectron(i,true,false) << " " << isVetoElectron(i,true,false) << " "
+	  // 	 << isTightElectron(i,false,true) << " " << isLooseElectron(i,false,true) << " " << isVetoElectron(i,false,true) << " "
+	  // 	 << "\n";
+	  // }
+	  
+	  // for(int i = 0; i < nTaus; i++){	 
+	  //   if (tauPt[i] < 20) continue;
+	  //   if (fabs(tauEta[i]) > 2.4) continue;
+
+	  //   cout << "Tau Candidate : " << tauPt[i] << " " << tauEta[i] << " " << tauPhi[i] << " " 
+	  // 	 << deltaR( gParticleEta[j], gParticlePhi[j], tauEta[i], tauPhi[i] ) << " : "
+	  // 	 << isTightTau(i) << " " << isLooseTau(i) << " "
+	  // 	 << "\n";
+	  // }
+	  
+	  // for(int i = 0; i < nJets; i++){
+	  //   cout << "Jet Candidate : " << jetPt[i] << " " << jetEta[i] << " " << jetPhi[i] << " " 
+	  // 	 << deltaR( gParticleEta[j], gParticlePhi[j], jetEta[i], jetPhi[i] ) << " : "
+	  // 	 << jetPassIDTight[i] << " : " << isCSVM(i) << " "
+	  // 	 << "\n"; 
+	  // }
+
+	  // for(auto& lep : GoodLeptons) {
+	  //   cout << "GoodLepton : " << lep.M() << " " << lep.Pt() << " " << lep.Eta() << " " << lep.Phi() << " : " << deltaR( gParticleEta[j], gParticlePhi[j], lep.Eta(), lep.Phi()) << "\n";
+	  // }	  
+
+	  // for(auto& jet : GoodJets) {
+	  //   cout << "GoodJet : " << jet.M() << " " << jet.Pt() << " " << jet.Eta() << " " << jet.Phi() << " : " << deltaR( gParticleEta[j], gParticlePhi[j], jet.Eta(), jet.Phi()) << "\n";
+	  // }
+	  
+	}
+
+      }
+    }
+
 
     //*************************************************************
     //Apply Type1 Met Correction
@@ -838,6 +948,11 @@ void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool i
       theMR = computeMR(hemispheres[0], hemispheres[1]); 
       theRsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
       dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+
+      //Compute alternative MR and Rsq to be used for Scale Factor lookup
+      vector<TLorentzVector> hemispheresForSF = getHemispheres(GoodPFObjectsForSF);
+      MRForSF = computeMR(hemispheresForSF[0], hemispheresForSF[1]); 
+      RsqForSF = computeRsq(hemispheresForSF[0], hemispheresForSF[1], MyMET);
     } else {
       theMR = -999;
       theRsq = -999;
