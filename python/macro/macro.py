@@ -155,7 +155,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     plotFit = ("Fit" in histDict)
     for i,var in enumerate(varList): 
         #for MR and Rsq, make 2D plots
-        if var == ('MR','Rsq'):
+        if ( var == ('MR','Rsq') or var == ('MR_NoW','Rsq_NoW') or var == ('MR_NoZ','Rsq_NoZ') or var == ('MR_NoPho','Rsq_NoPho')):
             mcDict = None 
             if len(mcNames) > 0:
                 mcDict = {} #for stacked unrolled plots
