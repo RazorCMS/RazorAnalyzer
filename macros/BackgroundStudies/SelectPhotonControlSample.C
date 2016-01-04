@@ -172,12 +172,12 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->Draw("pe");
   
   pad1->SetLogy(false);
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s.png",varName.c_str(), label.c_str()));
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s.pdf",varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s.png",varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s.pdf",varName.c_str(), label.c_str()));
   
   pad1->SetLogy(true);
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s_Logy.png",varName.c_str(),label.c_str()));
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s_Logy.pdf",varName.c_str(),label.c_str()));
+  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s_Logy.png",varName.c_str(),label.c_str()));
+  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s_Logy.pdf",varName.c_str(),label.c_str()));
 
 
  
@@ -327,6 +327,15 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  cout << "...bad event: " << weight << " " << "\n";
 	}
 
+	//******************************
+	// remove double-counting fakes
+	//******************************
+	if (!isData) {
+	  bool isFake = false;	   
+	  if(abs(events->pho1_motherID) > 5 && events->pho1_motherID != 21 && events->pho1_motherID != 2212) isFake = true;	  
+	  if(processLabels[i]  == "GJets" && isFake) continue;
+	  if(processLabels[i] == "QCD" && !isFake) continue;
+	}
 
 	//******************************
 	//Trigger Selection
@@ -337,49 +346,43 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  double dataWeight = 1;
 	  if (events->pho1.Pt() > 185) {
 	    dataWeight = 1;
-	    if (events->HLTDecision[83]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 135) {
-	    dataWeight = events->HLTPrescale[81]*0.858991;
-	    if (events->HLTDecision[81]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 105) {
-	    dataWeight = events->HLTPrescale[80]*0.858991*0.87438;
-	    if (events->HLTDecision[80]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 85) {
-	    dataWeight = events->HLTPrescale[79]*0.858991*0.87438*0.937079;
-	    if (events->HLTDecision[79]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 58) {
-	    dataWeight = events->HLTPrescale[78]*0.858991*0.87438*0.937079*0.896568;
-	    if (events->HLTDecision[78]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 42) {
-	    dataWeight = events->HLTPrescale[77]*0.858991*0.87438*0.937079*0.896568*0.945252;
-	    if (events->HLTDecision[77]) passTrigger = true;
+	    if (events->HLTDecision[93]) passTrigger = true;
 	  } 
+	  else if (events->pho1.Pt() > 135) {
+	    dataWeight = events->HLTPrescale[92];
+	    if (events->HLTDecision[92]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 105) {
+	    dataWeight = events->HLTPrescale[91];
+	    if (events->HLTDecision[91]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 85) {
+	    dataWeight = events->HLTPrescale[90];
+	    if (events->HLTDecision[90]) passTrigger = true;
+	  } else {
+	    dataWeight = events->HLTPrescale[89];
+	    if (events->HLTDecision[89]) passTrigger = true;
+	  } 
+
 	  weight = dataWeight;
+
 	} else {
-	  if (events->HLTDecision[75] || events->HLTDecision[76] || events->HLTDecision[77]) passTrigger = true;
+	  if (
+	       events->HLTDecision[88] || events->HLTDecision[89] || events->HLTDecision[90] 
+	       || events->HLTDecision[91] || events->HLTDecision[92] || 
+	      events->HLTDecision[93]
+	      ) passTrigger = true;
 	}
 
-	//if (!passTrigger) continue;
+	if (!passTrigger) continue;
 
 	//******************************
 	//Selection Cuts 
 	//******************************
-	//lepton selection
+	//Photon selection
 	if (! (events->pho1.Pt() > 50)) continue;
-	if (fabs(events->pho1.Eta()) < 1.5) {
-	  if (! (events->pho1_sigmaietaieta < 0.011
-		 && 
-		 events->pho1_chargediso < 10
-		 )
-	      ) continue;
-	} else {
-	  if (! ( events->pho1_sigmaietaieta < 0.031
-		  && 
-		  events->pho1_chargediso < 10
-		  )
-	      ) continue;
-	}
   
+	//By default it's EG Loose selection + chargedIso < 2.5 GeV.
+	//We can tighten the cuts if we wish...
+
 	if (option == "MR300Rsq0p15" ) {
 	  if (!(events->NJets80 >= 2 && events->MR_NoPho > 300 && events->Rsq_NoPho > 0.15 )) continue;	
 	}
@@ -418,52 +421,64 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	if (isData) {
 
 	  if (passTrigger) {
-	    dataYield += 1;
+	    dataYield += weight;
 	    histPhotonPt[i]->Fill(events->pho1.Pt(), weight);
+	    histPhotonEta[i]->Fill(events->pho1.Eta(), weight);
+	    histMET[i]->Fill(events->MET, weight);
+	    histNJets80[i]->Fill(events->NJets80_NoPho, weight);
+	    histNJets40[i]->Fill(events->NJets_NoPho, weight);
+	    histNBtags[i]->Fill(events->NBJetsMedium, weight);
+	    histMR[i]->Fill(events->MR_NoPho, weight);
+	    histRsq[i]->Fill(events->Rsq_NoPho, weight);
+	    histMRRsqUnrolled[i]->Fill(MRRsqBin+0.5, weight);
 	  }
 
-	  // if (events->HLTDecision[75]) {
-	  //   PhotonPt_HLTPho22->Fill( events->pho1.Pt(), events->HLTPrescale[75]*0.585039*0.672311*0.815297*0.722555*0.827414*0.884276*0.794872);
-	  //   if (events->pho1.Pt() > 35 && events->pho1.Pt() < 40) YieldPho22_35To40 += events->HLTPrescale[75];
-	  // }
-	  // if (events->HLTDecision[76]) {
-	  //   PhotonPt_HLTPho30->Fill( events->pho1.Pt(), events->HLTPrescale[76]*0.714234*0.864709*0.872699*0.83655*0.89445);
-	  //   if (events->pho1.Pt() > 35 && events->pho1.Pt() < 40) YieldPho30_35To40 += events->HLTPrescale[76];
-	  //   if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho30_42To50 += events->HLTPrescale[76];
-	  // }
-	  if (events->HLTDecision[77]) {
-	    PhotonPt_HLTPho36->Fill( events->pho1.Pt(), events->HLTPrescale[77]*0.858991*0.87438*0.937079*0.896568*0.945252);
-	    if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho36_42To50 += events->HLTPrescale[77];
-	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho36_58To70 += events->HLTPrescale[77];	    
+	 
+	  //************************************************************
+	  //Histograms to compute scale factors for each trigger path
+	  //************************************************************		
+	  if (events->HLTDecision[88]) {
+	    PhotonPt_HLTPho36->Fill( events->pho1.Pt(), events->HLTPrescale[88]);
+	    if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho36_42To50 += events->HLTPrescale[88];
+	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho36_58To70 += events->HLTPrescale[88];	    
 	  }
-	  if (events->HLTDecision[78]) {
-	    PhotonPt_HLTPho50->Fill( events->pho1.Pt(), events->HLTPrescale[78]*0.858991*0.87438*0.937079*0.896568);    
-	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho50_58To70 += events->HLTPrescale[78];	    
-	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho50_85To95 += events->HLTPrescale[78];	    
+	  if (events->HLTDecision[89]) {
+	    PhotonPt_HLTPho50->Fill( events->pho1.Pt(), events->HLTPrescale[89]);    
+	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho50_58To70 += events->HLTPrescale[89];	    
+	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho50_85To95 += events->HLTPrescale[89];	    
 	  }
-	  if (events->HLTDecision[79]) {
-	    PhotonPt_HLTPho75->Fill( events->pho1.Pt(), events->HLTPrescale[79]*0.858991*0.87438*0.937079);
-	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho75_85To95 += events->HLTPrescale[79];	    
-	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho75_105To115 += events->HLTPrescale[79];	    
+	  if (events->HLTDecision[90]) {
+	    PhotonPt_HLTPho75->Fill( events->pho1.Pt(), events->HLTPrescale[90]);
+	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho75_85To95 += events->HLTPrescale[90];	    
+	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho75_105To115 += events->HLTPrescale[90];	    
 	  }
-	  if (events->HLTDecision[80]) {
-	    PhotonPt_HLTPho90->Fill( events->pho1.Pt(), events->HLTPrescale[80]*0.858991*0.87438);
-	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho90_105To115 += events->HLTPrescale[80];	    
-	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho90_135To145 += events->HLTPrescale[80];	    
+	  if (events->HLTDecision[91]) {
+	    PhotonPt_HLTPho90->Fill( events->pho1.Pt(), events->HLTPrescale[91]);
+	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho90_105To115 += events->HLTPrescale[91];	    
+	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho90_135To145 += events->HLTPrescale[91];	    
 	  }
-	  if (events->HLTDecision[81]) {
-	    PhotonPt_HLTPho120->Fill( events->pho1.Pt(), events->HLTPrescale[81]*0.858991);
-	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho120_135To145 += events->HLTPrescale[81];	    
-	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho120_185To200 += events->HLTPrescale[81];	    
+	  if (events->HLTDecision[92]) {
+	    PhotonPt_HLTPho120->Fill( events->pho1.Pt(), events->HLTPrescale[92]);
+	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho120_135To145 += events->HLTPrescale[92];	    
+	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho120_185To200 += events->HLTPrescale[92];	    
 	  }
-	  if (events->HLTDecision[83]) {
-	    PhotonPt_HLTPho165->Fill( events->pho1.Pt(), events->HLTPrescale[83]);
-	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho165_185To200 += events->HLTPrescale[83];	    
+	  if (events->HLTDecision[93]) {
+	    PhotonPt_HLTPho165->Fill( events->pho1.Pt(), events->HLTPrescale[93]);
+	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho165_185To200 += events->HLTPrescale[93];	    
 	  }
 
 
 	} else {
-	
+	  MCYield += weight;
+	  histPhotonPt[i]->Fill(events->pho1.Pt(), weight);
+	  histPhotonEta[i]->Fill(events->pho1.Eta(), weight);
+	  histMET[i]->Fill(events->MET, weight);
+	  histNJets80[i]->Fill(events->NJets80_NoPho, weight);
+	  histNJets40[i]->Fill(events->NJets_NoPho, weight);
+	  histNBtags[i]->Fill(events->NBJetsMedium, weight);
+	  histMR[i]->Fill(events->MR_NoPho, weight);
+	  histRsq[i]->Fill(events->Rsq_NoPho, weight);
+	  histMRRsqUnrolled[i]->Fill(MRRsqBin+0.5, weight);
 	}
 
 
@@ -486,17 +501,16 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //*******************************************************************************************
   //MR
   //*******************************************************************************************
-  // PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
-  // PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
-  // PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET", Label);
-  // PlotDataAndStackedBkg( histLep1MT, processLabels, color, true, "Lep1MT", Label);
-  // PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
-  // PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
-  // PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
-  // PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
-  // PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
-  // PlotDataAndStackedBkg( histMRRsqUnrolled, processLabels, color, true, "MRRsqUnrolled", Label);
-
+  PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
+  PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
+  PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
+  PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
+  PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
+  PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
+  PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
+  PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
+  PlotDataAndStackedBkg( histMRRsqUnrolled, processLabels, color, true, "MRRsqUnrolled", Label);
+  
 
   //--------------------------------------------------------------------------------------------------------------
   // Tables
@@ -547,23 +561,18 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   file->WriteTObject( PhotonPt_HLTPho165, "PhotonPt_HLTPho165" , "WriteDelete");
 
   for(int i=0; i<int(inputfiles.size()); i++) {
-  file->WriteTObject(histPhotonPt[i], Form("histPhotonPt_%s",processLabels[i].c_str()), "WriteDelete");
-  //   // file->WriteTObject(histMR[i], Form("histMR_%s",processLabels[i].c_str()), "WriteDelete");
-  //   // file->WriteTObject(histRsq[i], Form("histRsq_%s",processLabels[i].c_str()), "WriteDelete");
-  //   // file->WriteTObject(histNJets40[i], Form("histNJets40_%s",processLabels[i].c_str()), "WriteDelete");
-  //   // file->WriteTObject(histNJets80[i], Form("histNJets80_%s",processLabels[i].c_str()), "WriteDelete");
-  //   // file->WriteTObject(histNBtags[i], Form("histNBtags_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histPhotonPt[i], Form("histPhotonPt_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histPhotonEta[i], Form("histPhotonEta_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histMET[i], Form("histMET_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histNJets40[i], Form("histNJets40_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histNJets80[i], Form("histNJets80_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histNBtags[i], Form("histNBtags_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histMR[i], Form("histMR_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histRsq[i], Form("histRsq_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histMRRsqUnrolled[i], Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "WriteDelete");
   }
 
 
-  // for(int i=0; i<int(inputfiles.size()); i++) {
-  //   file->WriteTObject(histMR[i], Form("histMR_%s",processLabels[i].c_str()), "WriteDelete");
-  //   file->WriteTObject(histRsq[i], Form("histRsq_%s",processLabels[i].c_str()), "WriteDelete");
-  //   file->WriteTObject(histNJets40[i], Form("histNJets40_%s",processLabels[i].c_str()), "WriteDelete");
-  //   file->WriteTObject(histNJets80[i], Form("histNJets80_%s",processLabels[i].c_str()), "WriteDelete");
-  //   file->WriteTObject(histNBtags[i], Form("histNBtags_%s",processLabels[i].c_str()), "WriteDelete");
-  // }
-   
   // for(int i=0; i<int(histMRVsRsq.size()); i++) {
   //   file->WriteTObject(histMRVsRsq[i], Form("histMRVsRsq_%s",processLabels[i].c_str()), "WriteDelete");
   // }
@@ -590,25 +599,45 @@ void SelectPhotonControlSample( int option = 0) {
 
 
   //No Skims  
-  datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
+  if (option >= 10) {
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
+  } else {
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root");     
+  }
 
   vector<string> bkgfiles_gjets;
   vector<string> bkgfiles_qcd;
+  vector<string> bkgfiles_other;
 
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted.root"); 
+  if (option >= 10) {
+    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
+  } else {
+    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
+  }
    
 
-  // bkgfiles.push_back(bkgfiles_gjets);
-  // bkgfiles.push_back(bkgfiles_qcd);
+  bkgfiles.push_back(bkgfiles_gjets);
+  bkgfiles.push_back(bkgfiles_qcd);
+  bkgfiles.push_back(bkgfiles_other);
 
-  // processLabels.push_back("GJets");  
-  // processLabels.push_back("QCD");
+  processLabels.push_back("GJets");  
+  processLabels.push_back("QCD");
+  processLabels.push_back("Other");
 
-  // colors.push_back(kOrange);
-  // colors.push_back(kMagenta);
- 
-   double lumi = 2185;
+  colors.push_back(kOrange);
+  colors.push_back(kMagenta);
+  colors.push_back(kCyan);
+  
+  double lumi = 2185;
 
   //*********************************************************************
   //GJets Control Region
@@ -628,22 +657,45 @@ void SelectPhotonControlSample( int option = 0) {
 //**********************
 //With Photon ID + Iso Cuts
 //**********************
-// YieldPho36_58To70 : 3.79518e+07
-// YieldPho50_58To70 : 3.58741e+07
-// Ratio : 0.945252
+// YieldPho36_58To70 : 1.30574e+07
+// YieldPho50_58To70 : 1.30185e+07
+// Ratio : 0.997014
 
-// YieldPho50_85To95 : 6.06216e+06
-// YieldPho75_85To95 : 5.43514e+06
-// Ratio : 0.896568
+// YieldPho50_85To95 : 2.09166e+06
+// YieldPho75_85To95 : 1.9931e+06
+// Ratio : 0.95288
 
-// YieldPho75_105To115 : 2.2398e+06
-// YieldPho90_105To115 : 2.09887e+06
-// Ratio : 0.937079
+// YieldPho75_105To115 : 767340
+// YieldPho90_105To115 : 768620
+// Ratio : 1.00167
 
-// YieldPho90_135To145 : 685880
-// YieldPho120_135To145 : 599720
-// Ratio : 0.87438
+// YieldPho90_135To145 : 239080
+// YieldPho120_135To145 : 230440
+// Ratio : 0.963861
 
-// YieldPho120_185To200 : 196640
-// YieldPho165_185To200 : 168912
-// Ratio : 0.858991
+// YieldPho120_185To200 : 71070
+// YieldPho165_185To200 : 70911
+// Ratio : 0.997763
+
+//**********************
+//After Razor Cuts
+//**********************
+// YieldPho36_58To70 : 18000
+// YieldPho50_58To70 : 10620
+// Ratio : 0.59
+
+// YieldPho50_85To95 : 10520
+// YieldPho75_85To95 : 9120
+// Ratio : 0.86692
+
+// YieldPho75_105To115 : 11520
+// YieldPho90_105To115 : 12480
+// Ratio : 1.08333
+
+// YieldPho90_135To145 : 7990
+// YieldPho120_135To145 : 7545
+// Ratio : 0.944305
+
+// YieldPho120_185To200 : 7230
+// YieldPho165_185To200 : 6711
+// Ratio : 0.928216
