@@ -51,6 +51,28 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
                 for shape in shapeErrors:
                     shapeHists[name][shape+"Down"][("MR","Rsq")] = hists[name][("MR","Rsq")].Clone(hists[name][("MR","Rsq")].GetName()+shape+"Down")
                     shapeHists[name][shape+"Up"][("MR","Rsq")] = hists[name][("MR","Rsq")].Clone(hists[name][("MR","Rsq")].GetName()+shape+"Up")
+        #2D MR-Rsq 1L Inv histogram
+        if "MR_NoW" in bins and "Rsq_NoW" in bins:
+            hists[name][("MR_NoW","Rsq_NoW")] = rt.TH2F(regionName+"MR_NoWRsq_NoW"+name, "R^{2} vs M_{R}", len(bins["MR_NoW"])-1, array('d',bins["MR_NoW"]), len(bins["Rsq_NoW"])-1, array('d',bins["Rsq_NoW"]))
+            if samples is not None and name in samples: 
+                for shape in shapeErrors:
+                    shapeHists[name][shape+"Down"][("MR_NoW","Rsq_NoW")] = hists[name][("MR_NoW","Rsq_NoW")].Clone(hists[name][("MR_NoW","Rsq_NoW")].GetName()+shape+"Down")
+                    shapeHists[name][shape+"Up"][("MR_NoW","Rsq_NoW")] = hists[name][("MR_NoW","Rsq_NoW")].Clone(hists[name][("MR_NoW","Rsq_NoW")].GetName()+shape+"Up")
+        #2D MR-Rsq 2L Inv histogram
+        if "MR_NoZ" in bins and "Rsq_NoZ" in bins:
+            hists[name][("MR_NoZ","Rsq_NoZ")] = rt.TH2F(regionName+"MR_NoZRsq_NoZ"+name, "R^{2} vs M_{R}", len(bins["MR_NoZ"])-1, array('d',bins["MR_NoZ"]), len(bins["Rsq_NoZ"])-1, array('d',bins["Rsq_NoZ"]))
+            if samples is not None and name in samples: 
+                for shape in shapeErrors:
+                    shapeHists[name][shape+"Down"][("MR_NoZ","Rsq_NoZ")] = hists[name][("MR_NoZ","Rsq_NoZ")].Clone(hists[name][("MR_NoZ","Rsq_NoZ")].GetName()+shape+"Down")
+                    shapeHists[name][shape+"Up"][("MR_NoZ","Rsq_NoZ")] = hists[name][("MR_NoZ","Rsq_NoZ")].Clone(hists[name][("MR_NoZ","Rsq_NoZ")].GetName()+shape+"Up")
+        #2D MR-Rsq Photon Inv histogram
+        if "MR_NoPho" in bins and "Rsq_NoPho" in bins:
+            hists[name][("MR_NoPho","Rsq_NoPho")] = rt.TH2F(regionName+"MR_NoPhoRsq_NoPho"+name, "R^{2} vs M_{R}", len(bins["MR_NoPho"])-1, array('d',bins["MR_NoPho"]), len(bins["Rsq_NoPho"])-1, array('d',bins["Rsq_NoPho"]))
+            if samples is not None and name in samples: 
+                for shape in shapeErrors:
+                    shapeHists[name][shape+"Down"][("MR_NoPho","Rsq_NoPho")] = hists[name][("MR_NoPho","Rsq_NoPho")].Clone(hists[name][("MR_NoPho","Rsq_NoPho")].GetName()+shape+"Down")
+                    shapeHists[name][shape+"Up"][("MR_NoPho","Rsq_NoPho")] = hists[name][("MR_NoPho","Rsq_NoPho")].Clone(hists[name][("MR_NoPho","Rsq_NoPho")].GetName()+shape+"Up")
+
         for var in hists[name]: 
             hists[name][var].Sumw2()
             hists[name][var].SetDirectory(0)
