@@ -1085,12 +1085,10 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  double tmpEffAreaPhotons = 0.0;
 	  getPhotonEffArea90( phoEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
 	  
-	  if (!( 
-		( (fabs(phoEta[i]) < 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.011) || 
-		  (fabs(phoEta[i]) >= 1.5 && phoFull5x5SigmaIetaIeta[i] < 0.031) 
-		  ) 
-		&& 
-		max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 10
+	  //Use Loose Photon ID and charged Iso < 2.5 GeV
+	  if (!( photonPassLooseID(i,true)	
+		 && 
+		 max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5
 		 )
 	      ) continue;
 	  
@@ -1106,7 +1104,21 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       events->nSelectedPhotons = nPhotonsAbove40GeV;
       
       //Sort Photon Collection
-      sort(GoodPhotons.begin(), GoodPhotons.end(), greater_than_pt());    
+      for(uint i = 0; i < GoodPhotons.size() ; i++) {
+	for (uint j=0; j < GoodPhotons.size()-1; j++) {
+	  if (GoodPhotons[j+1].Pt() > GoodPhotons[j].Pt()) { 
+	    // swap elements
+	    TLorentzVector tmpV = GoodPhotons[j]; 
+	    int tmpIndex = GoodPhotonIndex[j];
+
+	    GoodPhotons[j] = GoodPhotons[j+1];
+	    GoodPhotonIndex[j] = GoodPhotonIndex[j+1];
+
+	    GoodPhotons[j+1] = tmpV;
+	    GoodPhotonIndex[j] = tmpIndex;
+	  }
+	}
+      }
 
       //************************************************************************
       //Select Jets
@@ -1524,27 +1536,58 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  events->pho2 = GoodPhotons[1];
 	  
 	// match photons to gen particles to remove double counting between QCD and GJet samples
+	double phoMinDR = 9999;
 	for(int g = 0; g < nGenParticle; g++){
-	  if (!(deltaR(gParticleEta[g] , gParticlePhi[g], GoodPhotons[0].Eta(),GoodPhotons[0].Phi()) < 0.5) ) continue;
-	  if(gParticleStatus[g] != 1) continue;
-	  if(gParticleId[g] != 22) continue;
-	  events->pho1_motherID = gParticleMotherId[g];
-	}
+	  if (!(deltaR(gParticleEta[g] , gParticlePhi[g], GoodPhotons[0].Eta(),GoodPhotons[0].Phi()) < 0.1) ) continue;
+	  if(!(gParticleStatus[g] == 1 || gParticleStatus[g] == 23)) continue;
+	  if(!(gParticleId[g] == 22 || abs(gParticleId[g]) == 11)) continue;
+	  
+	  double tmpMinDR = deltaR(GoodPhotons[0].Eta(), GoodPhotons[0].Phi(), gParticleEta[g] , gParticlePhi[g]);
+	  if ( tmpMinDR < phoMinDR) {
+	    phoMinDR = tmpMinDR;
+	    if (gParticleStatus[g] == 23 || abs(gParticleId[g]) == 11 ) {
+	      events->pho1_motherID = 22;
+		} else {
+	      events->pho1_motherID = gParticleMotherId[g];
+	    }
 
-	for(int ii = 0; ii < nPhotons; ii++) {
-	  if( pho_RegressionE[ii]/cosh(phoEta[ii]) == GoodPhotons[0].Pt() ) {
-	    events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[ii];
+	    //cout << "Found gen photon: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << "\n";
 
-	    double effAreaChargedHadrons = 0.0;
-	    double effAreaNeutralHadrons = 0.0;
-	    double effAreaPhotons = 0.0;
-	    getPhotonEffArea90( pho_superClusterEta[ii] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
-	    events->pho1_chargediso = max(pho_sumChargedHadronPt[ii] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
-	    events->pho1_pfiso = max(pho_sumChargedHadronPt[ii] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.) +
-	      max(pho_sumNeutralHadronEt[ii] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.) +
-	      max(pho_sumPhotonEt[ii] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+	    //find dR to closest parton
+	    double tmpMinDRPhotonToParton = 9999;
+	    for(int l = 0; l < nGenParticle; l++){
+	      if (l == g) continue; //extra protection, don't compare against the gen photon
+	      if (!( abs(gParticleId[l]) <= 5 || gParticleId[l] == 21 )) continue;
+	      if (gParticleStatus[l] != 23) continue;
+
+	      //cout << "parton " << l << " : " << gParticleId[l] << " " << gParticleStatus[l] << " : " << gParticlePt[l] << " " << gParticleEta[l] << " " << gParticlePhi[l] << "\n";
+
+	      if ( deltaR(gParticleEta[g] , gParticlePhi[g], gParticleEta[l] , gParticlePhi[l]) < tmpMinDRPhotonToParton) {
+		tmpMinDRPhotonToParton = deltaR(gParticleEta[g] , gParticlePhi[g], gParticleEta[l] , gParticlePhi[l]);
+	      }
+	    }
+	    events->minDRGenPhotonToParton = tmpMinDRPhotonToParton;
 	  }
 	}
+
+	if (events->minDRGenPhotonToParton < 0) {
+	  for(int g = 0; g < nGenParticle; g++){
+	    if ( deltaR(GoodPhotons[0].Eta(), GoodPhotons[0].Phi(), gParticleEta[g] , gParticlePhi[g]) < 0.5) {
+	      cout << "genparticle " << g << " : " << gParticleId[g] << " : " << gParticleStatus[g] << " : " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " <<  deltaR(GoodPhotons[0].Eta(), GoodPhotons[0].Phi(), gParticleEta[g] , gParticlePhi[g]) << "\n";
+	    }
+	  }
+	}
+
+	events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[GoodPhotonIndex[0]];
+	double effAreaChargedHadrons = 0.0;
+	double effAreaNeutralHadrons = 0.0;
+	double effAreaPhotons = 0.0;
+	getPhotonEffArea90( pho_superClusterEta[GoodPhotonIndex[0]] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+	events->pho1_chargediso = max(pho_sumChargedHadronPt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+	events->pho1_pfiso = max(pho_sumChargedHadronPt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.) +
+	  max(pho_sumNeutralHadronEt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.) +
+	  max(pho_sumPhotonEt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+	events->pho1PassTight = photonPassTightID(GoodPhotonIndex[0], true);
 
 	//compute MET with leading photon added
 	TLorentzVector m1 = GoodPhotons[0];

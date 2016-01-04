@@ -223,6 +223,7 @@ class ControlSampleEvents {
   Float_t                 pho1_sigmaietaieta; 
   Float_t                 pho1_chargediso;
   Float_t                 pho1_pfiso;
+  Float_t                 minDRGenPhotonToParton;
 
   float metType1PtJetResUp;
   float metType1PtJetResDown;
@@ -463,6 +464,7 @@ class ControlSampleEvents {
     pho1_sigmaietaieta = -999.;
     pho1_chargediso = -999.;
     pho1_pfiso = -999.;
+    minDRGenPhotonToParton = -999;
 
     metType1PtJetResUp=-999.;
     metType1PtJetResDown=-999.;
@@ -821,6 +823,9 @@ class ControlSampleEvents {
       tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
       tree_->Branch("pho1_chargediso",&pho1_chargediso,"pho1_chargediso/F");
       tree_->Branch("pho1_pfiso",&pho1_pfiso,"pho1_pfiso/F");
+      tree_->Branch("pho1PassTight",&pho1PassTight,"pho1PassTight/O");
+      tree_->Branch("minDRGenPhotonToParton",&minDRGenPhotonToParton,"minDRGenPhotonToParton/F");
+
       tree_->Branch("genJetHT",&genJetHT,"genJetHT/F");
       tree_->Branch("genJetMR",&genJetMR,"genJetMR/F");
     }  
@@ -1106,6 +1111,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("pho1_sigmaietaieta",&pho1_sigmaietaieta);
       tree_->SetBranchAddress("pho1_chargediso",&pho1_chargediso);
       tree_->SetBranchAddress("pho1_pfiso",&pho1_pfiso);
+      tree_->SetBranchAddress("pho1PassTight",&pho1PassTight);
+      tree_->SetBranchAddress("minDRGenPhotonToParton",&minDRGenPhotonToParton);
       tree_->SetBranchAddress("genJetMR",&genJetMR);
       tree_->SetBranchAddress("genJetHT",&genJetHT);     
     }
