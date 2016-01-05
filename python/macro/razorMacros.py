@@ -304,6 +304,13 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         "MR": "M_{R} (GeV)", 
         "Rsq": "R^{2}",
         "mll": "m_{ll} (GeV)",
+        "NBJetsMedium" : "Number of B-tagged Jets",
+        "NJets80" : "Number of Jets with p_{T} > 80 GeV",
+        "NJets40" : "Number of Jets",        
+        "lep1.Pt()": "lepton p_{T} (GeV)",
+        "lep2.Pt()": "lepton p_{T} (GeV)",
+        "lep1.Eta()": "lepton #eta",
+        "lep2.Eta()": "lepton #eta",
         }
 
     ##Get plotting options (for customizing plot behavior)
@@ -419,6 +426,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         return
     if var not in hists[dataName]:
         print "Error in appendScaleFactors: could not find ",var," in hists[",dataName,"]!"
+
 
     #make the scale factor histogram (clone data hist; later subtract backgrounds and divide by MC hist)
     print "Making scale factor histogram for",process
