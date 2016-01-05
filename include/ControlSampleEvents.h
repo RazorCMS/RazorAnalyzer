@@ -182,6 +182,7 @@ class ControlSampleEvents {
   Bool_t                  pho1PassLoose;
   Bool_t                  pho1PassTight;
   Bool_t                  pho1PassMedium;
+  Bool_t                  pho1HLTFilter[50];
   Bool_t                  HLT_Dimuon;
   Bool_t                  HLT_SingleMu;
   Bool_t                  HLT_Photon;
@@ -802,6 +803,7 @@ class ControlSampleEvents {
     if (treeType == kTreeType_Photon_Full) {
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
       tree_->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[200]/I");
+      tree_->Branch("pho1HLTFilter",&pho1HLTFilter,"HLTDecision[50]/O");
       tree_->Branch("pho1","TLorentzVector", &pho1Ptr);
       tree_->Branch("pho2","TLorentzVector", &pho2Ptr);
       tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
@@ -1089,6 +1091,7 @@ class ControlSampleEvents {
     if (treeType == kTreeType_Photon_Full) {
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
       tree_->SetBranchAddress("HLTPrescale",&HLTPrescale);
+      tree_->SetBranchAddress("pho1HLTFilter",&pho1HLTFilter);
       tree_->SetBranchAddress("pho1", &pho1Ptr);
       tree_->SetBranchAddress("pho2", &pho2Ptr);
       tree_->SetBranchAddress("jet1" ,&jet1Ptr);
