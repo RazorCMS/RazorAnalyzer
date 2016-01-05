@@ -15,7 +15,8 @@ SAMPLES_TTJ1L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
 SAMPLES_WJ1L = ["Other", "DYJets", "SingleTop", "TTJets", "WJets"]
 SAMPLES_TTJ2L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
 SAMPLES_DYJ2L = ["Other", "SingleTop", "WJets", "TTJets", "DYJets"]
-SAMPLES_Veto = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"]
+SAMPLES_VetoLepton = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"]
+SAMPLES_VetoTau = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"]
 
 DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/"
 PREFIX_1L = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
@@ -40,18 +41,32 @@ FILENAMES_2L = {
             }
 
 
-DIR_Veto = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/VetoLeptonFull_1p23_2015Final/RazorSkim/"
-PREFIX_Veto = "RunTwoRazorControlRegions_VetoLeptonFull"
-FILENAMES_Veto = {
-            "TTJets"   : DIR_Veto+"/"+PREFIX_Veto+"_TTJets_1pb_weighted_RazorSkim.root",
-            "WJets"    : DIR_Veto+"/"+PREFIX_Veto+"_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
-            "SingleTop": DIR_Veto+"/"+PREFIX_Veto+"_SingleTop_1pb_weighted_RazorSkim.root",
-            "DYJets"   : DIR_Veto+"/"+PREFIX_Veto+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
-            "QCD"      : DIR_Veto+"/"+PREFIX_Veto+"_QCD_HTBinned_1pb_weighted_RazorSkim.root",
-            "ZInv"     : DIR_Veto+"/"+PREFIX_Veto+"_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",            
-            "Other"    : DIR_Veto+"/"+PREFIX_Veto+"_Other_1pb_weighted_RazorSkim.root",
-            "Data"     : DIR_Veto+"/"+PREFIX_Veto+"_HTMHT_Run2015D_GoodLumiGolden_RazorSkim.root"
+DIR_VetoLepton = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/VetoLeptonFull_1p23_2015Final/RazorNJets80Skim/"
+PREFIX_VetoLepton = "RunTwoRazorControlRegions_VetoLeptonFull"
+FILENAMES_VetoLepton = {
+            "TTJets"   : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_TTJets_1pb_weighted_RazorSkim.root",
+            "WJets"    : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
+            "SingleTop": DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_SingleTop_1pb_weighted_RazorSkim.root",
+            "DYJets"   : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+            "QCD"      : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_QCD_HTBinned_1pb_weighted_RazorSkim.root",
+            "ZInv"     : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",            
+            "Other"    : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_Other_1pb_weighted_RazorSkim.root",
+            "Data"     : DIR_VetoLepton+"/"+PREFIX_VetoLepton+"_HTMHT_Run2015D_GoodLumiGolden_RazorSkim.root"
             }
+
+DIR_VetoTau = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/VetoTauFull_1p23_2015Final/"
+PREFIX_VetoTau = "RunTwoRazorControlRegions_VetoTauFull_RazorSkim"
+FILENAMES_VetoTau = {
+            "TTJets"   : DIR_VetoTau+"/"+PREFIX_VetoTau+"_TTJets_1pb_weighted.root",
+            "WJets"    : DIR_VetoTau+"/"+PREFIX_VetoTau+"_WJetsToLNu_HTBinned_1pb_weighted.root",
+            "SingleTop": DIR_VetoTau+"/"+PREFIX_VetoTau+"_SingleTop_1pb_weighted_RazorSkim.root",
+            "DYJets"   : DIR_VetoTau+"/"+PREFIX_VetoTau+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted.root",
+            "QCD"      : DIR_VetoTau+"/"+PREFIX_VetoTau+"_QCD_HTBinned_1pb_weighted.root",
+            "ZInv"     : DIR_VetoTau+"/"+PREFIX_VetoTau+"_ZJetsToNuNu_HTBinned_1pb_weighted.root",            
+            "Other"    : DIR_VetoTau+"/"+PREFIX_VetoTau+"_Other_1pb_weighted.root",
+            "Data"     : DIR_VetoTau+"/"+PREFIX_VetoTau+"_HTMHT_Run2015D_GoodLumiGolden.root"
+            }
+
 
 
 
@@ -64,7 +79,12 @@ VetoLeptonBinsRsqLep = cfg.getBinning("VetoLeptonControlRegion")[1]
 VetoLeptonControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep }
 TTJetsDileptonBinsMRLep = cfg.getBinning("TTJetsDileptonControlRegion")[0]
 TTJetsDileptonBinsRsqLep = cfg.getBinning("TTJetsDileptonControlRegion")[1]
-TTJetsDileptonControlRegionBinning = { "MR":TTJetsDileptonBinsMRLep, "Rsq":TTJetsDileptonBinsRsqLep }
+TTJetsDileptonBinsNBTags = cfg.getBinning("TTJetsDileptonControlRegion")[2]
+TTJetsDileptonBinsNJets80 = cfg.getBinning("TTJetsDileptonControlRegion")[3]
+TTJetsDileptonBinsNJets = cfg.getBinning("TTJetsDileptonControlRegion")[4]
+TTJetsDileptonBinsLep2Pt = cfg.getBinning("TTJetsDileptonControlRegion")[5]
+TTJetsDileptonBinsLep2Eta = cfg.getBinning("TTJetsDileptonControlRegion")[6]
+TTJetsDileptonControlRegionBinning = { "MR":TTJetsDileptonBinsMRLep, "Rsq":TTJetsDileptonBinsRsqLep, "NBJetsMedium":TTJetsDileptonBinsNBTags, "NJets80":TTJetsDileptonBinsNJets80, "NJets40":TTJetsDileptonBinsNJets }
 
 printdir="CrossCheckRegionPlots"
 
@@ -88,7 +108,7 @@ if __name__ == "__main__":
     #make output directory
     os.system('mkdir -p '+printdir)
 
-    sfHists = loadScaleFactorHists(sfFilename="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_Veto, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_VetoLepton, debugLevel=debugLevel)
 
 
     #TTJets dilepton control sample
@@ -102,11 +122,20 @@ if __name__ == "__main__":
 
     #Veto Lepton cross-check region
     vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
-                filenames=FILENAMES_Veto, samples=SAMPLES_Veto, 
+                filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
                 cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
                 bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, debugLevel=debugLevel)
    
+    # #Veto Tau cross-check region
+    # vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
+    #              filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
+    #              cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
+    #              bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #              weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+    #              printdir=printdir, debugLevel=debugLevel)
+   
+
 
   
