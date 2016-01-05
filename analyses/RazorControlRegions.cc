@@ -1080,6 +1080,12 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  if(pho_pt_corr < 30) continue;
 	  if(fabs(phoEta[i]) > 2.5) continue;
 	  
+	  if(!(pho_passHLTFilter[i][22] || pho_passHLTFilter[i][23]  || pho_passHLTFilter[i][24]  || pho_passHLTFilter[i][25]  || pho_passHLTFilter[i][26] 
+	       || pho_passHLTFilter[i][27]  || pho_passHLTFilter[i][28] || pho_passHLTFilter[i][29] || pho_passHLTFilter[i][30]  
+	       || pho_passHLTFilter[i][31]  || pho_passHLTFilter[i][32] || pho_passHLTFilter[i][33] || pho_passHLTFilter[i][34] 
+	       || pho_passHLTFilter[i][35]  || pho_passHLTFilter[i][36] || pho_passHLTFilter[i][37] || pho_passHLTFilter[i][38]
+	       )) continue;
+	  
 	  double tmpEffAreaChargedHadrons = 0.0;
 	  double tmpEffAreaNeutralHadrons = 0.0;
 	  double tmpEffAreaPhotons = 0.0;
@@ -1535,6 +1541,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	if(GoodPhotons.size()>1)
 	  events->pho2 = GoodPhotons[1];
 	  
+
 	// match photons to gen particles to remove double counting between QCD and GJet samples
 	double phoMinDR = 9999;
 	for(int g = 0; g < nGenParticle; g++){
@@ -1578,6 +1585,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
 	}
 
+	for (int q=0; q<50; q++) events->pho1HLTFilter[q] = pho_passHLTFilter[GoodPhotonIndex[0]][q];
 	events->pho1_sigmaietaieta = phoFull5x5SigmaIetaIeta[GoodPhotonIndex[0]];
 	double effAreaChargedHadrons = 0.0;
 	double effAreaNeutralHadrons = 0.0;
