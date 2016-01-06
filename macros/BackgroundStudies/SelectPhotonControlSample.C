@@ -346,20 +346,23 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  double dataWeight = 1;
 	  if (events->pho1.Pt() > 185) {
 	    dataWeight = 1;
-	    if (events->HLTDecision[93]) passTrigger = true;
+	    if (events->HLTDecision[93] && events->pho1HLTFilter[22]) passTrigger = true;
 	  } 
 	  else if (events->pho1.Pt() > 135) {
 	    dataWeight = events->HLTPrescale[92];
-	    if (events->HLTDecision[92]) passTrigger = true;
+	    if (events->HLTDecision[92] && events->pho1HLTFilter[23]) passTrigger = true;
 	  } else if (events->pho1.Pt() > 105) {
 	    dataWeight = events->HLTPrescale[91];
-	    if (events->HLTDecision[91]) passTrigger = true;
+	    if (events->HLTDecision[91] && events->pho1HLTFilter[24]) passTrigger = true;
 	  } else if (events->pho1.Pt() > 85) {
 	    dataWeight = events->HLTPrescale[90];
-	    if (events->HLTDecision[90]) passTrigger = true;
-	  } else {
+	    if (events->HLTDecision[90] && events->pho1HLTFilter[25]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 58){
 	    dataWeight = events->HLTPrescale[89];
-	    if (events->HLTDecision[89]) passTrigger = true;
+	    if (events->HLTDecision[89] && events->pho1HLTFilter[26]) passTrigger = true;
+	  } else {
+	    dataWeight = events->HLTPrescale[88];
+	    if (events->HLTDecision[88] && events->pho1HLTFilter[27]) passTrigger = true;
 	  } 
 
 	  weight = dataWeight;
@@ -657,45 +660,47 @@ void SelectPhotonControlSample( int option = 0) {
 //**********************
 //With Photon ID + Iso Cuts
 //**********************
-// YieldPho36_58To70 : 1.30574e+07
-// YieldPho50_58To70 : 1.30185e+07
-// Ratio : 0.997014
+// YieldPho36_58To70 : 6.79226e+06
+// YieldPho50_58To70 : 6.90576e+06
+// Ratio : 1.01671
 
-// YieldPho50_85To95 : 2.09166e+06
-// YieldPho75_85To95 : 1.9931e+06
-// Ratio : 0.95288
+// YieldPho50_85To95 : 1.21875e+06
+// YieldPho75_85To95 : 1.22005e+06
+// Ratio : 1.00107
 
-// YieldPho75_105To115 : 767340
-// YieldPho90_105To115 : 768620
-// Ratio : 1.00167
+// YieldPho75_105To115 : 488278
+// YieldPho90_105To115 : 489032
+// Ratio : 1.00154
 
-// YieldPho90_135To145 : 239080
-// YieldPho120_135To145 : 230440
-// Ratio : 0.963861
+// YieldPho90_135To145 : 161048
+// YieldPho120_135To145 : 160721
+// Ratio : 0.99797
 
-// YieldPho120_185To200 : 71070
-// YieldPho165_185To200 : 70911
-// Ratio : 0.997763
+// YieldPho120_185To200 : 53750
+// YieldPho165_185To200 : 53762
+// Ratio : 1.00022
+
 
 //**********************
 //After Razor Cuts
 //**********************
-// YieldPho36_58To70 : 18000
-// YieldPho50_58To70 : 10620
-// Ratio : 0.59
+// YieldPho36_58To70 : 4500
+// YieldPho50_58To70 : 4510
+// Ratio : 1.00222
 
-// YieldPho50_85To95 : 10520
-// YieldPho75_85To95 : 9120
-// Ratio : 0.86692
+// YieldPho50_85To95 : 6936
+// YieldPho75_85To95 : 6320
+// Ratio : 0.911188
 
-// YieldPho75_105To115 : 11520
-// YieldPho90_105To115 : 12480
-// Ratio : 1.08333
+// YieldPho75_105To115 : 6750
+// YieldPho90_105To115 : 7023
+// Ratio : 1.04044
 
-// YieldPho90_135To145 : 7990
-// YieldPho120_135To145 : 7545
-// Ratio : 0.944305
+// YieldPho90_135To145 : 5926
+// YieldPho120_135To145 : 6004
+// Ratio : 1.01316
 
-// YieldPho120_185To200 : 7230
-// YieldPho165_185To200 : 6711
-// Ratio : 0.928216
+// YieldPho120_185To200 : 5481
+// YieldPho165_185To200 : 5475
+// Ratio : 0.998905
+
