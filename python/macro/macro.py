@@ -25,54 +25,45 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
     bins: dictionary.  key = name of observable, value = list of bins for that observable
     titles: dictionary.  key = name of observable, value = title for histograms of that quantity 
     shapeErrors: list of shape uncertainties to apply
-    dataName: this is the name by which 
     """
 
     hists = {name:{} for name in inputs}
     shapeHists = {name:{} for name in inputs}
     if inputs is None: return
     for name in inputs:
-        #1D histograms
         for var in bins:
-            if var in titles: title=titles[var]
-            else: title = var
-            hists[name][var] = rt.TH1F(regionName+var+name, title, len(bins[var])-1, array('d',bins[var]))
-            #add up/down histograms for each systematic uncertainty
-            if samples is not None and name in samples:
-                for shape in shapeErrors:
-                    if shape+"Down" not in shapeHists[name]: shapeHists[name][shape+"Down"] = {}
-                    if shape+"Up" not in shapeHists[name]: shapeHists[name][shape+"Up"] = {}
-                    shapeHists[name][shape+"Down"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Down")
-                    shapeHists[name][shape+"Up"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Up")
-        #2D MR-Rsq histogram
-        if "MR" in bins and "Rsq" in bins:
-            hists[name][("MR","Rsq")] = rt.TH2F(regionName+"MRRsq"+name, "R^{2} vs M_{R}", len(bins["MR"])-1, array('d',bins["MR"]), len(bins["Rsq"])-1, array('d',bins["Rsq"]))
-            if samples is not None and name in samples: 
-                for shape in shapeErrors:
-                    shapeHists[name][shape+"Down"][("MR","Rsq")] = hists[name][("MR","Rsq")].Clone(hists[name][("MR","Rsq")].GetName()+shape+"Down")
-                    shapeHists[name][shape+"Up"][("MR","Rsq")] = hists[name][("MR","Rsq")].Clone(hists[name][("MR","Rsq")].GetName()+shape+"Up")
-        #2D MR-Rsq 1L Inv histogram
-        if "MR_NoW" in bins and "Rsq_NoW" in bins:
-            hists[name][("MR_NoW","Rsq_NoW")] = rt.TH2F(regionName+"MR_NoWRsq_NoW"+name, "R^{2} vs M_{R}", len(bins["MR_NoW"])-1, array('d',bins["MR_NoW"]), len(bins["Rsq_NoW"])-1, array('d',bins["Rsq_NoW"]))
-            if samples is not None and name in samples: 
-                for shape in shapeErrors:
-                    shapeHists[name][shape+"Down"][("MR_NoW","Rsq_NoW")] = hists[name][("MR_NoW","Rsq_NoW")].Clone(hists[name][("MR_NoW","Rsq_NoW")].GetName()+shape+"Down")
-                    shapeHists[name][shape+"Up"][("MR_NoW","Rsq_NoW")] = hists[name][("MR_NoW","Rsq_NoW")].Clone(hists[name][("MR_NoW","Rsq_NoW")].GetName()+shape+"Up")
-        #2D MR-Rsq 2L Inv histogram
-        if "MR_NoZ" in bins and "Rsq_NoZ" in bins:
-            hists[name][("MR_NoZ","Rsq_NoZ")] = rt.TH2F(regionName+"MR_NoZRsq_NoZ"+name, "R^{2} vs M_{R}", len(bins["MR_NoZ"])-1, array('d',bins["MR_NoZ"]), len(bins["Rsq_NoZ"])-1, array('d',bins["Rsq_NoZ"]))
-            if samples is not None and name in samples: 
-                for shape in shapeErrors:
-                    shapeHists[name][shape+"Down"][("MR_NoZ","Rsq_NoZ")] = hists[name][("MR_NoZ","Rsq_NoZ")].Clone(hists[name][("MR_NoZ","Rsq_NoZ")].GetName()+shape+"Down")
-                    shapeHists[name][shape+"Up"][("MR_NoZ","Rsq_NoZ")] = hists[name][("MR_NoZ","Rsq_NoZ")].Clone(hists[name][("MR_NoZ","Rsq_NoZ")].GetName()+shape+"Up")
-        #2D MR-Rsq Photon Inv histogram
-        if "MR_NoPho" in bins and "Rsq_NoPho" in bins:
-            hists[name][("MR_NoPho","Rsq_NoPho")] = rt.TH2F(regionName+"MR_NoPhoRsq_NoPho"+name, "R^{2} vs M_{R}", len(bins["MR_NoPho"])-1, array('d',bins["MR_NoPho"]), len(bins["Rsq_NoPho"])-1, array('d',bins["Rsq_NoPho"]))
-            if samples is not None and name in samples: 
-                for shape in shapeErrors:
-                    shapeHists[name][shape+"Down"][("MR_NoPho","Rsq_NoPho")] = hists[name][("MR_NoPho","Rsq_NoPho")].Clone(hists[name][("MR_NoPho","Rsq_NoPho")].GetName()+shape+"Down")
-                    shapeHists[name][shape+"Up"][("MR_NoPho","Rsq_NoPho")] = hists[name][("MR_NoPho","Rsq_NoPho")].Clone(hists[name][("MR_NoPho","Rsq_NoPho")].GetName()+shape+"Up")
-
+            if isinstance(var, basestring): 
+                #1D histograms
+                if var in titles: title=titles[var]
+                else: title = var
+                hists[name][var] = rt.TH1F(regionName+var+name, title+';'+title+';', len(bins[var])-1, array('d',bins[var]))
+                #add up/down histograms for each systematic uncertainty
+                if samples is not None and name in samples:
+                    for shape in shapeErrors:
+                        if shape+"Down" not in shapeHists[name]: shapeHists[name][shape+"Down"] = {}
+                        if shape+"Up" not in shapeHists[name]: shapeHists[name][shape+"Up"] = {}
+                        shapeHists[name][shape+"Down"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Down")
+                        shapeHists[name][shape+"Up"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Up")
+            elif len(var) == 2: 
+                #2D histograms
+                title = [titles[v] if v in titles else v for v in var]
+                hists[name][var] = rt.TH2F(regionName+var[0]+var[1]+name, ';'+title[0]+';'+title[1], len(bins[var[0]])-1, array('d',bins[var[0]]), len(bins[var[1]])-1, array('d',bins[var[1]]))
+                if samples is not None and name in samples:
+                    for shape in shapeErrors:
+                        if shape+"Down" not in shapeHists[name]: shapeHists[name][shape+"Down"] = {}
+                        if shape+"Up" not in shapeHists[name]: shapeHists[name][shape+"Up"] = {}
+                        shapeHists[name][shape+"Down"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Down")
+                        shapeHists[name][shape+"Up"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Up")
+            elif len(var) == 3:
+                #3D histograms
+                title = [titles[v] if v in titles else v for v in var]
+                hists[name][var] = rt.TH3F(regionName+var[0]+var[1]+var[2]+name, ';'+title[0]+';'+title[1]+';'+title[2], len(bins[var[0]])-1, array('d',bins[var[0]]), len(bins[var[1]])-1, array('d',bins[var[1]]), len(bins[var[2]])-1, array('d',bins[var[2]]))
+                if samples is not None and name in samples:
+                    for shape in shapeErrors:
+                        if shape+"Down" not in shapeHists[name]: shapeHists[name][shape+"Down"] = {}
+                        if shape+"Up" not in shapeHists[name]: shapeHists[name][shape+"Up"] = {}
+                        shapeHists[name][shape+"Down"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Down")
+                        shapeHists[name][shape+"Up"][var] = hists[name][var].Clone(hists[name][var].GetName()+shape+"Up")
         for var in hists[name]: 
             hists[name][var].Sumw2()
             hists[name][var].SetDirectory(0)
@@ -124,7 +115,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                 if source.lower() == "mt":
                     applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special=""):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", vartitles={}):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -155,7 +146,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     plotFit = ("Fit" in histDict)
     for i,var in enumerate(varList): 
         #for MR and Rsq, make 2D plots
-        if ( var == ('MR','Rsq') or var == ('MR_NoW','Rsq_NoW') or var == ('MR_NoZ','Rsq_NoZ') or var == ('MR_NoPho','Rsq_NoPho')):
+        if not isinstance(var, basestring) and len(var) == 2: #2D plots
             mcDict = None 
             if len(mcNames) > 0:
                 mcDict = {} #for stacked unrolled plots
@@ -178,23 +169,33 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 blindHistograms([obsData], blindBins)
                 if nsigmaFitData is not None:
                     blindHistograms([nsigmaFitData], blindBins)
+            #get axis titles
+            if var[0] in vartitles:
+                xtitle = vartitles[var[0]]
+            else:
+                xtitle = var[0]
+            if var[1] in vartitles:
+                ytitle = vartitles[var[1]]
+            else:
+                ytitle = var[1]
+            print ">>>>>>>",xtitle,ytitle
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle='MR', ytitle='Rsq', printstr='Razor_'+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, printdir=printdir)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, printdir=printdir)
             #print prediction in each bin
             if obsData != 0:
-                print "Results for razor data histogram:"
+                print "Results for data histogram:"
                 for bx in range(1, obsData.GetNbinsX()+1):
                     for by in range(1,obsData.GetNbinsY()+1):
                         print bx,by,obsData.GetBinContent(bx,by),"+/-",obsData.GetBinError(bx,by)
                 print "\n"
             if mcPrediction != 0:
-                print "Results for razor MC histogram:"
+                print "Results for MC histogram:"
                 for bx in range(1, mcPrediction.GetNbinsX()+1):
                     for by in range(1,mcPrediction.GetNbinsY()+1):
                         print bx,by,mcPrediction.GetBinContent(bx,by),"+/-",mcPrediction.GetBinError(bx,by)
                 print "\n"
             if fitPrediction != 0:
-                print "Results for razor fit histogram:"
+                print "Results for fit histogram:"
                 for bx in range(1, fitPrediction.GetNbinsX()+1):
                     for by in range(1,fitPrediction.GetNbinsY()+1):
                         print bx,by,fitPrediction.GetBinContent(bx,by),"+/-",fitPrediction.GetBinError(bx,by)
@@ -234,10 +235,17 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             ymin = None
         else:
             ytitle = "Events"
-        if blindBins is None:
-            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+        #set x title
+        if var in titles:
+            xtitle = titles[var]
         else:
-            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=var, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+            xtitle = var
+        if var in ['NBJetsMedium','NJets80','NJets40']: logx = False
+        else: logx = True
+        if blindBins is None:
+            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+        else:
+            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
 
 def transformVarsInString(string, varNames, suffix):
     outstring = copy.copy(string)
@@ -265,7 +273,7 @@ def getAdditionalCuts(tree, errorOpt, process, debugLevel=0):
     """Implement here any event-by-event cuts that can't be handled with TTree::Draw"""
     pass
 
-def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, errorOpt=None, additionalCuts=None, debugLevel=0):
+def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, errorOpt=None, additionalCuts=None, formulas={}, debugLevel=0):
     """Fills each histogram with the corresponding variable in the tree.
     'hists' should be a dictionary of histograms, with keys being the variable names to fill.
     Ex: hists['MR'] should be the histogram you want to fill with MR values.
@@ -282,21 +290,25 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, err
         if isinstance(varName, basestring): #if varName is a string
             #transform variable name
             if errorOpt is not None: varName = transformVarString(tree, varName, errorOpt, debugLevel=debugLevel)
-            if debugLevel > 1: print "Filling",varName,"=",getattr(tree,varName),"with weight",weight
-            hist.Fill(getattr(tree, varName), weight)
+            if varName in formulas: #if TTreeFormula
+                varValue = formulas[varName].EvalInstance()
+            else: #if tree variable
+                varValue =  getattr(tree, varName)
+            hist.Fill(varValue, weight)
+            if debugLevel > 1: print "Filling",varName,"=",varValue,"with weight",weight
             if varName in sysErrSquaredHists: #for propagating systematic errors on the variables
                 sysErrSquared = weight*weight*sysErr*sysErr
-                sysErrSquaredHist[varName].Fill(getattr(tree, varName), sysErrSquared)
+                sysErrSquaredHist[varName].Fill(varValue, sysErrSquared)
                 if debugLevel > 1: print "Sys. Error =",sysErr,";Filling (w*sysErr)^2 histogram with",sysErrSquared
         else: #treat it as a tuple of variables that should be filled
             #transform each variable
             if errorOpt is not None: varName = tuple([transformVarString(tree, v, errorOpt, debugLevel=debugLevel) for v in varName])
-            toFill = [getattr(tree, v) for v in varName]+[weight]
+            toFill = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in varName]+[weight]
             if debugLevel > 1: print "Filling",varName,":",toFill
             hist.Fill(*toFill)
             if varName in sysErrSquaredHists:
                 sysErrSquared = weight*weight*sysErr*sysErr
-                toFillErr = [getattr(tree, v) for v in varName]+[sysErrSquared]
+                toFillErr = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in varName]+[sysErrSquared]
                 sysErrSquaredHists[varName].Fill(*toFillErr)
                 if debugLevel > 1: print "Sys. Error =",sysErr,";Filling (w*sysErr)^2 histogram with",sysErrSquared
 
@@ -313,9 +325,9 @@ def makeTreeDict(fileDict, treeName, debugLevel=0):
         print trees
     return trees
 
-def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), debugLevel=0):
+def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debugLevel=0):
     #get variables
-    var = [getattr(tree, v) for v in sfVars]
+    var = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in sfVars]
     #constrain variables to be within the bounds of the histogram
     var[0] = min(var[0], sfHist.GetXaxis().GetXmax()*0.999)
     var[0] = max(var[0], sfHist.GetXaxis().GetXmin()*1.001)
@@ -348,6 +360,12 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
     if debugLevel > 0: print ("Cuts: "+cuts)
+    #make TTreeFormulas for variables not found in the tree
+    formulas = {}
+    for var in hists:
+        if isinstance(var, basestring) and not hasattr(tree, var): #if it's not in the tree
+            formulas[var] = rt.TTreeFormula(var, var, tree)
+            formulas[var].GetNdata()
     #transform cuts 
     if errorOpt is not None:
         if debugLevel > 0: print "Error option is:",errorOpt
@@ -377,9 +395,9 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #additional cuts according to systematic
         err = 0.0
         if sfHist is not None: 
-            sf, err = getScaleFactorAndError(tree, sfHist, sfVars, debugLevel)
+            sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel)
             w *= sf
-        fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, debugLevel)
+        fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
         sumweight += w
         count += 1
     #propagate systematics to each histogram

@@ -280,7 +280,7 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq")):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -351,14 +351,14 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
 
     print("\nMC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in shapeErrors:
         print "\n"+shape,"Up:"
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Up", boxName=boxName, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, debugLevel=debugLevel)
         print "\n"+shape,"Down:"
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Down", boxName=boxName, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
@@ -387,7 +387,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity, special=special)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity, special=special, vartitles=titles)
 
     #close files and return
     for f in files: files[f].Close()
@@ -476,40 +476,41 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
 
     #plot scale factors in 2D
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
-    plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+    if len(var) == 2: 
+        plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
-    if printTable:
-        xbinLowEdges = []
-        xbinUpEdges = []
-        ybinLowEdges = []
-        ybinUpEdges = []
-        sysUncerts = {mcProcess:[] for mcProcess in bgProcesses}
-        statUncerts = []
-        sfs = []
-        #for each bin, get values for all table columns
-        for bx in range(1, sfHists[process].GetNbinsX()+1):
-            for by in range(1, sfHists[process].GetNbinsY()+1):
-                xbinLowEdges.append('%.0f' % (sfHists[process].GetXaxis().GetBinLowEdge(bx)))
-                xbinUpEdges.append('%.0f' % (sfHists[process].GetXaxis().GetBinUpEdge(bx)))
-                ybinLowEdges.append(str(sfHists[process].GetYaxis().GetBinLowEdge(by)))
-                ybinUpEdges.append(str(sfHists[process].GetYaxis().GetBinUpEdge(by)))
-                scaleFactor = sfHists[process].GetBinContent(bx,by)
-                sfs.append('%.3f' % (scaleFactor))
-                if scaleFactor > 0:
-                    statUncerts.append('%.1f\\%%' % (100*(sfHists[process].GetBinError(bx,by)/scaleFactor)))
-                else: 
-                    statUncerts.append('--')
-                for mcProcess in bgProcesses: 
-                    dataYield = hists[dataName][var].GetBinContent(bx,by)
-                    if dataYield > 0 and scaleFactor > 0:
-                        sysUncerts[mcProcess].append('%.1f\\%%' % (100*abs(hists[mcProcess][var].GetBinContent(bx,by)*normErrFraction*1.0/dataYield/scaleFactor)))
+        if printTable:
+            xbinLowEdges = []
+            xbinUpEdges = []
+            ybinLowEdges = []
+            ybinUpEdges = []
+            sysUncerts = {mcProcess:[] for mcProcess in bgProcesses}
+            statUncerts = []
+            sfs = []
+            #for each bin, get values for all table columns
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                for by in range(1, sfHists[process].GetNbinsY()+1):
+                    xbinLowEdges.append('%.0f' % (sfHists[process].GetXaxis().GetBinLowEdge(bx)))
+                    xbinUpEdges.append('%.0f' % (sfHists[process].GetXaxis().GetBinUpEdge(bx)))
+                    ybinLowEdges.append(str(sfHists[process].GetYaxis().GetBinLowEdge(by)))
+                    ybinUpEdges.append(str(sfHists[process].GetYaxis().GetBinUpEdge(by)))
+                    scaleFactor = sfHists[process].GetBinContent(bx,by)
+                    sfs.append('%.3f' % (scaleFactor))
+                    if scaleFactor > 0:
+                        statUncerts.append('%.1f\\%%' % (100*(sfHists[process].GetBinError(bx,by)/scaleFactor)))
                     else: 
-                        sysUncerts[mcProcess].append('--')
-        xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
-        yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
-        headers=[var[0], var[1], "Scale factor", "Stat.\\ unc."]
-        cols = [xRanges, yRanges, sfs, statUncerts]
-        for mcProcess in bgProcesses: 
-            headers.extend(["Unc.\\ from "+mcProcess])
-            cols.extend([sysUncerts[mcProcess]])
-        plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
+                        statUncerts.append('--')
+                    for mcProcess in bgProcesses: 
+                        dataYield = hists[dataName][var].GetBinContent(bx,by)
+                        if dataYield > 0 and scaleFactor > 0:
+                            sysUncerts[mcProcess].append('%.1f\\%%' % (100*abs(hists[mcProcess][var].GetBinContent(bx,by)*normErrFraction*1.0/dataYield/scaleFactor)))
+                        else: 
+                            sysUncerts[mcProcess].append('--')
+            xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
+            yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
+            headers=[var[0], var[1], "Scale factor", "Stat.\\ unc."]
+            cols = [xRanges, yRanges, sfs, statUncerts]
+            for mcProcess in bgProcesses: 
+                headers.extend(["Unc.\\ from "+mcProcess])
+                cols.extend([sysUncerts[mcProcess]])
+            plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)

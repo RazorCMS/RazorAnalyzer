@@ -178,13 +178,12 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         #make total MC histogram
         histList = mc.GetHists()
         mcTotal = histList.First().Clone()
-        mcTotal.SetStats(0)
         mcTotal.SetTitle("")
+        mcTotal.SetStats(0)
         mcTotal.Reset()
         for h in histList:
             mcTotal.Add(h)
         mcTotal.SetFillColor(mcErrColor)
-        mcTotal.SetTitle("")
         mcTotal.GetYaxis().SetTitle(ytitle)
         mcTotal.GetYaxis().SetLabelSize(0.03)
         if logy: mcTotal.GetXaxis().SetMoreLogLabels()
@@ -197,6 +196,9 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         if data and data.GetMaximum() > mcTotal.GetMaximum() and ymax is None: 
             mcTotal.SetMaximum(data.GetMaximum())
         mc.Draw("hist")
+        mc.GetYaxis().SetTitle(ytitle)
+        mc.GetYaxis().SetTitleOffset(0.50)
+        mc.GetYaxis().SetTitleSize(0.05)
         mcTotal.SetFillStyle(3001)
         mcTotal.Draw("e2same")
     #draw fit
@@ -300,6 +302,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
                 dataWithMCStyle.SetBinContent(bx, data.GetBinContent(bx))
                 dataWithMCStyle.SetBinError(bx, data.GetBinError(bx))
             lowerPadHist2 = make1DRatioHistogram(dataWithMCStyle, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreNumeratorErrs=True)
+            lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
             for bx in range(1, lowerPadHist2.GetNbinsX()+1):
                 lowerPadHist2.SetBinContent(bx,1)
             lowerPadHist2.SetFillStyle(3001)
