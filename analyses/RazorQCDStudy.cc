@@ -82,8 +82,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
     UInt_t                  NPU_Plus1;
     UInt_t                  NPV;
     Float_t                 Rho;
-    //Bool_t                  HLTDecision[150];
-    //Int_t                   HLTPrescale[150];
+    Bool_t                  hltDecision[150];
+    Int_t                   hltPrescale[150];
     Float_t                 MR;
     Float_t                 Rsq;
     Float_t                 minDPhi;
@@ -110,7 +110,12 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
     int nVetoMuons, nVetoElectrons, nLooseTaus;
     float leadingJetPt, subLeadingJetPt;
     float leadingTightMuPt, leadingTightElePt;
+    float leadingMuPt, leadingElePt;
     float zPt, zEta, zPhi, zMass;
+    bool passedDileptonTrigger;
+    bool passedSingleLeptonTrigger;
+    bool passedHadronicTrigger;
+    bool passedDijetTrigger;
     float JetE[99];
     float JetPt[99];
     float JetEta[99];
@@ -141,8 +146,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
     outTree->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
     outTree->Branch("NPV",&NPV,"NPV/i");
     outTree->Branch("Rho",&Rho,"Rho/F");
-    //outTree->Branch("HLTDecision",&HLTDecision,"HLTDecision[150]/O");
-    //outTree->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[150]/I");
+    outTree->Branch("HLTDecision",&hltDecision,"HLTDecision[150]/O");
+    outTree->Branch("HLTPrescale",&hltPrescale,"HLTPrescale[150]/I");
     outTree->Branch("MR",&MR,"MR/F");
     outTree->Branch("Rsq",&Rsq,"Rsq/F");
     outTree->Branch("minDPhi",&minDPhi,"minDPhi/F"); 
@@ -160,6 +165,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
     outTree->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
     outTree->Branch("leadingJetPt",&leadingJetPt,"leadingJetPt/F");
     outTree->Branch("subLeadingJetPt",&subLeadingJetPt,"subLeadingJetPt/F");
+    outTree->Branch("leadingMuPt",&leadingMuPt,"leadingMuPt/F");
+    outTree->Branch("leadingElePt",&leadingElePt,"leadingElePt/F");
     outTree->Branch("genJetMR",&genJetMR,"genJetMR/F");
     outTree->Branch("genJetRsq",&genJetRsq,"genJetRsq/F");
     outTree->Branch("genJetDPhiRazor",&genJetDPhiRazor,"genJetDPhiRazor/F");
@@ -182,6 +189,10 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
     outTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X,"Flag_trkPOG_toomanystripclus53X/O");
     outTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters,"Flag_trkPOG_logErrorTooManyClusters/O");
     outTree->Branch("Flag_METFilters", &Flag_METFilters,"Flag_METFilters/O");	
+    outTree->Branch("passedDileptonTrigger", &passedDileptonTrigger,"passedDileptonTrigger/O");	
+    outTree->Branch("passedSingleLeptonTrigger", &passedSingleLeptonTrigger,"passedSingleLeptonTrigger/O");	
+    outTree->Branch("passedHadronicTrigger", &passedHadronicTrigger,"passedHadronicTrigger/O");	
+    outTree->Branch("passedDijetTrigger", &passedDijetTrigger,"passedDijetTrigger/O");	
     outTree->Branch("nJets", &NJets,"nJets/I");
     outTree->Branch("box", &box, "box/I");
     outTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
@@ -253,6 +264,8 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       subLeadingJetPt = -1;
       leadingTightMuPt = -1;
       leadingTightElePt = -1;
+      leadingMuPt = -1;
+      leadingElePt = -1;
       zPt=-1;
       zEta=-1; 
       zPhi=-1;
@@ -281,12 +294,11 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       puWeight = 1;
       if (!isData) puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU_0));
 
-      bool passedDileptonTrigger = false;
-      bool passedSingleLeptonTrigger = false;
-      //bool passedLeptonicTrigger = false;
-      bool passedHadronicTrigger= false;
-      bool passedDijetTrigger= false;
-
+      passedDileptonTrigger = false;
+      passedSingleLeptonTrigger = false;
+      passedHadronicTrigger= false;
+      passedDijetTrigger= false;
+      
       if (isData) {
 	passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
 				      || HLTDecision[30] || HLTDecision[31] 
@@ -326,6 +338,20 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       TLorentzVector ele1, ele2; //used for Z control region
       mu1.SetPtEtaPhiM(0,0,0,0); mu2.SetPtEtaPhiM(0,0,0,0);
       ele1.SetPtEtaPhiM(0,0,0,0); ele2.SetPtEtaPhiM(0,0,0,0);
+
+      for(int i=0; i<nMuons; i++) {
+	if (muonPt[i] < 20 || abs(muonEta[i])>2.4) continue;
+        TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
+	if(!isVetoMuon(i)) continue;
+
+	if (muonPt[i]>mu1.Pt()) {
+          mu2=mu1;
+          mu1=thisMuon;
+          leadingMuPt=muonPt[i];
+        }
+        else if (muonPt[i]>mu2.Pt()) mu2=thisMuon;
+      }
+
       for(int i = 0; i < nMuons; i++){
 
         if(muonPt[i] < 5) continue;
@@ -349,48 +375,29 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
         }
 
         if(!isVetoMuon(i)) continue;  
+	if (thisMuon==mu1||thisMuon==mu2) continue;
         GoodLeptons.push_back(thisMuon); 
-
-	if (muonPt[i]>mu1.Pt()) {
-	  mu2=mu1;
-	  mu1=thisMuon;
-	}
-	else if (muonPt[i]>mu2.Pt()) mu2=thisMuon;
-
       }
+
+      for(int i=0; i<nElectrons; i++) {
+	if(elePt[i]<25 || abs(eleEta[i])>2.5) continue;
+	TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+	if(!isVetoElectron(i)) continue;
+	if (elePt[i]>ele1.Pt()) {
+          ele2=ele1;
+          ele1=thisElectron;
+          leadingElePt=elePt[i];
+        }
+	else if (elePt[i]>ele2.Pt()) ele2=thisElectron;
+      }
+
       for(int i = 0; i < nElectrons; i++){
         if(elePt[i] < 5) continue;
         if(fabs(eleEta[i]) > 2.5) continue;
 
-        if (RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i])) {
+        //if (RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i])) {
 	  //No Efficiency Scale Factors for Run2 Yet
-
-	  //   double effLoose = getElectronEfficiency("loose",elePt[i],eleEta[i]);  
-	  //   double effLooseSF = eleLooseEffSFHist->GetBinContent( eleLooseEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
-	  // eleLooseEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
-	  //   double tmpLooseSF = 1.0;
-	  //   if( isLooseElectron(i) ) {
-	  //     tmpLooseSF = effLooseSF;
-	  //   } else {
-	  //     tmpLooseSF = ( 1/effLoose - effLooseSF) / ( 1/effLoose - 1);
-	  //   }
-
-	  //   if (tmpLooseSF != tmpLooseSF) cout << tmpLooseSF << " " << effLoose << " " << effLooseSF << "\n";
-
-	  //   double effTight = getElectronEfficiency("tight",elePt[i],eleEta[i]);  
-	  //   double effTightSF = eleTightEffSFHist->GetBinContent( eleTightEffSFHist->GetXaxis()->FindFixBin(fabs(eleEta[i])) , 
-	  // eleTightEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)));
-	  //   double tmpTightSF = 1.0;
-	  //   if( isTightElectron(i) ) {
-	  //     tmpTightSF = effTightSF;
-	  //   } else {
-	  //     tmpTightSF = ( 1/effTight - effTightSF) / ( 1/effTight - 1);
-	  //   }
-	  //   if (tmpTightSF != tmpTightSF) cout << tmpTightSF << " " << effTight << " " << effTightSF << "\n";
-
-	  //   lepEffCorrFactor *= tmpLooseSF;
-	  //   lepEffCorrFactor *= tmpTightSF;
-        }
+	//}
 
         TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
 
@@ -412,14 +419,25 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
         if(overlap) continue;
 
         if(!isVetoElectron(i)) continue; 
+	if(thisElectron==ele1||thisElectron==ele2) continue;
         GoodLeptons.push_back(thisElectron);            
+      }
 
-	if (elePt[i]>ele1.Pt()) {
-	  ele2=ele1;
-	  ele1=thisElectron;
-	}
-	else if (elePt[i]>ele2.Pt()) ele2=thisElectron;
+      TLorentzVector z; z.SetPtEtaPhiM(0,100,0,0);
+      if (mu1.Pt()>20 && mu2.Pt()>20) z=mu1+mu2;
+      else if (ele1.Pt()>25 && ele2.Pt()>25) z=ele1+ele2;
 
+      zPt=z.Pt();
+      zEta=z.Eta();
+      zPhi=z.Phi();
+      zMass=z.M();
+
+      if(zMass<60 || zMass>120) {
+	z.SetPtEtaPhiM(0,100,0,0);
+	if (mu1.Pt()>0) GoodLeptons.push_back(mu1);
+	if (mu2.Pt()>0) GoodLeptons.push_back(mu2);
+	if (ele1.Pt()>0) GoodLeptons.push_back(ele1);
+	if (ele2.Pt()>0) GoodLeptons.push_back(ele2);
       }
 
       //******************************
@@ -632,6 +650,7 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       vector<TLorentzVector> GoodPFObjects;
       for(auto& jet : GoodJets) GoodPFObjects.push_back(jet);
       for(auto& lep : GoodLeptons) GoodPFObjects.push_back(lep);
+      if (z.Eta()!=100) GoodPFObjects.push_back(z);
 
       double PFMetCustomType1CorrectedX = metPt*cos(metPhi) + MetX_Type1Corr;
       double PFMetCustomType1CorrectedY = metPt*sin(metPhi) + MetY_Type1Corr;
@@ -711,10 +730,12 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       //*************************************************************************
       //save HLT Decisions
       //*************************************************************************
-      //for(int k=0; k<200; ++k) {
-      //	HLTDecision[k] = HLTDecision[k];
-      //	HLTPrescale[k] = HLTPrescale[k];
-      //}
+      for(int k=0; k<150; ++k) {
+      	hltDecision[k] = HLTDecision[k];
+	hltPrescale[k] = HLTPrescale[k];
+      }
+
+      //if (HLTDecision[106]) cout << jentry << ", " << hltDecision[106] << endl;
       
       //*************************************************************************
       //Skimming
@@ -729,177 +750,38 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       //*************************************************************************
       //Fill Tree
       //*************************************************************************
-      bool combineTrees=true;
+      //bool combineTrees=true;
       
-      //MuEle Box
-      //if(passedDileptonTrigger && nTightElectrons > 0 && nLooseMuons > 0 ){
-      //	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-      //	  if(combineTrees){
-      //	    box = MuEle;
-      //	    //cout << jentry << ", " << box << endl;
-      //	    //outTree->Fill();
-      //	  }
-      //	  //else razorBoxes["MuEle"]->Fill();
-      //	}
-      //}
       //MuMu Box
-      if(passedDileptonTrigger && nTightMuons > 0 && nLooseMuons > 1 && NJets40 > 0 ){
+      if((passedDileptonTrigger||passedSingleLeptonTrigger) && nTightMuons > 0 && nLooseMuons > 1 && NJets40 > 0 ){
 	box = MuMu;
-	TLorentzVector z=mu1+mu2;
-	zPt=z.Pt();
-	zEta=z.Eta();
-	zPhi=z.Phi();
-	zMass=z.M();
 	if (zMass<60 || zMass>120) continue;
       }
       //EleEle Box
-      else if(passedDileptonTrigger && nTightElectrons > 0 && nLooseElectrons > 1 && NJets40 > 0 ){
+      else if((passedDileptonTrigger||passedSingleLeptonTrigger) && nTightElectrons > 0 && nLooseElectrons > 1 && NJets40 > 0 ){
 	box = EleEle;
-	TLorentzVector z=ele1+ele2;
-	zPt=z.Pt();
-	zEta=z.Eta();
-	zPhi=z.Phi();
-	zMass=z.M();
 	if (zMass<60 || zMass>120) continue;
       }
-      //MuSixJet Box
-      else if(passedSingleLeptonTrigger && nTightMuons > 0 && NJets40 > 5){
-      	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-	  box = MuSixJet;
-      	}     
+      else if (nVetoMuons>0 || nVetoElectrons>0) {
+	continue;
       }
-      //MuFourJet Box
-      else if(passedSingleLeptonTrigger && nTightMuons > 0 && NJets40 > 3){
-      	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-      	  if(combineTrees){
-      	    box = MuFourJet;
-      	    //outTree->Fill();
-      	    //cout << jentry << ", " << box << endl;
-      	  }
-      	  //else razorBoxes["MuFourJet"]->Fill();
-      	}     
-      }
-      //MuJet Box
-      else if(passedSingleLeptonTrigger && nTightMuons > 0 ){
-	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = MuJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["MuJet"]->Fill();
-	}     
-      }
-      //EleSixJet Box
-      else if(passedSingleLeptonTrigger && nTightElectrons > 0 && NJets40 > 5 ) {
-	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = EleSixJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["EleSixJet"]->Fill();
-	}     
-      }
-      //EleMultiJet Box
-      else if(passedSingleLeptonTrigger && nTightElectrons > 0 && NJets40 > 3 ){
-	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = EleFourJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["EleFourJet"]->Fill();
-	}     
-      }
-      //EleJet Box
-      else if(passedSingleLeptonTrigger && nTightElectrons > 0 ){
-	if(passesLeptonicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = EleJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["EleJet"]->Fill();
-	}     
-      }
-      //Soft Lepton + SixJet Box
-      else if(passedHadronicTrigger && NJets80 >= 2 && nLooseTaus + nVetoElectrons + nVetoMuons > 0 && NJets40 > 5){
-	if(passesHadronicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = LooseLeptonSixJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["LooseLeptonSixJet"]->Fill();
-	}     
-      }
-      //Soft Lepton + FourJet Box
-      else if(passedHadronicTrigger && NJets80 >= 2 && nLooseTaus + nVetoElectrons + nVetoMuons > 0 && NJets40 > 3){
-	if(passesHadronicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = LooseLeptonFourJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["LooseLeptonFourJet"]->Fill();
-	}     
-      }
-      //SixJet Box
-      else if(passedHadronicTrigger && NJets80 >= 2 && NJets40 > 5){
-	if(passesHadronicRazorBaseline(MR, Rsq)){ 
-	  if(combineTrees){
-	    box = SixJet;
-	    //outTree->Fill();
-	    //cout << jentry << ", " << box << endl;
-	  }
-	  //else razorBoxes["SixJet"]->Fill();
-	}
-      }
-      //MultiJet Box                                                                                                                                                       
+      //MultiJet Box                                
       else if(passedHadronicTrigger && NJets80 >= 2 && NJets40 > 3){
-        if(passesHadronicRazorBaseline(MR, Rsq)){
-	  if(combineTrees){
-	    box = FourJet;
-	    //cout << jentry << ", " << box << endl;                                                                                                                 
-	    //outTree->Fill();
-	  }
-	  //else razorBoxes["FourJet"]->Fill();
-        }
+	box = FourJet;
       }
-      //Loose Lepton + DiJet Box                                                                                                                                           
-      else if(passedHadronicTrigger && NJets80 >= 2 && nLooseTaus + nVetoElectrons + nVetoMuons > 0){
-        if(passesHadronicRazorBaseline(MR, Rsq)){
-	  if(combineTrees){
-	    box = LooseLeptonDiJet;
-	    //cout << jentry << ", " << box << endl;                                                                                                                 
-	    //outTree->Fill();
-	  }
-	  //else razorBoxes["LooseLeptonDiJet"]->Fill();
-        }
-      } else if (passedHadronicTrigger && NJets80 >= 2 ) {
-        if(passesHadronicRazorBaseline(MR, Rsq)){
-	  if(combineTrees){
-	    box = DiJet;
-	    //cout << jentry << ", " << box << endl;                                                                                                                 
-	    //outTree->Fill();
-	  }
-	  //else razorBoxes["DiJet"]->Fill();
-        }
-      } else if (passedDijetTrigger) {
-	if (isData) {	
-	  vector<Float_t> prescales;
-	  //cout << "----" << endl;
-	  //for (Int_t nHLT=105; nHLT<115; nHLT++) {
-	    //cout << HLTDecision[nHLT]*HLTPrescale[nHLT] << ", ";
-	    //if (HLTDecision[nHLT]==kTRUE) { prescales.push_back(HLTPrescale[nHLT]); }
-	  //}
-	  //weight*= (*std::min_element(prescales.begin(), prescales.end()));
-	  //cout << endl << weight << endl;
-	}
-	box = 100;
+      else if (NJets40>1 && nVetoElectrons==0 && nVetoMuons==0) {
+      	//if (isData) {	
+	//vector<Float_t> prescales;
+	//cout << "----" << endl;
+	//for (Int_t nHLT=105; nHLT<115; nHLT++) {
+	//cout << HLTDecision[nHLT]*HLTPrescale[nHLT] << ", ";
+	//if (HLTDecision[nHLT]==kTRUE) { prescales.push_back(HLTPrescale[nHLT]); }
+	//}
+	//weight*=HLTPrescale[105]; //(*std::min_element(prescales.begin(), prescales.end()));
+      	//}
+      	box = 100;
       }
-      if (box==0) continue;
+      if (!(box==MuMu||box==EleEle||box==FourJet||box==100)) continue;
       outTree->Fill();
       
     }
