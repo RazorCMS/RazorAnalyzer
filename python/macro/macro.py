@@ -81,7 +81,8 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
 
 def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors=[], boxName="", debugLevel=0):
     """For each bin of the central histogram, add the appropriate uncertainties in quadrature with the statistical uncertainty.
-    List of arguments is similar to razorMacros.makeControlSampleHists"""
+    List of arguments is similar to razorMacros.makeControlSampleHists
+    NOTE: not set up for 2D or 3D histograms yet!"""
 
     for name in samples:
         for var in bins:
@@ -178,7 +179,6 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 ytitle = vartitles[var[1]]
             else:
                 ytitle = var[1]
-            print ">>>>>>>",xtitle,ytitle
             #make plots
             plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, printdir=printdir)
             #print prediction in each bin
@@ -236,8 +236,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         else:
             ytitle = "Events"
         #set x title
-        if var in titles:
-            xtitle = titles[var]
+        if var in vartitles:
+            xtitle = vartitles[var]
         else:
             xtitle = var
         if var in ['NBJetsMedium','NJets80','NJets40']: logx = False
@@ -374,13 +374,13 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     tree.Draw('>>elist', cuts, 'entrylist')
     elist = rt.gDirectory.Get('elist')
     print "Total entries passing cuts:",elist.GetN()
-    #create histograms for systematics
+    #create histograms for scale factor systematics
     sysErrSquaredHists = {}
     for name in hists: 
         if name == sysVars:
-            sysErrSquaredHists[name] = hists[name].Clone(hists[name].GetName()+"ERRORS")
+            sysErrSquaredHists[name] = hists[name].Clone(hists[name].GetName()+"SFERRORS")
             sysErrSquaredHists[name].Reset()
-            if debugLevel > 0: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold",name,"systematic errors"
+            if debugLevel > 0: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold systematic errors from",name,"scale factors"
     count = 0
     sumweight = 0.0
     while True:
@@ -392,7 +392,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         elif debugLevel > 1: print "Processing entry",count
         tree.GetEntry(entry)
         w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
-        additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #additional cuts according to systematic
+        additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #currently does nothing
         err = 0.0
         if sfHist is not None: 
             sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel)

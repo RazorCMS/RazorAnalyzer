@@ -1,5 +1,6 @@
 import sys
 import argparse
+import copy
 import ROOT as rt
 
 #local imports
@@ -59,7 +60,7 @@ PREFIX_VetoTau = "RunTwoRazorControlRegions_VetoTauFull_RazorSkim"
 FILENAMES_VetoTau = {
             "TTJets"   : DIR_VetoTau+"/"+PREFIX_VetoTau+"_TTJets_1pb_weighted.root",
             "WJets"    : DIR_VetoTau+"/"+PREFIX_VetoTau+"_WJetsToLNu_HTBinned_1pb_weighted.root",
-            "SingleTop": DIR_VetoTau+"/"+PREFIX_VetoTau+"_SingleTop_1pb_weighted_RazorSkim.root",
+            "SingleTop": DIR_VetoTau+"/"+PREFIX_VetoTau+"_SingleTop_1pb_weighted.root",
             "DYJets"   : DIR_VetoTau+"/"+PREFIX_VetoTau+"_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted.root",
             "QCD"      : DIR_VetoTau+"/"+PREFIX_VetoTau+"_QCD_HTBinned_1pb_weighted.root",
             "ZInv"     : DIR_VetoTau+"/"+PREFIX_VetoTau+"_ZJetsToNuNu_HTBinned_1pb_weighted.root",            
@@ -76,15 +77,15 @@ config = "config/run2_20151229_ControlRegion.config"
 cfg = Config.Config(config)
 VetoLeptonBinsMRLep = cfg.getBinning("VetoLeptonControlRegion")[0]
 VetoLeptonBinsRsqLep = cfg.getBinning("VetoLeptonControlRegion")[1]
-VetoLeptonControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep }
+VetoLeptonControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep, ("MR","Rsq"):[]}
+VetoTauControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep, ("MR","Rsq"):[]}
 TTJetsDileptonBinsMRLep = cfg.getBinning("TTJetsDileptonControlRegion")[0]
 TTJetsDileptonBinsRsqLep = cfg.getBinning("TTJetsDileptonControlRegion")[1]
-TTJetsDileptonBinsNBTags = cfg.getBinning("TTJetsDileptonControlRegion")[2]
-TTJetsDileptonBinsNJets80 = cfg.getBinning("TTJetsDileptonControlRegion")[3]
-TTJetsDileptonBinsNJets = cfg.getBinning("TTJetsDileptonControlRegion")[4]
-TTJetsDileptonBinsLep2Pt = cfg.getBinning("TTJetsDileptonControlRegion")[5]
-TTJetsDileptonBinsLep2Eta = cfg.getBinning("TTJetsDileptonControlRegion")[6]
-TTJetsDileptonControlRegionBinning = { "MR":TTJetsDileptonBinsMRLep, "Rsq":TTJetsDileptonBinsRsqLep, "NBJetsMedium":TTJetsDileptonBinsNBTags, "NJets80":TTJetsDileptonBinsNJets80, "NJets40":TTJetsDileptonBinsNJets }
+TTJetsDileptonBinsNBTags = [0.,1.,2.,3.,4.]
+TTJetsDileptonBinsNJets80 = [0.,1.,2.,3.,4.]
+TTJetsDileptonBinsNJets = [0.,1.,2.,3.,4.,5.,6.,7.]
+TTJetsDileptonBinsLepPt = [20.,25.,30.,35.,40.,45.,50.,70.,100]
+TTJetsDileptonControlRegionBinning = { "MR":TTJetsDileptonBinsMRLep, "Rsq":TTJetsDileptonBinsRsqLep, "NBJetsMedium":TTJetsDileptonBinsNBTags, "NJets80":TTJetsDileptonBinsNJets80, "NJets40":TTJetsDileptonBinsNJets, ("MR","Rsq"):[]}
 
 printdir="CrossCheckRegionPlots"
 
@@ -101,24 +102,34 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
 
     #initialize
-    #weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
     weightHists = {}
     sfHists = {}
 
     #make output directory
     os.system('mkdir -p '+printdir)
 
-    sfHists = loadScaleFactorHists(sfFilename="/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_VetoLepton, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_VetoLepton, debugLevel=debugLevel)
+    sfVars = ("MR","Rsq")
 
 
     #TTJets dilepton control sample
-    ttjetsDileptonHists = makeControlSampleHists("TTJetsDilepton", 
-                filenames=FILENAMES_2L, samples=SAMPLES_TTJ2L, 
-                cutsMC=ttjetsDileptonCutsMC, cutsData=ttjetsDileptonCutsData, 
-                bins=TTJetsDileptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir=printdir, debugLevel=debugLevel)
+    #ttjetsDileptonHists = makeControlSampleHists("TTJetsDilepton", 
+    #            filenames=FILENAMES_2L, samples=SAMPLES_TTJ2L, 
+    #            cutsMC=ttjetsDileptonCutsMC, cutsData=ttjetsDileptonCutsData, 
+    #            bins=TTJetsDileptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+    #            printdir=printdir, debugLevel=debugLevel)
 
+    ##Record discrepancies > 1 sigma
+    #tmpSFHists = copy.copy(sfHists)
+    #del tmpSFHists["TTJets"]
+    #appendScaleFactors("TTJets", ttjetsDileptonHists, tmpSFHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, printdir=printdir)
+
+    ##write TTJets cross check scale factors
+    #ttjetsDileptonOutfile = rt.TFile("RazorTTJetsDileptonCrossCheck.root", "RECREATE")
+    #print "Writing histogram",tmpSFHists["TTJets"].GetName(),"to file"
+    #tmpSFHists["TTJets"].Write("TTJetsDileptonCrossCheckScaleFactors")
+    #ttjetsDileptonOutfile.Close()
 
     #Veto Lepton cross-check region
     vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
@@ -127,15 +138,30 @@ if __name__ == "__main__":
                 bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, debugLevel=debugLevel)
-   
-    # #Veto Tau cross-check region
-    # vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
-    #              filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
-    #              cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
-    #              bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #              weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-    #              printdir=printdir, debugLevel=debugLevel)
-   
 
+    #Record discrepancies > 1 sigma
+    vetoLeptonSFs = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Lepton", printdir=printdir)
 
-  
+    #write veto lepton scale factors
+    vetoLeptonOutfile = rt.TFile("RazorVetoLeptonCrossCheck.root", "RECREATE")
+    print "Writing histogram",vetoLeptonSFs.GetName(),"to file"
+    vetoLeptonSFs.Write("VetoLeptonScaleFactors")
+    vetoLeptonOutfile.Close()
+
+   
+    ##Veto Tau cross-check region
+    #vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
+    #             filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
+    #             cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
+    #             bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #             weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+    #             printdir=printdir, debugLevel=debugLevel)
+
+    ##Record discrepancies > 1 sigma
+    #vetoTauSFs = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Tau", printdir=printdir)
+
+    ##write veto tau correction factors
+    #vetoTauOutfile = rt.TFile("RazorVetoTauCrossCheck.root", "RECREATE")
+    #print "Writing histogram",vetoTauSFs.GetName(),"to file"
+    #vetoTauSFs.Write("VetoTauScaleFactors")
+    #vetoTauOutfile.Close()

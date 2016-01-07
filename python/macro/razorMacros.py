@@ -397,7 +397,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
 #######################################
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, debugLevel=0, printdir="."):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, signifThreshold=0., debugLevel=0, printdir="."):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to uncertainty on the background normalization (controlled by the normErrFraction argument).
     
@@ -405,6 +405,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     hists: dictionary of data and MC histograms like that produced by the macro.loopTrees function
     sfHists: dictionary of existing scale factor histograms. the new scale factor histograms will be inserted into this dictionary.
     var: variable or tuple of variables in which scale factors should be computed (usually ("MR","Rsq") is used)
+    signifThreshold: scale factors that are within N sigma of 1.0, where N=signifThreshold, are set to 1.
     """
 
     ##Sanity checks
@@ -464,19 +465,60 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     sfHists[process+"NormDown"].Divide(hists[process][var])
 
     #zero any negative scale factors
-    for bx in range(1, sfHists[process].GetNbinsX()+1):
-        for by in range(1, sfHists[process].GetNbinsY()+1):
-            sfHists[process].SetBinContent(bx,by,max(0., sfHists[process].GetBinContent(bx,by)))
-            sfHists[process+"NormUp"].SetBinContent(bx,by,max(0., sfHists[process+"NormUp"].GetBinContent(bx,by)))
-            sfHists[process+"NormDown"].SetBinContent(bx,by,max(0., sfHists[process+"NormDown"].GetBinContent(bx,by)))
+    if isinstance(var, basestring) or len(var) == 1: #1D
+        for bx in range(1, sfHists[process].GetNbinsX()+1):
+            sfHists[process].SetBinContent(bx,max(0., sfHists[process].GetBinContent(bx)))
+            sfHists[process+"NormUp"].SetBinContent(bx,max(0., sfHists[process+"NormUp"].GetBinContent(bx)))
+            sfHists[process+"NormDown"].SetBinContent(bx,max(0., sfHists[process+"NormDown"].GetBinContent(bx)))
+    elif len(var) == 2: #2D
+        for bx in range(1, sfHists[process].GetNbinsX()+1):
+            for by in range(1, sfHists[process].GetNbinsY()+1):
+                sfHists[process].SetBinContent(bx,by,max(0., sfHists[process].GetBinContent(bx,by)))
+                sfHists[process+"NormUp"].SetBinContent(bx,by,max(0., sfHists[process+"NormUp"].GetBinContent(bx,by)))
+                sfHists[process+"NormDown"].SetBinContent(bx,by,max(0., sfHists[process+"NormDown"].GetBinContent(bx,by)))
+    elif len(var) == 3: #3D
+        for bx in range(1, sfHists[process].GetNbinsX()+1):
+            for by in range(1, sfHists[process].GetNbinsY()+1):
+                for bz in range(1, sfHists[process].GetNbinsZ()+1):
+                    sfHists[process].SetBinContent(bx,by,bz,max(0., sfHists[process].GetBinContent(bx,by,bz)))
+                    sfHists[process+"NormUp"].SetBinContent(bx,by,bz,max(0., sfHists[process+"NormUp"].GetBinContent(bx,by,bz)))
+                    sfHists[process+"NormDown"].SetBinContent(bx,by,bz,max(0., sfHists[process+"NormDown"].GetBinContent(bx,by,bz)))
+
+    #suppress scale factors consistent with 1
+    if signifThreshold > 0:
+        print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
+        if isinstance(var, basestring) or len(var) == 1: #1D
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                if vetoLepCorrHist.GetBinError(bx) == 0: continue
+                nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/sfHists[process].GetBinError(bx)
+                if nsigma < signifThreshold: 
+                    sfHists[process].SetBinContent(bx,1.0)
+                    sfHists[process].SetBinError(bx,0.0)
+        elif len(var) == 2: #2D
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                for by in range(1, sfHists[process].GetNbinsY()+1):
+                    nsigma = abs(sfHists[process].GetBinContent(bx,by)-1.0)/sfHists[process].GetBinError(bx,by)
+                    if vetoLepCorrHist.GetBinError(bx,by) == 0: continue
+                    if nsigma < signifThreshold: 
+                        sfHists[process].SetBinContent(bx,by,1.0)
+                        sfHists[process].SetBinError(bx,by,0.0)
+        elif len(var) == 3: #3D
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                for by in range(1, sfHists[process].GetNbinsY()+1):
+                    for bz in range(1, sfHists[process].GetNbinsZ()+1):
+                        if vetoLepCorrHist.GetBinError(bx,by,bz) == 0: continue
+                        nsigma = abs(sfHists[process].GetBinContent(bx,by,bz)-1.0)/sfHists[process].GetBinError(bx,by,bz)
+                        if nsigma < signifThreshold: 
+                            sfHists[process].SetBinContent(bx,by,bz,1.0)
+                            sfHists[process].SetBinError(bx,by,bz,0.0)
 
     if debugLevel > 0:
         print "Scale factor histograms after adding",process,":"
         print sfHists
 
-    #plot scale factors in 2D
+    #plot scale factors in 2D (not yet implemented for 1 or 3 dimensions)
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
-    if len(var) == 2: 
+    if not isinstance(var, basestring) and len(var) == 2: 
         plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         if printTable:
@@ -514,3 +556,94 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                 headers.extend(["Unc.\\ from "+mcProcess])
                 cols.extend([sysUncerts[mcProcess]])
             plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
+
+def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", printdir="."):
+    """Compare data and MC in veto lepton control region.  Makes ratio histogram and returns it.  
+    Arguments are similar to those for appendScaleFactors()
+    """
+    regionNameReduced = regionName.replace(' ','')
+
+    #warn if the needed histograms are not found
+    if dataName not in hists:
+        print "Error in makeVetoLeptonCorrectionHist: target data histogram (",dataName,") was not found!"
+        return
+    if var not in hists[dataName]:
+        print "Error in makeVetoLeptonCorrectionHist: could not find ",var," in hists[",dataName,"]!"
+
+    #make total MC histogram
+    bgProcesses = [mcProcess for mcProcess in hists if mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit samples
+    mcTotal = hists[dataName][var].Clone()
+    mcTotal.Reset()
+    for p in bgProcesses:
+        if var not in hists[p]:
+            print "Error in makeVetoLeptonCorrectionHist: histogram for",p,"not found!"
+            return
+        mcTotal.Add(hists[p][var])
+
+    #subtract MC-data
+    print "Making correction histogram for veto lepton control region"
+    vetoLepCorrHist = mcTotal.Clone(regionNameReduced+"Correction")
+    vetoLepCorrHist.SetDirectory(0)
+    vetoLepCorrHist.Add(hists[dataName][var],-1.0)
+
+    #suppress corrections consistent with 0
+    if signifThreshold > 0:
+        print "Ignoring corrections compatible with 0 at",signifThreshold,"sigma significance"
+        if isinstance(var, basestring) or len(var) == 1: #1D
+            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+                if vetoLepCorrHist.GetBinError(bx) == 0: continue
+                nsigma = abs(vetoLepCorrHist.GetBinContent(bx))/vetoLepCorrHist.GetBinError(bx)
+                if nsigma < signifThreshold: 
+                    vetoLepCorrHist.SetBinContent(bx,0.0)
+                    vetoLepCorrHist.SetBinError(bx,0.0)
+        elif len(var) == 2: #2D
+            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
+                    if vetoLepCorrHist.GetBinError(bx,by) == 0: continue
+                    nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by))/vetoLepCorrHist.GetBinError(bx,by)
+                    if nsigma < signifThreshold: 
+                        vetoLepCorrHist.SetBinContent(bx,by,0.0)
+                        vetoLepCorrHist.SetBinError(bx,by,0.0)
+        elif len(var) == 3: #3D
+            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
+                    for bz in range(1, vetoLepCorrHist.GetNbinsZ()+1):
+                        if vetoLepCorrHist.GetBinError(bx,by,bz) == 0: continue
+                        nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by,bz))/vetoLepCorrHist.GetBinError(bx,by,bz)
+                        if nsigma < signifThreshold: 
+                            vetoLepCorrHist.SetBinContent(bx,by,bz,0.0)
+                            vetoLepCorrHist.SetBinError(bx,by,bz,0.0)
+
+    #plot correction factors in 2D (not yet implemented for 1 or 3 dimensions)
+    c = rt.TCanvas("cVetoLeptonCorrs", "c", 800, 600)
+    if not isinstance(var, basestring) and len(var) == 2: 
+        plotting.draw2DHist(c, vetoLepCorrHist, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="MC-Data, "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+
+        xbinLowEdges = []
+        xbinUpEdges = []
+        ybinLowEdges = []
+        ybinUpEdges = []
+        statUncerts = []
+        sfs = []
+        #for each bin, get values for all table columns
+        for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+            for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
+                xbinLowEdges.append('%.0f' % (vetoLepCorrHist.GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (vetoLepCorrHist.GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(vetoLepCorrHist.GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(vetoLepCorrHist.GetYaxis().GetBinUpEdge(by)))
+                corrFactor = vetoLepCorrHist.GetBinContent(bx,by)
+                sfs.append('%.3f' % (corrFactor))
+                if corrFactor != 0:
+                    statUncerts.append('%.1f\\%%' % (100*(vetoLepCorrHist.GetBinError(bx,by)/corrFactor)))
+                else: 
+                    statUncerts.append('--')
+                for mcProcess in bgProcesses: 
+                    dataYield = hists[dataName][var].GetBinContent(bx,by)
+        xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
+        yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
+        headers=[var[0], var[1], "MC-Data", "Stat.\\ unc."]
+        cols = [xRanges, yRanges, sfs, statUncerts]
+        plotting.table_basic(headers, cols, caption="Difference between MC and data yields in veto lepton control region", printstr="corrFactorTable"+regionNameReduced, printdir=printdir)
+
+    return vetoLepCorrHist
