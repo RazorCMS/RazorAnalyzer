@@ -1068,8 +1068,6 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
       vector<int> GoodPhotonIndex;
       int nPhotonsAbove40GeV = 0;
       
-      bool use25nsSelection = true;
-
       if (treeTypeOption == 5 || treeTypeOption == 15) {
 	for(int i = 0; i < nPhotons; i++){
 
