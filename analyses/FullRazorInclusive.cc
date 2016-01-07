@@ -93,6 +93,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH2D *muVetoEfficiencyHist = 0;
     TH2D *tauLooseEfficiencyHist = 0;
     TH2D *btagMediumEfficiencyHist = 0;
+    TH2D *btagMediumCharmEfficiencyHist = 0;
+    TH2D *btagMediumLightJetsEfficiencyHist = 0;
     TH2D *eleTightEffFastsimSFHist = 0;
     TH2D *muTightEffFastsimSFHist = 0;
     TH2D *eleVetoEffFastsimSFHist = 0;
@@ -122,6 +124,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
         assert(btagMediumEfficiencyHist);
         //btagMediumEffFastsimSFHist = (TH2D*)btagEfficiencyFile->Get("BTagMedium_FastsimScaleFactor");
+        TFile *btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/CharmJetBTagEffFastsimToFullsimCorrectionFactors.root");
+        btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+        assert(btagMediumCharmEfficiencyHist);
+        TFile *btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/LightJetBTagEffFastsimToFullsimCorrectionFactors.root");
+        btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+        assert(btagMediumLightJetsEfficiencyHist);
     }
 
     /////////////////////////////////
@@ -237,6 +245,12 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 				     "central");           // systematics type
     BTagCalibrationReader btagreader_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
     BTagCalibrationReader btagreader_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
+    BTagCalibrationReader btagreaderMistag(&btagcalib,      // calibration instance
+				     BTagEntry::OP_MEDIUM,  // operating point
+				     "comb",                // measurement type
+				     "central");            // systematics type
+    BTagCalibrationReader btagreaderMistag_up(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    // sys up
+    BTagCalibrationReader btagreaderMistag_do(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
 
     //Fastsim
     BTagCalibration btagcalibfastsim("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
@@ -271,6 +285,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     float sf_vetoEleEffUp, sf_vetoEleEffDown;
     //For btag scale factor uncertainty
     float sf_btagUp, sf_btagDown;
+    float sf_bmistagUp, sf_bmistagDown;
     //For scale variation uncertainties
     float sf_facScaleUp, sf_facScaleDown;
     float sf_renScaleUp, sf_renScaleDown;
@@ -371,6 +386,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("sf_eleTrigDown", &sf_eleTrigDown, "sf_eleTrigDown/F");
         razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
         razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
+        razorTree->Branch("sf_bmistagUp", &sf_bmistagUp, "sf_bmistagUp/F");
+        razorTree->Branch("sf_bmistagDown", &sf_bmistagDown, "sf_bmistagDown/F");
         razorTree->Branch("sf_muonEffFastsimSFUp", &sf_muonEffFastsimSFUp, "sf_muonEffFastsimSFUp/F");
         razorTree->Branch("sf_muonEffFastsimSFDown", &sf_muonEffFastsimSFDown, "sf_muonEffFastsimSFDown/F");
         razorTree->Branch("sf_eleEffFastsimSFUp", &sf_eleEffFastsimSFUp, "sf_eleEffFastsimSFUp/F");
@@ -551,6 +568,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             sf_tauEffDown = 1.0;
             sf_btagUp = 1.0;
             sf_btagDown = 1.0;
+            sf_bmistagUp = 1.0;
+            sf_bmistagDown = 1.0;
             sf_facScaleUp = 1.0;
             sf_facScaleDown = 1.0;
             sf_renScaleUp = 1.0;
@@ -1526,72 +1545,132 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 MetY_Type1Corr += -1 * (thisJet.Py() - L1CorrJet.Py());
             }
 
+	    //****************************************************************************
             //Apply b-tagging correction factor 
-            if (!isData && abs(jetPartonFlavor[i]) == 5 && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
-                double effMedium = btagMediumEfficiencyHist->GetBinContent(
-                        btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
-                        btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
-                //get scale factor
-                double jet_scalefactor = -1;
-                double jet_scalefactorUp = -1;
-                double jet_scalefactorDown = -1;
-                if (jetCorrPt < 670.) { //670 is the largest pt range listed in the CSV text file
-                    jet_scalefactor = btagreader.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt); 
-                    jet_scalefactorUp = btagreader_up.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
-                    jet_scalefactorDown = btagreader_do.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
-                }
-                else {
-                    jet_scalefactor = btagreader.eval(BTagEntry::FLAV_B, jetEta[i], 669);
-                    jet_scalefactorUp = btagreader_up.eval(BTagEntry::FLAV_B, jetEta[i], 669);
-                    jet_scalefactorDown = btagreader_do.eval(BTagEntry::FLAV_B, jetEta[i], 669);
-                }
-                double jet_scalefactorFastsimUp = jet_scalefactor;
-                double jet_scalefactorFastsimDown = jet_scalefactor;
-                if (isFastsimSMS) { //correct efficiency for Fastsim
-                    //double sf = btagMediumEffFastsimSFHist->GetBinContent(
-                    //    btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
-                    //    btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
-                    //double sfErr = btagMediumEffFastsimSFHist->GetBinError(
-                    //    btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
-                    //    btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
-                    if (jetCorrPt < 670.) {
-                        double jet_scalefactorFastsim = btagreaderfastsim.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
-                        jet_scalefactor *= jet_scalefactorFastsim;
-                        jet_scalefactorUp *= jet_scalefactorFastsim;
-                        jet_scalefactorDown *= jet_scalefactorFastsim;
-                        jet_scalefactorFastsimUp *= btagreaderfastsim_up.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
-                        jet_scalefactorFastsimDown *= btagreaderfastsim_do.eval(BTagEntry::FLAV_B, jetEta[i], jetCorrPt);
-                    }
-                    else {
-                        double jet_scalefactorFastsim = btagreaderfastsim.eval(BTagEntry::FLAV_B, jetEta[i], 669);
-                        jet_scalefactor *= jet_scalefactorFastsim;
-                        jet_scalefactorUp *= jet_scalefactorFastsim;
-                        jet_scalefactorDown *= jet_scalefactorFastsim;
-                        jet_scalefactorFastsimUp *= btagreaderfastsim_up.eval(BTagEntry::FLAV_B, jetEta[i], 669);
-                        jet_scalefactorFastsimDown *= btagreaderfastsim_do.eval(BTagEntry::FLAV_B, jetEta[i], 669);
-                    }
-                }
-                //apply scale factor
-                if (jet_scalefactor <= 0 || jet_scalefactorUp <= 0 || jet_scalefactorDown <= 0){
-                    // cout << "Warning: b-tag scale factor is <= 0!" << endl;
-                }
-                else if (isCSVM(i)){
-                    btagCorrFactor *= jet_scalefactor;
-                    sf_btagUp *= jet_scalefactorUp/jet_scalefactor;
-                    sf_btagDown *= jet_scalefactorDown/jet_scalefactor;
-                    sf_btagFastsimSFUp *= jet_scalefactorFastsimUp / jet_scalefactor;
-                    sf_btagFastsimSFDown *= jet_scalefactorFastsimDown / jet_scalefactor;
-                }
-                else {
-                    double sf = (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
-                    btagCorrFactor *= sf;
-                    sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1) / sf;
-                    sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1) / sf;
-                    sf_btagFastsimSFUp *= (1/effMedium - jet_scalefactorFastsimUp) / (1/effMedium - 1) / sf;
-                    sf_btagFastsimSFDown *= (1/effMedium - jet_scalefactorFastsimDown) / (1/effMedium - 1) / sf;
-                }
-            } 
+	    //****************************************************************************
+            if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
+	      double effMedium = 0;
+	      BTagEntry::JetFlavor jetType = BTagEntry::FLAV_B;
+	      if ( abs(jetPartonFlavor[i]) == 5) {
+                effMedium = btagMediumEfficiencyHist->GetBinContent(
+                            btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+                            btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		jetType = BTagEntry::FLAV_B;
+	      } else if ( abs(jetPartonFlavor[i]) == 4) {
+                effMedium = btagMediumCharmEfficiencyHist->GetBinContent(
+                            btagMediumCharmEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+                            btagMediumCharmEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		jetType = BTagEntry::FLAV_C;
+	      } else {
+                effMedium = btagMediumLightJetsEfficiencyHist->GetBinContent(
+                            btagMediumLightJetsEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+                            btagMediumLightJetsEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		//jetType = BTagEntry::FLAV_UDSG;
+		jetType = BTagEntry::FLAV_C;
+	      }
 
+	      //get scale factor
+	      double jet_scalefactor = -1;
+	      double jet_scalefactorUp = -1;
+	      double jet_scalefactorDown = -1;  
+	      
+	      if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) {
+		if (jetCorrPt < 670.) { //670 is the largest pt range listed in the CSV text file
+		  jet_scalefactor = btagreader.eval(jetType, jetEta[i], jetCorrPt); 
+		  jet_scalefactorUp = btagreader_up.eval(jetType, jetEta[i], jetCorrPt);
+		  jet_scalefactorDown = btagreader_do.eval(jetType, jetEta[i], jetCorrPt);
+		}
+		else {
+		  jet_scalefactor = btagreader.eval(jetType, jetEta[i], 669);
+		  jet_scalefactorUp = btagreader_up.eval(jetType, jetEta[i], 669);
+		  jet_scalefactorDown = btagreader_do.eval(jetType, jetEta[i], 669);
+		}
+	      } else if ( abs(jetPartonFlavor[i]) == 4) {
+		jet_scalefactor = 1.14022;
+		jet_scalefactorUp = 1.34022;		  
+		jet_scalefactorDown = 0.94022;		
+	      } else {
+		jet_scalefactor = 0.907317;
+		jet_scalefactorUp = 1.257317;		  
+		jet_scalefactorDown = 0.557317;		
+	      }
+	      double jet_scalefactorFastsimUp = jet_scalefactor;
+	      double jet_scalefactorFastsimDown = jet_scalefactor;
+
+	      //correct efficiency for Fastsim
+	      //Do this only for b-jets for now
+	      if (isFastsimSMS && abs(jetPartonFlavor[i]) == 5) { 
+		//double sf = btagMediumEffFastsimSFHist->GetBinContent(
+		//    btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
+		//    btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
+		//double sfErr = btagMediumEffFastsimSFHist->GetBinError(
+		//    btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
+		//    btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
+		if (jetCorrPt < 670.) {
+		  double jet_scalefactorFastsim = btagreaderfastsim.eval(jetType, jetEta[i], jetCorrPt);
+		  jet_scalefactor *= jet_scalefactorFastsim;
+		  jet_scalefactorUp *= jet_scalefactorFastsim;
+		  jet_scalefactorDown *= jet_scalefactorFastsim;
+		  jet_scalefactorFastsimUp *= btagreaderfastsim_up.eval(jetType, jetEta[i], jetCorrPt);
+		  jet_scalefactorFastsimDown *= btagreaderfastsim_do.eval(jetType, jetEta[i], jetCorrPt);
+		}
+		else {
+		  double jet_scalefactorFastsim = btagreaderfastsim.eval(jetType, jetEta[i], 669);
+		  jet_scalefactor *= jet_scalefactorFastsim;
+		  jet_scalefactorUp *= jet_scalefactorFastsim;
+		  jet_scalefactorDown *= jet_scalefactorFastsim;
+		  jet_scalefactorFastsimUp *= btagreaderfastsim_up.eval(jetType, jetEta[i], 669);
+		  jet_scalefactorFastsimDown *= btagreaderfastsim_do.eval(jetType, jetEta[i], 669);
+		}
+	      }
+
+	      //apply and propagate scale factor
+	      if (jet_scalefactor <= 0 || jet_scalefactorUp <= 0 || jet_scalefactorDown <= 0){
+		// cout << "Warning: b-tag scale factor is <= 0!" << endl;
+	      }
+	      else if (isCSVM(i)){
+		btagCorrFactor *= jet_scalefactor;
+		if (abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) {
+		  sf_btagUp *= jet_scalefactorUp/jet_scalefactor;
+		  sf_btagDown *= jet_scalefactorDown/jet_scalefactor;
+		  sf_btagFastsimSFUp *= jet_scalefactorFastsimUp / jet_scalefactor;
+		  sf_btagFastsimSFDown *= jet_scalefactorFastsimDown / jet_scalefactor;
+		} else {
+		  sf_bmistagUp *= jet_scalefactorUp/jet_scalefactor;
+		  sf_bmistagDown *= jet_scalefactorDown/jet_scalefactor;
+		  //cout << "mistag: " << jet_scalefactor << " : " << btagCorrFactor << " : " << sf_bmistagUp << " " << sf_bmistagDown << "\n";
+		}
+	      }
+	      else {
+		//only apply the scale factor on the inefficiency, if the corrected efficiency doesn't go above 100%
+		//only record up/down systematics if the nominal and up and down corrected systematics do not go above 100%
+		double sf = 1.0;
+		if (effMedium * jet_scalefactor < 1.0) sf = (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
+		btagCorrFactor *= sf;
+		if (abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) {
+		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorUp < 1.0) {
+		    sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1) / sf;
+		  }
+		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorDown < 1.0) {
+		    sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1) / sf;
+		  }
+		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorFastsimUp < 1.0) {
+		    sf_btagFastsimSFUp *= (1/effMedium - jet_scalefactorFastsimUp) / (1/effMedium - 1) / sf;
+		  }
+		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorFastsimDown < 1.0) {
+		    sf_btagFastsimSFDown *= (1/effMedium - jet_scalefactorFastsimDown) / (1/effMedium - 1) / sf;
+		  }
+		} else {
+		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorUp < 1.0) {
+		    sf_bmistagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1) / sf;
+		  } 
+		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorDown < 1.0) {
+		    sf_bmistagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1) / sf;
+		  }
+		}
+	      }
+            }
+	    
             //Cut on jet eta
             if (fabs(jetEta[i]) > 3.0) continue;
 
