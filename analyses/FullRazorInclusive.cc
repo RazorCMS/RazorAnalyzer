@@ -2363,13 +2363,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         /////////////////////////////////
         //Scale and PDF variations
         /////////////////////////////////
-
-        sf_facScaleUp = (*scaleWeights)[1]/genWeight;
-        sf_facScaleDown = (*scaleWeights)[2]/genWeight;
-        sf_renScaleUp = (*scaleWeights)[3]/genWeight;
-        sf_renScaleDown = (*scaleWeights)[6]/genWeight;
-        sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
-        sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	if ((*scaleWeights).size() >= 9) {
+	  sf_facScaleUp = (*scaleWeights)[1]/genWeight;
+	  sf_facScaleDown = (*scaleWeights)[2]/genWeight;
+	  sf_renScaleUp = (*scaleWeights)[3]/genWeight;
+	  sf_renScaleDown = (*scaleWeights)[6]/genWeight;
+	  sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
+	  sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	}
 
         SumScaleWeights->Fill(0.0, sf_facScaleUp);
         SumScaleWeights->Fill(1.0, sf_facScaleDown);
