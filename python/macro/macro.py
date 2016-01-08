@@ -240,8 +240,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             xtitle = vartitles[var]
         else:
             xtitle = var
-        if var in ['NBJetsMedium','NJets80','NJets40']: logx = False
-        else: logx = True
+        if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()"]: logx = True
+        else: logx = False
         if blindBins is None:
             plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
