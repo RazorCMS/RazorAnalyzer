@@ -95,7 +95,7 @@ config = "config/run2_20151229_ControlRegion.config"
 cfg = Config.Config(config)
 VetoLeptonBinsMRLep = cfg.getBinning("VetoLeptonControlRegion")[0]
 VetoLeptonBinsRsqLep = cfg.getBinning("VetoLeptonControlRegion")[1]
-VetoLeptonBinsLepPt = [5, 10, 15, 20.,30.,40.,100]
+VetoLeptonBinsLepPt = [5, 10, 15, 20.,30.,40.,100,1000]
 VetoLeptonBinsLepEta = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
 VetoLeptonControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep, "lep1.Pt()":VetoLeptonBinsLepPt , "abs(lep1.Eta())":VetoLeptonBinsLepEta, ("MR","Rsq"):[], ("abs(lep1.Eta())","lep1.Pt()"):[]}
 VetoTauControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep, ("MR","Rsq"):[]}
@@ -167,7 +167,7 @@ if __name__ == "__main__":
                 filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
                 cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
                 bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+                weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, debugLevel=debugLevel)
 
     #Record discrepancies > 1 sigma
