@@ -163,42 +163,28 @@ if __name__ == "__main__":
     ##########################################################
     #Veto Lepton cross-check region
     ##########################################################
-    vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
-                filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
-                cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
-                bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-                weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir=printdir, debugLevel=debugLevel)
-
-    #Record discrepancies > 1 sigma
-    vetoLeptonSFs = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Lepton", printdir=printdir)
-
-    #write veto lepton scale factors
-    vetoLeptonOutfile = rt.TFile("RazorVetoLeptonCrossCheck.root", "RECREATE")
-    print "Writing histogram",vetoLeptonSFs.GetName(),"to file"
-    vetoLeptonSFs.Write("VetoLeptonScaleFactors")
-    vetoLeptonOutfile.Close()
-
-    ##########################################################
-    ##Veto Tau cross-check region
-    ##########################################################
-    #vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
-    #             filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
-    #             cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
-    #             bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #             weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-    #             printdir=printdir, debugLevel=debugLevel)
+    #vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
+    #            filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
+    #            cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
+    #            bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
+    #            printdir=printdir, debugLevel=debugLevel)
 
     ##Record discrepancies > 1 sigma
-    #vetoTauSFs = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Tau", printdir=printdir)
+    #makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Lepton", printdir=printdir)
 
-    ##write veto tau correction factors
-    #vetoTauOutfile = rt.TFile("RazorVetoTauCrossCheck.root", "RECREATE")
-    #print "Writing histogram",vetoTauSFs.GetName(),"to file"
-    #vetoTauSFs.Write("VetoTauScaleFactors")
-    #vetoTauOutfile.Close()
+    #########################################################
+    #Veto Tau cross-check region
+    #########################################################
+    vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
+                 filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
+                 cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
+                 bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+                 printdir=printdir, debugLevel=debugLevel)
 
-
+    #Record discrepancies > 1 sigma
+    makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Tau", printdir=printdir)
 
     # ##########################################################
     # #Z->LL dilepton control sample
