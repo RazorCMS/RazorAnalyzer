@@ -41,7 +41,7 @@ def appendNoiseFilters(cuts, tree):
 ### TTJets Single Lepton Control Region
 
 #cuts
-ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium > 0 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium > 0 && NJets40 >= 4 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
 #ttjetsSingleLeptonCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets40 >= 4 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
 ttjetsSingleLeptonCutsData = appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsData)
 ttjetsSingleLeptonCutsMC = appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsMC)
@@ -115,7 +115,7 @@ vetoTauControlRegionBins = {
 ### WJets Single Lepton Invisible Control Region
 
 #cuts
-wjetsSingleLeptonInvCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight)"
+wjetsSingleLeptonInvCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && NJets40_NoW >=4 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight)"
 wjetsSingleLeptonInvCutsData = appendTriggerCuts(wjetsSingleLeptonInvCuts, singleLeptonTriggerNumsData)
 wjetsSingleLeptonInvCutsMC = appendTriggerCuts(wjetsSingleLeptonInvCuts, singleLeptonTriggerNumsMC)
 
