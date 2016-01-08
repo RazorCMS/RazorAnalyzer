@@ -1565,8 +1565,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 effMedium = btagMediumLightJetsEfficiencyHist->GetBinContent(
                             btagMediumLightJetsEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
                             btagMediumLightJetsEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
-		//jetType = BTagEntry::FLAV_UDSG;
-		jetType = BTagEntry::FLAV_C;
+		jetType = BTagEntry::FLAV_UDSG;
 	      }
 
 	      //get scale factor
@@ -1585,10 +1584,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 		  jet_scalefactorUp = btagreader_up.eval(jetType, jetEta[i], 669);
 		  jet_scalefactorDown = btagreader_do.eval(jetType, jetEta[i], 669);
 		}
-	      } else if ( abs(jetPartonFlavor[i]) == 4) {
-		jet_scalefactor = 1.14022;
-		jet_scalefactorUp = 1.34022;		  
-		jet_scalefactorDown = 0.94022;		
 	      } else {
 		jet_scalefactor = 0.907317;
 		jet_scalefactorUp = 1.257317;		  
