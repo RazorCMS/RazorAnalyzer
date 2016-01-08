@@ -130,37 +130,25 @@ if __name__ == "__main__":
     # ##########################################################
     # #WJets control sample
     # ##########################################################
-    # wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
-    #             filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
-    #             cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
-    #             bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #             weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-    #             printdir=printdir, sfVars=sfVars, debugLevel=debugLevel)
-    # appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, plotDensity=False, var=sfVars, printdir=printdir)
-    # wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLeptonAfterCorrection", 
-    #             filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
-    #             cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
-    #             bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #             weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-    #             printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
+    wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
+                filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
+                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
+                bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
+                printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
+    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, printdir=printdir)
 
 
     # ##########################################################
     # #W+Jets Add lepton to MET control sample
     # ##########################################################
-    # wjetsSingleLeptonInvHists = makeControlSampleHists("WJetsSingleLeptonInv", 
-    #             filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
-    #             cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
-    #             bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #             weightHists=weightHists, sfHists={}, weightOpts=weightOpts, 
-    #             printdir=printdir, plotDensity=False, sfVars=sfVars_NoW, debugLevel=debugLevel)
-    # appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
-    # wjetsSingleLeptonInvHists = makeControlSampleHists("WJetsSingleLeptonInvAfterCorrection", 
-    #             filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
-    #             cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
-    #             bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #             weightHists=weightHists, sfHists={}, weightOpts=weightOpts, 
-    #             printdir=printdir, plotDensity=False, sfVars=sfVars_NoW, debugLevel=debugLevel)
+    wjetsSingleLeptonInvHists = makeControlSampleHists("WJetsSingleLeptonInv", 
+                filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
+                cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
+                bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                weightHists=weightHists, sfHists={}, weightOpts=weightOpts, 
+                printdir=printdir, plotDensity=False, sfVars=sfVars_NoW, debugLevel=debugLevel)
+    appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
 
     #write scale factors
