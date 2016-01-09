@@ -320,7 +320,7 @@ def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], s
     sfFile = rt.TFile.Open(sfFilename)
     sfHists = {}
     for pname in processNames:
-        if debugLevel > 0: print "Looking for scale factor histogram for",name,"...",        
+        if debugLevel > 0: print "Looking for scale factor histogram for",pname,"...",        
         histname = pname
         if pname in scaleFactorNames:
             histname = scaleFactorNames[pname]
