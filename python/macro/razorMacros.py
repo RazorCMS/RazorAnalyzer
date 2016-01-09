@@ -280,7 +280,7 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq")):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -298,7 +298,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     miscErrors: optional -- list of misc uncertainty options (see below for supported options)
     fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
     boxName: optional -- name of razor box
-    btags: optional -- used only to specify which fit to load"""
+    btags: optional -- used only to specify which fit to load
+    auxSFs: optional -- dict of the form "ScaleFactorName":("VariableToReweight","Cut string").  Events passing the requirements in "Cut string" are reweighted according to sfHists["ScaleFactorName"].
+    """
 
     titles = {
         "MR": "M_{R} (GeV)", 
@@ -351,14 +353,14 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
 
     print("\nMC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, auxSFs=auxSFs, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in shapeErrors:
         print "\n"+shape,"Up:"
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFs, debugLevel=debugLevel)
         print "\n"+shape,"Down:"
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFs, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
@@ -557,9 +559,11 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                 cols.extend([sysUncerts[mcProcess]])
             plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
 
-def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", printdir="."):
+def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", normErrFraction=0.2, sfHists={}, doDataOverMC=False, printdir="."):
     """Compare data and MC in veto lepton control region.  Makes ratio histogram and returns it.  
     Arguments are similar to those for appendScaleFactors()
+
+    doDataOverMC: if True, will save Data/MC scale factors.  if False, will save MC-Data. 
     """
     regionNameReduced = regionName.replace(' ','')
 
@@ -570,54 +574,135 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     if var not in hists[dataName]:
         print "Error in makeVetoLeptonCorrectionHist: could not find ",var," in hists[",dataName,"]!"
 
-    #make total MC histogram
+    #make total MC histograms (up, down, central)
     bgProcesses = [mcProcess for mcProcess in hists if mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit samples
     mcTotal = hists[dataName][var].Clone()
+    mcTotalUp = hists[dataName][var].Clone()
+    mcTotalDown = hists[dataName][var].Clone()
     mcTotal.Reset()
+    mcTotalUp.Reset()
+    mcTotalDown.Reset()
     for p in bgProcesses:
         if var not in hists[p]:
             print "Error in makeVetoLeptonCorrectionHist: histogram for",p,"not found!"
             return
         mcTotal.Add(hists[p][var])
+        if p not in sfHists: #vary normalization of processes not controlled by scale factors
+            mcTotalUp.Add(hists[p][var], 1+normErrFraction)
+            mcTotalDown.Add(hists[p][var], 1/(1+normErrFraction))
+        else:
+            mcTotalUp.Add(hists[p][var])
+            mcTotalDown.Add(hists[p][var])
 
-    #subtract MC-data
-    print "Making correction histogram for veto lepton control region"
-    vetoLepCorrHist = mcTotal.Clone(regionNameReduced+"Correction")
-    vetoLepCorrHist.SetDirectory(0)
-    vetoLepCorrHist.Add(hists[dataName][var],-1.0)
+    if not doDataOverMC: #do MC minus Data
+        #subtract MC-data
+        print "Making correction histogram for veto lepton control region (MC minus Data)"
+        vetoLepCorrHist = mcTotal.Clone(regionNameReduced+"Correction")
+        vetoLepCorrHist.SetDirectory(0)
+        vetoLepCorrHist.Add(hists[dataName][var],-1.0)
+        #up histogram
+        vetoLepCorrHistUp = mcTotalUp.Clone(regionNameReduced+"CorrectionUp")
+        vetoLepCorrHistUp.SetDirectory(0)
+        vetoLepCorrHistUp.Add(hists[dataName][var],-1.0)
+        #down histogram
+        vetoLepCorrHistDown = mcTotalDown.Clone(regionNameReduced+"CorrectionDown")
+        vetoLepCorrHistDown.SetDirectory(0)
+        vetoLepCorrHistDown.Add(hists[dataName][var],-1.0)
+    else: #do Data/MC
+        #divide data by MC
+        print "Making correction histogram for veto lepton control region (Data/MC)"
+        vetoLepCorrHist = hists[dataName][var].Clone(regionNameReduced+"Correction")
+        vetoLepCorrHist.SetDirectory(0)
+        vetoLepCorrHist.Divide(mcTotal)
+        #up histogram
+        vetoLepCorrHistUp = hists[dataName][var].Clone(regionNameReduced+"CorrectionUp")
+        vetoLepCorrHistUp.SetDirectory(0)
+        vetoLepCorrHistUp.Divide(mcTotalUp)
+        #down histogram
+        vetoLepCorrHistDown = hists[dataName][var].Clone(regionNameReduced+"CorrectionDown")
+        vetoLepCorrHistDown.SetDirectory(0)
+        vetoLepCorrHistDown.Divide(mcTotalDown)
 
     #suppress corrections consistent with 0
+    targetVal = 0.0 #check for consistency with this number
+    if doDataOverMC:
+        targetVal = 1.0
     if signifThreshold > 0:
         print "Ignoring corrections compatible with 0 at",signifThreshold,"sigma significance"
         if isinstance(var, basestring) or len(var) == 1: #1D
             for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
                 if vetoLepCorrHist.GetBinError(bx) == 0: continue
-                nsigma = abs(vetoLepCorrHist.GetBinContent(bx))/vetoLepCorrHist.GetBinError(bx)
+                nsigma = abs(vetoLepCorrHist.GetBinContent(bx)-targetVal)/vetoLepCorrHist.GetBinError(bx)
                 if nsigma < signifThreshold: 
                     vetoLepCorrHist.SetBinContent(bx,0.0)
                     vetoLepCorrHist.SetBinError(bx,0.0)
+                #up
+                nsigmaUp = abs(vetoLepCorrHistUp.GetBinContent(bx)-targetVal)/vetoLepCorrHistUp.GetBinError(bx)
+                if nsigmaUp < signifThreshold: 
+                    vetoLepCorrHistUp.SetBinContent(bx,0.0)
+                    vetoLepCorrHistUp.SetBinError(bx,0.0)
+                #down
+                nsigmaDown = abs(vetoLepCorrHistDown.GetBinContent(bx)-targetVal)/vetoLepCorrHistDown.GetBinError(bx)
+                if nsigmaDown < signifThreshold: 
+                    vetoLepCorrHistDown.SetBinContent(bx,0.0)
+                    vetoLepCorrHistDown.SetBinError(bx,0.0)
         elif len(var) == 2: #2D
             for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
                 for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
                     if vetoLepCorrHist.GetBinError(bx,by) == 0: continue
-                    nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by))/vetoLepCorrHist.GetBinError(bx,by)
+                    nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by)-targetVal)/vetoLepCorrHist.GetBinError(bx,by)
                     if nsigma < signifThreshold: 
                         vetoLepCorrHist.SetBinContent(bx,by,0.0)
                         vetoLepCorrHist.SetBinError(bx,by,0.0)
+                    #up
+                    nsigmaUp = abs(vetoLepCorrHistUp.GetBinContent(bx,by)-targetVal)/vetoLepCorrHistUp.GetBinError(bx,by)
+                    if nsigmaUp < signifThreshold: 
+                        vetoLepCorrHistUp.SetBinContent(bx,by,0.0)
+                        vetoLepCorrHistUp.SetBinError(bx,by,0.0)
+                    #down
+                    nsigmaDown = abs(vetoLepCorrHistDown.GetBinContent(bx,by)-targetVal)/vetoLepCorrHistDown.GetBinError(bx,by)
+                    if nsigmaDown < signifThreshold: 
+                        vetoLepCorrHistDown.SetBinContent(bx,by,0.0)
+                        vetoLepCorrHistDown.SetBinError(bx,by,0.0)
         elif len(var) == 3: #3D
             for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
                 for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
                     for bz in range(1, vetoLepCorrHist.GetNbinsZ()+1):
                         if vetoLepCorrHist.GetBinError(bx,by,bz) == 0: continue
-                        nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by,bz))/vetoLepCorrHist.GetBinError(bx,by,bz)
+                        nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by,bz)-targetVal)/vetoLepCorrHist.GetBinError(bx,by,bz)
                         if nsigma < signifThreshold: 
                             vetoLepCorrHist.SetBinContent(bx,by,bz,0.0)
                             vetoLepCorrHist.SetBinError(bx,by,bz,0.0)
+                        #up
+                        nsigmaUp = abs(vetoLepCorrHistUp.GetBinContent(bx,by,bz)-targetVal)/vetoLepCorrHistUp.GetBinError(bx,by,bz)
+                        if nsigmaUp < signifThreshold: 
+                            vetoLepCorrHistUp.SetBinContent(bx,by,bz,0.0)
+                            vetoLepCorrHistUp.SetBinError(bx,by,bz,0.0)
+                        #down
+                        nsigmaDown = abs(vetoLepCorrHistDown.GetBinContent(bx,by,bz)-targetVal)/vetoLepCorrHistDown.GetBinError(bx,by,bz)
+                        if nsigmaDown < signifThreshold: 
+                            vetoLepCorrHistDown.SetBinContent(bx,by,bz,0.0)
+                            vetoLepCorrHistDown.SetBinError(bx,by,bz,0.0)
+
+    #write veto lepton scale factors
+    vetoLeptonOutfile = rt.TFile("Razor"+regionNameReduced+"CrossCheck.root", "RECREATE")
+    print "Writing histogram",vetoLepCorrHist.GetName(),"to file"
+    print "Writing histogram",vetoLepCorrHistUp.GetName(),"to file"
+    print "Writing histogram",vetoLepCorrHistDown.GetName(),"to file"
+    vetoLepCorrHist.Write(regionNameReduced+"ScaleFactors")
+    vetoLepCorrHistUp.Write(regionNameReduced+"ScaleFactorsUp")
+    vetoLepCorrHistDown.Write(regionNameReduced+"ScaleFactorsDown")
+    vetoLeptonOutfile.Close()
 
     #plot correction factors in 2D (not yet implemented for 1 or 3 dimensions)
     c = rt.TCanvas("cVetoLeptonCorrs", "c", 800, 600)
+    comment = "MC-Data"
+    if doDataOverMC:
+        comment = "Data/MC"
     if not isinstance(var, basestring) and len(var) == 2: 
-        plotting.draw2DHist(c, vetoLepCorrHist, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="MC-Data, "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+        plotting.draw2DHist(c, vetoLepCorrHist, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+", "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+        plotting.draw2DHist(c, vetoLepCorrHistUp, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"CorrectionUp", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+" (Up), "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+        plotting.draw2DHist(c, vetoLepCorrHistDown, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"CorrectionDown", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+" (Down), "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         xbinLowEdges = []
         xbinUpEdges = []
@@ -642,7 +727,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
                     dataYield = hists[dataName][var].GetBinContent(bx,by)
         xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
         yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
-        headers=[var[0], var[1], "MC-Data", "Stat.\\ unc."]
+        headers=[var[0], var[1], comment, "Stat.\\ unc."]
         cols = [xRanges, yRanges, sfs, statUncerts]
         plotting.table_basic(headers, cols, caption="Difference between MC and data yields in veto lepton control region", printstr="corrFactorTable"+regionNameReduced, printdir=printdir)
 

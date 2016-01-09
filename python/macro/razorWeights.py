@@ -315,15 +315,15 @@ def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
         wFiles[name].Close()
     return wHists
 
-def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], scaleFactorNames=[], debugLevel=0):
+def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], scaleFactorNames={}, debugLevel=0):
     """Returns a dict with available scale factor histograms"""
     sfFile = rt.TFile.Open(sfFilename)
     sfHists = {}
     for pname in processNames:
-        if debugLevel > 0: print "Looking for scale factor histogram for",pname,"...",        
         histname = pname
         if pname in scaleFactorNames:
             histname = scaleFactorNames[pname]
+        if debugLevel > 0: print "Looking for scale factor histogram",histname,"for",pname,"...",        
 
         tmp = sfFile.Get(histname+"ScaleFactors")
         if tmp: 
@@ -332,6 +332,19 @@ def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], s
             if debugLevel > 0: print "Found!"
         else:
             if debugLevel > 0: print ""
+
+        #get up/down histograms
+        tmp = sfFile.Get(histname+"ScaleFactorsUp")
+        if tmp: 
+            sfHists[pname+"Up"] = tmp
+            sfHists[pname+"Up"].SetDirectory(0)
+            if debugLevel > 0: print "Up histogram found!"
+        tmp = sfFile.Get(histname+"ScaleFactorsDown")
+        if tmp: 
+            sfHists[pname+"Down"] = tmp
+            sfHists[pname+"Down"].SetDirectory(0)
+            if debugLevel > 0: print "Down histogram found!"
+
     sfFile.Close()
     return sfHists
 

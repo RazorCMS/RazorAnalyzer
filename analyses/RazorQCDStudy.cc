@@ -753,35 +753,27 @@ void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRu
       //bool combineTrees=true;
       
       //MuMu Box
-      if((passedDileptonTrigger||passedSingleLeptonTrigger) && nTightMuons > 0 && nLooseMuons > 1 && NJets40 > 0 ){
+      if((passedDileptonTrigger||passedSingleLeptonTrigger) && nTightMuons > 0 && nLooseMuons > 1){// && NJets40 > 0 ){
 	box = MuMu;
 	if (zMass<60 || zMass>120) continue;
       }
       //EleEle Box
-      else if((passedDileptonTrigger||passedSingleLeptonTrigger) && nTightElectrons > 0 && nLooseElectrons > 1 && NJets40 > 0 ){
+      else if((passedDileptonTrigger||passedSingleLeptonTrigger) && nTightElectrons > 0 && nLooseElectrons > 1){// && NJets40 > 0 ){
 	box = EleEle;
 	if (zMass<60 || zMass>120) continue;
       }
       else if (nVetoMuons>0 || nVetoElectrons>0) {
-	continue;
+      	continue;
       }
       //MultiJet Box                                
       else if(passedHadronicTrigger && NJets80 >= 2 && NJets40 > 3){
-	box = FourJet;
+      	box = FourJet;
       }
       else if (NJets40>1 && nVetoElectrons==0 && nVetoMuons==0) {
-      	//if (isData) {	
-	//vector<Float_t> prescales;
-	//cout << "----" << endl;
-	//for (Int_t nHLT=105; nHLT<115; nHLT++) {
-	//cout << HLTDecision[nHLT]*HLTPrescale[nHLT] << ", ";
-	//if (HLTDecision[nHLT]==kTRUE) { prescales.push_back(HLTPrescale[nHLT]); }
-	//}
-	//weight*=HLTPrescale[105]; //(*std::min_element(prescales.begin(), prescales.end()));
-      	//}
       	box = 100;
       }
       if (!(box==MuMu||box==EleEle||box==FourJet||box==100)) continue;
+      //if (!(box==MuMu||box==EleEle)) continue;
       outTree->Fill();
       
     }

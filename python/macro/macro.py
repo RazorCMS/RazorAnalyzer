@@ -326,6 +326,8 @@ def makeTreeDict(fileDict, treeName, debugLevel=0):
     return trees
 
 def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debugLevel=0):
+    if isinstance(sfVars, basestring):
+        sfVars = (sfVars,) #cast into tuple 
     #get variables
     var = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in sfVars]
     #constrain variables to be within the bounds of the histogram
@@ -355,7 +357,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     hists[name].SetBinError(bx,by,(oldErr*oldErr + squaredError)**(0.5))
                     if debugLevel > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, process="", debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, process="", auxSFs={}, auxSFHists={}, debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
@@ -366,6 +368,12 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         if isinstance(var, basestring) and not hasattr(tree, var): #if it's not in the tree
             formulas[var] = rt.TTreeFormula(var, var, tree)
             formulas[var].GetNdata()
+    #make TTreeFormulas for auxSFs
+    auxSFForms = {}
+    for name,pair in auxSFs.iteritems(): #auxSFs pairs look like "ScaleFactor":("Var to reweight","Cuts")
+        if debugLevel > 0: print "Making TTreeFormula for",name,"with formula",pair[1],"for reweighting",pair[0]
+        auxSFForms[name] = rt.TTreeFormula(name+"Cuts", pair[1], tree)
+        auxSFForms[name].GetNdata()
     #transform cuts 
     if errorOpt is not None:
         if debugLevel > 0: print "Error option is:",errorOpt
@@ -397,6 +405,11 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         if sfHist is not None: 
             sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel)
             w *= sf
+        for name in auxSFs: #apply misc scale factors (e.g. veto lepton correction)
+            if auxSFForms[name].EvalInstance(): #check if this event should be reweighted
+                auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, debugLevel=debugLevel)
+                w *= auxSF
+                err = (err*err + auxErr*auxErr)**(0.5)
         fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
         sumweight += w
         count += 1
@@ -405,7 +418,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", auxSFs={}, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -416,6 +429,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         if name in sfHists: 
             print("Using scale factors from histogram "+sfHists[name].GetName())
             sfHistToUse = sfHists[name]
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, weightOpts, errorOpt, process=name+"_"+boxName, debugLevel=debugLevel)
+        auxSFHists = {name:sfHists[name] for name in auxSFs} #for misc reweightings
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 

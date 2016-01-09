@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_VetoLepton, debugLevel=debugLevel)
     sfVars = ("MR","Rsq")
-
+    vetoSfVars = "lep1.Pt()"
 
     ##########################################################
     #TTJets dilepton control sample
@@ -160,9 +160,9 @@ if __name__ == "__main__":
     #tmpSFHists["TTJets"].Write("TTJetsDileptonCrossCheckScaleFactors")
     #ttjetsDileptonOutfile.Close()
 
-    ##########################################################
+    #########################################################
     #Veto Lepton cross-check region
-    ##########################################################
+    #########################################################
     vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
                 filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
                 cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
@@ -171,17 +171,24 @@ if __name__ == "__main__":
                 printdir=printdir, debugLevel=debugLevel)
 
     #Record discrepancies > 1 sigma
-    vetoLeptonSFs = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Lepton", printdir=printdir)
+    #NOTE: saving Data/MC rather than MC-Data (for test)
+    makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=vetoSfVars, signifThreshold=1.0, regionName="Veto Lepton", doDataOverMC=True, printdir=printdir)
 
-    #write veto lepton scale factors
-    vetoLeptonOutfile = rt.TFile("RazorVetoLeptonCrossCheck.root", "RECREATE")
-    print "Writing histogram",vetoLeptonSFs.GetName(),"to file"
-    vetoLeptonSFs.Write("VetoLeptonScaleFactors")
-    vetoLeptonOutfile.Close()
+    #load the veto lepton scale factors and apply the correction
+    vetoSfHists = loadScaleFactorHists(sfFilename="RazorVetoLeptonCrossCheck.root", processNames=["VetoLepton"], debugLevel=0)
+    sfHists["VetoLepton"] = vetoSfHists["VetoLepton"]
+    auxSFs = {"VetoLepton":("lep1.Pt()", "(abs(lep1Type) == 11 || abs(lep1Type) == 13)")}
 
-    ##########################################################
-    ##Veto Tau cross-check region
-    ##########################################################
+    vetoLeptonHistsAfterCorrection = makeControlSampleHists("VetoLeptonControlRegionAfterCorrection", 
+                filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
+                cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
+                bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+                weightHists=weightHists, plotDensity=False, sfHists=sfHists, auxSFs=auxSFs, weightOpts=weightOpts, 
+                printdir=printdir, debugLevel=debugLevel)
+
+    #########################################################
+    #Veto Tau cross-check region
+    #########################################################
     #vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
     #             filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
     #             cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
@@ -190,15 +197,7 @@ if __name__ == "__main__":
     #             printdir=printdir, debugLevel=debugLevel)
 
     ##Record discrepancies > 1 sigma
-    #vetoTauSFs = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, signifThreshold=1.0, regionName="Veto Tau", printdir=printdir)
-
-    ##write veto tau correction factors
-    #vetoTauOutfile = rt.TFile("RazorVetoTauCrossCheck.root", "RECREATE")
-    #print "Writing histogram",vetoTauSFs.GetName(),"to file"
-    #vetoTauSFs.Write("VetoTauScaleFactors")
-    #vetoTauOutfile.Close()
-
-
+    #makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=vetoSfVars, signifThreshold=1.0, regionName="Veto Tau", printdir=printdir)
 
     # ##########################################################
     # #Z->LL dilepton control sample
