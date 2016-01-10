@@ -1,6 +1,7 @@
 import os
 import ROOT as rt
 import copy
+import math
 from array import *
 
 #local imports
@@ -341,6 +342,17 @@ def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debug
         var[2] = max(var[2], sfHist.GetZaxis().GetXmin()*1.001)
     scaleFactor = sfHist.GetBinContent(sfHist.FindFixBin(*var))
     scaleFactorErr = sfHist.GetBinError(sfHist.FindFixBin(*var))
+
+    #add protection against unphysics scale factors
+    #if scale factor is 0, then use scale factor of 1 and add 100% systematic uncertainty
+    if scaleFactor == 0:
+        scaleFactor = 1.0
+        scaleFactorErr = math.sqrt( 1 + scaleFactorErr*scaleFactorErr )
+    #if scale factor is > 2.0, then use scale factor of 1 and add difference between scale factor and 1.0 as a systematic uncertainty
+    if scaleFactor > 2.0:
+        scaleFactorErr = math.sqrt( (scaleFactor-1) + scaleFactorErr*scaleFactorErr )
+        scaleFactor = 1.0        
+
     if debugLevel > 1: print "Applying scale factor: ",scaleFactor
     return (scaleFactor, scaleFactorErr)
 
