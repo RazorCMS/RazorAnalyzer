@@ -135,6 +135,10 @@ int main(int argc, char* argv[]) {
             cout << "Getting key from file.  Class type: " << className << endl;
             if(className.compare("TTree") != 0){
                 cout << "Skipping key (not a TTree)" << endl;
+                outputFile->cd();
+                TObject *outObj = key->ReadObj();
+                outObj->Write();
+                inputFile->cd();
                 continue;
             }
 

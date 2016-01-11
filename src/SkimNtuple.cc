@@ -81,6 +81,9 @@ int main(int argc, char* argv[]) {
             //if this key is not a TTree, we skip it
             if(className.compare("TTree") != 0){
                 cout << "Skipping key (not a TTree)" << endl;
+                outputFile->cd();
+                key->Write();
+                inputFile->cd();
                 continue;
             }
 
