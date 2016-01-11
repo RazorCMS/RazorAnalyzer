@@ -10,7 +10,7 @@ from macro.razorAnalysis import razorCuts
 from macro.razorWeights import loadWeightHists, loadScaleFactorHists, weightfilenames_DEFAULT, weighthistnames_DEFAULT
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
 
-LUMI = 2093 #in /pb
+LUMI = 2185 #in /pb
 MCLUMI = 1 
 
 SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
@@ -35,15 +35,11 @@ FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
-FIT_DIR = "MyFitResults_Sideband_PreapprovalFreeze"
-#FIT_DIR = "eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2093ipb"
+FIT_DIR = "eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2093ipb"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/toys_Bayes_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/toys_Bayes_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/toys_Bayes_EleMultiJet.root",
-        #"MultiJet":FIT_DIR+"/MultiJet/sideband/toys_Bayes_MultiJet.root",
-        #"MuMultiJet":FIT_DIR+"/MuMultiJet/sideband/toys_Bayes_MuMultiJet.root",
-        #"EleMultiJet":FIT_DIR+"/EleMultiJet/sideband/toys_Bayes_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/MultiJet/sideband/toys_Bayes_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/MuMultiJet/sideband/toys_Bayes_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/EleMultiJet/sideband/toys_Bayes_EleMultiJet.root",
         }
 
 weightOpts = []
@@ -53,15 +49,15 @@ miscErrors = []
 cfg = Config.Config(config)
 binsMRHad = cfg.getBinning("MultiJet")[0]
 binsRsqHad = cfg.getBinning("MultiJet")[1]
-hadronicBinning = { "MR":binsMRHad, "Rsq":binsRsqHad }
+hadronicBinning = { "MR":binsMRHad, "Rsq":binsRsqHad, ("MR","Rsq"):[] }
 binsMRLep = cfg.getBinning("MuMultiJet")[0]
 binsRsqLep = cfg.getBinning("MuMultiJet")[1]
-leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep }
+leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, ("MR","Rsq"):[] }
 binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning}
 
 blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2,len(binning[b]["Rsq"])+1)] for b in binning}
 
-dirName="ForJamboree_Data"
+dirName="SignalRegionPlots"
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -92,6 +88,7 @@ if __name__ == "__main__":
         dirName += '_Unblinded'
     if args.noFit: 
         TOYS_FILES = None
+        del plotOpts['sideband']
 
     #initialize
     weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
@@ -101,7 +98,7 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
-    sfHists = loadScaleFactorHists(processNames=SAMPLES, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_MultiJet.root", processNames=SAMPLES, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
 
     #estimate yields in signal region
     for boxName in BOXES:

@@ -1,4 +1,5 @@
-from optparse import OptionParser
+import os
+import argparse
 import ROOT as rt
 import sys
 from array import *
@@ -6,15 +7,28 @@ from array import *
 #local imports
 import rootTools
 from framework import Config
-from DustinTuple2RooDataSet import initializeWorkspace, getSumOfWeights, boxes, k_T, k_Z, k_W, dPhiCut, MTCut, getCuts
+from DustinTuple2RooDataSet import initializeWorkspace, boxes, k_T, k_Z, k_W, getCuts
 from RunCombine import exec_me
+from macro.razorWeights import loadScaleFactorHists
 
-jet1Cut = 80 #cut on leading jet pt
-jet2Cut = 80 #cut on subleading jet pt
+DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
+DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
+DIR_SIGNAL = "root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForApproval20151208/jobs/combined/"
+DATA_NAMES={
+    'MultiJet':DIR_DATA+'/RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered.root',
+    'EleMultiJet':DIR_DATA+'/RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered.root',
+    'MuMultiJet':DIR_DATA+'/RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered.root',
+    }
+FILENAMES_MC = {
+        "ttjets"    : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
+        "wjetstolnu"     : DIR_MC+"/"+"RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
+        "singletop" : DIR_MC+"/"+"RazorInclusive_ST_1pb_weighted_RazorSkim.root",
+        "other" : DIR_MC+"/"+"RazorInclusive_Other_1pb_weighted_RazorSkim.root",
+        "dyjetstoll"     : DIR_MC+"/"+"RazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+        "zjetstonunu"     : DIR_MC+"/"+"RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",
+        }
 
-lumiUncertainty = 0.12
-
-backgrounds = ['dyjetstoll', 'qcd', 'ttjets', 'zjetstonunu', 'multiboson', 'singletop', 'wjetstolnu', 'ttv']
+lumiUncertainty = 0.046
 
 def getScaleFactor(tree, treeName, sfs={}, opt=""):
     #get correct value of MR and Rsq
@@ -47,7 +61,9 @@ def getScaleFactor(tree, treeName, sfs={}, opt=""):
 
     #get name of scale factor histogram
     centerHistName = ""
-    for name in ["ttjets", "wjetstolnu", "dyjetstoll", "zjetstonunu"]:
+    #TODO:reenable DYJets scale factors once available
+    #for name in ["ttjets", "wjetstolnu", "dyjetstoll", "zjetstonunu"]:
+    for name in ["ttjets", "wjetstolnu", "zjetstonunu"]:
         if treeName.startswith(name):
             centerHistName = name
             break
@@ -62,13 +78,9 @@ def getScaleFactor(tree, treeName, sfs={}, opt=""):
     elif "sfstatDown" in opt:
         scaleFactor -= sfs[centerHistName].GetBinError(sfs[centerHistName].FindFixBin(theMR, theRsq))
     elif "sfsysUp" in opt:
-        scaleFactor = sfs[centerHistName+"_sfsysUp"].GetBinContent(sfs[centerHistName+"_sfsysUp"].FindFixBin(theMR, theRsq))
+        scaleFactor = sfs[centerHistName+"Up"].GetBinContent(sfs[centerHistName+"Up"].FindFixBin(theMR, theRsq))
     elif "sfsysDown" in opt:
-        scaleFactor = sfs[centerHistName+"_sfsysDown"].GetBinContent(sfs[centerHistName+"_sfsysDown"].FindFixBin(theMR, theRsq))
-    elif "sfmethodologyUp" in opt:
-        scaleFactor = sfs[centerHistName+"_sfmethodologyUp"].GetBinContent(sfs[centerHistName+"_sfmethodologyUp"].FindFixBin(theMR, theRsq))
-    elif "sfmethodologyDown" in opt:
-        scaleFactor = sfs[centerHistName+"_sfmethodologyDown"].GetBinContent(sfs[centerHistName+"_sfmethodologyDown"].FindFixBin(theMR, theRsq))
+        scaleFactor = sfs[centerHistName+"Down"].GetBinContent(sfs[centerHistName+"Down"].FindFixBin(theMR, theRsq))
 
     return scaleFactor
      
@@ -101,7 +113,7 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     weight = weight*scaleFactor
                     
     #default
-    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or opt == "sfmethodologyUp" or opt == "sfmethodologyDown" or "mcstat" in opt or "pdf" in opt: 
+    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or "mcstat" in opt or "pdf" in opt: 
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon scale factor up/down
@@ -371,7 +383,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", pileupWeightHist=None, hadronicTriggerWeight=None, sumPdfWeights=None, sumScaleWeights=None, nevents=None):
+def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -399,6 +411,11 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     htemp = rt.TH1F('htemp_%s'%label,'htemp_%s'%label,len(z)-1,z)
 
     cuts = getCuts(workspace, box)
+
+    #noise flags
+    if isData:
+        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter'])
+        cuts = cuts + ' && ( ' + flagCuts + ' ) '
 
     #modify cuts based on histogram option
     if sysErrOpt == "jesUp": 
@@ -517,15 +534,6 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
         nBTags = min(tree.nBTaggedJets,btagCutoff)
         btag_bin = htemp.FindBin(nBTags) - 1
         theWeight = tree.weight*k*globalScaleFactor
-        #########################
-        #temporary reweighting for pileup and hadronic trigger
-        if pileupWeightHist is not None:
-            pileupWeight = pileupWeightHist.GetBinContent(pileupWeightHist.GetXaxis().FindFixBin(tree.nVtx))
-            theWeight *= pileupWeight
-        if hadronicTriggerWeight is not None:
-            if box in ["MultiJet", "DiJet", "FourJet", "SixJet", "LooseLeptonMultiJet", "LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet"]:
-                theWeight *= hadronicTriggerWeight
-        #########################
         filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, sysErrOpt, sumPdfWeights=sumPdfWeights, sumScaleWeights=sumScaleWeights, nevents=nevents)
         numEntriesByBtag[btag_bin] += 1
         sumEntriesByBtag[btag_bin] += filledWeight
@@ -567,7 +575,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     return myTH1
 
 def writeDataCard_th1(box,model,txtfileName,hists):
-    bkgs = [bkg for bkg in backgrounds if bkg in hists]
+    bkgs = [bkg for bkg in FILENAMES_MC if bkg in hists]
     obsRate = hists["data_obs"].Integral()
     nBkgd = len(bkgs)
     rootFileName = txtfileName.replace('.txt','.root')
@@ -575,8 +583,8 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     rates.extend([hists[bkg].Integral() for bkg in bkgs])
     processes = [model]
     processes.extend(bkgs)
-    lumiErrs = [1+lumiUnceratinty] 
-    lumiErrs.extend([1+lumiUnceratinty for bkg in bkgs]) 
+    lumiErrs = [1+lumiUncertainty] 
+    lumiErrs.extend([1+lumiUncertainty for bkg in bkgs]) 
     mcErrs = {} #dictionary of uncorrelated mc bkgd lnN uncertainties
 
     #get list of shape uncertainties
@@ -590,14 +598,10 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     for name in shapeNames: 
         shapeErrs[name].extend(["1.0" if bkg+"_"+name+"Down" in hists else "-" for bkg in bkgs])
 
-    #10% normalization uncertainty on signal (proxy for cross section error)
-    mcErrs[model] = [1.10]
-    for bkg in bkgs:
-        mcErrs[model].extend([1.00 for bkg1 in bkgs])
-    #10% normalization uncertainty on rare backgrounds
+    #20% normalization uncertainty on rare backgrounds
     for bkg in bkgs:
         mcErrs[bkg] = [1.00]
-        mcErrs[bkg].extend([1.00 + 0.10*(bkg==bkg1 and bkg1 not in 
+        mcErrs[bkg].extend([1.00 + 0.20*(bkg==bkg1 and bkg1 not in 
                 ['ttjets','wjetstolnu','dyjetstoll','zjetstonunu']) for bkg1 in bkgs]) 
             
     divider = "------------------------------------------------------------\n"
@@ -624,10 +628,6 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
         
     mcErrStrings = {}
-    mcErrStrings[model] = "%s_norm\tlnN"%(model)
-    for i in range(0,len(bkgs)+1):                
-        mcErrStrings[model] += "\t%.3f"%mcErrs[model][i]
-    mcErrStrings[model]+="\n"
     for bkg in bkgs:
         mcErrStrings[bkg] = "%s_norm\tlnN"%(bkg)
         for i in range(0,len(bkgs)+1):                
@@ -644,7 +644,6 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     # now nuisances
     datacard+=lumiString #lumi uncertainty
     
-    datacard+=mcErrStrings[model]
     for bkg in bkgs:
         datacard+=mcErrStrings[bkg] #MC normalization uncertainties
     for name in shapeNames:
@@ -656,106 +655,100 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     txtfile.close()
  
 if __name__ == '__main__':
-    parser = OptionParser()
-    parser.add_option('-c','--config',dest="config",type="string",default="config/run2.config",
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c','--config',dest="config",default="config/run2.config",
                   help="Name of the config file to use")
-    parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
+    parser.add_argument('-d','--dir',dest="outDir",default="./",
                   help="Output directory to store datasets")
-    parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
+    parser.add_argument('-l','--lumi',dest="lumi", default=2185.,type=float,
                   help="integrated luminosity in pb^-1")
-    parser.add_option('--lumi-in',dest="lumi_in", default=1.,type="float",
+    parser.add_argument('--lumi-in',dest="lumi_in", default=1.,type=float,
                   help="integrated luminosity in pb^-1")
-    parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
+    parser.add_argument('-b','--box',default="MultiJet",
                   help="box name")
-    parser.add_option('--dphi-cut',dest="dPhiCut",default=-1.0,type="float",
-                  help="set delta phi cut on the razor hemispheres")
-    parser.add_option('--mt-cut',dest="MTCut",default=-1.0,type="float",
-                  help="set transverse mass cut")
-    parser.add_option('--jet1-cut',dest="jet1Cut",default=-1.0,type="float",
-                  help="set leading jet pt cut")
-    parser.add_option('--jet2-cut',dest="jet2Cut",default=-1.0,type="float",
-                  help="set subleading jet pt cut")
+    parser.add_argument('-m','--model',default="T1bbbb",
+                  help="signal model name")
+    parser.add_argument('--mGluino',default=-1,type=float,
+                  help="mass of gluino")
+    parser.add_argument('--mStop',default=-1,type=float,
+                  help="mass of stop")
+    parser.add_argument('--mLSP',default=-1,type=float,
+                  help="mass of LSP")
+    parser.add_argument('--no-sys',dest="noSys",default=False,action='store_true',
+                  help="no shape systematic uncertainties")
+    parser.add_argument('--unblind',default=False,action='store_true',
+                  help='set limits on data (default is to use MC cocktail)')
 
-    (options,args) = parser.parse_args()
+    args = parser.parse_args()
     
-    cfg = Config.Config(options.config)
+    cfg = Config.Config(args.config)
 
-    box =  options.box
+    box =  args.box
     boxList = box.split('_')
-    lumi = options.lumi
-    lumi_in = options.lumi_in
+    lumi = args.lumi
+    lumi_in = args.lumi_in
+
+    #get signal mass point
+    if args.mGluino>-1:
+        massPoint = '%i_%i'%(args.mGluino,args.mLSP)
+    elif args.mStop>-1:
+        massPoint = '%i_%i'%(args.mStop,args.mLSP)
+    modelString = 'SMS-'+args.model+'_'+massPoint
 
     for curBox in boxList:
-        #get appropriate dPhi cut 
-        if options.dPhiCut >= 0: dPhiCut = options.dPhiCut
-        else:
-            if curBox in ["DiJet", "FourJet", "SixJet", "MultiJet", "MuMu", "MuEle", "EleEle"]:
-                dPhiCut = 2.8
-            else:
-                dPhiCut = 3.2 #no dPhi cut for lepton or loose lepton boxes
-
-        #get appropriate MT cut
-        if options.MTCut >= 0: MTCut = options.MTCut
-        else:
-            if curBox in ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet", 
-                       "EleJet", "EleFourJet", "EleSixJet", "EleMultiJet",
-                       "LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:
-                MTCut = 100 #apply MT > 100 in all lepton and loose lepton boxes
-            else:
-                MTCut = -1
-
-        if options.jet1Cut >= 0: jet1Cut = options.jet1Cut
-        if options.jet2Cut >= 0: jet2Cut = options.jet2Cut
-
         #get data/MC scale factors from files
-        sfFilenames = {
-                "ttjets" : "data/ScaleFactors/Placeholders/DummyRun2TTJetsSF.root",
-                "wjetstolnu" : "data/ScaleFactors/Placeholders/DummyRun2WJetsSF.root",
-                "dyjetstoll" : "data/ScaleFactors/Placeholders/DummyRun2DYJetsSF.root",
-                "zjetstonunu" : "data/ScaleFactors/Placeholders/DummyRun2ZNuNuSF.root",
-                }
-        sfFiles = {name : rt.TFile(sfFilenames[name]) for name in sfFilenames}
-        sfHists = {}
-        sfHists["ttjets"] = sfFiles["ttjets"].Get("TTJetsSingleLepton")
-        sfHists["ttjets_sfsysUp"] = sfFiles["ttjets"].Get("TTJetsSingleLeptonUp")
-        sfHists["ttjets_sfsysDown"] = sfFiles["ttjets"].Get("TTJetsSingleLeptonDown")
-        sfHists["wjetstolnu"] = sfFiles["wjetstolnu"].Get("WJetsSingleLepton")
-        sfHists["wjetstolnu_sfsysUp"] = sfFiles["wjetstolnu"].Get("WJetsSingleLeptonUp")
-        sfHists["wjetstolnu_sfsysDown"] = sfFiles["wjetstolnu"].Get("WJetsSingleLeptonDown")
-        sfHists["dyjetstoll"] = sfFiles["dyjetstoll"].Get("DYJetsDilepton")
-        sfHists["dyjetstoll_sfsysUp"] = sfFiles["dyjetstoll"].Get("DYJetsDileptonUp")
-        sfHists["dyjetstoll_sfsysDown"] = sfFiles["dyjetstoll"].Get("DYJetsDileptonDown")
-        sfHists["zjetstonunu"] = sfFiles["zjetstonunu"].Get("ZNuNuGJets")
-        sfHists["zjetstonunu_sfsysUp"] = sfFiles["zjetstonunu"].Get("ZNuNuGJetsUp")
-        sfHists["zjetstonunu_sfsysDown"] = sfFiles["zjetstonunu"].Get("ZNuNuGJetsDown")
-        #up histogram for the methodology check is ZNuNuDilepton
-        sfHists["zjetstonunu_sfmethodologyUp"] = sfFiles["zjetstonunu"].Get("ZNuNuDilepton")
-        #down histogram for the methodology check is ZNuNuGJets - (ZNuNuDilepton - ZNuNuGJets)
-        sfHists["zjetstonunu_sfmethodologyDown"] = sfHists["zjetstonunu"].Clone("ZNuNuSFMethodDown")
-        sfHists["zjetstonunu_sfmethodologyDown"].Add(sfHists["zjetstonunu"])
-        sfHists["zjetstonunu_sfmethodologyDown"].Add(sfHists["zjetstonunu_sfmethodologyUp"], -1)
+        processNames = ["ttjets", "wjetstolnu", "dyjetstoll", "zjetstonunu"]
+        scaleFactorNames = {"ttjets":"TTJets","wjetstolnu":"WJets","dyjetstoll":"DYJets","zjetstonunu":"WJetsInv"}
+        sfHists = loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=processNames, scaleFactorNames=scaleFactorNames, debugLevel=1)
 
-        #list of shape systematics to apply.
+        #TODO: load cross check scale factor histograms
+
+        #list of shape systematics to apply to signal and background MC.
         #if a list of physics processes is given, the uncertainty will be applied to each process in the list, assumed uncorrelated from process to process.
         #if an empty list is given, the uncertainty will be applied (correlated) to all processes, including signal.
         shapes = {
-                #"muoneff" : [],
-                #"eleeff" : [],
-                #"btag" : [],
-                #"jes" : [],
-                #"jer" : [],
-                #"sfstat" : ["ttjets", "wjetstolnu", "dyjetstoll", "zjetstonunu"],
-                #"sfsys" : ["ttjets", "wjetstolnu", "dyjetstoll", "zjetstonunu"],
-                #"sfmethodology" : ["zjetstonunu"]
-                }
-
+                'tightmuoneff':[],
+                'tighteleeff':[],
+                'vetomuoneff':[],
+                'vetoeleeff':[],
+                'jes':[],
+                'muontrig':[],
+                'eletrig':[],
+                'btag':[],
+                'facscale':[],
+                'renscale':[],
+                'facrenscale':[],
+                'ees':[],
+                'mes':[],
+                'pileup':[],
+                'isr':[],
+                'mcstat%s'%curBox.lower():[]
+        }
+        #list of shapes that apply to signal only
+        signalShapes = {
+                'tightmuonfastsim':[],
+                'tightelefastsim':[],
+                'vetomuonfastsim':[],
+                'vetoelefastsim':[],
+                'btagfastsim':[],
+        }
         #specify which systematics should be treated as uncorrelated bin-by-bin
-        uncorrSFShapes = [
-                #"sfstat",
+        uncorrShapes = [
+                "mcstat%s"%curBox.lower(),
                 ] 
 
-        print 'Input files are %s' % ', '.join(args)
-        
+        #scale factor systematics are correlated according to scale factor binning
+        uncorrSFShapes = [
+                ] 
+
+        if args.noSys:
+            shapes = {}
+            signalShapes = {}
+            uncorrShapes = []
+            uncorrSFShapes = []
+        #TODO: add scale factor uncertainties
+        #TODO: add background normalization uncertainties
+
         #create workspace
         w = rt.RooWorkspace("w"+curBox)
         variables = initializeWorkspace(w,cfg,curBox)    
@@ -767,66 +760,70 @@ if __name__ == '__main__':
         btagMax =  w.var('nBtag').getMax()
         z = array('d', cfg.getBinning(curBox)[2]) # nBtag binning
 
-        #make MC signal and background histograms
-        modelString = "" #SMS name
-        for i, f in enumerate(args): #loop over input files
-            if f.lower().endswith('.root'):
-                rootFile = rt.TFile(f) #open file
-                tree = rootFile.Get('RazorInclusive') #get tree
-                if f.lower().find('sms')==-1: #background process
-                    #set background name according to input file name
-                    treeName = ""
-                    for name in backgrounds:
-                        if f.lower().find(name) != -1:
-                            treeName = name
-                            break
-                    if treeName == "":
-                        print("Error: unknown background "+f)
-                        sys.exit()
-                    #add histogram to output file
-                    print("Building histogram for "+treeName)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName, sfs=sfHists))
-                    ###get up/down histograms for shape systematics
-                    for shape in shapes:
-                        for updown in ["Up", "Down"]:
-                            if shapes[shape] == []:
-                                print("Building histogram for "+treeName+"_"+shape+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
-                            elif treeName.lower() in [s.lower() for s in shapes[shape]]:
-                                print("Building histogram for "+treeName+"_"+shape+(treeName.replace('_',''))+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+(treeName.replace('_',''))+updown, sfs=sfHists, sysErrOpt=shape+updown))
-                else: #signal process
-                    model = f.split('-')[1].split('_')[0]
-                    massPoint = '_'.join(f.split('_')[3:5])
-                    modelString = model+'_'+massPoint
-                    #add histogram to output file
-                    print("Building histogram for "+modelString)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f , globalScaleFactor=lumi/lumi_in, treeName=modelString, sfs=sfHists))
-                    for shape in shapes:
-                        for updown in ["Up", "Down"]:
-                            if shapes[shape] == []:
-                                print("Building histogram for "+modelString+"_"+shape+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=modelString+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
-                            elif "signal" in [s.lower() for s in shapes[shape]]:
-                                print("Building histogram for "+modelString+"_"+shape+(modelString.replace('_',''))+updown)
-                                ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=modelString+"_"+shape+"signal"+updown, sfs=sfHists, sysErrOpt=shape+updown))
+        #make MC background histograms
+        for treeName, f in FILENAMES_MC.iteritems():
+            rootFile = rt.TFile.Open(f) #open file
+            assert rootFile
+            tree = rootFile.Get('RazorInclusive') #get tree
 
-                rootFile.Close()
+            #add histogram to output file
+            print("Building histogram for "+treeName)
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName, sfs=sfHists))
+            #get up/down histograms for shape systematics
+            for shape in shapes:
+                for updown in ["Up", "Down"]:
+                    if shapes[shape] == []:
+                        print("Building histogram for "+treeName+"_"+shape+updown)
+                        ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
+                    elif treeName.lower() in [s.lower() for s in shapes[shape]]:
+                        print("Building histogram for "+treeName+"_"+shape+(treeName.replace('_',''))+updown)
+                        ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+(treeName.replace('_',''))+updown, sfs=sfHists, sysErrOpt=shape+updown))
+            rootFile.Close()
+        #signal process
+        f = DIR_SIGNAL+'/'+modelString+'.root'
+        rootFile = rt.TFile.Open(f)
+        assert rootFile
+        tree = rootFile.Get('RazorInclusive') #get tree
+        #add histogram to output file
+        print("Building histogram for "+modelString)
+        ds.append(convertTree2TH1(tree, cfg, curBox, w, f , globalScaleFactor=lumi/lumi_in, treeName=modelString, sfs=sfHists))
+        #systematics
+        allShapes = shapes.copy()
+        allShapes.update(signalShapes)
+        for shape in allShapes:
+            for updown in ["Up", "Down"]:
+                if allShapes[shape] == []:
+                    print("Building histogram for "+modelString+"_"+shape+updown)
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=modelString+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown))
+                elif "signal" in [s.lower() for s in allShapes[shape]]:
+                    print("Building histogram for "+modelString+"_"+shape+(modelString.replace('_',''))+updown)
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=modelString+"_"+shape+"signal"+updown, sfs=sfHists, sysErrOpt=shape+updown))
+        rootFile.Close()
+        #data
+        if args.unblind:
+            f = DATA_NAMES[curBox]
+            rootFile = rt.TFile.Open(f)
+            assert rootFile
+            tree = rootFile.Get('RazorInclusive') #get tree
+            print "Building histogram for data"
+            data = convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=1.0, treeName='data_obs', isData=True)
+            rootFile.Close()
+        else: #use sum of MC histograms as proxy for the data
+            data = ds[0].Clone('data_obs')
+            data.Reset()
+            for h in ds:
+                if h.GetName() in FILENAMES_MC: 
+                    data = data + h
 
         #convert dataset list to dict
         dsDict = {}
         for d in ds: dsDict[d.GetName()] = d
 
         #perform uncorrelation procedure
+        for shape in uncorrShapes:
+            uncorrelate(dsDict, shape)
         for shape in uncorrSFShapes:
             uncorrelateSFs(dsDict, shape, sfHists, cfg, curBox)
-
-        #make data histograms
-        #(as a proxy for now, use the sum of the MC)
-        data = ds[0].Clone('data_obs')
-        for i in range(1, len(ds)): 
-            if ds[i].GetName().lower() in backgrounds: 
-                data = data + ds[i]
 
         #output file name
         if btagMax>btagMin+1:
@@ -835,8 +832,9 @@ if __name__ == '__main__':
             outFileName = 'RazorInclusive_Histograms_lumi-%.1f_%ibtag_%s.root'%(lumi/1000.,btagMin,curBox)
 
         #output file
-        print "Output File: %s"%(options.outDir+"/"+outFileName)
-        outFile = rt.TFile.Open(options.outDir+"/"+outFileName,'recreate')
+        os.system('mkdir -p '+args.outDir)
+        print "Output File: %s"%(args.outDir+"/"+outFileName)
+        outFile = rt.TFile.Open(args.outDir+"/"+outFileName,'recreate')
         outFile.cd()
 
         for name in dsDict:
@@ -850,15 +848,15 @@ if __name__ == '__main__':
         #add data for writing card
         dsDict["data_obs"] = data
         #create data card
-        writeDataCard_th1(curBox,modelString,(options.outDir+"/"+outFileName).replace('.root','.txt'),dsDict)
+        writeDataCard_th1(curBox,modelString,(args.outDir+"/"+outFileName).replace('.root','.txt'),dsDict)
 
     #run combine
     if len(boxList) == 1:
         #get card name
         if btagMax>btagMin+1:
-            cardName = '%s/RazorInclusive_Histograms_lumi-%.1f_%i-%ibtag_%s.txt'%(options.outDir,lumi/1000.,btagMin,btagMax-1,boxList[0])
+            cardName = '%s/RazorInclusive_Histograms_lumi-%.1f_%i-%ibtag_%s.txt'%(args.outDir,lumi/1000.,btagMin,btagMax-1,boxList[0])
         else:
-            cardName = '%s/RazorInclusive_Histograms_lumi-%.1f_%ibtag_%s.txt'%(options.outDir,lumi/1000.,btagMin,boxList[0])
+            cardName = '%s/RazorInclusive_Histograms_lumi-%.1f_%ibtag_%s.txt'%(args.outDir,lumi/1000.,btagMin,boxList[0])
 
         exec_me('combine -M Asymptotic '+cardName, False)
 
@@ -872,8 +870,8 @@ if __name__ == '__main__':
                 cardName = 'RazorInclusive_Histograms_lumi-%.1f_%ibtag_%s.txt'%(lumi/1000.,btagMin,curBox)
             cardNames.append(cardName)
         #combine cards
-        exec_me('cd '+options.outDir+'; combineCards.py '+(' '.join(cardNames))+' > RazorInclusive_Histograms_'+('_'.join(boxList))+'.txt; cd ..', False)
+        exec_me('cd '+args.outDir+'; combineCards.py '+(' '.join(cardNames))+' > RazorInclusive_Histograms_'+('_'.join(boxList))+'.txt; cd ..', False)
         #call combine
-        exec_me('combine -M Asymptotic '+options.outDir+'/RazorInclusive_Histograms_'+('_'.join(boxList))+'.txt', False)
+        exec_me('combine -M Asymptotic '+args.outDir+'/RazorInclusive_Histograms_'+('_'.join(boxList))+'.txt', False)
 
 
