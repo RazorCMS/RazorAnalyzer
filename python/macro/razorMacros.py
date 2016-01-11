@@ -441,6 +441,9 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     sfHists[process+"NormDown"] = hists[dataName][var].Clone(process+"ScaleFactorsDown")
     sfHists[process+"NormDown"].SetDirectory(0)
 
+    #save yields for debugging
+    dataDebug = sfHists[process].Clone()
+
     #subtract backgrounds in data
     bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit, non-signal samples
     for mcProcess in bgProcesses:
@@ -461,10 +464,16 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
             sfHists[process+"NormUp"].Add(hists[mcProcess][var], -1) 
             sfHists[process+"NormDown"].Add(hists[mcProcess][var], -1) 
 
+    #save yields for debugging
+    dataDebugSubtr = sfHists[process].Clone()
+
     #divide data/MC
     sfHists[process].Divide(hists[process][var])
     sfHists[process+"NormUp"].Divide(hists[process][var])
     sfHists[process+"NormDown"].Divide(hists[process][var])
+
+    #save yields for debugging 
+    dataDebugRatio = sfHists[process].Clone()
 
     #zero any negative scale factors
     if isinstance(var, basestring) or len(var) == 1: #1D
@@ -515,7 +524,29 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                             sfHists[process].SetBinError(bx,by,bz,0.0)
 
     if debugLevel > 0:
-        print "Scale factor histograms after adding",process,":"
+        print "Printing scale factor calculation in each bin:"
+        if isinstance(var, basestring) or len(var) == 1: #1D
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                print "Bin",bx,":"
+                print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx))
+                print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx)-dataDebugSubtr.GetBinContent(bx))
+                print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx),dataDebugSubtr.GetBinContent(bx),hists[process][var].GetBinContent(bx))
+        elif len(var) == 2: #2D
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                for by in range(1, sfHists[process].GetNbinsY()+1):
+                    print "Bin %d,%d:"%(bx,by)
+                    print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx,by))
+                    print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx,by)-dataDebugSubtr.GetBinContent(bx,by))
+                    print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx,by),dataDebugSubtr.GetBinContent(bx,by),hists[process][var].GetBinContent(bx,by))
+        elif len(var) == 3: #3D
+            for bx in range(1, sfHists[process].GetNbinsX()+1):
+                for by in range(1, sfHists[process].GetNbinsY()+1):
+                    for bz in range(1, sfHists[process].GetNbinsZ()+1):
+                        print "Bin %d,%d,%d:"%(bx,by,bz)
+                        print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx,by,bz))
+                        print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx,by,bz)-dataDebugSubtr.GetBinContent(bx,by,bz))
+                        print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx,by,bz),dataDebugSubtr.GetBinContent(bx,by,bz),hists[process][var].GetBinContent(bx,by,bz))
+        print "\nScale factor histograms after adding",process,":"
         print sfHists
 
     #plot scale factors in 2D (not yet implemented for 1 or 3 dimensions)

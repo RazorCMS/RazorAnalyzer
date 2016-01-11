@@ -96,7 +96,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                     #add in quadrature with existing error
                     oldErr = hists[name][var].GetBinError(bx)
                     hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
-                    if debugLevel > 0: print shape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
+                    if debugLevel > 0 and sysErr > 0: print shape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
             for source in miscErrors:
                 if source.lower() == "mt" and var == "MR":
                     applyMTUncertainty1D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
