@@ -196,6 +196,8 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         if data and data.GetMaximum() > mcTotal.GetMaximum() and ymax is None: 
             mcTotal.SetMaximum(data.GetMaximum())
         mc.Draw("hist")
+        if data and data.GetMaximum() > mc.GetMaximum() and ymax is None: 
+            mc.SetMaximum(data.GetMaximum())
         mc.GetXaxis().SetTitle(xtitle)
         mc.GetYaxis().SetTitle(ytitle)
         mc.GetYaxis().SetTitleOffset(0.60)
@@ -435,8 +437,14 @@ def make1DRatioHistogram(num, denom, xtitle="", ratiomin=0.25, ratiomax=2.0, log
     if ignoreDenominatorErrs:
         for bx in range(1, denomClone.GetNbinsX()+1):
             denomClone.SetBinError(bx, 0.0)
-    ratio.Divide(denomClone)
     ratio.SetTitle("")
+    ratio.Divide(denomClone)
+
+    ###DEBUG
+    #print "Num Err Denom Err Ratio Err"
+    #for bx in range(1, ratio.GetNbinsX()+1):
+    #    print "Bin",bx,":",num.GetBinContent(bx),num.GetBinError(bx),denom.GetBinContent(bx),denom.GetBinError(bx),ratio.GetBinContent(bx),ratio.GetBinError(bx)
+
     ratio.GetXaxis().SetTitle(xtitle)
     ratio.SetMinimum(ratiomin)
     ratio.SetMaximum(ratiomax)
