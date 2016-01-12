@@ -1090,7 +1090,8 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  getPhotonEffArea90( phoEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
 	  
 	  //Use Loose Photon ID and charged Iso < 2.5 GeV
-	  if (!( photonPassLooseID(i,true)	
+	  if (!( photonPassLooseID(i,true)
+		 //pho_HoverE[i] < 0.05 && photonPassesElectronVeto(i)
 		 && 
 		 max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5
 		 )
