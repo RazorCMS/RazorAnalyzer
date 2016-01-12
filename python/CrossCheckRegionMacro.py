@@ -171,7 +171,7 @@ if __name__ == "__main__":
     #            printdir=printdir, debugLevel=debugLevel)
 
     ##Record discrepancies > 1 sigma
-    #makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=vetoSfVars, signifThreshold=1.0, regionName="Veto Lepton", doDataOverMC=True, printdir=printdir)
+    #makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=vetoSfVars, signifThreshold=1.0, regionName="Veto Lepton", doDataOverMC=False, printdir=printdir)
 
     #load the veto lepton scale factors and apply the correction
     vetoSfHists = loadScaleFactorHists(sfFilename="RazorVetoLeptonCrossCheck.root", processNames=["VetoLepton"], debugLevel=0)
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     #             printdir=printdir, debugLevel=debugLevel)
 
     ##Record discrepancies > 1 sigma
-    #makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=vetoSfVars, signifThreshold=1.0, regionName="Veto Tau", doDataOverMC=True, printdir=printdir)
+    #makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=vetoSfVars, signifThreshold=1.0, regionName="Veto Tau", doDataOverMC=False, printdir=printdir)
 
     # ##########################################################
     # #Z->LL dilepton control sample
