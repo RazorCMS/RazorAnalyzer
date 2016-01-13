@@ -321,6 +321,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     float subleadingJetPt_MESUp, subleadingJetPt_MESDown, subleadingJetPt_EESUp, subleadingJetPt_EESDown;
     int nVetoMuons, nTightMuons, nVetoElectrons, nTightElectrons, nLooseTaus;
     float met, HT;
+    float leadingGenLeptonPt;
+    int   leadingGenLeptonType;
+    float subLeadingGenLeptonPt;
+    int   subLeadingGenLeptonType;
     //SMS parameters 
     int mGluino, mLSP;
 
@@ -370,6 +374,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
+	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
+	razorTree->Branch("leadingGenLeptonType", &leadingGenLeptonType, "leadingGenLeptonType/I");
+	razorTree->Branch("subLeadingGenLeptonPt", &subLeadingGenLeptonPt, "subLeadingGenLeptonPt/F");
+	razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_vetoMuonEffUp", &sf_vetoMuonEffUp, "sf_vetoMuonEffUp/F");
@@ -548,6 +556,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         nTightElectrons = 0;
         nLooseTaus = 0;
         if(!isData){
+	    leadingGenLeptonPt = -9;
+	    leadingGenLeptonType = 0;
+	    subLeadingGenLeptonPt = -9;
+	    subLeadingGenLeptonType = 0;
   	    ISRSystWeightUp = 1.0;
   	    ISRSystWeightDown = 1.0;
 	    pileupWeightUp = 1.0;
@@ -704,7 +716,53 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
         /////////////////////////////////
         //MC particles
-        /////////////////////////////////	
+        /////////////////////////////////
+	if(!isData) {
+	  for(int j = 0; j < nGenParticle; j++){
+	    
+	    //electron or muon
+	    if ( gParticleStatus[j] == 1 &&
+		 (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13)
+		 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23 || abs(gParticleMotherId[j]) == 15)
+		 ) {
+	      if (gParticlePt[j] > leadingGenLeptonPt) {
+		subLeadingGenLeptonPt = leadingGenLeptonPt;
+		subLeadingGenLeptonType = leadingGenLeptonType;
+		leadingGenLeptonPt = gParticlePt[j];
+		leadingGenLeptonType = gParticleId[j];
+	      } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
+		subLeadingGenLeptonPt = gParticlePt[j];
+		subLeadingGenLeptonType = gParticleId[j];
+	      }
+	    }
+
+	    //hadronic tau
+	    if ( gParticleStatus[j] == 2 && abs(gParticleId[j]) == 15
+		 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)
+		 ) {
+	      bool isLeptonicTau = false;
+	      for(int k = 0; k < nGenParticle; k++){
+		if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == j) {
+		  isLeptonicTau = true;
+		  break;
+		}
+	      }
+	      if (isLeptonicTau) continue;
+		
+	      if (gParticlePt[j] > leadingGenLeptonPt) {
+		subLeadingGenLeptonPt = leadingGenLeptonPt;
+		subLeadingGenLeptonType = leadingGenLeptonType;
+		leadingGenLeptonPt = gParticlePt[j];
+		leadingGenLeptonType = gParticleId[j];
+	      } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
+		subLeadingGenLeptonPt = gParticlePt[j];
+		subLeadingGenLeptonType = gParticleId[j];
+	      }
+	    }
+
+	  } //loop over gen particles
+	} //if !isData
+	
 	if(isFastsimSMS){
 
 	  TLorentzVector *gluino1PreShowering = 0;
