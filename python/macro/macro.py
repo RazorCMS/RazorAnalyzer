@@ -430,18 +430,38 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", auxSFs={}, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", auxSFs={}, dataDrivenQCD=False, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
     for name in treeDict: 
+        #reset parameters
+        weightOptsToUse = copy.copy(weightOpts)
+        cutsToUse = copy.copy(cuts)
+        scaleToUse = scale
         if name not in hists: continue
         print("Filling histograms for tree "+name)
+        #get correct scale factor histogram
         sfHistToUse = None
         if name in sfHists: 
             print("Using scale factors from histogram "+sfHists[name].GetName())
             sfHistToUse = sfHists[name]
         auxSFHists = {name:sfHists[name] for name in auxSFs} #for misc reweightings
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVars, sysVars, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, debugLevel=debugLevel)
+        #get correct variables for scale factor reweighting.
+        #if sfVars is a dictionary, get the appropriate value from it.  otherwise use sfVars directly.
+        sfVarsToUse = sfVars
+        sysVarsToUse = sysVars
+        if sfHistToUse is not None and isinstance(sfVars,dict):
+            sfVarsToUse = sfVars[name]
+            print "Reweighting in",sfVarsToUse
+        if sfHistToUse is not None and isinstance(sysVars,dict):
+            sysVarsToUse = sysVars[name]
+        #data-driven QCD prediction is obtained by extrapolating from the high dPhiRazor region
+        if dataDrivenQCD and name.lower() == "qcd":
+            print "Estimating QCD via data driven extrapolation method"
+            cutsToUse = cutsToUse.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
+            weightOptsToUse.append('datadrivenqcd')
+            scaleToUse = 1.0
+        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, sysVarsToUse, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 

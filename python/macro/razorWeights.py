@@ -145,10 +145,17 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
     """Apply pileup weights and other known MC correction factors -- for razor control regions"""
     lweightOpts = map(str.lower, weightOpts)
 
-    eventWeight = event.weight*scale
-    if debugLevel > 1: 
-        print "Weight from ntuple:",event.weight
-        print "Scale by:",scale
+    if 'datadrivenqcd' not in lweightOpts: #ordinary MC weight
+        eventWeight = event.weight*scale
+        if debugLevel > 1: 
+            print "Weight from ntuple:",event.weight
+            print "Scale by:",scale
+    else: #data-driven QCD estimate 
+        qcdExtrapolationFactor = 1.2e+6*(event.MR**(-2.6)) + 0.064
+        eventWeight = qcdExtrapolationFactor*scale
+        if debugLevel > 1:
+            print "QCD extrapolation factor:",qcdExtrapolationFactor
+            print "Scale by:",scale
 
     #pileup reweighting
     if str.lower("doNPVWeights") in lweightOpts:
@@ -318,6 +325,7 @@ def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
 def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], scaleFactorNames={}, debugLevel=0):
     """Returns a dict with available scale factor histograms"""
     sfFile = rt.TFile.Open(sfFilename)
+    assert sfFile
     sfHists = {}
     for pname in processNames:
         histname = pname
