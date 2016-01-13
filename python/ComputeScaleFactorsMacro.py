@@ -139,7 +139,7 @@ if __name__ == "__main__":
                  cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
                  bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                  weightHists=weightHists, sfHists=sfHists_ForWJetsInv, weightOpts=weightOpts, 
-                 printdir=printdir, plotDensity=False, sfVars=sfVars_NoW, debugLevel=debugLevel)
+                 printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
     appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
 
 
