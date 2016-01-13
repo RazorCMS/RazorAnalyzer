@@ -113,6 +113,8 @@ WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8                                      
 WZJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                                      5.29
 WZ_TuneCUETP8M1_13TeV-pythia8                                                      47.13
 ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8                                         3.28
+ZZTo2L2Nu_13TeV_powheg_pythia8                                                      0.564
+ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8                                        4.04
 ZZTo4L_13TeV-amcatnloFXFX-pythia8                                                   1.212
 ZZTo4L_13TeV_powheg_pythia8                                                         1.256
 ZZTo4Q_13TeV_amcatnloFXFX_madspin_pythia8                                           6.842
@@ -157,12 +159,12 @@ QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8       1080
 QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8       54120000*0.002
 
 #SUSY SMSs (PHYS14)
-SMS-T1bbbb_2J_mGl-1000_mLSP-900_Tune4C_13TeV-madgraph-tauola                        0.325388
-SMS-T1bbbb_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola                        0.0141903
-SMS-T1qqqq_2J_mGl-1000_mLSP-800_Tune4C_13TeV-madgraph-tauola                        0.325388
-SMS-T1qqqq_2J_mGl-1400_mLSP-100_Tune4C_13TeV-madgraph-tauola                        0.0252977
-SMS-T1tttt_2J_mGl-1200_mLSP-800_Tune4C_13TeV-madgraph-tauola                        0.0856418
-SMS-T1tttt_2J_mGl-1500_mLSP-100_Tune4C_13TeV-madgraph-tauola                        0.0141903
+SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.325388
+SMS-T1bbbb_mGluino-1500_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.0141903
+SMS-T1qqqq_mGluino-1000_mLSP-800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.325388
+SMS-T1qqqq_mGluino-1400_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.0252977
+SMS-T1tttt_mGluino-1200_mLSP-800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.0856418
+SMS-T1tttt_mGluino-1500_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.0141903
 SMS-T2bb_2J_mStop-600_mLSP-580_Tune4C_13TeV-madgraph-tauola                         0.174599
 SMS-T2bb_2J_mStop-900_mLSP-100_Tune4C_13TeV-madgraph-tauola                         0.0128895
 SMS-T2qq_2J_mStop-1200_mLSP-100_Tune4C_13TeV-madgraph-tauola                        0.00159844
