@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees,  int option, bool isData )
+void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;

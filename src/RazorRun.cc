@@ -344,7 +344,7 @@ int main(int argc, char* argv[]){
       analyzer.EnableEventInfo();
       analyzer.EnableMC();
 
-      analyzer.RazorDM(outputFileName);
+      analyzer.RazorDM(outputFileName, true, isData);
     }
     else if(analysisType == "RazorControlRegions"){
       cout << "Executing RazorControlRegions analysis..." << endl;
