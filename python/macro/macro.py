@@ -352,7 +352,9 @@ def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debug
     if scaleFactor > 2.0:
         scaleFactorErr = math.sqrt( (scaleFactor-1) + scaleFactorErr*scaleFactorErr )
         scaleFactor = 1.0        
-
+    if math.isnan(scaleFactorErr):
+        scaleFactorErr = 0.0
+    
     if debugLevel > 1: print "Applying scale factor: ",scaleFactor
     return (scaleFactor, scaleFactorErr)
 
