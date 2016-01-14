@@ -935,7 +935,11 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1MT",&lep1MT);
       tree_->SetBranchAddress("lep1Activity",&lep1Activity);
       tree_->SetBranchAddress("MET",&MET);
+      tree_->SetBranchAddress("METPhi",&METPhi);
       tree_->SetBranchAddress("METnoHF",&METnoHF);
+      tree_->SetBranchAddress("METnoHFPhi",&METnoHFPhi);
+      tree_->SetBranchAddress("METRaw",&METRaw);
+      tree_->SetBranchAddress("METRawPhi",&METRawPhi);
       tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
       tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
       tree_->SetBranchAddress("bjet1PassTight",&bjet1PassTight);
@@ -949,9 +953,11 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("jet2PassCSVMedium",&jet2PassCSVMedium);
       tree_->SetBranchAddress("jet2PassCSVTight",&jet2PassCSVTight);
       tree_->SetBranchAddress("dPhiRazor",&dPhiRazor);
+      tree_->SetBranchAddress("HT",&HT);
       tree_->SetBranchAddress("genWpt",&genWpt);
       tree_->SetBranchAddress("genWphi",&genWphi);
-      tree_->SetBranchAddress("HT",&HT);
+      tree_->SetBranchAddress("genWpt",  &genWpt);
+      tree_->SetBranchAddress("genWphi",  &genWphi);
       tree_->SetBranchAddress("genlep1",  &genlep1Ptr);
       tree_->SetBranchAddress("lep1",     &lep1Ptr);
       tree_->SetBranchAddress("bjet1",    &bjet1Ptr);
