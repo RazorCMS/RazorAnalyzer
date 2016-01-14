@@ -630,13 +630,13 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                 cols.extend([sysUncerts[mcProcess]])
             plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
 
-#TODO: divide by MT cut efficiency when correcting signal region histogram!
-def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", normErrFraction=0.2, sfHists={}, histToCorrect=None, doDataOverMC=False, printdir="."):
+def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", normErrFraction=0.2, sfHists={}, histToCorrect=None, doDataOverMC=False, mtEfficiencyHist=None, printdir="."):
     """Compare data and MC in veto lepton control region.  Makes ratio histogram and returns it.  
     Arguments are similar to those for appendScaleFactors()
 
     doDataOverMC: if True, will save Data/MC scale factors.  if False, will save MC-Data. 
     histToCorrect: the additive Data-MC corrections will be applied to this histogram, and Corrected/Uncorrected scale factors will be derived from the corrected histogram and saved.  (do not use with doDataOverMC option) 
+    mtEfficiencyHist: histogram of MT cut efficiency, used to correct the control region yields
     """
     regionNameReduced = regionName.replace(' ','')
 
@@ -760,28 +760,82 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     vetoLeptonOutfile = rt.TFile("Razor"+regionNameReduced+"CrossCheck.root", "RECREATE")
     c = rt.TCanvas("cVetoLeptonCorrs", "c", 800, 600)
     #optionally, apply corrections to signal region histograms and derive Corrected/Uncorrected scale factors
+    #also correct for MT cut efficiency for extrapolation into the signal region
     if histToCorrect is not None and not doDataOverMC:
+        print "Correcting histogram",vetoLepCorrHist," and its up/down variants using MT cut efficiencies taken from",mtEfficiencyHist.GetName()
+        #create MT up/down versions of the correction histogram
+        vetoLepCorrHistMTUp = vetoLepCorrHist.Clone()
+        vetoLepCorrHistMTDown = vetoLepCorrHist.Clone()
+        if isinstance(var, basestring) or len(var) == 1: #1D
+            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+                #divide all bin contents by the efficiency of the MT cut
+                vetoLepCorrHist.SetBinContent(bx, vetoLepCorrHist.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
+                vetoLepCorrHist.SetBinError(bx, vetoLepCorrHist.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
+                vetoLepCorrHistUp.SetBinContent(bx, vetoLepCorrHistUp.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
+                vetoLepCorrHistUp.SetBinError(bx, vetoLepCorrHistUp.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
+                vetoLepCorrHistDown.SetBinContent(bx, vetoLepCorrHistDown.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
+                vetoLepCorrHistDown.SetBinError(bx, vetoLepCorrHistDown.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
+                vetoLepCorrHistMTUp.SetBinContent(bx, vetoLepCorrHist.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
+                vetoLepCorrHistMTDown.SetBinError(bx, vetoLepCorrHist.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
+        elif len(var) == 2: #2D
+            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
+                    #divide all bin contents by the efficiency of the MT cut
+                    vetoLepCorrHist.SetBinContent(bx,by, vetoLepCorrHist.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                    vetoLepCorrHist.SetBinError(bx,by, vetoLepCorrHist.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                    vetoLepCorrHistUp.SetBinContent(bx,by, vetoLepCorrHistUp.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                    vetoLepCorrHistUp.SetBinError(bx,by, vetoLepCorrHistUp.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                    vetoLepCorrHistDown.SetBinContent(bx,by, vetoLepCorrHistDown.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                    vetoLepCorrHistDown.SetBinError(bx,by, vetoLepCorrHistDown.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                    vetoLepCorrHistMTUp.SetBinContent(bx,by, vetoLepCorrHist.GetBinContent(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)+mtEfficiencyHist.GetBinError(bx,by)))
+                    vetoLepCorrHistMTDown.SetBinError(bx,by, vetoLepCorrHist.GetBinError(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)-mtEfficiencyHist.GetBinError(bx,by)))
+        elif len(var) == 3: #3D
+            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
+                    for bz in range(1, vetoLepCorrHist.GetNbinsZ()+1):
+                        #divide all bin contents by the efficiency of the MT cut
+                        vetoLepCorrHist.SetBinContent(bx,by,bz, vetoLepCorrHist.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                        vetoLepCorrHist.SetBinError(bx,by,bz, vetoLepCorrHist.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                        vetoLepCorrHistUp.SetBinContent(bx,by,bz, vetoLepCorrHistUp.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                        vetoLepCorrHistUp.SetBinError(bx,by,bz, vetoLepCorrHistUp.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                        vetoLepCorrHistDown.SetBinContent(bx,by,bz, vetoLepCorrHistDown.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                        vetoLepCorrHistDown.SetBinError(bx,by,bz, vetoLepCorrHistDown.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                        vetoLepCorrHistMTUp.SetBinContent(bx,by,bz, vetoLepCorrHist.GetBinContent(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)+mtEfficiencyHist.GetBinError(bx,by,bz)))
+                        vetoLepCorrHistMTDown.SetBinError(bx,by,bz, vetoLepCorrHist.GetBinError(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)-mtEfficiencyHist.GetBinError(bx,by,bz)))
+
         print "Correcting histogram",histToCorrect.GetName(),"using the additive corrections just derived."
         #correctedHist = histToCorrect + correction
         correctedHist = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrected")
-        correctedHistUp = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrected")
-        correctedHistDown = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrected")
+        correctedHistUp = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedUp")
+        correctedHistDown = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedDown")
+        correctedHistMTUp = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedMTUp")
+        correctedHistMTDown = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedMTDown")
         correctedHist.Add(vetoLepCorrHist)
         correctedHistUp.Add(vetoLepCorrHistUp)
         correctedHistDown.Add(vetoLepCorrHistDown)
+        correctedHistMTUp.Add(vetoLepCorrHistMTUp)
+        correctedHistMTDown.Add(vetoLepCorrHistMTDown)
         #signalRegionScaleFactors = correctedHist / histToCorrect
         signalRegionScaleFactors = correctedHist.Clone(regionNameReduced+"ScaleFactors") 
         signalRegionScaleFactorsUp = correctedHistUp.Clone(regionNameReduced+"ScaleFactorsUp") 
         signalRegionScaleFactorsDown = correctedHistDown.Clone(regionNameReduced+"ScaleFactorsDown") 
+        signalRegionScaleFactorsMTUp = correctedHistMTUp.Clone(regionNameReduced+"ScaleFactorsMTUp") 
+        signalRegionScaleFactorsMTDown = correctedHistMTDown.Clone(regionNameReduced+"ScaleFactorsMTDown") 
         signalRegionScaleFactors.Divide(histToCorrect)
         signalRegionScaleFactorsUp.Divide(histToCorrect)
         signalRegionScaleFactorsDown.Divide(histToCorrect)
+        signalRegionScaleFactorsMTUp.Divide(histToCorrect)
+        signalRegionScaleFactorsMTDown.Divide(histToCorrect)
         print "Writing histogram",signalRegionScaleFactors.GetName(),"to file"
         print "Writing histogram",signalRegionScaleFactorsUp.GetName(),"to file"
         print "Writing histogram",signalRegionScaleFactorsDown.GetName(),"to file"
+        print "Writing histogram",signalRegionScaleFactorsMTUp.GetName(),"to file"
+        print "Writing histogram",signalRegionScaleFactorsMTDown.GetName(),"to file"
         signalRegionScaleFactors.Write()
         signalRegionScaleFactorsUp.Write()
         signalRegionScaleFactorsDown.Write()
+        signalRegionScaleFactorsMTUp.Write()
+        signalRegionScaleFactorsMTDown.Write()
     #otherwise, write corrections to file
     else:
         print "Writing histogram",vetoLepCorrHist.GetName(),"to file"

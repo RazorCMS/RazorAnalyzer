@@ -300,7 +300,7 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, err
             if varName in sysErrSquaredHists: #for propagating systematic errors on the variables
                 sysErrSquared = weight*weight*sysErr*sysErr
                 sysErrSquaredHist[varName].Fill(varValue, sysErrSquared)
-                if debugLevel > 1: print "Sys. Error =",sysErr,";Filling (w*sysErr)^2 histogram with",sysErrSquared
+                if debugLevel > 1: print "Sys. Error =",sysErr,"; Filling (w*sysErr)^2 histogram with",sysErrSquared
         else: #treat it as a tuple of variables that should be filled
             #transform each variable
             if errorOpt is not None: varName = tuple([transformVarString(tree, v, errorOpt, debugLevel=debugLevel) for v in varName])
@@ -311,7 +311,7 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, err
                 sysErrSquared = weight*weight*sysErr*sysErr
                 toFillErr = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in varName]+[sysErrSquared]
                 sysErrSquaredHists[varName].Fill(*toFillErr)
-                if debugLevel > 1: print "Sys. Error =",sysErr,";Filling (w*sysErr)^2 histogram with",sysErrSquared
+                if debugLevel > 1: print "Sys. Error =",sysErr,"; Filling (w*sysErr)^2 histogram with",sysErrSquared
 
 def makeTreeDict(fileDict, treeName, debugLevel=0):
     """gets a tree called treeName from each file in fileDict, and returns a dict of trees"""
@@ -367,7 +367,8 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
                     oldErr = hists[name].GetBinError(bx,by)
                     hists[name].SetBinError(bx,by,(oldErr*oldErr + squaredError)**(0.5))
-                    if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
+                    if debugLevel > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
+                    #if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
 
 def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, process="", auxSFs={}, auxSFHists={}, debugLevel=0):
     """Loop over a single tree and fill histograms.
@@ -422,6 +423,13 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, debugLevel=debugLevel)
                 w *= auxSF
                 err = (err*err + auxErr*auxErr)**(0.5)
+        #protection for case of infinite-weight events
+        if math.isinf(w):
+            if debugLevel > 0: 
+                print "Warning: infinite-weight event encountered!"
+            continue
+        if math.isnan(err):
+            print "Error: err is nan!"
         fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
         sumweight += w
         count += 1

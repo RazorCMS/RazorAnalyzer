@@ -13,8 +13,10 @@ from macro.razorMacros import runFitAndToys, makeControlSampleHists
 LUMI = 2185 #in /pb
 MCLUMI = 1 
 
-SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
-BOXES = ["MuMultiJet", "MultiJet", "EleMultiJet"]
+SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
+SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
+SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
+BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
 
 DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
 DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
@@ -30,6 +32,7 @@ FILENAMES_MC = {
         "Other" : DIR_MC+"/"+"FullRazorInclusive_Other_1pb_weighted.root",
         "DYJets"     : DIR_MC+"/"+"FullRazorInclusive_DYJetsToLL_M-50_HTBinned_1pb_weighted.root",
         "ZInv"     : DIR_MC+"/"+"FullRazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root",
+        "QCD"       : DIR_DATA+'/'+DATA_NAMES["MultiJet"]+'.root' #data-driven QCD prediction for MultiJet
         }
 FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
@@ -99,7 +102,7 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
-    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_HADRONIC, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
 
     #estimate yields in signal region
     for boxName in BOXES:
@@ -107,7 +110,7 @@ if __name__ == "__main__":
         #apply options
         blindBinsToUse = blindBins[boxName]
         if args.unblind: blindBinsToUse = None
-        samplesToUse = SAMPLES
+        samplesToUse = SAMPLES[boxName]
         if args.noMC: samplesToUse = []
         if samplesToUse is None or len(samplesToUse) == 0:
             filesToUse = {"Data":FILENAMES[boxName]["Data"]}
@@ -150,4 +153,4 @@ if __name__ == "__main__":
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                     weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
                     fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, printdir=dirName, plotOpts=plotOpts)
+                    btags=nBtags, debugLevel=debugLevel, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)

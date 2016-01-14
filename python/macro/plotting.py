@@ -669,9 +669,24 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
 
             legMCFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
             rt.SetOwnership(legMCFit, False)
-            legMCFit.AddEntry(unrolled[0], "MC Prediction")
             legMCFit.AddEntry(unrolled[2], "Fit Prediction")
-            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", saveroot=True, mcErrColor=rt.kBlack, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
+            if mcDict is None:
+                #add one legend entry for MC
+                legMCFit.AddEntry(unrolled[0], "MC Prediction")
+            else:
+                #add each sample to legend
+                for n in range(len(mcSamples)-1,-1,-1): #iterate backwards
+                    s = mcSamples[n]
+                    legMCFit.AddEntry(mcDict[s], s)
+            if nsigmaUnrolledFitMC is not None:
+                pad2OptToUse = 'ff'
+                ratiominToUse = -5
+                ratiomaxToUse = 5
+            else:
+                pad2OptToUse = 'ratio'
+                ratiominToUse= 0.5
+                ratiomaxToUse=1.5
+            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiominToUse, ratiomax=ratiomaxToUse, pad2Opt=pad2OptToUse, saveroot=True, mcErrColor=rt.kBlack, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
     if data:
         draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
         if fit: 
