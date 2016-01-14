@@ -112,7 +112,7 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                         #add in quadrature with existing error
                         oldErr = hists[name][("MR","Rsq")].GetBinError(bx,by)
                         hists[name][("MR","Rsq")].SetBinError(bx,by, (oldErr**2 + sysErr**2)**(0.5))
-                        if debugLevel > 0: print shape,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name][("MR","Rsq")].GetBinError(bx,by),"after adding",sysErr,"in quadrature"
+                        if debugLevel > 0 and sysErr > 0: print shape,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name][("MR","Rsq")].GetBinError(bx,by),"after adding",sysErr,"in quadrature"
             for source in miscErrors:
                 if source.lower() == "mt":
                     applyMTUncertainty2D(hists[name][("MR","Rsq")], process=name+"_"+boxName, debugLevel=debugLevel)
@@ -367,7 +367,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
                     oldErr = hists[name].GetBinError(bx,by)
                     hists[name].SetBinError(bx,by,(oldErr*oldErr + squaredError)**(0.5))
-                    if debugLevel > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
+                    if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
 
 def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, process="", auxSFs={}, auxSFHists={}, debugLevel=0):
     """Loop over a single tree and fill histograms.

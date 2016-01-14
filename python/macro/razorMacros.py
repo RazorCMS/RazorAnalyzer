@@ -372,7 +372,13 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     nsigmaFitData = None
     nsigmaFitMC = None
     if fitToyFiles and "MR" in bins and "Rsq" in bins:
-        import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=True)
+        if dataName in trees:
+            noFitStat=True
+            print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
+        else:
+            noFitStat=False #include stat uncertainties on the fit when not comparing with data
+            print "Including sys and stat uncertainties on fit prediction."
+        import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
         if dataName in hists: 
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
             print "Making nsigma histogram using data and fit prediction"
@@ -380,17 +386,18 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
                     nsigma=nsigmaFitData, boxName=boxName, btags=btags)
 
         if len(samples) > 0: #compare fit with MC
+            pass
             #make total MC histogram
-            mcTotal = hists[samples[0]][("MR","Rsq")].Clone("mcTotal")
-            mcTotal.Reset()
-            for name in samples:
-                mcTotal.Add(hists[name][("MR","Rsq")])
-            nsigmaFitMC = get2DNSigmaHistogram(mcTotal, bins, fitToyFiles, boxName, btags, debugLevel)
-            print "Making nsigma histogram using MC and fit prediction"
+            #mcTotal = hists[samples[0]][("MR","Rsq")].Clone("mcTotal")
+            #mcTotal.Reset()
+            #for name in samples:
+            #    mcTotal.Add(hists[name][("MR","Rsq")])
+            #print "Making nsigma histogram using MC and fit prediction"
+            #nsigmaFitMC = get2DNSigmaHistogram(mcTotal, bins, fitToyFiles, boxName, btags, debugLevel)
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir, doDensity=plotDensity, special=special, vartitles=titles)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, vartitles=titles)
 
     #close files and return
     for f in files: files[f].Close()

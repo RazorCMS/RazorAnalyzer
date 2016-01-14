@@ -159,7 +159,7 @@ def plot_several(c, hists=0, leg=0, colors=[], xtitle="", ytitle="Events", ymin=
     if savepdf: c.Print(printdir+'/'+printstr+".pdf")
     if saveroot: c.Print(printdir+'/'+printstr+".root")
 
-def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kRed, mcErrColor=rt.kBlack, customPad2Hist=None, saveroot=True, savepdf=True, savepng=True, printdir='.', grayLines=None):
+def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=None, ymax=None, printstr="hist", logx=False, logy=True, lumistr="40 pb^{-1}", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", fitColor=rt.kBlue, mcErrColor=rt.kBlack, customPad2Hist=None, saveroot=True, savepdf=True, savepng=True, printdir='.', grayLines=None):
     """Plotting macro with options for data, MC, and fit histograms.  Creates data/MC ratio if able."""
     #setup
     c.Clear()
@@ -210,12 +210,8 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         fit.SetStats(0)
         fit.SetMarkerStyle(21)
         fit.SetLineWidth(2)
-        if mc:
-            fit.SetMarkerSize(1.2)
-            fit.SetLineColor(fitColor+2)
-        else:
-            fit.SetMarkerSize(0)
-            fit.SetLineColor(fitColor)
+        fit.SetMarkerSize(0)
+        fit.SetLineColor(fitColor)
         fit.SetMarkerColor(fitColor)
         fit.SetFillStyle(3001)
         fit.SetFillColor(rt.kAzure+6)
@@ -223,14 +219,11 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         fit.SetTitle("")
         if ymin is not None: fit.SetMinimum(ymin)
         if ymax is not None: fit.SetMaximum(ymax)
-        if mc:
-            fit.Draw("pesame")
-        else:
-            fit.Draw("e2same")
-            fitCopy = fit.Clone()
-            fitCopy.SetFillStyle(0)        
-            fitCopy.SetLineWidth(2)
-            fitCopy.Draw("histsame")
+        fit.Draw("e2same")
+        fitCopy = fit.Clone()
+        fitCopy.SetFillStyle(0)        
+        fitCopy.SetLineWidth(2)
+        fitCopy.Draw("histsame")
     #draw data
     if data:
         data.SetStats(0)

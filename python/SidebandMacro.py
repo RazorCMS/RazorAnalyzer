@@ -7,7 +7,7 @@ import ROOT as rt
 from framework import Config
 import macro.macro as macro
 from macro.razorAnalysis import razorCuts
-from macro.razorWeights import loadWeightHists, loadScaleFactorHists, weightfilenames_DEFAULT, weighthistnames_DEFAULT
+from macro.razorWeights import loadScaleFactorHists 
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
 
 LUMI = 2185 #in /pb
@@ -16,7 +16,7 @@ MCLUMI = 1
 SAMPLES = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
 BOXES = ["MuMultiJet", "MultiJet", "EleMultiJet"]
 
-DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
+DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
 DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
 DATA_NAMES={
     'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
@@ -24,12 +24,12 @@ DATA_NAMES={
     'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
     }
 FILENAMES_MC = {
-        "TTJets"    : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
-        "WJets"     : DIR_MC+"/"+"RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
-        "SingleTop" : DIR_MC+"/"+"RazorInclusive_ST_1pb_weighted_RazorSkim.root",
-        "Other" : DIR_MC+"/"+"RazorInclusive_Other_1pb_weighted_RazorSkim.root",
-        "DYJets"     : DIR_MC+"/"+"RazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
-        "ZInv"     : DIR_MC+"/"+"RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",
+        "TTJets"    : DIR_MC+"/"+"FullRazorInclusive_TTJets_1pb_weighted.root",
+        "WJets"     : DIR_MC+"/"+"FullRazorInclusive_WJetsToLNu_HTBinned_1pb_weighted.root",
+        "SingleTop" : DIR_MC+"/"+"FullRazorInclusive_SingleTop_1pb_weighted.root",
+        "Other" : DIR_MC+"/"+"FullRazorInclusive_Other_1pb_weighted.root",
+        "DYJets"     : DIR_MC+"/"+"FullRazorInclusive_DYJetsToLL_M-50_HTBinned_1pb_weighted.root",
+        "ZInv"     : DIR_MC+"/"+"FullRazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root",
         }
 FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
@@ -72,6 +72,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-mc', help="do not process MC, do data and fit only", action='store_true', dest="noMC")
     parser.add_argument('--no-fit', help="do not load fit results, process data and MC only", action='store_true', dest='noFit')
     parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
+    parser.add_argument('--no-data', help="do not process data, do fit and MC only", action='store_true', dest='noData')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
@@ -91,14 +92,14 @@ if __name__ == "__main__":
         del plotOpts['sideband']
 
     #initialize
-    weightHists = loadWeightHists(weightfilenames_DEFAULT, weighthistnames_DEFAULT, debugLevel)
+    weightHists = {}
     sfHists = {}
 
     #make output directory
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
-    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_MultiJet.root", processNames=SAMPLES, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
 
     #estimate yields in signal region
     for boxName in BOXES:
@@ -112,10 +113,12 @@ if __name__ == "__main__":
             filesToUse = {"Data":FILENAMES[boxName]["Data"]}
         else:
             filesToUse = FILENAMES[boxName]
+        if args.noData: 
+            del filesToUse['Data']
 
         #loop over btag bins
-        #btaglist = [0]
-        btaglist = [0,1,2,3]
+        btaglist = [0]
+        #btaglist = [0,1,2,3]
         for btags in btaglist:
             #if btags == 3: continue #temporary
             print "\n---",boxName,"Box,",btags,"B-tags ---"

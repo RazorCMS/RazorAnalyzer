@@ -128,10 +128,7 @@ if __name__ == "__main__":
     ##########################################################
     #1L W+Jets & TTJets control sample
     ##########################################################    
-    #sfHists_OneLeptonScaleFactorClosureTest = loadScaleFactorHists(sfFilename="RazorScaleFactors_Inclusive_Uncorrected.root", processNames=SAMPLES_TTJ1L, debugLevel=debugLevel)
-    #NOTE: using old scale factors until I find the new ones
-    sfHists_OneLeptonScaleFactorClosureTest = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_TTJ1L, debugLevel=debugLevel)
-    #sfHists_OneLeptonScaleFactorClosureTest = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_TTJ1L, debugLevel=debugLevel)
+    sfHists_OneLeptonScaleFactorClosureTest = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_TTJ1L, debugLevel=debugLevel)
     #OneLeptonScaleFactorClosureTestHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest", 
     #              filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
     #              cutsMC=OneLeptonScaleFactorClosureTestMC, cutsData=OneLeptonScaleFactorClosureTestData, 
@@ -184,10 +181,7 @@ if __name__ == "__main__":
     ##########################################################
     #W+Jets Add lepton to MET control sample
     ##########################################################
-    #sfHists_wjetsInv = loadScaleFactorHists(sfFilename="RazorScaleFactors_Inclusive_Uncorrected.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
-    #sfHists_wjetsInv = loadScaleFactorHists(sfFilename="RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
-    #NOTE: using old scale factors until I find the new ones
-    sfHists_wjetsInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
+    sfHists_wjetsInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
     #wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest", 
     #            filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
     #            cutsMC=OneLeptonInvScaleFactorClosureTestMC, cutsData=OneLeptonInvScaleFactorClosureTestData, 

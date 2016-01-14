@@ -159,9 +159,7 @@ if __name__ == "__main__":
     #make output directory
     os.system('mkdir -p '+printdir)
 
-    #NOTE: using old scale factors file until I find the new one
-    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_VetoLepton, scaleFactorNames={ "ZInv":"WJetsInv" }, debugLevel=debugLevel)
-    #sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_VetoLepton, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_VetoLepton, debugLevel=debugLevel)
     sfVars = ("MR","Rsq")
     sfVarsDYJetsDileptonInv = ("MR_NoZ", "Rsq_NoZ")
     vetoSfVars = "lep1.Pt()"
@@ -253,9 +251,7 @@ if __name__ == "__main__":
     ##########################################################
     #Z->LL dilepton control sample
     ##########################################################
-    #NOTE: using old scale factors until I find the new ones
-    #sfHistsDileptonInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_DYJ2L_INV, scaleFactorNames=ScaleFactorNames_DYJ2L_INV, debugLevel=debugLevel)
-    #sfHistsDileptonInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors.root", processNames=SAMPLES_DYJ2L_INV, scaleFactorNames=ScaleFactorNames_DYJ2L_INV, debugLevel=debugLevel)
+    #sfHistsDileptonInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_DYJ2L_INV, scaleFactorNames=ScaleFactorNames_DYJ2L_INV, debugLevel=debugLevel)
     #dyjetsDileptonInvHists = makeControlSampleHists("DYJetsDileptonInv", 
     #            filenames=FILENAMES_2L_INV, samples=SAMPLES_DYJ2L_INV, 
     #            cutsMC=dyjetsDileptonInvCutsMC, cutsData=dyjetsDileptonInvCutsData, 
