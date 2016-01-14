@@ -28,18 +28,24 @@ void get_contributions_Z() {
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
-  TFile *fD = new TFile("/afs/cern.ch/work/j/jlawhorn/DoubleMuon_Run2015D_Golden.root","read");
-  TFile *fZ = new TFile("/afs/cern.ch/work/j/jlawhorn/DYJetsToLL_amcatnlo_2137pb_weighted.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Zjets/DoubleMuon_Run2015D_Golden.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Zjets/DYJetsToLL_amcatnlo_2137pb_weighted.root","read");
   TFile *fVV = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Zjets/VV.root","read");
   TFile *fTT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Zjets/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_leptonic.root","read");
 
-  TString cut_str="(box==1)*(zMass>60 && zMass<120)*passedDileptonTrigger*weight*puWeight*(NJets40>1)";
+  TString cut_str="(box==1)*(zMass>60 && zMass<120)*passedDileptonTrigger*weight*puWeight*(NJets40>1)*(MR>300)";
 
-  TString cut_str_mr1="*(MR>500 && MR<600)";
-  TString cut_str_mr2="*(MR>600 && MR<700)";
-  TString cut_str_mr3="*(MR>700 && MR<800)";
-  TString cut_str_mr4="*(MR>800 && MR<900)";
-  TString cut_str_mr5="*(MR>900 && MR<1000)";
+  //TString cut_str_mr1="*(MR>500 && MR<600)";
+  //TString cut_str_mr2="*(MR>600 && MR<700)";
+  //TString cut_str_mr3="*(MR>700 && MR<800)";
+  //TString cut_str_mr4="*(MR>800 && MR<900)";
+  //TString cut_str_mr5="*(MR>900 && MR<1000)";
+
+  TString cut_str_mr1="*(Rsq > 0 && Rsq < 0.05)";
+  TString cut_str_mr2="*(Rsq > 0.05 && Rsq < 0.1)";
+  TString cut_str_mr3="*(Rsq > 0.1 && Rsq < 0.15)";
+  TString cut_str_mr4="*(Rsq > 0.15 && Rsq < 0.2)";
+  TString cut_str_mr5="*(Rsq > 0.2 && Rsq < 1.0)";
 
   // draw Z mass
   Float_t nbin=30, xmin=60, xmax=120;
@@ -67,7 +73,7 @@ void get_contributions_Z() {
   TH1F *hMR_fail_TT = new TH1F("hMR_fail_TT", "hMR_fail_TT", nbin, xmin, xmax); hMR_fail_TT->Sumw2();
 
   // draw Rsq
-  nbin=17; xmin=0.15; xmax=0.5;
+  nbin=10; xmin=0.0; xmax=1.0;
 
   TH1F *hRsq_D = new TH1F("hRsq_D", "hRsq_D", nbin, xmin, xmax); hRsq_D->Sumw2();
   TH1F *hRsq_Z = new TH1F("hRsq_Z", "hRsq_Z", nbin, xmin, xmax); hRsq_Z->Sumw2();
@@ -141,12 +147,12 @@ void get_contributions_Z() {
   tZ->Draw("MR>>hMR_Z", cut_str);
   tVV->Draw("MR>>hMR_VV", cut_str);
   tTT->Draw("MR>>hMR_TT", cut_str);
-
+  
   tD->Draw("MR>>hMR_pass_D", cut_str+"*(abs(dPhiRazor)>2.8)");
   tZ->Draw("MR>>hMR_pass_Z", cut_str+"*(abs(dPhiRazor)>2.8)");
   tVV->Draw("MR>>hMR_pass_VV", cut_str+"*(abs(dPhiRazor)>2.8)");
   tTT->Draw("MR>>hMR_pass_TT", cut_str+"*(abs(dPhiRazor)>2.8)");
-
+  
   tD->Draw("MR>>hMR_fail_D", cut_str+"*(abs(dPhiRazor)<2.8)");
   tZ->Draw("MR>>hMR_fail_Z", cut_str+"*(abs(dPhiRazor)<2.8)");
   tVV->Draw("MR>>hMR_fail_VV", cut_str+"*(abs(dPhiRazor)<2.8)");
@@ -173,27 +179,27 @@ void get_contributions_Z() {
   tZ->Draw("dPhiRazor>>hDPhiR_Z", cut_str);
   tVV->Draw("dPhiRazor>>hDPhiR_VV", cut_str);
   tTT->Draw("dPhiRazor>>hDPhiR_TT", cut_str);
-
+  
   tD->Draw("abs(dPhiRazor)>>hDPhiR_mr1_D", cut_str+cut_str_mr1);
   tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr1_Z", cut_str+cut_str_mr1);
   tVV->Draw("abs(dPhiRazor)>>hDPhiR_mr1_VV", cut_str+cut_str_mr1);
   tTT->Draw("abs(dPhiRazor)>>hDPhiR_mr1_TT", cut_str+cut_str_mr1);
-
+  
   tD->Draw("abs(dPhiRazor)>>hDPhiR_mr2_D", cut_str+cut_str_mr2);
   tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr2_Z", cut_str+cut_str_mr2);
   tVV->Draw("abs(dPhiRazor)>>hDPhiR_mr2_VV", cut_str+cut_str_mr2);
   tTT->Draw("abs(dPhiRazor)>>hDPhiR_mr2_TT", cut_str+cut_str_mr2);
-
+  
   tD->Draw("abs(dPhiRazor)>>hDPhiR_mr3_D", cut_str+cut_str_mr3);
   tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr3_Z", cut_str+cut_str_mr3);
   tVV->Draw("abs(dPhiRazor)>>hDPhiR_mr3_VV", cut_str+cut_str_mr3);
   tTT->Draw("abs(dPhiRazor)>>hDPhiR_mr3_TT", cut_str+cut_str_mr3);
-
+  
   tD->Draw("abs(dPhiRazor)>>hDPhiR_mr4_D", cut_str+cut_str_mr4);
   tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr4_Z", cut_str+cut_str_mr4);
   tVV->Draw("abs(dPhiRazor)>>hDPhiR_mr4_VV", cut_str+cut_str_mr4);
   tTT->Draw("abs(dPhiRazor)>>hDPhiR_mr4_TT", cut_str+cut_str_mr4);
-
+  
   tD->Draw("abs(dPhiRazor)>>hDPhiR_mr5_D", cut_str+cut_str_mr5);
   tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr5_Z", cut_str+cut_str_mr5);
   tVV->Draw("abs(dPhiRazor)>>hDPhiR_mr5_VV", cut_str+cut_str_mr5);
@@ -284,7 +290,7 @@ void get_contributions_Z() {
   hRsq_pass_TT->Add(hRsq_pass_VV); 
   hRsq_fail_TT->Add(hRsq_fail_VV); 
   hDPhiR_TT->Add(hDPhiR_VV); 
-
+  
   hDPhiR_mr1_TT->Add(hDPhiR_mr1_VV); 
   hDPhiR_mr2_TT->Add(hDPhiR_mr2_VV); 
   hDPhiR_mr3_TT->Add(hDPhiR_mr3_VV); 
@@ -305,6 +311,72 @@ void get_contributions_Z() {
   hDPhiR_mr3_Z->Add(hDPhiR_mr3_TT); 
   hDPhiR_mr4_Z->Add(hDPhiR_mr4_TT); 
   hDPhiR_mr5_Z->Add(hDPhiR_mr5_TT); 
+
+  Float_t scale=hMZ_D->Integral()/hMZ_Z->Integral();
+  hMZ_Z->Scale(scale);
+  hMZ_TT->Scale(scale);
+  hMZ_VV->Scale(scale);
+
+  scale=hMR_D->Integral()/hMR_Z->Integral();
+  hMR_Z->Scale(scale);
+  hMR_TT->Scale(scale);
+  hMR_VV->Scale(scale);
+
+  scale=hMR_pass_D->Integral()/hMR_pass_Z->Integral();
+  hMR_pass_Z->Scale(scale);
+  hMR_pass_TT->Scale(scale);
+  hMR_pass_VV->Scale(scale);
+
+  scale=hMR_fail_D->Integral()/hMR_fail_Z->Integral();
+  hMR_fail_Z->Scale(scale);
+  hMR_fail_TT->Scale(scale);
+  hMR_fail_VV->Scale(scale);
+
+  scale=hRsq_D->Integral()/hRsq_Z->Integral();
+  hRsq_Z->Scale(scale);
+  hRsq_TT->Scale(scale);
+  hRsq_VV->Scale(scale);
+
+  scale=hRsq_pass_D->Integral()/hRsq_pass_Z->Integral();
+  hRsq_pass_Z->Scale(scale);
+  hRsq_pass_TT->Scale(scale);
+  hRsq_pass_VV->Scale(scale);
+
+  scale=hRsq_fail_D->Integral()/hRsq_fail_Z->Integral();
+  hRsq_fail_Z->Scale(scale);
+  hRsq_fail_TT->Scale(scale);
+  hRsq_fail_VV->Scale(scale);
+
+  scale=hDPhiR_D->Integral()/hDPhiR_Z->Integral();
+  hDPhiR_Z->Scale(scale);
+  hDPhiR_TT->Scale(scale);
+  hDPhiR_VV->Scale(scale);
+
+  scale=hDPhiR_mr1_D->Integral()/hDPhiR_mr1_Z->Integral();
+  hDPhiR_mr1_Z->Scale(scale);
+  hDPhiR_mr1_TT->Scale(scale);
+  hDPhiR_mr1_VV->Scale(scale);
+
+  scale=hDPhiR_mr2_D->Integral()/hDPhiR_mr2_Z->Integral();
+  hDPhiR_mr2_Z->Scale(scale);
+  hDPhiR_mr2_TT->Scale(scale);
+  hDPhiR_mr2_VV->Scale(scale);
+
+  scale=hDPhiR_mr3_D->Integral()/hDPhiR_mr3_Z->Integral();
+  hDPhiR_mr3_Z->Scale(scale);
+  hDPhiR_mr3_TT->Scale(scale);
+  hDPhiR_mr3_VV->Scale(scale);
+
+  scale=hDPhiR_mr4_D->Integral()/hDPhiR_mr4_Z->Integral();
+  hDPhiR_mr4_Z->Scale(scale);
+  hDPhiR_mr4_TT->Scale(scale);
+  hDPhiR_mr4_VV->Scale(scale);
+
+  scale=hDPhiR_mr5_D->Integral()/hDPhiR_mr5_Z->Integral();
+  hDPhiR_mr5_Z->Scale(scale);
+  hDPhiR_mr5_TT->Scale(scale);
+  hDPhiR_mr5_VV->Scale(scale);
+
 
   //--------------------------------------------------------------
   //
@@ -355,8 +427,9 @@ void get_contributions_Z() {
   hMR_fail_D->Draw("pe same");
   leg->Draw();
   c->SaveAs("MR_fail_zjets.png");
-  
-  hRsq_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hRsq_Z->GetMaximum(), hRsq_D->GetMaximum()));
+
+  c->SetLogy(1);
+  hRsq_Z->GetYaxis()->SetRangeUser(0.01,100*TMath::Max(hRsq_Z->GetMaximum(), hRsq_D->GetMaximum()));
   hRsq_Z->GetXaxis()->SetTitle("R^{2}");
   hRsq_Z->GetYaxis()->SetTitle("Events");
   hRsq_Z->SetTitle("");
@@ -367,7 +440,7 @@ void get_contributions_Z() {
   leg->Draw();
   c->SaveAs("Rsq_zjets.png");
 
-  hRsq_pass_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hRsq_pass_Z->GetMaximum(), hRsq_pass_D->GetMaximum()));
+  hRsq_pass_Z->GetYaxis()->SetRangeUser(0.01,100*TMath::Max(hRsq_pass_Z->GetMaximum(), hRsq_pass_D->GetMaximum()));
   hRsq_pass_Z->GetXaxis()->SetTitle("R^{2}");
   hRsq_pass_Z->GetYaxis()->SetTitle("Events");
   hRsq_pass_Z->SetTitle("");
@@ -378,7 +451,7 @@ void get_contributions_Z() {
   leg->Draw();
   c->SaveAs("Rsq_pass_zjets.png");
 
-  hRsq_fail_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hRsq_fail_Z->GetMaximum(), hRsq_fail_D->GetMaximum()));
+  hRsq_fail_Z->GetYaxis()->SetRangeUser(0.01,100*TMath::Max(hRsq_fail_Z->GetMaximum(), hRsq_fail_D->GetMaximum()));
   hRsq_fail_Z->GetXaxis()->SetTitle("R^{2}");
   hRsq_fail_Z->GetYaxis()->SetTitle("Events");
   hRsq_fail_Z->SetTitle("");
@@ -388,7 +461,8 @@ void get_contributions_Z() {
   hRsq_fail_D->Draw("same ep");
   leg->Draw();
   c->SaveAs("Rsq_fail_zjets.png");
-  
+
+  c->SetLogy(0);
   leg->SetX1NDC(0.39); leg->SetX2NDC(0.61);
 
   hDPhiR_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_Z->GetMaximum(), hDPhiR_D->GetMaximum()));
@@ -402,59 +476,69 @@ void get_contributions_Z() {
   leg->Draw();
   c->SaveAs("DPhiR_zjets.png");
 
-  hDPhiR_mr1_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr1_Z->GetMaximum(), hDPhiR_mr1_D->GetMaximum()));
+  hDPhiR_mr1_Z->GetYaxis()->SetRangeUser(0.0,2*TMath::Max(hDPhiR_mr1_Z->GetMaximum(), hDPhiR_mr1_D->GetMaximum()));
   hDPhiR_mr1_Z->GetXaxis()->SetTitle("#Delta#phi_{R}");
   hDPhiR_mr1_Z->GetYaxis()->SetTitle("Events");
-  hDPhiR_mr1_Z->SetTitle("500 < MR < 600");
+  hDPhiR_mr1_Z->SetTitle("0 < R^2 < 0.05");
+  //hDPhiR_mr1_Z->SetTitle("500 < MR < 600");
   hDPhiR_mr1_Z->Draw("hist");
   hDPhiR_mr1_TT->Draw("hist same");
   hDPhiR_mr1_VV->Draw("hist same");
   hDPhiR_mr1_D->Draw("same pe");
   leg->Draw();
-  c->SaveAs("DPhiR_mr1_zjets.png");
+  c->SaveAs("DPhiR_rsq1_zjets.png");
+  //c->SaveAs("DPhiR_mr1_zjets.png");
 
-  hDPhiR_mr2_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr2_Z->GetMaximum(), hDPhiR_mr2_D->GetMaximum()));
+  hDPhiR_mr2_Z->GetYaxis()->SetRangeUser(0.0,2*TMath::Max(hDPhiR_mr2_Z->GetMaximum(), hDPhiR_mr2_D->GetMaximum()));
   hDPhiR_mr2_Z->GetXaxis()->SetTitle("#Delta#phi_{R}");
   hDPhiR_mr2_Z->GetYaxis()->SetTitle("Events");
-  hDPhiR_mr2_Z->SetTitle("600 < MR < 700");
+  hDPhiR_mr2_Z->SetTitle("0.05 < R^2 < 0.1");
+  //hDPhiR_mr2_Z->SetTitle("600 < MR < 700");
   hDPhiR_mr2_Z->Draw("hist");
   hDPhiR_mr2_TT->Draw("hist same");
   hDPhiR_mr2_VV->Draw("hist same");
   hDPhiR_mr2_D->Draw("same pe");
   leg->Draw();
-  c->SaveAs("DPhiR_mr2_zjets.png");
+  c->SaveAs("DPhiR_rsq2_zjets.png");
+  //c->SaveAs("DPhiR_mr2_zjets.png");
 
-  hDPhiR_mr3_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr3_Z->GetMaximum(), hDPhiR_mr3_D->GetMaximum()));
+  hDPhiR_mr3_Z->GetYaxis()->SetRangeUser(0.0,2*TMath::Max(hDPhiR_mr3_Z->GetMaximum(), hDPhiR_mr3_D->GetMaximum()));
   hDPhiR_mr3_Z->GetXaxis()->SetTitle("#Delta#phi_{R}");
   hDPhiR_mr3_Z->GetYaxis()->SetTitle("Events");
+  hDPhiR_mr3_Z->SetTitle("0.1 < R^2 < 0.15");
   hDPhiR_mr3_Z->SetTitle("700 < MR < 800");
   hDPhiR_mr3_Z->Draw("hist");
   hDPhiR_mr3_TT->Draw("hist same");
   hDPhiR_mr3_VV->Draw("hist same");
   hDPhiR_mr3_D->Draw("same pe");
   leg->Draw();
-  c->SaveAs("DPhiR_mr3_zjets.png");
+  c->SaveAs("DPhiR_rsq3_zjets.png");
+  //c->SaveAs("DPhiR_mr3_zjets.png");
 
-  hDPhiR_mr4_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr4_Z->GetMaximum(), hDPhiR_mr4_D->GetMaximum()));
+  hDPhiR_mr4_Z->GetYaxis()->SetRangeUser(0.0,2*TMath::Max(hDPhiR_mr4_Z->GetMaximum(), hDPhiR_mr4_D->GetMaximum()));
   hDPhiR_mr4_Z->GetXaxis()->SetTitle("#Delta#phi_{R}");
   hDPhiR_mr4_Z->GetYaxis()->SetTitle("Events");
-  hDPhiR_mr4_Z->SetTitle("800 < MR < 900");
+  hDPhiR_mr4_Z->SetTitle("0.15 < R^2 < 0.2");
+  //hDPhiR_mr4_Z->SetTitle("800 < MR < 900");
   hDPhiR_mr4_Z->Draw("hist");
   hDPhiR_mr4_TT->Draw("hist same");
   hDPhiR_mr4_VV->Draw("hist same");
   hDPhiR_mr4_D->Draw("same pe");
   leg->Draw();
-  c->SaveAs("DPhiR_mr4_zjets.png");
+  c->SaveAs("DPhiR_rsq4_zjets.png");
+  //c->SaveAs("DPhiR_mr4_zjets.png");
 
-  hDPhiR_mr5_Z->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr5_Z->GetMaximum(), hDPhiR_mr5_D->GetMaximum()));
+  hDPhiR_mr5_Z->GetYaxis()->SetRangeUser(0.0,2*TMath::Max(hDPhiR_mr5_Z->GetMaximum(), hDPhiR_mr5_D->GetMaximum()));
   hDPhiR_mr5_Z->GetXaxis()->SetTitle("#Delta#phi_{R}");
   hDPhiR_mr5_Z->GetYaxis()->SetTitle("Events");
-  hDPhiR_mr5_Z->SetTitle("900 < MR < 1000");
+  hDPhiR_mr5_Z->SetTitle("0.2 < R^2 < 1.0");
+  //hDPhiR_mr5_Z->SetTitle("900 < MR < 1000");
   hDPhiR_mr5_Z->Draw("hist");
   hDPhiR_mr5_TT->Draw("hist same");
   hDPhiR_mr5_VV->Draw("hist same");
   hDPhiR_mr5_D->Draw("same pe");
   leg->Draw();
-  c->SaveAs("DPhiR_mr5_zjets.png");
+  c->SaveAs("DPhiR_rsq5_zjets.png");
+  //c->SaveAs("DPhiR_mr5_zjets.png");
 
 }

@@ -34,16 +34,16 @@ void take_ratios_JJ() {
   TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
   
-  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
+  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
   TString cut_str_dat=cut_str+"*(HLTDecision[105]*HLTPrescale[105])";
 
-  ////const Int_t nbinx=1, nbiny=6, nbinz=2;
+  //const Int_t nbinx=1, nbiny=6, nbinz=2;
   //const Int_t nbinx=1, nbiny=4, nbinz=2;
-  //Float_t xmin=0, ymin=0.10, zmin=0;
-  //Float_t xmax=3000, ymax=0.40, zmax=2;
+  //Float_t xmin=0, ymin=0.0, zmin=0;
+  //Float_t xmax=3000, ymax=0.2, zmax=2;
   //Float_t xbins[nbinx+1] = { xmin, xmax };
   ////Float_t ybins[nbiny+1] = { ymin, 0.175, 0.20, 0.225, 0.25, 0.30, ymax };
-  //Float_t ybins[nbiny+1] = { ymin, 0.20, 0.25, 0.30, ymax };
+  //Float_t ybins[nbiny+1] = { ymin, 0.05, 0.10, 0.15, ymax };
   //Float_t zbins[nbinz+1] = { zmin, 1, zmax };
   //
   //TString pname[nbinx+1] = { "npf_vs_rsq_mr_500_600.png", 
@@ -58,7 +58,7 @@ void take_ratios_JJ() {
 
   //const Int_t nbinx=1, nbiny=5, nbinz=2;
   const Int_t nbinx=1, nbiny=8, nbinz=2;
-  Float_t xmin=0.0, ymin=0, zmin=0;
+  Float_t xmin=0.0, ymin=300, zmin=0;
   Float_t xmax=0.30, ymax=3000, zmax=2;
   //Float_t xmax=0.1, ymax=3000, zmax=2;
   Float_t xbins[1+1] = { xmin, xmax };
@@ -225,8 +225,8 @@ void take_ratios_JJ() {
   //for (Int_t i=0; i<qcd_with_mr.size(); i++) {
   Int_t i=0;
 
-    //qcd_with_mr[0]->GetXaxis()->SetTitle("R^{2}");
-    qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R}");
+  //qcd_with_mr[0]->GetXaxis()->SetTitle("R^{2}");
+  qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R}");
     qcd_with_mr[i]->GetYaxis()->SetTitle("N_{pass}/N_{fail}");
     //qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 3.5);
     qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
@@ -252,7 +252,7 @@ void take_ratios_JJ() {
     
   //c->SaveAs("npf_vs_rsq_mr_500_1000.png");
     //c->SaveAs("npf_vs_rsq_mr_500_3000.png");
-    //c->SaveAs("npf_vs_mr.png");
+    c->SaveAs("npf_vs_rsq_dijet.png");
 
   //qcd_with_mr[1]->GetXaxis()->SetTitle("R^{2}");
   //qcd_with_mr[1]->GetYaxis()->SetTitle("N_{pass}/N_{fail}");

@@ -34,13 +34,19 @@ void get_contributions_JJ() {
   TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
 
-  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
+  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
  
   TString cut_str_mr1="*(MR>500 && MR<600)";
   TString cut_str_mr2="*(MR>600 && MR<700)";
   TString cut_str_mr3="*(MR>700 && MR<800)";
   TString cut_str_mr4="*(MR>800 && MR<900)";
   TString cut_str_mr5="*(MR>900 && MR<1000)";
+
+  //TString cut_str_mr1="*(Rsq>0 && Rsq<0.05)";
+  //TString cut_str_mr2="*(Rsq>0.05 && Rsq<0.1)";
+  //TString cut_str_mr3="*(Rsq>0.1 && Rsq<0.15)";
+  //TString cut_str_mr4="*(Rsq>0.15 && Rsq<0.2)";
+  //TString cut_str_mr5="*(Rsq>0.2 && Rsq<1.0)";
 
   TString cut_str_dat=cut_str+"*(HLTDecision[105]*HLTPrescale[105])";
 
@@ -315,7 +321,7 @@ void get_contributions_JJ() {
   hMR_pass_T->Add(hMR_pass_Z);
   hMR_pass_W->Add(hMR_pass_Z);
   
-  //scale=hMR_pass_D->Integral()/hMR_pass_Q->Integral();
+  scale=hMR_pass_D->Integral()/hMR_pass_Q->Integral();
   hMR_pass_Q->Scale(scale);
   hMR_pass_T->Scale(scale);
   hMR_pass_W->Scale(scale);
@@ -328,7 +334,7 @@ void get_contributions_JJ() {
   hMR_fail_T->Add(hMR_fail_Z);
   hMR_fail_W->Add(hMR_fail_Z);
   
-  //scale=hMR_fail_D->Integral()/hMR_fail_Q->Integral();
+  scale=hMR_fail_D->Integral()/hMR_fail_Q->Integral();
   hMR_fail_Q->Scale(scale);
   hMR_fail_T->Scale(scale);
   hMR_fail_W->Scale(scale);
@@ -354,7 +360,7 @@ void get_contributions_JJ() {
   hRsq_pass_T->Add(hRsq_pass_Z);
   hRsq_pass_W->Add(hRsq_pass_Z);
 
-  //scale=hRsq_pass_D->Integral()/hRsq_pass_Q->Integral();
+  scale=hRsq_pass_D->Integral()/hRsq_pass_Q->Integral();
   hRsq_pass_Q->Scale(scale);
   hRsq_pass_T->Scale(scale);
   hRsq_pass_W->Scale(scale);
@@ -367,7 +373,7 @@ void get_contributions_JJ() {
   hRsq_fail_T->Add(hRsq_fail_Z);
   hRsq_fail_W->Add(hRsq_fail_Z);
 
-  //scale=hRsq_fail_D->Integral()/hRsq_fail_Q->Integral();
+  scale=hRsq_fail_D->Integral()/hRsq_fail_Q->Integral();
   hRsq_fail_Q->Scale(scale);
   hRsq_fail_T->Scale(scale);
   hRsq_fail_W->Scale(scale);
@@ -393,7 +399,7 @@ void get_contributions_JJ() {
   hDPhiR_mr1_T->Add(hDPhiR_mr1_Z);
   hDPhiR_mr1_W->Add(hDPhiR_mr1_Z);
 
-  //scale=hDPhiR_mr1_D->Integral()/hDPhiR_mr1_Q->Integral();
+  scale=hDPhiR_mr1_D->Integral()/hDPhiR_mr1_Q->Integral();
   hDPhiR_mr1_Q->Scale(scale);
   hDPhiR_mr1_T->Scale(scale);
   hDPhiR_mr1_W->Scale(scale);
@@ -406,7 +412,7 @@ void get_contributions_JJ() {
   hDPhiR_mr2_T->Add(hDPhiR_mr2_Z);
   hDPhiR_mr2_W->Add(hDPhiR_mr2_Z);
 
-  //scale=hDPhiR_mr2_D->Integral()/hDPhiR_mr2_Q->Integral();
+  scale=hDPhiR_mr2_D->Integral()/hDPhiR_mr2_Q->Integral();
   hDPhiR_mr2_Q->Scale(scale);
   hDPhiR_mr2_T->Scale(scale);
   hDPhiR_mr2_W->Scale(scale);
@@ -419,7 +425,7 @@ void get_contributions_JJ() {
   hDPhiR_mr3_T->Add(hDPhiR_mr3_Z);
   hDPhiR_mr3_W->Add(hDPhiR_mr3_Z);
   
-  //scale=hDPhiR_mr3_D->Integral()/hDPhiR_mr3_Q->Integral();
+  scale=hDPhiR_mr3_D->Integral()/hDPhiR_mr3_Q->Integral();
   hDPhiR_mr3_Q->Scale(scale);
   hDPhiR_mr3_T->Scale(scale);
   hDPhiR_mr3_W->Scale(scale);
@@ -432,7 +438,7 @@ void get_contributions_JJ() {
   hDPhiR_mr4_T->Add(hDPhiR_mr4_Z);
   hDPhiR_mr4_W->Add(hDPhiR_mr4_Z);
 
-  //scale=hDPhiR_mr4_D->Integral()/hDPhiR_mr4_Q->Integral();
+  scale=hDPhiR_mr4_D->Integral()/hDPhiR_mr4_Q->Integral();
   hDPhiR_mr4_Q->Scale(scale);
   hDPhiR_mr4_T->Scale(scale);
   hDPhiR_mr4_W->Scale(scale);
@@ -445,7 +451,7 @@ void get_contributions_JJ() {
   hDPhiR_mr5_T->Add(hDPhiR_mr5_Z);
   hDPhiR_mr5_W->Add(hDPhiR_mr5_Z);
 
-  //scale=hDPhiR_mr5_D->Integral()/hDPhiR_mr5_Q->Integral();
+  scale=hDPhiR_mr5_D->Integral()/hDPhiR_mr5_Q->Integral();
   hDPhiR_mr5_Q->Scale(scale);
   hDPhiR_mr5_T->Scale(scale);
   hDPhiR_mr5_W->Scale(scale);
@@ -557,6 +563,7 @@ void get_contributions_JJ() {
   hDPhiR_mr1_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr1_Q->GetMaximum(), hDPhiR_mr1_D->GetMaximum()));
   hDPhiR_mr1_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
   hDPhiR_mr1_Q->GetYaxis()->SetTitle("Events");
+  //hDPhiR_mr1_Q->SetTitle("0 < R^2 < 0.05");
   hDPhiR_mr1_Q->SetTitle("500 < MR < 600");
   hDPhiR_mr1_Q->Draw("hist");
   hDPhiR_mr1_T->Draw("histsame");
@@ -566,11 +573,13 @@ void get_contributions_JJ() {
   
   leg->Draw();
   
+  //c->SaveAs("DPhiR_rsq1_dijet.png");
   c->SaveAs("DPhiR_mr1_dijet.png");
 
   hDPhiR_mr2_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr2_Q->GetMaximum(), hDPhiR_mr2_D->GetMaximum()));
   hDPhiR_mr2_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
   hDPhiR_mr2_Q->GetYaxis()->SetTitle("Events");
+  //hDPhiR_mr2_Q->SetTitle("0.05 < R^2 < 0.1");
   hDPhiR_mr2_Q->SetTitle("600 < MR < 700");
   hDPhiR_mr2_Q->Draw("hist");
   hDPhiR_mr2_T->Draw("histsame");
@@ -580,11 +589,13 @@ void get_contributions_JJ() {
   
   leg->Draw();
   
+  //c->SaveAs("DPhiR_rsq2_dijet.png");
   c->SaveAs("DPhiR_mr2_dijet.png");
   
   hDPhiR_mr3_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr3_Q->GetMaximum(), hDPhiR_mr3_D->GetMaximum()));
   hDPhiR_mr3_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
   hDPhiR_mr3_Q->GetYaxis()->SetTitle("Events");
+  //hDPhiR_mr3_Q->SetTitle("0.1 < R^2 < 0.15");
   hDPhiR_mr3_Q->SetTitle("700 < MR < 800");
   hDPhiR_mr3_Q->Draw("hist");
   hDPhiR_mr3_T->Draw("histsame");
@@ -594,11 +605,13 @@ void get_contributions_JJ() {
   
   leg->Draw();
   
+  //c->SaveAs("DPhiR_rsq3_dijet.png");
   c->SaveAs("DPhiR_mr3_dijet.png");
   
   hDPhiR_mr4_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr4_Q->GetMaximum(), hDPhiR_mr4_D->GetMaximum()));
   hDPhiR_mr4_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
   hDPhiR_mr4_Q->GetYaxis()->SetTitle("Events");
+  //hDPhiR_mr4_Q->SetTitle("0.15 < R^2 < 0.2");
   hDPhiR_mr4_Q->SetTitle("800 < MR < 900");
   hDPhiR_mr4_Q->Draw("hist");
   hDPhiR_mr4_T->Draw("histsame");
@@ -608,11 +621,13 @@ void get_contributions_JJ() {
   
   leg->Draw();
   
+  //c->SaveAs("DPhiR_rsq4_dijet.png");
   c->SaveAs("DPhiR_mr4_dijet.png");
   
   hDPhiR_mr5_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr5_Q->GetMaximum(), hDPhiR_mr5_D->GetMaximum()));
   hDPhiR_mr5_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
   hDPhiR_mr5_Q->GetYaxis()->SetTitle("Events");
+  //hDPhiR_mr5_Q->SetTitle("0.2 < R^2 < 1.0");
   hDPhiR_mr5_Q->SetTitle("900 < MR < 1000");
   hDPhiR_mr5_Q->Draw("hist");
   hDPhiR_mr5_T->Draw("histsame");
@@ -622,6 +637,7 @@ void get_contributions_JJ() {
   
   leg->Draw();
   
+  //c->SaveAs("DPhiR_rsq5_dijet.png");
   c->SaveAs("DPhiR_mr5_dijet.png");
 
 }
