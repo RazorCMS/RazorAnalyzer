@@ -21,20 +21,22 @@ DATA_NAMES={
     'MuMultiJet':DIR_DATA+'/RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered.root',
     }
 FILENAMES_MC = {
-        "ttjets"    : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_1pb_weighted.root",
-        "wjetstolnu"     : DIR_MC+"/"+"RazorInclusive_WJetsToLNu_1pb_weighted.root",
-        "singletop" : DIR_MC+"/"+"RazorInclusive_ST_1pb_weighted.root",
-        "other" : DIR_MC+"/"+"RazorInclusive_Other_1pb_weighted.root",
-        "dyjetstoll"     : DIR_MC+"/"+"RazorInclusive_DYJetsToLL_1pb_weighted.root",
-        "zjetstonunu"     : DIR_MC+"/"+"RazorInclusive_ZJetsToNuNu_1pb_weighted.root",
+        "ttjets"        : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_1pb_weighted.root",
+        "wjetstolnu"    : DIR_MC+"/"+"RazorInclusive_WJetsToLNu_1pb_weighted.root",
+        "singletop"     : DIR_MC+"/"+"RazorInclusive_ST_1pb_weighted.root",
+        "other"         : DIR_MC+"/"+"RazorInclusive_Other_1pb_weighted.root",
+        "dyjetstoll"    : DIR_MC+"/"+"RazorInclusive_DYJetsToLL_1pb_weighted.root",
+        "zjetstonunu"   : DIR_MC+"/"+"RazorInclusive_ZJetsToNuNu_1pb_weighted.root",
+        "qcd"           : DATA_NAMES["MultiJet"]
         }
 #FILENAMES_MC = {
-#        "ttjets"    : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
-#        "wjetstolnu"     : DIR_MC+"/"+"RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
-#        "singletop" : DIR_MC+"/"+"RazorInclusive_ST_1pb_weighted_RazorSkim.root",
-#        "other" : DIR_MC+"/"+"RazorInclusive_Other_1pb_weighted_RazorSkim.root",
-#        "dyjetstoll"     : DIR_MC+"/"+"RazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
-#        "zjetstonunu"     : DIR_MC+"/"+"RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",
+#        "ttjets"       : DIR_MC+"/"+"RazorInclusive_TTJets_Madgraph_Leptonic_1pb_weighted_RazorSkim.root",
+#        "wjetstolnu"   : DIR_MC+"/"+"RazorInclusive_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root",
+#        "singletop"    : DIR_MC+"/"+"RazorInclusive_ST_1pb_weighted_RazorSkim.root",
+#        "other"        : DIR_MC+"/"+"RazorInclusive_Other_1pb_weighted_RazorSkim.root",
+#        "dyjetstoll"   : DIR_MC+"/"+"RazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root",
+#        "zjetstonunu"  : DIR_MC+"/"+"RazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted_RazorSkim.root",
+#         "qcd"         : DATA_NAMES["MultiJet"]
 #        }
 
 lumiUncertainty = 0.046
@@ -89,8 +91,6 @@ def getScaleFactor(tree, treeName, sfs={}, opt=""):
 
     #get name of scale factor histogram
     centerHistName = ""
-    #TODO:reenable DYJets scale factors once available
-    #for name in ["ttjets", "wjetstolnu", "dyjetstoll", "zjetstonunu"]:
     for name in ["ttjets", "wjetstolnu", "zjetstonunu"]:
         if treeName.startswith(name):
             centerHistName = name
@@ -116,9 +116,18 @@ def getScaleFactor(tree, treeName, sfs={}, opt=""):
         scaleFactor /= sfs["ttjetsdilepton"].GetBinContent(sfs["ttjetsdilepton"].FindFixBin(theMR, theRsq))
     #veto lepton cross check
     elif opt == "vetolepcrosscheckUp":
-        if tree.leadingGenMuonPt > 0 or tree.leadingGenElectronPt > 0:
-            scaleFactor *= 2 - sfs["vetolepton"].GetBinContent(sfs["vetolepton"].FindFixBin(
-                max( tree.leadingGenMuonPt, tree.leadingGenElectronPt ) )
+        if tree.leadingGenLeptonPt > 0 and abs(tree.leadingGenLeptonType) != 15:
+            scaleFactor *= sfs["vetolepton"].GetBinContent(sfs["vetolepton"].FindFixBin(tree.leadingGenLeptonPt))
+    elif opt == "vetolepcrosscheckDown":
+        if tree.leadingGenLeptonPt > 0 and abs(tree.leadingGenLeptonType) != 15:
+            scaleFactor /= sfs["vetolepton"].GetBinContent(sfs["vetolepton"].FindFixBin(tree.leadingGenLeptonPt))
+    #veto tau cross check
+    elif opt == "vetotaucrosscheckUp":
+        if tree.leadingGenLeptonPt > 0 and abs(tree.leadingGenLeptonType) == 15:
+            scaleFactor *= sfs["vetotau"].GetBinContent(sfs["vetotau"].FindFixBin(tree.leadingGenLeptonPt))
+    elif opt == "vetotaucrosscheckDown":
+        if tree.leadingGenLeptonPt > 0 and abs(tree.leadingGenLeptonType) == 15:
+            scaleFactor /= sfs["vetotau"].GetBinContent(sfs["vetotau"].FindFixBin(tree.leadingGenLeptonPt))
 
     return scaleFactor
      
@@ -151,7 +160,7 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
     weight = weight*scaleFactor
                     
     #default
-    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or "mcstat" in opt or "pdf" in opt or 'ttcrosscheck' in opt: 
+    if opt == "" or opt == "sfstatUp" or opt == "sfstatDown" or opt == "sfsysUp" or opt == "sfsysDown" or "mcstat" in opt or "pdf" in opt or 'ttcrosscheck' in opt or "vetolepcrosscheck" in opt or "vetotaucrosscheck" in opt: 
         hist.Fill(tree.MR, tree.Rsq, nBTags, weight)
 
     #muon scale factor up/down
@@ -456,6 +465,11 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
 
     cuts = getCuts(workspace, box)
 
+    #if QCD, use data-driven extrapolation
+    if treeName.lower() == 'qcd':
+        isData = True
+        cuts = cuts.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
+
     #noise flags
     if isData:
         flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter'])
@@ -577,7 +591,13 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
         #get weight and fill
         nBTags = min(tree.nBTaggedJets,btagCutoff)
         btag_bin = htemp.FindBin(nBTags) - 1
-        theWeight = tree.weight*k*globalScaleFactor
+        if isData:
+            theWeight = 1.0
+            if treeName.lower() == 'qcd': #extrapolate from low deltaPhi region for QCD prediction
+                qcdExtrapolationFactor = 1.2e+6*(tree.MR**(-2.6)) + 0.064
+                theWeight *= qcdExtrapolationFactor
+        else:
+            theWeight = tree.weight*k*globalScaleFactor
         filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, sysErrOpt, sumPdfWeights=sumPdfWeights, sumScaleWeights=sumScaleWeights, nevents=nevents)
         numEntriesByBtag[btag_bin] += 1
         sumEntriesByBtag[btag_bin] += filledWeight
@@ -628,7 +648,7 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     processes = [model]
     processes.extend(bkgs)
     lumiErrs = [1+lumiUncertainty] 
-    lumiErrs.extend([1+lumiUncertainty for bkg in bkgs]) 
+    lumiErrs.extend([1+lumiUncertainty if bkg.lower() != 'qcd' else 1.0 for bkg in bkgs]) 
     mcErrs = {} #dictionary of uncorrelated mc bkgd lnN uncertainties
 
     #get list of shape uncertainties
@@ -644,7 +664,7 @@ def writeDataCard_th1(box,model,txtfileName,hists):
 
     #20% normalization uncertainty on rare backgrounds
     for bkg in bkgs:
-        if bkg in ['ttjets','wjetstolnu','dyjetstoll','zjetstonunu']: continue
+        if bkg in ['ttjets','wjetstolnu','dyjetstoll','zjetstonunu','qcd']: continue
         mcErrs[bkg] = [1.00]
         mcErrs[bkg].extend([1.00 + 0.20*(bkg==bkg1) for bkg1 in bkgs]) 
             
@@ -759,7 +779,7 @@ if __name__ == '__main__':
         #cross check scale factors
         ttjetsDileptonSFHists = loadScaleFactorHists(sfFilename="RazorTTJetsDileptonCrossCheck.root", processNames=["ttjetsdilepton"], scaleFactorNames={ "ttjetsdilepton":"TTJets" }, debugLevel=1)
         vetoLeptonSFHists = loadScaleFactorHists(sfFilename="RazorVetoLeptonCrossCheck.root", processNames=["vetolepton"], scaleFactorNames={ "vetolepton":"VetoLepton" }, debugLevel=1)
-        vetoTauSFHists = loadScaleFactorHists(sfFilename="RazorVetoTauCrossCheck.root", processNames=["vetotau":"VetoTau" }, debugLevel=1)
+        vetoTauSFHists = loadScaleFactorHists(sfFilename="RazorVetoTauCrossCheck.root", processNames=["vetotau"], scaleFactorNames={ "vetotau":"VetoTau" }, debugLevel=1)
         sfHists.update(ttjetsDileptonSFHists) #combine scale factor dictionaries
         sfHists.update(vetoLeptonSFHists) 
         sfHists.update(vetoTauSFHists) 
@@ -786,12 +806,9 @@ if __name__ == '__main__':
                 'sfstat':['ttjets','wjetstolnu','zjetstonunu'],
                 'sfsys':['ttjets','wjetstolnu','zjetstonunu'],
                 'ttcrosscheck':['ttjets'],
-                'vetolepcrosscheck':[]
-                'vetotaucrosscheck':[]
-                #TODO: add DYJets scale factors once available
-                #'sfstat':['ttjets','wjetstolnu','dyjetstoll','zjetstonunu'],
-                #'sfsys':['ttjets','wjetstolnu','dyjetstoll','zjetstonunu'],
-                'mcstat%s'%curBox.lower():(FILENAMES_MC.keys()+['signal'])
+                #'vetolepcrosscheck':[],
+                #'vetotaucrosscheck':[],
+                'mcstat%s'%curBox.lower():([f for f in FILENAMES_MC if f.lower() != 'qcd']+['signal'])
         }
         #list of shapes that apply to signal only
         signalShapes = {
@@ -810,8 +827,8 @@ if __name__ == '__main__':
         uncorrSFShapes = [
                 'sfstat',
                 'ttcrosscheck',
-                'vetolepcrosscheck',
-                'vetotaucrosscheck',
+                #'vetolepcrosscheck',
+                #'vetotaucrosscheck',
                 ] 
 
         if args.noSys:
@@ -837,15 +854,19 @@ if __name__ == '__main__':
             assert rootFile
             tree = rootFile.Get('RazorInclusive') #get tree
             #get histograms for sum of pdf and scale weights
-            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes or 'n0pdf' in shapes:
-                nevents = rootFile.Get('NEvents')
-                assert nevents
+            if treeName.lower() != 'qcd':
+                if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes or 'n0pdf' in shapes:
+                    nevents = rootFile.Get('NEvents')
+                    assert nevents
+                else:
+                    nevents = None
+                if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes:
+                    sumScaleWeights = rootFile.Get('SumScaleWeights')
+                    assert sumScaleWeights
+                else:
+                    sumScaleWeights = None
             else:
                 nevents = None
-            if 'facscale' in shapes or 'renscale' in shapes or 'facrenscale' in shapes:
-                sumScaleWeights = rootFile.Get('SumScaleWeights')
-                assert sumScaleWeights
-            else:
                 sumScaleWeights = None
 
             #add histogram to output file
@@ -854,7 +875,7 @@ if __name__ == '__main__':
             #get up/down histograms for shape systematics
             for shape in shapes:
                 for updown in ["Up", "Down"]:
-                    if shapes[shape] == []:
+                    if shapes[shape] == [] and treeName.lower() != 'qcd':
                         print("Building histogram for "+treeName+"_"+shape+updown)
                         ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=lumi/lumi_in, treeName=treeName+"_"+shape+updown, sfs=sfHists, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, nevents=nevents))
                     elif treeName.lower() in [s.lower() for s in shapes[shape]]:
