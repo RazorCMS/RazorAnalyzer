@@ -261,6 +261,14 @@ def transformVarString(event, string, errorOpt, process="", debugLevel=0):
         outstring = transformVarsInString(string, jetvars, "_JESUp")
     elif errorOpt == "jesDown":
         oustring = transformVarsInString(string, jetvars, "_JESDown")
+    if errorOpt == "mesUp":
+        outstring = transformVarsInString(string, jetvars, "_MESUp")
+    elif errorOpt == "mesDown":
+        oustring = transformVarsInString(string, jetvars, "_MESDown")
+    if errorOpt == "eesUp":
+        outstring = transformVarsInString(string, jetvars, "_EESUp")
+    elif errorOpt == "eesDown":
+        oustring = transformVarsInString(string, jetvars, "_EESDown")
     elif errorOpt == "jerUp":
         outstring = transformVarsInString(string, jetvars, "_JERUp")
     elif errorOpt == "jerDown":
