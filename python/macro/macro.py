@@ -463,6 +463,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         if name in sfHists: 
             print("Using scale factors from histogram "+sfHists[name].GetName())
             sfHistToUse = sfHists[name]
+        auxSFsToUse = auxSFs
         auxSFHists = {name:sfHists[name] for name in auxSFs} #for misc reweightings
         #get correct variables for scale factor reweighting.
         #if sfVars is a dictionary, get the appropriate value from it.  otherwise use sfVars directly.
@@ -479,6 +480,8 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             cutsToUse = cutsToUse.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
             weightOptsToUse.append('datadrivenqcd')
             scaleToUse = 1.0
-        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, sysVarsToUse, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, debugLevel=debugLevel)
+            auxSFHists = {}
+            auxSFsToUse = {}
+        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, sysVarsToUse, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 

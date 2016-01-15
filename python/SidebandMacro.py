@@ -113,9 +113,14 @@ if __name__ == "__main__":
     #get veto lepton and tau scale factor histograms
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
     vlfile = rt.TFile.Open(vetolepFile)
+    assert vlfile
     vtfile = rt.TFile.Open(vetotauFile)
+    assert vtfile
     vlhists = { 'VetoLepton'+n:vlfile.Get('VetoLeptonScaleFactors'+n) for n in vnames }
-    vthists = { 'VetoTau'+n:vlfile.Get('VetoTauScaleFactors'+n) for n in vnames }
+    vthists = { 'VetoTau'+n:vtfile.Get('VetoTauScaleFactors'+n) for n in vnames }
+    for n in vnames: 
+        assert vlhists['VetoLepton'+n]
+        assert vthists['VetoTau'+n]
     sfHists.update(vlhists)
     sfHists.update(vthists)
 
