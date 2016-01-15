@@ -156,6 +156,8 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
         if debugLevel > 1:
             print "QCD extrapolation factor:",qcdExtrapolationFactor
             print "Scale by:",scale
+            print "event weight:",eventWeight
+        return eventWeight
 
     #pileup reweighting
     if str.lower("doNPVWeights") in lweightOpts:
@@ -174,24 +176,84 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
         eventWeight *= leptonTriggerWeight(event, wHists, doLep2Trig, debugLevel=debugLevel)
 
     #up/down corrections for systematics
-    if errorOpt == "muoneffUp":
+    if errorOpt == "tightmuoneffUp":
         eventWeight *= event.sf_muonEffUp
-        if debugLevel > 1: print "MuonEffUp scale factor:",event.sf_muonEffUp
-    if errorOpt == "muoneffDown":
+        if debugLevel > 1: print "muonEffUp scale factor:",event.sf_muonEffUp
+    elif errorOpt == "tightmuoneffDown":
         eventWeight *= event.sf_muonEffDown
-        if debugLevel > 1: print "MuonEffDown scale factor:",event.sf_muonEffDown
-    if errorOpt == "eleeffUp":
+        if debugLevel > 1: print "muonEffDown scale factor:",event.sf_muonEffDown
+    elif errorOpt == "tighteleeffUp":
         eventWeight *= event.sf_eleEffUp
-        if debugLevel > 1: print "EleEffUp scale factor:",event.sf_eleEffUp
-    if errorOpt == "eleeffDown":
+        if debugLevel > 1: print "eleEffUp scale factor:",event.sf_eleEffUp
+    elif errorOpt == "tighteleeffDown":
         eventWeight *= event.sf_eleEffDown
-        if debugLevel > 1: print "EleEffDown scale factor:",event.sf_eleEffDown
-    if errorOpt == "btagUp":
+        if debugLevel > 1: print "eleEffDown scale factor:",event.sf_eleEffDown
+    if errorOpt == "vetomuoneffUp":
+        eventWeight *= event.sf_vetoMuonEffUp
+        if debugLevel > 1: print "vetoMuonEffUp scale factor:",event.sf_vetoMuonEffUp
+    elif errorOpt == "vetomuoneffDown":
+        eventWeight *= event.sf_vetoMuonEffDown
+        if debugLevel > 1: print "vetoMuonEffDown scale factor:",event.sf_vetoMuonEffDown
+    elif errorOpt == "vetoeleeffUp":
+        eventWeight *= event.sf_vetoEleEffUp
+        if debugLevel > 1: print "vetoEleEffUp scale factor:",event.sf_vetoEleEffUp
+    elif errorOpt == "vetoeleeffDown":
+        eventWeight *= event.sf_vetoEleEffDown
+        if debugLevel > 1: print "vetoEleEffDown scale factor:",event.sf_vetoEleEffDown
+    elif errorOpt == "muontrigUp":
+        eventWeight *= event.sf_muontrigUp
+        if debugLevel > 1: print "muontrigUp scale factor:",event.sf_muontrigUp
+    elif errorOpt == "muontrigDown":
+        eventWeight *= event.sf_muontrigDown
+        if debugLevel > 1: print "muontrigDown scale factor:",event.sf_muontrigDown
+    elif errorOpt == "eletrigUp":
+        eventWeight *= event.sf_eletrigUp
+        if debugLevel > 1: print "eletrigUp scale factor:",event.sf_eletrigUp
+    elif errorOpt == "eletrigDown":
+        eventWeight *= event.sf_eletrigDown
+        if debugLevel > 1: print "eletrigDown scale factor:",event.sf_eletrigDown
+    elif errorOpt == "btagUp":
         eventWeight *= event.sf_btagUp
-        if debugLevel > 1: print "BTagUp scale factor:",event.sf_btagUp
-    if errorOpt == "btagDown":
+        if debugLevel > 1: print "btagUp scale factor:",event.sf_btagUp
+    elif errorOpt == "btagDown":
         eventWeight *= event.sf_btagDown
-        if debugLevel > 1: print "BTagDown scale factor:",event.sf_btagDown
+        if debugLevel > 1: print "btagDown scale factor:",event.sf_btagDown
+    elif errorOpt == "bmistagUp":
+        eventWeight *= event.sf_bmistagUp
+        if debugLevel > 1: print "bmistagUp scale factor:",event.sf_bmistagUp
+    elif errorOpt == "bmistagDown":
+        eventWeight *= event.sf_bmistagDown
+        if debugLevel > 1: print "bmistagDown scale factor:",event.sf_bmistagDown
+    elif errorOpt == "pileupUp":
+        eventWeight *= event.sf_pileupWeightUp
+        if debugLevel > 1: print "pileupWeightUp scale factor:",event.pileupWeightUp
+    elif errorOpt == "pileupDown":
+        eventWeight *= event.sf_pileupWeightDown
+        if debugLevel > 1: print "pileupWeightDown scale factor:",event.pileupWeightDown
+    elif errorOpt == "isrUp":
+        eventWeight *= event.sf_ISRSystWeightUp
+        if debugLevel > 1: print "ISRSystWeightUp scale factor:",event.ISRSystWeightUp
+    elif errorOpt == "isrDown":
+        eventWeight *= event.sf_ISRSystWeightDown
+        if debugLevel > 1: print "ISRSystWeightDown scale factor:",event.ISRSystWeightDown
+    elif errorOpt == "facscaleUp":
+        eventWeight *= event.sf_facScaleUp
+        if debugLevel > 1: print "facScaleUp scale factor:",event.sf_facScaleUp
+    elif errorOpt == "facscaleDown":
+        eventWeight *= event.sf_facScaleDown
+        if debugLevel > 1: print "facScaleDown scale factor:",event.sf_facScaleDown
+    elif errorOpt == "renscaleUp":
+        eventWeight *= event.sf_renScaleUp
+        if debugLevel > 1: print "renScaleUp scale factor:",event.sf_renScaleUp
+    elif errorOpt == "renscaleDown":
+        eventWeight *= event.sf_renScaleDown
+        if debugLevel > 1: print "renScaleDown scale factor:",event.sf_renScaleDown
+    elif errorOpt == "facrenscaleUp":
+        eventWeight *= event.sf_facRenScaleUp
+        if debugLevel > 1: print "facRenScaleUp scale factor:",event.sf_facRenScaleUp
+    elif errorOpt == "facrenscaleDown":
+        eventWeight *= event.sf_facRenScaleDown
+        if debugLevel > 1: print "facRenScaleDown scale factor:",event.sf_facRenScaleDown
 
     if debugLevel > 1: 
         print "event weight:",eventWeight
