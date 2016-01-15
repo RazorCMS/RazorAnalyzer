@@ -62,6 +62,12 @@ blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2
 
 dirName="SignalRegionPlots"
 
+#scale factor file names
+sfdir = "data/ScaleFactors/RazorMADD2015/"
+sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
+vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck.root'
+vetotauFile = sfdir+'/RazorVetoTauCrossCheck.root'
+
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
@@ -102,7 +108,21 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
-    sfHists = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=SAMPLES_HADRONIC, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
+
+    #get veto lepton and tau scale factor histograms
+    vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
+    vlfile = rt.TFile.Open(vetolepFile)
+    vtfile = rt.TFile.Open(vetotauFile)
+    vlhists = { 'VetoLepton'+n:vlfile.Get('VetoLeptonScaleFactors'+n) for n in vnames }
+    vthists = { 'VetoTau'+n:vlfile.Get('VetoTauScaleFactors'+n) for n in vnames }
+    sfHists.update(vlhists)
+    sfHists.update(vthists)
+
+    auxSFs = { 
+        "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
+        "VetoTau":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15")
+        }
 
     #estimate yields in signal region
     for boxName in BOXES:
@@ -153,4 +173,4 @@ if __name__ == "__main__":
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                     weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
                     fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)
+                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFs, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)

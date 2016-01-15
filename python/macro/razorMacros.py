@@ -630,13 +630,15 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                 cols.extend([sysUncerts[mcProcess]])
             plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
 
-def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", normErrFraction=0.2, sfHists={}, histToCorrect=None, doDataOverMC=False, mtEfficiencyHist=None, printdir="."):
+def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", normErrFraction=0.2, sfHists={}, histsToCorrect=None, signalRegionVar=None, doDataOverMC=False, mtEfficiencyHist=None, dPhiEfficiencyHist=None, printdir="."):
     """Compare data and MC in veto lepton control region.  Makes ratio histogram and returns it.  
     Arguments are similar to those for appendScaleFactors()
 
     doDataOverMC: if True, will save Data/MC scale factors.  if False, will save MC-Data. 
-    histToCorrect: the additive Data-MC corrections will be applied to this histogram, and Corrected/Uncorrected scale factors will be derived from the corrected histogram and saved.  (do not use with doDataOverMC option) 
+    histsToCorrect: the additive Data-MC corrections will be applied to these histograms, and Corrected/Uncorrected scale factors will be derived from the corrected histogram and saved.  (do not use with doDataOverMC option) 
+    signalRegionVar: histsToCorrect (signal region) variable name
     mtEfficiencyHist: histogram of MT cut efficiency, used to correct the control region yields
+    dPhiEfficiencyHist: histogram of dPhi cut efficiency, used to correct the control region yields
     """
     regionNameReduced = regionName.replace(' ','')
 
@@ -667,34 +669,41 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
             mcTotalUp.Add(hists[p][var])
             mcTotalDown.Add(hists[p][var])
 
+    #make signal region histogram that will receive the correction
+    if histsToCorrect is not None:
+        histToCorrect = hists[dataName][var].Clone("histToCorrect"+regionNameReduced) #set up correct binning
+        histToCorrect.Reset()
+        for p in bgProcesses:
+            if signalRegionVar not in histsToCorrect[p]:
+                print "Error in makeVetoLeptonCorrectionHist: signal region histogram for",p,"not found!"
+                return
+            histToCorrect.Add(histsToCorrect[p][signalRegionVar])
+    else:
+        histToCorrect = None
+
+    #output histograms
+    vlHists = {}
     if not doDataOverMC: #do MC minus Data
         #subtract MC-data
         print "Making correction histogram for veto lepton control region (MC minus Data)"
-        vetoLepCorrHist = mcTotal.Clone(regionNameReduced+"Correction")
-        vetoLepCorrHist.SetDirectory(0)
-        vetoLepCorrHist.Add(hists[dataName][var],-1.0)
-        #up histogram
-        vetoLepCorrHistUp = mcTotalUp.Clone(regionNameReduced+"CorrectionUp")
-        vetoLepCorrHistUp.SetDirectory(0)
-        vetoLepCorrHistUp.Add(hists[dataName][var],-1.0)
-        #down histogram
-        vetoLepCorrHistDown = mcTotalDown.Clone(regionNameReduced+"CorrectionDown")
-        vetoLepCorrHistDown.SetDirectory(0)
-        vetoLepCorrHistDown.Add(hists[dataName][var],-1.0)
+        vlHists['Central'] = mcTotal.Clone(regionNameReduced+"Correction")
+        vlHists['Up'] = mcTotalUp.Clone(regionNameReduced+"CorrectionUp")
+        vlHists['Down'] = mcTotalDown.Clone(regionNameReduced+"CorrectionDown")
+        for n,h in vlHists.iteritems():
+            h.Add(hists[dataName][var],-1.0)
     else: #do Data/MC
         #divide data by MC
         print "Making correction histogram for veto lepton control region (Data/MC)"
-        vetoLepCorrHist = hists[dataName][var].Clone(regionNameReduced+"Correction")
-        vetoLepCorrHist.SetDirectory(0)
-        vetoLepCorrHist.Divide(mcTotal)
+        vlHists['Central'] = hists[dataName][var].Clone(regionNameReduced+"Correction")
+        vlHists['Central'].Divide(mcTotal)
         #up histogram
-        vetoLepCorrHistUp = hists[dataName][var].Clone(regionNameReduced+"CorrectionUp")
-        vetoLepCorrHistUp.SetDirectory(0)
-        vetoLepCorrHistUp.Divide(mcTotalUp)
+        vlHists['Up'] = hists[dataName][var].Clone(regionNameReduced+"CorrectionUp")
+        vlHists['Up'].Divide(mcTotalUp)
         #down histogram
-        vetoLepCorrHistDown = hists[dataName][var].Clone(regionNameReduced+"CorrectionDown")
-        vetoLepCorrHistDown.SetDirectory(0)
-        vetoLepCorrHistDown.Divide(mcTotalDown)
+        vlHists['Down'] = hists[dataName][var].Clone(regionNameReduced+"CorrectionDown")
+        vlHists['Down'].Divide(mcTotalDown)
+    for n,h in vlHists.iteritems():
+        h.SetDirectory(0)
 
     #suppress corrections consistent with 0
     targetVal = 0.0 #check for consistency with this number
@@ -703,147 +712,150 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     if signifThreshold > 0:
         print "Ignoring corrections compatible with 0 at",signifThreshold,"sigma significance"
         if isinstance(var, basestring) or len(var) == 1: #1D
-            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
-                if vetoLepCorrHist.GetBinError(bx) == 0: continue
-                nsigma = abs(vetoLepCorrHist.GetBinContent(bx)-targetVal)/vetoLepCorrHist.GetBinError(bx)
-                if nsigma < signifThreshold: 
-                    vetoLepCorrHist.SetBinContent(bx,0.0)
-                    vetoLepCorrHist.SetBinError(bx,0.0)
-                #up
-                nsigmaUp = abs(vetoLepCorrHistUp.GetBinContent(bx)-targetVal)/vetoLepCorrHistUp.GetBinError(bx)
-                if nsigmaUp < signifThreshold: 
-                    vetoLepCorrHistUp.SetBinContent(bx,0.0)
-                    vetoLepCorrHistUp.SetBinError(bx,0.0)
-                #down
-                nsigmaDown = abs(vetoLepCorrHistDown.GetBinContent(bx)-targetVal)/vetoLepCorrHistDown.GetBinError(bx)
-                if nsigmaDown < signifThreshold: 
-                    vetoLepCorrHistDown.SetBinContent(bx,0.0)
-                    vetoLepCorrHistDown.SetBinError(bx,0.0)
-        elif len(var) == 2: #2D
-            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
-                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
-                    if vetoLepCorrHist.GetBinError(bx,by) == 0: continue
-                    nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by)-targetVal)/vetoLepCorrHist.GetBinError(bx,by)
+            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
+                for n,h in vlHists.iteritems():
+                    if h.GetBinError(bx) == 0: continue
+                    nsigma = abs(h.GetBinContent(bx)-targetVal)/h.GetBinError(bx)
                     if nsigma < signifThreshold: 
-                        vetoLepCorrHist.SetBinContent(bx,by,0.0)
-                        vetoLepCorrHist.SetBinError(bx,by,0.0)
-                    #up
-                    nsigmaUp = abs(vetoLepCorrHistUp.GetBinContent(bx,by)-targetVal)/vetoLepCorrHistUp.GetBinError(bx,by)
-                    if nsigmaUp < signifThreshold: 
-                        vetoLepCorrHistUp.SetBinContent(bx,by,0.0)
-                        vetoLepCorrHistUp.SetBinError(bx,by,0.0)
-                    #down
-                    nsigmaDown = abs(vetoLepCorrHistDown.GetBinContent(bx,by)-targetVal)/vetoLepCorrHistDown.GetBinError(bx,by)
-                    if nsigmaDown < signifThreshold: 
-                        vetoLepCorrHistDown.SetBinContent(bx,by,0.0)
-                        vetoLepCorrHistDown.SetBinError(bx,by,0.0)
-        elif len(var) == 3: #3D
-            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
-                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
-                    for bz in range(1, vetoLepCorrHist.GetNbinsZ()+1):
-                        if vetoLepCorrHist.GetBinError(bx,by,bz) == 0: continue
-                        nsigma = abs(vetoLepCorrHist.GetBinContent(bx,by,bz)-targetVal)/vetoLepCorrHist.GetBinError(bx,by,bz)
+                        h.SetBinContent(bx,0.0)
+                        h.SetBinError(bx,0.0)
+        elif len(var) == 2: #2D
+            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
+                for by in range(1, vlHists['Central'].GetNbinsY()+1):
+                    for n,h in vlHists.iteritems():
+                        if h.GetBinError(bx,by) == 0: continue
+                        nsigma = abs(h.GetBinContent(bx,by)-targetVal)/h.GetBinError(bx,by)
                         if nsigma < signifThreshold: 
-                            vetoLepCorrHist.SetBinContent(bx,by,bz,0.0)
-                            vetoLepCorrHist.SetBinError(bx,by,bz,0.0)
-                        #up
-                        nsigmaUp = abs(vetoLepCorrHistUp.GetBinContent(bx,by,bz)-targetVal)/vetoLepCorrHistUp.GetBinError(bx,by,bz)
-                        if nsigmaUp < signifThreshold: 
-                            vetoLepCorrHistUp.SetBinContent(bx,by,bz,0.0)
-                            vetoLepCorrHistUp.SetBinError(bx,by,bz,0.0)
-                        #down
-                        nsigmaDown = abs(vetoLepCorrHistDown.GetBinContent(bx,by,bz)-targetVal)/vetoLepCorrHistDown.GetBinError(bx,by,bz)
-                        if nsigmaDown < signifThreshold: 
-                            vetoLepCorrHistDown.SetBinContent(bx,by,bz,0.0)
-                            vetoLepCorrHistDown.SetBinError(bx,by,bz,0.0)
+                            h.SetBinContent(bx,by,0.0)
+                            h.SetBinError(bx,by,0.0)
+        elif len(var) == 3: #3D
+            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
+                for by in range(1, vlHists['Central'].GetNbinsY()+1):
+                    for bz in range(1, vlHists['Central'].GetNbinsZ()+1):
+                        for n,h in vlHists.iteritems():
+                            if h.GetBinError(bx,by,bz) == 0: continue
+                            nsigma = abs(h.GetBinContent(bx,by,bz)-targetVal)/h.GetBinError(bx,by,bz)
+                            if nsigma < signifThreshold: 
+                                h.SetBinContent(bx,by,bz,0.0)
+                                h.SetBinError(bx,by,bz,0.0)
+
+    if debugLevel > 0:
+        print "\nCorrections before MT and dPhi efficiencies:"
+        vlHists['Central'].Print("all")
 
     vetoLeptonOutfile = rt.TFile("Razor"+regionNameReduced+"CrossCheck.root", "RECREATE")
     c = rt.TCanvas("cVetoLeptonCorrs", "c", 800, 600)
     #optionally, apply corrections to signal region histograms and derive Corrected/Uncorrected scale factors
     #also correct for MT cut efficiency for extrapolation into the signal region
     if histToCorrect is not None and not doDataOverMC:
-        print "Correcting histogram",vetoLepCorrHist," and its up/down variants using MT cut efficiencies taken from",mtEfficiencyHist.GetName()
+        print "Correcting histogram",vlHists['Central']," and its up/down variants using MT cut efficiencies taken from",mtEfficiencyHist.GetName(),"and using dPhi cut efficiencies from",dPhiEfficiencyHist.GetName()
         #create MT up/down versions of the correction histogram
-        vetoLepCorrHistMTUp = vetoLepCorrHist.Clone()
-        vetoLepCorrHistMTDown = vetoLepCorrHist.Clone()
+        vlHists['MTUp'] = vlHists['Central'].Clone()
+        vlHists['MTDown'] = vlHists['Central'].Clone()
+        #create dPhi up/down versions of the correction histogram
+        vlHists['DPhiUp'] = vlHists['Central'].Clone()
+        vlHists['DPhiDown'] = vlHists['Central'].Clone()
         if isinstance(var, basestring) or len(var) == 1: #1D
-            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
+            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
                 #divide all bin contents by the efficiency of the MT cut
-                vetoLepCorrHist.SetBinContent(bx, vetoLepCorrHist.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
-                vetoLepCorrHist.SetBinError(bx, vetoLepCorrHist.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
-                vetoLepCorrHistUp.SetBinContent(bx, vetoLepCorrHistUp.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
-                vetoLepCorrHistUp.SetBinError(bx, vetoLepCorrHistUp.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
-                vetoLepCorrHistDown.SetBinContent(bx, vetoLepCorrHistDown.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
-                vetoLepCorrHistDown.SetBinError(bx, vetoLepCorrHistDown.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
-                vetoLepCorrHistMTUp.SetBinContent(bx, vetoLepCorrHist.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
-                vetoLepCorrHistMTDown.SetBinError(bx, vetoLepCorrHist.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
+                for n,h in vlHists.iteritems():
+                    if 'MT' not in n:
+                        h.SetBinContent(bx, h.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
+                        h.SetBinError(bx, h.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
+                    elif 'Up' in n:
+                        h.SetBinContent(bx, h.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
+                        h.SetBinError(bx, h.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
+                    elif 'Down' in n:
+                        h.SetBinContent(bx, h.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
+                        h.SetBinError(bx, h.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
+                #multiply all bin contents by the efficiency of the dPhi cut
+                    if 'DPhi' not in n:
+                        h.SetBinContent(bx, h.GetBinContent(bx)*dPhiEfficiencyHist.GetBinContent(bx))
+                        h.SetBinError(bx, h.GetBinError(bx)*dPhiEfficiencyHist.GetBinContent(bx))
+                    elif 'Up' in n:
+                        h.SetBinContent(bx, h.GetBinContent(bx)*(dPhiEfficiencyHist.GetBinContent(bx)+dPhiEfficiencyHist.GetBinError(bx)))
+                        h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)+dPhiEfficiencyHist.GetBinError(bx)))
+                    elif 'Down' in n:
+                        h.SetBinContent(bx, h.GetBinContent(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
+                        h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
         elif len(var) == 2: #2D
-            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
-                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
+            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
+                for by in range(1, vlHists['Central'].GetNbinsY()+1):
                     #divide all bin contents by the efficiency of the MT cut
-                    vetoLepCorrHist.SetBinContent(bx,by, vetoLepCorrHist.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                    vetoLepCorrHist.SetBinError(bx,by, vetoLepCorrHist.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                    vetoLepCorrHistUp.SetBinContent(bx,by, vetoLepCorrHistUp.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                    vetoLepCorrHistUp.SetBinError(bx,by, vetoLepCorrHistUp.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                    vetoLepCorrHistDown.SetBinContent(bx,by, vetoLepCorrHistDown.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                    vetoLepCorrHistDown.SetBinError(bx,by, vetoLepCorrHistDown.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                    vetoLepCorrHistMTUp.SetBinContent(bx,by, vetoLepCorrHist.GetBinContent(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)+mtEfficiencyHist.GetBinError(bx,by)))
-                    vetoLepCorrHistMTDown.SetBinError(bx,by, vetoLepCorrHist.GetBinError(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)-mtEfficiencyHist.GetBinError(bx,by)))
+                    for n,h in vlHists.iteritems():
+                        if 'MT' not in n:
+                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                            h.SetBinError(bx,by, h.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
+                        elif 'Up' in n:
+                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)+mtEfficiencyHist.GetBinError(bx,by)))
+                            h.SetBinError(bx,by, h.GetBinError(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)+mtEfficiencyHist.GetBinError(bx,by)))
+                        elif 'Down' in n:
+                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)-mtEfficiencyHist.GetBinError(bx,by)))
+                            h.SetBinError(bx,by, h.GetBinError(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)-mtEfficiencyHist.GetBinError(bx,by)))
+                    #multiply all bin contents by the efficiency of the dPhi cut
+                        if 'DPhi' not in n:
+                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)*dPhiEfficiencyHist.GetBinContent(bx,by))
+                            h.SetBinError(bx,by, h.GetBinError(bx,by)*dPhiEfficiencyHist.GetBinContent(bx,by))
+                        elif 'Up' in n:
+                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)+dPhiEfficiencyHist.GetBinError(bx,by)))
+                            h.SetBinError(bx,by, h.GetBinError(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)+dPhiEfficiencyHist.GetBinError(bx,by)))
+                        elif 'Down' in n:
+                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)-dPhiEfficiencyHist.GetBinError(bx,by)))
+                            h.SetBinError(bx,by, h.GetBinError(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)-dPhiEfficiencyHist.GetBinError(bx,by)))
         elif len(var) == 3: #3D
-            for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
-                for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
-                    for bz in range(1, vetoLepCorrHist.GetNbinsZ()+1):
+            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
+                for by in range(1, vlHists['Central'].GetNbinsY()+1):
+                    for bz in range(1, vlHists['Central'].GetNbinsZ()+1):
                         #divide all bin contents by the efficiency of the MT cut
-                        vetoLepCorrHist.SetBinContent(bx,by,bz, vetoLepCorrHist.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                        vetoLepCorrHist.SetBinError(bx,by,bz, vetoLepCorrHist.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                        vetoLepCorrHistUp.SetBinContent(bx,by,bz, vetoLepCorrHistUp.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                        vetoLepCorrHistUp.SetBinError(bx,by,bz, vetoLepCorrHistUp.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                        vetoLepCorrHistDown.SetBinContent(bx,by,bz, vetoLepCorrHistDown.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                        vetoLepCorrHistDown.SetBinError(bx,by,bz, vetoLepCorrHistDown.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                        vetoLepCorrHistMTUp.SetBinContent(bx,by,bz, vetoLepCorrHist.GetBinContent(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)+mtEfficiencyHist.GetBinError(bx,by,bz)))
-                        vetoLepCorrHistMTDown.SetBinError(bx,by,bz, vetoLepCorrHist.GetBinError(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)-mtEfficiencyHist.GetBinError(bx,by,bz)))
+                        for n,h in vlHists.iteritems():
+                            if 'MT' not in n:
+                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
+                            elif 'Up' in n:
+                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)+mtEfficiencyHist.GetBinError(bx,by,bz)))
+                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)+mtEfficiencyHist.GetBinError(bx,by,bz)))
+                            elif 'Down' in n:
+                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)-mtEfficiencyHist.GetBinError(bx,by,bz)))
+                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)-mtEfficiencyHist.GetBinError(bx,by,bz)))
+                        #multiply all bin contents by the efficiency of the dPhi cut
+                            if 'DPhi' not in n:
+                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)*dPhiEfficiencyHist.GetBinContent(bx,by,bz))
+                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)*dPhiEfficiencyHist.GetBinContent(bx,by,bz))
+                            elif 'Up' in n:
+                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)+dPhiEfficiencyHist.GetBinError(bx,by,bz)))
+                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)+dPhiEfficiencyHist.GetBinError(bx,by,bz)))
+                            elif 'Down' in n:
+                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)-dPhiEfficiencyHist.GetBinError(bx,by,bz)))
+                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)-dPhiEfficiencyHist.GetBinError(bx,by,bz)))
 
         print "Correcting histogram",histToCorrect.GetName(),"using the additive corrections just derived."
-        #correctedHist = histToCorrect + correction
-        correctedHist = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrected")
-        correctedHistUp = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedUp")
-        correctedHistDown = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedDown")
-        correctedHistMTUp = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedMTUp")
-        correctedHistMTDown = histToCorrect.Clone(histToCorrect.GetName()+"VetoLeptonCorrectedMTDown")
-        correctedHist.Add(vetoLepCorrHist)
-        correctedHistUp.Add(vetoLepCorrHistUp)
-        correctedHistDown.Add(vetoLepCorrHistDown)
-        correctedHistMTUp.Add(vetoLepCorrHistMTUp)
-        correctedHistMTDown.Add(vetoLepCorrHistMTDown)
-        #signalRegionScaleFactors = correctedHist / histToCorrect
-        signalRegionScaleFactors = correctedHist.Clone(regionNameReduced+"ScaleFactors") 
-        signalRegionScaleFactorsUp = correctedHistUp.Clone(regionNameReduced+"ScaleFactorsUp") 
-        signalRegionScaleFactorsDown = correctedHistDown.Clone(regionNameReduced+"ScaleFactorsDown") 
-        signalRegionScaleFactorsMTUp = correctedHistMTUp.Clone(regionNameReduced+"ScaleFactorsMTUp") 
-        signalRegionScaleFactorsMTDown = correctedHistMTDown.Clone(regionNameReduced+"ScaleFactorsMTDown") 
-        signalRegionScaleFactors.Divide(histToCorrect)
-        signalRegionScaleFactorsUp.Divide(histToCorrect)
-        signalRegionScaleFactorsDown.Divide(histToCorrect)
-        signalRegionScaleFactorsMTUp.Divide(histToCorrect)
-        signalRegionScaleFactorsMTDown.Divide(histToCorrect)
-        print "Writing histogram",signalRegionScaleFactors.GetName(),"to file"
-        print "Writing histogram",signalRegionScaleFactorsUp.GetName(),"to file"
-        print "Writing histogram",signalRegionScaleFactorsDown.GetName(),"to file"
-        print "Writing histogram",signalRegionScaleFactorsMTUp.GetName(),"to file"
-        print "Writing histogram",signalRegionScaleFactorsMTDown.GetName(),"to file"
-        signalRegionScaleFactors.Write()
-        signalRegionScaleFactorsUp.Write()
-        signalRegionScaleFactorsDown.Write()
-        signalRegionScaleFactorsMTUp.Write()
-        signalRegionScaleFactorsMTDown.Write()
+        #corrected hist is histToCorrect + correction
+        correctedHists = { n:histToCorrect.Clone(histToCorrect.GetName()+"VetoLepton"+n) for n in vlHists }
+        for n in vlHists:
+            correctedHists[n].Add(vlHists[n])
+        #signal region scale factors are correctedHist / histToCorrect
+        signalRegionSFs = { n:h.Clone(regionNameReduced+"ScaleFactors"+n.replace('Central','')) for n,h in correctedHists.iteritems() }
+        for n,h in signalRegionSFs.iteritems():
+            h.Divide(histToCorrect)
+            print "Writing histogram",h.GetName(),"to file"
+            h.Write()
+
+        if debugLevel > 0:
+            print "\nCorrections:"
+            vlHists['Central'].Print("all")
+            print "\nBefore correction:"
+            histToCorrect.Print("all")
+            print "\nAfter correction:"
+            correctedHists['Central'].Print("all")
+            print "\nScale factors:"
+            signalRegionSFs['Central'].Print("all")
+
     #otherwise, write corrections to file
     else:
-        print "Writing histogram",vetoLepCorrHist.GetName(),"to file"
-        print "Writing histogram",vetoLepCorrHistUp.GetName(),"to file"
-        print "Writing histogram",vetoLepCorrHistDown.GetName(),"to file"
-        vetoLepCorrHist.Write(regionNameReduced+"ScaleFactors")
-        vetoLepCorrHistUp.Write(regionNameReduced+"ScaleFactorsUp")
-        vetoLepCorrHistDown.Write(regionNameReduced+"ScaleFactorsDown")
+        for n,h in vlHists.iteritems():
+            print "Writing histogram",h.GetName(),"to file"
+            h.Write(regionNameReduced+"ScaleFactors"+n)
+
     vetoLeptonOutfile.Close()
 
     #plot correction factors in 2D (not yet implemented for 1 or 3 dimensions)
@@ -851,13 +863,11 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     if doDataOverMC:
         comment = "Data/MC"
     if not isinstance(var, basestring) and len(var) == 2: 
-        plotting.draw2DHist(c, vetoLepCorrHist, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+", "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
-        plotting.draw2DHist(c, vetoLepCorrHistUp, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"CorrectionUp", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+" (Up), "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
-        plotting.draw2DHist(c, vetoLepCorrHistDown, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"CorrectionDown", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+" (Down), "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+        for n,h in vlHists.iteritems():
+            plotting.draw2DHist(c, h, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction"+n, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+" "+n+", "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
         if histToCorrect is not None:
-            plotting.draw2DHist(c, signalRegionScaleFactors, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"SignalRegionSFs", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="Signal Region Scale Factors, "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
-            plotting.draw2DHist(c, signalRegionScaleFactorsUp, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"SignalRegionSFsUp", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="Signal Region Scale Factors (Up), "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
-            plotting.draw2DHist(c, signalRegionScaleFactorsDown, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"SignalRegionSFsDown", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="Signal Region Scale Factors (Down), "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+            for n,h in signalRegionSFs.iteritems():
+                plotting.draw2DHist(c, h, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"SignalRegionSFs"+n, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="Signal Region Scale Factors "+n+", "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         xbinLowEdges = []
         xbinUpEdges = []
@@ -866,16 +876,16 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         statUncerts = []
         sfs = []
         #for each bin, get values for all table columns
-        for bx in range(1, vetoLepCorrHist.GetNbinsX()+1):
-            for by in range(1, vetoLepCorrHist.GetNbinsY()+1):
-                xbinLowEdges.append('%.0f' % (vetoLepCorrHist.GetXaxis().GetBinLowEdge(bx)))
-                xbinUpEdges.append('%.0f' % (vetoLepCorrHist.GetXaxis().GetBinUpEdge(bx)))
-                ybinLowEdges.append(str(vetoLepCorrHist.GetYaxis().GetBinLowEdge(by)))
-                ybinUpEdges.append(str(vetoLepCorrHist.GetYaxis().GetBinUpEdge(by)))
-                corrFactor = vetoLepCorrHist.GetBinContent(bx,by)
+        for bx in range(1, vlHists['Central'].GetNbinsX()+1):
+            for by in range(1, vlHists['Central'].GetNbinsY()+1):
+                xbinLowEdges.append('%.0f' % (vlHists['Central'].GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (vlHists['Central'].GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(vlHists['Central'].GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(vlHists['Central'].GetYaxis().GetBinUpEdge(by)))
+                corrFactor = vlHists['Central'].GetBinContent(bx,by)
                 sfs.append('%.3f' % (corrFactor))
                 if corrFactor != 0:
-                    statUncerts.append('%.1f\\%%' % (100*(vetoLepCorrHist.GetBinError(bx,by)/corrFactor)))
+                    statUncerts.append('%.1f\\%%' % (100*(vlHists['Central'].GetBinError(bx,by)/corrFactor)))
                 else: 
                     statUncerts.append('--')
                 for mcProcess in bgProcesses: 
@@ -886,4 +896,5 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         cols = [xRanges, yRanges, sfs, statUncerts]
         plotting.table_basic(headers, cols, caption="Difference between MC and data yields in veto lepton control region", printstr="corrFactorTable"+regionNameReduced, printdir=printdir)
 
-    return vetoLepCorrHist
+    return vlHists['Central']
+

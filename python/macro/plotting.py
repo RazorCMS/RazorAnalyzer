@@ -198,6 +198,8 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         mc.Draw("hist")
         if data and data.GetMaximum() > mc.GetMaximum() and ymax is None: 
             mc.SetMaximum(data.GetMaximum())
+        if not data: mc.GetXaxis().SetTitle(xtitle)
+        if logy: mc.GetXaxis().SetMoreLogLabels()
         mc.GetXaxis().SetTitle(xtitle)
         mc.GetYaxis().SetTitle(ytitle)
         mc.GetYaxis().SetTitleOffset(0.60)

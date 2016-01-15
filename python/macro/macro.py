@@ -183,7 +183,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             #make plots
             plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, printdir=printdir)
             #print prediction in each bin
-            if obsData != 0:
+            if obsData is not None and obsData != 0:
                 print "Results for data histogram:"
                 for bx in range(1, obsData.GetNbinsX()+1):
                     for by in range(1,obsData.GetNbinsY()+1):
@@ -241,7 +241,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             xtitle = vartitles[var]
         else:
             xtitle = var
-        if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()"]: logx = True
+        if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()", "genlep1.Pt()","leadingGenLeptonPt"]: logx = True
         else: logx = False
         if blindBins is None:
             plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
@@ -255,7 +255,7 @@ def transformVarsInString(string, varNames, suffix):
     return outstring
 
 def transformVarString(event, string, errorOpt, process="", debugLevel=0):
-    jetvars = ["MR","Rsq","nBTaggedJets","dPhiRazor","leadingJetPt","subleadingJetPt","nSelectedJets","nJets80","box"] #quantities susceptible to jet uncertainties
+    jetvars = ["MR","Rsq","nBTaggedJets","dPhiRazor","leadingJetPt","subleadingJetPt","nSelectedJets","nJets80","mT","box"] #quantities susceptible to jet uncertainties
     outstring = string
     if errorOpt == "jesUp":
         outstring = transformVarsInString(string, jetvars, "_JESUp")
@@ -369,8 +369,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
                     oldErr = hists[name].GetBinError(bx,by)
                     hists[name].SetBinError(bx,by,(oldErr*oldErr + squaredError)**(0.5))
-                    if debugLevel > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
-                    #if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
+                    if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
 
 def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], errorOpt=None, process="", auxSFs={}, auxSFHists={}, debugLevel=0):
     """Loop over a single tree and fill histograms.
