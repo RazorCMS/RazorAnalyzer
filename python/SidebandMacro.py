@@ -13,24 +13,27 @@ from macro.razorMacros import runFitAndToys, makeControlSampleHists
 LUMI = 2185 #in /pb
 MCLUMI = 1 
 
-SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
-SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
+SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
+SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
 SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
 BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
 
-DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
-DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
+DIR_MC = "Backgrounds"
+DIR_DATA = "Backgrounds"
+#DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
+#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
 DATA_NAMES={
     'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
     'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
     'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
     }
 FILENAMES_MC = {
-        "TTJets"    : DIR_MC+"/"+"FullRazorInclusive_TTJets_1pb_weighted.root",
+        "TTJets1L"    : DIR_MC+"/"+"FullRazorInclusive_TTJets1L_1pb_weighted.root",
+        "TTJets2L"    : DIR_MC+"/"+"FullRazorInclusive_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
         "WJets"     : DIR_MC+"/"+"FullRazorInclusive_WJetsToLNu_HTBinned_1pb_weighted.root",
         "SingleTop" : DIR_MC+"/"+"FullRazorInclusive_SingleTop_1pb_weighted.root",
         "Other" : DIR_MC+"/"+"FullRazorInclusive_Other_1pb_weighted.root",
-        "DYJets"     : DIR_MC+"/"+"FullRazorInclusive_DYJetsToLL_M-50_HTBinned_1pb_weighted.root",
+        "DYJets"     : DIR_MC+"/"+"FullRazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted.root",
         "ZInv"     : DIR_MC+"/"+"FullRazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root",
         "QCD"       : DIR_DATA+'/'+DATA_NAMES["MultiJet"]+'.root' #data-driven QCD prediction for MultiJet
         }
@@ -38,16 +41,18 @@ FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
-FIT_DIR = "eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2093ipb"
+FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2185ipb"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/MultiJet/sideband/toys_Bayes_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/MuMultiJet/sideband/toys_Bayes_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/EleMultiJet/sideband/toys_Bayes_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_EleMultiJet.root",
         }
 
 weightOpts = []
-shapeErrors = []
-miscErrors = []
+commonShapeErrors = ['jes','btag','pileup','bmistag','facscale','renscale','facrenscale','ees','mes',('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),'btag0crosscheck','btag1crosscheck','btag2crosscheck','btag3crosscheck','sfsysvetolep','sfsysvetotau','mteff','dphieff',('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','qcd'),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv'])]
+lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
+hadShapeErrors = commonShapeErrors+['vetomuoneff','vetoeleeff']
+shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
 
 cfg = Config.Config(config)
 binsMRHad = cfg.getBinning("MultiJet")[0]
@@ -67,6 +72,9 @@ sfdir = "data/ScaleFactors/RazorMADD2015/"
 sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
 vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck.root'
 vetotauFile = sfdir+'/RazorVetoTauCrossCheck.root'
+ttFile = sfdir+'/TTBarDileptonSystematic.root'
+dyFile = sfdir+'/DYJetsDileptonInvCrossCheck.root'
+btagFile = sfdir+'/RazorBTagClosureTests.root'
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -82,6 +90,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-fit', help="do not load fit results, process data and MC only", action='store_true', dest='noFit')
     parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
     parser.add_argument('--no-data', help="do not process data, do fit and MC only", action='store_true', dest='noData')
+    parser.add_argument('--no-sys', help="no shape unncertainties or cross check systematics", action="store_true", dest='noSys')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
@@ -108,6 +117,11 @@ if __name__ == "__main__":
     os.system('mkdir -p '+dirName)
 
     #get scale factor histograms
+    sfNames={
+            "ZInv":"WJetsInv",
+            "TTJets1L":"TTJets",
+            "TTJets2L":"TTJets",
+            }
     sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
 
     #get veto lepton and tau scale factor histograms
@@ -123,6 +137,14 @@ if __name__ == "__main__":
         assert vthists['VetoTau'+n]
     sfHists.update(vlhists)
     sfHists.update(vthists)
+    ttTFile = rt.TFile.Open(ttFile)
+    sfHists['TTJetsDilepton'] = ttTFile.Get('TTJetsScaleFactors')
+    #dyTFile = rt.TFile.Open(dyFile)
+    #sfHists['DYJetsInv'] = dyTFile.Get('DYJetsInvScaleFactors')
+    #btagTFile = rt.TFile.Open(btagFile)
+    #for b in range(4):
+    #    sfHists['MR'+b+'B'] = btagTFile.Get('OneLepton'+b+'BMRScaleFactors')
+    #    sfHists['Rsq'+b+'B'] = btagTFile.Get('OneLepton'+b+'BRsqScaleFactors')
 
     auxSFs = { 
         "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
@@ -143,6 +165,15 @@ if __name__ == "__main__":
             filesToUse = FILENAMES[boxName]
         if args.noData: 
             del filesToUse['Data']
+        shapesToUse = shapes
+        if args.noSys:
+            shapesToUse = { "MultiJet":[], "MuMultiJet":[], "EleMultiJet":[] } 
+
+        #apply veto lepton correction only to MultiJet box
+        if boxName == "MultiJet":
+            auxSFsToUse = auxSFs
+        else:
+            auxSFsToUse = {}
 
         #loop over btag bins
         btaglist = [0]
@@ -164,18 +195,18 @@ if __name__ == "__main__":
                 extboxName = boxName
                 nBtags = -1
             #check fit file and create if necessary
-            if not args.noFit and not os.path.isfile(TOYS_FILES[boxName]):
-                print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-                runFitAndToys(FIT_DIR, boxName, LUMI, DATA_NAMES[boxName], DIR_DATA, config=config, sideband=doSideband)
-                #check
-                if not os.path.isfile(TOYS_FILES[boxName]):
-                    print "Error creating fit file",TOYS_FILES[boxName]
-                    sys.exit()
+            #if not args.noFit and not os.path.isfile(TOYS_FILES[boxName]):
+            #    print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
+            #    runFitAndToys(FIT_DIR, boxName, LUMI, DATA_NAMES[boxName], DIR_DATA, config=config, sideband=do#Sideband)
+            #    #check
+            #    if not os.path.isfile(TOYS_FILES[boxName]):
+            #        print "Error creating fit file",TOYS_FILES[boxName]
+            #        sys.exit()
             makeControlSampleHists(extboxName, 
                     filenames=filesToUse, samples=samplesToUse, 
                     cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                     bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
-                    weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
+                    weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
                     fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFs, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)
+                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)

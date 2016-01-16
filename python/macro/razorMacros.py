@@ -52,7 +52,7 @@ def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, debugLevel=
     nsigma.Reset()
 
     #load fit information, including toys
-    toyFile = rt.TFile(fitToyFiles[boxName])
+    toyFile = rt.TFile.Open(fitToyFiles[boxName])
     assert toyFile
     if debugLevel > 0: print "Opened file",fitToyFiles[boxName],"to get Bayesian toy results"
     toyTree = toyFile.Get("myTree")
@@ -84,7 +84,7 @@ def getFitCorrelationMatrix(config, box, fitToyFile, debugLevel=0):
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
 
     #load fit information, including toys
-    toyFile = rt.TFile(fitToyFile)
+    toyFile = rt.TFile.Open(fitToyFile)
     assert toyFile
     if debugLevel > 0: print "Opened file",fitToyFile,"to get Bayesian toy results"
     toyTree = toyFile.Get("myTree")
@@ -100,7 +100,7 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
     if noStat: 
         print "Using only systematic errors on fit points"
         if 'noStat' not in fitToyFile:
-            fitToyFile = fitToyFile.replace('Bayes','Bayes_noStat')
+            fitToyFile = fitToyFile.replace('Bayes','Bayes_varyN_noStat')
     #sanity check
     if "Fit" in hists:
         print "Error in import2DFitHistograms: fit histogram already exists!"
@@ -112,7 +112,7 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
     hists["Fit"][v].Reset()
 
     #load fit information, including toys
-    toyFile = rt.TFile(fitToyFile)
+    toyFile = rt.TFile.Open(fitToyFile)
     assert toyFile
     if debugLevel > 0: print "Opened file",fitToyFile,"to get Bayesian toy results"
     toyTree = toyFile.Get("myTree")
@@ -175,7 +175,7 @@ def get3DRazorFitHistogram(configFile, fitToyFile, boxName, debugLevel=0):
     fitHist3D = rt.TH3F("fit"+boxName, "fit"+boxName, len(binsX)-1, binsX, len(binsY)-1, binsY, len(binsZ)-1, binsZ)
 
     #load fit information, including toys
-    toyFile = rt.TFile(fitToyFile)
+    toyFile = rt.TFile.Open(fitToyFile)
     assert toyFile
     if debugLevel > 0: print "Opened file",fitToyFile,"to get Bayesian toy results"
     toyTree = toyFile.Get("myTree")
@@ -280,7 +280,7 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=["doPileupWeights", "doLep1Weights", "do1LepTrigWeights"], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -294,7 +294,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     sfHists: dictionary of scale factor histograms, like that produced by razorWeights.loadScaleFactorHists
     treeName: name of the tree containing input events
     weightOpts: list of strings with directives for applying weights to the MC
-    shapeErrors: list of MC shape uncertainties
+    shapeErrors: list of MC shape uncertainties [uncertainties can be strings (in which case they apply to all processes) or tuples of the form (error, [processes]) (in which case they apply to the processes indicated in the list)
     miscErrors: optional -- list of misc uncertainty options (see below for supported options)
     fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
     boxName: optional -- name of razor box
@@ -358,10 +358,27 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #get up/down histogram variations
     for shape in shapeErrors:
-        print "\n"+shape,"Up:"
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
-        print "\n"+shape,"Down:"
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][shape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=shape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        if not isinstance(shape,basestring): #tuple (shape, [list of processes])
+            if name not in shape[1]: continue
+            curShape = shape[0]
+        else:
+            curShape = shape
+        print "\n"+curShape,"Up:"
+        #get any scale factor histograms needed to apply this up variation
+        auxSFsToUse = copy.deepcopy(auxSFs)
+        getSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up")
+        if debugLevel > 0:
+            print "Auxiliary SF hists to use:"
+            print auxSFsToUse
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        print "\n"+curShape,"Down:"
+        #get any scale factor histograms needed to apply this down variation
+        auxSFsToUse = copy.deepcopy(auxSFs)
+        getSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down")
+        if debugLevel > 0:
+            print "Auxiliary SF hists to use:"
+            print auxSFsToUse
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
@@ -372,12 +389,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     nsigmaFitData = None
     nsigmaFitMC = None
     if fitToyFiles and "MR" in bins and "Rsq" in bins:
-        if dataName in trees:
-            noFitStat=True
-            print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
-        else:
-            noFitStat=False #include stat uncertainties on the fit when not comparing with data
-            print "Including sys and stat uncertainties on fit prediction."
+        noFitStat=True
+        print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
         import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
         if dataName in hists: 
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)

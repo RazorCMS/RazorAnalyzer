@@ -62,7 +62,7 @@ def getLinesForUnrolled(hist):
     return lines
 
 def setHistColor(hist, name):
-    colors = {"WJets":rt.kRed+1, "WJetsInv":rt.kRed+1, "DYJets":rt.kBlue+1, "DYJetsInv":rt.kBlue+1, "TTJets":rt.kGreen+2, "ZInv":rt.kCyan+1, "QCD":rt.kMagenta, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1, "PhotonInv":rt.kOrange , "Other":rt.kAzure+4}
+    colors = {"WJets":rt.kRed+1, "WJetsInv":rt.kRed+1, "DYJets":rt.kBlue+1, "DYJetsInv":rt.kBlue+1, "TTJets":rt.kGreen+2, "TTJets1L":rt.kGreen+2, "TTJets2L":rt.kGreen+3, "ZInv":rt.kCyan+1, "QCD":rt.kMagenta, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1, "PhotonInv":rt.kOrange , "Other":rt.kAzure+4}
     """Sets histogram color"""
     if name in colors: hist.SetFillColor(colors[name])
     else: print "Warning in macro.py: histogram fill color not set for",name
@@ -623,9 +623,8 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
             draw2DHist(c, mcPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/MC", palette="FF", dotext=dotext, logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, printdir=printdir)
             #unroll and compare
             #(first remove any blinded bins)
-            legDataMC = rt.TLegend(0.7, 0.7, 0.9, 0.9)
-            rt.SetOwnership(legDataMC, False)
             if mcDict is not None:
+                legDataMC = rt.TLegend(0.6, 0.6, 0.9, 0.9)
                 blindMCUnrolledDict = {}
                 #blind and create stack
                 for s in mcSamples: 
@@ -639,6 +638,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                     s = mcSamples[n]
                     legDataMC.AddEntry(blindMCUnrolledDict[s], s)
             else:
+                legDataMC = rt.TLegend(0.7, 0.7, 0.9, 0.9)
                 blindMC = unrolled[0].Clone("blindMC")
                 for bx in range(1,blindMC.GetNbinsX()+1):
                     if unrolled[1].GetBinContent(bx) < 0:
@@ -646,6 +646,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 blindStack = makeStack({"MC":blindMC}, ["MC"], "MC")
                 legDataMC.AddEntry(blindMC, "MC Prediction")
             legDataMC.AddEntry(unrolled[1], "Data")
+            rt.SetOwnership(legDataMC, False)
             plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.5,ratiomax=1.5, pad2Opt="ratio", saveroot=True, printdir=printdir)
         if fit: 
             #do (fit - mc)/unc

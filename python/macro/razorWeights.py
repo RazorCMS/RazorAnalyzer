@@ -176,7 +176,15 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
         eventWeight *= leptonTriggerWeight(event, wHists, doLep2Trig, debugLevel=debugLevel)
 
     #up/down corrections for systematics
-    if errorOpt == "tightmuoneffUp":
+    normErrFraction=0.2
+    qcdNormErrFraction=0.2
+    if errorOpt == 'qcdnormUp':
+        eventWeight *= (1+qcdNormErrFraction)
+        if debugLevel > 1: print errorOpt,"scale factor:",1+qcdNormErrFraction
+    elif errorOpt == 'qcdnormDown':
+        eventWeight /= (1+qcdNormErrFraction)
+        if debugLevel > 1: print errorOpt,"scale factor:",1/(1+qcdNormErrFraction)
+    elif errorOpt == "tightmuoneffUp":
         eventWeight *= event.sf_muonEffUp
         if debugLevel > 1: print "muonEffUp scale factor:",event.sf_muonEffUp
     elif errorOpt == "tightmuoneffDown":
@@ -225,16 +233,16 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
         eventWeight *= event.sf_bmistagDown
         if debugLevel > 1: print "bmistagDown scale factor:",event.sf_bmistagDown
     elif errorOpt == "pileupUp":
-        eventWeight *= event.sf_pileupWeightUp
+        eventWeight *= event.pileupWeightUp
         if debugLevel > 1: print "pileupWeightUp scale factor:",event.pileupWeightUp
     elif errorOpt == "pileupDown":
-        eventWeight *= event.sf_pileupWeightDown
+        eventWeight *= event.pileupWeightDown
         if debugLevel > 1: print "pileupWeightDown scale factor:",event.pileupWeightDown
     elif errorOpt == "isrUp":
-        eventWeight *= event.sf_ISRSystWeightUp
+        eventWeight *= event.ISRSystWeightUp
         if debugLevel > 1: print "ISRSystWeightUp scale factor:",event.ISRSystWeightUp
     elif errorOpt == "isrDown":
-        eventWeight *= event.sf_ISRSystWeightDown
+        eventWeight *= event.ISRSystWeightDown
         if debugLevel > 1: print "ISRSystWeightDown scale factor:",event.ISRSystWeightDown
     elif errorOpt == "facscaleUp":
         eventWeight *= event.sf_facScaleUp
@@ -254,6 +262,12 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
     elif errorOpt == "facrenscaleDown":
         eventWeight *= event.sf_facRenScaleDown
         if debugLevel > 1: print "facRenScaleDown scale factor:",event.sf_facRenScaleDown
+    elif errorOpt is not None and 'normUp' in errorOpt:
+        eventWeight *= (1+normErrFraction)
+        if debugLevel > 1: print errorOpt,"scale factor:",1+normErrFraction
+    elif errorOpt is not None and 'normDown' in errorOpt:
+        eventWeight /= (1+normErrFraction)
+        if debugLevel > 1: print errorOpt,"scale factor:",1/(1+normErrFraction)
 
     if debugLevel > 1: 
         print "event weight:",eventWeight
@@ -418,3 +432,104 @@ def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], s
     sfFile.Close()
     return sfHists
 
+def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
+    """
+    Returns scale factor histogram names needed to compute the indicated shape uncertainty.
+    Format of the input/output is { "HistogramName":("variableName", "cuts"), ... }
+    """
+
+    #for building output
+    histNames=[]
+    varNames=[]
+    cuts=[]
+
+    ###supported error options
+    #TTJets dilepton control region systematic
+    if 'ttcrosscheck' in errorOpt.lower():
+        histNames.append("TTJetsDilepton")
+        varNames.append(("MR","Rsq"))
+        cuts.append("1")
+    #DYJets dilepton control region systematic
+    elif 'zllcrosscheck' in errorOpt.lower():
+        histNames.append("DYJetsInv")
+        varNames.append(("MR","Rsq"))
+        cuts.append("1")
+    #Veto lepton scale factors up/down
+    elif 'sfsysvetolep' in errorOpt.lower():
+        del auxSFs['VetoLepton']
+        if 'Up' in errorOpt:
+            histNames.append("VetoLeptonUp")
+            varNames.append("leadingGenLeptonPt")
+            cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoLeptonDown")
+            varNames.append("leadingGenLeptonPt")
+            cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+    #Veto tau scale factors up/down
+    elif 'sfsysvetotau' in errorOpt.lower():
+        del auxSFs['VetoLepton']
+        if 'Up' in errorOpt:
+            histNames.append("VetoTauUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoTauDown")
+        varNames.append("leadingGenLeptonPt")
+        cuts.append("abs(leadingGenLeptonType) == 15")
+    #MT efficiency up/down
+    elif 'mteff' in errorOpt.lower():
+        del auxSFs['VetoLepton']
+        if 'Up' in errorOpt:
+            histNames.append("VetoLeptonMTUp")
+            histNames.append("VetoTauMTUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoLeptonMTDown")
+            histNames.append("VetoTauMTDown")
+        varNames.append("leadingGenLeptonPt")
+        cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+        varNames.append("leadingGenLeptonPt")
+        cuts.append("abs(leadingGenLeptonType) == 15")
+    #DPhi efficiency up/down
+    elif 'dphieff' in errorOpt.lower():
+        del auxSFs['VetoLepton']
+        if 'Up' in errorOpt:
+            histNames.append("VetoLeptonDPhiUp")
+            histNames.append("VetoTauDPhiUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoLeptonDPhiDown")
+            histNames.append("VetoTauDPhiDown")
+        varNames.append("leadingGenLeptonPt")
+        cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+        varNames.append("leadingGenLeptonPt")
+        cuts.append("abs(leadingGenLeptonType) == 15")
+    #b-tag bins closure test systematic
+    elif 'btag0crosscheck' in errorOpt.lower():
+        histNames.append("MR0B")
+        varNames.append("MR")
+        cuts.append("nBTaggedJets == 0")
+        histNames.append("Rsq0B")
+        varNames.append("Rsq")
+        cuts.append("nBTaggedJets == 0")
+    elif 'btag1crosscheck' in errorOpt.lower():
+        histNames.append("MR1B")
+        varNames.append("MR")
+        cuts.append("nBTaggedJets == 1")
+        histNames.append("Rsq1B")
+        varNames.append("Rsq")
+        cuts.append("nBTaggedJets == 1")
+    elif 'btag2crosscheck' in errorOpt.lower():
+        histNames.append("MR2B")
+        varNames.append("MR")
+        cuts.append("nBTaggedJets == 2")
+        histNames.append("Rsq2B")
+        varNames.append("Rsq")
+        cuts.append("nBTaggedJets == 2")
+    elif 'btag3crosscheck' in errorOpt.lower():
+        histNames.append("MR3B")
+        varNames.append("MR")
+        cuts.append("nBTaggedJets == 3")
+        histNames.append("Rsq3B")
+        varNames.append("Rsq")
+        cuts.append("nBTaggedJets == 3")
+
+    #return dictionary with needed information
+    sfsNeeded = { histNames[i]:(varNames[i],cuts[i]) for i in range(len(histNames)) }
+    auxSFs.update(sfsNeeded)
