@@ -51,6 +51,17 @@ void take_ratios_Z() {
   //Float_t zbins[nbinz+1] = { zmin, 1, zmax };
   //TString pname = "npf_vs_mr_zjets.png";
 
+  // for leading jet pt
+  //Int_t binIn=ljpt;
+  //const Int_t nbinx=1, nbiny=11, nbinz=2;
+  //Float_t xmin=40, xmax=500;
+  //Float_t ymin=40, ymax=500;
+  //Float_t zmin=0, zmax=2;
+  //Float_t xbins[nbinx+1] = { xmin, xmax };
+  //Float_t ybins[nbiny+1] = { ymin, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, ymax };
+  //Float_t zbins[nbinz+1] = { zmin, 1, zmax };
+  //TString pname = "npf_vs_ljpt_zjets.png";
+
   // for rsq
   Int_t binIn=rsq;
   const Int_t nbinx=1, nbiny=4, nbinz=2;
@@ -87,6 +98,12 @@ void take_ratios_Z() {
     tW->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_W", cut_str);
     tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Z", cut_str);
   }
+  else if (binIn==ljpt) {
+    tD->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_D", cut_str_dat);
+    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_T", cut_str);
+    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_W", cut_str);
+    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Z", cut_str);
+  }
   else if (binIn==rsq) {
     tD->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_D", cut_str_dat);
     tT->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_T", cut_str);
@@ -94,8 +111,8 @@ void take_ratios_Z() {
     tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Z", cut_str);
   }
 
-  dPhiPF_D->Add(dPhiPF_T, -1);
-  dPhiPF_D->Add(dPhiPF_W, -1);
+  //dPhiPF_D->Add(dPhiPF_T, -1);
+  //dPhiPF_D->Add(dPhiPF_W, -1);
 
   vector<TGraphAsymmErrors *> qcd_with_mr; 
   for (Int_t i=0; i<dPhiPF_Z->GetNbinsX(); i++) {
@@ -109,18 +126,15 @@ void take_ratios_Z() {
     for (Int_t j=0; j<dPhiPF_Z->GetNbinsY(); j++) {
   
       Float_t rsq=dPhiPF_Z->GetYaxis()->GetBinCenter(j+1);
-      cout << rsq << ": ";
 
       Float_t dnP=dPhiPF_Z->GetBinError(dPhiPF_Z->GetBin(i+1,j+1,1))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1));
       Float_t dnF=dPhiPF_Z->GetBinError(dPhiPF_Z->GetBin(i+1,j+1,2))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2));
-      cout << dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1)) + dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2)) << "; ";
-      cout << dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1)) << ", " << dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2)) << "; ";
+
       Float_t nPF=0;
       if (dnP>0 && dnF>0) {
 	nPF=dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2));
-	cout << nPF << endl;
 
-	Float_t drsq=0.0;
+	Float_t drsq=0.5*dPhiPF_Z->GetYaxis()->GetBinWidth(j+1);
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
 	Float_t dnPF_l=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
@@ -129,11 +143,11 @@ void take_ratios_Z() {
 	qcd_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
 	k++;
       }
-      else cout << endl;
     }
   }
-  cout << " ---- " << endl;
+
   vector<TGraphAsymmErrors *> dat_with_mr; 
+  Float_t xrsq=0, drsq=0, dnP=0, dnF=0, dnP_T=0, dnF_T=0, dnP_W=0, dnF_W=0, nPass=0, nFail=0, nPF=0;
   for (Int_t i=0; i<dPhiPF_D->GetNbinsX(); i++) {
     dat_with_mr.push_back(new TGraphAsymmErrors());
     dat_with_mr[i]->SetMarkerStyle(20);
@@ -141,35 +155,52 @@ void take_ratios_Z() {
     Int_t k=0;
 
     for (Int_t j=0; j<dPhiPF_D->GetNbinsY(); j++) {
-      
-      Float_t rsq=dPhiPF_D->GetYaxis()->GetBinCenter(j+1);
-      cout << rsq << ": ";
-  
-      Float_t dnP=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,1))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
-      Float_t dnF=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,2))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
-      cout << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1))+dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2)) << "; ";
-      cout << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1)) << ", " << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2)) << "; ";
+      xrsq=0; drsq=0;
+      dnP=0; dnF=0; 
+      dnP_T=0; dnF_T=0; 
+      dnP_W=0; dnF_W=0; 
+      nPass=0; nFail=0; nPF=0;
 
-      Float_t nPF=0;
-      if (dnP>0 && dnF>0) {
-	nPF=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
-	cout << nPF << endl;
+      xrsq=dPhiPF_D->GetYaxis()->GetBinCenter(j+1);  
+      dnP=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,1))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
+      dnF=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,2))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
+
+      dnP=dnP*dnP;
+      dnF=dnF*dnF;
+
+      dnP_T=dPhiPF_T->GetBinError(dPhiPF_T->GetBin(i+1,j+1,1))/dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,1));
+      dnF_T=dPhiPF_T->GetBinError(dPhiPF_T->GetBin(i+1,j+1,2))/dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,2));
+
+      dnP_W=dPhiPF_W->GetBinError(dPhiPF_W->GetBin(i+1,j+1,1))/dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,1));
+      dnF_W=dPhiPF_W->GetBinError(dPhiPF_W->GetBin(i+1,j+1,2))/dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,2));
+
+      nPass=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1)) - dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,1)) 
+	- dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,1));
+
+      nFail=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2)) - dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,2)) 
+	- dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,2));
+
+      dnP+=dnP_T*dnP_T+dnP_W*dnP_W;
+      dnF+=dnF_T*dnF_T+dnF_W*dnF_W;
+
+      if (nPass>0 && nFail>0) {
+	nPF=nPass/nFail;
   
-	Float_t drsq=0.0;
-	Float_t dnPF_u=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
-	Float_t dnPF_l=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
+	drsq=0.5*dPhiPF_D->GetYaxis()->GetBinWidth(j+1);;
+
+	Float_t dnPF_u=nPF*TMath::Sqrt( dnP + dnF );
+	Float_t dnPF_l=nPF*TMath::Sqrt( dnP + dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
 	
-	dat_with_mr[i]->SetPoint(k, rsq, nPF);
+	dat_with_mr[i]->SetPoint(k, xrsq, nPF);
 	dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
 	k++;
       }
-      else cout << endl;
     }
   }
 
 
-  TLegend *leg = new TLegend(0.25,0.70,0.50,0.86);
+  TLegend *leg = new TLegend(0.39,0.70,0.70,0.86);
   leg->SetFillColor(0); leg->SetShadowColor(0); leg->SetLineColor(0);
   leg->AddEntry(dat_with_mr[0], "Data-(tt+ewk)", "pel");
   leg->AddEntry(qcd_with_mr[0], "Z+jets", "pel");
@@ -178,9 +209,11 @@ void take_ratios_Z() {
 
   qcd_with_mr[i]->GetYaxis()->SetTitle("N_{pass}/N_{fail}");
   if (binIn==mr) qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R}");
-  if (binIn==rsq) {
-    qcd_with_mr[0]->GetXaxis()->SetTitle("R^{2}");
-    //c->SetLogy();
+  else if (binIn==ljpt) {
+    qcd_with_mr[i]->GetXaxis()->SetTitle("lead. jet p_{T}");
+  }
+  else if (binIn==rsq) {
+    qcd_with_mr[i]->GetXaxis()->SetTitle("R^{2}");
     qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
   }
   qcd_with_mr[i]->GetXaxis()->SetNdivisions(508);
