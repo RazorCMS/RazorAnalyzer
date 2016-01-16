@@ -1111,7 +1111,6 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("dPhiRazor_NoPho",&dPhiRazor_NoPho);
       tree_->SetBranchAddress("NJets_NoPho",&NJets_NoPho);
       tree_->SetBranchAddress("NJets80_NoPho",&NJets80_NoPho);
-      tree_->SetBranchAddress("MT2",&MT2);
 
       tree_->SetBranchAddress("nSelectedPhotons",&nSelectedPhotons);
       tree_->SetBranchAddress("NJets_NoPho",&NJets_NoPho);
