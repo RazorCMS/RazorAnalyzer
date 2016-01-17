@@ -326,9 +326,283 @@ void RunUnfoldMTCutEffForVetoLeptons( vector<string> datafiles, vector<vector<st
 }
 
 
+void RunUnfoldDPhiCutEff( vector<string> datafiles, vector<vector<string> > bkgfiles, 
+			  vector<string> bkgLabels, vector<int> bkgColors, double lumi) {
+  
+  // string Label = "";
+  // if (label != "") Label = "_" + label;
+
+  //*******************************************************************
+  // Settings 
+  //*******************************************************************
+  float MR = 0;
+  float Rsq = 0;
+  float mll = 0;
+
+  bool printdebug = false;
+
+  //*****************************************************************************************
+  //Make some histograms
+  //*****************************************************************************************
+  const int NMRBins = 10;
+  const int NRsqBins = 9;
+  const int NLepPtBins = 8;
+  double MRBins[NMRBins] = {300, 350, 400, 450, 500, 550, 700, 900, 1200, 4000};
+  double RsqBins[NRsqBins] = {0.15,0.175,0.20,0.225, 0.25,0.30,0.41,0.52,1.5};  
+  double LepPtBins[NRsqBins] = {5,10,15,20,30,40,100,1000};  
+
+  assert ( bkgfiles.size() == bkgLabels.size() );
+  assert ( bkgfiles.size() == bkgColors.size() );
+
+  vector<vector<string> > inputfiles;
+  vector<string> processLabels;
+  vector<int> color;
+
+  inputfiles.push_back(datafiles);
+  processLabels.push_back("Data");
+  color.push_back(kBlack);
+
+  assert(bkgfiles.size() == bkgLabels.size());
+  assert(bkgfiles.size() == bkgColors.size());
+  for (int i=0; i < int(bkgfiles.size()); ++i) {
+     inputfiles.push_back(bkgfiles[i]);
+     processLabels.push_back(bkgLabels[i]);
+     color.push_back(bkgColors[i]);
+  }
+
+  TH1D *histLep1Pt = new TH1D("histLep1Pt", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1Pt_FScaleUp = new TH1D("histLep1Pt_FScaleUp", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1Pt_FScaleDown = new TH1D("histLep1Pt_FScaleDown", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1Pt_RScaleUp = new TH1D("histLep1Pt_RScaleUp", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1Pt_RScaleDown = new TH1D("histLep1Pt_RScaleDown", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+
+  TH1D *histLep1PtPassDPhiCut = new TH1D("histLep1PtPassDPhiCut", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_JESUp = new TH1D("histLep1PtPassDPhiCut_JESUp", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_JESDown = new TH1D("histLep1PtPassDPhiCut_JESDown", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_LESUp = new TH1D("histLep1PtPassDPhiCut_LESUp", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_LESDown = new TH1D("histLep1PtPassDPhiCut_LESDown", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_FScaleUp = new TH1D("histLep1PtPassDPhiCut_FScaleUp", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_FScaleDown = new TH1D("histLep1PtPassDPhiCut_FScaleDown", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_RScaleUp = new TH1D("histLep1PtPassDPhiCut_RScaleUp", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+  TH1D *histLep1PtPassDPhiCut_RScaleDown = new TH1D("histLep1PtPassDPhiCut_RScaleDown", "; Lepton p_{T} [GeV/c] ; Number of Events", NLepPtBins-1, LepPtBins);
+ 
+  double dataYield = 0;
+  double MCYield = 0;
+  double MCTTBarYield = 0;
+
+  vector<pair<UInt_t,UInt_t> > RunAndEvent;
+
+  //*******************************************************************************************
+  //Read file
+  //*******************************************************************************************                
+  for (uint i=0; i < inputfiles.size(); ++i) {
+    for (uint j=0; j < inputfiles[i].size(); ++j) {
+
+      TFile *f = TFile::Open(inputfiles[i][j].c_str(), "READ");
+      assert(f);
+      TTree *tree = (TTree*)f->Get("RazorInclusive");
+      assert(tree);
+
+      float weight = 0;
+      int box = 0;
+      int nBTaggedJets = 0;
+      int nSelectedJets = 0;
+      int nJets80 = 0;
+      int nVetoMuons = -1;
+      int nVetoElectrons = -1;
+      int nLooseTaus = -1;
+      float leadingGenLeptonPt = 0;
+      int leadingGenLeptonType = 0;
+      float MR = 0;
+      float Rsq = 0;
+      float dPhiRazor = 0;
+      float dPhiRazor_JESUp = 0;
+      float dPhiRazor_JESDown = 0;
+      float dPhiRazor_EESUp = 0;
+      float dPhiRazor_EESDown = 0;
+      float dPhiRazor_MESUp = 0;
+      float dPhiRazor_MESDown = 0;
+      bool  HLTDecision[150];
+      float sf_facScaleUp = 0;
+      float sf_facScaleDown = 0;
+      float sf_renScaleUp = 0;
+      float sf_renScaleDown = 0;
+
+      tree->SetBranchStatus("*", 0);
+      tree->SetBranchStatus("weight", 1);
+      tree->SetBranchStatus("box", 1);
+      tree->SetBranchStatus("nBTaggedJets",1);
+      tree->SetBranchStatus("nSelectedJets", 1);
+      tree->SetBranchStatus("nJets80", 1);
+      tree->SetBranchStatus("nVetoMuons", 1);
+      tree->SetBranchStatus("nVetoElectrons", 1);
+      tree->SetBranchStatus("nLooseTaus", 1);
+      tree->SetBranchStatus("leadingGenLeptonPt", 1);
+      tree->SetBranchStatus("leadingGenLeptonType", 1);
+      tree->SetBranchStatus("MR", 1);
+      tree->SetBranchStatus("Rsq", 1);
+      tree->SetBranchStatus("dPhiRazor", 1);
+      tree->SetBranchStatus("dPhiRazor_JESUp", 1);
+      tree->SetBranchStatus("dPhiRazor_JESDown", 1);
+      tree->SetBranchStatus("dPhiRazor_EESUp", 1);
+      tree->SetBranchStatus("dPhiRazor_EESDown", 1);
+      tree->SetBranchStatus("dPhiRazor_MESUp", 1);
+      tree->SetBranchStatus("dPhiRazor_MESDown", 1);
+      tree->SetBranchStatus("HLTDecision", 1);
+      tree->SetBranchStatus("sf_facScaleUp", 1);
+      tree->SetBranchStatus("sf_facScaleDown", 1);
+      tree->SetBranchStatus("sf_renScaleUp", 1);
+      tree->SetBranchStatus("sf_renScaleDown", 1);
+      
+      tree->SetBranchAddress("weight",&weight);
+      tree->SetBranchAddress("box",&box);
+      tree->SetBranchAddress("nBTaggedJets",&nBTaggedJets);
+      tree->SetBranchAddress("nSelectedJets",&nSelectedJets);
+      tree->SetBranchAddress("nJets80",&nJets80);
+      tree->SetBranchAddress("nVetoMuons",&nVetoMuons);
+      tree->SetBranchAddress("nVetoElectrons",&nVetoElectrons);
+      tree->SetBranchAddress("nLooseTaus",&nLooseTaus);
+      tree->SetBranchAddress("leadingGenLeptonPt",&leadingGenLeptonPt);
+      tree->SetBranchAddress("leadingGenLeptonType",&leadingGenLeptonType);
+      tree->SetBranchAddress("MR",&MR);
+      tree->SetBranchAddress("Rsq",&Rsq);
+      tree->SetBranchAddress("dPhiRazor",&dPhiRazor);
+      tree->SetBranchAddress("dPhiRazor_JESUp",&dPhiRazor_JESUp);
+      tree->SetBranchAddress("dPhiRazor_JESDown",&dPhiRazor_JESDown);
+      tree->SetBranchAddress("dPhiRazor_EESUp",&dPhiRazor_EESUp);
+      tree->SetBranchAddress("dPhiRazor_EESDown",&dPhiRazor_EESDown);
+      tree->SetBranchAddress("dPhiRazor_MESUp",&dPhiRazor_MESUp);
+      tree->SetBranchAddress("dPhiRazor_MESDown",&dPhiRazor_MESDown);
+      tree->SetBranchAddress("HLTDecision",&HLTDecision);
+      tree->SetBranchAddress("sf_facScaleUp",&sf_facScaleUp);
+      tree->SetBranchAddress("sf_facScaleDown",&sf_facScaleDown);
+      tree->SetBranchAddress("sf_renScaleUp",&sf_renScaleUp);
+      tree->SetBranchAddress("sf_renScaleDown",&sf_renScaleDown);
+
+      bool isData = false;
+      if ( processLabels[i] == "Data") isData = true;
+
+      cout << "process: " << processLabels[i] << " | file " << inputfiles[i][j] << " | Total Entries: " << tree->GetEntries() << "\n";
+      for(UInt_t ientry=0; ientry < tree->GetEntries(); ientry++) {
+	tree->GetEntry(ientry);
+      
+	if (ientry % 100000 == 0) cout << "Event " << ientry << endl;      
+
+	//******************************
+	//Trigger Selection
+	//******************************
+	bool passTrigger = false;
+
+	//Razor Hadronic Triggers
+	if ( HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
+	     || HLTDecision[137] || HLTDecision[138]
+	     || HLTDecision[139] || HLTDecision[140]
+	     || HLTDecision[141] || HLTDecision[142]
+	     || HLTDecision[143] || HLTDecision[144]
+	     ) passTrigger = true;
+	if (!passTrigger) continue;
+	
+	//******************************
+	//Selection Cuts 
+	//******************************
+	if (!( box == 11 || box == 12 )) continue;
+	if (!(nJets80 >= 2)) continue;
+	if (!(MR > 400 && Rsq > 0.25)) continue;
+	if (!TMath::Finite(weight)) continue; 
+	if (!( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13)) continue;
+
+	//******************************
+	//Fill histograms
+	//******************************
+	if (isData) {
+	} else {
+	  //cout << leadingGenLeptonPt << " " << weight << "\n";
+	  histLep1Pt->Fill(leadingGenLeptonPt, weight*lumi);
+	  histLep1Pt_FScaleUp->Fill(leadingGenLeptonPt, sf_facScaleUp*weight*lumi);
+	  histLep1Pt_FScaleDown->Fill(leadingGenLeptonPt, sf_facScaleDown*weight*lumi);
+	  histLep1Pt_RScaleUp->Fill(leadingGenLeptonPt, sf_renScaleUp*weight*lumi);
+	  histLep1Pt_RScaleDown->Fill(leadingGenLeptonPt, sf_renScaleDown*weight*lumi);
+	  if (fabs(dPhiRazor) < 2.8) {
+	    histLep1PtPassDPhiCut->Fill(leadingGenLeptonPt, weight*lumi);
+	    histLep1PtPassDPhiCut_FScaleUp->Fill(leadingGenLeptonPt, sf_facScaleUp*weight*lumi);
+	    histLep1PtPassDPhiCut_FScaleDown->Fill(leadingGenLeptonPt, sf_facScaleDown*weight*lumi);
+	    histLep1PtPassDPhiCut_RScaleUp->Fill(leadingGenLeptonPt, sf_renScaleUp*weight*lumi);
+	    histLep1PtPassDPhiCut_RScaleDown->Fill(leadingGenLeptonPt, sf_renScaleDown*weight*lumi);
+	  }
+	  if (fabs(dPhiRazor_JESUp) < 2.8) {
+	    histLep1PtPassDPhiCut_JESUp->Fill(leadingGenLeptonPt, weight*lumi);
+	  }
+	  if (fabs(dPhiRazor_JESDown) < 2.8) {
+	    histLep1PtPassDPhiCut_JESDown->Fill(leadingGenLeptonPt, weight*lumi);
+	  }
+	  if (abs(leadingGenLeptonType) == 11) {
+	    if (fabs(dPhiRazor_EESUp) < 2.8) {
+	      histLep1PtPassDPhiCut_LESUp->Fill(leadingGenLeptonPt, weight*lumi);
+	    }
+	    if (fabs(dPhiRazor_EESDown) < 2.8) {
+	      histLep1PtPassDPhiCut_LESDown->Fill(leadingGenLeptonPt, weight*lumi);
+	    }
+	  }
+	  if (abs(leadingGenLeptonType) == 13) {
+	    if ( fabs(dPhiRazor_MESUp) < 2.8) {
+	      histLep1PtPassDPhiCut_LESUp->Fill(leadingGenLeptonPt, weight*lumi);
+	    }
+	    if (fabs(dPhiRazor_MESDown) < 2.8) {
+	      histLep1PtPassDPhiCut_LESDown->Fill(leadingGenLeptonPt, weight*lumi);
+	    }
+	  }
+
+	 
+	  
+	  
+	}
+      }
+
+      f->Close();
+
+    }
+  }
+ 
 
 
-void ComputeEfficiency() {
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Make Plots
+  //==============================================================================================================
+
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open("DPhiCutEfficiencyForLostLepton.root", "RECREATE");
+  file->cd();
+ 
+  file->WriteTObject(histLep1Pt, "histLep1Pt", "WriteDelete");
+  file->WriteTObject(histLep1Pt_FScaleUp, "histLep1Pt_FScaleUp","WriteDelete");
+  file->WriteTObject(histLep1Pt_FScaleDown, "histLep1Pt_FScaleDown","WriteDelete");
+  file->WriteTObject(histLep1Pt_RScaleUp, "histLep1Pt_RScaleUp","WriteDelete");
+  file->WriteTObject(histLep1Pt_RScaleDown, "histLep1Pt_RScaleDown","WriteDelete");
+
+  file->WriteTObject(histLep1PtPassDPhiCut, "histLep1PtPassDPhiCut", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_JESUp, "histLep1PtPassDPhiCut_JESUp", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_JESDown, "histLep1PtPassDPhiCut_JESDOwn", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_LESUp, "histLep1PtPassDPhiCut_LESUp", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_LESDown, "histLep1PtPassDPhiCut_LESDOwn", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_FScaleUp, "histLep1PtPassDPhiCut_FScaleUp", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_FScaleDown, "histLep1PtPassDPhiCut_FScaleDown", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_RScaleUp, "histLep1PtPassDPhiCut_RScaleUp", "WriteDelete");
+  file->WriteTObject(histLep1PtPassDPhiCut_RScaleDown, "histLep1PtPassDPhiCut_RScaleDown", "WriteDelete");
+
+  file->Close();
+  delete file;       
+    
+
+}
+
+
+
+
+void ComputeMTCutEfficiency() {
 
   TFile *f = new TFile("VetoLeptonMTCutEfficiency.root","UPDATE");
   TH1D *num = (TH1D*)f->Get("histLep1PtPassMTCut");
@@ -402,6 +676,85 @@ void ComputeEfficiency() {
 }
 
 
+
+
+void ComputeDPhiCutEfficiency() {
+
+  TFile *f = new TFile("DPhiCutEfficiencyForLostLepton.root","UPDATE");
+  TH1D *num = (TH1D*)f->Get("histLep1PtPassDPhiCut");
+  TH1D *den = (TH1D*)f->Get("histLep1Pt");
+  TH1D *num_JESUp = (TH1D*)f->Get("histLep1PtPassDPhiCut_JESUp");
+  TH1D *num_JESDown = (TH1D*)f->Get("histLep1PtPassDPhiCut_JESDOwn");
+  TH1D *num_LESUp = (TH1D*)f->Get("histLep1PtPassDPhiCut_LESUp");
+  TH1D *num_LESDown = (TH1D*)f->Get("histLep1PtPassDPhiCut_LESDOwn");
+  TH1D *num_FScaleUp = (TH1D*)f->Get("histLep1PtPassDPhiCut_FScaleUp");
+  TH1D *num_FScaleDown = (TH1D*)f->Get("histLep1PtPassDPhiCut_FScaleDown");
+  TH1D *num_RScaleUp = (TH1D*)f->Get("histLep1PtPassDPhiCut_RScaleUp");
+  TH1D *num_RScaleDown = (TH1D*)f->Get("histLep1PtPassDPhiCut_RScaleDown");
+  TH1D *den_FScaleUp = (TH1D*)f->Get("histLep1Pt_FScaleUp");
+  TH1D *den_FScaleDown = (TH1D*)f->Get("histLep1Pt_FScaleDown");
+  TH1D *den_RScaleUp = (TH1D*)f->Get("histLep1Pt_RScaleUp");
+  TH1D *den_RScaleDown = (TH1D*)f->Get("histLep1Pt_RScaleDown");
+
+  TH1D *eff = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency");
+  TH1D *eff_JESUp = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_JESUp");
+  TH1D *eff_JESDown = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_JESDown");
+  TH1D *eff_LESUp = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_LESUp");
+  TH1D *eff_LESDown = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_LESDown");
+  TH1D *eff_FScaleUp = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_FScaleUp");
+  TH1D *eff_FScaleDown = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_FScaleDown");
+  TH1D *eff_RScaleUp = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_RScaleUp");
+  TH1D *eff_RScaleDown = (TH1D*)num->Clone("VetoLeptonDPhiCutEfficiency_RScaleDown");
+
+  for (int i=1; i<eff->GetXaxis()->GetNbins()+1; i++) {
+    double e = num->GetBinContent(i) / den->GetBinContent(i);
+    double e_JESUp = num_JESUp->GetBinContent(i) / den->GetBinContent(i);
+    double e_JESDown = num_JESDown->GetBinContent(i) / den->GetBinContent(i);
+    double e_LESUp = num_LESUp->GetBinContent(i) / den->GetBinContent(i);
+    double e_LESDown = num_LESDown->GetBinContent(i) / den->GetBinContent(i);
+    double e_FScaleUp = num_FScaleUp->GetBinContent(i) / den_FScaleUp->GetBinContent(i);
+    double e_FScaleDown = num_FScaleDown->GetBinContent(i) / den_FScaleDown->GetBinContent(i);
+    double e_RScaleUp = num_RScaleUp->GetBinContent(i) / den_RScaleUp->GetBinContent(i);
+    double e_RScaleDown = num_RScaleDown->GetBinContent(i) / den_RScaleDown->GetBinContent(i);
+
+    double unc_JES = (e_JESUp - e_JESDown) / 0.5*(e_JESUp + e_JESDown);
+    double unc_LES = (e_LESUp - e_LESDown) / 0.5*(e_LESUp + e_LESDown);
+    double unc_FScale = (e_FScaleUp - e_FScaleDown) / 0.5*(e_FScaleUp + e_FScaleDown);
+    double unc_RScale = (e_RScaleUp - e_RScaleDown) / 0.5*(e_RScaleUp + e_RScaleDown);
+    double unc_total = sqrt( pow(unc_JES,2) + pow(unc_LES,2) + pow(unc_FScale,2) + pow(unc_RScale,2) );
+
+    cout << "Bin " << i << " : " << e << " : " << unc_JES << " " << unc_LES << " " << unc_FScale << " " << unc_RScale << " : " << unc_total << "\n";    
+
+    eff->SetBinContent(i, e);
+    eff->SetBinError(i, unc_total * e);
+    
+    eff_JESUp->SetBinContent(i, num_JESUp->GetBinContent(i) / den->GetBinContent(i));
+    eff_JESDown->SetBinContent(i, num_JESDown->GetBinContent(i) / den->GetBinContent(i));
+    eff_LESUp->SetBinContent(i, num_LESUp->GetBinContent(i) / den->GetBinContent(i));
+    eff_LESDown->SetBinContent(i, num_LESDown->GetBinContent(i) / den->GetBinContent(i));
+    eff_FScaleUp->SetBinContent(i, num_FScaleUp->GetBinContent(i) / den_FScaleUp->GetBinContent(i));
+    eff_FScaleDown->SetBinContent(i, num_FScaleDown->GetBinContent(i) / den_FScaleDown->GetBinContent(i));
+    eff_RScaleUp->SetBinContent(i, num_RScaleUp->GetBinContent(i) / den_RScaleUp->GetBinContent(i));
+    eff_RScaleDown->SetBinContent(i, num_RScaleDown->GetBinContent(i) / den_RScaleDown->GetBinContent(i));
+  }
+
+  f->WriteTObject(eff,"VetoLeptonDPhiCutEfficiency","WriteDelete");
+  f->WriteTObject(eff_JESUp,"VetoLeptonDPhiCutEfficiency_JESUp","WriteDelete");
+  f->WriteTObject(eff_JESDown,"VetoLeptonDPhiCutEfficiency_JESDown","WriteDelete");
+  f->WriteTObject(eff_LESUp,"VetoLeptonDPhiCutEfficiency_LESUp","WriteDelete");
+  f->WriteTObject(eff_LESDown,"VetoLeptonDPhiCutEfficiency_LESDown","WriteDelete");
+  f->WriteTObject(eff_FScaleUp,"VetoLeptonDPhiCutEfficiency_FScaleUp","WriteDelete");
+  f->WriteTObject(eff_FScaleDown,"VetoLeptonDPhiCutEfficiency_FScaleDown","WriteDelete");
+  f->WriteTObject(eff_RScaleUp,"VetoLeptonDPhiCutEfficiency_RScaleUp","WriteDelete");
+  f->WriteTObject(eff_RScaleDown,"VetoLeptonDPhiCutEfficiency_RScaleDown","WriteDelete");
+  f->Close();
+  
+}
+
+
+
+
+
 void UnfoldMTCutEffForVetoLeptons( int option = -1) {
 
   vector<string> datafiles;
@@ -436,8 +789,11 @@ void UnfoldMTCutEffForVetoLeptons( int option = -1) {
   //*********************************************************************
   //Run
   //*********************************************************************
-  RunUnfoldMTCutEffForVetoLeptons(datafiles, bkgfiles,processLabels,  colors, lumi);
-  ComputeEfficiency();
+  //RunUnfoldMTCutEffForVetoLeptons(datafiles, bkgfiles,processLabels,  colors, lumi);
+  //ComputeMTCutEfficiency();
+
+  //RunUnfoldDPhiCutEff(datafiles, bkgfiles,processLabels,  colors, lumi);
+  ComputeDPhiCutEfficiency();
 
 }
 
