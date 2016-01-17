@@ -344,6 +344,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #add noise filters to cuts if bits are present in tree
     if dataName in trees: cutsData = appendNoiseFilters(cutsData, trees[dataName]) 
 
+    #split histograms into those that can be applied via per-event weights, and those that require further processing
+    sfShapes, otherShapes = splitShapeErrorsByType(shapeErrors)
+
     #define histograms to fill
     hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
     listOfVars = hists.itervalues().next().keys() #list of the variable names
@@ -354,14 +357,15 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
 
     print("\nMC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, debugLevel=debugLevel) 
 
     #get up/down histogram variations
-    for shape in shapeErrors:
+    for shape in otherShapes:
         if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-            if name not in shape[1]: continue
+            samplesToUse = filter(lambda n: n in shape[1], samples)
             curShape = shape[0]
         else:
+            samplesToUse = samples
             curShape = shape
         print "\n"+curShape,"Up:"
         #get any scale factor histograms needed to apply this up variation
@@ -370,7 +374,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
         auxSFsToUse = copy.deepcopy(auxSFs)
@@ -378,7 +382,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)

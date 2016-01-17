@@ -18,8 +18,10 @@ SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L",
 SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
 BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
 
-DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
-DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
+DIR_MC = "Backgrounds"
+DIR_DATA = "Backgrounds"
+#DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
+#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
 DATA_NAMES={
     'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
     'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
@@ -47,9 +49,9 @@ TOYS_FILES = {
         }
 
 weightOpts = []
-commonShapeErrors = ['jes','btag','pileup','bmistag','facscale','renscale','facrenscale','ees','mes',('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),'btag0crosscheck','btag1crosscheck','btag2crosscheck','btag3crosscheck','sfsysvetolep','sfsysvetotau','mteff','dphieff',('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','qcd'),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv'])]
+commonShapeErrors = [('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),'btag0crosscheck','btag1crosscheck','btag2crosscheck','btag3crosscheck',('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','qcd'),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv']),'jes','btag','pileup','bmistag','facscale','renscale','facrenscale','ees','mes']
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['vetomuoneff','vetoeleeff']
+hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
 
 cfg = Config.Config(config)
@@ -71,7 +73,7 @@ sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
 vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck.root'
 vetotauFile = sfdir+'/RazorVetoTauCrossCheck.root'
 ttFile = sfdir+'/TTBarDileptonSystematic.root'
-dyFile = sfdir+'/DYJetsDileptonInvCrossCheck.root'
+dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck.root'
 btagFile = sfdir+'/RazorBTagClosureTests.root'
 
 if __name__ == "__main__":
@@ -135,14 +137,22 @@ if __name__ == "__main__":
         assert vthists['VetoTau'+n]
     sfHists.update(vlhists)
     sfHists.update(vthists)
+    #get DYJets and TTBar Dilepton cross check scale factor histograms
     ttTFile = rt.TFile.Open(ttFile)
-    sfHists['TTJetsDilepton'] = ttTFile.Get('TTJetsScaleFactors')
-    #dyTFile = rt.TFile.Open(dyFile)
-    #sfHists['DYJetsInv'] = dyTFile.Get('DYJetsInvScaleFactors')
-    #btagTFile = rt.TFile.Open(btagFile)
-    #for b in range(4):
-    #    sfHists['MR'+b+'B'] = btagTFile.Get('OneLepton'+b+'BMRScaleFactors')
-    #    sfHists['Rsq'+b+'B'] = btagTFile.Get('OneLepton'+b+'BRsqScaleFactors')
+    assert ttTFile
+    sfHists['TTJetsDilepton'] = ttTFile.Get('TTBarDileptonSystematic')
+    assert sfHists['TTJetsDilepton']
+    dyTFile = rt.TFile.Open(dyFile)
+    assert dyTFile
+    sfHists['DYJetsInv'] = dyTFile.Get('DYJetsDileptonInvCrossCheckScaleFactors')
+    assert sfHists['DYJetsInv']
+    btagTFile = rt.TFile.Open(btagFile)
+    for b in range(4):
+        bs = str(b)
+        sfHists['MR'+bs+'B'] = btagTFile.Get('OneLepton'+bs+'BMRScaleFactors')
+        sfHists['Rsq'+bs+'B'] = btagTFile.Get('OneLepton'+bs+'BRsqScaleFactors')
+        assert sfHists['MR'+bs+'B']
+        assert sfHists['Rsq'+bs+'B']
 
     auxSFs = { 
         "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 

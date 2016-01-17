@@ -446,7 +446,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                     hists[name].SetBinError(bx,by,(oldErr*oldErr + squaredError)**(0.5))
                     if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
@@ -489,16 +489,30 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         elif debugLevel > 1: print "Processing entry",count
         tree.GetEntry(entry)
         w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
+        #get weights for filling additional shape histograms, if provided
+        wsUp = [weightF(tree, weightHists, scale, weightOpts, e+'Up', debugLevel=debugLevel) for e in shapeNames]
+        wsDown = [weightF(tree, weightHists, scale, weightOpts, e+'Down', debugLevel=debugLevel) for e in shapeNames]
         additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #currently does nothing
         err = 0.0
         if sfHist is not None: 
             sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel=debugLevel)
+            #apply scale factor to event weight
             w *= sf
+            #apply scale factor to shape up/down weights too (if needed)
+            for e in wsUp:
+                e *= sf
+            for e in wsDown:
+                e *= sf
         for name in auxSFs: #apply misc scale factors (e.g. veto lepton correction)
             if auxSFForms[name].EvalInstance(): #check if this event should be reweighted
                 auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, errorOpt=errorOpt, debugLevel=debugLevel)
                 w *= auxSF
                 err = (err*err + auxErr*auxErr)**(0.5)
+                #apply scale factor to shape up/down weights too (if needed)
+                for e in wsUp:
+                    e *= auxSF
+                for e in wsDown:
+                    e *= auxSF
         #protection for case of infinite-weight events
         if math.isinf(w):
             if debugLevel > 0: 
@@ -506,7 +520,12 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             continue
         if math.isnan(err):
             print "Error: err is nan!"
+        #fill with weight
         fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
+        #fill up/down shape histograms
+        for i,e in enumerate(shapeNames):
+            fillF(tree, shapeHists[e+'Up'], wsUp[i], formulas=formulas, debugLevel=debugLevel)
+            fillF(tree, shapeHists[e+'Down'], wsDown[i], formulas=formulas, debugLevel=debugLevel)
         sumweight += w
         count += 1
     #propagate systematics to each histogram
@@ -514,7 +533,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", auxSFs={}, dataDrivenQCD=False, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", auxSFs={}, dataDrivenQCD=False, shapeHists={}, shapeNames=[], debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -524,6 +543,19 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         cutsToUse = copy.copy(cuts)
         scaleToUse = scale
         errorOptToUse = errorOpt
+        #prepare additional shape histograms if needed
+        shapeHistsToUse = {}
+        shapeNamesToUse = []
+        for shape in shapeNames:
+            if not isinstance(shape,basestring): #tuple (shape, [list of processes])
+                if name not in shape[1]: continue
+                curShape = shape[0]
+            else:
+                curShape = shape
+            shapeHistsToUse[curShape+'Up'] = shapeHists[name][curShape+'Up']
+            shapeHistsToUse[curShape+'Down'] = shapeHists[name][curShape+'Down']
+            shapeNamesToUse.append(curShape)
+
         if name not in hists: continue
         print("Filling histograms for tree "+name)
         #get correct scale factor histogram
@@ -566,6 +598,8 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             auxSFsToUse = {}
             if errorOptToUse is not None and 'qcd' not in errorOptToUse:
                 errorOptToUse = None #shape systematics do not affect QCD data-driven prediction
-        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, sysVarsToUse, weightOptsToUse, errorOptToUse, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, debugLevel=debugLevel)
+            shapeHistsToUse = { e:shapeHistsToUse[e] for e in shapeHistsToUse if 'qcd' in e }
+            shapeNamesToUse = [e for e in shapeNamesToUse if 'qcd' in e]
+        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, sysVarsToUse, weightOptsToUse, errorOptToUse, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 

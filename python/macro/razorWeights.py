@@ -456,7 +456,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
         cuts.append("1")
     #Veto lepton scale factors up/down
     elif 'sfsysvetolep' in errorOpt.lower():
-        del auxSFs['VetoLepton']
+        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
         if 'Up' in errorOpt:
             histNames.append("VetoLeptonUp")
             varNames.append("leadingGenLeptonPt")
@@ -467,7 +467,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
             cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
     #Veto tau scale factors up/down
     elif 'sfsysvetotau' in errorOpt.lower():
-        del auxSFs['VetoLepton']
+        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
         if 'Up' in errorOpt:
             histNames.append("VetoTauUp")
         elif 'Down' in errorOpt:
@@ -476,7 +476,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
         cuts.append("abs(leadingGenLeptonType) == 15")
     #MT efficiency up/down
     elif 'mteff' in errorOpt.lower():
-        del auxSFs['VetoLepton']
+        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
         if 'Up' in errorOpt:
             histNames.append("VetoLeptonMTUp")
             histNames.append("VetoTauMTUp")
@@ -489,7 +489,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
         cuts.append("abs(leadingGenLeptonType) == 15")
     #DPhi efficiency up/down
     elif 'dphieff' in errorOpt.lower():
-        del auxSFs['VetoLepton']
+        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
         if 'Up' in errorOpt:
             histNames.append("VetoLeptonDPhiUp")
             histNames.append("VetoTauDPhiUp")
@@ -533,3 +533,56 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
     #return dictionary with needed information
     sfsNeeded = { histNames[i]:(varNames[i],cuts[i]) for i in range(len(histNames)) }
     auxSFs.update(sfsNeeded)
+
+def splitShapeErrorsByType(shapeErrors):
+    """Takes a list of shape uncertainties and splits it into two lists: the first is the list of uncertainties applied as per-event scale factors, and the second is the list of uncertainties that require separate processing."""
+    supportedShapeUncertainties = { #True: belongs in list 1.  False: belongs in list 2
+        'jes':False,
+        'btag':True,
+        'pileup':True,
+        'bmistag':True,
+        'facscale':True,
+        'renscale':True,
+        'facrenscale':True,
+        'ees':False,
+        'mes':False,
+        'ttcrosscheck':False,
+        'zllcrosscheck':False,
+        'btag0crosscheck':False,
+        'btag1crosscheck':False,
+        'btag2crosscheck':False,
+        'btag3crosscheck':False,
+        'sfsysvetolep':False,
+        'sfsysvetotau':False,
+        'mteff':False,
+        'dphieff':False,
+        'singletopnorm':True,
+        'othernorm':True,
+        'qcdnorm':True,
+        'sfsysttjets':False,
+        'sfsyswjets':False,
+        'sfsyszinv':False,
+        'vetomuoneff':True,
+        'vetoeleeff':True,
+        'tightmuoneff':True,
+        'tighteleeff':True,
+        'muontrig':True,
+        'eletrig':True,
+        }
+    sfUncertainties = []
+    otherUncertainties = []
+    for shape in shapeErrors:
+        #if shape is wrapped in a tuple, unwrap it
+        if not isinstance(shape, basestring):
+            thisShape = shape[0]
+        else:
+            thisShape = shape
+        if thisShape in supportedShapeUncertainties:
+            if supportedShapeUncertainties[thisShape]:
+                sfUncertainties.append(shape)
+            else:
+                otherUncertainties.append(shape)
+        else:
+            print "Warning in splitShapeErrorsByType: error option",thisShape,"is not supported!"
+
+    return sfUncertainties, otherUncertainties
