@@ -48,7 +48,6 @@ void doModify( TH2F *f, double correction, double error) {
 
 void addMultiJetCorrection() {
 
-
   TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
   assert(inf);
   TFile *outf = new TFile("RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","RECREATE");
@@ -73,7 +72,7 @@ void addMultiJetCorrection() {
   doModify(wInvNominal, 0.9, 0.1);
   doModify(wInvUp, 0.9, 0.1);
   doModify(wInvDown, 0.9, 0.1);
-  doModify(GJetsInvNominal, 0.8, 0.05);
+  doModify(GJetsInvNominal, 0.87, 0.05);
 
   outf->WriteTObject(ttbarNominal);
   outf->WriteTObject(ttbarUp);
