@@ -1,3 +1,8 @@
+//--------------------------------------------------------------
+//
+// make ratio plots for Razor-sidebands !!needs cleaning!!
+//
+//--------------------------------------------------------------
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TROOT.h>                        // access to gROOT, entry point to ROOT system
 #include <TSystem.h>                      // interface to OS
@@ -34,34 +39,36 @@ void take_ratios() {
   //Int_t sample=razor;
   // for mr
   //Int_t binIn=mr;
-  //const Int_t nbinx=1, nbiny=8, nbinz=2;
+  //const Int_t nbinx=1, nbiny=6, nbinz=2;
   //Float_t xmin=0.15, xmax=0.30; 
-  //Float_t ymin=400,  ymax=2000; 
+  //Float_t ymin=400,  ymax=1000; 
   //Float_t zmin=0,    zmax=2;
   //Float_t xbins[nbinx+1] = {xmin, xmax};
-  //Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 900, 1000, 1500, ymax};
+  //Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 900, ymax};
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_mr_razor.png";
 
   // for leading jet pt
   //Int_t binIn=ljpt;
-  //const Int_t nbinx=1, nbiny=13, nbinz=2;
-  //Float_t xmin=80, xmax=700;
-  //Float_t ymin=80, ymax=700;
+  //const Int_t nbinx=1, nbiny=15, nbinz=2;
+  //Float_t xmin=40, xmax=500;
+  //Float_t ymin=40, ymax=500;
   //Float_t zmin=0, zmax=2;
   //Float_t xbins[nbinx+1] = { xmin, xmax };
-  //Float_t ybins[nbiny+1] = { ymin, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, ymax };
+  //Float_t ybins[nbiny+1] = { ymin, 60, 80, 100, 125, 150, 175, 200, 225, 250, 275, 300, 350, 400, 450, ymax };
   //Float_t zbins[nbinz+1] = { zmin, 1, zmax };
   //TString pname = "npf_vs_ljpt_razor.png";
 
   // for rsq
   //Int_t binIn=rsq;
-  //const Int_t nbinx=1, nbiny=10, nbinz=2;
+  ////const Int_t nbinx=1, nbiny=10, nbinz=2;
+  //const Int_t nbinx=1, nbiny=8, nbinz=2;
   //Float_t xmin=400, xmax=3000; 
   //Float_t ymin=0.15,  ymax=0.35; 
   //Float_t zmin=0,    zmax=2;
   //Float_t xbins[nbinx+1] = {xmin, xmax};
-  //Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
+  ////Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
+  //Float_t ybins[nbiny+1] = { ymin, 0.175, 0.20, 0.225, 0.25, 0.275, 0.30, 0.325, ymax};
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_rsq_razor.png";
 
@@ -70,7 +77,7 @@ void take_ratios() {
   //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
   //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
-
+  //
   //TString cut_str="weight*(box==11||box==12)*puWeight*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
   //TString cut_str_dat=cut_str+"*(Rsq<0.30)";
 
@@ -83,7 +90,7 @@ void take_ratios() {
   // for mr
   //Int_t binIn=mr;
   //const Int_t nbinx=1, nbiny=8, nbinz=2;
-  //Float_t xmin=0.0, xmax=0.30; 
+  //Float_t xmin=0.0, xmax=10; 
   //Float_t ymin=0,   ymax=3000; 
   //Float_t zmin=0,   zmax=2;
   //Float_t xbins[nbinx+1] = {xmin, xmax};
@@ -92,26 +99,26 @@ void take_ratios() {
   //TString pname = "npf_vs_mr_dijet.png";
 
   // for leading jet pt
-  Int_t binIn=ljpt;
-  const Int_t nbinx=1, nbiny=13, nbinz=2;
-  Float_t xmin=80, xmax=700;
-  Float_t ymin=80, ymax=700;
-  Float_t zmin=0, zmax=2;
-  Float_t xbins[nbinx+1] = { xmin, xmax };
-  Float_t ybins[nbiny+1] = { ymin, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, ymax };
-  Float_t zbins[nbinz+1] = { zmin, 1, zmax };
-  TString pname = "npf_vs_ljpt_dijet.png";
+  //Int_t binIn=ljpt;
+  //const Int_t nbinx=1, nbiny=13, nbinz=2;
+  //Float_t xmin=80, xmax=700;
+  //Float_t ymin=80, ymax=700;
+  //Float_t zmin=0, zmax=2;
+  //Float_t xbins[nbinx+1] = { xmin, xmax };
+  //Float_t ybins[nbiny+1] = { ymin, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, ymax };
+  //Float_t zbins[nbinz+1] = { zmin, 1, zmax };
+  //TString pname = "npf_vs_ljpt_dijet.png";
 
   // for rsq
-  //Int_t binIn=rsq;
-  //const Int_t nbinx=1, nbiny=10, nbinz=2;
-  //Float_t xmin=400, xmax=3000; 
-  //Float_t ymin=0.15,  ymax=0.35; 
-  //Float_t zmin=0,    zmax=2;
-  //Float_t xbins[nbinx+1] = {xmin, xmax};
-  //Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
-  //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  //TString pname = "npf_vs_rsq_dijet.png";
+  Int_t binIn=rsq;
+  const Int_t nbinx=1, nbiny=10, nbinz=2;
+  Float_t xmin=400, xmax=3000; 
+  Float_t ymin=0.15,  ymax=0.35; 
+  Float_t zmin=0,    zmax=2;
+  Float_t xbins[nbinx+1] = {xmin, xmax};
+  Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
+  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
+  TString pname = "npf_vs_rsq_dijet.png";
 
   TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/JetHT_Run2015D_PRv4_Golden_skim.root","read");
   TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
@@ -119,7 +126,7 @@ void take_ratios() {
   TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
 
-  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
+  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
   TString cut_str_dat=cut_str+"*(HLTDecision[105]*HLTPrescale[105])";
 
   //--------------------------------------------------------------
@@ -141,8 +148,6 @@ void take_ratios() {
   TTree *tW = (TTree*) fW->Get("QCDTree");
   TTree *tZ = (TTree*) fZ->Get("QCDTree");
 
-  cout << tD->GetEntries(cut_str_dat) << endl;
-
   TCanvas *c = MakeCanvas("c","c",800,600);
 
   if (binIn==mr) {
@@ -153,7 +158,7 @@ void take_ratios() {
     tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Z", cut_str);
   } else if (binIn==ljpt) {
     tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Q", cut_str);
-    tD->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_D", cut_str);
+    tD->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_D", cut_str_dat);
     tT->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_T", cut_str);
     tW->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_W", cut_str);
     tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Z", cut_str);
@@ -202,6 +207,7 @@ void take_ratios() {
   }
   
   vector<TGraphAsymmErrors *> dat_with_mr; 
+  Float_t xrsq=0, drsq=0, dnP=0, dnF=0, dnP_T=0, dnF_T=0, dnP_W=0, dnF_W=0, dnP_Z=0, dnF_Z=0, nPass=0, nFail=0, nPF=0;
   for (Int_t i=0; i<dPhiPF_D->GetNbinsX(); i++) {
     dat_with_mr.push_back(new TGraphAsymmErrors());
     dat_with_mr[i]->SetMarkerStyle(20);
@@ -209,26 +215,57 @@ void take_ratios() {
     Int_t k=0;
 
     for (Int_t j=0; j<dPhiPF_D->GetNbinsY(); j++) {
-      
-      Float_t rsq=dPhiPF_D->GetYaxis()->GetBinCenter(j+1);
-      cout << rsq << ": ";
-      Float_t dnP=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,1))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
-      Float_t dnF=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,2))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
-      cout << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1)) << ", " << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2)) << "; ";
-      Float_t nPF=0;
-      if (dnP>0 && dnF>0) {
-	nPF=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
-	cout << nPF << endl;
+      xrsq=0; drsq=0;
+      dnP=0; dnF=0; 
+      dnP_T=0; dnF_T=0; 
+      dnP_W=0; dnF_W=0; 
+      dnP_Z=0; dnF_Z=0; 
+      nPass=0; nFail=0; nPF=0;
+
+      xrsq=dPhiPF_D->GetYaxis()->GetBinCenter(j+1);
+
+      dnP=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,1))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
+      dnF=dPhiPF_D->GetBinError(dPhiPF_D->GetBin(i+1,j+1,2))/dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
+
+      dnP=dnP*dnP;
+      dnF=dnF*dnF;
+
+      dnP_T=dPhiPF_T->GetBinError(dPhiPF_T->GetBin(i+1,j+1,1))/dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,1));
+      dnF_T=dPhiPF_T->GetBinError(dPhiPF_T->GetBin(i+1,j+1,2))/dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,2));
+
+      dnP_W=dPhiPF_W->GetBinError(dPhiPF_W->GetBin(i+1,j+1,1))/dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,1));
+      dnF_W=dPhiPF_W->GetBinError(dPhiPF_W->GetBin(i+1,j+1,2))/dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,2));
+
+      dnP_Z=dPhiPF_Z->GetBinError(dPhiPF_Z->GetBin(i+1,j+1,1))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1));
+      dnF_Z=dPhiPF_Z->GetBinError(dPhiPF_Z->GetBin(i+1,j+1,2))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2));
+
+      if (sample==razor) {
+	nPass=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1)) - dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,1)) 
+	  - dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,1)) - dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1));
+	
+	nFail=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2)) - dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,2)) 
+	  - dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,2)) - dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2));
+	
+	dnP+=dnP_T*dnP_T+dnP_W*dnP_W+dnP_Z*dnP_Z;
+	dnF+=dnF_T*dnF_T+dnF_W*dnF_W+dnP_Z*dnP_Z;
+      }
+      else if (sample==dijet) {
+	nPass=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
+	nFail=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
+      }
+      cout << nPass << " / " << nFail << " = " << nPass/nFail << endl;
+      if (nPass>0 && nFail>0) {
+	nPF=nPass/nFail;
+
 	Float_t drsq=0.5*dPhiPF_D->GetYaxis()->GetBinWidth(j+1);
-	Float_t dnPF_u=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
-	Float_t dnPF_l=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
+	Float_t dnPF_u=nPF*TMath::Sqrt( dnP + dnF );
+	Float_t dnPF_l=nPF*TMath::Sqrt( dnP + dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
 	
-	dat_with_mr[i]->SetPoint(k, rsq, nPF);
+	dat_with_mr[i]->SetPoint(k, xrsq, nPF);
 	dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
 	k++;
       }
-      else cout << endl;
     }
   }
 
@@ -248,10 +285,11 @@ void take_ratios() {
   else if (binIn==ljpt) qcd_with_mr[i]->GetXaxis()->SetTitle("lead. jet p_{T}");
   else if (binIn==rsq) qcd_with_mr[i]->GetXaxis()->SetTitle("R^{2}");
   qcd_with_mr[i]->GetYaxis()->SetTitle("N_{pass}/N_{fail}");
+  qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
   if (sample==razor && binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
-  else if (sample==dijet && binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
-  else if (sample==dijet && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.6);
-  //else if (binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
+  else if (sample==dijet && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
+  else if (sample==dijet && binIn==rsq) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 6);
+  else if (sample==razor && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
   qcd_with_mr[i]->GetXaxis()->SetNdivisions(508);
   qcd_with_mr[i]->GetYaxis()->SetNdivisions(508);
   qcd_with_mr[i]->SetTitle("");
@@ -263,15 +301,3 @@ void take_ratios() {
   c->SaveAs(pname);
 
 }
-
-  //cout << dPhiPF_Q->GetNbinsX() << endl;
-  //cout << dPhiPF_Q->GetNbinsY() << endl;
-  //cout << dPhiPF_Q->GetNbinsZ() << endl;
-
-  //TH1F* qcd_mr  = (TH1F*) dPhiPF_Q->ProjectionX("qcd_mr");
-  //TH1F* qcd_rsq = (TH1F*) dPhiPF_Q->ProjectionY("qcd_rsq");
-  //TH1F* qcd_pf  = (TH1F*) dPhiPF_Q->ProjectionZ("qcd_pf");
-  //
-  //TH1F* dat_mr  = (TH1F*) dPhiPF_D->ProjectionX("dat_mr");
-  //TH1F* dat_rsq = (TH1F*) dPhiPF_D->ProjectionY("dat_rsq");
-  //TH1F* dat_pf  = (TH1F*) dPhiPF_D->ProjectionZ("dat_pf");
