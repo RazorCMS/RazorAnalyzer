@@ -357,7 +357,10 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
 
     print("\nMC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, debugLevel=debugLevel) 
+    if debugLevel > 0:
+        print "\nAuxiliary SF hists to use:"
+        print auxSFs
+    #macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:

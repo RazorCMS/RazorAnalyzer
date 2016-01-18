@@ -446,12 +446,18 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
     ###supported error options
     #TTJets dilepton control region systematic
     if 'ttcrosscheck' in errorOpt.lower():
-        histNames.append("TTJetsDilepton")
+        if 'Up' in errorOpt:
+            histNames.append("TTJetsDileptonUp")
+        elif 'Down' in errorOpt:
+            histNames.append("TTJetsDileptonDown")
         varNames.append(("MR","Rsq"))
         cuts.append("1")
     #DYJets dilepton control region systematic
     elif 'zllcrosscheck' in errorOpt.lower():
-        histNames.append("DYJetsInv")
+        if 'Up' in errorOpt:
+            histNames.append("DYJetsInvUp")
+        elif 'Down' in errorOpt:
+            histNames.append("DYJetsInvDown")
         varNames.append(("MR","Rsq"))
         cuts.append("1")
     #Veto lepton scale factors up/down
@@ -501,38 +507,31 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
         varNames.append("leadingGenLeptonPt")
         cuts.append("abs(leadingGenLeptonType) == 15")
     #b-tag bins closure test systematic
-    elif 'btag0crosscheck' in errorOpt.lower():
-        histNames.append("MR0B")
-        varNames.append("MR")
-        cuts.append("nBTaggedJets == 0")
-        histNames.append("Rsq0B")
-        varNames.append("Rsq")
-        cuts.append("nBTaggedJets == 0")
-    elif 'btag1crosscheck' in errorOpt.lower():
-        histNames.append("MR1B")
-        varNames.append("MR")
-        cuts.append("nBTaggedJets == 1")
-        histNames.append("Rsq1B")
-        varNames.append("Rsq")
-        cuts.append("nBTaggedJets == 1")
-    elif 'btag2crosscheck' in errorOpt.lower():
-        histNames.append("MR2B")
-        varNames.append("MR")
-        cuts.append("nBTaggedJets == 2")
-        histNames.append("Rsq2B")
-        varNames.append("Rsq")
-        cuts.append("nBTaggedJets == 2")
-    elif 'btag3crosscheck' in errorOpt.lower():
-        histNames.append("MR3B")
-        varNames.append("MR")
-        cuts.append("nBTaggedJets == 3")
-        histNames.append("Rsq3B")
-        varNames.append("Rsq")
-        cuts.append("nBTaggedJets == 3")
+    for nb in ['0','1','2','3']:
+        if 'btag'+nb+'crosscheck' in errorOpt.lower():
+            if 'Up' in errorOpt:
+                histNames.append("MR+"+nb+"BUp")
+                histNames.append("Rsq"+nb+"BUp")
+            elif 'Down' in errorOpt:
+                histNames.append("MR+"+nb+"BDown")
+                histNames.append("Rsq"+nb+"BDown")
+            varNames.append("MR")
+            cuts.append("nBTaggedJets == "+nb)
+            varNames.append("Rsq")
+            cuts.append("nBTaggedJets == "+nb)
 
     #return dictionary with needed information
     sfsNeeded = { histNames[i]:(varNames[i],cuts[i]) for i in range(len(histNames)) }
     auxSFs.update(sfsNeeded)
+
+def invertHistogram(hist):
+    """Replaces contents of each hist bin with 1/(contents).  Updates bin errors accordingly.
+       For bins with no contents, does nothing."""
+    ret = hist.Clone(hist.GetName()+"Inverted")
+    for b in range(hist.GetSize()+1):
+        if hist.GetBinContent(b) != 0:
+            ret.SetBinContent( b, 1.0/hist.GetBinContent(b) )
+            ret.SetBinError( b, hist.GetBinError(b) / (hist.GetBinContent(b))**2 )
 
 def splitShapeErrorsByType(shapeErrors):
     """Takes a list of shape uncertainties and splits it into two lists: the first is the list of uncertainties applied as per-event scale factors, and the second is the list of uncertainties that require separate processing."""

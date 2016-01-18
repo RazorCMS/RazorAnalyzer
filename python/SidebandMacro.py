@@ -7,7 +7,7 @@ import ROOT as rt
 from framework import Config
 import macro.macro as macro
 from macro.razorAnalysis import razorCuts
-from macro.razorWeights import loadScaleFactorHists 
+from macro.razorWeights import loadScaleFactorHists, invertHistogram
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
 
 LUMI = 2185 #in /pb
@@ -140,19 +140,27 @@ if __name__ == "__main__":
     #get DYJets and TTBar Dilepton cross check scale factor histograms
     ttTFile = rt.TFile.Open(ttFile)
     assert ttTFile
-    sfHists['TTJetsDilepton'] = ttTFile.Get('TTBarDileptonSystematic')
-    assert sfHists['TTJetsDilepton']
+    sfHists['TTJetsDileptonUp'] = ttTFile.Get('TTBarDileptonSystematic')
+    assert sfHists['TTJetsDileptonUp']
+    #convert to correct SF histogram format
+    for nb in range(sfHists['TTJetsDileptonUp'].GetSize()+1):
+        sfHists['TTJetsDileptonUp'].SetBinContent( nb, sfHists['TTJetsDileptonUp'].GetBinContent(nb)+1.0 )
+    #get 'down' version of histogram
+    sfHists['TTJetsDileptonDown'] = invertHistogram(sfHists['TTJetsDileptonUp'])
     dyTFile = rt.TFile.Open(dyFile)
     assert dyTFile
-    sfHists['DYJetsInv'] = dyTFile.Get('DYJetsDileptonInvCrossCheckScaleFactors')
-    assert sfHists['DYJetsInv']
+    sfHists['DYJetsInvUp'] = dyTFile.Get('DYJetsDileptonInvCrossCheckScaleFactors')
+    assert sfHists['DYJetsInvUp']
+    sfHists['DYJetsInvDown'] = invertHistogram(sfHists['DYJetsInvUp'])
     btagTFile = rt.TFile.Open(btagFile)
     for b in range(4):
         bs = str(b)
-        sfHists['MR'+bs+'B'] = btagTFile.Get('OneLepton'+bs+'BMRScaleFactors')
-        sfHists['Rsq'+bs+'B'] = btagTFile.Get('OneLepton'+bs+'BRsqScaleFactors')
-        assert sfHists['MR'+bs+'B']
-        assert sfHists['Rsq'+bs+'B']
+        sfHists['MR'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BMRScaleFactors')
+        sfHists['Rsq'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BRsqScaleFactors')
+        assert sfHists['MR'+bs+'BUp']
+        assert sfHists['Rsq'+bs+'BUp']
+        sfHists['MR'+bs+'BDown'] = invertHistogram(sfHists['MR'+bs+'BUp'])
+        sfHists['Rsq'+bs+'BDown'] = invertHistogram(sfHists['Rsq'+bs+'BUp'])
 
     auxSFs = { 
         "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 

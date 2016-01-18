@@ -384,13 +384,9 @@ def makeTreeDict(fileDict, treeName, debugLevel=0):
         print trees
     return trees
 
-def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, errorOpt=None, debugLevel=0):
+def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debugLevel=0):
     if debugLevel > 1:
-        print "Getting scale factor from histogram",sfHist.GetName(),
-        if errorOpt is not None:
-            print ("(error option "+errorOpt+")")
-        else:
-            print ""
+        print "Getting scale factor from histogram",sfHist.GetName()
     if isinstance(sfVars, basestring):
         sfVars = (sfVars,) #cast into tuple 
     #get variables
@@ -420,16 +416,6 @@ def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, error
     if math.isnan(scaleFactorErr):
         scaleFactorErr = 0.0
 
-    #cross check uncertainties (TTJets/DYJets dilepton; b-tag closure tests)
-    crossChecks = ['tt', 'zll', 'btag0', 'btag1', 'btag2', 'btag3']
-    for c in crossChecks:
-        #note: for "crosscheckUp" uncertainties, no action is necessary -- just apply the SF
-        if errorOpt == c+'crosscheckDown': #get 1/scale factor
-            if debugLevel > 1:
-                print "For error option",errorOpt,"using 1/scale factor from cross check histogram"
-            scaleFactorErr = (1/scaleFactor)**2 * scaleFactorErr 
-            scaleFactor = 1/scaleFactor
-    
     if debugLevel > 1: print "Applying scale factor: ",scaleFactor,"with error",scaleFactorErr
     return (scaleFactor, scaleFactorErr)
 
@@ -505,7 +491,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 e *= sf
         for name in auxSFs: #apply misc scale factors (e.g. veto lepton correction)
             if auxSFForms[name].EvalInstance(): #check if this event should be reweighted
-                auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, errorOpt=errorOpt, debugLevel=debugLevel)
+                auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, debugLevel=debugLevel)
                 w *= auxSF
                 err = (err*err + auxErr*auxErr)**(0.5)
                 #apply scale factor to shape up/down weights too (if needed)
@@ -570,13 +556,6 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
                 sfHistToUse = sfHists[name]
             print("Using scale factors from histogram "+sfHistToUse.GetName())
         auxSFsToUse = auxSFs.copy()
-        #make sure we do not apply scale factors to the wrong processes
-        processSpecificSFs = { "TTJetsDilepton":"TTJets2L", "DYJetsInv":"ZInv" }
-        for s,p in processSpecificSFs.iteritems():
-            if s in auxSFsToUse and name.lower() != p.lower():
-                del auxSFsToUse[s]
-                if debugLevel > 0:
-                    print "Removing",s,"from auxSFs dictionary for this process"
         #get appropriate scale factor histograms for misc reweightings
         auxSFHists = {name:sfHists[name] for name in auxSFs} 
         #get correct variables for scale factor reweighting.
