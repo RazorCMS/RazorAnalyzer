@@ -49,7 +49,7 @@ TOYS_FILES = {
         }
 
 weightOpts = []
-commonShapeErrors = [('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),'btag0crosscheck','btag1crosscheck','btag2crosscheck','btag3crosscheck',('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','qcd'),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv']),'jes','btag','pileup','bmistag','facscale','renscale','facrenscale','ees','mes']
+commonShapeErrors = ['jes','ees','mes',('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv']),'btag0crosscheckrsq','btag1crosscheckrsq','btag2crosscheckrsq','btag3crosscheckrsq','btag0crosscheckmr','btag1crosscheckmr','btag2crosscheckmr','btag3crosscheckmr',('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','qcd'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }

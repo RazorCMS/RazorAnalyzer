@@ -107,65 +107,28 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
 
     for name in samples:
         for var in bins:
-            if isinstance(var, basestring): #1D case
-                for shape in shapeErrors:
-                    if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-                        if name not in shape[1]: continue
-                        curShape = shape[0]
-                    else:
-                        curShape = shape
-                    if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for",var
-                    #loop over histogram bins
-                    for bx in range(1, hists[name][var].GetNbinsX()+1):
-                        #use difference between Up and Down histograms as uncertainty
-                        sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))
-                        #add in quadrature with existing error
-                        oldErr = hists[name][var].GetBinError(bx)
-                        hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
-                        if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
-                for source in miscErrors:
-                    if source.lower() == "mt" and var == "MR":
+            for shape in shapeErrors:
+                if not isinstance(shape,basestring): #tuple (shape, [list of processes])
+                    if name not in shape[1]: continue
+                    curShape = shape[0]
+                else:
+                    curShape = shape
+                if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for",var
+                #loop over histogram bins
+                for bx in range(hists[name][var].GetSize()+1):
+                    #use difference between Up and Down histograms as uncertainty
+                    sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))
+                    #add in quadrature with existing error
+                    oldErr = hists[name][var].GetBinError(bx)
+                    hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
+                    if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
+            for source in miscErrors:
+                #MT uncertainty (deprecated)
+                if source.lower() == "mt" and var == "MR":
+                    if isinstance(var, basestring): #1D histogram
                         applyMTUncertainty1D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
-            elif len(var) == 2: #2D case
-                for shape in shapeErrors:
-                    if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-                        if name not in shape[1]: continue
-                        curShape = shape[0]
-                    else:
-                        curShape = shape
-                    if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for razor histogram"
-                    #loop over histogram bins
-                    for bx in range(1, hists[name][var].GetNbinsX()+1):
-                        for by in range(1, hists[name][var].GetNbinsY()+1):
-                            #use difference between Up and Down histograms as uncertainty
-                            sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx,by) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx,by))
-                            #add in quadrature with existing error
-                            oldErr = hists[name][var].GetBinError(bx,by)
-                            hists[name][var].SetBinError(bx,by, (oldErr**2 + sysErr**2)**(0.5))
-                            if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name][var].GetBinError(bx,by),"after adding",sysErr,"in quadrature"
-                for source in miscErrors:
-                    if source.lower() == "mt":
+                    else: #2D histogram
                         applyMTUncertainty2D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
-            elif len(var) == 3: #3D case
-                for shape in shapeErrors:
-                    if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-                        if name not in shape[1]: continue
-                        curShape = shape[0]
-                    else:
-                        curShape = shape
-                    if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for razor histogram"
-                    #loop over histogram bins
-                    for bx in range(1, hists[name][var].GetNbinsX()+1):
-                        for by in range(1, hists[name][var].GetNbinsY()+1):
-                            for bz in range(1, hists[name][var].GetNbinsZ()+1):
-                                #use difference between Up and Down histograms as uncertainty
-                                sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx,by,bz) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx,by,bz))
-                                #add in quadrature with existing error
-                                oldErr = hists[name][var].GetBinError(bx,by,bz)
-                                hists[name][var].SetBinError(bx,by,bz, (oldErr**2 + sysErr**2)**(0.5))
-                                if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin (",bx,by,bz,") increases from",oldErr,"to",hists[name][var].GetBinError(bx,by,bz),"after adding",sysErr,"in quadrature"
-                    for source in miscErrors:
-                        pass #nothing implemented here
 
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", vartitles={}):
     """Make stacked plots of quantities of interest, with data overlaid"""
@@ -197,7 +160,6 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     legend=None
     plotFit = ("Fit" in histDict)
     for i,var in enumerate(varList): 
-        #for MR and Rsq, make 2D plots
         if not isinstance(var, basestring) and len(var) == 2: #2D plots
             mcDict = None 
             if len(mcNames) > 0:
@@ -305,20 +267,22 @@ def transformVarsInString(string, varNames, suffix):
     return outstring
 
 def transformVarString(event, string, errorOpt, process="", debugLevel=0):
+    if debugLevel > 1: 
+        print "Checking if string needs to be transformed for error option",errorOpt
     jetvars = ["MR","Rsq","nBTaggedJets","dPhiRazor","leadingJetPt","subleadingJetPt","nSelectedJets","nJets80","mT","box"] #quantities susceptible to jet uncertainties
     outstring = string
     if errorOpt == "jesUp":
         outstring = transformVarsInString(string, jetvars, "_JESUp")
     elif errorOpt == "jesDown":
-        oustring = transformVarsInString(string, jetvars, "_JESDown")
-    if errorOpt == "mesUp":
+        outstring = transformVarsInString(string, jetvars, "_JESDown")
+    elif errorOpt == "mesUp":
         outstring = transformVarsInString(string, jetvars, "_MESUp")
     elif errorOpt == "mesDown":
-        oustring = transformVarsInString(string, jetvars, "_MESDown")
-    if errorOpt == "eesUp":
+        outstring = transformVarsInString(string, jetvars, "_MESDown")
+    elif errorOpt == "eesUp":
         outstring = transformVarsInString(string, jetvars, "_EESUp")
     elif errorOpt == "eesDown":
-        oustring = transformVarsInString(string, jetvars, "_EESDown")
+        outstring = transformVarsInString(string, jetvars, "_EESDown")
     elif errorOpt == "jerUp":
         outstring = transformVarsInString(string, jetvars, "_JERUp")
     elif errorOpt == "jerDown":
@@ -357,7 +321,7 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, err
             if debugLevel > 1: print "Filling",varName,"=",varValue,"with weight",weight
             if varName in sysErrSquaredHists: #for propagating systematic errors on the variables
                 sysErrSquared = weight*weight*sysErr*sysErr
-                sysErrSquaredHist[varName].Fill(varValue, sysErrSquared)
+                sysErrSquaredHists[varName].Fill(varValue, sysErrSquared)
                 if debugLevel > 1: print "Sys. Error =",sysErr,"; Filling (w*sysErr)^2 histogram with",sysErrSquared
         else: #treat it as a tuple of variables that should be filled
             #transform each variable
@@ -425,14 +389,13 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
     for name in hists:
         if name in sysErrSquaredHists:
             if debugLevel > 0: print "Including systematic errors on ",name
-            for bx in range(1, hists[name].GetNbinsX()+1):
-                for by in range(1, hists[name].GetNbinsY()+1):
-                    squaredError = sysErrSquaredHists[name].GetBinContent(bx,by)
-                    oldErr = hists[name].GetBinError(bx,by)
-                    hists[name].SetBinError(bx,by,(oldErr*oldErr + squaredError)**(0.5))
-                    if debugLevel > 0 and squaredError > 0: print name,": Error on bin (",bx,by,") increases from",oldErr,"to",hists[name].GetBinError(bx,by),"after adding",(squaredError**(0.5)),"in quadrature"
+            for bx in range(hists[name].GetSize()+1):
+                squaredError = sysErrSquaredHists[name].GetBinContent(bx)
+                oldErr = hists[name].GetBinError(bx)
+                hists[name].SetBinError(bx,(oldErr*oldErr + squaredError)**(0.5))
+                if debugLevel > 0 and squaredError > 0: print name,": Error on bin",bx,"increases from",oldErr,"to",hists[name].GetBinError(bx),"after adding",(squaredError**(0.5)),"in quadrature"
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR", "Rsq"), weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
@@ -459,11 +422,11 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Total entries passing cuts:",elist.GetN()
     #create histograms for scale factor systematics
     sysErrSquaredHists = {}
-    for name in hists: 
-        if name == sysVars:
+    if not statErrOnly:
+        for name in hists: 
             sysErrSquaredHists[name] = hists[name].Clone(hists[name].GetName()+"SFERRORS")
             sysErrSquaredHists[name].Reset()
-            if debugLevel > 0: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold systematic errors from",name,"scale factors"
+            if debugLevel > 0: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold systematic errors from",sfVars,"scale factors"
     count = 0
     sumweight = 0.0
     while True:
@@ -519,7 +482,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), sysVars=("MR","Rsq"), boxName="NONE", auxSFs={}, dataDrivenQCD=False, shapeHists={}, shapeNames=[], debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, dataDrivenQCD=False, shapeHists={}, shapeNames=[], debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -547,7 +510,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         #get correct scale factor histogram
         sfHistToUse = None
         if name in sfHists: 
-            if errorOpt is not None and 'sfsys'+name.lower() in errorOpt:
+            if errorOpt is not None and 'sfsys'+(name.replace('1L','').replace('2L','').lower()) in errorOpt: #fix for compatibility with TTJets1L and TTJets2L
                 if 'Up' in errorOpt:
                     sfHistToUse = sfHists[name+"Up"]
                 elif 'Down' in errorOpt:
@@ -561,12 +524,9 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         #get correct variables for scale factor reweighting.
         #if sfVars is a dictionary, get the appropriate value from it.  otherwise use sfVars directly.
         sfVarsToUse = sfVars
-        sysVarsToUse = sysVars
         if sfHistToUse is not None and isinstance(sfVars,dict):
             sfVarsToUse = sfVars[name]
             print "Reweighting in",sfVarsToUse
-        if sfHistToUse is not None and isinstance(sysVars,dict):
-            sysVarsToUse = sysVars[name]
         #data-driven QCD prediction is obtained by extrapolating from the high dPhiRazor region
         if dataDrivenQCD and name.lower() == "qcd":
             print "Estimating QCD via data driven extrapolation method"
@@ -579,6 +539,6 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
                 errorOptToUse = None #shape systematics do not affect QCD data-driven prediction
             shapeHistsToUse = { e:shapeHistsToUse[e] for e in shapeHistsToUse if 'qcd' in e }
             shapeNamesToUse = [e for e in shapeNamesToUse if 'qcd' in e]
-        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, sysVarsToUse, weightOptsToUse, errorOptToUse, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, debugLevel=debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOptToUse, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 

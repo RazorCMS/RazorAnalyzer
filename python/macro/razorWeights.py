@@ -33,22 +33,6 @@ def passTrigger(event, triggerNumList):
             break
     return passes
 
-def passSingleLeptonTrigger(event, isData=False, debugLevel=0):
-    if isData:
-        trigNums = singleLeptonTriggerNumsData
-    else:
-        trigNums = singleLeptonTriggerNumsMC
-    if debugLevel > 1: print("Event passes single lepton trigger")
-    return passTrigger(event, trigNums)
-
-def passDileptonTrigger(event, isData=False, debugLevel=0):
-    if debugLevel > 1: print("Note: dilepton trigger requirement is a pass-through right now")
-    return True
-
-def passHadronicTrigger(event, isData=False, debugLevel=0):
-    if debugLevel > 1: print("Note: hadronic trigger requirement is a pass-through right now")
-    return True
-
 def pileupWeight(event, wHists, puBranch="NPV", debugLevel=0):
     if "pileup" in wHists:
         if not hasattr(event, puBranch):
@@ -508,15 +492,18 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
         cuts.append("abs(leadingGenLeptonType) == 15")
     #b-tag bins closure test systematic
     for nb in ['0','1','2','3']:
-        if 'btag'+nb+'crosscheck' in errorOpt.lower():
+        if 'btag'+nb+'crosscheckmr' in errorOpt.lower():
             if 'Up' in errorOpt:
-                histNames.append("MR+"+nb+"BUp")
-                histNames.append("Rsq"+nb+"BUp")
+                histNames.append("MR"+nb+"BUp")
             elif 'Down' in errorOpt:
-                histNames.append("MR+"+nb+"BDown")
-                histNames.append("Rsq"+nb+"BDown")
+                histNames.append("MR"+nb+"BDown")
             varNames.append("MR")
             cuts.append("nBTaggedJets == "+nb)
+        elif 'btag'+nb+'crosscheckrsq' in errorOpt.lower():
+            if 'Up' in errorOpt:
+                histNames.append("Rsq"+nb+"BUp")
+            elif 'Down' in errorOpt:
+                histNames.append("Rsq"+nb+"BDown")
             varNames.append("Rsq")
             cuts.append("nBTaggedJets == "+nb)
 
@@ -532,6 +519,7 @@ def invertHistogram(hist):
         if hist.GetBinContent(b) != 0:
             ret.SetBinContent( b, 1.0/hist.GetBinContent(b) )
             ret.SetBinError( b, hist.GetBinError(b) / (hist.GetBinContent(b))**2 )
+    return ret
 
 def splitShapeErrorsByType(shapeErrors):
     """Takes a list of shape uncertainties and splits it into two lists: the first is the list of uncertainties applied as per-event scale factors, and the second is the list of uncertainties that require separate processing."""
@@ -547,10 +535,14 @@ def splitShapeErrorsByType(shapeErrors):
         'mes':False,
         'ttcrosscheck':False,
         'zllcrosscheck':False,
-        'btag0crosscheck':False,
-        'btag1crosscheck':False,
-        'btag2crosscheck':False,
-        'btag3crosscheck':False,
+        'btag0crosscheckmr':False,
+        'btag1crosscheckmr':False,
+        'btag2crosscheckmr':False,
+        'btag3crosscheckmr':False,
+        'btag0crosscheckrsq':False,
+        'btag1crosscheckrsq':False,
+        'btag2crosscheckrsq':False,
+        'btag3crosscheckrsq':False,
         'sfsysvetolep':False,
         'sfsysvetotau':False,
         'mteff':False,
