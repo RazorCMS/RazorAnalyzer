@@ -97,7 +97,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
     stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
     stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
-    stack->SetMinimum( 0.1 );
+    stack->SetMinimum( 0.001 );
 
     if (hasData) {
       hist[0]->SetMarkerStyle(20);      
@@ -222,11 +222,11 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
-  const int NMRBins = 6;
+  const int NMRBins = 7;
   const int NRsqBins = 6;
   const int NNJetBins = 4;
   const int NNBTagBins = 5;
-  double MRBins[NMRBins] = {400, 500, 700, 900, 1200, 4000};
+  double MRBins[NMRBins] = {400, 500, 600, 700, 900, 1200, 4000};
   double RsqBins[NRsqBins] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
   double NJetBins[NNJetBins] = {0,4,7,20};
   double NBTagBins[NNBTagBins] = {0,1,2,3,4};
@@ -538,8 +538,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
     for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
     
-      int bin_i = int ((i-1) / (NMRBins-1)) + 1;
-      int bin_j = bin_j = ((i-1) % (NMRBins-1)) + 1;
+      int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
+      int bin_j = bin_j = ((i-1) % (NRsqBins-1)) + 1;
   
     
       cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << "\n";
@@ -594,6 +594,60 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
     SFFile->Close();
   }
 
+  if ( SFOption == 1 ) {
+
+    TH1D* HistCorrection_NJets = (TH1D*)histNJets40[0]->Clone("GJetsInvScaleFactors_NJets");
+    for (int i=1; i < HistCorrection_NJets->GetXaxis()->GetNbins() + 1; ++i) {
+      double N_data = 0;
+      double N_QCD = 0;
+      double NErr_QCD = 0;
+      double N_GJetsFrag = 0;
+      double NErr_GJetsFrag = 0;
+      double N_GJetsDirect = 0;
+      double NErr_GJetsDirect = 0;
+      double N_Other = 0;
+      double NErr_Other = 0;
+      for (uint j=0; j < inputfiles.size(); ++j) {
+	if ( processLabels[j] == "Data") {
+	  N_data = histNJets40[j]->GetBinContent(i);
+	  N_QCD = 0.05 * N_data; //Fake Fraction is 5% with 5% systematic
+	  NErr_QCD = 0.05 * N_data;
+	}
+	if ( processLabels[j] == "GJets") {
+	  N_GJetsDirect = histNJets40[j]->GetBinContent(i);
+	  NErr_GJetsDirect = histNJets40[j]->GetBinError(i);
+	}
+	if ( processLabels[j] == "GJetFrag") {
+	  N_GJetsFrag = histNJets40[j]->GetBinContent(i);
+	  NErr_GJetsFrag = histNJets40[j]->GetBinError(i);
+	}      
+	if ( processLabels[j] == "Other") {
+	  N_Other = histNJets40[j]->GetBinContent(i);
+	  NErr_Other = sqrt( pow(histNJets40[j]->GetBinError(i),2) + pow( 0.50 * N_Other , 2)); 
+	}
+      }
+      double N_dataMinusQCD = N_data * 0.95;
+      double NErr_dataMinusQCD = sqrt( N_data ) * 0.95;
+      double N_MCNoQCD = N_GJetsDirect + N_GJetsFrag + N_Other;
+      double NErr_MCNoQCD = sqrt( pow(NErr_GJetsDirect,2) + pow(NErr_GJetsFrag,2) + pow(NErr_Other,2) );
+      double SF = N_dataMinusQCD/N_MCNoQCD;
+      double SFErr =  sqrt( ( pow(NErr_dataMinusQCD,2) * pow(N_MCNoQCD,2) + pow(NErr_MCNoQCD,2)*pow(N_dataMinusQCD,2)) / (pow(N_MCNoQCD,4)));
+
+      HistCorrection_NJets->SetBinContent( i , SF );
+      HistCorrection_NJets->SetBinError( i , SFErr );
+
+      cout << "Data-QCD : " << N_dataMinusQCD << " +/- " << NErr_dataMinusQCD << "\n";
+      cout << "MC (excluding QCD) : " << N_MCNoQCD << " +/- " << NErr_MCNoQCD  << "\n";
+      cout << "Systematic Uncertainty : " << SF << " +/- " << SFErr << "\n";
+      cout << "\n\n";
+
+    }
+    TFile *SFFile = TFile::Open("RazorGJetsScaleFactorVsNJets.root", "UPDATE");
+    SFFile->WriteTObject(HistCorrection_NJets, "GJetsScaleFactorVsNJets", "WriteDelete");
+    SFFile->Close();
+  }
+
+
   if ( SFOption == 2 ) {
 
     TH1D* HistSysUnc_NBTag = (TH1D*)histNBtags[0]->Clone("GJetsInvScaleFactors_Sys_NBTag");
@@ -641,8 +695,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //==============================================================================================================
   for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
     
-    int bin_i = int ((i-1) / (NMRBins-1)) + 1;
-    int bin_j = bin_j = ((i-1) % (NMRBins-1)) + 1;        
+    int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
+    int bin_j = bin_j = ((i-1) % (NRsqBins-1)) + 1;        
     cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << " : " 
 	 << "MR: " << histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i) << " - " << histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) << " , "
 	 << "Rsq: " << histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j) << " - " << histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) << " : "
@@ -669,14 +723,14 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //*******************************************************************************************
   //MR
   //*******************************************************************************************
-  // PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
-  // PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
-  // PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
-  // PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
-  // PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
-  // PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
-  // PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
-  // PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
+  PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
+  PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
+  PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
+  PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
+  PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
+  PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
+  PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
+  PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
   PlotDataAndStackedBkg( histMRRsqUnrolled, processLabels, color, true, "MRRsqUnrolled", Label);
   
 
