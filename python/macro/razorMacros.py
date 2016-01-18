@@ -357,7 +357,10 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
 
     print("\nMC:")
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, sysVars=sfVars, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, debugLevel=debugLevel) 
+    if debugLevel > 0:
+        print "\nAuxiliary SF hists to use:"
+        print auxSFs
+    #macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:
@@ -374,7 +377,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
         auxSFsToUse = copy.deepcopy(auxSFs)
@@ -382,7 +385,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, sysVars=None, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
@@ -533,76 +536,28 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     dataDebugRatio = sfHists[process].Clone()
 
     #zero any negative scale factors
-    if isinstance(var, basestring) or len(var) == 1: #1D
-        for bx in range(1, sfHists[process].GetNbinsX()+1):
-            sfHists[process].SetBinContent(bx,max(0., sfHists[process].GetBinContent(bx)))
-            sfHists[process+"NormUp"].SetBinContent(bx,max(0., sfHists[process+"NormUp"].GetBinContent(bx)))
-            sfHists[process+"NormDown"].SetBinContent(bx,max(0., sfHists[process+"NormDown"].GetBinContent(bx)))
-    elif len(var) == 2: #2D
-        for bx in range(1, sfHists[process].GetNbinsX()+1):
-            for by in range(1, sfHists[process].GetNbinsY()+1):
-                sfHists[process].SetBinContent(bx,by,max(0., sfHists[process].GetBinContent(bx,by)))
-                sfHists[process+"NormUp"].SetBinContent(bx,by,max(0., sfHists[process+"NormUp"].GetBinContent(bx,by)))
-                sfHists[process+"NormDown"].SetBinContent(bx,by,max(0., sfHists[process+"NormDown"].GetBinContent(bx,by)))
-    elif len(var) == 3: #3D
-        for bx in range(1, sfHists[process].GetNbinsX()+1):
-            for by in range(1, sfHists[process].GetNbinsY()+1):
-                for bz in range(1, sfHists[process].GetNbinsZ()+1):
-                    sfHists[process].SetBinContent(bx,by,bz,max(0., sfHists[process].GetBinContent(bx,by,bz)))
-                    sfHists[process+"NormUp"].SetBinContent(bx,by,bz,max(0., sfHists[process+"NormUp"].GetBinContent(bx,by,bz)))
-                    sfHists[process+"NormDown"].SetBinContent(bx,by,bz,max(0., sfHists[process+"NormDown"].GetBinContent(bx,by,bz)))
+    for bx in range(sfHists[process].GetSize()+1):
+        sfHists[process].SetBinContent(bx,max(0., sfHists[process].GetBinContent(bx)))
+        sfHists[process+"NormUp"].SetBinContent(bx,max(0., sfHists[process+"NormUp"].GetBinContent(bx)))
+        sfHists[process+"NormDown"].SetBinContent(bx,max(0., sfHists[process+"NormDown"].GetBinContent(bx)))
 
     #suppress scale factors consistent with 1
     if signifThreshold > 0:
         print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
-        if isinstance(var, basestring) or len(var) == 1: #1D
-            for bx in range(1, sfHists[process].GetNbinsX()+1):
-                if sfHists[process].GetBinError(bx) == 0: continue
-                nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/sfHists[process].GetBinError(bx)
-                if nsigma < signifThreshold: 
-                    sfHists[process].SetBinContent(bx,1.0)
-                    sfHists[process].SetBinError(bx,0.0)
-        elif len(var) == 2: #2D
-            for bx in range(1, sfHists[process].GetNbinsX()+1):
-                for by in range(1, sfHists[process].GetNbinsY()+1):
-                    nsigma = abs(sfHists[process].GetBinContent(bx,by)-1.0)/sfHists[process].GetBinError(bx,by)
-                    if sfHists[process].GetBinError(bx,by) == 0: continue
-                    if nsigma < signifThreshold: 
-                        sfHists[process].SetBinContent(bx,by,1.0)
-                        sfHists[process].SetBinError(bx,by,0.0)
-        elif len(var) == 3: #3D
-            for bx in range(1, sfHists[process].GetNbinsX()+1):
-                for by in range(1, sfHists[process].GetNbinsY()+1):
-                    for bz in range(1, sfHists[process].GetNbinsZ()+1):
-                        if sfHists[process].GetBinError(bx,by,bz) == 0: continue
-                        nsigma = abs(sfHists[process].GetBinContent(bx,by,bz)-1.0)/sfHists[process].GetBinError(bx,by,bz)
-                        if nsigma < signifThreshold: 
-                            sfHists[process].SetBinContent(bx,by,bz,1.0)
-                            sfHists[process].SetBinError(bx,by,bz,0.0)
+        for bx in range(sfHists[process].GetSize()+1):
+            if sfHists[process].GetBinError(bx) == 0: continue
+            nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/sfHists[process].GetBinError(bx)
+            if nsigma < signifThreshold: 
+                sfHists[process].SetBinContent(bx,1.0)
+                sfHists[process].SetBinError(bx,0.0)
 
     if debugLevel > 0:
         print "Printing scale factor calculation in each bin:"
-        if isinstance(var, basestring) or len(var) == 1: #1D
-            for bx in range(1, sfHists[process].GetNbinsX()+1):
-                print "Bin",bx,":"
-                print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx))
-                print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx)-dataDebugSubtr.GetBinContent(bx))
-                print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx),dataDebugSubtr.GetBinContent(bx),hists[process][var].GetBinContent(bx))
-        elif len(var) == 2: #2D
-            for bx in range(1, sfHists[process].GetNbinsX()+1):
-                for by in range(1, sfHists[process].GetNbinsY()+1):
-                    print "Bin %d,%d:"%(bx,by)
-                    print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx,by))
-                    print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx,by)-dataDebugSubtr.GetBinContent(bx,by))
-                    print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx,by),dataDebugSubtr.GetBinContent(bx,by),hists[process][var].GetBinContent(bx,by))
-        elif len(var) == 3: #3D
-            for bx in range(1, sfHists[process].GetNbinsX()+1):
-                for by in range(1, sfHists[process].GetNbinsY()+1):
-                    for bz in range(1, sfHists[process].GetNbinsZ()+1):
-                        print "Bin %d,%d,%d:"%(bx,by,bz)
-                        print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx,by,bz))
-                        print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx,by,bz)-dataDebugSubtr.GetBinContent(bx,by,bz))
-                        print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx,by,bz),dataDebugSubtr.GetBinContent(bx,by,bz),hists[process][var].GetBinContent(bx,by,bz))
+        for bx in range(sfHists[process].GetSize()+1):
+            print "Bin",bx,":"
+            print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx))
+            print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx)-dataDebugSubtr.GetBinContent(bx))
+            print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx),dataDebugSubtr.GetBinContent(bx),hists[process][var].GetBinContent(bx))
         print "\nScale factor histograms after adding",process,":"
         print sfHists
 
@@ -728,33 +683,13 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         targetVal = 1.0
     if signifThreshold > 0:
         print "Ignoring corrections compatible with 0 at",signifThreshold,"sigma significance"
-        if isinstance(var, basestring) or len(var) == 1: #1D
-            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
-                for n,h in vlHists.iteritems():
-                    if h.GetBinError(bx) == 0: continue
-                    nsigma = abs(h.GetBinContent(bx)-targetVal)/h.GetBinError(bx)
-                    if nsigma < signifThreshold: 
-                        h.SetBinContent(bx,0.0)
-                        h.SetBinError(bx,0.0)
-        elif len(var) == 2: #2D
-            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
-                for by in range(1, vlHists['Central'].GetNbinsY()+1):
-                    for n,h in vlHists.iteritems():
-                        if h.GetBinError(bx,by) == 0: continue
-                        nsigma = abs(h.GetBinContent(bx,by)-targetVal)/h.GetBinError(bx,by)
-                        if nsigma < signifThreshold: 
-                            h.SetBinContent(bx,by,0.0)
-                            h.SetBinError(bx,by,0.0)
-        elif len(var) == 3: #3D
-            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
-                for by in range(1, vlHists['Central'].GetNbinsY()+1):
-                    for bz in range(1, vlHists['Central'].GetNbinsZ()+1):
-                        for n,h in vlHists.iteritems():
-                            if h.GetBinError(bx,by,bz) == 0: continue
-                            nsigma = abs(h.GetBinContent(bx,by,bz)-targetVal)/h.GetBinError(bx,by,bz)
-                            if nsigma < signifThreshold: 
-                                h.SetBinContent(bx,by,bz,0.0)
-                                h.SetBinError(bx,by,bz,0.0)
+        for bx in range(vlHists['Central'].GetSize()+1):
+            for n,h in vlHists.iteritems():
+                if h.GetBinError(bx) == 0: continue
+                nsigma = abs(h.GetBinContent(bx)-targetVal)/h.GetBinError(bx)
+                if nsigma < signifThreshold: 
+                    h.SetBinContent(bx,0.0)
+                    h.SetBinError(bx,0.0)
 
     if debugLevel > 0:
         print "\nCorrections before MT and dPhi efficiencies:"
@@ -772,78 +707,28 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         #create dPhi up/down versions of the correction histogram
         vlHists['DPhiUp'] = vlHists['Central'].Clone()
         vlHists['DPhiDown'] = vlHists['Central'].Clone()
-        if isinstance(var, basestring) or len(var) == 1: #1D
-            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
-                #divide all bin contents by the efficiency of the MT cut
-                for n,h in vlHists.iteritems():
-                    if 'MT' not in n:
-                        h.SetBinContent(bx, h.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
-                        h.SetBinError(bx, h.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
-                    elif 'Up' in n:
-                        h.SetBinContent(bx, h.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
-                        h.SetBinError(bx, h.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
-                    elif 'Down' in n:
-                        h.SetBinContent(bx, h.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
-                        h.SetBinError(bx, h.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
-                #multiply all bin contents by the efficiency of the dPhi cut
-                    if 'DPhi' not in n:
-                        h.SetBinContent(bx, h.GetBinContent(bx)*dPhiEfficiencyHist.GetBinContent(bx))
-                        h.SetBinError(bx, h.GetBinError(bx)*dPhiEfficiencyHist.GetBinContent(bx))
-                    elif 'Up' in n:
-                        h.SetBinContent(bx, h.GetBinContent(bx)*(dPhiEfficiencyHist.GetBinContent(bx)+dPhiEfficiencyHist.GetBinError(bx)))
-                        h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)+dPhiEfficiencyHist.GetBinError(bx)))
-                    elif 'Down' in n:
-                        h.SetBinContent(bx, h.GetBinContent(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
-                        h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
-        elif len(var) == 2: #2D
-            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
-                for by in range(1, vlHists['Central'].GetNbinsY()+1):
-                    #divide all bin contents by the efficiency of the MT cut
-                    for n,h in vlHists.iteritems():
-                        if 'MT' not in n:
-                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                            h.SetBinError(bx,by, h.GetBinError(bx,by)/mtEfficiencyHist.GetBinContent(bx,by))
-                        elif 'Up' in n:
-                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)+mtEfficiencyHist.GetBinError(bx,by)))
-                            h.SetBinError(bx,by, h.GetBinError(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)+mtEfficiencyHist.GetBinError(bx,by)))
-                        elif 'Down' in n:
-                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)-mtEfficiencyHist.GetBinError(bx,by)))
-                            h.SetBinError(bx,by, h.GetBinError(bx,by)/(mtEfficiencyHist.GetBinContent(bx,by)-mtEfficiencyHist.GetBinError(bx,by)))
-                    #multiply all bin contents by the efficiency of the dPhi cut
-                        if 'DPhi' not in n:
-                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)*dPhiEfficiencyHist.GetBinContent(bx,by))
-                            h.SetBinError(bx,by, h.GetBinError(bx,by)*dPhiEfficiencyHist.GetBinContent(bx,by))
-                        elif 'Up' in n:
-                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)+dPhiEfficiencyHist.GetBinError(bx,by)))
-                            h.SetBinError(bx,by, h.GetBinError(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)+dPhiEfficiencyHist.GetBinError(bx,by)))
-                        elif 'Down' in n:
-                            h.SetBinContent(bx,by, h.GetBinContent(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)-dPhiEfficiencyHist.GetBinError(bx,by)))
-                            h.SetBinError(bx,by, h.GetBinError(bx,by)*(dPhiEfficiencyHist.GetBinContent(bx,by)-dPhiEfficiencyHist.GetBinError(bx,by)))
-        elif len(var) == 3: #3D
-            for bx in range(1, vlHists['Central'].GetNbinsX()+1):
-                for by in range(1, vlHists['Central'].GetNbinsY()+1):
-                    for bz in range(1, vlHists['Central'].GetNbinsZ()+1):
-                        #divide all bin contents by the efficiency of the MT cut
-                        for n,h in vlHists.iteritems():
-                            if 'MT' not in n:
-                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)/mtEfficiencyHist.GetBinContent(bx,by,bz))
-                            elif 'Up' in n:
-                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)+mtEfficiencyHist.GetBinError(bx,by,bz)))
-                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)+mtEfficiencyHist.GetBinError(bx,by,bz)))
-                            elif 'Down' in n:
-                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)-mtEfficiencyHist.GetBinError(bx,by,bz)))
-                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)/(mtEfficiencyHist.GetBinContent(bx,by,bz)-mtEfficiencyHist.GetBinError(bx,by,bz)))
-                        #multiply all bin contents by the efficiency of the dPhi cut
-                            if 'DPhi' not in n:
-                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)*dPhiEfficiencyHist.GetBinContent(bx,by,bz))
-                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)*dPhiEfficiencyHist.GetBinContent(bx,by,bz))
-                            elif 'Up' in n:
-                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)+dPhiEfficiencyHist.GetBinError(bx,by,bz)))
-                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)+dPhiEfficiencyHist.GetBinError(bx,by,bz)))
-                            elif 'Down' in n:
-                                h.SetBinContent(bx,by,bz, h.GetBinContent(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)-dPhiEfficiencyHist.GetBinError(bx,by,bz)))
-                                h.SetBinError(bx,by,bz, h.GetBinError(bx,by,bz)*(dPhiEfficiencyHist.GetBinContent(bx,by,bz)-dPhiEfficiencyHist.GetBinError(bx,by,bz)))
+        for bx in range(vlHists['Central'].GetSize()+1):
+            #divide all bin contents by the efficiency of the MT cut
+            for n,h in vlHists.iteritems():
+                if 'MT' not in n:
+                    h.SetBinContent(bx, h.GetBinContent(bx)/mtEfficiencyHist.GetBinContent(bx))
+                    h.SetBinError(bx, h.GetBinError(bx)/mtEfficiencyHist.GetBinContent(bx))
+                elif 'Up' in n:
+                    h.SetBinContent(bx, h.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
+                    h.SetBinError(bx, h.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)+mtEfficiencyHist.GetBinError(bx)))
+                elif 'Down' in n:
+                    h.SetBinContent(bx, h.GetBinContent(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
+                    h.SetBinError(bx, h.GetBinError(bx)/(mtEfficiencyHist.GetBinContent(bx)-mtEfficiencyHist.GetBinError(bx)))
+            #multiply all bin contents by the efficiency of the dPhi cut
+                if 'DPhi' not in n:
+                    h.SetBinContent(bx, h.GetBinContent(bx)*dPhiEfficiencyHist.GetBinContent(bx))
+                    h.SetBinError(bx, h.GetBinError(bx)*dPhiEfficiencyHist.GetBinContent(bx))
+                elif 'Up' in n:
+                    h.SetBinContent(bx, h.GetBinContent(bx)*(dPhiEfficiencyHist.GetBinContent(bx)+dPhiEfficiencyHist.GetBinError(bx)))
+                    h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)+dPhiEfficiencyHist.GetBinError(bx)))
+                elif 'Down' in n:
+                    h.SetBinContent(bx, h.GetBinContent(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
+                    h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
 
         print "Correcting histogram",histToCorrect.GetName(),"using the additive corrections just derived."
         #corrected hist is histToCorrect + correction
