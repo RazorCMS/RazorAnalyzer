@@ -132,8 +132,10 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     
   for (int b=0; b<histDataOverMC->GetXaxis()->GetNbins()+2; ++b) {
     double data = 0;
+    double dataErrSqr = 0;
     if (hasData) {
       data = hist[0]->GetBinContent(b);
+      dataErrSqr = pow(hist[0]->GetBinError(b),2);
     }
     double MC = 0;
     double MCErrSqr = 0;
@@ -148,12 +150,14 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
       
     if (MC > 0) {
       histDataOverMC->SetBinContent(b, data / MC);
-      histDataOverMC->SetBinError(b, (data / MC)*sqrt(1/data + MCErrSqr/pow(MC,2) ));
+      //histDataOverMC->SetBinError(b, (data / MC)*sqrt(1/data + MCErrSqr/pow(MC,2) ));
+      histDataOverMC->SetBinError(b, (data / MC)*sqrt(dataErrSqr/pow(data,2) + MCErrSqr/pow(MC,2) ));
     } else {
       histDataOverMC->SetBinContent(b, 0);
       histDataOverMC->SetBinError(b, 0);
     }
-    //cout << "bin " << b << " : " << histDataOverMC->GetBinContent(b) << " " << histDataOverMC->GetBinError(b) << "\n";
+    cout << "bin " << b << " : " << data << " +/- " << sqrt(dataErrSqr) << " / " << MC << " +/- " << sqrt(MCErrSqr)
+	 << " : " << histDataOverMC->GetBinContent(b) << " " << histDataOverMC->GetBinError(b) << "\n";
   }
 
   histDataOverMC->GetYaxis()->SetTitle("Data/MC");
@@ -161,7 +165,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->GetYaxis()->SetTitleSize(0.10);
   histDataOverMC->GetYaxis()->SetTitleOffset(0.3);
   //  histDataOverMC->GetYaxis()->SetRangeUser(0.0,3.0);
-  histDataOverMC->GetYaxis()->SetRangeUser(0.5,2.0);
+  histDataOverMC->GetYaxis()->SetRangeUser(0.0,2.0);
   histDataOverMC->GetYaxis()->SetLabelSize(0.10);
   histDataOverMC->GetXaxis()->SetLabelSize(0.125);
   histDataOverMC->GetXaxis()->SetTitleSize(0.15);
@@ -256,8 +260,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
-    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 40, 300, 2300));
-    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 50, 0.0, 1.50));
+    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", NMRBins-1, MRBins));
+    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", NRsqBins-1, RsqBins));
     histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events", (NMRBins-1)*(NRsqBins-1), 0, (NMRBins-1)*(NRsqBins-1)));
     histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 80, 0, 400));    
     histPhotonEta.push_back(new TH1D(Form("histPhotonEta_%s",processLabels[i].c_str()), "; Photon #eta ; Number of Events", 50, -3, 3));
@@ -333,7 +337,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 	double puWeight = 1;      
 	double weight = 1;
-	if (!isData) {
+	if (!isData && !(option != "Inclusive" && processLabels[i] == "QCD")) {
 	  weight = lumi * events->weight;
 	}
 
@@ -349,14 +353,19 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  bool isFake = false;	   
 	  if(abs(events->pho1_motherID) > 5 && events->pho1_motherID != 21 && events->pho1_motherID != 2212) isFake = true;	  
 	  if(processLabels[i]  == "GJets" && isFake) continue;
-	  if(processLabels[i]  == "GJetsFrag" && isFake) continue;	  
-	  if(processLabels[i] == "QCD" && !isFake) continue;
-
 	  if(processLabels[i]  == "GJets" && events->minDRGenPhotonToParton < 0.4) continue;
+	  if(processLabels[i]  == "GJetsFrag" && isFake) continue;	  
 	  if(processLabels[i]  == "GJetsFrag" && events->minDRGenPhotonToParton >= 0.4) continue;
-
 	  if(processLabels[i]  == "GJets" || processLabels[i]  == "GJetsFrag") weight *= 1.55; //Overall K-Factor & photon efficiency correction
-	  if(processLabels[i]  == "QCD") weight *= 1.37; //Overall K-Factor & photon fake rate correction
+
+	  if (option == "Inclusive") {
+	    if(processLabels[i] == "QCD" && !isFake) continue;
+	    if(processLabels[i]  == "QCD") weight *= 1.37; //Overall K-Factor & photon fake rate correction
+	  } else {
+	    if(processLabels[i] == "QCD") {
+	      weight = 0.05;
+	    }
+	  }
 	}
 
 	//******************************
@@ -364,12 +373,12 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	//******************************
 	bool passTrigger = false;
 
-	if (isData) {	  
+	if (isData || (option != "Inclusive" && processLabels[i] == "QCD") ) {	  
 	  double dataWeight = 1;
 	  if (events->pho1.Pt() > 185) {
 	    dataWeight = 1;
 	    if (events->HLTDecision[93] && events->pho1HLTFilter[22]) passTrigger = true;
-	  } 
+	  }
 	  else if (events->pho1.Pt() > 135) {
 	    dataWeight = events->HLTPrescale[92];
 	    if (events->HLTDecision[92] && events->pho1HLTFilter[23]) passTrigger = true;
@@ -386,8 +395,10 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	    dataWeight = events->HLTPrescale[88];
 	    if (events->HLTDecision[88] && events->pho1HLTFilter[27]) passTrigger = true;
 	  } 
-
-	  weight = dataWeight;
+	  
+	  if (isData) {
+	    weight = dataWeight;
+	  }
 
 	} else {
 	  if (
@@ -421,8 +432,6 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  if (!(events->NJets80_NoPho >= 2 && events->NJets_NoPho >= 4 && events->MR_NoPho > 400 && events->Rsq_NoPho > 0.25 )) continue;	
 	}
       
-
-
 	//MET Filters
 	if (!(events->Flag_HBHENoiseFilter && events->Flag_goodVertices && events->Flag_eeBadScFilter)) continue;
 
@@ -430,7 +439,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	// //******************************
 	// //Apply Scale Factors
 	// //******************************
-	 if (!isData) {
+	if (!isData && !(option != "Inclusive" && processLabels[i] == "QCD") ) {
 	   double razorSF = 1.0;
 	   if (processLabels[i] == "GJets" && InputSFHist) {
 	     razorSF = InputSFHist->GetBinContent( InputSFHist->GetXaxis()->FindFixBin( fmin(fmax(events->MR_NoPho,400.1),3999)),
@@ -439,10 +448,6 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	   }
 	   weight *= razorSF;
 	 }
-
-	//******************************
-	//Fill histograms
-	//******************************		
 
 
 
@@ -632,6 +637,30 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 
   //--------------------------------------------------------------------------------------------------------------
+  // Plot Event Density for MR-Rsq spectrum 
+  //==============================================================================================================
+  for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
+    
+    int bin_i = int ((i-1) / (NMRBins-1)) + 1;
+    int bin_j = bin_j = ((i-1) % (NMRBins-1)) + 1;        
+    cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << " : " 
+	 << "MR: " << histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i) << " - " << histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) << " , "
+	 << "Rsq: " << histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j) << " - " << histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) << " : "
+	 << (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i))  << " * "
+	 << (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j))
+	 << "\n";
+    double binVolume = (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i)) *
+      (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j));
+         
+    for (uint j=0; j < inputfiles.size(); ++j) {
+      histMRRsqUnrolled[j]->SetBinContent( i , histMRRsqUnrolled[j]->GetBinContent(i) / binVolume );
+      histMRRsqUnrolled[j]->SetBinError( i , histMRRsqUnrolled[j]->GetBinError(i) / binVolume );
+    }        
+
+  }
+    
+
+  //--------------------------------------------------------------------------------------------------------------
   // Draw
   //==============================================================================================================
   TCanvas *cv =0;
@@ -640,14 +669,14 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //*******************************************************************************************
   //MR
   //*******************************************************************************************
-  PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
-  PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
-  PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
-  PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
-  PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
-  PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
-  PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
-  PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
+  // PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
+  // PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
+  // PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
+  // PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
+  // PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
+  // PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
+  // PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
+  // PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
   PlotDataAndStackedBkg( histMRRsqUnrolled, processLabels, color, true, "MRRsqUnrolled", Label);
   
 
@@ -763,7 +792,7 @@ void SelectPhotonControlSample( int option = 0) {
   } else {
     bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
     bkgfiles_gjetsFrag.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root"); 
     bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
   }
    
