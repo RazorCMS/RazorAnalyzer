@@ -1180,7 +1180,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
     }   
 
     // now do the fits in the Rsq bins   
-  for(int ii=0; ii<NMRBins; ii++)
+  for(int ii=0; ii<NRsqBins; ii++)
     {     
       cout<<"Rsq BINNED FIT: "<<ii<<endl;
       
@@ -1359,7 +1359,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
   }
 
   file->Close();
-  delete file;       
+  delete file;
 }
 
 void PhotonControlSample_RooFit( int option = 10) {
