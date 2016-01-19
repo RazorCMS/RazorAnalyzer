@@ -267,8 +267,6 @@ def transformVarsInString(string, varNames, suffix):
     return outstring
 
 def transformVarString(event, string, errorOpt, process="", debugLevel=0):
-    if debugLevel > 1: 
-        print "Checking if string needs to be transformed for error option",errorOpt
     jetvars = ["MR","Rsq","nBTaggedJets","dPhiRazor","leadingJetPt","subleadingJetPt","nSelectedJets","nJets80","mT","box"] #quantities susceptible to jet uncertainties
     outstring = string
     if errorOpt == "jesUp":
@@ -501,12 +499,16 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
                 curShape = shape[0]
             else:
                 curShape = shape
-            shapeHistsToUse[curShape+'Up'] = shapeHists[name][curShape+'Up']
-            shapeHistsToUse[curShape+'Down'] = shapeHists[name][curShape+'Down']
-            shapeNamesToUse.append(curShape)
+            if curShape+'Up' in shapeHists[name]:
+                shapeHistsToUse[curShape+'Up'] = shapeHists[name][curShape+'Up']
+                shapeHistsToUse[curShape+'Down'] = shapeHists[name][curShape+'Down']
+                shapeNamesToUse.append(curShape)
 
         if name not in hists: continue
         print("Filling histograms for tree "+name)
+        if debugLevel > 0:
+            print "Will fill histograms for these shape uncertainties:"
+            print shapeNamesToUse
         #get correct scale factor histogram
         sfHistToUse = None
         if name in sfHists: 

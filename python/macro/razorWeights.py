@@ -137,9 +137,17 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
     else: #data-driven QCD estimate 
         qcdExtrapolationFactor = 1.2e+6*(event.MR**(-2.6)) + 0.064
         eventWeight = qcdExtrapolationFactor*scale
+        qcdNormErrFraction=0.5
         if debugLevel > 1:
             print "QCD extrapolation factor:",qcdExtrapolationFactor
             print "Scale by:",scale
+        if errorOpt == 'qcdnormUp':
+            eventWeight *= (1+qcdNormErrFraction)
+            if debugLevel > 1: print errorOpt,"scale factor:",1+qcdNormErrFraction
+        elif errorOpt == 'qcdnormDown':
+            eventWeight /= (1+qcdNormErrFraction)
+            if debugLevel > 1: print errorOpt,"scale factor:",1/(1+qcdNormErrFraction)
+        if debugLevel > 1:
             print "event weight:",eventWeight
         return eventWeight
 
@@ -161,14 +169,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
 
     #up/down corrections for systematics
     normErrFraction=0.2
-    qcdNormErrFraction=0.2
-    if errorOpt == 'qcdnormUp':
-        eventWeight *= (1+qcdNormErrFraction)
-        if debugLevel > 1: print errorOpt,"scale factor:",1+qcdNormErrFraction
-    elif errorOpt == 'qcdnormDown':
-        eventWeight /= (1+qcdNormErrFraction)
-        if debugLevel > 1: print errorOpt,"scale factor:",1/(1+qcdNormErrFraction)
-    elif errorOpt == "tightmuoneffUp":
+    if errorOpt == "tightmuoneffUp":
         eventWeight *= event.sf_muonEffUp
         if debugLevel > 1: print "muonEffUp scale factor:",event.sf_muonEffUp
     elif errorOpt == "tightmuoneffDown":
@@ -193,17 +194,17 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
         eventWeight *= event.sf_vetoEleEffDown
         if debugLevel > 1: print "vetoEleEffDown scale factor:",event.sf_vetoEleEffDown
     elif errorOpt == "muontrigUp":
-        eventWeight *= event.sf_muontrigUp
-        if debugLevel > 1: print "muontrigUp scale factor:",event.sf_muontrigUp
+        eventWeight *= event.sf_muonTrigUp
+        if debugLevel > 1: print "muontrigUp scale factor:",event.sf_muonTrigUp
     elif errorOpt == "muontrigDown":
-        eventWeight *= event.sf_muontrigDown
-        if debugLevel > 1: print "muontrigDown scale factor:",event.sf_muontrigDown
+        eventWeight *= event.sf_muonTrigDown
+        if debugLevel > 1: print "muontrigDown scale factor:",event.sf_muonTrigDown
     elif errorOpt == "eletrigUp":
-        eventWeight *= event.sf_eletrigUp
-        if debugLevel > 1: print "eletrigUp scale factor:",event.sf_eletrigUp
+        eventWeight *= event.sf_eleTrigUp
+        if debugLevel > 1: print "eletrigUp scale factor:",event.sf_eleTrigUp
     elif errorOpt == "eletrigDown":
-        eventWeight *= event.sf_eletrigDown
-        if debugLevel > 1: print "eletrigDown scale factor:",event.sf_eletrigDown
+        eventWeight *= event.sf_eleTrigDown
+        if debugLevel > 1: print "eletrigDown scale factor:",event.sf_eleTrigDown
     elif errorOpt == "btagUp":
         eventWeight *= event.sf_btagUp
         if debugLevel > 1: print "btagUp scale factor:",event.sf_btagUp
@@ -457,7 +458,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
             cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
     #Veto tau scale factors up/down
     elif 'sfsysvetotau' in errorOpt.lower():
-        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
+        if 'VetoTau' in auxSFs: del auxSFs['VetoTau']
         if 'Up' in errorOpt:
             histNames.append("VetoTauUp")
         elif 'Down' in errorOpt:
@@ -467,6 +468,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
     #MT efficiency up/down
     elif 'mteff' in errorOpt.lower():
         if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
+        if 'VetoTau' in auxSFs: del auxSFs['VetoTau']
         if 'Up' in errorOpt:
             histNames.append("VetoLeptonMTUp")
             histNames.append("VetoTauMTUp")
@@ -480,6 +482,7 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
     #DPhi efficiency up/down
     elif 'dphieff' in errorOpt.lower():
         if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
+        if 'VetoTau' in auxSFs: del auxSFs['VetoTau']
         if 'Up' in errorOpt:
             histNames.append("VetoLeptonDPhiUp")
             histNames.append("VetoTauDPhiUp")

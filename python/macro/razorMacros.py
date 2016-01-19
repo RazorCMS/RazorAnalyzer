@@ -346,6 +346,10 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #split histograms into those that can be applied via per-event weights, and those that require further processing
     sfShapes, otherShapes = splitShapeErrorsByType(shapeErrors)
+    print "\nThese shape uncertainties will be applied via event-level weights:"
+    print sfShapes
+    print "\nOther shape uncertainties:"
+    print otherShapes
 
     #define histograms to fill
     hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
@@ -358,9 +362,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     print("\nMC:")
     if debugLevel > 0:
-        print "\nAuxiliary SF hists to use:"
+        print "\nMisc SF hists to use:"
         print auxSFs
-    #macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, shapeNames=sfShapes, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:
