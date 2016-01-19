@@ -124,7 +124,7 @@ if __name__ == "__main__":
             "TTJets2L":"TTJets",
             "ZInvUp":"WJetsInv" #interpolate between GJets and WJets estimates for ZInv scale factors
             }
-    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC+['WJetsInvUp'], scaleFactorNames=sfNames, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC+['ZInvUp'], scaleFactorNames=sfNames, debugLevel=debugLevel)
     for name in sfHists: assert sfHists[name]
 
     #get 'down' histogram for wjetsinv/gjets scale factor comparison
