@@ -13,12 +13,10 @@ from macro.razorMacros import runFitAndToys, makeControlSampleHists
 LUMI = 2185 #in /pb
 MCLUMI = 1 
 
-SAMPLES_HADRONIC = ["QCD"]
-#SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
+SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
 SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
 SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
-BOXES = ["MultiJet"]
-#BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
+BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
 
 DIR_MC = "Backgrounds"
 DIR_DATA = "Backgrounds"
@@ -52,10 +50,9 @@ TOYS_FILES = {
 
 weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
-#commonShapeErrors += ['jes','ees','mes',('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv']),'btag0crosscheckrsq','btag1crosscheckrsq','btag2crosscheckrsq','btag3crosscheckrsq','btag0crosscheckmr','btag1crosscheckmr','btag2crosscheckmr','btag3crosscheckmr',
+commonShapeErrors += [('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),'btag0crosscheckrsq','btag1crosscheckrsq','btag2crosscheckrsq','btag3crosscheckrsq','btag0crosscheckmr','btag1crosscheckmr','btag2crosscheckmr','btag3crosscheckmr']
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['vetomuoneff','vetoeleeff']
-#hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
+hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
 
 cfg = Config.Config(config)
@@ -122,11 +119,17 @@ if __name__ == "__main__":
 
     #get scale factor histograms
     sfNames={
-            "ZInv":"WJetsInv",
+            "ZInv":"GJetsInv",
             "TTJets1L":"TTJets",
             "TTJets2L":"TTJets",
+            "ZInvUp":"WJetsInv" #interpolate between GJets and WJets estimates for ZInv scale factors
             }
-    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC+['WJetsInvUp'], scaleFactorNames=sfNames, debugLevel=debugLevel)
+    for name in sfHists: assert sfHists[name]
+
+    #get 'down' histogram for wjetsinv/gjets scale factor comparison
+    sfHists['ZInvDown'] = sfHists['ZInv'].Clone('WJetsInvScaleFactorsDownFromGJetsInv')
+    #TODO: interpolate down from GJets scale factor hist using WJetsInv scale factors (right now hists have diff. sizes)
 
     #get veto lepton and tau scale factor histograms
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
