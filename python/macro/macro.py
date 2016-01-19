@@ -2,7 +2,7 @@ import os
 import ROOT as rt
 import copy
 import math
-from array import *
+from array import array
 
 #local imports
 from PlotFit import setFFColors
@@ -266,25 +266,25 @@ def transformVarsInString(string, varNames, suffix):
         outstring = outstring.replace(var, var+suffix) 
     return outstring
 
+JETVARS = ["MR","Rsq","nBTaggedJets","dPhiRazor","leadingJetPt","subleadingJetPt","nSelectedJets","nJets80","mT","box"] #quantities susceptible to jet uncertainties
 def transformVarString(event, string, errorOpt, process="", debugLevel=0):
-    jetvars = ["MR","Rsq","nBTaggedJets","dPhiRazor","leadingJetPt","subleadingJetPt","nSelectedJets","nJets80","mT","box"] #quantities susceptible to jet uncertainties
     outstring = string
     if errorOpt == "jesUp":
-        outstring = transformVarsInString(string, jetvars, "_JESUp")
+        outstring = transformVarsInString(string, JETVARS, "_JESUp")
     elif errorOpt == "jesDown":
-        outstring = transformVarsInString(string, jetvars, "_JESDown")
+        outstring = transformVarsInString(string, JETVARS, "_JESDown")
     elif errorOpt == "mesUp":
-        outstring = transformVarsInString(string, jetvars, "_MESUp")
+        outstring = transformVarsInString(string, JETVARS, "_MESUp")
     elif errorOpt == "mesDown":
-        outstring = transformVarsInString(string, jetvars, "_MESDown")
+        outstring = transformVarsInString(string, JETVARS, "_MESDown")
     elif errorOpt == "eesUp":
-        outstring = transformVarsInString(string, jetvars, "_EESUp")
+        outstring = transformVarsInString(string, JETVARS, "_EESUp")
     elif errorOpt == "eesDown":
-        outstring = transformVarsInString(string, jetvars, "_EESDown")
+        outstring = transformVarsInString(string, JETVARS, "_EESDown")
     elif errorOpt == "jerUp":
-        outstring = transformVarsInString(string, jetvars, "_JERUp")
+        outstring = transformVarsInString(string, JETVARS, "_JERUp")
     elif errorOpt == "jerDown":
-        outstring = transformVarsInString(string, jetvars, "_JERDown")
+        outstring = transformVarsInString(string, JETVARS, "_JERDown")
 
     if debugLevel > 1:
         if outstring != string: print "For option",errorOpt,"Replacing string '",string,"' with '",outstring,"'"

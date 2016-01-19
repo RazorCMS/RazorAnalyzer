@@ -50,7 +50,7 @@ TOYS_FILES = {
 
 weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
-commonShapeErrors += [('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),'btag0crosscheckrsq','btag1crosscheckrsq','btag2crosscheckrsq','btag3crosscheckrsq','btag0crosscheckmr','btag1crosscheckmr','btag2crosscheckmr','btag3crosscheckmr']
+commonShapeErrors += [('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
@@ -199,11 +199,15 @@ if __name__ == "__main__":
             auxSFsToUse = {}
 
         #loop over btag bins
-        btaglist = [0]
-        #btaglist = [0,1,2,3]
+        #btaglist = [0]
+        btaglist = [0,1,2,3]
         for btags in btaglist:
-            #if btags == 3: continue #temporary
             print "\n---",boxName,"Box,",btags,"B-tags ---"
+            #get correct b-tag closure test histogram
+            sfHists['MRBUp'] = sfHists['MR'+str(btags)+'BUp']
+            sfHists['MRBDown'] = sfHists['MR'+str(btags)+'BDown']
+            sfHists['RsqBUp'] = sfHists['Rsq'+str(btags)+'BUp']
+            sfHists['RsqBDown'] = sfHists['Rsq'+str(btags)+'BDown']
             #get correct cuts string
             thisBoxCuts = razorCuts[boxName]
             if btags < len(btaglist)-1:

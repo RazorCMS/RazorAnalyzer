@@ -181,7 +181,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=["doNPVWeights", "doLep1Weigh
     elif errorOpt == "tighteleeffDown":
         eventWeight *= event.sf_eleEffDown
         if debugLevel > 1: print "eleEffDown scale factor:",event.sf_eleEffDown
-    if errorOpt == "vetomuoneffUp":
+    elif errorOpt == "vetomuoneffUp":
         eventWeight *= event.sf_vetoMuonEffUp
         if debugLevel > 1: print "vetoMuonEffUp scale factor:",event.sf_vetoMuonEffUp
     elif errorOpt == "vetomuoneffDown":
@@ -494,21 +494,20 @@ def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
         varNames.append("leadingGenLeptonPt")
         cuts.append("abs(leadingGenLeptonType) == 15")
     #b-tag bins closure test systematic
-    for nb in ['0','1','2','3']:
-        if 'btag'+nb+'crosscheckmr' in errorOpt.lower():
-            if 'Up' in errorOpt:
-                histNames.append("MR"+nb+"BUp")
-            elif 'Down' in errorOpt:
-                histNames.append("MR"+nb+"BDown")
-            varNames.append("MR")
-            cuts.append("nBTaggedJets == "+nb)
-        elif 'btag'+nb+'crosscheckrsq' in errorOpt.lower():
-            if 'Up' in errorOpt:
-                histNames.append("Rsq"+nb+"BUp")
-            elif 'Down' in errorOpt:
-                histNames.append("Rsq"+nb+"BDown")
-            varNames.append("Rsq")
-            cuts.append("nBTaggedJets == "+nb)
+    if 'btagcrosscheckmr' in errorOpt.lower():
+        if 'Up' in errorOpt:
+            histNames.append("MRBUp")
+        elif 'Down' in errorOpt:
+            histNames.append("MRBDown")
+        varNames.append("MR")
+        cuts.append("1")
+    elif 'btagcrosscheckrsq' in errorOpt.lower():
+        if 'Up' in errorOpt:
+            histNames.append("RsqBUp")
+        elif 'Down' in errorOpt:
+            histNames.append("RsqBDown")
+        varNames.append("Rsq")
+        cuts.append("1")
 
     #return dictionary with needed information
     sfsNeeded = { histNames[i]:(varNames[i],cuts[i]) for i in range(len(histNames)) }
@@ -538,14 +537,8 @@ def splitShapeErrorsByType(shapeErrors):
         'mes':False,
         'ttcrosscheck':False,
         'zllcrosscheck':False,
-        'btag0crosscheckmr':False,
-        'btag1crosscheckmr':False,
-        'btag2crosscheckmr':False,
-        'btag3crosscheckmr':False,
-        'btag0crosscheckrsq':False,
-        'btag1crosscheckrsq':False,
-        'btag2crosscheckrsq':False,
-        'btag3crosscheckrsq':False,
+        'btagcrosscheckmr':False,
+        'btagcrosscheckrsq':False,
         'sfsysvetolep':False,
         'sfsysvetotau':False,
         'mteff':False,
