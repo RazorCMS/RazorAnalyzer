@@ -35,10 +35,9 @@ void doCopy() {
 void doModify( TH2F *f, double correction, double error) {
   
   for (int i=0; i<f->GetXaxis()->GetNbins()+2; ++i) {
-    for (int j=0; j<f->GetXaxis()->GetNbins()+2; ++j) {
+    for (int j=0; j<f->GetYaxis()->GetNbins()+2; ++j) {
       double val = correction*f->GetBinContent(i,j);
-      double err = val * sqrt( pow(f->GetBinError(i,j)/f->GetBinContent(i,j),2) 
-			       + pow( error/correction , 2));
+      double err = sqrt( pow( correction*f->GetBinError(i,j) , 2) + pow( error*f->GetBinContent(i,j) , 2) );
       f->SetBinContent(i,j, val);
       f->SetBinError(i,j, err);
     }
