@@ -39,14 +39,14 @@ def setstyle():
     rt.gStyle.SetPaperSize(20,26)
     rt.gStyle.SetPadTopMargin(0.09)
     rt.gStyle.SetPadRightMargin(0.065)
-    rt.gStyle.SetPadBottomMargin(0.15)
-    rt.gStyle.SetPadLeftMargin(0.17)
+    rt.gStyle.SetPadBottomMargin(0.12)
+    rt.gStyle.SetPadLeftMargin(0.1)
     
     # use large Times-Roman fonts
     rt.gStyle.SetTitleFont(42,"xyz")  # set the all 3 axes title font
     rt.gStyle.SetTitleFont(42," ")    # set the pad title font
-    rt.gStyle.SetTitleSize(0.06,"xyz") # set the 3 axes title size
-    rt.gStyle.SetTitleSize(0.06," ")   # set the pad title size
+    rt.gStyle.SetTitleSize(0.05,"xyz") # set the 3 axes title size
+    rt.gStyle.SetTitleSize(0.05," ")   # set the pad title size
     rt.gStyle.SetLabelFont(42,"xyz")
     rt.gStyle.SetLabelSize(0.05,"xyz")
     rt.gStyle.SetLabelColor(1,"xyz")
@@ -55,8 +55,8 @@ def setstyle():
     rt.gStyle.SetStatFont(42)
     
     # use bold lines and markers
-    rt.gStyle.SetMarkerStyle(8)
-    rt.gStyle.SetLineStyleString(2,"[12 12]") # postscript dashes
+    #rt.gStyle.SetMarkerStyle(8)
+    #rt.gStyle.SetLineStyleString(2,"[12 12]") # postscript dashes
     
     #..Get rid of X error bars
     rt.gStyle.SetErrorX(0.001)
@@ -71,8 +71,8 @@ def setstyle():
     rt.gStyle.SetStatH(0.15);                
     
     # put tick marks on top and RHS of plots
-    rt.gStyle.SetPadTickX(1)
-    rt.gStyle.SetPadTickY(1)
+    #rt.gStyle.SetPadTickX(1)
+    #rt.gStyle.SetPadTickY(1)
     
     ncontours = 999
     
@@ -99,10 +99,10 @@ def getFileName(mg, mchi, r, box,directory):
 
 
 
-def getPulls(mg, mchi, r, box, directory):
+def getPulls(mg, mchi, r, box, directory,c):
     
-    setstyle()
-    LzCut = "covQual_%s==3&&r>-5"%(box)
+    LzCut = "covQual_%s==3"%(box)
+    #LzCut = "covQual_%s==3&&migrad_%s==0&&minos_%s==0"%(box,box,box)
     #LzCut = "r_error>0"
     
     fileName = getFileName(mg,mchi,r,box,directory)
@@ -111,31 +111,72 @@ def getPulls(mg, mchi, r, box, directory):
     addToChain = fileName.replace("//","/")+"/myTree"
     print "adding to chain: %s"% addToChain
     hypoTree.Add(addToChain)
+    
     pullHist = rt.TH1D("pullHist","pullHist",40,-4,4)
     pullHist.SetMarkerStyle(20)
     pullHist.SetLineStyle(20)
     pullHist.SetMarkerSize(1)
 
     hypoTree.Project('pullHist','(r - %f)/r_error'%(r),LzCut)
-    c = rt.TCanvas("c","c",500, 400)
+    pullHist.SetMaximum(1.75*pullHist.GetBinContent(pullHist.GetMaximumBin()))
     pullHist.Draw("pe")
-    gausr = rt.TF1("gausr","gaus",-4, 4)
-    pullHist.Fit("gausr","RL","pe")
+    gauspull = rt.TF1("gauspull","gaus",-4, 4)
+    pullHist.Fit("gauspull","RL","pe")
     pullHist.GetXaxis().SetTitle("Pull (#hat{#mu}-#mu)/#delta#hat#mu")
-    #pullHist.GetXaxis().SetTitle("Pull (#hat{#mu}-#mu)/#hat#mu")
     pullHist.GetYaxis().SetTitle("Toy Datasets")
-    rString = str('%.3f'%r).replace(".","p")
-    
-    
+    rString = str('%.3f'%r).replace(".","p")    
     l = rt.TLatex()
     l.SetTextAlign(12)
     l.SetTextSize(0.05)
     l.SetTextFont(42)
     l.SetNDC()
-    if model=="T1bbbb":
-        l.DrawLatex(0.1,0.95,"m_{#tilde{g}} = %.0f GeV; m_{#tilde{#chi}} = %.0f GeV; #mu = %.2f; %s Box"%(mg,mchi,r,box))
-    c.Print("%s/pulls_%s.pdf"%(directory,rString))
     
+    l.DrawLatex(0.1,0.95,"CMS simulation")
+    l.DrawLatex(0.65,0.95,"%.1f fb^{-1} (13 TeV)"%(options.lumi/1000.))
+    if model=="T1bbbb":
+        #l.DrawLatex(0.1,0.95,"m_{#tilde{g}} = %.0f GeV; m_{#tilde{#chi}} = %.0f GeV; %s Box"%(mg,mchi,box))
+        l.SetTextFont(52)
+        l.DrawLatex(0.12,0.85,"razor %s"%(box))
+        l.SetTextFont(42)
+        l.DrawLatex(0.12,0.78,"pp#rightarrow#tilde{g}#tilde{g}, #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")
+        l.DrawLatex(0.12,0.7,"m_{#tilde{g}} = %.0f GeV, m_{#tilde{#chi}} = %.0f GeV"%(mg,mchi))
+        l.DrawLatex(0.12,0.65,"#mu = %.1f"%(r))
+    c.Print("%s/pulls_%s_%i_%i_%s.pdf"%(directory,model,mg,mchi,rString))
+    c.Print("%s/pulls_%s_%i_%i_%s.C"%(directory,model,mg,mchi,rString))
+
+
+    rHist = rt.TH1D("rHist","rHist",40,r-min(max(r,2),3),r+min(max(r,2),3))
+    rHist.SetMarkerStyle(20)
+    rHist.SetLineStyle(20)
+    rHist.SetMarkerSize(1)
+    
+    
+    hypoTree.Project('rHist','r',LzCut)
+    
+    rHist.SetMaximum(1.75*rHist.GetBinContent(rHist.GetMaximumBin()))
+    rHist.Draw("pe")
+    #gausr = rt.TF1("gausr","gaus",r-0.25*max(r,1),r+0.25*max(r,1))
+    #rHist.Fit("gausr","RL","pe")
+    rHist.GetXaxis().SetTitle("#hat{#mu}")
+    rHist.GetYaxis().SetTitle("Toy Datasets")
+    l.DrawLatex(0.1,0.95,"CMS simulation")
+    l.DrawLatex(0.65,0.95,"%.1f fb^{-1} (13 TeV)"%(options.lumi/1000.))
+    if model=="T1bbbb":
+        #l.DrawLatex(0.1,0.95,"m_{#tilde{g}} = %.0f GeV; m_{#tilde{#chi}} = %.0f GeV; %s Box"%(mg,mchi,box))
+        l.SetTextFont(52)
+        l.DrawLatex(0.12,0.85,"razor %s"%(box))
+        l.SetTextFont(42)
+        l.DrawLatex(0.12,0.78,"pp#rightarrow#tilde{g}#tilde{g}, #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")
+        l.DrawLatex(0.12,0.7,"m_{#tilde{g}} = %.0f GeV, m_{#tilde{#chi}} = %.0f GeV"%(mg,mchi))
+        l.DrawLatex(0.12,0.65,"#mu = %.1f"%(r))
+    c.Print("%s/r_%s_%i_%i_%s.pdf"%(directory,model,mg,mchi,rString))
+    c.Print("%s/r_%s_%i_%i_%s.C"%(directory,model,mg,mchi,rString))
+
+
+    mean = rHist.GetMean()
+    sigma = rHist.GetRMS()
+    
+    return mean, sigma
 
     
 if __name__ == '__main__':
@@ -152,15 +193,67 @@ if __name__ == '__main__':
     (options,args) = parser.parse_args()
     
     gchipairs = [(1500,100)]
+    #gchipairs = [(1000,900)]
     
-    #rRange = [0,0.5,1,2,5,10]
-    rRange = [0,0.5]
+    rRange = [0,0.5,1,2,5,10]
     
     model = options.model
     box = options.box
     directory = options.outDir
+
     
-    for mg,mchi in gchipairs:
+    setstyle()
+    c = rt.TCanvas("c","c",500, 400)
+
+    for mg,mchi in gchipairs:        
+        rFit = []
+        rErr = []
         for r in rRange:
-            getPulls(mg, mchi, r, box, directory)
-                        
+            mean, sigma = getPulls(mg, mchi, r, box, directory,c)
+            rFit.append(mean)
+            rErr.append(sigma)
+
+        emptyHisto = rt.TH1D("empty","empty",1,-1,12)        
+        emptyHisto.GetXaxis().SetTitleSize(0.045)
+        emptyHisto.GetXaxis().SetTitle("Injected signal strength #mu")
+        emptyHisto.GetYaxis().SetTitleSize(0.045)
+        emptyHisto.GetYaxis().SetTitle("Fit signal strength #hat{#mu}")
+        emptyHisto.GetYaxis().SetRangeUser(-1,12)
+        emptyHisto.SetLineColor(rt.kWhite)
+        emptyHisto.Draw("")
+        
+        gr = rt.TGraphErrors(len(rRange),array('d',rRange),array('d',rFit),array('d',[0 for r in rRange]), array('d',rErr))
+        gr.SetMarkerColor(rt.kBlue)
+        gr.SetLineColor(rt.kBlue)
+        gr.SetMarkerStyle(20)
+        gr.Draw('Psame')
+        #c.Update()
+        #gr.GetXaxis().SetRangeUser(-1,12)
+        #gr.Draw('APsame')
+        c.Update()
+        
+        l = rt.TLatex()
+        l.SetTextAlign(12)
+        l.SetTextSize(0.05)
+        l.SetTextFont(42)
+        l.SetNDC()
+        
+        l.DrawLatex(0.1,0.95,"CMS simulation")
+        l.DrawLatex(0.65,0.95,"%.1f fb^{-1} (13 TeV)"%(options.lumi/1000.))
+        if model=="T1bbbb":
+            #l.DrawLatex(0.1,0.95,"m_{#tilde{g}} = %.0f GeV; m_{#tilde{#chi}} = %.0f GeV; %s Box"%(mg,mchi,box))
+            l.SetTextFont(52)
+            l.DrawLatex(0.12,0.85,"razor %s"%(box))
+            l.SetTextFont(42)
+            l.DrawLatex(0.12,0.78,"pp#rightarrow#tilde{g}#tilde{g}, #tilde{g}#rightarrowb#bar{b}#tilde{#chi}^{0}_{1}")
+            l.DrawLatex(0.12,0.7,"m_{#tilde{g}} = %.0f GeV, m_{#tilde{#chi}} = %.0f GeV "%(mg,mchi))
+
+        l = rt.TGraph(2)
+        l.SetPoint(0, -1, -1)
+        l.SetPoint(1, 12, 12)
+        l.SetLineWidth(2)
+        l.SetLineColor(rt.kGray)
+        l.Draw("lsame")
+        c.Update()
+        c.Print('%s/bias_%s_%i_%i.pdf'%(directory,model,mg,mchi))
+        c.Print('%s/bias_%s_%i_%i.C'%(directory,model,mg,mchi))

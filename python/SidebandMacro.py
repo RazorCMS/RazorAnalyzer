@@ -49,7 +49,8 @@ TOYS_FILES = {
         }
 
 weightOpts = []
-commonShapeErrors = ['jes','ees','mes',('ttcrosscheck',['TTJets2L']),('zllcrosscheck',['ZInv']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets']),('sfsyszinv',['ZInv']),'btag0crosscheckrsq','btag1crosscheckrsq','btag2crosscheckrsq','btag3crosscheckrsq','btag0crosscheckmr','btag1crosscheckmr','btag2crosscheckmr','btag3crosscheckmr',('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','qcd'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
+commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
+commonShapeErrors += [('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
@@ -118,11 +119,17 @@ if __name__ == "__main__":
 
     #get scale factor histograms
     sfNames={
-            "ZInv":"WJetsInv",
+            "ZInv":"GJetsInv",
             "TTJets1L":"TTJets",
             "TTJets2L":"TTJets",
+            "ZInvUp":"WJetsInv" #interpolate between GJets and WJets estimates for ZInv scale factors
             }
-    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC+['ZInvUp'], scaleFactorNames=sfNames, debugLevel=debugLevel)
+    for name in sfHists: assert sfHists[name]
+
+    #get 'down' histogram for wjetsinv/gjets scale factor comparison
+    sfHists['ZInvDown'] = sfHists['ZInv'].Clone('WJetsInvScaleFactorsDownFromGJetsInv')
+    #TODO: interpolate down from GJets scale factor hist using WJetsInv scale factors (right now hists have diff. sizes)
 
     #get veto lepton and tau scale factor histograms
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
@@ -192,11 +199,15 @@ if __name__ == "__main__":
             auxSFsToUse = {}
 
         #loop over btag bins
-        btaglist = [0]
-        #btaglist = [0,1,2,3]
+        #btaglist = [0]
+        btaglist = [0,1,2,3]
         for btags in btaglist:
-            #if btags == 3: continue #temporary
             print "\n---",boxName,"Box,",btags,"B-tags ---"
+            #get correct b-tag closure test histogram
+            sfHists['MRBUp'] = sfHists['MR'+str(btags)+'BUp']
+            sfHists['MRBDown'] = sfHists['MR'+str(btags)+'BDown']
+            sfHists['RsqBUp'] = sfHists['Rsq'+str(btags)+'BUp']
+            sfHists['RsqBDown'] = sfHists['Rsq'+str(btags)+'BDown']
             #get correct cuts string
             thisBoxCuts = razorCuts[boxName]
             if btags < len(btaglist)-1:

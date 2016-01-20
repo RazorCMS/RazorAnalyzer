@@ -22,7 +22,7 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         hesse_status = -1
         
     else:
-        if fitRange != 'Full' and False:
+        if fitRange != 'Full':
             nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
             m2 = rt.RooMinimizer(nll)
             m2.setStrategy(0)
@@ -34,14 +34,16 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         
         nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
         m2 = rt.RooMinimizer(nll)
-        m2.setStrategy(2)
+        m2.setStrategy(1)
+        #m2.setEps(1e-5)
         m2.setMaxFunctionCalls(100000)
         m2.setMaxIterations(100000)
+        hesse_status = m2.minimize('Minuit2','hesse')
         migrad_status = m2.minimize('Minuit2','migrad')
         improve_status = m2.minimize('Minuit2','improve')
         hesse_status = m2.minimize('Minuit2','hesse')
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        #hesse_status = m2.minimize('Minuit2','hesse')
+        migrad_status = m2.minimize('Minuit2','migrad')
+        hesse_status = m2.minimize('Minuit2','hesse')
         #hesse_status = m2.minimize('Minuit2','hesse')
         fr = m2.save()
 
@@ -74,6 +76,12 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('-s','--signal',dest="signalFileName", default="None",type="string",
                   help="input dataset file for signal pdf")
+    parser.add_option('-m','--model',dest="model", default="T1bbbb",type="string",
+                  help="signal model")
+    parser.add_option('--mGluino',dest="mGluino", default=1500,type="float",
+                  help="mgluino")
+    parser.add_option('--mLSP',dest="mLSP", default=100,type="float",
+                  help="mass of LSP")
     parser.add_option('-r','--signal-strength',dest="r", default=-1,type="float",
                   help="signal strength")
     parser.add_option('--no-fit',dest="noFit",default=False,action='store_true',
@@ -191,12 +199,15 @@ if __name__ == '__main__':
         myTH1.Scale(lumi/lumi_in)       
         if doSignalInj:
             if options.r > 0:
-                #gendata = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj'),rt.Asimov()) #weighted approach
-                gendata = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj')) # real unweighted dataset
+                #gendata = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj'),rt.RooFit.Asimov()) #weighted approach                
+                #rt.RooRandom.randomGenerator().SetSeed(1989) # for r = 1, new                       
+                rt.RooRandom.randomGenerator().SetSeed(1988) # for r = 1, new          
+                #gendata = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj')) # real unweighted dataset
+                gendata = w.pdf('extSpBPdf').generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('forsignalinj')) # real unweighted dataset
                 myTH1 = gendata.createHistogram('gendata',th1x)
-                Npois = rt.RooRandom.randomGenerator().Poisson(options.r*sigTH1.Integral())       
+                #Npois = rt.RooRandom.randomGenerator().Poisson(options.r*sigTH1.Integral())       
                 #myTH1.Add(sigTH1,options.r) # "weighted approach"      
-                myTH1.FillRandom(sigTH1,Npois) # "unweighted approach" - generating a real dataset
+                #myTH1.FillRandom(sigTH1,Npois) # "unweighted approach" - generating a real dataset
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myTH1))
     dataHist.Print('v')
     
@@ -371,9 +382,9 @@ if __name__ == '__main__':
 
     if not options.noPlots:
         
-        print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_sig_total_th1x_components)
-        print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_MR_components,h_colors,h_labels)
-        print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options.r,None,h_Rsq_components,h_colors,h_labels)
+        print1DProj(c,tdirectory,h_th1x,h_data_th1x,options.outDir+"/h_th1x_%s.pdf"%box,"Bin Number",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options,None,h_sig_total_th1x_components)
+        print1DProj(c,tdirectory,h_MR,h_data_MR,options.outDir+"/h_MR_%s.pdf"%box,"M_{R} [GeV]",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options,None,h_MR_components,h_colors,h_labels)
+        print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options,None,h_Rsq_components,h_colors,h_labels)
     
         #print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)
         print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)

@@ -10,6 +10,7 @@
 
 #pragma link C++ defined_in "RooRazor2DTail_SYS.h";
 #pragma link C++ defined_in "RooRazor3DBinPdf.h";
+#pragma link C++ defined_in "RooRazor3DBinErrorPdf.h";
 #pragma link C++ defined_in "RooRazor3DBinNumericRsqTurnOffPdf.h";
 #pragma link C++ defined_in "RooRazor3DBinNumericMRSlopePdf.h";
 #pragma link C++ defined_in "RooRazor3DBinMRSlopePdf.h";

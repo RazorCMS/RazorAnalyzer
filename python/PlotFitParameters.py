@@ -140,7 +140,7 @@ def getParHisto(parName,parFiles):
         parHisto.SetMarkerColor(rt.kCyan+2)
         parHisto.SetLineColor(rt.kCyan+2)
         parHisto.SetMarkerSize(1.2)
-        setAxis.SetBinLabel(binNum,"%s %s"%(box.replace("Jet2b","2b-Jet"),fit.replace("FULL","Full")))
+        setAxis.SetBinLabel(binNum,"%s %s Fit"%(box,fit))
     return parHisto
 
 def getBoxHisto(box,parFiles):

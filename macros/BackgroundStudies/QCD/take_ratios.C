@@ -1,6 +1,6 @@
 //--------------------------------------------------------------
 //
-// make ratio plots for Razor-sidebands !!needs cleaning!!
+// make ratio plots for Razor sideband and dijet control region
 //
 //--------------------------------------------------------------
 #if !defined(__CINT__) || defined(__MAKECINT__)
@@ -111,12 +111,12 @@ void take_ratios() {
 
   // for rsq
   Int_t binIn=rsq;
-  const Int_t nbinx=1, nbiny=10, nbinz=2;
+  const Int_t nbinx=1, nbiny=4, nbinz=2;
   Float_t xmin=400, xmax=3000; 
-  Float_t ymin=0.15,  ymax=0.35; 
+  Float_t ymin=0,  ymax=0.2; 
   Float_t zmin=0,    zmax=2;
   Float_t xbins[nbinx+1] = {xmin, xmax};
-  Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
+  Float_t ybins[nbiny+1] = { ymin, 0.05, 0.1, 0.15, ymax};
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   TString pname = "npf_vs_rsq_dijet.png";
 
@@ -126,7 +126,7 @@ void take_ratios() {
   TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
 
-  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
+  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>400)";
   TString cut_str_dat=cut_str+"*(HLTDecision[105]*HLTPrescale[105])";
 
   //--------------------------------------------------------------

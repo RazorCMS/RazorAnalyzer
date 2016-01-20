@@ -5,8 +5,10 @@ from framework import Config
 from array import *
 from DustinTuple2RooDataSet import initializeWorkspace
 
-seed = 1988
-
+#seed = 1999 # fits for 10-24-2015
+#seed = 1989
+#seed = 555 # fits for 11-28-2015
+seed = 1912
 def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     """Get the cocktail dataset from the file"""
     row = data.get()
@@ -33,21 +35,29 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
 
     # use fine binning
     rt.RooRandom.randomGenerator().SetSeed(seed)
-    myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 100, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
-    myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 100, rsqMin, rsqMax)
-    myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 100, rsqMin, rsqMax)
+    #myTH3 = rt.TH3D(uwName+box, uwName+box, 100, mRmin, mRmax, 100, rsqMin, rsqMax, int(btagMax-btagMin), btagMin, btagMax)
+    #myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", 100, mRmin, mRmax, 100, rsqMin, rsqMax)
+    #myTH2Toy = rt.TH2D("h", "h", 100, mRmin, mRmax, 100, rsqMin, rsqMax)
 
     # use binning written in config
-    #myTH3 = rt.TH3D(uwName+box, uwName+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
-    #myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", len(x)-1, x, len(y)-1, y)
-    #myTH2Toy = rt.TH2D("h", "h", len(x)-1, x, len(y)-1, y)
+    myTH3 = rt.TH3D(uwName+box, uwName+box, len(x)-1, x, len(y)-1, y, len(z)-1, z)
+    myTH2 = rt.TH2D(uwName+box+"2d", uwName+box+"2d", len(x)-1, x, len(y)-1, y)
+    myTH2Toy = rt.TH2D("h", "h", len(x)-1, x, len(y)-1, y)
     myTH2.Sumw2()
     myTH2Toy.Sumw2()
 
     # fills automatically with weight
     data.fillHistogram(myTH3, varList,"MR>0")
     data.fillHistogram(myTH2, varList2D,"MR>0")
-    
+
+    # fix for negative weight bins
+    for i in range(1,myTH3.GetNbinsX()+1):        
+        for j in range(1,myTH3.GetNbinsY()+1):            
+            for k in range(1,myTH3.GetNbinsZ()+1):
+                print i, j, k, myTH3.GetBinContent(i,j,k)
+                if myTH3.GetBinContent(i,j,k) < 0.:
+                    myTH3.SetBinContent(i,j,k,0.)
+                    
     c = rt.TCanvas("c","c",600,400)
     #rt.gStyle.SetOptStat(1001000011)
     rt.gStyle.SetOptStat(0)
@@ -97,6 +107,7 @@ def convertDataset2UnweightedToy(data, cfg, box, workspace, uwName = 'uw'):
     print "weighted events %.1f"% Nev
     print "entries  %d"% Nent
     Npois = rt.RooRandom.randomGenerator().Poisson(Nev)
+    print "Npois = %d "%Npois
     
     #wdata2d = wdata.reduce(rt.RooArgSet(MR,Rsq),"MR>500&&Rsq>0.3&&nBtag==3")
     #rookeys = rt.RooNDKeysPdf("rookeys", "rookeys", rt.RooArgList(MR,Rsq), wdata2d, "am")
