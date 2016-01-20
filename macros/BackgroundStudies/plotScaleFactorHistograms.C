@@ -206,7 +206,8 @@ void plotGJetsScaleFactorSystematics() {
   for ( int i = 1; i<GJetsSystematicUnc->GetXaxis()->GetNbins()+1; ++i) {
     for ( int j = 1; j<GJetsSystematicUnc->GetYaxis()->GetNbins()+1; ++j) {
       double gjet = GJetInvNominal->GetBinContent(i,j);
-      double wjet = wInvNominal->GetBinContent(i,j);      
+      double wjet = wInvNominal->GetBinContent(wInvNominal->GetXaxis()->FindFixBin(GJetInvNominal->GetXaxis()->GetBinCenter(i)),
+					       wInvNominal->GetYaxis()->FindFixBin(GJetInvNominal->GetYaxis()->GetBinCenter(j)));            
       GJetsSystematicUnc->SetBinContent(i,j, fabs(gjet - wjet)/gjet );
     }
   }
@@ -243,13 +244,43 @@ void plotGJetsScaleFactorSystematics() {
   cv->SaveAs("GJetsVsWJetsSystematic.png");
   cv->SaveAs("GJetsVsWJetsSystematic.pdf");
 
+
+  //****************************************************
+  //Make Up and Down Scale Factor Histogram
+  //****************************************************
+  TH2F *GJetsScaleFactor_Down = (TH2F*)GJetInvNominal->Clone("GJetsInvScaleFactors_Down");
+  for ( int i = 1; i<GJetsScaleFactor_Down->GetXaxis()->GetNbins()+1; ++i) {
+    for ( int j = 1; j<GJetsScaleFactor_Down->GetYaxis()->GetNbins()+1; ++j) {
+      double gjet = GJetInvNominal->GetBinContent(i,j);
+      double wjet = wInvNominal->GetBinContent(wInvNominal->GetXaxis()->FindFixBin(GJetInvNominal->GetXaxis()->GetBinCenter(i)),
+					       wInvNominal->GetYaxis()->FindFixBin(GJetInvNominal->GetYaxis()->GetBinCenter(j)));            
+      GJetsScaleFactor_Down->SetBinContent(i,j, gjet - (wjet - gjet) );
+      cout << "Bin " << i << " " << j << " : " << gjet << " , " << wjet << " , " <<  gjet - (wjet - gjet) << "\n";
+    }
+  }
+
+  TFile *outf = new TFile("RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","UPDATE");
+  outf->WriteTObject(ttbarNominal);
+  outf->WriteTObject(ttbarUp);
+  outf->WriteTObject(ttbarDown);
+  outf->WriteTObject(wNominal);
+  outf->WriteTObject(wUp);
+  outf->WriteTObject(wDown);
+  outf->WriteTObject(wInvNominal);
+  outf->WriteTObject(wInvUp);
+  outf->WriteTObject(wInvDown);
+  outf->WriteTObject(GJetInvNominal);
+  outf->WriteTObject(GJetsScaleFactor_Down);
+  outf->Close();
+  
+
 }
 
 
 
 void plotScaleFactorHistograms() {
 
-  plotScaleFactor();
-  //plotGJetsScaleFactorSystematics();
+  //plotScaleFactor();
+  plotGJetsScaleFactorSystematics();
 
 }
