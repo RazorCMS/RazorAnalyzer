@@ -64,6 +64,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
             for iz in range(1,len(z)):
                 iBinX+=1
                 emptyHist3D.SetBinContent(ix,iy,iz,1.)
+                emptyHist3D.SetBinError(ix,iy,iz,0.)
                 w.var('MR').setVal(emptyHist3D.GetXaxis().GetBinCenter(ix))
                 w.var('Rsq').setVal(emptyHist3D.GetYaxis().GetBinCenter(iy))
                 w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz)) 
@@ -85,8 +86,20 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
             for myvar in mylist:
                 if w.var(myvar)!=None:
                     arglist.append(w.var(myvar))
-                else:
+                elif w.function(myvar)!=None:
                     arglist.append(w.function(myvar))
+                elif 'pars_' in myvar:
+                        parlist = rt.RooArgList(myvar)
+                        listdef = ''
+                        for iBinX in range(0,maxBins):
+                            if w.var('par%i_MultiJet'%(iBinX))!=None:
+                                parlist.add(w.var('par%i_%s'%(iBinX,box)))
+                            else:                                
+                                w.factory('par%i_%s[0.]'%(iBinX,box))
+                                parlist.add(w.var('par%i_%s'%(iBinX,box)))
+                        rootTools.Utils.importToWS(w,parlist)
+                        arglist.append(parlist)
+                        
             args = tuple(arglist)
             pdf = getattr(rt,myclass)(*args)
             if hasattr(pdf,'setTH3Binning'):

@@ -14,6 +14,7 @@
 #pragma link C++ defined_in "RooRazor3DBinNumericRsqTurnOffPdf.h";
 #pragma link C++ defined_in "RooRazor3DBinNumericMRSlopePdf.h";
 #pragma link C++ defined_in "RooRazor3DBinMRSlopePdf.h";
+#pragma link C++ defined_in "RooRazor3DBinMRSlopeErrorPdf.h";
 #pragma link C++ defined_in "RooBTagMult.h";
 #pragma link C++ defined_in "RooSigmoid.h";
 #pragma link C++ defined_in "MLMixedSample.h";
