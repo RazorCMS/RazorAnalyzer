@@ -49,9 +49,10 @@ def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0):
 
 
 def fix_hist_byhand(hist, model, box, clsType):
-    if clsType in 'Obs':
+    if 'Obs' in clsType:
         for (mg,mchi) in gchipairs(model):            
-            obs = xsecUL['Obs'].GetBinContent(xsecUL['Obs'].FindBin(mg,mchi))
+            #obs = xsecUL['Obs'].GetBinContent(xsecUL['Obs'].FindBin(mg,mchi))
+            obs = hist.GetBinContent(hist.FindBin(mg,mchi))
             exp = xsecUL['Exp'].GetBinContent(xsecUL['Exp'].FindBin(mg,mchi))
             expPlus2 = xsecUL['ExpPlus2'].GetBinContent(xsecUL['ExpPlus2'].FindBin(mg,mchi))
             expPlus = xsecUL['ExpPlus'].GetBinContent(xsecUL['ExpPlus'].FindBin(mg,mchi))
@@ -59,13 +60,34 @@ def fix_hist_byhand(hist, model, box, clsType):
             expMinus2 = xsecUL['ExpMinus2'].GetBinContent(xsecUL['ExpMinus2'].FindBin(mg,mchi))
             if hist.GetBinContent(hist.FindBin(mg,mchi))==0:
                 if (mg,mchi) not in toFix:                
-                    print "empty:", mg, mchi
+                    #print "empty:", mg, mchi
                     toFix.append((mg,mchi))
-            elif obs<expPlus or obs>expMinus:
-                #hist.SetBinContent(hist.FindBin(mg,mchi),0)
+            elif obs<expPlus2 or obs>expMinus2:
+                hist.SetBinContent(hist.FindBin(mg,mchi),0)
                 if (mg,mchi) not in toFix:
-                    print "outside 1s:", mg, mchi
+                    #print "outside 1s:", mg, mchi
                     toFix.append((mg,mchi))
+
+        if model == "T1tttt" and box == "MultiJet":
+             hist.SetBinContent(hist.FindBin(975,700),0)            
+        ## if model == "T1tttt" and box == "MuMultiJet_EleMultiJet":
+        ##     hist.SetBinContent(hist.FindBin(950,600),0)
+        ##     hist.SetBinContent(hist.FindBin(1400,700),0)
+        ##     hist.SetBinContent(hist.FindBin(1500,300),0)
+        ##     hist.SetBinContent(hist.FindBin(1800,300),0)
+        ##     hist.SetBinContent(hist.FindBin(1850,50),0)
+        ##     hist.SetBinContent(hist.FindBin(850,300),0)
+        ##     hist.SetBinContent(hist.FindBin(1900,850),0)
+        ## if model == "T1tttt" and box == "MuMultiJet_EleMultiJet_MultiJet":
+        ##     hist.SetBinContent(hist.FindBin(1700,0),0)
+        ##     hist.SetBinContent(hist.FindBin(700,200),0)
+        ##     hist.SetBinContent(hist.FindBin(900,200),0)
+        ##     hist.SetBinContent(hist.FindBin(1100,400),0)
+        ##     hist.SetBinContent(hist.FindBin(1200,100),0)
+        ##     hist.SetBinContent(hist.FindBin(1200,400),0)
+        ##     hist.SetBinContent(hist.FindBin(1200,750),0)
+        ##     hist.SetBinContent(hist.FindBin(1250,875),0)
+                
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:
@@ -195,7 +217,7 @@ def getModelSettings(model):
         smoothing = 50
     elif model=="T1tttt":
         mgMin = 600.-12.5
-        mgMax = 1950.+12.5
+        mgMax = 2000.+12.5
         mchiMin = 0.-12.5
         mchiMax = 1450.+12.5 
         binWidth = 25
@@ -203,7 +225,7 @@ def getModelSettings(model):
         xsecMin = 1.e-3
         xsecMax = 10.
         diagonalOffset = 225+12.5
-        smoothing = 100
+        smoothing = 200
     elif model=="T1qqqq":
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
@@ -293,7 +315,7 @@ if __name__ == '__main__':
         
         # do swiss cross average in real domain
         rebinXsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        #rebinXsecUL[clsType] = xsecUL[clsType]
+        #rebinXsecUL[clsType] = xsecUL[clsType].Clone()
 
         # do scipy multi-quadratic interpolation in log domain
         rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
@@ -409,7 +431,7 @@ if __name__ == '__main__':
         contourFinal[clsType].SetName("%s_%s_%s"%(clsType,model,box))
         
         c.SetLogz(1)
-        c.Print("%s_INTERP_%s_%s.pdf"%(model,box,clsType))
+        c.Print("%s/%s_INTERP_%s_%s.pdf"%(directory,model,box,clsType))
 
     outFile = rt.TFile.Open("%s/%s_%s_results.root"%(directory,model,box),"recreate")
     for clsType in clsTypes:
@@ -470,5 +492,6 @@ if __name__ == '__main__':
     smoothXsecTree.Write()
     smoothOutFile.Close()
 
-    #print len(toFix), "points to fix"
-    #print toFix
+    print len(gchipairs(model)), "total points"
+    print len(toFix), "points to fix"
+    print toFix

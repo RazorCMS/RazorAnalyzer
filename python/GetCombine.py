@@ -155,6 +155,12 @@ if __name__ == '__main__':
             if not glob.glob(getFileName("higgsCombine",mg,mchi,boxInput,model,lumi,btag,directory,"Asymptotic",0)): continue
             print "INFO: opening %s"%(getFileName("higgsCombine",mg,mchi,boxInput,model,lumi,btag,directory,"Asymptotic",0))
             tFile = rt.TFile.Open(getFileName("higgsCombine",mg,mchi,boxInput,model,lumi,btag,directory,"Asymptotic",0))
+
+        try:
+            if tFile.InheritsFrom("TFile") is False:
+                continue
+        except:
+            continue
             
         limit = tFile.Get("limit")
         try:
