@@ -6,16 +6,16 @@ void doCopy() {
   TFile *inf4 = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
   TFile *outf = new TFile("RazorScaleFactors_Inclusive_NEW.root","RECREATE");
 
-  TH2F *ttbarNominal = (TH2F*)inf->Get("TTJetsScaleFactors");
-  TH2F *ttbarUp = (TH2F*)inf->Get("TTJetsScaleFactorsUp");
-  TH2F *ttbarDown = (TH2F*)inf->Get("TTJetsScaleFactorsDown");
-  TH2F *wNominal = (TH2F*)inf2->Get("WJetsScaleFactors");
-  TH2F *wUp = (TH2F*)inf2->Get("WJetsScaleFactorsUp");
-  TH2F *wDown = (TH2F*)inf2->Get("WJetsScaleFactorsDown");
-  TH2F *wInvNominal = (TH2F*)inf3->Get("WJetsInvScaleFactors");
-  TH2F *wInvUp = (TH2F*)inf3->Get("WJetsInvScaleFactorsUp");
-  TH2F *wInvDown = (TH2F*)inf3->Get("WJetsInvScaleFactorsDown");
-  TH2F *GJetInvNominal = (TH2F*)inf4->Get("GJetsInvScaleFactors");
+  TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
+  TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
+  TH2Poly *ttbarDown = (TH2Poly*)inf->Get("TTJetsScaleFactorsDown");
+  TH2Poly *wNominal = (TH2Poly*)inf2->Get("WJetsScaleFactors");
+  TH2Poly *wUp = (TH2Poly*)inf2->Get("WJetsScaleFactorsUp");
+  TH2Poly *wDown = (TH2Poly*)inf2->Get("WJetsScaleFactorsDown");
+  TH2Poly *wInvNominal = (TH2Poly*)inf3->Get("WJetsInvScaleFactors");
+  TH2Poly *wInvUp = (TH2Poly*)inf3->Get("WJetsInvScaleFactorsUp");
+  TH2Poly *wInvDown = (TH2Poly*)inf3->Get("WJetsInvScaleFactorsDown");
+  TH2Poly *GJetInvNominal = (TH2Poly*)inf4->Get("GJetsInvScaleFactors");
 
   outf->WriteTObject(ttbarNominal);
   outf->WriteTObject(ttbarUp);
@@ -32,17 +32,14 @@ void doCopy() {
 
 }
 
-void doModify( TH2F *f, double correction, double error) {
+void doModify( TH2Poly *f, double correction, double error) {
   
-  for (int i=0; i<f->GetXaxis()->GetNbins()+2; ++i) {
-    for (int j=0; j<f->GetYaxis()->GetNbins()+2; ++j) {
-      double val = correction*f->GetBinContent(i,j);
-      double err = sqrt( pow( correction*f->GetBinError(i,j) , 2) + pow( error*f->GetBinContent(i,j) , 2) );
-      f->SetBinContent(i,j, val);
-      f->SetBinError(i,j, err);
+    for (int nb = 1; nb < f->GetNumberOfBins()+1; ++nb) {
+      double val = correction*f->GetBinContent(nb);
+      double err = sqrt( pow( correction*f->GetBinError(nb), 2) + pow( error*f->GetBinContent(nb), 2) );
+      f->SetBinContent(nb, val);
+      f->SetBinError(nb-1, err); //work around TH2Poly bug (sets error for the wrong bin)
     }
-  }
-  
 }
 
 void addMultiJetCorrection() {
@@ -51,16 +48,26 @@ void addMultiJetCorrection() {
   assert(inf);
   TFile *outf = new TFile("RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","RECREATE");
 
-  TH2F *ttbarNominal = (TH2F*)inf->Get("TTJetsScaleFactors");
-  TH2F *ttbarUp = (TH2F*)inf->Get("TTJetsScaleFactorsUp");
-  TH2F *ttbarDown = (TH2F*)inf->Get("TTJetsScaleFactorsDown");
-  TH2F *wNominal = (TH2F*)inf->Get("WJetsScaleFactors");
-  TH2F *wUp = (TH2F*)inf->Get("WJetsScaleFactorsUp");
-  TH2F *wDown = (TH2F*)inf->Get("WJetsScaleFactorsDown");
-  TH2F *wInvNominal = (TH2F*)inf->Get("WJetsInvScaleFactors");
-  TH2F *wInvUp = (TH2F*)inf->Get("WJetsInvScaleFactorsUp");
-  TH2F *wInvDown = (TH2F*)inf->Get("WJetsInvScaleFactorsDown");
-  TH2F *GJetsInvNominal = (TH2F*)inf->Get("GJetsInvScaleFactors");
+  TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
+  TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
+  TH2Poly *ttbarDown = (TH2Poly*)inf->Get("TTJetsScaleFactorsDown");
+  TH2Poly *wNominal = (TH2Poly*)inf->Get("WJetsScaleFactors");
+  TH2Poly *wUp = (TH2Poly*)inf->Get("WJetsScaleFactorsUp");
+  TH2Poly *wDown = (TH2Poly*)inf->Get("WJetsScaleFactorsDown");
+  TH2Poly *wInvNominal = (TH2Poly*)inf->Get("WJetsInvScaleFactors");
+  TH2Poly *wInvUp = (TH2Poly*)inf->Get("WJetsInvScaleFactorsUp");
+  TH2Poly *wInvDown = (TH2Poly*)inf->Get("WJetsInvScaleFactorsDown");
+  TH2Poly *GJetsInvNominal = (TH2Poly*)inf->Get("GJetsInvScaleFactors");
+
+  ttbarNominal->SetName("TTJetsScaleFactors");
+  ttbarUp->SetName("TTJetsScaleFactorsUp");
+  ttbarDown->SetName("TTJetsScaleFactorsDown");
+  wNominal->SetName("WJetsScaleFactors");
+  wUp->SetName("WJetsScaleFactorsUp");
+  wDown->SetName("WJetsScaleFactorsDown");
+  wInvNominal->SetName("WJetsInvScaleFactors");
+  wInvUp->SetName("WJetsScaleInvFactorsUp");
+  wInvDown->SetName("WJetsInvScaleFactorsDown");
 
   doModify(ttbarNominal, 0.9, 0.1);
   doModify(ttbarUp, 0.9, 0.1);

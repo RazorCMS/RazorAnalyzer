@@ -24,12 +24,45 @@
 #include <TCanvas.h>                
 #include <TLegend.h> 
 #include <THStack.h> 
+#include <TH2Poly.h>
 
 #include "RazorAnalyzer/include/ControlSampleEvents.h"
 #include "RazorAnalyzer/macros/tdrstyle.C"
 #include "RazorAnalyzer/macros/CMS_lumi.C"
 
 #endif
+
+TH2Poly* MakeTH2PolyForGJets(string name){
+
+    vector<double> MRBins;
+    MRBins.push_back(400);
+    MRBins.push_back(500);
+    MRBins.push_back(600); 
+    MRBins.push_back(700);
+    MRBins.push_back(900);
+    MRBins.push_back(1200);
+    MRBins.push_back(4000);
+
+    vector< vector<double> > RsqBins(MRBins.size()-1);
+    for (unsigned int i = 0; i < 6; i++){
+        RsqBins[i].push_back(0.25); 
+        RsqBins[i].push_back(0.3); 
+        RsqBins[i].push_back(0.41); 
+        RsqBins[i].push_back(0.52);
+        if(i < 4) RsqBins[i].push_back(0.64); 
+        RsqBins[i].push_back(1.5); 
+    }
+
+    TH2Poly *gjets = new TH2Poly(name.c_str(), name.c_str(), 400, 4000, 0.25, 1.5);
+    for (unsigned int i = 0; i < MRBins.size()-1; ++i) {
+        for (unsigned int j = 0; j < RsqBins[i].size()-1; ++j) {
+            gjets->AddBin( MRBins[i], RsqBins[i][j], MRBins[i+1], RsqBins[i][j+1]);
+        }
+    }
+    gjets->Sumw2();
+    return gjets;
+
+}
 
 void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label ) {
 
@@ -532,9 +565,13 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //==============================================================================================================
   if ( SFOption == 0 ) {
 
-    TH2F* HistSF = (TH2F*)histMRVsRsq[0]->Clone("GJetsInvScaleFactors");
-    TH2F* HistSFUp = (TH2F*)histMRVsRsq[0]->Clone("GJetsInvScaleFactorsUp");
-    TH2F* HistSFDown = (TH2F*)histMRVsRsq[0]->Clone("GJetsInvScaleFactorsDown");
+    //construct 2D histograms for data and MC yields
+    TH2F* TmpHist = (TH2F*)histMRVsRsq[0]->Clone("ForBinning");
+
+    //construct TH2Poly histogram for scale factors
+    TH2Poly *SFNum = MakeTH2PolyForGJets("SFNum"); //numerator
+    TH2Poly *SFDenom = MakeTH2PolyForGJets("SFDenom"); //denominator 
+    TH2Poly *HistSF = MakeTH2PolyForGJets("GJetsInvScaleFactors"); //numerator/denominator
 
     for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
     
@@ -576,22 +613,42 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
      
       double N_dataMinusBkg = N_data - N_QCD - N_GJetsFrag - NErr_Other;
       double NErr_dataMinusBkg = sqrt( N_data + pow(NErr_QCD,2) + pow(NErr_GJetsFrag,2) + pow( NErr_Other, 2));
+
+      //get bin number in TH2Poly
+      double centerX = TmpHist->GetXaxis()->GetBinCenter(bin_i);
+      double centerY = TmpHist->GetYaxis()->GetBinCenter(bin_j);
+      int binNum = HistSF->FindBin(centerX, centerY);
+
+      //fill TH2Polys 
+      SFNum->SetBinContent(binNum, SFNum->GetBinContent(binNum) + N_dataMinusBkg); //add to yield
+      SFNum->SetBinError(binNum-1, sqrt( pow(SFNum->GetBinError(binNum), 2) + pow(NErr_dataMinusBkg, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
+      SFDenom->SetBinContent(binNum, SFDenom->GetBinContent(binNum) + N_GJetsDirect); //add to yield
+      SFDenom->SetBinError(binNum-1, sqrt( pow(SFDenom->GetBinError(binNum), 2) + pow(NErr_GJetsDirect, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
+
       double SF = N_dataMinusBkg / N_GJetsDirect;
       double SFErr = sqrt( ( pow(NErr_dataMinusBkg,2) * pow(N_GJetsDirect,2) + pow(NErr_GJetsDirect,2)*pow(N_dataMinusBkg,2)) / (pow(N_GJetsDirect,4)));
 
       cout << "Data-Bkg : " << N_dataMinusBkg << " +/- " << NErr_dataMinusBkg << "\n";
       cout << "MC (GJets) : " << N_GJetsDirect << " +/- " << NErr_GJetsDirect << "\n";
-      cout << "SF : " << SF << " +/- " << SFErr << "\n";
       cout << "\n\n";
-
-      HistSF->SetBinContent( bin_i, bin_j, SF);
-      HistSF->SetBinError( bin_i, bin_j, SFErr);
-
     }
-  
+
+    //fill scale factors and uncertainties
+    for (int nb = 1; nb < HistSF->GetNumberOfBins()+1; ++nb) {
+        if (SFDenom->GetBinContent(nb) != 0) {
+            HistSF->SetBinContent(nb, SFNum->GetBinContent(nb) / SFDenom->GetBinContent(nb));
+            //NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1!!
+            HistSF->SetBinError(nb-1, sqrt( 
+                pow( SFNum->GetBinError(nb)/SFDenom->GetBinContent(nb), 2 ) + 
+                pow( SFDenom->GetBinError(nb)*SFNum->GetBinContent(nb)/pow(SFDenom->GetBinContent(nb), 2), 2) ) );
+        }
+    }
+
     TFile *SFFile = TFile::Open("RazorScaleFactors_GJets.root", "UPDATE");
     SFFile->WriteTObject(HistSF, "GJetsInvScaleFactors", "WriteDelete");
     SFFile->Close();
+
+    delete HistSF;
   }
 
   if ( SFOption == 1 ) {
@@ -824,9 +881,9 @@ void SelectPhotonControlSample( int option = 0) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
+    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
   } else {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root");     
+    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root");     
   }
 
   vector<string> bkgfiles_gjets;
@@ -835,19 +892,19 @@ void SelectPhotonControlSample( int option = 0) {
   vector<string> bkgfiles_other;
 
   if (option >= 10) {
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
+    bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
   } else {
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_gjetsFrag.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root"); 
-    bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_gjetsFrag.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root"); 
+    bkgfiles_other.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
   }
    
 
