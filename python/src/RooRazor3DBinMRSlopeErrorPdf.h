@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
-#ifndef ROO_Razor3DBinErrorPdf
-#define ROO_Razor3DBinErrorPdf
+#ifndef ROO_Razor3DBinMRSlopeErrorPdf
+#define ROO_Razor3DBinMRSlopeErrorPdf
 //---------------------------------------------------------------------------
 #include "RooAbsPdf.h"
 #include "RooConstVar.h"
@@ -16,21 +16,21 @@ class RooAbsReal;
 #include "Math/SpecFuncMathMore.h"
 
 //---------------------------------------------------------------------------
-class RooRazor3DBinErrorPdf : public RooAbsPdf
+class RooRazor3DBinMRSlopeErrorPdf : public RooAbsPdf
 {
 public:
-   RooRazor3DBinErrorPdf() {} ;
-   RooRazor3DBinErrorPdf(const char *name, const char *title,
+   RooRazor3DBinMRSlopeErrorPdf() {} ;
+   RooRazor3DBinMRSlopeErrorPdf(const char *name, const char *title,
 		    RooAbsReal& _th1x,
 		    RooAbsReal& _x0, RooAbsReal& _y0,
-		    RooAbsReal& _b, RooAbsReal& _n,
-			 RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut, RooArgList& _pars);
+		    RooAbsReal& _b, RooAbsReal& _n, RooAbsReal& _x1,
+			   RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut, RooArgList& _pars);
      //TH3* _Hnominal);
-   RooRazor3DBinErrorPdf(const RooRazor3DBinErrorPdf& other,
+   RooRazor3DBinMRSlopeErrorPdf(const RooRazor3DBinMRSlopeErrorPdf& other,
       const char* name = 0);
    void setTH3Binning(TH3* _Hnominal);
-   virtual TObject* clone(const char* newname) const { return new RooRazor3DBinErrorPdf(*this,newname); }
-   inline virtual ~RooRazor3DBinErrorPdf() { }
+   virtual TObject* clone(const char* newname) const { return new RooRazor3DBinMRSlopeErrorPdf(*this,newname); }
+   inline virtual ~RooRazor3DBinMRSlopeErrorPdf() { }
 
    Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const;
    Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const;
@@ -60,6 +60,7 @@ protected:
    RooRealProxy Y0;       // Y offset
    RooRealProxy B;        // shape parameter
    RooRealProxy N;        // shape parameter
+   RooRealProxy X1;        // X slope parameter
    RooRealProxy xCut;        // X cut constant (set pdf to 0 for X < Xcut && Y < Ycut) 
    RooRealProxy yCut;        // Y cut constant (set pdf to 0 for X < Xcut && Y < Ycut) 
    RooRealProxy zCut;        // Z cut constant (set pdf to 0 unless Zut <= Z < Zcut)
@@ -85,7 +86,7 @@ protected:
 
    Double_t evaluate() const;
 private:
-  ClassDef(RooRazor3DBinErrorPdf,1) // Razor2DTail_SYS function
+  ClassDef(RooRazor3DBinMRSlopeErrorPdf,1) // Razor2DTail_SYS function
     
 };
 //---------------------------------------------------------------------------
