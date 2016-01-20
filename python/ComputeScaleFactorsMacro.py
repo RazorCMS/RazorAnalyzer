@@ -56,6 +56,39 @@ FILENAMES_1L_INV = {
             "Data"     : DIR_1L_INV+"/"+PREFIX_1L_INV+"_SingleLepton_Run2015D_RazorSkim_GoodLumiGolden_NoDuplicates.root"
             }
 
+#binning for scale factor histograms
+xbinsTTJETS1L = [300, 400, 500, 600, 700, 900, 1200, 4000]
+colsTTJETS1L = [
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
+    [ 0.15, 0.2, 0.25, 1.5 ],
+    ]
+
+xbinsWJETS1L = [300, 400, 500, 600, 700, 900, 1200, 4000]
+colsWJETS1L = [
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.30, 1.5 ],
+    ]
+
+xbinsWJETS1LINV = [300, 400, 500, 600, 700, 900, 1200, 4000]
+colsWJETS1LINV = [
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.30, 0.41, 1.5 ],
+    ]
 
 weightOpts = []
 
@@ -115,37 +148,36 @@ if __name__ == "__main__":
                 bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, sfVars=sfVars, debugLevel=debugLevel)
-    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, printdir=printdir)
+    appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, th2PolyXBins=xbinsTTJETS1L, th2PolyCols=colsTTJETS1L, debugLevel=debugLevel, var=sfVars, printdir=printdir)
 
     ##########################################################
     #WJets control sample
     ##########################################################
-    sfHists_ForWJets = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_TTJets.root", processNames=SAMPLES_WJ1L, debugLevel=debugLevel)
+    #sfHists_ForWJets = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_TTJets.root", processNames=SAMPLES_WJ1L, debugLevel=debugLevel)
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
                 filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
                 cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
                 bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-                weightHists=weightHists, sfHists=sfHists_ForWJets, weightOpts=weightOpts, 
+                weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
-    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var=sfVars, printdir=printdir)
+    appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, th2PolyXBins=xbinsWJETS1L, th2PolyCols=colsWJETS1L, debugLevel=debugLevel, var=sfVars, printdir=printdir)
 
 
     ##########################################################
     #W+Jets Add lepton to MET control sample
     ##########################################################    
-    sfHists_ForWJetsInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_TTJets.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
+    #sfHists_ForWJetsInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_TTJets.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
     wjetsSingleLeptonInvHists = makeControlSampleHists("WJetsSingleLeptonInv", 
                  filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
                  cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
                  bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-                 weightHists=weightHists, sfHists=sfHists_ForWJetsInv, weightOpts=weightOpts, 
+                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                  printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
-    appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
-
+    appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, th2PolyXBins=xbinsWJETS1LINV, th2PolyCols=colsWJETS1LINV, debugLevel=debugLevel, printdir=printdir)
 
     #write scale factors
     outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")
     for name in sfHists:
         print "Writing scale factor histogram",sfHists[name].GetName(),"to file"
-        sfHists[name].Write()
+        sfHists[name].Write(sfHists[name].GetName().replace("Poly",""))
     outfile.Close()

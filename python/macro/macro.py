@@ -10,6 +10,57 @@ from RunCombine import exec_me
 from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D
 from plotting import *
 
+def makeTH2PolyFromColumns(name, title, xbins, cols):
+    """
+    Makes a TH2Poly histogram with rectangular bins. 
+    xbins: list of bin edges in the x-direction.
+    cols: 2D list indicating bin edges in the y-direction for each column
+    """
+    #construct TH2Poly
+    poly = rt.TH2Poly(name, title, xbins[0], xbins[-1], cols[0][0], cols[0][-1])
+    #add bins in each column
+    for i in range(len(xbins)-1):
+        for j in range(len(cols[i])-1):
+            poly.AddBin( xbins[i], cols[i][j], xbins[i+1], cols[i][j+1] )
+
+    poly.SetDirectory(0)
+    poly.Sumw2()
+    return poly
+
+def fillTH2PolyFromTH2(th2, poly):
+    """Fills the given TH2Poly histogram using the bin contents of the given TH2.  If multiple bins in the TH2 map to the same bin in the TH2Poly, the bin contents will be added and the errors will be summed in quadrature."""
+    for bx in range(1, th2.GetNbinsX()+1):
+        for by in range(1, th2.GetNbinsY()+1):
+            #get bin number in TH2Poly
+            centerX = th2.GetXaxis().GetBinCenter(bx)
+            centerY = th2.GetYaxis().GetBinCenter(by)
+            bn = poly.FindBin(centerX, centerY)
+            poly.SetBinContent(bn, poly.GetBinContent(bn) + th2.GetBinContent(bx,by))
+            #NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1. Beware!!!
+            poly.SetBinError(bn-1, ( poly.GetBinError(bn)**2 + th2.GetBinError(bx,by)**2 )**(0.5) )
+            print poly.GetBinError(bn)**2, th2.GetBinError(bx,by)**2
+
+def makeTH2PolyRatioHist(num, denom, xbins, cols):
+    """Makes a TH2Poly using makeTH2PolyFromColumns on the provided numerator and denominator histograms; 
+    then divides the two histograms and propagates uncertainty assuming uncorrelated num. and denom."""
+
+    #make TH2Poly with custom binning
+    numPoly = makeTH2PolyFromColumns( num.GetName()+"Poly", num.GetTitle()+"Poly", xbins, cols)
+    denomPoly = makeTH2PolyFromColumns( denom.GetName()+"Poly", denom.GetTitle()+"Poly", xbins, cols)
+
+    #populate with numerator and denominator histogram bin contents
+    fillTH2PolyFromTH2(num, numPoly) 
+    fillTH2PolyFromTH2(denom, denomPoly)
+
+    #need to divide by hand
+    for bn in range(1, numPoly.GetNumberOfBins()+1):
+        if denomPoly.GetBinContent(bn) != 0:
+            numPoly.SetBinContent(bn, numPoly.GetBinContent(bn)/denomPoly.GetBinContent(bn))
+            #NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1. Beware!!!
+            numPoly.SetBinError(bn-1, ( ( numPoly.GetBinError(bn)/denomPoly.GetBinContent(bn) )**2 + ( denomPoly.GetBinError(bn)*numPoly.GetBinContent(bn)/(denomPoly.GetBinContent(bn))**2 )**2 )**(0.5) )
+
+    return numPoly
+
 def blindHistograms(histList, blindBins):
     """blindBins should be a list of ordered pairs corresponding to bin coordinates.
     Sets blinded bin contents to -999."""
@@ -362,8 +413,14 @@ def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debug
     if len(var) > 2:
         var[2] = min(var[2], sfHist.GetZaxis().GetXmax()*0.999)
         var[2] = max(var[2], sfHist.GetZaxis().GetXmin()*1.001)
-    scaleFactor = sfHist.GetBinContent(sfHist.FindFixBin(*var))
-    scaleFactorErr = sfHist.GetBinError(sfHist.FindFixBin(*var))
+    #TH2Poly case
+    if sfHist.InheritsFrom('TH2Poly'):
+        scaleFactor = sfHist.GetBinContent(sfHist.FindBin(*var))
+        scaleFactorErr = sfHist.GetBinError(sfHist.FindBin(*var))
+    #TH2F case
+    else:
+        scaleFactor = sfHist.GetBinContent(sfHist.FindFixBin(*var))
+        scaleFactorErr = sfHist.GetBinError(sfHist.FindFixBin(*var))
 
     #add protection against unphysics scale factors
     #if scale factor is 0, then use scale factor of 1 and add 100% systematic uncertainty
@@ -374,7 +431,7 @@ def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debug
     if scaleFactor > 2.0:
         scaleFactorErr = math.sqrt( (scaleFactor-1)*(scaleFactor-1) + scaleFactorErr*scaleFactorErr )
         scaleFactor = 1.0        
-    #protect against NaN uncertainties from histogram division
+    #protect against NaN uncertainties
     if math.isnan(scaleFactorErr):
         scaleFactorErr = 0.0
 

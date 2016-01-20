@@ -371,7 +371,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
     if savec: c.Print(printdir+'/'+printstr+".C")
 
 
-def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, printdir='.'):
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.'):
     """Draw a single 2D histogram and print to file"""
     if palette == "FF":
         setFFColors(hist, -5.1, 5.1)
@@ -401,10 +401,10 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
         for g in grayGraphs: g.Draw("f")
     if dotext:
         rt.gStyle.SetPaintTextFormat('4.%df' % numDigits)
-        hist.SetMarkerSize(2.0)
+        hist.SetMarkerSize(textSize)
         if not drawErrs: hist.Draw('textsame')
         else: 
-            hist.SetMarkerSize(1.0)
+            hist.SetMarkerSize(textSize-1)
             hist.Draw('textesame')
     #add LaTeX 
     t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
@@ -690,8 +690,8 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 ratiomaxToUse = 5
             else:
                 pad2OptToUse = 'ratio'
-                ratiominToUse= 0.5
-                ratiomaxToUse=1.5
+                ratiominToUse= 0.0
+                ratiomaxToUse=5.0
             plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiominToUse, ratiomax=ratiomaxToUse, pad2Opt=pad2OptToUse, saveroot=True, savec=savec, mcErrColor=rt.kBlack, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
     if data:
         draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)

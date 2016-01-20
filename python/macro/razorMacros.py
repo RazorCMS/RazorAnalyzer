@@ -236,7 +236,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -247,6 +247,12 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
     uncerts = []
     obses = []
     nsigmas = []
+    mcs = []
+    mcErrs = []
+    totalMCErrs = []
+    for m in mcNames:
+        mcs.append([])
+        mcErrs.append([])
     #for each bin, get values for all table columns
     for bx in range(1, pred.GetNbinsX()+1):
         for by in range(1, pred.GetNbinsY()+1):
@@ -259,21 +265,52 @@ def makeRazor2DTable(pred, obs, nsigma, boxName, btags=-1):
             uncert = pred.GetBinError(bx,by)
             preds.append('%.2f' % (prediction))
             uncerts.append('%.2f' % (uncert))
-            observed = obs.GetBinContent(bx,by)
-            obses.append('%.2f' % (observed))
-            nsig = nsigma.GetBinContent(bx,by)
-            nsigmas.append('%.2f' % (nsig))
+            if obs is not None: 
+                observed = obs.GetBinContent(bx,by)
+                obses.append('%.2f' % (observed))
+            if nsigma is not None:
+                nsig = nsigma.GetBinContent(bx,by)
+                nsigmas.append('%.2f' % (nsig))
+            totalMCErr = 0.0
+            for i in range(len(mcNames)):
+                mcs[i].append('%.2f' % (mcHists[i].GetBinContent(bx,by)))
+                mcErrs[i].append('%.2f' % (mcHists[i].GetBinError(bx,by)))
+                totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
+            if len(mcNames) > 0:
+                totalMCErrs.append(totalMCErr)
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
-    caption = "Comparison of observed and expected event yields for the "+boxName+" box"
+    caption = "Comparison of event yields for the "+boxName+" box"
     if btags >= 0:
-        headers=["$M_R$", "$R^2$", "B-tags", "Prediction", "Uncertainty", "Observed", "Number of sigmas"]
-        cols = [xRanges, yRanges, zRanges, preds, uncerts, obses, nsigmas]
+        headers=["$M_R$", "$R^2$", "B-tags"]
+        cols = [xRanges, yRanges, zRanges]
+        if obs is not None: 
+            cols.append(obses)
+            headers.append("Observed")
+        headers = headers + ["Fit Prediction", "Fit Uncertainty"]
+        cols = cols + [preds, uncerts]
+        if nsigma is not None: 
+            cols.append(nsigmas)
+            headers.append("Number of sigmas")
         caption += " ("+str(btags)+" b-tags)"
     else:
-        headers=["$M_R$", "$R^2$", "Prediction", "Uncertainty", "Observed", "Number of sigmas"]
-        cols = [xRanges, yRanges, preds, uncerts, obses, nsigmas]
+        headers=["$M_R$", "$R^2$"]
+        cols = [xRanges, yRanges]
+        if obs is not None:
+            cols.append(obses)
+            headers.append("Observed")
+        headers = headers + ["Fit Prediction", "Fit Uncertainty"]
+        cols = cols + [preds, uncerts]
+        if nsigma is not None: 
+            cols.append(nsigmas)
+            headers.append("Number of sigmas")
+    for i,name in enumerate(mcNames):
+        headers.append(name)
+        cols.append(mcs[i])
+    if len(mcNames) > 0:
+        headers.append("MC Uncertainty")
+        cols.append(totalMCErr)
     plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag")
 
 ###########################################
@@ -399,15 +436,17 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #optionally compare with fit
     nsigmaFitData = None
     nsigmaFitMC = None
-    if fitToyFiles and "MR" in bins and "Rsq" in bins:
+    dataForTable = None
+    if fitToyFiles and ("MR","Rsq") in bins:
         noFitStat=True
         print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
         import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
         if dataName in hists: 
-            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
             print "Making nsigma histogram using data and fit prediction"
-            makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=hists[dataName][("MR","Rsq")],
-                    nsigma=nsigmaFitData, boxName=boxName, btags=btags)
+            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
+            dataForTable=hists[dataName][("MR","Rsq")]
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags)
 
         if len(samples) > 0: #compare fit with MC
             pass
@@ -431,7 +470,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
 #######################################
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, signifThreshold=0., debugLevel=0, printdir="."):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, signifThreshold=0., th2PolyXBins=None, th2PolyCols=None, debugLevel=0, printdir="."):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to uncertainty on the background normalization (controlled by the normErrFraction argument).
     
@@ -441,6 +480,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     sfHists: dictionary of existing scale factor histograms. the new scale factor histograms will be inserted into this dictionary.
     var: variable or tuple of variables in which scale factors should be computed (usually ("MR","Rsq") is used)
     signifThreshold: scale factors that are within N sigma of 1.0, where N=signifThreshold, are set to 1.
+    th2PolyXBins, th2PolyCols: if non-grid binning is desired, provide here the binning for a TH2Poly with rectangular bins.  th2PolyXBins should be a list of bin edges in the x-direction.  th2PolyCols should be a list of lists containing bin low edges in the y-direction for each x-bin.
     """
 
     ##Sanity checks
@@ -526,51 +566,76 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     #save yields for debugging
     dataDebugSubtr = sfHists[process].Clone()
 
-    #divide data/MC
-    if not doTotalMC:
-        sfHists[process].Divide(hists[process][var])
-        sfHists[process+"NormUp"].Divide(hists[process][var])
-        sfHists[process+"NormDown"].Divide(hists[process][var])
+    ###################### TH2Poly Case
+    if th2PolyXBins is not None and th2PolyCols is not None: 
+        print "Converting TH2 to TH2Poly"
+        sfHists[process] = macro.makeTH2PolyRatioHist(sfHists[process], hists[process][var], th2PolyXBins, th2PolyCols)
+        sfHists[process+"NormUp"] = macro.makeTH2PolyRatioHist(sfHists[process+"NormUp"], hists[process][var], th2PolyXBins, th2PolyCols)
+        sfHists[process+"NormDown"] = macro.makeTH2PolyRatioHist(sfHists[process+"NormDown"], hists[process][var], th2PolyXBins, th2PolyCols)
+        #zero any negative scale factors
+        for bn in range(1, sfHists[process].GetNumberOfBins()+1):
+            sfHists[process].SetBinContent(bn, max(0., sfHists[process].GetBinContent(bn)))
+            sfHists[process+"NormUp"].SetBinContent(bn, max(0., sfHists[process+"NormUp"].GetBinContent(bn)))
+            sfHists[process+"NormDown"].SetBinContent(bn, max(0., sfHists[process+"NormDown"].GetBinContent(bn)))
+        #suppress scale factors consistent with 1
+        if signifThreshold > 0:
+            print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
+            for bn in range(1, sfHists[process].GetNumberOfBins()+1):
+                if sfHists[process].GetBinError(bn) == 0: continue
+                nsigma = abs(sfHists[process].GetBinContent(bn)-1.0)/sfHists[process].GetBinError(bn)
+                if nsigma < signifThreshold: 
+                    sfHists[process].SetBinContent(bn,1.0)
+                    #NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1. Beware!!!
+                    sfHists[process].SetBinError(bn-1,0.0)
+
+    ###################### Ordinary TH2 Case
     else:
-        sfHists[process].Divide(mcTotal)
-        sfHists[process+"NormUp"].Divide(mcTotalUp)
-        sfHists[process+"NormDown"].Divide(mcTotalDown)
+        #divide data/MC
+        if not doTotalMC:
+            sfHists[process].Divide(hists[process][var])
+            sfHists[process+"NormUp"].Divide(hists[process][var])
+            sfHists[process+"NormDown"].Divide(hists[process][var])
+        else:
+            sfHists[process].Divide(mcTotal)
+            sfHists[process+"NormUp"].Divide(mcTotalUp)
+            sfHists[process+"NormDown"].Divide(mcTotalDown)
+        #save yields for debugging 
+        dataDebugRatio = sfHists[process].Clone()
 
-    #save yields for debugging 
-    dataDebugRatio = sfHists[process].Clone()
-
-    #zero any negative scale factors
-    for bx in range(sfHists[process].GetSize()+1):
-        sfHists[process].SetBinContent(bx,max(0., sfHists[process].GetBinContent(bx)))
-        sfHists[process+"NormUp"].SetBinContent(bx,max(0., sfHists[process+"NormUp"].GetBinContent(bx)))
-        sfHists[process+"NormDown"].SetBinContent(bx,max(0., sfHists[process+"NormDown"].GetBinContent(bx)))
-
-    #suppress scale factors consistent with 1
-    if signifThreshold > 0:
-        print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
+        #zero any negative scale factors
         for bx in range(sfHists[process].GetSize()+1):
-            if sfHists[process].GetBinError(bx) == 0: continue
-            nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/sfHists[process].GetBinError(bx)
-            if nsigma < signifThreshold: 
-                sfHists[process].SetBinContent(bx,1.0)
-                sfHists[process].SetBinError(bx,0.0)
+            sfHists[process].SetBinContent(bx,max(0., sfHists[process].GetBinContent(bx)))
+            sfHists[process+"NormUp"].SetBinContent(bx,max(0., sfHists[process+"NormUp"].GetBinContent(bx)))
+            sfHists[process+"NormDown"].SetBinContent(bx,max(0., sfHists[process+"NormDown"].GetBinContent(bx)))
 
-    if debugLevel > 0:
-        print "Printing scale factor calculation in each bin:"
-        for bx in range(sfHists[process].GetSize()+1):
-            print "Bin",bx,":"
-            print "   Data yield:     %.0f"%(dataDebug.GetBinContent(bx))
-            print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx)-dataDebugSubtr.GetBinContent(bx))
-            print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx),dataDebugSubtr.GetBinContent(bx),hists[process][var].GetBinContent(bx))
-        print "\nScale factor histograms after adding",process,":"
-        print sfHists
+        #suppress scale factors consistent with 1
+        if signifThreshold > 0:
+            print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
+            for bx in range(sfHists[process].GetSize()+1):
+                if sfHists[process].GetBinError(bx) == 0: continue
+                nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/sfHists[process].GetBinError(bx)
+                if nsigma < signifThreshold: 
+                    sfHists[process].SetBinContent(bx,1.0)
+                    sfHists[process].SetBinError(bx,0.0)
+
+        if debugLevel > 0:
+            print "Printing scale factor calculation in each bin:"
+            for bx in range(sfHists[process].GetSize()+1):
+                print "Bin",bx,":"
+                print "   Data yield:     %.0f +/- %.2f"%(dataDebug.GetBinContent(bx),dataDebug.GetBinError(bx))
+                print "   Bkg subtracted: %.2f"%(dataDebug.GetBinContent(bx)-dataDebugSubtr.GetBinContent(bx))
+                print "   Error on BG-subtracted data: %.2f"%(dataDebugSubtr.GetBinError(bx))
+                print "   Scale factor:   %.2f = %.2f / %.2f"%(dataDebugRatio.GetBinContent(bx),dataDebugSubtr.GetBinContent(bx),hists[process][var].GetBinContent(bx))
+                print "   Error on scale factor:   %.2f"%(dataDebugRatio.GetBinError(bx))
+            print "\nScale factor histograms after adding",process,":"
+            print sfHists
 
     #plot scale factors in 2D (not yet implemented for 1 or 3 dimensions)
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
     if not isinstance(var, basestring) and len(var) == 2: 
         plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
-        if printTable and not doTotalMC:
+        if printTable and not doTotalMC and not th2PolyXBins:
             xbinLowEdges = []
             xbinUpEdges = []
             ybinLowEdges = []
