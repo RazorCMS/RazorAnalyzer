@@ -50,7 +50,7 @@ TOYS_FILES = {
 
 weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
-commonShapeErrors += [('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
+commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
@@ -71,11 +71,13 @@ dirName="SignalRegionPlots"
 #scale factor file names
 sfdir = "data/ScaleFactors/RazorMADD2015/"
 sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
+gjetsupdownFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
 vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck.root'
 vetotauFile = sfdir+'/RazorVetoTauCrossCheck.root'
 ttFile = sfdir+'/TTBarDileptonSystematic.root'
 dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck.root'
 btagFile = sfdir+'/RazorBTagClosureTests.root'
+invbtagFile = sfdir+'/RazorZNuNuBTagClosureTests.root'
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -117,20 +119,22 @@ if __name__ == "__main__":
     #make output directory
     os.system('mkdir -p '+dirName)
 
+    ####LOAD ALL SCALE FACTOR HISTOGRAMS
+
     #get scale factor histograms
     sfNames={
             "ZInv":"GJetsInv",
             "TTJets1L":"TTJets",
             "TTJets2L":"TTJets",
-            "ZInvUp":"WJetsInv" #interpolate between GJets and WJets estimates for ZInv scale factors
             }
     sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC+['ZInvUp'], scaleFactorNames=sfNames, debugLevel=debugLevel)
     for name in sfHists: assert sfHists[name]
-
-    #get 'down' histogram for wjetsinv/gjets scale factor comparison
-    sfHists['ZInvDown'] = sfHists['ZInv'].Clone('WJetsInvScaleFactorsDownFromGJetsInv')
-    #TODO: interpolate down from GJets scale factor hist using WJetsInv scale factors (right now hists have diff. sizes)
-
+    #get histograms for wjetsinv/gjets scale factor comparison
+    gjetsupdownTFile = rt.TFile.Open(gjetsupdownFile)
+    sfHists['ZInvUp'] = gjetsupdownTFile.Get('WJetsInvScaleFactors')
+    sfHists['ZInvDown'] = gjetsfile.Get('GJetsInvScaleFactors_Down') #down scale factors are (gjets - (wjets-gjets))
+    assert sfHists['ZInvUp']
+    assert sfHists['ZInvDown']
     #get veto lepton and tau scale factor histograms
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
     vlfile = rt.TFile.Open(vetolepFile)
@@ -168,6 +172,15 @@ if __name__ == "__main__":
         assert sfHists['Rsq'+bs+'BUp']
         sfHists['MR'+bs+'BDown'] = invertHistogram(sfHists['MR'+bs+'BUp'])
         sfHists['Rsq'+bs+'BDown'] = invertHistogram(sfHists['Rsq'+bs+'BUp'])
+    #get ZInv b-tag cross check histogram
+    invbtagTFile = rt.TFile.Open(invbtagFile)
+    sfHists['ZInvBUp'] = invbtagTFile.Get('ZNuNuBTagClosureSysUnc')
+    assert sfHists['ZInvBUp']
+    #convert to correct SF histogram format
+    for nb in range(sfHists['ZInvBUp'].GetSize()+1):
+        sfHists['ZInvBUp'].SetBinContent( nb, sfHists['ZInvBUp'].GetBinContent(nb)+1.0 )
+    #get 'down' version of histogram
+    sfHists['ZInvBDown'] = invertHistogram(sfHists['ZInvBUp'])
 
     auxSFs = { 
         "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
