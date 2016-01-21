@@ -322,7 +322,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     int nVetoMuons, nTightMuons, nVetoElectrons, nTightElectrons, nLooseTaus;
     float met, HT;
     float leadingGenLeptonPt;
+    float leadingGenLeptonEta;
     int   leadingGenLeptonType;
+    float subLeadingGenLeptonEta;
     float subLeadingGenLeptonPt;
     int   subLeadingGenLeptonType;
     //SMS parameters 
@@ -375,8 +377,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
 	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
+	razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
 	razorTree->Branch("leadingGenLeptonType", &leadingGenLeptonType, "leadingGenLeptonType/I");
 	razorTree->Branch("subLeadingGenLeptonPt", &subLeadingGenLeptonPt, "subLeadingGenLeptonPt/F");
+	razorTree->Branch("subLeadingGenLeptonEta", &subLeadingGenLeptonEta, "subLeadingGenLeptonEta/F");
 	razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
@@ -557,8 +561,10 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         nLooseTaus = 0;
         if(!isData){
 	    leadingGenLeptonPt = -9;
+	    leadingGenLeptonEta = -9;
 	    leadingGenLeptonType = 0;
 	    subLeadingGenLeptonPt = -9;
+	    subLeadingGenLeptonEta = -9;
 	    subLeadingGenLeptonType = 0;
   	    ISRSystWeightUp = 1.0;
   	    ISRSystWeightDown = 1.0;
@@ -727,11 +733,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 		 ) {
 	      if (gParticlePt[j] > leadingGenLeptonPt) {
 		subLeadingGenLeptonPt = leadingGenLeptonPt;
+		subLeadingGenLeptonEta = leadingGenLeptonEta;
 		subLeadingGenLeptonType = leadingGenLeptonType;
 		leadingGenLeptonPt = gParticlePt[j];
+		leadingGenLeptonEta = gParticleEta[j];
 		leadingGenLeptonType = gParticleId[j];
 	      } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
 		subLeadingGenLeptonPt = gParticlePt[j];
+		subLeadingGenLeptonEta = gParticleEta[j];
 		subLeadingGenLeptonType = gParticleId[j];
 	      }
 	    }
@@ -751,11 +760,14 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 		
 	      if (gParticlePt[j] > leadingGenLeptonPt) {
 		subLeadingGenLeptonPt = leadingGenLeptonPt;
+		subLeadingGenLeptonEta = leadingGenLeptonEta;
 		subLeadingGenLeptonType = leadingGenLeptonType;
 		leadingGenLeptonPt = gParticlePt[j];
+		leadingGenLeptonEta = gParticleEta[j];
 		leadingGenLeptonType = gParticleId[j];
 	      } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
 		subLeadingGenLeptonPt = gParticlePt[j];
+		subLeadingGenLeptonEta = gParticleEta[j];
 		subLeadingGenLeptonType = gParticleId[j];
 	      }
 	    }
