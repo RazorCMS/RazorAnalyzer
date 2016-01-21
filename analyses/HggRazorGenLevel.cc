@@ -630,17 +630,14 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     vector<TLorentzVector> GoodJets;
     vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
     
-    for(int i = 0; i < nJets; i++){
+    for(int i = 0; i < nGenJets; i++){
       //Jet Corrections                                                                      
       double JEC = 1.0;
       
-      TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+      TLorentzVector thisJet = makeTLorentzVector( genJetPt[i]*JEC, genJetEta[i], genJetPhi[i], genJetE[i]*JEC );
       
       if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
       if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
-      //int level = 2; //loose jet ID
-      if ( !jetPassIDLoose[i] ) continue;
-      //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
       
       //exclude selected photons from the jet collection
       double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
@@ -652,6 +649,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
       /*
 	Change to isCSVL and isCSVM if you want CISV
       */
+      /*
       if( isCSVL(i) ){
 	nLooseBTaggedJets++;
 	if( isCSVM(i) ){ 
@@ -662,6 +660,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	  GoodCSVLJets.push_back(make_pair(thisJet, false));
 	}
       }
+      */
     }
     
     //if there are no good jets, reject the event
