@@ -213,19 +213,37 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
 	    dataWeight = 1;
 	    if (events->HLTDecision[93]) passTrigger = true;
 	  } 
-	  else if (events->pho1.Pt() > 135) {
-	    dataWeight = events->HLTPrescale[92];
-	    if (events->HLTDecision[92]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 105) {
-	    dataWeight = events->HLTPrescale[91];
-	    if (events->HLTDecision[91]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 85) {
-	    dataWeight = events->HLTPrescale[90];
-	    if (events->HLTDecision[90]) passTrigger = true;
-	  } else {
-	    dataWeight = events->HLTPrescale[89];
-	    if (events->HLTDecision[89]) passTrigger = true;
-	  } 
+          else if (events->pho1.Pt() > 135) {
+            dataWeight = events->HLTPrescale[92];
+            if (events->HLTDecision[92] && events->pho1HLTFilter[23]) passTrigger = true;
+          } else if (events->pho1.Pt() > 105) {
+            dataWeight = events->HLTPrescale[91];
+            if (events->HLTDecision[91] && events->pho1HLTFilter[24]) passTrigger = true;
+          } else if (events->pho1.Pt() > 85) {
+            dataWeight = events->HLTPrescale[90];
+            if (events->HLTDecision[90] && events->pho1HLTFilter[25]) passTrigger = true;
+          } else if (events->pho1.Pt() > 58){
+            dataWeight = events->HLTPrescale[89];
+            if (events->HLTDecision[89] && events->pho1HLTFilter[26]) passTrigger = true;
+          } else {
+            dataWeight = events->HLTPrescale[88];
+            if (events->HLTDecision[88] && events->pho1HLTFilter[27]) passTrigger = true;
+          }
+
+
+	  // else if (events->pho1.Pt() > 135) {
+	  //   dataWeight = events->HLTPrescale[92];
+	  //   if (events->HLTDecision[92]) passTrigger = true;
+	  // } else if (events->pho1.Pt() > 105) {
+	  //   dataWeight = events->HLTPrescale[91];
+	  //   if (events->HLTDecision[91]) passTrigger = true;
+	  // } else if (events->pho1.Pt() > 85) {
+	  //   dataWeight = events->HLTPrescale[90];
+	  //   if (events->HLTDecision[90]) passTrigger = true;
+	  // } else {
+	  //   dataWeight = events->HLTPrescale[89];
+	  //   if (events->HLTDecision[89]) passTrigger = true;
+	  // } 
 
 	  weight = dataWeight;
 
@@ -312,6 +330,16 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       } //loop over events
     } //loop over input files
   } //loop over input file groups
+
+  //****************************
+  //Add CMS and Lumi Labels
+  //****************************
+  lumi_13TeV = "2.2 fb^{-1}";
+  writeExtraText = true;
+  relPosX = 0.15;
+  cmsTextSize = 0.6;
+  extraOverCmsTextSize = 0.85;
+  lumiTextSize = 0.4;
 
   double rangeMax=0.02;
   double rangeMin=0.005;
@@ -474,7 +502,8 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       // tpav_txt->AddText(mcPurity);
    
    
-      RooPlot* frame4 = SIeta.frame(Title("CMS Preliminary"));
+      RooPlot* frame4 = SIeta.frame(Title(""));
+      frame4->SetTitle("");
 
       dataSR.plotOn(frame4,Name("dataSR1"));  
       PDF.fitTo(dataSR);
@@ -547,11 +576,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->SetLogy();
       cFit->Range(0.01,0.01,0.02,1000);
       frame4->GetYaxis()->SetTitle("Number of events");
-      frame4->GetYaxis()->SetTitleOffset(0.5);
+      frame4->GetYaxis()->SetTitleOffset(1.35);
       frame4->Draw();
       tpav_txt->Draw();
       line->Draw();
       leg->Draw();
+      CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEB_%d_%d.png", ii, jj));
     }
   
@@ -590,7 +620,8 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       // tpav_txt->AddText(mcPurity);
    
    
-      RooPlot* frame4 = SIeta.frame(Title("CMS Preliminary"));
+      RooPlot* frame4 = SIeta.frame(Title(""));
+      frame4->SetTitle("");
       
       dataSR.plotOn(frame4,Name("dataSR1"));  
       PDF.fitTo(dataSR);
@@ -651,8 +682,6 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EB_MR->SetBinError(ii+1, SigmaErr);
       
       TCanvas *c1=new TCanvas("c1","c1",850,850);      
-      c1->cd();
-      gPad->Update();
 
       TH1F *h1 = new TH1F("h1","h1",1000,0, 4000);
       for(int a = 0; a < 1000; a++) { h1->SetBinContent(a, 0.95); h1->SetBinError(a, 0.05); }
@@ -667,13 +696,21 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EB_MR->SetTitle("");
       histSigmaIetaIeta_EB_MR->GetXaxis()->SetTitle("MR [GeV]");
       histSigmaIetaIeta_EB_MR->GetYaxis()->SetTitle("Photon Purity");      
+      histSigmaIetaIeta_EB_MR->GetYaxis()->SetTitleOffset(1.35);
       histSigmaIetaIeta_EB_MR->GetYaxis()->SetRangeUser(0.75, 1.05);
+      histSigmaIetaIeta_EB_MR->GetXaxis()->SetRangeUser(400, 1200.);
       histSigmaIetaIeta_EB_MR->Draw("e");
       h1->Draw("e3 same");       
       histSigmaIetaIeta_EB_MR->Draw("e same");
+
+      CMS_lumi(c1,4,0);
+
+      c1->cd();
+      c1->Update();
+      gPad->Update();
+
       c1->SaveAs("Purity_EB_MR.png");
       c1->SaveAs("Purity_EB_MR.root");
-
       
       char RfracFit[100];
       sprintf(RfracFit,"#splitline{%4.0f<M_{R}<%4.0f}{Purity in EB : %4.3f +- %4.3f}", MRBins[ii], MRBins[ii+1], PurityFromFit,SigmaErr); 
@@ -691,11 +728,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->SetLogy();
       cFit->Range(0.01,0.01,0.02,1000);
       frame4->GetYaxis()->SetTitle("Number of events");
-      frame4->GetYaxis()->SetTitleOffset(1.2);
+      frame4->GetYaxis()->SetTitleOffset(1.35);
       frame4->Draw();
       tpav_txt->Draw();
       line->Draw();
       leg->Draw();
+      CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEB_MRbinned_%d.png", ii));
     }   
   
@@ -732,8 +770,9 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       // tpav_txt->AddText(mcPurity);
       
       
-      RooPlot* frame4 = SIeta.frame(Title("CMS Preliminary"));
-      
+      RooPlot* frame4 = SIeta.frame(Title(""));
+      frame4->SetTitle("");
+  
       dataSR.plotOn(frame4,Name("dataSR1"));  
       PDF.fitTo(dataSR);
       PDF.plotOn(frame4);            
@@ -808,9 +847,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EB_Rsq->GetXaxis()->SetTitle("Rsq");
       histSigmaIetaIeta_EB_Rsq->GetYaxis()->SetTitle("Photon Purity");      
       histSigmaIetaIeta_EB_Rsq->GetYaxis()->SetRangeUser(0.75, 1.05);
+      histSigmaIetaIeta_EB_Rsq->GetYaxis()->SetTitleOffset(1.35);
+      histSigmaIetaIeta_EB_Rsq->GetXaxis()->SetRangeUser(0.15, 0.52);
       histSigmaIetaIeta_EB_Rsq->Draw("e");
       h1->Draw("e3 same");       
       histSigmaIetaIeta_EB_Rsq->Draw("e same");
+      CMS_lumi(c1,4,0);
       c1->SaveAs("Purity_EB_Rsq.png");
       c1->SaveAs("Purity_EB_Rsq.root");
             
@@ -830,11 +872,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->SetLogy();
       cFit->Range(0.01,0.01,0.02,1000);
       frame4->GetYaxis()->SetTitle("Number of events");
-      frame4->GetYaxis()->SetTitleOffset(1.2);
+      frame4->GetYaxis()->SetTitleOffset(1.35);
       frame4->Draw();
       tpav_txt->Draw();
       line->Draw();
       leg->Draw();
+      CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEB_Rsqbinned_%d.png", ii));
     }   
 
@@ -958,7 +1001,9 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       // sprintf(mcPurity,"Purity(MC, EB): %4.3f ",pureMCPurity); 
       // tpav_txt->AddText(mcPurity);
    
-      RooPlot* frame4 = SIeta.frame(Title("CMS Preliminary"));
+      RooPlot* frame4 = SIeta.frame(Title(""));
+      frame4->SetTitle("");
+
       dataSR.plotOn(frame4,Name("dataSR1"));  
 
       PDF.fitTo(dataSR);
@@ -1031,11 +1076,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->SetLogy();
       cFit->Range(0.01,0.01,0.02,1000);
       frame4->GetYaxis()->SetTitle("Number of events");
-      frame4->GetYaxis()->SetTitleOffset(0.5);
+      frame4->GetYaxis()->SetTitleOffset(1.35);
       frame4->Draw();
       tpav_txt->Draw();
       line->Draw();
       leg->Draw();
+      CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEE_%d_%d.png", ii, jj));
 
 
@@ -1074,7 +1120,8 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       // tpav_txt->AddText(mcPurity);
    
    
-      RooPlot* frame4 = SIeta.frame(Title("CMS Preliminary"));
+      RooPlot* frame4 = SIeta.frame(Title(""));
+      frame4->SetTitle("");
       
       dataSR.plotOn(frame4,Name("dataSR1"));  
       PDF.fitTo(dataSR);
@@ -1149,9 +1196,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EE_MR->GetXaxis()->SetTitle("MR [GeV]");
       histSigmaIetaIeta_EE_MR->GetYaxis()->SetTitle("Photon Purity");      
       histSigmaIetaIeta_EE_MR->GetYaxis()->SetRangeUser(0.75, 1.05);
+      histSigmaIetaIeta_EE_MR->GetYaxis()->SetTitleOffset(1.35);
+      histSigmaIetaIeta_EE_MR->GetXaxis()->SetRangeUser(400, 1200);
       histSigmaIetaIeta_EE_MR->Draw("e");
       h1->Draw("e3 same");       
       histSigmaIetaIeta_EE_MR->Draw("e same");
+      CMS_lumi(c1,4,0);
       c1->SaveAs("Purity_EE_MR.png");
       c1->SaveAs("Purity_EE_MR.root");
       
@@ -1171,11 +1221,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->SetLogy();
       cFit->Range(0.01,0.01,0.02,1000);
       frame4->GetYaxis()->SetTitle("Number of events");
-      frame4->GetYaxis()->SetTitleOffset(1.2);
+      frame4->GetYaxis()->SetTitleOffset(1.35);
       frame4->Draw();
       tpav_txt->Draw();
       line->Draw();
       leg->Draw();
+      CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEE_MRbinned_%d.png", ii));
     }   
 
@@ -1212,7 +1263,8 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       // tpav_txt->AddText(mcPurity);
    
    
-      RooPlot* frame4 = SIeta.frame(Title("CMS Preliminary"));
+      RooPlot* frame4 = SIeta.frame(Title(""));
+      frame4->SetTitle("");
       
       dataSR.plotOn(frame4,Name("dataSR1"));  
       PDF.fitTo(dataSR);
@@ -1289,9 +1341,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EE_Rsq->GetXaxis()->SetTitle("Rsq");
       histSigmaIetaIeta_EE_Rsq->GetYaxis()->SetTitle("Photon Purity");      
       histSigmaIetaIeta_EE_Rsq->GetYaxis()->SetRangeUser(0.75, 1.05);
+      histSigmaIetaIeta_EE_Rsq->GetYaxis()->SetTitleOffset(1.35);
+      histSigmaIetaIeta_EE_Rsq->GetXaxis()->SetRangeUser(0.15, 0.52);
       histSigmaIetaIeta_EE_Rsq->Draw("e");
       h1->Draw("e3 same");       
       histSigmaIetaIeta_EE_Rsq->Draw("e same");
+      CMS_lumi(c1,4,0);
       c1->SaveAs("Purity_EE_Rsq.png");
       c1->SaveAs("Purity_EE_Rsq.root");
            
@@ -1312,11 +1367,12 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->SetLogy();
       cFit->Range(0.01,0.01,0.02,1000);
       frame4->GetYaxis()->SetTitle("Number of events");
-      frame4->GetYaxis()->SetTitleOffset(1.2);
+      frame4->GetYaxis()->SetTitleOffset(1.35);
       frame4->Draw();
       tpav_txt->Draw();
       line->Draw();
       leg->Draw();
+      CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEE_Rsqbinned_%d.png", ii));
     }   
 
