@@ -385,132 +385,54 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     passedDiphotonTrigger = ( HLTDecision[40] );
     //if(!passedDiphotonTrigger) continue;
     
-    //muon selection
-    for(int i = 0; i < nMuons; i++){
-      if(!isLooseMuon(i)) continue;  
-      if(muonPt[i] < 10) continue;
-      if(abs(muonEta[i]) > 2.4) continue;
-      
-      nLooseMuons++;
-      
-      if(isTightMuon(i)){ 
-	nTightMuons++;
-      }
-    }
-    //electron selection
-    for(int i = 0; i < nElectrons; i++){
-      if(!isLooseElectron(i,use25nsSelection)) continue; 
-      if(elePt[i] < 10) continue;
-      if(abs(eleEta[i]) > 2.5) continue;
-      
-      nLooseElectrons++;
-      
-      if(isTightElectron(i,use25nsSelection))
-	{ 
-	  nTightElectrons++;
-	}
-    }
-    //tau selection
-    for(int i = 0; i < nTaus; i++){
-      if(!isTightTau(i)) continue; 
-      nTightTaus++;
-    }
-    
+    //----------------
     //photon selection
+    //----------------
     vector<TLorentzVector> GoodPhotons;
     vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
     vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
     std::vector< PhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
     
     int nPhotonsAbove40GeV = 0;
-    for(int i = 0; i < nPhotons; i++)
+    for(int i = 0; i < nGenParticle; i++)
       {
-	//ID cuts -- apply isolation after candidate pair selection
-	if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) 
+	if ( !( abs( gParticleId[i] ) == 22 && abs( gParticleMotherId[i] ) == 25 ) ) continue;
+	TVector3 vec;
+	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	vec.SetPtEtaPhi( gParticlePt[i], gParticleEta[i], gParticlePhi[i] );
+	
+	if ( gParticlePt[i] < 20.0 )
 	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
 	    continue;
 	  }
 	
-	//Defining Corrected Photon momentum
-	//float pho_pt = phoPt[i];//nominal pt
-	float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
-	TVector3 vec;
-	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
-	vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
-	
-	if ( phoPt[i] < 20.0 )
-	  //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
-	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	    //continue;
-	  }
-	
-	if( fabs(pho_superClusterEta[i]) > 2.5 )
+	if( fabs( gParticleEta[i] ) > 2.5 )
 	  {
 	    //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
 	    continue; 
 	  }
 	
-	if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
+	if ( fabs( gParticleEta[i] ) > 1.4442 && fabs( gParticleEta[i] ) < 1.566 )
 	  {
 	    //Removing gap photons
 	    if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
 	    continue;
 	  }
 	//photon passes
-	if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
+	if( gParticlePt[i] > 40.0 ) nPhotonsAbove40GeV++;
 	//setting up photon 4-momentum with zero mass
 	TLorentzVector thisPhoton;
 	thisPhoton.SetVectM( vec, .0 );
 
-	//-----------------------------
-	//uncorrected photon 4-momentum
-	//-----------------------------
-	TVector3 vtx( pvX, pvY, pvZ );
-	TVector3 phoPos;
-	if ( fabs( pho_superClusterEta[i] ) < 1.479 )
-	  {
-	    phoPos.SetXYZ( EB_R*cos( pho_superClusterPhi[i]), EB_R*sin( pho_superClusterPhi[i] ), EB_R*sinh( pho_superClusterEta[i] ) );
-	  }
-	else
-	  {
-	    double R = fabs( EE_Z/sinh( pho_superClusterEta[i] ) );
-	    
-	    if ( pho_superClusterEta[i] > .0 )
-	      {
-		phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), EE_Z);
-	      }
-	    else
-	      {
-		phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), -EE_Z);
-	      }
-	    
-	  }
-	
-	//TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
-	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] );
-	
-	//std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
-	//std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
 	//Filling Photon Candidate
 	PhotonCandidate tmp_phoCand;
 	tmp_phoCand.Index = i;
 	tmp_phoCand.photon = thisPhoton;
-	tmp_phoCand.photonSC = phoSC;
-	tmp_phoCand.scEta = pho_superClusterEta[i];
-	tmp_phoCand.scEta = pho_superClusterPhi[i];
-	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
-	tmp_phoCand.R9 = phoR9[i];
-	tmp_phoCand.HoverE = pho_HoverE[i];
-	tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
-	tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
-	tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
-	tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
-	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-	tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
+	tmp_phoCand.sigmaEOverE = 0.01;
+	tmp_phoCand._passEleVeto = true;
+	tmp_phoCand._passIso = true;
 	phoCand.push_back( tmp_phoCand );
 	
 	nSelectedPhotons++;
