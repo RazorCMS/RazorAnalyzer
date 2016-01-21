@@ -132,7 +132,7 @@ if __name__ == "__main__":
     #get histograms for wjetsinv/gjets scale factor comparison
     gjetsupdownTFile = rt.TFile.Open(gjetsupdownFile)
     sfHists['ZInvUp'] = gjetsupdownTFile.Get('WJetsInvScaleFactors')
-    sfHists['ZInvDown'] = gjetsfile.Get('GJetsInvScaleFactors_Down') #down scale factors are (gjets - (wjets-gjets))
+    sfHists['ZInvDown'] = gjetsupdownTFile.Get('GJetsInvScaleFactors_Down') #down scale factors are (gjets - (wjets-gjets))
     assert sfHists['ZInvUp']
     assert sfHists['ZInvDown']
     #get veto lepton and tau scale factor histograms

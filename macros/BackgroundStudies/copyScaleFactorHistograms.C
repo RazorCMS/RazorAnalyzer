@@ -45,7 +45,9 @@ void doModify( TH2Poly *f, double correction, double error) {
 void addMultiJetCorrection() {
 
   TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
+  TFile *inf2 = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
   assert(inf);
+  assert(inf2);
   TFile *outf = new TFile("RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","RECREATE");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
@@ -57,7 +59,7 @@ void addMultiJetCorrection() {
   TH2Poly *wInvNominal = (TH2Poly*)inf->Get("WJetsInvScaleFactors");
   TH2Poly *wInvUp = (TH2Poly*)inf->Get("WJetsInvScaleFactorsUp");
   TH2Poly *wInvDown = (TH2Poly*)inf->Get("WJetsInvScaleFactorsDown");
-  TH2Poly *GJetsInvNominal = (TH2Poly*)inf->Get("GJetsInvScaleFactors");
+  TH2Poly *GJetsInvNominal = (TH2Poly*)inf2->Get("GJetsInvScaleFactors");
 
   ttbarNominal->SetName("TTJetsScaleFactors");
   ttbarUp->SetName("TTJetsScaleFactorsUp");
@@ -92,6 +94,7 @@ void addMultiJetCorrection() {
   outf->WriteTObject(GJetsInvNominal);
   outf->Close();
   inf->Close();
+  inf2->Close();
 
 }
 

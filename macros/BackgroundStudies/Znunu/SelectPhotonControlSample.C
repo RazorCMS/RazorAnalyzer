@@ -244,11 +244,11 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
   TFile *SFInputFile = 0;
   if (SFOption == 0) SFInputFile = 0;
-  else if (SFOption == 1) SFInputFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root", "READ");
-  else if (SFOption == 2) SFInputFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", "READ");
-  TH2F *InputSFHist = 0;
+  else if (SFOption == 1) SFInputFile = TFile::Open("RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root", "READ");
+  else if (SFOption == 2) SFInputFile = TFile::Open("RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", "READ");
+  TH2Poly *InputSFHist = 0;
   if (SFInputFile) {
-    InputSFHist = (TH2F*)SFInputFile->Get("GJetsInvScaleFactors");
+    InputSFHist = (TH2Poly*)SFInputFile->Get("GJetsInvScaleFactors");
   }
   
 
@@ -475,9 +475,9 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	if (!isData && !(option != "Inclusive" && processLabels[i] == "QCD") ) {
 	   double razorSF = 1.0;
 	   if (processLabels[i] == "GJets" && InputSFHist) {
-	     razorSF = InputSFHist->GetBinContent( InputSFHist->GetXaxis()->FindFixBin( fmin(fmax(events->MR_NoPho,400.1),3999)),
-						   InputSFHist->GetYaxis()->FindFixBin( fmin(fmax(events->Rsq_NoPho,0.251),1.49))
-						   );
+             razorSF = InputSFHist->GetBinContent( InputSFHist->FindBin( 
+                         fmin(fmax(events->MR_NoPho,400.1),3999),
+                         fmin(fmax(events->Rsq_NoPho,0.251),1.49)));
 	   }
 	   weight *= razorSF;
 	 }
@@ -576,7 +576,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
     for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
     
       int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
-      int bin_j = bin_j = ((i-1) % (NRsqBins-1)) + 1;
+      int bin_j = ((i-1) % (NRsqBins-1)) + 1;
   
     
       cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << "\n";
@@ -624,9 +624,6 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       SFNum->SetBinError(binNum-1, sqrt( pow(SFNum->GetBinError(binNum), 2) + pow(NErr_dataMinusBkg, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
       SFDenom->SetBinContent(binNum, SFDenom->GetBinContent(binNum) + N_GJetsDirect); //add to yield
       SFDenom->SetBinError(binNum-1, sqrt( pow(SFDenom->GetBinError(binNum), 2) + pow(NErr_GJetsDirect, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
-
-      double SF = N_dataMinusBkg / N_GJetsDirect;
-      double SFErr = sqrt( ( pow(NErr_dataMinusBkg,2) * pow(N_GJetsDirect,2) + pow(NErr_GJetsDirect,2)*pow(N_dataMinusBkg,2)) / (pow(N_GJetsDirect,4)));
 
       cout << "Data-Bkg : " << N_dataMinusBkg << " +/- " << NErr_dataMinusBkg << "\n";
       cout << "MC (GJets) : " << N_GJetsDirect << " +/- " << NErr_GJetsDirect << "\n";
@@ -753,7 +750,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
     
     int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
-    int bin_j = bin_j = ((i-1) % (NRsqBins-1)) + 1;        
+    int bin_j = ((i-1) % (NRsqBins-1)) + 1;        
     cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << " : " 
 	 << "MR: " << histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i) << " - " << histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) << " , "
 	 << "Rsq: " << histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j) << " - " << histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) << " : "
