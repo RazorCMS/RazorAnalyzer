@@ -21,6 +21,7 @@
 #include <TH1D.h>                
 #include <TH1F.h>                
 #include <TH2F.h>                
+#include <TH2Poly.h>                
 #include <TCanvas.h>                
 #include <TLegend.h> 
 #include <THStack.h> 
@@ -206,22 +207,27 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
   } else {
     RazorScaleFactorFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
   }
-  TH2F *TTBarSFHist = (TH2F*)RazorScaleFactorFile->Get("TTJetsScaleFactors");
+  TH2Poly *TTBarSFHist = (TH2Poly*)RazorScaleFactorFile->Get("TTJetsScaleFactors");
   assert(TTBarSFHist);
-  TH2F *WJetsSFHist = (TH2F*)RazorScaleFactorFile->Get("WJetsScaleFactors");
+  TH2Poly *WJetsSFHist = (TH2Poly*)RazorScaleFactorFile->Get("WJetsScaleFactors");
   assert(WJetsSFHist);
 
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
-  // const int NMRBins = 6;
-  // const int NRsqBins = 4;
-  // double MRBins[NMRBins] = {300, 400, 500, 700, 900, 4000};
-  // double RsqBins[NRsqBins] = {0.15, 0.20, 0.30, 1.5};
   const int NMRBins = 6;
-  const int NRsqBins = 6;
+  const int NRsqBins = 4;
   double MRBins[NMRBins] = {300, 400, 500, 700, 900, 4000};
-  double RsqBins[NRsqBins] = {0.15, 0.20, 0.25, 0.30, 0.41, 1.5};
+  double RsqBins[NRsqBins] = {0.15, 0.20, 0.30, 1.5};
+  // const int NMRBins = 6;
+  // const int NRsqBins = 6;
+  // double MRBins[NMRBins] = {300, 400, 500, 700, 900, 4000};
+  // double RsqBins[NRsqBins] = {0.15, 0.20, 0.25, 0.30, 0.41, 1.5};
+
+  const int NMRBins1D = 8;
+  const int NRsqBins1D = 7;
+  double MRBins1D[NMRBins1D] = {300, 400, 500, 600, 700, 900, 1200, 4000};
+  double RsqBins1D[NRsqBins1D] = {0.15, 0.20, 0.25, 0.30, 0.41, 0.52, 1.5};
 
   vector<vector<string> > inputfiles;
   vector<string> processLabels;
@@ -253,8 +259,8 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
-    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 40, 300, 2300));
-    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 50, 0.0, 1.50));
+    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", NMRBins1D-1, MRBins1D));
+    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", NRsqBins1D-1, RsqBins1D));
     histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events", (NMRBins-1)*(NRsqBins-1), 0, (NMRBins-1)*(NRsqBins-1)));
     histLeptonPt.push_back(new TH1D(Form("histLeptonPt_%s",processLabels[i].c_str()), "; LeptonPt [GeV/c] ; Number of Events", 80, 0, 400));    
     histLeptonEta.push_back(new TH1D(Form("histLeptonEta_%s",processLabels[i].c_str()), "; Lepton #eta ; Number of Events", 50, -2.4, 2.4));
@@ -307,19 +313,12 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	double puWeight = 1;      
 	double weight = 1;
 	if (!isData) {
-	  //puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
-	  //weight = lumi * events->weight * puWeight;
 	  weight = lumi * events->weight;
 	}
 
-	//apply k-factor to ttjets
-	//if (processLabels[i] == "TTJets") weight = weight * 1.656;
-	//if (processLabels[i] == "WJets") weight = weight * 1.447;
-
-
 	if (isnan(events->weight) || isinf(events->weight)) {
+	  cout << "...bad event: " << weight << "\n";
 	  continue;
-	  //cout << "...bad event: " << weight << " " << (l1+l2).M() << "\n";
 	}
 
 
@@ -328,7 +327,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	//******************************
 	bool passTrigger = false;
 
-	//Use Single Lepton Triggers
 	//Use Single Lepton Triggers
 	if ( events->HLTDecision[2] || events->HLTDecision[7] || events->HLTDecision[12] || events->HLTDecision[11] || events->HLTDecision[15])  
 	  passTrigger = true;
@@ -443,16 +441,12 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	if (!isData) {
 	  double razorSF = 1.0;
 	  if (processLabels[i] == "TTJets") {
-	    razorSF = TTBarSFHist->GetBinContent( TTBarSFHist->GetXaxis()->FindFixBin( fmin(fmax(events->MR,400.1),3999)),
-						  TTBarSFHist->GetYaxis()->FindFixBin( fmin(fmax(events->Rsq,0.151),1.49))
-						  );
+
+	    razorSF = TTBarSFHist->GetBinContent( TTBarSFHist->FindBin(fmin(fmax(events->MR,400.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
 	  }
 	  if (processLabels[i] == "WJets") {
-	    razorSF = WJetsSFHist->GetBinContent( WJetsSFHist->GetXaxis()->FindFixBin( fmin(fmax(events->MR,400.1),3999)),
-						  WJetsSFHist->GetYaxis()->FindFixBin( fmin(fmax(events->Rsq,0.151),1.49))
-						  );
+	    razorSF = WJetsSFHist->GetBinContent( WJetsSFHist->FindBin(fmin(fmax(events->MR,400.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
 	  }
-	  // cout << processLabels[i] << " " << events->MR << " " << events->Rsq << " " << razorSF << "\n";
 	  weight *= razorSF;
 	}
 
@@ -464,8 +458,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	int MRBin = histMRVsRsq[i]->GetXaxis()->FindFixBin( events->MR );
 	int RsqBin = histMRVsRsq[i]->GetYaxis()->FindFixBin( events->Rsq );
 	int MRRsqBin = (NRsqBins-1)*(MRBin-1) + RsqBin-1;
-
-	//cout << events->MR << " " << events->Rsq << " : " << MRBin << " " << RsqBin << " : " << MRRsqBin << "\n";
 
 	if (isData) {
 	  dataYield += 0.5;
@@ -481,7 +473,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	    histMR[i]->Fill(events->MR, 0.5);
 	    histRsq[i]->Fill(events->Rsq, 0.5);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5);
-	    //histMRRsqUnrolled[i]->SetBinContent( MRRsqBin, histMRRsqUnrolled[i]->GetBinContent(MRRsqBin) + 0.5);
 	    histMRRsqUnrolled[i]->Fill( MRRsqBin+0.5, 0.5);
 	  }
 
@@ -499,7 +490,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	    histMR[i]->Fill(events->MR, 0.5*weight);
 	    histRsq[i]->Fill(events->Rsq, 0.5*weight);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5*weight);
-	    //histMRRsqUnrolled[i]->SetBinContent( MRRsqBin, histMRRsqUnrolled[i]->GetBinContent(MRRsqBin) + 0.5*weight);
 	    histMRRsqUnrolled[i]->Fill( MRRsqBin+0.5, 0.5*weight);
 	  }	
 	}
@@ -523,7 +513,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	    histMR[i]->Fill(events->MR, 0.5);
 	    histRsq[i]->Fill(events->Rsq, 0.5);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5);
-	    //histMRRsqUnrolled[i]->SetBinContent( MRRsqBin, histMRRsqUnrolled[i]->GetBinContent(MRRsqBin) + 0.5);
 	    histMRRsqUnrolled[i]->Fill( MRRsqBin+0.5, 0.5);
 	  }
 
@@ -731,63 +720,5 @@ void TTBarDileptonCrossCheck( int option = 3) {
 
 }
 
-
-//**********************************
-//E-Mu Yields :
-//**********************************
-//Inclusive Single Lep Triggers ( 30 - 20 )
-// Data: 164
-// MC: 164.556 (WW only)
-// MC: 166.709 (WW+WZ)
-// MC: 167.135 (WW+WZ+ZZ)
-
-//MuEG Triggers ( 30 - 20 )
-// Data: 148
-// MC: 156.16
-
-//Met>40
-//Data: 44398
-// MC: 44765.7
-
-//TwoJet80
-// Data: 4579
-// MC: 5488.65
-
-//MR300Rsq0p15
-// Data: 579
-// MC: 678.504
-
-//**********************
-//Mu-Mu Yields
-//**********************
-//Inclusive
-//Data: 7.67962e+06
-//MC: 7.87451e+06
-
-//TwoJet80
-//Data: 5731
-//MC: 6126.44
-
-//**********************
-//E-E Yields
-//**********************
-// Inclusive
-//Data: 5.42906e+06
-//MC: 5.56361e+06
-
-//TwoJet80
-//Data: 263
-//MC: 318
-
-
-
-// Z->MM
-// Data: 7.47318e+06
-// MC: 7.62973e+06 Powheg
-// MC: 7.62596e+06 Madgraph
-
-// Z->EE
-//Data: 5.27829e+06
-//MC: 5.37693e+06 Madgraph
 
 
