@@ -74,34 +74,6 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
 
-  /*
-    This is to debug and sync with Alex's events
-  */
-  std::ifstream ifs ( "HggRazorMissing.txt", std::fstream::in );
-  std::string r_run, e_evt;
-  std::map< std::string, evt > mymap;
-  if ( ifs.is_open() )
-    {
-      while ( ifs.good() )
-	{
-	  ifs >> r_run >> e_evt;
-	  std::string tmp = r_run + e_evt;
-	  evt tmp_evt;
-	  tmp_evt.run = r_run;
-	  tmp_evt.event = e_evt;
-	  if ( mymap.find( tmp ) == mymap.end() )
-	    {
-	      mymap[tmp] = tmp_evt;
-	    }
-	}
-    }
-  else
-    {
-      std::cout << "[ERROR]: unable to open file" << std::endl;
-    }
-  
-  if( _info ) std::cout << "[INFO]: map size: " << mymap.size() << std::endl;
-  
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
   vector<string> boxNames;
