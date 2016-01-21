@@ -71,32 +71,6 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
   }
   TFile outFile(outFileName.c_str(), "RECREATE");
   
-  //Including Jet Corrections
-  std::vector<JetCorrectorParameters> correctionParameters;
-  //get correct directory for JEC files (different for lxplus and t3-higgs)
-  char* cmsswPath;
-  cmsswPath = getenv("CMSSW_BASE");
-  string pathname;
-  if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
-  cout << "Getting JEC parameters from " << pathname << endl;
-  if (isData) {
-    std::cout << "[INFO]: getting data JEC" << std::endl;
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-  } else {
-    std::cout << "[INFO]: getting MC JEC" << std::endl;
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-  }
-  FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
-
-  //I n i t i a l i z i n g   E f f e c t i v e   A r e a   A r r a y; 
-  //------------------------------------------------------------------
-  //InitEffArea( ); //not needed anymore
-  
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
 
@@ -764,9 +738,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     
     for(int i = 0; i < nJets; i++){
       //Jet Corrections                                                                      
-      double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-					      fixedGridRhoAll, jetJetArea[i],
-					      JetCorrector );
+      double JEC = 1.0;
       
       TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
       
