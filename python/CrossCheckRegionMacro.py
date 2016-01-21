@@ -137,7 +137,7 @@ ZNuNu_2L_BinsNJets = [0,1,2,3,4,5,6,7,8]
 ZNuNu_2L_ControlRegionBinning = { "MR_NoZ":ZNuNu_2L_BinsMRLep, "Rsq_NoZ":ZNuNu_2L_BinsRsqLep, "NBJetsMedium":ZNuNu_2L_BinsNBTags, "NJets80":ZNuNu_2L_BinsNJets80, "NJets40":ZNuNu_2L_BinsNJets, ("MR_NoZ","Rsq_NoZ"):[] }
 ZNuNu_2L_4Jet_ControlRegionBinning = { "MR_NoZ":ZNuNu_2L_4Jet_BinsMRLep, "Rsq_NoZ":ZNuNu_2L_4Jet_BinsRsqLep, "NBJetsMedium":ZNuNu_2L_BinsNBTags, "NJets80_NoZ":ZNuNu_2L_BinsNJets80, "NJets_NoZ":ZNuNu_2L_BinsNJets, ("MR_NoZ","Rsq_NoZ"):[] }
 
-cutsMultiJetModified = "(box == 11 || box == 12 || box == 21) && MR > 300.000000 && Rsq > 0.150000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+cutsMultiJetModified = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 cutsMultiJetVetoLepton = cutsMultiJetModified+" && ( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13 )"
 cutsMultiJetVetoTau = cutsMultiJetModified+" && abs(leadingGenLeptonType) == 15"
 
