@@ -1,5 +1,5 @@
-#include "RazorAnalyzer/macros/tdrstyle.C"
-#include "RazorAnalyzer/macros/CMS_lumi.C"
+#include "macros/tdrstyle.C"
+#include "macros/CMS_lumi.C"
 
 void plotScaleFactor() {
 
@@ -184,32 +184,70 @@ void plotGJetsScaleFactorSystematics() {
 
   TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
 
-  TH2F *ttbarNominal = (TH2F*)inf->Get("TTJetsScaleFactors");
-  TH2F *ttbarUp = (TH2F*)inf->Get("TTJetsScaleFactorsUp");
-  TH2F *ttbarDown = (TH2F*)inf->Get("TTJetsScaleFactorsDown");
-  TH2F *wNominal = (TH2F*)inf->Get("WJetsScaleFactors");
-  TH2F *wUp = (TH2F*)inf->Get("WJetsScaleFactorsUp");
-  TH2F *wDown = (TH2F*)inf->Get("WJetsScaleFactorsDown");
-  TH2F *wInvNominal = (TH2F*)inf->Get("WJetsInvScaleFactors");
-  TH2F *wInvUp = (TH2F*)inf->Get("WJetsInvScaleFactorsUp");
-  TH2F *wInvDown = (TH2F*)inf->Get("WJetsInvScaleFactorsDown");
-  TH2F *GJetInvNominal = (TH2F*)inf->Get("GJetsInvScaleFactors");
+  TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
+  TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
+  TH2Poly *ttbarDown = (TH2Poly*)inf->Get("TTJetsScaleFactorsDown");
+  TH2Poly *wNominal = (TH2Poly*)inf->Get("WJetsScaleFactors");
+  TH2Poly *wUp = (TH2Poly*)inf->Get("WJetsScaleFactorsUp");
+  TH2Poly *wDown = (TH2Poly*)inf->Get("WJetsScaleFactorsDown");
+  TH2Poly *wInvNominal = (TH2Poly*)inf->Get("WJetsInvScaleFactors");
+  TH2Poly *wInvUp = (TH2Poly*)inf->Get("WJetsInvScaleFactorsUp");
+  TH2Poly *wInvDown = (TH2Poly*)inf->Get("WJetsInvScaleFactorsDown");
+  TH2Poly *GJetInvNominal = (TH2Poly*)inf->Get("GJetsInvScaleFactors");
 
 
   TCanvas *cv = 0;
   gStyle->SetPaintTextFormat("4.2f");
 
   //****************************************************
-  //Systematic Uncertainty
+  //Systematic Uncertainty and GJets Down SF Histogram
   //****************************************************
-  TH2F *GJetsSystematicUnc = (TH2F*)GJetInvNominal->Clone("GJetsSystematicUnc");
-  for ( int i = 1; i<GJetsSystematicUnc->GetXaxis()->GetNbins()+1; ++i) {
-    for ( int j = 1; j<GJetsSystematicUnc->GetYaxis()->GetNbins()+1; ++j) {
-      double gjet = GJetInvNominal->GetBinContent(i,j);
-      double wjet = wInvNominal->GetBinContent(wInvNominal->GetXaxis()->FindFixBin(GJetInvNominal->GetXaxis()->GetBinCenter(i)),
-					       wInvNominal->GetYaxis()->FindFixBin(GJetInvNominal->GetYaxis()->GetBinCenter(j)));            
-      GJetsSystematicUnc->SetBinContent(i,j, fabs(gjet - wjet)/gjet );
-    }
+  TH2Poly *GJetsSystematicUnc = (TH2Poly*)GJetInvNominal->Clone("GJetsSystematicUnc");
+  TH2Poly *GJetsScaleFactor_Down = (TH2Poly*)GJetInvNominal->Clone("GJetsInvScaleFactors_Down");
+
+  //Get bins of each histogram
+  TList *wInvBins = wInvNominal->GetBins();
+  TList *gInvBins = GJetInvNominal->GetBins();
+
+  //Loop over GJets bins
+  TH2PolyBin *gBin, *wBin; //temp variables to hold bin info
+  for (int i = 1; i < GJetsSystematicUnc->GetNumberOfBins()+1; ++i) {
+
+      //Get GJets bin
+      gBin = (TH2PolyBin*)gInvBins->At(i-1);
+
+      cout << "In bin " << i << " of GJets histogram" << endl;
+      //cout << gBin->GetXMin() << " " << gBin->GetXMax() << " " << gBin->GetYMin() << " " << gBin->GetYMax() << endl;
+
+      //Find out which WJets bin we are in
+      int wBinNum = -1;
+      for (int j = 1; j < wInvNominal->GetNumberOfBins()+1; ++j) {
+
+          //Get WJets bin
+          wBin = (TH2PolyBin*)wInvBins->At(j-1);
+
+          //cout << "In bin " << j << " of WJets histogram" << endl;
+          //cout << wBin->GetXMin() << " " << wBin->GetXMax() << " " << wBin->GetYMin() << " " << wBin->GetYMax() << endl;
+
+          //Check if this GJets bin is inside this WJets bin
+          if ( gBin->GetXMin() >= wBin->GetXMin() &&
+               gBin->GetXMax() <= wBin->GetXMax() &&
+               gBin->GetYMin() >= wBin->GetYMin() &&
+               gBin->GetYMax() <= wBin->GetYMax() ) {
+              cout << "This GJets bin is inside bin " << j << " of WJets histogram" << endl;
+              wBinNum = j;
+              break;
+          }
+      }
+
+      double gjet = GJetInvNominal->GetBinContent(i);
+      double wjet = wInvNominal->GetBinContent(wBinNum);
+
+      //Set bin content of each histogram
+      GJetsSystematicUnc->SetBinContent(i, fabs(gjet - wjet)/gjet );
+      GJetsScaleFactor_Down->SetBinContent(i, gjet - (wjet - gjet) );
+
+      cout << "Bin " << i << " " << j << " : " << gjet << " , " << wjet << " , " <<  gjet - (wjet - gjet) << "\n";
   }
 
   cv = new TCanvas("cv","cv", 800,600);
@@ -244,21 +282,6 @@ void plotGJetsScaleFactorSystematics() {
   cv->SaveAs("GJetsVsWJetsSystematic.png");
   cv->SaveAs("GJetsVsWJetsSystematic.pdf");
 
-
-  //****************************************************
-  //Make Up and Down Scale Factor Histogram
-  //****************************************************
-  TH2F *GJetsScaleFactor_Down = (TH2F*)GJetInvNominal->Clone("GJetsInvScaleFactors_Down");
-  for ( int i = 1; i<GJetsScaleFactor_Down->GetXaxis()->GetNbins()+1; ++i) {
-    for ( int j = 1; j<GJetsScaleFactor_Down->GetYaxis()->GetNbins()+1; ++j) {
-      double gjet = GJetInvNominal->GetBinContent(i,j);
-      double wjet = wInvNominal->GetBinContent(wInvNominal->GetXaxis()->FindFixBin(GJetInvNominal->GetXaxis()->GetBinCenter(i)),
-					       wInvNominal->GetYaxis()->FindFixBin(GJetInvNominal->GetYaxis()->GetBinCenter(j)));            
-      GJetsScaleFactor_Down->SetBinContent(i,j, gjet - (wjet - gjet) );
-      cout << "Bin " << i << " " << j << " : " << gjet << " , " << wjet << " , " <<  gjet - (wjet - gjet) << "\n";
-    }
-  }
-
   TFile *outf = new TFile("RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","UPDATE");
   outf->WriteTObject(ttbarNominal);
   outf->WriteTObject(ttbarUp);
@@ -272,7 +295,6 @@ void plotGJetsScaleFactorSystematics() {
   outf->WriteTObject(GJetInvNominal);
   outf->WriteTObject(GJetsScaleFactor_Down);
   outf->Close();
-  
 
 }
 
