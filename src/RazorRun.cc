@@ -233,6 +233,21 @@ int main(int argc, char* argv[]){
 	analyzer.EnablePileup();      
         analyzer.HggRazor(outputFileName, true, option, isData); //change the bool to true if you want all analysis boxes combined in one tree
     }
+    else if ( analysisType == "hggrazorgen" )
+      {
+	cout << "Executing higgs->diphoton razor analysis GEN LEVEL..." << endl;
+        analyzer.EnableEventInfo();
+        analyzer.EnableJets();
+        analyzer.EnableMet();
+        analyzer.EnableElectrons();
+        analyzer.EnableMuons();
+        analyzer.EnableTaus();
+        analyzer.EnablePhotons();
+        analyzer.EnableMC();
+        analyzer.EnableGenParticles();
+        analyzer.EnablePileup();
+	analyzer.HggRazorGenLevel(outputFileName, true, option, isData);
+      }
     else if(analysisType == "hggrazorExo15004" || analysisType == "hggrazorexo15004"){
       cout << "Executing higgs->diphoton razor analysis (EXO15004)..." << endl;
       analyzer.EnableEventInfo();
