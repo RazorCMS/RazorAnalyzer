@@ -623,10 +623,9 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     // }
     // cout << "\n\n";
 
-
-
-
+    //----------
     //Jets
+    //----------
     vector<TLorentzVector> GoodJets;
     vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
     
@@ -687,10 +686,10 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     for( auto& jet : GoodJets ) JetsPlusHiggsCandidate.push_back(jet);
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
     
-    TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
+    TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(genMetPt, 0, genMetPhi, 0);
     //TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
-    TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
-    
+    TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( genMetPt, 0, genMetPhi, 0 );
+    std::cout << "metPt: " << genMetPt << " metPhi: " << genMetPhi << std::endl;
     vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
     theMR  = computeMR(hemispheres[0], hemispheres[1]); 
     if ( theMR > 0 )
