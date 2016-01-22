@@ -583,6 +583,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       leg->Draw();
       CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEB_%d_%d.png", ii, jj));
+      cFit->SaveAs(Form("PurityFitEB_%d_%d.pdf", ii, jj));
     }
   
   
@@ -710,6 +711,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       gPad->Update();
 
       c1->SaveAs("Purity_EB_MR.png");
+      c1->SaveAs("Purity_EB_MR.pdf");
       c1->SaveAs("Purity_EB_MR.root");
       
       char RfracFit[100];
@@ -735,6 +737,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       leg->Draw();
       CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEB_MRbinned_%d.png", ii));
+      cFit->SaveAs(Form("PurityFitEB_MRbinned_%d.pdf", ii));
     }   
   
   //   // now do the fits in the Rsq bins   
@@ -854,6 +857,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EB_Rsq->Draw("e same");
       CMS_lumi(c1,4,0);
       c1->SaveAs("Purity_EB_Rsq.png");
+      c1->SaveAs("Purity_EB_Rsq.pdf");
       c1->SaveAs("Purity_EB_Rsq.root");
             
       char RfracFit[100];
@@ -879,6 +883,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       leg->Draw();
       CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEB_Rsqbinned_%d.png", ii));
+      cFit->SaveAs(Form("PurityFitEB_Rsqbinned_%d.pdf", ii));
     }   
 
   // //////////////////////////
@@ -1083,6 +1088,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       leg->Draw();
       CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEE_%d_%d.png", ii, jj));
+      cFit->SaveAs(Form("PurityFitEE_%d_%d.pdf", ii, jj));
 
 
     }  
@@ -1203,6 +1209,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EE_MR->Draw("e same");
       CMS_lumi(c1,4,0);
       c1->SaveAs("Purity_EE_MR.png");
+      c1->SaveAs("Purity_EE_MR.pdf");
       c1->SaveAs("Purity_EE_MR.root");
       
       char RfracFit[100];
@@ -1228,6 +1235,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       leg->Draw();
       CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEE_MRbinned_%d.png", ii));
+      cFit->SaveAs(Form("PurityFitEE_MRbinned_%d.pdf", ii));
     }   
 
     // now do the fits in the Rsq bins   
@@ -1348,6 +1356,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       histSigmaIetaIeta_EE_Rsq->Draw("e same");
       CMS_lumi(c1,4,0);
       c1->SaveAs("Purity_EE_Rsq.png");
+      c1->SaveAs("Purity_EE_Rsq.pdf");
       c1->SaveAs("Purity_EE_Rsq.root");
            
       
@@ -1374,6 +1383,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       leg->Draw();
       CMS_lumi(cFit,4,0);
       cFit->SaveAs(Form("PurityFitEE_Rsqbinned_%d.png", ii));
+      cFit->SaveAs(Form("PurityFitEE_Rsqbinned_%d.pdf", ii));
     }   
 
 
