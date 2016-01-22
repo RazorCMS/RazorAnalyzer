@@ -114,6 +114,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 
   //jet information
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
+  int jetMatchID[50], jetMatchMotherID[50], matchIndex[50];
   
   //set branches on big tree
   if(combineTrees){
@@ -189,6 +190,9 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+    razorTree->Branch("jetMatchID", jetMatchID, "jetMatchID[n_Jets]/I");
+    razorTree->Branch("jetMatchMotherID", jetMatchMotherID, "jetMatchMotherID[n_Jets]/I");
+    razorTree->Branch("matchIndex", matchIndex, "matchIndex[n_Jets]/I");
     razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
     
     //GenParticles
@@ -295,6 +299,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntriesFast();
   Long64_t nbytes = 0, nb = 0;
+  event = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     //begin event
     if( _info && (jentry % 10000 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
@@ -304,6 +309,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     
     //fill normalization histogram    
+    event++;
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
 
@@ -328,7 +334,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     mbbH = 0;
     run = runNum;
     lumi = lumiNum; 
-    event = eventNum;
+    //event = eventNum;
     passedDiphotonTrigger = false;
     
     //selected photons variables
@@ -356,10 +362,12 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     //jets
     for ( int i = 0; i < 50; i++ )
       {
-	jet_E[i]   = -99.;
-	jet_Pt[i]  = -99.;
-	jet_Eta[i] = -99.;
-	jet_Phi[i] = -99.;
+	jet_E[i]            = -99.;
+	jet_Pt[i]           = -99.;
+	jet_Eta[i]          = -99.;
+	jet_Phi[i]          = -99.;
+	jetMatchID[i]       = 0;
+	jetMatchMotherID[i] = 0;
       }
     
     //Fill Pileup Info
@@ -642,7 +650,34 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
       double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
       if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
       
+      double minGenDeltaR = 999;
+      int myMatchIndex = -1;
+      for ( int j = 0; j < nGenParticle; j++ )
+	{
+	  if ( gParticlePt[j] < 1 ) continue;
+	  if ( !( (abs( gParticleId[j] ) <= 6 || abs( gParticleId[j] ) == 21 ) && gParticleStatus[j] == 23) ) continue;
+	  TLorentzVector thisGenParticle = 
+	    makeTLorentzVector( gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j] );
+	  double thisDR = thisJet.DeltaR( thisGenParticle );
+	  if ( thisDR < minGenDeltaR )
+	    {
+	      myMatchIndex   = j;
+	      minGenDeltaR = thisDR;
+	    }
+	}
+      
+      if ( minGenDeltaR > 0.5 ) continue;
+      std::cout << "jetType: " << gParticleId[myMatchIndex] 
+		<< " MotherId: " << gParticleMotherId[myMatchIndex] << std::endl; 
+      
       GoodJets.push_back(thisJet);
+      jet_E[n_Jets]            = thisJet.E();
+      jet_Pt[n_Jets]           = thisJet.Pt();
+      jet_Eta[n_Jets]          = thisJet.Eta();
+      jet_Phi[n_Jets]          = thisJet.Phi();
+      jetMatchID[n_Jets]       = gParticleId[myMatchIndex];
+      jetMatchMotherID[n_Jets] = gParticleMotherId[myMatchIndex];
+      matchIndex[n_Jets]       = myMatchIndex;
       n_Jets++;
       
       /*
@@ -671,6 +706,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 
     //std::cout << "njets-->" << n_Jets << std::endl;
     
+    /*
     int iJet = 0;
     for ( auto tmp_jet : GoodJets )
       {
@@ -680,7 +716,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	jet_Phi[iJet] = tmp_jet.Phi();
 	iJet++;
       }
-    
+    */
     //Compute the razor variables using the selected jets and the diphoton system
     vector<TLorentzVector> JetsPlusHiggsCandidate;
     for( auto& jet : GoodJets ) JetsPlusHiggsCandidate.push_back(jet);
