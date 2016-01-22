@@ -510,15 +510,15 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     print "Making scale factor histogram for",process
     sfHists[process] = hists[dataName][var].Clone(process+"ScaleFactors")
     sfHists[process].SetDirectory(0)
-    #make up/down systematic error histograms (this is the systematic due to MC background normalization)
-    sfHists[process+"NormUp"] = hists[dataName][var].Clone(process+"ScaleFactorsUp")
-    sfHists[process+"NormUp"].SetDirectory(0)
-    sfHists[process+"NormDown"] = hists[dataName][var].Clone(process+"ScaleFactorsDown")
-    sfHists[process+"NormDown"].SetDirectory(0)
 
     #save yields for debugging
     dataDebug = sfHists[process].Clone()
 
+    #make histos to store uncertainties from MC normalization
+    mcSysUncUp = sfHists[process].Clone()
+    mcSysUncUp.Reset()
+    mcSysUncDown = sfHists[process].Clone()
+    mcSysUncDown.Reset()
     if not doTotalMC:
         #subtract backgrounds in data
         bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit, non-signal samples
@@ -533,21 +533,21 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
             sfHists[process].Add(hists[mcProcess][var], -1) 
             if mcProcess not in sfHists: #if we have not computed scale factors for this process, apply a flat normalization uncertainty to its yield
                 if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a ",int(normErrFraction*100),"% uncertainty"
-                sfHists[process+"NormUp"].Add(hists[mcProcess][var], -(1+normErrFraction)) 
-                sfHists[process+"NormDown"].Add(hists[mcProcess][var], -(1/(1+normErrFraction))) 
-            else: 
-                if debugLevel > 0: print "Process",mcProcess,"has associated scale factors.  No further uncertainty will be applied to its normalization."
-                sfHists[process+"NormUp"].Add(hists[mcProcess][var], -1) 
-                sfHists[process+"NormDown"].Add(hists[mcProcess][var], -1) 
+                for bx in range(1,mcSysUncUp.GetSize()+1):
+                    mcSysUncUp.SetBinContent(bx, ( (mcSysUncUp.GetBinContent(bx))**2 + (normErrFraction*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
+                    mcSysUncDown.SetBinContent(bx, ( (mcSysUncDown.GetBinContent(bx))**2 + ((1/(1+normErrFraction)-1)*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
+        #make up/down systematic error histograms (this is the systematic due to MC background normalization)
+        sfHists[process+"NormUp"] = sfHists[process].Clone(process+"ScaleFactorsUp")
+        sfHists[process+"NormUp"].SetDirectory(0)
+        sfHists[process+"NormUp"].Add(mcSysUncUp)
+        sfHists[process+"NormDown"] = sfHists[process].Clone(process+"ScaleFactorsDown")
+        sfHists[process+"NormDown"].SetDirectory(0)
+        sfHists[process+"NormDown"].Add(mcSysUncDown, -1)
     else: 
         #make total MC histogram
         bgProcesses = [mcProcess for mcProcess in hists if mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit samples
         mcTotal = hists[bgProcesses[0]][var].Clone()
         mcTotal.Reset()
-        mcTotalUp = hists[bgProcesses[0]][var].Clone()
-        mcTotalUp.Reset()
-        mcTotalDown = hists[bgProcesses[0]][var].Clone()
-        mcTotalDown.Reset()
         for mcProcess in bgProcesses:
             if var not in hists[mcProcess]:
                 print "Error in appendScaleFactors: could not find",var," in hists[",mcProcess,"]!  Returning from appendScaleFactors..."
@@ -556,12 +556,14 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
             mcTotal.Add(hists[mcProcess][var])
             if mcProcess not in sfHists: #if we have not computed scale factors for this process, apply a flat normalization uncertainty to its yield
                 if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a ",int(normErrFraction*100),"% uncertainty"
-                mcTotalUp.Add(hists[mcProcess][var], (1+normErrFraction)) 
-                mcTotalDown.Add(hists[mcProcess][var], (1/(1+normErrFraction))) 
-            else: 
-                if debugLevel > 0: print "Process",mcProcess,"has associated scale factors.  No further uncertainty will be applied to its normalization."
-                mcTotalUp.Add(hists[mcProcess][var]) 
-                mcTotalDown.Add(hists[mcProcess][var]) 
+                for bx in range(1,mcSysUncUp.GetSize()+1):
+                    mcSysUncUp.SetBinContent(bx, ( (mcSysUncUp.GetBinContent(bx))**2 + (normErrFraction*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
+                    mcSysUncDown.SetBinContent(bx, ( (mcSysUncDown.GetBinContent(bx))**2 + ((1/(1+normErrFraction)-1)*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
+        #propagate uncertainties to up/down histograms
+        mcTotalUp = mcTotal.Clone(mcTotal.GetName()+'Up')
+        mcTotalUp.Add(mcSysUncUp)
+        mcTotalDown = mcTotal.Clone(mcTotal.GetName()+'Down')
+        mcTotalDown.Add(mcSysUncDown, -1)
 
     #save yields for debugging
     dataDebugSubtr = sfHists[process].Clone()
@@ -581,8 +583,11 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         if signifThreshold > 0:
             print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
             for bn in range(1, sfHists[process].GetNumberOfBins()+1):
-                if sfHists[process].GetBinError(bn) == 0: continue
-                nsigma = abs(sfHists[process].GetBinContent(bn)-1.0)/sfHists[process].GetBinError(bn)
+                thisSysErr = abs(sfHists[process+'NormUp'].GetBinContent(bn)-sfHists[process+'NormDown'].GetBinContent(bn))/2.0
+                thisStatErr = sfHists[process].GetBinError(bn)
+                thisBinErr = (thisSysErr*thisSysErr + thisStatErr*thisStatErr)**(0.5)
+                if thisBinErr == 0: continue
+                nsigma = abs(sfHists[process].GetBinContent(bn)-1.0)/thisBinErr
                 if nsigma < signifThreshold: 
                     sfHists[process].SetBinContent(bn,1.0)
                     #NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1. Beware!!!
@@ -612,8 +617,11 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         if signifThreshold > 0:
             print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
             for bx in range(sfHists[process].GetSize()+1):
-                if sfHists[process].GetBinError(bx) == 0: continue
-                nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/sfHists[process].GetBinError(bx)
+                thisSysErr = abs(sfHists[process+'NormUp'].GetBinContent(bx)-sfHists[process+'NormDown'].GetBinContent(bx))/2.0
+                thisStatErr = sfHists[process].GetBinError(bx)
+                thisBinErr = (thisSysErr*thisSysErr + thisStatErr*thisStatErr)**(0.5)
+                if thisBinErr == 0: continue
+                nsigma = abs(sfHists[process].GetBinContent(bx)-1.0)/thisBinErr
                 if nsigma < signifThreshold: 
                     sfHists[process].SetBinContent(bx,1.0)
                     sfHists[process].SetBinError(bx,0.0)
@@ -633,7 +641,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     #plot scale factors in 2D (not yet implemented for 1 or 3 dimensions)
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
     if not isinstance(var, basestring) and len(var) == 2: 
-        plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=process+" Data/MC Scale Factors", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+        plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         if printTable and not doTotalMC and not th2PolyXBins:
             xbinLowEdges = []
@@ -693,22 +701,25 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     #make total MC histograms (up, down, central)
     bgProcesses = [mcProcess for mcProcess in hists if mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit samples
     mcTotal = hists[dataName][var].Clone()
-    mcTotalUp = hists[dataName][var].Clone()
-    mcTotalDown = hists[dataName][var].Clone()
     mcTotal.Reset()
-    mcTotalUp.Reset()
-    mcTotalDown.Reset()
+    #make histos to store uncertainties from MC normalization
+    mcSysUncUp = mcTotal.Clone()
+    mcSysUncDown = mcTotal.Clone()
     for p in bgProcesses:
         if var not in hists[p]:
             print "Error in makeVetoLeptonCorrectionHist: histogram for",p,"not found!"
             return
         mcTotal.Add(hists[p][var])
         if p not in sfHists: #vary normalization of processes not controlled by scale factors
-            mcTotalUp.Add(hists[p][var], 1+normErrFraction)
-            mcTotalDown.Add(hists[p][var], 1/(1+normErrFraction))
-        else:
-            mcTotalUp.Add(hists[p][var])
-            mcTotalDown.Add(hists[p][var])
+            for bx in range(1,mcSysUncUp.GetSize()+1):
+                if debugLevel > 0:
+                    print "Error from",p,"normalization:",normErrFraction*hists[p][var].GetBinContent(bx),"up,",(1/(1+normErrFraction)-1)*hists[p][var].GetBinContent(bx),"down"
+                mcSysUncUp.SetBinContent(bx, ( (mcSysUncUp.GetBinContent(bx))**2 + (normErrFraction*hists[p][var].GetBinContent(bx))**2 )**(0.5))
+                mcSysUncDown.SetBinContent(bx, ( (mcSysUncDown.GetBinContent(bx))**2 + ((1/(1+normErrFraction)-1)*hists[p][var].GetBinContent(bx))**2 )**(0.5))
+    mcTotalUp = mcTotal.Clone(mcTotal.GetName()+'Up')
+    mcTotalUp.Add(mcSysUncUp)
+    mcTotalDown = mcTotal.Clone(mcTotal.GetName()+'Down')
+    mcTotalDown.Add(mcSysUncDown, -1)
 
     #make signal region histogram that will receive the correction
     if histsToCorrect is not None:
@@ -753,12 +764,19 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     if signifThreshold > 0:
         print "Ignoring corrections compatible with 0 at",signifThreshold,"sigma significance"
         for bx in range(vlHists['Central'].GetSize()+1):
-            for n,h in vlHists.iteritems():
-                if h.GetBinError(bx) == 0: continue
-                nsigma = abs(h.GetBinContent(bx)-targetVal)/h.GetBinError(bx)
-                if nsigma < signifThreshold: 
-                    h.SetBinContent(bx,0.0)
-                    h.SetBinError(bx,0.0)
+            thisSysErr = abs(vlHists['Up'].GetBinContent(bx)-vlHists['Down'].GetBinContent(bx))/2.0
+            thisStatErr = vlHists['Central'].GetBinError(bx)
+            thisBinErr = (thisSysErr*thisSysErr + thisStatErr*thisStatErr)**(0.5)
+            if thisBinErr == 0: continue
+            nsigma = abs(vlHists['Central'].GetBinContent(bx)-targetVal)/thisBinErr
+            if nsigma < signifThreshold: 
+                shiftAmount = vlHists['Central'].GetBinContent(bx)-targetVal
+                #reset central value to 0
+                vlHists['Central'].SetBinContent(bx,targetVal)
+                vlHists['Central'].SetBinError(bx,0.0)
+                #shift up and down histogram values by the amount of the correction
+                vlHists['Up'].SetBinContent(bx, vlHists['Up'].GetBinContent(bx)-shiftAmount)
+                vlHists['Down'].SetBinContent(bx, vlHists['Down'].GetBinContent(bx)-shiftAmount)
 
     if debugLevel > 0:
         print "\nCorrections before MT and dPhi efficiencies:"
@@ -819,7 +837,9 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
             print "\nAfter correction:"
             correctedHists['Central'].Print("all")
             print "\nScale factors:"
-            signalRegionSFs['Central'].Print("all")
+            for n,h in signalRegionSFs:
+                print "\n"+n+":"
+                h.Print("all")
 
     #otherwise, write corrections to file
     else:
@@ -835,10 +855,12 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         comment = "Data/MC"
     if not isinstance(var, basestring) and len(var) == 2: 
         for n,h in vlHists.iteritems():
-            plotting.draw2DHist(c, h, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction"+n, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr=comment+" "+n+", "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+            commentstr=comment+" "+n+", "+regionName+" Control Region"
+            plotting.draw2DHist(c, h, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"Correction"+n, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
         if histToCorrect is not None:
             for n,h in signalRegionSFs.iteritems():
-                plotting.draw2DHist(c, h, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"SignalRegionSFs"+n, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="Signal Region Scale Factors "+n+", "+regionName+" Control Region", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+                commentstr="Signal Region Scale Factors "+n+", "+regionName+" Control Region"
+                plotting.draw2DHist(c, h, xtitle=var[0], ytitle=var[1], zmin=-200, zmax=200, printstr=regionNameReduced+"SignalRegionSFs"+n, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         xbinLowEdges = []
         xbinUpEdges = []
