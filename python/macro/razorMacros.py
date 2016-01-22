@@ -837,7 +837,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
             print "\nAfter correction:"
             correctedHists['Central'].Print("all")
             print "\nScale factors:"
-            for n,h in signalRegionSFs:
+            for n,h in signalRegionSFs.iteritems():
                 print "\n"+n+":"
                 h.Print("all")
 

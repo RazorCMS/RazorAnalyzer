@@ -310,7 +310,7 @@ if __name__ == "__main__":
 
     #Make pt correction (signal region data/MC)
     sfHistsSRPtCorr = sfHists.copy()
-    sfHistsSRPtCorr["VetoTau"] = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Tau Pt", doDataOverMC=False, histsToCorrect=multijetHistsForVetoTauCorrection, signalRegionVar="leadingGenLeptonPt", mtEfficiencyHist=mtHist, dPhiEfficiencyHist=dphiHist, printdir=printdir)
+    sfHistsSRPtCorr["VetoTau"] = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Tau Pt", doDataOverMC=False, histsToCorrect=multijetHistsForVetoTauCorrection, signalRegionVar="leadingGenLeptonPt", mtEfficiencyHist=mtTauHist, dPhiEfficiencyHist=dphiTauHist, printdir=printdir)
 
     #for applying pt correction
     auxSFsCRForVetoTauPtCorr = { 
@@ -343,7 +343,7 @@ if __name__ == "__main__":
     sfHistsCRPtEtaCorr["VetoTauEta"] = makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta CR", doDataOverMC=True, printdir=printdir)
 
     #Make residual eta correction (signal region data/MC)
-    makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta", doDataOverMC=False, histsToCorrect=multijetHistsPtCorrForVetoTauCorrection, signalRegionVar="abs(leadingGenLeptonEta)", mtEfficiencyHist=mtHist, dPhiEfficiencyHist=dphiHist, printdir=printdir)
+    makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta", doDataOverMC=False, histsToCorrect=multijetHistsPtCorrForVetoTauCorrection, signalRegionVar="abs(leadingGenLeptonEta)", mtEfficiencyHist=mtTauHist, dPhiEfficiencyHist=dphiTauHist, printdir=printdir)
 
     auxSFsCRForVetoTauPtEtaCorr = { 
         "VetoTauPt":("lep1.Pt()", "abs(lep1Type) == 15"), 
