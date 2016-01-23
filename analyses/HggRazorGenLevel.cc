@@ -423,9 +423,8 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	if ( gParticleId[i] == 1000023 && gParticleStatus[i] == 52 ) chi2Mass = pMass;
 	if ( gParticleId[i] == 1000022 && gParticleStatus[i] == 1 )  chi1Mass = pMass;
 	
-	if ( !( abs( gParticleId[i] ) == 22 && abs( gParticleMotherId[i] ) == 25 ) ) continue;
+	if ( !( abs( gParticleId[i] ) == 22 && abs( gParticleMotherId[i] ) == 25 && gParticleStatus[i] == 1) ) continue;
 	TVector3 vec;
-	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
 	vec.SetPtEtaPhi( gParticlePt[i], gParticleEta[i], gParticlePhi[i] );
 	
 	if ( gParticlePt[i] < 20.0 )
@@ -436,7 +435,9 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	
 	if( fabs( gParticleEta[i] ) > 2.5 )
 	  {
-	    //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
+	    //allow photons in the endcap here,
+	    //but if one of the two leading photons
+	    //is in the endcap, reject the event
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
 	    continue; 
 	  }
@@ -488,10 +489,11 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     //find the "best" photon pair, higher Pt!
     TLorentzVector HiggsCandidate(0,0,0,0);
     TLorentzVector HiggsCandidateSC(0,0,0,0);
-    int goodPhoIndex1 = -1;
-    int goodPhoIndex2 = -1;
+    int HiggsPhoIndex1 = -1;
+    int HiggsPhoIndex2 = -1;
     double bestSumPt = -99.;
     std::vector< PhotonCandidate > phoSelectedCand;
+    PhotonCandidate bestCand[2];
     for(size_t i = 0; i < phoCand.size(); i++){
       for(size_t j = i+1; j < phoCand.size(); j++){//I like this logic better, I find it easier to understand
 	PhotonCandidate pho1 = phoCand[i];
@@ -502,13 +504,17 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 		      << " [DEBUG]: pho2->" << pho2.photon.Pt() 
 		      << std::endl;
 	  }
+	//-----------------------------------------------
 	//need one photon in the pair to have pt > 40 GeV
+	//-----------------------------------------------
 	if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
 	  {
 	    if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
 	    //continue;
 	  }
+	//---------------------------------------------------------
 	//need diphoton mass between > 100 GeV as in AN (April 1st)
+	//---------------------------------------------------------
 	double diphotonMass = (pho1.photon + pho2.photon).M();
 	if ( _debug )
 	  {
@@ -517,12 +523,17 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	
 	if( diphotonMass < 100 )
 	  {
-	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
-	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
+	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" 
+				    << diphotonMass << std::endl;
+	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  
+				    << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
 	    continue;
 	  }
-        
-	//if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
+        //-----------------------------------------
+	//if the sum of the photon pT's is larger 
+	//than that of the current Higgs candidate,
+	//make this the Higgs candidate
+	//-----------------------------------------
 	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt ){
 	  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
 	  HiggsCandidate = pho1.photon + pho2.photon;
@@ -530,32 +541,42 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
 	    {
 	      if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
-	      phoSelectedCand.push_back(pho1);
-	      phoSelectedCand.push_back(pho2);
-	      goodPhoIndex1 = pho1.Index;
-	      goodPhoIndex2 = pho2.Index;  
+	      bestCand[0] = pho1;
+	      bestCand[1] = pho2;
+	      HiggsPhoIndex1 = pho1.Index;
+	      HiggsPhoIndex2 = pho2.Index;  
 	    }
 	  else
 	    {
 	      if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
-	      phoSelectedCand.push_back(pho2);
-	      phoSelectedCand.push_back(pho1);
-	      goodPhoIndex1 = pho2.Index;
-              goodPhoIndex2 = pho1.Index;
+	      bestCand[0] = pho2;
+	      bestCand[1] = pho1;
+	      HiggsPhoIndex1 = pho2.Index;
+              HiggsPhoIndex2 = pho1.Index;
 	    }
 	  
 	}
       }
     }   
-
     
+    //---------------------------------------
+    //just use this container for convenience
+    //to parse the data into TTree
+    //---------------------------------------
+    phoSelectedCand.push_back(bestCand[0]);
+    phoSelectedCand.push_back(bestCand[1]);
+    //-----------------------------------
     //Filling Selected Photon Information
+    //-----------------------------------
     TLorentzVector pho_cand_vec[2];
     int _pho_index = 0;
     for ( auto& tmpPho : phoSelectedCand )
       {
-	if ( !( tmpPho.Index == goodPhoIndex1 || tmpPho.Index == goodPhoIndex2 ) ) continue;
-	if( _pho_index > 1 ) std::cerr << "[ERROR]: Photon index larger than 1!" << std::endl;
+	if ( !( tmpPho.Index == HiggsPhoIndex1 || tmpPho.Index == HiggsPhoIndex2 ) ) continue;
+	if( _pho_index > 1 )
+	  {
+	    std::cerr << "[ERROR]: Photon index larger than 1!" << std::endl;
+	  }
 	pho_cand_vec[_pho_index]           = tmpPho.photon;
 	Pho_E[_pho_index]                  = tmpPho.photon.E();
 	Pho_Pt[_pho_index]                 = tmpPho.photon.Pt();
@@ -744,9 +765,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
     
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(genMetPt, 0, genMetPhi, 0);
-    //TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
     TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( genMetPt, 0, genMetPhi, 0 );
-    std::cout << "metPt: " << genMetPt << " metPhi: " << genMetPhi << std::endl;
     vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
     theMR  = computeMR(hemispheres[0], hemispheres[1]); 
     if ( theMR > 0 )
