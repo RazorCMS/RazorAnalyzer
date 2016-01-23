@@ -140,6 +140,11 @@ vetoTauControlRegionBins = {
     "Rsq": [0.25,0.30,0.41,0.52, 0.64, 1.5]
     }
 
+### 0L Region for Veto Lepton/Tau Cross Check
+cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+cutsMultiJetForVetoLepton = cutsMultiJetForVeto+" && ( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13 ) && leadingGenLeptonPt > 5"
+cutsMultiJetForVetoTau = cutsMultiJetForVeto+" && abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"
+
 
 ### WJets Single Lepton Invisible Control Region
 

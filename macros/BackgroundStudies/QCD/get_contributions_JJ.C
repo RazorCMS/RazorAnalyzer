@@ -81,25 +81,26 @@ void get_contributions_JJ() {
   TH1F *hMR_fail_Z = new TH1F("hMR_fail_Z", "hMR_fail_Z", nbin, xmin, xmax); hMR_fail_Z->Sumw2();
 
   // draw Rsq
-  nbin=17; xmin=0.15; xmax=1.0;
+  Float_t xbins_rsq[6] = {0, 0.05, 0.1, 0.15, 0.2, 1.0};
+  nbin=5; 
 
-  TH1F *hRsq_D = new TH1F("hRsq_D", "hRsq_D", nbin, xmin, xmax); hRsq_D->Sumw2();
-  TH1F *hRsq_Q = new TH1F("hRsq_Q", "hRsq_Q", nbin, xmin, xmax); hRsq_Q->Sumw2();
-  TH1F *hRsq_T = new TH1F("hRsq_T", "hRsq_T", nbin, xmin, xmax); hRsq_T->Sumw2();
-  TH1F *hRsq_W = new TH1F("hRsq_W", "hRsq_W", nbin, xmin, xmax); hRsq_W->Sumw2();
-  TH1F *hRsq_Z = new TH1F("hRsq_Z", "hRsq_Z", nbin, xmin, xmax); hRsq_Z->Sumw2();
+  TH1F *hRsq_D = new TH1F("hRsq_D", "hRsq_D", nbin, &xbins_rsq[0]); hRsq_D->Sumw2();
+  TH1F *hRsq_Q = new TH1F("hRsq_Q", "hRsq_Q", nbin, &xbins_rsq[0]); hRsq_Q->Sumw2();
+  TH1F *hRsq_T = new TH1F("hRsq_T", "hRsq_T", nbin, &xbins_rsq[0]); hRsq_T->Sumw2();
+  TH1F *hRsq_W = new TH1F("hRsq_W", "hRsq_W", nbin, &xbins_rsq[0]); hRsq_W->Sumw2();
+  TH1F *hRsq_Z = new TH1F("hRsq_Z", "hRsq_Z", nbin, &xbins_rsq[0]); hRsq_Z->Sumw2();
 
-  TH1F *hRsq_pass_D = new TH1F("hRsq_pass_D", "hRsq_pass_D", nbin, xmin, xmax); hRsq_pass_D->Sumw2();
-  TH1F *hRsq_pass_Q = new TH1F("hRsq_pass_Q", "hRsq_pass_Q", nbin, xmin, xmax); hRsq_pass_Q->Sumw2();
-  TH1F *hRsq_pass_T = new TH1F("hRsq_pass_T", "hRsq_pass_T", nbin, xmin, xmax); hRsq_pass_T->Sumw2();
-  TH1F *hRsq_pass_W = new TH1F("hRsq_pass_W", "hRsq_pass_W", nbin, xmin, xmax); hRsq_pass_W->Sumw2();
-  TH1F *hRsq_pass_Z = new TH1F("hRsq_pass_Z", "hRsq_pass_Z", nbin, xmin, xmax); hRsq_pass_Z->Sumw2();
+  TH1F *hRsq_pass_D = new TH1F("hRsq_pass_D", "hRsq_pass_D", nbin, &xbins_rsq[0]); hRsq_pass_D->Sumw2();
+  TH1F *hRsq_pass_Q = new TH1F("hRsq_pass_Q", "hRsq_pass_Q", nbin, &xbins_rsq[0]); hRsq_pass_Q->Sumw2();
+  TH1F *hRsq_pass_T = new TH1F("hRsq_pass_T", "hRsq_pass_T", nbin, &xbins_rsq[0]); hRsq_pass_T->Sumw2();
+  TH1F *hRsq_pass_W = new TH1F("hRsq_pass_W", "hRsq_pass_W", nbin, &xbins_rsq[0]); hRsq_pass_W->Sumw2();
+  TH1F *hRsq_pass_Z = new TH1F("hRsq_pass_Z", "hRsq_pass_Z", nbin, &xbins_rsq[0]); hRsq_pass_Z->Sumw2();
 
-  TH1F *hRsq_fail_D = new TH1F("hRsq_fail_D", "hRsq_fail_D", nbin, xmin, xmax); hRsq_fail_D->Sumw2();
-  TH1F *hRsq_fail_Q = new TH1F("hRsq_fail_Q", "hRsq_fail_Q", nbin, xmin, xmax); hRsq_fail_Q->Sumw2();
-  TH1F *hRsq_fail_T = new TH1F("hRsq_fail_T", "hRsq_fail_T", nbin, xmin, xmax); hRsq_fail_T->Sumw2();
-  TH1F *hRsq_fail_W = new TH1F("hRsq_fail_W", "hRsq_fail_W", nbin, xmin, xmax); hRsq_fail_W->Sumw2();
-  TH1F *hRsq_fail_Z = new TH1F("hRsq_fail_Z", "hRsq_fail_Z", nbin, xmin, xmax); hRsq_fail_Z->Sumw2();
+  TH1F *hRsq_fail_D = new TH1F("hRsq_fail_D", "hRsq_fail_D", nbin, &xbins_rsq[0]); hRsq_fail_D->Sumw2();
+  TH1F *hRsq_fail_Q = new TH1F("hRsq_fail_Q", "hRsq_fail_Q", nbin, &xbins_rsq[0]); hRsq_fail_Q->Sumw2();
+  TH1F *hRsq_fail_T = new TH1F("hRsq_fail_T", "hRsq_fail_T", nbin, &xbins_rsq[0]); hRsq_fail_T->Sumw2();
+  TH1F *hRsq_fail_W = new TH1F("hRsq_fail_W", "hRsq_fail_W", nbin, &xbins_rsq[0]); hRsq_fail_W->Sumw2();
+  TH1F *hRsq_fail_Z = new TH1F("hRsq_fail_Z", "hRsq_fail_Z", nbin, &xbins_rsq[0]); hRsq_fail_Z->Sumw2();
 
   // draw leading jet pt                                                                                                                                        
   Float_t xbins_ljpt[10] = {80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
@@ -852,7 +853,7 @@ void get_contributions_JJ() {
   c->SaveAs("MR_fail_dijet.png");
 
   c->SetLogy(1);
-  hRsq_Q->GetYaxis()->SetRangeUser(0.001,100*TMath::Max(hRsq_Q->GetMaximum(), hRsq_D->GetMaximum()));
+  hRsq_Q->GetYaxis()->SetRangeUser(0.1,100*TMath::Max(hRsq_Q->GetMaximum(), hRsq_D->GetMaximum()));
   hRsq_Q->GetXaxis()->SetTitle("R^{2}");
   hRsq_Q->GetYaxis()->SetTitle("Events");
   hRsq_Q->SetTitle("");
@@ -864,7 +865,7 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Rsq_dijet.png");
 
-  hRsq_pass_Q->GetYaxis()->SetRangeUser(0.001,100*TMath::Max(hRsq_pass_Q->GetMaximum(), hRsq_pass_D->GetMaximum()));
+  hRsq_pass_Q->GetYaxis()->SetRangeUser(0.1,100*TMath::Max(hRsq_pass_Q->GetMaximum(), hRsq_pass_D->GetMaximum()));
   hRsq_pass_Q->GetXaxis()->SetTitle("R^{2}");
   hRsq_pass_Q->GetYaxis()->SetTitle("Events");
   hRsq_pass_Q->SetTitle("");
@@ -876,7 +877,7 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Rsq_pass_dijet.png");
 
-  hRsq_fail_Q->GetYaxis()->SetRangeUser(0.001,100*TMath::Max(hRsq_fail_Q->GetMaximum(), hRsq_fail_D->GetMaximum()));
+  hRsq_fail_Q->GetYaxis()->SetRangeUser(0.1,100*TMath::Max(hRsq_fail_Q->GetMaximum(), hRsq_fail_D->GetMaximum()));
   hRsq_fail_Q->GetXaxis()->SetTitle("R^{2}");
   hRsq_fail_Q->GetYaxis()->SetTitle("Events");
   hRsq_fail_Q->SetTitle("");
@@ -887,7 +888,8 @@ void get_contributions_JJ() {
   hRsq_fail_D->Draw("same e");
   leg->Draw();
   c->SaveAs("Rsq_fail_dijet.png");
-
+  
+  c->SetLogy(1);
   hLjpt_Q->GetYaxis()->SetRangeUser(0.1,100*TMath::Max(hLjpt_Q->GetMaximum(), hLjpt_D->GetMaximum()));
   hLjpt_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
   hLjpt_Q->GetYaxis()->SetTitle("Events");
