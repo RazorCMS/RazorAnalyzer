@@ -135,9 +135,10 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             print "Weight from ntuple:",event.weight
             print "Scale by:",scale
     else: #data-driven QCD estimate 
-        qcdExtrapolationFactor = 1.2e+6*(event.MR**(-2.6)) + 0.064
+        qcdExtrapolationFactor = 3.1e+7*(event.MR**(-3.1)) + 0.062
+        #qcdExtrapolationFactor = 1.2e+6*(event.MR**(-2.6)) + 0.064 #old
         eventWeight = qcdExtrapolationFactor*scale
-        qcdNormErrFraction=0.5
+        qcdNormErrFraction=0.87
         if debugLevel > 1:
             print "QCD extrapolation factor:",qcdExtrapolationFactor
             print "Scale by:",scale
