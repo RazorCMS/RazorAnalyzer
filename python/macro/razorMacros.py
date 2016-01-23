@@ -1,6 +1,7 @@
 ## Machinery for inclusive razor analysis
 
 import sys,os
+import copy
 from array import array
 import ROOT as rt
 from collections import namedtuple
@@ -236,7 +237,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, printdir='.'):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -249,6 +250,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     nsigmas = []
     mcs = []
     mcErrs = []
+    totalMCs = []
     totalMCErrs = []
     for m in mcNames:
         mcs.append([])
@@ -271,13 +273,16 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             if nsigma is not None:
                 nsig = nsigma.GetBinContent(bx,by)
                 nsigmas.append('%.2f' % (nsig))
+            totalMC = 0.0
             totalMCErr = 0.0
             for i in range(len(mcNames)):
                 mcs[i].append('%.2f' % (mcHists[i].GetBinContent(bx,by)))
                 mcErrs[i].append('%.2f' % (mcHists[i].GetBinError(bx,by)))
+                totalMC += mcHists[i].GetBinContent(bx,by)
                 totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
             if len(mcNames) > 0:
-                totalMCErrs.append(totalMCErr)
+                totalMCs.append('%.2f' % (totalMC))
+                totalMCErrs.append('%.2f' % (totalMCErr))
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
@@ -305,13 +310,10 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if nsigma is not None: 
             cols.append(nsigmas)
             headers.append("Number of sigmas")
-    for i,name in enumerate(mcNames):
-        headers.append(name)
-        cols.append(mcs[i])
     if len(mcNames) > 0:
-        headers.append("MC Uncertainty")
-        cols.append(totalMCErr)
-    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag")
+        headers.extend(["MC Prediction", "MC Uncertainty"])
+        cols.extend([totalMCs, totalMCErrs])
+    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag", printdir=printdir)
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
@@ -325,18 +327,19 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     samples: list of samples to process, in the order that they should appear in stacked plots, legends, etc
     cutsMC, cutsData: strings, to be used with TTreeFormula to make selection cuts
     bins: dictionary formatted like { "variable1":[bin0,bin1,bin2,...], "variable2":[bin0,bin1,bin2,...]}
-    plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
     lumiMC, lumiData: in /pb
     weightHists: dictionary of weight histograms, like that produced by razorWeights.loadWeightHists
     sfHists: dictionary of scale factor histograms, like that produced by razorWeights.loadScaleFactorHists
+    auxSFs: optional -- dict of the form "ScaleFactorName":("VariableToReweight","Cut string").  Events passing the requirements in "Cut string" are reweighted according to sfHists["ScaleFactorName"].
     treeName: name of the tree containing input events
     weightOpts: list of strings with directives for applying weights to the MC
     shapeErrors: list of MC shape uncertainties [uncertainties can be strings (in which case they apply to all processes) or tuples of the form (error, [processes]) (in which case they apply to the processes indicated in the list)
+
+    plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
     miscErrors: optional -- list of misc uncertainty options (see below for supported options)
     fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
     boxName: optional -- name of razor box
     btags: optional -- used only to specify which fit to load
-    auxSFs: optional -- dict of the form "ScaleFactorName":("VariableToReweight","Cut string").  Events passing the requirements in "Cut string" are reweighted according to sfHists["ScaleFactorName"].
     dataDrivenQCD: optional -- if True, the abs(dPhiRazor) < 2.8 cut will be inverted for QCD and the yields in the high dPhi control region will be extrapolated into the low dPhi region using a power law.
     """
 
@@ -352,6 +355,24 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         "lep1.Eta()": "lepton #eta",
         "lep2.Eta()": "lepton #eta",
         }
+
+    #Getting data-driven QCD prediction from high deltaPhi region
+    if dataDrivenQCD and not 'QCD' in samples:
+        print "Note: ignoring dataDrivenQCD option because QCD is not in the list of samples to process!"
+        dataDrivenQCD = False
+    if dataDrivenQCD:
+        print "\nWill first process the high deltaPhi control region to obtain QCD prediction"
+        cutsForQCDBkg = cutsMC.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
+        cutsForQCDData = cutsData.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
+        samplesForQCD = copy.copy(samples)
+        samplesForQCD.remove('QCD')
+        #recursion
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+['datadrivenqcd'], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, dataDrivenQCD=False)
+        #subtract backgrounds from QCD prediction
+        macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
+        print "Now back to our signal region..."
+    else:
+        histsForQCD = None
 
     ##Get plotting options (for customizing plot behavior)
     special = ""
@@ -371,6 +392,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             special += 'full'
 
     #set up files and trees
+    if debugLevel > 0: print ""
     inputs = filenames
     files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
     for name in inputs: 
@@ -383,6 +405,17 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #split histograms into those that can be applied via per-event weights, and those that require further processing
     sfShapes, otherShapes = splitShapeErrorsByType(shapeErrors)
+    #get scale factor options for each shape uncertainty
+    shapeAuxSFs = {}
+    for shape in sfShapes:
+        if not isinstance(shape,basestring): #tuple (shape, [list of processes])
+            curShape = shape[0]
+        else:
+            curShape = shape
+        shapeAuxSFs[curShape+'Up'] = copy.copy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Up'], errorOpt=curShape+'Up')
+        shapeAuxSFs[curShape+'Down'] = copy.copy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Down'], errorOpt=curShape+'Down')
     print "\nThese shape uncertainties will be applied via event-level weights:"
     print sfShapes
     print "\nOther shape uncertainties:"
@@ -392,41 +425,64 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     
+    dataWeightOpts = []
+    samplesToUse = copy.copy(samples) #MC samples to process
+    if dataDrivenQCD:
+        #do not process QCD as a MC sample
+        samplesToUse.remove('QCD')
+        #store QCD result from above and do QCD up/down systematic
+        if histsForQCD is None:
+            print "Error in makeControlSampleHists: QCD hist was not filled.  Check the code!"
+            return
+        for var in hists['QCD']:
+            if debugLevel > 0:
+                print "\nStoring QCD histogram for",var
+            hists['QCD'][var] = histsForQCD['QCD'][var].Clone()
+            if 'qcdnormUp' in shapeHists['QCD']:
+                if debugLevel > 0:
+                    print "Including up/down systematic error on QCD for",var
+                shapeHists['QCD']['qcdnormUp'] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Up')
+                shapeHists['QCD']['qcdnormUp'].Scale(QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormDown'] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
+                shapeHists['QCD']['qcdnormDown'].Scale(1.0/QCDNORMERRFRACTION)
+    if 'datadrivenqcd' in map(str.lower, weightOpts): #use QCD extrapolation on data
+        dataWeightOpts.append('datadrivenqcd')
+            
     #fill histograms by looping over all trees
     if dataName in trees:
         print("\nData:")
-        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=[], debugLevel=debugLevel) 
+        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, debugLevel=debugLevel) 
 
     print("\nMC:")
     if debugLevel > 0:
         print "\nMisc SF hists to use:"
         print auxSFs
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samples}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, shapeHists=shapeHists, shapeNames=sfShapes, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:
         if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-            samplesToUse = filter(lambda n: n in shape[1], samples)
+            shapeSamplesToUse = filter(lambda n: n in shape[1], samplesToUse)
             curShape = shape[0]
         else:
-            samplesToUse = samples
+            shapeSamplesToUse = samplesToUse
             curShape = shape
         print "\n"+curShape,"Up:"
         #get any scale factor histograms needed to apply this up variation
-        auxSFsToUse = copy.deepcopy(auxSFs)
-        getSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up")
+        auxSFsToUse = copy.copy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up")
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
-        auxSFsToUse = copy.deepcopy(auxSFs)
-        getSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down")
+        auxSFsToUse = copy.copy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down")
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
@@ -446,7 +502,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
             dataForTable=hists[dataName][("MR","Rsq")]
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags)
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir)
 
         if len(samples) > 0: #compare fit with MC
             pass
@@ -470,7 +526,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
 #######################################
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, printTable=True, lumiData=0, signifThreshold=0., th2PolyXBins=None, th2PolyCols=None, debugLevel=0, printdir="."):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, lumiData=0, signifThreshold=0., th2PolyXBins=None, th2PolyCols=None, debugLevel=0, printdir="."):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to uncertainty on the background normalization (controlled by the normErrFraction argument).
     
@@ -643,7 +699,8 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     if not isinstance(var, basestring) and len(var) == 2: 
         plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
-        if printTable and not doTotalMC and not th2PolyXBins:
+        if not doTotalMC and not th2PolyXBins:
+            #print table
             xbinLowEdges = []
             xbinUpEdges = []
             ybinLowEdges = []
@@ -794,7 +851,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         #create dPhi up/down versions of the correction histogram
         vlHists['DPhiUp'] = vlHists['Central'].Clone()
         vlHists['DPhiDown'] = vlHists['Central'].Clone()
-        for bx in range(vlHists['Central'].GetSize()+1):
+        for bx in range(1, vlHists['Central'].GetSize()+1):
             #divide all bin contents by the efficiency of the MT cut
             for n,h in vlHists.iteritems():
                 if 'MT' not in n:
