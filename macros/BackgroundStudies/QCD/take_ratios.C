@@ -13,6 +13,7 @@
 #include <TMath.h>
 #include <TH3F.h>
 #include <TF1.h>
+#include <TH1D.h>
 #include <TGraphAsymmErrors.h>
 #include <TCanvas.h>
 #include <TLegend.h>
@@ -36,17 +37,21 @@ void take_ratios() {
   // RAZOR-TRIGGERED region setup
   //
   //--------------------------------------------------------------
-  //Int_t sample=razor;
+  Int_t sample=razor;
   // for mr
-  //Int_t binIn=mr;
-  //const Int_t nbinx=1, nbiny=6, nbinz=2;
-  //Float_t xmin=0.15, xmax=0.30; 
+  Int_t binIn=mr;
+  //const Int_t nbinx=1, nbiny=20, nbinz=2;
+  const Int_t nbinx=1, nbiny=7, nbinz=2;
+  //const Int_t nbinx=1, nbiny=7, nbinz=2;
+  Float_t xmin=0.15, xmax=0.25; 
+  Float_t ymin=400,  ymax=3000; 
   //Float_t ymin=400,  ymax=1000; 
-  //Float_t zmin=0,    zmax=2;
-  //Float_t xbins[nbinx+1] = {xmin, xmax};
-  //Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 900, ymax};
-  //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  //TString pname = "npf_vs_mr_razor.png";
+  Float_t zmin=0,    zmax=2;
+  Float_t xbins[nbinx+1] = {xmin, xmax};
+  Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 900, 1000, ymax};
+  //Float_t ybins[nbiny+1] = {ymin, 450, 500, 550, 600, 700, 800, ymax};
+  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
+  TString pname = "npf_vs_mr_razor.png";
 
   // for leading jet pt
   //Int_t binIn=ljpt;
@@ -68,25 +73,26 @@ void take_ratios() {
   //Float_t zmin=0,    zmax=2;
   //Float_t xbins[nbinx+1] = {xmin, xmax};
   ////Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
-  //Float_t ybins[nbiny+1] = { ymin, 0.175, 0.20, 0.225, 0.25, 0.275, 0.30, 0.325, ymax};
+  //Float_t ybins[nbiny+1] = { ymin, 0.16, 0.17, 0.18, 0.19, 0.20, 0.225, 0.25, ymax};
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_rsq_razor.png";
 
-  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
-  //
-  //TString cut_str="weight*(box==11||box==12)*puWeight*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
-  //TString cut_str_dat=cut_str+"*(Rsq<0.30)";
+  TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
+  
+  TString cut_str="weight*(box==11||box==12)*puWeight*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(Rsq<0.25)";
+//*(leadingJetPt>300)";// && leadingJetPt<300)";
+  TString cut_str_dat=cut_str+"*(Rsq<0.25)";
 
   //--------------------------------------------------------------
   //
   // DIJET region setup
   //
   //--------------------------------------------------------------
-  Int_t sample=dijet;
+  //Int_t sample=dijet;
   // for mr
   //Int_t binIn=mr;
   //const Int_t nbinx=1, nbiny=8, nbinz=2;
@@ -110,24 +116,24 @@ void take_ratios() {
   //TString pname = "npf_vs_ljpt_dijet.png";
 
   // for rsq
-  Int_t binIn=rsq;
-  const Int_t nbinx=1, nbiny=4, nbinz=2;
-  Float_t xmin=400, xmax=3000; 
-  Float_t ymin=0,  ymax=0.2; 
-  Float_t zmin=0,    zmax=2;
-  Float_t xbins[nbinx+1] = {xmin, xmax};
-  Float_t ybins[nbiny+1] = { ymin, 0.05, 0.1, 0.15, ymax};
-  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  TString pname = "npf_vs_rsq_dijet.png";
-
-  TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/JetHT_Run2015D_PRv4_Golden_skim.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
-
-  TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>400)";
-  TString cut_str_dat=cut_str+"*(HLTDecision[105]*HLTPrescale[105])";
+  //Int_t binIn=rsq;
+  //const Int_t nbinx=1, nbiny=4, nbinz=2;
+  //Float_t xmin=400, xmax=3000; 
+  //Float_t ymin=0,  ymax=0.2; 
+  //Float_t zmin=0,    zmax=2;
+  //Float_t xbins[nbinx+1] = {xmin, xmax};
+  //Float_t ybins[nbiny+1] = { ymin, 0.05, 0.1, 0.15, ymax};
+  //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
+  //TString pname = "npf_vs_rsq_dijet.png";
+  //
+  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/JetHT_Run2015D_PRv4_Golden_skim.root","read");
+  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
+  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
+  //
+  //TString cut_str="weight*(box==100)*puWeight*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
+  //TString cut_str_dat=cut_str+"*(HLTDecision[105]*HLTPrescale[105])";
 
   //--------------------------------------------------------------
   //
@@ -140,6 +146,8 @@ void take_ratios() {
   TH3F *dPhiPF_T = new TH3F("dPhiPF_T", "dPhiPF_T", nbinx, &xbins[0], nbiny, &ybins[0], nbinz, &zbins[0]); dPhiPF_T->Sumw2();
   TH3F *dPhiPF_W = new TH3F("dPhiPF_W", "dPhiPF_W", nbinx, &xbins[0], nbiny, &ybins[0], nbinz, &zbins[0]); dPhiPF_W->Sumw2();
   TH3F *dPhiPF_Z = new TH3F("dPhiPF_Z", "dPhiPF_Z", nbinx, &xbins[0], nbiny, &ybins[0], nbinz, &zbins[0]); dPhiPF_Z->Sumw2();
+
+  TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny, &ybins[0]); fxn_plus_err->Sumw2();
 
   // open trees
   TTree *tQ = (TTree*) fQ->Get("QCDTree");
@@ -174,6 +182,23 @@ void take_ratios() {
   //dPhiPF_D->Add(dPhiPF_W, -1);
   //dPhiPF_D->Add(dPhiPF_Z, -1);
 
+  TF1 *qcd_fxn = new TF1("qcd_fxn","[0]*x^[1]+[2]", 400, 2500);
+  qcd_fxn->SetParameter(0,3.1e7);
+  qcd_fxn->SetParameter(1,-3.1);
+  qcd_fxn->SetParameter(2,0.062);
+
+  Double_t wtf=0, lesswtf=0;
+
+  //cout << qcd_fxn->Integral(400,2500) << endl;
+  //cout << "----" << endl;
+  //TF1 *qcd_fxn_2 = new TF1("qcd_fxn_2","[0]*x^[1]+[2]", 400, 2500);
+  //qcd_fxn_2->SetParameter(0,3.1e7*1.67);
+  //qcd_fxn_2->SetParameter(1,-3.1);
+  //qcd_fxn_2->SetParameter(2,0.062*1.67);
+
+  //TF1 *qcd_fxn = new TF1("qcd_fxn","[0]",0.15,0.35);
+  //qcd_fxn->SetParameter(0,0.19);
+
   vector<TGraphAsymmErrors *> qcd_with_mr; 
   for (Int_t i=0; i<dPhiPF_Q->GetNbinsX(); i++) {
     qcd_with_mr.push_back(new TGraphAsymmErrors());
@@ -193,11 +218,19 @@ void take_ratios() {
       Float_t nPF=0;
       if (dnP>0 && dnF>0) {
 	nPF=dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))/dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2));
-  
+	wtf+=qcd_fxn->Eval(rsq)*(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
+	lesswtf+=(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
+	cout << (nPF - qcd_fxn->Eval(rsq))/qcd_fxn->Eval(rsq) << endl;
+
 	Float_t drsq=0.5*dPhiPF_Q->GetYaxis()->GetBinWidth(j+1);
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
 	Float_t dnPF_l=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
+
+	fxn_plus_err->SetBinContent(k+1,qcd_fxn->Eval(rsq));
+	fxn_plus_err->SetBinError(k+1,qcd_fxn->Eval(rsq)*0.87);
+	//fxn_plus_err->SetBinContent(k+1,0.192443);
+	//fxn_plus_err->SetBinError(k+1,0.192443*0.87);
   
 	qcd_with_mr[i]->SetPoint(k, rsq, nPF);
 	qcd_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
@@ -205,6 +238,10 @@ void take_ratios() {
       }
     }
   }
+
+  cout << "----" << endl;
+  cout << wtf  << " / " << lesswtf << " = " << wtf/lesswtf << endl;
+  cout << "----" << endl;
   
   vector<TGraphAsymmErrors *> dat_with_mr; 
   Float_t xrsq=0, drsq=0, dnP=0, dnF=0, dnP_T=0, dnF_T=0, dnP_W=0, dnF_W=0, dnP_Z=0, dnF_Z=0, nPass=0, nFail=0, nPF=0;
@@ -253,9 +290,11 @@ void take_ratios() {
 	nPass=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
 	nFail=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
       }
-      cout << nPass << " / " << nFail << " = " << nPass/nFail << endl;
+      //cout << nPass << " / " << nFail << " = " << nPass/nFail << endl;
       if (nPass>0 && nFail>0) {
 	nPF=nPass/nFail;
+
+	cout << (nPF - qcd_fxn->Eval(xrsq))/qcd_fxn->Eval(xrsq) << endl;
 
 	Float_t drsq=0.5*dPhiPF_D->GetYaxis()->GetBinWidth(j+1);
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP + dnF );
@@ -269,15 +308,13 @@ void take_ratios() {
     }
   }
 
-  //TF1 *qcd_fxn = new TF1("qcd_fxn","[0]*x^[1]+[2]", 400, 2500);
-  //qcd_fxn->SetParameter(0,0.5);
-  //qcd_fxn->SetParameter(1,-1);
-  //qcd_fxn->SetParameter(2,0.2);
-
   TLegend *leg = new TLegend(0.50,0.70,0.75,0.86);
+  //TLegend *leg = new TLegend(0.25,0.70,0.50,0.86);
   leg->SetFillColor(0); leg->SetShadowColor(0); leg->SetLineColor(0);
-  leg->AddEntry(dat_with_mr[0], "Data-(tt+ewk)", "pel");
+  if (sample==razor) leg->AddEntry(dat_with_mr[0], "Data-(tt+ewk)", "pel");
+  else leg->AddEntry(dat_with_mr[0], "Data", "pel");
   leg->AddEntry(qcd_with_mr[0], "QCD", "pel");
+  //leg->AddEntry(qcd_fxn, "Fit result", "l");
 
   Int_t i=0;
   
@@ -286,16 +323,31 @@ void take_ratios() {
   else if (binIn==rsq) qcd_with_mr[i]->GetXaxis()->SetTitle("R^{2}");
   qcd_with_mr[i]->GetYaxis()->SetTitle("N_{pass}/N_{fail}");
   qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
+  //if (sample==razor && binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
   if (sample==razor && binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
   else if (sample==dijet && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
-  else if (sample==dijet && binIn==rsq) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 6);
+  else if (sample==dijet && binIn==rsq) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
   else if (sample==razor && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
   qcd_with_mr[i]->GetXaxis()->SetNdivisions(508);
   qcd_with_mr[i]->GetYaxis()->SetNdivisions(508);
   qcd_with_mr[i]->SetTitle("");
+  //qcd_with_mr[i]->SetTitle("80 < lead. jet p_T < 200");
+  //qcd_with_mr[i]->SetTitle("200 < lead. jet p_T < 300");
+  //qcd_with_mr[i]->SetTitle("300 < lead. jet p_T");
   qcd_with_mr[i]->Draw("ap e1");
   dat_with_mr[i]->Draw("p e1 same");
   //if (binIn==mr) qcd_with_mr[i]->Fit(qcd_fxn,"R");
+  //qcd_with_mr[i]->Fit(qcd_fxn,"R");
+  fxn_plus_err->SetFillColor(kYellow);
+  fxn_plus_err->SetFillStyle(1001);
+  fxn_plus_err->SetMarkerStyle(0);
+  //fxn_plus_err->SetLineColor(kOrange);
+  //fxn_plus_err->SetMarkerColor(kOrange);
+  fxn_plus_err->Draw("same f e3");
+  qcd_with_mr[i]->Draw("same p e1");
+  dat_with_mr[i]->Draw("same p e1");
+  //qcd_fxn->Draw("same");
+  //qcd_fxn_2->Draw("same");
 
   leg->Draw();
   c->SaveAs(pname);

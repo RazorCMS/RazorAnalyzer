@@ -39,8 +39,9 @@ void get_contributions() {
   TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
 
+  TString cut_str_rsq="weight*(box==11||box==12)*puWeight*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(Rsq<0.25)";
   TString cut_str="weight*(box==11||box==12)*puWeight*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
-  TString cut_str_dat_rsq=cut_str+"*(Rsq<0.30)";
+  //TString cut_str_mc_rsq=cut_str+"*(Rsq<0.25)";
  
   TString cut_str_mr1="*(MR>500 && MR<600)";
   TString cut_str_mr2="*(MR>600 && MR<700)";
@@ -224,68 +225,68 @@ void get_contributions() {
   //--------------------------------------------------------------
 
   // draw MR (again)
-  tD->Draw("MR>>hMR_D", cut_str);
-  tQ->Draw("MR>>hMR_Q", cut_str);
-  tT->Draw("MR>>hMR_T", cut_str);
-  tW->Draw("MR>>hMR_W", cut_str);
-  tZ->Draw("MR>>hMR_Z", cut_str);
+  tD->Draw("MR>>hMR_D", cut_str_rsq);
+  tQ->Draw("MR>>hMR_Q", cut_str_rsq);
+  tT->Draw("MR>>hMR_T", cut_str_rsq);
+  tW->Draw("MR>>hMR_W", cut_str_rsq);
+  tZ->Draw("MR>>hMR_Z", cut_str_rsq);
   
-  tD->Draw("MR>>hMR_pass_D", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tQ->Draw("MR>>hMR_pass_Q", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tT->Draw("MR>>hMR_pass_T", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tW->Draw("MR>>hMR_pass_W", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tZ->Draw("MR>>hMR_pass_Z", cut_str+"*(abs(dPhiRazor)>2.8)");
+  tD->Draw("MR>>hMR_pass_D", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tQ->Draw("MR>>hMR_pass_Q", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tT->Draw("MR>>hMR_pass_T", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tW->Draw("MR>>hMR_pass_W", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tZ->Draw("MR>>hMR_pass_Z", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
   
-  tD->Draw("MR>>hMR_fail_D", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tQ->Draw("MR>>hMR_fail_Q", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tT->Draw("MR>>hMR_fail_T", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tW->Draw("MR>>hMR_fail_W", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tZ->Draw("MR>>hMR_fail_Z", cut_str+"*(abs(dPhiRazor)<2.8)");
+  tD->Draw("MR>>hMR_fail_D", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tQ->Draw("MR>>hMR_fail_Q", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tT->Draw("MR>>hMR_fail_T", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tW->Draw("MR>>hMR_fail_W", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tZ->Draw("MR>>hMR_fail_Z", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
 
   // draw Rsq (again)
-  tD->Draw("Rsq>>hRsq_D", cut_str_dat_rsq);
+  tD->Draw("Rsq>>hRsq_D", cut_str_rsq);
   tQ->Draw("Rsq>>hRsq_Q", cut_str);
   tT->Draw("Rsq>>hRsq_T", cut_str);
   tW->Draw("Rsq>>hRsq_W", cut_str);
   tZ->Draw("Rsq>>hRsq_Z", cut_str);
   
-  tD->Draw("Rsq>>hRsq_pass_D", cut_str_dat_rsq+"*(abs(dPhiRazor)>2.8)");
+  tD->Draw("Rsq>>hRsq_pass_D", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
   tQ->Draw("Rsq>>hRsq_pass_Q", cut_str+"*(abs(dPhiRazor)>2.8)");
   tT->Draw("Rsq>>hRsq_pass_T", cut_str+"*(abs(dPhiRazor)>2.8)");
   tW->Draw("Rsq>>hRsq_pass_W", cut_str+"*(abs(dPhiRazor)>2.8)");
   tZ->Draw("Rsq>>hRsq_pass_Z", cut_str+"*(abs(dPhiRazor)>2.8)");
   
-  tD->Draw("Rsq>>hRsq_fail_D", cut_str_dat_rsq+"*(abs(dPhiRazor)<2.8)");
+  tD->Draw("Rsq>>hRsq_fail_D", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
   tQ->Draw("Rsq>>hRsq_fail_Q", cut_str+"*(abs(dPhiRazor)<2.8)");
   tT->Draw("Rsq>>hRsq_fail_T", cut_str+"*(abs(dPhiRazor)<2.8)");
   tW->Draw("Rsq>>hRsq_fail_W", cut_str+"*(abs(dPhiRazor)<2.8)");
   tZ->Draw("Rsq>>hRsq_fail_Z", cut_str+"*(abs(dPhiRazor)<2.8)");
 
   // draw lead jet pT (again)
-  tD->Draw("leadingJetPt>>hLjpt_D", cut_str);
-  tQ->Draw("leadingJetPt>>hLjpt_Q", cut_str);
-  tT->Draw("leadingJetPt>>hLjpt_T", cut_str);
-  tW->Draw("leadingJetPt>>hLjpt_W", cut_str);
-  tZ->Draw("leadingJetPt>>hLjpt_Z", cut_str);
+  tD->Draw("leadingJetPt>>hLjpt_D", cut_str_rsq);
+  tQ->Draw("leadingJetPt>>hLjpt_Q", cut_str_rsq);
+  tT->Draw("leadingJetPt>>hLjpt_T", cut_str_rsq);
+  tW->Draw("leadingJetPt>>hLjpt_W", cut_str_rsq);
+  tZ->Draw("leadingJetPt>>hLjpt_Z", cut_str_rsq);
 
-  tD->Draw("leadingJetPt>>hLjpt_pass_D", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tQ->Draw("leadingJetPt>>hLjpt_pass_Q", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tT->Draw("leadingJetPt>>hLjpt_pass_T", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tW->Draw("leadingJetPt>>hLjpt_pass_W", cut_str+"*(abs(dPhiRazor)>2.8)");
-  tZ->Draw("leadingJetPt>>hLjpt_pass_Z", cut_str+"*(abs(dPhiRazor)>2.8)");
+  tD->Draw("leadingJetPt>>hLjpt_pass_D", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tQ->Draw("leadingJetPt>>hLjpt_pass_Q", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tT->Draw("leadingJetPt>>hLjpt_pass_T", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tW->Draw("leadingJetPt>>hLjpt_pass_W", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
+  tZ->Draw("leadingJetPt>>hLjpt_pass_Z", cut_str_rsq+"*(abs(dPhiRazor)>2.8)");
 
-  tD->Draw("leadingJetPt>>hLjpt_fail_D", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tQ->Draw("leadingJetPt>>hLjpt_fail_Q", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tT->Draw("leadingJetPt>>hLjpt_fail_T", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tW->Draw("leadingJetPt>>hLjpt_fail_W", cut_str+"*(abs(dPhiRazor)<2.8)");
-  tZ->Draw("leadingJetPt>>hLjpt_fail_Z", cut_str+"*(abs(dPhiRazor)<2.8)");
+  tD->Draw("leadingJetPt>>hLjpt_fail_D", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tQ->Draw("leadingJetPt>>hLjpt_fail_Q", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tT->Draw("leadingJetPt>>hLjpt_fail_T", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tW->Draw("leadingJetPt>>hLjpt_fail_W", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
+  tZ->Draw("leadingJetPt>>hLjpt_fail_Z", cut_str_rsq+"*(abs(dPhiRazor)<2.8)");
 
   // draw dPhiR (again)
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_D", cut_str);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_Q", cut_str);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_T", cut_str);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_W", cut_str);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_Z", cut_str);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_D", cut_str_rsq);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_Q", cut_str_rsq);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_T", cut_str_rsq);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_W", cut_str_rsq);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_Z", cut_str_rsq);
   
   tD->Draw("abs(dPhiRazor)>>hDPhiR_rsq1_D", cut_str+cut_str_rsq1);
   tQ->Draw("abs(dPhiRazor)>>hDPhiR_rsq1_Q", cut_str+cut_str_rsq1);
@@ -305,65 +306,65 @@ void get_contributions() {
   tW->Draw("abs(dPhiRazor)>>hDPhiR_rsq3_W", cut_str+cut_str_rsq3);
   tZ->Draw("abs(dPhiRazor)>>hDPhiR_rsq3_Z", cut_str+cut_str_rsq3);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_D", cut_str+cut_str_ljpt1);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_Q", cut_str+cut_str_ljpt1);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_T", cut_str+cut_str_ljpt1);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_W", cut_str+cut_str_ljpt1);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_Z", cut_str+cut_str_ljpt1);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_D", cut_str_rsq+cut_str_ljpt1);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_Q", cut_str_rsq+cut_str_ljpt1);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_T", cut_str_rsq+cut_str_ljpt1);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_W", cut_str_rsq+cut_str_ljpt1);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt1_Z", cut_str_rsq+cut_str_ljpt1);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_D", cut_str+cut_str_ljpt2);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_Q", cut_str+cut_str_ljpt2);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_T", cut_str+cut_str_ljpt2);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_W", cut_str+cut_str_ljpt2);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_Z", cut_str+cut_str_ljpt2);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_D", cut_str_rsq+cut_str_ljpt2);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_Q", cut_str_rsq+cut_str_ljpt2);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_T", cut_str_rsq+cut_str_ljpt2);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_W", cut_str_rsq+cut_str_ljpt2);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt2_Z", cut_str_rsq+cut_str_ljpt2);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_D", cut_str+cut_str_ljpt3);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_Q", cut_str+cut_str_ljpt3);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_T", cut_str+cut_str_ljpt3);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_W", cut_str+cut_str_ljpt3);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_Z", cut_str+cut_str_ljpt3);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_D", cut_str_rsq+cut_str_ljpt3);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_Q", cut_str_rsq+cut_str_ljpt3);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_T", cut_str_rsq+cut_str_ljpt3);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_W", cut_str_rsq+cut_str_ljpt3);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt3_Z", cut_str_rsq+cut_str_ljpt3);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_D", cut_str+cut_str_ljpt4);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_Q", cut_str+cut_str_ljpt4);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_T", cut_str+cut_str_ljpt4);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_W", cut_str+cut_str_ljpt4);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_Z", cut_str+cut_str_ljpt4);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_D", cut_str_rsq+cut_str_ljpt4);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_Q", cut_str_rsq+cut_str_ljpt4);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_T", cut_str_rsq+cut_str_ljpt4);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_W", cut_str_rsq+cut_str_ljpt4);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt4_Z", cut_str_rsq+cut_str_ljpt4);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_D", cut_str+cut_str_ljpt5);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_Q", cut_str+cut_str_ljpt5);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_T", cut_str+cut_str_ljpt5);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_W", cut_str+cut_str_ljpt5);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_Z", cut_str+cut_str_ljpt5);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_D", cut_str_rsq+cut_str_ljpt5);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_Q", cut_str_rsq+cut_str_ljpt5);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_T", cut_str_rsq+cut_str_ljpt5);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_W", cut_str_rsq+cut_str_ljpt5);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_ljpt5_Z", cut_str_rsq+cut_str_ljpt5);
 
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr1_D", cut_str+cut_str_mr1);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr1_Q", cut_str+cut_str_mr1);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr1_T", cut_str+cut_str_mr1);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr1_W", cut_str+cut_str_mr1);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr1_Z", cut_str+cut_str_mr1);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr1_D", cut_str_rsq+cut_str_mr1);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr1_Q", cut_str_rsq+cut_str_mr1);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr1_T", cut_str_rsq+cut_str_mr1);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr1_W", cut_str_rsq+cut_str_mr1);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr1_Z", cut_str_rsq+cut_str_mr1);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr2_D", cut_str+cut_str_mr2);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr2_Q", cut_str+cut_str_mr2);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr2_T", cut_str+cut_str_mr2);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr2_W", cut_str+cut_str_mr2);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr2_Z", cut_str+cut_str_mr2);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr2_D", cut_str_rsq+cut_str_mr2);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr2_Q", cut_str_rsq+cut_str_mr2);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr2_T", cut_str_rsq+cut_str_mr2);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr2_W", cut_str_rsq+cut_str_mr2);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr2_Z", cut_str_rsq+cut_str_mr2);
   
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr3_D", cut_str+cut_str_mr3);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr3_Q", cut_str+cut_str_mr3);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr3_T", cut_str+cut_str_mr3);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr3_W", cut_str+cut_str_mr3);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr3_Z", cut_str+cut_str_mr3);
-  
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr4_D", cut_str+cut_str_mr4);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr4_Q", cut_str+cut_str_mr4);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr4_T", cut_str+cut_str_mr4);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr4_W", cut_str+cut_str_mr4);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr4_Z", cut_str+cut_str_mr4);
-  
-  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr5_D", cut_str+cut_str_mr5);
-  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr5_Q", cut_str+cut_str_mr5);
-  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr5_T", cut_str+cut_str_mr5);
-  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr5_W", cut_str+cut_str_mr5);
-  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr5_Z", cut_str+cut_str_mr5);
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr3_D", cut_str_rsq+cut_str_mr3);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr3_Q", cut_str_rsq+cut_str_mr3);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr3_T", cut_str_rsq+cut_str_mr3);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr3_W", cut_str_rsq+cut_str_mr3);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr3_Z", cut_str_rsq+cut_str_mr3);
+
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr4_D", cut_str_rsq+cut_str_mr4);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr4_Q", cut_str_rsq+cut_str_mr4);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr4_T", cut_str_rsq+cut_str_mr4);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr4_W", cut_str_rsq+cut_str_mr4);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr4_Z", cut_str_rsq+cut_str_mr4);
+
+  tD->Draw("abs(dPhiRazor)>>hDPhiR_mr5_D", cut_str_rsq+cut_str_mr5);
+  tQ->Draw("abs(dPhiRazor)>>hDPhiR_mr5_Q", cut_str_rsq+cut_str_mr5);
+  tT->Draw("abs(dPhiRazor)>>hDPhiR_mr5_T", cut_str_rsq+cut_str_mr5);
+  tW->Draw("abs(dPhiRazor)>>hDPhiR_mr5_W", cut_str_rsq+cut_str_mr5);
+  tZ->Draw("abs(dPhiRazor)>>hDPhiR_mr5_Z", cut_str_rsq+cut_str_mr5);
 
   //--------------------------------------------------------------
   //
