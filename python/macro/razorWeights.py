@@ -7,6 +7,13 @@ import sys
 ### WEIGHT AND TRIGGER INFO
 #####################################
 
+#QCD systematic error
+QCDNORMERRFRACTION = 0.87
+
+def getQCDExtrapolationFactor(MR):
+    """Get QCD extrapolation factor as a function of MR"""
+    return 3.1e+7*(MR**(-3.1)) + 0.062
+
 WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
 weightfilenames_DEFAULT = {
@@ -129,30 +136,21 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
     """Apply pileup weights and other known MC correction factors"""
     lweightOpts = map(str.lower, weightOpts)
 
-    if 'datadrivenqcd' not in lweightOpts: #ordinary MC weight
-        eventWeight = event.weight*scale
-        if debugLevel > 1: 
-            print "Weight from ntuple:",event.weight
-            print "Scale by:",scale
-    else: #data-driven QCD estimate 
-        qcdExtrapolationFactor = 3.1e+7*(event.MR**(-3.1)) + 0.062
-        #qcdExtrapolationFactor = 1.2e+6*(event.MR**(-2.6)) + 0.064 #old
-        eventWeight = qcdExtrapolationFactor*scale
-        qcdNormErrFraction=0.87
-        if debugLevel > 1:
-            print "QCD extrapolation factor:",qcdExtrapolationFactor
-            print "Scale by:",scale
-        if errorOpt == 'qcdnormUp':
-            eventWeight *= (1+qcdNormErrFraction)
-            if debugLevel > 1: print errorOpt,"scale factor:",1+qcdNormErrFraction
-        elif errorOpt == 'qcdnormDown':
-            eventWeight /= (1+qcdNormErrFraction)
-            if debugLevel > 1: print errorOpt,"scale factor:",1/(1+qcdNormErrFraction)
-        if debugLevel > 1:
-            print "event weight:",eventWeight
-        return eventWeight
+    #nominal weight
+    eventWeight = event.weight*scale
+    if debugLevel > 1: 
+        print "Weight from ntuple:",event.weight
+        print "Scale by:",scale
 
     if len(lweightOpts) > 0:
+
+        #QCD extrapolation weight
+        if 'datadrivenqcd' in lweightOpts: 
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR)
+            if debugLevel > 1:
+                print "QCD extrapolation factor:",qcdExtrapolationFactor
+            eventWeight *= qcdExtrapolationFactor
+
         #pileup reweighting
         if str.lower("doNPVWeights") in lweightOpts:
             eventWeight *= pileupWeight(event, wHists, debugLevel=debugLevel)
@@ -263,9 +261,19 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
 
 def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     lweightOpts = map(str.lower, weightOpts)
-    eventWeight = scale
-    if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
-    return eventWeight
+
+    if 'datadrivenqcd' not in lweightOpts:
+        eventWeight = scale
+        if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
+        return eventWeight
+    else: #data-driven QCD estimate
+        qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR)
+        eventWeight = qcdExtrapolationFactor*scale
+        if debugLevel > 1:
+            print "QCD extrapolation factor:",qcdExtrapolationFactor
+            print "Scale by:",scale
+            print "event weight:",eventWeight
+        return eventWeight
 
 def getMTRelUncertainty(MR, bkg, box):
     muonBoxes = ["MuMultiJet", "MuSixJet", "MuFourJet", "MuJet"]

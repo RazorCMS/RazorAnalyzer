@@ -127,7 +127,7 @@ if __name__ == "__main__":
             "TTJets1L":"TTJets",
             "TTJets2L":"TTJets",
             }
-    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC+['ZInvUp'], scaleFactorNames=sfNames, debugLevel=debugLevel)
+    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
     for name in sfHists: assert sfHists[name]
     #get histograms for wjetsinv/gjets scale factor comparison
     gjetsupdownTFile = rt.TFile.Open(gjetsupdownFile)

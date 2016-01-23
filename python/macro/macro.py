@@ -181,6 +181,31 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                     else: #2D histogram
                         applyMTUncertainty2D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
 
+def subtractBkgsInData(process, hists={}, dataName="Data", debugLevel=0):
+    """
+    Subtracts all MC backgrounds (except 'process') from each data yield histogram.
+    The data histogram is modified in-place in the hists dictionary
+    """
+    #warn if the needed histograms are not found
+    if dataName not in hists:
+        print "Error in subtractBkgsInData: target data histogram (",dataName,") was not found!"
+        return
+    bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit, non-signal samples
+    if debugLevel > 0:
+        print "Will isolate",process,"process by subtracting these backgrounds from the data yield:"
+        print bgProcesses
+    #subtract backgrounds in each data histogram
+    for var in hists[dataName]:
+        for p in bgProcesses:
+            #make sure relevant background histogram exists
+            if var not in hists[p]:
+                print "Warning in subtractBkgsInData: could not find",var," in hists[",p,"]."
+                continue
+            #subtract it
+            if debugLevel > 0: 
+                print "Subtracting",p,"from",dataName,"distribution for",var
+            hists[dataName][var].Add(hists[p][var], -1) 
+
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", vartitles={}):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
@@ -556,16 +581,11 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, dataDrivenQCD=False, shapeHists={}, shapeNames=[], shapeAuxSFs={}, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
     for name in treeDict: 
-        #reset parameters
-        weightOptsToUse = copy.copy(weightOpts)
-        cutsToUse = copy.copy(cuts)
-        scaleToUse = scale
-        errorOptToUse = errorOpt
 
         #prepare additional shape histograms if needed
         shapeHistsToUse = {}
@@ -603,7 +623,6 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             else:
                 sfHistToUse = sfHists[name]
             print("Using scale factors from histogram "+sfHistToUse.GetName())
-        auxSFsToUse = auxSFs.copy()
         #get appropriate scale factor histograms for misc reweightings
         auxSFHists = {name:sfHists[name] for name in auxSFs} 
         #get correct variables for scale factor reweighting.
@@ -613,21 +632,6 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             sfVarsToUse = sfVars[name]
             print "Reweighting in",sfVarsToUse
 
-        #data-driven QCD prediction is obtained by extrapolating from the high dPhiRazor region
-        if dataDrivenQCD and name.lower() == "qcd":
-            print "Estimating QCD via data driven extrapolation method"
-            cutsToUse = cutsToUse.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
-            weightOptsToUse.append('datadrivenqcd')
-            scaleToUse = 1.0
-            auxSFHists = {}
-            auxSFsToUse = {}
-            if errorOptToUse is not None and 'qcd' not in errorOptToUse:
-                errorOptToUse = None #shape systematics do not affect QCD data-driven prediction
-            shapeHistsToUse = { e:shapeHistsToUse[e] for e in shapeHistsToUse if 'qcd' in e }
-            shapeNamesToUse = [e for e in shapeNamesToUse if 'qcd' in e]
-            shapeAuxSFsToUse = { e:shapeAuxSFsToUse[e] for e in shapeAuxSFsToUse if 'qcd' in e }
-            shapeAuxSFHists = { e:shapeAuxSFHists[e] for e in shapeAuxSFHists if 'qcd' in e }
-
-        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scaleToUse, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOptToUse, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, debugLevel=debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
