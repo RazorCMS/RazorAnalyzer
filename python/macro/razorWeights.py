@@ -428,7 +428,16 @@ def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], s
     sfFile.Close()
     return sfHists
 
-def getSFsForErrorOpt(auxSFs={}, errorOpt=""):
+def getSFHistNameForErrorOpt(errorOpt, name):
+    """Returns the key in the scale factor histogram dictionary for the given error option"""
+    if errorOpt in ['sfsysttjetsUp','sfsyswjetsUp','sfsyszinvUp']:
+        return name+'Up'
+    elif errorOpt in ['sfsysttjetsDown','sfsyswjetsDown','sfsyszinvDown']:
+        return name+'Down'
+    else:
+        return name
+
+def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
     """
     Returns scale factor histogram names needed to compute the indicated shape uncertainty.
     Format of the input/output is { "HistogramName":("variableName", "cuts"), ... }
@@ -566,9 +575,9 @@ def splitShapeErrorsByType(shapeErrors):
         'singletopnorm':True,
         'othernorm':True,
         'qcdnorm':True,
-        'sfsysttjets':False,
-        'sfsyswjets':False,
-        'sfsyszinv':False,
+        'sfsysttjets':True,
+        'sfsyswjets':True,
+        'sfsyszinv':True,
         'vetomuoneff':True,
         'vetoeleeff':True,
         'tightmuoneff':True,

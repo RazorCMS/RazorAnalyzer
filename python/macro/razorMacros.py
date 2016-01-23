@@ -237,7 +237,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, printdir='.'):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -250,6 +250,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     nsigmas = []
     mcs = []
     mcErrs = []
+    totalMCs = []
     totalMCErrs = []
     for m in mcNames:
         mcs.append([])
@@ -272,12 +273,15 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             if nsigma is not None:
                 nsig = nsigma.GetBinContent(bx,by)
                 nsigmas.append('%.2f' % (nsig))
+            totalMC = 0.0
             totalMCErr = 0.0
             for i in range(len(mcNames)):
                 mcs[i].append('%.2f' % (mcHists[i].GetBinContent(bx,by)))
                 mcErrs[i].append('%.2f' % (mcHists[i].GetBinError(bx,by)))
+                totalMC += mcHists[i].GetBinContent(bx,by)
                 totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
             if len(mcNames) > 0:
+                totalMCs.append('%.2f' % (totalMC))
                 totalMCErrs.append('%.2f' % (totalMCErr))
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
@@ -306,13 +310,10 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if nsigma is not None: 
             cols.append(nsigmas)
             headers.append("Number of sigmas")
-    for i,name in enumerate(mcNames):
-        headers.append(name)
-        cols.append(mcs[i])
     if len(mcNames) > 0:
-        headers.append("MC Uncertainty")
-        cols.append(totalMCErrs)
-    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag")
+        headers.extend(["MC Prediction", "MC Uncertainty"])
+        cols.extend([totalMCs, totalMCErrs])
+    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag", printdir=printdir)
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
@@ -412,9 +413,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         else:
             curShape = shape
         shapeAuxSFs[curShape+'Up'] = copy.copy(auxSFs)
-        getSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Up'], errorOpt=curShape+'Up')
+        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Up'], errorOpt=curShape+'Up')
         shapeAuxSFs[curShape+'Down'] = copy.copy(auxSFs)
-        getSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Down'], errorOpt=curShape+'Down')
+        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Down'], errorOpt=curShape+'Down')
     print "\nThese shape uncertainties will be applied via event-level weights:"
     print sfShapes
     print "\nOther shape uncertainties:"
@@ -469,7 +470,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         print "\n"+curShape,"Up:"
         #get any scale factor histograms needed to apply this up variation
         auxSFsToUse = copy.copy(auxSFs)
-        getSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up")
+        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up")
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
@@ -477,7 +478,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
         auxSFsToUse = copy.copy(auxSFs)
-        getSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down")
+        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down")
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
@@ -501,7 +502,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
             dataForTable=hists[dataName][("MR","Rsq")]
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags)
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir)
 
         if len(samples) > 0: #compare fit with MC
             pass
