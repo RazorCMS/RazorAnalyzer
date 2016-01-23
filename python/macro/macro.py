@@ -166,13 +166,14 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                     curShape = shape
                 if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for",var
                 #loop over histogram bins
-                for bx in range(hists[name][var].GetSize()+1):
-                    #use difference between Up and Down histograms as uncertainty
-                    sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
-                    #add in quadrature with existing error
-                    oldErr = hists[name][var].GetBinError(bx)
-                    hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
-                    if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
+                if curShape+'Up' in shapeHists[name] and var in shapeHists[name][curShape+'Up']:
+                    for bx in range(hists[name][var].GetSize()+1):
+                        #use difference between Up and Down histograms as uncertainty
+                        sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
+                        #add in quadrature with existing error
+                        oldErr = hists[name][var].GetBinError(bx)
+                        hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
+                        if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
             for source in miscErrors:
                 #MT uncertainty (deprecated)
                 if source.lower() == "mt" and var == "MR":
@@ -270,6 +271,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 ytitle = var[1]
             #make plots
             plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, printdir=printdir)
+            #do MC total (no stack)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, printdir=printdir)
             #print prediction in each bin
             if obsData is not None and obsData != 0:
                 print "Results for data histogram:"
