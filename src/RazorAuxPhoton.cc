@@ -110,11 +110,14 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     double effAreaPhotons = 0.0;
 
     //get the effective areas. results are passed to variables by reference
-    if (useEffectiveArea90) {
-      getPhotonEffArea90( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
-    } else {
-      getPhotonEffAreaRun2( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
-    }
+    if (useEffectiveArea90) 
+      {
+	getPhotonEffArea90( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+      }
+    else 
+      {
+	getPhotonEffAreaRun2( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+      }
 
     //Rho corrected PF charged hadron isolation
     double PFIsoCorrected_ChHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
@@ -139,10 +142,10 @@ bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0102) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0271) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0274) pass = false;    
     }
   } 
 
@@ -248,9 +251,9 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 2.78, 6.49 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.39 + 0.0053*phoPt[i], true );
+      return photonPassesIsolation(i, 3.32, 1.92 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.81 + 0.0053*phoPt[i], true );
     } else {
-      return photonPassesIsolation(i, 2.55, 5.20 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.74 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 1.97, 11.86 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.83 + 0.0034*phoPt[i], true);
     }
   } 
 
