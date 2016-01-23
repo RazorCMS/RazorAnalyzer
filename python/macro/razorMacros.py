@@ -404,6 +404,17 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #split histograms into those that can be applied via per-event weights, and those that require further processing
     sfShapes, otherShapes = splitShapeErrorsByType(shapeErrors)
+    #get scale factor options for each shape uncertainty
+    shapeAuxSFs = {}
+    for shape in sfShapes:
+        if not isinstance(shape,basestring): #tuple (shape, [list of processes])
+            curShape = shape[0]
+        else:
+            curShape = shape
+        shapeAuxSFs[curShape+'Up'] = copy.copy(auxSFs)
+        getSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Up'], errorOpt=curShape+'Up')
+        shapeAuxSFs[curShape+'Down'] = copy.copy(auxSFs)
+        getSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Down'], errorOpt=curShape+'Down')
     print "\nThese shape uncertainties will be applied via event-level weights:"
     print sfShapes
     print "\nOther shape uncertainties:"
@@ -445,7 +456,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     if debugLevel > 0:
         print "\nMisc SF hists to use:"
         print auxSFs
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:
@@ -839,7 +850,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         #create dPhi up/down versions of the correction histogram
         vlHists['DPhiUp'] = vlHists['Central'].Clone()
         vlHists['DPhiDown'] = vlHists['Central'].Clone()
-        for bx in range(vlHists['Central'].GetSize()+1):
+        for bx in range(1, vlHists['Central'].GetSize()+1):
             #divide all bin contents by the efficiency of the MT cut
             for n,h in vlHists.iteritems():
                 if 'MT' not in n:
