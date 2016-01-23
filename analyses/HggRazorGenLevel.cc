@@ -686,8 +686,9 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	}
       
       //if ( minGenDeltaR > 0.3 ) continue;
-      std::cout << minGenLevelDeltaR << " jetType: " << gParticleId[myMatchIndex] 
+      /*std::cout << minGenLevelDeltaR << " jetType: " << gParticleId[myMatchIndex] 
 		<< " MotherId: " << gParticleMotherId[myMatchIndex] << std::endl; 
+      */
       
       GoodJets.push_back(thisJet);
       jet_E[n_Jets]            = thisJet.E();
