@@ -113,15 +113,21 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
   int   Pho_motherID[2];
 
   //jet information
-  float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
+  float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50], minGenDeltaR[50];
   int jetMatchID[50], jetMatchMotherID[50], matchIndex[50];
   
+  //SUSY masses
+  float sbMass, chi2Mass, chi1Mass;
+
   //set branches on big tree
   if(combineTrees){
     razorTree->Branch("weight", &weight, "weight/F");
     razorTree->Branch("run", &run, "run/i");
     razorTree->Branch("lumi", &lumi, "lumi/i");
     razorTree->Branch("event", &event, "event/i");
+    razorTree->Branch("sbMass", &sbMass, "sbMass/F");
+    razorTree->Branch("chi2Mass", &chi2Mass, "chi2Mass/F");
+    razorTree->Branch("chi1Mass", &chi1Mass, "chi1Mass/F");
     razorTree->Branch("passedDiphotonTrigger", &passedDiphotonTrigger, "passedDiphotonTrigger/O");
     razorTree->Branch("NPU", &NPU, "npu/i");
     razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
@@ -190,6 +196,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+    razorTree->Branch("minGenDeltaR", minGenDeltaR, "minGenDeltaR[n_Jets]/F");
     razorTree->Branch("jetMatchID", jetMatchID, "jetMatchID[n_Jets]/I");
     razorTree->Branch("jetMatchMotherID", jetMatchMotherID, "jetMatchMotherID[n_Jets]/I");
     razorTree->Branch("matchIndex", matchIndex, "matchIndex[n_Jets]/I");
@@ -314,6 +321,9 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     weight = genWeight;
 
     //reset tree variables
+    sbMass   = 0;
+    chi1Mass = 0;
+    chi2Mass = 0;
     n_Jets = 0;
     nLooseBTaggedJets = 0;
     nMediumBTaggedJets = 0;
@@ -366,6 +376,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	jet_Pt[i]           = -99.;
 	jet_Eta[i]          = -99.;
 	jet_Phi[i]          = -99.;
+	minGenDeltaR[i]     = -99.;
 	jetMatchID[i]       = 0;
 	jetMatchMotherID[i] = 0;
       }
@@ -404,6 +415,14 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
     int nPhotonsAbove40GeV = 0;
     for(int i = 0; i < nGenParticle; i++)
       {
+	//----------------------------
+	//obtain SUSY particles masses
+	//----------------------------
+	float pMass = sqrt( gParticleE[i]*gParticleE[i] - gParticlePt[i]*gParticlePt[i]*(1.0 + pow(sinh(gParticleEta[i]),2) ) );
+	if ( gParticleId[i] == 1000005 && gParticleStatus[i] == 22 ) sbMass   = pMass;
+	if ( gParticleId[i] == 1000023 && gParticleStatus[i] == 52 ) chi2Mass = pMass;
+	if ( gParticleId[i] == 1000022 && gParticleStatus[i] == 1 )  chi1Mass = pMass;
+	
 	if ( !( abs( gParticleId[i] ) == 22 && abs( gParticleMotherId[i] ) == 25 ) ) continue;
 	TVector3 vec;
 	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
@@ -650,7 +669,7 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
       double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
       if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
       
-      double minGenDeltaR = 999;
+      double minGenLevelDeltaR = 999;
       int myMatchIndex = -1;
       for ( int j = 0; j < nGenParticle; j++ )
 	{
@@ -659,22 +678,24 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	  TLorentzVector thisGenParticle = 
 	    makeTLorentzVector( gParticlePt[j], gParticleEta[j], gParticlePhi[j], gParticleE[j] );
 	  double thisDR = thisJet.DeltaR( thisGenParticle );
-	  if ( thisDR < minGenDeltaR )
+	  if ( thisDR < minGenLevelDeltaR )
 	    {
 	      myMatchIndex   = j;
-	      minGenDeltaR = thisDR;
+	      minGenLevelDeltaR = thisDR;
 	    }
 	}
       
-      if ( minGenDeltaR > 0.5 ) continue;
-      std::cout << "jetType: " << gParticleId[myMatchIndex] 
+      //if ( minGenDeltaR > 0.3 ) continue;
+      /*std::cout << minGenLevelDeltaR << " jetType: " << gParticleId[myMatchIndex] 
 		<< " MotherId: " << gParticleMotherId[myMatchIndex] << std::endl; 
+      */
       
       GoodJets.push_back(thisJet);
       jet_E[n_Jets]            = thisJet.E();
       jet_Pt[n_Jets]           = thisJet.Pt();
       jet_Eta[n_Jets]          = thisJet.Eta();
       jet_Phi[n_Jets]          = thisJet.Phi();
+      minGenDeltaR[n_Jets]     = minGenLevelDeltaR;
       jetMatchID[n_Jets]       = gParticleId[myMatchIndex];
       jetMatchMotherID[n_Jets] = gParticleMotherId[myMatchIndex];
       matchIndex[n_Jets]       = myMatchIndex;
@@ -739,10 +760,9 @@ void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int 
 	t1Rsq  = -1.0;
       }
     
-    MET = metPt;
-    //t1MET = metType0Plus1Pt;
-    t1MET = metType1Pt;
-    //if MR < 200, reject the event
+    MET = PFMET.Pt();
+    t1MET = t1PFMET.Pt();
+    
     if ( theMR < 0.0 )
       {
 	if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
