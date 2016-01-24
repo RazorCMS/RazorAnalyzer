@@ -97,7 +97,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
-    plotOpts = {}
+    plotOpts = {"ymin":1e-1}
+
     doSideband=(not args.full)
     if not doSideband:
         FIT_DIR = FIT_DIR.replace('Sideband','Full').replace('sideband','full')

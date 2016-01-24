@@ -237,7 +237,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, printdir='.'):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, printdir='.', listAllMC=False):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -276,8 +276,8 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             totalMC = 0.0
             totalMCErr = 0.0
             for i in range(len(mcNames)):
-                mcs[i].append('%.2f' % (mcHists[i].GetBinContent(bx,by)))
-                mcErrs[i].append('%.2f' % (mcHists[i].GetBinError(bx,by)))
+                mcs[i].append('%.4f' % (mcHists[i].GetBinContent(bx,by)))
+                mcErrs[i].append('%.4f' % (mcHists[i].GetBinError(bx,by)))
                 totalMC += mcHists[i].GetBinContent(bx,by)
                 totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
             if len(mcNames) > 0:
@@ -313,7 +313,15 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     if len(mcNames) > 0:
         headers.extend(["MC Prediction", "MC Uncertainty"])
         cols.extend([totalMCs, totalMCErrs])
-    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag", printdir=printdir)
+        if listAllMC:
+            for i,n in enumerate(mcNames):
+                headers.extend([n, n+' Error'])
+                cols.extend([mcs[i], mcErrs[i]])
+    if listAllMC:
+        printstr='razor2DFitTableFull'+boxName+str(btags)+'btag'
+    else:
+        printstr='razor2DFitTable'+boxName+str(btags)+'btag'
+    plotting.table_basic(headers, cols, caption=caption, printstr=printstr, printdir=printdir)
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
@@ -503,6 +511,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             dataForTable=hists[dataName][("MR","Rsq")]
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir)
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir, listAllMC=True)
 
         if len(samples) > 0: #compare fit with MC
             pass

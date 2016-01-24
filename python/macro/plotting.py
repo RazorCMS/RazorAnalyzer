@@ -201,6 +201,8 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         mc.Draw('hist')
         if data and data.GetMaximum() > mc.GetMaximum() and ymax is None: 
             mc.SetMaximum(data.GetMaximum())
+        if ymin is not None: mc.SetMinimum(ymin)
+        if ymax is not None: mc.SetMaximum(ymax)
         if not data: mc.GetXaxis().SetTitle(xtitle)
         if logy: mc.GetXaxis().SetMoreLogLabels()
         mc.GetXaxis().SetTitle(xtitle)
@@ -218,13 +220,17 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             mcHist.SetMarkerStyle(21)
             mcHist.SetMarkerSize(1)
             mcHist.SetMarkerColor(rt.kBlack)
-            mcHist.Draw()
-            if logx: mcHist.GetXaxis().SetMoreLogLabels()
             mcHist.GetXaxis().SetTitle(xtitle)
             mcHist.GetYaxis().SetTitle(ytitle)
             mcHist.GetYaxis().SetTitleOffset(0.60)
             mcHist.GetYaxis().SetTitleSize(0.06)
             mcHist.GetYaxis().SetLabelSize(0.06)
+            if ymin is not None: 
+                mcHist.SetMinimum(ymin)
+            if ymax is not None: 
+                mcHist.SetMaximum(ymax)
+            mcHist.Draw()
+            if logx: mcHist.GetXaxis().SetMoreLogLabels()
         mcTotal.SetFillStyle(3001)
         mcTotal.Draw("e2same")
     #draw fit
@@ -626,7 +632,7 @@ def unroll2DHistograms(hists):
         out.append(outHist)
     return out
 
-def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=True, savepdf=True, savec=True, savepng=True, nsigmaFitData=None, nsigmaFitMC=None, mcDict=None, mcSamples=None, printdir="."):
+def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=True, savepdf=True, savec=True, savepng=True, nsigmaFitData=None, nsigmaFitMC=None, mcDict=None, mcSamples=None, ymin=0.1, printdir="."):
     """Plotting macro for data, MC, and/or fit yields.  Creates french flag plots comparing data/MC/fit if able.
     mc, data, fit: 2d histograms for MC prediction, data, and fit prediction (all are optional)
     lumistr: tex-formatted string indicating the integrated luminosity
@@ -708,7 +714,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 legDataMC.AddEntry(blindMC, "MC Prediction")
             legDataMC.AddEntry(unrolled[1], "Data")
             rt.SetOwnership(legDataMC, False)
-            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.5,ratiomax=1.5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
+            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.5,ratiomax=1.5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
         if fit: 
             #do (fit - mc)/unc
             if nsigmaFitMC is None:
@@ -753,7 +759,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 pad2OptToUse = 'ratio'
                 ratiominToUse= 0.0
                 ratiomaxToUse=5.0
-            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiominToUse, ratiomax=ratiomaxToUse, pad2Opt=pad2OptToUse, saveroot=True, savec=savec, mcErrColor=rt.kBlack, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
+            plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiominToUse, ratiomax=ratiomaxToUse, pad2Opt=pad2OptToUse, saveroot=True, savec=savec, mcErrColor=rt.kBlack, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
     if data:
         draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
         if fit: 
@@ -792,7 +798,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
             legDataFit.AddEntry(blindFit, "Fit Prediction")
             legDataFit.AddEntry(unrolled[1], "Data")
 
-            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=0.1, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kBlue, saveroot=True, savec=savec, customPad2Hist=nsigmaUnrolled, printdir=printdir, grayLines=grayLines)
+            plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kBlue, saveroot=True, savec=savec, customPad2Hist=nsigmaUnrolled, printdir=printdir, grayLines=grayLines)
     if fit:
         draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
         #make relative uncertainty histogram
@@ -827,7 +833,6 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
         return
 
     with open(printdir+'/'+printstr+'.tex', 'w') as f:
-        #f.write('\\newgeometry{margin=0.2cm}\n')
         if landscape: f.write('\\begin{landscape}\n')
         f.write('\\begin{center}\n\\footnotesize\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
         f.write('\\caption{'+caption+'}\n\\endhead\n\\hline\n')
@@ -836,6 +841,5 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
             f.write((' & '.join([col[row] for col in cols]))+' \\\\\n\\hline\n')
         f.write('\\end{longtable}\n\\end{center}\n')
         if landscape: f.write('\\end{landscape}\n')
-        #f.write('\\restoregeometry\n')
         print "Created LaTeX scale factor table",(printstr+".tex")
 
