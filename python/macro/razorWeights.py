@@ -139,6 +139,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
     #nominal weight
     eventWeight = event.weight*scale
     if debugLevel > 1: 
+        print "Error option:",errorOpt
         print "Weight from ntuple:",event.weight
         print "Scale by:",scale
 

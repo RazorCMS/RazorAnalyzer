@@ -182,8 +182,10 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         mcTotal.SetTitle("")
         mcTotal.SetStats(0)
         mcTotal.Reset()
+        numMCHists = 0
         for h in histList:
             mcTotal.Add(h)
+            numMCHists += 1
         mcTotal.SetFillColor(mcErrColor)
         mcTotal.GetYaxis().SetTitle(ytitle)
         mcTotal.GetYaxis().SetTitleSize(0.06)
@@ -196,7 +198,14 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         if ymax is not None: mcTotal.SetMaximum(ymax)
         if data and data.GetMaximum() > mcTotal.GetMaximum() and ymax is None: 
             mcTotal.SetMaximum(data.GetMaximum())
-        mc.Draw("hist")
+        #if fit and numMCHists == 1: #draw MC as a line
+        #    mc.SetFillStyle(0)
+        #    mc.SetLineWidth(2)
+        #    mc.SetLineColor(rt.kBlack)
+        #    mc.SetMarkerStyle(21)
+        #    mc.SetMarkerSize(1)
+        #    mc.SetMarkerColor(rt.kBlack)
+        mc.Draw('hist')
         if data and data.GetMaximum() > mc.GetMaximum() and ymax is None: 
             mc.SetMaximum(data.GetMaximum())
         if not data: mc.GetXaxis().SetTitle(xtitle)
@@ -216,17 +225,31 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         fit.SetMarkerSize(0)
         fit.SetLineColor(fitColor)
         fit.SetMarkerColor(fitColor)
-        fit.SetFillStyle(3001)
-        fit.SetFillColor(rt.kAzure+6)
         fit.GetYaxis().SetTitle(ytitle)
         fit.SetTitle("")
         if ymin is not None: fit.SetMinimum(ymin)
         if ymax is not None: fit.SetMaximum(ymax)
-        fit.Draw("e2same")
+        #blue line for fit
         fitCopy = fit.Clone()
         fitCopy.SetFillStyle(0)        
         fitCopy.SetLineWidth(2)
-        fitCopy.Draw("histsame")
+
+        if data:
+            #Fit = blue line with shading for error band
+            fit.SetFillStyle(3001)
+            fit.SetFillColor(rt.kAzure+6)
+            fit.Draw("e2same")
+        elif mc:
+            #Fit = blue line with red lines for up/down errors
+            fitLower = fit.Clone()
+            fitLower.SetLineColor(rt.kPink)
+            fitUpper = fitLower.Clone()
+            for bx in range(1, fit.GetNbinsX()+1):
+                fitLower.SetBinContent(bx, fit.GetBinContent(bx)-fit.GetBinError(bx))
+                fitUpper.SetBinContent(bx, fit.GetBinContent(bx)+fit.GetBinError(bx))
+            fitLower.Draw('histsame')
+            fitUpper.Draw('histsame')
+        fitCopy.Draw("histsame") 
     #draw data
     if data:
         data.SetStats(0)
@@ -336,8 +359,24 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             lowerPadHist.SetMarkerStyle(fit.GetMarkerStyle())
             lowerPadHist.SetMarkerSize(fit.GetMarkerSize())
         elif pad2Opt.lower() == "ratio":
-            lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
-            lowerPadHist.GetYaxis().SetTitle("Fit / MC")
+            if numMCHists == 1:
+                lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
+                lowerPadHist.GetYaxis().SetTitle("Fit / MC")
+            else:
+                #draw fit/MC with fit and MC errors separate
+                lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreDenominatorErrs=True)
+                lowerPadHist.GetYaxis().SetTitle("Fit / MC")
+                #draw MC uncertainties on the ratio
+                #(get plot style from MC histogram)
+                fitWithMCStyle = mcTotal.Clone()
+                for bx in range(1, fitWithMCStyle.GetNbinsX()+1):
+                    fitWithMCStyle.SetBinContent(bx, fit.GetBinContent(bx))
+                    fitWithMCStyle.SetBinError(bx, fit.GetBinError(bx))
+                lowerPadHist2 = make1DRatioHistogram(fitWithMCStyle, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreNumeratorErrs=True)
+                lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
+                for bx in range(1, lowerPadHist2.GetNbinsX()+1):
+                    lowerPadHist2.SetBinContent(bx,1)
+                lowerPadHist2.SetFillStyle(3001)
         elif pad2Opt.lower() == "nsigma" or pad2Opt.lower() == "pulls" or pad2Opt.lower() == "ff":
             lowerPadHist = make1DPullHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("(Fit - MC)/#sigma")
@@ -345,24 +384,25 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             lowerPadHist = make1DPercentDiffHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("(Fit - MC)/Fit")
     c.cd()
-    pad2 = rt.TPad(printstr+"pad2",printstr+"pad2",0,0.0,1,0.4)
-    pad2.SetTopMargin(0)
-    pad2.SetTopMargin(0.008)
-    pad2.SetBottomMargin(0.25)
-    pad2.SetGridy()
-    pad2.SetLogx(logx)
-    if lowerPadHist2 is not None:
-        pad2.Draw()
-        pad2.cd()
-        lowerPadHist2.Draw("e2same")
-        pad2.Modified()
-        rt.gPad.Update()
-    if lowerPadHist is not None:
-        pad2.Draw()
-        pad2.cd()
-        lowerPadHist.Draw("pesame")
-        pad2.Modified()
-        rt.gPad.Update()
+    if (data and mc) or (data and fit) or (mc and fit): 
+        pad2 = rt.TPad(printstr+"pad2",printstr+"pad2",0,0.0,1,0.4)
+        pad2.SetTopMargin(0)
+        pad2.SetTopMargin(0.008)
+        pad2.SetBottomMargin(0.25)
+        pad2.SetGridy()
+        pad2.SetLogx(logx)
+        if lowerPadHist2 is not None:
+            pad2.Draw()
+            pad2.cd()
+            lowerPadHist2.Draw("e2same")
+            pad2.Modified()
+            rt.gPad.Update()
+        if lowerPadHist is not None:
+            pad2.Draw()
+            pad2.cd()
+            lowerPadHist.Draw("pesame")
+            pad2.Modified()
+            rt.gPad.Update()
 
     #save
     if savepng: c.Print(printdir+'/'+printstr+".png")
@@ -617,7 +657,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
         else: #draw sum of MC only
             mcStack = makeStack({"MC":unrolled[0]}, ["MC"], "MC")
         draw2DHist(c, mc, xtitle, ytitle, ztitle, zmin, zmax, printstr+'MC', lumistr=lumistr, commentstr=commentstr+", MC prediction", dotext=dotext, grayGraphs=grayGraphs[0], drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
-        if data: 
+        if data:
             #do (data - mc)/unc
             mcPulls = make2DPullHistogram(data,mc)
             draw2DHist(c, mcPulls, xtitle, ytitle, ztitle, None, None, printstr+'MCPulls', lumistr=lumistr, commentstr=commentstr+", (Data - MC)/#sigma", dotext=dotext, palette="FF", logz=False, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
@@ -673,7 +713,10 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 for bx in range(1, nsigmaUnrolledFitMC.GetNbinsX()+1):
                     nsigmaUnrolledFitMC.SetBinError(bx,0.0)
 
-            legMCFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
+            if mcDict is None:
+                legMCFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
+            else:
+                legMCFit = rt.TLegend(0.6, 0.6, 0.9, 0.9)
             rt.SetOwnership(legMCFit, False)
             legMCFit.AddEntry(unrolled[2], "Fit Prediction")
             if mcDict is None:

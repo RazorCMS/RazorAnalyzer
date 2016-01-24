@@ -166,14 +166,13 @@ def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, mis
                     curShape = shape
                 if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for",var
                 #loop over histogram bins
-                if curShape+'Up' in shapeHists[name] and var in shapeHists[name][curShape+'Up']:
-                    for bx in range(hists[name][var].GetSize()+1):
-                        #use difference between Up and Down histograms as uncertainty
-                        sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
-                        #add in quadrature with existing error
-                        oldErr = hists[name][var].GetBinError(bx)
-                        hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
-                        if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
+                for bx in range(hists[name][var].GetSize()+1):
+                    #use difference between Up and Down histograms as uncertainty
+                    sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
+                    #add in quadrature with existing error
+                    oldErr = hists[name][var].GetBinError(bx)
+                    hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
+                    if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
             for source in miscErrors:
                 #MT uncertainty (deprecated)
                 if source.lower() == "mt" and var == "MR":
@@ -590,6 +589,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             print "Cut decisions for systematic uncertainty scale factors:",shapeAuxSFFormResults
         #apply scale factor to shape up/down weights too (if needed)
         for i,n in enumerate(shapeNames):
+            if debugLevel > 1: print "Error option:",n
             #main scale factor
             if shapeSFHists[n+'Up'] is not None:
                 shapeSFUp, shapeErrUp = getScaleFactorAndError(tree, shapeSFHists[n+'Up'], sfVars, formulas, debugLevel=debugLevel)
@@ -606,10 +606,9 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 if shapeAuxSFFormResults[ shapeAuxSFFormsLookup[n+'Down'][name] ]:
                     shapeAuxSFDown, shapeAuxErrDown = getScaleFactorAndError(tree, shapeAuxSFHists[n+'Down'][name], sfVars=shapeAuxSFs[n+'Down'][name][0], formulas=formulas, debugLevel=debugLevel)
                     wsDown[i] *= shapeAuxSFDown
-        #fill up/down shape histograms
-        for i,e in enumerate(shapeNames):
-            fillF(tree, shapeHists[e+'Up'], wsUp[i], formulas=formulas, debugLevel=debugLevel)
-            fillF(tree, shapeHists[e+'Down'], wsDown[i], formulas=formulas, debugLevel=debugLevel)
+            #fill up/down shape histograms
+            fillF(tree, shapeHists[n+'Up'], wsUp[i], formulas=formulas, debugLevel=debugLevel)
+            fillF(tree, shapeHists[n+'Down'], wsDown[i], formulas=formulas, debugLevel=debugLevel)
         #####
 
         sumweight += w
