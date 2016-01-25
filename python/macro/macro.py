@@ -494,6 +494,10 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         if debugLevel > 0: print "Making TTreeFormula for",name,"with formula",pair[1],"for reweighting",pair[0]
         auxSFForms[name] = rt.TTreeFormula(name+"Cuts", pair[1], tree)
         auxSFForms[name].GetNdata()
+        #add the reweighting variable to the formula list
+        if pair[0] not in formulas:
+            formulas[pair[0]] = rt.TTreeFormula(pair[0], pair[0], tree)
+            formulas[pair[0]].GetNdata()
 
     #make TTreeFormulas for shape histogram scale factors
     #A list of TTreeFormulas is maintained in shapeAuxSFForms, and shapeAuxSFFormsLookup matches each shape uncertainty with the index of a TTreeFormula in shapeAuxSFForms.
@@ -504,6 +508,11 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         shapeAuxSFFormsLookup[n+'Up'] = {}
         shapeAuxSFFormsLookup[n+'Down'] = {}
         for name,pair in shapeAuxSFs[n+'Up'].iteritems():
+            #add reweighting variable to formula list
+            if pair[0] not in formulas and isinstance(pair[0], basestring):
+                print pair[0]
+                formulas[pair[0]] = rt.TTreeFormula(pair[0], pair[0], tree)
+                formulas[pair[0]].GetNdata()
             if pair[1] not in cutStrings:
                 #make the TTreeFormula for this cut string
                 if debugLevel > 0: print "Making TTreeFormula for",name,"with formula",pair[1],"for reweighting",pair[0],"(error option",n+"Up)"
@@ -517,6 +526,10 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 shapeAuxSFFormsLookup[n+'Up'][name] = index
                 #if debugLevel > 0: print "TTreeFormula for reweighting",pair[0],"(",name,n+'Up',") is at index",index
         for name,pair in shapeAuxSFs[n+'Down'].iteritems():
+            #add reweighting variable to formula list
+            if pair[0] not in formulas and isinstance(pair[0], basestring):
+                formulas[pair[0]] = rt.TTreeFormula(pair[0], pair[0], tree)
+                formulas[pair[0]].GetNdata()
             if pair[1] not in cutStrings:
                 #make the TTreeFormula for this cut string
                 if debugLevel > 0: print "Making TTreeFormula for",name,"with formula",pair[1],"for reweighting",pair[0],"(error option",n+"Down)"

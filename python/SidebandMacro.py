@@ -53,7 +53,7 @@ weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
 commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','sfsysvetolepeta','sfsysvetotaueta','mteffeta','dphieffeta','vetomuoneff','vetoeleeff']
+hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
 
 cfg = Config.Config(config)
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
     vlPtFile = rt.TFile.Open(vetolepPtFile)
     assert vlPtFile
-    vtPtFile = rt.TFile.Open(vetotauFile)
+    vtPtFile = rt.TFile.Open(vetotauPtFile)
     assert vtPtFile
     vlPtHists = { 'VetoLeptonPt'+n:vlPtFile.Get('VetoLeptonPtScaleFactors'+n) for n in vnames }
     vtPtHists = { 'VetoTauPt'+n:vtPtFile.Get('VetoTauPtScaleFactors'+n) for n in vnames }
@@ -154,15 +154,14 @@ if __name__ == "__main__":
     sfHists.update(vtPtHists)
     vlEtaFile = rt.TFile.Open(vetolepEtaFile)
     assert vlEtaFile
-    vtEtaFile = rt.TFile.Open(vetotauFile)
+    vtEtaFile = rt.TFile.Open(vetotauEtaFile)
     assert vtEtaFile
-    vlEtaHists = { 'VetoLeptonEta'+n:vlEtaFile.Get('VetoLeptonEtaScaleFactors'+n) for n in vnames }
-    vtEtaHists = { 'VetoTauEta'+n:vtEtaFile.Get('VetoTauEtaScaleFactors'+n) for n in vnames }
-    for n in vnames: 
-        assert vlEtaHists['VetoLeptonEta'+n]
-        assert vtEtaHists['VetoTauEta'+n]
-    sfHists.update(vlEtaHists)
-    sfHists.update(vtEtaHists)
+    sfHists['VetoLeptonEtaUp'] = vlEtaFile.Get('VetoLeptonEtaScaleFactors')
+    assert sfHists['VetoLeptonEtaUp']
+    sfHists['VetoLeptonEtaDown'] = invertHistogram(sfHists['VetoLeptonEtaUp'])
+    sfHists['VetoTauEtaUp'] = vtEtaFile.Get('VetoTauEtaScaleFactors')
+    assert sfHists['VetoTauEtaUp']
+    sfHists['VetoTauEtaDown'] = invertHistogram(sfHists['VetoTauEtaUp'])
     #get DYJets and TTBar Dilepton cross check scale factor histograms
     ttTFile = rt.TFile.Open(ttFile)
     assert ttTFile
@@ -200,8 +199,6 @@ if __name__ == "__main__":
     auxSFs = { 
         "VetoLeptonPt":("leadingGenLeptonPt", "(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"), 
         "VetoTauPt":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"),
-        "VetoLeptonEta":("abs(leadingGenLeptonEta)", "(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"), 
-        "VetoTauEta":("abs(leadingGenLeptonEta)", "abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20")
         }
 
     #estimate yields in signal region

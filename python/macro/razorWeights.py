@@ -477,8 +477,7 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
             histNames.append("VetoLeptonPtDown")
         varNames.append("leadingGenLeptonPt")
         cuts.append(vetoLeptonAuxCuts)
-    elif 'sfsysvetolepeta' in errorOpt.lower():
-        if 'VetoLeptonEta' in auxSFs: del auxSFs['VetoLeptonEta']
+    elif 'vetolepetacrosscheck' in errorOpt.lower():
         if 'Up' in errorOpt:
             histNames.append("VetoLeptonEtaUp")
         elif 'Down' in errorOpt:
@@ -494,8 +493,7 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
             histNames.append("VetoTauPtDown")
         varNames.append("leadingGenLeptonPt")
         cuts.append(vetoTauAuxCuts)
-    elif 'sfsysvetotaueta' in errorOpt.lower():
-        if 'VetoTauEta' in auxSFs: del auxSFs['VetoTauEta']
+    elif 'vetotauetacrosscheck' in errorOpt.lower():
         if 'Up' in errorOpt:
             histNames.append("VetoTauEtaUp")
         elif 'Down' in errorOpt:
@@ -516,19 +514,6 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
         cuts.append(vetoLeptonAuxCuts)
         varNames.append("leadingGenLeptonPt")
         cuts.append(vetoTauAuxCuts)
-    elif 'mteffeta' in errorOpt.lower():
-        if 'VetoLeptonEta' in auxSFs: del auxSFs['VetoLeptonEta']
-        if 'VetoTauEta' in auxSFs: del auxSFs['VetoTauEta']
-        if 'Up' in errorOpt:
-            histNames.append("VetoLeptonEtaMTUp")
-            histNames.append("VetoTauEtaMTUp")
-        elif 'Down' in errorOpt:
-            histNames.append("VetoLeptonEtaMTDown")
-            histNames.append("VetoTauEtaMTDown")
-        varNames.append("abs(leadingGenLeptonEta)")
-        cuts.append(vetoLeptonAuxCuts)
-        varNames.append("abs(leadingGenLeptonEta)")
-        cuts.append(vetoTauAuxCuts)
     #DPhi efficiency up/down
     elif 'dphieffpt' in errorOpt.lower():
         if 'VetoLeptonPt' in auxSFs: del auxSFs['VetoLeptonPt']
@@ -542,19 +527,6 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
         varNames.append("leadingGenLeptonPt")
         cuts.append(vetoLeptonAuxCuts)
         varNames.append("leadingGenLeptonPt")
-        cuts.append(vetoTauAuxCuts)
-    elif 'dphieffeta' in errorOpt.lower():
-        if 'VetoLeptonEta' in auxSFs: del auxSFs['VetoLeptonEta']
-        if 'VetoTauEta' in auxSFs: del auxSFs['VetoTauEta']
-        if 'Up' in errorOpt:
-            histNames.append("VetoLeptonEtaDPhiUp")
-            histNames.append("VetoTauEtaDPhiUp")
-        elif 'Down' in errorOpt:
-            histNames.append("VetoLeptonEtaDPhiDown")
-            histNames.append("VetoTauEtaDPhiDown")
-        varNames.append("abs(leadingGenLeptonEta)")
-        cuts.append(vetoLeptonAuxCuts)
-        varNames.append("abs(leadingGenLeptonEta)")
         cuts.append(vetoTauAuxCuts)
     #b-tag bins closure test systematic
     elif 'btagcrosscheckmr' in errorOpt.lower():
@@ -611,10 +583,12 @@ def splitShapeErrorsByType(shapeErrors):
         'btagcrosscheckmr':True,
         'btagcrosscheckrsq':True,
         'btaginvcrosscheck':True,
-        'sfsysvetolep':True,
-        'sfsysvetotau':True,
-        'mteff':True,
-        'dphieff':True,
+        'sfsysvetoleppt':True,
+        'sfsysvetotaupt':True,
+        'vetolepetacrosscheck':True,
+        'vetotauetacrosscheck':True,
+        'mteffpt':True,
+        'dphieffpt':True,
         'singletopnorm':True,
         'othernorm':True,
         'qcdnorm':True,
