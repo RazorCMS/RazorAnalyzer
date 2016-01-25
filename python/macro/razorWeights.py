@@ -438,6 +438,8 @@ def getSFHistNameForErrorOpt(errorOpt, name):
     else:
         return name
 
+vetoLeptonAuxCuts="(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"
+vetoTauAuxCuts="abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"
 def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
     """
     Returns scale factor histogram names needed to compute the indicated shape uncertainty.
@@ -467,53 +469,93 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
         varNames.append(("MR","Rsq"))
         cuts.append("1")
     #Veto lepton scale factors up/down
-    elif 'sfsysvetolep' in errorOpt.lower():
-        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
+    elif 'sfsysvetoleppt' in errorOpt.lower():
+        if 'VetoLeptonPt' in auxSFs: del auxSFs['VetoLeptonPt']
         if 'Up' in errorOpt:
-            histNames.append("VetoLeptonUp")
-            varNames.append("leadingGenLeptonPt")
-            cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+            histNames.append("VetoLeptonPtUp")
         elif 'Down' in errorOpt:
-            histNames.append("VetoLeptonDown")
-            varNames.append("leadingGenLeptonPt")
-            cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+            histNames.append("VetoLeptonPtDown")
+        varNames.append("leadingGenLeptonPt")
+        cuts.append(vetoLeptonAuxCuts)
+    elif 'sfsysvetolepeta' in errorOpt.lower():
+        if 'VetoLeptonEta' in auxSFs: del auxSFs['VetoLeptonEta']
+        if 'Up' in errorOpt:
+            histNames.append("VetoLeptonEtaUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoLeptonEtaDown")
+        varNames.append("abs(leadingGenLeptonEta)")
+        cuts.append(vetoLeptonAuxCuts)
     #Veto tau scale factors up/down
-    elif 'sfsysvetotau' in errorOpt.lower():
-        if 'VetoTau' in auxSFs: del auxSFs['VetoTau']
+    elif 'sfsysvetotaupt' in errorOpt.lower():
+        if 'VetoTauPt' in auxSFs: del auxSFs['VetoTauPt']
         if 'Up' in errorOpt:
-            histNames.append("VetoTauUp")
+            histNames.append("VetoTauPtUp")
         elif 'Down' in errorOpt:
-            histNames.append("VetoTauDown")
+            histNames.append("VetoTauPtDown")
         varNames.append("leadingGenLeptonPt")
-        cuts.append("abs(leadingGenLeptonType) == 15")
+        cuts.append(vetoTauAuxCuts)
+    elif 'sfsysvetotaueta' in errorOpt.lower():
+        if 'VetoTauEta' in auxSFs: del auxSFs['VetoTauEta']
+        if 'Up' in errorOpt:
+            histNames.append("VetoTauEtaUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoTauEtaDown")
+        varNames.append("abs(leadingGenLeptonEta)")
+        cuts.append(vetoTauAuxCuts)
     #MT efficiency up/down
-    elif 'mteff' in errorOpt.lower():
-        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
-        if 'VetoTau' in auxSFs: del auxSFs['VetoTau']
+    elif 'mteffpt' in errorOpt.lower():
+        if 'VetoLeptonPt' in auxSFs: del auxSFs['VetoLeptonPt']
+        if 'VetoTauPt' in auxSFs: del auxSFs['VetoTauPt']
         if 'Up' in errorOpt:
-            histNames.append("VetoLeptonMTUp")
-            histNames.append("VetoTauMTUp")
+            histNames.append("VetoLeptonPtMTUp")
+            histNames.append("VetoTauPtMTUp")
         elif 'Down' in errorOpt:
-            histNames.append("VetoLeptonMTDown")
-            histNames.append("VetoTauMTDown")
+            histNames.append("VetoLeptonPtMTDown")
+            histNames.append("VetoTauPtMTDown")
         varNames.append("leadingGenLeptonPt")
-        cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+        cuts.append(vetoLeptonAuxCuts)
         varNames.append("leadingGenLeptonPt")
-        cuts.append("abs(leadingGenLeptonType) == 15")
+        cuts.append(vetoTauAuxCuts)
+    elif 'mteffeta' in errorOpt.lower():
+        if 'VetoLeptonEta' in auxSFs: del auxSFs['VetoLeptonEta']
+        if 'VetoTauEta' in auxSFs: del auxSFs['VetoTauEta']
+        if 'Up' in errorOpt:
+            histNames.append("VetoLeptonEtaMTUp")
+            histNames.append("VetoTauEtaMTUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoLeptonEtaMTDown")
+            histNames.append("VetoTauEtaMTDown")
+        varNames.append("abs(leadingGenLeptonEta)")
+        cuts.append(vetoLeptonAuxCuts)
+        varNames.append("abs(leadingGenLeptonEta)")
+        cuts.append(vetoTauAuxCuts)
     #DPhi efficiency up/down
-    elif 'dphieff' in errorOpt.lower():
-        if 'VetoLepton' in auxSFs: del auxSFs['VetoLepton']
-        if 'VetoTau' in auxSFs: del auxSFs['VetoTau']
+    elif 'dphieffpt' in errorOpt.lower():
+        if 'VetoLeptonPt' in auxSFs: del auxSFs['VetoLeptonPt']
+        if 'VetoTauPt' in auxSFs: del auxSFs['VetoTauPt']
         if 'Up' in errorOpt:
-            histNames.append("VetoLeptonDPhiUp")
-            histNames.append("VetoTauDPhiUp")
+            histNames.append("VetoLeptonPtDPhiUp")
+            histNames.append("VetoTauPtDPhiUp")
         elif 'Down' in errorOpt:
-            histNames.append("VetoLeptonDPhiDown")
-            histNames.append("VetoTauDPhiDown")
+            histNames.append("VetoLeptonPtDPhiDown")
+            histNames.append("VetoTauPtDPhiDown")
         varNames.append("leadingGenLeptonPt")
-        cuts.append("abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+        cuts.append(vetoLeptonAuxCuts)
         varNames.append("leadingGenLeptonPt")
-        cuts.append("abs(leadingGenLeptonType) == 15")
+        cuts.append(vetoTauAuxCuts)
+    elif 'dphieffeta' in errorOpt.lower():
+        if 'VetoLeptonEta' in auxSFs: del auxSFs['VetoLeptonEta']
+        if 'VetoTauEta' in auxSFs: del auxSFs['VetoTauEta']
+        if 'Up' in errorOpt:
+            histNames.append("VetoLeptonEtaDPhiUp")
+            histNames.append("VetoTauEtaDPhiUp")
+        elif 'Down' in errorOpt:
+            histNames.append("VetoLeptonEtaDPhiDown")
+            histNames.append("VetoTauEtaDPhiDown")
+        varNames.append("abs(leadingGenLeptonEta)")
+        cuts.append(vetoLeptonAuxCuts)
+        varNames.append("abs(leadingGenLeptonEta)")
+        cuts.append(vetoTauAuxCuts)
     #b-tag bins closure test systematic
     elif 'btagcrosscheckmr' in errorOpt.lower():
         if 'Up' in errorOpt:

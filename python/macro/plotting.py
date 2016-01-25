@@ -8,7 +8,7 @@ from PlotFit import setFFColors
 from RunCombine import exec_me
 from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D
 
-def makeLegend(hists, titles, ordering, x1=0.6, y1=0.6, x2=0.9, y2=0.9):
+def makeLegend(hists, titles, ordering, x1=0.75, y1=0.6, x2=0.9, y2=0.9):
     """Takes a dict of histograms, a dict of histogram titles, and an ordered list of names, and returns a legend with the histograms in the desired order"""
     leg = rt.TLegend(x1, y1, x2, y2)
     rt.SetOwnership(leg, False)
@@ -203,7 +203,6 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             mc.SetMaximum(data.GetMaximum())
         if ymin is not None: mc.SetMinimum(ymin)
         if ymax is not None: mc.SetMaximum(ymax)
-        if not data: mc.GetXaxis().SetTitle(xtitle)
         if logy: mc.GetXaxis().SetMoreLogLabels()
         mc.GetXaxis().SetTitle(xtitle)
         mc.GetYaxis().SetTitle(ytitle)
@@ -705,7 +704,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                     s = mcSamples[n]
                     legDataMC.AddEntry(blindMCUnrolledDict[s], s)
             else:
-                legDataMC = rt.TLegend(0.7, 0.7, 0.9, 0.9)
+                legDataMC = rt.TLegend(0.75, 0.7, 0.9, 0.9)
                 blindMC = unrolled[0].Clone("blindMC")
                 for bx in range(1,blindMC.GetNbinsX()+1):
                     if unrolled[1].GetBinContent(bx) < 0:
@@ -738,7 +737,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                     nsigmaUnrolledFitMC.SetBinError(bx,0.0)
 
             if mcDict is None:
-                legMCFit = rt.TLegend(0.7, 0.7, 0.9, 0.9)
+                legMCFit = rt.TLegend(0.75, 0.7, 0.9, 0.9)
             else:
                 legMCFit = rt.TLegend(0.75, 0.6, 0.9, 0.9)
             rt.SetOwnership(legMCFit, False)
@@ -843,3 +842,213 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
         if landscape: f.write('\\end{landscape}\n')
         print "Created LaTeX scale factor table",(printstr+".tex")
 
+def setTDRStyle():
+    tdrStyle = rt.TStyle("tdrStyle","Style for P-TDR")
+
+    # For the canvas:
+    tdrStyle.SetCanvasBorderMode(0)
+    tdrStyle.SetCanvasColor(kWhite)
+    tdrStyle.SetCanvasDefH(600) #Height of canvas
+    tdrStyle.SetCanvasDefW(600) #Width of canvas
+    tdrStyle.SetCanvasDefX(0)   #POsition on screen
+    tdrStyle.SetCanvasDefY(0)
+
+    # For the Pad:
+    tdrStyle.SetPadBorderMode(0)
+    tdrStyle.SetPadColor(kWhite)
+    tdrStyle.SetPadGridX(False)
+    tdrStyle.SetPadGridY(False)
+    tdrStyle.SetGridColor(0)
+    tdrStyle.SetGridStyle(3)
+    tdrStyle.SetGridWidth(1)
+  
+    # For the frame:
+    tdrStyle.SetFrameBorderMode(0)
+    tdrStyle.SetFrameBorderSize(1)
+    tdrStyle.SetFrameFillColor(0)
+    tdrStyle.SetFrameFillStyle(0)
+    tdrStyle.SetFrameLineColor(1)
+    tdrStyle.SetFrameLineStyle(1)
+    tdrStyle.SetFrameLineWidth(1)
+    
+    # For the histo:
+    tdrStyle.SetHistLineColor(1)
+    tdrStyle.SetHistLineStyle(0)
+    tdrStyle.SetHistLineWidth(1)
+  
+    tdrStyle.SetEndErrorSize(2)
+    
+    tdrStyle.SetMarkerStyle(20)
+    
+    # For the fit/function:
+    tdrStyle.SetOptFit(1)
+    tdrStyle.SetFitFormat("5.4g")
+    tdrStyle.SetFuncColor(2)
+    tdrStyle.SetFuncStyle(1)
+    tdrStyle.SetFuncWidth(1)
+  
+    # For the date:
+    tdrStyle.SetOptDate(0)
+  
+    # For the statistics box:
+    tdrStyle.SetOptFile(0)
+    tdrStyle.SetOptStat(0) # To display the mean and RMS:   SetOptStat("mr")
+    tdrStyle.SetStatColor(kWhite)
+    tdrStyle.SetStatFont(42)
+    tdrStyle.SetStatFontSize(0.025)
+    tdrStyle.SetStatTextColor(1)
+    tdrStyle.SetStatFormat("6.4g")
+    tdrStyle.SetStatBorderSize(1)
+    tdrStyle.SetStatH(0.1)
+    tdrStyle.SetStatW(0.15)
+  
+    # Margins:
+    tdrStyle.SetPadTopMargin(0.10)
+    tdrStyle.SetPadBottomMargin(0.13)
+    tdrStyle.SetPadLeftMargin(0.10)
+    tdrStyle.SetPadRightMargin(0.02)
+  
+    # For the Global title:
+    tdrStyle.SetOptTitle(0)
+    tdrStyle.SetTitleFont(42)
+    tdrStyle.SetTitleColor(1)
+    tdrStyle.SetTitleTextColor(1)
+    tdrStyle.SetTitleFillColor(10)
+    tdrStyle.SetTitleFontSize(0.05)
+  
+    # For the axis titles:
+    tdrStyle.SetTitleColor(1, "XYZ")
+    tdrStyle.SetTitleFont(42, "XYZ")
+    tdrStyle.SetTitleSize(0.06, "XYZ")
+    tdrStyle.SetTitleXOffset(0.9)
+    tdrStyle.SetTitleYOffset(1.25)
+  
+    # For the axis labels:
+    tdrStyle.SetLabelColor(1, "XYZ")
+    tdrStyle.SetLabelFont(42, "XYZ")
+    tdrStyle.SetLabelOffset(0.007, "XYZ")
+    tdrStyle.SetLabelSize(0.05, "XYZ")
+  
+    # For the axis:
+    tdrStyle.SetAxisColor(1, "XYZ")
+    tdrStyle.SetStripDecimals(kTRUE)
+    tdrStyle.SetTickLength(0.03, "XYZ")
+    tdrStyle.SetNdivisions(510, "XYZ")
+  
+    # Change for log plots:
+    tdrStyle.SetOptLogx(0)
+    tdrStyle.SetOptLogy(0)
+    tdrStyle.SetOptLogz(0)
+  
+    # Postscript options:
+    tdrStyle.SetPaperSize(20.,20.)
+  
+    tdrStyle.SetHatchesLineWidth(5)
+    tdrStyle.SetHatchesSpacing(0.05)
+  
+def CMS_lumi(pad, iPeriod=4, iPosX=0):
+    lumi_13TeV = "2.2 fb^{-1}"
+    cmsText = "CMS"
+    cmsTextFont = 61 # default is helvetica-bold
+    writeExtraText = True
+    extraText = " Preliminary"
+    extraTextFont = 52 # default is helvetica-italics
+    lumiTextSize = 0.6
+    lumiTextOffset = 0.2
+    cmsTextSize = 0.75
+    cmsTextOffset = 0.1 # only used in outOfFrame version
+    relPosX = 0.145
+    relPosY = 0.035
+    relExtraDY = 1.2
+    extraOverCmsTextSize = 0.76 # ratio of "CMS" and extra text size
+    drawLogo = False
+
+    outOfFrame = False
+    if iPosX/10 == 0: 
+        outOfFrame = True
+
+    alignY_=3
+    alignX_=2
+    if iPosX/10==0: alignX_=1
+    if iPosX==0: alignX_=1
+    if iPosX==0: alignY_=1
+    if iPosX/10==1: alignX_=1
+    if iPosX/10==2: alignX_=2
+    if iPosX/10==3: alignX_=3
+
+    align_ = 10*alignX_ + alignY_
+    H = pad.GetWh()
+    W = pad.GetWw()
+    l = pad.GetLeftMargin()
+    t = pad.GetTopMargin()
+    r = pad.GetRightMargin()
+    b = pad.GetBottomMargin()
+
+    pad.cd()
+
+    lumiText = ""
+    if iPeriod==4:
+        lumiText += lumi_13TeV
+        lumiText += " (13 TeV)"
+    elif iPeriod==0:
+        lumiText += lumi_sqrtS
+     
+    latex = rt.TLatex()
+    latex.SetNDC()
+    latex.SetTextAngle(0)
+    latex.SetTextColor(rt.kBlack)    
+
+    extraTextSize = extraOverCmsTextSize*cmsTextSize
+
+    latex.SetTextFont(42)
+    latex.SetTextAlign(31) 
+    latex.SetTextSize(lumiTextSize*t)    
+    latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText)
+
+    if outOfFrame:
+        latex.SetTextFont(cmsTextFont)
+        latex.SetTextAlign(11) 
+        latex.SetTextSize(cmsTextSize*t)    
+        latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText)
+    
+    pad.cd()
+
+    posX_=0
+    if iPosX%10<=1:
+        posX_ = l + relPosX*(1-l-r)
+    elif iPosX%10==2:
+        posX_ = l + 0.5*(1-l-r)
+    elif iPosX%10==3:
+        posX_ =  1-r - relPosX*(1-l-r)
+    posY_ = 1-t - relPosY*(1-t-b)
+    if not outOfFrame:
+        if drawLogo:
+            posX_ = l + 0.045*(1-l-r)*W/H
+            posY_ = 1-t - 0.045*(1-t-b)
+            xl_0 = posX_
+            yl_0 = posY_ - 0.15
+            xl_1 = posX_ + 0.15*H/W
+            yl_1 = posY_
+            pad_logo = rt.TPad("logo","logo", xl_0, yl_0, xl_1, yl_1 )
+            pad_logo.Draw()
+            pad_logo.cd()
+            pad_logo.Modified()
+            pad.cd()
+        else:
+            latex.SetTextFont(cmsTextFont)
+            latex.SetTextSize(cmsTextSize*t)
+            latex.SetTextAlign(align_)
+            latex.DrawLatex(posX_, posY_, cmsText)
+            if writeExtraText:
+                latex.SetTextFont(extraTextFont)
+                latex.SetTextAlign(align_)
+                latex.SetTextSize(extraTextSize*t)
+                latex.DrawLatex(posX_, posY_- relExtraDY*cmsTextSize*t, extraText)
+    elif writeExtraText:
+        if iPosX==0:
+            posX_ =   l +  relPosX*(1-l-r)
+            posY_ =   1-t+lumiTextOffset*t
+        latex.SetTextFont(extraTextFont)
+        latex.SetTextSize(extraTextSize*t)
+        latex.SetTextAlign(align_)
+        latex.DrawLatex(posX_, posY_, extraText)      

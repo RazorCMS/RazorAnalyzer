@@ -790,9 +790,10 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 
     #make signal region histogram that will receive the correction
     if histsToCorrect is not None:
+        bgProcessesSR = [mcProcess for mcProcess in histsToCorrect if mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit samples
         histToCorrect = hists[dataName][var].Clone("histToCorrect"+regionNameReduced) #set up correct binning
         histToCorrect.Reset()
-        for p in bgProcesses:
+        for p in bgProcessesSR:
             if signalRegionVar not in histsToCorrect[p]:
                 print "Error in makeVetoLeptonCorrectionHist: signal region histogram for",p,"not found!"
                 return
@@ -837,13 +838,14 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
             if thisBinErr == 0: continue
             nsigma = abs(vlHists['Central'].GetBinContent(bx)-targetVal)/thisBinErr
             if nsigma < signifThreshold: 
-                shiftAmount = vlHists['Central'].GetBinContent(bx)-targetVal
                 #reset central value to 0
                 vlHists['Central'].SetBinContent(bx,targetVal)
                 vlHists['Central'].SetBinError(bx,0.0)
-                #shift up and down histogram values by the amount of the correction
-                vlHists['Up'].SetBinContent(bx, vlHists['Up'].GetBinContent(bx)-shiftAmount)
-                vlHists['Down'].SetBinContent(bx, vlHists['Down'].GetBinContent(bx)-shiftAmount)
+                #reset up/down histograms 
+                vlHists['Up'].SetBinContent(bx,targetVal)
+                vlHists['Up'].SetBinError(bx,0.0)
+                vlHists['Down'].SetBinContent(bx,targetVal)
+                vlHists['Down'].SetBinError(bx,0.0)
 
     if debugLevel > 0:
         print "\nCorrections before MT and dPhi efficiencies:"
@@ -885,14 +887,22 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
                     h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
 
         print "Correcting histogram",histToCorrect.GetName(),"using the additive corrections just derived."
+        #set all histToCorrect errors to 0
+        for bx in range(1, histToCorrect.GetSize()+1):
+            histToCorrect.SetBinError(bx, 0.0)
         #corrected hist is histToCorrect + correction
         correctedHists = { n:histToCorrect.Clone(histToCorrect.GetName()+"VetoLepton"+n) for n in vlHists }
         for n in vlHists:
             correctedHists[n].Add(vlHists[n])
         #signal region scale factors are correctedHist / histToCorrect
         signalRegionSFs = { n:h.Clone(regionNameReduced+"ScaleFactors"+n.replace('Central','')) for n,h in correctedHists.iteritems() }
+
+        #divide and write out
         for n,h in signalRegionSFs.iteritems():
             h.Divide(histToCorrect)
+            #zero any negative scale factors
+            for bx in range(h.GetSize()+1):
+                h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
             print "Writing histogram",h.GetName(),"to file"
             h.Write()
 
@@ -911,6 +921,9 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     #otherwise, write corrections to file
     else:
         for n,h in vlHists.iteritems():
+            #zero any negative scale factors
+            for bx in range(h.GetSize()+1):
+                h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
             print "Writing histogram",h.GetName(),"to file"
             h.Write(regionNameReduced+"ScaleFactors"+n)
 

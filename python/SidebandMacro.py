@@ -42,6 +42,7 @@ for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.roo
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
 FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2185ipb"
+#FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
@@ -52,7 +53,7 @@ weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
 commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['sfsysvetolep','sfsysvetotau','mteff','dphieff','vetomuoneff','vetoeleeff']
+hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','sfsysvetolepeta','sfsysvetotaueta','mteffeta','dphieffeta','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
 
 cfg = Config.Config(config)
@@ -72,8 +73,10 @@ dirName="SignalRegionPlots"
 sfdir = "data/ScaleFactors/RazorMADD2015/"
 sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
 gjetsupdownFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
-vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck.root'
-vetotauFile = sfdir+'/RazorVetoTauCrossCheck.root'
+vetolepPtFile = sfdir+'/RazorVetoLeptonPtCrossCheck.root'
+vetotauPtFile = sfdir+'/RazorVetoTauPtCrossCheck.root'
+vetolepEtaFile = sfdir+'/RazorVetoLeptonEtaCrossCheck.root'
+vetotauEtaFile = sfdir+'/RazorVetoTauEtaCrossCheck.root'
 ttFile = sfdir+'/TTBarDileptonSystematic.root'
 dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck.root'
 btagFile = sfdir+'/RazorBTagClosureTests.root'
@@ -138,17 +141,28 @@ if __name__ == "__main__":
     assert sfHists['ZInvDown']
     #get veto lepton and tau scale factor histograms
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
-    vlfile = rt.TFile.Open(vetolepFile)
-    assert vlfile
-    vtfile = rt.TFile.Open(vetotauFile)
-    assert vtfile
-    vlhists = { 'VetoLepton'+n:vlfile.Get('VetoLeptonScaleFactors'+n) for n in vnames }
-    vthists = { 'VetoTau'+n:vtfile.Get('VetoTauScaleFactors'+n) for n in vnames }
+    vlPtFile = rt.TFile.Open(vetolepPtFile)
+    assert vlPtFile
+    vtPtFile = rt.TFile.Open(vetotauFile)
+    assert vtPtFile
+    vlPtHists = { 'VetoLeptonPt'+n:vlPtFile.Get('VetoLeptonPtScaleFactors'+n) for n in vnames }
+    vtPtHists = { 'VetoTauPt'+n:vtPtFile.Get('VetoTauPtScaleFactors'+n) for n in vnames }
     for n in vnames: 
-        assert vlhists['VetoLepton'+n]
-        assert vthists['VetoTau'+n]
-    sfHists.update(vlhists)
-    sfHists.update(vthists)
+        assert vlPtHists['VetoLeptonPt'+n]
+        assert vtPtHists['VetoTauPt'+n]
+    sfHists.update(vlPtHists)
+    sfHists.update(vtPtHists)
+    vlEtaFile = rt.TFile.Open(vetolepEtaFile)
+    assert vlEtaFile
+    vtEtaFile = rt.TFile.Open(vetotauFile)
+    assert vtEtaFile
+    vlEtaHists = { 'VetoLeptonEta'+n:vlEtaFile.Get('VetoLeptonEtaScaleFactors'+n) for n in vnames }
+    vtEtaHists = { 'VetoTauEta'+n:vtEtaFile.Get('VetoTauEtaScaleFactors'+n) for n in vnames }
+    for n in vnames: 
+        assert vlEtaHists['VetoLeptonEta'+n]
+        assert vtEtaHists['VetoTauEta'+n]
+    sfHists.update(vlEtaHists)
+    sfHists.update(vtEtaHists)
     #get DYJets and TTBar Dilepton cross check scale factor histograms
     ttTFile = rt.TFile.Open(ttFile)
     assert ttTFile
@@ -184,8 +198,10 @@ if __name__ == "__main__":
     sfHists['ZInvBDown'] = invertHistogram(sfHists['ZInvBUp'])
 
     auxSFs = { 
-        "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
-        "VetoTau":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15")
+        "VetoLeptonPt":("leadingGenLeptonPt", "(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"), 
+        "VetoTauPt":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"),
+        "VetoLeptonEta":("abs(leadingGenLeptonEta)", "(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"), 
+        "VetoTauEta":("abs(leadingGenLeptonEta)", "abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20")
         }
 
     #estimate yields in signal region
