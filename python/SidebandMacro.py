@@ -41,8 +41,8 @@ FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
-FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2185ipb"
-#FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
+#FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2185ipb" #old fits
+FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",

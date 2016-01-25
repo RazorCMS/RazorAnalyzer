@@ -493,7 +493,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
-    macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+    macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel, exportVars=('MR','Rsq','nBTaggedJets'))
 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
 
