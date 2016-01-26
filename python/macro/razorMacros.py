@@ -110,7 +110,8 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
     hists["Fit"] = {}
     for v in ["MR","Rsq",("MR","Rsq")]:
         hists["Fit"][v] = next(hists.itervalues())[v].Clone(next(hists.itervalues())[v].GetName()+"Fit")
-    hists["Fit"][v].Reset()
+        hists["Fit"][v].Reset()
+        hists['Fit'][v].SetDirectory(0)
 
     #load fit information, including toys
     toyFile = rt.TFile.Open(fitToyFile)
@@ -327,7 +328,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, noFill=False):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -342,6 +343,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     treeName: name of the tree containing input events
     weightOpts: list of strings with directives for applying weights to the MC
     shapeErrors: list of MC shape uncertainties [uncertainties can be strings (in which case they apply to all processes) or tuples of the form (error, [processes]) (in which case they apply to the processes indicated in the list)
+    noFill: dry run option -- histograms will not be filled.
 
     plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
     miscErrors: optional -- list of misc uncertainty options (see below for supported options)
@@ -459,13 +461,13 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #fill histograms by looping over all trees
     if dataName in trees:
         print("\nData:")
-        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, debugLevel=debugLevel) 
+        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, noFill=noFill, debugLevel=debugLevel) 
 
     print("\nMC:")
     if debugLevel > 0:
         print "\nMisc SF hists to use:"
         print auxSFs
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:
@@ -482,7 +484,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, debugLevel=debugLevel)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
         auxSFsToUse = copy.copy(auxSFs)
@@ -490,7 +492,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, DebugLevel=debugLevel)
 
     #propagate up/down systematics to central histograms
     macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel, exportVars=('MR','Rsq','nBTaggedJets'))
@@ -521,6 +523,26 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             #mcTotal.Reset()
             #for name in samples:
             #    mcTotal.Add(hists[name][("MR","Rsq")])
+            #fitMCComparisonUp = hists['Fit'][('MR','Rsq')].Clone('fitMCComparisonUp') #up histo = fit
+            #fitMCComparisonDown = mcTotal.Clone('fitMCComparisonDown') #down histo = mc - (fit - mc)
+            #fitMCComparisonDown.Add(mcTotal)
+            #fitMCComparisonDown.Add(hists['Fit'][('MR','Rsq')], -1)
+            #for bx in range(1, mcTotal.GetSize()+1):
+            #    #check compatibility within 1 sigma
+            #    binErr = ( (mcTotal.GetBinError(bx))**2 + (hists['Fit'][('MR','Rsq')].GetBinError(bx))**2 )**(0.5)
+            #    if abs(mcTotal.GetBinContent(bx) - hists['Fit'][('MR','Rsq')].GetBinContent(bx)) < binErr:
+            #        fitMCComparisonUp.SetBinContent(bx, mcTotal.GetBinContent(bx))
+            #        fitMCComparisonDown.SetBinContent(bx, mcTotal.GetBinContent(bx))
+            #    #zero any negative bins
+            #    if fitMCComparisonUp.GetBinContent(bx) < 0:
+            #        fitMCComparisonUp.SetBinContent(bx, 0)
+            #    if fitMCComparisonDown.GetBinContent(bx) < 0:
+            #        fitMCComparisonDown.SetBinContent(bx, 0)
+            ##insert into shape histogram collection
+            #if 'Sys' in hists:
+            #    hists['Sys']['Fit'] = {}
+            #    hists['Sys']['Fit']['mcfitcrosscheckUp'] = fitMCComparisonUp
+            #    hists['Sys']['Fit']['mcfitcrosscheckDown'] = fitMCComparisonDown
             #print "Making nsigma histogram using MC and fit prediction"
             #nsigmaFitMC = get2DNSigmaHistogram(mcTotal, bins, fitToyFiles, boxName, btags, debugLevel)
 
@@ -971,3 +993,12 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 
     return vlHists['Central']
 
+#############################################
+### UNROLL 3D HISTOGRAMS AND WRITE DATA CARD
+#############################################
+
+def unrollAndWriteDataCard(hists, var=('MR','Rsq','nBTaggedJets'), dataName='Data', fitName='Fit', debugLevel=0):
+    """
+    Takes the output of makeControlSampleHists and writes a Combine data card for the signal process of your choice
+    """
+    pass

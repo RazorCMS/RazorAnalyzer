@@ -1,7 +1,6 @@
 import os
 import ROOT as rt
 import copy
-from array import *
 
 #local imports
 from PlotFit import setFFColors
@@ -167,6 +166,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
     c.cd()
     if (data and mc) or (data and fit) or (mc and fit): pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.4, 1, 1)
     else: pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.1, 1, 1)
+    rt.SetOwnership(pad1, False)
     pad1.SetBottomMargin(0)
     pad1.SetLogx(logx)
     pad1.SetLogy(logy)
@@ -289,14 +289,16 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
     #add legend and LaTeX 
     leg.Draw()
-    t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-    t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*(lumistr)+' (')+'13 TeV'+((lumistr != '')*(')')))
-    t1.SetNDC()
-    t2.SetNDC()
-    t1.SetTextSize(0.06)
-    t2.SetTextSize(0.06)
-    t1.Draw()
-    t2.Draw()
+    #t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
+    #t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*(lumistr)+' (')+'13 TeV'+((lumistr != '')*(')')))
+    #t1.SetNDC()
+    #t2.SetNDC()
+    #t1.SetTextSize(0.06)
+    #t2.SetTextSize(0.06)
+    #t1.Draw()
+    #t2.Draw()
+    CMS_lumi(pad1)
+
     if commentstr != "":
         t3 = rt.TLatex(0.30, 0.84, commentstr)
         t3.SetNDC()
@@ -713,7 +715,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 legDataMC.AddEntry(blindMC, "MC Prediction")
             legDataMC.AddEntry(unrolled[1], "Data")
             rt.SetOwnership(legDataMC, False)
-            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.5,ratiomax=1.5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
+            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.0,ratiomax=5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
         if fit: 
             #do (fit - mc)/unc
             if nsigmaFitMC is None:
@@ -956,8 +958,8 @@ def CMS_lumi(pad, iPeriod=4, iPosX=0):
     lumiTextSize = 0.6
     lumiTextOffset = 0.2
     cmsTextSize = 0.75
-    cmsTextOffset = 0.1 # only used in outOfFrame version
-    relPosX = 0.145
+    relPosX = 0.1
+    #relPosX = 0.045
     relPosY = 0.035
     relExtraDY = 1.2
     extraOverCmsTextSize = 0.76 # ratio of "CMS" and extra text size
@@ -1052,3 +1054,4 @@ def CMS_lumi(pad, iPeriod=4, iPosX=0):
         latex.SetTextSize(extraTextSize*t)
         latex.SetTextAlign(align_)
         latex.DrawLatex(posX_, posY_, extraText)      
+

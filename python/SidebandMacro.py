@@ -5,10 +5,10 @@ import ROOT as rt
 
 #local imports
 from framework import Config
-import macro.macro as macro
 from macro.razorAnalysis import razorCuts
 from macro.razorWeights import loadScaleFactorHists, invertHistogram
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
+import macro.macro as macro
 
 LUMI = 2185 #in /pb
 MCLUMI = 1 
@@ -21,11 +21,12 @@ BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
 DIR_MC = "Backgrounds"
 DIR_DATA = "Backgrounds"
 #DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
-#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
+#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106" #old data 
+#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForMoriond20160119/RazorSkim"
 DATA_NAMES={
-    'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
-    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
-    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
+    'MultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
+    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
+    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
     }
 FILENAMES_MC = {
         "TTJets1L"    : DIR_MC+"/"+"FullRazorInclusive_TTJets1L_1pb_weighted.root",
@@ -97,10 +98,13 @@ if __name__ == "__main__":
     parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
     parser.add_argument('--no-data', help="do not process data, do fit and MC only", action='store_true', dest='noData')
     parser.add_argument('--no-sys', help="no shape unncertainties or cross check systematics", action="store_true", dest='noSys')
+    parser.add_argument('--no-qcd', help="do not include QCD prediction", action="store_true", dest='noQCD')
+    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", dest='noFill')
+    parser.add_argument('--b-inclusive', help="do not bin in number of b-tags", action="store_true", dest='bInclusive')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
-    plotOpts = {"ymin":1e-1}
+    plotOpts = {"ymin":1e-3}
 
     doSideband=(not args.full)
     if not doSideband:
@@ -208,6 +212,8 @@ if __name__ == "__main__":
         blindBinsToUse = blindBins[boxName]
         if args.unblind: blindBinsToUse = None
         samplesToUse = SAMPLES[boxName]
+        if args.noQCD and 'QCD' in samplesToUse:
+            samplesToUse.remove('QCD')
         if args.noMC: samplesToUse = []
         if samplesToUse is None or len(samplesToUse) == 0:
             filesToUse = {"Data":FILENAMES[boxName]["Data"]}
@@ -226,8 +232,10 @@ if __name__ == "__main__":
             auxSFsToUse = {}
 
         #loop over btag bins
-        #btaglist = [0]
-        btaglist = [0,1,2,3]
+        if args.bInclusive:
+            btaglist = [0]
+        else:
+            btaglist = [0,1,2,3]
         for btags in btaglist:
             print "\n---",boxName,"Box,",btags,"B-tags ---"
             #get correct b-tag closure test histogram
@@ -256,11 +264,13 @@ if __name__ == "__main__":
             #    if not os.path.isfile(TOYS_FILES[boxName]):
             #        print "Error creating fit file",TOYS_FILES[boxName]
             #        sys.exit()
-            makeControlSampleHists(extboxName, 
+            hists = makeControlSampleHists(extboxName, 
                     filenames=filesToUse, samples=samplesToUse, 
                     cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                     bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                     weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
                     fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)
+                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
+                    plotOpts=plotOpts, noFill=args.noFill)
+            macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)

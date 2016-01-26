@@ -8,7 +8,107 @@ from array import array
 from PlotFit import setFFColors
 from RunCombine import exec_me
 from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D, getSFHistNameForErrorOpt
+from printJson import walk
 from plotting import *
+
+def walkDictionary(d, path=""):
+    """
+    Recursively iterate over a nested dictionary.
+    Returns ordered pairs (p, x) where x is a value stored at some level of the dictionary and 
+    p is the concatenation of all keys (joined with '/') needed to reach x from the top level.
+    """
+    for key,val in d.iteritems():
+        #add key to path
+        newpath = path+'/'+str(key)
+        if newpath.startswith('/'): 
+            newpath = newpath[1:]
+        #yield or recurse
+        if isinstance(val, dict):
+            for x in walkDictionary(val, newpath):
+                yield x
+        else:
+            yield (newpath, val)
+
+def exportHists(hists, outFileName='hists.root', outDir='.', useDirectoryStructure=True, varName=None, debugLevel=0):
+    """
+    Writes histograms from the given dictionary to a ROOT file.  
+    If useDirectoryStructure is True, histograms will be put in folders according to the structure of the dictionary.
+    If varName is provided, only histograms of the provided variable will be saved.
+    """
+
+    print "Storing histograms in file",outFileName
+    outFile = rt.TFile(outDir+'/'+outFileName, 'recreate')
+    for pair in walkDictionary(hists): #get (path_to_histogram, histogram) pairs
+        if useDirectoryStructure:
+            path = pair[0]
+            if varName is not None:
+                if str(varName) not in path: #skip histograms of other variables
+                    continue
+                else: #remove variable name from path
+                    path = path.replace(str(varName),'').replace('//','/')
+            tdir = outFile.GetDirectory(path)
+            if tdir==None:
+                print "Making directory",path
+                outFile.mkdir(path)
+                tdir = outFile.GetDirectory(path)
+                tdir.cd()
+                print "Writing histogram",pair[1].GetName(),"to directory",path
+                pair[1].Write()
+        else:
+            print "Writing histogram",pair[1].GetName()
+            pair[1].Write()
+    outFile.Close()
+
+def importHists(inFileName='hists.root', debugLevel=0):
+    """
+    Creates a dictionary according to the directory structure of the input file, 
+    and populates the dictionary with the histograms in the file.
+    """
+
+    hists = {}
+    print "Getting histograms from file",inFileName
+    inFile = rt.TFile(inFileName)
+    for dirpath, dirnames, filenames, tdirectory in walk(inFile):
+        if len(filenames) > 0: #there are objects to retrieve
+            dirInFile = dirpath.split(':')[-1].split('/')[1:] #get path to histogram as a list of subdirectories
+            currentLayer = hists #keep track of current layer of the dictionary
+            storedHist = False
+            if dirInFile != ['']: #dirInFile will be [''] if there are no subdirectories
+                for i,subdir in enumerate(dirInFile): #descend along path to histogram
+                    if subdir not in currentLayer: 
+                        if len(filenames) == 1 and i == len(dirInFile)-1:
+                            #if there is only one histogram, store it now
+                            currentLayer[subdir] = tdirectory.Get(filenames[0])
+                            currentLayer[subdir].SetDirectory(0)
+                            if debugLevel > 0: 
+                                print "Retrieved histogram",filenames[0]
+                            storedHist = True
+                            break
+                        currentLayer[subdir] = {} #create dict layer if needed
+                    currentLayer = currentLayer[subdir] #now we go one level lower and repeat
+            #now currentLayer is the lowest-level dictionary, where the remaining histograms should be inserted
+            if not storedHist:
+                for tkey in filenames:
+                    currentLayer[tkey] = tdirectory.Get(tkey)
+                    currentLayer[tkey].SetDirectory(0)
+                    if debugLevel > 0: 
+                        print "Retrieved histogram",tkey
+    inFile.Close()
+    return hists
+
+def unroll3DHistogram(hist):
+    if hist is None or hist == 0: 
+        return
+    numbins = hist.GetNbinsX()*hist.GetNbinsY()*hist.GetNbinsZ()
+    outHist = rt.TH1F(hist.GetName()+"Unroll", hist.GetTitle(), numbins, 0, numbins)
+    ibin = 0
+    for bx in range(1, hist.GetNbinsX()+1):
+        for by in range(1, hist.GetNbinsY()+1):
+            for bz in range(1, hist.GetNbinsZ()+1):
+                ibin += 1
+                outHist.SetBinContent(ibin, hist.GetBinContent(bx,by,bz))
+                outHist.SetBinError(ibin, hist.GetBinError(bx,by,bz))
+    return outHist
 
 def makeTH2PolyFromColumns(name, title, xbins, cols):
     """
@@ -494,7 +594,7 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                 hists[name].SetBinError(bx,(oldErr*oldErr + squaredError)**(0.5))
                 if debugLevel > 0 and squaredError > 0: print name,": Error on bin",bx,"increases from",oldErr,"to",hists[name].GetBinError(bx),"after adding",(squaredError**(0.5)),"in quadrature"
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], shapeSFHists={}, shapeAuxSFs={}, shapeAuxSFHists={}, debugLevel=0):
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], shapeSFHists={}, shapeAuxSFs={}, shapeAuxSFHists={}, noFill=False, debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
@@ -527,7 +627,6 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         for name,pair in shapeAuxSFs[n+'Up'].iteritems():
             #add reweighting variable to formula list
             if pair[0] not in formulas and isinstance(pair[0], basestring):
-                print pair[0]
                 formulas[pair[0]] = rt.TTreeFormula(pair[0], pair[0], tree)
                 formulas[pair[0]].GetNdata()
             if pair[1] not in cutStrings:
@@ -541,7 +640,6 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 #refer to the matching TTreeFormula that already exists
                 index = cutStrings.index(pair[1])
                 shapeAuxSFFormsLookup[n+'Up'][name] = index
-                #if debugLevel > 0: print "TTreeFormula for reweighting",pair[0],"(",name,n+'Up',") is at index",index
         for name,pair in shapeAuxSFs[n+'Down'].iteritems():
             #add reweighting variable to formula list
             if pair[0] not in formulas and isinstance(pair[0], basestring):
@@ -558,16 +656,11 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 #refer to the matching TTreeFormula that already exists
                 index = cutStrings.index(pair[1])
                 shapeAuxSFFormsLookup[n+'Down'][name] = index
-                #if debugLevel > 0: print "TTreeFormula for reweighting",pair[0],"(",name,n+'Down',") is at index",index
 
     #transform cuts 
     if errorOpt is not None:
         if debugLevel > 0: print "Error option is:",errorOpt
         cuts = transformVarString(tree, cuts, errorOpt, process=process, debugLevel=debugLevel+1)
-    #get list of entries passing the cuts
-    tree.Draw('>>elist', cuts, 'entrylist')
-    elist = rt.gDirectory.Get('elist')
-    print "Total entries passing cuts:",elist.GetN()
     #create histograms for scale factor systematics
     sysErrSquaredHists = {}
     if not statErrOnly:
@@ -577,78 +670,83 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             if debugLevel > 0: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold systematic errors from",sfVars,"scale factors"
     count = 0
     sumweight = 0.0
-    while True:
-        #load the next entry
-        entry = elist.Next()
-        if entry == -1: break
-        if count > 0 and count % 100000 == 0: print "Processing entry",count
-        elif debugLevel > 0 and count % 10000 == 0: print "Processing entry",count
-        elif debugLevel > 1: print "Processing entry",count
-        tree.GetEntry(entry)
-        w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
+    if not noFill:
+        #get list of entries passing the cuts
+        tree.Draw('>>elist', cuts, 'entrylist')
+        elist = rt.gDirectory.Get('elist')
+        print "Total entries passing cuts:",elist.GetN()
+        while True:
+            #load the next entry
+            entry = elist.Next()
+            if entry == -1: break
+            if count > 0 and count % 100000 == 0: print "Processing entry",count
+            elif debugLevel > 0 and count % 10000 == 0: print "Processing entry",count
+            elif debugLevel > 1: print "Processing entry",count
+            tree.GetEntry(entry)
+            w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
 
-        additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #currently does nothing
-        err = 0.0
-        #get scale factor
-        if sfHist is not None: 
-            sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel=debugLevel)
-            #apply scale factor to event weight
-            w *= sf
-        for name in auxSFs: #apply misc scale factors (e.g. veto lepton correction)
-            if auxSFForms[name].EvalInstance(): #check if this event should be reweighted
-                auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, debugLevel=debugLevel)
-                w *= auxSF
-                err = (err*err + auxErr*auxErr)**(0.5)
-        #protection for case of infinite-weight events
-        if math.isinf(w):
-            if debugLevel > 0: 
-                print "Warning: infinite-weight event encountered!"
-            continue
-        if math.isnan(err):
-            print "Error: err is nan!"
-        #fill with weight
-        fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
+            additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #currently does nothing
+            err = 0.0
+            #get scale factor
+            if sfHist is not None: 
+                sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel=debugLevel)
+                #apply scale factor to event weight
+                w *= sf
+            for name in auxSFs: #apply misc scale factors (e.g. veto lepton correction)
+                if auxSFForms[name].EvalInstance(): #check if this event should be reweighted
+                    auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, debugLevel=debugLevel)
+                    w *= auxSF
+                    err = (err*err + auxErr*auxErr)**(0.5)
+            #protection for case of infinite-weight events
+            if math.isinf(w):
+                if debugLevel > 0: 
+                    print "Warning: infinite-weight event encountered!"
+                continue
+            if math.isnan(err):
+                print "Error: err is nan!"
+            #fill with weight
+            fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
 
-        ###PROCESS EXTRA SHAPE HISTOGRAMS
-        #get weights for filling additional shape histograms, if provided
-        wsUp = [weightF(tree, weightHists, scale, weightOpts, e+'Up', debugLevel=debugLevel) for e in shapeNames]
-        wsDown = [weightF(tree, weightHists, scale, weightOpts, e+'Down', debugLevel=debugLevel) for e in shapeNames]
-        #evaluate all TTreeFormulas 
-        shapeAuxSFFormResults = [form.EvalInstance() for form in shapeAuxSFForms]
-        if debugLevel > 1 and len(shapeAuxSFFormResults) > 0:
-            print "Cut decisions for systematic uncertainty scale factors:",shapeAuxSFFormResults
-        #apply scale factor to shape up/down weights too (if needed)
-        for i,n in enumerate(shapeNames):
-            if debugLevel > 1: print "Error option:",n
-            #main scale factor
-            if shapeSFHists[n+'Up'] is not None:
-                shapeSFUp, shapeErrUp = getScaleFactorAndError(tree, shapeSFHists[n+'Up'], sfVars, formulas, debugLevel=debugLevel)
-                wsUp[i] *= shapeSFUp
-            if shapeSFHists[n+'Down'] is not None:
-                shapeSFDown, shapeErrDown = getScaleFactorAndError(tree, shapeSFHists[n+'Down'], sfVars, formulas, debugLevel=debugLevel)
-                wsDown[i] *= shapeSFDown
-            #misc scale factors
-            for name in shapeAuxSFs[n+'Up']:
-                if shapeAuxSFFormResults[ shapeAuxSFFormsLookup[n+'Up'][name] ]:
-                    shapeAuxSFUp, shapeAuxErrUp = getScaleFactorAndError(tree, shapeAuxSFHists[n+'Up'][name], sfVars=shapeAuxSFs[n+'Up'][name][0], formulas=formulas, debugLevel=debugLevel)
-                    wsUp[i] *= shapeAuxSFUp
-            for name in shapeAuxSFs[n+'Down']:
-                if shapeAuxSFFormResults[ shapeAuxSFFormsLookup[n+'Down'][name] ]:
-                    shapeAuxSFDown, shapeAuxErrDown = getScaleFactorAndError(tree, shapeAuxSFHists[n+'Down'][name], sfVars=shapeAuxSFs[n+'Down'][name][0], formulas=formulas, debugLevel=debugLevel)
-                    wsDown[i] *= shapeAuxSFDown
-            #fill up/down shape histograms
-            fillF(tree, shapeHists[n+'Up'], wsUp[i], formulas=formulas, debugLevel=debugLevel)
-            fillF(tree, shapeHists[n+'Down'], wsDown[i], formulas=formulas, debugLevel=debugLevel)
-        #####
+            ###PROCESS EXTRA SHAPE HISTOGRAMS
+            #get weights for filling additional shape histograms, if provided
+            wsUp = [weightF(tree, weightHists, scale, weightOpts, e+'Up', debugLevel=debugLevel) for e in shapeNames]
+            wsDown = [weightF(tree, weightHists, scale, weightOpts, e+'Down', debugLevel=debugLevel) for e in shapeNames]
+            #evaluate all TTreeFormulas 
+            shapeAuxSFFormResults = [form.EvalInstance() for form in shapeAuxSFForms]
+            if debugLevel > 1 and len(shapeAuxSFFormResults) > 0:
+                print "Cut decisions for systematic uncertainty scale factors:",shapeAuxSFFormResults
+            #apply scale factor to shape up/down weights too (if needed)
+            for i,n in enumerate(shapeNames):
+                if debugLevel > 1: print "Error option:",n
+                #main scale factor
+                if shapeSFHists[n+'Up'] is not None:
+                    shapeSFUp, shapeErrUp = getScaleFactorAndError(tree, shapeSFHists[n+'Up'], sfVars, formulas, debugLevel=debugLevel)
+                    wsUp[i] *= shapeSFUp
+                if shapeSFHists[n+'Down'] is not None:
+                    shapeSFDown, shapeErrDown = getScaleFactorAndError(tree, shapeSFHists[n+'Down'], sfVars, formulas, debugLevel=debugLevel)
+                    wsDown[i] *= shapeSFDown
+                #misc scale factors
+                for name in shapeAuxSFs[n+'Up']:
+                    if shapeAuxSFFormResults[ shapeAuxSFFormsLookup[n+'Up'][name] ]:
+                        shapeAuxSFUp, shapeAuxErrUp = getScaleFactorAndError(tree, shapeAuxSFHists[n+'Up'][name], sfVars=shapeAuxSFs[n+'Up'][name][0], formulas=formulas, debugLevel=debugLevel)
+                        wsUp[i] *= shapeAuxSFUp
+                for name in shapeAuxSFs[n+'Down']:
+                    if shapeAuxSFFormResults[ shapeAuxSFFormsLookup[n+'Down'][name] ]:
+                        shapeAuxSFDown, shapeAuxErrDown = getScaleFactorAndError(tree, shapeAuxSFHists[n+'Down'][name], sfVars=shapeAuxSFs[n+'Down'][name][0], formulas=formulas, debugLevel=debugLevel)
+                        wsDown[i] *= shapeAuxSFDown
+                #fill up/down shape histograms
+                fillF(tree, shapeHists[n+'Up'], wsUp[i], formulas=formulas, debugLevel=debugLevel)
+                fillF(tree, shapeHists[n+'Down'], wsDown[i], formulas=formulas, debugLevel=debugLevel)
+            #####
 
-        sumweight += w
-        count += 1
+            sumweight += w
+            count += 1
     #propagate systematics to each histogram
     addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel)
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -700,6 +798,6 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             print "Will fill histograms for these shape uncertainties:"
             print shapeNamesToUse
 
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, debugLevel=debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
