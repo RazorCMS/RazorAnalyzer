@@ -101,6 +101,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-qcd', help="do not include QCD prediction", action="store_true", dest='noQCD')
     parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", dest='noFill')
     parser.add_argument('--b-inclusive', help="do not bin in number of b-tags", action="store_true", dest='bInclusive')
+    parser.add_argument('--box', help="choose a box")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
@@ -119,6 +120,9 @@ if __name__ == "__main__":
     if args.noFit: 
         TOYS_FILES = None
         del plotOpts['sideband']
+    boxesToUse = BOXES
+    if args.box is not None:
+        boxesToUse = [args.box]
 
     #initialize
     weightHists = {}
@@ -206,7 +210,7 @@ if __name__ == "__main__":
         }
 
     #estimate yields in signal region
-    for boxName in BOXES:
+    for boxName in boxesToUse:
 
         #apply options
         blindBinsToUse = blindBins[boxName]

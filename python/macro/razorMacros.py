@@ -448,13 +448,16 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             if debugLevel > 0:
                 print "\nStoring QCD histogram for",var
             hists['QCD'][var] = histsForQCD['QCD'][var].Clone()
+            hists['QCD'][var].SetDirectory(0)
             if 'qcdnormUp' in shapeHists['QCD']:
                 if debugLevel > 0:
                     print "Including up/down systematic error on QCD for",var
                 shapeHists['QCD']['qcdnormUp'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Up')
                 shapeHists['QCD']['qcdnormUp'][var].Scale(QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormUp'][var].SetDirectory(0)
                 shapeHists['QCD']['qcdnormDown'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
                 shapeHists['QCD']['qcdnormDown'][var].Scale(1.0/QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormDown'][var].SetDirectory(0)
     if 'datadrivenqcd' in map(str.lower, weightOpts): #use QCD extrapolation on data
         dataWeightOpts.append('datadrivenqcd')
             
