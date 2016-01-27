@@ -49,6 +49,24 @@ def makeGrayGraphs(hNS):
             fGrayGraphs.append(fGray)
     return fGrayGraphs
 
+def drawUnrolledBinMapping(c, unrollBins, xtitle="", ytitle="", printstr="", printdir="."):
+    """Draw a 2D histogram showing the bin boundaries for the indicated TH2Poly-style binning
+    unrollBins should be a tuple (xbins, columns)"""
+
+    #make temporary TH2Poly
+    poly = macro.makeTH2PolyFromColumns("Temp", "", unrollBins[0], unrollBins[1])
+    #set bin content = bin number
+    for bn in range(1, poly.GetNumberOfBins()+1):
+        poly.SetBinContent(bn, bn-1)
+    poly.SetBinContent(1, 0.1) #hack to get text to display
+
+    #draw it
+    draw2DHist(c, poly, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logz=False, numDigits=0, palette=1, textSize=3, printdir=printdir, drawCMSPreliminary=False, drawZScale=False)
+
+    #delete temp histogram
+    poly.Delete()
+        
+
 def getLinesForUnrolled(hist):        
     # the gray lines
     lines = []
@@ -115,7 +133,7 @@ def plot_several(c, hists=0, leg=0, colors=[], xtitle="", ytitle="Events", ymin=
     #add legend and LaTeX 
     leg.Draw()
     t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-    t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != '')*(')')))
+    t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
     t1.SetNDC()
     t2.SetNDC()
     t1.SetTextSize(0.06)
@@ -290,14 +308,6 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
     #add legend and LaTeX 
     leg.Draw()
-    #t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-    #t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*(lumistr)+' (')+'13 TeV'+((lumistr != '')*(')')))
-    #t1.SetNDC()
-    #t2.SetNDC()
-    #t1.SetTextSize(0.06)
-    #t2.SetTextSize(0.06)
-    #t1.Draw()
-    #t2.Draw()
     CMS_lumi(pad1)
 
     if commentstr != "":
@@ -438,7 +448,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
     pad1.Delete()
 
-def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.'):
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawZScale=True):
     """Draw a single 2D histogram and print to file"""
     if palette == "FF":
         setFFColors(hist, -5.1, 5.1)
@@ -463,7 +473,10 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
     if zmin is not None: hist.SetMinimum(zmin)
     elif hist.GetMinimum() < -10: hist.SetMinimum(0.1) #avoid drawing -999's etc
     if zmax is not None: hist.SetMaximum(zmax)
-    hist.Draw("colz")
+    if drawZScale:
+        hist.Draw("colz")
+    else:
+        hist.Draw("col")
     if grayGraphs is not None: 
         for g in grayGraphs: g.Draw("f")
     if dotext:
@@ -474,14 +487,15 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
             hist.SetMarkerSize(textSize-1)
             hist.Draw('textesame')
     #add LaTeX 
-    t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-    t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*(lumistr)+' (')+'13 TeV'+((lumistr != '')*(')')))
-    t1.SetNDC()
-    t2.SetNDC()
-    t1.SetTextSize(0.05)
-    t2.SetTextSize(0.05)
-    t1.Draw()
-    t2.Draw()
+    if drawCMSPreliminary:
+        t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
+        t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
+        t1.SetNDC()
+        t2.SetNDC()
+        t1.SetTextSize(0.05)
+        t2.SetTextSize(0.05)
+        t1.Draw()
+        t2.Draw()
     if commentstr != "":
         t3 = rt.TLatex(0.30, 0.84, commentstr)
         t3.SetNDC()

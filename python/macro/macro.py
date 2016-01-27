@@ -366,8 +366,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             #do MC total (no stack)
             plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
             #draw bin mapping
-            #if unrollBins[0] is not None and unrollBins[1] is not None:
-            #    drawUnrolledBinMapping(unrollBins)
+            if unrollBins[0] is not None and unrollBins[1] is not None:
+                plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+"BINNING", printdir=printdir)
             #print prediction in each bin
             if obsData is not None and obsData != 0:
                 print "Results for data histogram:"

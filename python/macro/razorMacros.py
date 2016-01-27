@@ -499,7 +499,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, DebugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, debugLevel=debugLevel)
 
     if exportShapeErrs:
         #save shape histograms in hists dictionary
