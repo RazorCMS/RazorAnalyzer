@@ -328,7 +328,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, noFill=False):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -344,6 +344,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     weightOpts: list of strings with directives for applying weights to the MC
     shapeErrors: list of MC shape uncertainties [uncertainties can be strings (in which case they apply to all processes) or tuples of the form (error, [processes]) (in which case they apply to the processes indicated in the list)
     noFill: dry run option -- histograms will not be filled.
+    exportShapeErrs: if True, shape uncertainties will not be propagated to the central histogram.  Instead they will be stored in the output dictionary under the key 'Sys'.
 
     plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
     miscErrors: optional -- list of misc uncertainty options (see below for supported options)
@@ -500,8 +501,12 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             print auxSFsToUse
         macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, DebugLevel=debugLevel)
 
-    #propagate up/down systematics to central histograms
-    macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel, exportVars=('MR','Rsq','nBTaggedJets'))
+    if exportShapeErrs:
+        #save shape histograms in hists dictionary
+        hists['Sys'] = shapeHists
+    else:
+        #propagate up/down systematics to central histograms
+        macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
 
@@ -554,12 +559,77 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, vartitles=titles)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles)
 
     #close files and return
     for f in files: files[f].Close()
-    c.Delete()
     return hists
+
+def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None)):
+    """Loads the output of makeControlSampleHists from a file and creates plots"""
+
+    titles = {
+        "MR": "M_{R} (GeV)", 
+        "Rsq": "R^{2}",
+        "mll": "m_{ll} (GeV)",
+        "NBJetsMedium" : "Number of B-tagged Jets",
+        "NJets80" : "Number of Jets with p_{T} > 80 GeV",
+        "NJets40" : "Number of Jets",        
+        "lep1.Pt()": "lepton p_{T} (GeV)",
+        "lep2.Pt()": "lepton p_{T} (GeV)",
+        "lep1.Eta()": "lepton #eta",
+        "lep2.Eta()": "lepton #eta",
+        }
+
+    #load the histograms
+    hists = macro.importHists(inFile, debugLevel)
+
+    ##Get plotting options (for customizing plot behavior)
+    special = ""
+    #set log scale
+    if "logx" in plotOpts: logx = plotOpts["logx"]
+    else: logx = True
+    if "ymin" in plotOpts: ymin = plotOpts["ymin"]
+    else: ymin = 0.1
+    #allow disabling comment string (normally written at the top of each plot)
+    if "comment" in plotOpts: comment = plotOpts["comment"]
+    else: comment = True
+    #use sideband fit result 
+    if "sideband" in plotOpts:
+        if plotOpts['sideband']:
+            special += 'sideband'
+        else:
+            special += 'full'
+
+    listOfVars = hists.itervalues().next().keys() #list of the variable names
+    
+    if 'Sys' in hists: 
+        #Shape errors have not been applied; propagate them to histograms them before plotting
+        print "Propagating shape uncertainties found in Sys directory"
+        shapeHists = hists['Sys']
+        shapeErrors = hists['Sys'].itervalues().next().keys()
+        miscErrors = []
+        del hists['Sys']
+        macro.propagateShapeSystematics(hists, samples, listOfVars, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+
+    c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
+
+    #make tex table
+    dataForTable = None
+    if ("MR","Rsq") in listOfVars and 'Fit' in hists:
+        if dataName in hists: 
+            dataForTable=hists[dataName][("MR","Rsq")]
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+                mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
+                boxName=boxName, btags=btags, printdir=printdir)
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+                mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
+                boxName=boxName, btags=btags, printdir=printdir, listAllMC=True)
+
+    #print histograms
+    rt.SetOwnership(c, False)
+    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=None, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles)
+
 
 #######################################
 ### MAKE SCALE FACTORS FROM HISTOGRAMS

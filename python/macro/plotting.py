@@ -6,6 +6,7 @@ import copy
 from PlotFit import setFFColors
 from RunCombine import exec_me
 from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D
+import macro as macro
 
 def makeLegend(hists, titles, ordering, x1=0.75, y1=0.6, x2=0.9, y2=0.9):
     """Takes a dict of histograms, a dict of histogram titles, and an ordered list of names, and returns a legend with the histograms in the desired order"""
@@ -435,6 +436,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
     if saveroot: c.Print(printdir+'/'+printstr+".root")
     if savec: c.Print(printdir+'/'+printstr+".C")
 
+    pad1.Delete()
 
 def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.'):
     """Draw a single 2D histogram and print to file"""
@@ -638,8 +640,8 @@ def unroll2DHistograms(hists, xbins=None, cols=None):
                     outHist.SetBinContent(ibin, hist.GetBinContent(bx,by))
                     outHist.SetBinError(ibin, hist.GetBinError(bx,by))
         else: #make temporary TH2Poly from the binning provided, and unroll that
-            poly = makeTH2PolyFromColumns(hist.GetName(), hist.GetTitle(), xbins, cols)
-            fillTH2PolyFromTH2(hist, poly)
+            poly = macro.makeTH2PolyFromColumns(hist.GetName(), hist.GetTitle(), xbins, cols)
+            macro.fillTH2PolyFromTH2(hist, poly)
             numbins = poly.GetNumberOfBins()
             outHist = rt.TH1F(hist.GetName()+"Unroll", hist.GetTitle(), numbins, 0, numbins)
             for bn in range(1, numbins+1):

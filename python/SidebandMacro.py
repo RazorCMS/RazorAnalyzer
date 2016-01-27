@@ -5,7 +5,7 @@ import ROOT as rt
 
 #local imports
 from framework import Config
-from macro.razorAnalysis import razorCuts
+from macro.razorAnalysis import razorCuts, xbinsSignal, colsSignal
 from macro.razorWeights import loadScaleFactorHists, invertHistogram
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
 import macro.macro as macro
@@ -260,6 +260,7 @@ if __name__ == "__main__":
             else:
                 extboxName = boxName
                 nBtags = -1
+            unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
             #check fit file and create if necessary
             #if not args.noFit and not os.path.isfile(TOYS_FILES[boxName]):
             #    print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
@@ -276,5 +277,5 @@ if __name__ == "__main__":
                     weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
                     fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
                     btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
-                    plotOpts=plotOpts, noFill=args.noFill)
+                    plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill)
             macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)

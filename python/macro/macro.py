@@ -3,6 +3,7 @@ import ROOT as rt
 import copy
 import math
 from array import array
+from ast import literal_eval
 
 #local imports
 from PlotFit import setFFColors
@@ -68,7 +69,7 @@ def importHists(inFileName='hists.root', debugLevel=0):
     """
 
     hists = {}
-    print "Getting histograms from file",inFileName
+    print "\nGetting histograms from file",inFileName
     inFile = rt.TFile(inFileName)
     for dirpath, dirnames, filenames, tdirectory in walk(inFile):
         if len(filenames) > 0: #there are objects to retrieve
@@ -80,8 +81,14 @@ def importHists(inFileName='hists.root', debugLevel=0):
                     if subdir not in currentLayer: 
                         if len(filenames) == 1 and i == len(dirInFile)-1:
                             #if there is only one histogram, store it now
-                            currentLayer[subdir] = tdirectory.Get(filenames[0])
-                            currentLayer[subdir].SetDirectory(0)
+                            try:
+                                lastSubdir = literal_eval(subdir)
+                                if debugLevel > 0:
+                                    print "Converted",subdir,"to tuple"
+                            except ValueError:
+                                lastSubdir = subdir
+                            currentLayer[lastSubdir] = tdirectory.Get(filenames[0])
+                            currentLayer[lastSubdir].SetDirectory(0)
                             if debugLevel > 0: 
                                 print "Retrieved histogram",filenames[0]
                             storedHist = True
@@ -126,7 +133,6 @@ def fillTH2PolyFromTH2(th2, poly):
             poly.SetBinContent(bn, poly.GetBinContent(bn) + th2.GetBinContent(bx,by))
             #NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1. Beware!!!
             poly.SetBinError(bn-1, ( poly.GetBinError(bn)**2 + th2.GetBinError(bx,by)**2 )**(0.5) )
-            print poly.GetBinError(bn)**2, th2.GetBinError(bx,by)**2
 
 def makeTH2PolyRatioHist(num, denom, xbins, cols):
     """Makes a TH2Poly using makeTH2PolyFromColumns on the provided numerator and denominator histograms; 
@@ -239,52 +245,34 @@ def setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, data
             hists[dataName][var].SetBinErrorOption(rt.TH1.kPoisson)
     return hists,shapeHists
 
-def propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors=[], boxName="", debugLevel=0, exportVars=None):
+def propagateShapeSystematics(hists, samples, varList, shapeHists, shapeErrors, miscErrors=[], boxName="", debugLevel=0):
     """For each bin of the central histogram, add the appropriate uncertainties in quadrature with the statistical uncertainty.
     List of arguments is similar to razorMacros.makeControlSampleHists
-    If exportVars is provided, the histograms for the indicated variable(s) will be inserted into the hists dictionary, under the key 'Sys', rather than propagated to the central histogram.  For use in writing data cards.
     """
-
-    if exportVars is not None and exportVars in bins:
-        hists['Sys'] = {}
-    for var in bins:
-        if var == exportVars: 
-            #insert the shape histograms into the hists dictionary without propagating uncertainty
-            for name in samples:
-                if name not in hists['Sys']:
-                    hists['Sys'][name] = {}
-                for shape in shapeErrors:
-                    if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-                        if name not in shape[1]: continue
-                        curShape = shape[0]
-                    else:
-                        curShape = shape
-                    hists['Sys'][name][curShape+'Up'] = shapeHists[name][curShape+'Up'][var]
-                    hists['Sys'][name][curShape+'Down'] = shapeHists[name][curShape+'Down'][var]
-        else:
-            for name in samples:
-                for shape in shapeErrors:
-                    if not isinstance(shape,basestring): #tuple (shape, [list of processes])
-                        if name not in shape[1]: continue
-                        curShape = shape[0]
-                    else:
-                        curShape = shape
-                    if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for",var
-                    #loop over histogram bins
-                    for bx in range(hists[name][var].GetSize()+1):
-                        #use difference between Up and Down histograms as uncertainty
-                        sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
-                        #add in quadrature with existing error
-                        oldErr = hists[name][var].GetBinError(bx)
-                        hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
-                        if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
-                for source in miscErrors:
-                    #MT uncertainty (deprecated)
-                    if source.lower() == "mt" and var == "MR":
-                        if isinstance(var, basestring): #1D histogram
-                            applyMTUncertainty1D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
-                        else: #2D histogram
-                            applyMTUncertainty2D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
+    for var in varList:
+        for name in samples:
+            for shape in shapeErrors:
+                if not isinstance(shape,basestring): #tuple (shape, [list of processes])
+                    if name not in shape[1]: continue
+                    curShape = shape[0]
+                else:
+                    curShape = shape
+                if debugLevel > 0: print "Adding",curShape,"uncertainty in quadrature with",name,"errors for",var
+                #loop over histogram bins
+                for bx in range(hists[name][var].GetSize()+1):
+                    #use difference between Up and Down histograms as uncertainty
+                    sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
+                    #add in quadrature with existing error
+                    oldErr = hists[name][var].GetBinError(bx)
+                    hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
+                    if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
+            for source in miscErrors:
+                #MT uncertainty (deprecated)
+                if source.lower() == "mt" and var == "MR":
+                    if isinstance(var, basestring): #1D histogram
+                        applyMTUncertainty1D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
+                    else: #2D histogram
+                        applyMTUncertainty2D(hists[name][var], process=name+"_"+boxName, debugLevel=debugLevel)
 
 def subtractBkgsInData(process, hists={}, dataName="Data", debugLevel=0):
     """
@@ -311,7 +299,7 @@ def subtractBkgsInData(process, hists={}, dataName="Data", debugLevel=0):
                 print "Subtracting",p,"from",dataName,"distribution for",var
             hists[dataName][var].Add(hists[p][var], -1) 
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", vartitles={}):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}):
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
@@ -374,9 +362,9 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             else:
                 ytitle = var[1]
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, printdir=printdir)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
             #do MC total (no stack)
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, printdir=printdir)
+            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
             #print prediction in each bin
             if obsData is not None and obsData != 0:
                 print "Results for data histogram:"
