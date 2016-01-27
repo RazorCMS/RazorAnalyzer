@@ -693,6 +693,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
         if fit: fit.SetMaximum(largestZ)
     #draw each histogram and all relevant combinations
     if mc:
+        #draw 2D bin mapping for unrolled plot
         unrolled[0].SetLineColor(rt.kBlack)
         unrolled[0].SetFillColor(38)
         if mcDict is not None: #draw full stack of MC on unrolled plot

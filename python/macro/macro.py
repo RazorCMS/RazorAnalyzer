@@ -10,7 +10,7 @@ from PlotFit import setFFColors
 from RunCombine import exec_me
 from razorWeights import applyMTUncertainty1D, applyMTUncertainty2D, getSFHistNameForErrorOpt
 from printJson import walk
-from plotting import *
+import plotting
 
 def walkDictionary(d, path=""):
     """
@@ -303,7 +303,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     """Make stacked plots of quantities of interest, with data overlaid"""
     #format MC histograms
     for name in mcNames: 
-        for var in histDict[name]: setHistColor(histDict[name][var], name)
+        for var in histDict[name]: plotting.setHistColor(histDict[name][var], name)
     titles = {name:name for name in mcNames}
 
     #get data histograms
@@ -362,9 +362,12 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             else:
                 ytitle = var[1]
             #make plots
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+            plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
             #do MC total (no stack)
-            plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+            plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+            #draw bin mapping
+            #if unrollBins[0] is not None and unrollBins[1] is not None:
+            #    drawUnrolledBinMapping(unrollBins)
             #print prediction in each bin
             if obsData is not None and obsData != 0:
                 print "Results for data histogram:"
@@ -392,7 +395,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 for bx in range(1,varHists[name].GetNbinsX()+1):
                     varHists[name].SetBinContent(bx, varHists[name].GetBinContent(bx)*1.0/varHists[name].GetXaxis().GetBinWidth(bx))
                     varHists[name].SetBinError(bx, varHists[name].GetBinError(bx)*1.0/varHists[name].GetXaxis().GetBinWidth(bx))
-        stack = makeStack(varHists, mcNames, var)
+        stack = plotting.makeStack(varHists, mcNames, var)
         if len(mcNames) == 0: stack = None #plotting function can't handle an empty stack
         if dataHists is not None:
             obsData = dataHists[var].Clone(dataHists[var].GetName()+"obsData")
@@ -411,7 +414,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                     fitPrediction.SetBinContent(bx, fitPrediction.GetBinContent(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
                     fitPrediction.SetBinError(bx, fitPrediction.GetBinError(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
         if not legend:
-            legend = makeLegend(varHists, titles, reversed(mcNames))
+            legend = plotting.makeLegend(varHists, titles, reversed(mcNames))
             if blindBins is None and obsData is not None: legend.AddEntry(obsData, dataName)
             if plotFit and fitPrediction is not None: legend.AddEntry(fitPrediction, "Fit")
         if doDensity:
@@ -427,9 +430,9 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()", "genlep1.Pt()","leadingGenLeptonPt"]: logx = True
         else: logx = False
         if blindBins is None:
-            plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+            plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
-            plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+            plotting.plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         legend.Delete()
 
 def transformVarsInString(string, varNames, suffix):
