@@ -616,43 +616,59 @@ def make2DRelativeUncertaintyHistogram(h, suppress=True, suppressLevel=10.0):
                 ret.SetBinContent(bx,by,-9999)
     return ret
 
-def unroll2DHistograms(hists):
+def unroll2DHistograms(hists, xbins=None, cols=None):
+    """Convert a 2D histogram into a 1D histogram.  
+    Bins of the input histogram can be selectively merged. Provide a list (xbins) of bin edges in
+    the x-direction and a list of lists (cols) giving the bin edges in the y-direction for each
+    bin in x.  
+    """
+
     out = [] 
     for hist in hists:
         if hist is None or hist == 0: 
             out.append(None)
             continue
-        numbins = hist.GetNbinsX()*hist.GetNbinsY()
-        outHist = rt.TH1F(hist.GetName()+"Unroll", hist.GetTitle(), numbins, 0, numbins)
-        ibin = 0
-        for bx in range(1, hist.GetNbinsX()+1):
-            for by in range(1, hist.GetNbinsY()+1):
-                ibin += 1
-                outHist.SetBinContent(ibin, hist.GetBinContent(bx,by))
-                outHist.SetBinError(ibin, hist.GetBinError(bx,by))
+        if xbins is None or cols is None: #unroll using existing 2D binning
+            numbins = hist.GetNbinsX()*hist.GetNbinsY()
+            outHist = rt.TH1F(hist.GetName()+"Unroll", hist.GetTitle(), numbins, 0, numbins)
+            ibin = 0
+            for bx in range(1, hist.GetNbinsX()+1):
+                for by in range(1, hist.GetNbinsY()+1):
+                    ibin += 1
+                    outHist.SetBinContent(ibin, hist.GetBinContent(bx,by))
+                    outHist.SetBinError(ibin, hist.GetBinError(bx,by))
+        else: #make temporary TH2Poly from the binning provided, and unroll that
+            poly = makeTH2PolyFromColumns(hist.GetName(), hist.GetTitle(), xbins, cols)
+            fillTH2PolyFromTH2(hist, poly)
+            numbins = poly.GetNumberOfBins()
+            outHist = rt.TH1F(hist.GetName()+"Unroll", hist.GetTitle(), numbins, 0, numbins)
+            for bn in range(1, numbins+1):
+                outHist.SetBinContent(bn, poly.GetBinContent(bn))
+                outHist.SetBinError(bn, poly.GetBinError(bn))
         out.append(outHist)
     return out
 
-def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=True, savepdf=True, savec=True, savepng=True, nsigmaFitData=None, nsigmaFitMC=None, mcDict=None, mcSamples=None, ymin=0.1, printdir="."):
+def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, saveroot=True, savepdf=True, savec=True, savepng=True, nsigmaFitData=None, nsigmaFitMC=None, mcDict=None, mcSamples=None, ymin=0.1, unrollBins=(None,None), printdir="."):
     """Plotting macro for data, MC, and/or fit yields.  Creates french flag plots comparing data/MC/fit if able.
     mc, data, fit: 2d histograms for MC prediction, data, and fit prediction (all are optional)
     lumistr: tex-formatted string indicating the integrated luminosity
     commentstr: additional string that will be displayed at the top of the plot 
     nsigmaFitData, nsigmaFitMC (optional): externally provided nsigma histograms to use instead of (yield-prediction)/sigma 
     mcDict (optional): dictionary of MC histograms, for making stacked unrolled plots (provide a list of sample names, mcSamples, to enforce an ordering on the MC histograms in the stack)
+    unrollBins (optional): custom binning to use when unrolling 2D histograms into 1D (see unroll2DHistograms function)
     """
     #make a gray square for each -999 bin
     grayGraphs = [makeGrayGraphs(hist) for hist in [mc,fit,data]]
     #unroll 2D hists to plot in 1D
-    unrolled = unroll2DHistograms([mc, data, fit])
+    unrolled = unroll2DHistograms([mc, data, fit], unrollBins[0], unrollBins[1])
     #if individual MC histograms are available, unroll all of them
     if mcDict is not None:
         if mcSamples is not None:
-            mcUnrolledList = unroll2DHistograms([mcDict[s] for s in mcSamples])
+            mcUnrolledList = unroll2DHistograms([mcDict[s] for s in mcSamples], unrollBins[0], unrollBins[1])
             mcUnrolledDict = {mcSamples[n]:mcUnrolledList[n] for n in range(len(mcSamples))}
         else:
             mcSamples = [s for s in mcDict]
-            mcUnrolledList = unroll2DHistograms([mcDict[s] for s in mcSamples])
+            mcUnrolledList = unroll2DHistograms([mcDict[s] for s in mcSamples], unrollBins[0], unrollBins[1])
             mcUnrolledDict = {mcSamples[n]:mcUnrolledList[n] for n in range(len(mcSamples))}
         for s in mcSamples: setHistColor(mcUnrolledDict[s], s)
     if data: unrolled[1].SetBinErrorOption(rt.TH1.kPoisson) #get correct error bars on data
@@ -716,6 +732,8 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
             legDataMC.AddEntry(unrolled[1], "Data")
             rt.SetOwnership(legDataMC, False)
             plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.0,ratiomax=5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
+            legDataMC.Delete()
+            blindStack.Delete()
         if fit: 
             #do (fit - mc)/unc
             if nsigmaFitMC is None:
@@ -734,7 +752,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
             draw2DHist(c, mcFitPerc, xtitle, ytitle, ztitle, -1.5, 1.5, printstr+'MCFitPercentDiff', lumistr=lumistr, commentstr=commentstr+", (Fit - MC)/MC", palette="FF", logz=False, dotext=dotext, grayGraphs=grayGraphs[0], saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
             nsigmaUnrolledFitMC = None
             if nsigmaFitMC is not None:
-                nsigmaUnrolledFitMC = unroll2DHistograms([nsigmaFitMC])[0]
+                nsigmaUnrolledFitMC = unroll2DHistograms([nsigmaFitMC], unrollBins[0], unrollBins[1])[0]
                 for bx in range(1, nsigmaUnrolledFitMC.GetNbinsX()+1):
                     nsigmaUnrolledFitMC.SetBinError(bx,0.0)
 
@@ -761,6 +779,8 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 ratiominToUse= 0.0
                 ratiomaxToUse=5.0
             plot_basic(c, mcStack, None, unrolled[2], legMCFit, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiominToUse, ratiomax=ratiomaxToUse, pad2Opt=pad2OptToUse, saveroot=True, savec=savec, mcErrColor=rt.kBlack, customPad2Hist=nsigmaUnrolledFitMC, printdir=printdir)
+            mcStack.Delete()
+            legMCFit.Delete()
     if data:
         draw2DHist(c, data, xtitle, ytitle, ztitle, zmin=max(0.1,zmin), printstr=printstr+'Data', lumistr=lumistr, commentstr=commentstr+", Data", dotext=dotext, grayGraphs=grayGraphs[2], saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
         if fit: 
@@ -786,7 +806,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
 
             nsigmaUnrolled = None
             if nsigmaFitData is not None:
-                nsigmaUnrolled = unroll2DHistograms([nsigmaFitData])[0]
+                nsigmaUnrolled = unroll2DHistograms([nsigmaFitData], unrollBins[0], unrollBins[1])[0]
                 for bx in range(1,nsigmaUnrolled.GetNbinsX()+1):
                     nsigmaUnrolled.SetBinError(bx,0.0)
 
@@ -800,6 +820,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
             legDataFit.AddEntry(unrolled[1], "Data")
 
             plot_basic(c, None, unrolled[1], blindFit, legDataFit, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataFit", lumistr=lumistr, commentstr=commentstr, ratiomin=-5., ratiomax=5.0, pad2Opt="ff", fitColor=rt.kBlue, saveroot=True, savec=savec, customPad2Hist=nsigmaUnrolled, printdir=printdir, grayLines=grayLines)
+            legDataFit.Delete()
     if fit:
         draw2DHist(c, fit, xtitle, ytitle, ztitle, zmin, zmax, printstr+'Fit', lumistr=lumistr, commentstr=commentstr+", Fit prediction", grayGraphs=grayGraphs[1], dotext=dotext, drawErrs=True, saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, printdir=printdir)
         #make relative uncertainty histogram
@@ -817,6 +838,8 @@ def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrder
     leg = makeLegend(hists, titles, ordering)
     #plot
     plot_basic(canvas, stack, dataHist, leg=leg, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, logy=logy, lumistr=lumistr, saveroot=saveroot, savepdf=savepdf, savepng=savepng, savec=savec, ymin=ymin)
+    stack.Delete()  
+    leg.Delete()
 
 def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=False, printdir='.'):
     #check for input

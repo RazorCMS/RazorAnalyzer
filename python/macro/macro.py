@@ -29,7 +29,7 @@ def walkDictionary(d, path=""):
         else:
             yield (newpath, val)
 
-def exportHists(hists, outFileName='hists.root', outDir='.', useDirectoryStructure=True, varName=None, debugLevel=0):
+def exportHists(hists, outFileName='hists.root', outDir='.', useDirectoryStructure=True, varName=None, delete=True, debugLevel=0):
     """
     Writes histograms from the given dictionary to a ROOT file.  
     If useDirectoryStructure is True, histograms will be put in folders according to the structure of the dictionary.
@@ -54,9 +54,11 @@ def exportHists(hists, outFileName='hists.root', outDir='.', useDirectoryStructu
                 tdir.cd()
                 print "Writing histogram",pair[1].GetName(),"to directory",path
                 pair[1].Write()
+                if delete: pair[1].Delete()
         else:
             print "Writing histogram",pair[1].GetName()
             pair[1].Write()
+            if delete: pair[1].Delete()
     outFile.Close()
 
 def importHists(inFileName='hists.root', debugLevel=0):
@@ -95,20 +97,6 @@ def importHists(inFileName='hists.root', debugLevel=0):
                         print "Retrieved histogram",tkey
     inFile.Close()
     return hists
-
-def unroll3DHistogram(hist):
-    if hist is None or hist == 0: 
-        return
-    numbins = hist.GetNbinsX()*hist.GetNbinsY()*hist.GetNbinsZ()
-    outHist = rt.TH1F(hist.GetName()+"Unroll", hist.GetTitle(), numbins, 0, numbins)
-    ibin = 0
-    for bx in range(1, hist.GetNbinsX()+1):
-        for by in range(1, hist.GetNbinsY()+1):
-            for bz in range(1, hist.GetNbinsZ()+1):
-                ibin += 1
-                outHist.SetBinContent(ibin, hist.GetBinContent(bx,by,bz))
-                outHist.SetBinError(ibin, hist.GetBinError(bx,by,bz))
-    return outHist
 
 def makeTH2PolyFromColumns(name, title, xbins, cols):
     """
@@ -454,6 +442,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
             plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+        legend.Delete()
 
 def transformVarsInString(string, varNames, suffix):
     outstring = copy.copy(string)
@@ -685,7 +674,6 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             tree.GetEntry(entry)
             w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
 
-            additionalCuts = getAdditionalCuts(tree, errorOpt, process, debugLevel=debugLevel) #currently does nothing
             err = 0.0
             #get scale factor
             if sfHist is not None: 
@@ -705,7 +693,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             if math.isnan(err):
                 print "Error: err is nan!"
             #fill with weight
-            fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts, formulas, debugLevel)
+            fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts=None, formulas=formulas, debugLevel=debugLevel)
 
             ###PROCESS EXTRA SHAPE HISTOGRAMS
             #get weights for filling additional shape histograms, if provided

@@ -458,6 +458,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
                 shapeHists['QCD']['qcdnormDown'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
                 shapeHists['QCD']['qcdnormDown'][var].Scale(1.0/QCDNORMERRFRACTION)
                 shapeHists['QCD']['qcdnormDown'][var].SetDirectory(0)
+        for name in histsForQCD:
+            for var in histsForQCD[name]:
+                histsForQCD[name][var].Delete()
     if 'datadrivenqcd' in map(str.lower, weightOpts): #use QCD extrapolation on data
         dataWeightOpts.append('datadrivenqcd')
             
@@ -555,6 +558,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #close files and return
     for f in files: files[f].Close()
+    c.Delete()
     return hists
 
 #######################################
