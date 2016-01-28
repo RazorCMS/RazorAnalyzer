@@ -405,16 +405,27 @@ def getCorrelationMatrix(myTree, sumType, minX, maxX, minY, maxY, minZ, maxZ, x,
     binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
 
     #histogram for output
-    nbins = len(binSumDict)
+    nbins = (maxX-minX)*(maxY-minY)*(maxZ-minZ)
     h = rt.TH2F("correlationMatrix", "correlationMatrix",nbins,0,nbins,nbins,0,nbins)
     h.SetDirectory(0)
 
-    for iBin, (i,sumName1) in enumerate(binSumDict.iteritems()):
-        for jBin, (j,sumName2) in enumerate(binSumDict.iteritems()):
-            if jBin > iBin: break
-            corrCoeff = getCorrelationCoefficient(myTree, sumName1, sumName2)
-            h.SetBinContent(iBin,jBin,corrCoeff)
-            h.SetBinContent(jBin,iBin,corrCoeff)
+    i = 0
+    for ix1 in range(minX, maxX):
+        for iy1 in range(minY, maxY):
+            for iz1 in range(minZ, maxZ):
+                j = 0
+                i += 1
+                sumName1 = binSumDict[(ix1+1,iy1+1,iz1+1)]
+                for ix2 in range(minX, maxX):
+                    for iy2 in range(minY, maxY):
+                        for iz2 in range(minZ, maxZ):
+                            j += 1
+                            if j > i: break
+                            sumName2 = binSumDict[(ix2+1,iy2+1,iz2+1)]
+                            corrCoeff = getCorrelationCoefficient(myTree, sumName1, sumName2)
+                            h.SetBinContent(i,j,corrCoeff)
+                            h.SetBinContent(j,i,corrCoeff)
+                                
     return h
 
 def getBestFitRms(myTree, sumName, nObs, d, options, plotName):

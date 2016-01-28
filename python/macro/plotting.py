@@ -439,7 +439,10 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawColz=True):
     """Draw a single 2D histogram and print to file"""
     if palette == "FF":
-        setFFColors(hist, -5.1, 5.1)
+        if zmin is None or zmax is None:
+            setFFColors(hist, -5.1, 5.1)
+        else:
+            setFFColors(hist, zmin, zmax)
     else:
         rt.gStyle.SetPalette(palette)
     c.Clear()
@@ -474,14 +477,15 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
             hist.Draw('texte'+((drawColz)*('same')))
     #add LaTeX 
     if drawCMSPreliminary:
-        t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-        t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
-        t1.SetNDC()
-        t2.SetNDC()
-        t1.SetTextSize(0.05)
-        t2.SetTextSize(0.05)
-        t1.Draw()
-        t2.Draw()
+        CMS_lumi(c)
+        #t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
+        #t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
+        #t1.SetNDC()
+        #t2.SetNDC()
+        #t1.SetTextSize(0.05)
+        #t2.SetTextSize(0.05)
+        #t1.Draw()
+        #t2.Draw()
     if commentstr != "":
         t3 = rt.TLatex(0.30, 0.84, commentstr)
         t3.SetNDC()
