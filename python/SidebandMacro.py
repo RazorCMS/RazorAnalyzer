@@ -50,6 +50,11 @@ TOYS_FILES = {
         "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
         "EleMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_EleMultiJet.root",
         }
+FULL_TOYS_FILES = {
+        #"MultiJet":FULL_FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
+        #"MuMultiJet":FULL_FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
+        "EleMultiJet":FULL_FIT_DIR+"/toys_Bayes_noStat_EleMultiJet.root",
+        }
 
 weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
@@ -109,9 +114,9 @@ if __name__ == "__main__":
     plotOpts = {"ymin":1e-3}
 
     doSideband=(not args.full)
+    toysToUse = TOYS_FILES
     if not doSideband:
-        FIT_DIR = FULL_FIT_DIR
-        TOYS_FILES = {b:TOYS_FILES[b].replace('sideband','full').replace('Sideband','full') for b in TOYS_FILES}
+        toysToUse = FULL_TOYS_FILES
         dirName += '_Full'
         plotOpts['sideband'] = False
     else:
@@ -119,7 +124,7 @@ if __name__ == "__main__":
     if args.unblind:
         dirName += '_Unblinded'
     if args.noFit: 
-        TOYS_FILES = None
+        toysToUse = None
         del plotOpts['sideband']
     boxesToUse = BOXES
     if args.box is not None:
@@ -262,21 +267,13 @@ if __name__ == "__main__":
                 extboxName = boxName
                 nBtags = -1
             unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
-            #check fit file and create if necessary
-            #if not args.noFit and not os.path.isfile(TOYS_FILES[boxName]):
-            #    print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-            #    runFitAndToys(FIT_DIR, boxName, LUMI, DATA_NAMES[boxName], DIR_DATA, config=config, sideband=do#Sideband)
-            #    #check
-            #    if not os.path.isfile(TOYS_FILES[boxName]):
-            #        print "Error creating fit file",TOYS_FILES[boxName]
-            #        sys.exit()
             hists = makeControlSampleHists(extboxName, 
                     filenames=filesToUse, samples=samplesToUse, 
                     cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                     bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
                     weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
-                    fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
+                    fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBinsToUse,
                     btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
                     plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill)
             macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)
