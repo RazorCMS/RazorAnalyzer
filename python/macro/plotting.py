@@ -249,8 +249,9 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
                 mcHist.SetMaximum(ymax)
             mcHist.Draw()
             if logx: mcHist.GetXaxis().SetMoreLogLabels()
-        #mcTotal.SetFillStyle(3001)
-        #mcTotal.Draw("e2same")
+        if numMCHists > 1:
+            mcTotal.SetFillStyle(3001)
+            mcTotal.Draw("e2same")
     #draw fit
     if fit:
         fit.SetStats(0)
