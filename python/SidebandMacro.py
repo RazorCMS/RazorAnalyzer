@@ -44,6 +44,7 @@ for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.roo
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
 #FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2185ipb" #old fits
 FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
+FULL_FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016/Full"
 TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 
     doSideband=(not args.full)
     if not doSideband:
-        FIT_DIR = FIT_DIR.replace('Sideband','Full').replace('sideband','full')
+        FIT_DIR = FULL_FIT_DIR
         TOYS_FILES = {b:TOYS_FILES[b].replace('sideband','full').replace('Sideband','full') for b in TOYS_FILES}
         dirName += '_Full'
         plotOpts['sideband'] = False
