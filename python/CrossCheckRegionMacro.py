@@ -116,12 +116,25 @@ VetoLeptonBinsLepEta = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
 VetoLeptonControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep, "lep1.Pt()":VetoLeptonBinsLepPt , "abs(lep1.Eta())":VetoLeptonBinsLepEta, ("MR","Rsq"):[], ("abs(lep1.Eta())","lep1.Pt()"):[]}
 MultiJetControlRegionBinning = { "MR":VetoLeptonBinsMRLep, "Rsq":VetoLeptonBinsRsqLep, "leadingGenLeptonPt":VetoLeptonBinsLepPt, "abs(leadingGenLeptonEta)":VetoLeptonBinsLepEta, ("MR","Rsq"):[] }
 
+VetoLepton7JetBinsMRLep = [400, 700, 900, 4000]
+VetoLepton7JetBinsRsqLep =  [0.25,0.30,0.41,1.5]
+VetoLepton7JetBinsLepPt = [5, 15, 40.,1000]
+VetoLepton7JetBinsLepEta = [0, 1.5, 2.5]
+VetoLeptonControlRegion7JetBinning = { "MR":VetoLepton7JetBinsMRLep, "Rsq":VetoLepton7JetBinsRsqLep, "lep1.Pt()":VetoLepton7JetBinsLepPt , "abs(lep1.Eta())":VetoLepton7JetBinsLepEta, ("MR","Rsq"):[], ("abs(lep1.Eta())","lep1.Pt()"):[]}
+
+
 VetoTauBinsLepPt = [20,30,40,100,1000]
 VetoTauBinsLepEta = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
 VetoTauBinsMR =  [400, 500, 600, 700, 900, 4000]
 VetoTauBinsRsq = [0.25,0.30,0.41,1.5]
 VetoTauControlRegionBinning = { "MR":VetoTauBinsMR, "Rsq":VetoTauBinsRsq, "lep1.Pt()":VetoTauBinsLepPt , "abs(lep1.Eta())":VetoTauBinsLepEta, ("MR","Rsq"):[], ("abs(lep1.Eta())","lep1.Pt()"):[]}
 MultiJetTauControlRegionBinning = { "MR":VetoTauBinsMR, "Rsq":VetoTauBinsRsq, "leadingGenLeptonPt":VetoTauBinsLepPt, "abs(leadingGenLeptonEta)":VetoTauBinsLepEta, ("MR","Rsq"):[] }
+
+VetoTau7JetBinsMRLep = [400, 700, 900, 4000]
+VetoTau7JetBinsRsqLep =  [0.25,0.30,0.41,1.5]
+VetoTau7JetBinsLepPt = [5, 10, 15, 20.,30.,40.,100,1000]
+VetoTau7JetBinsLepEta = [0, 1.5, 2.5]
+VetoTauControlRegion7JetBinning = { "MR":VetoTau7JetBinsMRLep, "Rsq":VetoTau7JetBinsRsqLep, "lep1.Pt()":VetoTau7JetBinsLepPt , "abs(lep1.Eta())":VetoTau7JetBinsLepEta, ("MR","Rsq"):[], ("abs(lep1.Eta())","lep1.Pt()"):[]}
 
 TTJetsDileptonBinsMRLep = cfg.getBinning("TTJetsDileptonControlRegion")[0]
 TTJetsDileptonBinsRsqLep = cfg.getBinning("TTJetsDileptonControlRegion")[1]
@@ -188,185 +201,209 @@ if __name__ == "__main__":
     #tmpSFHists["TTJets"].Write("TTJetsDileptonCrossCheckScaleFactors")
     #ttjetsDileptonOutfile.Close()
 
+    # #########################################################
+    # #Veto Lepton cross-check region
+    # #########################################################
+
+    # #load the MT cut efficiency as a function of lepton pt
+    # mtLepFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/VetoLeptonMTCutEfficiency.root")
+    # assert mtLepFile
+    # mtLepPtHist = mtLepFile.Get("VetoLeptonMTCutEfficiencyVsPt")
+    # assert mtLepPtHist
+    # mtLepEtaHist = mtLepFile.Get("VetoLeptonMTCutEfficiencyVsEta")
+    # assert mtLepEtaHist
+
+    # #load the dPhi cut efficiency as a function of lepton pt
+    # dphiLepFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/DPhiCutEfficiencyForLostLepton.root")
+    # assert dphiLepFile
+    # dphiLepPtHist = dphiLepFile.Get("VetoLeptonDPhiCutEfficiencyVsPt")
+    # assert dphiLepPtHist
+    # dphiLepEtaHist = dphiLepFile.Get("VetoLeptonDPhiCutEfficiencyVsEta")
+    # assert dphiLepEtaHist
+
+    # #use these histograms to derive the additive veto lepton correction
+    # vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
+    #            filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
+    #            cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
+    #            bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
+    #            printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+
+    # #use these histograms to convert the additive veto lepton correction into a multiplicative one
+    # multijetHistsForVetoLeptonCorrection = makeControlSampleHists("MultiJetForVetoLeptonCorrection", 
+    #         filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
+    #         cutsMC=cutsMultiJetForVetoLepton, cutsData=cutsMultiJetForVetoLepton, 
+    #         bins=MultiJetControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #         weightHists=weightHists, plotDensity=False, sfHists=sfHists, treeName="RazorInclusive", 
+    #         weightOpts=weightOpts, debugLevel=debugLevel, plotOpts=plotOpts, printdir=printdir)
+
+    # #Make pt correction (control region data/MC)
+    # sfHistsCRPtCorr = sfHists.copy()
+    # sfHistsCRPtCorr["VetoLepton"] = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Lepton Pt CR", doDataOverMC=True, printdir=printdir)
+
+    # #Make pt correction (signal region data/MC)
+    # sfHistsSRPtCorr = sfHists.copy()
+    # sfHistsSRPtCorr["VetoLepton"] = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Lepton Pt", doDataOverMC=False, histsToCorrect=multijetHistsForVetoLeptonCorrection, signalRegionVar="leadingGenLeptonPt", mtEfficiencyHist=mtLepPtHist, dPhiEfficiencyHist=dphiLepPtHist, printdir=printdir)
+
+    # #for applying pt correction
+    # auxSFsCRForVetoLeptonPtCorr = { 
+    #     "VetoLepton":("lep1.Pt()", "abs(lep1Type) == 11 || abs(lep1Type) == 13"), 
+    #     }
+    # auxSFsSRForVetoLeptonPtCorr = { 
+    #     "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
+    #     }
+
+    # #apply the pt correction and examine the residual eta agreement (control region)
+    # vetoLeptonHistsPtCorr = makeControlSampleHists("VetoLeptonControlRegionForEtaCorrection", 
+    #            filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
+    #            cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
+    #            bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=False, sfHists=sfHistsCRPtCorr, weightOpts=weightOpts, 
+    #            auxSFs=auxSFsCRForVetoLeptonPtCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+
+    # #apply the pt correction and examine the residual eta agreement (signal region)
+    # multijetHistsPtCorrForVetoLeptonCorrection = makeControlSampleHists("MultiJetForVetoLeptonEtaCorrection", 
+    #         filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
+    #         cutsMC=cutsMultiJetForVetoLepton, cutsData=cutsMultiJetForVetoLepton, 
+    #         bins=MultiJetControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #         weightHists=weightHists, plotDensity=False, sfHists=sfHistsSRPtCorr, treeName="RazorInclusive", 
+    #         auxSFs=auxSFsSRForVetoLeptonPtCorr, weightOpts=weightOpts, debugLevel=debugLevel, 
+    #         plotOpts=plotOpts, printdir=printdir)
+
+    # #Make residual eta correction (control region data/MC)
+    # sfHistsCRPtEtaCorr = sfHists.copy()
+    # sfHistsCRPtEtaCorr["VetoLeptonPt"] = sfHistsCRPtCorr["VetoLepton"]
+    # sfHistsCRPtEtaCorr["VetoLeptonEta"] = makeVetoLeptonCorrectionHist(vetoLeptonHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Lepton Eta CR", doDataOverMC=True, printdir=printdir)
+
+    # #Make residual eta correction (signal region data/MC)
+    # makeVetoLeptonCorrectionHist(vetoLeptonHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Lepton Eta", doDataOverMC=False, histsToCorrect=multijetHistsPtCorrForVetoLeptonCorrection, signalRegionVar="abs(leadingGenLeptonEta)", mtEfficiencyHist=mtLepEtaHist, dPhiEfficiencyHist=dphiLepEtaHist, printdir=printdir)
+
+    # auxSFsCRForVetoLeptonPtEtaCorr = { 
+    #     "VetoLeptonPt":("lep1.Pt()", "abs(lep1Type) == 11 || abs(lep1Type) == 13"), 
+    #     "VetoLeptonEta":("abs(lep1.Eta())", "abs(lep1Type) == 11 || abs(lep1Type) == 13"), 
+    #     }
+
+    # #Check control region after both corrections
+    # vetoLeptonHistsPtEtaCorr = makeControlSampleHists("VetoLeptonControlRegionPtEtaCorrected", 
+    #            filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
+    #            cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
+    #            bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=True, sfHists=sfHistsCRPtEtaCorr, weightOpts=weightOpts, 
+    #            auxSFs=auxSFsCRForVetoLeptonPtEtaCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+
+    # ##########################################################
+    # ##Veto Tau cross-check region
+    # ##########################################################
+
+    # #load the MT cut efficiency as a function of tau pt
+    # mtTauFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/VetoTauMTCutEfficiency.root")
+    # assert mtTauFile
+    # mtTauPtHist = mtTauFile.Get("VetoTauMTCutEfficiencyVsPt")
+    # assert mtTauPtHist
+    # mtTauEtaHist = mtTauFile.Get("VetoTauMTCutEfficiencyVsEta")
+    # assert mtTauEtaHist
+
+    # #load the dPhi cut efficiency as a function of tau pt
+    # dphiTauFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/DPhiCutEfficiencyForLostTau.root")
+    # assert dphiTauFile
+    # dphiTauPtHist = dphiTauFile.Get("VetoTauDPhiCutEfficiencyVsPt")
+    # assert dphiTauPtHist
+    # dphiTauEtaHist = dphiTauFile.Get("VetoTauDPhiCutEfficiencyVsEta")
+    # assert dphiTauEtaHist
+
+    # #use these histograms to derive the additive veto tau correction
+    # vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
+    #            filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
+    #            cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
+    #            bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
+    #            printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+
+    # #use these histograms to convert the additive veto tau correction into a multiplicative one
+    # multijetHistsForVetoTauCorrection = makeControlSampleHists("MultiJetForVetoTauCorrection", 
+    #         filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
+    #         cutsMC=cutsMultiJetForVetoTau, cutsData=cutsMultiJetForVetoTau, 
+    #         bins=MultiJetTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #         weightHists=weightHists, plotDensity=False, sfHists=sfHists, treeName="RazorInclusive", 
+    #         weightOpts=weightOpts, debugLevel=debugLevel, plotOpts=plotOpts, printdir=printdir)
+
+    # #Make pt correction (control region data/MC)
+    # sfHistsCRPtCorr = sfHists.copy()
+    # sfHistsCRPtCorr["VetoTau"] = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Tau Pt CR", doDataOverMC=True, printdir=printdir)
+
+    # #Make pt correction (signal region data/MC)
+    # sfHistsSRPtCorr = sfHists.copy()
+    # sfHistsSRPtCorr["VetoTau"] = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Tau Pt", doDataOverMC=False, histsToCorrect=multijetHistsForVetoTauCorrection, signalRegionVar="leadingGenLeptonPt", mtEfficiencyHist=mtTauPtHist, dPhiEfficiencyHist=dphiTauPtHist, printdir=printdir)
+
+    # #for applying pt correction
+    # auxSFsCRForVetoTauPtCorr = { 
+    #     "VetoTau":("lep1.Pt()", "abs(lep1Type) == 15"), 
+    #     }
+    # auxSFsSRForVetoTauPtCorr = { 
+    #     "VetoTau":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15"), 
+    #     }
+
+    # #apply the pt correction and examine the residual eta agreement (control region)
+    # vetoTauHistsPtCorr = makeControlSampleHists("VetoTauControlRegionForEtaCorrection", 
+    #            filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
+    #            cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
+    #            bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=True, sfHists=sfHistsCRPtCorr, weightOpts=weightOpts, 
+    #            auxSFs=auxSFsCRForVetoTauPtCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+
+    # #apply the pt correction and examine the residual eta agreement (signal region)
+    # multijetHistsPtCorrForVetoTauCorrection = makeControlSampleHists("MultiJetForVetoTauEtaCorrection", 
+    #         filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
+    #         cutsMC=cutsMultiJetForVetoTau, cutsData=cutsMultiJetForVetoTau, 
+    #         bins=MultiJetTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #         weightHists=weightHists, plotDensity=False, sfHists=sfHistsSRPtCorr, treeName="RazorInclusive", 
+    #         auxSFs=auxSFsSRForVetoTauPtCorr, weightOpts=weightOpts, debugLevel=debugLevel, plotOpts=plotOpts, 
+    #         printdir=printdir)
+
+    # #Make residual eta correction (control region data/MC)
+    # sfHistsCRPtEtaCorr = sfHists.copy()
+    # sfHistsCRPtEtaCorr["VetoTauPt"] = sfHistsCRPtCorr["VetoTau"]
+    # sfHistsCRPtEtaCorr["VetoTauEta"] = makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta CR", doDataOverMC=True, printdir=printdir)
+
+    # #Make residual eta correction (signal region data/MC)
+    # makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta", doDataOverMC=False, histsToCorrect=multijetHistsPtCorrForVetoTauCorrection, signalRegionVar="abs(leadingGenLeptonEta)", mtEfficiencyHist=mtTauEtaHist, dPhiEfficiencyHist=dphiTauEtaHist, printdir=printdir)
+
+    # auxSFsCRForVetoTauPtEtaCorr = { 
+    #     "VetoTauPt":("lep1.Pt()", "abs(lep1Type) == 15"), 
+    #     "VetoTauEta":("abs(lep1.Eta())", "abs(lep1Type) == 15"), 
+    #     }
+
+    # #Check control region after both corrections
+    # vetoTauHistsPtEtaCorr = makeControlSampleHists("VetoTauControlRegionPtEtaCorrected", 
+    #            filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
+    #            cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
+    #            bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+    #            weightHists=weightHists, plotDensity=False, sfHists=sfHistsCRPtEtaCorr, weightOpts=weightOpts, 
+    #            auxSFs=auxSFsCRForVetoTauPtEtaCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+
+
+
     #########################################################
-    #Veto Lepton cross-check region
+    #Veto Lepton 7Jet cross-check region
     #########################################################
-
-    #load the MT cut efficiency as a function of lepton pt
-    mtLepFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/VetoLeptonMTCutEfficiency.root")
-    assert mtLepFile
-    mtLepPtHist = mtLepFile.Get("VetoLeptonMTCutEfficiencyVsPt")
-    assert mtLepPtHist
-    mtLepEtaHist = mtLepFile.Get("VetoLeptonMTCutEfficiencyVsEta")
-    assert mtLepEtaHist
-
-    #load the dPhi cut efficiency as a function of lepton pt
-    dphiLepFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/DPhiCutEfficiencyForLostLepton.root")
-    assert dphiLepFile
-    dphiLepPtHist = dphiLepFile.Get("VetoLeptonDPhiCutEfficiencyVsPt")
-    assert dphiLepPtHist
-    dphiLepEtaHist = dphiLepFile.Get("VetoLeptonDPhiCutEfficiencyVsEta")
-    assert dphiLepEtaHist
-
-    #use these histograms to derive the additive veto lepton correction
-    vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion", 
+    sfHists7Jet = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root", processNames=SAMPLES_VetoLepton, scaleFactorNames={ "ZInv":"GJetsInv" }, debugLevel=debugLevel)
+    vetoLeptonHists = makeControlSampleHists("VetoLeptonControlRegion7Jet", 
                filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
-               cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
-               bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-               weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
+               cutsMC=vetoLeptonControlRegion7JetCutsMC, cutsData=vetoLeptonControlRegion7JetCutsData, 
+               bins=VetoLeptonControlRegion7JetBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, plotDensity=False, sfHists=sfHists7Jet, weightOpts=weightOpts, 
                printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
 
-    #use these histograms to convert the additive veto lepton correction into a multiplicative one
-    multijetHistsForVetoLeptonCorrection = makeControlSampleHists("MultiJetForVetoLeptonCorrection", 
-            filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
-            cutsMC=cutsMultiJetForVetoLepton, cutsData=cutsMultiJetForVetoLepton, 
-            bins=MultiJetControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-            weightHists=weightHists, plotDensity=False, sfHists=sfHists, treeName="RazorInclusive", 
-            weightOpts=weightOpts, debugLevel=debugLevel, plotOpts=plotOpts, printdir=printdir)
-
-    #Make pt correction (control region data/MC)
-    sfHistsCRPtCorr = sfHists.copy()
-    sfHistsCRPtCorr["VetoLepton"] = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Lepton Pt CR", doDataOverMC=True, printdir=printdir)
-
-    #Make pt correction (signal region data/MC)
-    sfHistsSRPtCorr = sfHists.copy()
-    sfHistsSRPtCorr["VetoLepton"] = makeVetoLeptonCorrectionHist(vetoLeptonHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Lepton Pt", doDataOverMC=False, histsToCorrect=multijetHistsForVetoLeptonCorrection, signalRegionVar="leadingGenLeptonPt", mtEfficiencyHist=mtLepPtHist, dPhiEfficiencyHist=dphiLepPtHist, printdir=printdir)
-
-    #for applying pt correction
-    auxSFsCRForVetoLeptonPtCorr = { 
-        "VetoLepton":("lep1.Pt()", "abs(lep1Type) == 11 || abs(lep1Type) == 13"), 
-        }
-    auxSFsSRForVetoLeptonPtCorr = { 
-        "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
-        }
-
-    #apply the pt correction and examine the residual eta agreement (control region)
-    vetoLeptonHistsPtCorr = makeControlSampleHists("VetoLeptonControlRegionForEtaCorrection", 
-               filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
-               cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
-               bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-               weightHists=weightHists, plotDensity=False, sfHists=sfHistsCRPtCorr, weightOpts=weightOpts, 
-               auxSFs=auxSFsCRForVetoLeptonPtCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
-
-    #apply the pt correction and examine the residual eta agreement (signal region)
-    multijetHistsPtCorrForVetoLeptonCorrection = makeControlSampleHists("MultiJetForVetoLeptonEtaCorrection", 
-            filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
-            cutsMC=cutsMultiJetForVetoLepton, cutsData=cutsMultiJetForVetoLepton, 
-            bins=MultiJetControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-            weightHists=weightHists, plotDensity=False, sfHists=sfHistsSRPtCorr, treeName="RazorInclusive", 
-            auxSFs=auxSFsSRForVetoLeptonPtCorr, weightOpts=weightOpts, debugLevel=debugLevel, 
-            plotOpts=plotOpts, printdir=printdir)
-
-    #Make residual eta correction (control region data/MC)
-    sfHistsCRPtEtaCorr = sfHists.copy()
-    sfHistsCRPtEtaCorr["VetoLeptonPt"] = sfHistsCRPtCorr["VetoLepton"]
-    sfHistsCRPtEtaCorr["VetoLeptonEta"] = makeVetoLeptonCorrectionHist(vetoLeptonHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Lepton Eta CR", doDataOverMC=True, printdir=printdir)
-
-    #Make residual eta correction (signal region data/MC)
-    makeVetoLeptonCorrectionHist(vetoLeptonHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Lepton Eta", doDataOverMC=False, histsToCorrect=multijetHistsPtCorrForVetoLeptonCorrection, signalRegionVar="abs(leadingGenLeptonEta)", mtEfficiencyHist=mtLepEtaHist, dPhiEfficiencyHist=dphiLepEtaHist, printdir=printdir)
-
-    auxSFsCRForVetoLeptonPtEtaCorr = { 
-        "VetoLeptonPt":("lep1.Pt()", "abs(lep1Type) == 11 || abs(lep1Type) == 13"), 
-        "VetoLeptonEta":("abs(lep1.Eta())", "abs(lep1Type) == 11 || abs(lep1Type) == 13"), 
-        }
-
-    #Check control region after both corrections
-    vetoLeptonHistsPtEtaCorr = makeControlSampleHists("VetoLeptonControlRegionPtEtaCorrected", 
-               filenames=FILENAMES_VetoLepton, samples=SAMPLES_VetoLepton, 
-               cutsMC=vetoLeptonControlRegionCutsMC, cutsData=vetoLeptonControlRegionCutsData, 
-               bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-               weightHists=weightHists, plotDensity=False, sfHists=sfHistsCRPtEtaCorr, weightOpts=weightOpts, 
-               auxSFs=auxSFsCRForVetoLeptonPtEtaCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
 
     ##########################################################
-    ##Veto Tau cross-check region
+    ##Veto Tau 7Jet cross-check region
     ##########################################################
-
-    #load the MT cut efficiency as a function of tau pt
-    mtTauFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/VetoTauMTCutEfficiency.root")
-    assert mtTauFile
-    mtTauPtHist = mtTauFile.Get("VetoTauMTCutEfficiencyVsPt")
-    assert mtTauPtHist
-    mtTauEtaHist = mtTauFile.Get("VetoTauMTCutEfficiencyVsEta")
-    assert mtTauEtaHist
-
-    #load the dPhi cut efficiency as a function of tau pt
-    dphiTauFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/DPhiCutEfficiencyForLostTau.root")
-    assert dphiTauFile
-    dphiTauPtHist = dphiTauFile.Get("VetoTauDPhiCutEfficiencyVsPt")
-    assert dphiTauPtHist
-    dphiTauEtaHist = dphiTauFile.Get("VetoTauDPhiCutEfficiencyVsEta")
-    assert dphiTauEtaHist
-
-    #use these histograms to derive the additive veto tau correction
-    vetoTauHists = makeControlSampleHists("VetoTauControlRegion", 
+    vetoTauHists = makeControlSampleHists("VetoTauControlRegion7Jet", 
                filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
-               cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
-               bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-               weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
+               cutsMC=vetoTauControlRegion7JetCutsMC, cutsData=vetoTauControlRegion7JetCutsData, 
+               bins=VetoTauControlRegion7JetBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, plotDensity=False, sfHists=sfHists7Jet, weightOpts=weightOpts, 
                printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
-
-    #use these histograms to convert the additive veto tau correction into a multiplicative one
-    multijetHistsForVetoTauCorrection = makeControlSampleHists("MultiJetForVetoTauCorrection", 
-            filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
-            cutsMC=cutsMultiJetForVetoTau, cutsData=cutsMultiJetForVetoTau, 
-            bins=MultiJetTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-            weightHists=weightHists, plotDensity=False, sfHists=sfHists, treeName="RazorInclusive", 
-            weightOpts=weightOpts, debugLevel=debugLevel, plotOpts=plotOpts, printdir=printdir)
-
-    #Make pt correction (control region data/MC)
-    sfHistsCRPtCorr = sfHists.copy()
-    sfHistsCRPtCorr["VetoTau"] = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Tau Pt CR", doDataOverMC=True, printdir=printdir)
-
-    #Make pt correction (signal region data/MC)
-    sfHistsSRPtCorr = sfHists.copy()
-    sfHistsSRPtCorr["VetoTau"] = makeVetoLeptonCorrectionHist(vetoTauHists, lumiData=LUMI_DATA, debugLevel=debugLevel, var="lep1.Pt()", signifThreshold=1.0, regionName="Veto Tau Pt", doDataOverMC=False, histsToCorrect=multijetHistsForVetoTauCorrection, signalRegionVar="leadingGenLeptonPt", mtEfficiencyHist=mtTauPtHist, dPhiEfficiencyHist=dphiTauPtHist, printdir=printdir)
-
-    #for applying pt correction
-    auxSFsCRForVetoTauPtCorr = { 
-        "VetoTau":("lep1.Pt()", "abs(lep1Type) == 15"), 
-        }
-    auxSFsSRForVetoTauPtCorr = { 
-        "VetoTau":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15"), 
-        }
-
-    #apply the pt correction and examine the residual eta agreement (control region)
-    vetoTauHistsPtCorr = makeControlSampleHists("VetoTauControlRegionForEtaCorrection", 
-               filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
-               cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
-               bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-               weightHists=weightHists, plotDensity=False, sfHists=sfHistsCRPtCorr, weightOpts=weightOpts, 
-               auxSFs=auxSFsCRForVetoTauPtCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
-
-    #apply the pt correction and examine the residual eta agreement (signal region)
-    multijetHistsPtCorrForVetoTauCorrection = makeControlSampleHists("MultiJetForVetoTauEtaCorrection", 
-            filenames=FILENAMES_MULTIJET, samples=SAMPLES_MultiJet, 
-            cutsMC=cutsMultiJetForVetoTau, cutsData=cutsMultiJetForVetoTau, 
-            bins=MultiJetTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-            weightHists=weightHists, plotDensity=False, sfHists=sfHistsSRPtCorr, treeName="RazorInclusive", 
-            auxSFs=auxSFsSRForVetoTauPtCorr, weightOpts=weightOpts, debugLevel=debugLevel, plotOpts=plotOpts, 
-            printdir=printdir)
-
-    #Make residual eta correction (control region data/MC)
-    sfHistsCRPtEtaCorr = sfHists.copy()
-    sfHistsCRPtEtaCorr["VetoTauPt"] = sfHistsCRPtCorr["VetoTau"]
-    sfHistsCRPtEtaCorr["VetoTauEta"] = makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta CR", doDataOverMC=True, printdir=printdir)
-
-    #Make residual eta correction (signal region data/MC)
-    makeVetoLeptonCorrectionHist(vetoTauHistsPtCorr, lumiData=LUMI_DATA, debugLevel=debugLevel, var="abs(lep1.Eta())", signifThreshold=1.0, regionName="Veto Tau Eta", doDataOverMC=False, histsToCorrect=multijetHistsPtCorrForVetoTauCorrection, signalRegionVar="abs(leadingGenLeptonEta)", mtEfficiencyHist=mtTauEtaHist, dPhiEfficiencyHist=dphiTauEtaHist, printdir=printdir)
-
-    auxSFsCRForVetoTauPtEtaCorr = { 
-        "VetoTauPt":("lep1.Pt()", "abs(lep1Type) == 15"), 
-        "VetoTauEta":("abs(lep1.Eta())", "abs(lep1Type) == 15"), 
-        }
-
-    #Check control region after both corrections
-    vetoTauHistsPtEtaCorr = makeControlSampleHists("VetoTauControlRegionPtEtaCorrected", 
-               filenames=FILENAMES_VetoTau, samples=SAMPLES_VetoTau, 
-               cutsMC=vetoTauControlRegionCutsMC, cutsData=vetoTauControlRegionCutsData, 
-               bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-               weightHists=weightHists, plotDensity=False, sfHists=sfHistsCRPtEtaCorr, weightOpts=weightOpts, 
-               auxSFs=auxSFsCRForVetoTauPtEtaCorr, printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
 
 
     ##########################################################
