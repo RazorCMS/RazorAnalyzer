@@ -228,30 +228,63 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         mc.GetYaxis().SetTitleOffset(0.60)
         mc.GetYaxis().SetTitleSize(0.06)
         mc.GetYaxis().SetLabelSize(0.06)
-        if fit and numMCHists == 1: #draw MC as a line
-            #get first histogram
+        if fit and numMCHists == 1: 
+            mcTotal.SetLineWidth(2)
+            mcTotal.SetFillStyle(0)
+            mcTotal.SetLineColor(rt.kBlue)
+            mcTotal.SetFillColor(rt.kBlue)
+
+            #Draw MC as points
+            #mcTotal.SetLineColor(rt.kBlack)
+            #mcTotal.SetMarkerStyle(21)
+            #mcTotal.SetMarkerSize(1)
+            #mcTotal.SetMarkerColor(rt.kBlack)
+            #mcTotal.GetXaxis().SetTitle(xtitle)
+            #mcTotal.GetYaxis().SetTitle(ytitle)
+            #mcTotal.GetYaxis().SetTitleOffset(0.60)
+            #mcTotal.GetYaxis().SetTitleSize(0.06)
+            #mcTotal.GetYaxis().SetLabelSize(0.06)
+            #if ymin is not None: 
+            #    mcTotal.SetMinimum(ymin)
+            #if ymax is not None: 
+            #    mcTotal.SetMaximum(ymax)
+            #mcTotal.Draw()
+            #if logx: mcTotal.GetXaxis().SetMoreLogLabels()
+
+            #Draw MC as blue line with lines for up/down errors
+            mcTotalCopy = mcTotal.Clone()
+            mcTotalCopy.SetFillStyle(0)
+            mcTotalCopy.SetLineWidth(2)
+            mcLower = mcTotal.Clone()
+            mcLower.SetLineColor(rt.kBlue+2)
+            mcTotal.SetFillColor(rt.kAzure+6)
+            mcTotal.SetFillStyle(3001)
+            mcLower.SetLineWidth(1)
+            mcUpper = mcLower.Clone()
+            for bx in range(1, mcTotal.GetNbinsX()+1):
+                mcLower.SetBinContent(bx, mcTotal.GetBinContent(bx)-mcTotal.GetBinError(bx))
+                mcUpper.SetBinContent(bx, mcTotal.GetBinContent(bx)+mcTotal.GetBinError(bx))
+                mcTotalBin = mcTotal.GetBinContent(bx)
+                mcTotalErr = mcTotal.GetBinError(bx)
+                if mcTotalBin < ymin and mcTotalBin+mcTotalErr > ymin: #push it into the visible range
+                    mcTotal.SetBinContent(bx, ymin)
+                    mcTotal.SetBinError(bx, mcTotalErr + mcTotal.GetBinContent(bx) - mcTotalBin)
+            mcLower.Draw('hist')
+            mcUpper.Draw('histsame')
+            mcTotal.Draw('e2same')
+            mcTotalCopy.Draw("histsame") 
+
+            #for legend
             mcHist = histList.First()
-            mcHist.SetStats(0)
-            mcHist.SetFillStyle(0)
-            mcHist.SetLineWidth(2)
-            mcHist.SetLineColor(rt.kBlack)
-            mcHist.SetMarkerStyle(21)
-            mcHist.SetMarkerSize(1)
-            mcHist.SetMarkerColor(rt.kBlack)
-            mcHist.GetXaxis().SetTitle(xtitle)
-            mcHist.GetYaxis().SetTitle(ytitle)
-            mcHist.GetYaxis().SetTitleOffset(0.60)
-            mcHist.GetYaxis().SetTitleSize(0.06)
-            mcHist.GetYaxis().SetLabelSize(0.06)
-            if ymin is not None: 
-                mcHist.SetMinimum(ymin)
-            if ymax is not None: 
-                mcHist.SetMaximum(ymax)
-            mcHist.Draw()
-            if logx: mcHist.GetXaxis().SetMoreLogLabels()
+            mcHist.SetLineWidth( mcTotal.GetLineWidth() )
+            mcHist.SetLineColor( mcTotal.GetLineColor() )
+            mcHist.SetFillColor( mcTotal.GetFillColor() )
+            mcHist.SetFillStyle( mcTotal.GetFillStyle() )
+            
         if numMCHists > 1:
             mcTotal.SetFillStyle(3001)
             mcTotal.Draw("e2same")
+
     #draw fit
     if fit:
         fit.SetStats(0)
@@ -274,23 +307,34 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             fit.SetFillStyle(3001)
             fit.SetFillColor(rt.kAzure+6)
             fit.Draw("e2same")
+            fitCopy.Draw("histsame") 
         elif mc:
-            #Fit = red or blue line with red lines for up/down errors
-            fitLower = fit.Clone()
-            fitLower.SetLineColor(rt.kBlue+2)
-            fit.SetFillColor(rt.kAzure+6)
-            fit.SetFillStyle(3001)
-            fitLower.SetLineWidth(1)
-            fitUpper = fitLower.Clone()
-            for bx in range(1, fit.GetNbinsX()+1):
-                fitLower.SetBinContent(bx, fit.GetBinContent(bx)-fit.GetBinError(bx))
-                fitUpper.SetBinContent(bx, fit.GetBinContent(bx)+fit.GetBinError(bx))
-            fitLower.Draw('histsame')
-            fitUpper.Draw('histsame')
-            if numMCHists == 1:
-                fit.Draw('e2same')
-                mcHist.Draw('same')
-        fitCopy.Draw("histsame") 
+            #Fit = blue line with lines for up/down errors
+            #fitLower = fit.Clone()
+            #fitLower.SetLineColor(rt.kBlue+2)
+            #fit.SetFillColor(rt.kAzure+6)
+            #fit.SetFillStyle(3001)
+            #fitLower.SetLineWidth(1)
+            #fitUpper = fitLower.Clone()
+            #for bx in range(1, fit.GetNbinsX()+1):
+            #    fitLower.SetBinContent(bx, fit.GetBinContent(bx)-fit.GetBinError(bx))
+            #    fitUpper.SetBinContent(bx, fit.GetBinContent(bx)+fit.GetBinError(bx))
+            #fitLower.Draw('histsame')
+            #fitUpper.Draw('histsame')
+            #if numMCHists == 1:
+            #    #fitCopy.SetMarkerSize(1)
+            #    #fitCopy.SetLineWidth(1)
+            #    fit.Draw('e2same')
+            #    mcHist.Draw('same')
+            #fitCopy.Draw("histsame") 
+            
+            #Fit = black points
+            fit.SetMarkerColor(rt.kBlack)
+            fit.SetLineColor(rt.kBlack)
+            fit.SetMarkerSize(1)
+            fit.Draw('pe1same')
+        else:
+            fitCopy.Draw("histsame")
     #draw data
     if data:
         data.SetStats(0)
@@ -325,6 +369,9 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
     #lower pad plot
     lowerPadHist = None
     lowerPadHist2 = None
+    lowerPadHist2Central = None
+    lowerPadHist2Lower = None
+    lowerPadHist2Upper = None
 
     #set up custom histogram if provided
     if customPad2Hist is not None:
@@ -394,10 +441,26 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             lowerPadHist.SetMarkerStyle(fit.GetMarkerStyle())
             lowerPadHist.SetMarkerSize(fit.GetMarkerSize())
         elif pad2Opt.lower() == "ratio":
-            lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
-            lowerPadHist.GetYaxis().SetTitle("Fit / MC")
-            lowerPadHist.SetMarkerSize(1)
-            lowerPadHist.SetMarkerColor(rt.kBlack)
+            if numMCHists == 1: #total MC plot
+                lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreDenominatorErrs=True)
+                lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+                #draw relative MC uncertainties 
+                lowerPadHist2 = make1DRatioHistogram(mcTotal, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreDenominatorErrs=True)
+                lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
+                lowerPadHist2Upper = lowerPadHist2.Clone()
+                lowerPadHist2Upper.SetFillStyle(0)
+                lowerPadHist2Upper.SetLineWidth(1)
+                lowerPadHist2Lower = lowerPadHist2Upper.Clone()
+                lowerPadHist2Central = lowerPadHist2Upper.Clone()
+                lowerPadHist2Central.SetLineWidth(2)
+                for bx in range(1, lowerPadHist2.GetNbinsX()+1):
+                    lowerPadHist2Upper.SetBinContent(bx, 1+lowerPadHist2.GetBinError(bx))
+                    lowerPadHist2Lower.SetBinContent(bx, 1-lowerPadHist2.GetBinError(bx))
+            else: #MC stacked plot
+                lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
+                lowerPadHist.GetYaxis().SetTitle("Fit / MC")
+                lowerPadHist.SetMarkerSize(1)
+                lowerPadHist.SetMarkerColor(rt.kBlack)
         elif pad2Opt.lower() == "nsigma" or pad2Opt.lower() == "pulls" or pad2Opt.lower() == "ff":
             lowerPadHist = make1DPullHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("(Fit - MC)/#sigma")
@@ -427,6 +490,15 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
                 lowerPadHist.Draw("pesame")
             pad2.Modified()
             rt.gPad.Update()
+        if lowerPadHist2Central is not None:
+            lowerPadHist2Upper.Draw("histsame")
+            lowerPadHist2Lower.Draw("histsame")
+            lowerPadHist2.Draw('e2same')
+            lowerPadHist2Central.Draw("histsame")
+            if mc and fit:
+                lowerPadHist.Draw("pe1same")
+            else:
+                lowerPadHist.Draw("pesame")
 
     #save
     if savepng: c.Print(printdir+'/'+printstr+".png")
@@ -477,15 +549,15 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
             hist.Draw('texte'+((drawColz)*('same')))
     #add LaTeX 
     if drawCMSPreliminary:
-        #CMS_lumi(c)
-        t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
-        t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
-        t1.SetNDC()
-        t2.SetNDC()
-        t1.SetTextSize(0.05)
-        t2.SetTextSize(0.05)
-        t1.Draw()
-        t2.Draw()
+        CMS_lumi(c, .15)
+        #t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
+        #t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
+        #t1.SetNDC()
+        #t2.SetNDC()
+        #t1.SetTextSize(0.05)
+        #t2.SetTextSize(0.05)
+        #t1.Draw()
+        #t2.Draw()
     if commentstr != "":
         t3 = rt.TLatex(0.30, 0.84, commentstr)
         t3.SetNDC()
@@ -978,7 +1050,7 @@ def setTDRStyle():
     tdrStyle.SetHatchesLineWidth(5)
     tdrStyle.SetHatchesSpacing(0.05)
   
-def CMS_lumi(pad, iPeriod=4, iPosX=0):
+def CMS_lumi(pad, relPosX=0.1, iPeriod=4, iPosX=0):
     lumi_13TeV = "2.2 fb^{-1}"
     cmsText = "CMS"
     cmsTextFont = 61 # default is helvetica-bold
@@ -988,8 +1060,6 @@ def CMS_lumi(pad, iPeriod=4, iPosX=0):
     lumiTextSize = 0.6
     lumiTextOffset = 0.2
     cmsTextSize = 0.75
-    relPosX = 0.1
-    #relPosX = 0.045
     relPosY = 0.035
     relExtraDY = 1.2
     extraOverCmsTextSize = 0.76 # ratio of "CMS" and extra text size

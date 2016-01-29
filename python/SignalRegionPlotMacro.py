@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
+    parser.add_argument("--full", help="label plot as full fit", action='store_true')
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', help="choose number of b-tags", type=int)
     parser.add_argument('--dir', help="output directory (should contain the ROOT files with the razor histograms)", default="SignalRegionPlots", dest='dirName')
@@ -46,9 +47,12 @@ if __name__ == "__main__":
     dirName = args.dirName
 
     plotOpts = {"ymin":1e-3}
+    doSideband=(not args.full)
+    if not doSideband:
+        plotOpts['sideband'] = False
+    else:
+        plotOpts['sideband'] = True
 
-    if args.unblind:
-        dirName += '_Unblinded'
     boxesToUse = BOXES
     if args.box is not None:
         boxesToUse = [args.box]
