@@ -349,7 +349,7 @@ int main(int argc, char* argv[]){
 	analyzer.EnableEventInfo();
         analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
     }
-    else if(analysisType == "RazorDM" || analysisType = "razorDM"){
+    else if(analysisType == "RazorDM" || analysisType == "razorDM"){
       cout << "Executing RazorDM analysis..." << endl;
       analyzer.EnableJets();
       analyzer.EnableMet();
