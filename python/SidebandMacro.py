@@ -108,6 +108,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", dest='noFill')
     parser.add_argument('--b-inclusive', help="do not bin in number of b-tags", action="store_true", dest='bInclusive')
     parser.add_argument('--box', help="choose a box")
+    parser.add_argument('--export', action="store_true", help="export histograms instead of making plots")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
@@ -275,5 +276,7 @@ if __name__ == "__main__":
                     weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
                     fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBinsToUse,
                     btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
-                    plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill)
+                    plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill,
+                    makePlots = (not args.export), exportShapeErrs=args.export)
+
             macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)

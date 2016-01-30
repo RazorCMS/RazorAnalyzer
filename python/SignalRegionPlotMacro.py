@@ -28,6 +28,13 @@ binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJ
 
 blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2,len(binning[b]["Rsq"])+1)] for b in binning}
 
+weightOpts = []
+commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
+commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
+lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
+hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
+shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
+
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
@@ -80,4 +87,4 @@ if __name__ == "__main__":
             unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
             inFile = dirName+'/razorHistograms'+extboxName+'.root'
 
-            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins)
+            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins, shapeErrors=shapes[boxName])

@@ -638,8 +638,9 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
 
     return myTH1
 
-def writeDataCard_th1(box,model,txtfileName,hists):
-    bkgs = [bkg for bkg in FILENAMES_MC if bkg in hists]
+def writeDataCard_th1(box,model,txtfileName,hists,bkgs=None):
+    if bkgs is None: 
+        bkgs = [bkg for bkg in FILENAMES_MC if bkg in hists]
     obsRate = hists["data_obs"].Integral()
     nBkgd = len(bkgs)
     rootFileName = txtfileName.replace('.txt','.root')
@@ -665,6 +666,8 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     #20% normalization uncertainty on rare backgrounds
     for bkg in bkgs:
         if bkg in ['ttjets','wjetstolnu','dyjetstoll','zjetstonunu','qcd']: continue
+        #alternate naming convention
+        if bkg.lower() in ['ttjets', 'wjets', 'dyjets', 'zinv', 'qcd']: continue
         mcErrs[bkg] = [1.00]
         mcErrs[bkg].extend([1.00 + 0.20*(bkg==bkg1) for bkg1 in bkgs]) 
             
