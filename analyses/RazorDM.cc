@@ -57,6 +57,9 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   //one tree to hold all events
   TTree *razorTree = new TTree("RazorDM", "Info on selected razor DM events");
   
+  // tree to compute the cut efficiency
+  TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
+
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
   vector<string> boxNames;
@@ -118,6 +121,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("t1metPhiCorr", &t1metPhiCorr, "t1metPhiCorr/F");
 	
       razorTree->Branch("box", &box, "box/I");
+      
+      razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
     }
     //set branches on all trees
 
@@ -183,7 +188,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[100]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
     }
   }
     

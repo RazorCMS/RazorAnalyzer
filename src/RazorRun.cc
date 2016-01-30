@@ -54,7 +54,7 @@ void usage()
 	    << "jetNtupler           --   study jet variables\n"
 	    << "photonntupler        --   study photon variables\n"
 	    << "dummy                --   do nothing useful\n"
-	    << "razorDM              --   run MultiJet razor dark matter analysis" 
+	    << "RazorDM              --   run MultiJet razor dark matter analysis" 
 	    << "RazorTagAndProbe     --   run tag and probe using Z peak" 
 	    << std::endl;
 };
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]){
 	analyzer.EnableEventInfo();
         analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
     }
-    else if(analysisType == "RazorDM"){
+    else if(analysisType == "RazorDM" || analysisType == "razorDM"){
       cout << "Executing RazorDM analysis..." << endl;
       analyzer.EnableJets();
       analyzer.EnableMet();
