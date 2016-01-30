@@ -405,16 +405,27 @@ def getCorrelationMatrix(myTree, sumType, minX, maxX, minY, maxY, minZ, maxZ, x,
     binSumDict = getBinSumDicts(sumType, minX, maxX, minY, maxY, minZ, maxZ, x, y, z)
 
     #histogram for output
-    nbins = len(binSumDict)
+    nbins = (maxX-minX)*(maxY-minY)*(maxZ-minZ)
     h = rt.TH2F("correlationMatrix", "correlationMatrix",nbins,0,nbins,nbins,0,nbins)
     h.SetDirectory(0)
 
-    for iBin, (i,sumName1) in enumerate(binSumDict.iteritems()):
-        for jBin, (j,sumName2) in enumerate(binSumDict.iteritems()):
-            if jBin > iBin: break
-            corrCoeff = getCorrelationCoefficient(myTree, sumName1, sumName2)
-            h.SetBinContent(iBin,jBin,corrCoeff)
-            h.SetBinContent(jBin,iBin,corrCoeff)
+    i = 0
+    for ix1 in range(minX, maxX):
+        for iy1 in range(minY, maxY):
+            for iz1 in range(minZ, maxZ):
+                j = 0
+                i += 1
+                sumName1 = binSumDict[(ix1+1,iy1+1,iz1+1)]
+                for ix2 in range(minX, maxX):
+                    for iy2 in range(minY, maxY):
+                        for iz2 in range(minZ, maxZ):
+                            j += 1
+                            if j > i: break
+                            sumName2 = binSumDict[(ix2+1,iy2+1,iz2+1)]
+                            corrCoeff = getCorrelationCoefficient(myTree, sumName1, sumName2)
+                            h.SetBinContent(i,j,corrCoeff)
+                            h.SetBinContent(j,i,corrCoeff)
+                                
     return h
 
 def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
@@ -794,6 +805,22 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
             h_data.SetMaximum(225)
     h_data.Draw("pe")
     hClone.Draw("e2same")
+
+    nBinsMR = 5
+    if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel:
+        nBinsMR = 7
+    
+    
+    if 'th1x' in h.GetName():
+        if options.fitRegion=="LowMR,LowRsq":
+            hFit = hClone.Clone("h_fitregion")
+            for i in range(1,h_data.GetNbinsX()+1):
+                if i>=nBinsMR+1:
+                    if (i-1)%(nBinsMR)!=0:
+                        hFit.SetBinContent(i, 0)
+            hFit.SetFillColor(rt.kGreen-10)
+            hFit.Draw("e2same")
+                
     h.SetFillStyle(0)
     for h_comp, color, label in zip(h_components, h_colors, h_labels):
         h_comp.SetLineColor(color)
@@ -812,8 +839,25 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
         h_components[-1].Draw("histfsame")
     h.DrawCopy("histsame")
     h_data.Draw("pesame")
+
+        
     pad1.Draw()
     c.Update()
+    
+    if 'th1x' in h.GetName():
+        tlines = []
+        for i in range(1,h_data.GetNbinsX()):
+            if i%nBinsMR==0:
+                #tlines.append(rt.TLine(i, 0, i, h_data.GetBinContent(h_data.GetMaximumBin())))
+                ymax = pad1.GetUymax()
+                ymin = pad1.GetUymin()
+                newYmax = (ymax-ymin)/3.+ymin
+                tlines.append(rt.TLine(i, pow(10,ymin), i, pow(10,newYmax)))
+        for tline in tlines:
+            #tline.SetNDC()
+            tline.SetLineStyle(2)
+            tline.Draw()
+
     c.cd()
     pad2.Draw()
     pad2.cd()
@@ -1924,7 +1968,7 @@ if __name__ == '__main__':
                 if doSignalInj:
                     print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options,None,[h_sig_th1x_components[k]])
                 else:
-                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
+                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options)
                 print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)   
             #print2DResiduals(c,tdirectory,h_RsqMR_residuals_components[k],options.outDir+"/h_RsqMR_residuals_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)
             #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff_components[k],options.outDir+"/h_RsqMR_percentdiff_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData)

@@ -21,29 +21,36 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   
   TFile outFile(outFileName.c_str(), "RECREATE");
   
-  //Correct the _uncorr variables' Pt and E                                                                                                                                  
+  char* cmsswPath;
+  cmsswPath = getenv("CMSSW_BASE");
+  if (cmsswPath == NULL) {
+    cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
+    return;
+  }
+  
+  //*******************************************
+  //Jet Energy Corrections
+  //*******************************************
+  string pathname;
+  if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+  else {
+        cout << "Warning: CMSSW_BASE not detected.  Looking for JEC parameters in data/JEC";
+        pathname = "data/JEC/";
+    }
+
+  cout << "Getting JEC parameters from " << pathname << endl;
   std::vector<JetCorrectorParameters> correctionParameters;
-  //Run1 Corrections
-  /*
-    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L1FastJet_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2Relative_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L3Absolute_AK5PF.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("data/FT53_V10_AN3_L2L3Residual_AK5PF.txt"));
-  */
-  //Latest JEC for MC
-  if (isData) 
-    {
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt") );
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt") );
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt") );
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt") );
-    }
-  else
-    {
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt") );
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt") );
-      correctionParameters.push_back( JetCorrectorParameters("data/JEC/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt") );
-    }
+  if (isData) {
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+  }
+  else {
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+  }
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
   

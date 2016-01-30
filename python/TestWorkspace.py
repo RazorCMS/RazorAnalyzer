@@ -377,6 +377,27 @@ def testWorkspace(w,outFile,box,options):
     # now do asimov
     
     reset(w,fr_b)
+    
+    r.setVal(0.)
+    r.setConstant(True)
+    
+    nll_b_asimov = model_b.createNLL(asimov_b,opt)
+    
+    minim_b_asimov = rt.RooMinimizer(nll_b_asimov)
+    minim_b_asimov.setStrategy(strategy)   
+    minim_b_asimov.setPrintLevel(-1)
+    minim_b_asimov.setPrintEvalErrors(-1)
+    minim_b_asimov.setEps(tol)
+    minim_b_asimov.optimizeConst(2)
+    minim_b_asimov.setMaxFunctionCalls(maxFuncCalls)
+    minim_b_asimov.setMaxIterations(maxIter)
+    status_b_asimov = minim_b_asimov.minimize('Minuit2','migrad')
+    status_b_asimov = minim_b_asimov.minimize('Minuit2','improve')
+    fr_b_asimov = minim_b_asimov.save()
+    fr_b_asimov.Print("v")
+    
+    minNll_b_asimov = fr_b_asimov.minNll()
+    
     r.setVal(options.rAsimov)
     r.setConstant(False)
 
@@ -450,6 +471,7 @@ def testWorkspace(w,outFile,box,options):
     
     print "background-only   nll = %e on data at   r = %e"%(minNll_b,0)
     print "signal+background nll = %e on data at   r = %e"%(minNll_sb,rBestFit)
+    print "background-only   nll = %e on asimov at r = %e"%(minNll_b_asimov,0)
     print "signal+background nll = %e on asimov at r = %e"%(minNll_sb_asimov,rBestFit_asimov)
     print ''
     

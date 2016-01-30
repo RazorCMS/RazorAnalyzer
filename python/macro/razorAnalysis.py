@@ -93,6 +93,18 @@ OneLeptonScaleFactorClosureTest7JetCuts = "(abs(lep1Type) == 11 || abs(lep1Type)
 OneLeptonScaleFactorClosureTest7JetData = appendTriggerCuts(OneLeptonScaleFactorClosureTest7JetCuts, singleLeptonTriggerNumsData)
 OneLeptonScaleFactorClosureTest7JetMC = appendTriggerCuts(OneLeptonScaleFactorClosureTest7JetCuts, singleLeptonTriggerNumsMC)
 
+OneLeptonScaleFactorClosureTest7Jet0BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets40 >= 7 && NBJetsMedium == 0 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+OneLeptonScaleFactorClosureTest7Jet0BData = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet0BCuts, singleLeptonTriggerNumsData)
+OneLeptonScaleFactorClosureTest7Jet0BMC = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet0BCuts, singleLeptonTriggerNumsMC)
+OneLeptonScaleFactorClosureTest7Jet1BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets40 >= 7 && NBJetsMedium == 1 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+OneLeptonScaleFactorClosureTest7Jet1BData = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet1BCuts, singleLeptonTriggerNumsData)
+OneLeptonScaleFactorClosureTest7Jet1BMC = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet1BCuts, singleLeptonTriggerNumsMC)
+OneLeptonScaleFactorClosureTest7Jet2BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets40 >= 7 && NBJetsMedium == 2 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+OneLeptonScaleFactorClosureTest7Jet2BData = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet2BCuts, singleLeptonTriggerNumsData)
+OneLeptonScaleFactorClosureTest7Jet2BMC = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet2BCuts, singleLeptonTriggerNumsMC)
+OneLeptonScaleFactorClosureTest7Jet3BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets40 >= 7 && NBJetsMedium >= 3 & MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+OneLeptonScaleFactorClosureTest7Jet3BData = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet3BCuts, singleLeptonTriggerNumsData)
+OneLeptonScaleFactorClosureTest7Jet3BMC = appendTriggerCuts(OneLeptonScaleFactorClosureTest7Jet3BCuts, singleLeptonTriggerNumsMC)
 
 ### DYJets Dilepton Control Region
 
@@ -121,9 +133,13 @@ ttjetsDileptonBins = {
     }
 
 ### Veto Lepton Control Region
-vetoLeptonControlRegionCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+vetoLeptonControlRegionCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
 vetoLeptonControlRegionCutsData = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
 vetoLeptonControlRegionCutsMC = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
+
+vetoLeptonControlRegion7JetCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 7 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+vetoLeptonControlRegion7JetCutsData = appendTriggerCuts(vetoLeptonControlRegion7JetCuts, hadronicTriggerNums)
+vetoLeptonControlRegion7JetCutsMC = appendTriggerCuts(vetoLeptonControlRegion7JetCuts, hadronicTriggerNums)
 
 vetoLeptonControlRegionBins = {
     "MR" : [400, 450, 500, 550, 700],
@@ -131,14 +147,24 @@ vetoLeptonControlRegionBins = {
     }
 
 ### Veto Tau Control Region
-vetoTauControlRegionCuts = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+vetoTauControlRegionCuts = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
 vetoTauControlRegionCutsData = appendTriggerCuts(vetoTauControlRegionCuts, hadronicTriggerNums)
 vetoTauControlRegionCutsMC = appendTriggerCuts(vetoTauControlRegionCuts, hadronicTriggerNums)
+
+vetoTauControlRegion7JetCuts = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 7 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+vetoTauControlRegion7JetCutsData = appendTriggerCuts(vetoTauControlRegion7JetCuts, hadronicTriggerNums)
+vetoTauControlRegion7JetCutsMC = appendTriggerCuts(vetoTauControlRegion7JetCuts, hadronicTriggerNums)
+
 
 vetoTauControlRegionBins = {
     "MR" : [400, 450, 500, 550, 700],
     "Rsq": [0.25,0.30,0.41,0.52, 0.64, 1.5]
     }
+
+### 0L Region for Veto Lepton/Tau Cross Check
+cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+cutsMultiJetForVetoLepton = cutsMultiJetForVeto+" && ( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13 ) && leadingGenLeptonPt > 5"
+cutsMultiJetForVetoTau = cutsMultiJetForVeto+" && abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"
 
 
 ### WJets Single Lepton Invisible Control Region
@@ -156,20 +182,20 @@ OneLeptonInvScaleFactorClosureTestData = appendTriggerCuts(OneLeptonInvScaleFact
 OneLeptonInvScaleFactorClosureTestMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsMC)
 #0b-tag cuts
 OneLeptonInvScaleFactorClosureTest0BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 0 && NJets_NoW >= 4 && NJets80_NoW >= 2  && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight) && ( weight < 0.01 || weight == 1)"
-OneLeptonInvScaleFactorClosureTest0BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsData)
-OneLeptonInvScaleFactorClosureTest0BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsMC)
+OneLeptonInvScaleFactorClosureTest0BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest0BCuts, singleLeptonTriggerNumsData)
+OneLeptonInvScaleFactorClosureTest0BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest0BCuts, singleLeptonTriggerNumsMC)
 #1b-tag cuts
 OneLeptonInvScaleFactorClosureTest1BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 1 && NJets_NoW >= 4 && NJets80_NoW >= 2  && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight) && ( weight < 0.01 || weight == 1)"
-OneLeptonInvScaleFactorClosureTest1BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsData)
-OneLeptonInvScaleFactorClosureTest1BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsMC)
+OneLeptonInvScaleFactorClosureTest1BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest1BCuts, singleLeptonTriggerNumsData)
+OneLeptonInvScaleFactorClosureTest1BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest1BCuts, singleLeptonTriggerNumsMC)
 #2b-tag cuts
 OneLeptonInvScaleFactorClosureTest2BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium == 2 && NJets_NoW >= 4 && NJets80_NoW >= 2  && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight) && ( weight < 0.01 || weight == 1)"
-OneLeptonInvScaleFactorClosureTest2BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsData)
-OneLeptonInvScaleFactorClosureTest2BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsMC)
+OneLeptonInvScaleFactorClosureTest2BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest2BCuts, singleLeptonTriggerNumsData)
+OneLeptonInvScaleFactorClosureTest2BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest2BCuts, singleLeptonTriggerNumsMC)
 #3b-tag cuts
 OneLeptonInvScaleFactorClosureTest3BCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NBJetsMedium >= 3 && NJets_NoW >= 4 && NJets80_NoW >= 2  && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight) && ( weight < 0.01 || weight == 1)"
-OneLeptonInvScaleFactorClosureTest3BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsData)
-OneLeptonInvScaleFactorClosureTest3BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTestCuts, singleLeptonTriggerNumsMC)
+OneLeptonInvScaleFactorClosureTest3BData = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest3BCuts, singleLeptonTriggerNumsData)
+OneLeptonInvScaleFactorClosureTest3BMC = appendTriggerCuts(OneLeptonInvScaleFactorClosureTest3BCuts, singleLeptonTriggerNumsMC)
 
 
 
@@ -189,9 +215,10 @@ dyjetsDileptonInvCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(l
 dyjetsDileptonInvCutsData = appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsData)
 dyjetsDileptonInvCutsMC = appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsMC)
 
-dyjetsDileptonInv4JetCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && NJets_NoZ >= 4 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
-dyjetsDileptonInv4JetCutsData = appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsData)
-dyjetsDileptonInv4JetCutsMC = appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsMC)
+#dyjetsDileptonInv4JetCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && NJets_NoZ >= 4 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
+dyjetsDileptonInv4JetCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NJets80_NoZ >= 2 && NJets_NoZ >= 4 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
+dyjetsDileptonInv4JetCutsData = appendTriggerCuts(dyjetsDileptonInv4JetCuts, singleLeptonTriggerNumsData)
+dyjetsDileptonInv4JetCutsMC = appendTriggerCuts(dyjetsDileptonInv4JetCuts, singleLeptonTriggerNumsMC)
 
 
 #binning
@@ -267,3 +294,128 @@ hadronicSidebandBins = {
     "Rsq" : [0.25,0.30,0.41,0.52,0.64,0.8,1.5]
     }
 hadronicBlindBins = [(x,y) for x in range(3,len(hadronicSidebandBins["MR"])+1) for y in range(2,len(hadronicSidebandBins["Rsq"])+1)]
+
+#Non-grid binning for signal region
+
+xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{} }
+colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{} }
+
+xbinsSignal["MultiJet"]["0B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["1B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["2B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["3B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
+
+xbinsSignal["MuMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+
+xbinsSignal["EleMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+
+colsSignal["MultiJet"]["0B"] = [
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        ]
+colsSignal["MultiJet"]["1B"] = [
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        ]
+colsSignal["MultiJet"]["2B"] = [
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        ]
+colsSignal["MultiJet"]["3B"] = [
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        ]
+colsSignal["MuMultiJet"]["0B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        ]
+colsSignal["MuMultiJet"]["1B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        ]
+colsSignal["MuMultiJet"]["2B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        ]
+colsSignal["MuMultiJet"]["3B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        ]
+colsSignal["EleMultiJet"]["0B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        ]
+colsSignal["EleMultiJet"]["1B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        ]
+colsSignal["EleMultiJet"]["2B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        ]
+colsSignal["EleMultiJet"]["3B"] = [
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15,0.20, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        [ 0.15, 0.25, 1.5 ],
+        ]

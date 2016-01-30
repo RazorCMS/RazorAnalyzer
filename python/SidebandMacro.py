@@ -5,32 +5,36 @@ import ROOT as rt
 
 #local imports
 from framework import Config
-import macro.macro as macro
-from macro.razorAnalysis import razorCuts
-from macro.razorWeights import loadScaleFactorHists 
+from macro.razorAnalysis import razorCuts, xbinsSignal, colsSignal
+from macro.razorWeights import loadScaleFactorHists, invertHistogram
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
+import macro.macro as macro
 
 LUMI = 2185 #in /pb
 MCLUMI = 1 
 
-SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
-SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"]
+SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
+SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
 SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
 BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
 
-DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
-DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106"
+DIR_MC = "Backgrounds"
+DIR_DATA = "Backgrounds"
+#DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
+#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106" #old data 
+#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForMoriond20160119/RazorSkim"
 DATA_NAMES={
-    'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
-    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
-    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
+    'MultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
+    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
+    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
     }
 FILENAMES_MC = {
-        "TTJets"    : DIR_MC+"/"+"FullRazorInclusive_TTJets_1pb_weighted.root",
+        "TTJets1L"    : DIR_MC+"/"+"FullRazorInclusive_TTJets1L_1pb_weighted.root",
+        "TTJets2L"    : DIR_MC+"/"+"FullRazorInclusive_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
         "WJets"     : DIR_MC+"/"+"FullRazorInclusive_WJetsToLNu_HTBinned_1pb_weighted.root",
         "SingleTop" : DIR_MC+"/"+"FullRazorInclusive_SingleTop_1pb_weighted.root",
         "Other" : DIR_MC+"/"+"FullRazorInclusive_Other_1pb_weighted.root",
-        "DYJets"     : DIR_MC+"/"+"FullRazorInclusive_DYJetsToLL_M-50_HTBinned_1pb_weighted.root",
+        "DYJets"     : DIR_MC+"/"+"FullRazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted.root",
         "ZInv"     : DIR_MC+"/"+"FullRazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root",
         "QCD"       : DIR_DATA+'/'+DATA_NAMES["MultiJet"]+'.root' #data-driven QCD prediction for MultiJet
         }
@@ -38,16 +42,26 @@ FILENAMES = {name:copy.copy(FILENAMES_MC) for name in BOXES}
 for name in BOXES: FILENAMES[name]["Data"] = DIR_DATA+'/'+DATA_NAMES[name]+'.root'
 
 config = "config/run2_20151108_Preapproval_2b3b_data.config"
-FIT_DIR = "eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2093ipb"
+#FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForDecemberJamboree2015/Data_2185ipb" #old fits
+FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
+FULL_FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016/Full"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/MultiJet/sideband/toys_Bayes_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/MuMultiJet/sideband/toys_Bayes_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/EleMultiJet/sideband/toys_Bayes_EleMultiJet.root",
+        "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
+        "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
+        "EleMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_EleMultiJet.root",
+        }
+FULL_TOYS_FILES = {
+        #"MultiJet":FULL_FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
+        #"MuMultiJet":FULL_FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
+        "EleMultiJet":FULL_FIT_DIR+"/toys_Bayes_noStat_EleMultiJet.root",
         }
 
 weightOpts = []
-shapeErrors = []
-miscErrors = []
+commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
+commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
+lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
+hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
+shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
 
 cfg = Config.Config(config)
 binsMRHad = cfg.getBinning("MultiJet")[0]
@@ -65,8 +79,15 @@ dirName="SignalRegionPlots"
 #scale factor file names
 sfdir = "data/ScaleFactors/RazorMADD2015/"
 sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
-vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck.root'
-vetotauFile = sfdir+'/RazorVetoTauCrossCheck.root'
+gjetsupdownFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
+vetolepPtFile = sfdir+'/RazorVetoLeptonPtCrossCheck.root'
+vetotauPtFile = sfdir+'/RazorVetoTauPtCrossCheck.root'
+vetolepEtaFile = sfdir+'/RazorVetoLeptonEtaCrossCheck.root'
+vetotauEtaFile = sfdir+'/RazorVetoTauEtaCrossCheck.root'
+ttFile = sfdir+'/TTBarDileptonSystematic.root'
+dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck.root'
+btagFile = sfdir+'/RazorBTagClosureTests.root'
+invbtagFile = sfdir+'/RazorZNuNuBTagClosureTests.root'
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -82,14 +103,20 @@ if __name__ == "__main__":
     parser.add_argument('--no-fit', help="do not load fit results, process data and MC only", action='store_true', dest='noFit')
     parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
     parser.add_argument('--no-data', help="do not process data, do fit and MC only", action='store_true', dest='noData')
+    parser.add_argument('--no-sys', help="no shape unncertainties or cross check systematics", action="store_true", dest='noSys')
+    parser.add_argument('--no-qcd', help="do not include QCD prediction", action="store_true", dest='noQCD')
+    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", dest='noFill')
+    parser.add_argument('--b-inclusive', help="do not bin in number of b-tags", action="store_true", dest='bInclusive')
+    parser.add_argument('--box', help="choose a box")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
-    plotOpts = {}
+    plotOpts = {"ymin":1e-3}
+
     doSideband=(not args.full)
+    toysToUse = TOYS_FILES
     if not doSideband:
-        FIT_DIR = FIT_DIR.replace('Sideband','Full').replace('sideband','full')
-        TOYS_FILES = {b:TOYS_FILES[b].replace('sideband','full').replace('Sideband','full') for b in TOYS_FILES}
+        toysToUse = FULL_TOYS_FILES
         dirName += '_Full'
         plotOpts['sideband'] = False
     else:
@@ -97,8 +124,11 @@ if __name__ == "__main__":
     if args.unblind:
         dirName += '_Unblinded'
     if args.noFit: 
-        TOYS_FILES = None
+        toysToUse = None
         del plotOpts['sideband']
+    boxesToUse = BOXES
+    if args.box is not None:
+        boxesToUse = [args.box]
 
     #initialize
     weightHists = {}
@@ -107,35 +137,93 @@ if __name__ == "__main__":
     #make output directory
     os.system('mkdir -p '+dirName)
 
-    #get scale factor histograms
-    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames={"ZInv":"WJetsInv"}, debugLevel=debugLevel)
+    ####LOAD ALL SCALE FACTOR HISTOGRAMS
 
+    #get scale factor histograms
+    sfNames={
+            "ZInv":"GJetsInv",
+            "TTJets1L":"TTJets",
+            "TTJets2L":"TTJets",
+            }
+    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
+    for name in sfHists: assert sfHists[name]
+    #get histograms for wjetsinv/gjets scale factor comparison
+    gjetsupdownTFile = rt.TFile.Open(gjetsupdownFile)
+    sfHists['ZInvUp'] = gjetsupdownTFile.Get('WJetsInvScaleFactors')
+    sfHists['ZInvDown'] = gjetsupdownTFile.Get('GJetsInvScaleFactors_Down') #down scale factors are (gjets - (wjets-gjets))
+    assert sfHists['ZInvUp']
+    assert sfHists['ZInvDown']
     #get veto lepton and tau scale factor histograms
     vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
-    vlfile = rt.TFile.Open(vetolepFile)
-    assert vlfile
-    vtfile = rt.TFile.Open(vetotauFile)
-    assert vtfile
-    vlhists = { 'VetoLepton'+n:vlfile.Get('VetoLeptonScaleFactors'+n) for n in vnames }
-    vthists = { 'VetoTau'+n:vtfile.Get('VetoTauScaleFactors'+n) for n in vnames }
+    vlPtFile = rt.TFile.Open(vetolepPtFile)
+    assert vlPtFile
+    vtPtFile = rt.TFile.Open(vetotauPtFile)
+    assert vtPtFile
+    vlPtHists = { 'VetoLeptonPt'+n:vlPtFile.Get('VetoLeptonPtScaleFactors'+n) for n in vnames }
+    vtPtHists = { 'VetoTauPt'+n:vtPtFile.Get('VetoTauPtScaleFactors'+n) for n in vnames }
     for n in vnames: 
-        assert vlhists['VetoLepton'+n]
-        assert vthists['VetoTau'+n]
-    sfHists.update(vlhists)
-    sfHists.update(vthists)
+        assert vlPtHists['VetoLeptonPt'+n]
+        assert vtPtHists['VetoTauPt'+n]
+    sfHists.update(vlPtHists)
+    sfHists.update(vtPtHists)
+    vlEtaFile = rt.TFile.Open(vetolepEtaFile)
+    assert vlEtaFile
+    vtEtaFile = rt.TFile.Open(vetotauEtaFile)
+    assert vtEtaFile
+    sfHists['VetoLeptonEtaUp'] = vlEtaFile.Get('VetoLeptonEtaScaleFactors')
+    assert sfHists['VetoLeptonEtaUp']
+    sfHists['VetoLeptonEtaDown'] = invertHistogram(sfHists['VetoLeptonEtaUp'])
+    sfHists['VetoTauEtaUp'] = vtEtaFile.Get('VetoTauEtaScaleFactors')
+    assert sfHists['VetoTauEtaUp']
+    sfHists['VetoTauEtaDown'] = invertHistogram(sfHists['VetoTauEtaUp'])
+    #get DYJets and TTBar Dilepton cross check scale factor histograms
+    ttTFile = rt.TFile.Open(ttFile)
+    assert ttTFile
+    sfHists['TTJetsDileptonUp'] = ttTFile.Get('TTBarDileptonSystematic')
+    assert sfHists['TTJetsDileptonUp']
+    #convert to correct SF histogram format
+    for nb in range(sfHists['TTJetsDileptonUp'].GetSize()+1):
+        sfHists['TTJetsDileptonUp'].SetBinContent( nb, sfHists['TTJetsDileptonUp'].GetBinContent(nb)+1.0 )
+    #get 'down' version of histogram
+    sfHists['TTJetsDileptonDown'] = invertHistogram(sfHists['TTJetsDileptonUp'])
+    dyTFile = rt.TFile.Open(dyFile)
+    assert dyTFile
+    sfHists['DYJetsInvUp'] = dyTFile.Get('DYJetsDileptonInvCrossCheckScaleFactors')
+    assert sfHists['DYJetsInvUp']
+    sfHists['DYJetsInvDown'] = invertHistogram(sfHists['DYJetsInvUp'])
+    btagTFile = rt.TFile.Open(btagFile)
+    for b in range(4):
+        bs = str(b)
+        sfHists['MR'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BMRScaleFactors')
+        sfHists['Rsq'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BRsqScaleFactors')
+        assert sfHists['MR'+bs+'BUp']
+        assert sfHists['Rsq'+bs+'BUp']
+        sfHists['MR'+bs+'BDown'] = invertHistogram(sfHists['MR'+bs+'BUp'])
+        sfHists['Rsq'+bs+'BDown'] = invertHistogram(sfHists['Rsq'+bs+'BUp'])
+    #get ZInv b-tag cross check histogram
+    invbtagTFile = rt.TFile.Open(invbtagFile)
+    sfHists['ZInvBUp'] = invbtagTFile.Get('ZNuNuBTagClosureSysUnc')
+    assert sfHists['ZInvBUp']
+    #convert to correct SF histogram format
+    for nb in range(sfHists['ZInvBUp'].GetSize()+1):
+        sfHists['ZInvBUp'].SetBinContent( nb, sfHists['ZInvBUp'].GetBinContent(nb)+1.0 )
+    #get 'down' version of histogram
+    sfHists['ZInvBDown'] = invertHistogram(sfHists['ZInvBUp'])
 
     auxSFs = { 
-        "VetoLepton":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13"), 
-        "VetoTau":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15")
+        "VetoLeptonPt":("leadingGenLeptonPt", "(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"), 
+        "VetoTauPt":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"),
         }
 
     #estimate yields in signal region
-    for boxName in BOXES:
+    for boxName in boxesToUse:
 
         #apply options
         blindBinsToUse = blindBins[boxName]
         if args.unblind: blindBinsToUse = None
         samplesToUse = SAMPLES[boxName]
+        if args.noQCD and 'QCD' in samplesToUse:
+            samplesToUse.remove('QCD')
         if args.noMC: samplesToUse = []
         if samplesToUse is None or len(samplesToUse) == 0:
             filesToUse = {"Data":FILENAMES[boxName]["Data"]}
@@ -143,13 +231,28 @@ if __name__ == "__main__":
             filesToUse = FILENAMES[boxName]
         if args.noData: 
             del filesToUse['Data']
+        shapesToUse = shapes
+        if args.noSys:
+            shapesToUse = { "MultiJet":[], "MuMultiJet":[], "EleMultiJet":[] } 
+
+        #apply veto lepton correction only to MultiJet box
+        if boxName == "MultiJet":
+            auxSFsToUse = auxSFs
+        else:
+            auxSFsToUse = {}
 
         #loop over btag bins
-        btaglist = [0]
-        #btaglist = [0,1,2,3]
+        if args.bInclusive:
+            btaglist = [0]
+        else:
+            btaglist = [0,1,2,3]
         for btags in btaglist:
-            #if btags == 3: continue #temporary
             print "\n---",boxName,"Box,",btags,"B-tags ---"
+            #get correct b-tag closure test histogram
+            sfHists['MRBUp'] = sfHists['MR'+str(btags)+'BUp']
+            sfHists['MRBDown'] = sfHists['MR'+str(btags)+'BDown']
+            sfHists['RsqBUp'] = sfHists['Rsq'+str(btags)+'BUp']
+            sfHists['RsqBDown'] = sfHists['Rsq'+str(btags)+'BDown']
             #get correct cuts string
             thisBoxCuts = razorCuts[boxName]
             if btags < len(btaglist)-1:
@@ -163,19 +266,14 @@ if __name__ == "__main__":
             else:
                 extboxName = boxName
                 nBtags = -1
-            #check fit file and create if necessary
-            if not args.noFit and not os.path.isfile(TOYS_FILES[boxName]):
-                print "Fit file",TOYS_FILES[boxName],"not found, trying to recreate it"
-                runFitAndToys(FIT_DIR, boxName, LUMI, DATA_NAMES[boxName], DIR_DATA, config=config, sideband=doSideband)
-                #check
-                if not os.path.isfile(TOYS_FILES[boxName]):
-                    print "Error creating fit file",TOYS_FILES[boxName]
-                    sys.exit()
-            makeControlSampleHists(extboxName, 
+            unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
+            hists = makeControlSampleHists(extboxName, 
                     filenames=filesToUse, samples=samplesToUse, 
                     cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                     bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                     weightHists=weightHists, sfHists=sfHists, treeName="RazorInclusive", 
-                    weightOpts=weightOpts, shapeErrors=shapeErrors, miscErrors=miscErrors,
-                    fitToyFiles=TOYS_FILES, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFs, dataDrivenQCD=True, printdir=dirName, plotOpts=plotOpts)
+                    weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
+                    fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBinsToUse,
+                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
+                    plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill)
+            macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)

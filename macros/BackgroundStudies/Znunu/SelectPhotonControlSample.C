@@ -24,12 +24,45 @@
 #include <TCanvas.h>                
 #include <TLegend.h> 
 #include <THStack.h> 
+#include <TH2Poly.h>
 
 #include "RazorAnalyzer/include/ControlSampleEvents.h"
 #include "RazorAnalyzer/macros/tdrstyle.C"
 #include "RazorAnalyzer/macros/CMS_lumi.C"
 
 #endif
+
+TH2Poly* MakeTH2PolyForGJets(string name){
+
+    vector<double> MRBins;
+    MRBins.push_back(400);
+    MRBins.push_back(500);
+    MRBins.push_back(600); 
+    MRBins.push_back(700);
+    MRBins.push_back(900);
+    MRBins.push_back(1200);
+    MRBins.push_back(4000);
+
+    vector< vector<double> > RsqBins(MRBins.size()-1);
+    for (unsigned int i = 0; i < 6; i++){
+        RsqBins[i].push_back(0.25); 
+        RsqBins[i].push_back(0.3); 
+        RsqBins[i].push_back(0.41); 
+        RsqBins[i].push_back(0.52);
+        if(i < 4) RsqBins[i].push_back(0.64); 
+        RsqBins[i].push_back(1.5); 
+    }
+
+    TH2Poly *gjets = new TH2Poly(name.c_str(), name.c_str(), 400, 4000, 0.25, 1.5);
+    for (unsigned int i = 0; i < MRBins.size()-1; ++i) {
+        for (unsigned int j = 0; j < RsqBins[i].size()-1; ++j) {
+            gjets->AddBin( MRBins[i], RsqBins[i][j], MRBins[i+1], RsqBins[i][j+1]);
+        }
+    }
+    gjets->Sumw2();
+    return gjets;
+
+}
 
 void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label ) {
 
@@ -97,7 +130,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
     stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
     stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
-    stack->SetMinimum( 0.1 );
+    stack->SetMinimum( 1e-4 );
 
     if (hasData) {
       hist[0]->SetMarkerStyle(20);      
@@ -132,8 +165,10 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     
   for (int b=0; b<histDataOverMC->GetXaxis()->GetNbins()+2; ++b) {
     double data = 0;
+    double dataErrSqr = 0;
     if (hasData) {
       data = hist[0]->GetBinContent(b);
+      dataErrSqr = pow(hist[0]->GetBinError(b),2);
     }
     double MC = 0;
     double MCErrSqr = 0;
@@ -148,19 +183,22 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
       
     if (MC > 0) {
       histDataOverMC->SetBinContent(b, data / MC);
-      histDataOverMC->SetBinError(b, (data / MC)*sqrt(1/data + MCErrSqr/pow(MC,2) ));
+      //histDataOverMC->SetBinError(b, (data / MC)*sqrt(1/data + MCErrSqr/pow(MC,2) ));
+      histDataOverMC->SetBinError(b, (data / MC)*sqrt(dataErrSqr/pow(data,2) + MCErrSqr/pow(MC,2) ));
     } else {
       histDataOverMC->SetBinContent(b, 0);
       histDataOverMC->SetBinError(b, 0);
     }
-    //cout << "bin " << b << " : " << histDataOverMC->GetBinContent(b) << " " << histDataOverMC->GetBinError(b) << "\n";
+    cout << "bin " << b << " : " << data << " +/- " << sqrt(dataErrSqr) << " / " << MC << " +/- " << sqrt(MCErrSqr)
+	 << " : " << histDataOverMC->GetBinContent(b) << " " << histDataOverMC->GetBinError(b) << "\n";
   }
 
   histDataOverMC->GetYaxis()->SetTitle("Data/MC");
   histDataOverMC->GetYaxis()->SetNdivisions(306);
   histDataOverMC->GetYaxis()->SetTitleSize(0.10);
   histDataOverMC->GetYaxis()->SetTitleOffset(0.3);
-  histDataOverMC->GetYaxis()->SetRangeUser(0.0,3.0);
+  //  histDataOverMC->GetYaxis()->SetRangeUser(0.0,3.0);
+  histDataOverMC->GetYaxis()->SetRangeUser(0.0,5.0);
   histDataOverMC->GetYaxis()->SetLabelSize(0.10);
   histDataOverMC->GetXaxis()->SetLabelSize(0.125);
   histDataOverMC->GetXaxis()->SetTitleSize(0.15);
@@ -189,7 +227,8 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
 //=== MAIN MACRO ================================================================================================= 
 
 
-void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "") {
+void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, 
+				    int SFOption, string option, string label = "") {
   
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -203,14 +242,49 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
   bool printdebug = false;
 
+  char* cmsswPath;  
+  cmsswPath = getenv("CMSSW_BASE");
+  if (cmsswPath == NULL) {
+    cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
+    return;
+  }
+  
+  TFile *SFInputFile = 0;
+  if (SFOption == 0) SFInputFile = 0;
+  else if (SFOption == 1) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root",cmsswPath), "READ");
+  else if (SFOption == 2) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root",cmsswPath), "READ");
+  else if (SFOption == 3) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root",cmsswPath), "READ");
+  TH2Poly *InputSFHist = 0;
+  if (SFInputFile) {
+    InputSFHist = (TH2Poly*)SFInputFile->Get("GJetsInvScaleFactors");
+  }
+  
+  assert(InputSFHist);
+
 
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
+  // const int NMRBins = 7;
+  // const int NRsqBins = 6;
+  // const int NNJetBins = 4;
+  // const int NNBTagBins = 5;
+  // double MRBins[NMRBins] = {400, 500, 600, 700, 900, 1200, 4000};
+  // double RsqBins[NRsqBins] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
+  // double NJetBins[NNJetBins] = {0,4,7,20};
+  // double NBTagBins[NNBTagBins] = {0,1,2,3,4};
+
+  //*****************************************************************************************
+  //For 7 Jet Bin
+  //*****************************************************************************************
   const int NMRBins = 5;
-  const int NRsqBins = 5;
-  double MRBins[NMRBins] = {300, 400, 500, 700, 4000};
-  double RsqBins[NRsqBins] = {0.15, 0.25, 0.30, 0.41, 1.5};
+  const int NRsqBins = 4;
+  const int NNJetBins = 4;
+  const int NNBTagBins = 5;
+  double MRBins[NMRBins] = {400, 700, 900, 1200, 4000};
+  double RsqBins[NRsqBins] = {0.25, 0.41, 0.64, 1.5};
+  double NJetBins[NNJetBins] = {0,4,7,20};
+  double NBTagBins[NNBTagBins] = {0,1,2,3,4};
 
   vector<vector<string> > inputfiles;
   vector<string> processLabels;
@@ -241,15 +315,15 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
-    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", 40, 300, 2300));
-    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", 50, 0.0, 1.50));
-    histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events", NMRBins*NRsqBins, 0, NMRBins*NRsqBins));
-    histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 80, 0, 400));    
+    histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", NMRBins-1, MRBins));
+    histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", NRsqBins-1, RsqBins));
+    histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events / Bin Area", (NMRBins-1)*(NRsqBins-1), 0, (NMRBins-1)*(NRsqBins-1)));
+    histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 100, 0, 1000));    
     histPhotonEta.push_back(new TH1D(Form("histPhotonEta_%s",processLabels[i].c_str()), "; Photon #eta ; Number of Events", 50, -3, 3));
     histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV] ; Number of Events", 25, 0, 500));
-    histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", 10, -0.5, 9.5));
+    histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", NNJetBins-1, NJetBins));
     histNJets80.push_back(new TH1D(Form("histNJets80_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 80); Number of Events", 10, -0.5, 9.5));
-    histNBtags.push_back(new TH1D(Form("histNBtags_%s",processLabels[i].c_str()), "; Number of B tags; Number of Events", 5, -0.5, 4.5));
+    histNBtags.push_back(new TH1D(Form("histNBtags_%s",processLabels[i].c_str()), "; Number of B tags; Number of Events", NNBTagBins-1,NBTagBins));
     histMR[i]->Sumw2();
     histRsq[i]->Sumw2();
     histMRRsqUnrolled[i]->Sumw2();
@@ -318,7 +392,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 	double puWeight = 1;      
 	double weight = 1;
-	if (!isData) {
+	if (!isData && !(option != "Inclusive" && processLabels[i] == "QCD")) {
 	  weight = lumi * events->weight;
 	}
 
@@ -334,7 +408,19 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  bool isFake = false;	   
 	  if(abs(events->pho1_motherID) > 5 && events->pho1_motherID != 21 && events->pho1_motherID != 2212) isFake = true;	  
 	  if(processLabels[i]  == "GJets" && isFake) continue;
-	  if(processLabels[i] == "QCD" && !isFake) continue;
+	  if(processLabels[i]  == "GJets" && events->minDRGenPhotonToParton < 0.4) continue;
+	  if(processLabels[i]  == "GJetsFrag" && isFake) continue;	  
+	  if(processLabels[i]  == "GJetsFrag" && events->minDRGenPhotonToParton >= 0.4) continue;
+	  if(processLabels[i]  == "GJets" || processLabels[i]  == "GJetsFrag") weight *= 1.55; //Overall K-Factor & photon efficiency correction
+
+	  if (option == "Inclusive") {
+	    if(processLabels[i] == "QCD" && !isFake) continue;
+	    if(processLabels[i]  == "QCD") weight *= 1.37; //Overall K-Factor & photon fake rate correction
+	  } else {
+	    if(processLabels[i] == "QCD") {
+	      weight = 0.05;
+	    }
+	  }
 	}
 
 	//******************************
@@ -342,12 +428,12 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	//******************************
 	bool passTrigger = false;
 
-	if (isData) {	  
+	if (isData || (option != "Inclusive" && processLabels[i] == "QCD") ) {	  
 	  double dataWeight = 1;
 	  if (events->pho1.Pt() > 185) {
 	    dataWeight = 1;
 	    if (events->HLTDecision[93] && events->pho1HLTFilter[22]) passTrigger = true;
-	  } 
+	  }
 	  else if (events->pho1.Pt() > 135) {
 	    dataWeight = events->HLTPrescale[92];
 	    if (events->HLTDecision[92] && events->pho1HLTFilter[23]) passTrigger = true;
@@ -364,8 +450,10 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	    dataWeight = events->HLTPrescale[88];
 	    if (events->HLTDecision[88] && events->pho1HLTFilter[27]) passTrigger = true;
 	  } 
-
-	  weight = dataWeight;
+	  
+	  if (isData) {
+	    weight = dataWeight;
+	  }
 
 	} else {
 	  if (
@@ -382,9 +470,9 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	//******************************
 	//Photon selection
 	if (fabs(events->pho1.Eta()) < 1.5) {
-	  if (! (events->pho1_sigmaietaieta < 0.011)) continue;
+	  if (! (events->pho1_sigmaietaieta < 0.0103)) continue;
 	} else {
-	  if (! (events->pho1_sigmaietaieta < 0.031)) continue;
+	  if (! (events->pho1_sigmaietaieta < 0.0271)) continue;
 	}
 	if (! (events->pho1_chargediso < 2.5)) continue;
 	if (! (events->pho1.Pt() > 50)) continue;
@@ -393,7 +481,13 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	//We can tighten the cuts if we wish...
 
 	if (option == "MR300Rsq0p15" ) {
-	  if (!(events->NJets80 >= 2 && events->MR_NoPho > 300 && events->Rsq_NoPho > 0.15 )) continue;	
+	  if (!(events->NJets80_NoPho >= 2 && events->MR_NoPho > 400 && events->Rsq_NoPho > 0.25 )) continue;	
+	}
+    	if (option == "MR300Rsq0p15_4Jet" ) {
+	  if (!(events->NJets80_NoPho >= 2 && events->NJets_NoPho >= 4 && events->MR_NoPho > 400 && events->Rsq_NoPho > 0.25 )) continue;	
+	}
+    	if (option == "MR300Rsq0p15_7Jet" ) {
+	  if (!(events->NJets80_NoPho >= 2 && events->NJets_NoPho >= 7 && events->MR_NoPho > 400 && events->Rsq_NoPho > 0.25 )) continue;	
 	}
       
 	//MET Filters
@@ -403,29 +497,24 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	// //******************************
 	// //Apply Scale Factors
 	// //******************************
-	// if (!isData) {
-	//   double razorSF = 1.0;
-	//   if (processLabels[i] == "TTJets") {
-	//     razorSF = TTBarSFHist->GetBinContent( TTBarSFHist->GetXaxis()->FindFixBin( fmin(fmax(events->MR,400.1),3999)),
-	// 					  TTBarSFHist->GetYaxis()->FindFixBin( fmin(fmax(events->Rsq,0.151),1.49))
-	// 					  );
-	//   }
-	//   if (processLabels[i] == "WJets") {
-	//     razorSF = WJetsSFHist->GetBinContent( WJetsSFHist->GetXaxis()->FindFixBin( fmin(fmax(events->MR,400.1),3999)),
-	// 					  WJetsSFHist->GetYaxis()->FindFixBin( fmin(fmax(events->Rsq,0.151),1.49))
-	// 					  );
-	//   }
-	//   // cout << processLabels[i] << " " << events->MR << " " << events->Rsq << " " << razorSF << "\n";
-	//   weight *= razorSF;
-	// }
+	if (!isData && !(option != "Inclusive" && processLabels[i] == "QCD") ) {
+	   double razorSF = 1.0;
+	   if (processLabels[i] == "GJets" && InputSFHist) {
+             razorSF = InputSFHist->GetBinContent( InputSFHist->FindBin( 
+                         fmin(fmax(events->MR_NoPho,400.1),3999),
+                         fmin(fmax(events->Rsq_NoPho,0.251),1.49)));
+	   }
+	   weight *= razorSF;
+	 }
+
 
 
 	//******************************
 	//Fill histograms
 	//******************************		
-	int MRBin = histMRVsRsq[i]->GetXaxis()->FindFixBin( events->MR );
-	int RsqBin = histMRVsRsq[i]->GetYaxis()->FindFixBin( events->Rsq );
-	int MRRsqBin = NRsqBins*(MRBin-1) + RsqBin;
+	int MRBin = histMRVsRsq[i]->GetXaxis()->FindFixBin( events->MR_NoPho );
+	int RsqBin = histMRVsRsq[i]->GetYaxis()->FindFixBin( events->Rsq_NoPho );
+	int MRRsqBin = (NRsqBins-1)*(MRBin-1) + RsqBin-1 ;
 
 	if (isData) {
 
@@ -436,7 +525,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	    histMET[i]->Fill(events->MET, weight);
 	    histNJets80[i]->Fill(events->NJets80_NoPho, weight);
 	    histNJets40[i]->Fill(events->NJets_NoPho, weight);
-	    histNBtags[i]->Fill(events->NBJetsMedium, weight);
+	    histNBtags[i]->Fill(fmin(events->NBJetsMedium,3), weight);
 	    histMR[i]->Fill(events->MR_NoPho, weight);
 	    histRsq[i]->Fill(events->Rsq_NoPho, weight);
 	    histMRRsqUnrolled[i]->Fill(MRRsqBin+0.5, weight);
@@ -497,9 +586,212 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 
   //--------------------------------------------------------------------------------------------------------------
-  // Make Plots
+  // Calculate Scale Factor For GJets
   //==============================================================================================================
+  if ( SFOption == 0 ) {
 
+    //construct 2D histograms for data and MC yields
+    TH2F* TmpHist = (TH2F*)histMRVsRsq[0]->Clone("ForBinning");
+
+    //construct TH2Poly histogram for scale factors
+    TH2Poly *SFNum = MakeTH2PolyForGJets("SFNum"); //numerator
+    TH2Poly *SFDenom = MakeTH2PolyForGJets("SFDenom"); //denominator 
+    TH2Poly *HistSF = MakeTH2PolyForGJets("GJetsInvScaleFactors"); //numerator/denominator
+
+    for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
+    
+      int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
+      int bin_j = ((i-1) % (NRsqBins-1)) + 1;
+  
+    
+      cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << "\n";
+
+      double N_data = 0;
+      double N_QCD = 0;
+      double NErr_QCD = 0;
+      double N_GJetsFrag = 0;
+      double NErr_GJetsFrag = 0;
+      double N_GJetsDirect = 0;
+      double NErr_GJetsDirect = 0;
+      double N_Other = 0;
+      double NErr_Other = 0;
+
+      for (uint j=0; j < inputfiles.size(); ++j) {
+	if ( processLabels[j] == "Data") {
+	  N_data = histMRRsqUnrolled[j]->GetBinContent(i);
+	  N_QCD = 0.05 * N_data; //Fake Fraction is 5% with 5% systematic
+	  NErr_QCD = 0.05 * N_data;
+	}
+	if ( processLabels[j] == "GJets") {
+	  N_GJetsDirect = histMRRsqUnrolled[j]->GetBinContent(i);
+	  NErr_GJetsDirect = histMRRsqUnrolled[j]->GetBinError(i);
+	}
+	if ( processLabels[j] == "GJetFrag") {
+	  N_GJetsFrag = histMRRsqUnrolled[j]->GetBinContent(i);
+	  NErr_GJetsFrag = histMRRsqUnrolled[j]->GetBinError(i);
+	}      
+	if ( processLabels[j] == "Other") {
+	  N_Other = histMRRsqUnrolled[j]->GetBinContent(i);
+	  NErr_Other = sqrt( pow(histMRRsqUnrolled[j]->GetBinError(i),2) + pow( 0.50 * N_Other , 2)); 
+	}      
+      }
+     
+      double N_dataMinusBkg = N_data - N_QCD - N_GJetsFrag - NErr_Other;
+      double NErr_dataMinusBkg = sqrt( N_data + pow(NErr_QCD,2) + pow(NErr_GJetsFrag,2) + pow( NErr_Other, 2));
+
+      //get bin number in TH2Poly
+      double centerX = TmpHist->GetXaxis()->GetBinCenter(bin_i);
+      double centerY = TmpHist->GetYaxis()->GetBinCenter(bin_j);
+      int binNum = HistSF->FindBin(centerX, centerY);
+
+      //fill TH2Polys 
+      SFNum->SetBinContent(binNum, SFNum->GetBinContent(binNum) + N_dataMinusBkg); //add to yield
+      SFNum->SetBinError(binNum-1, sqrt( pow(SFNum->GetBinError(binNum), 2) + pow(NErr_dataMinusBkg, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
+      SFDenom->SetBinContent(binNum, SFDenom->GetBinContent(binNum) + N_GJetsDirect); //add to yield
+      SFDenom->SetBinError(binNum-1, sqrt( pow(SFDenom->GetBinError(binNum), 2) + pow(NErr_GJetsDirect, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
+
+      cout << "Data-Bkg : " << N_dataMinusBkg << " +/- " << NErr_dataMinusBkg << "\n";
+      cout << "MC (GJets) : " << N_GJetsDirect << " +/- " << NErr_GJetsDirect << "\n";
+      cout << "\n\n";
+    }
+
+    //fill scale factors and uncertainties
+    for (int nb = 1; nb < HistSF->GetNumberOfBins()+1; ++nb) {
+        if (SFDenom->GetBinContent(nb) != 0) {
+            HistSF->SetBinContent(nb, SFNum->GetBinContent(nb) / SFDenom->GetBinContent(nb));
+            //NOTE: TH2Poly has a bug that causes SetBinError(x) to set the error of bin x+1!!
+            HistSF->SetBinError(nb-1, sqrt( 
+                pow( SFNum->GetBinError(nb)/SFDenom->GetBinContent(nb), 2 ) + 
+                pow( SFDenom->GetBinError(nb)*SFNum->GetBinContent(nb)/pow(SFDenom->GetBinContent(nb), 2), 2) ) );
+        }
+    }
+
+    TFile *SFFile = TFile::Open("RazorScaleFactors_GJets.root", "UPDATE");
+    SFFile->WriteTObject(HistSF, "GJetsInvScaleFactors", "WriteDelete");
+    SFFile->Close();
+
+    delete HistSF;
+  }
+
+  if ( SFOption == 1 ) {
+
+    TH1D* HistCorrection_NJets = (TH1D*)histNJets40[0]->Clone("GJetsInvScaleFactors_NJets");
+    for (int i=1; i < HistCorrection_NJets->GetXaxis()->GetNbins() + 1; ++i) {
+      double N_data = 0;
+      double N_QCD = 0;
+      double NErr_QCD = 0;
+      double N_GJetsFrag = 0;
+      double NErr_GJetsFrag = 0;
+      double N_GJetsDirect = 0;
+      double NErr_GJetsDirect = 0;
+      double N_Other = 0;
+      double NErr_Other = 0;
+      for (uint j=0; j < inputfiles.size(); ++j) {
+	if ( processLabels[j] == "Data") {
+	  N_data = histNJets40[j]->GetBinContent(i);
+	  N_QCD = 0.05 * N_data; //Fake Fraction is 5% with 5% systematic
+	  NErr_QCD = 0.05 * N_data;
+	}
+	if ( processLabels[j] == "GJets") {
+	  N_GJetsDirect = histNJets40[j]->GetBinContent(i);
+	  NErr_GJetsDirect = histNJets40[j]->GetBinError(i);
+	}
+	if ( processLabels[j] == "GJetFrag") {
+	  N_GJetsFrag = histNJets40[j]->GetBinContent(i);
+	  NErr_GJetsFrag = histNJets40[j]->GetBinError(i);
+	}      
+	if ( processLabels[j] == "Other") {
+	  N_Other = histNJets40[j]->GetBinContent(i);
+	  NErr_Other = sqrt( pow(histNJets40[j]->GetBinError(i),2) + pow( 0.50 * N_Other , 2)); 
+	}
+      }
+      double N_dataMinusQCD = N_data * 0.95;
+      double NErr_dataMinusQCD = sqrt( N_data ) * 0.95;
+      double N_MCNoQCD = N_GJetsDirect + N_GJetsFrag + N_Other;
+      double NErr_MCNoQCD = sqrt( pow(NErr_GJetsDirect,2) + pow(NErr_GJetsFrag,2) + pow(NErr_Other,2) );
+      double SF = N_dataMinusQCD/N_MCNoQCD;
+      double SFErr =  sqrt( ( pow(NErr_dataMinusQCD,2) * pow(N_MCNoQCD,2) + pow(NErr_MCNoQCD,2)*pow(N_dataMinusQCD,2)) / (pow(N_MCNoQCD,4)));
+
+      HistCorrection_NJets->SetBinContent( i , SF );
+      HistCorrection_NJets->SetBinError( i , SFErr );
+
+      cout << "Data-QCD : " << N_dataMinusQCD << " +/- " << NErr_dataMinusQCD << "\n";
+      cout << "MC (excluding QCD) : " << N_MCNoQCD << " +/- " << NErr_MCNoQCD  << "\n";
+      cout << "Systematic Uncertainty : " << SF << " +/- " << SFErr << "\n";
+      cout << "\n\n";
+
+    }
+    TFile *SFFile = TFile::Open("RazorGJetsScaleFactorVsNJets.root", "UPDATE");
+    SFFile->WriteTObject(HistCorrection_NJets, "GJetsScaleFactorVsNJets", "WriteDelete");
+    SFFile->Close();
+  }
+
+
+  if ( SFOption == 2 ) {
+
+    TH1D* HistSysUnc_NBTag = (TH1D*)histNBtags[0]->Clone("GJetsInvScaleFactors_Sys_NBTag");
+    for (int i=1; i < HistSysUnc_NBTag->GetXaxis()->GetNbins() + 1; ++i) {
+      double N_data = 0;
+      double N_QCD = 0;
+      double N_GJetsFrag = 0;
+      double N_GJetsDirect = 0;
+      double N_Other = 0;
+      for (uint j=0; j < inputfiles.size(); ++j) {
+	if ( processLabels[j] == "Data") {
+	  N_data = histNBtags[j]->GetBinContent(i);
+	  N_QCD = 0.05 * N_data; //Fake Fraction is 5% with 5% systematic
+	}
+	if ( processLabels[j] == "GJets") {
+	  N_GJetsDirect = histNBtags[j]->GetBinContent(i);
+	}
+	if ( processLabels[j] == "GJetFrag") {
+	  N_GJetsFrag = histNBtags[j]->GetBinContent(i);
+	}      
+	if ( processLabels[j] == "Other") {
+	  N_Other = histNBtags[j]->GetBinContent(i);
+	}
+      }
+      double N_dataMinusQCD = N_data * 0.95;
+      double N_MCNoQCD = N_GJetsDirect + N_GJetsFrag + N_Other;
+      double SFSystematics = fabs ( 1 - N_dataMinusQCD / N_MCNoQCD);
+      HistSysUnc_NBTag->SetBinContent( i , SFSystematics );
+      HistSysUnc_NBTag->SetBinError( i , 0 );
+
+      cout << "Data-QCD : " << N_dataMinusQCD << "\n";
+      cout << "MC (excluding QCD) : " << N_GJetsDirect << " + " << N_GJetsFrag << " + " << N_Other << " = " << N_MCNoQCD << "\n";
+      cout << "Systematic Uncertainty : " << SFSystematics << "\n";
+      cout << "\n\n";
+
+    }
+    TFile *SFFile = TFile::Open("RazorZNuNuBTagClosureTests.root", "UPDATE");
+    SFFile->WriteTObject(HistSysUnc_NBTag, "ZNuNuBTagClosureSysUnc", "WriteDelete");
+    SFFile->Close();
+  }
+
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Plot Event Density for MR-Rsq spectrum 
+  //==============================================================================================================
+  for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
+    
+    int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
+    int bin_j = ((i-1) % (NRsqBins-1)) + 1;        
+    cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << " : " 
+	 << "MR: " << histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i) << " - " << histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) << " , "
+	 << "Rsq: " << histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j) << " - " << histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) << " : "
+	 << (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i))  << " * "
+	 << (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j))
+	 << "\n";
+    double binVolume = (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i)) *
+      (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j));
+         
+    for (uint j=0; j < inputfiles.size(); ++j) {
+      histMRRsqUnrolled[j]->SetBinContent( i , histMRRsqUnrolled[j]->GetBinContent(i) / binVolume );
+      histMRRsqUnrolled[j]->SetBinError( i , histMRRsqUnrolled[j]->GetBinError(i) / binVolume );
+    }        
+
+  }
+    
 
   //--------------------------------------------------------------------------------------------------------------
   // Draw
@@ -589,6 +881,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   file->Close();
   delete file;       
 
+
+
 }
 
 
@@ -609,40 +903,45 @@ void SelectPhotonControlSample( int option = 0) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
+    datafiles.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
   } else {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root");     
+    datafiles.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root");     
   }
 
   vector<string> bkgfiles_gjets;
+  vector<string> bkgfiles_gjetsFrag;
   vector<string> bkgfiles_qcd;
   vector<string> bkgfiles_other;
 
   if (option >= 10) {
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
+    bkgfiles_gjets.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
   } else {
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted_RazorSkim.root"); 
-    bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_gjets.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_gjetsFrag.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_qcd.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root"); 
+    bkgfiles_other.push_back("eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
   }
    
 
   bkgfiles.push_back(bkgfiles_gjets);
+  bkgfiles.push_back(bkgfiles_gjetsFrag);
   bkgfiles.push_back(bkgfiles_qcd);
   bkgfiles.push_back(bkgfiles_other);
 
   processLabels.push_back("GJets");  
+  processLabels.push_back("GJetsFrag");  
   processLabels.push_back("QCD");
   processLabels.push_back("Other");
 
   colors.push_back(kOrange);
+  colors.push_back(kOrange+4);
   colors.push_back(kMagenta);
   colors.push_back(kCyan);
   
@@ -652,10 +951,19 @@ void SelectPhotonControlSample( int option = 0) {
   //GJets Control Region
   //*********************************************************************
    if (option == 0) {
-     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",0,"MR300Rsq0p15");
+     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,0,"MR300Rsq0p15","PhotonCR");
+   }
+   if (option == 1) {
+     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,1,"MR300Rsq0p15","PhotonCRTestSF");
+   }
+   if (option == 2) {
+     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,2,"MR300Rsq0p15_4Jet","PhotonCRTestSFMultiJet");
+   }
+   if (option == 3) {
+     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,3,"MR300Rsq0p15_7Jet","PhotonCRTestSFMultiJet");
    }
    if (option == 10) {
-     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"Inclusive",0,"Inclusive");
+     RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,0,"Inclusive","Inclusive");
    }
 
 

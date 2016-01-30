@@ -49,6 +49,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void DummyAnalysis();
         virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false, bool isFastsimSMS = false);
         virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false, int option = 0, bool isData = false );
+	virtual void HggRazorGenLevel(string outFileName = "HggRazorGenLevel.root", bool combineTrees = false, int option = 0, bool isData = false );
 	virtual void HggRazorExo15004(string outFileName = "HggRazorExo15004.root", bool combineTrees = false, int option = 0, bool isData = false );
         virtual void FullRazorInclusive(string outFileName = "FullRazorInclusive.root", bool isData = false, bool isFastsimSMS = false);
         virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);

@@ -1,3 +1,8 @@
+//--------------------------------------------------------------
+//
+// make plots for Z+jets
+//
+//--------------------------------------------------------------
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TROOT.h>                        // access to gROOT, entry point to ROOT system
 #include <TSystem.h>                      // interface to OS

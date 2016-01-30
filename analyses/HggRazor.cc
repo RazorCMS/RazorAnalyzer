@@ -547,8 +547,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	//TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
 	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] );
 	
-	//std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
-	//std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
 	//Filling Photon Candidate
 	PhotonCandidate tmp_phoCand;
 	tmp_phoCand.Index = i;
@@ -570,41 +568,51 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	nSelectedPhotons++;
       }
     
+    //------------------------------------------------------------
     //if there is no photon with pT above 40 GeV, reject the event
+    //------------------------------------------------------------
     if( nPhotonsAbove40GeV == 0 )
       {
-	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " << phoCand.size() << std::endl;
+	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " 
+				<< phoCand.size() << std::endl;
 	continue;
       }
     
     if ( phoCand.size() < 2 )
       {
-	if ( _debug ) std::cout << "[INFO]: not enough photon, nphotons: " << phoCand.size() << std::endl;
+	if ( _debug ) std::cout << "[INFO]: not enough photon, nphotons: " 
+				<< phoCand.size() << std::endl;
 	for(int i = 0; i < nPhotons; i++)
 	  {
-	    if ( _debug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] 
+	    if ( _debug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] 
+				    << " pho_eta: " << phoEta[i] 
 				    << " SIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
 	  }
 	continue;
       }
     
-
-    if ( _debug ) std::cout << "[DEBUG]: nphotons--> " << phoCand.size() << " " << nSelectedPhotons << std::endl;
+    
+    if ( _debug ) std::cout << "[DEBUG]: nphotons--> " << phoCand.size() 
+			    << " " << nSelectedPhotons << std::endl;
+    
+    //---------------------------------------
     //find the "best" photon pair, higher Pt!
+    //---------------------------------------
     TLorentzVector HiggsCandidate(0,0,0,0);
     TLorentzVector HiggsCandidateSC(0,0,0,0);
     int goodPhoIndex1 = -1;
     int goodPhoIndex2 = -1;
     double bestSumPt = -99.;
+    
     std::vector< PhotonCandidate > phoSelectedCand;
     for(size_t i = 0; i < phoCand.size(); i++){
-      for(size_t j = i+1; j < phoCand.size(); j++){//I like this logic better, I find it easier to understand
+      for(size_t j = i+1; j < phoCand.size(); j++){
 	PhotonCandidate pho1 = phoCand[i];
 	PhotonCandidate pho2 = phoCand[j];
         if ( _debug )
 	  {
 	    std::cout << "[DEBUG]: pho1-> " << pho1.photon.Pt()
-		      << " [DEBUG]: pho2->" << pho2.photon.Pt() 
+		      << "\n[DEBUG]: pho2->" << pho2.photon.Pt() 
 		      << std::endl;
 	  }
 	//need one photon in the pair to have pt > 40 GeV
@@ -626,8 +634,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
 	    continue;
 	  }
-        
-	//if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
+        //---------------------------------------------
+	//if the sum of the photon pT's is larger than 
+	//that of the current Higgs candidate, 
+	//make this the Higgs candidate
+	//---------------------------------------------
 	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt ){
 	  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
 	  HiggsCandidate = pho1.photon + pho2.photon;

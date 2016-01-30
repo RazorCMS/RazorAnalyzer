@@ -20,8 +20,8 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
         y = array('d', cfg.getBinning(box)[1]) # Rsq binning
         z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    maxBins = 224
-    #maxBins = nBins
+    #maxBins = 224
+    maxBins = nBins
     
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
@@ -64,6 +64,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
             for iz in range(1,len(z)):
                 iBinX+=1
                 emptyHist3D.SetBinContent(ix,iy,iz,1.)
+                emptyHist3D.SetBinError(ix,iy,iz,0.)
                 w.var('MR').setVal(emptyHist3D.GetXaxis().GetBinCenter(ix))
                 w.var('Rsq').setVal(emptyHist3D.GetYaxis().GetBinCenter(iy))
                 w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz)) 
@@ -85,8 +86,20 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
             for myvar in mylist:
                 if w.var(myvar)!=None:
                     arglist.append(w.var(myvar))
-                else:
+                elif w.function(myvar)!=None:
                     arglist.append(w.function(myvar))
+                elif 'pars_' in myvar:
+                        parlist = rt.RooArgList(myvar)
+                        listdef = ''
+                        for iBinX in range(0,maxBins):
+                            if w.var('par%i_MultiJet'%(iBinX))!=None:
+                                parlist.add(w.var('par%i_%s'%(iBinX,box)))
+                            else:                                
+                                w.factory('par%i_%s[0.]'%(iBinX,box))
+                                parlist.add(w.var('par%i_%s'%(iBinX,box)))
+                        rootTools.Utils.importToWS(w,parlist)
+                        arglist.append(parlist)
+                        
             args = tuple(arglist)
             pdf = getattr(rt,myclass)(*args)
             if hasattr(pdf,'setTH3Binning'):
@@ -114,8 +127,8 @@ def initializeWorkspace_noFit(w,cfg,box):
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    maxBins = 224
-    #maxBins = nBins
+    #maxBins = 224
+    maxBins = nBins
     
     w.factory('th1x[0,0,%i]'%maxBins)
 
@@ -158,8 +171,8 @@ def convertDataset2TH1(data, cfg, box, workspace, useWeight=False, th1Name = 'h'
     data.fillHistogram(myTH2, varList2D,"MR>%f && MR<%f && Rsq>%f && Rsq<%f && nBtag >= %f && nBtag <= %f"%(x[0],x[-1],y[0],y[-1],z[0],z[-1]))
     
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    maxBins = 224
-    #maxBins = nBins
+    #maxBins = 224
+    maxBins = nBins
     
     if maxBins >= nBins:
         myTH1 = rt.TH1D(th1Name+box+"1d",th1Name+box+"1d",maxBins,0,maxBins)
