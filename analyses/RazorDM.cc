@@ -83,6 +83,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   float MuonPt[5], MuonEta[5], MuonPhi[5], MuonE[5];
   float ElePt[5], EleEta[5], ElePhi[5], EleE[5];
   float MR;
+  float HT, MHT;
   float Rsq, t1Rsq, RsqCorr, t1RsqCorr;
   float t1metPt, t1metPhi, metPtCorr, metPhiCorr, t1metPtCorr, t1metPhiCorr;
   RazorBox box;
@@ -90,6 +91,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   float JetPt[30], JetEta[30], JetPhi[30], JetE[30];
   bool hasMatchingGenJet[30];
   int matchingGenJetIndex[30];
+  float leadingJetPt, leadingJetEta, subLeadingJetPt;
   
   
     //set branches on big tree
@@ -105,6 +107,17 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
       razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
       
+      razorTree->Branch("JetE_uncorr", JetE_uncorr, "JetE_uncorr[nSelectedJets]/F");
+      razorTree->Branch("JetPt_uncorr", JetPt_uncorr, "JetPt_uncorr[nSelectedJets]/F");
+      razorTree->Branch("JetPhi_uncorr", JetPhi_uncorr, "JetPhi_uncorr[nSelectedJets]/F");
+      razorTree->Branch("JetEta_uncorr", JetEta_uncorr, "JetEta_uncorr[nSelectedJets]/F");
+
+      razorTree->Branch("JetE", JetE, "JetE[nSelectedJets]/F");
+      razorTree->Branch("JetPt", JetPt, "JetPt[nSelectedJets]/F");
+      razorTree->Branch("JetEta", JetEta, "JetEta[nSelectedJets]/F");
+      razorTree->Branch("JetPhi", JetPhi, "JetPhi[nSelectedJets]/F");
+      
+      
       razorTree->Branch("MR", &MR, "MR/F");
       razorTree->Branch("Rsq", &Rsq, "Rsq/F");
       razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
@@ -112,6 +125,12 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("metPhi", &metPhi, "metPhi/F");
       razorTree->Branch("t1metPt", &t1metPt, "t1metPt/F");
       razorTree->Branch("t1metPhi", &t1metPhi, "t1metPhi/F");
+      razorTree->Branch("HT", &HT, "HT/F");
+      razorTree->Branch("MHT", &MHT, "MHT/F");
+      
+      razorTree->Branch("leadingJetPt",&leadingJetPt,"leadingJetPt/F");
+      razorTree->Branch("leadingJetEta",&leadingJetEta,"leadingJetEta/F");
+      razorTree->Branch("subLeadingJetPt",&subLeadingJetPt,"subLeadingJetPt/F");
       
       razorTree->Branch("RsqCorr", &RsqCorr, "RsqCorr/F");
       razorTree->Branch("t1RsqCorr", &t1RsqCorr, "t1RsqCorr/F");
@@ -223,6 +242,9 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	t1Rsq     = -1.0;
 	RsqCorr   = -1.0;
 	t1RsqCorr = -1.0;
+      leadingJetPt = -1;
+      leadingJetEta = 0.0;
+      subLeadingJetPt = -1;
 	  
 	for ( int j = 0; j < 30; j++ )
           {
@@ -386,6 +408,17 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	    JetE[jIndex]   = tmpJet.E();
 	    JetEta[jIndex] = tmpJet.Eta();
 	    JetPhi[jIndex] = tmpJet.Phi();
+	
+        if (JetPt[jIndex]> leadingJetPt && JetPt[jIndex]<14000) 
+        {
+	    subLeadingJetPt = leadingJetPt;
+	    leadingJetPt = JetPt[jIndex];
+        leadingJetEta = JetEta[jIndex];
+	    }
+	    else if (JetPt[jIndex]>subLeadingJetPt && JetPt[jIndex]<14000) 
+        {
+	     subLeadingJetPt = JetPt[jIndex];
+	    }
 	    jIndex++;
 	  }
       
@@ -394,11 +427,24 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
 	t1metPt  = metType1Pt;
 	t1metPhi = metType1Phi;
-	vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
-        MR    = computeMR(hemispheres[0], hemispheres[1]); 
+	
+    vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
+    
+    MR    = computeMR(hemispheres[0], hemispheres[1]); 
 	Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
-        
+   
+
+    // Compute HT and MHT
+    float MhtX=0, MhtY=0;
+    HT = 0; 
+    for (auto& obj : GoodJets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+
+      TLorentzVector MyMHT;
+      MyMHT.SetPxPyPzE(- MhtX, -MhtY, 0, sqrt( pow(MhtX,2) + pow(MhtY,2)));
+
+      MHT = MyMHT.Pt();
+    
 	//MuMu Box
         if ( passedLeptonicTrigger && nLooseMuons > 1 && nLooseElectrons == 0 && nBTaggedJetsL == 0 )
 	  {
