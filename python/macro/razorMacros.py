@@ -1068,7 +1068,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING
 #########################################
 
-def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, addStatUnc=True):
+def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True):
     """
     Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
     """
@@ -1092,9 +1092,13 @@ def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('M
             shapeHists = hists['Sys']
             miscErrors = []
             del hists['Sys']
-        else:
+        elif not noSys:
             print "Error in unrollAndWriteDataCard: no shape histograms were found in the input file",f
             return
+
+        #noSys option
+        if noSys: 
+            shapeHists = {s:{} for s in samples}
 
         #unroll each MC histogram
         unrolledMCs = plotting.unroll2DHistograms([hists[s][var] for s in samples], unrollRows, unrollCols)
@@ -1121,15 +1125,15 @@ def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('M
     #make statistical uncertainty up/down histograms
     if addStatUnc:
         for sample in samples:
-            histsForDataCard[sample+'statUp'] = histsForDataCard[sample].Clone(histsForDataCard[sample].GetName()+'statUp')
-            histsForDataCard[sample+'statDown'] = histsForDataCard[sample].Clone(histsForDataCard[sample].GetName()+'statDown')
+            histsForDataCard[sample+'stat'+boxName+sample+'Up'] = histsForDataCard[sample].Clone(histsForDataCard[sample].GetName()+'stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'stat'+boxName+sample+'Down'] = histsForDataCard[sample].Clone(histsForDataCard[sample].GetName()+'stat'+boxName+sample+'Down')
             for bx in range(1, histsForDataCard[sample].GetNbinsX()+1):
-                histsForDataCard[sample+'statUp'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) + histsForDataCard[sample].GetBinError(bx))
-                histsForDataCard[sample+'statDown'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) - histsForDataCard[sample].GetBinError(bx))
-            histsForDataCard[sample+'statUp'].SetName(sample+'_statUp')
-            histsForDataCard[sample+'statDown'].SetName(sample+'_statDown')
-            histsForDataCard[sample+'statUp'].SetTitle(sample+'_statUp')
-            histsForDataCard[sample+'statDown'].SetTitle(sample+'_statDown')
+                histsForDataCard[sample+'stat'+boxName+sample+'Up'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) + histsForDataCard[sample].GetBinError(bx))
+                histsForDataCard[sample+'stat'+boxName+sample+'Down'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) - histsForDataCard[sample].GetBinError(bx))
+            histsForDataCard[sample+'stat'+boxName+sample+'Up'].SetName(sample+'_stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'stat'+boxName+sample+'Down'].SetName(sample+'_stat'+boxName+sample+'Down')
+            histsForDataCard[sample+'stat'+boxName+sample+'Up'].SetTitle(sample+'_stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'stat'+boxName+sample+'Down'].SetTitle(sample+'_stat'+boxName+sample+'Down')
 
     #set names on histograms
     histsForDataCard['data_obs'].SetName('data_obs')
@@ -1142,6 +1146,6 @@ def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('M
             histsForDataCard[sample+'_'+shape].SetTitle(sample+'_'+shape)
 
     if export:
-        macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=directory, useDirectoryStructure=False, debugLevel=debugLevel)
+        macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=directory, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)
 
     return histsForDataCard
