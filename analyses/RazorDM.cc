@@ -58,7 +58,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   TTree *razorTree = new TTree("RazorDM", "Info on selected razor DM events");
   
   // tree to compute the cut efficiency
-  TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
+  //TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
 
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
@@ -207,7 +207,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[120]/O");
     }
   }
     
@@ -436,12 +436,12 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
    
 
     // Compute HT and MHT
-    float MhtX=0, MhtY=0;
-    HT = 0; 
+    float MhtX = 0., MhtY = 0.;
+    HT = 0.; 
     for (auto& obj : GoodJets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
 
       TLorentzVector MyMHT;
-      MyMHT.SetPxPyPzE(- MhtX, -MhtY, 0, sqrt( pow(MhtX,2) + pow(MhtY,2)));
+      MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
 
       MHT = MyMHT.Pt();
     
