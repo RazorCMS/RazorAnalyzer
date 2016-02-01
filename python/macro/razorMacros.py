@@ -1119,21 +1119,31 @@ def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('M
     for s in samples:
         histsForDataCard[s] = macro.stitch(unrolledMC[s])
         for shape in unrolledShapeHists[s]:
+            #protect against empty histograms (for QCD)
+            isEmpty = True
+            for hist in unrolledShapeHists[s][shape]:
+                if hist.Integral() > 0:
+                    isEmpty = False
+                    break
+            if isEmpty: 
+                print "Warning: empty shape histograms for",s,shape
+                continue
+            #create histogram
             histsForDataCard[s+'_'+shape] = macro.stitch(unrolledShapeHists[s][shape])
     histsForDataCard['data_obs'] = macro.stitch(unrolledData)
 
     #make statistical uncertainty up/down histograms
     if addStatUnc:
         for sample in samples:
-            histsForDataCard[sample+'stat'+boxName+sample+'Up'] = histsForDataCard[sample].Clone(histsForDataCard[sample].GetName()+'stat'+boxName+sample+'Up')
-            histsForDataCard[sample+'stat'+boxName+sample+'Down'] = histsForDataCard[sample].Clone(histsForDataCard[sample].GetName()+'stat'+boxName+sample+'Down')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Up'] = histsForDataCard[sample].Clone()
+            histsForDataCard[sample+'_stat'+boxName+sample+'Down'] = histsForDataCard[sample].Clone()
             for bx in range(1, histsForDataCard[sample].GetNbinsX()+1):
-                histsForDataCard[sample+'stat'+boxName+sample+'Up'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) + histsForDataCard[sample].GetBinError(bx))
-                histsForDataCard[sample+'stat'+boxName+sample+'Down'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) - histsForDataCard[sample].GetBinError(bx))
-            histsForDataCard[sample+'stat'+boxName+sample+'Up'].SetName(sample+'_stat'+boxName+sample+'Up')
-            histsForDataCard[sample+'stat'+boxName+sample+'Down'].SetName(sample+'_stat'+boxName+sample+'Down')
-            histsForDataCard[sample+'stat'+boxName+sample+'Up'].SetTitle(sample+'_stat'+boxName+sample+'Up')
-            histsForDataCard[sample+'stat'+boxName+sample+'Down'].SetTitle(sample+'_stat'+boxName+sample+'Down')
+                histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) + histsForDataCard[sample].GetBinError(bx))
+                histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) - histsForDataCard[sample].GetBinError(bx))
+            histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetName(sample+'_stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetName(sample+'_stat'+boxName+sample+'Down')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetTitle(sample+'_stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetTitle(sample+'_stat'+boxName+sample+'Down')
 
     #set names on histograms
     histsForDataCard['data_obs'].SetName('data_obs')
@@ -1142,8 +1152,9 @@ def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('M
         histsForDataCard[sample].SetName(sample)
         histsForDataCard[sample].SetTitle(sample)
         for shape in unrolledShapeHists[sample]:
-            histsForDataCard[sample+'_'+shape].SetName(sample+'_'+shape)
-            histsForDataCard[sample+'_'+shape].SetTitle(sample+'_'+shape)
+            if sample+'_'+shape in histsForDataCard:
+                histsForDataCard[sample+'_'+shape].SetName(sample+'_'+shape)
+                histsForDataCard[sample+'_'+shape].SetTitle(sample+'_'+shape)
 
     if export:
         macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=directory, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)

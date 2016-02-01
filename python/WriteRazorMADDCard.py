@@ -47,26 +47,25 @@ if __name__ == "__main__":
     if args.box is None:
         print "Please choose an analysis box with --box"
         sys.exit()
-
+    box = args.box
     #make output directory
     os.system('mkdir -p '+dirName)
-
     #get configuration for this box
-    samples = SAMPLES[args.box]
-    unrollBins = [(xbinsSignal[args.box][str(btags)+'B'], colsSignal[args.box][str(btags)+'B']) for btags in range(4)]
+    samples = SAMPLES[box]
+    unrollBins = [(xbinsSignal[box][str(btags)+'B'], colsSignal[box][str(btags)+'B']) for btags in range(4)]
 
     #make combined unrolled histograms for background
-    backgroundHists = unrollAndStitch(args.box, samples=samples, directory=dirName, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), debugLevel=debugLevel)
-    print backgroundHists
+    backgroundHists = unrollAndStitch(box, samples=samples, directory=dirName, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), debugLevel=debugLevel)
 
     #treat appropriate uncertainties as uncorrelated bin to bin
     toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck']
-    toUncorrelate += ['stat'+args.box+sample for sample in samples]
+    toUncorrelate += ['stat'+box+sample for sample in samples]
     for sys in toUncorrelate:
         if 'stat' in sys:
             if args.noStat: continue
             suppressLevel = 0.1
         else:
+            if args.noSys: continue
             suppressLevel = 0.0
         uncorrelate(backgroundHists, sys, suppressLevel=suppressLevel)
 
@@ -76,26 +75,26 @@ if __name__ == "__main__":
     else:
         modelName = 'SMS-'+args.model+'_'+str(args.mStop)+'_'+str(args.mLSP)
     signalFilename=SIGNAL_DIR+'/'+modelName+'.root'
-    exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s'%(config, dirName, LUMI, args.box, ((args.noSys)*('--no-signal-sys')), signalFilename), True) #set to False when ready
-
+    exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s'%(config, dirName, LUMI, box, ((args.noSys)*('--no-signal-sys')), signalFilename), False) 
     #load SMS template histograms
-    signalHistFilename = '%s/%s_lumi-%.3f_0-3btag_%s.root'%(dirName,modelName,LUMI*1.0/1000,args.box)
+    signalHistFilename = '%s/%s_lumi-%.3f_0-3btag_%s.root'%(dirName,modelName,LUMI*1.0/1000,box)
     signalHists = macro.importHists(signalHistFilename)
-
+    #update with correct names
+    for x,h in signalHists.items():
+        h.SetName(h.GetName().replace(box+'_'+args.model,modelName))
+        signalHists[h.GetName()] = signalHists.pop(x)
     #combine signal and background dictionaries
     hists = backgroundHists.copy()
     hists.update(signalHists)
 
     #write histograms to ROOT file
-    outFileName = dirName+'/RazorInclusiveMADD_lumi-%.1f_%s.root'%(LUMI*1.0/1000.,args.box)
+    outFileName = dirName+'/RazorInclusiveMADD_lumi-%.1f_%s.root'%(LUMI*1.0/1000.,box)
     outFile = rt.TFile(outFileName, 'recreate')
     for x,h in hists.iteritems():
         h.Write()
     outFile.Close()
-
     #write combine card
     cardName = outFileName.replace('.root','.txt')
-    writeDataCard_th1(args.box,args.modelName,cardName,hists,samples)
-
+    writeDataCard_th1(box,modelName,cardName,hists,samples)
     #run combine
-    exec_me('combine -M Asymptotic '+cardName, True) #set to False when ready
+    exec_me('combine -M Asymptotic '+cardName, False) 

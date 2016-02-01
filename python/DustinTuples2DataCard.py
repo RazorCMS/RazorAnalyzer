@@ -355,37 +355,57 @@ def uncorrelate(hists, sysName, suppressLevel=None):
     print "Treating the following distributions as uncorrelated for",sysName,": "
     for name in toUncorrelate: print name
     
+    #get names of individual systematics
+    systNames = []
     for name in toUncorrelate:
+        systName = name.replace("Up","").replace("Down","")
+        if systName not in systNames:
+            systNames.append(systName)
+
+    for name in systNames:
         print("Uncorrelating "+name)
         #get histogram with central values
         centerName = name.split("_")[:-1]
         centerName = '_'.join(centerName)
-        systName = name.split("_")[-1].replace("Up","").replace("Down","")
+        #get up and down variants
+        upName = name+'Up'
+        downName = name+'Down'
+        uncName = name.split("_")[-1]
         print("Central values taken from "+centerName)
         #for each bin create a new histogram in which that bin is up/down and the rest are centered
-        for b in range(1,hists[name].GetNbinsX()+1):
-            if "Up" in name: 
-                newHistName = centerName+"_"+systName+str(b)+"Up"
-            elif "Down" in name:
-                newHistName = centerName+"_"+systName+str(b)+"Down"
-            else: 
-                print("Error: shape histogram name "+name+" needs to contain 'Up' or 'Down'")
-                return
+        for b in range(1,hists[centerName].GetNbinsX()+1):
+            newHistUpName = centerName+"_"+uncName+str(b)+"Up"
+            newHistDownName = centerName+"_"+uncName+str(b)+"Down"
 
             #check level of agreement with the nominal
             if suppressLevel is not None:
+                #get percent difference from nominal
                 if hists[centerName].GetBinContent(b) > 0:
-                    percDifference = abs(hists[name].GetBinContent(b)-hists[centerName].GetBinContent(b))/hists[centerName].GetBinContent(b)
-                    if percDifference <= suppressLevel: continue
-                elif hists[name].GetBinContent(b) == hists[centerName].GetBinContent(b): continue
+                    percDifferenceUp = abs(hists[upName].GetBinContent(b)-hists[centerName].GetBinContent(b))/hists[centerName].GetBinContent(b)
+                    percDifferenceDown = abs(hists[downName].GetBinContent(b)-hists[centerName].GetBinContent(b))/hists[centerName].GetBinContent(b)
+                    percDifference = max(percDifferenceUp, percDifferenceDown)
+                    if percDifference <= suppressLevel: 
+                        print "Suppressing nuisance in bin",b,"(agrees at",percDifference,"level)"
+                        continue
+                elif hists[upName].GetBinContent(b) == hists[centerName].GetBinContent(b) and hists[downName].GetBinContent(b) == hists[centerName].GetBinContent(b): 
+                        print "Suppressing nuisance in bin",b,"because there is no change from the nominal"
+                        continue
 
-            hists[newHistName] = hists[centerName].Clone(newHistName)
-            hists[newHistName].SetDirectory(0)
-            hists[newHistName].SetBinContent(b, hists[name].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
-            hists[newHistName].SetBinError(b, hists[name].GetBinError(b))
+            #new up histogram
+            hists[newHistUpName] = hists[centerName].Clone(newHistUpName)
+            hists[newHistUpName].SetDirectory(0)
+            hists[newHistUpName].SetBinContent(b, hists[upName].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
+            hists[newHistUpName].SetBinError(b, hists[upName].GetBinError(b))
+
+            #new down histogram
+            hists[newHistDownName] = hists[centerName].Clone(newHistDownName)
+            hists[newHistDownName].SetDirectory(0)
+            hists[newHistDownName].SetBinContent(b, hists[downName].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
+            hists[newHistDownName].SetBinError(b, hists[downName].GetBinError(b))
 
         #remove the original histogram
-        del hists[name]
+        del hists[upName]
+        del hists[downName]
 
 def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
     """Same as uncorrelate(), but treats bins as correlated if they lie inside the same bin in the reference histogram.
@@ -703,7 +723,7 @@ def writeDataCard_th1(box,model,txtfileName,hists,bkgs=None):
     for bkg in bkgs:
         if bkg in ['ttjets','wjetstolnu','dyjetstoll','zjetstonunu','qcd']: continue
         #alternate naming convention
-        if bkg.lower() in ['ttjets', 'wjets', 'dyjets', 'zinv', 'qcd']: continue
+        if bkg.lower() in ['ttjets', 'ttjets1l', 'ttjets2l', 'wjets', 'dyjets', 'zinv', 'qcd']: continue
         mcErrs[bkg] = [1.00]
         mcErrs[bkg].extend([1.00 + 0.20*(bkg==bkg1) for bkg1 in bkgs]) 
             
