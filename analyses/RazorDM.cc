@@ -58,7 +58,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   TTree *razorTree = new TTree("RazorDM", "Info on selected razor DM events");
   
   // tree to compute the cut efficiency
-  TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
+  //TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
 
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
@@ -80,6 +80,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   //tree variables
   int nSelectedJets, nBTaggedJetsL, nBTaggedJetsM, nBTaggedJetsT;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
+  UInt_t run, lumi, event;
   float MuonPt[5], MuonEta[5], MuonPhi[5], MuonE[5];
   float ElePt[5], EleEta[5], ElePhi[5], EleE[5];
   float MR;
@@ -97,6 +98,10 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
     //set branches on big tree
   if(combineTrees)
     {
+    razorTree->Branch("run",&run,"run/i");
+    razorTree->Branch("lumi",&lumi,"lumi/i");
+    razorTree->Branch("event",&event,"event/i");
+   
       razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
       razorTree->Branch("nBTaggedJetsL", &nBTaggedJetsL, "nBTaggedJetsL/I");
       razorTree->Branch("nBTaggedJetsM", &nBTaggedJetsM, "nBTaggedJetsM/I");
@@ -207,7 +212,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[120]/O");
     }
   }
     
@@ -226,12 +231,17 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 
         //fill normalization histogram
         NEvents->Fill(1.0);
+      
+        // event info
+        run = runNum;
+        lumi = lumiNum;
+        event = eventNum;
 
         //reset tree variables
         nSelectedJets = 0;
         nBTaggedJetsL = 0;
-	nBTaggedJetsM = 0;
-	nBTaggedJetsT =0;
+	    nBTaggedJetsM = 0;
+	    nBTaggedJetsT =0;
         nLooseMuons = 0;
         nTightMuons = 0;
         nLooseElectrons = 0;
@@ -239,9 +249,9 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
         nTightTaus = 0;
         MR        = -1.0;
         Rsq       = -1.0;
-	t1Rsq     = -1.0;
-	RsqCorr   = -1.0;
-	t1RsqCorr = -1.0;
+	    t1Rsq     = -1.0;
+	    RsqCorr   = -1.0;
+	    t1RsqCorr = -1.0;
       leadingJetPt = -1;
       leadingJetEta = 0.0;
       subLeadingJetPt = -1;
@@ -436,12 +446,12 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
    
 
     // Compute HT and MHT
-    float MhtX=0, MhtY=0;
-    HT = 0; 
+    float MhtX = 0., MhtY = 0.;
+    HT = 0.; 
     for (auto& obj : GoodJets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
 
       TLorentzVector MyMHT;
-      MyMHT.SetPxPyPzE(- MhtX, -MhtY, 0, sqrt( pow(MhtX,2) + pow(MhtY,2)));
+      MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
 
       MHT = MyMHT.Pt();
     
