@@ -105,10 +105,13 @@ if __name__ == "__main__":
     if len(boxList) == 1:
         #get card name
         cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])
-        exec_me('combine -M Asymptotic '+cardName, False)
+        combineName = 'MADD_'+boxList[0]+'_'+modelName
+        exec_me('combine -M Asymptotic %s -n %s'%(cardName,combineName), False)
+        exec_me('mv higgsCombine%s.Asymptotic.mH120.root %s/'%(combineName,outDir),False)
     elif len(boxList) > 1:
         #get card names
         cardNames = []
+        combineName = 'MADD_'+('_'.join(boxList))+'_'+modelName
         for curBox in boxList:
             cardName = 'RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,curBox)
             cardNames.append(cardName)
@@ -116,4 +119,6 @@ if __name__ == "__main__":
         combinedCardName = 'RazorInclusiveMADD_'+('_'.join(boxList))+'.txt'
         exec_me('cd '+outDir+'; combineCards.py '+(' '.join(cardNames))+' > '+combinedCardName+'; cd ..', False)
         #call combine
-        exec_me('combine -M Asymptotic '+outDir+'/'+combinedCardName, False)
+        exec_me('combine -M Asymptotic '+outDir+'/'+combinedCardName+' -n '+combineName, False)
+        #store output in output directory
+        exec_me('mv higgsCombine%s.Asymptotic.mH120.root %s/'%(combineName,outDir),False)
