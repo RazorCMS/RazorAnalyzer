@@ -16,6 +16,7 @@ SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L",
 SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
+BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
 config="config/run2_20151108_Preapproval_2b3b_data.config"
 
@@ -30,7 +31,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
     parser.add_argument('--box', help="choose a box")
-    parser.add_argument('--dir', help="output directory (should contain the ROOT files with the background histograms)", default="SignalRegionPlots", dest='dirName')
+    parser.add_argument('--dir', help="output directory", default="SignalRegionPlots", dest='outDir')
     parser.add_argument('--no-sys',dest="noSys",default=False,action='store_true', help="no systematic templates")
     parser.add_argument('--no-stat',dest="noStat",default=False,action='store_true', help="no MC statistics uncertainty")
     #sigal options
@@ -41,7 +42,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
-    dirName = args.dirName
+    outDir = args.outDir
 
     if args.box is None:
         print "Please choose an analysis box with --box"
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     boxList = box.split('_') #interpret box1_box2_... as a list of boxes to combine
 
     #make output directory
-    os.system('mkdir -p '+dirName)
+    os.system('mkdir -p '+outDir)
 
     for curBox in boxList:
         #get configuration for this box
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         unrollBins = [(xbinsSignal[curBox][str(btags)+'B'], colsSignal[curBox][str(btags)+'B']) for btags in range(4)]
 
         #make combined unrolled histograms for background
-        backgroundHists = unrollAndStitch(curBox, samples=samples, directory=dirName, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), debugLevel=debugLevel)
+        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), debugLevel=debugLevel)
 
         #treat appropriate uncertainties as uncorrelated bin to bin
         toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck']
@@ -78,9 +79,9 @@ if __name__ == "__main__":
         else:
             modelName = 'SMS-'+args.model+'_'+str(args.mStop)+'_'+str(args.mLSP)
         signalFilename=SIGNAL_DIR+'/'+modelName+'.root'
-        exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s'%(config, dirName, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename), False) 
+        exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s'%(config, outDir, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename), False) 
         #load SMS template histograms
-        signalHistFilename = '%s/%s_lumi-%.3f_0-3btag_%s.root'%(dirName,modelName,LUMI*1.0/1000,curBox)
+        signalHistFilename = '%s/%s_lumi-%.3f_0-3btag_%s.root'%(outDir,modelName,LUMI*1.0/1000,curBox)
         signalHists = macro.importHists(signalHistFilename)
         #update with correct names
         for x,h in signalHists.items():
@@ -91,7 +92,7 @@ if __name__ == "__main__":
         hists.update(signalHists)
 
         #write histograms to ROOT file
-        outFileName = dirName+'/RazorInclusiveMADD_lumi-%.1f_%s.root'%(LUMI*1.0/1000.,curBox)
+        outFileName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.root'%(LUMI*1.0/1000.,curBox)
         outFile = rt.TFile(outFileName, 'recreate')
         for x,h in hists.iteritems():
             h.Write()
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     #run combine
     if len(boxList) == 1:
         #get card name
-        cardName = dirName+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])
+        cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])
         exec_me('combine -M Asymptotic '+cardName, False)
     elif len(boxList) > 1:
         #get card names
@@ -113,6 +114,6 @@ if __name__ == "__main__":
             cardNames.append(cardName)
         #combine cards
         combinedCardName = 'RazorInclusiveMADD_'+('_'.join(boxList))+'.txt'
-        exec_me('cd '+dirName+'; combineCards.py '+(' '.join(cardNames))+' > '+combinedCardName+'; cd ..', False)
+        exec_me('cd '+outDir+'; combineCards.py '+(' '.join(cardNames))+' > '+combinedCardName+'; cd ..', False)
         #call combine
-        exec_me('combine -M Asymptotic '+dirName+'/'+combinedCardName, False)
+        exec_me('combine -M Asymptotic '+outDir+'/'+combinedCardName, False)

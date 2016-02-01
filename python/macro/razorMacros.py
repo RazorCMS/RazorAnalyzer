@@ -1068,12 +1068,12 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING
 #########################################
 
-def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True):
+def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True):
     """
     Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
     """
 
-    filenames = [directory+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
 
     #get information from each b-tag bin
     unrolledMC = {s:[] for s in samples}
@@ -1157,6 +1157,6 @@ def unrollAndStitch(boxName, samples=[], directory=".", dataName="Data", var=('M
                 histsForDataCard[sample+'_'+shape].SetTitle(sample+'_'+shape)
 
     if export:
-        macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=directory, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)
+        macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=outDir, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)
 
     return histsForDataCard

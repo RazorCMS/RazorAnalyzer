@@ -70,7 +70,7 @@ def importHists(inFileName='hists.root', debugLevel=0):
 
     hists = {}
     print "\nGetting histograms from file",inFileName
-    inFile = rt.TFile(inFileName)
+    inFile = rt.TFile.Open(inFileName)
     for dirpath, dirnames, filenames, tdirectory in walk(inFile):
         if len(filenames) > 0: #there are objects to retrieve
             dirInFile = dirpath.split(':')[-1].split('/')[1:] #get path to histogram as a list of subdirectories
