@@ -810,7 +810,7 @@ def plot_basic_2D(c, mc=0, data=0, fit=0, xtitle="", ytitle="", ztitle="Events",
                 legDataMC.AddEntry(blindMC, "MC Prediction")
             legDataMC.AddEntry(unrolled[1], "Data")
             rt.SetOwnership(legDataMC, False)
-            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr, ratiomin=0.0,ratiomax=5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
+            plot_basic(c, blindStack, unrolled[1], None, legDataMC, xtitle="Bin", ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, mcErrColor=rt.kBlack, commentstr=commentstr.replace('Sideband Fit',''), ratiomin=0.0,ratiomax=5, pad2Opt="ratio", saveroot=True, savec=savec, printdir=printdir)
             legDataMC.Delete()
             blindStack.Delete()
         if fit: 

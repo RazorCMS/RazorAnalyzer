@@ -514,7 +514,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     nsigmaFitData = None
     nsigmaFitMC = None
     dataForTable = None
-    if fitToyFiles and ("MR","Rsq") in bins:
+    if fitToyFiles is not None and boxName in fitToyFiles and fitToyFiles[boxName] is not None and ("MR","Rsq") in bins:
         noFitStat=True
         print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
         import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
@@ -526,31 +526,6 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir, listAllMC=True)
-
-        if len(samples) > 0: #compare fit with MC
-            #make total MC histogram
-            mcTotal = hists[samples[0]][("MR","Rsq")].Clone("mcTotal")
-            mcTotal.Reset()
-            for name in samples:
-                mcTotal.Add(hists[name][("MR","Rsq")])
-            fitMCComparisonUp = hists['Fit'][('MR','Rsq')].Clone('fitMCComparisonUp') #up histo = fit
-            fitMCComparisonDown = mcTotal.Clone('fitMCComparisonDown') #down histo = mc - (fit - mc)
-            fitMCComparisonDown.Add(mcTotal)
-            fitMCComparisonDown.Add(hists['Fit'][('MR','Rsq')], -1)
-            for bx in range(1, mcTotal.GetSize()+1):
-                #check compatibility within 1 sigma
-                #binErr = ( (mcTotal.GetBinError(bx))**2 + (hists['Fit'][('MR','Rsq')].GetBinError(bx))**2 )**(0.5)
-                #if abs(mcTotal.GetBinContent(bx) - hists['Fit'][('MR','Rsq')].GetBinContent(bx)) < binErr:
-                #    fitMCComparisonUp.SetBinContent(bx, mcTotal.GetBinContent(bx))
-                #    fitMCComparisonDown.SetBinContent(bx, mcTotal.GetBinContent(bx))
-                #zero any negative bins
-                if fitMCComparisonDown.GetBinContent(bx) < 0:
-                    fitMCComparisonDown.SetBinContent(bx, 0)
-            #insert into shape histogram collection
-            if 'Sys' in hists:
-                hists['Sys']['Fit'] = {}
-                hists['Sys']['Fit']['mcfitcrosscheckUp'] = fitMCComparisonUp
-                hists['Sys']['Fit']['mcfitcrosscheckDown'] = fitMCComparisonDown
 
     #print histograms
     rt.SetOwnership(c, False)

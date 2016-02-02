@@ -397,6 +397,8 @@ def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
 
 def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], scaleFactorNames={}, debugLevel=0):
     """Returns a dict with available scale factor histograms"""
+    if debugLevel > 0:
+        print "Opening scale factor file",sfFilename
     sfFile = rt.TFile.Open(sfFilename)
     assert sfFile
     sfHists = {}

@@ -252,8 +252,10 @@ razorBoxes = {
         "EleMultiJet" : [6,7,19],
         "LooseLeptonMultiJet" : [9,10,20],
         "MultiJet" : [11,12,21],
+        "FourToSixJet" : [11,12,21],
+        "SevenJet" : [11,12,21],
         }
-hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet"]
+hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet", "FourToSixJet", "SevenJet"]
 looseLeptonRazorBoxes = ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]
 leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet"]
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
@@ -274,6 +276,8 @@ for box in razorBoxes:
         razorCuts[box] = appendBoxCuts(leptonicSignalRegionCuts, razorBoxes[box])
     elif box in dileptonRazorBoxes:
         razorCuts[box] = appendBoxCuts(dileptonSignalRegionCuts, razorBoxes[box])
+razorCuts['FourToSixJet'] += ' && nSelectedJets < 7'
+razorCuts['SevenJet'] += ' && nSelectedJets >= 7'
 
 #NOTE: razor binning should generally be taken directly from a config, to avoid conflicts with fit code
 leptonicSignalRegionBins = {
@@ -314,6 +318,9 @@ xbinsSignal["EleMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+
+xbinsSignal["FourToSixJet"] = xbinsSignal["MultiJet"]
+xbinsSignal["SevenJet"] = xbinsSignal["MultiJet"]
 
 colsSignal["MultiJet"]["0B"] = [
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
@@ -419,3 +426,6 @@ colsSignal["EleMultiJet"]["3B"] = [
         [ 0.15, 0.25, 1.5 ],
         [ 0.15, 0.25, 1.5 ],
         ]
+
+colsSignal["FourToSixJet"] = colsSignal["MultiJet"]
+colsSignal["SevenJet"] = colsSignal["MultiJet"]
