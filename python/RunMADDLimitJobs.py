@@ -11,17 +11,15 @@ from framework import Config
 from GChiPairs import gchipairs
 from WriteRazorMADDCard import LUMI
     
-def writeBashScript(box,model,mg,mchi,submitDir,unblind,noSys):
+def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
     
     massPoint = "%i_%i"%(mg, mchi)
 
-    unblindString = ''
-    if unblind:
-        unblindString = '--unblind'
-        
     sysString = ''
     if noSys:
-        sysString = '--no-sys --no-stat'
+        sysString += '--no-sys --no-stat'
+    if fitSys:
+        sysString += '--fit-sys'
 
     particleString = '--mGluino'
     if 'T2' in model:
@@ -59,7 +57,7 @@ def writeBashScript(box,model,mg,mchi,submitDir,unblind,noSys):
     script += 'make\n'
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
-    script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i %s --dir %s --box %s %s\n'%(model,particleString,mg,mchi,unblindString,submitDir,box,sysString)
+    script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -81,8 +79,6 @@ if __name__ == '__main__':
                   help="signal model name")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store cards")
-    parser.add_option('--unblind',dest="unblind", default=False,action='store_true',
-                  help="changes for data")
     parser.add_option('--no-sub',dest="noSub", default=False,action='store_true',
                   help="no submission")
     parser.add_option('-q','--queue',dest="queue",default="1nh",type="string",
@@ -99,6 +95,8 @@ if __name__ == '__main__':
                   help="file containing output files")
     parser.add_option('--no-sys',dest="noSys",default=False,action='store_true',
                   help="no shape systematic uncertainties")
+    parser.add_option('--fit-sys',dest="fitSys",default=False,action='store_true',
+                  help="use fit vs MC systematic")
 
     (options,args) = parser.parse_args()
 
@@ -131,13 +129,13 @@ if __name__ == '__main__':
         nJobs+=1
 
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
-                options.outDir, options.unblind, options.noSys)
+                options.outDir, options.noSys, options.fitSys)
         
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
         if not options.noSub:
-            time.sleep(3)
+            time.sleep(2)
             os.system("bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
 
     print "nJobs = %i"%nJobs

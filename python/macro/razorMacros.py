@@ -1043,7 +1043,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING
 #########################################
 
-def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True):
+def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False):
     """
     Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
     """
@@ -1053,6 +1053,7 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
     #get information from each b-tag bin
     unrolledMC = {s:[] for s in samples}
     unrolledData = []
+    unrolledFit = []
     unrolledShapeHists = {s:{} for s in samples}
     for i,f in enumerate(filenames):
         #bins for unrolling
@@ -1088,6 +1089,9 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
                 unrolledShapeHists[s][shape].append(plotting.unroll2DHistograms([shapeHists[s][shape][var]], unrollRows, unrollCols)[0])
         #unroll data
         unrolledData.append(plotting.unroll2DHistograms([hists[dataName][var]], unrollRows, unrollCols)[0])
+        if addMCVsFit:
+            unrolledFit.append(plotting.unroll2DHistograms([hists['Fit'][var]], unrollRows, unrollCols)[0])
+
 
     #piece together histograms from different b-tag bins
     histsForDataCard = {}
@@ -1106,6 +1110,34 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
             #create histogram
             histsForDataCard[s+'_'+shape] = macro.stitch(unrolledShapeHists[s][shape])
     histsForDataCard['data_obs'] = macro.stitch(unrolledData)
+
+    #make MC vs Fit systematic
+    if addMCVsFit:
+        fitTotal = macro.stitch(unrolledFit)
+
+        #make total MC histogram to compare with fit
+        mcTotal = histsForDataCard[samples[0]].Clone('mcTotal')
+        mcTotal.Reset()
+        for s in samples:
+            mcTotal.Add(histsForDataCard[s])
+            histsForDataCard[s+'_fitmccrosscheckUp'] = histsForDataCard[s].Clone()
+            histsForDataCard[s+'_fitmccrosscheckDown'] = histsForDataCard[s].Clone()
+            histsForDataCard[s+'_fitmccrosscheckUp'].SetName(s+'_fitmccrosscheckUp')
+            histsForDataCard[s+'_fitmccrosscheckDown'].SetName(s+'_fitmccrosscheckDown')
+            histsForDataCard[s+'_fitmccrosscheckUp'].SetTitle(s+'_fitmccrosscheckUp')
+            histsForDataCard[s+'_fitmccrosscheckDown'].SetTitle(s+'_fitmccrosscheckDown')
+        
+        #get fit/MC and propagate to individual MC processes
+        for bx in range(1, histsForDataCard[samples[0]].GetNbinsX()+1):
+            if mcTotal.GetBinContent(bx) > 0:
+                fitOverMC = fitTotal.GetBinContent(bx) / mcTotal.GetBinContent(bx)
+
+                for s in samples:
+                    histsForDataCard[s+'_fitmccrosscheckUp'].SetBinContent(bx, 
+                            histsForDataCard[s].GetBinContent(bx) * fitOverMC)
+                    histsForDataCard[s+'_fitmccrosscheckDown'].SetBinContent(bx, 
+                            histsForDataCard[s].GetBinContent(bx) / fitOverMC)
+
 
     #make statistical uncertainty up/down histograms
     if addStatUnc:

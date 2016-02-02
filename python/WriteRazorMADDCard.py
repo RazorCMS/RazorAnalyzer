@@ -8,17 +8,10 @@ from macro.razorMacros import unrollAndStitch
 from RunCombine import exec_me
 from DustinTuples2DataCard import uncorrelate, writeDataCard_th1
 import macro.macro as macro
-
-LUMI = 2185 #in /pb
-
-SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
-SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
-SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
+from SidebandMacro import SAMPLES, LUMI, config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
-
-config="config/run2_20151108_Preapproval_2b3b_data.config"
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -29,7 +22,6 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--dir', help="output directory", default="SignalRegionPlots", dest='outDir')
     parser.add_argument('--no-sys',dest="noSys",default=False,action='store_true', help="no systematic templates")
@@ -39,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('--mGluino',default=-1,type=int, help="mass of gluino")
     parser.add_argument('--mStop',default=-1,type=int, help="mass of stop")
     parser.add_argument('--mLSP',default=-1,type=int, help="mass of LSP")
+    parser.add_argument('--fit-sys', dest="addMCVsFit", action='store_true', help="add MC vs fit systematic")
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -59,7 +52,7 @@ if __name__ == "__main__":
         unrollBins = [(xbinsSignal[curBox][str(btags)+'B'], colsSignal[curBox][str(btags)+'B']) for btags in range(4)]
 
         #make combined unrolled histograms for background
-        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), debugLevel=debugLevel)
+        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
 
         #treat appropriate uncertainties as uncorrelated bin to bin
         toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck']
