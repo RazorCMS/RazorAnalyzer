@@ -26,14 +26,14 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
         particleString = '--mStop'
 
     # prepare the script to run
-    outputname = submitDir+"/submit_"+model+"_"+massPoint+"_lumi-%.3f_"%(LUMI*1.0/1000)+box+".src"
+    outputname = 'Limits/'+submitDir+"/submit_"+model+"_"+massPoint+"_lumi-%.3f_"%(LUMI*1.0/1000)+box+".src"
         
-    ffDir = submitDir+"/logs_"+model+"_"+massPoint+"_"+box
+    ffDir = 'Limits/'+submitDir+"/logs_"+model+"_"+massPoint+"_"+box
     user = os.environ['USER']
     pwd = os.environ['PWD']
     cmsswBase = os.environ['CMSSW_BASE']
     
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/%s/"%(user[0],user,model) # directory where combine output files will be copied
+    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/%s/%s/"%(user[0],user,submitDir,model) # directory where combine output files will be copied
 
     script =  '#!/usr/bin/env bash -x\n'
     script += 'mkdir -p %s\n'%combineDir
@@ -52,10 +52,9 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    #script += 'git checkout -b Limits Limits20151211\n' #TODO: make a tag for MADD
+    #script += 'git checkout -b Limits Limits20151211\n' #TODO: make a tag for MADD limits
     #script += 'source setup.sh\n' #needed for MADD?
     script += 'make\n'
-    script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
@@ -128,14 +127,15 @@ if __name__ == '__main__':
         if (mg, mchi) in donePairs: continue
         nJobs+=1
 
+        pwd = os.environ['PWD']
+        os.system("mkdir -p "+pwd+"/Limits/"+options.outDir)
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
                 options.outDir, options.noSys, options.fitSys)
         
-        pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
         if not options.noSub:
-            time.sleep(2)
+            time.sleep(3)
             os.system("bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)
 
     print "nJobs = %i"%nJobs
