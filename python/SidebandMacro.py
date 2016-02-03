@@ -61,7 +61,7 @@ weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
 commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
+hadShapeErrors = commonShapeErrors+['vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors, 'FourToSixJet':hadShapeErrors, 'SevenJet':hadShapeErrors }
 
 cfg = Config.Config(config)
@@ -158,18 +158,16 @@ if __name__ == "__main__":
     assert sfHists['ZInvUp']
     assert sfHists['ZInvDown']
     #get veto lepton and tau scale factor histograms
-    vnames = ['', 'Up', 'Down', 'MTUp', 'MTDown', 'DPhiUp', 'DPhiDown']
     vlPtFile = rt.TFile.Open(vetolepPtFile)
     assert vlPtFile
     vtPtFile = rt.TFile.Open(vetotauPtFile)
     assert vtPtFile
-    vlPtHists = { 'VetoLeptonPt'+n:vlPtFile.Get('VetoLeptonPtScaleFactors'+n) for n in vnames }
-    vtPtHists = { 'VetoTauPt'+n:vtPtFile.Get('VetoTauPtScaleFactors'+n) for n in vnames }
-    for n in vnames: 
-        assert vlPtHists['VetoLeptonPt'+n]
-        assert vtPtHists['VetoTauPt'+n]
-    sfHists.update(vlPtHists)
-    sfHists.update(vtPtHists)
+    sfHists['VetoLeptonPtUp'] = vlPtFile.Get('VetoLeptonPtScaleFactors')
+    assert sfHists['VetoLeptonPtUp']
+    sfHists['VetoLeptonPtDown'] = invertHistogram(sfHists['VetoLeptonPtUp'])
+    sfHists['VetoTauPtUp'] = vtPtFile.Get('VetoTauPtScaleFactors')
+    assert sfHists['VetoTauPtUp']
+    sfHists['VetoTauPtDown'] = invertHistogram(sfHists['VetoTauPtUp'])
     vlEtaFile = rt.TFile.Open(vetolepEtaFile)
     assert vlEtaFile
     vtEtaFile = rt.TFile.Open(vetotauEtaFile)
@@ -218,10 +216,7 @@ if __name__ == "__main__":
     sfHists7Jet = sfHists.copy()
     sfHists7Jet.update(sevenJetSFHists)
 
-    auxSFs = { #do not correct lepton pt
-        #"VetoLeptonPt":("leadingGenLeptonPt", "(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"), 
-        #"VetoTauPt":("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"),
-        }
+    auxSFs = {} #do not correct veto lepton pt or eta
 
     #estimate yields in signal region
     for boxName in boxesToUse:
@@ -249,7 +244,7 @@ if __name__ == "__main__":
         if boxName == 'SevenJet':
             sfHistsToUse = sfHists7Jet
 
-        #apply veto lepton correction only to MultiJet box
+        #apply veto lepton correction only to Multijet box
         if boxName == 'MultiJet' or boxName == 'FourToSixJet' or boxName == 'SevenJet':
             auxSFsToUse = auxSFs
         else:
