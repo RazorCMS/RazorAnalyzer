@@ -100,6 +100,9 @@ double RazorAnalyzer::GetDPhiMin(vector<TLorentzVector> jets)
 {
     int nJets = jets.size();
     double dPhiMin = -1.;
+    float HT = 0.;
+    float MhtX = 0.;
+    float MhtY = 0.;
     // Search for min dPhi between recomputed missing HT and test jets
     for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
     TLorentzVector MyMHT;
