@@ -795,6 +795,7 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
     h_data.Draw("pe")
     hClone.Draw("e2same")
 
+    
     nBinsMR = 5
     if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel:
         nBinsMR = 7
@@ -807,7 +808,8 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
                 if i>=nBinsMR+1:
                     if (i-1)%(nBinsMR)!=0:
                         hFit.SetBinContent(i, 0)
-            hFit.SetFillColor(rt.kGreen-10)
+            hFit.SetFillColor(rt.kGreen-4)
+            hFit.SetFillStyle(3144)
             hFit.Draw("e2same")
                 
     h.SetFillStyle(0)
@@ -938,7 +940,8 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
         l.DrawLatex(0.15,0.9,"CMS simulation")
     l.DrawLatex(0.75,0.9,"%s"%lumiLabel)
     l.SetTextFont(52)
-    l.SetTextSize(0.045)
+    #l.SetTextSize(0.045)
+    l.SetTextSize(0.055)
     l.DrawLatex(0.2,0.82,boxLabel)
     l.DrawLatex(0.3,0.77,plotLabel)
     if doSignalInj:        
@@ -1341,7 +1344,7 @@ def get1DHistoFrom2D(h2D,x,y,name):
     return h1D
 
 
-def get1DHistoFrom3D(h3D,x,y,name):
+def get1DHistoFrom3D(h3D,x,y,z,name):
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
     h1D = rt.TH1D(name,name,nBins,0,nBins)
 
@@ -1958,7 +1961,12 @@ if __name__ == '__main__':
                     print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options,None,[h_sig_th1x_components[k]])
                 else:
                     print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options)
-                print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)   
+                print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)
+            else:                
+                if doSignalInj:
+                    print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options,None,[h_sig_th1x_components[k]])
+                else:
+                    print1DProj(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],options.outDir+"/h_th1x_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options)
             #print2DResiduals(c,tdirectory,h_RsqMR_residuals_components[k],options.outDir+"/h_RsqMR_residuals_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Residuals (%s - Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)
             #print2DResiduals(c,tdirectory,h_RsqMR_percentdiff_components[k],options.outDir+"/h_RsqMR_percentdiff_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Percent Diff. (%s - Fit)/Fit"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData)
             print2DResiduals(c,tdirectory,h_RsqMR_statnsigma_components[k],options.outDir+"/h_RsqMR_statnsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat. n#sigma (%s - Fit)/sqrt(Fit)"%dataString,lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)
