@@ -30,6 +30,96 @@ TLorentzVector RazorAnalyzer::makeTLorentzVectorPtEtaPhiM(double pt, double eta,
     return vec;
 }
 
+double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets) 
+{   
+    int nJets = jets.size();
+    vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
+    vector<TLorentzVector> possibleHem2s;
+    double alphaT = 0;
+    
+    if(nJets < 2) return alphaT;
+    
+    int nComb = pow(2, nJets); // # possible combinations
+    
+    // steal from the getHemispheres method
+
+    //step 1: store all possible partitions of the input jets
+    int j_count;
+    for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
+        TLorentzVector j_temp1, j_temp2;
+        int itemp = i;
+        j_count = nComb/2;
+        int count = 0;
+        
+        while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2
+            if(itemp/j_count == 1){
+                j_temp1 += jets[count];
+            } else {
+                j_temp2 += jets[count];
+            }
+            itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count
+            j_count /= 2;
+            count++;
+        }
+        possibleHem1s.push_back(j_temp1);
+        possibleHem2s.push_back(j_temp2);
+    }
+    
+    //step 2: Select combination that mininize |ET1 - ET2|
+    double eMin = -1;
+    TLorentzVector myHem1;
+    TLorentzVector myHem2;
+
+    for(size_t i=0; i < possibleHem1s.size(); i++)
+    {
+        double eTemp = fabs(possibleHem1s[i].Et() - possibleHem2s[i].Et());
+        if (eMin < 0 || eTemp < eMin)
+        {
+            eMin = eTemp;
+            myHem1 = possibleHem1s[i];
+            myHem2 = possibleHem2s[i];
+        }
+    }
+    
+    float MhtX = 0., MhtY = 0.;
+    float HT = 0.; 
+    for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+
+      TLorentzVector MyMHT;
+      MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
+
+    float MHT = MyMHT.Pt();
+
+    // Calculate alphaT
+    alphaT = 0.5 * (1-eMin/HT)/sqrt(1-pow(MHT/HT,2));
+
+    return alphaT;  
+}
+
+double RazorAnalyzer::GetDPhiMin(vector<TLorentzVector> jets)
+{
+    int nJets = jets.size();
+    double dPhiMin = -1.;
+    float HT = 0.;
+    float MhtX = 0.;
+    float MhtY = 0.;
+    // Search for min dPhi between recomputed missing HT and test jets
+    for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+    TLorentzVector MyMHT;
+    MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
+
+    for (int i = 0; i < nJets; i++)
+    {
+        TLorentzVector recomputedMHT = MyMHT - jets[i];
+        double phiTemp = fabs(recomputedMHT.Phi() - jets[i].Phi());
+        if (dPhiMin < 0 || phiTemp < dPhiMin)
+        {
+            dPhiMin = phiTemp;
+        }
+    }
+    return dPhiMin;
+}
+
 vector<TLorentzVector> RazorAnalyzer::getHemispheres(vector<TLorentzVector> jets){
     int nJets = jets.size();
     vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations

@@ -70,7 +70,7 @@ def importHists(inFileName='hists.root', debugLevel=0):
 
     hists = {}
     print "\nGetting histograms from file",inFileName
-    inFile = rt.TFile(inFileName)
+    inFile = rt.TFile.Open(inFileName)
     for dirpath, dirnames, filenames, tdirectory in walk(inFile):
         if len(filenames) > 0: #there are objects to retrieve
             dirInFile = dirpath.split(':')[-1].split('/')[1:] #get path to histogram as a list of subdirectories
@@ -104,6 +104,26 @@ def importHists(inFileName='hists.root', debugLevel=0):
                         print "Retrieved histogram",tkey
     inFile.Close()
     return hists
+
+def stitch(th1s = []):
+    """Join the input histograms end-to-end to form one long 1D histogram.
+    Bins in the output histogram have width 1 and the x-axis starts at 0."""
+    if len(th1s) == 0:
+        return
+    #get total number of bins across all inputs
+    totalNBins = sum([th1.GetNbinsX() for th1 in th1s])
+    #concatenate hist names
+    name = 'and'.join([th1.GetName() for th1 in th1s])
+    #make output hist
+    out = rt.TH1F(name, name, totalNBins, 0, totalNBins)
+    out.SetDirectory(0)
+    bn = 1
+    for i,th1 in enumerate(th1s):
+        for bx in range(1, th1.GetNbinsX()+1):
+            out.SetBinContent(bn, th1.GetBinContent(bx))
+            out.SetBinError(bn, th1.GetBinError(bx))
+            bn += 1
+    return out
 
 def makeTH2PolyFromColumns(name, title, xbins, cols):
     """

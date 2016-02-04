@@ -9,6 +9,7 @@ from framework import Config
 from DustinTuple2RooDataSet import initializeWorkspace
 from DustinTuples2DataCard import convertTree2TH1, uncorrelate
 from RunCombine import exec_me
+from macro.razorAnalysis import xbinsSignal, colsSignal
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -24,6 +25,8 @@ if __name__ == '__main__':
                   help="box name")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic templates")
+    parser.add_option('--merge-bins',dest="mergeBins", action="store_true",
+                  help="merge some bins in Rsq")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
     #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
                   #help="Number of nuisance parameters to use for PDF uncertainties")
@@ -40,11 +43,15 @@ if __name__ == '__main__':
     f = args[0]
     print 'Input file is %s' % f
 
+    unrollBins = None
+    if options.mergeBins:
+        unrollBins = [(xbinsSignal[box][str(btags)+'B'], colsSignal[box][str(btags)+'B']) for btags in range(4)]
+
     if options.noSignalSys:
         shapes = []
     else:
         shapes = ['tightmuoneff','tighteleeff','vetomuoneff','vetoeleeff','jes','muontrig','eletrig','btag','tightmuonfastsim','tightelefastsim','vetomuonfastsim','vetoelefastsim','btagfastsim','facscale','renscale','facrenscale','ees','mes','pileup','isr','mcstat%s'%box.lower()]
-        shapes.append('pdf%s'%box.lower()) #this is for the flat 10% PDF uncertainty (uncorrelated across bins)
+        #shapes.append('pdf%s'%box.lower()) #this is for the flat 10% PDF uncertainty (uncorrelated across bins)
         #shapes.extend(['n'+str(n)+'pdf' for n in range(options.numPdfWeights)])
 
     for curBox in boxList:
@@ -124,11 +131,11 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, unrollBins=unrollBins))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents, unrollBins=unrollBins))
             rootFile.Close()
 
             #make pdf envelope up/down (for SUS pdf uncertainty prescription)

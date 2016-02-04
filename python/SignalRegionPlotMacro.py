@@ -7,26 +7,7 @@ from framework import Config
 from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.razorMacros import plotControlSampleHists
 import macro.macro as macro
-
-LUMI = 2185 #in /pb
-MCLUMI = 1 
-
-SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
-SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
-SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
-BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
-
-config = "config/run2_20151108_Preapproval_2b3b_data.config"
-cfg = Config.Config(config)
-binsMRHad = cfg.getBinning("MultiJet")[0]
-binsRsqHad = cfg.getBinning("MultiJet")[1]
-hadronicBinning = { "MR":binsMRHad, "Rsq":binsRsqHad, ("MR","Rsq"):[] }
-binsMRLep = cfg.getBinning("MuMultiJet")[0]
-binsRsqLep = cfg.getBinning("MuMultiJet")[1]
-leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, ("MR","Rsq"):[] }
-binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning}
-
-blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2,len(binning[b]["Rsq"])+1)] for b in binning}
+from SidebandMacro import SAMPLES, LUMI, MCLUMI, binning, blindBins, shapes
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -38,6 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
+    parser.add_argument("--full", help="label plot as full fit", action='store_true')
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', help="choose number of b-tags", type=int)
     parser.add_argument('--dir', help="output directory (should contain the ROOT files with the razor histograms)", default="SignalRegionPlots", dest='dirName')
@@ -46,10 +28,13 @@ if __name__ == "__main__":
     dirName = args.dirName
 
     plotOpts = {"ymin":1e-3}
+    doSideband=(not args.full)
+    if not doSideband:
+        plotOpts['sideband'] = False
+    else:
+        plotOpts['sideband'] = True
 
-    if args.unblind:
-        dirName += '_Unblinded'
-    boxesToUse = BOXES
+    boxesToUse = ["MultiJet","MuMultiJet","EleMultiJet"]
     if args.box is not None:
         boxesToUse = [args.box]
 
@@ -76,4 +61,4 @@ if __name__ == "__main__":
             unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
             inFile = dirName+'/razorHistograms'+extboxName+'.root'
 
-            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins)
+            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins, shapeErrors=shapes[boxName])
