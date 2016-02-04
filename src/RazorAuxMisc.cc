@@ -91,7 +91,7 @@ double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets)
     float MHT = MyMHT.Pt();
 
     // Calculate alphaT
-    alphaT = 0.5 * (1-eMin/HT)/sqrt(1-(MHT/HT)^2);
+    alphaT = 0.5 * (1-eMin/HT)/sqrt(1-pow(MHT/HT,2));
 
     return alphaT;  
 }
