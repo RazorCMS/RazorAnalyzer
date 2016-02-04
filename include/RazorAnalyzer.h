@@ -189,7 +189,8 @@ class RazorAnalyzer: public RazorEvents {
 	TLorentzVector makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass);
 	vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
 	std::vector< std::vector<int> > getHemispheresV2( std::vector<TLorentzVector> jets);
-	double computeMR(TLorentzVector hem1, TLorentzVector hem2);
+     
+    double computeMR(TLorentzVector hem1, TLorentzVector hem2);
         double computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector met);
 	double GetMT( TLorentzVector visible, TVector3 met );
 	double GetMTEnergy( TLorentzVector visible, TVector3 met );
@@ -204,7 +205,8 @@ class RazorAnalyzer: public RazorEvents {
 	
 	double calcMT2(float testMass, bool massive, std::vector<TLorentzVector> jets, TLorentzVector MET, int hemi_seed, int hemi_association);
 	
-
+    double GetAlphaT(vector<TLorentzVector> jets) ;
+    double GetDPhiMin(vector<TLorentzVector> jets);
 	
 	//functions in src/RazorAuxGenLevel.cc
 	bool matchesGenMuon(double eta, double phi);
