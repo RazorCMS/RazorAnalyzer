@@ -443,7 +443,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
     
     // Compute the variables alpha T and dPhiMin using the selected jets
     alphaT = GetAlphaT(GoodJets);
-    dPhiMin = GetDPhiMIn(GoodJets);  
+    dPhiMin = GetDPhiMin(GoodJets);  
 
 	//Compute the razor variables using the selected jets and possibly leptons
 	TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
