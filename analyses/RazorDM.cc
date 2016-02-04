@@ -18,6 +18,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       cout << "RazorDM: Output filename not specified!" << endl << "Using default output name RazorDM.root" << endl;
       outFileName = "RazorDM.root";
     }
+  if (combineTrees) cout << "Using combineTrees" << endl;
+  else cout << "Using razorBoxes" << endl;
   
   TFile outFile(outFileName.c_str(), "RECREATE");
   
@@ -85,6 +87,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   float ElePt[5], EleEta[5], ElePhi[5], EleE[5];
   float MR;
   float HT, MHT;
+  float alphaT, dPhiMin;
   float Rsq, t1Rsq, RsqCorr, t1RsqCorr;
   float t1metPt, t1metPhi, metPtCorr, metPhiCorr, t1metPtCorr, t1metPhiCorr;
   RazorBox box;
@@ -122,6 +125,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("JetEta", JetEta, "JetEta[nSelectedJets]/F");
       razorTree->Branch("JetPhi", JetPhi, "JetPhi[nSelectedJets]/F");
       
+      razorTree->Branch("alphaT", &alphaT, "alphaT/F");
+      razorTree->Branch("dPhiMin", &dPhiMin, "dPhiMin/F");
       
       razorTree->Branch("MR", &MR, "MR/F");
       razorTree->Branch("Rsq", &Rsq, "Rsq/F");
@@ -177,6 +182,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("JetPhi_uncorr", JetPhi_uncorr, "JetPhi_uncorr[nSelectedJets]/F");
       box.second->Branch("JetEta_uncorr", JetEta_uncorr, "JetEta_uncorr[nSelectedJets]/F");
       
+      box.second->Branch("alphaT", &alphaT, "alphaT/F");
+      box.second->Branch("dPhiMin", &dPhiMin, "dPhiMin/F");
       box.second->Branch("MR", &MR, "MR/F");
       box.second->Branch("Rsq", &Rsq, "Rsq/F");
       box.second->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
@@ -247,6 +254,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
         nLooseElectrons = 0;
         nTightElectrons = 0;
         nTightTaus = 0;
+        alphaT    = -1.0;
+        dPhiMin   = -1.0;
         MR        = -1.0;
         Rsq       = -1.0;
 	    t1Rsq     = -1.0;
@@ -431,7 +440,11 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	    }
 	    jIndex++;
 	  }
-      
+    
+    // Compute the variables alpha T and dPhiMin using the selected jets
+    alphaT = GetAlphaT(GoodJets);
+    dPhiMin = GetDPhiMin(GoodJets);  
+
 	//Compute the razor variables using the selected jets and possibly leptons
 	TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 	TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
