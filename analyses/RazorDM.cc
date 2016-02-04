@@ -333,7 +333,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
         int numJetsAbove80GeV = 0;
 	for( int i = 0; i < nJets; i++ )
 	  {
-	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue;
+	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue; 
 	    
 	    //ADDED LINES
 	    //int level = 2; //3rd bit of jetPileupIdFlag
