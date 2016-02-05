@@ -1670,7 +1670,7 @@ if __name__ == '__main__':
         h_nBtagRsqMR = getErrors3D(h_nBtagRsqMR,h_data_nBtagRsqMR,sysTree,options,"zyx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
         
         # convert after getting the 3D errors if provided
-        h_th1x = get1DHistoFrom3D(h_nBtagRsqMR,x,y,'h_th1x_wErrors')
+        h_th1x = get1DHistoFrom3D(h_nBtagRsqMR,x,y,z,'h_th1x_wErrors')
         
     h_MR_slices = []
     h_MR_integrals = []
