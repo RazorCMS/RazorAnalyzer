@@ -219,7 +219,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[120]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
     }
   }
     
