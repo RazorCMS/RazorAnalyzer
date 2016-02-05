@@ -265,7 +265,7 @@ if __name__ == '__main__':
                 
     set_palette("rainbow",255)
     rt.gStyle.SetOptStat(0)
-    rt.gROOT.ProcessLine(".L macros/swissCrossInterpolate.h+")
+    rt.gROOT.ProcessLine(".L macros/swissCrossInterpolate.h++")
     rt.gSystem.Load("macros/swissCrossInterpolate_h.so")
 
     mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing = getModelSettings(model)
