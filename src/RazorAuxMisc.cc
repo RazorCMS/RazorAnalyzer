@@ -112,7 +112,7 @@ double RazorAnalyzer::GetDPhiMin(vector<TLorentzVector> jets)
     {
     // Recompute MHT by ignoring a test jet 
         float recomputedMHTX = MhtX - jets[i].Px();
-        float recomputedMHTY = MhtX - jets[i].Py();
+        float recomputedMHTY = MhtY - jets[i].Py();
         TLorentzVector recomputedMHT;
         recomputedMHT.SetPxPyPzE(-recomputedMHTX, -recomputedMHTY, 0, sqrt(pow(recomputedMHTX,2) + pow(recomputedMHTY,2)));
         double phiTemp = fabs(recomputedMHT.Phi() - jets[i].Phi());
