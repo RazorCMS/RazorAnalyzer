@@ -61,6 +61,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root", int Option = -1); 
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorDM.root", bool combineTrees = false, bool isData = false );
+	virtual void RazorAlphaT(string outFileName = "RazorAlphaT.root", bool combineTrees = false, bool isData = false );
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false);
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
         virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false, bool filterEvents = true, bool isRunOne = true);
@@ -189,7 +190,8 @@ class RazorAnalyzer: public RazorEvents {
 	TLorentzVector makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass);
 	vector<TLorentzVector> getHemispheres(vector<TLorentzVector> jets);
 	std::vector< std::vector<int> > getHemispheresV2( std::vector<TLorentzVector> jets);
-	double computeMR(TLorentzVector hem1, TLorentzVector hem2);
+     
+    double computeMR(TLorentzVector hem1, TLorentzVector hem2);
         double computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector met);
 	double GetMT( TLorentzVector visible, TVector3 met );
 	double GetMTEnergy( TLorentzVector visible, TVector3 met );
@@ -197,14 +199,15 @@ class RazorAnalyzer: public RazorEvents {
 	double GetMTEnergy( TLorentzVector visible, TLorentzVector met );
 	double GetDphi( TLorentzVector visible, TVector3 met );
 	double GetDphi( TLorentzVector visible, TLorentzVector met );
+	
+    double GetAlphaT(vector<TLorentzVector> jets) ;
+    double GetDPhiMin(vector<TLorentzVector> jets);
 
         bool passesHadronicRazorBaseline(double MR, double Rsq);
         bool passesLeptonicRazorBaseline(double MR, double Rsq);
         int SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch=0.4);
 	
 	double calcMT2(float testMass, bool massive, std::vector<TLorentzVector> jets, TLorentzVector MET, int hemi_seed, int hemi_association);
-	
-
 	
 	//functions in src/RazorAuxGenLevel.cc
 	bool matchesGenMuon(double eta, double phi);

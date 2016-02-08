@@ -92,21 +92,27 @@ if __name__ == '__main__':
     penaltyString = ''
     if options.penalty: penaltyString = '--penalty'
         
-    json = 'Golden'
-    dataset = {'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
-               'LooseLeptonMultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
-               'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json,
-               'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_2093pb_GoodLumi%s_RazorSkim_Filtered'%json
+        
+    dataset = {#'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
+               'MultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter',
+               'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter',
+               'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter',
+               'DiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter',
+               'LooseLeptonMultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter'
                }
 
     eosLocationSMS = {#'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p21_ForFullStatus20151030/jobs/combined/',
                       #'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/MC/combined/',
-                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForApproval20151208/jobs/combined/',
-                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForApproval20151208/jobs/combined/',
-                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForApproval20151208/jobs/combined/'
+                      #'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForApproval20151208/jobs/combined/',
+                      'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
+                      'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
+                      'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
+                      'T2tt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
+                      'T5qqqqVV': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
                     }
 
-    eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
+    #eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
+    eosLocationData = 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForMoriond20160119/RazorSkim/'
 
     eosLocationBkg =  'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/'
     
@@ -161,7 +167,7 @@ if __name__ == '__main__':
             #exec_me('python python/WriteDataCard.py --num-pdf-weights %d %s -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, computePdfEnvelopeString, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
             
-            if len(boxes)>1 and not options.justCombo:
+            if (len(boxes)>1 and not options.justCombo) or len(boxes)==1:
                 if signif:
                     exec_me('combine -M ProfileLikelihood --signif --expectSignal=1 -t -1 --toysFreq %s/razor_combine_%s_%s_lumi-%.3f_%s.txt -n %s_%s_lumi-%.3f_%s'%(options.outDir,model,massPoint,lumi,box,model,massPoint,lumi,box),options.dryRun)
                     exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s.ProfileLikelihood.mH120.root %s/'%(model,massPoint,lumi,box,options.outDir),options.dryRun)
@@ -170,7 +176,7 @@ if __name__ == '__main__':
                         exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --setPhysicsModelParameterRanges r=0,%f --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat,options.rMax),options.dryRun)
                     else:
                         exec_me('combine -M Asymptotic %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt -n %s_%s_lumi-%.3f_%s_%s --minimizerTolerance %f --minimizerStrategy %i --saveWorkspace'%(options.outDir,model,massPoint,lumi,btag,box,model,massPoint,lumi,btag,box,options.min_tol,options.min_strat),options.dryRun)
-                    exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)
+                    exec_me('mv higgsCombine%s_%s_lumi-%.3f_%s_%s.Asymptotic.mH120.root %s/'%(model,massPoint,lumi,btag,box,options.outDir),options.dryRun)                
         if len(boxes)>1:
             for box in boxes: exec_me('cp %s/razor_combine_%s_%s_lumi-%.3f_%s_%s.txt .'%(options.outDir,model,massPoint,lumi,btag,box),options.dryRun)
             cmds = ['%s=razor_combine_%s_%s_lumi-%.3f_%s_%s.txt'%(box,model,massPoint,lumi,btag,box) for box in boxes]

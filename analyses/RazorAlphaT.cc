@@ -9,14 +9,14 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
+void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isData )
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
   if ( outFileName.empty() )
     {
-      cout << "RazorDM: Output filename not specified!" << endl << "Using default output name RazorDM.root" << endl;
-      outFileName = "RazorDM.root";
+      cout << "RazorAlphaT: Output filename not specified!" << endl << "Using default output name RazorAlphaT.root" << endl;
+      outFileName = "RazorAlphaT.root";
     }
   if (combineTrees) cout << "Using combineTrees" << endl;
   else cout << "Using razorBoxes" << endl;
@@ -57,7 +57,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
   
   //one tree to hold all events
-  TTree *razorTree = new TTree("RazorDM", "Info on selected razor DM events");
+  TTree *razorTree = new TTree("RazorAlphaT", "Info on selected razor DM events");
   
   // tree to compute the cut efficiency
   //TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
@@ -219,7 +219,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[120]/O");
     }
   }
     
@@ -342,7 +342,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
         int numJetsAbove80GeV = 0;
 	for( int i = 0; i < nJets; i++ )
 	  {
-	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue; 
+	    if(jetPt[i] < 40.0 || fabs(jetEta[i]) > 3.0) continue; 
 	    
 	    //ADDED LINES
 	    //int level = 2; //3rd bit of jetPileupIdFlag
@@ -457,7 +457,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
    
-
+   
     // Compute HT and MHT
     float MhtX = 0., MhtY = 0.;
     HT = 0.; 

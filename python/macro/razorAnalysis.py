@@ -259,8 +259,10 @@ razorBoxes = {
         "EleMultiJet" : [6,7,19],
         "LooseLeptonMultiJet" : [9,10,20],
         "MultiJet" : [11,12,21],
+        "FourToSixJet" : [11,12,21],
+        "SevenJet" : [11,12,21],
         }
-hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet"]
+hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet", "FourToSixJet", "SevenJet"]
 looseLeptonRazorBoxes = ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]
 leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet"]
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
@@ -281,6 +283,8 @@ for box in razorBoxes:
         razorCuts[box] = appendBoxCuts(leptonicSignalRegionCuts, razorBoxes[box])
     elif box in dileptonRazorBoxes:
         razorCuts[box] = appendBoxCuts(dileptonSignalRegionCuts, razorBoxes[box])
+razorCuts['FourToSixJet'] += ' && nSelectedJets < 7'
+razorCuts['SevenJet'] += ' && nSelectedJets >= 7'
 
 #NOTE: razor binning should generally be taken directly from a config, to avoid conflicts with fit code
 leptonicSignalRegionBins = {
@@ -304,13 +308,15 @@ hadronicBlindBins = [(x,y) for x in range(3,len(hadronicSidebandBins["MR"])+1) f
 
 #Non-grid binning for signal region
 
-xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{} }
-colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{} }
+xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "FourToSixJet":{}, "SevenJet":{}}
+colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "FourToSixJet":{}, "SevenJet":{}}
 
 xbinsSignal["MultiJet"]["0B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["1B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["2B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["3B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
+
+xbinsSignal["FourToSixJet"] = xbinsSignal["MultiJet"]
 
 xbinsSignal["MuMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MuMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
@@ -425,4 +431,38 @@ colsSignal["EleMultiJet"]["3B"] = [
         [ 0.15,0.20, 0.25, 1.5 ],
         [ 0.15, 0.25, 1.5 ],
         [ 0.15, 0.25, 1.5 ],
+        ]
+
+colsSignal["FourToSixJet"] = colsSignal["MultiJet"]
+
+xbinsSignal["SevenJet"]["0B"] = [ 500, 600, 700, 900, 1200, 4000 ]
+xbinsSignal["SevenJet"]["1B"] = [ 500, 600, 700, 900, 1200, 4000 ]
+xbinsSignal["SevenJet"]["2B"] = [ 500, 600, 700, 900, 1200, 4000 ]
+xbinsSignal["SevenJet"]["3B"] = [ 500, 600, 700, 4000 ]
+
+colsSignal["SevenJet"]["0B"] = [
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        ]
+colsSignal["SevenJet"]["1B"] = [
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        ]
+colsSignal["SevenJet"]["2B"] = [
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 1.5 ],
+        ]
+colsSignal["SevenJet"]["3B"] = [
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.25, 0.30, 0.41, 1.5 ],
         ]

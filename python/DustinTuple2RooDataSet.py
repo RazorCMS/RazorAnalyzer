@@ -30,6 +30,8 @@ boxes = {'MuEle':'(box==0)',
          'FourToSixJet':'((box==11||box==12)&&(nSelectedJets>=4&&nSelectedJets<7))',
          'SevenJet':'((box==11||box==12)&&(nSelectedJets>=7))',
          'MultiJet':'(box==11||box==12)',
+         'FourToSixJet':'(box==11||box==12)',
+         'SevenJet':'(box==11||box==12)',
          'LooseLeptonDiJet':'(box==13)',
          'DiJet':'(box==14)'}
 
@@ -58,7 +60,7 @@ def getCuts(workspace, box):
         btagCutoff = 1
         
     #get the optimal cuts for each box
-    if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet"]: 
+    if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet", "FourToSixJet", "SevenJet"]: 
         dPhiCut = 2.8
         MTCut = -1
     else: 
@@ -76,6 +78,12 @@ def getCuts(workspace, box):
             cuts = cuts + (' && mT > %f' % MTCut)
     if dPhiCut >= 0:
         cuts = cuts + (' && abs(dPhiRazor) < %f' % dPhiCut)
+
+    #add extra NJets cut
+    if box == 'FourToSixJet':
+        cuts = cuts + ' && nSelectedJets < 7'
+    elif box == 'SevenJet':
+        cuts = cuts + ' && nSelectedJets >= 7'
 
     return cuts
 

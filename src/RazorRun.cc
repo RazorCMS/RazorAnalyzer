@@ -54,7 +54,8 @@ void usage()
 	    << "jetNtupler           --   study jet variables\n"
 	    << "photonntupler        --   study photon variables\n"
 	    << "dummy                --   do nothing useful\n"
-	    << "RazorDM              --   run MultiJet razor dark matter analysis" 
+	    << "RazorDM              --   run MultiJet razor dark matter analysis\n"
+        << "RazorAlphaT          --   run MultiJet alphaT analysis\n"
 	    << "RazorTagAndProbe     --   run tag and probe using Z peak" 
 	    << std::endl;
 };
@@ -346,7 +347,7 @@ int main(int argc, char* argv[]){
         analyzer.EnableMet();
         analyzer.EnableElectrons();
         analyzer.EnableMuons();
-	analyzer.EnableEventInfo();
+	    analyzer.EnableEventInfo();
         analyzer.RazorMetAna(outputFileName); //change to true if you want all analysis boxes combined in one tree
     }
     else if(analysisType == "RazorDM" || analysisType == "razorDM"){
@@ -358,8 +359,18 @@ int main(int argc, char* argv[]){
       analyzer.EnableTaus();
       analyzer.EnableEventInfo();
       analyzer.EnableMC();
-
       analyzer.RazorDM(outputFileName, true, isData);
+    }
+    else if(analysisType == "RazorAlphaT" || analysisType == "razorAlphaT"){
+      cout << "Executing RazorAlphaT analysis..." << endl;
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableEventInfo();
+      analyzer.EnableMC();
+      analyzer.RazorAlphaT(outputFileName, true, isData);
     }
     else if(analysisType == "RazorControlRegions"){
       cout << "Executing RazorControlRegions analysis..." << endl;

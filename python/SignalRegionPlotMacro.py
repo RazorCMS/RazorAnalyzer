@@ -7,33 +7,7 @@ from framework import Config
 from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.razorMacros import plotControlSampleHists
 import macro.macro as macro
-
-LUMI = 2185 #in /pb
-MCLUMI = 1 
-
-SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
-SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
-SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC }
-BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet"]
-
-config = "config/run2_20151108_Preapproval_2b3b_data.config"
-cfg = Config.Config(config)
-binsMRHad = cfg.getBinning("MultiJet")[0]
-binsRsqHad = cfg.getBinning("MultiJet")[1]
-hadronicBinning = { "MR":binsMRHad, "Rsq":binsRsqHad, ("MR","Rsq"):[] }
-binsMRLep = cfg.getBinning("MuMultiJet")[0]
-binsRsqLep = cfg.getBinning("MuMultiJet")[1]
-leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, ("MR","Rsq"):[] }
-binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning}
-
-blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2,len(binning[b]["Rsq"])+1)] for b in binning}
-
-weightOpts = []
-commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
-commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
-lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['sfsysvetoleppt','sfsysvetotaupt','mteffpt','dphieffpt','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
-shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors }
+from SidebandMacro import SAMPLES, LUMI, MCLUMI, binning, blindBins, shapes
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -60,7 +34,7 @@ if __name__ == "__main__":
     else:
         plotOpts['sideband'] = True
 
-    boxesToUse = BOXES
+    boxesToUse = ["MultiJet","MuMultiJet","EleMultiJet"]
     if args.box is not None:
         boxesToUse = [args.box]
 
