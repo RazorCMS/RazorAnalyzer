@@ -137,6 +137,13 @@ vetoLeptonControlRegionCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && l
 vetoLeptonControlRegionCutsData = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
 vetoLeptonControlRegionCutsMC = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
 
+vetoElectronControlRegionCuts = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+vetoElectronControlRegionCutsData = appendTriggerCuts(vetoElectronControlRegionCuts, hadronicTriggerNums)
+vetoElectronControlRegionCutsMC = appendTriggerCuts(vetoElectronControlRegionCuts, hadronicTriggerNums)
+vetoMuonControlRegionCuts = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+vetoMuonControlRegionCutsData = appendTriggerCuts(vetoMuonControlRegionCuts, hadronicTriggerNums)
+vetoMuonControlRegionCutsMC = appendTriggerCuts(vetoMuonControlRegionCuts, hadronicTriggerNums)
+
 vetoLeptonControlRegion7JetCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 7 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
 vetoLeptonControlRegion7JetCutsData = appendTriggerCuts(vetoLeptonControlRegion7JetCuts, hadronicTriggerNums)
 vetoLeptonControlRegion7JetCutsMC = appendTriggerCuts(vetoLeptonControlRegion7JetCuts, hadronicTriggerNums)
