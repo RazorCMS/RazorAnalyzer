@@ -250,12 +250,9 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     obses = []
     nsigmas = []
     mcs = []
-    mcErrs = []
     totalMCs = []
-    totalMCErrs = []
     for m in mcNames:
         mcs.append([])
-        mcErrs.append([])
     #for each bin, get values for all table columns
     for bx in range(1, pred.GetNbinsX()+1):
         for by in range(1, pred.GetNbinsY()+1):
@@ -277,17 +274,16 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             totalMC = 0.0
             totalMCErr = 0.0
             for i in range(len(mcNames)):
-                mcs[i].append('%.4f' % (mcHists[i].GetBinContent(bx,by)))
-                mcErrs[i].append('%.4f' % (mcHists[i].GetBinError(bx,by)))
+                mcs[i].append('%.3f \\pm %.3f' % (mcHists[i].GetBinContent(bx,by),mcHists[i].GetBinError(bx,by)))
                 totalMC += mcHists[i].GetBinContent(bx,by)
                 totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
             if len(mcNames) > 0:
-                totalMCs.append('%.2f' % (totalMC))
-                totalMCErrs.append('%.2f' % (totalMCErr))
+                totalMCs.append('%.2f \\pm %.2f' % (totalMC, totalMCErr))
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
     caption = "Comparison of event yields for the "+boxName+" box"
+    label = 'yields'+boxName
     if btags >= 0:
         headers=["$M_R$", "$R^2$", "B-tags"]
         cols = [xRanges, yRanges, zRanges]
@@ -300,6 +296,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             cols.append(nsigmas)
             headers.append("Number of sigmas")
         caption += " ("+str(btags)+" b-tags)"
+        label += str(btags)+'B'
     else:
         headers=["$M_R$", "$R^2$"]
         cols = [xRanges, yRanges]
@@ -312,17 +309,17 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             cols.append(nsigmas)
             headers.append("Number of sigmas")
     if len(mcNames) > 0:
-        headers.extend(["MC Prediction", "MC Uncertainty"])
-        cols.extend([totalMCs, totalMCErrs])
+        headers.extend(["MC Prediction"])
+        cols.extend([totalMCs])
         if listAllMC:
             for i,n in enumerate(mcNames):
-                headers.extend([n, n+' Error'])
-                cols.extend([mcs[i], mcErrs[i]])
+                headers.append(n)
+                cols.extend([mcs[i]])
     if listAllMC:
         printstr='razor2DFitTableFull'+boxName+str(btags)+'btag'
     else:
         printstr='razor2DFitTable'+boxName+str(btags)+'btag'
-    plotting.table_basic(headers, cols, caption=caption, printstr=printstr, printdir=printdir)
+    plotting.table_basic(headers, cols, caption=caption, label=label, printstr=printstr, printdir=printdir, landscape=True, size='tiny')
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO

@@ -920,7 +920,7 @@ def makeStackAndPlot(canvas, mcHists={}, dataHist=None, dataName="Data", mcOrder
     stack.Delete()  
     leg.Delete()
 
-def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=False, printdir='.'):
+def table_basic(headers=[], cols=[], caption="", label="", printstr='table', landscape=False, printdir='.', size='footnotesize'):
     #check for input
     if len(cols) == 0:
         print "table_basic: no columns provided.  doing nothing."
@@ -936,14 +936,17 @@ def table_basic(headers=[], cols=[], caption="", printstr='table', landscape=Fal
         return
 
     with open(printdir+'/'+printstr+'.tex', 'w') as f:
+        f.write('\\newgeometry{margin=0.2cm}\n')
         if landscape: f.write('\\begin{landscape}\n')
-        f.write('\\begin{center}\n\\footnotesize\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
-        f.write('\\caption{'+caption+'}\n\\endhead\n\\hline\n')
+        f.write('\\begin{center}\n\\'+size+'\n\\begin{longtable}{|'+('|'.join(['c' for c in cols]))+'|}\n')
+        f.write('\\hline\n')
         f.write(' & '.join(headers)+' \\\\\n\\hline\n')
         for row in range(len(cols[0])):
             f.write((' & '.join([col[row] for col in cols]))+' \\\\\n\\hline\n')
+        f.write('\\caption{'+caption+'}\n\\label{tab:'+label+'}\n')
         f.write('\\end{longtable}\n\\end{center}\n')
         if landscape: f.write('\\end{landscape}\n')
+        f.write('\\restoregeometry\n')
         print "Created LaTeX scale factor table",(printstr+".tex")
 
 def setTDRStyle():
