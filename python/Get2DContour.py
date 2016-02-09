@@ -237,6 +237,19 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 25+12.5
         smoothing = 50
+    elif model=="T2tt":
+        mgMin = 100.-12.5
+        mgMax = 950.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 475.+12.5
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-2
+        xsecMax = 10.
+        diagonalOffset = 25+12.5
+        smoothing = 0
+
+        
     return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing
 
 if __name__ == '__main__':
@@ -337,7 +350,7 @@ if __name__ == '__main__':
     thyXsecErr = {}
     if refXsecFile is not None:
         print "INFO: Input ref xsec file!"
-        for mg in range(600,2025,25):
+        for mg in range(100,2025,25):
             for line in open(refXsecFile,'r'):
                 line = line.replace('\n','')
                 if str(mg)==line.split(',')[0]:
