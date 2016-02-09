@@ -321,6 +321,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     float subleadingJetPt_MESUp, subleadingJetPt_MESDown, subleadingJetPt_EESUp, subleadingJetPt_EESDown;
     int nVetoMuons, nTightMuons, nVetoElectrons, nTightElectrons, nLooseTaus;
     float met, HT;
+    float mjj_leadingJets, mjj_hemispheres;
     float leadingGenLeptonPt;
     float leadingGenLeptonEta;
     int   leadingGenLeptonType;
@@ -352,6 +353,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     razorTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
     razorTree->Branch("HT", &HT, "HT/F");
     razorTree->Branch("met", &met, "met/F");
+    razorTree->Branch("mjj_leadingJets", &mjj_leadingJets, "mjj_leadingJets/F");
+    razorTree->Branch("mjj_hemispheres", &mjj_hemispheres, "mjj_hemispheres/F");
     razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
     //MET filters
     razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
@@ -548,6 +551,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         dPhiRazor = -9;
         mT = -1;
         mTLoose = -1;
+        mjj_leadingJets = -1;
+        mjj_hemispheres = -1;
         leadingJetPt = -1;
         subleadingJetPt = -1;
         leadingTightMuPt = -1;
@@ -1815,15 +1820,22 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         }
 
         //Get leading and subleading jet pt
+        TLorentzVector leadingJet;
+        TLorentzVector subleadingJet;
         for (auto &jet : GoodJets){
             if (jet.Pt() > leadingJetPt){
                 subleadingJetPt = leadingJetPt;
+                subleadingJet = leadingJet;
                 leadingJetPt = jet.Pt();
+                leadingJet = jet;
+
             }
             else if (jet.Pt() > subleadingJetPt){
                 subleadingJetPt = jet.Pt();
+                subleadingJet = jet;
             }
         }
+        mjj_leadingJets = (leadingJet + subleadingJet).M();
         //Get leading and subleading jet pt for JES/JER/MES/EES up/down
         if (!isData){
             for (auto &jet : GoodJetsJESUp){
@@ -1949,6 +1961,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         MR = computeMR(hemispheres[0], hemispheres[1]); 
         Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
         dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+
+        mjj_hemispheres = (hemispheres[0] + hemispheres[1]).M();
 
         //Propagate up/down jet uncertainties to MET and recompute razor variables
         if(!isData){
