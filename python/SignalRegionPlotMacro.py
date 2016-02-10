@@ -1,5 +1,6 @@
 import sys,os
 import argparse
+import copy
 import ROOT as rt
 
 #local imports
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', help="choose number of b-tags", type=int)
     parser.add_argument('--dir', help="output directory (should contain the ROOT files with the razor histograms)", default="SignalRegionPlots", dest='dirName')
+    parser.add_argument('--no-sfs', help='Uncertainties from scale factor cross checks will be ignored', action='store_true',dest='noSFs')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     dirName = args.dirName
@@ -49,6 +51,16 @@ if __name__ == "__main__":
         if args.unblind: blindBinsToUse = None
         samplesToUse = SAMPLES[boxName]
 
+        shapesToUse = copy.copy(shapes[boxName])
+        #option to disable scale factors
+        if args.noSFs:
+            print "Ignoring all uncertainties from scale factor cross checks."
+            toRemove = ['btaginvcrosscheck','btagcrosscheckrsq','btagcrosscheckmr','sfsyszinv','ttcrosscheck','zllcrosscheck','sfsysttjets','sfsyswjets','vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck']
+            #remove scale factor cross check uncertainties
+            shapesToUse = [s for s in shapesToUse if s not in toRemove]
+            #this removes scale factor uncertainties that are listed as tuples
+            shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
+
         #loop over btag bins
         if args.btags is not None:
             btaglist = [args.btags]
@@ -61,4 +73,4 @@ if __name__ == "__main__":
             unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
             inFile = dirName+'/razorHistograms'+extboxName+'.root'
 
-            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins, shapeErrors=shapes[boxName])
+            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins, shapeErrors=shapesToUse)

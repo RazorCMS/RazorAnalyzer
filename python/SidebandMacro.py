@@ -108,6 +108,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-sys', help="no shape unncertainties or cross check systematics", action="store_true", dest='noSys')
     parser.add_argument('--no-qcd', help="do not include QCD prediction", action="store_true", dest='noQCD')
     parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", dest='noFill')
+    parser.add_argument('--no-sfs', help="ignore MC scale factors", action="store_true", dest="noSFs")
     parser.add_argument('--b-inclusive', help="do not bin in number of b-tags", action="store_true", dest='bInclusive')
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', type=int, help="choose a number of btags")
@@ -133,6 +134,8 @@ if __name__ == "__main__":
     boxesToUse = ["MultiJet", "MuMultiJet", "EleMultiJet"]
     if args.box is not None:
         boxesToUse = [args.box]
+    if args.noSFs:
+        dirName += '_NoSFs'
 
     #initialize
     weightHists = {}
@@ -234,15 +237,25 @@ if __name__ == "__main__":
             filesToUse = FILENAMES[boxName]
         if args.noData: 
             del filesToUse['Data']
-        shapesToUse = shapes
+        shapesToUse = copy.copy(shapes[boxName])
         if args.noSys:
-            shapesToUse = { "MultiJet":[], "MuMultiJet":[], "EleMultiJet":[], "FourToSixJet":[], "SevenJet":[]} 
+            shapesToUse = []
         if toysToUse[boxName] is None and 'sideband' in plotOpts:
             del plotOpts['sideband']
 
         sfHistsToUse = sfHists
         if boxName == 'SevenJet':
             sfHistsToUse = sfHists7Jet
+
+        #disable scale factors option
+        if args.noSFs:
+            print "Ignoring all scale factor histograms and uncertainties from scale factor cross checks."
+            sfHistsToUse = {}
+            toRemove = ['btaginvcrosscheck','btagcrosscheckrsq','btagcrosscheckmr','sfsyszinv','ttcrosscheck','zllcrosscheck','sfsysttjets','sfsyswjets','vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck']
+            #remove scale factor cross check uncertainties
+            shapesToUse = [s for s in shapesToUse if s not in toRemove]
+            #this removes scale factor uncertainties that are listed as tuples
+            shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
 
         #apply veto lepton correction only to Multijet box
         if boxName == 'MultiJet' or boxName == 'FourToSixJet' or boxName == 'SevenJet':
@@ -260,10 +273,11 @@ if __name__ == "__main__":
         for btags in btaglist:
             print "\n---",boxName,"Box,",btags,"B-tags ---"
             #get correct b-tag closure test histogram
-            sfHistsToUse['MRBUp'] = sfHistsToUse['MR'+str(btags)+'BUp']
-            sfHistsToUse['MRBDown'] = sfHistsToUse['MR'+str(btags)+'BDown']
-            sfHistsToUse['RsqBUp'] = sfHistsToUse['Rsq'+str(btags)+'BUp']
-            sfHistsToUse['RsqBDown'] = sfHistsToUse['Rsq'+str(btags)+'BDown']
+            if not args.noSFs:
+                sfHistsToUse['MRBUp'] = sfHistsToUse['MR'+str(btags)+'BUp']
+                sfHistsToUse['MRBDown'] = sfHistsToUse['MR'+str(btags)+'BDown']
+                sfHistsToUse['RsqBUp'] = sfHistsToUse['Rsq'+str(btags)+'BUp']
+                sfHistsToUse['RsqBDown'] = sfHistsToUse['Rsq'+str(btags)+'BDown']
             #get correct cuts string
             thisBoxCuts = razorCuts[boxName]
             if btags >= 3 or args.bInclusive: #inclusive if requested or if we are doing 3B
@@ -283,7 +297,7 @@ if __name__ == "__main__":
                     cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
                     bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
                     weightHists=weightHists, sfHists=sfHistsToUse, treeName="RazorInclusive", 
-                    weightOpts=weightOpts, shapeErrors=shapesToUse[boxName], 
+                    weightOpts=weightOpts, shapeErrors=shapesToUse, 
                     fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBinsToUse,
                     btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
                     plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill,

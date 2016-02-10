@@ -32,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--mStop',default=-1,type=int, help="mass of stop")
     parser.add_argument('--mLSP',default=-1,type=int, help="mass of LSP")
     parser.add_argument('--fit-sys', dest="addMCVsFit", action='store_true', help="add MC vs fit systematic")
+    parser.add_argument('--no-limit', dest='noCombine', action='store_true', help='do not call combine, make template histograms only')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -53,6 +54,8 @@ if __name__ == "__main__":
 
         #make combined unrolled histograms for background
         backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
+
+        if args.noCombine: continue #if not setting a limit, we are done
 
         #treat appropriate uncertainties as uncorrelated bin to bin
         toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck']
@@ -93,6 +96,9 @@ if __name__ == "__main__":
         #write combine card
         cardName = outFileName.replace('.root','.txt')
         writeDataCard_th1(curBox,modelName,cardName,hists,samples)
+
+    if args.noCombine: 
+        sys.exit()
 
     #run combine
     if len(boxList) == 1:
