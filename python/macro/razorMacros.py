@@ -246,7 +246,6 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     ybinUpEdges = []
     zbinLowEdges = []
     preds = []
-    uncerts = []
     obses = []
     nsigmas = []
     mcs = []
@@ -263,8 +262,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             zbinLowEdges.append('%.0f' % (btags))
             prediction = pred.GetBinContent(bx,by)
             uncert = pred.GetBinError(bx,by)
-            preds.append('%.2f' % (prediction))
-            uncerts.append('%.2f' % (uncert))
+            preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
             if obs is not None: 
                 observed = obs.GetBinContent(bx,by)
                 obses.append('%.2f' % (observed))
@@ -274,11 +272,11 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
             totalMC = 0.0
             totalMCErr = 0.0
             for i in range(len(mcNames)):
-                mcs[i].append('%.3f \\pm %.3f' % (mcHists[i].GetBinContent(bx,by),mcHists[i].GetBinError(bx,by)))
+                mcs[i].append('%.3f $\\pm$ %.3f' % (mcHists[i].GetBinContent(bx,by),mcHists[i].GetBinError(bx,by)))
                 totalMC += mcHists[i].GetBinContent(bx,by)
                 totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
             if len(mcNames) > 0:
-                totalMCs.append('%.2f \\pm %.2f' % (totalMC, totalMCErr))
+                totalMCs.append('%.2f $\\pm$ %.2f' % (totalMC, totalMCErr))
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
@@ -290,8 +288,8 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if obs is not None: 
             cols.append(obses)
             headers.append("Observed")
-        headers = headers + ["Fit Prediction", "Fit Uncertainty"]
-        cols = cols + [preds, uncerts]
+        headers = headers + ["Fit Prediction"]
+        cols = cols + [preds]
         if nsigma is not None: 
             cols.append(nsigmas)
             headers.append("Number of sigmas")
@@ -303,8 +301,8 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if obs is not None:
             cols.append(obses)
             headers.append("Observed")
-        headers = headers + ["Fit Prediction", "Fit Uncertainty"]
-        cols = cols + [preds, uncerts]
+        headers = headers + ["Fit Prediction"]
+        cols = cols + [preds]
         if nsigma is not None: 
             cols.append(nsigmas)
             headers.append("Number of sigmas")
