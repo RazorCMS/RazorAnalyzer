@@ -238,7 +238,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, printdir='.', listAllMC=False):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, unrollBins=None, useMCFitSys=False, printdir='.', listAllMC=False):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -253,30 +253,62 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     for m in mcNames:
         mcs.append([])
     #for each bin, get values for all table columns
-    for bx in range(1, pred.GetNbinsX()+1):
-        for by in range(1, pred.GetNbinsY()+1):
-            xbinLowEdges.append('%.0f' % (pred.GetXaxis().GetBinLowEdge(bx)))
-            xbinUpEdges.append('%.0f' % (pred.GetXaxis().GetBinUpEdge(bx)))
-            ybinLowEdges.append(str(pred.GetYaxis().GetBinLowEdge(by)))
-            ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
-            zbinLowEdges.append('%.0f' % (btags))
-            prediction = pred.GetBinContent(bx,by)
-            uncert = pred.GetBinError(bx,by)
-            preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
-            if obs is not None: 
-                observed = obs.GetBinContent(bx,by)
-                obses.append('%.2f' % (observed))
-            if nsigma is not None:
-                nsig = nsigma.GetBinContent(bx,by)
-                nsigmas.append('%.2f' % (nsig))
-            totalMC = 0.0
-            totalMCErr = 0.0
-            for i in range(len(mcNames)):
-                mcs[i].append('%.3f $\\pm$ %.3f' % (mcHists[i].GetBinContent(bx,by),mcHists[i].GetBinError(bx,by)))
-                totalMC += mcHists[i].GetBinContent(bx,by)
-                totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
-            if len(mcNames) > 0:
-                totalMCs.append('%.2f $\\pm$ %.2f' % (totalMC, totalMCErr))
+    if unrollBins is None: #TH2F case
+        for bx in range(1, pred.GetNbinsX()+1):
+            for by in range(1, pred.GetNbinsY()+1):
+                xbinLowEdges.append('%.0f' % (pred.GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (pred.GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(pred.GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
+                zbinLowEdges.append('%.0f' % (btags))
+                prediction = pred.GetBinContent(bx,by)
+                uncert = pred.GetBinError(bx,by)
+                preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
+                if obs is not None: 
+                    observed = obs.GetBinContent(bx,by)
+                    obses.append('%.2f' % (observed))
+                if nsigma is not None:
+                    nsig = nsigma.GetBinContent(bx,by)
+                    nsigmas.append('%.2f' % (nsig))
+                totalMC = 0.0
+                totalMCErr = 0.0
+                for i in range(len(mcNames)):
+                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mcHists[i].GetBinContent(bx,by)),mcHists[i].GetBinError(bx,by)))
+                    totalMC += mcHists[i].GetBinContent(bx,by)
+                    totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
+                if len(mcNames) > 0:
+                    if useMCFitSys: #add (MC-fit) in quadrature with MC error
+                        totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
+                    totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
+    else: #some bins are merged TH2Poly style
+        print "Merging bins according to unrolled binning provided"
+        if nsigma is not None:
+            print "Warning: nsigma histogram not supported for TeX table with merged bins!"
+        xbinLowEdges, xbinUpEdges, ybinLowEdges, ybinUpEdges = macro.getBinBoundariesFromColumns(unrollBins[0], unrollBins[1]) #get the bin low/high edges
+        xbinLowEdges, xbinUpEdges, ybinLowEdges, ybinUpEdges = [map(str, bins) for bins in [xbinLowEdges, xbinUpEdges, ybinLowEdges, ybinUpEdges]] 
+        #apply unrolled binning
+        mergedFit = plotting.unroll2DHistograms([pred], unrollBins[0], unrollBins[1])[0]
+        mergedObs = plotting.unroll2DHistograms([obs], unrollBins[0], unrollBins[1])[0] 
+        mergedMCs = plotting.unroll2DHistograms(mcHists, unrollBins[0], unrollBins[1]) 
+        for bx in range(1, mergedFit.GetNbinsX()+1):
+                zbinLowEdges.append('%.0f' % (btags))
+                prediction = mergedFit.GetBinContent(bx)
+                uncert = mergedFit.GetBinError(bx)
+                preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
+                if obs is not None: 
+                    observed = mergedObs.GetBinContent(bx)
+                    obses.append('%.2f' % (observed))
+                totalMC = 0.0
+                totalMCErr = 0.0
+                for i in range(len(mcNames)):
+                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
+                    totalMC += mergedMCs[i].GetBinContent(bx)
+                    totalMCErr = ( totalMCErr**2 + (mergedMCs[i].GetBinError(bx))**2 )**(0.5)
+                if len(mcNames) > 0:
+                    if useMCFitSys: #add (MC-fit) in quadrature with MC error
+                        totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
+                    totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
+        
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
@@ -288,11 +320,12 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if obs is not None: 
             cols.append(obses)
             headers.append("Observed")
-        headers = headers + ["Fit Prediction"]
-        cols = cols + [preds]
-        if nsigma is not None: 
-            cols.append(nsigmas)
-            headers.append("Number of sigmas")
+        if not useMCFitSys:
+            headers = headers + ["Fit Prediction"]
+            cols = cols + [preds]
+            if nsigma is not None: 
+                cols.append(nsigmas)
+                headers.append("Number of sigmas")
         caption += " ("+str(btags)+" b-tags)"
         label += str(btags)+'B'
     else:
@@ -301,11 +334,12 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if obs is not None:
             cols.append(obses)
             headers.append("Observed")
-        headers = headers + ["Fit Prediction"]
-        cols = cols + [preds]
-        if nsigma is not None: 
-            cols.append(nsigmas)
-            headers.append("Number of sigmas")
+        if not useMCFitSys:
+            headers = headers + ["Fit Prediction"]
+            cols = cols + [preds]
+            if nsigma is not None: 
+                cols.append(nsigmas)
+                headers.append("Number of sigmas")
     if len(mcNames) > 0:
         headers.extend(["MC Prediction"])
         cols.extend([totalMCs])
@@ -513,14 +547,15 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         noFitStat=True
         print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
         import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
+        print "Making TeX table with predictions in each analysis bin"
         if dataName in hists: 
-            print "Making nsigma histogram using data and fit prediction"
-            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
+            print "Including observed data yields in table"
             dataForTable=hists[dataName][("MR","Rsq")]
+            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir)
-        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir, listAllMC=True)
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=True, printdir=printdir)
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
     #print histograms
     rt.SetOwnership(c, False)
@@ -581,14 +616,17 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     #make tex table
     dataForTable = None
     if ("MR","Rsq") in listOfVars and 'Fit' in hists:
+        print "Making TeX table with predictions in each analysis bin"
         if dataName in hists: 
             dataForTable=hists[dataName][("MR","Rsq")]
+            print "Including observed data yields in table"
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
-                boxName=boxName, btags=btags, printdir=printdir)
-        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+                boxName=boxName, btags=btags, unrollBins=unrollBins, 
+                useMCFitSys=True, printdir=printdir)
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
-                boxName=boxName, btags=btags, printdir=printdir, listAllMC=True)
+                boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
     #print histograms
     rt.SetOwnership(c, False)

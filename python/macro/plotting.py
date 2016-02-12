@@ -929,6 +929,7 @@ def table_basic(headers=[], cols=[], caption="", label="", printstr='table', lan
     for col in cols:
         if len(col) != len(cols[0]):
             print "Error in table_basic: columns do not have equal lengths!"
+            print "(",[len(c) for c in cols],")"
             return
     #check that there is a header for each column
     if len(headers) != len(cols):
