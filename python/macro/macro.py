@@ -125,6 +125,23 @@ def stitch(th1s = []):
             bn += 1
     return out
 
+def getBinBoundariesFromColumns(xbins, cols):
+    """
+    Get lower and upper bin edges in the x and y directions
+    (Useful for making yield tables)
+    """
+    xLow = []
+    xHigh = []
+    yLow = []
+    yHigh = []
+    for i in range(len(xbins)-1):
+        for j in range(len(cols[i])-1):
+            xLow.append(xbins[i])
+            xHigh.append(xbins[i+1])
+            yLow.append(cols[i][j])
+            yHigh.append(cols[i][j+1])
+    return xLow, xHigh, yLow, yHigh
+
 def makeTH2PolyFromColumns(name, title, xbins, cols):
     """
     Makes a TH2Poly histogram with rectangular bins. 
