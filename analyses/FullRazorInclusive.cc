@@ -330,6 +330,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     int   subLeadingGenLeptonType;
     //SMS parameters 
     int mGluino, mLSP;
+    int nCharginoFromGluino, ntFromGluino;
 
     //Set branches
     razorTree->Branch("nVtx", &nVtx, "nVtx/I");
@@ -515,6 +516,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         if(isFastsimSMS){
             razorTree->Branch("mGluino", &mGluino, "mGluino/I");
             razorTree->Branch("mLSP", &mLSP, "mLSP/I");
+            razorTree->Branch("nCharginoFromGluino", &nCharginoFromGluino, "nCharginoFromGluino/I");
+            razorTree->Branch("ntFromGluino", &ntFromGluino, "ntFromGluino/I");
         }
     } 
     else {
@@ -704,6 +707,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             if(isFastsimSMS){
                 mGluino = -1;
                 mLSP = -1;
+		nCharginoFromGluino = 0;
+		ntFromGluino = 0;
             }
         }
 
@@ -782,13 +787,41 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	
 	if(isFastsimSMS){
 
+	  //Count gluino to b quark decays and gluino to top quark decays
+	  int tmp_nbFromGluino = 0;
+	  int tmp_ntopFromGluino = 0;
+	  int tmp_nCharginoFromGluino = 0;
+	  for(int j = 0; j < nGenParticle; j++){
+	    //cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " : " << gParticleMotherIndex[j] << " " << gParticleMotherId[j] << "\n";
+	    
+	    if ( abs(gParticleId[j]) == 5 && gParticleMotherIndex[j] >= 0 
+		 && gParticleId[gParticleMotherIndex[j]] == 1000021 
+		 && gParticleStatus[gParticleMotherIndex[j]] == 22
+		 ) tmp_nbFromGluino++;
+														    
+	    if ( abs(gParticleId[j]) == 6 && gParticleMotherIndex[j] >= 0 
+		 && gParticleId[gParticleMotherIndex[j]] == 1000021 
+		 && gParticleStatus[gParticleMotherIndex[j]] == 22
+		 ) tmp_ntopFromGluino++;														    
+
+	    if ( abs(gParticleId[j]) == 1000024 && gParticleMotherIndex[j] >= 0 
+		 && gParticleId[gParticleMotherIndex[j]] == 1000021 
+		 && gParticleStatus[gParticleMotherIndex[j]] == 22
+		 ) tmp_nCharginoFromGluino++;														    
+	  }
+	  ntFromGluino = tmp_ntopFromGluino;
+	  nCharginoFromGluino = tmp_nCharginoFromGluino;	  
+
+
+	  //Get Gen level info for ISR systematics
 	  TLorentzVector *gluino1PreShowering = 0;
 	  TLorentzVector *gluino2PreShowering = 0;
 	  TLorentzVector *gluino1PostShowering = 0;
 	  TLorentzVector *gluino2PostShowering = 0;
+	  int nbFromGluino = 0;
+	  int ntopFromGluino = 0;
 	  for(int j = 0; j < nGenParticle; j++){
-	    //cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << "\n";
-
+	  
 	    if (gParticleId[j] == 1000021 && gParticleStatus[j] == 22) {
 	      if (!gluino1PreShowering) {
 		gluino1PreShowering = new TLorentzVector;
