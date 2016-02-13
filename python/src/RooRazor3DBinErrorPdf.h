@@ -71,7 +71,6 @@ protected:
    Double_t yArray[21]; // yArray[yBins+1]
    Double_t zArray[5]; // zArray[zBins+1]
    Double_t histArray[1600]; // histArray[xBins*yBins*zBins]
-   Double_t errArray[1600]; // errArray[xBins*yBins*zBins]
    //Double_t xArray[21]; // xArray[xBins+1]
    //Double_t yArray[21]; // yArray[yBins+1]
    //Double_t zArray[5]; // zArray[zBins+1]
