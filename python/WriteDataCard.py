@@ -20,8 +20,8 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
         y = array('d', cfg.getBinning(box)[1]) # Rsq binning
         z = array('d', cfg.getBinning(box)[2]) # nBtag binning
     nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    #maxBins = 224
-    maxBins = nBins
+    maxBins = 224
+    #maxBins = nBins
     
     parameters = cfg.getVariables(box, "combine_parameters")
     paramNames = []
