@@ -13,7 +13,7 @@ def fixPars(w, label, doFix=True, setVal=None):
             par.setConstant(doFix)
             if setVal is not None: par.setVal(setVal)
 
-def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=None):
+def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=None,emptyHist3D=None):
     
     if x is None or y is None or z is None:
         x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -56,18 +56,26 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
         
     w.factory('th1x[0,0,%i]'%maxBins)
     w.var('th1x').setBins(maxBins)
-    emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
-
-    iBinX = -1
-    for ix in range(1,len(x)):
-        for iy in range(1,len(y)):
-            for iz in range(1,len(z)):
-                iBinX+=1
-                emptyHist3D.SetBinContent(ix,iy,iz,1.)
-                emptyHist3D.SetBinError(ix,iy,iz,0.)
-                w.var('MR').setVal(emptyHist3D.GetXaxis().GetBinCenter(ix))
-                w.var('Rsq').setVal(emptyHist3D.GetYaxis().GetBinCenter(iy))
-                w.var('nBtag').setVal(emptyHist3D.GetZaxis().GetBinCenter(iz)) 
+    if emptyHist3D==None:
+        emptyHist3D = rt.TH3D("emptyHist3D","emptyHist3D",len(x)-1,x,len(y)-1,y,len(z)-1,z)
+        iBinX = -1
+        for ix in range(1,len(x)):
+            for iy in range(1,len(y)):
+                for iz in range(1,len(z)):
+                    iBinX+=1
+                    emptyHist3D.SetBinContent(ix,iy,iz,1)
+                    emptyHist3D.SetBinError(ix,iy,iz,0)
+    else:
+        iBinX = -1
+        for ix in range(1,len(x)):
+            for iy in range(1,len(y)):
+                for iz in range(1,len(z)):
+                    iBinX+=1
+                    if emptyHist3D.GetBinContent(ix,iy,iz)<=0:
+                        emptyHist3D.SetBinContent(ix,iy,iz,1)
+                    emptyHist3D.SetBinError(ix,iy,iz,0)
+                    print ix, iy, iz, emptyHist3D.GetBinContent(ix,iy,iz)
+        
 
     w.Print('v')
     commands = cfg.getVariables(box, "combine_pdfs")
@@ -80,6 +88,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
             myclass = command.split('::')[0]
             remaining = command.split('::')[1]
             name = remaining.split('(')[0]
+            altname = '_'.join(reversed(name.split('_')))
             mytuple = remaining.replace(name,'').replace('(','').replace(')','')
             mylist = mytuple.split(',')
             arglist = [name, name]
@@ -88,15 +97,17 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,x=None,y=None,z=N
                     arglist.append(w.var(myvar))
                 elif w.function(myvar)!=None:
                     arglist.append(w.function(myvar))
-                elif 'pars_' in myvar:
+                elif 'MADD_pars_' in myvar:
                         parlist = rt.RooArgList(myvar)
                         listdef = ''
                         for iBinX in range(0,maxBins):
-                            if w.var('par%i_MultiJet'%(iBinX))!=None:
-                                parlist.add(w.var('par%i_%s'%(iBinX,box)))
-                            else:                                
-                                w.factory('par%i_%s[0.]'%(iBinX,box))
-                                parlist.add(w.var('par%i_%s'%(iBinX,box)))
+                            if w.function('MADD_bin%i_%s'%(iBinX,box))!=None:
+                                parlist.add(w.function('MADD_bin%i_%s'%(iBinX,box)))
+                            else:
+                                for iz in range(0,len(z)-1):
+                                    if iBinX%(len(z)-1)==iz:
+                                        w.factory("expr::MADD_bin%i_%s('@0',MADD_TTj%ib_%s)"%(iBinX,box,z[iz],box))
+                                parlist.add(w.function('MADD_bin%i_%s'%(iBinX,box)))
                         rootTools.Utils.importToWS(w,parlist)
                         arglist.append(parlist)
                         
@@ -240,7 +251,11 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
             elif 'MR1_' in paramName:
                 mean = w.var(paramName.replace('MR1','MR1Mean')).getVal()
                 sigma = w.var(paramName.replace('MR1','MR1Sigma')).getVal()
-                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)  
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)
+            elif 'MADD_' in paramName:
+                mean = 0.
+                sigma = 1.
+                datacard += "%s\tparam\t%e\t%e\n"%(paramName,mean,sigma)                
             elif penalty:                    
                 mean = w.var(paramName).getVal()
                 sigma = w.var(paramName).getError()                
@@ -351,6 +366,8 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic shape uncertainties")
+    parser.add_option('--histo-file',dest="histoFile", default=None,type="string",
+                  help="input histogram file for MADD/fit systematic")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
     #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
                   #help='number of pdf nuisance parameters to use')
@@ -390,7 +407,12 @@ if __name__ == '__main__':
     if noFit:
         paramNames = initializeWorkspace_noFit(w,cfg,box)
     else:
-        paramNames, bkgs = initializeWorkspace(w,cfg,box,lumi/lumi_in,options.penalty)
+        if options.histoFile is not None:
+            histoFile = rt.TFile.Open(options.histoFile,"r")
+            emptyHist3D = histoFile.Get('FullFit_MADD_Fix_%s'%box)       
+            paramNames, bkgs = initializeWorkspace(w,cfg,box,scaleFactor=lumi/lumi_in,penalty=False,x=None,y=None,z=None,emptyHist3D=emptyHist3D)
+        else:
+            paramNames, bkgs = initializeWorkspace(w,cfg,box,scaleFactor=lumi/lumi_in,penalty=options.penalty)
     
     
     th1x = w.var('th1x')
