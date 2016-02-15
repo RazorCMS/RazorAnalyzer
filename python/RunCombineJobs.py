@@ -8,7 +8,7 @@ import sys
 import glob
 from GChiPairs import gchipairs
     
-def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,min_tol,min_strat,numPdfWeights,computePdfEnvelope,rMax=-1):
+def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,penalty,inputFitFile,noSignalSys,histoFile,min_tol,min_strat,numPdfWeights,computePdfEnvelope,rMax=-1):
     
     massPoint = "%i_%i"%(mg, mchi)
     dataString = ''
@@ -26,7 +26,11 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     penaltyString = ''
     if penalty:
         penaltyString = '--penalty'
-
+                
+    histoString = ''
+    if histoFile:
+        histoString = '--histo-file %s'%(options.histoFile)
+        
     computePdfEnvelopeString = ''
     if computePdfEnvelope:
         computePdfEnvelopeString = '--compute-pdf-envelope'
@@ -64,9 +68,9 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
     if "T1" in model:
-        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
+        script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f %s\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax,histoString)
     else:
-        script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax)
+        script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f %s\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax,histoString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -126,6 +130,8 @@ if __name__ == '__main__':
                   help='number of pdf nuisance parameters to use')
     parser.add_option('--compute-pdf-envelope',dest="computePdfEnvelope",default=False,action='store_true',
                   help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
+    parser.add_option('--histo-file',dest="histoFile", default=None,type="string",
+                  help="input histogram file for MADD/fit systematic")
 
     (options,args) = parser.parse_args()
 
@@ -202,6 +208,7 @@ if __name__ == '__main__':
                                            options.outDir,options.isData,
                                            options.fit,options.penalty,
                                            options.inputFitFile,options.noSignalSys,
+                                           options.histoFile,
                                            options.min_tol,options.min_strat,
                                            options.numPdfWeights,options.computePdfEnvelope,
                                            rMax)

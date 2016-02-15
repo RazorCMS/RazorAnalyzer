@@ -55,6 +55,8 @@ if __name__ == '__main__':
                   help="no signal shape systematic uncertainties")
     parser.add_option('--rMax',dest="rMax",default=-1,type="float",
                   help="maximum r value (for better precision)")
+    parser.add_option('--histo-file',dest="histoFile", default=None,type="string",
+                  help="input histogram file for MADD/fit systematic")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
     #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type='int',
     #              help='number of pdf nuisance parameters to use')
@@ -92,6 +94,9 @@ if __name__ == '__main__':
     penaltyString = ''
     if options.penalty: penaltyString = '--penalty'
         
+    histoString = ''
+    if options.histoFile:
+        histoString = '--histo-file %s'%(options.histoFile)
         
     dataset = {#'MultiJet':'RazorInclusive_HTMHT_Run2015D_2093pb_GoodLumiGolden_RazorSkim_Filtered',
                'MultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter',
@@ -165,7 +170,7 @@ if __name__ == '__main__':
                 
             #comment out old pdf uncertainty stuff for now -- keep it here in case SUS changes its mind again.
             #exec_me('python python/WriteDataCard.py --num-pdf-weights %d %s -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.numPdfWeights, computePdfEnvelopeString, options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
-            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys),options.dryRun)
+            exec_me('python python/WriteDataCard.py -i %s -l %f -c %s -b %s -d %s %s %s %s %s %s %s'%(options.inputFitFile,1000*lumi,options.config,box,options.outDir,fit,signalDsName,backgroundDsName,penaltyString,signalSys,histoString),options.dryRun)
             
             if (len(boxes)>1 and not options.justCombo) or len(boxes)==1:
                 if signif:
