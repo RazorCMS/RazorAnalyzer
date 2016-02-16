@@ -20,7 +20,7 @@ def getFileName(hybridLimit, mg, mchi, box, model, lumi, btag, directory, method
 
 
 def writeXsecTree(box, directory, mg, mchi, xsecULObs, xsecULExpPlus2, xsecULExpPlus, xsecULExp, xsecULExpMinus, xsecULExpMinus2):
-    outputFileName = "%s/xsecUL_mg_%s_mchi_%s_%s.root" %(directory, mg, mchi, '_'.join(boxes))
+    outputFileName = "%s/xsecUL_mg_%s_mchi_%s_%s.root" %(directory, mg, mchi, box)
     print "INFO: xsec UL values being written to %s"%outputFileName
     fileOut = rt.TFile.Open(outputFileName, "recreate")
     

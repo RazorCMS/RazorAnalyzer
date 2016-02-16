@@ -44,7 +44,6 @@ RooRazor3DBinMRSlopeErrorPdf::RooRazor3DBinMRSlopeErrorPdf(const char *name, con
   memset(&yArray, 0, sizeof(yArray));
   memset(&zArray, 0, sizeof(zArray));
   memset(&histArray, 0, sizeof(histArray));
-  memset(&errArray, 0, sizeof(errArray));
   
   TIterator *varIter=_pars.createIterator(); 
   RooAbsReal *fVar;
@@ -94,7 +93,6 @@ RooRazor3DBinMRSlopeErrorPdf::RooRazor3DBinMRSlopeErrorPdf(const RooRazor3DBinMR
     for (Int_t j=0; j<yBins+1; j++){
       for (Int_t k=0; k<zBins+1; k++){
 	histArray[th1xBin] =  other.histArray[th1xBin];
-	errArray[th1xBin] =  other.errArray[th1xBin];
 	th1xBin++;
       }
     }
@@ -121,7 +119,6 @@ void RooRazor3DBinMRSlopeErrorPdf::setTH3Binning(TH3* _Hnominal){
   memset(&yArray, 0, sizeof(yArray));
   memset(&zArray, 0, sizeof(zArray));
   memset(&histArray, 0, sizeof(histArray));
-  memset(&errArray, 0, sizeof(errArray));
   for (Int_t i=0; i<xBins+1; i++){
     xArray[i] =  _Hnominal->GetXaxis()->GetBinLowEdge(i+1);
   }
@@ -136,7 +133,6 @@ void RooRazor3DBinMRSlopeErrorPdf::setTH3Binning(TH3* _Hnominal){
     for (Int_t j=0; j<yBins; j++){
       for (Int_t k=0; k<zBins; k++){
 	histArray[th1xBin] = _Hnominal->GetBinContent(i+1,j+1,k+1);
-	errArray[th1xBin] = _Hnominal->GetBinError(i+1,j+1,k+1);
 	//cout << xArray[i] << ", " << xArray[i+1] << endl;
 	//cout << yArray[j] << ", " << yArray[j+1] << endl;
 	//cout << zArray[k] << ", " << zArray[k+1] << endl;
@@ -205,7 +201,10 @@ Double_t RooRazor3DBinMRSlopeErrorPdf::evaluate() const
   }
 
   if (total_integral>0.0) {
-    return pow(histArray[iBin]+errArray[iBin],ret) * suppress * integral;
+    if (histArray[iBin] > 0)
+      return pow(histArray[iBin],ret) * suppress * integral;
+    else
+      return suppress*integral;
   } else return 0;
 
 }
@@ -259,16 +258,30 @@ Double_t RooRazor3DBinMRSlopeErrorPdf::analyticalIntegral(Int_t code, const char
 	   Double_t yHigh = yArray[yBin+1];	   
 	   Double_t suppress = X1*((xLow+xHigh)/2.-(xMin+xArray[1])/2.) + 1.0;
 	   if(xHigh <= xCut && yHigh <= yCut) integral += 0.0;
-	   else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {
-	     integral += pow(histArray[iBin]+errArray[iBin],ret) * suppress * ( Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
+	   else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {	     
+	     if (histArray[iBin] > 0)
+	       integral += pow(histArray[iBin],ret) * suppress * ( Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
+	     else
+	       integral += suppress * ( Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );	       
 	   }
-	   else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {
-	     integral += pow(histArray[iBin]+errArray[iBin],ret) * suppress * ( Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh) );
+	   else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {     
+	     if (histArray[iBin] > 0)
+	       integral += pow(histArray[iBin],ret) * suppress * ( Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh) );
+	     else
+	       integral += suppress * ( Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh) );	       
 	   }
 	   else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {
-	     integral += pow(histArray[iBin]+errArray[iBin],ret) * suppress * ( -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut) );
+	     if (histArray[iBin] > 0)
+	       integral += pow(histArray[iBin],ret) * suppress * ( -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut) );
+	     else
+	       integral += suppress * ( -Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut) );
 	   }
-	   else integral += pow(histArray[iBin]+errArray[iBin],ret) * suppress * ( Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
+	   else {
+	     if (histArray[iBin] > 0)
+	       integral += pow(histArray[iBin],ret) * suppress * ( Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
+	     else
+	       integral += suppress * ( Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh) );
+	   }
 	 }
        }
      }

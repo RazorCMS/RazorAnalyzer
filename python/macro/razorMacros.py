@@ -110,7 +110,8 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
     hists["Fit"] = {}
     for v in ["MR","Rsq",("MR","Rsq")]:
         hists["Fit"][v] = next(hists.itervalues())[v].Clone(next(hists.itervalues())[v].GetName()+"Fit")
-    hists["Fit"][v].Reset()
+        hists["Fit"][v].Reset()
+        hists['Fit'][v].SetDirectory(0)
 
     #load fit information, including toys
     toyFile = rt.TFile.Open(fitToyFile)
@@ -237,7 +238,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, printdir='.'):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, unrollBins=None, useMCFitSys=False, printdir='.', listAllMC=False):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -245,81 +246,118 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     ybinUpEdges = []
     zbinLowEdges = []
     preds = []
-    uncerts = []
     obses = []
     nsigmas = []
     mcs = []
-    mcErrs = []
     totalMCs = []
-    totalMCErrs = []
     for m in mcNames:
         mcs.append([])
-        mcErrs.append([])
     #for each bin, get values for all table columns
-    for bx in range(1, pred.GetNbinsX()+1):
-        for by in range(1, pred.GetNbinsY()+1):
-            xbinLowEdges.append('%.0f' % (pred.GetXaxis().GetBinLowEdge(bx)))
-            xbinUpEdges.append('%.0f' % (pred.GetXaxis().GetBinUpEdge(bx)))
-            ybinLowEdges.append(str(pred.GetYaxis().GetBinLowEdge(by)))
-            ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
-            zbinLowEdges.append('%.0f' % (btags))
-            prediction = pred.GetBinContent(bx,by)
-            uncert = pred.GetBinError(bx,by)
-            preds.append('%.2f' % (prediction))
-            uncerts.append('%.2f' % (uncert))
-            if obs is not None: 
-                observed = obs.GetBinContent(bx,by)
-                obses.append('%.2f' % (observed))
-            if nsigma is not None:
-                nsig = nsigma.GetBinContent(bx,by)
-                nsigmas.append('%.2f' % (nsig))
-            totalMC = 0.0
-            totalMCErr = 0.0
-            for i in range(len(mcNames)):
-                mcs[i].append('%.2f' % (mcHists[i].GetBinContent(bx,by)))
-                mcErrs[i].append('%.2f' % (mcHists[i].GetBinError(bx,by)))
-                totalMC += mcHists[i].GetBinContent(bx,by)
-                totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
-            if len(mcNames) > 0:
-                totalMCs.append('%.2f' % (totalMC))
-                totalMCErrs.append('%.2f' % (totalMCErr))
+    if unrollBins is None: #TH2F case
+        for bx in range(1, pred.GetNbinsX()+1):
+            for by in range(1, pred.GetNbinsY()+1):
+                xbinLowEdges.append('%.0f' % (pred.GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (pred.GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(pred.GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
+                zbinLowEdges.append('%.0f' % (btags))
+                prediction = pred.GetBinContent(bx,by)
+                uncert = pred.GetBinError(bx,by)
+                preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
+                if obs is not None: 
+                    observed = obs.GetBinContent(bx,by)
+                    obses.append('%.2f' % (observed))
+                if nsigma is not None:
+                    nsig = nsigma.GetBinContent(bx,by)
+                    nsigmas.append('%.2f' % (nsig))
+                totalMC = 0.0
+                totalMCErr = 0.0
+                for i in range(len(mcNames)):
+                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mcHists[i].GetBinContent(bx,by)),mcHists[i].GetBinError(bx,by)))
+                    totalMC += mcHists[i].GetBinContent(bx,by)
+                    totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
+                if len(mcNames) > 0:
+                    if useMCFitSys: #add (MC-fit) in quadrature with MC error
+                        totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
+                    totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
+    else: #some bins are merged TH2Poly style
+        print "Merging bins according to unrolled binning provided"
+        if nsigma is not None:
+            print "Warning: nsigma histogram not supported for TeX table with merged bins!"
+        xbinLowEdges, xbinUpEdges, ybinLowEdges, ybinUpEdges = macro.getBinBoundariesFromColumns(unrollBins[0], unrollBins[1]) #get the bin low/high edges
+        xbinLowEdges, xbinUpEdges, ybinLowEdges, ybinUpEdges = [map(str, bins) for bins in [xbinLowEdges, xbinUpEdges, ybinLowEdges, ybinUpEdges]] 
+        #apply unrolled binning
+        mergedFit = plotting.unroll2DHistograms([pred], unrollBins[0], unrollBins[1])[0]
+        mergedObs = plotting.unroll2DHistograms([obs], unrollBins[0], unrollBins[1])[0] 
+        mergedMCs = plotting.unroll2DHistograms(mcHists, unrollBins[0], unrollBins[1]) 
+        for bx in range(1, mergedFit.GetNbinsX()+1):
+                zbinLowEdges.append('%.0f' % (btags))
+                prediction = mergedFit.GetBinContent(bx)
+                uncert = mergedFit.GetBinError(bx)
+                preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
+                if obs is not None: 
+                    observed = mergedObs.GetBinContent(bx)
+                    obses.append('%.2f' % (observed))
+                totalMC = 0.0
+                totalMCErr = 0.0
+                for i in range(len(mcNames)):
+                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
+                    totalMC += mergedMCs[i].GetBinContent(bx)
+                    totalMCErr = ( totalMCErr**2 + (mergedMCs[i].GetBinError(bx))**2 )**(0.5)
+                if len(mcNames) > 0:
+                    if useMCFitSys: #add (MC-fit) in quadrature with MC error
+                        totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
+                    totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
+        
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
     zRanges = copy.copy(zbinLowEdges)
     caption = "Comparison of event yields for the "+boxName+" box"
+    label = 'yields'+boxName
     if btags >= 0:
         headers=["$M_R$", "$R^2$", "B-tags"]
         cols = [xRanges, yRanges, zRanges]
         if obs is not None: 
             cols.append(obses)
             headers.append("Observed")
-        headers = headers + ["Fit Prediction", "Fit Uncertainty"]
-        cols = cols + [preds, uncerts]
-        if nsigma is not None: 
-            cols.append(nsigmas)
-            headers.append("Number of sigmas")
+        if not useMCFitSys:
+            headers = headers + ["Fit Prediction"]
+            cols = cols + [preds]
+            if nsigma is not None: 
+                cols.append(nsigmas)
+                headers.append("Number of sigmas")
         caption += " ("+str(btags)+" b-tags)"
+        label += str(btags)+'B'
     else:
         headers=["$M_R$", "$R^2$"]
         cols = [xRanges, yRanges]
         if obs is not None:
             cols.append(obses)
             headers.append("Observed")
-        headers = headers + ["Fit Prediction", "Fit Uncertainty"]
-        cols = cols + [preds, uncerts]
-        if nsigma is not None: 
-            cols.append(nsigmas)
-            headers.append("Number of sigmas")
+        if not useMCFitSys:
+            headers = headers + ["Fit Prediction"]
+            cols = cols + [preds]
+            if nsigma is not None: 
+                cols.append(nsigmas)
+                headers.append("Number of sigmas")
     if len(mcNames) > 0:
-        headers.extend(["MC Prediction", "MC Uncertainty"])
-        cols.extend([totalMCs, totalMCErrs])
-    plotting.table_basic(headers, cols, caption=caption, printstr="razor2DFitTable"+boxName+str(btags)+"btag", printdir=printdir)
+        headers.extend(["MC Prediction"])
+        cols.extend([totalMCs])
+        if listAllMC:
+            for i,n in enumerate(mcNames):
+                headers.append(n)
+                cols.extend([mcs[i]])
+    if listAllMC:
+        printstr='razor2DFitTableFull'+boxName+str(btags)+'btag'
+    else:
+        printstr='razor2DFitTable'+boxName+str(btags)+'btag'
+    plotting.table_basic(headers, cols, caption=caption, label=label, printstr=printstr, printdir=printdir, landscape=True, size='tiny')
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -334,6 +372,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     treeName: name of the tree containing input events
     weightOpts: list of strings with directives for applying weights to the MC
     shapeErrors: list of MC shape uncertainties [uncertainties can be strings (in which case they apply to all processes) or tuples of the form (error, [processes]) (in which case they apply to the processes indicated in the list)
+    noFill: dry run option -- histograms will not be filled.
+    exportShapeErrs: if True, shape uncertainties will not be propagated to the central histogram.  Instead they will be stored in the output dictionary under the key 'Sys'.
 
     plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
     miscErrors: optional -- list of misc uncertainty options (see below for supported options)
@@ -367,7 +407,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         samplesForQCD = copy.copy(samples)
         samplesForQCD.remove('QCD')
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+['datadrivenqcd'], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, dataDrivenQCD=False)
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+['datadrivenqcd'], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, makePlots=False, dataDrivenQCD=False)
         #subtract backgrounds from QCD prediction
         macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
         print "Now back to our signal region..."
@@ -438,26 +478,32 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             if debugLevel > 0:
                 print "\nStoring QCD histogram for",var
             hists['QCD'][var] = histsForQCD['QCD'][var].Clone()
+            hists['QCD'][var].SetDirectory(0)
             if 'qcdnormUp' in shapeHists['QCD']:
                 if debugLevel > 0:
                     print "Including up/down systematic error on QCD for",var
-                shapeHists['QCD']['qcdnormUp'] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Up')
-                shapeHists['QCD']['qcdnormUp'].Scale(QCDNORMERRFRACTION)
-                shapeHists['QCD']['qcdnormDown'] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
-                shapeHists['QCD']['qcdnormDown'].Scale(1.0/QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormUp'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Up')
+                shapeHists['QCD']['qcdnormUp'][var].Scale(QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormUp'][var].SetDirectory(0)
+                shapeHists['QCD']['qcdnormDown'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
+                shapeHists['QCD']['qcdnormDown'][var].Scale(1.0/QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormDown'][var].SetDirectory(0)
+        for name in histsForQCD:
+            for var in histsForQCD[name]:
+                histsForQCD[name][var].Delete()
     if 'datadrivenqcd' in map(str.lower, weightOpts): #use QCD extrapolation on data
         dataWeightOpts.append('datadrivenqcd')
             
     #fill histograms by looping over all trees
     if dataName in trees:
         print("\nData:")
-        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, debugLevel=debugLevel) 
+        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, noFill=noFill, debugLevel=debugLevel) 
 
     print("\nMC:")
     if debugLevel > 0:
         print "\nMisc SF hists to use:"
         print auxSFs
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, debugLevel=debugLevel) 
 
     #get up/down histogram variations
     for shape in otherShapes:
@@ -474,7 +520,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, debugLevel=debugLevel)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
         auxSFsToUse = copy.copy(auxSFs)
@@ -482,10 +528,14 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, debugLevel=debugLevel)
 
-    #propagate up/down systematics to central histograms
-    macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+    if exportShapeErrs:
+        #save shape histograms in hists dictionary
+        hists['Sys'] = shapeHists
+    else:
+        #propagate up/down systematics to central histograms
+        macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
 
@@ -493,34 +543,95 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     nsigmaFitData = None
     nsigmaFitMC = None
     dataForTable = None
-    if fitToyFiles and ("MR","Rsq") in bins:
+    if fitToyFiles is not None and boxName in fitToyFiles and fitToyFiles[boxName] is not None and ("MR","Rsq") in bins:
         noFitStat=True
         print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
         import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
+        print "Making TeX table with predictions in each analysis bin"
         if dataName in hists: 
-            print "Making nsigma histogram using data and fit prediction"
-            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
+            print "Including observed data yields in table"
             dataForTable=hists[dataName][("MR","Rsq")]
+            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, printdir=printdir)
-
-        if len(samples) > 0: #compare fit with MC
-            pass
-            #make total MC histogram
-            #mcTotal = hists[samples[0]][("MR","Rsq")].Clone("mcTotal")
-            #mcTotal.Reset()
-            #for name in samples:
-            #    mcTotal.Add(hists[name][("MR","Rsq")])
-            #print "Making nsigma histogram using MC and fit prediction"
-            #nsigmaFitMC = get2DNSigmaHistogram(mcTotal, bins, fitToyFiles, boxName, btags, debugLevel)
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=True, printdir=printdir)
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, vartitles=titles)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles)
 
     #close files and return
     for f in files: files[f].Close()
     return hists
+
+def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):
+    """Loads the output of makeControlSampleHists from a file and creates plots"""
+
+    titles = {
+        "MR": "M_{R} (GeV)", 
+        "Rsq": "R^{2}",
+        "mll": "m_{ll} (GeV)",
+        "NBJetsMedium" : "Number of B-tagged Jets",
+        "NJets80" : "Number of Jets with p_{T} > 80 GeV",
+        "NJets40" : "Number of Jets",        
+        "lep1.Pt()": "lepton p_{T} (GeV)",
+        "lep2.Pt()": "lepton p_{T} (GeV)",
+        "lep1.Eta()": "lepton #eta",
+        "lep2.Eta()": "lepton #eta",
+        }
+
+    #load the histograms
+    hists = macro.importHists(inFile, debugLevel)
+
+    ##Get plotting options (for customizing plot behavior)
+    special = ""
+    #set log scale
+    if "logx" in plotOpts: logx = plotOpts["logx"]
+    else: logx = True
+    if "ymin" in plotOpts: ymin = plotOpts["ymin"]
+    else: ymin = 0.1
+    #allow disabling comment string (normally written at the top of each plot)
+    if "comment" in plotOpts: comment = plotOpts["comment"]
+    else: comment = True
+    #use sideband fit result 
+    if "sideband" in plotOpts:
+        if plotOpts['sideband']:
+            special += 'sideband'
+        else:
+            special += 'full'
+
+    listOfVars = hists.itervalues().next().keys() #list of the variable names
+    
+    if 'Sys' in hists: 
+        #Shape errors have not been applied; propagate them to histograms them before plotting
+        print "Propagating shape uncertainties found in Sys directory"
+        shapeHists = hists['Sys']
+        miscErrors = []
+        del hists['Sys']
+        macro.propagateShapeSystematics(hists, samples, listOfVars, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+
+    c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
+
+    #make tex table
+    dataForTable = None
+    if ("MR","Rsq") in listOfVars and 'Fit' in hists:
+        print "Making TeX table with predictions in each analysis bin"
+        if dataName in hists: 
+            dataForTable=hists[dataName][("MR","Rsq")]
+            print "Including observed data yields in table"
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+                mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
+                boxName=boxName, btags=btags, unrollBins=unrollBins, 
+                useMCFitSys=True, printdir=printdir)
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
+                mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
+                boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
+
+    #print histograms
+    rt.SetOwnership(c, False)
+    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=None, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles)
+
 
 #######################################
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
@@ -780,9 +891,10 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 
     #make signal region histogram that will receive the correction
     if histsToCorrect is not None:
+        bgProcessesSR = [mcProcess for mcProcess in histsToCorrect if mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit samples
         histToCorrect = hists[dataName][var].Clone("histToCorrect"+regionNameReduced) #set up correct binning
         histToCorrect.Reset()
-        for p in bgProcesses:
+        for p in bgProcessesSR:
             if signalRegionVar not in histsToCorrect[p]:
                 print "Error in makeVetoLeptonCorrectionHist: signal region histogram for",p,"not found!"
                 return
@@ -827,13 +939,14 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
             if thisBinErr == 0: continue
             nsigma = abs(vlHists['Central'].GetBinContent(bx)-targetVal)/thisBinErr
             if nsigma < signifThreshold: 
-                shiftAmount = vlHists['Central'].GetBinContent(bx)-targetVal
                 #reset central value to 0
                 vlHists['Central'].SetBinContent(bx,targetVal)
                 vlHists['Central'].SetBinError(bx,0.0)
-                #shift up and down histogram values by the amount of the correction
-                vlHists['Up'].SetBinContent(bx, vlHists['Up'].GetBinContent(bx)-shiftAmount)
-                vlHists['Down'].SetBinContent(bx, vlHists['Down'].GetBinContent(bx)-shiftAmount)
+                #reset up/down histograms 
+                vlHists['Up'].SetBinContent(bx,targetVal)
+                vlHists['Up'].SetBinError(bx,0.0)
+                vlHists['Down'].SetBinContent(bx,targetVal)
+                vlHists['Down'].SetBinError(bx,0.0)
 
     if debugLevel > 0:
         print "\nCorrections before MT and dPhi efficiencies:"
@@ -875,14 +988,22 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
                     h.SetBinError(bx, h.GetBinError(bx)*(dPhiEfficiencyHist.GetBinContent(bx)-dPhiEfficiencyHist.GetBinError(bx)))
 
         print "Correcting histogram",histToCorrect.GetName(),"using the additive corrections just derived."
+        #set all histToCorrect errors to 0
+        for bx in range(1, histToCorrect.GetSize()+1):
+            histToCorrect.SetBinError(bx, 0.0)
         #corrected hist is histToCorrect + correction
         correctedHists = { n:histToCorrect.Clone(histToCorrect.GetName()+"VetoLepton"+n) for n in vlHists }
         for n in vlHists:
             correctedHists[n].Add(vlHists[n])
         #signal region scale factors are correctedHist / histToCorrect
         signalRegionSFs = { n:h.Clone(regionNameReduced+"ScaleFactors"+n.replace('Central','')) for n,h in correctedHists.iteritems() }
+
+        #divide and write out
         for n,h in signalRegionSFs.iteritems():
             h.Divide(histToCorrect)
+            #zero any negative scale factors
+            for bx in range(h.GetSize()+1):
+                h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
             print "Writing histogram",h.GetName(),"to file"
             h.Write()
 
@@ -901,6 +1022,9 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     #otherwise, write corrections to file
     else:
         for n,h in vlHists.iteritems():
+            #zero any negative scale factors
+            for bx in range(h.GetSize()+1):
+                h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
             print "Writing histogram",h.GetName(),"to file"
             h.Write(regionNameReduced+"ScaleFactors"+n)
 
@@ -948,3 +1072,131 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 
     return vlHists['Central']
 
+#########################################
+### PREPARE HISTOGRAMS FOR LIMIT SETTING
+#########################################
+
+def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False):
+    """
+    Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
+    """
+
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+
+    #get information from each b-tag bin
+    unrolledMC = {s:[] for s in samples}
+    unrolledData = []
+    unrolledFit = []
+    unrolledShapeHists = {s:{} for s in samples}
+    for i,f in enumerate(filenames):
+        #bins for unrolling
+        unrollRows = unrollBins[i][0]
+        unrollCols = unrollBins[i][1]
+
+        #load the histograms
+        hists = macro.importHists(f, debugLevel)
+
+        #get shape histograms
+        if 'Sys' in hists: 
+            shapeHists = hists['Sys']
+            miscErrors = []
+            del hists['Sys']
+        elif not noSys:
+            print "Error in unrollAndWriteDataCard: no shape histograms were found in the input file",f
+            return
+
+        #noSys option
+        if noSys: 
+            shapeHists = {s:{} for s in samples}
+
+        #unroll each MC histogram
+        unrolledMCs = plotting.unroll2DHistograms([hists[s][var] for s in samples], unrollRows, unrollCols)
+        for n,s in enumerate(samples):
+            unrolledMC[s].append(unrolledMCs[n])
+            for shape in shapeHists[s]:
+                #omit some uncertainties
+                if 'singletopnorm' in shape or 'othernorm' in shape: 
+                    continue
+                if shape not in unrolledShapeHists[s]:
+                    unrolledShapeHists[s][shape] = []
+                unrolledShapeHists[s][shape].append(plotting.unroll2DHistograms([shapeHists[s][shape][var]], unrollRows, unrollCols)[0])
+        #unroll data
+        unrolledData.append(plotting.unroll2DHistograms([hists[dataName][var]], unrollRows, unrollCols)[0])
+        if addMCVsFit:
+            unrolledFit.append(plotting.unroll2DHistograms([hists['Fit'][var]], unrollRows, unrollCols)[0])
+
+
+    #piece together histograms from different b-tag bins
+    histsForDataCard = {}
+    for s in samples:
+        histsForDataCard[s] = macro.stitch(unrolledMC[s])
+        for shape in unrolledShapeHists[s]:
+            #protect against empty histograms (for QCD)
+            isEmpty = True
+            for hist in unrolledShapeHists[s][shape]:
+                if hist.Integral() > 0:
+                    isEmpty = False
+                    break
+            if isEmpty: 
+                print "Warning: empty shape histograms for",s,shape
+                continue
+            #create histogram
+            histsForDataCard[s+'_'+shape] = macro.stitch(unrolledShapeHists[s][shape])
+    histsForDataCard['data_obs'] = macro.stitch(unrolledData)
+
+    #make MC vs Fit systematic
+    if addMCVsFit:
+        fitTotal = macro.stitch(unrolledFit)
+
+        #make total MC histogram to compare with fit
+        mcTotal = histsForDataCard[samples[0]].Clone('mcTotal')
+        mcTotal.Reset()
+        for s in samples:
+            mcTotal.Add(histsForDataCard[s])
+            histsForDataCard[s+'_fitmccrosscheckUp'] = histsForDataCard[s].Clone()
+            histsForDataCard[s+'_fitmccrosscheckDown'] = histsForDataCard[s].Clone()
+            histsForDataCard[s+'_fitmccrosscheckUp'].SetName(s+'_fitmccrosscheckUp')
+            histsForDataCard[s+'_fitmccrosscheckDown'].SetName(s+'_fitmccrosscheckDown')
+            histsForDataCard[s+'_fitmccrosscheckUp'].SetTitle(s+'_fitmccrosscheckUp')
+            histsForDataCard[s+'_fitmccrosscheckDown'].SetTitle(s+'_fitmccrosscheckDown')
+        
+        #get fit/MC and propagate to individual MC processes
+        for bx in range(1, histsForDataCard[samples[0]].GetNbinsX()+1):
+            if mcTotal.GetBinContent(bx) > 0:
+                fitOverMC = fitTotal.GetBinContent(bx) / mcTotal.GetBinContent(bx)
+
+                for s in samples:
+                    histsForDataCard[s+'_fitmccrosscheckUp'].SetBinContent(bx, 
+                            histsForDataCard[s].GetBinContent(bx) * fitOverMC)
+                    histsForDataCard[s+'_fitmccrosscheckDown'].SetBinContent(bx, 
+                            histsForDataCard[s].GetBinContent(bx) / fitOverMC)
+
+
+    #make statistical uncertainty up/down histograms
+    if addStatUnc:
+        for sample in samples:
+            histsForDataCard[sample+'_stat'+boxName+sample+'Up'] = histsForDataCard[sample].Clone()
+            histsForDataCard[sample+'_stat'+boxName+sample+'Down'] = histsForDataCard[sample].Clone()
+            for bx in range(1, histsForDataCard[sample].GetNbinsX()+1):
+                histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) + histsForDataCard[sample].GetBinError(bx))
+                histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) - histsForDataCard[sample].GetBinError(bx))
+            histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetName(sample+'_stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetName(sample+'_stat'+boxName+sample+'Down')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetTitle(sample+'_stat'+boxName+sample+'Up')
+            histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetTitle(sample+'_stat'+boxName+sample+'Down')
+
+    #set names on histograms
+    histsForDataCard['data_obs'].SetName('data_obs')
+    histsForDataCard['data_obs'].SetTitle('data_obs')
+    for sample in samples:
+        histsForDataCard[sample].SetName(sample)
+        histsForDataCard[sample].SetTitle(sample)
+        for shape in unrolledShapeHists[sample]:
+            if sample+'_'+shape in histsForDataCard:
+                histsForDataCard[sample+'_'+shape].SetName(sample+'_'+shape)
+                histsForDataCard[sample+'_'+shape].SetTitle(sample+'_'+shape)
+
+    if export:
+        macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=outDir, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)
+
+    return histsForDataCard

@@ -10,6 +10,7 @@ from framework import Config
 from DustinTuple2RooDataSet import initializeWorkspace, boxes, k_T, k_Z, k_W, getCuts
 from RunCombine import exec_me
 from macro.razorWeights import loadScaleFactorHists
+import macro.macro as macro
 
 DIR_MC = "SimpleBackgrounds"
 #DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
@@ -345,37 +346,66 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
 
     return weight
 
-def uncorrelate(hists, sysName):
+def uncorrelate(hists, sysName, suppressLevel=None):
     """Replaces each histogram whose name contains 'sysName' with many copies that represent uncorrelated bin-by-bin systematics.
-    If referenceHist is given, bins in the shape histograms are assumed to be correlated if and only if they lie in the same bin of referenceHist."""
+    If referenceHist is given, bins in the shape histograms are assumed to be correlated if and only if they lie in the same bin of referenceHist.
+    suppressLevel: if provided, new histograms will only be created for bins that differ from nominal by a fractional amount greater than suppressLevel."""
     #get all histograms that match the input string
     toUncorrelate = [name for name in hists if sysName in name]
-    print("Treating the following distributions as uncorrelated: ")
+    print "Treating the following distributions as uncorrelated for",sysName,": "
     for name in toUncorrelate: print name
     
+    #get names of individual systematics
+    systNames = []
     for name in toUncorrelate:
+        systName = name.replace("Up","").replace("Down","")
+        if systName not in systNames:
+            systNames.append(systName)
+
+    for name in systNames:
         print("Uncorrelating "+name)
         #get histogram with central values
         centerName = name.split("_")[:-1]
         centerName = '_'.join(centerName)
-        systName = name.split("_")[-1].replace("Up","").replace("Down","")
+        #get up and down variants
+        upName = name+'Up'
+        downName = name+'Down'
+        uncName = name.split("_")[-1]
         print("Central values taken from "+centerName)
         #for each bin create a new histogram in which that bin is up/down and the rest are centered
-        for b in range(1,hists[name].GetNbinsX()+1):
-            if "Up" in name: 
-                newHistName = centerName+"_"+systName+str(b)+"Up"
-            elif "Down" in name:
-                newHistName = centerName+"_"+systName+str(b)+"Down"
-            else: 
-                print("Error: shape histogram name "+name+" needs to contain 'Up' or 'Down'")
-                return
-            hists[newHistName] = hists[centerName].Clone(newHistName)
-            hists[newHistName].SetDirectory(0)
-            hists[newHistName].SetBinContent(b, hists[name].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
-            hists[newHistName].SetBinError(b, hists[name].GetBinError(b))
+        for b in range(1,hists[centerName].GetNbinsX()+1):
+            newHistUpName = centerName+"_"+uncName+str(b)+"Up"
+            newHistDownName = centerName+"_"+uncName+str(b)+"Down"
+
+            #check level of agreement with the nominal
+            if suppressLevel is not None:
+                #get percent difference from nominal
+                if hists[centerName].GetBinContent(b) > 0:
+                    percDifferenceUp = abs(hists[upName].GetBinContent(b)-hists[centerName].GetBinContent(b))/hists[centerName].GetBinContent(b)
+                    percDifferenceDown = abs(hists[downName].GetBinContent(b)-hists[centerName].GetBinContent(b))/hists[centerName].GetBinContent(b)
+                    percDifference = max(percDifferenceUp, percDifferenceDown)
+                    if percDifference <= suppressLevel: 
+                        print "Suppressing nuisance in bin",b,"(agrees at",percDifference,"level)"
+                        continue
+                elif hists[upName].GetBinContent(b) == hists[centerName].GetBinContent(b) and hists[downName].GetBinContent(b) == hists[centerName].GetBinContent(b): 
+                        print "Suppressing nuisance in bin",b,"because there is no change from the nominal"
+                        continue
+
+            #new up histogram
+            hists[newHistUpName] = hists[centerName].Clone(newHistUpName)
+            hists[newHistUpName].SetDirectory(0)
+            hists[newHistUpName].SetBinContent(b, hists[upName].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
+            hists[newHistUpName].SetBinError(b, hists[upName].GetBinError(b))
+
+            #new down histogram
+            hists[newHistDownName] = hists[centerName].Clone(newHistDownName)
+            hists[newHistDownName].SetDirectory(0)
+            hists[newHistDownName].SetBinContent(b, hists[downName].GetBinContent(b)) #new hist has the unperturbed value in every bin except one
+            hists[newHistDownName].SetBinError(b, hists[downName].GetBinError(b))
 
         #remove the original histogram
-        del hists[name]
+        del hists[upName]
+        del hists[downName]
 
 def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
     """Same as uncorrelate(), but treats bins as correlated if they lie inside the same bin in the reference histogram.
@@ -436,7 +466,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False):
+def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False, unrollBins=None):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -603,32 +633,58 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
         sumEntriesByBtag[btag_bin] += filledWeight
 
     #unroll into TH1F
-    nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
-    maxBins = 224
-    #maxBins = nBins
-    myTH1 = rt.TH1F(treeName,treeName,maxBins,0,maxBins)
-    myTH1.SetDirectory(0) #prevent it from going out of scope
-    myTH1.Sumw2()
-    i = 0
-    for ix in range(1,len(x)):
-        for iy in range(1,len(y)):
-            for iz in range(1,len(z)):
-                i += 1
-                if sysErrOpt == "mcstatUp":
-                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz) + myTH3.GetBinError(ix,iy,iz))
-                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
-                elif sysErrOpt == "mcstatDown":
-                    myTH1.SetBinContent(i,max(0.,myTH3.GetBinContent(ix,iy,iz) - myTH3.GetBinError(ix,iy,iz)))
-                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
-                elif sysErrOpt == "pdfUp": #inflate bin contents by 10%
-                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz)*1.1)
-                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz)*1.1)
-                elif sysErrOpt == "pdfDown": #deflate bin contents by 10%
-                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz)/1.1)
-                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz)/1.1)
-                else:                    
-                    myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
-                    myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+    if unrollBins is None:
+        nBins = (len(x)-1)*(len(y)-1)*(len(z)-1)
+        maxBins = 224
+        #maxBins = nBins
+        myTH1 = rt.TH1F(treeName,treeName,maxBins,0,maxBins)
+        myTH1.SetDirectory(0) #prevent it from going out of scope
+        myTH1.Sumw2()
+        i = 0
+        for ix in range(1,len(x)):
+            for iy in range(1,len(y)):
+                for iz in range(1,len(z)):
+                    i += 1
+                    if sysErrOpt == "mcstatUp":
+                        myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz) + myTH3.GetBinError(ix,iy,iz))
+                        myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+                    elif sysErrOpt == "mcstatDown":
+                        myTH1.SetBinContent(i,max(0.,myTH3.GetBinContent(ix,iy,iz) - myTH3.GetBinError(ix,iy,iz)))
+                        myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+                    elif sysErrOpt == "pdfUp": #inflate bin contents by 10%
+                        myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz)*1.1)
+                        myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz)*1.1)
+                    elif sysErrOpt == "pdfDown": #deflate bin contents by 10%
+                        myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz)/1.1)
+                        myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz)/1.1)
+                    else:                    
+                        myTH1.SetBinContent(i,myTH3.GetBinContent(ix,iy,iz))
+                        myTH1.SetBinError(i,myTH3.GetBinError(ix,iy,iz))
+    else:
+        #make a TH2Poly from each xy slice of the histogram, unroll each one and attach together
+        print "Merging bins according to custom (MR-dependent) binning"
+        layers = []
+        for iz in range(1, len(z)):
+            #one xy slice of the histogram (doing it myself to avoid any ROOT eccentricities)
+            tempTH2 = rt.TH2D(treeName+'2d'+str(iz), 'tmp', len(x)-1,x,len(y)-1,y)
+            for ix in range(1, len(x)):
+                for iy in range(1, len(y)):
+                    tempTH2.SetBinContent(ix,iy, myTH3.GetBinContent(ix,iy,iz))
+            #turn it into a TH2Poly with the reduced binning
+            unrollRows = unrollBins[iz-1][0]
+            unrollCols = unrollBins[iz-1][1]
+            poly = macro.makeTH2PolyFromColumns(tempTH2.GetName()+"poly", 'poly', unrollRows, unrollCols)
+            macro.fillTH2PolyFromTH2(tempTH2, poly)
+            numbins = poly.GetNumberOfBins()
+            unrolledSlice = rt.TH1D(tempTH2.GetName()+"Unroll", "slice", numbins, 0, numbins)
+            for bn in range(1, numbins+1):
+                unrolledSlice.SetBinContent(bn, poly.GetBinContent(bn))
+                unrolledSlice.SetBinError(bn, poly.GetBinError(bn))
+            layers.append(unrolledSlice)
+            poly.Delete()
+        myTH1 = macro.stitch(layers)
+        myTH1.SetName(treeName)
+        myTH1.SetTitle(treeName)
 
     print "Filename: %s"%f
     print "Sample: %s"%treeName
@@ -638,8 +694,9 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
 
     return myTH1
 
-def writeDataCard_th1(box,model,txtfileName,hists):
-    bkgs = [bkg for bkg in FILENAMES_MC if bkg in hists]
+def writeDataCard_th1(box,model,txtfileName,hists,bkgs=None):
+    if bkgs is None: 
+        bkgs = [bkg for bkg in FILENAMES_MC if bkg in hists]
     obsRate = hists["data_obs"].Integral()
     nBkgd = len(bkgs)
     rootFileName = txtfileName.replace('.txt','.root')
@@ -665,6 +722,8 @@ def writeDataCard_th1(box,model,txtfileName,hists):
     #20% normalization uncertainty on rare backgrounds
     for bkg in bkgs:
         if bkg in ['ttjets','wjetstolnu','dyjetstoll','zjetstonunu','qcd']: continue
+        #alternate naming convention
+        if bkg.lower() in ['ttjets', 'ttjets1l', 'ttjets2l', 'wjets', 'dyjets', 'zinv', 'qcd']: continue
         mcErrs[bkg] = [1.00]
         mcErrs[bkg].extend([1.00 + 0.20*(bkg==bkg1) for bkg1 in bkgs]) 
             
