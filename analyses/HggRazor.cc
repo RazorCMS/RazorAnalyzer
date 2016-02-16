@@ -475,7 +475,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
     vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
     std::vector< PhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
-    
     int nPhotonsAbove40GeV = 0;
     for(int i = 0; i < nPhotons; i++)
       {
@@ -498,7 +497,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
 	  {
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	    //continue;
+	    continue;
 	  }
 	
 	if( fabs(pho_superClusterEta[i]) > 2.5 )
@@ -515,7 +514,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    continue;
 	  }
 	//photon passes
-	if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
+	if( phoPt[i] > 34.0 ) nPhotonsAbove40GeV++;
 	//setting up photon 4-momentum with zero mass
 	TLorentzVector thisPhoton;
 	thisPhoton.SetVectM( vec, .0 );
@@ -600,11 +599,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     //---------------------------------------
     TLorentzVector HiggsCandidate(0,0,0,0);
     TLorentzVector HiggsCandidateSC(0,0,0,0);
-    int goodPhoIndex1 = -1;
-    int goodPhoIndex2 = -1;
+    int HiggsPhoIndex1 = -1;
+    int HiggsPhoIndex2 = -1;
     double bestSumPt = -99.;
-    
     std::vector< PhotonCandidate > phoSelectedCand;
+    PhotonCandidate bestCand[2];
     for(size_t i = 0; i < phoCand.size(); i++){
       for(size_t j = i+1; j < phoCand.size(); j++){
 	PhotonCandidate pho1 = phoCand[i];
@@ -646,18 +645,18 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
 	    {
 	      if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
-	      phoSelectedCand.push_back(pho1);
-	      phoSelectedCand.push_back(pho2);
-	      goodPhoIndex1 = pho1.Index;
-	      goodPhoIndex2 = pho2.Index;  
+	      bestCand[0] = pho1;
+              bestCand[1] = pho2;
+	      HiggsPhoIndex1 = pho1.Index;
+	      HiggsPhoIndex2 = pho2.Index;  
 	    }
 	  else
 	    {
 	      if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
-	      phoSelectedCand.push_back(pho2);
-	      phoSelectedCand.push_back(pho1);
-	      goodPhoIndex1 = pho2.Index;
-              goodPhoIndex2 = pho1.Index;
+	      bestCand[0] = pho2;
+              bestCand[1] = pho1;
+	      HiggsPhoIndex1 = pho2.Index;
+              HiggsPhoIndex2 = pho1.Index;
 	    }
 	  
 	}
@@ -665,12 +664,21 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     }   
 
     
+    //---------------------------------------
+    //just use this container for convenience
+    //to parse the data into TTree
+    //---------------------------------------
+    phoSelectedCand.push_back(bestCand[0]);
+    phoSelectedCand.push_back(bestCand[1]);
+    
+    //-----------------------------------
     //Filling Selected Photon Information
+    //-----------------------------------
     TLorentzVector pho_cand_vec[2];
     int _pho_index = 0;
     for ( auto& tmpPho : phoSelectedCand )
       {
-	if ( !( tmpPho.Index == goodPhoIndex1 || tmpPho.Index == goodPhoIndex2 ) ) continue;
+	if ( !( tmpPho.Index == HiggsPhoIndex1 || tmpPho.Index == HiggsPhoIndex2 ) ) continue;
 	if( _pho_index > 1 ) std::cerr << "[ERROR]: Photon index larger than 1!" << std::endl;
 	pho_cand_vec[_pho_index]           = tmpPho.photon;
 	Pho_E[_pho_index]                  = tmpPho.photon.E();
@@ -687,7 +695,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
 	Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
 	Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
-	//Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
 	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
 	Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	Pho_passIso[_pho_index]            = tmpPho._passIso;
@@ -710,14 +717,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( HiggsCandidate.Pt() < 20.0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: Higgs Pt < 20 GeV, H pt: " << HiggsCandidate.Pt() << std::endl; 
-	continue;
+	//continue;//apply offline
       }
     
     //if the best candidate pair has a photon in the endcap, reject the event
     if ( fabs( Pho_Eta[0] ) > 1.44 || fabs( Pho_Eta[1] ) > 1.44 )
       {
 	//allow for now, to sync with alex, probably good idea to keep them to debug
-	//continue;
+	//continue;//apply offline
       }
     
     //if the best candidate pair has a non-isolated photon, reject the event
@@ -729,7 +736,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
 	  }
-	continue;
+	//continue;//apply offline
       }
     //record higgs candidate info
     mGammaGamma    = HiggsCandidate.M();
