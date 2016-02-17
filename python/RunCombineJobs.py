@@ -62,7 +62,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'pwd\n'
     script += 'git clone git@github.com:RazorCMS/RazorAnalyzer\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits Limits20160215v2\n'
+    script += 'git checkout -b Limits Limits20160216\n'
     script += 'source setup.sh\n'
     script += 'make\n'
     script += 'mkdir -p Datasets\n'
@@ -132,7 +132,6 @@ if __name__ == '__main__':
                   help="Use the SUS pdf reweighting prescription, summing weights in quadrature")
     parser.add_option('--histo-file',dest="histoFile", default=None,type="string",
                   help="input histogram file for MADD/fit systematic")
-
     (options,args) = parser.parse_args()
 
 
