@@ -21,6 +21,10 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('--lumi-in',dest="lumi_in", default=1.,type="float",
                   help="integrated luminosity in pb^-1")
+    parser.add_option('--xBR',dest="xBR", default=-1,type="float",
+                  help="x = BR(~g -> b b ~chi0)")
+    parser.add_option('--yBR',dest="yBR", default=-1,type="float",
+                  help="y = BR(~g -> t t ~chi0)")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
@@ -94,6 +98,8 @@ if __name__ == '__main__':
 
             # get mass point information
             modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+            if options.xBR>-1 and options.yBR>-1:
+                modelString = modelString.replace('T1ttbb',('T1x%.2fy%.2f'%(options.xBR,options.yBR)).replace('.','p'))
             model = modelString.split('-')[-1]
             massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
                                
@@ -131,11 +137,11 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, unrollBins=unrollBins))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, unrollBins=unrollBins, xBR=options.xBR, yBR=options.yBR))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents, unrollBins=unrollBins))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents, unrollBins=unrollBins, xBR=options.xBR, yBR=options.yBR))
             rootFile.Close()
 
             #make pdf envelope up/down (for SUS pdf uncertainty prescription)
