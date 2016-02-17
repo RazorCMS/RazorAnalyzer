@@ -111,6 +111,7 @@ if __name__ == '__main__':
                       #'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForApproval20151208/jobs/combined/',
                       'T1bbbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
                       'T1tttt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
+                      'T1ttbb': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
                       'T1qqqq': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
                       'T2tt': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
                       'T5qqqqVV': 'root://eoscms.cern.ch//eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined/',
@@ -154,8 +155,15 @@ if __name__ == '__main__':
             #if options.computePdfEnvelope:
             #    computePdfEnvelopeString = '--compute-pdf-envelope'
             #exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root --num-pdf-weights %d %s -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint, options.numPdfWeights, computePdfEnvelopeString, 1000*lumi,signalSys),options.dryRun)
-            exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint,1000*lumi,signalSys),options.dryRun)
-            
+            brString = ''
+            if 'T1x' in model:
+                xBR = float(model[model.find('x')+1:model.find('y')].replace('p','.'))
+                yBR = float(model[model.find('y')+1:].replace('p','.'))
+                brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
+                exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s'%(options.config,box,eosLocationSMS['T1ttbb'],'T1ttbb',massPoint,1000*lumi,signalSys,brString),options.dryRun)
+            else:                
+                exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint,1000*lumi,signalSys),options.dryRun)
+                
             if options.isData:
                 backgroundDsName = 'Datasets/%s_lumi-%.3f_%s_%s.root'%(dataset[box],lumi,btag,box)
                 exec_me('python python/DustinTuple2RooDataSet.py -b %s -c %s -d Datasets/ %s/%s.root --data -l %f'% (box, options.config, eosLocationData, dataset[box], 1000*lumi), options.dryRun )

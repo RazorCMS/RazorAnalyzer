@@ -11,6 +11,7 @@ from DustinTuple2RooDataSet import initializeWorkspace, boxes, k_T, k_Z, k_W, ge
 from RunCombine import exec_me
 from macro.razorWeights import loadScaleFactorHists
 import macro.macro as macro
+from MixedBranchingRatioWeight import getBRWeight
 
 DIR_MC = "SimpleBackgrounds"
 #DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/forfit"
@@ -466,7 +467,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False, unrollBins=None):
+def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False, unrollBins=None, xBR=-1, yBR=-1):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -628,6 +629,10 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
                 theWeight *= qcdExtrapolationFactor
         else:
             theWeight = tree.weight*k*globalScaleFactor
+            if xBR>-1 and yBR>-1:
+                theWeight *= getBRWeight(xBR, yBR, tree.ntFromGluino, tree.nCharginoFromGluino)
+                theWeight /= getBRWeight(0.25, 0.25, tree.ntFromGluino, tree.nCharginoFromGluino)
+                #print getBRWeight(xBR, yBR, tree.ntFromGluino, tree.nCharginoFromGluino)/getBRWeight(0.25, 0.25, tree.ntFromGluino, tree.nCharginoFromGluino)
         filledWeight = fillRazor3D(tree, myTH3, theWeight, btagCutoff, treeName, sfs, sysErrOpt, sumPdfWeights=sumPdfWeights, sumScaleWeights=sumScaleWeights, nevents=nevents)
         numEntriesByBtag[btag_bin] += 1
         sumEntriesByBtag[btag_bin] += filledWeight
