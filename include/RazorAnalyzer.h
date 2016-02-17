@@ -61,6 +61,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root", int Option = -1); 
         virtual void RazorMetAna(string outFileName = "RazorMET.root");
 	virtual void RazorDM(string outFileName = "RazorDM.root", bool combineTrees = false, bool isData = false );
+	virtual void RazorPhotonDM(string outFileName = "RazorPhotonDM.root", bool combineTrees = false, bool isData = false );
 	virtual void RazorAlphaT(string outFileName = "RazorAlphaT.root", bool combineTrees = false, bool isData = false );
 	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false);
 	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
