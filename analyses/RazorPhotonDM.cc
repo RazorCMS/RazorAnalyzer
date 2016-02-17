@@ -10,7 +10,15 @@
 using namespace std;
 
 #define _phodebug 0
-#define use25nsSelection 0 
+#define use25nsSelection 1
+
+
+struct PhotonCand
+{
+  TLorentzVector pho;
+  bool passIso;
+  bool passEleVeto;
+};
 
 void RazorAnalyzer::RazorPhotonDM(string outFileName, bool combineTrees, bool isData )
 {
@@ -351,7 +359,8 @@ void RazorAnalyzer::RazorPhotonDM(string outFileName, bool combineTrees, bool is
 	//Photon ID + Selection
 	//------------------------
 	//photon selection
-	vector<TLorentzVector> GoodPhotons;
+	std::vector<TLorentzVector> GoodPhotons;
+	std::vector< PhotonCand > GoodPhoCand;
 	int nPhotonsAbove40GeV = 0;
 	for(int i = 0; i < nPhotons; i++)
 	  {
@@ -395,13 +404,31 @@ void RazorAnalyzer::RazorPhotonDM(string outFileName, bool combineTrees, bool is
 	    TLorentzVector thisPhoton;
 	    thisPhoton.SetVectM( vec, .0 );
 	    GoodPhotons.push_back( thisPhoton );
+	    PhotonCand mypho;
+	    mypho.pho = thisPhoton;
+	    mypho.passIso = photonPassLooseIso(i,use25nsSelection);
+	    mypho.passEleVeto = pho_passEleVeto[i];
+	    GoodPhoCand.push_back( mypho );
 	    nPho++;
 	  }
 	
 	if ( nPho < 1 ) continue;
 	//sort photons
 	auto sortVLV = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ?  true : false; };
+	auto sortPhotonCand = [] ( PhotonCand a, PhotonCand b ){ return a.pho.Pt() > b.pho.Pt() ? true : false; };
 	std::sort( GoodPhotons.begin(), GoodPhotons.end(), sortVLV );
+	std::sort( GoodPhoCand.begin(), GoodPhoCand.end(), sortPhotonCand );
+	
+	int iPho = 0;
+	for( auto& tmp : GoodPhoCand )
+	  {
+	    PhoPt[iPho] = tmp.pho.Pt();
+	    PhoEta[iPho] = tmp.pho.Eta();
+	    PhoPhi[iPho] = tmp.pho.Phi();
+	    PhoPassIso[iPho] = tmp.passIso;
+	    PhoPassEleVeto[iPho] = tmp.passEleVeto;
+	    iPho++;
+	  }
 
 	
 	//------------------------
