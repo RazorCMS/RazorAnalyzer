@@ -70,7 +70,7 @@ if __name__ == "__main__":
             uncorrelate(backgroundHists, sys, suppressLevel=suppressLevel)
 
         #call SMS template maker
-        if 'T1' in args.model:
+        if 'T1' in args.model or 'T5' in args.model:
             modelName = 'SMS-'+args.model+'_'+str(args.mGluino)+'_'+str(args.mLSP)
         else:
             modelName = 'SMS-'+args.model+'_'+str(args.mStop)+'_'+str(args.mLSP)

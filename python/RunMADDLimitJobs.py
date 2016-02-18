@@ -111,7 +111,7 @@ if __name__ == '__main__':
                 if outputname in allFiles: donePairs.append((mg,mchi))
 
     thyXsec = {}
-    if "T1" in options.model:
+    if "T1" in options.model or "T5" in options.model:
         xsecFile = 'data/gluino13TeV.txt'
     if "T2" in options.model:
         xsecFile = 'data/stop13TeV.txt'

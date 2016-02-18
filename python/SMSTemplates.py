@@ -108,7 +108,7 @@ if __name__ == '__main__':
             mGluino = -1
             mStop = -1
             mLSP = massPoint.split("_")[1]
-            if "T1" in model:
+            if "T1" in model or "T5" in model:
                 mGluino = massPoint.split("_")[0]
             if "T2" in model:
                 mStop = massPoint.split("_")[0]
@@ -220,12 +220,12 @@ if __name__ == '__main__':
 
         #output file name
         if btagMax>btagMin+1:
-            if "T1" in modelString:
+            if "T1" in modelString or "T5" in modelString:
                 outFileName = '%s_%i_%i_lumi-%.3f_%i-%ibtag_%s.root'%(modelString,int(mGluino),int(mLSP),lumi/1000.,btagMin,btagMax-1,curBox)
             else:
                 outFileName = '%s_%i_%i_lumi-%.3f_%i-%ibtag_%s.root'%(modelString,int(mStop),int(mLSP),lumi/1000.,btagMin,btagMax-1,curBox)
         else:
-            if "T1" in modelString:
+            if "T1" in modelString or "T5" in modelString:
                 outFileName = '%s_%i_%i_lumi-%.3f_%ibtag_%s.root'%(modelString,int(mGluino),int(mLSP),lumi/1000.,btagMin,curBox)
             else:
                 outFileName = '%s_%i_%i_lumi-%.3f_%ibtag_%s.root'%(modelString,int(mStop),int(mLSP),lumi/1000.,btagMin,curBox)
