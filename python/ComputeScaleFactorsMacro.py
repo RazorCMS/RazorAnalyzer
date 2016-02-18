@@ -98,7 +98,7 @@ binsMRLep = cfg.getBinning("WJetControlRegion")[0]
 binsRsqLep = cfg.getBinning("WJetControlRegion")[1]
 binsNBTags = [0.,1.,2.,3.,4.]
 binsNJets80 = [0.,1.,2.,20.]
-binsNJets = [0.,1.,2.,3.,4.,7.,20.]
+binsNJets = [2.,3.,4.,7.,20.]
 binsLepPt = [20.,25.,30.,35.,40.,45.,50.,70.,100]
 ControlRegionBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, "lep1.Pt()":binsLepPt, ("MR","Rsq"):[], ("MR","Rsq","NBJetsMedium"):[]}
 ZNuNu_1L_ControlRegionBinning = { "MR_NoW":binsMRLep, "Rsq_NoW":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, ("MR_NoW","Rsq_NoW"):[] }
@@ -128,6 +128,8 @@ if __name__ == "__main__":
     sfVars = ("MR","Rsq")
     sfVars_NoW = ("MR_NoW", "Rsq_NoW")
 
+    plotOpts = { 'comment':False }
+
     ##########################################################
     # #DYJets control sample
     ##########################################################
@@ -147,7 +149,8 @@ if __name__ == "__main__":
                 cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
                 bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir=printdir, sfVars=sfVars, debugLevel=debugLevel)
+                printdir=printdir, sfVars=sfVars, debugLevel=debugLevel,
+                unrollBins=(xbinsTTJETS1L, colsTTJETS1L), plotOpts=plotOpts)
     appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, th2PolyXBins=xbinsTTJETS1L, th2PolyCols=colsTTJETS1L, debugLevel=debugLevel, var=sfVars, printdir=printdir)
 
     ##########################################################
@@ -159,7 +162,8 @@ if __name__ == "__main__":
                 cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
                 bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
+                printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel,
+                unrollBins=(xbinsWJETS1L, colsWJETS1L), plotOpts=plotOpts)
     appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, th2PolyXBins=xbinsWJETS1L, th2PolyCols=colsWJETS1L, debugLevel=debugLevel, var=sfVars, printdir=printdir)
 
 
@@ -172,7 +176,8 @@ if __name__ == "__main__":
                  cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
                  bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                  weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
-                 printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel)
+                 printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel,
+                 unrollBins=(xbinsWJETS1LINV, colsWJETS1LINV), plotOpts=plotOpts)
     appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, th2PolyXBins=xbinsWJETS1LINV, th2PolyCols=colsWJETS1LINV, debugLevel=debugLevel, printdir=printdir)
 
     #write scale factors
