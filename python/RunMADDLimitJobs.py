@@ -52,8 +52,7 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    #script += 'git checkout -b Limits Limits20151211\n' #TODO: make a tag for MADD limits
-    #script += 'source setup.sh\n' #needed for MADD?
+    script += 'git checkout -b Limits MADDLimits20160218\n' 
     script += 'make lxplus\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString)
