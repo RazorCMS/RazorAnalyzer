@@ -400,6 +400,9 @@ void plotGJetsScaleFactorSystematics() {
   GJetsSystematicUnc->GetXaxis()->SetRangeUser(400,4000);
   GJetsSystematicUnc->GetYaxis()->SetRangeUser(0.25,1.5);
   GJetsSystematicUnc->GetZaxis()->SetTitle("Systematic Uncertainty");
+  GJetsSystematicUnc->GetXaxis()->SetTitle("M_{R} [GeV/c^{2}]");
+  GJetsSystematicUnc->GetYaxis()->SetTitle("R^{2}");
+  GJetsSystematicUnc->SetTitle("");
   GJetsSystematicUnc->GetZaxis()->SetLabelSize(0.05);
   GJetsSystematicUnc->GetZaxis()->SetTitleSize(0.05);
   GJetsSystematicUnc->GetXaxis()->SetLabelSize(0.05);
@@ -442,7 +445,7 @@ void plotGJetsScaleFactorSystematics() {
 
 void plotScaleFactorHistograms() {
 
-  plotScaleFactor();
-  //plotGJetsScaleFactorSystematics();
+  //plotScaleFactor();
+  plotGJetsScaleFactorSystematics();
 
 }
