@@ -86,7 +86,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   pad1->Draw();
   pad1->cd();
 
-  legend = new TLegend(0.75,0.50,0.90,0.84);
+  legend = new TLegend(0.75,0.60,0.90,0.90);
   legend->SetTextSize(0.04);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -130,7 +130,9 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
     stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
     stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
-    stack->SetMinimum( 1e-4 );
+    //stack->SetMinimum( 1e-4 );
+    stack->SetMinimum( 1e-1 );
+    stack->SetMaximum( 1e4 );
 
     if (hasData) {
       hist[0]->SetMarkerStyle(20);      
@@ -197,8 +199,8 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->GetYaxis()->SetNdivisions(306);
   histDataOverMC->GetYaxis()->SetTitleSize(0.10);
   histDataOverMC->GetYaxis()->SetTitleOffset(0.3);
-  //  histDataOverMC->GetYaxis()->SetRangeUser(0.0,3.0);
-  histDataOverMC->GetYaxis()->SetRangeUser(0.0,5.0);
+  histDataOverMC->GetYaxis()->SetRangeUser(0.0,2.0);
+  //histDataOverMC->GetYaxis()->SetRangeUser(0.0,5.0);
   histDataOverMC->GetYaxis()->SetLabelSize(0.10);
   histDataOverMC->GetXaxis()->SetLabelSize(0.125);
   histDataOverMC->GetXaxis()->SetTitleSize(0.15);
@@ -259,32 +261,33 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
     InputSFHist = (TH2Poly*)SFInputFile->Get("GJetsInvScaleFactors");
   }
   
-  assert(InputSFHist);
-
+  if (SFOption != 0) {
+    assert(InputSFHist);
+  }
 
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
-  // const int NMRBins = 7;
-  // const int NRsqBins = 6;
-  // const int NNJetBins = 4;
-  // const int NNBTagBins = 5;
-  // double MRBins[NMRBins] = {400, 500, 600, 700, 900, 1200, 4000};
-  // double RsqBins[NRsqBins] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
-  // double NJetBins[NNJetBins] = {0,4,7,20};
-  // double NBTagBins[NNBTagBins] = {0,1,2,3,4};
+  const int NMRBins = 7;
+  const int NRsqBins = 6;
+  const int NNJetBins = 4;
+  const int NNBTagBins = 5;
+  double MRBins[NMRBins] = {400, 500, 600, 700, 900, 1200, 4000};
+  double RsqBins[NRsqBins] = {0.25, 0.30, 0.41, 0.52, 0.64, 1.5};
+  double NJetBins[NNJetBins] = {0,4,7,20};
+  double NBTagBins[NNBTagBins] = {0,1,2,3,4};
 
   //*****************************************************************************************
   //For 7 Jet Bin
   //*****************************************************************************************
-  const int NMRBins = 5;
-  const int NRsqBins = 4;
-  const int NNJetBins = 4;
-  const int NNBTagBins = 5;
-  double MRBins[NMRBins] = {400, 700, 900, 1200, 4000};
-  double RsqBins[NRsqBins] = {0.25, 0.41, 0.64, 1.5};
-  double NJetBins[NNJetBins] = {0,4,7,20};
-  double NBTagBins[NNBTagBins] = {0,1,2,3,4};
+  // const int NMRBins = 5;
+  // const int NRsqBins = 4;
+  // const int NNJetBins = 4;
+  // const int NNBTagBins = 5;
+  // double MRBins[NMRBins] = {400, 700, 900, 1200, 4000};
+  // double RsqBins[NRsqBins] = {0.25, 0.41, 0.64, 1.5};
+  // double NJetBins[NNJetBins] = {0,4,7,20};
+  // double NBTagBins[NNBTagBins] = {0,1,2,3,4};
 
   vector<vector<string> > inputfiles;
   vector<string> processLabels;
@@ -945,7 +948,7 @@ void SelectPhotonControlSample( int option = 0) {
   colors.push_back(kMagenta);
   colors.push_back(kCyan);
   
-  double lumi = 2185;
+  double lumi = 2245;
 
   //*********************************************************************
   //GJets Control Region
