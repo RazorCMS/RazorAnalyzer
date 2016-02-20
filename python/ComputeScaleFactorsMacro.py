@@ -7,8 +7,8 @@ from macro import macro
 from macro.razorAnalysis import wjetsSingleLeptonCutsMC, wjetsSingleLeptonCutsData, ttjetsSingleLeptonCutsMC, ttjetsSingleLeptonCutsData
 from macro.razorWeights import *
 from macro.razorMacros import *
+from SidebandMacro import LUMI as LUMI_DATA
 
-LUMI_DATA = 2185 #in /pb
 MCLUMI = 1 
 
 SAMPLES_TTJ1L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]

@@ -8,8 +8,8 @@ from macro.razorAnalysis import wjetsSingleLeptonCutsMC, wjetsSingleLeptonCutsDa
 from macro.razorWeights import *
 from macro.razorMacros import *
 from ComputeScaleFactorsMacro import xbinsWJETS1L, colsWJETS1L, xbinsTTJETS1L, colsTTJETS1L, xbinsWJETS1LINV, colsWJETS1LINV
+from SidebandMacro import LUMI as LUMI_DATA
 
-LUMI_DATA = 2185 #in /pb
 MCLUMI = 1 
 
 SAMPLES_TTJ1L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
