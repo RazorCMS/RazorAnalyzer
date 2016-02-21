@@ -3,6 +3,8 @@
 #include "JetCorrectorParameters.h"
 
 //C++ includes
+#include <limits>
+#include <cmath>
 
 //ROOT includes
 #include "TH1F.h"
@@ -263,8 +265,8 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    t1Rsq     = -1.0;
 	    RsqCorr   = -1.0;
 	    t1RsqCorr = -1.0;
-        leadingJetPt = -1;
-        leadingJetEta = 0.0;
+        leadingJetPt = -1.0;
+        leadingJetEta = -999.;
         subLeadingJetPt = -1;
 	    LeadJetChargedHadronFraction = -1.; 
 	    LeadJetNeutralHadronFraction = -1.; 
@@ -343,11 +345,13 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	//------------------------
 	vector<TLorentzVector> GoodJets;
 	vector<TLorentzVector> GoodJets_uncorr;
+    vector<float> JetChargedHadronFraction;
+    vector<float> JetNeutralHadronFraction;
+
         int numJetsAbove80GeV = 0;
 	for( int i = 0; i < nJets; i++ )
 	  {
 	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 2.5) continue; 
-	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue; 
 	    
 	    //ADDED LINES
 	    //int level = 2; //3rd bit of jetPileupIdFlag
@@ -389,6 +393,9 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    GoodJets_uncorr.push_back(thisJet_uncorr);
 	    
 	    GoodJets.push_back(thisJet);
+        JetNeutralHadronFraction.push_back(jetNeutralHadronEnergyFraction[i]);
+        JetChargedHadronFraction.push_back(jetChargedHadronEnergyFraction[i]);
+
 	    nSelectedJets++;
 	    //b-tagging 
 	    if(isCSVL(i)) nBTaggedJetsL++;
@@ -434,33 +441,41 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    JetE[jIndex]   = tmpJet.E();
 	    JetEta[jIndex] = tmpJet.Eta();
 	    JetPhi[jIndex] = tmpJet.Phi();
-	
-     auto sortJets = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ? true : false; };
-     std::sort( GoodJets.begin() , GoodJets.end(), sortJets);
-
+    
          if (JetPt[jIndex]> leadingJetPt && JetPt[jIndex]<14000) 
         {
 	    subLeadingJetPt = leadingJetPt;
 	    leadingJetPt = JetPt[jIndex];
         leadingJetEta = JetEta[jIndex];
+        LeadJetNeutralHadronFraction = JetNeutralHadronFraction.at(jIndex);
+        LeadJetChargedHadronFraction = JetChargedHadronFraction.at(jIndex);
 	    }
 	    else if (JetPt[jIndex]>subLeadingJetPt && JetPt[jIndex]<14000) 
         {
 	     subLeadingJetPt = JetPt[jIndex];
 	    }
-	    jIndex++;
+     
+        auto sortJets = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ? true : false; };
+        std::sort( GoodJets.begin() , GoodJets.end(), sortJets);
+	    
+        jIndex++;
 	  }
 //cout << "Compute jet charged and hadron fraction" << endl;
+
+/*
    // Compute leading jet's charged & neutral hadron fraction
    for (Int_t i = 0; i < nJets; i++)
    {
-       if (jetPt[i] == leadingJetPt && jetEta[i] == leadingJetEta) // this is the leading jet
+	    double JEC = JetEnergyCorrectionFactor( jetPt[i], JetEta[i], jetPhi[i], jetE[i],
+						    fixedGridRhoAll, jetJetArea[i],
+						    JetCorrector );
+       if (leadingJetPt > 0. && std::fabs(JEC*jetPt[i] - leadingJetPt) < 0.1 && std::fabs(jetEta[i] - leadingJetEta) < 0.05) // this is the leading jet
        {
            LeadJetNeutralHadronFraction = jetNeutralHadronEnergyFraction[i];
            LeadJetChargedHadronFraction = jetChargedHadronEnergyFraction[i];
        }
    }
-
+*/
 	//Compute the razor variables using the selected jets and possibly leptons
 	TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 	TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
