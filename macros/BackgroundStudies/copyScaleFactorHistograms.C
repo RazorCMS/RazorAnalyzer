@@ -1,10 +1,50 @@
+void doSplit( string process ) {
+
+  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
+  string outfilename = "";
+  if (process == "TTJets") outfilename = "RazorScaleFactors_Inclusive_TTJets.root";
+  if (process == "WJets") outfilename = "RazorScaleFactors_Inclusive_WJets.root";
+  if (process == "WJetsInv") outfilename = "RazorScaleFactors_Inclusive_WJetsInv.root";
+  TFile *outf = new TFile(outfilename.c_str(),"RECREATE");
+
+  TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
+  TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
+  TH2Poly *ttbarDown = (TH2Poly*)inf->Get("TTJetsScaleFactorsDown");
+  TH2Poly *wNominal = (TH2Poly*)inf->Get("WJetsScaleFactors");
+  TH2Poly *wUp = (TH2Poly*)inf->Get("WJetsScaleFactorsUp");
+  TH2Poly *wDown = (TH2Poly*)inf->Get("WJetsScaleFactorsDown");
+  TH2Poly *wInvNominal = (TH2Poly*)inf->Get("WJetsInvScaleFactors");
+  TH2Poly *wInvUp = (TH2Poly*)inf->Get("WJetsInvScaleFactorsUp");
+  TH2Poly *wInvDown = (TH2Poly*)inf->Get("WJetsInvScaleFactorsDown");
+
+  if (process == "WJets") {
+    outf->WriteTObject(wNominal,"WJetsScaleFactors");
+    outf->WriteTObject(wUp,"WJetsScaleFactorsUp");
+    outf->WriteTObject(wDown,"WJetsScaleFactorsDown");
+  }
+  if (process == "TTJets") {
+    outf->WriteTObject(ttbarNominal,"TTJetsScaleFactors");
+    outf->WriteTObject(ttbarUp,"TTJetsScaleFactorsUp");
+    outf->WriteTObject(ttbarDown,"TTJetsScaleFactorsDown");
+  }
+  if (process == "WJetsInv") {  
+    outf->WriteTObject(wInvNominal,"WJetsInvScaleFactors");
+    outf->WriteTObject(wInvUp,"WJetsInvScaleFactorsUp");
+    outf->WriteTObject(wInvDown,"WJetsInvScaleFactorsDown");
+  }
+  
+  outf->Close();
+  inf->Close();
+}
+
+
 void doCopy() {
 
   TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_TTJets.root","READ");
   TFile *inf2 = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_WJets.root","READ");
   TFile *inf3 = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_WJetsInv.root","READ");
   TFile *inf4 = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
-  TFile *outf = new TFile("RazorScaleFactors_Inclusive_NEW.root","RECREATE");
+  TFile *outf = new TFile("RazorScaleFactors_Inclusive_Uncorrected.root","RECREATE");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -152,10 +192,21 @@ void addSevenJetCorrection() {
 }
 
 
-void copyScaleFactorHistograms() {
+void copyScaleFactorHistograms( int option = 0) {
 
-  doCopy();
-  //addMultiJetCorrection();
-  //addSevenJetCorrection();
+  if (option == 0) {
+    doSplit("TTJets");
+    doSplit("WJets");
+    doSplit("WJetsInv");
+  }
+
+  if (option == 1) {
+    doCopy();
+  }
+
+  if (option == 2) {
+    addMultiJetCorrection();
+    addSevenJetCorrection();
+  }
 
 }

@@ -150,7 +150,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -671,7 +671,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
         }
     }
 
-    TFile *SFFile = TFile::Open("RazorScaleFactors_GJets.root", "UPDATE");
+    TFile *SFFile = TFile::Open("RazorScaleFactors_Inclusive_GJetsInv.root", "UPDATE");
     SFFile->WriteTObject(HistSF, "GJetsInvScaleFactors", "WriteDelete");
     SFFile->Close();
 
@@ -811,7 +811,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   else PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
   PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
   PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
-  PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
+  PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label, 1e-1, 1e5);
   PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
   PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
   PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label, 1, 1e5);
