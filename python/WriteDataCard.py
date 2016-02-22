@@ -211,7 +211,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
         processes = ["%s_%s"%(box,model)]
         processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-        lumiErrs = [1.046]
+        lumiErrs = [1.027]
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
