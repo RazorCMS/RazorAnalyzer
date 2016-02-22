@@ -3,6 +3,8 @@
 #include "JetCorrectorParameters.h"
 
 //C++ includes
+#include <limits>
+#include <cmath>
 
 //ROOT includes
 #include "TH1F.h"
@@ -93,6 +95,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
   RazorBox box;
   float JetPt_uncorr[30], JetEta_uncorr[30], JetPhi_uncorr[30], JetE_uncorr[30];
   float JetPt[30], JetEta[30], JetPhi[30], JetE[30];
+  float LeadJetNeutralHadronFraction, LeadJetChargedHadronFraction;
   bool hasMatchingGenJet[30];
   int matchingGenJetIndex[30];
   float leadingJetPt, leadingJetEta, subLeadingJetPt;
@@ -124,7 +127,8 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("JetPt", JetPt, "JetPt[nSelectedJets]/F");
       razorTree->Branch("JetEta", JetEta, "JetEta[nSelectedJets]/F");
       razorTree->Branch("JetPhi", JetPhi, "JetPhi[nSelectedJets]/F");
-      
+      razorTree->Branch("LeadJetNeutralHadronFraction", &LeadJetNeutralHadronFraction, "LeadJetNeutralHadronFraction/F"); 
+      razorTree->Branch("LeadJetChargedHadronFraction", &LeadJetChargedHadronFraction, "LeadJetChargedHadronFraction/F"); 
       razorTree->Branch("alphaT", &alphaT, "alphaT/F");
       razorTree->Branch("dPhiMin", &dPhiMin, "dPhiMin/F");
       
@@ -261,10 +265,12 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    t1Rsq     = -1.0;
 	    RsqCorr   = -1.0;
 	    t1RsqCorr = -1.0;
-      leadingJetPt = -1;
-      leadingJetEta = 0.0;
-      subLeadingJetPt = -1;
-	  
+        leadingJetPt = -1.0;
+        leadingJetEta = -999.;
+        subLeadingJetPt = -1;
+	    LeadJetChargedHadronFraction = -1.; 
+	    LeadJetNeutralHadronFraction = -1.; 
+
 	for ( int j = 0; j < 30; j++ )
           {
 	    JetE_uncorr[j]   = 0.0;
@@ -292,11 +298,11 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
         //TODO: triggers!
         bool passedLeptonicTrigger = true;
         bool passedHadronicTrigger= true;
- //       if ( !(passedLeptonicTrigger || passedHadronicTrigger) ) continue; //ensure event passed a trigger
+        if ( !(passedLeptonicTrigger || passedHadronicTrigger) ) continue; //ensure event passed a trigger
         
         vector<TLorentzVector> LooseMu; //Muons use to compute MET
         for(int i = 0; i < nMuons; i++){
-//	  if ( muonPt[i] < 10.0 || fabs(muonEta[i]) > 2.4 ) continue;  
+	  if ( muonPt[i] < 10.0 || fabs(muonEta[i]) > 2.4 ) continue;  
 	  if ( isLooseMuon(i) )
 	    {
 	      nLooseMuons++;
@@ -313,7 +319,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	//------------------------------
 	vector<TLorentzVector> LooseEle; //Electrons use to compute MET
         for(int i = 0; i < nElectrons; i++){
-//	  if ( elePt[i] < 10.0 || fabs(eleEta[i]) > 2.4 ) continue;
+	  if ( elePt[i] < 10.0 || fabs(eleEta[i]) > 2.4 ) continue;
 	  if( isLooseElectron(i) )
 	    {
 	      nLooseElectrons++;
@@ -339,10 +345,13 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	//------------------------
 	vector<TLorentzVector> GoodJets;
 	vector<TLorentzVector> GoodJets_uncorr;
+    vector<float> JetChargedHadronFraction;
+    vector<float> JetNeutralHadronFraction;
+
         int numJetsAbove80GeV = 0;
 	for( int i = 0; i < nJets; i++ )
 	  {
-//	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue; 
+	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 2.5) continue; 
 	    
 	    //ADDED LINES
 	    //int level = 2; //3rd bit of jetPileupIdFlag
@@ -384,13 +393,17 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    GoodJets_uncorr.push_back(thisJet_uncorr);
 	    
 	    GoodJets.push_back(thisJet);
+        JetNeutralHadronFraction.push_back(jetNeutralHadronEnergyFraction[i]);
+        JetChargedHadronFraction.push_back(jetChargedHadronEnergyFraction[i]);
+
 	    nSelectedJets++;
 	    //b-tagging 
 	    if(isCSVL(i)) nBTaggedJetsL++;
 	    if(isCSVM(i)) nBTaggedJetsM++;
 	    if(isCSVT(i)) nBTaggedJetsT++;
 	  }
-	
+ //cout << "About to add jets" << endl;
+
 //        if ( numJetsAbove80GeV < 2 ) continue; //event fails to have two 80 GeV jets
 	
 	int jIndex = 0;
@@ -419,6 +432,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    jIndex++;
 	  }
 
+ //cout << "Get information about good jets" << endl;
 	//output information for corrected jets
 	jIndex = 0;
 	for (auto& tmpJet: GoodJets)
@@ -427,36 +441,53 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    JetE[jIndex]   = tmpJet.E();
 	    JetEta[jIndex] = tmpJet.Eta();
 	    JetPhi[jIndex] = tmpJet.Phi();
-	
-     auto sortJets = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ? true : false; };
-     std::sort( GoodJets.begin() , GoodJets.end(), sortJets);
-
+    
          if (JetPt[jIndex]> leadingJetPt && JetPt[jIndex]<14000) 
         {
 	    subLeadingJetPt = leadingJetPt;
 	    leadingJetPt = JetPt[jIndex];
         leadingJetEta = JetEta[jIndex];
+        LeadJetNeutralHadronFraction = JetNeutralHadronFraction.at(jIndex);
+        LeadJetChargedHadronFraction = JetChargedHadronFraction.at(jIndex);
 	    }
 	    else if (JetPt[jIndex]>subLeadingJetPt && JetPt[jIndex]<14000) 
         {
 	     subLeadingJetPt = JetPt[jIndex];
 	    }
-	    jIndex++;
+     
+        auto sortJets = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ? true : false; };
+        std::sort( GoodJets.begin() , GoodJets.end(), sortJets);
+	    
+        jIndex++;
 	  }
-    
+//cout << "Compute jet charged and hadron fraction" << endl;
 
+/*
+   // Compute leading jet's charged & neutral hadron fraction
+   for (Int_t i = 0; i < nJets; i++)
+   {
+	    double JEC = JetEnergyCorrectionFactor( jetPt[i], JetEta[i], jetPhi[i], jetE[i],
+						    fixedGridRhoAll, jetJetArea[i],
+						    JetCorrector );
+       if (leadingJetPt > 0. && std::fabs(JEC*jetPt[i] - leadingJetPt) < 0.1 && std::fabs(jetEta[i] - leadingJetEta) < 0.05) // this is the leading jet
+       {
+           LeadJetNeutralHadronFraction = jetNeutralHadronEnergyFraction[i];
+           LeadJetChargedHadronFraction = jetChargedHadronEnergyFraction[i];
+       }
+   }
+*/
 	//Compute the razor variables using the selected jets and possibly leptons
 	TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 	TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
 	t1metPt  = metType1Pt;
 	t1metPhi = metType1Phi;
 	
-    vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
+//cout << "Compute razor and alphaT variables" << endl;
 
     if ( nJets < 2 )
     {
         alphaT = -999.;
-        //dPhiMin = -999.;
+        dPhiMin = GetDPhiMin(GoodJets);  
         MR = -999.;
         Rsq = -999.;
         t1Rsq = -999.;
@@ -465,6 +496,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
     else
     {
     // Compute the variables alpha T and dPhiMin using the selected jets
+    vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
     alphaT = GetAlphaT(GoodJets);
     dPhiMin = GetDPhiMin(GoodJets);  
 
@@ -473,6 +505,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
     }
+//cout << "Compute HT and MHT" << endl;
 
     // Compute HT and MHT
     float MhtX = 0., MhtY = 0.;
@@ -484,6 +517,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 
       MHT = MyMHT.Pt();
     
+//cout << "Fill in the box" << endl;
 	//MuMu Box
         if ( passedLeptonicTrigger && nLooseMuons > 1 && nLooseElectrons == 0 && nBTaggedJetsL == 0 )
 	  {
@@ -507,8 +541,17 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    metPhiCorr = pfmet.Phi();
 	    t1metPtCorr  = t1pfmet.Pt();
 	    t1metPhiCorr = t1pfmet.Phi();
+        if (nJets < 2)
+        {
+            RsqCorr = -999;
+            t1RsqCorr = -999;
+        }
+        else
+        {
+        vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
 	    RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
 	    t1RsqCorr = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        }
 	    if(combineTrees)
 	      {
 		box = MuMu;
@@ -538,8 +581,17 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
             metPhiCorr = pfmet.Phi();
             t1metPtCorr  = t1pfmet.Pt();
             t1metPhiCorr = t1pfmet.Phi();
+        if (nJets < 2)
+        {
+            RsqCorr = -999;
+            t1RsqCorr = -999;
+        }
+        else
+        {
+        vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
             RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
             t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        }
 	    if( combineTrees )
 	      {
 		box = EleEle;
@@ -570,9 +622,17 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
             metPhiCorr = pfmet.Phi();
             t1metPtCorr  = t1pfmet.Pt();
             t1metPhiCorr = t1pfmet.Phi();
+        if (nJets < 2)
+        {
+            RsqCorr = -999;
+            t1RsqCorr = -999;
+        }
+        else
+        {
+        vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
             RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
             t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
-	    
+        }
 	    if(combineTrees){
 	      box = MuJet;
 	      razorTree->Fill();
@@ -600,9 +660,17 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
             metPhiCorr = pfmet.Phi();
             t1metPtCorr  = t1pfmet.Pt();
             t1metPhiCorr = t1pfmet.Phi();
+        if (nJets < 2)
+        {
+            RsqCorr = -999;
+            t1RsqCorr = -999;
+        }
+        else
+        {
+        vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
             RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
             t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
-	    
+        }
 	    if(combineTrees){
 	      box = EleJet;
 	      razorTree->Fill();
@@ -610,7 +678,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    else razorBoxes["Ele"]->Fill();
 	  }
         //MultiJet Box
-        else //if ( passedHadronicTrigger && nBTaggedJetsL == 0 && nLooseMuons == 0 && nLooseElectrons == 0 )
+        else if ( passedHadronicTrigger && nBTaggedJetsL == 0 && nLooseMuons == 0 && nLooseElectrons == 0 )
 	  {
 	    if(combineTrees)
 	      {
@@ -619,7 +687,6 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	      }
 	    else { razorBoxes["MultiJet"]->Fill(); }
 	  }
-    /*
         //TwoBJet Box
         else if ( passedHadronicTrigger && nBTaggedJetsT > 1 && nLooseMuons == 0 && nLooseElectrons == 0 )
 	  {
@@ -639,7 +706,7 @@ void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
 	    }
 	    else razorBoxes["OneBJet"]->Fill();
 	  } 
-*/      
+      
     }//end of event loop
     
     cout << "Writing output trees..." << endl;

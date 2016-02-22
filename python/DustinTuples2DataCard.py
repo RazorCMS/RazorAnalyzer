@@ -792,7 +792,7 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_argument('-d','--dir',dest="outDir",default="./",
                   help="Output directory to store datasets")
-    parser.add_argument('-l','--lumi',dest="lumi", default=2245.,type=float,
+    parser.add_argument('-l','--lumi',dest="lumi", default=2300.,type=float,
                   help="integrated luminosity in pb^-1")
     parser.add_argument('--lumi-in',dest="lumi_in", default=1.,type=float,
                   help="integrated luminosity in pb^-1")
