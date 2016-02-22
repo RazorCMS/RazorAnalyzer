@@ -64,7 +64,7 @@ TH2Poly* MakeTH2PolyForGJets(string name){
 
 }
 
-void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label ) {
+void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label, double ymin = 1e-1, double ymax = 1e4  ) {
 
   TCanvas *cv =0;
   TLegend *legend = 0;
@@ -131,8 +131,10 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
     stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
     //stack->SetMinimum( 1e-4 );
-    stack->SetMinimum( 1e-1 );
-    stack->SetMaximum( 1e4 );
+    //stack->SetMinimum( 1e-1 );
+    //stack->SetMaximum( 1e4 );
+    stack->SetMinimum( ymin );
+    stack->SetMaximum( ymax );
 
     if (hasData) {
       hist[0]->SetMarkerStyle(20);      
@@ -321,7 +323,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
     histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", NMRBins-1, MRBins));
     histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", NRsqBins-1, RsqBins));
     histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events / Bin Area", (NMRBins-1)*(NRsqBins-1), 0, (NMRBins-1)*(NRsqBins-1)));
-    histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 100, 0, 1000));    
+    histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 100, 0, 400));    
     histPhotonEta.push_back(new TH1D(Form("histPhotonEta_%s",processLabels[i].c_str()), "; Photon #eta ; Number of Events", 50, -3, 3));
     histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV] ; Number of Events", 25, 0, 500));
     histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", NNJetBins-1, NJetBins));
@@ -414,11 +416,11 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  if(processLabels[i]  == "GJets" && events->minDRGenPhotonToParton < 0.4) continue;
 	  if(processLabels[i]  == "GJetsFrag" && isFake) continue;	  
 	  if(processLabels[i]  == "GJetsFrag" && events->minDRGenPhotonToParton >= 0.4) continue;
-	  if(processLabels[i]  == "GJets" || processLabels[i]  == "GJetsFrag") weight *= 1.55; //Overall K-Factor & photon efficiency correction
+	  if(processLabels[i]  == "GJets" || processLabels[i]  == "GJetsFrag") weight *= 1.44; //Overall K-Factor & photon efficiency correction
 
 	  if (option == "Inclusive") {
 	    if(processLabels[i] == "QCD" && !isFake) continue;
-	    if(processLabels[i]  == "QCD") weight *= 1.37; //Overall K-Factor & photon fake rate correction
+	    if(processLabels[i]  == "QCD") weight *= 1.27; //Overall K-Factor & photon fake rate correction
 	  } else {
 	    if(processLabels[i] == "QCD") {
 	      weight = 0.05;
@@ -805,15 +807,16 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //*******************************************************************************************
   //MR
   //*******************************************************************************************
-  PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
+  if (option == "Inclusive") PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label, 1e1, 1e7);
+  else PlotDataAndStackedBkg( histPhotonPt, processLabels, color, true, "PhotonPt", Label);
   PlotDataAndStackedBkg( histPhotonEta, processLabels, color, true, "PhotonEta", Label);
   PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET_NoPho", Label);
   PlotDataAndStackedBkg( histNJets40, processLabels, color, true, "NJets40", Label);
   PlotDataAndStackedBkg( histNJets80, processLabels, color, true, "NJets80", Label);
   PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
-  PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label);
-  PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label);
-  PlotDataAndStackedBkg( histMRRsqUnrolled, processLabels, color, true, "MRRsqUnrolled", Label);
+  PlotDataAndStackedBkg( histMR, processLabels, color, true, "MR", Label, 1, 1e5);
+  PlotDataAndStackedBkg( histRsq, processLabels, color, true, "Rsq", Label, 1, 1e5);
+  PlotDataAndStackedBkg( histMRRsqUnrolled, processLabels, color, true, "MRRsqUnrolled", Label, 1e-4, 1e3);
   
 
   //--------------------------------------------------------------------------------------------------------------
@@ -948,7 +951,7 @@ void SelectPhotonControlSample( int option = 0) {
   colors.push_back(kMagenta);
   colors.push_back(kCyan);
   
-  double lumi = 2245;
+  double lumi = 2300;
 
   //*********************************************************************
   //GJets Control Region
