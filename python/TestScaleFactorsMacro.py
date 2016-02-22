@@ -140,38 +140,38 @@ if __name__ == "__main__":
                   weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
                   printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel,
                   plotOpts=plotOpts, unrollBins=(xbinsTTJETS1L, colsTTJETS1L))
-    # OneLeptonScaleFactorClosureTest0BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_0B", 
-    #            filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
-    #            cutsMC=OneLeptonScaleFactorClosureTest0BMC, cutsData=OneLeptonScaleFactorClosureTest0BData, 
-    #            bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
-    #            printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
-    # appendScaleFactors("OneLepton0BMR", OneLeptonScaleFactorClosureTest0BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLepton0BRsq", OneLeptonScaleFactorClosureTest0BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
-    # OneLeptonScaleFactorClosureTest1BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_1B", 
-    #            filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
-    #            cutsMC=OneLeptonScaleFactorClosureTest1BMC, cutsData=OneLeptonScaleFactorClosureTest1BData, 
-    #            bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
-    #            printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
-    # appendScaleFactors("OneLepton1BMR", OneLeptonScaleFactorClosureTest1BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLepton1BRsq", OneLeptonScaleFactorClosureTest1BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
-    # OneLeptonScaleFactorClosureTest2BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_2B", 
-    #            filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
-    #            cutsMC=OneLeptonScaleFactorClosureTest2BMC, cutsData=OneLeptonScaleFactorClosureTest2BData, 
-    #            bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
-    #            printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
-    # appendScaleFactors("OneLepton2BMR", OneLeptonScaleFactorClosureTest2BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLepton2BRsq", OneLeptonScaleFactorClosureTest2BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
-    # OneLeptonScaleFactorClosureTest3BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_3B", 
-    #            filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
-    #            cutsMC=OneLeptonScaleFactorClosureTest3BMC, cutsData=OneLeptonScaleFactorClosureTest3BData, 
-    #            bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
-    #            printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
-    # appendScaleFactors("OneLepton3BMR", OneLeptonScaleFactorClosureTest3BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLepton3BRsq", OneLeptonScaleFactorClosureTest3BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
+    OneLeptonScaleFactorClosureTest0BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_0B", 
+               filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
+               cutsMC=OneLeptonScaleFactorClosureTest0BMC, cutsData=OneLeptonScaleFactorClosureTest0BData, 
+               bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
+               printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
+    appendScaleFactors("OneLepton0BMR", OneLeptonScaleFactorClosureTest0BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLepton0BRsq", OneLeptonScaleFactorClosureTest0BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
+    OneLeptonScaleFactorClosureTest1BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_1B", 
+               filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
+               cutsMC=OneLeptonScaleFactorClosureTest1BMC, cutsData=OneLeptonScaleFactorClosureTest1BData, 
+               bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
+               printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
+    appendScaleFactors("OneLepton1BMR", OneLeptonScaleFactorClosureTest1BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLepton1BRsq", OneLeptonScaleFactorClosureTest1BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
+    OneLeptonScaleFactorClosureTest2BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_2B", 
+               filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
+               cutsMC=OneLeptonScaleFactorClosureTest2BMC, cutsData=OneLeptonScaleFactorClosureTest2BData, 
+               bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
+               printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
+    appendScaleFactors("OneLepton2BMR", OneLeptonScaleFactorClosureTest2BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLepton2BRsq", OneLeptonScaleFactorClosureTest2BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
+    OneLeptonScaleFactorClosureTest3BHists = makeControlSampleHists("OneLeptonScaleFactorClosureTest_3B", 
+               filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
+               cutsMC=OneLeptonScaleFactorClosureTest3BMC, cutsData=OneLeptonScaleFactorClosureTest3BData, 
+               bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_OneLeptonScaleFactorClosureTest, weightOpts=weightOpts, 
+               printdir=printdir, btags=-1, plotDensity=True, sfVars=sfVars, debugLevel=debugLevel)
+    appendScaleFactors("OneLepton3BMR", OneLeptonScaleFactorClosureTest3BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLepton3BRsq", OneLeptonScaleFactorClosureTest3BHists, sfHists_OneLeptonScaleFactorClosureTest, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq", signifThreshold=1.0, printdir=printdir)
   
      #Cross Check for >= 7 Jets bin
    # sfHists_OneLeptonScaleFactorClosureTest7Jet = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root", processNames=SAMPLES_TTJ1L, debugLevel=debugLevel)
@@ -244,44 +244,44 @@ if __name__ == "__main__":
                  weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
                  printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel,
                  plotOpts=plotOpts, unrollBins=(xbinsWJETS1LINV, colsWJETS1LINV))
-    # appendScaleFactors("OneLeptonInv0BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLeptonInv0BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
-    # wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest1B", 
-    #            filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
-    #            cutsMC=OneLeptonInvScaleFactorClosureTest1BMC, cutsData=OneLeptonInvScaleFactorClosureTest1BData, 
-    #            bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
-    #            printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel)
-    # appendScaleFactors("OneLeptonInv1BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLeptonInv1BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
-    # wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest2B", 
-    #            filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
-    #            cutsMC=OneLeptonInvScaleFactorClosureTest2BMC, cutsData=OneLeptonInvScaleFactorClosureTest2BData, 
-    #            bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
-    #            printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel)
-    # appendScaleFactors("OneLeptonInv2BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLeptonInv2BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
-    # wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest3B", 
-    #            filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
-    #            cutsMC=OneLeptonInvScaleFactorClosureTest3BMC, cutsData=OneLeptonInvScaleFactorClosureTest3BData, 
-    #            bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #            weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
-    #            printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel)
-    # appendScaleFactors("OneLeptonInv3BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
-    # appendScaleFactors("OneLeptonInv3BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLeptonInv0BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLeptonInv0BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
+    wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest1B", 
+               filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
+               cutsMC=OneLeptonInvScaleFactorClosureTest1BMC, cutsData=OneLeptonInvScaleFactorClosureTest1BData, 
+               bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
+               printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel)
+    appendScaleFactors("OneLeptonInv1BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLeptonInv1BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
+    wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest2B", 
+               filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
+               cutsMC=OneLeptonInvScaleFactorClosureTest2BMC, cutsData=OneLeptonInvScaleFactorClosureTest2BData, 
+               bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
+               printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel)
+    appendScaleFactors("OneLeptonInv2BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLeptonInv2BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
+    wjetsSingleLeptonInvHists = makeControlSampleHists("OneLeptonInvScaleFactorClosureTest3B", 
+               filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
+               cutsMC=OneLeptonInvScaleFactorClosureTest3BMC, cutsData=OneLeptonInvScaleFactorClosureTest3BData, 
+               bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
+               weightHists=weightHists, sfHists=sfHists_wjetsInv, weightOpts=weightOpts, 
+               printdir=printdir, plotDensity=True, sfVars=ScaleFactorVars_WJETS1L_INV , debugLevel=debugLevel)
+    appendScaleFactors("OneLeptonInv3BMR", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="MR_NoW", signifThreshold=1.0, printdir=printdir)
+    appendScaleFactors("OneLeptonInv3BRsq", wjetsSingleLeptonInvHists, sfHists_wjetsInv, lumiData=LUMI_DATA, debugLevel=debugLevel, var="Rsq_NoW", signifThreshold=1.0, printdir=printdir)
 
 
-    # #write scale factors
-    # outfile = rt.TFile("RazorBTagClosureTests.root", "RECREATE")
-    # for name in sfHists_OneLeptonScaleFactorClosureTest:
-    #     if "OneLepton" in name:
-    #         print "Writing scale factor histogram",sfHists_OneLeptonScaleFactorClosureTest[name].GetName(),"to file"
-    #         sfHists_OneLeptonScaleFactorClosureTest[name].Write()
-    # for name in sfHists_wjetsInv:
-    #     if "OneLepton" in name:
-    #         print "Writing scale factor histogram",sfHists_wjetsInv[name].GetName(),"to file"
-    #         sfHists_wjetsInv[name].Write()
-    # outfile.Close()
+    #write scale factors
+    outfile = rt.TFile("RazorBTagClosureTests.root", "RECREATE")
+    for name in sfHists_OneLeptonScaleFactorClosureTest:
+        if "OneLepton" in name:
+            print "Writing scale factor histogram",sfHists_OneLeptonScaleFactorClosureTest[name].GetName(),"to file"
+            sfHists_OneLeptonScaleFactorClosureTest[name].Write()
+    for name in sfHists_wjetsInv:
+        if "OneLepton" in name:
+            print "Writing scale factor histogram",sfHists_wjetsInv[name].GetName(),"to file"
+            sfHists_wjetsInv[name].Write()
+    outfile.Close()
 
  
