@@ -88,6 +88,11 @@ def fix_hist_byhand(hist, model, box, clsType):
         ##     hist.SetBinContent(hist.FindBin(1200,750),0)
         ##     hist.SetBinContent(hist.FindBin(1250,875),0)
                 
+    #if model == "T1ttbb" or "T1x" in model:
+    #    for x in range(600,2000,25):
+    #        hist.SetBinContent(hist.FindBin(x,0),0)
+    #        hist.SetBinContent(hist.FindBin(x,50),0)
+    #        hist.SetBinContent(hist.FindBin(x,100),0)
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:
@@ -245,9 +250,20 @@ def getModelSettings(model):
         binWidth = 25
         nRebins = 0
         xsecMin = 1.e-2
+        xsecMax = 100.
+        diagonalOffset = 75+12.5
+        smoothing = 50
+    elif model=="T1ttbb" or 'T1x' in model:
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
         xsecMax = 10.
-        diagonalOffset = 25+12.5
-        smoothing = 0
+        diagonalOffset = 225+12.5
+        smoothing = 50
 
         
     return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing
@@ -278,7 +294,7 @@ if __name__ == '__main__':
                 
     set_palette("rainbow",255)
     rt.gStyle.SetOptStat(0)
-    rt.gROOT.ProcessLine(".L macros/swissCrossInterpolate.h++")
+    rt.gROOT.ProcessLine(".L macros/swissCrossInterpolate.h+")
     rt.gSystem.Load("macros/swissCrossInterpolate_h.so")
 
     mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing = getModelSettings(model)
