@@ -6,7 +6,7 @@ void plotScaleFactor() {
 
   TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
   // TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
-  //TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
+  // TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -52,7 +52,7 @@ void plotScaleFactor() {
   GJetInvNominal->SetMinimum(0.35);
 
 
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -61,7 +61,6 @@ void plotScaleFactor() {
   CMS_lumi(cv,4,0);
   cv->SaveAs("GJetsInvScaleFactor_CorrectedToMultiJet.png");
   cv->SaveAs("GJetsInvScaleFactor_CorrectedToMultiJet.pdf");
-
 
   TH2Poly *GJetInvUncertainties = (TH2Poly*)GJetInvNominal->Clone("GJetInvUncertainties");
   for (int i=1; i<GJetInvUncertainties->GetNumberOfBins()+1; ++i) {
@@ -95,7 +94,7 @@ void plotScaleFactor() {
   GJetInvUncertainties->SetStats(false);
   GJetInvUncertainties->SetMaximum(50);
   GJetInvUncertainties->SetMinimum(0.0);
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -133,7 +132,7 @@ void plotScaleFactor() {
   wInvNominal->SetMinimum(0.35);
 
 
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -171,7 +170,7 @@ void plotScaleFactor() {
   wNominal->SetMaximum(1.8);
   wNominal->SetMinimum(0.35);
 
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -215,7 +214,7 @@ void plotScaleFactor() {
   WJetsUncertainties->SetStats(false);
   WJetsUncertainties->SetMaximum(50);
   WJetsUncertainties->SetMinimum(0.0);
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -255,7 +254,7 @@ void plotScaleFactor() {
   ttbarNominal->SetMaximum(1.8);
   ttbarNominal->SetMinimum(0.35);
 
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -300,7 +299,7 @@ void plotScaleFactor() {
   TTBarUncertainties->SetStats(false);
   TTBarUncertainties->SetMaximum(50);
   TTBarUncertainties->SetMinimum(0.0);
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -415,7 +414,7 @@ void plotGJetsScaleFactorSystematics() {
   GJetsSystematicUnc->SetMaximum(1.0);
   GJetsSystematicUnc->SetMinimum(0.0);
 
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
