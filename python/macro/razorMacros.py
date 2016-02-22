@@ -731,6 +731,10 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         mcTotalUp.Add(mcSysUncUp)
         mcTotalDown = mcTotal.Clone(mcTotal.GetName()+'Down')
         mcTotalDown.Add(mcSysUncDown, -1)
+        sfHists[process+"NormUp"] = sfHists[process].Clone(process+"ScaleFactorsUp")
+        sfHists[process+"NormUp"].SetDirectory(0)
+        sfHists[process+"NormDown"] = sfHists[process].Clone(process+"ScaleFactorsDown")
+        sfHists[process+"NormDown"].SetDirectory(0)
 
     #save yields for debugging
     dataDebugSubtr = sfHists[process].Clone()

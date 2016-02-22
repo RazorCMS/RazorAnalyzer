@@ -948,7 +948,7 @@ void SelectPhotonControlSample( int option = 0) {
   colors.push_back(kMagenta);
   colors.push_back(kCyan);
   
-  double lumi = 2245;
+  double lumi = 2300;
 
   //*********************************************************************
   //GJets Control Region

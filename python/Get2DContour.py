@@ -231,7 +231,29 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 225+12.5
         smoothing = 200
+    elif model=="T1ttbb":
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 225+12.5
+        smoothing = 200
     elif model=="T1qqqq":
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1250.+12.5
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 25+12.5
+        smoothing = 50
+    elif model=="T5qqqqVV":
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
         mchiMin = 0.-12.5
@@ -270,6 +292,7 @@ def getModelSettings(model):
 
 if __name__ == '__main__':
     
+    rt.gROOT.SetBatch()
     parser = OptionParser()
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
