@@ -358,7 +358,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
     #add legend and LaTeX 
     leg.Draw()
-    CMS_lumi(pad1)
+    CMS_lumi(pad1, lumistr=lumistr)
 
     if commentstr != "":
         t3 = rt.TLatex(0.30, 0.84, commentstr)
@@ -549,7 +549,7 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
             hist.Draw('texte'+((drawColz)*('same')))
     #add LaTeX 
     if drawCMSPreliminary:
-        CMS_lumi(c, .15)
+        CMS_lumi(c, .15, lumistr=lumistr)
         #t1 = rt.TLatex(0.1,0.94, "CMS preliminary")
         #t2 = rt.TLatex(0.55,0.94, ((lumistr != "")*((lumistr)+' ('))+'13 TeV'+((lumistr != "")*(')')))
         #t1.SetNDC()
@@ -1054,8 +1054,8 @@ def setTDRStyle():
     tdrStyle.SetHatchesLineWidth(5)
     tdrStyle.SetHatchesSpacing(0.05)
   
-def CMS_lumi(pad, relPosX=0.1, iPeriod=4, iPosX=0):
-    lumi_13TeV = "2.2 fb^{-1}"
+def CMS_lumi(pad, relPosX=0.1, iPeriod=4, iPosX=0, lumistr="2.3 fb^{-1}"):
+    lumi_13TeV = lumistr
     cmsText = "CMS"
     cmsTextFont = 61 # default is helvetica-bold
     writeExtraText = True

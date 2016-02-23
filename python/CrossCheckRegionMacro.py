@@ -416,14 +416,14 @@ if __name__ == "__main__":
                 bins=ZNuNu_2L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, plotDensity=True, sfHists=sfHistsDileptonInv, 
                 weightOpts=weightOpts, sfVars=ScaleFactorVars_DYJ2L_INV,
-                printdir=printdir, debugLevel=debugLevel)
+                printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
     dyjetsDileptonInv4JetHists = makeControlSampleHists("DYJetsDileptonInv4Jet", 
                filenames=FILENAMES_2L_INV, samples=SAMPLES_DYJ2L_INV, 
                cutsMC=dyjetsDileptonInv4JetCutsMC, cutsData=dyjetsDileptonInv4JetCutsData, 
                bins=ZNuNu_2L_4Jet_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                weightHists=weightHists, plotDensity=True, sfHists=sfHistsDileptonInv, 
                weightOpts=weightOpts, sfVars=ScaleFactorVars_DYJ2L_INV,
-               printdir=printdir, debugLevel=debugLevel)
+               printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
 
     #Record discrepancies > 1 sigma
     tmpSFHists = copy.copy(sfHistsDileptonInv)
