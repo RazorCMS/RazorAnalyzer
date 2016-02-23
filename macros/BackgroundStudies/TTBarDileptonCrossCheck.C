@@ -115,7 +115,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -201,11 +201,18 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
   //============================================================================================================== 
   bool printdebug = false;
 
+  char* cmsswPath;  
+  cmsswPath = getenv("CMSSW_BASE");
+  if (cmsswPath == NULL) {
+    cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
+    return;
+  }
+
   TFile *RazorScaleFactorFile = 0;
   if (option == "4JetMR300Rsq0p15") {
-    RazorScaleFactorFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
+    RazorScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root",cmsswPath), "READ");
   } else {
-    RazorScaleFactorFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
+    RazorScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root",cmsswPath), "READ");
   }
   TH2Poly *TTBarSFHist = (TH2Poly*)RazorScaleFactorFile->Get("TTJetsScaleFactors");
   assert(TTBarSFHist);
@@ -215,15 +222,15 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
-  const int NMRBins = 6;
-  const int NRsqBins = 4;
-  double MRBins[NMRBins] = {300, 400, 500, 700, 900, 4000};
-  double RsqBins[NRsqBins] = {0.15, 0.20, 0.30, 1.5};
-  // const int NMRBins = 6;
-  // const int NRsqBins = 6;
-  // double MRBins[NMRBins] = {300, 400, 500, 700, 900, 4000};
-  // double RsqBins[NRsqBins] = {0.15, 0.20, 0.25, 0.30, 0.41, 1.5};
-
+  const int NMRBinsMultiJet = 6;
+  const int NRsqBinsMultiJet = 4;
+  double MRBinsMultiJet[NMRBinsMultiJet] = {300, 400, 500, 700, 900, 4000};
+  double RsqBinsMultiJet[NRsqBinsMultiJet] = {0.15, 0.20, 0.30, 1.5};
+  const int NMRBinsInclusive = 6;
+  const int NRsqBinsInclusive = 6;
+  double MRBinsInclusive[NMRBinsInclusive] = {300, 400, 500, 700, 900, 4000};
+  double RsqBinsInclusive[NRsqBinsInclusive] = {0.15, 0.20, 0.25, 0.30, 0.41, 1.5};
+  
   const int NMRBins1D = 8;
   const int NRsqBins1D = 7;
   double MRBins1D[NMRBins1D] = {300, 400, 500, 600, 700, 900, 1200, 4000};
@@ -261,7 +268,12 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
   for (uint i=0; i < inputfiles.size(); ++i) {
     histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", NMRBins1D-1, MRBins1D));
     histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", NRsqBins1D-1, RsqBins1D));
-    histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events", (NMRBins-1)*(NRsqBins-1), 0, (NMRBins-1)*(NRsqBins-1)));
+
+    if (option == "4JetMR300Rsq0p15") {
+      histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events", (NMRBinsMultiJet-1)*(NRsqBinsMultiJet-1), 0, (NMRBinsMultiJet-1)*(NRsqBinsMultiJet-1)));
+    } else {
+      histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events", (NMRBinsInclusive-1)*(NRsqBinsInclusive-1), 0, (NMRBinsInclusive-1)*(NRsqBinsInclusive-1)));
+    }
     histLeptonPt.push_back(new TH1D(Form("histLeptonPt_%s",processLabels[i].c_str()), "; LeptonPt [GeV/c] ; Number of Events", 80, 0, 400));    
     histLeptonEta.push_back(new TH1D(Form("histLeptonEta_%s",processLabels[i].c_str()), "; Lepton #eta ; Number of Events", 50, -2.4, 2.4));
     histLep1MT.push_back(new TH1D(Form("histLep1MT_%s",processLabels[i].c_str()), "; Lep1MT [GeV/c] ; Number of Events", 30, 0, 600));
@@ -280,7 +292,11 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
     histNJets80[i]->Sumw2();
     histNBtags[i]->Sumw2();  
 
-    histMRVsRsq.push_back(new TH2F(Form("histMRVsRsq_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; R^{2}; Number of Events", NMRBins-1, MRBins, NRsqBins-1, RsqBins));
+    if (option == "4JetMR300Rsq0p15") { 
+      histMRVsRsq.push_back(new TH2F(Form("histMRVsRsq_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; R^{2}; Number of Events", NMRBinsMultiJet-1, MRBinsMultiJet, NRsqBinsMultiJet-1, RsqBinsMultiJet));
+    } else {
+      histMRVsRsq.push_back(new TH2F(Form("histMRVsRsq_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; R^{2}; Number of Events", NMRBinsInclusive-1, MRBinsInclusive, NRsqBinsInclusive-1, RsqBinsInclusive));
+    }
     histMRVsRsq[i]->Sumw2();
   }
  
@@ -457,7 +473,12 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	double lep1MT = sqrt(events->lep1.M2() + 2*events->MET*events->lep1.Pt()*(1 - cos( acos(cos(events->METPhi - events->lep1.Phi())))));	
 	int MRBin = histMRVsRsq[i]->GetXaxis()->FindFixBin( events->MR );
 	int RsqBin = histMRVsRsq[i]->GetYaxis()->FindFixBin( events->Rsq );
-	int MRRsqBin = (NRsqBins-1)*(MRBin-1) + RsqBin-1;
+	int MRRsqBin = 0;
+	if (option == "4JetMR300Rsq0p15") {
+	  MRRsqBin = (NRsqBinsMultiJet-1)*(MRBin-1) + RsqBin-1;
+	} else {
+	  MRRsqBin = (NRsqBinsInclusive-1)*(MRBin-1) + RsqBin-1;
+	}
 
 	if (isData) {
 	  dataYield += 0.5;
@@ -530,7 +551,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	    histMR[i]->Fill(events->MR, 0.5*weight);
 	    histRsq[i]->Fill(events->Rsq, 0.5*weight);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5*weight);
-	    //histMRRsqUnrolled[i]->SetBinContent( MRRsqBin, histMRRsqUnrolled[i]->GetBinContent(MRRsqBin) + 0.5*weight);
 	    histMRRsqUnrolled[i]->Fill( MRRsqBin+0.5, 0.5*weight);
 	  }	
 	}
@@ -627,7 +647,7 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 
 
 
-void TTBarDileptonCrossCheck( int option = 3) {
+void TTBarDileptonCrossCheck( int option = 0) {
 
   vector<string> datafiles;
   vector<vector<string> > bkgfiles;
@@ -636,22 +656,9 @@ void TTBarDileptonCrossCheck( int option = 3) {
 
   string datafile = "";
 
-
   //No Skims  
-  if (option == 0 || option == 10 || option == 20 || option == 3 || option == 4 || option == 13 || option == 14 || option == 23 || option == 24) {
-    if (option == 0 || option == 3 || option == 4) {
-      datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_RazorSkim.root");     
-    } else {
-      datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root");
-      datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
-    }
-  }
-  if (option == 1|| option == 11 || option == 21) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root");    
-  }
-  if (option == 2|| option == 12 || option == 22) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
-  }
+  datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root");
+  datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
 
   vector<string> bkgfiles_ttbar;
   vector<string> bkgfiles_wjets;
@@ -660,21 +667,11 @@ void TTBarDileptonCrossCheck( int option = 3) {
   vector<string> bkgfiles_vv; 
   vector<string> bkgfiles_ttv;
 
-  if (option == 0 || option == 1 || option == 2 || option == 3 || option == 4) {
-    bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
-    bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root"); 
-    bkgfiles_singletop.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted_RazorSkim.root");  
-    bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted_RazorSkim.root");   
-  } else {
-    bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root"); 
-    bkgfiles_singletop.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted.root");  
-    bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
-    bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted.root");
-    bkgfiles_ttv.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTV_1pb_weighted.root");    
-  }
-
+  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
+  bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root"); 
+  bkgfiles_singletop.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted_RazorSkim.root");  
+  bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root");    
+  bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted_RazorSkim.root");   
 
   bkgfiles.push_back(bkgfiles_ttbar);
   bkgfiles.push_back(bkgfiles_dy);
@@ -694,28 +691,14 @@ void TTBarDileptonCrossCheck( int option = 3) {
   colors.push_back(kOrange-3);
   colors.push_back(kRed+1);
  
-   double lumi = 2185;
-
-  //*********************************************************************
-  //E-Mu Control Region
-  //*********************************************************************
-  if (option == 0) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",0,"MR300Rsq0p15_emu");
-
-  //*********************************************************************
-  //E-E Control Region
-  //*********************************************************************
-  if (option == 1) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",2,"MR300Rsq0p15_ee");
-
-  //*********************************************************************
-  //MuMu Control Region
-  //*********************************************************************
-  if (option == 2) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",3,"MR300Rsq0p15_mumu");
+   double lumi = 2300;
 
   //*********************************************************************
   //All final states Control Region
   //*********************************************************************
-  if (option == 3) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",-1,"MR300Rsq0p15_all");
-  //if (option == 3) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"4JetMR300Rsq0p15",-1,"4JetMR300Rsq0p15_all");
+  if (option == 0) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",-1,"MR300Rsq0p15_all");
+
+  if (option == 1) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"4JetMR300Rsq0p15",-1,"4JetMR300Rsq0p15_all");
 
 
 }
