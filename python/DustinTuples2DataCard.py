@@ -41,7 +41,7 @@ FILENAMES_MC = {
 #         "qcd"         : DATA_NAMES["MultiJet"]
 #        }
 
-lumiUncertainty = 0.046
+lumiUncertainty = 0.027
 
 def getTheoryCrossSectionAndError(mGluino=-1, mStop=-1):
     thyXsec = -1
