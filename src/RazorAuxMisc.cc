@@ -97,6 +97,7 @@ double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets)
 }
 
 double RazorAnalyzer::GetDPhiMin(vector<TLorentzVector> jets)
+    // This variable is used in the alphaT analysis
 {
     int nJets = jets.size();
     double dPhiMin = -1.;
