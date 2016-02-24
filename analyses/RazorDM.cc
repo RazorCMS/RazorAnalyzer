@@ -85,7 +85,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   UInt_t run, lumi, event;
   float MuonPt[5], MuonEta[5], MuonPhi[5], MuonE[5];
   float ElePt[5], EleEta[5], ElePhi[5], EleE[5];
-  float MR;
+  float MR, deltaPhi;
   float HT, MHT;
   float alphaT, dPhiMin;
   float Rsq, t1Rsq, RsqCorr, t1RsqCorr;
@@ -134,6 +134,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("MR", &MR, "MR/F");
       razorTree->Branch("Rsq", &Rsq, "Rsq/F");
       razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+      razorTree->Branch("deltaPhi", &deltaPhi, "deltaPhi/F");
       razorTree->Branch("metPt", &metPt, "metPt/F");
       razorTree->Branch("metPhi", &metPhi, "metPhi/F");
       razorTree->Branch("t1metPt", &t1metPt, "t1metPt/F");
@@ -261,6 +262,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
         dPhiMin   = -1.0;
         MR        = -1.0;
         Rsq       = -1.0;
+	    deltaPhi     = -1.0;
 	    t1Rsq     = -1.0;
 	    RsqCorr   = -1.0;
 	    t1RsqCorr = -1.0;
@@ -403,15 +405,15 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	
         if ( numJetsAbove80GeV < 2 ) continue; //event fails to have two 80 GeV jets
 	
-	int jIndex = 0;
-	for (auto& tmpJet: GoodJets_uncorr)
-	  {
+	    int jIndex = 0;
+	    for (auto& tmpJet: GoodJets_uncorr)
+	    {
 	    JetPt_uncorr[jIndex] = tmpJet.Pt();
 	    JetE_uncorr[jIndex] = tmpJet.E();
 	    JetPhi_uncorr[jIndex] = tmpJet.Phi();
 	    JetEta_uncorr[jIndex] = tmpJet.Eta();
 	    jIndex=jIndex+1;
-	  }  
+	    }  
 
 	//Find whether there is a matching genJet for the reconstructed jet
 	jIndex = 0;
@@ -471,7 +473,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
     MR    = computeMR(hemispheres[0], hemispheres[1]); 
 	Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
-   
+    deltaPhi = fabs(hemispheres[0].DeltaPhi(hemispheres[1])); 
 
     // Compute HT and MHT
     float MhtX = 0., MhtY = 0.;
