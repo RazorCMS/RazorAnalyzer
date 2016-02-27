@@ -75,7 +75,16 @@ if __name__ == "__main__":
         else:
             modelName = 'SMS-'+args.model+'_'+str(args.mStop)+'_'+str(args.mLSP)
         signalFilename=SIGNAL_DIR+'/'+modelName+'.root'
-        exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s'%(config, outDir, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename), False) 
+
+        #to modify branching ratios in T1ttbb sample
+        brString = ""
+        if 'T1x' in args.model:
+            xBR = float(args.model[args.model.find('x')+1:args.model.find('y')].replace('p','.'))
+            yBR = float(args.model[args.model.find('y')+1:].replace('p','.'))
+            brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
+            signalFilename = SIGNAL_DIR+'/SMS-T1ttbb_'+str(args.mGluino)+'_'+str(args.mLSP)+'.root'
+
+        exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s %s'%(config, outDir, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename, brString), False) 
         #load SMS template histograms
         signalHistFilename = '%s/%s_lumi-%.3f_0-3btag_%s.root'%(outDir,modelName,LUMI*1.0/1000,curBox)
         signalHists = macro.importHists(signalHistFilename)
