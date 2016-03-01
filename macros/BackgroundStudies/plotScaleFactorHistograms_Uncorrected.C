@@ -4,8 +4,8 @@
 
 void plotScaleFactor() {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
-  // TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
+  //TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
+  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
   // TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
@@ -59,8 +59,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("GJetsInvScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("GJetsInvScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs("GJetsInvScaleFactor_Uncorrected.png");
+  cv->SaveAs("GJetsInvScaleFactor_Uncorrected.pdf");
 
   TH2Poly *GJetInvUncertainties = (TH2Poly*)GJetInvNominal->Clone("GJetInvUncertainties");
   for (int i=1; i<GJetInvUncertainties->GetNumberOfBins()+1; ++i) {
@@ -70,7 +70,7 @@ void plotScaleFactor() {
 
   cv = new TCanvas("cv","cv", 800,600);
   gStyle->SetPalette(1);
-  gStyle->SetPaintTextFormat("4.0f");
+  gStyle->SetPaintTextFormat("4.2f");
   GJetInvUncertainties->Draw("colztext");
   cv->SetLogx();
   cv->SetLogy();
@@ -111,7 +111,6 @@ void plotScaleFactor() {
   //****************************************************
   cv = new TCanvas("cv","cv", 800,600);
   gStyle->SetPalette(53);
-  gStyle->SetPaintTextFormat("4.2f");
   wInvNominal->Draw("colztexte1");
   cv->SetLogx();
   cv->SetLogy();
@@ -140,8 +139,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("WJetsInvScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("WJetsInvScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs("WJetsInvScaleFactor_Uncorrected.png");
+  cv->SaveAs("WJetsInvScaleFactor_Uncorrected.pdf");
 
 
 
@@ -178,8 +177,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("WJetsScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("WJetsScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs("WJetsScaleFactor_Uncorrected.png");
+  cv->SaveAs("WJetsScaleFactor_Uncorrected.pdf");
 
 
 
@@ -191,7 +190,7 @@ void plotScaleFactor() {
 
   cv = new TCanvas("cv","cv", 800,600);
   gStyle->SetPalette(1);
-  gStyle->SetPaintTextFormat("4.0f");
+  gStyle->SetPaintTextFormat("4.2f");
   WJetsUncertainties->Draw("colztext");
   cv->SetLogx();
   cv->SetLogy();
@@ -233,14 +232,13 @@ void plotScaleFactor() {
   //****************************************************
   cv = new TCanvas("cv","cv", 800,600);
   gStyle->SetPalette(53);
-  gStyle->SetPaintTextFormat("4.2f");
   ttbarNominal->Draw("colztexte1");
   cv->SetLogx();
   cv->SetLogy();
   cv->SetRightMargin(0.175);
   cv->SetBottomMargin(0.12);
-  ttbarNominal->GetXaxis()->SetRangeUser(400,4000);
-  ttbarNominal->GetYaxis()->SetRangeUser(0.25,1.5);
+  ttbarNominal->GetXaxis()->SetRangeUser(300,4000);
+  ttbarNominal->GetYaxis()->SetRangeUser(0.15,1.5);
   ttbarNominal->GetZaxis()->SetTitle("Data to MC Correction Factor");
   ttbarNominal->GetZaxis()->SetLabelSize(0.05);
   ttbarNominal->GetZaxis()->SetTitleSize(0.05);
@@ -252,9 +250,8 @@ void plotScaleFactor() {
   ttbarNominal->GetYaxis()->SetTitleOffset(0.8);
   ttbarNominal->SetStats(false);
   // ttbarNominal->SetMaximum(10000);
-  // ttbarNominal->SetMinimum(0.0);
   ttbarNominal->SetMaximum(1.8);
-  ttbarNominal->SetMinimum(0.35);
+  ttbarNominal->SetMinimum(0.);
 
   lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
@@ -263,8 +260,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("TTBarScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("TTBarScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs("TTBarScaleFactor_Uncorrected.png");
+  cv->SaveAs("TTBarScaleFactor_Uncorrected.pdf");
 
 
 
@@ -277,7 +274,7 @@ void plotScaleFactor() {
 
   cv = new TCanvas("cv","cv", 800,600);
   gStyle->SetPalette(1);
-  gStyle->SetPaintTextFormat("4.0f");
+  gStyle->SetPaintTextFormat("4.2f");
   TTBarUncertainties->Draw("colztext");
   cv->SetLogx();
   cv->SetLogy();
@@ -444,7 +441,7 @@ void plotGJetsScaleFactorSystematics() {
 
 
 
-void plotScaleFactorHistograms() {
+void plotScaleFactorHistograms_Uncorrected() {
   gROOT->SetBatch();
   plotScaleFactor();
   //plotGJetsScaleFactorSystematics();

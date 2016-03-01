@@ -106,7 +106,7 @@ if __name__ == '__main__':
         with open(options.doneFile,'r') as f:            
             allFiles = [ line.replace('\n','') for line in f.readlines()]
             for (mg, mchi) in gchipairs(options.model):
-                outputname = 'higgsCombine%s_%i_%i_lumi-%.3f_%s_%s.Asymptotic.mH120.root'%(options.model,mg,mchi,LUMI,btag,options.box)
+                outputname = 'higgsCombineMADD_%s_SMS-%s_%i_%i.Asymptotic.mH120.root'%(options.box,options.model,mg,mchi)
                 if outputname in allFiles: donePairs.append((mg,mchi))
 
     thyXsec = {}
@@ -123,7 +123,9 @@ if __name__ == '__main__':
     for (mg, mchi) in gchipairs(options.model):
         if not (mg >= options.mgMin and mg < options.mgMax): continue
         if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
-        if (mg, mchi) in donePairs: continue
+        if (mg, mchi) in donePairs: 
+            print (mg,mchi),"is already done; skipping"
+            continue
         nJobs+=1
 
         pwd = os.environ['PWD']
