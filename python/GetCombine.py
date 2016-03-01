@@ -19,13 +19,13 @@ def getFileName(hybridLimit, mg, mchi, box, model, lumi, btag, directory, method
     return fileName
 
 
-def writeXsecTree(box, directory, mg, mchi, xsecULObs, xsecULExpPlus2, xsecULExpPlus, xsecULExp, xsecULExpMinus, xsecULExpMinus2):
+def writeXsecTree(box, model, directory, mg, mchi, xsecULObs, xsecULExpPlus2, xsecULExpPlus, xsecULExp, xsecULExpMinus, xsecULExpMinus2):
     outputFileName = "%s/xsecUL_mg_%s_mchi_%s_%s.root" %(directory, mg, mchi, box)
     print "INFO: xsec UL values being written to %s"%outputFileName
     fileOut = rt.TFile.Open(outputFileName, "recreate")
     
     xsecTree = rt.TTree("xsecTree", "xsecTree")
-    myStructCmd = "struct MyStruct{Double_t mg;Double_t mchi;"
+    myStructCmd = "struct MyStruct{Double_t mg;Double_t mchi; Double_t x; Double_t y;"
     ixsecUL = 0
     myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+0)
     myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+1)
@@ -41,9 +41,24 @@ def writeXsecTree(box, directory, mg, mchi, xsecULObs, xsecULExpPlus2, xsecULExp
     s = MyStruct()
     xsecTree.Branch("mg", rt.AddressOf(s,"mg"),'mg/D')
     xsecTree.Branch("mchi", rt.AddressOf(s,"mchi"),'mchi/D')
+    xsecTree.Branch("x", rt.AddressOf(s,"x"),'x/D')
+    xsecTree.Branch("y", rt.AddressOf(s,"y"),'y/D')
+    
     
     s.mg = mg
     s.mchi = mchi
+    if 'T1x' in model:
+        s.x = float(model[model.find('x')+1:model.find('y')].replace('p','.'))
+        s.y = float(model[model.find('y')+1:].replace('p','.'))
+    elif model == 'T1bbbb':
+        s.x = 1
+        s.y = 0
+    elif model == 'T1tttt':
+        s.x = 0
+        s.y = 1
+    else:
+        s.x = -1
+        s.y = -1
     
     ixsecUL = 0
     xsecTree.Branch("xsecULObs_%s"%box, rt.AddressOf(s,"xsecUL%i"%(ixsecUL+0)),'xsecUL%i/D'%(ixsecUL+0))
@@ -127,7 +142,7 @@ if __name__ == '__main__':
     thyXsecErr = {}
     if refXsecFile is not None:
         print "INFO: Input ref xsec file!"
-        for mg in range(600,2025,25):
+        for mg in range(100,2025,25):
             for line in open(refXsecFile,'r'):
                 line = line.replace('\n','')
                 if str(mg)==line.split(',')[0]:
@@ -204,7 +219,7 @@ if __name__ == '__main__':
         #    sigHist.SetBinContent(sigHist.FindBin(mg,mchi),limits[0])
         #else:
 
-        haddOutput = writeXsecTree(boxInput, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
+        haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
         haddOutputs.append(haddOutput)
 
 
