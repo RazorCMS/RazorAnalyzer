@@ -49,7 +49,8 @@ if __name__ == '__main__':
 
     unrollBins = None
     if options.mergeBins:
-        unrollBins = [(xbinsSignal[box][str(btags)+'B'], colsSignal[box][str(btags)+'B']) for btags in range(4)]
+        btagBins = cfg.getBinning(box)[2][:-1]
+        unrollBins = [(xbinsSignal[box][str(int(btags))+'B'], colsSignal[box][str(int(btags))+'B']) for btags in btagBins]
 
     if options.noSignalSys:
         shapes = []

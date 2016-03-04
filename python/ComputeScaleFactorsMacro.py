@@ -4,7 +4,7 @@ import ROOT as rt
 
 #local imports
 from macro import macro
-from macro.razorAnalysis import wjetsSingleLeptonCutsMC, wjetsSingleLeptonCutsData, ttjetsSingleLeptonCutsMC, ttjetsSingleLeptonCutsData
+from macro.razorAnalysis import wjetsSingleLeptonCutsMC, wjetsSingleLeptonCutsData, ttjetsSingleLeptonCutsMC, ttjetsSingleLeptonCutsData, xbinsSignal, colsSignal
 from macro.razorWeights import *
 from macro.razorMacros import *
 from SidebandMacro import LUMI as LUMI_DATA
@@ -56,40 +56,6 @@ FILENAMES_1L_INV = {
             "Data"     : DIR_1L_INV+"/"+PREFIX_1L_INV+"_SingleLepton_Run2015D_RazorSkim_GoodLumiGolden_NoDuplicates.root"
             }
 
-#binning for scale factor histograms
-xbinsTTJETS1L = [300, 400, 500, 600, 700, 900, 1200, 4000]
-colsTTJETS1L = [
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
-    [ 0.15, 0.2, 0.25, 1.5 ],
-    [ 0.15, 0.2, 1.5 ],
-    ]
-
-xbinsWJETS1L = [300, 400, 500, 600, 700, 900, 1200, 4000]
-colsWJETS1L = [
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
-    [ 0.15, 0.2, 0.25, 1.5 ],
-    ]
-
-xbinsWJETS1LINV = [300, 400, 500, 600, 700, 900, 1200, 4000]
-colsWJETS1LINV = [
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
-    [ 0.15, 0.2, 0.25, 0.30, 0.41, 1.5 ],
-    ]
-
 weightOpts = []
 
 config = "config/run2_20151229_ControlRegion.config"
@@ -103,6 +69,12 @@ binsLepPt = [20.,25.,30.,35.,40.,45.,50.,70.,100]
 ControlRegionBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, "lep1.Pt()":binsLepPt, ("MR","Rsq"):[], ("MR","Rsq","NBJetsMedium"):[]}
 ZNuNu_1L_ControlRegionBinning = { "MR_NoW":binsMRLep, "Rsq_NoW":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, ("MR_NoW","Rsq_NoW"):[] }
 
+xbinsWJETS1L = xbinsSignal["WJetControlRegion"]
+colsWJETS1L = colsSignal["WJetControlRegion"]
+xbinsTTJETS1L = xbinsSignal["TTJetsSingleLeptonControlRegion"]
+colsTTJETS1L = colsSignal["TTJetsSingleLeptonControlRegion"]
+xbinsWJETS1LINV = xbinsSignal["WJetInvControlRegion"]
+colsWJETS1LINV = colsSignal["WJetInvControlRegion"]
 
 printdir="ControlSamplePlots"
 

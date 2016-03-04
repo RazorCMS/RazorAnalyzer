@@ -466,3 +466,44 @@ colsSignal["SevenJet"]["3B"] = [
         [ 0.25, 0.30, 0.41, 1.5 ],
         [ 0.25, 0.30, 0.41, 1.5 ],
         ]
+
+#binning for scale factor histograms
+xbinsSignal["TTJetsSingleLeptonControlRegion"] = {}
+colsSignal["TTJetsSingleLeptonControlRegion"] = {}
+xbinsSignal["TTJetsSingleLeptonControlRegion"]["0B"] = [300, 400, 500, 600, 700, 900, 1200, 4000]
+colsSignal["TTJetsSingleLeptonControlRegion"]["0B"] = [
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
+    [ 0.15, 0.2, 0.25, 1.5 ],
+    [ 0.15, 0.2, 1.5 ],
+    ]
+
+xbinsSignal["WJetControlRegion"] = {}
+colsSignal["WJetControlRegion"] = {}
+xbinsSignal["WJetControlRegion"]["0B"] = [300, 400, 500, 600, 700, 900, 1200, 4000]
+colsSignal["WJetControlRegion"]["0B"] = [
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 1.5 ],
+    [ 0.15, 0.2, 0.25, 1.5 ],
+    ]
+
+xbinsSignal["WJetInvControlRegion"] = {}
+colsSignal["WJetInvControlRegion"] = {}
+xbinsSignal["WJetInvControlRegion"]["0B"] = [300, 400, 500, 600, 700, 900, 1200, 4000]
+colsSignal["WJetInvControlRegion"]["0B"] = [
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.3, 0.41, 1.5 ],
+    [ 0.15, 0.2, 0.25, 0.30, 0.41, 1.5 ],
+    ]
+
