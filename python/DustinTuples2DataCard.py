@@ -675,6 +675,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
             for ix in range(1, len(x)):
                 for iy in range(1, len(y)):
                     tempTH2.SetBinContent(ix,iy, myTH3.GetBinContent(ix,iy,iz))
+                    tempTH2.SetBinError(ix,iy, myTH3.GetBinError(ix,iy,iz))
             #turn it into a TH2Poly with the reduced binning
             unrollRows = unrollBins[iz-1][0]
             unrollCols = unrollBins[iz-1][1]
