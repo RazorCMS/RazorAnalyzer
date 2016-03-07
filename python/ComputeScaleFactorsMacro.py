@@ -69,12 +69,12 @@ binsLepPt = [20.,25.,30.,35.,40.,45.,50.,70.,100]
 ControlRegionBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, "lep1.Pt()":binsLepPt, ("MR","Rsq"):[], ("MR","Rsq","NBJetsMedium"):[]}
 ZNuNu_1L_ControlRegionBinning = { "MR_NoW":binsMRLep, "Rsq_NoW":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, ("MR_NoW","Rsq_NoW"):[] }
 
-xbinsWJETS1L = xbinsSignal["WJetControlRegion"]
-colsWJETS1L = colsSignal["WJetControlRegion"]
-xbinsTTJETS1L = xbinsSignal["TTJetsSingleLeptonControlRegion"]
-colsTTJETS1L = colsSignal["TTJetsSingleLeptonControlRegion"]
-xbinsWJETS1LINV = xbinsSignal["WJetInvControlRegion"]
-colsWJETS1LINV = colsSignal["WJetInvControlRegion"]
+xbinsWJETS1L = xbinsSignal["WJetControlRegion"]["0B"]
+colsWJETS1L = colsSignal["WJetControlRegion"]["0B"]
+xbinsTTJETS1L = xbinsSignal["TTJetsSingleLeptonControlRegion"]["0B"]
+colsTTJETS1L = colsSignal["TTJetsSingleLeptonControlRegion"]["0B"]
+xbinsWJETS1LINV = xbinsSignal["WJetInvControlRegion"]["0B"]
+colsWJETS1LINV = colsSignal["WJetInvControlRegion"]["0B"]
 
 printdir="ControlSamplePlots"
 
@@ -124,6 +124,7 @@ if __name__ == "__main__":
                 printdir=printdir, sfVars=sfVars, debugLevel=debugLevel,
                 unrollBins=(xbinsTTJETS1L, colsTTJETS1L), plotOpts=plotOpts)
     appendScaleFactors("TTJets", ttjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, th2PolyXBins=xbinsTTJETS1L, th2PolyCols=colsTTJETS1L, debugLevel=debugLevel, var=sfVars, printdir=printdir)
+    macro.exportHists(ttjetsSingleLeptonHists, outFileName='controlHistogramsTTJetsSingleLepton.root', outDir=printdir, debugLevel=debugLevel)
 
     ##########################################################
     #WJets control sample
@@ -137,6 +138,7 @@ if __name__ == "__main__":
                 printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel,
                 unrollBins=(xbinsWJETS1L, colsWJETS1L), plotOpts=plotOpts)
     appendScaleFactors("WJets", wjetsSingleLeptonHists, sfHists, lumiData=LUMI_DATA, th2PolyXBins=xbinsWJETS1L, th2PolyCols=colsWJETS1L, debugLevel=debugLevel, var=sfVars, printdir=printdir)
+    macro.exportHists(wjetsSingleLeptonHists, outFileName='controlHistogramsWJetsSingleLepton.root', outDir=printdir, debugLevel=debugLevel)
 
 
     ##########################################################
@@ -151,6 +153,7 @@ if __name__ == "__main__":
                  printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel,
                  unrollBins=(xbinsWJETS1LINV, colsWJETS1LINV), plotOpts=plotOpts)
     appendScaleFactors("WJetsInv", wjetsSingleLeptonInvHists, sfHists, var=sfVars_NoW, lumiData=LUMI_DATA, th2PolyXBins=xbinsWJETS1LINV, th2PolyCols=colsWJETS1LINV, debugLevel=debugLevel, printdir=printdir)
+    macro.exportHists(wjetsSingleLeptonInvHists, outFileName='controlHistogramsWJetsSingleLeptonInv.root', outDir=printdir, debugLevel=debugLevel)
 
     #write scale factors
     outfile = rt.TFile("RazorScaleFactors.root", "RECREATE")

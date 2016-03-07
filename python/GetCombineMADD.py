@@ -136,7 +136,7 @@ if __name__ == '__main__':
         limits.reverse()
         print limits
         
-        haddOutput = writeXsecTree(boxInput, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
+        haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
         haddOutputs.append(haddOutput)
 
     if doHybridNew:
