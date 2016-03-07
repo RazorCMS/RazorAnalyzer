@@ -13,10 +13,10 @@ from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.macro import importHists, makeTH2PolyFromColumns, fillTH2PolyFromTH2, stitch
 import os
 
-#SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-SIGNAL_DIR = "Signals"
-#BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
-BACKGROUND_DIR = "Moriond2016"
+SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
+#SIGNAL_DIR = "Signals"
+BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
+#BACKGROUND_DIR = "Moriond2016"
 
 if __name__ == '__main__':
     parser = OptionParser()
