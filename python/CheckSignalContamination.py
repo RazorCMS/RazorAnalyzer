@@ -13,10 +13,10 @@ from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.macro import importHists, makeTH2PolyFromColumns, fillTH2PolyFromTH2, stitch
 import os
 
-SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-#SIGNAL_DIR = "Signals"
-BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
-#BACKGROUND_DIR = "Moriond2016"
+#SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
+SIGNAL_DIR = "Signals"
+#BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
+BACKGROUND_DIR = "Moriond2016"
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser.add_option('--mLSP',default=-1,type=int, help="mass of LSP")
     (options,args) = parser.parse_args()
 
-
+    rt.gROOT.SetBatch()
     cfg = Config.Config(options.config)
 
     box = options.box
@@ -118,6 +118,7 @@ if __name__ == '__main__':
     tleg = rt.TLegend(0.2,0.69,0.5,0.89)
     tleg.AddEntry(sigTH1,'%s (%i, %i)'%(options.model,options.mGluino,options.mLSP))
     tleg.SetLineColor(rt.kWhite)
+    tleg.SetFillColor(rt.kWhite)
     tleg.Draw()
     c.Print("%s/signalContamination_%s_%i_%i_%s.pdf"%(options.outDir,options.model,options.mGluino,options.mLSP,box))
     c.Print("%s/signalContamination_%s_%i_%i_%s.C"%(options.outDir,options.model,options.mGluino,options.mLSP,box))
