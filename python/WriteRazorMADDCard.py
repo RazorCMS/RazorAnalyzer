@@ -33,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--mLSP',default=-1,type=int, help="mass of LSP")
     parser.add_argument('--fit-sys', dest="addMCVsFit", action='store_true', help="add MC vs fit systematic")
     parser.add_argument('--no-limit', dest='noCombine', action='store_true', help='do not call combine, make template histograms only')
+    parser.add_argument('--signif', action='store_true', help='compute significance rather than limit')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -110,12 +111,18 @@ if __name__ == "__main__":
         sys.exit()
 
     #run combine
+    if args.signif:
+        combineMethod = 'ProfileLikelihood'
+        combineFlags = '--signif --expectSignal=1 -t -1 --toysFreq'
+    else:
+        combineMethod = 'Asymptotic'
+        combineFlags = ''
     if len(boxList) == 1:
         #get card name
         cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])
         combineName = 'MADD_'+boxList[0]+'_'+modelName
-        exec_me('combine -M Asymptotic %s -n %s'%(cardName,combineName), False)
-        exec_me('mv higgsCombine%s.Asymptotic.mH120.root %s/'%(combineName,outDir),False)
+        exec_me('combine -M %s %s -n %s %s'%(combineMethod,cardName,combineName,combineFlags), False)
+        exec_me('mv higgsCombine%s.%s.mH120.root %s/'%(combineName,combineMethod,outDir),False)
     elif len(boxList) > 1:
         #get card names
         cardNames = []
@@ -127,6 +134,6 @@ if __name__ == "__main__":
         combinedCardName = 'RazorInclusiveMADD_'+('_'.join(boxList))+'.txt'
         exec_me('cd '+outDir+'; combineCards.py '+(' '.join(cardNames))+' > '+combinedCardName+'; cd ..', False)
         #call combine
-        exec_me('combine -M Asymptotic '+outDir+'/'+combinedCardName+' -n '+combineName, False)
+        exec_me('combine -M '+combineMethod+' '+outDir+'/'+combinedCardName+' -n '+combineName+' '+combineFlags, False)
         #store output in output directory
-        exec_me('mv higgsCombine%s.Asymptotic.mH120.root %s/'%(combineName,outDir),False)
+        exec_me('mv higgsCombine%s.%s.mH120.root %s/'%(combineName,combineMethod,outDir),False)
