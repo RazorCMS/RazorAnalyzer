@@ -30,6 +30,11 @@ if __name__ == '__main__':
                 maxContam = max(maxContam, h.GetBinContent(bx)) 
             contam.Fill(p[0],p[1],maxContam)
             print p, "signal contamination", maxContam
+            #output
+            f = rt.TFile('contamination_%s_%d_%d.root'%(model,p[0],p[1]), 'recreate')
+            h.Write()
+            f.Close()
+            h.Delete()
         except:
             print "Problem getting histogram for",p
 
