@@ -11,7 +11,7 @@ from framework import Config
 from GChiPairs import gchipairs
 from WriteRazorMADDCard import LUMI
     
-def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
+def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -20,6 +20,9 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
         sysString += '--no-sys --no-stat'
     if fitSys:
         sysString += '--fit-sys'
+    sigString = ''
+    if signif:
+        sigString = '--signif'
 
     particleString = '--mGluino'
     if 'T2' in model:
@@ -52,10 +55,10 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys):
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20160227\n' 
+    script += 'git checkout -b Limits LimitsMADD20160307\n' 
     script += 'make lxplus\n'
     script += 'mkdir -p %s\n'%submitDir
-    script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString)
+    script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString,sigString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -95,6 +98,8 @@ if __name__ == '__main__':
                   help="no shape systematic uncertainties")
     parser.add_option('--fit-sys',dest="fitSys",default=False,action='store_true',
                   help="use fit vs MC systematic")
+    parser.add_option('--signif',dest="signif",default=False,action='store_true',
+                  help="Compute significance instead of limit")
 
     (options,args) = parser.parse_args()
 
@@ -103,10 +108,14 @@ if __name__ == '__main__':
     nJobs = 0
     donePairs = []
     if options.doneFile is not None:
+        if options.signif:
+            combineMethod = 'ProfileLikelihood'
+        else:
+            combineMethod = 'Asymptotic'
         with open(options.doneFile,'r') as f:            
             allFiles = [ line.replace('\n','') for line in f.readlines()]
             for (mg, mchi) in gchipairs(options.model):
-                outputname = 'higgsCombine%s_%i_%i_lumi-%.3f_%s_%s.Asymptotic.mH120.root'%(options.model,mg,mchi,LUMI,btag,options.box)
+                outputname = 'higgsCombineMADD_%s_SMS-%s_%i_%i.%s.mH120.root'%(options.box,options.model,mg,mchi,combineMethod)
                 if outputname in allFiles: donePairs.append((mg,mchi))
 
     thyXsec = {}
@@ -123,13 +132,15 @@ if __name__ == '__main__':
     for (mg, mchi) in gchipairs(options.model):
         if not (mg >= options.mgMin and mg < options.mgMax): continue
         if not (mchi >= options.mchiMin and mchi < options.mchiMax): continue
-        if (mg, mchi) in donePairs: continue
+        if (mg, mchi) in donePairs: 
+            print (mg,mchi),"is already done; skipping"
+            continue
         nJobs+=1
 
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/Limits/"+options.outDir)
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
-                options.outDir, options.noSys, options.fitSys)
+                options.outDir, options.noSys, options.fitSys, options.signif)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        

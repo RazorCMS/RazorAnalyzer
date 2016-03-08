@@ -10,9 +10,10 @@ import numpy as np
 from scipy.interpolate import Rbf
 import itertools
 from GChiPairs import gchipairs
+import operator
 
 toFix = []
-def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0):
+def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0,refHist=None):
     x = array('d',[])
     y = array('d',[])
     z = array('d',[])
@@ -22,10 +23,14 @@ def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0):
     for i in range(1, hist.GetNbinsX()+1):
         for j in range(1, hist.GetNbinsY()+1):
             if hist.GetBinContent(i,j)>0.:
-                x.append(hist.GetXaxis().GetBinCenter(i))
-                y.append(hist.GetYaxis().GetBinCenter(j))
-                z.append(rt.TMath.Log(hist.GetBinContent(i,j)))
-                #z.append(hist.GetBinContent(i,j))
+                if refHist!=None and refHist.GetBinContent(i,j) > 0.:
+                        x.append(hist.GetXaxis().GetBinCenter(i))
+                        y.append(hist.GetYaxis().GetBinCenter(j))
+                        z.append(rt.TMath.Log(hist.GetBinContent(i,j)/refHist.GetBinContent(i,j)))
+                else:
+                    x.append(hist.GetXaxis().GetBinCenter(i))
+                    y.append(hist.GetYaxis().GetBinCenter(j))
+                    z.append(rt.TMath.Log(hist.GetBinContent(i,j)))
 
     mgMin = hist.GetXaxis().GetBinCenter(1)
     mgMax = hist.GetXaxis().GetBinCenter(hist.GetNbinsX())#+hist.GetXaxis().GetBinWidth(hist.GetNbinsX())
@@ -44,14 +49,16 @@ def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0):
             xLow = hist.GetXaxis().GetBinCenter(i)
             yLow = hist.GetYaxis().GetBinCenter(j)
             if xLow >= yLow+diagonalOffset-binWidth/2.:
-                hist.SetBinContent(i,j,rt.TMath.Exp(myZI[j-1][i-1]))
+                if refHist!=None:                    
+                    hist.SetBinContent(i,j,refHist.GetBinContent(i,j)*rt.TMath.Exp(myZI[j-1][i-1]))
+                else:
+                    hist.SetBinContent(i,j,rt.TMath.Exp(myZI[j-1][i-1]))
     return hist
 
 
 def fix_hist_byhand(hist, model, box, clsType):
     if 'Obs' in clsType:
         for (mg,mchi) in gchipairs(model):            
-            #obs = xsecUL['Obs'].GetBinContent(xsecUL['Obs'].FindBin(mg,mchi))
             obs = hist.GetBinContent(hist.FindBin(mg,mchi))
             exp = xsecUL['Exp'].GetBinContent(xsecUL['Exp'].FindBin(mg,mchi))
             expPlus2 = xsecUL['ExpPlus2'].GetBinContent(xsecUL['ExpPlus2'].FindBin(mg,mchi))
@@ -60,39 +67,33 @@ def fix_hist_byhand(hist, model, box, clsType):
             expMinus2 = xsecUL['ExpMinus2'].GetBinContent(xsecUL['ExpMinus2'].FindBin(mg,mchi))
             if hist.GetBinContent(hist.FindBin(mg,mchi))==0:
                 if (mg,mchi) not in toFix:                
-                    #print "empty:", mg, mchi
                     toFix.append((mg,mchi))
             elif obs<expPlus2 or obs>expMinus2:
-                hist.SetBinContent(hist.FindBin(mg,mchi),0)
+                hist.SetBinContent(hist.FindBin(mg,mchi),exp)
+                #hist.SetBinContent(hist.FindBin(mg,mchi),0)
                 if (mg,mchi) not in toFix:
-                    #print "outside 1s:", mg, mchi
                     toFix.append((mg,mchi))
 
         if model == "T1tttt" and box == "MultiJet":
              hist.SetBinContent(hist.FindBin(975,700),0)            
-        ## if model == "T1tttt" and box == "MuMultiJet_EleMultiJet":
-        ##     hist.SetBinContent(hist.FindBin(950,600),0)
-        ##     hist.SetBinContent(hist.FindBin(1400,700),0)
-        ##     hist.SetBinContent(hist.FindBin(1500,300),0)
-        ##     hist.SetBinContent(hist.FindBin(1800,300),0)
-        ##     hist.SetBinContent(hist.FindBin(1850,50),0)
-        ##     hist.SetBinContent(hist.FindBin(850,300),0)
-        ##     hist.SetBinContent(hist.FindBin(1900,850),0)
-        ## if model == "T1tttt" and box == "MuMultiJet_EleMultiJet_MultiJet":
-        ##     hist.SetBinContent(hist.FindBin(1700,0),0)
-        ##     hist.SetBinContent(hist.FindBin(700,200),0)
-        ##     hist.SetBinContent(hist.FindBin(900,200),0)
-        ##     hist.SetBinContent(hist.FindBin(1100,400),0)
-        ##     hist.SetBinContent(hist.FindBin(1200,100),0)
-        ##     hist.SetBinContent(hist.FindBin(1200,400),0)
-        ##     hist.SetBinContent(hist.FindBin(1200,750),0)
-        ##     hist.SetBinContent(hist.FindBin(1250,875),0)
+        if model == "T1tttt" and box == "MuMultiJet_EleMultiJet_MultiJet":
+             hist.SetBinContent(hist.FindBin(1650,650),0)
+             hist.SetBinContent(hist.FindBin(1600,200),0)
+             hist.SetBinContent(hist.FindBin(1600,50),0)
+             hist.SetBinContent(hist.FindBin(1550,200),0)
+             for mg in range(1450,1550,50):
+                 for mchi in range(650,800,50):       
+                    hist.SetBinContent(hist.FindBin(mg,mchi),0)     
                 
-    #if model == "T1ttbb" or "T1x" in model:
-    #    for x in range(600,2000,25):
-    #        hist.SetBinContent(hist.FindBin(x,0),0)
-    #        hist.SetBinContent(hist.FindBin(x,50),0)
-    #        hist.SetBinContent(hist.FindBin(x,100),0)
+    if model == "T1ttbb" or model=="T1bri" or "T1x" in model:
+        for x in range(600,2000,25):
+            hist.SetBinContent(hist.FindBin(x,0),hist.GetBinContent(hist.FindBin(x,100)))
+            hist.SetBinContent(hist.FindBin(x,50),hist.GetBinContent(hist.FindBin(x,100)))
+        hist.SetBinContent(hist.FindBin(1650,550),0)
+        hist.SetBinContent(hist.FindBin(1700,500),0)
+        hist.SetBinContent(hist.FindBin(1700,600),0)
+        hist.SetBinContent(hist.FindBin(1600,600),0)
+        
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:
@@ -285,8 +286,18 @@ def getModelSettings(model):
         xsecMin = 1.e-3
         xsecMax = 10.
         diagonalOffset = 225+12.5
+        smoothing = 200
+    elif model=='T1bri':
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 225+12.5
         smoothing = 50
-
         
     return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing
 
@@ -322,11 +333,15 @@ if __name__ == '__main__':
 
     mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing = getModelSettings(model)
 
-    if doHybridNew:
-        xsecFile = rt.TFile.Open("%s/xsecUL_HybridNew_%s.root"%(directory,box))
+    if model=="T1bri":
+        xsecFile = rt.TFile.Open("%s/smoothXsecUL_%s.root"%(directory,box))
+        xsecTree = xsecFile.Get("smoothXsecTree")
     else: 
-        xsecFile = rt.TFile.Open("%s/xsecUL_Asymptotic_%s.root"%(directory,box))
-    xsecTree = xsecFile.Get("xsecTree")
+        if doHybridNew:
+            xsecFile = rt.TFile.Open("%s/xsecUL_HybridNew_%s.root"%(directory,box))
+        else: 
+            xsecFile = rt.TFile.Open("%s/xsecUL_Asymptotic_%s.root"%(directory,box))
+        xsecTree = xsecFile.Get("xsecTree")
     xsecGluino =  rt.TH2D("xsecGluino","xsecGluino",int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
     xsecGluinoPlus =  rt.TH2D("xsecGluinoPlus","xsecGluinoPlus",int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
     xsecGluinoMinus =  rt.TH2D("xsecGluinoMinus","xsecGluinoMinus",int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
@@ -340,9 +355,15 @@ if __name__ == '__main__':
     titleMap = {"Exp":"Expected","ExpMinus":"Expected-1#sigma","ExpPlus":"Expected+1#sigma",
                 "ExpMinus2":"Expected-2#sigma","ExpPlus2":"Expected+2#sigma",
                 "ObsMinus":"Observed-1#sigma", "ObsPlus":"Observed+1#sigma","Obs":"Observed"}
-    whichCLsVar = {"Obs":"xsecULObs_%s"%(box),"ObsPlus":"xsecULObs_%s"%(box),"ObsMinus":"xsecULObs_%s"%(box),
-                   "Exp":"xsecULExp_%s"%(box),"ExpPlus":"xsecULExpMinus_%s"%(box),"ExpMinus":"xsecULExpPlus_%s"%(box),
-                   "ExpPlus2":"xsecULExpMinus2_%s"%(box),"ExpMinus2":"xsecULExpPlus2_%s"%(box)}
+    if model=="T1bri":
+        
+        whichCLsVar = {"Obs":"xsecULObs_%s"%(box),"ObsPlus":"xsecULObs_%s"%(box),"ObsMinus":"xsecULObs_%s"%(box),
+                    "Exp":"xsecULExp_%s"%(box),"ExpPlus":"xsecULExpMinus_%s"%(box),"ExpMinus":"xsecULExpPlus_%s"%(box),
+                    "ExpPlus2":"xsecULExpMinus2_%s"%(box),"ExpMinus2":"xsecULExpPlus2_%s"%(box)}
+    else:
+        whichCLsVar = {"Obs":"xsecULObs_%s"%(box),"ObsPlus":"xsecULObs_%s"%(box),"ObsMinus":"xsecULObs_%s"%(box),
+                    "Exp":"xsecULExp_%s"%(box),"ExpPlus":"xsecULExpMinus_%s"%(box),"ExpMinus":"xsecULExpPlus_%s"%(box),
+                    "ExpPlus2":"xsecULExpMinus2_%s"%(box),"ExpMinus2":"xsecULExpPlus2_%s"%(box)}
                    
     xsecUL = {}
     logXsecUL = {}
@@ -351,40 +372,9 @@ if __name__ == '__main__':
 
     contourFinal = {}
 
-        
     
     subboxes = box.split("_")
     
-    for clsType in clsTypes:
-        xsecUL[clsType] = rt.TH2D("xsecUL_%s"%clsType,"xsecUL_%s"%clsType,int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
-        xsecTree.Project("xsecUL_%s"%clsType,"mchi:mg",whichCLsVar[clsType])
-
-
-        fix_hist_byhand(xsecUL[clsType],model,box,clsType)
-        
-            
-        print "INFO: doing interpolation for %s"%(clsType)
-        
-        # do swiss cross average in real domain
-        rebinXsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        #rebinXsecUL[clsType] = xsecUL[clsType].Clone()
-
-        # do scipy multi-quadratic interpolation in log domain
-        rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
-
-        # do swiss cross rebin + average in real domain (should be log??)
-        for i in xrange(0,nRebins):
-            rebinXsecUL[clsType] = rt.swissCrossRebin(rebinXsecUL[clsType],"NE")
-
-        # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
-        xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
-
-        # fix axes
-        xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))
-        xsecUL[clsType].GetYaxis().SetRangeUser(xsecUL[clsType].GetYaxis().GetBinCenter(1),xsecUL[clsType].GetYaxis().GetBinCenter(xsecUL[clsType].GetNbinsY()))
-         
-        
     thyXsec = {}
     thyXsecErr = {}
     if refXsecFile is not None:
@@ -400,11 +390,6 @@ if __name__ == '__main__':
         sys.exit()  
     
 
-    # now rebin xsecGluino the correct number of times
-    for i in xrange(0,nRebins):
-        xsecGluino = rt.swissCrossRebin(xsecGluino,"NE")
-        xsecGluinoPlus = rt.swissCrossRebin(xsecGluinoPlus,"NE")
-        xsecGluinoMinus = rt.swissCrossRebin(xsecGluinoMinus,"NE")
     
     
     for i in xrange(1,xsecGluino.GetNbinsX()+1):
@@ -418,6 +403,56 @@ if __name__ == '__main__':
                 xsecGluinoPlus.SetBinContent(i,j,xsecVal*(1+xsecErr))
                 xsecGluinoMinus.SetBinContent(i,j,xsecVal*(1-xsecErr))
                 
+    # now rebin xsecGluino the correct number of times
+    for i in xrange(0,nRebins):
+        xsecGluino = rt.swissCrossRebin(xsecGluino,"NE")
+        xsecGluinoPlus = rt.swissCrossRebin(xsecGluinoPlus,"NE")
+        xsecGluinoMinus = rt.swissCrossRebin(xsecGluinoMinus,"NE")
+                
+    xyPairExp = {}
+    for clsType in clsTypes:
+        xsecUL[clsType] = rt.TH2D("xsecUL_%s"%clsType,"xsecUL_%s"%clsType,int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
+        xsecTree.Project("xsecUL_%s"%clsType,"mchi:mg",whichCLsVar[clsType])
+        if model=="T1bri":
+            brValues = [(0.00, 1.00), (0.25, 0.25), (0.50, 0.00), (0.00, 0.50), (0.00, 0.00), (0.25, 0.50), (0.50, 0.50), (0.50, 0.25)]
+            tempXsecUL = {}
+            for (x, y) in brValues:
+                brString = ('x%.2fy%.2f'%(x,y)).replace('.','p')
+                tempXsecUL[(x,y)] = rt.TH2D("xsecUL_%s_%s"%(clsType,brString),"xsecUL_%s_%s"%(clsType,brString),int((mgMax-mgMin)/binWidth),mgMin, mgMax,int((mchiMax-mchiMin)/binWidth), mchiMin, mchiMax)
+                xsecTree.Project("xsecUL_%s_%s"%(clsType,brString),"mchi:mg","%s*(x==%.2f && y==%.2f)"%(whichCLsVar[clsType],x,y))
+            for iBin in range(1,xsecUL[clsType].GetNbinsX()+1):
+                for jBin in range(1,xsecUL[clsType].GetNbinsY()+1):
+                    allValues = {}
+                    for (x, y) in brValues:
+                        allValues[(x,y)] = tempXsecUL[(x,y)].GetBinContent(iBin,jBin)
+                    if clsType=="Exp":
+                        xyPairExp[(iBin,jBin)] = max(allValues.iteritems(), key=operator.itemgetter(1))[0]
+                    xsecUL[clsType].SetBinContent(iBin,jBin,allValues[xyPairExp[(iBin,jBin)]])
+
+
+        fix_hist_byhand(xsecUL[clsType],model,box,clsType)
+        
+            
+        print "INFO: doing interpolation for %s"%(clsType)
+        
+        # do swiss cross average in real domain
+        rebinXsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+
+        # do scipy multi-quadratic interpolation in log domain
+        rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
+
+        # do swiss cross rebin + average in real domain (should be log??)
+        for i in xrange(0,nRebins):
+            rebinXsecUL[clsType] = rt.swissCrossRebin(rebinXsecUL[clsType],"NE")
+
+        # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
+        xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
+
+        # fix axes
+        xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))
+        xsecUL[clsType].GetYaxis().SetRangeUser(xsecUL[clsType].GetYaxis().GetBinCenter(1),xsecUL[clsType].GetYaxis().GetBinCenter(xsecUL[clsType].GetNbinsY()))
+        
     c = rt.TCanvas("c","c",500,500)
     
     for clsType in clsTypes:
@@ -456,6 +491,7 @@ if __name__ == '__main__':
 
         xsecUL[clsType].Draw("COLZ")
         #subXsecUL[clsType].Draw("COLZ")
+        #xsecGluino.Draw("colz")
         
         contour0 = conts.At(0)
         curv = contour0.First()
@@ -493,7 +529,7 @@ if __name__ == '__main__':
     smoothOutFile = rt.TFile.Open("%s/smoothXsecUL_%s_%s.root"%(directory,model,box), "recreate")
     
     smoothXsecTree = rt.TTree("smoothXsecTree", "smoothXsecTree")
-    myStructCmd = "struct MyStruct{Double_t mg;Double_t mchi;"
+    myStructCmd = "struct MyStruct{Double_t mg;Double_t mchi;Double_t x;Double_t y;"
     ixsecUL = 0
     myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+0)
     myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+1)
@@ -509,6 +545,21 @@ if __name__ == '__main__':
     s = MyStruct()
     smoothXsecTree.Branch("mg", rt.AddressOf(s,"mg"),'mg/D')
     smoothXsecTree.Branch("mchi", rt.AddressOf(s,"mchi"),'mchi/D')
+    smoothXsecTree.Branch("x", rt.AddressOf(s,"x"),'x/D')
+    smoothXsecTree.Branch("y", rt.AddressOf(s,"y"),'y/D')
+    if 'T1x' in model:
+        s.x = float(model[model.find('x')+1:model.find('y')].replace('p','.'))
+        s.y = float(model[model.find('y')+1:].replace('p','.'))
+    elif model == 'T1bbbb':
+        s.x = 1
+        s.y = 0
+    elif model == 'T1tttt':
+        s.x = 0
+        s.y = 1
+    else:
+        s.x = -1
+        s.y = -1
+    
 
     ixsecUL = 0
     smoothXsecTree.Branch("xsecULObs_%s"%box, rt.AddressOf(s,"xsecUL%i"%(ixsecUL+0)),'xsecUL%i/D'%(ixsecUL+0))
