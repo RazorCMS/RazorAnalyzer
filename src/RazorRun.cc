@@ -361,7 +361,19 @@ int main(int argc, char* argv[]){
       analyzer.EnableEventInfo();
       analyzer.EnableMC();
       analyzer.RazorDM(outputFileName, true, isData);
-    }else if(analysisType == "RazorPhotonDM" || analysisType == "razorPhotonDM"){
+    }
+    else if(analysisType == "Monojet" || analysisType == "monojet"){
+      cout << "Executing RazorDM analysis..." << endl;
+      analyzer.EnableJets();
+      analyzer.EnableMet();
+      analyzer.EnableElectrons();
+      analyzer.EnableMuons();
+      analyzer.EnableTaus();
+      analyzer.EnableEventInfo();
+      analyzer.EnableMC();
+      analyzer.Monojet(outputFileName, true, isData);
+    }
+    else if(analysisType == "RazorPhotonDM" || analysisType == "razorPhotonDM"){
       cout << "Executing RazorPhotonDM analysis..." << endl;
       analyzer.EnablePhotons();
       analyzer.EnableJets();
@@ -372,7 +384,8 @@ int main(int argc, char* argv[]){
       analyzer.EnableEventInfo();
       analyzer.EnableMC();
       analyzer.RazorPhotonDM(outputFileName, true, isData);
-    }else if(analysisType == "RazorAlphaT" || analysisType == "razorAlphaT"){
+    }
+    else if(analysisType == "RazorAlphaT" || analysisType == "razorAlphaT"){
       cout << "Executing RazorAlphaT analysis..." << endl;
       analyzer.EnableJets();
       analyzer.EnableMet();

@@ -41,7 +41,7 @@ FILENAMES_MC = {
 #         "qcd"         : DATA_NAMES["MultiJet"]
 #        }
 
-lumiUncertainty = 0.046
+lumiUncertainty = 0.027
 
 def getTheoryCrossSectionAndError(mGluino=-1, mStop=-1):
     thyXsec = -1
@@ -675,6 +675,7 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
             for ix in range(1, len(x)):
                 for iy in range(1, len(y)):
                     tempTH2.SetBinContent(ix,iy, myTH3.GetBinContent(ix,iy,iz))
+                    tempTH2.SetBinError(ix,iy, myTH3.GetBinError(ix,iy,iz))
             #turn it into a TH2Poly with the reduced binning
             unrollRows = unrollBins[iz-1][0]
             unrollCols = unrollBins[iz-1][1]
@@ -792,7 +793,7 @@ if __name__ == '__main__':
                   help="Name of the config file to use")
     parser.add_argument('-d','--dir',dest="outDir",default="./",
                   help="Output directory to store datasets")
-    parser.add_argument('-l','--lumi',dest="lumi", default=2185.,type=float,
+    parser.add_argument('-l','--lumi',dest="lumi", default=2300.,type=float,
                   help="integrated luminosity in pb^-1")
     parser.add_argument('--lumi-in',dest="lumi_in", default=1.,type=float,
                   help="integrated luminosity in pb^-1")

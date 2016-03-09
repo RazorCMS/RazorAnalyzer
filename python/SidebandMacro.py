@@ -10,7 +10,7 @@ from macro.razorWeights import loadScaleFactorHists, invertHistogram
 from macro.razorMacros import runFitAndToys, makeControlSampleHists
 import macro.macro as macro
 
-LUMI = 2185 #in /pb
+LUMI = 2300 #in /pb
 MCLUMI = 1 
 
 SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]

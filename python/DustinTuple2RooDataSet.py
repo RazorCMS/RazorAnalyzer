@@ -58,7 +58,7 @@ def getCuts(workspace, box):
     btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
-        
+
     #get the optimal cuts for each box
     if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet", "FourToSixJet", "SevenJet"]: 
         dPhiCut = 2.8
@@ -67,9 +67,25 @@ def getCuts(workspace, box):
         dPhiCut = -1
         MTCut = 120
 
-    boxCut = boxes[box]
-    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i && %s' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax,boxCut)
+    cuts = 'MR > %f && MR < %f && Rsq > %f && Rsq < %f && min(nBTaggedJets,%i) >= %i && min(nBTaggedJets,%i) < %i' % (mRmin,mRmax,rsqMin,rsqMax,btagCutoff,btagMin,btagCutoff,btagMax)
 
+    #one-lepton control regions
+    if box in ['WJetControlRegion','TTJetsSingleLeptonControlRegion', 'WJetInvControlRegion']:
+        MTCut = -1
+        dPhiCut = -1
+        cuts = cuts + (' && ( ((%s || %s) && leadingTightMuPt > 20 ) || ((%s || %s) && leadingTightElePt > 25) ) && met > 30 && mT > 30 && mT < 100 && TMath::Finite(weight)'%(boxes['MuJet'],boxes['MuMultiJet'],boxes['EleJet'],boxes['EleMultiJet']))
+        if box == 'WJetControlRegion':
+            cuts = cuts + ' && nBTaggedJets == 0'
+        elif box == 'TTJetsSingleLeptonControlRegion':
+            cuts = cuts + ' && nBTaggedJets > 0'
+        elif box == 'WJetInvControlRegion':
+            print "Error in getCuts: WJets invisible control region is not implemented!"
+            sys.exit()
+    #signal boxes
+    else:
+        boxCut = boxes[box]
+        cuts = cuts + (' && %s'%boxCut)
+        
     #add deltaPhi and/or MT cut
     if MTCut >= 0: 
         if box in ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]:

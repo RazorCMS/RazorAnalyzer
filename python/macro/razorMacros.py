@@ -731,6 +731,10 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         mcTotalUp.Add(mcSysUncUp)
         mcTotalDown = mcTotal.Clone(mcTotal.GetName()+'Down')
         mcTotalDown.Add(mcSysUncDown, -1)
+        sfHists[process+"NormUp"] = sfHists[process].Clone(process+"ScaleFactorsUp")
+        sfHists[process+"NormUp"].SetDirectory(0)
+        sfHists[process+"NormDown"] = sfHists[process].Clone(process+"ScaleFactorsDown")
+        sfHists[process+"NormDown"].SetDirectory(0)
 
     #save yields for debugging
     dataDebugSubtr = sfHists[process].Clone()
@@ -808,7 +812,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     #plot scale factors in 2D (not yet implemented for 1 or 3 dimensions)
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
     if not isinstance(var, basestring) and len(var) == 2: 
-        plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.3, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
+        plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.0, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         if not doTotalMC and not th2PolyXBins:
             #print table

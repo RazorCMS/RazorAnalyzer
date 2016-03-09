@@ -335,6 +335,11 @@ def subtractBkgsInData(process, hists={}, dataName="Data", debugLevel=0):
             if debugLevel > 0: 
                 print "Subtracting",p,"from",dataName,"distribution for",var
             hists[dataName][var].Add(hists[p][var], -1) 
+        #zero any negative bins
+        for bx in range(1, hists[dataName][var].GetSize()+1):
+            if hists[dataName][var].GetBinContent(bx) < 0:
+                print "Zeroing negative prediction",hists[dataName][var].GetBinContent(bx),"for",dataName
+                hists[dataName][var].SetBinContent(bx, 0)
 
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}):
     """Make stacked plots of quantities of interest, with data overlaid"""

@@ -14,8 +14,6 @@ from SidebandMacro import config
 from GetCombine import writeXsecTree
 from RunCombine import exec_me
 
-REFXSECFILE =  "./data/gluino13TeV.txt" 
-
 if __name__ == '__main__':
 
     
@@ -48,10 +46,13 @@ if __name__ == '__main__':
     haddOutputs = []
     thyXsec = {}
     thyXsecErr = {}
+    refXsecFile =  "./data/gluino13TeV.txt" 
+    if 'T2' in model:
+        refXsecFile = './data/stop13TeV.txt'
 
     #get theory cross sections and errors
-    for mg in range(600,2025,25):
-        for line in open(REFXSECFILE,'r'):
+    for mg in range(100,2025,25):
+        for line in open(refXsecFile,'r'):
             line = line.replace('\n','')
             if str(mg)==line.split(',')[0]:
                 thyXsec[mg] = float(line.split(',')[1]) #pb
@@ -135,7 +136,7 @@ if __name__ == '__main__':
         limits.reverse()
         print limits
         
-        haddOutput = writeXsecTree(boxInput, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
+        haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
         haddOutputs.append(haddOutput)
 
     if doHybridNew:
