@@ -371,6 +371,9 @@ void RazorAnalyzer::RazorPhotonDM(string outFileName, bool combineTrees, bool is
 		if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
 		continue;
 	      }
+
+	    //only isolated photons
+	    if ( !photonPassLooseIso(i,use25nsSelection) ) continue;
 	    
 	    //Defining Corrected Photon momentum
 	    //float pho_pt = phoPt[i];//nominal pt
