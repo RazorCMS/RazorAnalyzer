@@ -183,7 +183,10 @@ TTbarDMJets_EFT_M-200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    
 #from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageAt1314TeV
 #Higgs branching fraction to gamma gamma taken from 
 #https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR3
-GluGluToHToGG_M-125_13TeV-powheg-pythia6                                            0.1001376
-VBF_HToGG_M-125_13TeV-powheg-pythia6                                                0.00854544
-WH_ZH_HToGG_M-125_13TeV_pythia6                                                     0.005129088
-TTbarH_HToGG_M-125_13TeV_amcatnlo-pythia8-tauola                                    0.00115938
+
+GluGluToHToGG_M-125_13TeV-powheg_pythia8                                            0.1001376
+VBF_HToGG_M-125_13TeV-powheg_pythia8                                                0.00854544
+WH_ZH_HToGG_M-125_13TeV-powheg_pythia8                                              0.005129088
+ZH_HToGG_M-125_13TeV-powheg_pythia8						    0.001982688
+WH_HToGG_M-125_13TeV-powheg_pythia8						    0.0031464
+TTbarH_HToGG_M-125_13TeV-powheg_pythia8						    0.00115938
