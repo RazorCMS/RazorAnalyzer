@@ -822,3 +822,83 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
+def correctScaleFactorUncertaintyForSignalContamination(sigHist, sfHist, contamHist, debugLevel=0):
+    """
+    sigHist should be the histogram that needs to be corrected.
+    sfHist should be the histogram of scale factors.
+    contamHist should be a histogram of the same binning as sfHist giving % signal contamination in each bin of sfHist.
+    Increases the uncertainty on each bin of sfHist to account for the level of signal contamination.
+    Assumes that the statistical uncertainties on the scale factors have been included in sigHists's bin errors.
+    Supports TH2s as well as TH2Polys for the scale factor histogram
+    """
+    if debugLevel > 0:
+        print "Adding uncertainty for signal contamination in",sfHist.GetName()
+    if sfHist.InheritsFrom('TH2Poly'):
+        for bx in range(1,sigHist.GetNbinsX()+1):
+            for by in range(1, sigHist.GetNbinsY()+1):
+                #find the scale factor bin corresponding to this signal region bin
+                xCoord = sigHist.GetXaxis().GetBinCenter(bx)
+                yCoord = sigHist.GetYaxis().GetBinCenter(by)
+                sfBin = sfHist.FindBin(xCoord, yCoord)
+            
+                #get error, scale factor error, and level of signal contamination
+                curErr = sigHist.GetBinError(bx,by)
+                sf = sfHist.GetBinContent(sfBin)
+                sfErr = sfHist.GetBinError(sfBin)
+                contam = contamHist.GetBinContent(sfBin)
+                
+                #recover the original sum(weight^2) value by undoing the effect of scale factor uncertainties
+                sumW2 = curErr**2/(1+sfErr**2)
+                contamErr = sf*contam
+                if debugLevel > 0:
+                    print "sf",sf,"sfErr",sfErr,"contam",contam,"contamErr",contamErr,"sumW2",sumW2
+                newErr = ( sumW2 * (1 + sfErr**2 + contamErr**2) )**(0.5)
+
+                sigHist.SetBinError(bx,by,newErr)
+                if debugLevel > 0:
+                    print "Signal contamination in bin",bx,by,"is",contam,"; uncertainty goes from",curErr,"to",newErr
+    else:
+        print "Error in correctScaleFactorUncertaintyForSignalContamination: function implemented for TH2Poly only!"
+        sys.exit()
+            
+def getExcludedSignalStrength(dirName, model, mGluino=-1, mStop=-1, mLSP=-1, debugLevel=0): 
+    """ Retrieve the expected signal exclusion for the given model, using previously computed limits """ 
+    if mLSP < 0:
+        print "Error in getExcludedSignalStrength: please specify mLSP!"
+        return 0
+
+    #open file and get limit results
+    fName = model+'_MultiJet_EleMultiJet_MuMultiJet_results.root'
+    hName = "xsecUL_Exp_%s_MultiJet_EleMultiJet_MuMultiJet"%(model)
+    resultFile = rt.TFile.Open(dirName+'/'+fName)
+    xsecULHist = resultFile.Get(hName)
+    if not xsecULHist:
+        print "Error in getExcludedSignalStrength: histogram",hName,"not found in",dirName+'/'+fName
+        return 0
+
+    #get excluded cross section
+    if 'T2' in model:
+        xsecUL = xsecULHist.GetBinContent(xsecULHist.FindFixBin(mStop,mLSP))
+    else:
+        xsecUL = xsecULHist.GetBinContent(xsecULHist.FindFixBin(mGluino,mLSP))
+
+    #get theoretical cross section
+    if mGluino!=-1:
+        for line in open('data/gluino13TeV.txt','r'):
+            line = line.replace('\n','')
+            if str(int(mGluino))==line.split(',')[0]:
+                xsecTheory = float(line.split(',')[1]) #pb
+    elif mStop!=-1:
+        for line in open('data/stop13TeV.txt','r'):
+            line = line.replace('\n','')
+            if str(int(mStop))==line.split(',')[0]:
+                xsecTheory = float(line.split(',')[1]) #pb
+    else:
+        print "Error in getExcludedSignalStrength: please specify either mStop or mGluino!"
+        return 0
+    if debugLevel > 0:
+        print "Expected UL",xsecUL,"pb"
+        print "Theory cross section",xsecTheory,"pb"
+
+    #return the ratio
+    return xsecUL/xsecTheory
