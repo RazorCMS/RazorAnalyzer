@@ -850,8 +850,6 @@ def correctScaleFactorUncertaintyForSignalContamination(sigHist, sfHist, contamH
                 #recover the original sum(weight^2) value by undoing the effect of scale factor uncertainties
                 sumW2 = curErr**2/(1+sfErr**2)
                 contamErr = sf*contam
-                if debugLevel > 0:
-                    print "sf",sf,"sfErr",sfErr,"contam",contam,"contamErr",contamErr,"sumW2",sumW2
                 newErr = ( sumW2 * (1 + sfErr**2 + contamErr**2) )**(0.5)
 
                 sigHist.SetBinError(bx,by,newErr)
