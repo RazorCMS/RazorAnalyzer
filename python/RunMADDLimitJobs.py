@@ -11,7 +11,7 @@ from framework import Config
 from GChiPairs import gchipairs
 from WriteRazorMADDCard import LUMI
     
-def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False):
+def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contamination=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -23,6 +23,9 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False):
     sigString = ''
     if signif:
         sigString = '--signif'
+    contamString = ''
+    if contamination:
+        contamString = '--contamination'
 
     particleString = '--mGluino'
     if 'T2' in model:
@@ -58,7 +61,7 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False):
     script += 'git checkout -b Limits LimitsMADD20160310\n' 
     script += 'make lxplus\n'
     script += 'mkdir -p %s\n'%submitDir
-    script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString,sigString)
+    script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString,sigString,contamString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
@@ -100,6 +103,8 @@ if __name__ == '__main__':
                   help="use fit vs MC systematic")
     parser.add_option('--signif',dest="signif",default=False,action='store_true',
                   help="Compute significance instead of limit")
+    parser.add_option('--contamination',dest="contamination",default=False,action='store_true',
+                  help="Propagate uncertainty on signal contamination")
 
     (options,args) = parser.parse_args()
 
@@ -140,7 +145,7 @@ if __name__ == '__main__':
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/Limits/"+options.outDir)
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
-                options.outDir, options.noSys, options.fitSys, options.signif)
+                options.outDir, options.noSys, options.fitSys, options.signif, options.contamination)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
