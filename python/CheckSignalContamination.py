@@ -18,7 +18,7 @@ SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 #BACKGROUND_DIR = "Moriond2016"
 
-def checkSignalContamination(config, outDir, lumi, box, model, mGluino, mLSP, mergeBins=False, treeName="RazorInclusive"):
+def checkSignalContamination(config, outDir, lumi, box, model, mLSP, mGluino=-1, mStop=-1, mergeBins=False, treeName="RazorInclusive"):
     cfg = Config.Config(config)
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
@@ -32,10 +32,15 @@ def checkSignalContamination(config, outDir, lumi, box, model, mGluino, mLSP, me
     mergeBinsString = ''
     if mergeBins:
         mergeBinsString = '--merge-bins'
+
+    if 'T2' in model:
+        modelName = 'SMS-%s_%i_%i'%(model,mStop,mLSP)
+    else:
+        modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
         
-    os.system('python python/SMSTemplates.py %s -c %s -d %s/ --lumi %s --box %s --no-signal-sys %s/SMS-%s_%i_%i.root'%(mergeBinsString,config,outDir,lumi,box,SIGNAL_DIR,model,mGluino,mLSP))
+    os.system('python python/SMSTemplates.py %s -c %s -d %s/ --lumi %s --box %s --no-signal-sys %s/%s.root'%(mergeBinsString,config,outDir,lumi,box,SIGNAL_DIR,modelName))
         
-    signalFile = rt.TFile.Open('%s/SMS-%s_%i_%i_lumi-%.3f_%i-%ibtag_%s.root'%(outDir,model,mGluino,mLSP,lumi*1./1000.,z[0],z[-1]-1,box))
+    signalFile = rt.TFile.Open('%s/%s_lumi-%.3f_%i-%ibtag_%s.root'%(outDir,modelName,lumi*1./1000.,z[0],z[-1]-1,box))
     sigTH1 = signalFile.Get('%s_%s'%(box,model))
     
     bkgdHistDict = importHists('%s/controlHistograms%s.root'%(BACKGROUND_DIR,box.replace('ControlRegion','').replace('WJet','WJetsSingleLepton')))
@@ -95,6 +100,7 @@ if __name__ == '__main__':
                   help="merge some bins in Rsq")    
     parser.add_option('-m','--model', default="T1bbbb", help="signal model name")
     parser.add_option('--mGluino',default=-1,type=int, help="mass of gluino")
+    parser.add_option('--mStop',default=-1,type=int, help="mass of stop")
     parser.add_option('--mLSP',default=-1,type=int, help="mass of LSP")
     (options,args) = parser.parse_args()
 
@@ -103,7 +109,7 @@ if __name__ == '__main__':
     box = options.box
     treeName = 'RazorInclusive'
     
-    sigTH1 = checkSignalContamination(options.config, options.outDir, options.lumi, box, options.model, options.mGluino, options.mLSP, options.mergeBins, treeName)
+    sigTH1 = checkSignalContamination(options.config, options.outDir, options.lumi, box, options.model, options.mLSP, options.mGluino, options.mStop, options.mergeBins, treeName)
 
     rt.gStyle.SetOptTitle(0)
     rt.gStyle.SetOptStat(0)
@@ -119,9 +125,16 @@ if __name__ == '__main__':
     sigTH1.GetYaxis().SetTitleOffset(2.)
 
     tleg = rt.TLegend(0.2,0.69,0.5,0.89)
-    tleg.AddEntry(sigTH1,'%s (%i, %i)'%(options.model,options.mGluino,options.mLSP))
+    if 'T2' in model:
+        tleg.AddEntry(sigTH1,'%s (%i, %i)'%(options.model,options.mStop,options.mLSP))
+    else:
+        tleg.AddEntry(sigTH1,'%s (%i, %i)'%(options.model,options.mGluino,options.mLSP))
     tleg.SetLineColor(rt.kWhite)
     tleg.SetFillColor(rt.kWhite)
     tleg.Draw()
-    c.Print("%s/signalContamination_%s_%i_%i_%s.pdf"%(options.outDir,options.model,options.mGluino,options.mLSP,box))
-    c.Print("%s/signalContamination_%s_%i_%i_%s.C"%(options.outDir,options.model,options.mGluino,options.mLSP,box))
+    if 'T2' in model:
+        c.Print("%s/signalContamination_%s_%i_%i_%s.pdf"%(options.outDir,options.model,options.mGluino,options.mLSP,box))
+        c.Print("%s/signalContamination_%s_%i_%i_%s.C"%(options.outDir,options.model,options.mGluino,options.mLSP,box))
+    else:
+        c.Print("%s/signalContamination_%s_%i_%i_%s.pdf"%(options.outDir,options.model,options.mStop,options.mLSP,box))
+        c.Print("%s/signalContamination_%s_%i_%i_%s.C"%(options.outDir,options.model,options.mStop,options.mLSP,box))

@@ -5,13 +5,16 @@ import ROOT as rt
 #local imports
 from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.razorMacros import unrollAndStitch
+from macro.razorWeights import loadScaleFactorHists
 from RunCombine import exec_me
 from DustinTuples2DataCard import uncorrelate, writeDataCard_th1
 import macro.macro as macro
 from SidebandMacro import SAMPLES, LUMI, config
+from CheckSignalContamination import checkSignalContamination
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
+LIMIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -34,6 +37,7 @@ if __name__ == "__main__":
     parser.add_argument('--fit-sys', dest="addMCVsFit", action='store_true', help="add MC vs fit systematic")
     parser.add_argument('--no-limit', dest='noCombine', action='store_true', help='do not call combine, make template histograms only')
     parser.add_argument('--signif', action='store_true', help='compute significance rather than limit')
+    parser.add_argument('--contamination', action='store_true', help='add uncertainty for signal contamination')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -53,8 +57,31 @@ if __name__ == "__main__":
         samples = SAMPLES[curBox]
         unrollBins = [(xbinsSignal[curBox][str(btags)+'B'], colsSignal[curBox][str(btags)+'B']) for btags in range(4)]
 
+        #assess signal contamination
+        contamHists = None
+        sfHists = None
+        if args.contamination:
+            #get level of contamination in control regions
+            print "Computing signal contamination level in control regions"
+            ttContamHist = checkSignalContamination("config/run2_20151229_ControlRegion.config",
+                   outDir=outDir, lumi=LUMI, box="TTJetsSingleLeptonControlRegion", model=args.model,
+                   mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True)
+            wContamHist = checkSignalContamination("config/run2_20151229_ControlRegion.config",
+                   outDir=outDir, lumi=LUMI, box="WJetControlRegion", model=args.model,
+                   mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True)
+            contamHists = { "TTJets1L":ttContamHist, "TTJets2L":ttContamHist, "WJets":wContamHist }
+            sfNames = { "TTJets1L":"TTJets", "TTJets2L":"TTJets" }
+            sfHists = loadScaleFactorHists("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=["TTJets1L","TTJets2L","WJets"], scaleFactorNames=sfNames, debugLevel=debugLevel)
+
+            #scale contamination level by expected signal strength exclusion
+            expExclusion = macro.getExcludedSignalStrength(LIMIT_DIR, args.model, mGluino=args.mGluino,
+                    mStop=args.mStop, mLSP=args.mLSP, debugLevel=debugLevel)
+            print "Expected limit is",expExclusion,"-- scaling signal contamination by this amount"
+            contamHists["WJets"].Scale(expExclusion)
+            contamHists["TTJets1L"].Scale(expExclusion)
+
         #make combined unrolled histograms for background
-        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
+        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), addMCVsFit=args.addMCVsFit, debugLevel=debugLevel, signalContaminationHists=contamHists, sfHistsForSignalContamination=sfHists)
 
         if args.noCombine: continue #if not setting a limit, we are done
 

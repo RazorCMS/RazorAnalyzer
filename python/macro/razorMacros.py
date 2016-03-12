@@ -1080,7 +1080,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING
 #########################################
 
-def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False):
+def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False, signalContaminationHists=None, sfHistsForSignalContamination=None):
     """
     Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
     """
@@ -1112,6 +1112,16 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
         #noSys option
         if noSys: 
             shapeHists = {s:{} for s in samples}
+        #signal contamination systematic
+        elif signalContaminationHists is not None:
+            for proc in signalContaminationHists:
+                try:
+                    macro.correctScaleFactorUncertaintyForSignalContamination(hists[proc][var], sfHistsForSignalContamination[proc], signalContaminationHists[proc], debugLevel=debugLevel)
+                except KeyError:
+                    print "unrollAndStitch: unable to process signal contamination for",proc,"-- histogram not found!"
+                    print "hists",hists
+                    print "sfHists",sfHistsForSignalContamination
+                    print "signalContaminationHists",signalContaminationHists
 
         #unroll each MC histogram
         unrolledMCs = plotting.unroll2DHistograms([hists[s][var] for s in samples], unrollRows, unrollCols)
