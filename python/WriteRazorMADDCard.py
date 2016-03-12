@@ -86,7 +86,7 @@ if __name__ == "__main__":
         if args.noCombine: continue #if not setting a limit, we are done
 
         #treat appropriate uncertainties as uncorrelated bin to bin
-        toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck']
+        toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck','sfstatttjets','sfstatwjets','sfstatzinv']
         toUncorrelate += ['stat'+curBox+sample for sample in samples]
         for sys in toUncorrelate:
             if 'stat' in sys:

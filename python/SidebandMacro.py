@@ -59,7 +59,7 @@ FULL_TOYS_FILES = {
 
 weightOpts = []
 commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdnorm','QCD'),'btag','pileup','bmistag','facscale','renscale','facrenscale']
-commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfsyszinv',['ZInv']),('zllcrosscheck',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfsyswjets',['WJets'])]
+commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfstatzinv',['ZInv']),('sfsyszinv',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfstatttjets',['TTJets1L','TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfstatwjets',['WJets']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors, 'FourToSixJet':hadShapeErrors, 'SevenJet':hadShapeErrors }
@@ -301,6 +301,6 @@ if __name__ == "__main__":
                     fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBinsToUse,
                     btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
                     plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill,
-                    makePlots = (not args.export), exportShapeErrs=args.export)
+                    makePlots = (not args.export), exportShapeErrs=args.export, propagateScaleFactorErrs=False)
 
             macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)
