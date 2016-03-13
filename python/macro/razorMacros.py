@@ -1114,14 +1114,16 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
             shapeHists = {s:{} for s in samples}
         #signal contamination systematic
         elif signalContaminationHists is not None:
+            sfStat = { 'TTJets1L':'sfstatttjets', 'TTJets2L':'sfstatttjets', 'TTJets':'sfstatttjets', 'WJets':'sfstatwjets', 'ZInv':'sfstatzinv' }
             for proc in signalContaminationHists:
+                if proc not in sfStat:
+                    print "WARNING: scale factor uncertainty for process",proc,"is not implemented in macro.unrollAndStitch!"
+                    continue
+                sfStatName = sfStat[proc]
                 try:
-                    macro.correctScaleFactorUncertaintyForSignalContamination(hists[proc][var], sfHistsForSignalContamination[proc], signalContaminationHists[proc], debugLevel=debugLevel)
+                    macro.correctScaleFactorUncertaintyForSignalContamination(centralHist=hists[proc][var], upHist=shapeHists[proc][sfStatName+'Up'][var], downHist=shapeHists[proc][sfStatName+'Down'][var], sfHist=sfHistsForSignalContamination[proc], contamHist=signalContaminationHists[proc], debugLevel=debugLevel)
                 except KeyError:
                     print "unrollAndStitch: unable to process signal contamination for",proc,"-- histogram not found!"
-                    print "hists",hists
-                    print "sfHists",sfHistsForSignalContamination
-                    print "signalContaminationHists",signalContaminationHists
 
         #unroll each MC histogram
         unrolledMCs = plotting.unroll2DHistograms([hists[s][var] for s in samples], unrollRows, unrollCols)

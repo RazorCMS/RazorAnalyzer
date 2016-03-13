@@ -843,37 +843,39 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
-def correctScaleFactorUncertaintyForSignalContamination(sigHist, sfHist, contamHist, debugLevel=0):
+def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, downHist, sfHist, contamHist, debugLevel=0):
     """
     sigHist should be the histogram that needs to be corrected.
     sfHist should be the histogram of scale factors.
     contamHist should be a histogram of the same binning as sfHist giving % signal contamination in each bin of sfHist.
     Increases the uncertainty on each bin of sfHist to account for the level of signal contamination.
-    Assumes that the statistical uncertainties on the scale factors have been included in sigHists's bin errors.
+    Assumes that the signal histogram uncertainties reflect MC statistics only!  
+    (i.e. no other systematics have been propagated)
     Supports TH2s as well as TH2Polys for the scale factor histogram
     """
     if debugLevel > 0:
         print "Adding uncertainty for signal contamination in",sfHist.GetName()
     if sfHist.InheritsFrom('TH2Poly'):
-        for bx in range(1,sigHist.GetNbinsX()+1):
-            for by in range(1, sigHist.GetNbinsY()+1):
+        for bx in range(1,centralHist.GetNbinsX()+1):
+            for by in range(1, centralHist.GetNbinsY()+1):
                 #find the scale factor bin corresponding to this signal region bin
-                xCoord = sigHist.GetXaxis().GetBinCenter(bx)
-                yCoord = sigHist.GetYaxis().GetBinCenter(by)
+                xCoord = centralHist.GetXaxis().GetBinCenter(bx)
+                yCoord = centralHist.GetYaxis().GetBinCenter(by)
                 sfBin = sfHist.FindBin(xCoord, yCoord)
             
                 #get error, scale factor error, and level of signal contamination
-                curErr = sigHist.GetBinError(bx,by)
                 sf = sfHist.GetBinContent(sfBin)
-                sfErr = sfHist.GetBinError(sfBin)
                 contam = contamHist.GetBinContent(sfBin)
-                
-                #recover the original sum(weight^2) value by undoing the effect of scale factor uncertainties
-                sumW2 = curErr**2/(1+sfErr**2)
                 contamErr = sf*contam
-                newErr = ( sumW2 * (1 + sfErr**2 + contamErr**2) )**(0.5)
 
-                sigHist.SetBinError(bx,by,newErr)
+                curErr = upHist.GetBinContent(bx,by) - centralHist.GetBinContent(bx,by)
+                newErr = ( curErr**2 + contamErr**2 )**(0.5)
+
+                upHist.SetBinContent(bx,by, centralHist.GetBinContent(bx,by) + newErr)
+                if centralHist.GetBinContent(bx,by) > 0:
+                    percentChange = newErr/centralHist.GetBinContent(bx,by)
+                    downHist.SetBinContent(bx,by, centralHist.GetBinContent(bx,by)/(1+percentChange))
+
                 if debugLevel > 0:
                     print "Signal contamination in bin",bx,by,"is",contam,"; uncertainty goes from",curErr,"to",newErr
     else:
