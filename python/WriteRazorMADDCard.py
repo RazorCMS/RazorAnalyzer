@@ -147,7 +147,7 @@ if __name__ == "__main__":
     #run combine
     if args.signif:
         combineMethod = 'ProfileLikelihood'
-        combineFlags = '--signif --expectSignal=1 -t -1 --toysFreq'
+        combineFlags = '--signif -t -1 --toysFreq'
     else:
         combineMethod = 'Asymptotic'
         combineFlags = ''
