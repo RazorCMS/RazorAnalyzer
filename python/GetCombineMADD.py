@@ -13,6 +13,20 @@ from GChiPairs import gchipairs
 from SidebandMacro import config
 from GetCombine import writeXsecTree
 from RunCombine import exec_me
+from macro.plotting import draw2DHist
+
+def plotSignificance(boxInput, model, sigHist, outDir):
+    c = rt.TCanvas("c","c",800,600)
+    if 'T2' in model:
+        xtitle='m_{stop}'
+    else:
+        xtitle='m_{gluino}'
+    ytitle='m_LSP'
+    commentstr=boxInput.replace('_',' ')
+    printstr='_'.join(['RazorSignificance',model,boxInput])
+    draw2DHist(c, sigHist, xtitle=xtitle, ytitle=ytitle, ztitle="Significance", printstr=printstr,
+            logx=False, logy=False, logz=False, lumistr="2.3 fb^{-1}", 
+            commentstr=commentstr, dotext=False, palette='FF', printdir=outDir)
 
 if __name__ == '__main__':
 
@@ -57,6 +71,11 @@ if __name__ == '__main__':
             if str(mg)==line.split(',')[0]:
                 thyXsec[mg] = float(line.split(',')[1]) #pb
                 thyXsecErr[mg] = 0.01*float(line.split(',')[2])
+
+    #significance histogram
+    sigHist = None
+    if doSignificance:
+        sigHist = rt.TH2F('sigHist','sigHist',56,600,2000,72,0,1800)
 
     #get combine results
     for mg, mchi in gchipairs(model):
@@ -136,10 +155,15 @@ if __name__ == '__main__':
         limits.reverse()
         print limits
         
-        haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
-        haddOutputs.append(haddOutput)
+        if doSignificance:
+            sigHist.SetBinContent(sigHist.FindBin(mg,mchi), limits[0])
+        else:
+            haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
+            haddOutputs.append(haddOutput)
 
-    if doHybridNew:
+    if doSignificance:
+        plotSignificance(boxInput, model, sigHist, directory)
+    elif doHybridNew:
         os.system("hadd -f %s/xsecUL_HybridNew_%s.root %s"%(directory,boxInput," ".join(haddOutputs)))
     else:
         os.system("hadd -f %s/xsecUL_Asymptotic_%s.root %s"%(directory,boxInput," ".join(haddOutputs)))

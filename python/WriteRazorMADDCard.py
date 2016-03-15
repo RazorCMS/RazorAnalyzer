@@ -7,10 +7,11 @@ from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.razorMacros import unrollAndStitch
 from macro.razorWeights import loadScaleFactorHists
 from RunCombine import exec_me
-from DustinTuples2DataCard import uncorrelate, writeDataCard_th1
+from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 import macro.macro as macro
 from SidebandMacro import SAMPLES, LUMI, config
 from CheckSignalContamination import checkSignalContamination
+from framework import Config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
@@ -59,7 +60,8 @@ if __name__ == "__main__":
 
         #assess signal contamination
         contamHists = None
-        sfHists = None
+        sfNames = { "TTJets1L":"TTJets", "TTJets2L":"TTJets", "ZInv":"GJetsInv" }
+        sfHists = loadScaleFactorHists("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=["TTJets1L","TTJets2L","WJets","ZInv"], scaleFactorNames=sfNames, debugLevel=debugLevel)
         if args.contamination:
             #get level of contamination in control regions
             print "Computing signal contamination level in control regions"
@@ -70,8 +72,6 @@ if __name__ == "__main__":
                    outDir=outDir, lumi=LUMI, box="WJetControlRegion", model=args.model,
                    mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True)
             contamHists = { "TTJets1L":ttContamHist, "TTJets2L":ttContamHist, "WJets":wContamHist }
-            sfNames = { "TTJets1L":"TTJets", "TTJets2L":"TTJets" }
-            sfHists = loadScaleFactorHists("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=["TTJets1L","TTJets2L","WJets"], scaleFactorNames=sfNames, debugLevel=debugLevel)
 
             #scale contamination level by expected signal strength exclusion
             expExclusion = macro.getExcludedSignalStrength(LIMIT_DIR, args.model, mGluino=args.mGluino,
@@ -88,6 +88,7 @@ if __name__ == "__main__":
         #treat appropriate uncertainties as uncorrelated bin to bin
         toUncorrelate = ['ttcrosscheck','zllcrosscheck','btagcrosscheckmr','btagcrosscheckrsq','btaginvcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetolepptcrosscheck','vetotauptcrosscheck']
         toUncorrelate += ['stat'+curBox+sample for sample in samples]
+
         for sys in toUncorrelate:
             if 'stat' in sys:
                 if args.noStat: continue
@@ -96,6 +97,12 @@ if __name__ == "__main__":
                 if args.noSys: continue
                 suppressLevel = 0.0
             uncorrelate(backgroundHists, sys, suppressLevel=suppressLevel)
+
+        #scale factor uncertainties are correlated according to the bin they are in
+        toUncorrelateSF = ['sfstatttjets','sfstatwjets','sfstatzinv']
+        cfg = Config.Config(config)
+        for sys in toUncorrelateSF:
+            uncorrelateSFs(backgroundHists, sys, sfHists, cfg, curBox, unrollBins=unrollBins)
 
         #call SMS template maker
         if 'T1' in args.model or 'T5' in args.model:
@@ -140,7 +147,7 @@ if __name__ == "__main__":
     #run combine
     if args.signif:
         combineMethod = 'ProfileLikelihood'
-        combineFlags = '--signif --expectSignal=1 -t -1 --toysFreq'
+        combineFlags = '--signif -t -1 --toysFreq'
     else:
         combineMethod = 'Asymptotic'
         combineFlags = ''

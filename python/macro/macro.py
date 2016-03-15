@@ -616,7 +616,21 @@ def addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel=0):
                 hists[name].SetBinError(bx,(oldErr*oldErr + squaredError)**(0.5))
                 if debugLevel > 0 and squaredError > 0: print name,": Error on bin",bx,"increases from",oldErr,"to",hists[name].GetBinError(bx),"after adding",(squaredError**(0.5)),"in quadrature"
 
-def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], shapeSFHists={}, shapeAuxSFs={}, shapeAuxSFHists={}, noFill=False, debugLevel=0):
+def propagateScaleFactorStatErrors(sysErrSquaredHists, upHists, downHists, debugLevel=0):
+    """Use scale factor uncertainties to make up and down shape histograms"""
+    for var in upHists:
+        if var in sysErrSquaredHists:
+            if debugLevel > 0: print "Making shape histogram for scale factor errors on",var
+            for bx in range(1,sysErrSquaredHists[var].GetSize()+1):
+                squaredError = sysErrSquaredHists[var].GetBinContent(bx)
+                #increase up histogram bin content by 1 sigma, decrease down histogram bin content
+                centralValue = upHists[var].GetBinContent(bx)
+                upHists[var].SetBinContent(bx, centralValue + (squaredError)**(0.5))
+                if centralValue > 0:
+                    percentChange = (upHists[var].GetBinContent(bx) - centralValue)/centralValue
+                    downHists[var].SetBinContent(bx, centralValue/(1+percentChange))
+
+def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], shapeSFHists={}, shapeAuxSFs={}, shapeAuxSFHists={}, propagateScaleFactorErrs=True, noFill=False, debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events."""
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
@@ -763,11 +777,18 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             sumweight += w
             count += 1
     #propagate systematics to each histogram
-    addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel)
+    if 'sfstatttjets' in shapeNames:
+        propagateScaleFactorStatErrors(sysErrSquaredHists, upHists=shapeHists['sfstatttjetsUp'], downHists=shapeHists['sfstatttjetsDown'], debugLevel=debugLevel)
+    elif 'sfstatwjets' in shapeNames:
+        propagateScaleFactorStatErrors(sysErrSquaredHists, upHists=shapeHists['sfstatwjetsUp'], downHists=shapeHists['sfstatwjetsDown'], debugLevel=debugLevel)
+    elif 'sfstatzinv' in shapeNames:
+        propagateScaleFactorStatErrors(sysErrSquaredHists, upHists=shapeHists['sfstatzinvUp'], downHists=shapeHists['sfstatzinvDown'], debugLevel=debugLevel)
+    elif propagateScaleFactorErrs:
+        addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel)
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, propagateScaleFactorErrs=True, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -819,40 +840,42 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             print "Will fill histograms for these shape uncertainties:"
             print shapeNamesToUse
 
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, debugLevel=debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOpts, errorOpt, process=name+"_"+boxName, auxSFs=auxSFs, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
-def correctScaleFactorUncertaintyForSignalContamination(sigHist, sfHist, contamHist, debugLevel=0):
+def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, downHist, sfHist, contamHist, debugLevel=0):
     """
     sigHist should be the histogram that needs to be corrected.
     sfHist should be the histogram of scale factors.
     contamHist should be a histogram of the same binning as sfHist giving % signal contamination in each bin of sfHist.
     Increases the uncertainty on each bin of sfHist to account for the level of signal contamination.
-    Assumes that the statistical uncertainties on the scale factors have been included in sigHists's bin errors.
+    Assumes that the signal histogram uncertainties reflect MC statistics only!  
+    (i.e. no other systematics have been propagated)
     Supports TH2s as well as TH2Polys for the scale factor histogram
     """
     if debugLevel > 0:
         print "Adding uncertainty for signal contamination in",sfHist.GetName()
     if sfHist.InheritsFrom('TH2Poly'):
-        for bx in range(1,sigHist.GetNbinsX()+1):
-            for by in range(1, sigHist.GetNbinsY()+1):
+        for bx in range(1,centralHist.GetNbinsX()+1):
+            for by in range(1, centralHist.GetNbinsY()+1):
                 #find the scale factor bin corresponding to this signal region bin
-                xCoord = sigHist.GetXaxis().GetBinCenter(bx)
-                yCoord = sigHist.GetYaxis().GetBinCenter(by)
+                xCoord = centralHist.GetXaxis().GetBinCenter(bx)
+                yCoord = centralHist.GetYaxis().GetBinCenter(by)
                 sfBin = sfHist.FindBin(xCoord, yCoord)
             
                 #get error, scale factor error, and level of signal contamination
-                curErr = sigHist.GetBinError(bx,by)
                 sf = sfHist.GetBinContent(sfBin)
-                sfErr = sfHist.GetBinError(sfBin)
                 contam = contamHist.GetBinContent(sfBin)
-                
-                #recover the original sum(weight^2) value by undoing the effect of scale factor uncertainties
-                sumW2 = curErr**2/(1+sfErr**2)
                 contamErr = sf*contam
-                newErr = ( sumW2 * (1 + sfErr**2 + contamErr**2) )**(0.5)
 
-                sigHist.SetBinError(bx,by,newErr)
+                curErr = upHist.GetBinContent(bx,by) - centralHist.GetBinContent(bx,by)
+                newErr = ( curErr**2 + contamErr**2 )**(0.5)
+
+                upHist.SetBinContent(bx,by, centralHist.GetBinContent(bx,by) + newErr)
+                if centralHist.GetBinContent(bx,by) > 0:
+                    percentChange = newErr/centralHist.GetBinContent(bx,by)
+                    downHist.SetBinContent(bx,by, centralHist.GetBinContent(bx,by)/(1+percentChange))
+
                 if debugLevel > 0:
                     print "Signal contamination in bin",bx,by,"is",contam,"; uncertainty goes from",curErr,"to",newErr
     else:

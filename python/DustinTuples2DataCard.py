@@ -349,7 +349,6 @@ def fillRazor3D(tree, hist, weight, btagCutoff, treeName, sfs={}, opt="", sumPdf
 
 def uncorrelate(hists, sysName, suppressLevel=None):
     """Replaces each histogram whose name contains 'sysName' with many copies that represent uncorrelated bin-by-bin systematics.
-    If referenceHist is given, bins in the shape histograms are assumed to be correlated if and only if they lie in the same bin of referenceHist.
     suppressLevel: if provided, new histograms will only be created for bins that differ from nominal by a fractional amount greater than suppressLevel."""
     #get all histograms that match the input string
     toUncorrelate = [name for name in hists if sysName in name]
@@ -408,20 +407,49 @@ def uncorrelate(hists, sysName, suppressLevel=None):
         del hists[upName]
         del hists[downName]
 
-def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
+def makeNewHistogramForUncorrelateSFs(name, centerName, systName, number, hists):
+    """Set up a new histogram, for use with the uncorrelateSFs function"""
+    if "Up" in name: 
+        newHistName = centerName+"_"+systName+str(number)+"Up"
+    elif "Down" in name:
+        newHistName = centerName+"_"+systName+str(number)+"Down"
+    else: 
+        print("Error: shape histogram name "+name+" needs to contain 'Up' or 'Down'")
+        return
+    hists[newHistName] = hists[centerName].Clone(newHistName)
+    hists[newHistName].SetDirectory(0)
+    return newHistName
+
+def setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN, sigBN, sysHist, newHist, referenceHist):
+    """If the signal bin is inside the reference bin, perturb the signal bin"""
+    #correct MR or Rsq if they lie outside the reference histogram
+    if mrCenter > referenceHist.GetXaxis().GetXmax(): 
+        mrCenter = referenceHist.GetXaxis().GetXmax() - 1
+    if rsqCenter > referenceHist.GetYaxis().GetXmax():
+        rsqCenter = referenceHist.GetYaxis().GetXmax() - 0.01
+    #if the bin matches the current reference histogram bin, update the contents
+    if referenceHist.FindBin(mrCenter, rsqCenter) == refBN: #bin matches
+        newHist.SetBinContent(sigBN, sysHist.GetBinContent(sigBN)) #new hist has the unperturbed value in every bin except one
+        newHist.SetBinError(sigBN, sysHist.GetBinError(sigBN))
+        return True
+    else:
+        return False
+
+def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
     """Same as uncorrelate(), but treats bins as correlated if they lie inside the same bin in the reference histogram.
     Needs a config and a box name, to get the correct bin configuration for the razor histogram"""
     #get all histograms that match the input string
     toUncorrelate = [name for name in hists if sysName in name]
+    print "Uncorrelate SFs:",sysName
     print("Treating the following distributions as uncorrelated: ")
     for name in toUncorrelate: print name
 
-    #make histogram with razor binning
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
-    myTH3 = rt.TH3D("razor3d","razor3d",len(x)-1,x,len(y)-1,y,len(z)-1,z)
-    
+    #make histogram with razor binning
+    myTH3 = rt.TH3D("razor3d"+name,"razor3d",len(x)-1,x,len(y)-1,y,len(z)-1,z)
+
     for name in toUncorrelate:
         print("Using reference histogram to determine bin correlations for "+name)
         #get histogram with central values
@@ -432,37 +460,101 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box):
         #get reference histogram for scale factor binning
         referenceHist = referenceHists[centerName]
         #for each bin create a new histogram in which that bin is up/down and the rest are centered
-        for bx in range(1,referenceHist.GetNbinsX()+1):
-            for by in range(1,referenceHist.GetNbinsY()+1):
-                b = referenceHist.GetBin(bx,by)
-                if "Up" in name: 
-                    newHistName = centerName+"_"+systName+str(b)+"Up"
-                elif "Down" in name:
-                    newHistName = centerName+"_"+systName+str(b)+"Down"
-                else: 
-                    print("Error: shape histogram name "+name+" needs to contain 'Up' or 'Down'")
-                    return
-                hists[newHistName] = hists[centerName].Clone(newHistName)
-                hists[newHistName].SetDirectory(0)
-                #find bins in hists[name] that lie inside bin b of referenceHist
-                i = 0
-                for ix in range(1,len(x)):
-                    for iy in range(1,len(y)):
-                        for iz in range(1,len(z)):
-                            #i = 1D histogram bin index
-                            i+= 1
+        if referenceHist.InheritsFrom("TH2Poly"):
+            for bn in range(1,referenceHist.GetNumberOfBins()+1):
+                print "In bin",bn,"of scale factor histogram"
+                matchedAtLeastOneBin = False
+                newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, bn, hists)
+                #find all bins of signal histogram that are within this bin
+                if unrollBins is None:
+                    i = 0
+                    for ix in range(1,len(x)):
+                        for iy in range(1,len(y)):
+                            for iz in range(1,len(z)):
+                                #i = 1D histogram bin index
+                                i += 1
+                                #get MR and Rsq at center of bin in 3d histogram
+                                mrCenter = myTH3.GetXaxis().GetBinCenter(ix)
+                                rsqCenter = myTH3.GetYaxis().GetBinCenter(iy)
+                                if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=bn,
+                                        sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
+                                        referenceHist=referenceHist):
+                                    print " bin",i,"(",ix,iy,iz,") matches!"
+                                    matchedAtLeastOneBin = True
+                else:
+                    #make a TH2Poly from each xy slice of the histogram, unroll each one and attach together
+                    print "Merging bins according to custom (MR-dependent) binning"
+                    i = 0
+                    for iz in range(1, len(z)):
+                        #one xy slice of the histogram 
+                        unrollRows = unrollBins[iz-1][0]
+                        unrollCols = unrollBins[iz-1][1]
+                        poly = macro.makeTH2PolyFromColumns("poly"+str(iz)+name, 'poly', unrollRows, unrollCols)
+                        polyBins = poly.GetBins()
+                        for sigBN in range(1, poly.GetNumberOfBins()+1):
+                            i += 1
+                            thisSigBin = polyBins.At(sigBN-1)
                             #get MR and Rsq at center of bin in 3d histogram
-                            mrCenter = myTH3.GetXaxis().GetBinCenter(ix)
-                            rsqCenter = myTH3.GetYaxis().GetBinCenter(iy)
-                            #correct MR or Rsq if they lie outside the reference histogram
-                            if mrCenter > referenceHist.GetXaxis().GetXmax(): 
-                                mrCenter = referenceHist.GetXaxis().GetXmax() - 1
-                            if rsqCenter > referenceHist.GetYaxis().GetXmax():
-                                rsqCenter = referenceHist.GetYaxis().GetXmax() - 0.01
-                            #if the bin matches the current reference histogram bin, update the contents
-                            if referenceHist.FindFixBin(mrCenter, rsqCenter) == b: #bin matches
-                                hists[newHistName].SetBinContent(i, hists[name].GetBinContent(i)) #new hist has the unperturbed value in every bin except one
-                                hists[newHistName].SetBinError(i, hists[name].GetBinError(i))
+                            mrCenter = (thisSigBin.GetXMax() + thisSigBin.GetXMin())/2.0
+                            rsqCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
+                            if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=bn,
+                                    sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
+                                    referenceHist=referenceHist):
+                                print " bin",i,"(",sigBN,iz,") matches!"
+                                matchedAtLeastOneBin = True
+                        poly.Delete()
+                #don't save the histogram if there is no change from the nominal
+                if not matchedAtLeastOneBin:
+                    print "No matching signal bins -- discarding histogram"
+                    del hists[newHistName]
+        else: #TH2F case
+            for bx in range(1,referenceHist.GetNbinsX()+1):
+                for by in range(1,referenceHist.GetNbinsY()+1):
+                    b = referenceHist.GetBin(bx,by)
+                    newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, b, hists)
+                    matchedAtLeastOneBin = False
+                    #find bins in hists[name] that lie inside bin b of referenceHist
+                    if unrollBins is None:
+                        i = 0
+                        for ix in range(1,len(x)):
+                            for iy in range(1,len(y)):
+                                for iz in range(1,len(z)):
+                                    #i = 1D histogram bin index
+                                    i+= 1
+                                    #get MR and Rsq at center of bin in 3d histogram
+                                    mrCenter = myTH3.GetXaxis().GetBinCenter(ix)
+                                    rsqCenter = myTH3.GetYaxis().GetBinCenter(iy)
+                                    if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=b,
+                                            sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
+                                            referenceHist=referenceHist):
+                                        print " bin",i,"(",ix,iy,iz,") matches!"
+                                        matchedAtLeastOneBin = True
+                    else:
+                        #make a TH2Poly from each xy slice of the histogram, unroll each one and attach together
+                        print "Merging bins according to custom (MR-dependent) binning"
+                        i = 0
+                        for iz in range(1, len(z)):
+                            #one xy slice of the histogram 
+                            unrollRows = unrollBins[iz-1][0]
+                            unrollCols = unrollBins[iz-1][1]
+                            poly = macro.makeTH2PolyFromColumns("poly"+str(iz)+name, 'poly', unrollRows, unrollCols)
+                            polyBins = poly.GetBins()
+                            for sigBN in range(1, poly.GetNumberOfBins()+1):
+                                i += 1
+                                thisSigBin = polyBins.At(sigBN-1)
+                                #get MR and Rsq at center of bin in 3d histogram
+                                mrCenter = (thisSigBin.GetXMax() + thisSigBin.GetXMin())/2.0
+                                rsqCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
+                                if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=b,
+                                        sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
+                                        referenceHist=referenceHist):
+                                    print " bin",i,"(",sigBN,iz,") matches!"
+                                    matchedAtLeastOneBin = True
+                            poly.Delete()
+                    #don't save the histogram if there is no change from the nominal
+                    if not matchedAtLeastOneBin:
+                        print "No matching signal bins -- discarding histogram"
+                        del hists[newHistName]
 
         #remove the original histogram
         del hists[name]
