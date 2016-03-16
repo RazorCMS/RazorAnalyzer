@@ -116,7 +116,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
-    plotOpts = {"ymin":1e-3}
+    plotOpts = {"SUS15004":True}
 
     doSideband=(not args.full)
     toysToUse = TOYS_FILES

@@ -404,31 +404,34 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             else:
                 ytitle = var[1]
             #make plots
-            plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
-            #do MC total (no stack)
-            plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+            if 'SUS15004' in special:
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, unrollBins=unrollBins, printdir=printdir)
+            else:
+                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+                #do MC total (no stack)
+                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
             #draw bin mapping
             if unrollBins[0] is not None and unrollBins[1] is not None:
                 plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+"BINNING", printdir=printdir)
             #print prediction in each bin
-            if obsData is not None and obsData != 0:
-                print "Results for data histogram:"
-                for bx in range(1, obsData.GetNbinsX()+1):
-                    for by in range(1,obsData.GetNbinsY()+1):
-                        print bx,by,obsData.GetBinContent(bx,by),"+/-",obsData.GetBinError(bx,by)
-                print "\n"
-            if mcPrediction != 0:
-                print "Results for MC histogram:"
-                for bx in range(1, mcPrediction.GetNbinsX()+1):
-                    for by in range(1,mcPrediction.GetNbinsY()+1):
-                        print bx,by,mcPrediction.GetBinContent(bx,by),"+/-",mcPrediction.GetBinError(bx,by)
-                print "\n"
-            if fitPrediction != 0:
-                print "Results for fit histogram:"
-                for bx in range(1, fitPrediction.GetNbinsX()+1):
-                    for by in range(1,fitPrediction.GetNbinsY()+1):
-                        print bx,by,fitPrediction.GetBinContent(bx,by),"+/-",fitPrediction.GetBinError(bx,by)
-                print "\n"
+            #if obsData is not None and obsData != 0:
+            #    print "Results for data histogram:"
+            #    for bx in range(1, obsData.GetNbinsX()+1):
+            #        for by in range(1,obsData.GetNbinsY()+1):
+            #            print bx,by,obsData.GetBinContent(bx,by),"+/-",obsData.GetBinError(bx,by)
+            #    print "\n"
+            #if mcPrediction != 0:
+            #    print "Results for MC histogram:"
+            #    for bx in range(1, mcPrediction.GetNbinsX()+1):
+            #        for by in range(1,mcPrediction.GetNbinsY()+1):
+            #            print bx,by,mcPrediction.GetBinContent(bx,by),"+/-",mcPrediction.GetBinError(bx,by)
+            #    print "\n"
+            #if fitPrediction != 0:
+            #    print "Results for fit histogram:"
+            #    for bx in range(1, fitPrediction.GetNbinsX()+1):
+            #        for by in range(1,fitPrediction.GetNbinsY()+1):
+            #            print bx,by,fitPrediction.GetBinContent(bx,by),"+/-",fitPrediction.GetBinError(bx,by)
+            #    print "\n"
         #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var].Clone(histDict[name][var].GetName()+"Clone") for name in mcNames}

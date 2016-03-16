@@ -694,7 +694,7 @@ def make2DRelativeUncertaintyHistogram(h, suppress=True, suppressLevel=10.0):
                 ret.SetBinContent(bx,by,-9999)
     return ret
 
-def unroll2DHistograms(hists, xbins=None, cols=None):
+def unroll2DHistograms(hists, xbins=None, cols=None, labelBins=False):
     """Convert a 2D histogram into a 1D histogram.  
     Bins of the input histogram can be selectively merged. Provide a list (xbins) of bin edges in
     the x-direction and a list of lists (cols) giving the bin edges in the y-direction for each
@@ -723,6 +723,8 @@ def unroll2DHistograms(hists, xbins=None, cols=None):
             for bn in range(1, numbins+1):
                 outHist.SetBinContent(bn, poly.GetBinContent(bn))
                 outHist.SetBinError(bn, poly.GetBinError(bn))
+        if labelBins:
+            labelUnrollBins(outHist, xbins, cols)
         out.append(outHist)
     return out
 
@@ -1054,11 +1056,10 @@ def setTDRStyle():
     tdrStyle.SetHatchesLineWidth(5)
     tdrStyle.SetHatchesSpacing(0.05)
   
-def CMS_lumi(pad, relPosX=0.1, iPeriod=4, iPosX=0, lumistr="2.3 fb^{-1}"):
+def CMS_lumi(pad, relPosX=0.1, iPeriod=4, iPosX=0, lumistr="2.3 fb^{-1}", writeExtraText=True):
     lumi_13TeV = lumistr
     cmsText = "CMS"
     cmsTextFont = 61 # default is helvetica-bold
-    writeExtraText = True
     extraText = " Preliminary"
     extraTextFont = 52 # default is helvetica-italics
     lumiTextSize = 0.6
@@ -1159,3 +1160,250 @@ def CMS_lumi(pad, relPosX=0.1, iPeriod=4, iPosX=0, lumistr="2.3 fb^{-1}"):
         latex.SetTextAlign(align_)
         latex.DrawLatex(posX_, posY_, extraText)      
 
+def plot_SUS15004(c, data=0, fit=0, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", mcDict=None, mcSamples=None, unrollBins=(None,None), printdir="."):
+    if mcDict is None or mcSamples is None:
+        print "Error in plot_SUS15004: please provide list of MC samples and associated histograms!"
+        return
+    ymin=5e-3
+    #unroll 2D hists to plot in 1D
+    unrolled = unroll2DHistograms([data, fit], unrollBins[0], unrollBins[1], labelBins=True)
+    mcUnrolledList = unroll2DHistograms([mcDict[s] for s in mcSamples], unrollBins[0], unrollBins[1], labelBins=True)
+    mcUnrolledDict = {mcSamples[n]:mcUnrolledList[n] for n in range(len(mcSamples))}
+    for s in mcSamples: setHistColor(mcUnrolledDict[s], s)
+    #draw full stack of MC on unrolled plot
+    mcStack = makeStack(mcUnrolledDict, mcSamples, "MC")
+    if data:
+        legDataMC = rt.TLegend(0.75, 0.6, 0.9, 0.9)
+        rt.SetOwnership(legDataMC, False)
+        legDataMC.AddEntry(unrolled[0], "Data")
+        #add each sample to legend
+        for n in range(len(mcSamples)-1,-1,-1):
+            s = mcSamples[n]
+            legDataMC.AddEntry(mcUnrolledDict[s], s)
+        plot_SUS15004_1D(c, mcStack, unrolled[0], None, legDataMC, ymin=ymin, printstr=printstr+"UnrolledDataMC", lumistr=lumistr, commentstr=commentstr, ratiomin=0.0,ratiomax=5, 
+                printdir=printdir, unrollBins=unrollBins)
+        legDataMC.Delete()
+    if fit: 
+        legMCFit = rt.TLegend(0.75, 0.6, 0.9, 0.9)
+        rt.SetOwnership(legMCFit, False)
+        legMCFit.AddEntry(unrolled[1], "Fit Prediction")
+        #add each sample to legend
+        for n in range(len(mcSamples)-1,-1,-1): #iterate backwards
+            s = mcSamples[n]
+            legMCFit.AddEntry(mcDict[s], s)
+        plot_SUS15004_1D(c, mcStack, None, unrolled[1], legMCFit, ymin=ymin, printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=0, ratiomax=5, 
+                printdir=printdir, unrollBins=unrollBins)
+        mcStack.Delete()
+        legMCFit.Delete()
+
+def labelUnrollBins(hist, xbins=None, cols=None):
+    """Label each bin in the unrolled plot with its corresponding y-axis range"""
+    bn = 0
+    for i in range(len(xbins)-1):
+        for j in range(len(cols[i])-1):
+            bn += 1
+            label = '[%.2f, %.2f]'%(cols[i][j],cols[i][j+1])
+            hist.GetXaxis().SetBinLabel(bn, label)
+
+def drawMRLabels(pad, xbins, cols):
+    """Draw the labels for the MR bins on unrolled plots"""
+    pad.cd()
+    latex = rt.TLatex()
+    latex.SetNDC()
+    latex.SetTextAngle(0)
+    latex.SetTextColor(rt.kBlack)    
+
+    latex.SetTextFont(22)
+    latex.SetTextAlign(12) 
+    latex.SetTextSize(.035)
+
+    #determine what fraction of the pad is taken up by each MR bin
+    plotLeftEdge=0.07
+    plotRightEdge=0.86
+    binWidths=[]
+    for i in range(len(xbins)-1):
+        binWidths.append(len(cols[i])-1)
+    nbins = sum(binWidths)
+    #get left edge of each MR bin
+    offsets=[plotLeftEdge]
+    for i in range(len(xbins)-1):
+        offsets.append(offsets[-1]+binWidths[i]*(plotRightEdge-plotLeftEdge)*1.0/nbins)
+    #get center of each MR bin
+    binCenters = [(offsets[i]+offsets[i+1])/2.0 for i in range(len(offsets)-1)]
+
+    #label each MR bin
+    latex.DrawLatex(binCenters[0], 0.85, 'M_{R} (GeV)')
+    latex.DrawLatex(plotLeftEdge, 0.12, 'R^{2}')
+    for i in range(len(xbins)-1):
+        mrString = "[%d, %d]"%(xbins[i],xbins[i+1])
+        latex.DrawLatex(binCenters[i], 0.8, mrString)
+
+def getMRLines(pad, xbins, cols, hist):
+    """Draws lines at MR borders"""
+    lines = []
+    ibin = 0
+    for i in range(0,len(xbins)-2):
+        ibin += len(cols[i])-1
+        lines.append(rt.TLine(ibin,0,ibin,hist.GetMaximum()*2))
+        lines[-1].SetLineStyle(9)
+        lines[-1].SetLineWidth(1)
+        lines[-1].SetLineColor(rt.kBlack)
+        lines[-1].Draw()
+    return lines
+
+def plot_SUS15004_1D(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None)):
+    #setup
+    c.Clear()
+    c.cd()
+    pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.28, 1, 1)
+    rt.SetOwnership(pad1, False)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetLogy()
+    pad1.Draw()
+    pad1.cd()
+
+    ### draw MC
+
+    mc.SetTitle("")
+
+    #make total MC histogram
+    histList = mc.GetHists()
+    mcTotal = histList.First().Clone()
+    mcTotal.SetTitle("")
+    mcTotal.SetStats(0)
+    mcTotal.Reset()
+    numMCHists = 0
+    for h in histList:
+        mcTotal.Add(h)
+        numMCHists += 1
+    mcTotal.SetFillColor(rt.kBlack)
+    mc.Draw('hist')
+    if ymin is not None: mc.SetMinimum(ymin)
+    if ymax is not None: mc.SetMaximum(ymax)
+    else: mc.SetMaximum(10*mc.GetMaximum())
+    mc.GetXaxis().SetTitle("")
+    mc.GetYaxis().SetTitle("Events")
+    mc.GetYaxis().SetTitleOffset(0.70)
+    mc.GetYaxis().SetTitleSize(0.06)
+    mc.GetXaxis().SetLabelSize(0.05)
+    mc.GetXaxis().LabelsOption("v")
+    mc.GetXaxis().SetLabelFont(22)
+    mc.GetYaxis().SetLabelSize(0.06)
+    mcTotal.SetFillStyle(3001)
+    mcTotal.Draw("e2same")
+
+    #draw fit
+    if fit:
+        fit.SetStats(0)
+        fit.SetMarkerStyle(20)
+        fit.SetLineWidth(2)
+        fit.SetMarkerSize(0)
+        fit.SetLineColor(rt.kBlue)
+        fit.SetMarkerColor(rt.kBlue)
+        #blue line for fit
+        fitCopy = fit.Clone()
+        fitCopy.SetFillStyle(0)        
+        fitCopy.SetLineWidth(2)
+        #Fit = black points
+        fit.SetMarkerColor(rt.kBlack)
+        fit.SetLineColor(rt.kBlack)
+        fit.SetMarkerSize(1)
+        fit.Draw('pe1same')
+
+    #draw data
+    if data:
+        data.SetStats(0)
+        data.SetMarkerStyle(20)
+        data.SetMarkerSize(1)
+        data.SetLineWidth(2)
+        data.SetLineColor(rt.kBlack)
+        data.Draw("pe1same")
+
+    pad1.Modified()
+    rt.gPad.Update()
+
+    #add legend and LaTeX 
+    leg.SetFillColor(rt.kWhite)
+    leg.SetBorderSize(0)
+    leg.Draw()
+    CMS_lumi(pad1, lumistr=lumistr, writeExtraText=False)
+    drawMRLabels(pad1, unrollBins[0], unrollBins[1])
+    lines = getMRLines(pad1, unrollBins[0], unrollBins[1], mcTotal)
+    for l in lines: l.Draw()
+
+    if commentstr != "":
+        t3 = rt.TLatex(0.40, 0.92, commentstr)
+        t3.SetNDC()
+        t3.SetTextSize(0.05)
+        t3.Draw()
+
+    #lower pad plot
+    lowerPadHist = None
+    lowerPadHist2 = None
+    lowerPadHist2Central = None
+    lowerPadHist2Lower = None
+    lowerPadHist2Upper = None
+
+    #make ratio data/MC
+    if data:
+        #draw data/MC with poisson errors from data
+        lowerPadHist = make1DRatioHistogram(data, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
+        lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+    elif fit:
+        lowerPadHist = make1DRatioHistogram(fit, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
+        lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+    #draw relative MC uncertainties 
+    lowerPadHist2 = make1DRatioHistogram(mcTotal, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
+    lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
+    lowerPadHist2Upper = lowerPadHist2.Clone()
+    lowerPadHist2Upper.SetFillStyle(0)
+    lowerPadHist2Upper.SetLineWidth(1)
+    lowerPadHist2Lower = lowerPadHist2Upper.Clone()
+    lowerPadHist2Central = lowerPadHist2Upper.Clone()
+    lowerPadHist2Central.SetLineWidth(2)
+    for bx in range(1, lowerPadHist2.GetNbinsX()+1):
+        lowerPadHist2Upper.SetBinContent(bx, 1+lowerPadHist2.GetBinError(bx))
+        lowerPadHist2Lower.SetBinContent(bx, 1-lowerPadHist2.GetBinError(bx))
+        lowerPadHist2.GetXaxis().SetBinLabel(bx, "")
+
+    #draw lower pad
+    c.cd()
+    pad2 = rt.TPad(printstr+"pad2",printstr+"pad2",0,0.0,1,0.3)
+    pad2.SetTopMargin(0.0)
+    pad2.SetBottomMargin(0.10)
+    pad2.SetGridy()
+    pad2.Draw()
+    pad2.cd()
+
+    #lower pad hist 2
+    lowerPadHist2.Draw("e2same")
+    pad2.Modified()
+    rt.gPad.Update()
+    pad2.Draw()
+    pad2.cd()
+
+    #lower pad hist 1
+    if fit:
+        lowerPadHist.Draw("pe1same")
+    else:
+        lowerPadHist.Draw("pesame")
+    pad2.Modified()
+    rt.gPad.Update()
+
+    #lower pad hist central/upper/lower
+    lowerPadHist2Upper.Draw("histsame")
+    lowerPadHist2Lower.Draw("histsame")
+    lowerPadHist2.Draw('e2same')
+    lowerPadHist2Central.Draw("histsame")
+    if fit:
+        lowerPadHist.Draw("pe1same")
+    else:
+        lowerPadHist.Draw("pesame")
+
+    #save
+    c.Print(printdir+'/'+printstr+".png")
+    c.Print(printdir+'/'+printstr+".pdf")
+    c.Print(printdir+'/'+printstr+".root")
+    c.Print(printdir+'/'+printstr+".C")
+
+    pad1.Delete()

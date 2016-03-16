@@ -29,7 +29,7 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
     dirName = args.dirName
 
-    plotOpts = {"ymin":1e-3}
+    plotOpts = {"SUS15004":True}
     doSideband=(not args.full)
     if not doSideband:
         plotOpts['sideband'] = False
