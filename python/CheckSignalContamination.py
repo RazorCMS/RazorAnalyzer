@@ -33,12 +33,21 @@ def checkSignalContamination(config, outDir, lumi, box, model, mLSP, mGluino=-1,
     if mergeBins:
         mergeBinsString = '--merge-bins'
 
-    if 'T2' in model:
+    brString = ""
+    if 'T1x' in model:
+        xBR = float(model[model.find('x')+1:model.find('y')].replace('p','.'))
+        yBR = float(model[model.find('y')+1:].replace('p','.'))
+        brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
+        modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
+        fileName = SIGNAL_DIR+'/SMS-T1ttbb_%i_%i.root'%(mGluino,mLSP)
+    elif 'T2' in model:
         modelName = 'SMS-%s_%i_%i'%(model,mStop,mLSP)
+        fileName = SIGNAL_DIR+'/%s.root'%(modelName)
     else:
         modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
+        fileName = SIGNAL_DIR+'/%s.root'%(modelName)
         
-    os.system('python python/SMSTemplates.py %s -c %s -d %s/ --lumi %s --box %s --no-signal-sys %s/%s.root'%(mergeBinsString,config,outDir,lumi,box,SIGNAL_DIR,modelName))
+    os.system('python python/SMSTemplates.py %s -c %s -d %s/ --lumi %s --box %s --no-signal-sys %s %s'%(mergeBinsString,config,outDir,lumi,box,brString,fileName))
         
     signalFile = rt.TFile.Open('%s/%s_lumi-%.3f_%i-%ibtag_%s.root'%(outDir,modelName,lumi*1./1000.,z[0],z[-1]-1,box))
     sigTH1 = signalFile.Get('%s_%s'%(box,model))
