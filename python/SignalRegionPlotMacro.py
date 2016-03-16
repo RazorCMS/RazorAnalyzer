@@ -8,7 +8,7 @@ from framework import Config
 from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.razorMacros import plotControlSampleHists
 import macro.macro as macro
-from SidebandMacro import SAMPLES, LUMI, MCLUMI, binning, blindBins, shapes
+from SidebandMacro import SAMPLES, LUMI, MCLUMI, blindBins, shapes
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()

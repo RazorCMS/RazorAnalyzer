@@ -141,9 +141,9 @@ def plot_several(c, hists=0, leg=0, colors=[], xtitle="", ytitle="Events", ymin=
     t1.Draw()
     t2.Draw()
     if commentstr != "":
-        t3 = rt.TLatex(0.30, 0.84, commentstr)
+        t3 = rt.TLatex(0.40, 0.92, commentstr)
         t3.SetNDC()
-        t3.SetTextSize(0.04)
+        t3.SetTextSize(0.05)
         t3.Draw()
 
     #ratio histograms
@@ -361,9 +361,9 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
     CMS_lumi(pad1, lumistr=lumistr)
 
     if commentstr != "":
-        t3 = rt.TLatex(0.30, 0.84, commentstr)
+        t3 = rt.TLatex(0.40, 0.92, commentstr)
         t3.SetNDC()
-        t3.SetTextSize(0.04)
+        t3.SetTextSize(0.05)
         t3.Draw()
 
     #lower pad plot
@@ -559,9 +559,9 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
         #t1.Draw()
         #t2.Draw()
     if commentstr != "":
-        t3 = rt.TLatex(0.30, 0.84, commentstr)
+        t3 = rt.TLatex(0.40, 0.92, commentstr)
         t3.SetNDC()
-        t3.SetTextSize(0.04)
+        t3.SetTextSize(0.05)
         t3.Draw()
     #save
     if savepng: c.Print(printdir+'/'+printstr+".png")

@@ -357,13 +357,13 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         if boxName is None or boxName == "":
             commentstr = printName
         else:
-            commentstr = '#it{ razor '+boxName
+            commentstr = '#it{'+boxName
             if btags is not None and btags >= 0:
                 commentstr += " "+str(btags)+" b-tag"
-            if 'sideband' in special:
-                commentstr += " Sideband Fit"
-            elif 'full' in special:
-                commentstr += ' Full Fit'
+            #if 'sideband' in special:
+                #commentstr += " Sideband Fit"
+            #elif 'full' in special:
+                #commentstr += ' Full Fit'
             commentstr += '}'
     else:
         commentstr = ""
