@@ -190,6 +190,7 @@ WH_ZH_HToGG_M-125_13TeV-powheg_pythia8                                          
 ZH_HToGG_M-125_13TeV-powheg_pythia8						    0.001982688
 WH_HToGG_M-125_13TeV-powheg_pythia8						    0.0031464
 TTbarH_HToGG_M-125_13TeV-powheg_pythia8						    0.00115938
+T2H_mb250									    0.098472744
 T2H_mb300									    0.038833644
 T2H_mb350									    0.0172669416
-T2H_mb470									    0.00016905516
+T2H_mb470									    0.00337690344

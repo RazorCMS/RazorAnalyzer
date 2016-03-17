@@ -56,26 +56,28 @@ void MakePileupReweight(int option = 0) {
 
 
   TFile *pileupTargetFile = 0;
-  if (option == 0) pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015.root", "READ");
-  else if (option == 1) pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015SysUp.root", "READ");
-  else if (option == 2) pileupTargetFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupTarget2015SysDown.root", "READ");
+  if (option == 0) pileupTargetFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/MyDataPileupHistogram.root", "READ");
+  else if (option == 1) pileupTargetFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/MyDataPileupHistogramUp.root", "READ");
+  else if (option == 2) pileupTargetFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/MyDataPileupHistogramDown.root", "READ");
   else {
     return;
   }
   TH1F *pileupTargetHist = (TH1F*)pileupTargetFile->Get("pileup");
   assert(pileupTargetHist);
+  std::cout << "pileupTargetHist " << pileupTargetHist->Integral() << std::endl;
 
-  TFile *pileupSourceFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupSource_Spring15_25ns.root", "READ");
-  TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PileupSourceHist");
+  TFile *pileupSourceFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/DoubleEG_Run2015_CMSSW_7_6_March15.root", "READ");
+  //TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PileupSourceHist");
+  TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("pileup"); 
   assert(pileupSourceHist);
-
-
+  std::cout << "pileupSourceFile " << pileupSourceHist->Integral() << std::endl;
+  std::cout << "FILES RETRIEVED" << std::endl;
   //*******************************************************************************************
   //Make NVtx Reweighting Function
   //*******************************************************************************************
   TH1F *PileupTargetNormalized = NormalizeHist( pileupTargetHist );
   TH1F *PileupSourceNormalized = NormalizeHist( pileupSourceHist );
-
+  std::cout << "HISTOS NORMALIZED" << std::endl;
   TH1F *PileupReweight = new TH1F ("PileupReweight",";NPU;Weight",50,0,50);
 
   for (int i=0; i<PileupReweight->GetXaxis()->GetNbins()+2; i++) {

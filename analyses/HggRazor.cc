@@ -141,7 +141,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  assert(false);
 	}
       
-      pileupWeightFile = TFile::Open(Form("%s/PileupReweight_Spring15MCTo2015Data.root",pathname.c_str()));
+      pileupWeightFile = TFile::Open(Form("%s/PileupReweight2015_7_6.root",pathname.c_str()));
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -174,14 +174,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
       assert(btagMediumLightJetsEfficiencyHist);
       //Loose
-      TFile *btagLooseEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
-      btagLooseEfficiencyHist = (TH2D*)btagLooseEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      TFile *btagLooseEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVL_Fullsim.root");
+      btagLooseEfficiencyHist = (TH2D*)btagLooseEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagLooseEfficiencyHist);
-      TFile *btagLooseCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/CharmJetBTagEffFastsimToFullsimCorrectionFactors.root");
-      btagLooseCharmEfficiencyHist = (TH2D*)btagLooseCharmEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      TFile *btagLooseCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVL_Fullsim.root");
+      btagLooseCharmEfficiencyHist = (TH2D*)btagLooseCharmEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagLooseCharmEfficiencyHist);
-      TFile *btagLooseLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/LightJetBTagEffFastsimToFullsimCorrectionFactors.root");
-      btagLooseLightJetsEfficiencyHist = (TH2D*)btagLooseLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      TFile *btagLooseLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVL_Fullsim.root");
+      btagLooseLightJetsEfficiencyHist = (TH2D*)btagLooseLightJetsEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagLooseLightJetsEfficiencyHist);
     }
 
@@ -193,7 +193,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
   else bTagPathname = "data/ScaleFactors/";
   //Fullsim
-  BTagCalibration btagcalib("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
+  BTagCalibration btagcalib("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
   //Medium WP
   BTagCalibrationReader btagreaderM(&btagcalib,           //calibration instance
 				   BTagEntry::OP_MEDIUM, //operating point
@@ -220,6 +220,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 					 "central");           //systematics type
   BTagCalibrationReader btagreaderMistagL_up(&btagcalib, BTagEntry::OP_LOOSE, "comb", "up");    //sys up
   BTagCalibrationReader btagreaderMistagL_do(&btagcalib, BTagEntry::OP_LOOSE, "comb", "down");  //sys down
+
+  //----------
+  //pu histo
+  //----------
+  TH1D* puhisto = new TH1D("pileup", "", 50, 0, 50);
   
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
@@ -256,7 +261,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
-  float mbbZ, mbbH;
+  float mbbZ, mbbZ_L, mbbH, mbbH_L;
   bool passedDiphotonTrigger;
   HggRazorBox razorbox = LowRes;
   
@@ -290,6 +295,22 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
       razorTree->Branch("sf_bmistagUp", &sf_bmistagUp, "sf_bmistagUp/F");
       razorTree->Branch("sf_bmistagDown", &sf_bmistagDown, "sf_bmistagDown/F");
+      
+      //MET filters
+      razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
+      razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
+      razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
+      razorTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, "Flag_hcalLaserEventFilter/O");
+      razorTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/O");
+      razorTree->Branch("Flag_goodVertices", &Flag_goodVertices, "Flag_goodVertices/O");
+      razorTree->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, "Flag_trackingFailureFilter/O");
+      razorTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter, "Flag_eeBadScFilter/O");
+      razorTree->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter, "Flag_ecalLaserCorrFilter/O");
+      razorTree->Branch("Flag_trkPOGFilters", &Flag_trkPOGFilters, "Flag_trkPOGFilters/O");
+      razorTree->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, "Flag_trkPOG_manystripclus53X/O");
+      razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
+      razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
+      razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
       
       razorTree->Branch("run", &run, "run/i");
       razorTree->Branch("lumi", &lumi, "lumi/i");
@@ -363,9 +384,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
       razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
       razorTree->Branch("pho2MotherID", &Pho_motherID[1], "pho2MotherID/I");
-
+      
       razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
       razorTree->Branch("mbbH", &mbbH, "mbbH/F");
+      razorTree->Branch("mbbZ_L", &mbbZ_L, "mbbZ_L/F");
+      razorTree->Branch("mbbH_L", &mbbH_L, "mbbH_L/F");
       
       razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
       razorTree->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
@@ -532,8 +555,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       pTGammaGamma   = -1;
       mGammaGammaSC  = -1;
       pTGammaGammaSC = -1;
-      mbbZ = 0;
-      mbbH = 0;
+      mbbZ   = 0;
+      mbbH   = 0;
+      mbbZ_L = 0;
+      mbbH_L = 0;
       run = runNum;
       lumi = lumiNum; 
       event = eventNum;
@@ -586,6 +611,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 		  NPU = nPUmean[i];
 		}
 	    }
+	  puhisto->Fill(NPU);
 	  //NOTE: reweight with nPV for now
 	  //pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPV));
 	  pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
@@ -797,7 +823,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 		std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
 	      }
 	    
-	    if( diphotonMass < 100 )
+	    if( diphotonMass < 50 )
 	      {
 		if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg-> " << diphotonMass << std::endl;
 		if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
@@ -1056,13 +1082,22 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 		else//rest of the quarks
 		  {
 		    //M
-		    jetSF_Med = 0.907317;
-		    jetSF_MedUp = 1.257317;  
-		    jetSF_MedDown = 0.557317;
+		    jetSF_Med     = btagreaderMistagM.eval(jetType, jetEta[i], 100);//fix in eta and pt
+		    jetSF_MedUp   = btagreaderMistagM_up.eval(jetType, jetEta[i], 100);  
+		    jetSF_MedDown = btagreaderMistagM_do.eval(jetType, jetEta[i], 100);
 		    //L (to be checked)
-		    jetSF_Loo     = 0.907317;
-                    jetSF_LooUp   = 1.257317;
-                    jetSF_LooDown = 0.557317;
+		    if ( jetCorrPt < 1000 ) 
+		      {
+			jetSF_Loo     = btagreaderMistagL.eval(jetType, jetEta[i], jetCorrPt);
+			jetSF_LooUp   = btagreaderMistagL_up.eval(jetType, jetEta[i], jetCorrPt);
+			jetSF_LooDown = btagreaderMistagL_do.eval(jetType, jetEta[i], jetCorrPt);
+		      }
+		    else
+		      {
+			jetSF_Loo     = btagreaderMistagL.eval(jetType, jetEta[i], 999);
+                        jetSF_LooUp   = btagreaderMistagL_up.eval(jetType, jetEta[i], 999);
+                        jetSF_LooDown = btagreaderMistagL_do.eval(jetType, jetEta[i], 999);
+		      }
 		  }
 		
 		//Apply Scale Factors
@@ -1092,8 +1127,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 		      {
 			sf = (jetSF_Loo*effLoose - jetSF_Med*effMedium) / (effLoose - effMedium);
 		      }
+		    
 		    btagCorrFactor *= sf;
-                    if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4 )
+		    if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4 )
                       {
                         if ( (jetSF_Loo*effLoose - jetSF_Med*effMedium) > 0 && (jetSF_LooUp*effLoose - jetSF_Med*effMedium) > 0  && (effLoose - effMedium) > 0 )
                           {
@@ -1313,6 +1349,21 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	  }//end first jet loop
       }
     
+    if( nLooseBTaggedJets >= 2 )//at least two btag jets
+      {
+        for(int i = 0; i < nLooseBTaggedJets; i++)
+          {
+            for(int j = i+1; j < nLooseBTaggedJets; j++)
+              {
+		double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
+		//if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+		if( fabs(mbbH_L - 125.0) > fabs(mbb - 125.0) ) mbbH_L = mbb;
+                //same for mbbZ
+		if( fabs(mbbZ_L - 91.2) > fabs(mbb - 91.2) ) mbbZ_L = mbb;
+	      }//end second jet loop
+	  }//end first jet loop
+      }
+    
     
     //------------------------------------------------
     //I n v a ri a n t   m a s s   r e s o l u t i o n
@@ -1380,6 +1431,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   if(combineTrees) razorTree->Write();
   else for(auto& box : razorBoxes) box.second->Write();
   NEvents->Write();
-  
+  puhisto->Write();
   outFile->Close();
 }
