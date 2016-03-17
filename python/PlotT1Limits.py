@@ -12,7 +12,7 @@ from Get2DContour import getModelSettings,interpolate2D
 
 def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybridNew):
 
-    mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing = getModelSettings(model)
+    mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing, fixLSP0 = getModelSettings(model)
 
     #mgMin = mgMin+binWidth/2.
     #mgMax = mgMax+binWidth/2.
@@ -30,18 +30,18 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     modelLabel = "pp #rightarrow #tilde{g}#tilde{g}"
     moreModelLabel = {"T1bbbb":"100% #tilde{g} #rightarrow b#bar{b}#tilde{#chi}^{0}_{1}",
                       "T1tttt":"100% #tilde{g} #rightarrow t#bar{t}#tilde{#chi}^{0}_{1}",
-                      "T1x0p50y0p00":"50% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p50y0p50":"50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p50y0p25":"25% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p25y0p50":"25% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p50y0p00":"50%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p50y0p50":"50%  #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p50y0p25":"25%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p25y0p50":"25%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
                       "T1x0p00y0p00":"100% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}",
-                      "T1x0p25y0p25":"50% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p00y0p50":"50% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}",
+                      "T1x0p25y0p25":"50%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p00y0p50":"50%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}",
                       "T1tttt":"100% #tilde{g} #rightarrow t#bar{t}#tilde{#chi}^{0}_{1}",
                       "T1qqqq":"100% #tilde{g} #rightarrow q#bar{q}#tilde{#chi}^{0}_{1}",
                       "T1bri":""}
     sparticleLabel = "m_{#tilde{g}} [GeV]"
-    massLabel = "m_{#tilde{#chi}^{#pm}}-m_{#tilde{#chi}^{0}} = 5 GeV"
+    massLabel = "m_{#tilde{#chi}^{#pm}_{1}}-m_{#tilde{#chi}^{0}_{1}} = 5 GeV"
     #massLabel = ''
     asymptoticLabel = "Asymptotic"
     if doHybridNew: asymptoticLabel = ""
@@ -101,8 +101,8 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     #emptyHist.GetYaxis().SetNdivisions(407,True)
     emptyHist.GetYaxis().SetTitleFont(42)
     emptyHist.GetYaxis().SetTitleSize(0.05)
-    emptyHist.GetYaxis().SetTitleOffset(1.35)
-    emptyHist.GetYaxis().SetTitle("m_{#tilde{#chi}^{0}} [GeV]")
+    emptyHist.GetYaxis().SetTitleOffset(1.25)
+    emptyHist.GetYaxis().SetTitle("m_{#tilde{#chi}^{0}_{1}} [GeV]")
     
     emptyHist.Draw()
     
@@ -110,12 +110,19 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     rt.gPad.Update()
     
 
-    textCMS = rt.TLatex(0.15,0.98,"CMS %s                 %.1f fb^{-1} (%s TeV)" %('preliminary', 2.300, 13))
+    #textCMS = rt.TLatex(0.15,0.98,"CMS %s                 %.1f fb^{-1} (%s TeV)" %('preliminary', 2.300, 13))
+    textCMS = rt.TLatex(0.15,0.98,"CMS")
     textCMS.SetNDC()
     textCMS.SetTextAlign(13)
-    textCMS.SetTextFont(42)
-    textCMS.SetTextSize(0.038)
+    textCMS.SetTextFont(62)
+    textCMS.SetTextSize(0.05)
     textCMS.Draw()
+    textCMS1 = rt.TLatex(0.57,0.98,"%.1f fb^{-1} (%s TeV)" %(2.3, 13))
+    textCMS1.SetNDC()
+    textCMS1.SetTextAlign(13)
+    textCMS1.SetTextFont(42)
+    textCMS1.SetTextSize(0.038)
+    textCMS1.Draw()
 
     
     textCOLZ = rt.TLatex(0.98,0.45,"95% C.L. exclusion contour")
@@ -227,8 +234,8 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     graphWhite.SetLineWidth(3)
     graphWhite.SetPoint(0,mgMin, mchiMax)
     graphWhite.SetPoint(1,mgMax, mchiMax)
-    graphWhite.SetPoint(2,mgMax, mchiMax*0.575)
-    graphWhite.SetPoint(3,mgMin, mchiMax*0.575)
+    graphWhite.SetPoint(2,mgMax, mchiMax*0.565)
+    graphWhite.SetPoint(3,mgMin, mchiMax*0.565)
     graphWhite.SetPoint(4,mgMin, mchiMax)
     graphWhite.Draw("FSAME")
     graphWhite.Draw("LSAME")
@@ -315,6 +322,7 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
 
 if __name__ == '__main__':
     directory = sys.argv[1]
+    #rt.gROOT.SetBatch()
 
     models = ["T1bbbb","T1x0p50y0p00","T1x0p00y0p00","T1x0p25y0p25","T1x0p00y0p50","T1tttt"]
 

@@ -430,6 +430,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             special += 'sideband'
         else:
             special += 'full'
+    #SUS-15-004 style for unrolled plots
+    if "SUS15004" in plotOpts and plotOpts["SUS15004"]:
+        special += "SUS15004"
 
     #set up files and trees
     if debugLevel > 0: print ""
@@ -600,6 +603,9 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
             special += 'sideband'
         else:
             special += 'full'
+    #SUS-15-004 style for unrolled plots
+    if "SUS15004" in plotOpts and plotOpts["SUS15004"]:
+        special += "SUS15004"
 
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     

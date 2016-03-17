@@ -7,13 +7,13 @@ from math import *
 import os
 from array import *
 import numpy as np
-from scipy.interpolate import Rbf
+from scipy.interpolate import Rbf, interp1d
 import itertools
 from GChiPairs import gchipairs
 import operator
 
 toFix = []
-def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0,refHist=None):
+def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0,fixLSP0=False,refHist=None):
     x = array('d',[])
     y = array('d',[])
     z = array('d',[])
@@ -43,11 +43,19 @@ def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0,refHist=None):
 
     rbf = Rbf(x, y, z,function='multiquadric', epsilon=epsilon,smooth=smooth)
     myZI = rbf(myXI, myYI)
+    
+    rbf_nosmooth = Rbf(x, y, z, function='multiquadric',epsilon=epsilon,smooth=10)
+    otherY = array('d',[mchiMin])
+    lineXI, lineYI = np.meshgrid(myX,otherY)
+    lineZI = rbf_nosmooth(lineXI, lineYI)
 
     for i in range(1, hist.GetNbinsX()+1):
         for j in range(1, hist.GetNbinsY()+1):
             xLow = hist.GetXaxis().GetBinCenter(i)
             yLow = hist.GetYaxis().GetBinCenter(j)
+            if j==1 and fixLSP0:
+                hist.SetBinContent(i,j,rt.TMath.Exp(lineZI[j-1][i-1]))
+                continue
             if xLow >= yLow+diagonalOffset-binWidth/2.:
                 if refHist!=None:                    
                     hist.SetBinContent(i,j,refHist.GetBinContent(i,j)*rt.TMath.Exp(myZI[j-1][i-1]))
@@ -77,22 +85,32 @@ def fix_hist_byhand(hist, model, box, clsType):
         if model == "T1tttt" and box == "MultiJet":
              hist.SetBinContent(hist.FindBin(975,700),0)            
         if model == "T1tttt" and box == "MuMultiJet_EleMultiJet_MultiJet":
-             hist.SetBinContent(hist.FindBin(1650,650),0)
-             hist.SetBinContent(hist.FindBin(1600,200),0)
-             hist.SetBinContent(hist.FindBin(1600,50),0)
-             hist.SetBinContent(hist.FindBin(1550,200),0)
-             for mg in range(1450,1550,50):
-                 for mchi in range(650,800,50):       
-                    hist.SetBinContent(hist.FindBin(mg,mchi),0)     
+             #hist.SetBinContent(hist.FindBin(1650,650),0)
+             #hist.SetBinContent(hist.FindBin(1600,200),0)
+             #hist.SetBinContent(hist.FindBin(1600,50),0)
+             #hist.SetBinContent(hist.FindBin(1550,200),0)
+             #for mg in range(1450,1550,50):
+             #    for mchi in range(650,800,50):       
+             #       hist.SetBinContent(hist.FindBin(mg,mchi),0)
+                    
+             #hist.SetBinContent(hist.FindBin(975,725),0)
+             pass
                 
     if model == "T1ttbb" or model=="T1bri" or "T1x" in model:
-        for x in range(600,2000,25):
-            hist.SetBinContent(hist.FindBin(x,0),hist.GetBinContent(hist.FindBin(x,100)))
-            hist.SetBinContent(hist.FindBin(x,50),hist.GetBinContent(hist.FindBin(x,100)))
+        #for x in range(600,2000,25):
+        #    hist.SetBinContent(hist.FindBin(x,0),hist.GetBinContent(hist.FindBin(x,100)))
+        #    hist.SetBinContent(hist.FindBin(x,50),hist.GetBinContent(hist.FindBin(x,100)))
         hist.SetBinContent(hist.FindBin(1650,550),0)
         hist.SetBinContent(hist.FindBin(1700,500),0)
         hist.SetBinContent(hist.FindBin(1700,600),0)
         hist.SetBinContent(hist.FindBin(1600,600),0)
+        if model == "T1x0p00y0p50":
+            hist.SetBinContent(hist.FindBin(1500,0),0)
+            hist.SetBinContent(hist.FindBin(1550,0),0)
+            #for mg in range(1000,1300,25):
+            #    for mchi in range(0,mg,25):
+            #        hist.SetBinContent(hist.FindBin(mg,mchi),0)
+        
         
                         
 def set_palette(name="default", ncontours=255):
@@ -210,6 +228,7 @@ def getExpHist(logHist):
     return hist
 
 def getModelSettings(model):
+    fixLSP0 = False
     if model=="T1bbbb":
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
@@ -287,6 +306,10 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 225+12.5
         smoothing = 200
+        if model=="T1x0p50y0p50":
+            fixLSP0 = False
+        else:
+            fixLSP0 = True
     elif model=='T1bri':
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
@@ -298,8 +321,9 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 225+12.5
         smoothing = 50
+        fixLSP0 = True
         
-    return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing
+    return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing, fixLSP0
 
 if __name__ == '__main__':
     
@@ -331,7 +355,7 @@ if __name__ == '__main__':
     rt.gROOT.ProcessLine(".L macros/swissCrossInterpolate.h+")
     rt.gSystem.Load("macros/swissCrossInterpolate_h.so")
 
-    mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing = getModelSettings(model)
+    mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing, fixLSP0 = getModelSettings(model)
 
     if model=="T1bri":
         xsecFile = rt.TFile.Open("%s/smoothXsecUL_%s.root"%(directory,box))
@@ -439,7 +463,7 @@ if __name__ == '__main__':
         rebinXsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
 
         # do scipy multi-quadratic interpolation in log domain
-        rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
+        rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # do swiss cross rebin + average in real domain (should be log??)
         for i in xrange(0,nRebins):
@@ -447,7 +471,7 @@ if __name__ == '__main__':
 
         # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
         xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset)
+        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # fix axes
         xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))
