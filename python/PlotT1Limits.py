@@ -30,13 +30,13 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     modelLabel = "pp #rightarrow #tilde{g}#tilde{g}"
     moreModelLabel = {"T1bbbb":"100% #tilde{g} #rightarrow b#bar{b}#tilde{#chi}^{0}_{1}",
                       "T1tttt":"100% #tilde{g} #rightarrow t#bar{t}#tilde{#chi}^{0}_{1}",
-                      "T1x0p50y0p00":"50%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p50y0p50":"50%  #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p50y0p25":"25%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p25y0p50":"25%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p50y0p00":"50% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p50y0p50":"50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p50y0p25":"25% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 50% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p25y0p50":"25% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
                       "T1x0p00y0p00":"100% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}",
-                      "T1x0p25y0p25":"50%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
-                      "T1x0p00y0p50":"50%  #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}",
+                      "T1x0p25y0p25":"50% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 25% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}, 25% #tilde{g} #rightarrow bb#tilde{#chi}^{0}_{1}",
+                      "T1x0p00y0p50":"50% #tilde{g} #rightarrow tb#tilde{#chi}^{#pm}_{1}, 50% #tilde{g} #rightarrow tt#tilde{#chi}^{0}_{1}",
                       "T1tttt":"100% #tilde{g} #rightarrow t#bar{t}#tilde{#chi}^{0}_{1}",
                       "T1qqqq":"100% #tilde{g} #rightarrow q#bar{q}#tilde{#chi}^{0}_{1}",
                       "T1bri":""}
@@ -51,7 +51,7 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     rt.gStyle.SetPadTopMargin(0.08)
     rt.gStyle.SetPadRightMargin(0.19)
     rt.gStyle.SetPadBottomMargin(0.14)
-    rt.gStyle.SetPadLeftMargin(0.14)
+    rt.gStyle.SetPadLeftMargin(0.165)
 
 
 
@@ -101,7 +101,7 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     #emptyHist.GetYaxis().SetNdivisions(407,True)
     emptyHist.GetYaxis().SetTitleFont(42)
     emptyHist.GetYaxis().SetTitleSize(0.05)
-    emptyHist.GetYaxis().SetTitleOffset(1.25)
+    emptyHist.GetYaxis().SetTitleOffset(1.6)
     emptyHist.GetYaxis().SetTitle("m_{#tilde{#chi}^{0}_{1}} [GeV]")
     
     emptyHist.Draw()
@@ -152,6 +152,10 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
                 "T1qqqq":rt.TColor.GetColor(red[5],green[5],blue[5]),
                 "T1bri":rt.kBlack
                 }
+        
+    #red   = [0.00, 0.00, 0.60, 1.00, 1.00, 0.00]
+    #green = [0.00, 0.50, 0.90, 0.60, 0.00, 1.00]
+    #blue  = [1.00, 0.60, 0.18, 0.00, 0.00, 0.00]
     
     expColor = obsColor
         
@@ -241,11 +245,11 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     graphWhite.Draw("LSAME")
 
     # MODEL LABEL
-    textModelLabel= rt.TLatex(0.16,0.91,"%s       95%% C.L. NLO+NLL exclusion" %modelLabel)
+    textModelLabel= rt.TLatex(0.185,0.91,"%s        95%% C.L. NLO+NLL exclusion" %modelLabel)
     textModelLabel.SetNDC()
     textModelLabel.SetTextAlign(13)
     textModelLabel.SetTextFont(42)
-    textModelLabel.SetTextSize(0.038)
+    textModelLabel.SetTextSize(0.036)
     textModelLabel.Draw()
     
     # MASS LABEL
@@ -292,20 +296,20 @@ def plotT1Limits(boxModel, model, sigHist, obsGraphModel, expGraphModel, doHybri
     LObs[model].SetLineStyle(1)
     LObs[model].SetLineWidth(3)
     LObs[model].SetMarkerStyle(20)
-    LObs[model].SetPoint(0,mgMin+72*xRange/100, mchiMax-3.5*yRange/100*10)
-    LObs[model].SetPoint(1,mgMin+79*xRange/100, mchiMax-3.5*yRange/100*10)        
+    LObs[model].SetPoint(0,mgMin+72*xRange/100-20, mchiMax-3.5*yRange/100*10-20)
+    LObs[model].SetPoint(1,mgMin+79*xRange/100-20, mchiMax-3.5*yRange/100*10-20)        
     LExp[model] = rt.TGraph(2)
     LExp[model].SetName("LExp%s"%model)
     LExp[model].SetTitle("LExp%s"%model)
     LExp[model].SetLineColor(rt.kBlack)
     LExp[model].SetLineStyle(7)
     LExp[model].SetLineWidth(3)
-    LExp[model].SetPoint(0,mgMin+72*xRange/100, mchiMax-3.9*yRange/100*10)
-    LExp[model].SetPoint(1,mgMin+79*xRange/100, mchiMax-3.9*yRange/100*10)
-    textObs[model] = rt.TLatex(mgMin+81*xRange/100, mchiMax-3.6*yRange/100*10, "Observed")
+    LExp[model].SetPoint(0,mgMin+72*xRange/100-20, mchiMax-3.9*yRange/100*10-20)
+    LExp[model].SetPoint(1,mgMin+79*xRange/100-20, mchiMax-3.9*yRange/100*10-20)
+    textObs[model] = rt.TLatex(mgMin+81*xRange/100-20, mchiMax-3.6*yRange/100*10-20, "Observed")
     textObs[model].SetTextFont(42)
     textObs[model].SetTextSize(0.032)
-    textExp[model] = rt.TLatex(mgMin+81*xRange/100, mchiMax-4.0*yRange/100*10, "Expected")
+    textExp[model] = rt.TLatex(mgMin+81*xRange/100-20, mchiMax-4.0*yRange/100*10-20, "Expected")
     textExp[model].SetTextFont(42)
     textExp[model].SetTextSize(0.032)
     LObs[model].Draw("lsame")
