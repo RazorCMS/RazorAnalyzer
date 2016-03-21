@@ -49,6 +49,7 @@ void makepaperplots() {
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
 
   TString pname = "npf_vs_mr_razor_fit.pdf";
+  TString pname2 = "npf_vs_mr_razor_fit.C";
 
   // for rsq
   //Int_t binIn=rsq;
@@ -235,7 +236,7 @@ void makepaperplots() {
   //qcd_with_mr[i]->SetLineColor(kRed);
   //qcd_with_mr[i]->SetMarkerColor(kRed);
 
-  if (binIn==mr) qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R} [ GeV ]");  
+  if (binIn==mr) qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R} [GeV]");  
   else if (binIn==rsq) qcd_with_mr[i]->GetXaxis()->SetTitle("R^{2}");
   qcd_with_mr[i]->GetYaxis()->SetTitle("Translation Factor #zeta");
   qcd_with_mr[i]->GetYaxis()->SetTitleOffset(1.2);
@@ -262,9 +263,9 @@ void makepaperplots() {
 
 
   TLegend *leg = new TLegend(0.40,0.70,0.75,0.86);
-  leg->SetTextSize(0.035);
+  leg->SetTextSize(0.035); leg->SetTextFont(42);
   leg->SetFillColor(0); leg->SetShadowColor(0); leg->SetLineColor(0);
-
+  
   leg->AddEntry(dat_with_mr[0], "Data Control Region", "pel");
   leg->AddEntry(qcd_with_mr[0], "QCD MC Simulation", "pel");
   leg->AddEntry(fxn_plus_err, "Functional Form Model", "lf");
@@ -272,11 +273,23 @@ void makepaperplots() {
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.035);
-  //tex->SetTextFont(42);
+  tex->SetTextFont(42);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.485, 0.66, "#bf{#zeta = 3.1 #times 10^{7} (M_{R} / GeV)^{-3.1} + 0.062}");
+  tex->DrawLatex(0.485, 0.66, "#zeta = 3.1 #times 10^{7} (M_{R} / GeV)^{-3.1} + 0.062");
 
   leg->Draw();
+
+  tex = new TLatex(0.18,0.93,"CMS");
+  tex->SetNDC();
+  tex->SetTextFont(62);   tex->SetTextSize(0.065);
+  tex->SetLineWidth(2);
+  tex->Draw();
+  tex = new TLatex(0.71,0.93,"2.3 fb^{-1} (13 TeV)");
+  tex->SetNDC();
+  tex->SetTextFont(42);   tex->SetTextSize(0.05);
+  tex->SetLineWidth(2);
+  tex->Draw();
   c->SaveAs(pname);
+  c->SaveAs(pname2);
 
 }
