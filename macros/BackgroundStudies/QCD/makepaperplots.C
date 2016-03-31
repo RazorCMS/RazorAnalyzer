@@ -49,6 +49,7 @@ void makepaperplots() {
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
 
   TString pname = "npf_vs_mr_razor_fit.pdf";
+  TString pname2 = "npf_vs_mr_razor_fit.C";
 
   // for rsq
   //Int_t binIn=rsq;
@@ -84,8 +85,8 @@ void makepaperplots() {
   TH3F *dPhiPF_W = new TH3F("dPhiPF_W", "dPhiPF_W", nbinx, &xbins[0], nbiny, &ybins[0], nbinz, &zbins[0]); dPhiPF_W->Sumw2();
   TH3F *dPhiPF_Z = new TH3F("dPhiPF_Z", "dPhiPF_Z", nbinx, &xbins[0], nbiny, &ybins[0], nbinz, &zbins[0]); dPhiPF_Z->Sumw2();
 
-  Float_t ybins2[nbiny+3] = {ymin-50, ymin, 500, 600, 700, 800, 900, 1000, ymax, ymax+50};
-  TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny+2, &ybins2[0]); fxn_plus_err->Sumw2();
+  Float_t ybins2[nbiny+3] = {float(ymin - 0.1), ymin, 500, 600, 700, 800, 900, 1000, ymax, float(ymax + 0.1)};
+  TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny+2, &ybins2[0]); fxn_plus_err->Sumw2();  
 
   // open trees
   TTree *tQ = (TTree*) fQ->Get("QCDTree");
@@ -153,6 +154,7 @@ void makepaperplots() {
 	qcd_with_mr[i]->SetPoint(k, rsq, nPF);
 	qcd_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
 	k++;
+
       }
     }
   }
@@ -206,9 +208,20 @@ void makepaperplots() {
 	Float_t dnPF_l=nPF*TMath::Sqrt( dnP + dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
 	
-	dat_with_mr[i]->SetPoint(k, xrsq, nPF);
-	dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
-	k++;
+	// if (k==0) {
+	//   dat_with_mr[i]->SetPoint(k, xrsq-100, nPF);
+	//   dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
+	//   k++;
+	//   dat_with_mr[i]->SetPoint(k, xrsq, nPF);
+	//   dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
+	//   k++;
+	// } else {
+	  dat_with_mr[i]->SetPoint(k, xrsq, nPF);
+	  dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
+	  k++;
+	// }
+
+
       }
     }
   }
@@ -222,23 +235,26 @@ void makepaperplots() {
   //qcd_with_mr[i]->SetMarkerStyle(20);
   //qcd_with_mr[i]->SetLineColor(kRed);
   //qcd_with_mr[i]->SetMarkerColor(kRed);
-  dat_with_mr[i]->SetMarkerStyle(21);
-  
-  if (binIn==mr) qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R} [ GeV ]");  
+
+  if (binIn==mr) qcd_with_mr[i]->GetXaxis()->SetTitle("M_{R} [GeV]");  
   else if (binIn==rsq) qcd_with_mr[i]->GetXaxis()->SetTitle("R^{2}");
   qcd_with_mr[i]->GetYaxis()->SetTitle("Translation Factor #zeta");
+  qcd_with_mr[i]->GetYaxis()->SetTitleOffset(1.2);
   qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
-  if (binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
+  if (binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.75);
   qcd_with_mr[i]->GetXaxis()->SetNdivisions(508);
   qcd_with_mr[i]->GetYaxis()->SetNdivisions(508);
   qcd_with_mr[i]->SetTitle("");
   qcd_with_mr[i]->Draw("ap e1");
   dat_with_mr[i]->Draw("p e1 same");
 
+  qcd_with_mr[i]->GetXaxis()->SetRangeUser(399.9,3000.1);
+
   fxn_plus_err->SetFillColor(kAzure+7);
   fxn_plus_err->SetFillStyle(3254);
   fxn_plus_err->SetMarkerStyle(0);
   fxn_plus_err->SetLineColor(kBlue+1);
+  fxn_plus_err->SetLineWidth(2);
 
   fxn_plus_err->Draw("same f e3");
   qcd_with_mr[i]->Draw("same p e1");
@@ -246,15 +262,34 @@ void makepaperplots() {
   qcd_fxn->Draw("same l");
 
 
-  TLegend *leg = new TLegend(0.50,0.70,0.75,0.86);
+  TLegend *leg = new TLegend(0.40,0.70,0.75,0.86);
+  leg->SetTextSize(0.035); leg->SetTextFont(42);
   leg->SetFillColor(0); leg->SetShadowColor(0); leg->SetLineColor(0);
+  
+  leg->AddEntry(dat_with_mr[0], "Data Control Region", "pel");
+  leg->AddEntry(qcd_with_mr[0], "QCD MC Simulation", "pel");
+  leg->AddEntry(fxn_plus_err, "Functional Form Model", "lf");
 
-  leg->AddEntry(dat_with_mr[0], "Data-(t#bar{t}+EWK)", "pel");
-  leg->AddEntry(qcd_with_mr[0], "QCD MC", "pel");
-  leg->AddEntry(fxn_plus_err, "Functional Form", "lf");
-
+  TLatex *tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.035);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.485, 0.66, "#zeta = 3.1 #times 10^{7} (M_{R} / GeV)^{-3.1} + 0.062");
 
   leg->Draw();
+
+  tex = new TLatex(0.18,0.93,"CMS");
+  tex->SetNDC();
+  tex->SetTextFont(62);   tex->SetTextSize(0.065);
+  tex->SetLineWidth(2);
+  tex->Draw();
+  tex = new TLatex(0.71,0.93,"2.3 fb^{-1} (13 TeV)");
+  tex->SetNDC();
+  tex->SetTextFont(42);   tex->SetTextSize(0.05);
+  tex->SetLineWidth(2);
+  tex->Draw();
   c->SaveAs(pname);
+  c->SaveAs(pname2);
 
 }
