@@ -893,7 +893,6 @@ def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, dow
                     print "Signal contamination in bin",bx,by,"is",contam,"; uncertainty goes from",curErr,"to",newErr
     else:
         print "Error in correctScaleFactorUncertaintyForSignalContamination: function implemented for TH2Poly only!"
-        sys.exit()
             
 def getExcludedSignalStrength(dirName, model, mGluino=-1, mStop=-1, mLSP=-1, debugLevel=0): 
     """ Retrieve the expected signal exclusion for the given model, using previously computed limits """ 
@@ -936,3 +935,33 @@ def getExcludedSignalStrength(dirName, model, mGluino=-1, mStop=-1, mLSP=-1, deb
 
     #return the ratio
     return xsecUL/xsecTheory
+
+def doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists, sfHists, unrollBins, debugLevel=0):
+    for proc, contamHist in contamHists.iteritems():
+        #get change in background histogram due to signal contamination
+        backgroundHist = backgroundHists[proc]
+        sfHist = sfHists[proc]
+        bn = 0 #keep track of unrolled bin number
+        for btagUnrollBins in unrollBins: #loop over btags
+            for bx in range(len(btagUnrollBins[0])-1): #loop over columns
+                xCoord = (btagUnrollBins[0][bx+1] + btagUnrollBins[0][bx])/2.0
+                for by in range(len(btagUnrollBins[1][bx])-1): #loop over y-bins in this column
+                    bn += 1 
+                    yCoord = (btagUnrollBins[1][bx][by] + btagUnrollBins[1][bx][by+1])/2.0
+                    #find the scale factor bin corresponding to this signal region bin
+                    sfBin = sfHist.FindBin(xCoord, yCoord)
+                
+                    #get level of signal contamination
+                    contam = contamHist.GetBinContent(sfBin)
+                    background = backgroundHist.GetBinContent(bn)
+                    deltaB = background*contam #amount the background should be corrected for sig. contam.
+
+                    #subtract deltaB from all of the signal histograms
+                    if deltaB > 0:
+                        for sname,signal in signalHists.iteritems():
+                            if debugLevel > 0: 
+                                print "Subtracting",deltaB,"from signal histogram",sname,"due to contamination.  ",
+                                print "Bin",bn,"content changes from",signal.GetBinContent(bn),
+                            signal.SetBinContent( bn, max(0, signal.GetBinContent(bn) - deltaB) )
+                            if debugLevel > 0:
+                                print "to",signal.GetBinContent(bn)

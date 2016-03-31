@@ -11,7 +11,7 @@ from framework import Config
 from GChiPairs import gchipairs
 from WriteRazorMADDCard import LUMI
     
-def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contamination=False):
+def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contamination=False,reducedEff=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -26,6 +26,8 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contam
     contamString = ''
     if contamination:
         contamString = '--contamination'
+    elif reducedEff:
+        contamString = '--reduced-efficiency-method'
 
     particleString = '--mGluino'
     if 'T2' in model:
@@ -105,6 +107,8 @@ if __name__ == '__main__':
                   help="Compute significance instead of limit")
     parser.add_option('--contamination',dest="contamination",default=False,action='store_true',
                   help="Propagate uncertainty on signal contamination")
+    parser.add_option('--reduced-efficiency-method', dest="reducedEff", default=False, action='store_true',
+                  help="Reduced efficiency correction for signal contamination")
 
     (options,args) = parser.parse_args()
 
@@ -145,7 +149,7 @@ if __name__ == '__main__':
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/Limits/"+options.outDir)
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
-                options.outDir, options.noSys, options.fitSys, options.signif, options.contamination)
+                options.outDir, options.noSys, options.fitSys, options.signif, options.contamination, options.reducedEff)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        

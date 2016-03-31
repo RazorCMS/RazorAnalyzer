@@ -301,13 +301,15 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
                 totalMC = 0.0
                 totalMCErr = 0.0
                 for i in range(len(mcNames)):
-                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
+                    mcs[i].append('%.4f $\\pm$ %.4f' % (mergedMCs[i].GetBinContent(bx),mergedMCs[i].GetBinError(bx)))
+                    #mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
                     totalMC += mergedMCs[i].GetBinContent(bx)
                     totalMCErr = ( totalMCErr**2 + (mergedMCs[i].GetBinError(bx))**2 )**(0.5)
                 if len(mcNames) > 0:
                     if useMCFitSys: #add (MC-fit) in quadrature with MC error
                         totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
-                    totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
+                    totalMCs.append('%.6f $\\pm$ %.6f' % (totalMC, totalMCErr))
+                    #totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
         
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
@@ -556,7 +558,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             dataForTable=hists[dataName][("MR","Rsq")]
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=True, printdir=printdir)
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=False, printdir=printdir)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
@@ -760,7 +762,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
             sfHists[process].SetBinContent(bn, max(0., sfHists[process].GetBinContent(bn)))
             sfHists[process+"NormUp"].SetBinContent(bn, max(0., sfHists[process+"NormUp"].GetBinContent(bn)))
             sfHists[process+"NormDown"].SetBinContent(bn, max(0., sfHists[process+"NormDown"].GetBinContent(bn)))
-        #suppress scale factors consistent with 1
+        #Suppress scale factors consistent with 1
         if signifThreshold > 0:
             print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
             for bn in range(1, sfHists[process].GetNumberOfBins()+1):
@@ -1093,6 +1095,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False, signalContaminationHists=None, sfHistsForSignalContamination=None):
     """
     Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
+    If signalContaminationHists are provided, the level of signal contamination in the control regions is used to propagate extra uncertainties on the scale factor histograms.
     """
 
     filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]

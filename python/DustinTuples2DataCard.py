@@ -385,10 +385,10 @@ def uncorrelate(hists, sysName, suppressLevel=None):
                     percDifferenceDown = abs(hists[downName].GetBinContent(b)-hists[centerName].GetBinContent(b))/hists[centerName].GetBinContent(b)
                     percDifference = max(percDifferenceUp, percDifferenceDown)
                     if percDifference <= suppressLevel: 
-                        print "Suppressing nuisance in bin",b,"(agrees at",percDifference,"level)"
+                        #print "Suppressing nuisance in bin",b,"(agrees at",percDifference,"level)"
                         continue
                 elif hists[upName].GetBinContent(b) == hists[centerName].GetBinContent(b) and hists[downName].GetBinContent(b) == hists[centerName].GetBinContent(b): 
-                        print "Suppressing nuisance in bin",b,"because there is no change from the nominal"
+                        #print "Suppressing nuisance in bin",b,"because there is no change from the nominal"
                         continue
 
             #new up histogram
@@ -462,7 +462,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
         #for each bin create a new histogram in which that bin is up/down and the rest are centered
         if referenceHist.InheritsFrom("TH2Poly"):
             for bn in range(1,referenceHist.GetNumberOfBins()+1):
-                print "In bin",bn,"of scale factor histogram"
+                #print "In bin",bn,"of scale factor histogram"
                 matchedAtLeastOneBin = False
                 newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, bn, hists)
                 #find all bins of signal histogram that are within this bin
@@ -479,7 +479,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
                                 if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=bn,
                                         sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
                                         referenceHist=referenceHist):
-                                    print " bin",i,"(",ix,iy,iz,") matches!"
+                                    #print " bin",i,"(",ix,iy,iz,") matches!"
                                     matchedAtLeastOneBin = True
                 else:
                     #make a TH2Poly from each xy slice of the histogram, unroll each one and attach together
@@ -500,7 +500,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
                             if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=bn,
                                     sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
                                     referenceHist=referenceHist):
-                                print " bin",i,"(",sigBN,iz,") matches!"
+                                #print " bin",i,"(",sigBN,iz,") matches!"
                                 matchedAtLeastOneBin = True
                         poly.Delete()
                 #don't save the histogram if there is no change from the nominal
@@ -527,7 +527,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
                                     if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=b,
                                             sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
                                             referenceHist=referenceHist):
-                                        print " bin",i,"(",ix,iy,iz,") matches!"
+                                        #print " bin",i,"(",ix,iy,iz,") matches!"
                                         matchedAtLeastOneBin = True
                     else:
                         #make a TH2Poly from each xy slice of the histogram, unroll each one and attach together
@@ -548,7 +548,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
                                 if setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN=b,
                                         sigBN=i, sysHist=hists[name], newHist=hists[newHistName],
                                         referenceHist=referenceHist):
-                                    print " bin",i,"(",sigBN,iz,") matches!"
+                                    #print " bin",i,"(",sigBN,iz,") matches!"
                                     matchedAtLeastOneBin = True
                             poly.Delete()
                     #don't save the histogram if there is no change from the nominal
