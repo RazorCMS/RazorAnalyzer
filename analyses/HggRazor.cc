@@ -56,6 +56,7 @@ const double EB_R = 129.0;
 const double EE_Z = 317.0;
 
 const double JET_CUT = 30.;
+const int NUM_PDF_WEIGHTS = 60;
 
 //Testing branching and merging
 void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
@@ -241,7 +242,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   
   //histogram containing total number of processed events (for normalization)
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
-  
+  TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
+  TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
+  TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
+
   //--------------
   //tree variables
   //--------------
@@ -252,7 +256,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   float btagCorrFactor;
   float sf_btagUp, sf_btagDown;
   float sf_bmistagUp, sf_bmistagDown;
-  
+  //For scale variation uncertainties
+  float sf_facScaleUp, sf_facScaleDown;
+  float sf_renScaleUp, sf_renScaleDown;
+  float sf_facRenScaleUp, sf_facRenScaleDown;
+
   int NPU;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   float theMR, theMR_JESUp, theMR_JESDown;
@@ -295,6 +303,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
       razorTree->Branch("sf_bmistagUp", &sf_bmistagUp, "sf_bmistagUp/F");
       razorTree->Branch("sf_bmistagDown", &sf_bmistagDown, "sf_bmistagDown/F");
+      
+      razorTree->Branch("sf_facScaleUp", &sf_facScaleUp, "sf_facScaleUp/F");
+      razorTree->Branch("sf_facScaleDown", &sf_facScaleDown, "sf_facScaleDown/F");
+      razorTree->Branch("sf_renScaleUp", &sf_renScaleUp, "sf_renScaleUp/F");
+      razorTree->Branch("sf_renScaleDown", &sf_renScaleDown, "sf_renScaleDown/F");
+      razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
+      razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
+      razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
       
       //MET filters
       razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
@@ -517,6 +533,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       //fill normalization histogram    
       NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
       weight = genWeight;
+      SumWeights->Fill(1.0, weight);
       
       //reset tree variables
       ISRSystWeightUp   = 1.0;
@@ -524,11 +541,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       pileupWeight      = 1.0;
       pileupWeightUp    = 1.0;
       pileupWeightDown  = 1.0;
+      
       btagCorrFactor    = 1.0;
       sf_btagUp         = 1.0;
       sf_btagDown       = 1.0;
       sf_bmistagUp      = 1.0;
       sf_bmistagDown    = 1.0;
+      
+      sf_facScaleUp = 1.0;
+      sf_facScaleDown = 1.0;
+      sf_renScaleUp = 1.0;
+      sf_renScaleDown = 1.0;
+      sf_facRenScaleUp = 1.0;
+      sf_facRenScaleDown = 1.0;
       
       n_Jets = 0;
       n_Jets_JESUp = 0;
@@ -627,7 +652,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       
       //TODO: triggers!
       // bool passedDiphotonTrigger = true;
-      passedDiphotonTrigger = ( HLTDecision[40] );
+      passedDiphotonTrigger = ( HLTDecision[65] );
       //if(!passedDiphotonTrigger) continue;
       
       //--------------
@@ -1369,8 +1394,31 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     //I n v a ri a n t   m a s s   r e s o l u t i o n
     //------------------------------------------------
     sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
+
+
+    /////////////////////////////////
+    //Scale and PDF variations
+    /////////////////////////////////
+    if ((*scaleWeights).size() >= 9) {
+      sf_facScaleUp = (*scaleWeights)[1]/genWeight;
+      sf_facScaleDown = (*scaleWeights)[2]/genWeight;
+      sf_renScaleUp = (*scaleWeights)[3]/genWeight;
+      sf_renScaleDown = (*scaleWeights)[6]/genWeight;
+      sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
+      sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+    }
     
-    if ( _debug ) std::cout << "mbbH: " << mbbH << " mbbZ: " << mbbZ << std::endl;
+    SumScaleWeights->Fill(0.0, sf_facScaleUp);
+    SumScaleWeights->Fill(1.0, sf_facScaleDown);
+    SumScaleWeights->Fill(2.0, sf_renScaleUp);
+    SumScaleWeights->Fill(3.0, sf_renScaleDown);
+    SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
+    SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+
+    for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+      SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+    }
+    
     //Writing output to tree
     //HighPt Box
     if ( pTGammaGamma > 110.0 )
@@ -1431,6 +1479,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   if(combineTrees) razorTree->Write();
   else for(auto& box : razorBoxes) box.second->Write();
   NEvents->Write();
+  SumWeights->Write();
+  SumScaleWeights->Write();
+  SumPdfWeights->Write();
   puhisto->Write();
   outFile->Close();
 }
