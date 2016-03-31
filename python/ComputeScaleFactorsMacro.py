@@ -12,7 +12,7 @@ from SidebandMacro import LUMI as LUMI_DATA
 MCLUMI = 1 
 
 SAMPLES_TTJ1L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
-SAMPLES_WJ1L = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "TTJets", "WJets"]
+SAMPLES_WJ1L = ["Other", "QCD", "DYJets", "SingleTop", "TTJets", "WJets"]
 SAMPLES_TTJ2L = ["Other", "DYJets", "SingleTop", "WJets", "TTJets"]
 SAMPLES_DYJ2L = ["Other", "SingleTop", "WJets", "TTJets", "DYJets"]
 SAMPLES_Veto = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"]
@@ -64,7 +64,7 @@ binsMRLep = cfg.getBinning("WJetControlRegion")[0]
 binsRsqLep = cfg.getBinning("WJetControlRegion")[1]
 binsNBTags = [0.,1.,2.,3.,4.]
 binsNJets80 = [0.,1.,2.,20.]
-binsNJets = [2.,3.,4.,7.,20.]
+binsNJets = [2.,3.,4.,5.,6.,7.,20.]
 binsLepPt = [20.,25.,30.,35.,40.,45.,50.,70.,100]
 ControlRegionBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, "lep1.Pt()":binsLepPt, ("MR","Rsq"):[], ("MR","Rsq","NBJetsMedium"):[]}
 ZNuNu_1L_ControlRegionBinning = { "MR_NoW":binsMRLep, "Rsq_NoW":binsRsqLep, "NBJetsMedium":binsNBTags, "NJets80":binsNJets80, "NJets40":binsNJets, ("MR_NoW","Rsq_NoW"):[] }

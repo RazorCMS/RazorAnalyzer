@@ -507,3 +507,15 @@ colsSignal["WJetInvControlRegion"]["0B"] = [
     [ 0.15, 0.2, 0.25, 0.30, 0.41, 1.5 ],
     ]
 
+xbinsSignal["GJetsInvControlRegion"] = {}
+colsSignal["GJetsInvControlRegion"] = {}
+xbinsSignal["GJetsInvControlRegion"]["0B"] = [400, 500, 600, 700, 900, 1200, 4000]
+colsSignal["GJetsInvControlRegion"]["0B"] = [
+    [ 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.25, 0.3, 0.41, 0.52, 0.64, 1.5 ],
+    [ 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    [ 0.25, 0.3, 0.41, 0.52, 1.5 ],
+    ]
+

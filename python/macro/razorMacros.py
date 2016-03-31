@@ -384,14 +384,14 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     """
 
     titles = {
-        "MR": "M_{R} (GeV)", 
+        "MR": "M_{R} [GeV]", 
         "Rsq": "R^{2}",
-        "mll": "m_{ll} (GeV)",
+        "mll": "m_{ll} [GeV]",
         "NBJetsMedium" : "Number of B-tagged Jets",
         "NJets80" : "Number of Jets with p_{T} > 80 GeV",
         "NJets40" : "Number of Jets",        
-        "lep1.Pt()": "lepton p_{T} (GeV)",
-        "lep2.Pt()": "lepton p_{T} (GeV)",
+        "lep1.Pt()": "lepton p_{T} [GeV]",
+        "lep2.Pt()": "lepton p_{T} [GeV]",
         "lep1.Eta()": "lepton #eta",
         "lep2.Eta()": "lepton #eta",
         }
@@ -572,17 +572,19 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     """Loads the output of makeControlSampleHists from a file and creates plots"""
 
     titles = {
-        "MR": "M_{R} (GeV)", 
+        "MR": "M_{R} [GeV]", 
         "Rsq": "R^{2}",
-        "mll": "m_{ll} (GeV)",
+        "mll": "m_{ll} [GeV]",
         "NBJetsMedium" : "Number of B-tagged Jets",
         "NJets80" : "Number of Jets with p_{T} > 80 GeV",
         "NJets40" : "Number of Jets",        
-        "lep1.Pt()": "lepton p_{T} (GeV)",
-        "lep2.Pt()": "lepton p_{T} (GeV)",
-        "lep1.Eta()": "lepton #eta",
-        "lep2.Eta()": "lepton #eta",
+        "lep1.Pt()": "Lepton p_{T} [GeV]",
+        "lep2.Pt()": "Lepton p_{T} [GeV]",
+        "lep1.Eta()": "Lepton #eta",
+        "lep2.Eta()": "Lepton #eta",
         }
+    if 'Tau' in regionName: 
+        titles['lep1.Pt()'] = 'Tau p_{T} [GeV]'
 
     #load the histograms
     hists = macro.importHists(inFile, debugLevel)
@@ -606,6 +608,8 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     #SUS-15-004 style for unrolled plots
     if "SUS15004" in plotOpts and plotOpts["SUS15004"]:
         special += "SUS15004"
+    elif "SUS15004CR" in plotOpts and plotOpts["SUS15004CR"]:
+        special += "CR15004"
 
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     

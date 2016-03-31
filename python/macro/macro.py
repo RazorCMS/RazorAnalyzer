@@ -346,7 +346,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     #format MC histograms
     for name in mcNames: 
         for var in histDict[name]: plotting.setHistColor(histDict[name][var], name)
-    titles = {name:name for name in mcNames}
+    mcTitles = {'WJets':'W+Jets', 'DYJets':'Z #rightarrow ll','TTJets':'t#bar{t}+Jets', 'TTJets2L':'2l t#bar{t}+Jets', 'TTJets1L':'1l t#bar{t}+Jets', 'SingleTop':'Single top', 'QCD':'QCD', 'ZInv':'Z #rightarrow #nu #nu', 'GJets':'#gamma+Jets', 'GJetsFrag':'#gamma+Jets (frag.)','Other':'Other'}
+    titles = {name:(mcTitles[name] if name in mcTitles else name) for name in mcNames}
 
     #get data histograms
     if dataName in histDict: dataHists = histDict[dataName]
@@ -405,33 +406,32 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 ytitle = var[1]
             #make plots
             if 'SUS15004' in special:
-                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, unrollBins=unrollBins, printdir=printdir)
-            else:
-                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
+                        lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
+                        unrollBins=unrollBins, printdir=printdir)
                 #do MC total (no stack)
-                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+                plotting.plot_SUS15004_FitVsMCTotal(c, mcTotal=mcPrediction, fit=fitPrediction, 
+                        printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, 
+                        unrollBins=unrollBins, printdir=printdir)
+            elif 'CR15004' in special:
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
+                        lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
+                        unrollBins=unrollBins, printdir=printdir, ratiomin=0, ratiomax=2)
+            else:
+                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
+                        ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, 
+                        saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, 
+                        nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, 
+                        unrollBins=unrollBins, printdir=printdir)
+                #do MC total (no stack)
+                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
+                        ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, 
+                        commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, 
+                        nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, 
+                        printdir=printdir)
             #draw bin mapping
             if unrollBins[0] is not None and unrollBins[1] is not None:
                 plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+"BINNING", printdir=printdir)
-            #print prediction in each bin
-            #if obsData is not None and obsData != 0:
-            #    print "Results for data histogram:"
-            #    for bx in range(1, obsData.GetNbinsX()+1):
-            #        for by in range(1,obsData.GetNbinsY()+1):
-            #            print bx,by,obsData.GetBinContent(bx,by),"+/-",obsData.GetBinError(bx,by)
-            #    print "\n"
-            #if mcPrediction != 0:
-            #    print "Results for MC histogram:"
-            #    for bx in range(1, mcPrediction.GetNbinsX()+1):
-            #        for by in range(1,mcPrediction.GetNbinsY()+1):
-            #            print bx,by,mcPrediction.GetBinContent(bx,by),"+/-",mcPrediction.GetBinError(bx,by)
-            #    print "\n"
-            #if fitPrediction != 0:
-            #    print "Results for fit histogram:"
-            #    for bx in range(1, fitPrediction.GetNbinsX()+1):
-            #        for by in range(1,fitPrediction.GetNbinsY()+1):
-            #            print bx,by,fitPrediction.GetBinContent(bx,by),"+/-",fitPrediction.GetBinError(bx,by)
-            #    print "\n"
         #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var].Clone(histDict[name][var].GetName()+"Clone") for name in mcNames}
@@ -459,11 +459,16 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                     fitPrediction.SetBinContent(bx, fitPrediction.GetBinContent(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
                     fitPrediction.SetBinError(bx, fitPrediction.GetBinError(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
         if not legend:
-            legend = plotting.makeLegend(varHists, titles, reversed(mcNames))
+            legend = rt.TLegend(0.75,0.6,0.9,0.9)
+            rt.SetOwnership(legend, False)
             if blindBins is None and obsData is not None: legend.AddEntry(obsData, dataName)
             if plotFit and fitPrediction is not None: legend.AddEntry(fitPrediction, "Fit")
+            for name in reversed(mcNames): legend.AddEntry(varHists[name], titles[name], 'f')
         if doDensity:
-            ytitle = "Events / Bin Width"
+            if var in ['MR','MR_NoW','MR_NoZ','MR_NoPho','lep1.Pt()','genlep1.Pt()','leadingGenLeptonPt']:
+                ytitle = 'Events / GeV'
+            else:
+                ytitle = "Events / Bin Width"
             ymin = None
         else:
             ytitle = "Events"
@@ -475,7 +480,12 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()", "genlep1.Pt()","leadingGenLeptonPt"]: logx = True
         else: logx = False
         if blindBins is None:
-            plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+            if 'SUS15004' in special:
+                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
+            elif 'CR15004' in special:
+                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
+            else:
+                plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
             plotting.plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         legend.Delete()

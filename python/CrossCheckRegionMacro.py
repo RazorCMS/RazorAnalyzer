@@ -171,7 +171,7 @@ if __name__ == "__main__":
     #initialize
     weightHists = {}
     sfHists = {}
-    plotOpts = { "comment":False } 
+    plotOpts = { "comment":False, 'SUS15004CR':True } 
 
     #make output directory
     os.system('mkdir -p '+printdir)
@@ -228,6 +228,8 @@ if __name__ == "__main__":
                bins=VetoLeptonControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                weightHists=weightHists, plotDensity=True, sfHists=sfHists, weightOpts=weightOpts, 
                printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+    macro.exportHists(vetoLeptonHists, outFileName='controlHistogramsVetoLeptonControlRegion.root', 
+            outDir=printdir, debugLevel=debugLevel)
 
     #use these histograms to convert the additive veto lepton correction into a multiplicative one
     #multijetHistsForVetoLeptonCorrection = makeControlSampleHists("MultiJetForVetoLeptonCorrection", 
@@ -318,6 +320,8 @@ if __name__ == "__main__":
                bins=VetoTauControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                weightHists=weightHists, plotDensity=True, sfHists=sfHists, weightOpts=weightOpts, 
                printdir=printdir, plotOpts=plotOpts, debugLevel=debugLevel)
+    macro.exportHists(vetoTauHists, outFileName='controlHistogramsVetoTauControlRegion.root', outDir=printdir, 
+            debugLevel=debugLevel)
 
     #use these histograms to convert the additive veto tau correction into a multiplicative one
     #multijetHistsForVetoTauCorrection = makeControlSampleHists("MultiJetForVetoTauCorrection", 

@@ -10,10 +10,19 @@ from macro.razorMacros import plotControlSampleHists
 import macro.macro as macro
 from SidebandMacro import LUMI, MCLUMI
 from ComputeScaleFactorsMacro import SAMPLES_TTJ1L, SAMPLES_WJ1L, SAMPLES_WJ1L_INV, ControlRegionBinning
+from CrossCheckRegionMacro import SAMPLES_VetoLepton, SAMPLES_VetoTau, SAMPLES_TTJ2L
 
-SAMPLES = { "WJetControlRegion":SAMPLES_WJ1L, "WJetInvControlRegion":SAMPLES_WJ1L_INV, "TTJetsSingleLeptonControlRegion":SAMPLES_TTJ1L }
+SAMPLES_GJ = ["Other", "QCD", "GJetsFrag", "GJets"]
 
-boxMapping = { "WJetControlRegion":"WJetsSingleLepton", "WJetInvControlRegion":"WJetsSingleLeptonInv", "TTJetsSingleLeptonControlRegion":"TTJetsSingleLepton" }
+SAMPLES = { "WJetControlRegion":SAMPLES_WJ1L, "WJetInvControlRegion":SAMPLES_WJ1L_INV, 
+    "TTJetsSingleLeptonControlRegion":SAMPLES_TTJ1L, "VetoLeptonControlRegion":SAMPLES_VetoLepton, 
+    "VetoTauControlRegion":SAMPLES_VetoTau, "GJetsInvControlRegion":SAMPLES_GJ,
+    "TTJetsDileptonControlRegion":SAMPLES_TTJ2L }
+
+boxMapping = { "WJetControlRegion":"WJetsSingleLepton", "WJetInvControlRegion":"WJetsSingleLeptonInv", 
+    "TTJetsSingleLeptonControlRegion":"TTJetsSingleLepton", "VetoLeptonControlRegion":"VetoLeptonControlRegion", 
+    "VetoTauControlRegion":"VetoTauControlRegion", "GJetsInvControlRegion":"GJetsInvControlRegion",
+    "TTJetsDileptonControlRegion":"TTJetsDileptonControlRegion" }
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -30,9 +39,10 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
     dirName = args.dirName
 
-    plotOpts = { "ymin":1e-3, 'comment':False }
+    plotOpts = { "ymin":1e-3, 'comment':False, 'SUS15004CR':True}
 
-    boxesToUse = ["WJetControlRegion","TTJetsSingleLeptonControlRegion","WJetInvControlRegion"]
+    boxesToUse = ["WJetControlRegion","TTJetsSingleLeptonControlRegion","WJetInvControlRegion",
+            "VetoLeptonControlRegion","VetoTauControlRegion","GJetsInvControlRegion","TTJetsDileptonControlRegion"]
     if args.box is not None:
         boxesToUse = [args.box]
 
@@ -47,7 +57,10 @@ if __name__ == "__main__":
 
         print "\n---",boxName,"---"
 
-        unrollBins = (xbinsSignal[boxName]['0B'], colsSignal[boxName]['0B'])
+        if boxName in xbinsSignal:
+            unrollBins = (xbinsSignal[boxName]['0B'], colsSignal[boxName]['0B'])
+        else:
+            unrollBins = (None,None)
         inFile = dirName+'/controlHistograms'+boxMapping[boxName]+'.root'
 
-        plotControlSampleHists(boxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins)
+        plotControlSampleHists(boxMapping[boxName], inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins)
