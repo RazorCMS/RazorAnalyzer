@@ -952,9 +952,10 @@ def doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists
                     sfBin = sfHist.FindBin(xCoord, yCoord)
                 
                     #get level of signal contamination
+                    sf = sfHist.GetBinContent(sfBin)
                     contam = contamHist.GetBinContent(sfBin)
                     background = backgroundHist.GetBinContent(bn)
-                    deltaB = background*contam #amount the background should be corrected for sig. contam.
+                    deltaB = (background/sf)*contam #amount the background should be corrected for sig. contam.
 
                     #subtract deltaB from all of the signal histograms
                     if deltaB > 0:
