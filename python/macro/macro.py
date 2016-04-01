@@ -949,13 +949,18 @@ def doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists
                     bn += 1 
                     yCoord = (btagUnrollBins[1][bx][by] + btagUnrollBins[1][bx][by+1])/2.0
                     #find the scale factor bin corresponding to this signal region bin
+                    xCoord = min(xCoord, sfHist.GetXaxis().GetXmax()*0.999)
+                    xCoord = max(xCoord, sfHist.GetXaxis().GetXmin()*1.001)
+                    yCoord = min(yCoord, sfHist.GetYaxis().GetXmax()*0.999)
+                    yCoord = max(yCoord, sfHist.GetYaxis().GetXmin()*1.001)
                     sfBin = sfHist.FindBin(xCoord, yCoord)
                 
                     #get level of signal contamination
                     sf = sfHist.GetBinContent(sfBin)
                     contam = contamHist.GetBinContent(sfBin)
                     background = backgroundHist.GetBinContent(bn)
-                    deltaB = (background/sf)*contam #amount the background should be corrected for sig. contam.
+                    if sf > 0:
+                        deltaB = (background/sf)*contam #amount the background should be corrected for sig. contam.
 
                     #subtract deltaB from all of the signal histograms
                     if deltaB > 0:
