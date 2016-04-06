@@ -385,7 +385,8 @@ void plotGJetsScaleFactorSystematics() {
       double wjet = wInvNominal->GetBinContent(wBinNum);
 
       //Set bin content of each histogram
-      GJetsSystematicUnc->SetBinContent(i, fabs(gjet - wjet)/gjet );
+      GJetsSystematicUnc->SetBinContent(i, (gjet - wjet)/gjet );
+      //GJetsSystematicUnc->SetBinContent(i, fabs(gjet - wjet)/gjet );
       GJetsScaleFactor_Down->SetBinContent(i, gjet - (wjet - gjet) );
 
       cout << "Bin " << i << " : " << gjet << " , " << wjet << " , " <<  gjet - (wjet - gjet) << "\n";
@@ -414,7 +415,7 @@ void plotGJetsScaleFactorSystematics() {
   GJetsSystematicUnc->GetYaxis()->SetTitleOffset(0.8);
   GJetsSystematicUnc->SetStats(false);
   GJetsSystematicUnc->SetMaximum(1.0);
-  GJetsSystematicUnc->SetMinimum(0.0);
+  GJetsSystematicUnc->SetMinimum(-1.0);
 
   lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
@@ -446,7 +447,7 @@ void plotGJetsScaleFactorSystematics() {
 
 void plotScaleFactorHistograms() {
   gROOT->SetBatch();
-  plotScaleFactor();
-  //plotGJetsScaleFactorSystematics();
+  //plotScaleFactor();
+  plotGJetsScaleFactorSystematics();
 
 }
