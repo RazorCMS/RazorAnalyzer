@@ -39,6 +39,8 @@ if __name__ == "__main__":
     parser.add_argument('--no-limit', dest='noCombine', action='store_true', help='do not call combine, make template histograms only')
     parser.add_argument('--signif', action='store_true', help='compute significance rather than limit')
     parser.add_argument('--contamination', action='store_true', help='add uncertainty for signal contamination')
+    parser.add_argument('--expected-r', type=float, dest="expectedR",
+            help='expected upper limit, used to compute signal contamination systematic')
     parser.add_argument('--reduced-efficiency-method', dest='reducedEff', action='store_true', help='modify background yields to correct for signal contamination')
 
     args = parser.parse_args()
@@ -80,9 +82,13 @@ if __name__ == "__main__":
 
             #scale contamination level by expected signal strength exclusion
             if args.contamination:
-                expExclusion = macro.getExcludedSignalStrength(LIMIT_DIR, args.model, mGluino=args.mGluino,
-                        mStop=args.mStop, mLSP=args.mLSP, debugLevel=debugLevel)
-                print "Expected limit is",expExclusion,"-- scaling signal contamination by this amount"
+                if args.expectedR is not None:
+                    expExclusion = args.expectedR
+                    print "Expected limit provided:",expExclusion,"-- scaling signal contamination by this amount"
+                else:
+                    expExclusion = macro.getExcludedSignalStrength(LIMIT_DIR, args.model, mGluino=args.mGluino,
+                            mStop=args.mStop, mLSP=args.mLSP, debugLevel=debugLevel)
+                    print "Expected limit is",expExclusion,"-- scaling signal contamination by this amount"
                 contamHists["WJets"].Scale(expExclusion)
                 contamHists["TTJets1L"].Scale(expExclusion)
 
