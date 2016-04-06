@@ -1,6 +1,7 @@
 import os
 import ROOT as rt
 import copy
+import array
 
 #local imports
 from PlotFit import setFFColors
@@ -290,6 +291,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             
         if numMCHists > 1:
             mcTotal.SetFillStyle(3001)
+            mcTotal.SetFillColor(rt.kGray+2)
             mcTotal.Draw("e2same")
 
     #draw fit
@@ -420,6 +422,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
             for bx in range(1, lowerPadHist2.GetNbinsX()+1):
                 lowerPadHist2.SetBinContent(bx,1)
             lowerPadHist2.SetFillStyle(3001)
+            lowerPadHist2.SetFillColor(rt.kGray+2)
         elif pad2Opt.lower() == "nsigma" or pad2Opt.lower() == "pulls" or pad2Opt.lower() == "ff":
             lowerPadHist = make1DPullHistogram(data, mcTotal, xtitle, ratiomin, ratiomax, logx)
             lowerPadHist.GetYaxis().SetTitle("(Data - MC)/#sigma")
@@ -452,7 +455,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
         elif pad2Opt.lower() == "ratio":
             if numMCHists == 1: #total MC plot
                 lowerPadHist = make1DRatioHistogram(fit, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreDenominatorErrs=True)
-                lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+                lowerPadHist.GetYaxis().SetTitle("Fit / MC")
                 #draw relative MC uncertainties 
                 lowerPadHist2 = make1DRatioHistogram(mcTotal, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreDenominatorErrs=True)
                 lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
@@ -589,26 +592,22 @@ def make1DRatioHistogram(num, denom, xtitle="", ratiomin=0.25, ratiomax=2.0, log
             denomClone.SetBinError(bx, 0.0)
     ratio.SetTitle("")
     ratio.Divide(denomClone)
+    if forPad2:
+        applyPad2RatioStyle(ratio, xtitle, ratiomin, ratiomax, logx)
+    return ratio
 
-    ###DEBUG
-    #print "Num Err Denom Err Ratio Err"
-    #for bx in range(1, ratio.GetNbinsX()+1):
-    #    print "Bin",bx,":",num.GetBinContent(bx),num.GetBinError(bx),denom.GetBinContent(bx),denom.GetBinError(bx),ratio.GetBinContent(bx),ratio.GetBinError(bx)
-
+def applyPad2RatioStyle(ratio, xtitle, ratiomin, ratiomax, logx):
     ratio.GetXaxis().SetTitle(xtitle)
     ratio.SetMinimum(ratiomin)
     ratio.SetMaximum(ratiomax)
-    ratio.SetStats(0)
-    if forPad2:
-        ratio.GetXaxis().SetLabelSize(0.1)
-        ratio.GetYaxis().SetLabelSize(0.08)
-        ratio.GetYaxis().SetTitleOffset(0.35)
-        ratio.GetXaxis().SetTitleOffset(1.50)
-        ratio.GetYaxis().SetTitleSize(0.08)
-        ratio.GetXaxis().SetTitleSize(0.08)
-        ratio.SetTitle("")
-        #if logx: ratio.GetXaxis().SetMoreLogLabels()
-    return ratio
+    if hasattr(ratio, "SetStats"): ratio.SetStats(0)
+    ratio.GetXaxis().SetLabelSize(0.1)
+    ratio.GetYaxis().SetLabelSize(0.08)
+    ratio.GetYaxis().SetTitleOffset(0.35)
+    ratio.GetXaxis().SetTitleOffset(1.50)
+    ratio.GetYaxis().SetTitleSize(0.08)
+    ratio.GetXaxis().SetTitleSize(0.08)
+    ratio.SetTitle("")
 
 def make1DPullHistogram(h1, h2, xtitle="", ymin=-5.0, ymax=5.0, logx=False, forPad2=True, suppress=True, suppressLevel=0.1):
     """Makes (h1 - h2)/sigma histogram, where sigma is the error on the difference"""
@@ -1186,7 +1185,7 @@ def getUnrollBinsFromHistogram(hist):
             if by == hist.GetNbinsY(): cols[-1].append(hist.GetYaxis().GetBinUpEdge(by)) #last bin edge
     return (xbins,cols)
             
-def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", commentstr="", mcDict=None, mcSamples=None, unrollBins=(None,None), printdir=".", ratiomin=0, ratiomax=5):
+def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", commentstr="", mcDict=None, mcSamples=None, unrollBins=(None,None), printdir=".", ratiomin=0, ratiomax=5, controlRegion=False):
     if mcDict is None or mcSamples is None:
         print "Error in plot_SUS15004: please provide list of MC samples and associated histograms!"
         return
@@ -1215,11 +1214,11 @@ def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", commentstr="", 
     if data:
         plot_SUS15004_Unrolled(c, mcStack, unrolled[0], None, leg, ymin=ymin, 
                 printstr=printstr+"UnrolledDataMC", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiomin,
-                ratiomax=ratiomax, printdir=printdir, unrollBins=unrollBins)
+                ratiomax=ratiomax, printdir=printdir, unrollBins=unrollBins, controlRegion=controlRegion)
     elif fit:
         plot_SUS15004_Unrolled(c, mcStack, None, unrolled[1], leg, ymin=ymin, 
                 printstr=printstr+"UnrolledMCFit", lumistr=lumistr, commentstr=commentstr, ratiomin=ratiomin, 
-                ratiomax=ratiomax, printdir=printdir, unrollBins=unrollBins)
+                ratiomax=ratiomax, printdir=printdir, unrollBins=unrollBins, controlRegion=controlRegion)
     mcStack.Delete()
     leg.Delete()
 
@@ -1233,8 +1232,8 @@ def plot_SUS15004_FitVsMCTotal(c, mcTotal=0, fit=0, printstr="hist", lumistr="",
     mcStack = makeStack({"MC":unrolled[0]}, ["MC"], "MC")
     leg = rt.TLegend(0.15, 0.21, 0.5, 0.27)
     rt.SetOwnership(leg, False)
-    leg.AddEntry(unrolled[0], "MC-Assisted Prediction","f")
-    leg.AddEntry(unrolled[1], "Fit Prediction")
+    leg.AddEntry(unrolled[0], "Method A Pred.","f")
+    leg.AddEntry(unrolled[1], "Method B Pred.")
     plot_SUS15004_Unrolled(c, mcStack, None, unrolled[1], leg, ymin=ymin, printstr=printstr+"UnrolledMCFit", 
             lumistr=lumistr, commentstr=commentstr, ratiomin=ratiomin, ratiomax=ratiomax, printdir=printdir, 
             unrollBins=unrollBins)
@@ -1302,7 +1301,28 @@ def getMRLines(pad, xbins, cols, hist):
         lines[-1].Draw()
     return lines
 
-def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None)):
+def makeRatioTGraphAsymmErrorsTH1(num, denom, xtitle="", ratiomin=0.25, ratiomax=2.0, logx=False, forPad2=True):
+    """Divide a TGraphAsymmErrors by a TH1, ignoring uncertainties on the TH1"""
+    npoints = num.GetN()
+    ratio = num.Clone()
+    xs = num.GetX()
+    ys = num.GetY()
+    uperrs = num.GetEYhigh()
+    downerrs = num.GetEYlow()
+    xerrs = num.GetEXlow()
+    for bx in range(npoints):
+        denomContent = denom.GetBinContent(bx+1)
+        if denomContent > 0:
+            ratio.SetPoint(bx, xs[bx], ys[bx]/denomContent)
+            ratio.SetPointError(bx, xerrs[bx], xerrs[bx], downerrs[bx]/denomContent, uperrs[bx]/denomContent)
+        else:
+            ratio.SetPoint(bx, ratio.GetXaxis().GetXmin()-1, -999) #move it off the plot
+            ratio.SetPointError(bx, 0, 0, 0, 0)
+    if forPad2: 
+        applyPad2RatioStyle(ratio, xtitle, ratiomin, ratiomax, logx)
+    return ratio
+
+def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None), controlRegion=False):
     #setup
     c.Clear()
     c.cd()
@@ -1346,6 +1366,7 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     mc.GetXaxis().SetLabelFont(62)
     mc.GetYaxis().SetLabelSize(0.06)
     mcTotal.SetFillStyle(3001)
+    mcTotal.SetFillColor(rt.kGray+2)
     mcTotal.Draw("e2same")
 
     #draw fit
@@ -1368,12 +1389,18 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
 
     #draw data
     if data:
-        data.SetStats(0)
+        #for legend
         data.SetMarkerStyle(20)
         data.SetMarkerSize(1)
         data.SetLineWidth(1)
         data.SetLineColor(rt.kBlack)
-        data.Draw("pesame")
+        #make TGraphAsymmErrors with appropriate poisson uncertainties
+        data = macro.th1ToTGraphAsymmErrors(data)
+        data.SetMarkerStyle(20)
+        data.SetMarkerSize(1)
+        data.SetLineWidth(1)
+        data.SetLineColor(rt.kBlack)
+        data.Draw("pZ0same")
 
     pad1.Modified()
     rt.gPad.Update()
@@ -1409,17 +1436,20 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     #make ratio data/MC
     if data:
         #draw data/MC with poisson errors from data
-        lowerPadHist = make1DRatioHistogram(data, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
-        lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+        lowerPadHist = makeRatioTGraphAsymmErrorsTH1(data, mcTotal, "", ratiomin, ratiomax)
+        if controlRegion:
+            lowerPadHist.GetYaxis().SetTitle("Data / pred.")
+        else:
+            lowerPadHist.GetYaxis().SetTitle("Data / pred. [Method A]")
     elif fit:
         lowerPadHist = make1DRatioHistogram(fit, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
-        lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+        lowerPadHist.GetYaxis().SetTitle("Method B / Method A")
     #draw relative MC uncertainties 
     lowerPadHist2 = make1DRatioHistogram(mcTotal, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
     lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
     lowerPadHist2.GetYaxis().SetNdivisions(5, 5, 0)
     lowerPadHist2.GetYaxis().SetLabelSize(0.1)
-    lowerPadHist2.GetYaxis().SetTitleSize(0.115)
+    lowerPadHist2.GetYaxis().SetTitleSize(0.090)
     lowerPadHist2Upper = lowerPadHist2.Clone()
     lowerPadHist2Upper.SetFillStyle(0)
     lowerPadHist2Upper.SetLineWidth(1)
@@ -1448,7 +1478,7 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     pad2.cd()
 
     #lower pad hist 1
-    lowerPadHist.Draw("pesame")
+    lowerPadHist.Draw("pZ0same")
     pad2.Modified()
     rt.gPad.Update()
 
@@ -1457,7 +1487,7 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     lowerPadHist2Lower.Draw("histsame")
     lowerPadHist2.Draw('e2same')
     lowerPadHist2Central.Draw("histsame")
-    lowerPadHist.Draw("pesame")
+    lowerPadHist.Draw("pZ0same")
 
     #save
     c.Print(printdir+'/'+printstr+".png")
@@ -1503,9 +1533,9 @@ def plot_SUS15004_1D(c, mc=0, data=0, leg=0, xtitle="", ytitle="Events", ymin=No
     mc.GetYaxis().SetTitleSize(0.06)
     mc.GetYaxis().SetLabelSize(0.06)
     mcTotal.SetFillStyle(3001)
+    mcTotal.SetFillColor(rt.kGray+2)
     mcTotal.GetXaxis().SetMoreLogLabels()
     mcTotal.GetXaxis().SetNoExponent()
-    mcTotal.SetFillColor(rt.kBlack)
     mcTotal.Draw("e2same")
 
     #draw data
@@ -1545,7 +1575,7 @@ def plot_SUS15004_1D(c, mc=0, data=0, leg=0, xtitle="", ytitle="Events", ymin=No
     #make ratio data/MC
     #draw data/MC with poisson errors from data
     lowerPadHist = make1DRatioHistogram(data, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreDenominatorErrs=True)
-    lowerPadHist.GetYaxis().SetTitle("Ratio with MC")
+    lowerPadHist.GetYaxis().SetTitle("Data / pred.")
     #draw relative MC uncertainties
     lowerPadHist2 = make1DRatioHistogram(mcTotal, mcTotal, xtitle, ratiomin, ratiomax, logx, ignoreNumeratorErrs=True)
     lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
@@ -1556,6 +1586,7 @@ def plot_SUS15004_1D(c, mc=0, data=0, leg=0, xtitle="", ytitle="Events", ymin=No
     lowerPadHist2.GetYaxis().SetNdivisions(5, 5, 0)
     lowerPadHist2.GetYaxis().SetLabelSize(0.08)
     lowerPadHist2.SetFillStyle(3001)
+    lowerPadHist2.SetFillColor(rt.kGray+2)
 
     #draw the pad
     c.cd()

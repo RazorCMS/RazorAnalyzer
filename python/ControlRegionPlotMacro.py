@@ -13,11 +13,20 @@ from ComputeScaleFactorsMacro import SAMPLES_TTJ1L, SAMPLES_WJ1L, SAMPLES_WJ1L_I
 from CrossCheckRegionMacro import SAMPLES_VetoLepton, SAMPLES_VetoTau, SAMPLES_TTJ2L
 
 SAMPLES_GJ = ["Other", "QCD", "GJetsFrag", "GJets"]
-
 SAMPLES = { "WJetControlRegion":SAMPLES_WJ1L, "WJetInvControlRegion":SAMPLES_WJ1L_INV, 
     "TTJetsSingleLeptonControlRegion":SAMPLES_TTJ1L, "VetoLeptonControlRegion":SAMPLES_VetoLepton, 
     "VetoTauControlRegion":SAMPLES_VetoTau, "GJetsInvControlRegion":SAMPLES_GJ,
     "TTJetsDileptonControlRegion":SAMPLES_TTJ2L }
+
+SAMPLES_TTJ_REDUCED = ["Other", "WJets", "TTJets"]
+SAMPLES_WJ_REDUCED = ["Other", "QCD", "TTJets", "WJets"]
+SAMPLES_DY_REDUCED = ["Other", "WJets", "TTJets", "DYJets"]
+SAMPLES_VETO_REDUCED = ["Other", "ZInv", "QCD", "WJets", "TTJets"]
+SAMPLES_WJI_REDUCED = ["Other", "ZInv", "QCD", "TTJets", "WJetsInv"]
+SAMPLES_REDUCED = { "WJetControlRegion":SAMPLES_WJ_REDUCED, "WJetInvControlRegion":SAMPLES_WJI_REDUCED, 
+    "TTJetsSingleLeptonControlRegion":SAMPLES_TTJ_REDUCED, "VetoLeptonControlRegion":SAMPLES_VETO_REDUCED, 
+    "VetoTauControlRegion":SAMPLES_VETO_REDUCED, "GJetsInvControlRegion":SAMPLES_GJ,
+    "TTJetsDileptonControlRegion":SAMPLES_TTJ_REDUCED }
 
 boxMapping = { "WJetControlRegion":"WJetsSingleLepton", "WJetInvControlRegion":"WJetsSingleLeptonInv", 
     "TTJetsSingleLeptonControlRegion":"TTJetsSingleLepton", "VetoLeptonControlRegion":"VetoLeptonControlRegion", 
@@ -40,6 +49,8 @@ if __name__ == "__main__":
     dirName = args.dirName
 
     plotOpts = { "ymin":1e-3, 'comment':False, 'SUS15004CR':True}
+    plotOpts["combineBackgrounds"] = {
+            "Other":["SingleTop","DYJets","Other"] }
 
     boxesToUse = ["WJetControlRegion","TTJetsSingleLeptonControlRegion","WJetInvControlRegion",
             "VetoLeptonControlRegion","VetoTauControlRegion","GJetsInvControlRegion","TTJetsDileptonControlRegion"]
@@ -54,6 +65,7 @@ if __name__ == "__main__":
 
         #apply options
         samplesToUse = SAMPLES[boxName]
+        plotOpts["combineSamples"] = SAMPLES_REDUCED[boxName]
 
         print "\n---",boxName,"---"
 

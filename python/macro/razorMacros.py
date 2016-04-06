@@ -301,15 +301,13 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
                 totalMC = 0.0
                 totalMCErr = 0.0
                 for i in range(len(mcNames)):
-                    mcs[i].append('%.4f $\\pm$ %.4f' % (mergedMCs[i].GetBinContent(bx),mergedMCs[i].GetBinError(bx)))
-                    #mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
+                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
                     totalMC += mergedMCs[i].GetBinContent(bx)
                     totalMCErr = ( totalMCErr**2 + (mergedMCs[i].GetBinError(bx))**2 )**(0.5)
                 if len(mcNames) > 0:
                     if useMCFitSys: #add (MC-fit) in quadrature with MC error
                         totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
-                    totalMCs.append('%.6f $\\pm$ %.6f' % (totalMC, totalMCErr))
-                    #totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
+                    totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
         
     xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
     yRanges = [low+'-'+high for (low, high) in zip(ybinLowEdges, ybinUpEdges)]
@@ -622,6 +620,13 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
         miscErrors = []
         del hists['Sys']
         macro.propagateShapeSystematics(hists, samples, listOfVars, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+    #optionally combine some background processes
+    if 'combineBackgrounds' in plotOpts:
+        macro.combineBackgroundHists(hists, plotOpts['combineBackgrounds'], listOfVars, debugLevel=debugLevel)
+        if 'combineSamples' in plotOpts:
+            samples = plotOpts['combineSamples']
+        else: #get new list of samples, possibly not keeping the same ordering
+            samples = macro.combineBackgroundNames(samples, plotOpts["combineBackgrounds"])
 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
 

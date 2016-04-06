@@ -416,7 +416,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             elif 'CR15004' in special:
                 plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
-                        unrollBins=unrollBins, printdir=printdir, ratiomin=0, ratiomax=2)
+                        unrollBins=unrollBins, printdir=printdir, ratiomin=0, ratiomax=2, controlRegion=True)
             else:
                 plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
                         ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, 
@@ -971,3 +971,90 @@ def doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists
                             signal.SetBinContent( bn, max(0, signal.GetBinContent(bn) - deltaB) )
                             if debugLevel > 0:
                                 print "to",signal.GetBinContent(bn)
+
+def combineBackgroundHists(hists, combineBackgrounds, listOfVars, debugLevel=0):
+    """Combine many background histograms into one, for plotting purposes.
+    combineBackgrounds should be a dictionary whose keys are the desired (combined) process names.
+    The value for each key should be a list of backgrounds that should be combined."""
+    for combProcess,combList in combineBackgrounds.iteritems():
+        tmphists = {}
+        if debugLevel > 0:
+            print "Combining background histograms for",combProcess
+        #check which processes are present
+        combListPresent = filter(lambda c: c in hists, combList)
+        if len(combListPresent) != len(combList):
+            print "Warning in combineBackground hists:",(len(combList)-len(combListPresent)),"of",len(combList),"requested background processes are not present in the histogram collection"
+        if len(combListPresent) == 0: continue
+        for v in listOfVars: #loop over variables
+            #make a new histogram for the combined backgrounds
+            combHist = hists[combListPresent[0]][v].Clone()
+            combHist.SetName( combHist.GetName().replace(combListPresent[0], combProcess) )
+            combHist.Reset()
+            #add together the backgrounds
+            for process in combListPresent:
+                combHist.Add(hists[process][v])
+                if debugLevel > 0:
+                    print " Including",process
+                #delete it from the dictionary
+                hists[process][v].Delete()
+                del hists[process][v]
+            #insert the new histogram
+            tmphists[v] = combHist
+        #clean up dictionary
+        for process in combListPresent:
+            del hists[process]
+        hists[combProcess] = tmphists
+
+def combineBackgroundNames(oldNames, combineBackgrounds):
+    """Get list of sample names remaning after combining the specified backgrounds together"""
+    processesToRemove = []
+    processesToAdd = []
+    for combProcess, combList in combineBackgrounds.iteritems():
+        processesToAdd.append(combProcess)
+        for proc in combList:
+            processesToRemove.append(proc)
+    newNames = filter((lambda x: x not in processesToRemove), oldNames)
+    newNames = list(set( newNames + processesToAdd ))
+    return newNames
+
+def th1ToTGraphAsymmErrors(th1):
+    """Convert a TH1 to a TGraphAsymmErrors with appropriate Poisson uncertainties."""
+    #get x bin centers
+    nbins = th1.GetNbinsX()
+    xarray = array('d', [0 for x in range(nbins)])
+    th1.GetXaxis().GetCenter(xarray)
+    #get bin contents
+    ylist = []
+    xerrslist = []
+    uperrslist = []
+    downerrslist = []
+    for bx in range(1, nbins+1):
+        content = th1.GetBinContent(bx)
+        ylist.append(content)
+        xerrslist.append(0.5)
+        uperrslist.append(getUpPoissonError(content))
+        downerrslist.append(getDownPoissonError(content))
+    yarray = array('d',ylist)
+    xerrsarray = array('d',xerrslist)
+    uperrsarray = array('d',uperrslist)
+    downerrsarray = array('d',downerrslist)
+    graph = rt.TGraphAsymmErrors(nbins, xarray, yarray, xerrsarray, xerrsarray, downerrsarray, uperrsarray)
+    return graph
+
+def getUpPoissonError(n):
+    """Get upper range of Poisson 1-sigma confidence interval for a bin with n counts"""
+    alpha = 1.- 0.682689492
+    if n < 0:
+        print "Error in getUpPoissonError: cannot get error for bin with negative contents!"
+        return 0
+    return rt.Math.gamma_quantile_c( alpha/2, n+1, 1 ) - n
+
+def getDownPoissonError(n):
+    """Get lower range of Poisson 1-sigma confidence interval for a bin with n counts"""
+    alpha = 1.- 0.682689492
+    if n < 0:
+        print "Error in getDownPoissonError: cannot get error for bin with negative contents!"
+        return 0
+    if n == 0: 
+        return 0
+    return n - rt.Math.gamma_quantile( alpha/2, n, 1. )

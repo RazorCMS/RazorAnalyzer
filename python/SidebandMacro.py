@@ -14,8 +14,12 @@ LUMI = 2300 #in /pb
 MCLUMI = 1 
 
 SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"]
+SAMPLES_HADRONIC_REDUCED = ["Other", "QCD", "ZInv", "WJets", "TTJets"]
 SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
+SAMPLES_LEPTONIC_REDUCED = ["Other", "ZInv", "WJets", "TTJets"]
 SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC, "FourToSixJet":SAMPLES_HADRONIC, "SevenJet":SAMPLES_HADRONIC }
+SAMPLES_REDUCED = { "MultiJet":SAMPLES_HADRONIC_REDUCED, "MuMultiJet":SAMPLES_LEPTONIC_REDUCED, "EleMultiJet":SAMPLES_LEPTONIC_REDUCED, "FourToSixJet":SAMPLES_HADRONIC_REDUCED, "SevenJet":SAMPLES_HADRONIC_REDUCED }
+
 BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet", "FourToSixJet", "SevenJet"]
 
 DIR_MC = "Backgrounds"
