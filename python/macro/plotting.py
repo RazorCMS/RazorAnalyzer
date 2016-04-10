@@ -1401,6 +1401,11 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
         data.SetLineWidth(1)
         data.SetLineColor(rt.kBlack)
         data.Draw("pZ0same")
+        #make a copy with no markers to fix error bar issue
+        dataNoMarkers = data.Clone()
+        dataNoMarkers.SetMarkerSize(0)
+        dataNoMarkers.SetMarkerStyle(1)
+        dataNoMarkers.Draw("pZ0same")
 
     pad1.Modified()
     rt.gPad.Update()
