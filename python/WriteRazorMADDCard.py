@@ -167,10 +167,10 @@ if __name__ == "__main__":
     #run combine
     if args.signif:
         combineMethod = 'ProfileLikelihood'
-        combineFlags = '--signif -t -1 --toysFreq'
+        combineFlags = '--signif -t -1 --toysFreq --saveWorkspace'
     else:
         combineMethod = 'Asymptotic'
-        combineFlags = ''
+        combineFlags = '--saveWorkspace'
     if len(boxList) == 1:
         #get card name
         cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])
