@@ -384,14 +384,14 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     """
 
     titles = {
-        "MR": "M_{R} (GeV)", 
+        "MR": "M_{R} [GeV]", 
         "Rsq": "R^{2}",
-        "mll": "m_{ll} (GeV)",
+        "mll": "m_{ll} [GeV]",
         "NBJetsMedium" : "Number of B-tagged Jets",
         "NJets80" : "Number of Jets with p_{T} > 80 GeV",
         "NJets40" : "Number of Jets",        
-        "lep1.Pt()": "lepton p_{T} (GeV)",
-        "lep2.Pt()": "lepton p_{T} (GeV)",
+        "lep1.Pt()": "lepton p_{T} [GeV]",
+        "lep2.Pt()": "lepton p_{T} [GeV]",
         "lep1.Eta()": "lepton #eta",
         "lep2.Eta()": "lepton #eta",
         }
@@ -556,7 +556,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             dataForTable=hists[dataName][("MR","Rsq")]
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
-                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=True, printdir=printdir)
+                nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=False, printdir=printdir)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
@@ -572,17 +572,19 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     """Loads the output of makeControlSampleHists from a file and creates plots"""
 
     titles = {
-        "MR": "M_{R} (GeV)", 
+        "MR": "M_{R} [GeV]", 
         "Rsq": "R^{2}",
-        "mll": "m_{ll} (GeV)",
+        "mll": "m_{ll} [GeV]",
         "NBJetsMedium" : "Number of B-tagged Jets",
         "NJets80" : "Number of Jets with p_{T} > 80 GeV",
         "NJets40" : "Number of Jets",        
-        "lep1.Pt()": "lepton p_{T} (GeV)",
-        "lep2.Pt()": "lepton p_{T} (GeV)",
-        "lep1.Eta()": "lepton #eta",
-        "lep2.Eta()": "lepton #eta",
+        "lep1.Pt()": "Lepton p_{T} [GeV]",
+        "lep2.Pt()": "Lepton p_{T} [GeV]",
+        "lep1.Eta()": "Lepton #eta",
+        "lep2.Eta()": "Lepton #eta",
         }
+    if 'Tau' in regionName: 
+        titles['lep1.Pt()'] = 'Tau p_{T} [GeV]'
 
     #load the histograms
     hists = macro.importHists(inFile, debugLevel)
@@ -606,6 +608,8 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     #SUS-15-004 style for unrolled plots
     if "SUS15004" in plotOpts and plotOpts["SUS15004"]:
         special += "SUS15004"
+    elif "SUS15004CR" in plotOpts and plotOpts["SUS15004CR"]:
+        special += "CR15004"
 
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     
@@ -616,6 +620,13 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
         miscErrors = []
         del hists['Sys']
         macro.propagateShapeSystematics(hists, samples, listOfVars, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+    #optionally combine some background processes
+    if 'combineBackgrounds' in plotOpts:
+        macro.combineBackgroundHists(hists, plotOpts['combineBackgrounds'], listOfVars, debugLevel=debugLevel)
+        if 'combineSamples' in plotOpts:
+            samples = plotOpts['combineSamples']
+        else: #get new list of samples, possibly not keeping the same ordering
+            samples = macro.combineBackgroundNames(samples, plotOpts["combineBackgrounds"])
 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
 
@@ -756,7 +767,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
             sfHists[process].SetBinContent(bn, max(0., sfHists[process].GetBinContent(bn)))
             sfHists[process+"NormUp"].SetBinContent(bn, max(0., sfHists[process+"NormUp"].GetBinContent(bn)))
             sfHists[process+"NormDown"].SetBinContent(bn, max(0., sfHists[process+"NormDown"].GetBinContent(bn)))
-        #suppress scale factors consistent with 1
+        #Suppress scale factors consistent with 1
         if signifThreshold > 0:
             print "Ignoring scale factors compatible with 1.0 (",signifThreshold,"sigma significance )"
             for bn in range(1, sfHists[process].GetNumberOfBins()+1):
@@ -1089,6 +1100,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False, signalContaminationHists=None, sfHistsForSignalContamination=None):
     """
     Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
+    If signalContaminationHists are provided, the level of signal contamination in the control regions is used to propagate extra uncertainties on the scale factor histograms.
     """
 
     filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]

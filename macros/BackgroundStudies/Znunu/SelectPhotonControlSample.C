@@ -26,9 +26,9 @@
 #include <THStack.h> 
 #include <TH2Poly.h>
 
-#include "RazorAnalyzer/include/ControlSampleEvents.h"
-#include "RazorAnalyzer/macros/tdrstyle.C"
-#include "RazorAnalyzer/macros/CMS_lumi.C"
+#include "include/ControlSampleEvents.h"
+#include "macros/tdrstyle.C"
+#include "macros/CMS_lumi.C"
 
 #endif
 
@@ -533,6 +533,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	    histNBtags[i]->Fill(fmin(events->NBJetsMedium,3), weight);
 	    histMR[i]->Fill(events->MR_NoPho, weight);
 	    histRsq[i]->Fill(events->Rsq_NoPho, weight);
+            histMRVsRsq[i]->Fill(events->MR_NoPho, events->Rsq_NoPho, weight);
 	    histMRRsqUnrolled[i]->Fill(MRRsqBin+0.5, weight);
 	  }
 
@@ -582,6 +583,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  histMR[i]->Fill(events->MR_NoPho, weight);
 	  histRsq[i]->Fill(events->Rsq_NoPho, weight);
 	  histMRRsqUnrolled[i]->Fill(MRRsqBin+0.5, weight);
+	  histMRVsRsq[i]->Fill(events->MR_NoPho, events->Rsq_NoPho, weight);
 	}
 
 
@@ -877,6 +879,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
     file->WriteTObject(histMR[i], Form("histMR_%s",processLabels[i].c_str()), "WriteDelete");
     file->WriteTObject(histRsq[i], Form("histRsq_%s",processLabels[i].c_str()), "WriteDelete");
     file->WriteTObject(histMRRsqUnrolled[i], Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "WriteDelete");
+    file->WriteTObject(histMRVsRsq[i], Form("histMRVsRsq_%s",processLabels[i].c_str()), "WriteDelete");
   }
 
 
@@ -898,6 +901,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 
 void SelectPhotonControlSample( int option = 0) {
+  gROOT->SetBatch();
 
   vector<string> datafiles;
   vector<vector<string> > bkgfiles;

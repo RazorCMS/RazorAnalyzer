@@ -346,7 +346,8 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     #format MC histograms
     for name in mcNames: 
         for var in histDict[name]: plotting.setHistColor(histDict[name][var], name)
-    titles = {name:name for name in mcNames}
+    mcTitles = {'WJets':'W+Jets', 'DYJets':'Z #rightarrow ll','TTJets':'t#bar{t}+Jets', 'TTJets2L':'2l t#bar{t}+Jets', 'TTJets1L':'1l t#bar{t}+Jets', 'SingleTop':'Single top', 'QCD':'QCD', 'ZInv':'Z #rightarrow #nu #nu', 'GJets':'#gamma+Jets', 'GJetsFrag':'#gamma+Jets (frag.)','Other':'Other'}
+    titles = {name:(mcTitles[name] if name in mcTitles else name) for name in mcNames}
 
     #get data histograms
     if dataName in histDict: dataHists = histDict[dataName]
@@ -405,33 +406,32 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 ytitle = var[1]
             #make plots
             if 'SUS15004' in special:
-                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, unrollBins=unrollBins, printdir=printdir)
-            else:
-                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
+                        lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
+                        unrollBins=unrollBins, printdir=printdir)
                 #do MC total (no stack)
-                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, printdir=printdir)
+                plotting.plot_SUS15004_FitVsMCTotal(c, mcTotal=mcPrediction, fit=fitPrediction, 
+                        printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, 
+                        unrollBins=unrollBins, printdir=printdir)
+            elif 'CR15004' in special:
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
+                        lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
+                        unrollBins=unrollBins, printdir=printdir, ratiomin=0, ratiomax=2, controlRegion=True)
+            else:
+                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
+                        ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, 
+                        saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, 
+                        nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, 
+                        unrollBins=unrollBins, printdir=printdir)
+                #do MC total (no stack)
+                plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
+                        ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, 
+                        commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, 
+                        nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, 
+                        printdir=printdir)
             #draw bin mapping
             if unrollBins[0] is not None and unrollBins[1] is not None:
                 plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+"BINNING", printdir=printdir)
-            #print prediction in each bin
-            #if obsData is not None and obsData != 0:
-            #    print "Results for data histogram:"
-            #    for bx in range(1, obsData.GetNbinsX()+1):
-            #        for by in range(1,obsData.GetNbinsY()+1):
-            #            print bx,by,obsData.GetBinContent(bx,by),"+/-",obsData.GetBinError(bx,by)
-            #    print "\n"
-            #if mcPrediction != 0:
-            #    print "Results for MC histogram:"
-            #    for bx in range(1, mcPrediction.GetNbinsX()+1):
-            #        for by in range(1,mcPrediction.GetNbinsY()+1):
-            #            print bx,by,mcPrediction.GetBinContent(bx,by),"+/-",mcPrediction.GetBinError(bx,by)
-            #    print "\n"
-            #if fitPrediction != 0:
-            #    print "Results for fit histogram:"
-            #    for bx in range(1, fitPrediction.GetNbinsX()+1):
-            #        for by in range(1,fitPrediction.GetNbinsY()+1):
-            #            print bx,by,fitPrediction.GetBinContent(bx,by),"+/-",fitPrediction.GetBinError(bx,by)
-            #    print "\n"
         #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var].Clone(histDict[name][var].GetName()+"Clone") for name in mcNames}
@@ -459,11 +459,16 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                     fitPrediction.SetBinContent(bx, fitPrediction.GetBinContent(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
                     fitPrediction.SetBinError(bx, fitPrediction.GetBinError(bx)*1.0/fitPrediction.GetXaxis().GetBinWidth(bx))
         if not legend:
-            legend = plotting.makeLegend(varHists, titles, reversed(mcNames))
+            legend = rt.TLegend(0.75,0.6,0.9,0.9)
+            rt.SetOwnership(legend, False)
             if blindBins is None and obsData is not None: legend.AddEntry(obsData, dataName)
             if plotFit and fitPrediction is not None: legend.AddEntry(fitPrediction, "Fit")
+            for name in reversed(mcNames): legend.AddEntry(varHists[name], titles[name], 'f')
         if doDensity:
-            ytitle = "Events / Bin Width"
+            if var in ['MR','MR_NoW','MR_NoZ','MR_NoPho','lep1.Pt()','genlep1.Pt()','leadingGenLeptonPt']:
+                ytitle = 'Events / GeV'
+            else:
+                ytitle = "Events / Bin Width"
             ymin = None
         else:
             ytitle = "Events"
@@ -475,7 +480,12 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
         if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()", "genlep1.Pt()","leadingGenLeptonPt"]: logx = True
         else: logx = False
         if blindBins is None:
-            plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+            if 'SUS15004' in special:
+                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
+            elif 'CR15004' in special:
+                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
+            else:
+                plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
             plotting.plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         legend.Delete()
@@ -883,7 +893,6 @@ def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, dow
                     print "Signal contamination in bin",bx,by,"is",contam,"; uncertainty goes from",curErr,"to",newErr
     else:
         print "Error in correctScaleFactorUncertaintyForSignalContamination: function implemented for TH2Poly only!"
-        sys.exit()
             
 def getExcludedSignalStrength(dirName, model, mGluino=-1, mStop=-1, mLSP=-1, debugLevel=0): 
     """ Retrieve the expected signal exclusion for the given model, using previously computed limits """ 
@@ -926,3 +935,126 @@ def getExcludedSignalStrength(dirName, model, mGluino=-1, mStop=-1, mLSP=-1, deb
 
     #return the ratio
     return xsecUL/xsecTheory
+
+def doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists, sfHists, unrollBins, debugLevel=0):
+    for proc, contamHist in contamHists.iteritems():
+        #get change in background histogram due to signal contamination
+        backgroundHist = backgroundHists[proc]
+        sfHist = sfHists[proc]
+        bn = 0 #keep track of unrolled bin number
+        for btagUnrollBins in unrollBins: #loop over btags
+            for bx in range(len(btagUnrollBins[0])-1): #loop over columns
+                xCoord = (btagUnrollBins[0][bx+1] + btagUnrollBins[0][bx])/2.0
+                for by in range(len(btagUnrollBins[1][bx])-1): #loop over y-bins in this column
+                    bn += 1 
+                    yCoord = (btagUnrollBins[1][bx][by] + btagUnrollBins[1][bx][by+1])/2.0
+                    #find the scale factor bin corresponding to this signal region bin
+                    xCoord = min(xCoord, sfHist.GetXaxis().GetXmax()*0.999)
+                    xCoord = max(xCoord, sfHist.GetXaxis().GetXmin()*1.001)
+                    yCoord = min(yCoord, sfHist.GetYaxis().GetXmax()*0.999)
+                    yCoord = max(yCoord, sfHist.GetYaxis().GetXmin()*1.001)
+                    sfBin = sfHist.FindBin(xCoord, yCoord)
+                
+                    #get level of signal contamination
+                    sf = sfHist.GetBinContent(sfBin)
+                    contam = contamHist.GetBinContent(sfBin)
+                    background = backgroundHist.GetBinContent(bn)
+                    if sf > 0:
+                        deltaB = (background/sf)*contam #amount the background should be corrected for sig. contam.
+
+                    #subtract deltaB from all of the signal histograms
+                    if deltaB > 0:
+                        for sname,signal in signalHists.iteritems():
+                            if debugLevel > 0: 
+                                print "Subtracting",deltaB,"from signal histogram",sname,"due to contamination.  ",
+                                print "Bin",bn,"content changes from",signal.GetBinContent(bn),
+                            signal.SetBinContent( bn, max(0, signal.GetBinContent(bn) - deltaB) )
+                            if debugLevel > 0:
+                                print "to",signal.GetBinContent(bn)
+
+def combineBackgroundHists(hists, combineBackgrounds, listOfVars, debugLevel=0):
+    """Combine many background histograms into one, for plotting purposes.
+    combineBackgrounds should be a dictionary whose keys are the desired (combined) process names.
+    The value for each key should be a list of backgrounds that should be combined."""
+    for combProcess,combList in combineBackgrounds.iteritems():
+        tmphists = {}
+        if debugLevel > 0:
+            print "Combining background histograms for",combProcess
+        #check which processes are present
+        combListPresent = filter(lambda c: c in hists, combList)
+        if len(combListPresent) != len(combList):
+            print "Warning in combineBackground hists:",(len(combList)-len(combListPresent)),"of",len(combList),"requested background processes are not present in the histogram collection"
+        if len(combListPresent) == 0: continue
+        for v in listOfVars: #loop over variables
+            #make a new histogram for the combined backgrounds
+            combHist = hists[combListPresent[0]][v].Clone()
+            combHist.SetName( combHist.GetName().replace(combListPresent[0], combProcess) )
+            combHist.Reset()
+            #add together the backgrounds
+            for process in combListPresent:
+                combHist.Add(hists[process][v])
+                if debugLevel > 0:
+                    print " Including",process
+                #delete it from the dictionary
+                hists[process][v].Delete()
+                del hists[process][v]
+            #insert the new histogram
+            tmphists[v] = combHist
+        #clean up dictionary
+        for process in combListPresent:
+            del hists[process]
+        hists[combProcess] = tmphists
+
+def combineBackgroundNames(oldNames, combineBackgrounds):
+    """Get list of sample names remaning after combining the specified backgrounds together"""
+    processesToRemove = []
+    processesToAdd = []
+    for combProcess, combList in combineBackgrounds.iteritems():
+        processesToAdd.append(combProcess)
+        for proc in combList:
+            processesToRemove.append(proc)
+    newNames = filter((lambda x: x not in processesToRemove), oldNames)
+    newNames = list(set( newNames + processesToAdd ))
+    return newNames
+
+def th1ToTGraphAsymmErrors(th1):
+    """Convert a TH1 to a TGraphAsymmErrors with appropriate Poisson uncertainties."""
+    #get x bin centers
+    nbins = th1.GetNbinsX()
+    xarray = array('d', [0 for x in range(nbins)])
+    th1.GetXaxis().GetCenter(xarray)
+    #get bin contents
+    ylist = []
+    xerrslist = []
+    uperrslist = []
+    downerrslist = []
+    for bx in range(1, nbins+1):
+        content = th1.GetBinContent(bx)
+        ylist.append(content)
+        xerrslist.append(0.5)
+        uperrslist.append(getUpPoissonError(content))
+        downerrslist.append(getDownPoissonError(content))
+    yarray = array('d',ylist)
+    xerrsarray = array('d',xerrslist)
+    uperrsarray = array('d',uperrslist)
+    downerrsarray = array('d',downerrslist)
+    graph = rt.TGraphAsymmErrors(nbins, xarray, yarray, xerrsarray, xerrsarray, downerrsarray, uperrsarray)
+    return graph
+
+def getUpPoissonError(n):
+    """Get upper range of Poisson 1-sigma confidence interval for a bin with n counts"""
+    alpha = 1.- 0.682689492
+    if n < 0:
+        print "Error in getUpPoissonError: cannot get error for bin with negative contents!"
+        return 0
+    return rt.Math.gamma_quantile_c( alpha/2, n+1, 1 ) - n
+
+def getDownPoissonError(n):
+    """Get lower range of Poisson 1-sigma confidence interval for a bin with n counts"""
+    alpha = 1.- 0.682689492
+    if n < 0:
+        print "Error in getDownPoissonError: cannot get error for bin with negative contents!"
+        return 0
+    if n == 0: 
+        return 0
+    return n - rt.Math.gamma_quantile( alpha/2, n, 1. )

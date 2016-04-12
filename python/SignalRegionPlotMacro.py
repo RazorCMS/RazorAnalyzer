@@ -8,7 +8,7 @@ from framework import Config
 from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.razorMacros import plotControlSampleHists
 import macro.macro as macro
-from SidebandMacro import SAMPLES, LUMI, MCLUMI, blindBins, shapes
+from SidebandMacro import SAMPLES, SAMPLES_REDUCED, LUMI, MCLUMI, blindBins, shapes
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -35,6 +35,9 @@ if __name__ == "__main__":
         plotOpts['sideband'] = False
     else:
         plotOpts['sideband'] = True
+    plotOpts["combineBackgrounds"] = { 
+            "Other":["SingleTop","DYJets","Other"], 
+            "TTJets":["TTJets1L","TTJets2L"] }
 
     boxesToUse = ["MultiJet","MuMultiJet","EleMultiJet"]
     if args.box is not None:
@@ -50,6 +53,7 @@ if __name__ == "__main__":
         blindBinsToUse = blindBins[boxName]
         if args.unblind: blindBinsToUse = None
         samplesToUse = SAMPLES[boxName]
+        plotOpts["combineSamples"] = SAMPLES_REDUCED[boxName]
 
         shapesToUse = copy.copy(shapes[boxName])
         #option to disable scale factors

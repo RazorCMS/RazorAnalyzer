@@ -39,10 +39,17 @@ if __name__ == "__main__":
     parser.add_argument('--no-limit', dest='noCombine', action='store_true', help='do not call combine, make template histograms only')
     parser.add_argument('--signif', action='store_true', help='compute significance rather than limit')
     parser.add_argument('--contamination', action='store_true', help='add uncertainty for signal contamination')
+    parser.add_argument('--expected-r', type=float, dest="expectedR",
+            help='expected upper limit, used to compute signal contamination systematic')
+    parser.add_argument('--reduced-efficiency-method', dest='reducedEff', action='store_true', help='modify background yields to correct for signal contamination')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     outDir = args.outDir
+
+    if args.contamination and args.reducedEff:
+        print "Error in WriteRazorMADDCard.py: two different signal contamination methods have been specified!  please disable one of them."
+        sys.exit()
 
     if args.box is None:
         print "Please choose an analysis box with --box"
@@ -62,7 +69,7 @@ if __name__ == "__main__":
         contamHists = None
         sfNames = { "TTJets1L":"TTJets", "TTJets2L":"TTJets", "ZInv":"GJetsInv" }
         sfHists = loadScaleFactorHists("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root", processNames=["TTJets1L","TTJets2L","WJets","ZInv"], scaleFactorNames=sfNames, debugLevel=debugLevel)
-        if args.contamination:
+        if args.contamination or args.reducedEff:
             #get level of contamination in control regions
             print "Computing signal contamination level in control regions"
             ttContamHist = checkSignalContamination("config/run2_20151229_ControlRegion.config",
@@ -74,14 +81,22 @@ if __name__ == "__main__":
             contamHists = { "TTJets1L":ttContamHist, "TTJets2L":ttContamHist, "WJets":wContamHist }
 
             #scale contamination level by expected signal strength exclusion
-            expExclusion = macro.getExcludedSignalStrength(LIMIT_DIR, args.model, mGluino=args.mGluino,
-                    mStop=args.mStop, mLSP=args.mLSP, debugLevel=debugLevel)
-            print "Expected limit is",expExclusion,"-- scaling signal contamination by this amount"
-            contamHists["WJets"].Scale(expExclusion)
-            contamHists["TTJets1L"].Scale(expExclusion)
+            if args.contamination:
+                if args.expectedR is not None:
+                    expExclusion = args.expectedR
+                    print "Expected limit provided:",expExclusion,"-- scaling signal contamination by this amount"
+                else:
+                    expExclusion = macro.getExcludedSignalStrength(LIMIT_DIR, args.model, mGluino=args.mGluino,
+                            mStop=args.mStop, mLSP=args.mLSP, debugLevel=debugLevel)
+                    print "Expected limit is",expExclusion,"-- scaling signal contamination by this amount"
+                contamHists["WJets"].Scale(expExclusion)
+                contamHists["TTJets1L"].Scale(expExclusion)
 
         #make combined unrolled histograms for background
-        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), addMCVsFit=args.addMCVsFit, debugLevel=debugLevel, signalContaminationHists=contamHists, sfHistsForSignalContamination=sfHists)
+        contamHistsToUse = None
+        if args.contamination:
+            contamHistsToUse = contamHists
+        backgroundHists = unrollAndStitch(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, addStatUnc=(not args.noStat), addMCVsFit=args.addMCVsFit, debugLevel=debugLevel, signalContaminationHists=contamHistsToUse, sfHistsForSignalContamination=sfHists)
 
         if args.noCombine: continue #if not setting a limit, we are done
 
@@ -127,6 +142,11 @@ if __name__ == "__main__":
         for x,h in signalHists.items():
             h.SetName(h.GetName().replace(curBox+'_'+args.model,modelName))
             signalHists[h.GetName()] = signalHists.pop(x)
+    
+        #apply reduced efficiency method to correct for the presence of signal in the control regions
+        if args.reducedEff:
+            macro.doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists, sfHists, unrollBins=unrollBins, debugLevel=debugLevel)
+
         #combine signal and background dictionaries
         hists = backgroundHists.copy()
         hists.update(signalHists)
@@ -147,10 +167,10 @@ if __name__ == "__main__":
     #run combine
     if args.signif:
         combineMethod = 'ProfileLikelihood'
-        combineFlags = '--signif -t -1 --toysFreq'
+        combineFlags = '--signif -t -1 --toysFreq --saveWorkspace'
     else:
         combineMethod = 'Asymptotic'
-        combineFlags = ''
+        combineFlags = '--saveWorkspace'
     if len(boxList) == 1:
         #get card name
         cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])
