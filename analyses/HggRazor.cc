@@ -645,6 +645,30 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	
 	}
       
+      /////////////////////////////////
+      //Scale and PDF variations
+      /////////////////////////////////                                                                                                               
+      if ((*scaleWeights).size() >= 9) {
+	sf_facScaleUp = (*scaleWeights)[1]/genWeight;
+	sf_facScaleDown = (*scaleWeights)[2]/genWeight;
+	sf_renScaleUp = (*scaleWeights)[3]/genWeight;
+	sf_renScaleDown = (*scaleWeights)[6]/genWeight;
+	sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
+	sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+      }
+
+      SumScaleWeights->Fill(0.0, sf_facScaleUp);
+      SumScaleWeights->Fill(1.0, sf_facScaleDown);
+      SumScaleWeights->Fill(2.0, sf_renScaleUp);
+      SumScaleWeights->Fill(3.0, sf_renScaleDown);
+      SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
+      SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+
+      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+	SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+      }
+      
+
       if ( _debug ) std::cout << "============" << std::endl;
       if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
       
@@ -1395,30 +1419,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     //------------------------------------------------
     sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
 
-
-    /////////////////////////////////
-    //Scale and PDF variations
-    /////////////////////////////////
-    if ((*scaleWeights).size() >= 9) {
-      sf_facScaleUp = (*scaleWeights)[1]/genWeight;
-      sf_facScaleDown = (*scaleWeights)[2]/genWeight;
-      sf_renScaleUp = (*scaleWeights)[3]/genWeight;
-      sf_renScaleDown = (*scaleWeights)[6]/genWeight;
-      sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
-      sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
-    }
-    
-    SumScaleWeights->Fill(0.0, sf_facScaleUp);
-    SumScaleWeights->Fill(1.0, sf_facScaleDown);
-    SumScaleWeights->Fill(2.0, sf_renScaleUp);
-    SumScaleWeights->Fill(3.0, sf_renScaleDown);
-    SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
-    SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
-
-    for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
-      SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-    }
-    
     //Writing output to tree
     //HighPt Box
     if ( pTGammaGamma > 110.0 )
