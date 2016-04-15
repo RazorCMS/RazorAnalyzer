@@ -1058,3 +1058,8 @@ def getDownPoissonError(n):
     if n == 0: 
         return 0
     return n - rt.Math.gamma_quantile( alpha/2, n, 1. )
+
+def getBinEvidence(x, b, s):
+    """Compute the contribution of bin with x observed, b background and s signal expected, to the poisson likelihood"""
+    return -2 * (x * math.log( (s+b)*1.0/b ) - s)
+
