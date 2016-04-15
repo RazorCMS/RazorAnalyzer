@@ -67,7 +67,7 @@ def writeBashScript(box,btag,model,mg,mchi,lumi,config,submitDir,isData,fit,pena
     script += 'make\n'
     script += 'mkdir -p Datasets\n'
     script += 'mkdir -p %s\n'%submitDir
-    if "T1" in model:
+    if "T1" in model or "T5" in model:
         script += 'python python/RunCombine.py -i %s -m %s --mGluino %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f %s\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax,histoString)
     else:
         script += 'python python/RunCombine.py -i %s -m %s --mStop %i --mLSP %i %s -c %s --lumi-array %f -d %s -b %s %s %s %s --min-tol %e --min-strat %i --rMax %f %s\n'%(inputFitFile,model,mg,mchi,dataString,config,lumi,submitDir,box,fitString,penaltyString,signalSys,min_tol,min_strat,rMax,histoString)
@@ -159,7 +159,7 @@ if __name__ == '__main__':
                 if outputname in allFiles: donePairs.append((mg,mchi))
 
     thyXsec = {}
-    if "T1" in options.model:
+    if "T1" in options.model or "T5" in options.model:
         xsecFile = 'data/gluino13TeV.txt'
     if "T2" in options.model:
         xsecFile = 'data/stop13TeV.txt'

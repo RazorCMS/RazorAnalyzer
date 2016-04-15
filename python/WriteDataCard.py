@@ -389,7 +389,7 @@ if __name__ == '__main__':
     massPoint = ''
     for f in args:
         if f.lower().endswith('.root'):
-            if f.lower().find('t1')!=-1 or f.lower().find('t2')!=-1:
+            if f.lower().find('t1')!=-1 or f.lower().find('t5')!=-1 or f.lower().find('t2')!=-1:
                 signalFileName = f
                 #signalDs = workspace.data('RMRTree')
                 model = f.split('.root')[0].split('-')[1].split('_')[0]
@@ -521,6 +521,8 @@ if __name__ == '__main__':
             mc = w.data("data_obs").sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
             asimov = w.pdf("extRazorPdf").generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov())
             fit = asimov.sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
+            th1x.setVal(iBin+0.5)
+            fit = w.pdf("extRazorPdfNoConst").getVal()
             zBin = iBin % zBins
             yBin = ( (iBin - zBin)/(zBins) ) % (yBins)
             xBin =  (iBin - zBin - yBin*zBins ) / (zBins*yBins)
