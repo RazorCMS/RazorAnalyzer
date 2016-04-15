@@ -2565,6 +2565,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             getline(parser, item, '_'); //prefix
             if(getline(parser, item, '_')){ //gluino mass 
                 mGluino = atoi(item.c_str());
+                if(mGluino == 0) { //fix for the case where the model name contains an underscore
+                    if(getline(parser, item, '_')){
+                        mGluino = atoi(item.c_str());
+                    }
+                }
                 if(getline(parser, item, '_')){ //LSP mass 
                     mLSP = atoi(item.c_str());
                     pair<int,int> smsPair = make_pair(mGluino, mLSP);

@@ -1622,3 +1622,50 @@ def plot_SUS15004_1D(c, mc=0, data=0, leg=0, xtitle="", ytitle="Events", ymin=No
     c.Print(printdir+'/'+printstr+".root")
     c.Print(printdir+'/'+printstr+".C")
     pad1.Delete()
+
+def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}", unrollBins=(None,None)):
+    #setup
+    c.Clear()
+    c.cd()
+    pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.28, 1, 1)
+    rt.SetOwnership(pad1, False)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetLogy()
+    pad1.Draw()
+    pad1.cd()
+
+    ### draw evidence plot
+    ev.SetTitle("")
+    ev.SetStats(0)
+    ev.GetXaxis().SetTitle("")
+    ev.GetYaxis().SetTitle("Contribution to -2DLL")
+    ev.GetYaxis().SetTitleOffset(1.00)
+    ev.GetYaxis().SetTitleSize(0.04)
+    ev.GetXaxis().SetLabelSize(0.045)
+    ev.GetXaxis().LabelsOption("v")
+    ev.GetXaxis().SetLabelFont(62)
+    ev.GetYaxis().SetLabelSize(0.04)
+    ev.SetMarkerStyle(20)
+    ev.SetMarkerColor(9)
+    ev.SetMarkerSize(1)
+    ev.SetLineWidth(1)
+    ev.SetLineColor(rt.kBlack)
+    ev.SetMinimum(1e-3)
+    ev.Draw("pe")
+    pad1.Modified()
+    rt.gPad.Update()
+
+    #add LaTeX 
+    CMS_lumi(pad1, lumistr=lumistr)
+    if unrollBins[0] is not None and unrollBins[1] is not None:
+        drawMRLabels(pad1, unrollBins[0], unrollBins[1])
+        lines = getMRLines(pad1, unrollBins[0], unrollBins[1], ev)
+        for l in lines: l.Draw()
+
+    #save
+    c.Print(printdir+'/'+printstr+".png")
+    c.Print(printdir+'/'+printstr+".pdf")
+    c.Print(printdir+'/'+printstr+".root")
+    c.Print(printdir+'/'+printstr+".C")
+
+    pad1.Delete()

@@ -12,7 +12,6 @@ rootdict.*
 condor/*
 *.condor
 *.swp
-dustinScripts
 python/lib/*
 tmp.txt
 *.*~
@@ -27,8 +26,3 @@ test.*
 *.tex
 *.gif
 *.png
-ControlSampleFits
-Datasets
-FitProjections
-FitResults
-cards

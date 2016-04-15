@@ -14,6 +14,7 @@ from CheckSignalContamination import checkSignalContamination
 from framework import Config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
+NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 LIMIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
@@ -42,6 +43,8 @@ if __name__ == "__main__":
     parser.add_argument('--expected-r', type=float, dest="expectedR",
             help='expected upper limit, used to compute signal contamination systematic')
     parser.add_argument('--reduced-efficiency-method', dest='reducedEff', action='store_true', help='modify background yields to correct for signal contamination')
+    parser.add_argument('--no-pathologies', dest='noPathologies', action='store_true', 
+            help='remove problematic fastsim events')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -120,11 +123,14 @@ if __name__ == "__main__":
             uncorrelateSFs(backgroundHists, sys, sfHists, cfg, curBox, unrollBins=unrollBins)
 
         #call SMS template maker
+        dirToUse = SIGNAL_DIR
+        if args.noPathologies:
+            dirToUse = NOPATHOLOGIES_SIGNAL_DIR
         if 'T1' in args.model or 'T5' in args.model:
             modelName = 'SMS-'+args.model+'_'+str(args.mGluino)+'_'+str(args.mLSP)
         else:
             modelName = 'SMS-'+args.model+'_'+str(args.mStop)+'_'+str(args.mLSP)
-        signalFilename=SIGNAL_DIR+'/'+modelName+'.root'
+        signalFilename=dirToUse+'/'+modelName+'.root'
 
         #to modify branching ratios in T1ttbb sample
         brString = ""
@@ -132,7 +138,7 @@ if __name__ == "__main__":
             xBR = float(args.model[args.model.find('x')+1:args.model.find('y')].replace('p','.'))
             yBR = float(args.model[args.model.find('y')+1:].replace('p','.'))
             brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
-            signalFilename = SIGNAL_DIR+'/SMS-T1ttbb_'+str(args.mGluino)+'_'+str(args.mLSP)+'.root'
+            signalFilename = dirToUse+'/SMS-T1ttbb_'+str(args.mGluino)+'_'+str(args.mLSP)+'.root'
 
         exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s %s'%(config, outDir, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename, brString), False) 
         #load SMS template histograms
