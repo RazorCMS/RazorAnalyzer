@@ -1532,7 +1532,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	    if (!jetPassIDTight[i]) continue;
 	  }
 
-            //Apply pileup jet ID 
+
+	  //Apply pileup jet ID 
             //UNDER CONSTRUCTION (No working point yet for Run2)
             //int level = 2; //loose jet ID
             //if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
@@ -1564,9 +1565,35 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
             TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
 
-            //do up/down lepton scale uncertainties
-            double deltaR = -1;
-            if (!isData) {
+
+ 	    //******************************************
+ 	    //Filter out the pathological jets
+	    //******************************************
+	    if (isFastsimSMS) {
+	      double jetPtResidual = -999;
+	    
+	      //Match to Gen Jet
+	      int matchedIndex = -1;
+	      float minDR = 9999;
+	      for(int j = 0; j < nGenJets; j++){
+	        double tmpDR = deltaR( genJetEta[j],genJetPhi[j], jetEta[i],jetPhi[i]);
+	        if ( tmpDR < 0.4
+		     && tmpDR < minDR
+		     ) {		
+		  matchedIndex = j;
+		  minDR = tmpDR;
+		}
+	      }
+	      if (matchedIndex >= 0) {
+		jetPtResidual = (jetCorrPt - genJetPt[matchedIndex]) / genJetPt[matchedIndex];
+	      }
+	      if ( jetCorrPt > 500 && !(abs(jetPtResidual) > 0 && abs(jetPtResidual) < 2)) continue;
+	    }
+	    
+	    
+	    //do up/down lepton scale uncertainties
+	    double deltaR = -1;
+	    if (!isData) {
                 for (auto& lep : GoodLeptonsMESUp) {
                     double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                     if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
