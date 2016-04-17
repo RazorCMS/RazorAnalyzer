@@ -1234,3 +1234,37 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
         macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=outDir, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)
 
     return histsForDataCard
+
+def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, debugLevel=0):
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+    c = rt.TCanvas("d", "d", 800, 600)
+    
+    signalBin = 0
+    for i,f in enumerate(filenames):
+        unrollRows = unrollBins[i][0]
+        unrollCols = unrollBins[i][1]
+        unrolledMC = {s:[] for s in samples}
+        hists = macro.importHists(f, debugLevel)
+
+        #make total background histogram
+        unrolledMCs = plotting.unroll2DHistograms([hists[s][('MR','Rsq')] for s in samples], unrollRows, 
+                unrollCols, labelBins=True)
+        unrolledMCTotal = unrolledMCs[0].Clone("unrolledMCTotal"+str(i))
+        unrolledMCTotal.Reset()
+        for n,s in enumerate(samples):
+            unrolledMCTotal.Add(unrolledMCs[n])
+        
+        #loop over bins
+        evidenceHist = unrolledMCTotal.Clone("evidence"+str(i))
+        evidenceHist.Reset()
+        for bx in range(1, evidenceHist.GetNbinsX()+1):
+            signalBin += 1
+            s = signalHist.GetBinContent(signalBin)
+            b = unrolledMCTotal.GetBinContent(bx)
+            evidence = macro.getBinEvidence(b, b, s) #expected contribution to the likelihood
+            evidenceHist.SetBinContent(bx, evidence)
+            evidenceHist.SetBinError(bx, 0)
+
+        #plot the evidence
+        plotting.plotEvidenceHist(c, evidenceHist, printstr="evidence"+boxName+str(i)+"BTag"+signalHist.GetName(), 
+                printdir=outDir, unrollBins=unrollBins[i])
