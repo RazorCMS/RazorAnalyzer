@@ -251,6 +251,28 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 225+12.5
         smoothing = 200
+    elif model=="T5ttttDM175":
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 225+12.5
+        smoothing = 200
+    elif model=="T5tttt_degen":
+        mgMin = 600.-12.5
+        mgMax = 2000.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 225+12.5
+        smoothing = 200
     elif model=="T1ttbb":
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
