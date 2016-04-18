@@ -98,21 +98,21 @@ if __name__ == '__main__':
                 sumPdfWeights = None
 
             # get mass point information
-            modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
+            modelString = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[:-2])
             if options.xBR>-1 and options.yBR>-1:
                 modelString = modelString.replace('T1ttbb',('T1x%.2fy%.2f'%(options.xBR,options.yBR)).replace('.','p'))
             model = modelString.split('-')[-1]
-            massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:3])
+            massPoint = '_'.join(f.split('/')[-1].split('.root')[0].split('_')[1:])
                                
             thyXsec = -1
             thyXsecErr = -1
             mGluino = -1
             mStop = -1
-            mLSP = massPoint.split("_")[1]
+            mLSP = massPoint.split("_")[-1]
             if "T1" in model or "T5" in model:
-                mGluino = massPoint.split("_")[0]
+                mGluino = massPoint.split("_")[-2]
             elif "T2" in model:
-                mStop = massPoint.split("_")[0]
+                mStop = massPoint.split("_")[-2]
     
             if mGluino!=-1:
                 for line in open('data/gluino13TeV.txt','r'):
