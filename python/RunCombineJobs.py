@@ -161,13 +161,19 @@ if __name__ == '__main__':
     thyXsec = {}
     if "T1" in options.model or "T5" in options.model:
         xsecFile = 'data/gluino13TeV.txt'
-    if "T2" in options.model:
+    elif "T2" in options.model:
         xsecFile = 'data/stop13TeV.txt'
         
     for line in open(xsecFile,'r'):
         for (mg, mchi) in gchipairs(options.model):
             if str(int(mg))==line.split(',')[0]:
                 thyXsec[(mg,mchi)] = float(line.split(',')[1]) #pb
+    if options.model=="T5ttttDM175T2tt":
+        for line in open('data/stop13TeV.txt','r'):
+            for (mg, mchi) in gchipairs(options.model):
+                if str(int(mchi+175))==line.split(',')[0]:
+                    thyXsec[(mg,mchi)] += float(line.split(',')[1]) #pb
+            
 
     if options.asymptoticFile != None:        
         print "INFO: Input ref xsec file!"

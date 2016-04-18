@@ -111,7 +111,7 @@ if __name__ == '__main__':
             mLSP = massPoint.split("_")[1]
             if "T1" in model or "T5" in model:
                 mGluino = massPoint.split("_")[0]
-            if "T2" in model:
+            elif "T2" in model:
                 mStop = massPoint.split("_")[0]
     
             if mGluino!=-1:
@@ -120,7 +120,13 @@ if __name__ == '__main__':
                     if str(int(mGluino))==line.split(',')[0]:
                         thyXsec = float(line.split(',')[1]) #pb
                         thyXsecErr = 0.01*float(line.split(',')[2])
-            if mStop!=-1:
+                if model=="T5ttttDM175T2tt":                    
+                    for line in open('data/stop13TeV.txt','r'):
+                        line = line.replace('\n','')
+                        if str(int(mLSP)+175)==line.split(',')[0]:
+                            thyXsecStop = float(line.split(',')[1]) #pb
+                    thyXsec+=thyXsecStop                    
+            elif mStop!=-1:
                 for line in open('data/stop13TeV.txt','r'):
                     line = line.replace('\n','')
                     if str(int(mStop))==line.split(',')[0]:
