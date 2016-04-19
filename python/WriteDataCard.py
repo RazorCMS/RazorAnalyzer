@@ -366,6 +366,8 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic shape uncertainties")
+    parser.add_option('--no-backgrounds',dest="noBackgrounds",default=False,action='store_true',
+                  help="no background components, just create datacard for signal")
     parser.add_option('--histo-file',dest="histoFile", default=None,type="string",
                   help="input histogram file for MADD/fit systematic")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
