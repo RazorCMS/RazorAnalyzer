@@ -9,7 +9,7 @@
 #./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.cern.txt false QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8 5 HggRazor 1
 #./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80_TuneCUETP8M1_13TeV_Pythia8.cern.txt false QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80_TuneCUETP8M1_13TeV_Pythia8 5 HggRazor 1
 #./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.cern.txt false QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8 5 HggRazor 1
-#./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/GluGluHToGG_M-125_13TeV_powheg_pythia8.cern.txt false GluGluHToGG_M-125_13TeV_powheg_pythia8 5 HggRazor 1
+./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/GluGluHToGG_M-125_13TeV_powheg_pythia8.cern.txt false GluGluHToGG_M-125_13TeV_powheg_pythia8 5 HggRazor 1
 ./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/ttHToGG_M125_13TeV_powheg_pythia8_v2.cern.txt false ttHToGG_M125_13TeV_powheg_pythia8_v2 5 HggRazor 1
 ./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/VBFHToGG_M-125_13TeV_powheg_pythia8.cern.txt false VBFHToGG_M-125_13TeV_powheg_pythia8 5 HggRazor 1
 ./scripts/Submit-lxplus.py lists/Run2/razorNtuplerV2p0/MC/WminusH_HToGG_WToAll_M125_13TeV_powheg_pythia8.cern.txt false WminusH_HToGG_WToAll_M125_13TeV_powheg_pythia8 5 HggRazor 1

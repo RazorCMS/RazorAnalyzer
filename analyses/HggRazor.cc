@@ -260,7 +260,9 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   float sf_facScaleUp, sf_facScaleDown;
   float sf_renScaleUp, sf_renScaleDown;
   float sf_facRenScaleUp, sf_facRenScaleDown;
-
+  //PDF SF
+  std::vector<float> sf_pdf;
+  
   int NPU;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   float theMR, theMR_JESUp, theMR_JESDown;
@@ -311,6 +313,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
       razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
       razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
+      razorTree->Branch("sf_pdf", "std::vector<float>",&sf_pdf); //sf PDF
       
       //MET filters
       razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
@@ -647,26 +650,30 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       
       /////////////////////////////////
       //Scale and PDF variations
-      /////////////////////////////////                                                                                                               
-      if ((*scaleWeights).size() >= 9) {
-	sf_facScaleUp = (*scaleWeights)[1]/genWeight;
-	sf_facScaleDown = (*scaleWeights)[2]/genWeight;
-	sf_renScaleUp = (*scaleWeights)[3]/genWeight;
-	sf_renScaleDown = (*scaleWeights)[6]/genWeight;
-	sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
-	sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
-      }
+      /////////////////////////////////
+      if ( (*scaleWeights).size() >= 9 ) 
+	{
+	  sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
+	  sf_facScaleDown    = (*scaleWeights)[2]/genWeight;
+	  sf_renScaleUp      = (*scaleWeights)[3]/genWeight;
+	  sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
+	  sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
+	  sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	}
 
-      SumScaleWeights->Fill(0.0, sf_facScaleUp);
-      SumScaleWeights->Fill(1.0, sf_facScaleDown);
-      SumScaleWeights->Fill(2.0, sf_renScaleUp);
-      SumScaleWeights->Fill(3.0, sf_renScaleDown);
-      SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
-      SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+      SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
+      SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
+      SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
+      SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
+      SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
+      SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
 
-      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
-	SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-      }
+      sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
+      for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
+	{
+	  sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
+	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	}
       
 
       if ( _debug ) std::cout << "============" << std::endl;
