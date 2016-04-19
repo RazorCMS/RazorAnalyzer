@@ -142,16 +142,22 @@ if __name__ == '__main__':
     thyXsecErr = {}
     if refXsecFile is not None:
         print "INFO: Input ref xsec file!"
-        for mg in range(100,2025,25):
+        for mg, mchi in gchipairs(model):
             for line in open(refXsecFile,'r'):
                 line = line.replace('\n','')
                 if str(mg)==line.split(',')[0]:
-                    thyXsec[mg] = float(line.split(',')[1]) #pb
-                    thyXsecErr[mg] = 0.01*float(line.split(',')[2])
+                    thyXsec[mg,mchi] = float(line.split(',')[1]) #pb
+                    thyXsecErr[mg,mchi] = 0.01*float(line.split(',')[2])                    
+            if model=="T5ttttDM175T2tt":                    
+                for line in open('data/stop13TeV.txt','r'):
+                    line = line.replace('\n','')
+                    if str(mchi+175)==line.split(',')[0]:
+                        thyXsecStop = float(line.split(',')[1]) #pb
+                #thyXsec[mg,mchi]+=thyXsecStop                    
                 
     for mg, mchi in gchipairs(model):
         if refXsecFile is not None:
-            refXsec = 1.e3*thyXsec[mg]
+            refXsec = 1.e3*thyXsec[mg,mchi]
             #print "INFO: ref xsec taken to be: %s mass %d, xsec = %f fb"%(gluinoHistName, mg, refXsec)
         
         if doSignificance and doHybridNew:
