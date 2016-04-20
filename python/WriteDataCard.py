@@ -213,7 +213,6 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
                 processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
                 lumiErrs = [1.027 for sig in model.split('p')]
         else:
-                signals = 1
                 rates = [w.data("%s_%s"%(box,model)).sumEntries()]
                 processes = ["%s_%s"%(box,model)]
                 lumiErrs = [1.027]
@@ -222,7 +221,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
-                   "jmax %i number of backgrounds\n"%nBkgd + \
+                   "jmax %i number of processes minus 1\n"%(nBkgd+signals-1) + \
                    "kmax * number of nuisance parameters\n" + \
                    divider + \
                    "observation	%.3f\n"%obsRate + \
@@ -237,7 +236,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         for i in range(0,len(bkgs)+signals):
             binString +="\t%s"%box
             processString += "\t%s"%processes[i]
-            processNumberString += "\t%i"%i
+            processNumberString += "\t%i"%(i-signals+1)
             rateString += "\t%.3f" %rates[i]
             lumiString += "\t%.3f"%lumiErrs[i]
         binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
