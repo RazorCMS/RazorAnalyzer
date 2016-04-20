@@ -33,6 +33,8 @@ if __name__ == '__main__':
                   help="merge some bins in Rsq")
     parser.add_option('--mStop',dest="mStop", default=-1,type="float",
                   help="override mass of stop")
+    parser.add_option('--mLSP',dest="mLSP", default=-1,type="float",
+                  help="override mass of LSP")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
     #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
                   #help="Number of nuisance parameters to use for PDF uncertainties")
@@ -111,6 +113,9 @@ if __name__ == '__main__':
             mGluino = -1
             mStop = -1
             mLSP = massPoint.split("_")[-1]
+            if options.mLSP>0:
+                mLSP = str(int(options.mLSP))
+                
             if "T1" in model or "T5" in model:
                 mGluino = massPoint.split("_")[-2]
             elif "T2" in model:
