@@ -31,6 +31,8 @@ if __name__ == '__main__':
                   help="no signal systematic templates")
     parser.add_option('--merge-bins',dest="mergeBins", action="store_true",
                   help="merge some bins in Rsq")
+    parser.add_option('--mStop',dest="mStop", default=-1,type="float",
+                  help="override mass of stop")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
     #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
                   #help="Number of nuisance parameters to use for PDF uncertainties")
@@ -113,6 +115,8 @@ if __name__ == '__main__':
                 mGluino = massPoint.split("_")[-2]
             elif "T2" in model:
                 mStop = massPoint.split("_")[-2]
+                if options.mStop>0:
+                    mStop = str(int(options.mStop))
     
             if mGluino!=-1:
                 for line in open('data/gluino13TeV.txt','r'):

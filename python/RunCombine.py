@@ -172,7 +172,7 @@ if __name__ == '__main__':
                     else:
                         massPoint2 = '%i_%i'%(550,375)
                 exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s'%(options.config,box,eosLocationSMS[signals[0]],signals[0],massPoint,1000*lumi,signalSys,brString),options.dryRun)
-                exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s'%(options.config,box,eosLocationSMS[signals[1]],signals[1],massPoint2,1000*lumi,signalSys,brString),options.dryRun)                
+                exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s --mStop %i'%(options.config,box,eosLocationSMS[signals[1]],signals[1],massPoint2,1000*lumi,signalSys,brString,options.mLSP+175),options.dryRun)                
                 signal1DsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(signals[0],massPoint,lumi,btag,box)
                 signal2DsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(signals[1],massPoint2,lumi,btag,box)
                 exec_me('hadd -f %s %s %s'%(signalDsName,signal1DsName,signal2DsName),options.dryRun)
