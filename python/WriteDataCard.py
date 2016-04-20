@@ -207,11 +207,18 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         obsRate = w.data("data_obs").sumEntries()
         nBkgd = len(bkgs)
         rootFileName = txtfileName.replace('.txt','.root')
-        rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+        signals = len(model.split('p'))
+        if signals>1:
+                rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
+                processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
+                lumiErrs = [1.027 for sig in model.split('p')]
+        else:
+                signals = 1
+                rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+                processes = ["%s_%s"%(box,model)]
+                lumiErrs = [1.027]
         rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
-        processes = ["%s_%s"%(box,model)]
         processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-        lumiErrs = [1.027]
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
@@ -227,7 +234,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         processNumberString = "process"
         rateString = "rate"
         lumiString = "lumi\tlnN"
-        for i in range(0,len(bkgs)+1):
+        for i in range(0,len(bkgs)+signals):
             binString +="\t%s"%box
             processString += "\t%s"%processes[i]
             processNumberString += "\t%i"%i
@@ -238,7 +245,9 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         # now nuisances
         datacard+=lumiString
         for shape in shapes:
-            shapeString = '%s\tshape\t\t1.0'%shape
+            shapeString = '%s\tshape\t'%shape
+            for sig in range(0,signals):
+                shapeString += '\t1.0'
             for i in range(0,len(bkgs)):
                 shapeString += '\t-'
             shapeString += '\n'
@@ -259,8 +268,10 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
             elif penalty:                    
                 mean = w.var(paramName).getVal()
                 sigma = w.var(paramName).getError()                
-                if "Ntot" in paramName:
-                    effectString = "\t1.0"                    
+                if "Ntot" in paramName:                    
+                    effectString = ''
+                    for sig in range(0,signals):
+                        effectString += "\t1.0"           
                     for bkg in bkgs:
                         if bkg in paramName:
                             effectString += "\t%.3f"%(1.0+sigma/mean)                            
@@ -272,7 +283,9 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
                          
             else:
                 if "Ntot" in paramName:
-                    effectString = "\t1.0"                    
+                    effectString = ""
+                    for sig in range(0,signals):
+                        effectString += "\t1.0"
                     for bkg in bkgs:
                         if bkg in paramName:
                             effectString += "\t2.0"                         

@@ -206,21 +206,22 @@ if __name__ == '__main__':
                         del dsDict['%s_pdf%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
             if 'mcstat%s'%box.lower() in shapes:
                 uncorrelate(dsDict, 'mcstat%s'%box.lower())
+                # for now: don't remove unncessary MC stat bins
                 # remove unnecessary MC stat bins (relative uncertainty < 10%) see htt recommendation
                 # https://indico.cern.ch/event/373752/session/6/contribution/14/attachments/744534/1021298/bbb-HCG.pdf
-                for bx in range(1,ds[0].GetNbinsX()+1):
-                    if ds[0].GetBinContent(bx) == 0 or ds[0].GetBinError(bx) == 0:
-                        print 'Relative MC stat uncertainty bin %i = %.1f%% is less than 10%%'%(bx,0.)
-                        print 'Removing histogram: %s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)
-                        print 'Removing histogram: %s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)
-                        del dsDict['%s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
-                        del dsDict['%s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
-                    elif ds[0].GetBinContent(bx) > 0 and ds[0].GetBinError(bx)/ds[0].GetBinContent(bx) < 0.1:
-                        print 'Relative MC stat uncertainty bin %i = %.1f%% is less than 10%%'%(bx,100.*ds[0].GetBinError(bx)/ds[0].GetBinContent(bx))
-                        print 'Removing histogram: %s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)
-                        print 'Removing histogram: %s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)
-                        del dsDict['%s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
-                        del dsDict['%s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
+                #for bx in range(1,ds[0].GetNbinsX()+1):
+                #    if ds[0].GetBinContent(bx) == 0 or ds[0].GetBinError(bx) == 0:
+                #        print 'Relative MC stat uncertainty bin %i = %.1f%% is less than 10%%'%(bx,0.)
+                #        print 'Removing histogram: %s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)
+                #        print 'Removing histogram: %s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)
+                #        del dsDict['%s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
+                #        del dsDict['%s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
+                #    elif ds[0].GetBinContent(bx) > 0 and ds[0].GetBinError(bx)/ds[0].GetBinContent(bx) < 0.1:
+                #        print 'Relative MC stat uncertainty bin %i = %.1f%% is less than 10%%'%(bx,100.*ds[0].GetBinError(bx)/ds[0].GetBinContent(bx))
+                #        print 'Removing histogram: %s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)
+                #        print 'Removing histogram: %s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)
+                #        del dsDict['%s_mcstat%s%iUp'%(ds[0].GetName(),box.lower(),bx)]
+                #        del dsDict['%s_mcstat%s%iDown'%(ds[0].GetName(),box.lower(),bx)]
         else:
             print "Error: expected ROOT file!"
             sys.exit()
