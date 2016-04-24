@@ -336,7 +336,7 @@ if __name__ == '__main__':
                 thyXsecErr = -1
                 mGluino = -1
                 mStop = -1
-                if "T1" in model:
+                if "T1" in model or "T5" in model:
                     mGluino = massPoint.split("_")[0]
                 if "T2" in model:
                     mStop = massPoint.split("_")[0]

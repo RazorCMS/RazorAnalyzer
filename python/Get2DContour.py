@@ -251,6 +251,28 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 225+12.5
         smoothing = 200
+    elif model=="T5ttttDM175" or model=="T5ttttDM175T2tt":
+        mgMin = 600.-12.5
+        mgMax = 1700.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 225+12.5
+        smoothing = 0
+    elif model=="T5tttt_degen":
+        mgMin = 600.-12.5
+        mgMax = 1700.+12.5
+        mchiMin = 0.-12.5
+        mchiMax = 1450.+12.5 
+        binWidth = 25
+        nRebins = 0
+        xsecMin = 1.e-3
+        xsecMax = 10.
+        diagonalOffset = 225+12.5
+        smoothing = 200
     elif model=="T1ttbb":
         mgMin = 600.-12.5
         mgMax = 2000.+12.5
@@ -403,12 +425,19 @@ if __name__ == '__main__':
     thyXsecErr = {}
     if refXsecFile is not None:
         print "INFO: Input ref xsec file!"
-        for mg in range(100,2025,25):
-            for line in open(refXsecFile,'r'):
-                line = line.replace('\n','')
-                if str(mg)==line.split(',')[0]:
-                    thyXsec[mg] = float(line.split(',')[1]) #pb
-                    thyXsecErr[mg] = 0.01*float(line.split(',')[2])
+        for mg in range(int(mgMin+12.5),int(mgMax-12.5)+25,25):            
+            for mchi in range(int(mchiMin+12.5),mg,25):
+                for line in open(refXsecFile,'r'):
+                    line = line.replace('\n','')
+                    if str(mg)==line.split(',')[0]:
+                        thyXsec[mg,mchi] = float(line.split(',')[1]) #pb
+                        thyXsecErr[mg,mchi] = 0.01*float(line.split(',')[2])               
+                if model=="T5ttttDM175T2tt":                    
+                    for line in open('data/stop13TeV.txt','r'):
+                        line = line.replace('\n','')
+                        if str(mchi+175)==line.split(',')[0]:
+                            thyXsecStop = float(line.split(',')[1]) #pb
+                    thyXsec[mg,mchi]+=thyXsecStop                    
     else: 
         print "ERROR: no xsec file; exiting"
         sys.exit()  
@@ -418,11 +447,11 @@ if __name__ == '__main__':
     
     for i in xrange(1,xsecGluino.GetNbinsX()+1):
         xLow = xsecGluino.GetXaxis().GetBinCenter(i)
-        xsecVal = thyXsec[int(xLow)]
-        xsecErr =  thyXsecErr[int(xLow)]
         for j in xrange(1,xsecGluino.GetNbinsY()+1):
             yLow = xsecGluino.GetYaxis().GetBinCenter(j)
             if xLow >= yLow+diagonalOffset and xLow <= mgMax-binWidth/2:
+                xsecVal = thyXsec[int(xLow),int(yLow)]
+                xsecErr =  thyXsecErr[int(xLow),int(yLow)]
                 xsecGluino.SetBinContent(i,j,xsecVal)
                 xsecGluinoPlus.SetBinContent(i,j,xsecVal*(1+xsecErr))
                 xsecGluinoMinus.SetBinContent(i,j,xsecVal*(1-xsecErr))
@@ -470,8 +499,8 @@ if __name__ == '__main__':
             rebinXsecUL[clsType] = rt.swissCrossRebin(rebinXsecUL[clsType],"NE")
 
         # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
-        xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
+        #xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+        #xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # fix axes
         xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))

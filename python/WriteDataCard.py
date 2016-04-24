@@ -207,15 +207,21 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         obsRate = w.data("data_obs").sumEntries()
         nBkgd = len(bkgs)
         rootFileName = txtfileName.replace('.txt','.root')
-        rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+        signals = len(model.split('p'))
+        if signals>1:
+                rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
+                processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
+                lumiErrs = [1.027 for sig in model.split('p')]
+        else:
+                rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+                processes = ["%s_%s"%(box,model)]
+                lumiErrs = [1.027]
         rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
-        processes = ["%s_%s"%(box,model)]
         processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-        lumiErrs = [1.027]
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
-                   "jmax %i number of backgrounds\n"%nBkgd + \
+                   "jmax %i number of processes minus 1\n"%(nBkgd+signals-1) + \
                    "kmax * number of nuisance parameters\n" + \
                    divider + \
                    "observation	%.3f\n"%obsRate + \
@@ -227,10 +233,10 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         processNumberString = "process"
         rateString = "rate"
         lumiString = "lumi\tlnN"
-        for i in range(0,len(bkgs)+1):
+        for i in range(0,len(bkgs)+signals):
             binString +="\t%s"%box
             processString += "\t%s"%processes[i]
-            processNumberString += "\t%i"%i
+            processNumberString += "\t%i"%(i-signals+1)
             rateString += "\t%.3f" %rates[i]
             lumiString += "\t%.3f"%lumiErrs[i]
         binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
@@ -238,7 +244,9 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         # now nuisances
         datacard+=lumiString
         for shape in shapes:
-            shapeString = '%s\tshape\t\t1.0'%shape
+            shapeString = '%s\tshape\t'%shape
+            for sig in range(0,signals):
+                shapeString += '\t1.0'
             for i in range(0,len(bkgs)):
                 shapeString += '\t-'
             shapeString += '\n'
@@ -259,8 +267,10 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
             elif penalty:                    
                 mean = w.var(paramName).getVal()
                 sigma = w.var(paramName).getError()                
-                if "Ntot" in paramName:
-                    effectString = "\t1.0"                    
+                if "Ntot" in paramName:                    
+                    effectString = ''
+                    for sig in range(0,signals):
+                        effectString += "\t1.0"           
                     for bkg in bkgs:
                         if bkg in paramName:
                             effectString += "\t%.3f"%(1.0+sigma/mean)                            
@@ -272,7 +282,9 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
                          
             else:
                 if "Ntot" in paramName:
-                    effectString = "\t1.0"                    
+                    effectString = ""
+                    for sig in range(0,signals):
+                        effectString += "\t1.0"
                     for bkg in bkgs:
                         if bkg in paramName:
                             effectString += "\t2.0"                         
@@ -366,6 +378,8 @@ if __name__ == '__main__':
                   help="input fit file")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal systematic shape uncertainties")
+    parser.add_option('--no-backgrounds',dest="noBackgrounds",default=False,action='store_true',
+                  help="no background components, just create datacard for signal")
     parser.add_option('--histo-file',dest="histoFile", default=None,type="string",
                   help="input histogram file for MADD/fit systematic")
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
@@ -389,7 +403,7 @@ if __name__ == '__main__':
     massPoint = ''
     for f in args:
         if f.lower().endswith('.root'):
-            if f.lower().find('t1')!=-1 or f.lower().find('t2')!=-1:
+            if f.lower().find('t1')!=-1 or f.lower().find('t5')!=-1 or f.lower().find('t2')!=-1:
                 signalFileName = f
                 #signalDs = workspace.data('RMRTree')
                 model = f.split('.root')[0].split('-')[1].split('_')[0]
@@ -521,6 +535,8 @@ if __name__ == '__main__':
             mc = w.data("data_obs").sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
             asimov = w.pdf("extRazorPdf").generateBinned(rt.RooArgSet(th1x),rt.RooFit.Asimov())
             fit = asimov.sumEntries("th1x>=%i && th1x<%i+1"%(iBin,iBin))
+            th1x.setVal(iBin+0.5)
+            fit = w.pdf("extRazorPdfNoConst").getVal()
             zBin = iBin % zBins
             yBin = ( (iBin - zBin)/(zBins) ) % (yBins)
             xBin =  (iBin - zBin - yBin*zBins ) / (zBins*yBins)
