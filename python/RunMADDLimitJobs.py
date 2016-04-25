@@ -11,7 +11,8 @@ from framework import Config
 from GChiPairs import gchipairs
 from WriteRazorMADDCard import LUMI
     
-def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contamination=False,reducedEff=False):
+def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contamination=False,reducedEff=False,
+        removePathologies=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -28,6 +29,8 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contam
         contamString = '--contamination'
     elif reducedEff:
         contamString = '--reduced-efficiency-method'
+    if removePathologies:
+        contamString += ' --no-pathologies'
 
     particleString = '--mGluino'
     if 'T2' in model:
@@ -109,6 +112,8 @@ if __name__ == '__main__':
                   help="Propagate uncertainty on signal contamination")
     parser.add_option('--reduced-efficiency-method', dest="reducedEff", default=False, action='store_true',
                   help="Reduced efficiency correction for signal contamination")
+    parser.add_option('--no-pathologies', dest='noPathologies', action='store_true', 
+                  help='remove problematic fastsim events')
 
     (options,args) = parser.parse_args()
 
@@ -149,7 +154,8 @@ if __name__ == '__main__':
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/Limits/"+options.outDir)
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
-                options.outDir, options.noSys, options.fitSys, options.signif, options.contamination, options.reducedEff)
+                options.outDir, options.noSys, options.fitSys, options.signif, options.contamination, 
+                options.reducedEff, options.noPathologies)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
