@@ -5,7 +5,7 @@ import glob
 
 #local imports
 from macro.razorAnalysis import xbinsSignal, colsSignal
-from macro.razorMacros import makeRazorBinEvidencePlots
+from macro.razorMacros import makeRazorBinEvidencePlots, makeRazorMCTotalPlusSignalPlot
 from RunCombine import exec_me
 import macro.macro as macro
 from SidebandMacro import SAMPLES, LUMI, config
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     #make output directory
     os.system('mkdir -p '+outDir)
 
+    c = rt.TCanvas("c","c",800,600)
     for curBox in boxList:
         #get configuration for this box
         samples = SAMPLES[curBox]
@@ -79,6 +80,17 @@ if __name__ == "__main__":
         signalHist = signalHists[modelName]
 
         #make combined unrolled histograms for background
-        makeRazorBinEvidencePlots(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, 
-                signalHist=signalHist, unrollBins=unrollBins, debugLevel=debugLevel)
+        #makeRazorBinEvidencePlots(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, 
+        #        signalHist=signalHist, unrollBins=unrollBins, debugLevel=debugLevel, zmin=1e-3)
+        #draw signal and background in unrolled format
+        if args.model == 'T2tt':
+            signalString = 'pp #rightarrow #tilde{t}#tilde{t}, #mu = 1.0, #tilde{t} #rightarrow t#tilde{#chi}^{0}_{1}'
+        elif args.model == 'T1bbbb':
+            signalString = 'pp #rightarrow #tilde{g}#tilde{g}, #mu = 1.0, #tilde{g} #rightarrow b#bar{b}#tilde{#chi}^{0}_{1}'
+        else:
+            print "Model %s is not yet implemented in EvidencePlotMacro; using default signal string"
+            signalString = "Signal"
+        makeRazorMCTotalPlusSignalPlot(curBox, samples, inDir=BACKGROUND_DIR, signalHist = signalHist, 
+                outDir=outDir, unrollBins=unrollBins, signalString=signalString, modelName=modelName, 
+                debugLevel=debugLevel)
 
