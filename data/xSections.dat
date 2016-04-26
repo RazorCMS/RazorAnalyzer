@@ -178,7 +178,12 @@ SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola                     
 TTbarDMJets_EFT_M-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                        5.415e-06
 TTbarDMJets_EFT_M-1_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          6.821e-06
 TTbarDMJets_EFT_M-200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                        3.827e-06
- 
+
+DMS_NNPDF30_Pseudoscalar_Mphi-500_Mchi-10_gSM-1p0_gDM-1p0_13TeV-powheg              3.17
+DMS_NNPDF30_Scalar_Mphi-500_Mchi-10_gSM-1p0_gDM-1p0_13TeV-powheg                    2.096 
+DMV_NNPDF30_Axial_Mphi-50_Mchi-10_gSM-1p0_gDM-1p0_13TeV-powheg                      93770 
+DMV_NNPDF30_Vector_Mphi-100_Mchi-10_gSM-0p25_gDM-1p0_13TeV-powheg                   13770            
+
 #Higgs production -- cross sections assuming a higgs mass of 125.0 GeV, 
 #from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageAt1314TeV
 #Higgs branching fraction to gamma gamma taken from 
