@@ -159,6 +159,13 @@ def makeTH2PolyFromColumns(name, title, xbins, cols):
     poly.Sumw2()
     return poly
 
+def fillTH2PolyFromTH1(th1, poly):
+    """Fills the given TH2Poly histogram using the bin contents of the given TH1, with TH2Poly bins being filled in 
+    the order they were created."""
+    for bx in range(1, th1.GetNbinsX()+1):
+        poly.SetBinContent(bx, th1.GetBinContent(bx))
+        poly.SetBinError(bx-1, th1.GetBinError(bx))
+
 def fillTH2PolyFromTH2(th2, poly):
     """Fills the given TH2Poly histogram using the bin contents of the given TH2.  If multiple bins in the TH2 map to the same bin in the TH2Poly, the bin contents will be added and the errors will be summed in quadrature."""
     for bx in range(1, th2.GetNbinsX()+1):
@@ -1063,3 +1070,43 @@ def getBinEvidence(x, b, s):
     """Compute the contribution of bin with x observed, b background and s signal expected, to the poisson likelihood"""
     return -2 * (x * math.log( (s+b)*1.0/b ) - s)
 
+def makeRazorMCTotalUnrolledHist(infile, samples, unrollRows, unrollCols, debugLevel=0):
+    unrolledMC = {s:[] for s in samples}
+    hists = importHists(infile, debugLevel)
+
+    #make total background histogram
+    unrolledMCs = plotting.unroll2DHistograms([hists[s][('MR','Rsq')] for s in samples], unrollRows, 
+            unrollCols, labelBins=True)
+    unrolledMCTotal = unrolledMCs[0].Clone()
+    unrolledMCTotal.Reset()
+    for n,s in enumerate(samples):
+        unrolledMCTotal.Add(unrolledMCs[n])
+    return unrolledMCTotal
+
+def makeRazorMCTotalUnrolledHists(boxName, samples, inDir='.', unrollBins=None, debugLevel=0):
+    """Retrieve MC histograms, unroll, and add together"""
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+    unrolledMCs = []
+    for i,f in enumerate(filenames):
+        unrollRows = unrollBins[i][0]
+        unrollCols = unrollBins[i][1]
+        unrolledMCs.append( makeRazorMCTotalUnrolledHist(f, samples, unrollRows, unrollCols, debugLevel) )
+    return unrolledMCs
+
+def splitByUnrollBins(hist, unrollBins):
+    """For splitting razor signal templates into histograms for individual b-tag bins"""
+    outHists = []
+    bn = 0
+    for i, bins in enumerate(unrollBins):
+        rows = bins[0]
+        cols = bins[1]
+        numBins = sum( [ len(col)-1 for col in cols ] )
+        outHist = rt.TH1F(hist.GetName()+str(i), hist.GetTitle(), numBins, 0, numBins)
+        outHist.SetDirectory(0)
+        
+        for bx in range(1, numBins+1):
+            bn += 1
+            outHist.SetBinContent(bx, hist.GetBinContent(bn))
+            outHist.SetBinError(bx, hist.GetBinError(bn))
+        outHists.append(outHist)
+    return outHists

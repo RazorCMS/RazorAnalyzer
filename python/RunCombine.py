@@ -163,6 +163,21 @@ if __name__ == '__main__':
                 yBR = float(model[model.find('y')+1:].replace('p','.'))
                 brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
                 exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s'%(options.config,box,eosLocationSMS['T1ttbb'],'T1ttbb',massPoint,1000*lumi,signalSys,brString),options.dryRun)
+            elif (model.split('p'))>1:
+                signals = model.split('p')
+                massPoint2 = ''
+                if signals[1]=='T2tt':
+                    if int(options.mLSP)<=375:
+                        massPoint2 = '%i_%i'%(options.mLSP+175,options.mLSP)
+                    else:
+                        massPoint2 = '%i_%i'%(550,375)
+                exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s'%(options.config,box,eosLocationSMS[signals[0]],signals[0],massPoint,1000*lumi,signalSys,brString),options.dryRun)
+                exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s %s --mStop %i --mLSP %i'%(options.config,box,eosLocationSMS[signals[1]],signals[1],massPoint2,1000*lumi,signalSys,brString,options.mLSP+175,options.mLSP),options.dryRun)
+                # after overriding massPoint name this should be the dataset's new massPoint:
+                massPoint2 = '%i_%i'%(options.mLSP+175,options.mLSP)                
+                signal1DsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(signals[0],massPoint,lumi,btag,box)
+                signal2DsName = 'Datasets/SMS-%s_%s_lumi-%.3f_%s_%s.root'%(signals[1],massPoint2,lumi,btag,box)
+                exec_me('hadd -f %s %s %s'%(signalDsName,signal1DsName,signal2DsName),options.dryRun)
             else:                
                 exec_me('python python/SMSTemplates.py -c %s -b %s -d Datasets/ %s/SMS-%s_%s.root -l %f %s'%(options.config,box,eosLocationSMS[model],model,massPoint,1000*lumi,signalSys),options.dryRun)
                 

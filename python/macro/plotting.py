@@ -522,11 +522,14 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
 def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawColz=True):
     """Draw a single 2D histogram and print to file"""
+    rt.gStyle.SetNumberContours(99)
     if palette == "FF":
         if zmin is None or zmax is None:
             setFFColors(hist, -5.1, 5.1)
         else:
             setFFColors(hist, zmin, zmax)
+    elif palette == "RAINBOW":
+        pass
     else:
         rt.gStyle.SetPalette(palette)
     c.Clear()
@@ -1236,7 +1239,22 @@ def plot_SUS15004_FitVsMCTotal(c, mcTotal=0, fit=0, printstr="hist", lumistr="",
     leg.AddEntry(unrolled[1], "Method B Pred.")
     plot_SUS15004_Unrolled(c, mcStack, None, unrolled[1], leg, ymin=ymin, printstr=printstr+"UnrolledMCFit", 
             lumistr=lumistr, commentstr=commentstr, ratiomin=ratiomin, ratiomax=ratiomax, printdir=printdir, 
-            unrollBins=unrollBins)
+            unrollBins=unrollBins, isPreliminary=True)
+    mcStack.Delete()
+    leg.Delete()
+
+def plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=0, signalUnrolled=0, printstr="hist", lumistr="", commentstr="", unrollBins=(None,None), printdir=".", ratiomin=0, ratiomax=5, signalString="Signal"):
+    ymin=5e-3
+    #unroll 2D hists to plot in 1D
+    mcTotalUnrolled.SetFillColor(rt.kAzure-9)
+    mcStack = makeStack({"MC":mcTotalUnrolled}, ["MC"], "MC")
+    leg = rt.TLegend(0.15, 0.21, 0.55, 0.27)
+    rt.SetOwnership(leg, False)
+    leg.AddEntry(mcTotalUnrolled, "Method A Pred.","f")
+    leg.AddEntry(signalUnrolled, signalString, "lf")
+    plot_SUS15004_Unrolled(c, mcStack, None, None, leg, ymin=ymin, printstr=printstr, 
+            lumistr=lumistr, commentstr=commentstr, ratiomin=ratiomin, ratiomax=ratiomax, printdir=printdir, 
+            unrollBins=unrollBins, signalHist=signalUnrolled)
     mcStack.Delete()
     leg.Delete()
 
@@ -1322,7 +1340,7 @@ def makeRatioTGraphAsymmErrorsTH1(num, denom, xtitle="", ratiomin=0.25, ratiomax
         applyPad2RatioStyle(ratio, xtitle, ratiomin, ratiomax, logx)
     return ratio
 
-def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None), controlRegion=False):
+def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None), controlRegion=False, signalHist=None, isPreliminary=False):
     #setup
     c.Clear()
     c.cd()
@@ -1407,11 +1425,19 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
         dataNoMarkers.SetMarkerStyle(1)
         dataNoMarkers.Draw("pZ0same")
 
+    #draw signal
+    if signalHist:
+        signalHist.SetLineWidth(2)
+        signalHist.SetLineColor(rt.kAzure-1)
+        signalHist.SetFillStyle(3004)
+        signalHist.SetFillColor(rt.kAzure-2)
+        signalHist.Draw("histsame")
+
     pad1.Modified()
     rt.gPad.Update()
 
     #add legend and LaTeX 
-    CMS_lumi(pad1, lumistr=lumistr, writeExtraText=False)
+    CMS_lumi(pad1, lumistr=lumistr, writeExtraText=isPreliminary)
     if unrollBins[0] is not None and unrollBins[1] is not None:
         drawMRLabels(pad1, unrollBins[0], unrollBins[1])
         lines = getMRLines(pad1, unrollBins[0], unrollBins[1], mcTotal)
@@ -1451,7 +1477,11 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
         lowerPadHist.GetYaxis().SetTitle("Method B / Method A")
     #draw relative MC uncertainties 
     lowerPadHist2 = make1DRatioHistogram(mcTotal, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
-    lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
+    if data or fit:
+        lowerPadHist2.GetYaxis().SetTitle(lowerPadHist.GetYaxis().GetTitle())
+    else:
+        lowerPadHist2.GetYaxis().SetTitle("MC rel. err.")
+        lowerPadHist2.SetMaximum(3)
     lowerPadHist2.GetYaxis().SetNdivisions(5, 5, 0)
     lowerPadHist2.GetYaxis().SetLabelSize(0.1)
     lowerPadHist2.GetYaxis().SetTitleSize(0.090)
@@ -1483,16 +1513,18 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     pad2.cd()
 
     #lower pad hist 1
-    lowerPadHist.Draw("pZ0same")
-    pad2.Modified()
-    rt.gPad.Update()
+    if data or fit:
+        lowerPadHist.Draw("pZ0same")
+        pad2.Modified()
+        rt.gPad.Update()
 
     #lower pad hist central/upper/lower
     lowerPadHist2Upper.Draw("histsame")
     lowerPadHist2Lower.Draw("histsame")
     lowerPadHist2.Draw('e2same')
     lowerPadHist2Central.Draw("histsame")
-    lowerPadHist.Draw("pZ0same")
+    if data or fit:
+        lowerPadHist.Draw("pZ0same")
 
     #save
     c.Print(printdir+'/'+printstr+".png")
@@ -1623,7 +1655,7 @@ def plot_SUS15004_1D(c, mc=0, data=0, leg=0, xtitle="", ytitle="Events", ymin=No
     c.Print(printdir+'/'+printstr+".C")
     pad1.Delete()
 
-def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}", unrollBins=(None,None)):
+def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}", unrollBins=(None,None), zmin=1e-3):
     #setup
     c.Clear()
     c.cd()
@@ -1650,7 +1682,7 @@ def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}"
     ev.SetMarkerSize(1)
     ev.SetLineWidth(1)
     ev.SetLineColor(rt.kBlack)
-    ev.SetMinimum(1e-3)
+    ev.SetMinimum(zmin)
     ev.Draw("pe")
     pad1.Modified()
     rt.gPad.Update()

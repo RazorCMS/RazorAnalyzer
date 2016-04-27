@@ -1501,6 +1501,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         /////////////////////////////////
         //Jet selection
         /////////////////////////////////
+	int leadingJetIndex = -1;
+	double leadingJetPt = 0;
 
         //Type 1 MET correction 
         double MetX_Type1Corr = 0;
@@ -1532,7 +1534,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	    if (!jetPassIDTight[i]) continue;
 	  }
 
-            //Apply pileup jet ID 
+
+	  //Apply pileup jet ID 
             //UNDER CONSTRUCTION (No working point yet for Run2)
             //int level = 2; //loose jet ID
             //if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
@@ -1564,9 +1567,15 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             TLorentzVector thisJet = makeTLorentzVector(jetCorrPt, jetEta[i], jetPhi[i], jetCorrE);
             TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
 
-            //do up/down lepton scale uncertainties
-            double deltaR = -1;
-            if (!isData) {
+	    //get leading jet
+	    if (leadingJetPt < jetCorrPt) {
+	      leadingJetIndex = i;
+	      leadingJetPt = jetCorrPt;
+	    }
+	    
+	    //do up/down lepton scale uncertainties
+	    double deltaR = -1;
+	    if (!isData) {
                 for (auto& lep : GoodLeptonsMESUp) {
                     double thisDR = RazorAnalyzer::deltaR(jetEta[i], jetPhi[i], lep.Eta(), lep.Phi());  
                     if (deltaR < 0 || thisDR < deltaR) deltaR = thisDR;
@@ -2476,6 +2485,32 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             else if (nSelectedJets > 3) box = FourJet;
             else box = DiJet;
         }
+
+	//***********************************
+	//Filter out the Pathological Events
+	//***********************************
+
+	if (isFastsimSMS) {
+	  bool isPathologicalFastsimEvent = false;		  
+	  assert(leadingJetIndex >= 0);
+
+	  //Match to Gen Jet
+	  bool isMatch = false;
+	  for(int j = 0; j < nGenJets; j++){
+	    double tmpDR = deltaR( genJetEta[j],genJetPhi[j], jetEta[leadingJetIndex],jetPhi[leadingJetIndex]);
+	    if ( tmpDR < 0.4
+		 ) {	
+	      isMatch = true;
+	    }
+	  }	  
+	  // these are the pathological fastsim jets
+	  if (!isMatch && jetChargedHadronEnergyFraction[leadingJetIndex] < 0.1 ) {
+	    isPathologicalFastsimEvent = true;
+	  }
+	  if (isPathologicalFastsimEvent) continue;
+	}
+
+
 
         /////////////////////////////////
         //Scale and PDF variations

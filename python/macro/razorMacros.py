@@ -1235,7 +1235,7 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
 
     return histsForDataCard
 
-def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, debugLevel=0):
+def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, zmin=1e-3, debugLevel=0):
     filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
     c = rt.TCanvas("d", "d", 800, 600)
     
@@ -1243,16 +1243,7 @@ def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outD
     for i,f in enumerate(filenames):
         unrollRows = unrollBins[i][0]
         unrollCols = unrollBins[i][1]
-        unrolledMC = {s:[] for s in samples}
-        hists = macro.importHists(f, debugLevel)
-
-        #make total background histogram
-        unrolledMCs = plotting.unroll2DHistograms([hists[s][('MR','Rsq')] for s in samples], unrollRows, 
-                unrollCols, labelBins=True)
-        unrolledMCTotal = unrolledMCs[0].Clone("unrolledMCTotal"+str(i))
-        unrolledMCTotal.Reset()
-        for n,s in enumerate(samples):
-            unrolledMCTotal.Add(unrolledMCs[n])
+        unrolledMCTotal = macro.makeRazorMCTotalUnrolledHist(f, samples, unrollRows, unrollCols, debugLevel)
         
         #loop over bins
         evidenceHist = unrolledMCTotal.Clone("evidence"+str(i))
@@ -1262,9 +1253,36 @@ def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outD
             s = signalHist.GetBinContent(signalBin)
             b = unrolledMCTotal.GetBinContent(bx)
             evidence = macro.getBinEvidence(b, b, s) #expected contribution to the likelihood
-            evidenceHist.SetBinContent(bx, evidence)
+            if evidence > zmin:
+                evidenceHist.SetBinContent(bx, evidence)
+            else:
+                evidenceHist.SetBinContent(bx, -999)
             evidenceHist.SetBinError(bx, 0)
 
         #plot the evidence
         plotting.plotEvidenceHist(c, evidenceHist, printstr="evidence"+boxName+str(i)+"BTag"+signalHist.GetName(), 
-                printdir=outDir, unrollBins=unrollBins[i])
+                printdir=outDir, unrollBins=unrollBins[i], zmin=zmin)
+
+        evidenceHist2D = macro.makeTH2PolyFromColumns(evidenceHist.GetName()+"2D", evidenceHist.GetName()+"2D", 
+                unrollBins[i][0], unrollBins[i][1])
+        macro.fillTH2PolyFromTH1(evidenceHist, evidenceHist2D)
+        plotting.draw2DHist(c, evidenceHist2D, xtitle="MR", ytitle="Rsq", zmin=zmin, zmax=3.84,
+                printstr="evidence2D"+boxName+str(i)+"BTag"+signalHist.GetName(), lumistr="2.3 fb^{-1}", dotext=True, palette=56,
+                numDigits=3, textSize=1.0, printdir=outDir)
+
+def makeRazorMCTotalPlusSignalPlot(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, signalString="Signal", modelName="Signal", debugLevel=0):
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+    mcTotalHists = macro.makeRazorMCTotalUnrolledHists(boxName, samples, inDir, unrollBins, debugLevel)
+    c = rt.TCanvas("d", "d", 800, 600)
+    rt.SetOwnership(c, False)
+    
+    unrolledSignals = macro.splitByUnrollBins(signalHist, unrollBins)
+    for i,f in enumerate(filenames):
+        unrolledRowsCols = unrollBins[i]
+        unrolledMCTotal = mcTotalHists[i]
+        unrolledSignal = unrolledSignals[i]
+        
+        comment = '#it{'+boxName+' '+str(i)+' b-tag}'
+        plotting.plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=unrolledMCTotal, signalUnrolled=unrolledSignal, 
+                printstr="MRRsq"+boxName+str(i)+"BTagUnrolled"+modelName, lumistr="2.3 fb^{-1}", 
+                commentstr=comment, unrollBins=unrolledRowsCols, printdir=outDir, signalString=signalString)
