@@ -271,7 +271,7 @@ def getModelSettings(model):
         nRebins = 0
         xsecMin = 1.e-3
         xsecMax = 10.
-        diagonalOffset = 225+12.5
+        diagonalOffset = 125+12.5
         smoothing = 200
     elif model=="T1ttbb":
         mgMin = 600.-12.5
