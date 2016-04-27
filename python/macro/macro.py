@@ -164,7 +164,7 @@ def fillTH2PolyFromTH1(th1, poly):
     the order they were created."""
     for bx in range(1, th1.GetNbinsX()+1):
         poly.SetBinContent(bx, th1.GetBinContent(bx))
-        poly.SetBinError(bx, th1.GetBinError(bx))
+        poly.SetBinError(bx-1, th1.GetBinError(bx))
 
 def fillTH2PolyFromTH2(th2, poly):
     """Fills the given TH2Poly histogram using the bin contents of the given TH2.  If multiple bins in the TH2 map to the same bin in the TH2Poly, the bin contents will be added and the errors will be summed in quadrature."""
