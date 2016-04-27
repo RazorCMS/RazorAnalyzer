@@ -2,13 +2,17 @@
 //LOCAL INCLUDES
 #include "RazorAnalyzer.h"
 #include "JetCorrectorParameters.h"
+#include "JetCorrectionUncertainty.h"
+#include "BTagCalibrationStandalone.h"
 //C++ INCLUDES
 #include <map>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <assert.h>
 //ROOT INCLUDES
-#include "TH1F.h"
+#include <TH1F.h>
+#include <TH2D.h>
 
 using namespace std;
 
@@ -51,6 +55,11 @@ struct evt
 const double EB_R = 129.0;
 const double EE_Z = 317.0;
 
+
+const double JET_CUT = 30.;
+const int NUM_PDF_WEIGHTS = 60;
+
+
 //Testing branching and merging
 void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int option, bool isData )
 {
@@ -76,27 +85,142 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //get correct directory for JEC files (different for lxplus and t3-higgs)
   char* cmsswPath;
   cmsswPath = getenv("CMSSW_BASE");
-  string pathname;
-  if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
-  cout << "Getting JEC parameters from " << pathname << endl;
-  if (isData) {
-    std::cout << "[INFO]: getting data JEC" << std::endl;
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-  } else {
-    std::cout << "[INFO]: getting MC JEC" << std::endl;
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-  }
+  std::string pathname;
+  if ( cmsswPath != NULL ) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+  std::cout << "Getting JEC parameters from " << pathname << std::endl;
+  if ( isData ) 
+    {
+      std::cout << "[INFO]: getting data JEC" << std::endl;
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+    } 
+  else 
+    {
+      std::cout << "[INFO]: getting MC JEC" << std::endl;
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    }
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
-
-  //I n i t i a l i z i n g   E f f e c t i v e   A r e a   A r r a y; 
-  //------------------------------------------------------------------
-  //InitEffArea( ); //not needed anymore
+  //------------------------------------------------------------
+  //Get JEC uncertainty file and set up JetCorrectionUncertainty
+  //------------------------------------------------------------
+  string jecUncPath;
+  if ( isData ) 
+    {
+      jecUncPath = pathname+"/Fall15_25nsV2_DATA_Uncertainty_AK4PFchs.txt";
+    }
+  else 
+    {
+      jecUncPath = pathname+"/Fall15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
+    }
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
   
+  //--------------
+  //Pileup Weights
+  //--------------
+  
+  TFile *pileupWeightFile = 0;
+  TH1F *pileupWeightHist = 0;
+  TH1F *pileupWeightSysUpHist = 0;
+  TH1F *pileupWeightSysDownHist = 0;
+  if( !isData )
+    {
+      string pathname;
+      if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
+      else 
+	{
+	  std::cout << "ERROR: CMSSW_BASE not detected. Exiting..." << std::endl;
+	  assert(false);
+	}
+      
+      pileupWeightFile = TFile::Open(Form("%s/PileupReweight2015_7_6.root",pathname.c_str()));
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      assert(pileupWeightHist);
+      assert(pileupWeightSysUpHist);
+      assert(pileupWeightSysDownHist);
+    }
+  
+  //---------------
+  //btag efficiency
+  //---------------
+  //Medium
+  TH2D *btagMediumEfficiencyHist = 0;
+  TH2D *btagMediumCharmEfficiencyHist = 0;
+  TH2D *btagMediumLightJetsEfficiencyHist = 0;
+  //Loose
+  TH2D *btagLooseEfficiencyHist = 0;
+  TH2D *btagLooseCharmEfficiencyHist = 0;
+  TH2D *btagLooseLightJetsEfficiencyHist = 0;
+  if ( !isData )
+    {
+      //Medium
+      TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
+      btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      assert(btagMediumEfficiencyHist);
+      TFile *btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/CharmJetBTagEffFastsimToFullsimCorrectionFactors.root");
+      btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      assert(btagMediumCharmEfficiencyHist);
+      TFile *btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/LightJetBTagEffFastsimToFullsimCorrectionFactors.root");
+      btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      assert(btagMediumLightJetsEfficiencyHist);
+      //Loose
+      TFile *btagLooseEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVL_Fullsim.root");
+      btagLooseEfficiencyHist = (TH2D*)btagLooseEfficiencyFile->Get("Efficiency_PtEta");
+      assert(btagLooseEfficiencyHist);
+      TFile *btagLooseCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVL_Fullsim.root");
+      btagLooseCharmEfficiencyHist = (TH2D*)btagLooseCharmEfficiencyFile->Get("Efficiency_PtEta");
+      assert(btagLooseCharmEfficiencyHist);
+      TFile *btagLooseLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVL_Fullsim.root");
+      btagLooseLightJetsEfficiencyHist = (TH2D*)btagLooseLightJetsEfficiencyFile->Get("Efficiency_PtEta");
+      assert(btagLooseLightJetsEfficiencyHist);
+    }
+  
+  //-----------------------
+  //B-tagging scale factors
+  //-----------------------
+  
+  string bTagPathname = "";
+  if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
+  else bTagPathname = "data/ScaleFactors/";
+  //Fullsim
+  BTagCalibration btagcalib("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
+  //Medium WP
+  BTagCalibrationReader btagreaderM(&btagcalib,           //calibration instance
+				    BTagEntry::OP_MEDIUM, //operating point
+				    "mujets",             //measurement type
+				    "central");           //systematics type
+  BTagCalibrationReader btagreaderM_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");   //sys up
+  BTagCalibrationReader btagreaderM_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down"); //sys down
+  BTagCalibrationReader btagreaderMistagM(&btagcalib,            //calibration instance
+					  BTagEntry::OP_MEDIUM,  //operating point
+					  "comb",                //measurement type
+					  "central");            //systematics type
+  BTagCalibrationReader btagreaderMistagM_up(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    //sys up
+  BTagCalibrationReader btagreaderMistagM_do(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  //sys down
+  //Loose WP
+  BTagCalibrationReader btagreaderL(&btagcalib,           //calibration instance
+				    BTagEntry::OP_LOOSE,  //operating point
+				    "mujets",             //measurement type
+				    "central");           //systematics type
+  BTagCalibrationReader btagreaderL_up(&btagcalib, BTagEntry::OP_LOOSE, "mujets", "up");  //sys up
+  BTagCalibrationReader btagreaderL_do(&btagcalib, BTagEntry::OP_LOOSE, "mujets", "down");  //sys down
+  BTagCalibrationReader btagreaderMistagL(&btagcalib,           //calibration instance
+					  BTagEntry::OP_LOOSE,  //operating point
+					  "comb",               //measurement type
+					  "central");           //systematics type
+  BTagCalibrationReader btagreaderMistagL_up(&btagcalib, BTagEntry::OP_LOOSE, "comb", "up");    //sys up
+  BTagCalibrationReader btagreaderMistagL_do(&btagcalib, BTagEntry::OP_LOOSE, "comb", "down");  //sys down
+  
+  //----------
+  //pu histo
+  //----------
+  TH1D* puhisto = new TH1D("pileup", "", 50, 0, 50);
+
   //one tree to hold all events
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
 
@@ -142,6 +266,59 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   
   //histogram containing total number of processed events (for normalization)
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+  TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
+  TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
+  TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
+
+  //--------------
+  //tree variables
+  //--------------
+  float weight;
+  float pileupWeight, pileupWeightUp, pileupWeightDown;
+  float ISRSystWeightUp, ISRSystWeightDown;
+  //For btag scale factor uncertainty
+  float btagCorrFactor;
+  float sf_btagUp, sf_btagDown;
+  float sf_bmistagUp, sf_bmistagDown;
+  //For scale variation uncertainties
+  float sf_facScaleUp, sf_facScaleDown;
+  float sf_renScaleUp, sf_renScaleDown;
+  float sf_facRenScaleUp, sf_facRenScaleDown;
+  //PDF SF
+  std::vector<float> sf_pdf;
+  
+  int NPU;
+  int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
+  float theMR, theMR_JESUp, theMR_JESDown;
+  float theRsq, theRsq_JESUp, theRsq_JESDown, t1Rsq, t1Rsq_JESUp, t1Rsq_JESDown;
+  float MET, MET_JESUp, MET_JESDown, t1MET, t1MET_JESUp, t1MET_JESDown;
+  
+  int nSelectedPhotons;
+  float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
+  float mbbZ, mbbZ_L, mbbH, mbbH_L;
+  bool passedDiphotonTrigger;
+  HggRazorBox razorbox = LowRes;
+  
+  unsigned int run, lumi, event;
+  
+  //selected photon variables
+  float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
+  float PhoSC_E[2], PhoSC_Pt[2], PhoSC_Eta[2], PhoSC_Phi[2];
+  float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
+  bool  Pho_passEleVeto[2], Pho_passIso[2];
+  int   Pho_motherID[2];
+
+  //jet information
+  int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
+  int n_Jets_JESUp, n_Jets_JESDown; 
+  float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
+  //------------------------
+  //set branches on big tree
+  //------------------------
+
+  /*
+  //histogram containing total number of processed events (for normalization)
+  TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
   //tree variables
   float weight;
@@ -168,10 +345,47 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 
   //jet information
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
-  
+  */
   //set branches on big tree
   if(combineTrees){
     razorTree->Branch("weight", &weight, "weight/F");
+    razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
+    razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
+    razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
+    razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
+    razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
+      
+    razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
+    razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
+    razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
+    razorTree->Branch("sf_bmistagUp", &sf_bmistagUp, "sf_bmistagUp/F");
+    razorTree->Branch("sf_bmistagDown", &sf_bmistagDown, "sf_bmistagDown/F");
+      
+    razorTree->Branch("sf_facScaleUp", &sf_facScaleUp, "sf_facScaleUp/F");
+    razorTree->Branch("sf_facScaleDown", &sf_facScaleDown, "sf_facScaleDown/F");
+    razorTree->Branch("sf_renScaleUp", &sf_renScaleUp, "sf_renScaleUp/F");
+    razorTree->Branch("sf_renScaleDown", &sf_renScaleDown, "sf_renScaleDown/F");
+    razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
+    razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
+    razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
+    razorTree->Branch("sf_pdf", "std::vector<float>",&sf_pdf); //sf PDF
+      
+    //MET filters
+    razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
+    razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
+    razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
+    razorTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, "Flag_hcalLaserEventFilter/O");
+    razorTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/O");
+    razorTree->Branch("Flag_goodVertices", &Flag_goodVertices, "Flag_goodVertices/O");
+    razorTree->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, "Flag_trackingFailureFilter/O");
+    razorTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter, "Flag_eeBadScFilter/O");
+    razorTree->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter, "Flag_ecalLaserCorrFilter/O");
+    razorTree->Branch("Flag_trkPOGFilters", &Flag_trkPOGFilters, "Flag_trkPOGFilters/O");
+    razorTree->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, "Flag_trkPOG_manystripclus53X/O");
+    razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
+    razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
+    razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
+      
     razorTree->Branch("run", &run, "run/i");
     razorTree->Branch("lumi", &lumi, "lumi/i");
     razorTree->Branch("event", &event, "event/i");
@@ -185,10 +399,20 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
     razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
     razorTree->Branch("MR", &theMR, "MR/F");
+    razorTree->Branch("MR_JESUp", &theMR_JESUp, "MR_JESUp/F");
+    razorTree->Branch("MR_JESDown", &theMR_JESDown, "MR_JESDown/F");
     razorTree->Branch("Rsq", &theRsq, "Rsq/F");
+    razorTree->Branch("Rsq_JESUp", &theRsq_JESUp, "Rsq_JESUp/F");
+    razorTree->Branch("Rsq_JESDown", &theRsq_JESDown, "Rsq_JESDown/F");
     razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+    razorTree->Branch("t1Rsq_JESUp", &t1Rsq_JESUp, "t1Rsq_JESUp/F");
+    razorTree->Branch("t1Rsq_JESDown", &t1Rsq_JESDown, "t1Rsq_JESDown/F");
     razorTree->Branch("MET", &MET, "MET/F");
+    razorTree->Branch("MET_JESUp", &MET_JESUp, "MET_JESUp/F");
+    razorTree->Branch("MET_JESDown", &MET_JESDown, "MET_JESDown/F");
     razorTree->Branch("t1MET", &t1MET, "t1MET/F");
+    razorTree->Branch("t1MET_JESUp", &t1MET_JESUp, "t1MET_JESUp/F");
+    razorTree->Branch("t1MET_JESDown", &t1MET_JESDown, "t1MET_JESDown/F");
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -215,7 +439,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
     razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
     razorTree->Branch("pho1MotherID", &Pho_motherID[0], "pho1MotherID/I");
-    
+      
     razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
     razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
     razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
@@ -234,17 +458,21 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
     razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
     razorTree->Branch("pho2MotherID", &Pho_motherID[1], "pho2MotherID/I");
-
+      
     razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
     razorTree->Branch("mbbH", &mbbH, "mbbH/F");
-    
+    razorTree->Branch("mbbZ_L", &mbbZ_L, "mbbZ_L/F");
+    razorTree->Branch("mbbH_L", &mbbH_L, "mbbH_L/F");
+      
     razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
     razorTree->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+    razorTree->Branch("n_Jets_JESUp", &n_Jets_JESUp, "n_Jets_JESUp/I");
+    razorTree->Branch("n_Jets_JESDown", &n_Jets_JESDown, "n_Jets_JESDown/I");
     razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
-    
+      
     //GenParticles
     razorTree->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
     razorTree->Branch("gParticleMotherId", gParticleMotherId, "gParticleMotherId[nGenParticle]/I");
@@ -360,9 +588,31 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     //fill normalization histogram    
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
-
+    SumWeights->Fill(1.0, weight);
+      
     //reset tree variables
+    ISRSystWeightUp   = 1.0;
+    ISRSystWeightDown = 1.0;
+    pileupWeight      = 1.0;
+    pileupWeightUp    = 1.0;
+    pileupWeightDown  = 1.0;
+      
+    btagCorrFactor    = 1.0;
+    sf_btagUp         = 1.0;
+    sf_btagDown       = 1.0;
+    sf_bmistagUp      = 1.0;
+    sf_bmistagDown    = 1.0;
+      
+    sf_facScaleUp = 1.0;
+    sf_facScaleDown = 1.0;
+    sf_renScaleUp = 1.0;
+    sf_renScaleDown = 1.0;
+    sf_facRenScaleUp = 1.0;
+    sf_facRenScaleDown = 1.0;
+      
     n_Jets = 0;
+    n_Jets_JESUp = 0;
+    n_Jets_JESDown = 0;
     nLooseBTaggedJets = 0;
     nMediumBTaggedJets = 0;
     nLooseMuons = 0;
@@ -370,21 +620,30 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     nLooseElectrons = 0;
     nTightElectrons = 0;
     nTightTaus = 0;
-    theMR = -1;
-    theRsq = -1;
-    t1Rsq  = -1;
+    theMR = -666;
+    theMR_JESUp   = -666;
+    theMR_JESDown = -666;
+    theRsq = -666;
+    theRsq_JESUp   = -666;
+    theRsq_JESDown = -666;
+    t1Rsq  = -666;
+    t1Rsq_JESUp   = -666;
+    t1Rsq_JESDown = -666;
+    
     nSelectedPhotons = 0;
     mGammaGamma    = -1;
     pTGammaGamma   = -1;
     mGammaGammaSC  = -1;
     pTGammaGammaSC = -1;
-    mbbZ = 0;
-    mbbH = 0;
+    mbbZ   = 0;
+    mbbH   = 0;
+    mbbZ_L = 0;
+    mbbH_L = 0;
     run = runNum;
     lumi = lumiNum; 
     event = eventNum;
     passedDiphotonTrigger = false;
-    
+      
     //selected photons variables
     for ( int i = 0; i < 2; i++ )
       {
@@ -415,20 +674,59 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	jet_Eta[i] = -99.;
 	jet_Phi[i] = -99.;
       }
-    
-    //Fill Pileup Info
-    for (int i=0; i < nBunchXing; ++i) {
-      if (BunchXing[i] == 0) {
-	NPU = nPUmean[i];
-      }
-    }
 
-    /*
-      std::stringstream ss;
-      ss << run << event;
-      if ( mymap.find( ss.str() ) == mymap.end() )continue;
-      //if ( !( run == 206859 && event == 24345 ) ) continue;
-      */
+
+      
+    //------------------
+    //Pileup reweighting
+    //------------------
+    //double pileupWeight = 1.0;
+    if( !isData )
+      {
+	//Get number of PU interactions
+	for (int i = 0; i < nBunchXing; i++) 
+	  {
+	    if (BunchXing[i] == 0) 
+	      {
+		NPU = nPUmean[i];
+	      }
+	  }
+	puhisto->Fill(NPU);
+	//NOTE: reweight with nPV for now
+	//pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPV));
+	pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+	pileupWeightUp = pileupWeightSysUpHist->GetBinContent(pileupWeightSysUpHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;
+	pileupWeightDown = pileupWeightSysDownHist->GetBinContent(pileupWeightSysDownHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;    
+      }
+      
+    /////////////////////////////////
+    //Scale and PDF variations
+    /////////////////////////////////
+    if ( (*scaleWeights).size() >= 9 ) 
+      {
+	sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
+	sf_facScaleDown    = (*scaleWeights)[2]/genWeight;
+	sf_renScaleUp      = (*scaleWeights)[3]/genWeight;
+	sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
+	sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
+	sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+      }
+
+    SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
+    SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
+    SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
+    SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
+    SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
+    SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
+
+    sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
+    for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
+      {
+	sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
+	SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+      }
+      
+
     if ( _debug ) std::cout << "============" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
     
@@ -627,32 +925,43 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	    continue;
 	  }
         
-	//if the sum of the photon pT's is larger than that of the current Higgs candidate, make this the Higgs candidate
-	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt ){
-	  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
-	  HiggsCandidate = pho1.photon + pho2.photon;
-	  HiggsCandidateSC = pho1.photonSC + pho2.photonSC;
-	  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
-	    {
-	      if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
-	      phoSelectedCand.push_back(pho1);
-	      phoSelectedCand.push_back(pho2);
-	      goodPhoIndex1 = pho1.Index;
-	      goodPhoIndex2 = pho2.Index;  
-	    }
-	  else
-	    {
-	      if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
-	      phoSelectedCand.push_back(pho2);
-	      phoSelectedCand.push_back(pho1);
-	      goodPhoIndex1 = pho2.Index;
-              goodPhoIndex2 = pho1.Index;
-	    }
-	  
-	}
+	//---------------------------------------------
+	//if the sum of the photon pT's is larger than 
+	//that of the current Higgs candidate, 
+	//make this the Higgs candidate
+	//---------------------------------------------
+	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt )
+	  {
+	    bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
+	    HiggsCandidate = pho1.photon + pho2.photon;
+	    HiggsCandidateSC = pho1.photonSC + pho2.photonSC;
+	    if ( pho1.photon.Pt() >= pho2.photon.Pt() )
+	      {
+		if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
+		bestCand[0] = pho1;
+		bestCand[1] = pho2;
+		HiggsPhoIndex1 = pho1.Index;
+		HiggsPhoIndex2 = pho2.Index;  
+	      }
+	    else
+	      {
+		if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
+		bestCand[0] = pho2;
+		bestCand[1] = pho1;
+		HiggsPhoIndex1 = pho2.Index;
+		HiggsPhoIndex2 = pho1.Index;
+	      }
+	  }//best pt if
+	
       }
     }   
-
+    
+    //---------------------------------------
+    //just use this container for convenience
+    //to parse the data into TTree
+    //---------------------------------------
+    phoSelectedCand.push_back(bestCand[0]);
+    phoSelectedCand.push_back(bestCand[1]);
     
     //Filling Selected Photon Information
     TLorentzVector pho_cand_vec[2];
