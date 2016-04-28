@@ -875,7 +875,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     if( nPhotonsAbove40GeV == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " << phoCand.size() << std::endl;
-	continue;
+	//continue;//offline
       }
     
     if ( phoCand.size() < 2 )
@@ -992,7 +992,6 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
 	Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
 	Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
-	//Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE - 0.0025;
 	Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
 	Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	Pho_passIso[_pho_index]            = tmpPho._passIso;
@@ -1015,7 +1014,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     if( HiggsCandidate.Pt() < 20.0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: Higgs Pt < 20 GeV, H pt: " << HiggsCandidate.Pt() << std::endl; 
-	continue;
+	//continue;//apply offline
       }
     
     //if the best candidate pair has a photon in the endcap, reject the event
@@ -1034,7 +1033,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	  {
 	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
 	  }
-	continue;
+	//continue;//apply offline
       }
     //record higgs candidate info
     mGammaGamma    = HiggsCandidate.M();
@@ -1326,7 +1325,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     if( n_Jets == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	//continue;//offline
+	//continue;//apply offline
       }
 
     
