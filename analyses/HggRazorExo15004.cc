@@ -78,7 +78,10 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     if ( _info ) std::cout << "HggRazorExo15004: Output filename not specified!" << endl << "Using default output name HggRazorExo15004.root" << std::endl;
     outFileName = "HggRazorExo15004.root";
   }
-  TFile outFile(outFileName.c_str(), "RECREATE");
+
+  TFile* outFile = new TFile( outFileName.c_str(), "RECREATE" );
+  //one tree to hold all events                                                                                           
+  TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
   
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
@@ -220,9 +223,6 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //pu histo
   //----------
   TH1D* puhisto = new TH1D("pileup", "", 50, 0, 50);
-
-  //one tree to hold all events
-  TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
 
   /*
     This is to debug and sync with Alex's events
@@ -702,31 +702,34 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     /////////////////////////////////
     //Scale and PDF variations
     /////////////////////////////////
-    if ( (*scaleWeights).size() >= 9 ) 
+    if( !isData )
       {
-	sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
-	sf_facScaleDown    = (*scaleWeights)[2]/genWeight;
-	sf_renScaleUp      = (*scaleWeights)[3]/genWeight;
-	sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
-	sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
-	sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	if ( (*scaleWeights).size() >= 9 ) 
+	  {
+	    sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
+	    sf_facScaleDown    = (*scaleWeights)[2]/genWeight;
+	    sf_renScaleUp      = (*scaleWeights)[3]/genWeight;
+	    sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
+	    sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
+	    sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	  }
+	
+	SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
+	SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
+	SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
+	SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
+	SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
+	SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
+	
+	sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
+	for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
+	  {
+	    sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
+	    SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	  }
+	
       }
-
-    SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
-    SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
-    SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
-    SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
-    SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
-    SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
-
-    sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
-    for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
-      {
-	sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
-	SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-      }
-      
-
+    
     if ( _debug ) std::cout << "============" << std::endl;
     if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
     
@@ -891,70 +894,74 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     //find the "best" photon pair, higher Pt!
     TLorentzVector HiggsCandidate(0,0,0,0);
     TLorentzVector HiggsCandidateSC(0,0,0,0);
-    int goodPhoIndex1 = -1;
-    int goodPhoIndex2 = -1;
+    int HiggsPhoIndex1 = -1;
+    int HiggsPhoIndex2 = -1;
     double bestSumPt = -99.;
     std::vector< PhotonCandidate > phoSelectedCand;
-    for(size_t i = 0; i < phoCand.size(); i++){
-      for(size_t j = i+1; j < phoCand.size(); j++){//I like this logic better, I find it easier to understand
-	PhotonCandidate pho1 = phoCand[i];
-	PhotonCandidate pho2 = phoCand[j];
-        if ( _debug )
+    PhotonCandidate bestCand[2];
+    
+    for( size_t i = 0; i < phoCand.size(); i++ )
+      {
+	for( size_t j = i+1; j < phoCand.size(); j++ )//I like this logic better, I find it easier to understand
 	  {
-	    std::cout << "[DEBUG]: pho1-> " << pho1.photon.Pt()
-		      << " [DEBUG]: pho2->" << pho2.photon.Pt() 
-		      << std::endl;
-	  }
-	//need one photon in the pair to have pt > 40 GeV
-	if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
-	  {
-	    if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
-	    //continue;
-	  }
-	//need diphoton mass between > 100 GeV as in AN (April 1st)
-	double diphotonMass = (pho1.photon + pho2.photon).M();
-	if ( _debug )
-	  {
-	    std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
-	  }
-	
-	if( diphotonMass < 100 )
-	  {
-	    if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
-	    if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
-	    continue;
-	  }
-        
-	//---------------------------------------------
-	//if the sum of the photon pT's is larger than 
-	//that of the current Higgs candidate, 
-	//make this the Higgs candidate
-	//---------------------------------------------
-	if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt )
-	  {
-	    bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
-	    HiggsCandidate = pho1.photon + pho2.photon;
-	    HiggsCandidateSC = pho1.photonSC + pho2.photonSC;
-	    if ( pho1.photon.Pt() >= pho2.photon.Pt() )
+	    PhotonCandidate pho1 = phoCand[i];
+	    PhotonCandidate pho2 = phoCand[j];
+	    if ( _debug )
 	      {
-		if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
-		bestCand[0] = pho1;
-		bestCand[1] = pho2;
-		HiggsPhoIndex1 = pho1.Index;
-		HiggsPhoIndex2 = pho2.Index;  
+		std::cout << "[DEBUG]: pho1-> " << pho1.photon.Pt()
+			  << " [DEBUG]: pho2->" << pho2.photon.Pt() 
+			  << std::endl;
 	      }
-	    else
+	    //need one photon in the pair to have pt > 40 GeV
+	    if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
 	      {
-		if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
-		bestCand[0] = pho2;
-		bestCand[1] = pho1;
-		HiggsPhoIndex1 = pho2.Index;
-		HiggsPhoIndex2 = pho1.Index;
+		if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
+		//continue;
 	      }
-	  }//best pt if
-	
-      }
-    }   
+	    //need diphoton mass between > 100 GeV as in AN (April 1st)
+	    double diphotonMass = (pho1.photon + pho2.photon).M();
+	    if ( _debug )
+	      {
+		std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
+	      }
+	    
+	    if( diphotonMass < 100 )
+	      {
+		if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
+		if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
+		continue;
+	      }
+	    
+	    //---------------------------------------------
+	    //if the sum of the photon pT's is larger than 
+	    //that of the current Higgs candidate, 
+	    //make this the Higgs candidate
+	    //---------------------------------------------
+	    if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt )
+	      {
+		bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
+		HiggsCandidate = pho1.photon + pho2.photon;
+		HiggsCandidateSC = pho1.photonSC + pho2.photonSC;
+		if ( pho1.photon.Pt() >= pho2.photon.Pt() )
+		  {
+		    if ( _debug ) std::cout << "assign photon candidate, pho1Pt > pho2Pt" << std::endl;
+		    bestCand[0] = pho1;
+		    bestCand[1] = pho2;
+		    HiggsPhoIndex1 = pho1.Index;
+		    HiggsPhoIndex2 = pho2.Index;  
+		  }
+		else
+		  {
+		    if ( _debug ) std::cout << "assign photon candidate, pho2Pt > pho1Pt" << std::endl;
+		    bestCand[0] = pho2;
+		    bestCand[1] = pho1;
+		    HiggsPhoIndex1 = pho2.Index;
+		    HiggsPhoIndex2 = pho1.Index;
+		  }
+	      }//best pt if
+	    
+	  }//second photon loop
+      }//first photon loop
     
     //---------------------------------------
     //just use this container for convenience
@@ -968,7 +975,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     int _pho_index = 0;
     for ( auto& tmpPho : phoSelectedCand )
       {
-	if ( !( tmpPho.Index == goodPhoIndex1 || tmpPho.Index == goodPhoIndex2 ) ) continue;
+	if ( !( tmpPho.Index == HiggsPhoIndex1 || tmpPho.Index == HiggsPhoIndex2 ) ) continue;
 	if( _pho_index > 1 ) std::cerr << "[ERROR]: Photon index larger than 1!" << std::endl;
 	pho_cand_vec[_pho_index]           = tmpPho.photon;
 	Pho_E[_pho_index]                  = tmpPho.photon.E();
@@ -1066,55 +1073,262 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 
 
 
-
+    //----
     //Jets
+    //----
+    //Propagate jet uncertainties to MET
+    float MetXCorr_JESUp = 0;
+    float MetYCorr_JESUp = 0;
+    float MetXCorr_JESDown = 0;
+    float MetYCorr_JESDown = 0;
+    
     vector<TLorentzVector> GoodJets;
+    vector<TLorentzVector> GoodJetsJESUp;
+    vector<TLorentzVector> GoodJetsJESDown;
     vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
     
-    for(int i = 0; i < nJets; i++){
-      //Jet Corrections                                                                      
-      double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-					      fixedGridRhoAll, jetJetArea[i],
-					      JetCorrector );
-      
-      TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
-      
-      if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
-      if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
-      //int level = 2; //loose jet ID
-      if ( !jetPassIDLoose[i] ) continue;
-      //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
-      
-      //exclude selected photons from the jet collection
-      double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
-      if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
-      
-      GoodJets.push_back(thisJet);
-      n_Jets++;
-      
-      /*
-	Change to isCSVL and isCSVM if you want CISV
-      */
-      if( isCSVL(i) ){
-	nLooseBTaggedJets++;
-	if( isCSVM(i) ){ 
-	  nMediumBTaggedJets++;
-	  GoodCSVLJets.push_back(make_pair(thisJet, true));
-	}
-	else{
-	  GoodCSVLJets.push_back(make_pair(thisJet, false));
-	}
+    for( int i = 0; i < nJets; i++ )
+      {
+	//Jet Corrections                                                                      
+	double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
+						fixedGridRhoAll, jetJetArea[i],
+						JetCorrector );
+	
+	TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+	
+	if( thisJet.Pt() < 30.0 ) continue;//According to the April 1st 2015 AN
+	if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
+	//int level = 2; //loose jet ID
+	if ( !jetPassIDLoose[i] ) continue;
+	//if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
+	
+	//exclude selected photons from the jet collection
+	double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
+	if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
+	
+	GoodJets.push_back(thisJet);
+	n_Jets++;
+	
+	//-------------------------------
+	//b - t a g   c o r r e c t i o n
+	//-------------------------------
+	double jetCorrPt = thisJet.Pt();
+	double jetCorrE  = thisJet.E();
+	if ( !isData )
+	  {
+	    //****************************************************************************
+	    //Apply b-tagging correction factor 
+	    //****************************************************************************
+	    if ( !isData && abs(jetEta[i]) < 2.4 && jetCorrPt > JET_CUT ) 
+	      { 
+		double effMedium = 0;
+		double effLoose  = 0;
+		BTagEntry::JetFlavor jetType = BTagEntry::FLAV_B;
+		if ( abs(jetPartonFlavor[i]) == 5) 
+		  {
+		    effMedium = btagMediumEfficiencyHist->GetBinContent( btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+									 btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		    effLoose  = btagLooseEfficiencyHist->GetBinContent( btagLooseEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+                                                                        btagLooseEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		    jetType = BTagEntry::FLAV_B;
+		  } 
+		else if ( abs(jetPartonFlavor[i]) == 4) 
+		  {
+		    effMedium = btagMediumCharmEfficiencyHist->GetBinContent( btagMediumCharmEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+									      btagMediumCharmEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		    effLoose  = btagLooseCharmEfficiencyHist->GetBinContent( btagLooseCharmEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
+                                                                             btagLooseCharmEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		    jetType = BTagEntry::FLAV_C;
+		  } 
+		else 
+		  {
+		    effMedium = btagMediumLightJetsEfficiencyHist->GetBinContent(
+										 btagMediumLightJetsEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0))
+										 ,btagMediumLightJetsEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		    effLoose = btagLooseLightJetsEfficiencyHist->GetBinContent(btagLooseLightJetsEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0))
+                                                                               ,btagLooseLightJetsEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
+		    jetType = BTagEntry::FLAV_UDSG;
+		  }
+		//----------------
+		//get scale factor
+		//----------------
+		double jetSF_Loo = -1;
+                double jetSF_LooUp = -1;
+                double jetSF_LooDown = -1;
+		double jetSF_Med = -1;
+		double jetSF_MedUp = -1;
+		double jetSF_MedDown = -1;  
+		if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4 )//c,b quarks
+		  {
+		    if (jetCorrPt < 670.) //670 is the largest pt range listed in the CSV text file
+		      {
+			//M
+			jetSF_Med     = btagreaderM.eval(jetType, jetEta[i], jetCorrPt); 
+			jetSF_MedUp   = btagreaderM_up.eval(jetType, jetEta[i], jetCorrPt);
+			jetSF_MedDown = btagreaderM_do.eval(jetType, jetEta[i], jetCorrPt);
+			//L
+			jetSF_Loo     = btagreaderL.eval(jetType, jetEta[i], jetCorrPt);
+                        jetSF_LooUp   = btagreaderL_up.eval(jetType, jetEta[i], jetCorrPt);
+                        jetSF_LooDown = btagreaderL_do.eval(jetType, jetEta[i], jetCorrPt);
+		      }
+		    else 
+		      {
+			//M
+			jetSF_Med     = btagreaderM.eval(jetType, jetEta[i], 669);
+			jetSF_MedUp   = btagreaderM_up.eval(jetType, jetEta[i], 669);
+			jetSF_MedDown = btagreaderM_do.eval(jetType, jetEta[i], 669);
+			//L
+			jetSF_Loo     = btagreaderL.eval(jetType, jetEta[i], 669);
+                        jetSF_LooUp   = btagreaderL_up.eval(jetType, jetEta[i], 669);
+                        jetSF_LooDown = btagreaderL_do.eval(jetType, jetEta[i], 669);
+		      }
+		  } 
+		else//rest of the quarks
+		  {
+		    //M
+		    jetSF_Med     = btagreaderMistagM.eval(jetType, jetEta[i], 100);//fix in eta and pt
+		    jetSF_MedUp   = btagreaderMistagM_up.eval(jetType, jetEta[i], 100);  
+		    jetSF_MedDown = btagreaderMistagM_do.eval(jetType, jetEta[i], 100);
+		    //L (to be checked)
+		    if ( jetCorrPt < 1000 ) 
+		      {
+			jetSF_Loo     = btagreaderMistagL.eval(jetType, jetEta[i], jetCorrPt);
+			jetSF_LooUp   = btagreaderMistagL_up.eval(jetType, jetEta[i], jetCorrPt);
+			jetSF_LooDown = btagreaderMistagL_do.eval(jetType, jetEta[i], jetCorrPt);
+		      }
+		    else
+		      {
+			jetSF_Loo     = btagreaderMistagL.eval(jetType, jetEta[i], 999);
+                        jetSF_LooUp   = btagreaderMistagL_up.eval(jetType, jetEta[i], 999);
+                        jetSF_LooDown = btagreaderMistagL_do.eval(jetType, jetEta[i], 999);
+		      }
+		  }
+		
+		//------------------------
+		//Loose Working point only
+		//------------------------
+		//Apply Scale Factors
+		if ( jetSF_Med <= 0 || jetSF_MedUp <= 0 || jetSF_MedDown <= 0  || jetSF_Loo <= 0 || jetSF_LooUp <= 0 || jetSF_LooDown <= 0 )
+		  {
+		    std::cout << "Warning: b-tag scale factor is <= 0!" << std::endl;
+		    std::cout << jetSF_Med << " " << jetSF_MedUp << " " << jetSF_MedDown << " " << jetSF_Loo << " " << jetSF_LooUp << " " 
+			      << jetSF_LooDown << std::endl;
+		  }
+		else if ( isCSVL(i) )
+		  {
+		    btagCorrFactor *= jetSF_Loo;
+		    if ( abs( jetPartonFlavor[i] ) == 5 || abs( jetPartonFlavor[i] ) == 4 )
+		      {
+			sf_btagUp   *= jetSF_LooUp/jetSF_Loo;
+			sf_btagDown *= jetSF_LooDown/jetSF_Loo;
+                      }
+		    else
+		      {
+			sf_bmistagUp   *= jetSF_LooUp/jetSF_Loo;
+			sf_bmistagDown *= jetSF_LooDown/jetSF_Loo;                                                                                          
+                      } 
+                  }
+		else
+		  {
+		    //only apply the scale factor on the inefficiency, if the corrected efficiency doesn't go above 100%
+		    //only record up/down systematics if the nominal and up and down corrected systematics do not go above 100%
+		    double sf = 1.0;
+		    if (effLoose*jetSF_Loo < 1.0) sf = (1/effLoose - jetSF_Loo) / (1/effLoose - 1);
+		    
+		    btagCorrFactor *= sf;
+		    if (abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) 
+		      {
+			if (effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooUp < 1.0) 
+			  {
+			    sf_btagUp *= (1/effLoose - jetSF_LooUp) / (1/effLoose - 1) / sf;
+			  }
+			if (effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooDown < 1.0) 
+			  {
+			    sf_btagDown *= (1/effLoose - jetSF_LooDown) / (1/effLoose - 1) / sf;
+			  }
+		      } 
+		    else 
+		      {
+			if ( effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooUp < 1.0 ) 
+			  {
+			    sf_bmistagUp *= (1/effLoose - jetSF_LooUp) / (1/effLoose - 1) / sf;
+			  } 
+			if ( effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooDown < 1.0)
+			  {
+			    sf_bmistagDown *= (1/effLoose - jetSF_LooDown) / (1/effLoose - 1) / sf;
+			  }
+		      }
+		    
+		  }
+	      }//Jetcut
+	  }//isData
+	
+
+	//-----------------------------
+	//J E S   U n c e r t a i n t y
+	//-----------------------------
+	if ( !isData )
+	  {
+	    jecUnc->setJetEta(jetEta[i]);
+	    jecUnc->setJetPt(jetCorrPt);
+	    double unc = jecUnc->getUncertainty(true);
+	    double jetPtJESUp = jetCorrPt*(1+unc);
+	    double jetPtJESDown = jetCorrPt/(1+unc);
+	    double jetEJESUp = jetCorrE*(1+unc);
+	    double jetEJESDown = jetCorrE/(1+unc);
+	    TLorentzVector thisJetJESUp = makeTLorentzVector(jetPtJESUp, jetEta[i], jetPhi[i], jetEJESUp);
+	    TLorentzVector thisJetJESDown = makeTLorentzVector(jetPtJESDown, jetEta[i], jetPhi[i], jetEJESDown);
+	    
+	    //Propagate uncertainties to the MET
+	    if (jetPtJESUp > 20) 
+	      {
+		MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
+		MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
+	      }
+	    if (jetPtJESDown > 20) 
+	      {
+		MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
+		MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
+	      }
+	        
+	    
+	    if ( jetPtJESUp > JET_CUT )
+	      {
+		GoodJetsJESUp.push_back(thisJetJESUp);
+		n_Jets_JESUp++;
+	      }
+	    if ( jetPtJESDown > JET_CUT )
+	      {
+		GoodJetsJESDown.push_back(thisJetJESDown);
+		n_Jets_JESDown++;
+	      }
+	  }//isData
+	
+	//------------------------------
+	// b - t a g   s e l e c t i o n
+	//------------------------------
+	if( isCSVL(i) )
+	  {
+	    nLooseBTaggedJets++;
+	    if( isCSVM(i) )
+	      { 
+		nMediumBTaggedJets++;
+		GoodCSVLJets.push_back(make_pair(thisJet, true));
+	      }
+	    else
+	      {
+		GoodCSVLJets.push_back(make_pair(thisJet, false));
+	      }
+	  }//isCVSL
       }
-    }
     
     //if there are no good jets, reject the event
     if( n_Jets == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	//continue;
+	//continue;//offline
       }
 
-    //std::cout << "njets-->" << n_Jets << std::endl;
     
     int iJet = 0;
     for ( auto tmp_jet : GoodJets )
@@ -1132,8 +1346,9 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
     
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
-    //TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType0Plus1Pt, 0, metType0Plus1Phi, 0 );
     TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
+    MET = metPt;
+    t1MET = metType1Pt;
     
     vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
     theMR  = computeMR(hemispheres[0], hemispheres[1]); 
@@ -1142,15 +1357,51 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
       }
-    else
+    
+    //-----------------------------------
+    //Propagate JES to MET and MR and Rsq
+    //-----------------------------------
+    if( !isData )
       {
-	theRsq = -1.0;
-	t1Rsq  = -1.0;
-      }
-    MET = metPt;
-    //t1MET = metType0Plus1Pt;
-    t1MET = metType1Pt;
-    //if MR < 200, reject the event
+	//JES up
+	vector<TLorentzVector> JetsPlusHiggsCandidate_JESUp;
+	for( auto& jet : GoodJetsJESUp ) JetsPlusHiggsCandidate_JESUp.push_back(jet);
+	JetsPlusHiggsCandidate_JESUp.push_back(HiggsCandidate);
+
+	float PFMetXJESUp   = PFMET.Px() + MetXCorr_JESUp;
+	float PFMetYJESUp   = PFMET.Py() + MetYCorr_JESUp;
+	float t1PFMetXJESUp = t1PFMET.Px() + MetXCorr_JESUp;
+        float t1PFMetYJESUp = t1PFMET.Py() + MetYCorr_JESUp;
+	
+	TLorentzVector PFMET_JESUp(PFMetXJESUp, PFMetYJESUp, 0, sqrt( pow(PFMetXJESUp,2) + pow(PFMetYJESUp,2) )); 
+	TLorentzVector t1PFMET_JESUp(t1PFMetXJESUp, t1PFMetYJESUp, 0, sqrt( pow(t1PFMetXJESUp,2) + pow(t1PFMetYJESUp,2) ));
+	vector<TLorentzVector> hemispheres_JESUp = getHemispheres(JetsPlusHiggsCandidate_JESUp);
+	theMR_JESUp  = computeMR(hemispheres_JESUp[0], hemispheres_JESUp[1]); 
+	theRsq_JESUp = computeRsq(hemispheres_JESUp[0], hemispheres_JESUp[1], PFMET_JESUp);
+	t1Rsq_JESUp  = computeRsq(hemispheres_JESUp[0], hemispheres_JESUp[1], t1PFMET_JESUp);
+	MET_JESUp    = PFMET_JESUp.Pt();
+	t1MET_JESUp  = t1PFMET_JESUp.Pt();
+
+	//JES down
+	vector<TLorentzVector> JetsPlusHiggsCandidate_JESDown;
+        for( auto& jet : GoodJetsJESDown ) JetsPlusHiggsCandidate_JESDown.push_back(jet);
+        JetsPlusHiggsCandidate_JESDown.push_back(HiggsCandidate);
+	
+	float PFMetXJESDown   = PFMET.Px() + MetXCorr_JESDown;
+	float PFMetYJESDown   = PFMET.Py() + MetYCorr_JESDown;
+	float t1PFMetXJESDown = t1PFMET.Px() + MetXCorr_JESDown;
+        float t1PFMetYJESDown = t1PFMET.Py() + MetYCorr_JESDown;
+	
+	TLorentzVector PFMET_JESDown(PFMetXJESDown, PFMetYJESDown, 0, sqrt( pow(PFMetXJESDown,2) + pow(PFMetYJESDown,2) )); 
+	TLorentzVector t1PFMET_JESDown(t1PFMetXJESDown, t1PFMetYJESDown, 0, sqrt( pow(t1PFMetXJESDown,2) + pow(t1PFMetYJESDown,2) ));
+	vector<TLorentzVector> hemispheres_JESDown = getHemispheres(JetsPlusHiggsCandidate_JESDown);
+	theMR_JESDown  = computeMR(hemispheres_JESDown[0], hemispheres_JESDown[1]); 
+	theRsq_JESDown = computeRsq(hemispheres_JESDown[0], hemispheres_JESDown[1], PFMET_JESDown);
+	t1Rsq_JESDown  = computeRsq(hemispheres_JESDown[0], hemispheres_JESDown[1], t1PFMET_JESDown);
+	MET_JESDown    = PFMET_JESDown.Pt();
+	t1MET_JESDown  = t1PFMET_JESDown.Pt();
+      }//isData
+    
     if ( theMR < 0.0 )
       {
 	if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
@@ -1161,32 +1412,54 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 				    << " h1 pt: " << hemispheres[0].Pt() << " h1 eta: " << hemispheres[0].Eta()
 				    << " h2 pt: " << hemispheres[1].Pt() << " h2 eta: " << hemispheres[1].Eta() << std::endl;
 	  }
-	//continue;
+	//continue;//inclusive now, apply razor cuts offline
       }
     
     //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
+    //--------------------------------------------
+    //mbbH and mbbZ from 1Medium and 1Loose b-tags
+    //-------------------------------------------- 
     if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
       {
-	for(int i = 0; i < nLooseBTaggedJets; i++){
-	  for(int j = i+1; j < nLooseBTaggedJets; j++){
-	    //if neither of the b-jets passes CSVM, continue
-	    if( !GoodCSVLJets[i].second && !GoodCSVLJets[j].second ) continue;
-	    double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
-	    //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
-	    if( fabs(mbbH - 125.0) > fabs(mbb - 125.0) ) mbbH = mbb;
-	    //same for mbbZ
-	    if( fabs(mbbZ - 91.2) > fabs(mbb - 91.2) ) mbbZ = mbb;
-	  }//end second jet loop
-	}//end first jet loop
+	for( int i = 0; i < nLooseBTaggedJets; i++ )
+	  {
+	    for( int j = i+1; j < nLooseBTaggedJets; j++ )
+	      {
+		//if neither of the b-jets passes CSVM, continue
+		if( !GoodCSVLJets[i].second && !GoodCSVLJets[j].second ) continue;
+		double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
+		//if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+		if( fabs(mbbH - 125.0) > fabs(mbb - 125.0) ) mbbH = mbb;
+		//same for mbbZ
+		if( fabs(mbbZ - 91.2) > fabs(mbb - 91.2) ) mbbZ = mbb;
+	      }//end second jet loop
+	  }//end first jet loop
       }
-  
+    
+    //-----------------------------------
+    //mbbH and mbbZ from two Loose b-tags
+    //-----------------------------------
+    if( nLooseBTaggedJets >= 2 )//at least two btag jets
+      {
+        for( int i = 0; i < nLooseBTaggedJets; i++ )
+          {
+            for( int j = i+1; j < nLooseBTaggedJets; j++ )
+              {
+		double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
+		//if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+		if( fabs(mbbH_L - 125.0) > fabs(mbb - 125.0) ) mbbH_L = mbb;
+                //same for mbbZ
+		if( fabs(mbbZ_L - 91.2) > fabs(mbb - 91.2) ) mbbZ_L = mbb;
+	      }//end second jet loop
+	  }//end first jet loop
+      }
 
     //------------------------------------------------
     //I n v a ri a n t   m a s s   r e s o l u t i o n
     //------------------------------------------------
     sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
     
-    if ( _debug ) std::cout << "mbbH: " << mbbH << " mbbZ: " << mbbZ << std::endl;
+    
     //Writing output to tree
     //HighPt Box
     if ( pTGammaGamma > 110.0 )
@@ -1242,9 +1515,18 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   
   if ( _info ) std::cout << "[INFO]: Number of events processed: " << NEvents->Integral() << std::endl;
   if ( _info ) std::cout << "[INFO]: Writing output trees..." << std::endl;
+
+  //----------------------------
+  //Writing output and finishing
+  //----------------------------
+  outFile->cd();
   if(combineTrees) razorTree->Write();
   else for(auto& box : razorBoxes) box.second->Write();
   NEvents->Write();
+  SumWeights->Write();
+  SumScaleWeights->Write();
+  SumPdfWeights->Write();
+  puhisto->Write();
+  outFile->Close();
   
-  outFile.Close();
 }
