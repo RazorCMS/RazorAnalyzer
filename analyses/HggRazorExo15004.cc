@@ -929,7 +929,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	      {
 		if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg->" << diphotonMass << std::endl;
 		if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
-		continue;
+		//continue;//apply offline
 	      }
 	    
 	    //---------------------------------------------
