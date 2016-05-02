@@ -35,6 +35,8 @@ if __name__ == '__main__':
                   help="override mass of stop")
     parser.add_option('--mLSP',dest="mLSP", default=-1,type="float",
                   help="override mass of LSP")
+    parser.add_option('--max-events', dest='maxEvents', default=-1, type="int",
+                  help='run on only a subset of events')
     #pdf uncertainty options.  current prescription is just to take 10% uncorrelated error on each bin
     #parser.add_option('--num-pdf-weights',dest="numPdfWeights",default=0,type="int",
                   #help="Number of nuisance parameters to use for PDF uncertainties")
@@ -145,6 +147,8 @@ if __name__ == '__main__':
             if isinstance( rootFile.Get('NEvents'), rt.TH1 ):
                 nEvents = rootFile.Get('NEvents').Integral()
                 globalScaleFactor = thyXsec*lumi/lumi_in/nEvents # FastSim samples
+                if options.maxEvents > 0: #run on fewer events
+                    globalScaleFactor *= nEvents*1.0/options.maxEvents
             else:
                 globalScaleFactor = lumi/lumi_in # FullSim samples
                 
@@ -153,11 +157,11 @@ if __name__ == '__main__':
 
             #add histogram to output file
             print("Building histogram for "+model)
-            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, unrollBins=unrollBins, xBR=options.xBR, yBR=options.yBR))
+            ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model, unrollBins=unrollBins, xBR=options.xBR, yBR=options.yBR, maxEvents=options.maxEvents))
             for shape in shapes:
                 for updown in ["Up", "Down"]:
                     print("Building histogram for "+model+"_"+shape+updown)
-                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents, unrollBins=unrollBins, xBR=options.xBR, yBR=options.yBR))
+                    ds.append(convertTree2TH1(tree, cfg, curBox, w, f, globalScaleFactor=globalScaleFactor, treeName=curBox+"_"+model+"_"+shape+updown, sysErrOpt=shape+updown, sumScaleWeights=sumScaleWeights, sumPdfWeights=sumPdfWeights, nevents=nevents, unrollBins=unrollBins, xBR=options.xBR, yBR=options.yBR, maxEvents=options.maxEvents))
             rootFile.Close()
 
             #make pdf envelope up/down (for SUS pdf uncertainty prescription)

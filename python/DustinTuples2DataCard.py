@@ -559,7 +559,7 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
         #remove the original histogram
         del hists[name]
 
-def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False, unrollBins=None, xBR=-1, yBR=-1):
+def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, sfs={}, sysErrOpt="", sumPdfWeights=None, sumScaleWeights=None, nevents=None, isData=False, unrollBins=None, xBR=-1, yBR=-1, maxEvents=-1):
     """Create 1D histogram for direct use with Combine"""
     
     x = array('d', cfg.getBinning(box)[0]) # MR binning
@@ -709,6 +709,9 @@ def convertTree2TH1(tree, cfg, box, workspace, f, globalScaleFactor, treeName, s
     while True:
         entry = elist.Next()
         if entry == -1: break
+        if maxEvents > 0 and entry > maxEvents: 
+            print "Reached maximum number of events (",entry,")"
+            break
         tree.GetEntry(entry)
 
         #get weight and fill
