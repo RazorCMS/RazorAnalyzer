@@ -14,7 +14,10 @@ from CheckSignalContamination import checkSignalContamination
 from framework import Config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
+NOPATHOLOGIES_SIGNAL_DIR = "Signals_WithPileupWeights"
+#NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
+NOPILEUPWEIGHTS_SIGNAL_DIR = "Signals_NoPileupWeights"
+#NOPILEUPWEIGHTS_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 LIMIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
@@ -45,6 +48,12 @@ if __name__ == "__main__":
     parser.add_argument('--reduced-efficiency-method', dest='reducedEff', action='store_true', help='modify background yields to correct for signal contamination')
     parser.add_argument('--no-pathologies', dest='noPathologies', action='store_true', 
             help='remove problematic fastsim events')
+    parser.add_argument('--no-pileup-weights', dest='noPileupWeights', action='store_true', 
+            help='run on samples that have pileup weights set to 1')
+    parser.add_argument('--max-signal-events', dest='maxSignalEvents', type=int, default=-1,
+            help='number of signal events to use for template histograms')
+    parser.add_argument('--save-workspace', dest='saveWorkspace', action='store_true',
+            help='save combine workspace in output file')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -126,6 +135,8 @@ if __name__ == "__main__":
         dirToUse = SIGNAL_DIR
         if args.noPathologies:
             dirToUse = NOPATHOLOGIES_SIGNAL_DIR
+        elif args.noPileupWeights:
+            dirToUse = NOPILEUPWEIGHTS_SIGNAL_DIR
         if 'T1' in args.model or 'T5' in args.model:
             modelName = 'SMS-'+args.model+'_'+str(args.mGluino)+'_'+str(args.mLSP)
         else:
@@ -140,7 +151,7 @@ if __name__ == "__main__":
             brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
             signalFilename = dirToUse+'/SMS-T1ttbb_'+str(args.mGluino)+'_'+str(args.mLSP)+'.root'
 
-        exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s %s'%(config, outDir, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename, brString), False) 
+        exec_me('python python/SMSTemplates.py --merge-bins -c %s -d %s --lumi %d --box %s %s %s %s --max-events %d'%(config, outDir, LUMI, curBox, ((args.noSys)*('--no-signal-sys')), signalFilename, brString, args.maxSignalEvents), False) 
         #load SMS template histograms
         signalHistFilename = '%s/%s_lumi-%.3f_0-3btag_%s.root'%(outDir,modelName,LUMI*1.0/1000,curBox)
         signalHists = macro.importHists(signalHistFilename)
@@ -173,10 +184,14 @@ if __name__ == "__main__":
     #run combine
     if args.signif:
         combineMethod = 'ProfileLikelihood'
-        combineFlags = '--signif -t -1 --toysFreq --saveWorkspace'
+        combineFlags = '--signif -t -1 --toysFreq'
+        if args.saveWorkspace:
+            combineFlags += ' --saveWorkspace'
     else:
         combineMethod = 'Asymptotic'
-        combineFlags = '--saveWorkspace'
+        combineFlags = ''
+        if args.saveWorkspace:
+            combineFlags += ' --saveWorkspace'
     if len(boxList) == 1:
         #get card name
         cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(LUMI*1.0/1000.,boxList[0])

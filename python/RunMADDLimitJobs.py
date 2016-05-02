@@ -12,7 +12,7 @@ from GChiPairs import gchipairs
 from WriteRazorMADDCard import LUMI
     
 def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contamination=False,reducedEff=False,
-        removePathologies=False):
+        removePathologies=False, saveWorkspace=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -31,6 +31,8 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contam
         contamString = '--reduced-efficiency-method'
     if removePathologies:
         contamString += ' --no-pathologies'
+    if saveWorkspace:
+        contamString += ' --save-workspace'
 
     particleString = '--mGluino'
     if 'T2' in model:
@@ -63,7 +65,7 @@ def writeBashScript(box,model,mg,mchi,submitDir,noSys,fitSys,signif=False,contam
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20160417\n' 
+    script += 'git checkout -b Limits LimitsMADD20160502\n' 
     script += 'make lxplus\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py --model %s %s %i --mLSP %i --dir %s --box %s %s %s %s\n'%(model,particleString,mg,mchi,submitDir,box,sysString,sigString,contamString)
@@ -114,6 +116,8 @@ if __name__ == '__main__':
                   help="Reduced efficiency correction for signal contamination")
     parser.add_option('--no-pathologies', dest='noPathologies', action='store_true', 
                   help='remove problematic fastsim events')
+    parser.add_option('--save-workspace', dest='saveWorkspace', action='store_true', 
+                  help='save workspace in combine output file')
 
     (options,args) = parser.parse_args()
 
@@ -155,7 +159,7 @@ if __name__ == '__main__':
         os.system("mkdir -p "+pwd+"/Limits/"+options.outDir)
         outputname,ffDir = writeBashScript(options.box, options.model, mg, mchi, 
                 options.outDir, options.noSys, options.fitSys, options.signif, options.contamination, 
-                options.reducedEff, options.noPathologies)
+                options.reducedEff, options.noPathologies, options.saveWorkspace)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+options.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
