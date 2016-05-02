@@ -12,7 +12,8 @@ from SidebandMacro import SAMPLES, LUMI, config
 from framework import Config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
+NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
+NOPILEUPWEIGHTS_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
 if __name__ == "__main__":
@@ -31,7 +32,9 @@ if __name__ == "__main__":
     parser.add_argument('--mStop',default=-1,type=int, help="mass of stop")
     parser.add_argument('--mLSP',default=-1,type=int, help="mass of LSP")
     parser.add_argument('--no-pathologies', dest="noPathologies", action='store_true', 
-            help='Remove pathological fastsim events')
+            help='Use samples with problematic fastsim events removed')
+    parser.add_argument('--no-pileup-weights', dest="noPileupWeights", action='store_true', 
+            help='Use samples without pileup weights set to 1')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -46,6 +49,8 @@ if __name__ == "__main__":
     dirToUse = SIGNAL_DIR
     if args.noPathologies:
         dirToUse = NOPATHOLOGIES_SIGNAL_DIR
+    elif args.noPileupWeights:
+        dirToUse = NOPILEUPWEIGHTS_SIGNAL_DIR
 
     #make output directory
     os.system('mkdir -p '+outDir)
@@ -80,8 +85,8 @@ if __name__ == "__main__":
         signalHist = signalHists[modelName]
 
         #make combined unrolled histograms for background
-        #makeRazorBinEvidencePlots(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, 
-        #        signalHist=signalHist, unrollBins=unrollBins, debugLevel=debugLevel, zmin=1e-3)
+        makeRazorBinEvidencePlots(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, 
+                signalHist=signalHist, unrollBins=unrollBins, debugLevel=debugLevel, zmin=1e-3)
         #draw signal and background in unrolled format
         if args.model == 'T2tt':
             signalString = 'pp #rightarrow #tilde{t}#tilde{t}, #mu = 1.0, #tilde{t} #rightarrow t#tilde{#chi}^{0}_{1}'
