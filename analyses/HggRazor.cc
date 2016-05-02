@@ -1156,6 +1156,67 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 		      }
 		  }
 		
+		//------------------------
+		//Loose Working point only
+		//------------------------
+		//Apply Scale Factors
+		if ( jetSF_Med <= 0 || jetSF_MedUp <= 0 || jetSF_MedDown <= 0  || jetSF_Loo <= 0 || jetSF_LooUp <= 0 || jetSF_LooDown <= 0 )
+		  {
+		    std::cout << "Warning: b-tag scale factor is <= 0!" << std::endl;
+		    std::cout << jetSF_Med << " " << jetSF_MedUp << " " << jetSF_MedDown << " " << jetSF_Loo << " " << jetSF_LooUp << " " 
+			      << jetSF_LooDown << std::endl;
+		  }
+		else if ( isCSVL(i) )
+		  {
+		    btagCorrFactor *= jetSF_Loo;
+		    if ( abs( jetPartonFlavor[i] ) == 5 || abs( jetPartonFlavor[i] ) == 4 )
+		      {
+			sf_btagUp   *= jetSF_LooUp/jetSF_Loo;
+			sf_btagDown *= jetSF_LooDown/jetSF_Loo;
+                      }
+		    else
+		      {
+			sf_bmistagUp   *= jetSF_LooUp/jetSF_Loo;
+			sf_bmistagDown *= jetSF_LooDown/jetSF_Loo;                                                                                          
+                      } 
+                  }
+		else
+		  {
+		    //only apply the scale factor on the inefficiency, if the corrected efficiency doesn't go above 100%
+		    //only record up/down systematics if the nominal and up and down corrected systematics do not go above 100%
+		    double sf = 1.0;
+		    if (effLoose*jetSF_Loo < 1.0) sf = (1/effLoose - jetSF_Loo) / (1/effLoose - 1);
+		    
+		    btagCorrFactor *= sf;
+		    if (abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) 
+		      {
+			if (effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooUp < 1.0) 
+			  {
+			    sf_btagUp *= (1/effLoose - jetSF_LooUp) / (1/effLoose - 1) / sf;
+			  }
+			if (effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooDown < 1.0) 
+			  {
+			    sf_btagDown *= (1/effLoose - jetSF_LooDown) / (1/effLoose - 1) / sf;
+			  }
+		      } 
+		    else 
+		      {
+			if ( effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooUp < 1.0 ) 
+			  {
+			    sf_bmistagUp *= (1/effLoose - jetSF_LooUp) / (1/effLoose - 1) / sf;
+			  } 
+			if ( effLoose*jetSF_Loo < 1.0 && effLoose*jetSF_LooDown < 1.0)
+			  {
+			    sf_bmistagDown *= (1/effLoose - jetSF_LooDown) / (1/effLoose - 1) / sf;
+			  }
+		      }
+		    
+		  }
+		
+		//---------------------------
+		//Two CSV working points
+		//---------------------------
+		/*
 		//Apply Scale Factors
 		if ( jetSF_Med <= 0 || jetSF_MedUp <= 0 || jetSF_MedDown <= 0  || jetSF_Loo <= 0 || jetSF_LooUp <= 0 || jetSF_LooDown <= 0 )
 		  {
@@ -1238,6 +1299,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 			  }
 		      }
 		  }
+		*/
 	      }//Jetcut
 	  }//isData
 	
