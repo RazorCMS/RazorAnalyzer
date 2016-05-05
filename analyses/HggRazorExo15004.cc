@@ -712,14 +712,19 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	    sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
 	    sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
 	    sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
-	  }
+	  
 	
-	SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
-	SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
-	SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
-	SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
-	SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
-	SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
+	    SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
+	    SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
+	    SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
+	    SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
+	    SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
+	    SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
+	  }
+	else
+	  {
+	    std::cerr << "[WARNING]: scaleWeight size less than 9, actual size is: " << (*scaleWeights).size() << std::endl;
+	  }
 	
 	sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
 	for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
