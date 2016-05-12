@@ -7,6 +7,7 @@
 //C++ INCLUDES
 #include <map>
 #include <fstream>
+#include <vector>
 #include <sstream>
 #include <string>
 #include <assert.h>
@@ -24,11 +25,13 @@ enum HggRazorBox {
     LowRes = 4
 };
 
-struct PhotonCandidate
+struct NewPhotonCandidate
 {                                                  
   int   Index;
   TLorentzVector photon;
   TLorentzVector photonSC;
+  float scE;
+  float scPt;
   float scEta;
   float scPhi;
   float SigmaIetaIeta;                                                                        
@@ -63,6 +66,7 @@ const int NUM_PDF_WEIGHTS = 60;
 //Testing branching and merging
 void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int option, bool isData )
 {
+  gROOT->Reset();
   //*****************************************************************************
   //Settings
   //*****************************************************************************
@@ -294,8 +298,9 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   float MET, MET_JESUp, MET_JESDown, t1MET, t1MET_JESUp, t1MET_JESDown;
   
   int nSelectedPhotons;
-  float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
-  float mbbZ, mbbZ_L, mbbH, mbbH_L;
+  float mGammaGamma, pTGammaGamma, etaGammaGamma, phiGammaGamma, mGammaGammaSC, pTGammaGammaSC, etaGammaGammaSC, phiGammaGammaSC, sigmaMoverM;
+  float mjj, mggj[50], mggjj, mbbZ, mbbZ_L, mbbH, mbbH_L;
+  float cosThetaCS;
   bool passedDiphotonTrigger;
   HggRazorBox razorbox = LowRes;
   
@@ -304,12 +309,14 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
   float PhoSC_E[2], PhoSC_Pt[2], PhoSC_Eta[2], PhoSC_Phi[2];
+  float PhoDefaultSC_E[2], PhoDefaultSC_Pt[2], PhoDefaultSC_Eta[2], PhoDefaultSC_Phi[2];
   float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
   bool  Pho_passEleVeto[2], Pho_passIso[2];
   int   Pho_motherID[2];
 
   //jet information
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
+  float deltaEtajj;
   int n_Jets_JESUp, n_Jets_JESDown; 
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
   //------------------------
@@ -416,9 +423,17 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
     razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
     razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+    razorTree->Branch("etaGammaGamma", &etaGammaGamma, "etaGammaGamma/F");
+    razorTree->Branch("phiGammaGamma", &phiGammaGamma, "phiGammaGamma/F");
     razorTree->Branch("mGammaGammaSC", &mGammaGammaSC, "mGammaGammaSC/F");
     razorTree->Branch("pTGammaGammaSC", &pTGammaGammaSC, "pTGammaGammaSC/F");
+    razorTree->Branch("etaGammaGammaSC", &etaGammaGammaSC, "etaGammaGammaSC/F");
+    razorTree->Branch("phiGammaGammaSC", &phiGammaGammaSC, "phiGammaGammaSC/F");
     razorTree->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
+    razorTree->Branch("mjj", &mjj, "mjj/F");
+    razorTree->Branch("deltaEtajj", &deltaEtajj, "deltaEtajj/F");
+    razorTree->Branch("mggjj", &mggjj, "mggjj/F");
+    razorTree->Branch("cosThetaCS", &cosThetaCS, "cosThetaCS/F");
     razorTree->Branch("box", &razorbox, "box/I");
     
     razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
@@ -429,6 +444,11 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("pho1SC_Pt", &PhoSC_Pt[0], "pho1SC_Pt/F");
     razorTree->Branch("pho1SC_Eta", &PhoSC_Eta[0], "pho1SC_Eta/F");
     razorTree->Branch("pho1SC_Phi", &PhoSC_Phi[0], "pho1SC_Phi/F");
+    razorTree->Branch("pho1DefaultSC_E", &PhoDefaultSC_E[0], "pho1DefaultSC_E/F");
+    razorTree->Branch("pho1DefaultSC_Pt", &PhoDefaultSC_Pt[0], "pho1DefaultSC_Pt/F");
+    razorTree->Branch("pho1DefaultSC_Eta", &PhoDefaultSC_Eta[0], "pho1DefaultSC_Eta/F");
+    razorTree->Branch("pho1DefaultSC_Phi", &PhoDefaultSC_Phi[0], "pho1DefaultSC_Phi/F");
+    
     razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
     razorTree->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
     razorTree->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
@@ -448,6 +468,11 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("pho2SC_Pt", &PhoSC_Pt[1], "pho2SC_Pt/F");
     razorTree->Branch("pho2SC_Eta", &PhoSC_Eta[1], "pho2SC_Eta/F");
     razorTree->Branch("pho2SC_Phi", &PhoSC_Phi[1], "pho2SC_Phi/F");
+    razorTree->Branch("pho2DefaultSC_E", &PhoDefaultSC_E[1], "pho2DefaultSC_E/F");
+    razorTree->Branch("pho2DefaultSC_Pt", &PhoDefaultSC_Pt[1], "pho2DefaultSC_Pt/F");
+    razorTree->Branch("pho2DefaultSC_Eta", &PhoDefaultSC_Eta[1], "pho2DefaultSC_Eta/F");
+    razorTree->Branch("pho2DefaultSC_Phi", &PhoDefaultSC_Phi[1], "pho2DefaultSC_Phi/F");
+    
     razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
     razorTree->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
     razorTree->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
@@ -469,6 +494,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
     razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
     razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+    razorTree->Branch("mggj", mggj, "mggj[n_Jets]/F");
     razorTree->Branch("n_Jets_JESUp", &n_Jets_JESUp, "n_Jets_JESUp/I");
     razorTree->Branch("n_Jets_JESDown", &n_Jets_JESDown, "n_Jets_JESDown/I");
     razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
@@ -589,14 +615,14 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
     SumWeights->Fill(1.0, weight);
-      
+    
     //reset tree variables
     ISRSystWeightUp   = 1.0;
     ISRSystWeightDown = 1.0;
     pileupWeight      = 1.0;
     pileupWeightUp    = 1.0;
     pileupWeightDown  = 1.0;
-      
+    
     btagCorrFactor    = 1.0;
     sf_btagUp         = 1.0;
     sf_btagDown       = 1.0;
@@ -631,14 +657,23 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     t1Rsq_JESDown = -666;
     
     nSelectedPhotons = 0;
-    mGammaGamma    = -1;
-    pTGammaGamma   = -1;
-    mGammaGammaSC  = -1;
-    pTGammaGammaSC = -1;
-    mbbZ   = 0;
-    mbbH   = 0;
-    mbbZ_L = 0;
-    mbbH_L = 0;
+    mGammaGamma     = -1;
+    pTGammaGamma    = -1;
+    etaGammaGamma   = -666;
+    phiGammaGamma   = -666;
+    mGammaGammaSC   = -1;
+    pTGammaGammaSC  = -1;
+    etaGammaGammaSC = -666;
+    phiGammaGammaSC = -666;
+    
+    mjj    = -1;
+    mggjj  = -1;
+    mbbZ   = -1;
+    mbbH   = -1;
+    mbbZ_L = -1;
+    mbbH_L = -1;
+    deltaEtajj = -1;
+    cosThetaCS = -666;
     run = runNum;
     lumi = lumiNum; 
     event = eventNum;
@@ -655,6 +690,10 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	PhoSC_Pt[i]               = -99.;
 	PhoSC_Eta[i]              = -99.;
 	PhoSC_Phi[i]              = -99.;
+	PhoDefaultSC_E[i]         = -99.;
+	PhoDefaultSC_Pt[i]        = -99.;
+	PhoDefaultSC_Eta[i]       = -99.;
+	PhoDefaultSC_Phi[i]       = -99.;
 	Pho_SigmaIetaIeta[i]      = -99.;
 	Pho_R9[i]                 = -99.;
 	Pho_HoverE[i]             = -99.;
@@ -673,6 +712,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	jet_Pt[i]  = -99.;
 	jet_Eta[i] = -99.;
 	jet_Phi[i] = -99.;
+	mggj[i]    = -1;
       }
 
 
@@ -735,9 +775,6 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	
       }
     
-    if ( _debug ) std::cout << "============" << std::endl;
-    if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
-    
     if(combineTrees) razorbox = LowRes;
     
     //TODO: triggers!
@@ -780,10 +817,11 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     vector<TLorentzVector> GoodPhotons;
     vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
     vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
-    std::vector< PhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
+    std::vector< NewPhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
     
     int nPhotonsAbove40GeV = 0;
-    for(int i = 0; i < nPhotons; i++)
+    //std::cout << "nphotons: " << nPhotons << std::endl;
+    for( int i = 0; i < nPhotons; i++ )
       {
 	//ID cuts -- apply isolation after candidate pair selection
 	if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
@@ -856,12 +894,17 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	//std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
 	//std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
 	//Filling Photon Candidate
-	PhotonCandidate tmp_phoCand;
+	NewPhotonCandidate tmp_phoCand;
 	tmp_phoCand.Index = i;
 	tmp_phoCand.photon = thisPhoton;
 	tmp_phoCand.photonSC = phoSC;
+	//std::cout << pho_superClusterEta[i] << std::endl;
+	//std::cout << pho_superClusterEnergy[i] << std::endl;
+	tmp_phoCand.scE   = pho_superClusterEnergy[i];
+	//std::cout << pho_superClusterEnergy[i] << std::endl;
+	tmp_phoCand.scPt  = pho_superClusterEnergy[i]/cosh( pho_superClusterEta[i] );
 	tmp_phoCand.scEta = pho_superClusterEta[i];
-	tmp_phoCand.scEta = pho_superClusterPhi[i];
+	tmp_phoCand.scPhi = pho_superClusterPhi[i];
 	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
 	tmp_phoCand.R9 = phoR9[i];
 	tmp_phoCand.HoverE = pho_HoverE[i];
@@ -871,10 +914,13 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
 	tmp_phoCand._passIso = photonPassLooseIsoExo15004(i);
+	//std::cout << "phoCand: " << phoCand.size() << std::endl;
 	phoCand.push_back( tmp_phoCand );
-	
+	//std::cout << "phoCand: " << phoCand.size() << std::endl;
 	nSelectedPhotons++;
       }
+    
+    //std::cout << "[DEBUG]: nphotons--> " << phoCand.size() << " " << nSelectedPhotons << std::endl;
     
     //if there is no photon with pT above 40 GeV, reject the event
     if( nPhotonsAbove40GeV == 0 )
@@ -902,15 +948,15 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     int HiggsPhoIndex1 = -1;
     int HiggsPhoIndex2 = -1;
     double bestSumPt = -99.;
-    std::vector< PhotonCandidate > phoSelectedCand;
-    PhotonCandidate bestCand[2];
+    std::vector< NewPhotonCandidate > phoSelectedCand;
+    NewPhotonCandidate bestCand[2];
     
     for( size_t i = 0; i < phoCand.size(); i++ )
       {
 	for( size_t j = i+1; j < phoCand.size(); j++ )//I like this logic better, I find it easier to understand
 	  {
-	    PhotonCandidate pho1 = phoCand[i];
-	    PhotonCandidate pho2 = phoCand[j];
+	    NewPhotonCandidate pho1 = phoCand[i];
+	    NewPhotonCandidate pho2 = phoCand[j];
 	    if ( _debug )
 	      {
 		std::cout << "[DEBUG]: pho1-> " << pho1.photon.Pt()
@@ -991,6 +1037,10 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	PhoSC_Pt[_pho_index]               = tmpPho.photonSC.Pt();
 	PhoSC_Eta[_pho_index]              = tmpPho.photonSC.Eta();
 	PhoSC_Phi[_pho_index]              = tmpPho.photonSC.Phi();
+	PhoDefaultSC_E[_pho_index]         = tmpPho.scE;
+	PhoDefaultSC_Pt[_pho_index]        = tmpPho.scPt;
+	PhoDefaultSC_Eta[_pho_index]       = tmpPho.scEta;
+	PhoDefaultSC_Phi[_pho_index]       = tmpPho.scPhi;
 	Pho_SigmaIetaIeta[_pho_index]      = tmpPho.SigmaIetaIeta;
 	Pho_R9[_pho_index]                 = tmpPho.R9;
 	Pho_HoverE[_pho_index]             = tmpPho.HoverE;
@@ -1041,10 +1091,25 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	//continue;//apply offline
       }
     //record higgs candidate info
-    mGammaGamma    = HiggsCandidate.M();
-    pTGammaGamma   = HiggsCandidate.Pt();
-    mGammaGammaSC  = HiggsCandidateSC.M();
-    pTGammaGammaSC = HiggsCandidateSC.Pt();
+    mGammaGamma     = HiggsCandidate.M();
+    pTGammaGamma    = HiggsCandidate.Pt();
+    etaGammaGamma   = HiggsCandidate.Eta();
+    phiGammaGamma   = HiggsCandidate.Phi();
+    mGammaGammaSC   = HiggsCandidateSC.M();
+    pTGammaGammaSC  = HiggsCandidateSC.Pt();
+    etaGammaGammaSC = HiggsCandidateSC.Eta();
+    phiGammaGammaSC = HiggsCandidateSC.Phi();
+
+    //cosTheta*CS
+    float pho1Z = Pho_Pt[0]*sinh( Pho_Eta[0] );
+    float pho2Z = Pho_Pt[1]*sinh( Pho_Eta[1] );
+    
+    float pplus      = Pho_E[0] + pho1Z;
+    float pminus     = Pho_E[0] - pho1Z;
+    float antipplus  = Pho_E[1] + pho2Z;
+    float antipminus = Pho_E[1] - pho2Z;
+    
+    cosThetaCS = signbit( HiggsCandidate.Pz() )*(pplus*antipminus-pminus*antipplus)/( mGammaGamma*sqrt( mGammaGamma*mGammaGamma + pTGammaGamma*pTGammaGamma ) );
     if ( _debug ) std::cout << "[DEBUG]: mgg-> " << mGammaGamma << " pTgg->" << pTGammaGamma << std::endl;
     
 
@@ -1334,6 +1399,18 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
       }
 
     
+    //sort jets by PT
+    auto sortTLV = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ?  true : false; };
+    std::sort( GoodJets.begin(), GoodJets.end(), sortTLV );
+    
+    //dijet mass and gg+jjj mass
+    if ( GoodJets.size() >= 2 )
+      {
+	mjj = (GoodJets[0] + GoodJets[1]).M();
+	mggjj = (HiggsCandidate + GoodJets[0] + GoodJets[1]).M();
+	deltaEtajj = GoodJets[0].Eta() - GoodJets[1].Eta();
+      }
+
     int iJet = 0;
     for ( auto tmp_jet : GoodJets )
       {
@@ -1341,6 +1418,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	jet_Pt[iJet] = tmp_jet.Pt();
 	jet_Eta[iJet] = tmp_jet.Eta();
 	jet_Phi[iJet] = tmp_jet.Phi();
+	mggj[iJet]    = (HiggsCandidate + tmp_jet).M();
 	iJet++;
       }
     
