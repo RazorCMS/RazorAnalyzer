@@ -457,14 +457,14 @@ bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
 {
   if( fabs(pho_superClusterEta[i]) < 1.4442 )
     {
-      return photonPassesIsolationExo15004(i, 5, 0.25 + 0.0045*phoPt[i] );
+      return photonPassesIsolationExo15004(i, 5, (2.75 - 2.5) + 0.0045*phoPt[i] );
     } 
   else if ( abs(pho_superClusterEta[i]) < 2.0 )
     {
-      return photonPassesIsolationExo15004(i, 5, -0.5 + 0.0045*phoPt[i] );
+      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.0045*phoPt[i] );
     }
   else
     {
-      return photonPassesIsolationExo15004(i, 5, -0.5 + 0.0030*phoPt[i] );
+      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.0030*phoPt[i] );
     }
 };
