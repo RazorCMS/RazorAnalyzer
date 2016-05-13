@@ -418,11 +418,13 @@ bool RazorAnalyzer::photonPassesIsolationExo15004(int i, double PFChHadIsoCut, d
   getPhotonEffAreaExo15004( eta, effAreaPhotons );
   
   //Rho corrected PF charged hadron isolation
-  double PFIsoCorrected_ChHad = pho_sumChargedHadronPt[i];//No PU correction
+  //double PFIsoCorrected_ChHad = pho_sumChargedHadronPt[i];//No PU correction (Caltech Original)
+  double PFIsoCorrected_ChHad = pho_pfIsoChargedHadronIso[i];//(Exo15004 default pfIso)
   if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
     
   //Rho corrected PF photon isolation
-  double PFIsoCorrected_Photons = pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons;//PU corr can go neg!
+  //double PFIsoCorrected_Photons = pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons;//PU corr can go neg!(Caltech Original)
+  double PFIsoCorrected_Photons = pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons;//PU corr can go neg!(Exo15004 default pfIso)
   if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
   
   //photon passed all cuts
