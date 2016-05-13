@@ -181,6 +181,12 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
     fChain->SetBranchStatus("pho_sumWorstVertexChargedHadronPt", 1);
+    fChain->SetBranchStatus("pho_pfIsoChargedHadronIso", 1);
+    fChain->SetBranchStatus("pho_pfIsoChargedHadronIsoWrongVtx", 1);
+    fChain->SetBranchStatus("pho_pfIsoNeutralHadronIso", 1);
+    fChain->SetBranchStatus("pho_pfIsoPhotonIso", 1);
+    fChain->SetBranchStatus("pho_pfIsoModFrixione", 1);
+    fChain->SetBranchStatus("pho_pfIsoSumPUPt", 1);    
     fChain->SetBranchStatus("pho_isConversion", 1);
     fChain->SetBranchStatus("pho_passEleVeto", 1);
     fChain->SetBranchStatus("pho_RegressionE", 1);
@@ -189,6 +195,9 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_superClusterEnergy", 1);
     fChain->SetBranchStatus("pho_superClusterEta", 1);
     fChain->SetBranchStatus("pho_superClusterPhi", 1);
+    fChain->SetBranchStatus("pho_superClusterX", 1);
+    fChain->SetBranchStatus("pho_superClusterY", 1);
+    fChain->SetBranchStatus("pho_superClusterZ", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
     fChain->SetBranchStatus("pho_passHLTFilter", 1);
 }
