@@ -356,6 +356,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //set branches on big tree
   if(combineTrees){
     razorTree->Branch("weight", &weight, "weight/F");
+    razorTree->Branch("rho", &fixedGridRhoAll, "rho/F");
     razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
     razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
     razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
@@ -831,6 +832,11 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	    continue;
 	  }
 	
+	if ( !photonPassLooseIsoExo15004(i) )
+	  {
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 Isolation" << std::endl;
+            continue;
+	  }
 	//Defining Corrected Photon momentum
 	//float pho_pt = phoPt[i];//nominal pt
 	float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
@@ -908,10 +914,14 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
 	tmp_phoCand.R9 = phoR9[i];
 	tmp_phoCand.HoverE = pho_HoverE[i];
-	tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
+	/*tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
 	tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
 	tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
-	tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
+	*/
+	tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
+	tmp_phoCand.sumNeutralHadronEt = pho_pfIsoNeutralHadronIso[i];
+	tmp_phoCand.sumPhotonEt  = pho_pfIsoPhotonIso[i];
+	tmp_phoCand.sigmaEOverE  = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
 	tmp_phoCand._passIso = photonPassLooseIsoExo15004(i);
 	//std::cout << "phoCand: " << phoCand.size() << std::endl;
