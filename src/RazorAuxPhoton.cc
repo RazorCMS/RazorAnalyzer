@@ -424,7 +424,7 @@ bool RazorAnalyzer::photonPassesIsolationExo15004(int i, double PFChHadIsoCut, d
     
   //Rho corrected PF photon isolation
   //double PFIsoCorrected_Photons = pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons;//PU corr can go neg!(Caltech Original)
-  double PFIsoCorrected_Photons = pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons;//PU corr can go neg!(Exo15004 default pfIso)
+  double PFIsoCorrected_Photons = pho_pfIsoPhotonIso[i] - fixedGridRhoAll*effAreaPhotons;//PU corr can go neg!(Exo15004 default pfIso)
   if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
   
   //photon passed all cuts
@@ -461,12 +461,12 @@ bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
     {
       return photonPassesIsolationExo15004(i, 5, (2.75 - 2.5) + 0.0045*phoPt[i] );
     } 
-  else if ( abs(pho_superClusterEta[i]) < 2.0 )
+  else if ( fabs(pho_superClusterEta[i]) < 2.0 )
     {
       return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.0045*phoPt[i] );
     }
   else
     {
-      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.0030*phoPt[i] );
+      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.0045*phoPt[i] );
     }
 };

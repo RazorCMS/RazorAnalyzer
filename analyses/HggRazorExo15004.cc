@@ -51,7 +51,7 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 0
+//#define _phodebug 0
 #define _debug    0
 #define _info     0
 
@@ -606,8 +606,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     //begin event
-    if( _info && (jentry % 10000 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
-    //std::cout << "[INFO]: Processing entry " << jentry << std::endl;
+    if( _info && (jentry % 10000 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;    
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
@@ -813,7 +812,18 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
       if(!isTightTau(i)) continue; 
       nTightTaus++;
     }
-    
+
+
+    bool  _phodebug = false;
+    if ( 
+	  (run == 257822 && event == 822442671)
+	  || 	  (run == 258443 && event == 281637095)
+
+	 ) {
+      _phodebug = true;
+      std::cout << "Event: " << run << " " << event << "\n";
+    }
+
     //photon selection
     vector<TLorentzVector> GoodPhotons;
     vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
@@ -824,17 +834,79 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     //std::cout << "nphotons: " << nPhotons << std::endl;
     for( int i = 0; i < nPhotons; i++ )
       {
-	//ID cuts -- apply isolation after candidate pair selection
+
+	//Require Loose Photon ID
 	if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	if ( !photonPassLooseIDWithoutEleVetoExo15004(i) ) 
+	if ( !photonPassLooseIDWithoutEleVetoExo15004(i) )
 	  {
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 ID" << std::endl;
 	    continue;
 	  }
-	
+
+	//Require electron veto
+	  if ( !pho_passEleVeto[i] )
+	  {
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 Ele Veto" << std::endl;
+	    continue;
+	  }
+
+
+	  if ( _phodebug ) { 
+	    std::cout << "[DEBUG]: Exo15004 Isolation" << " "
+		      << pho_pfIsoChargedHadronIso[i] << " ";
+	    double effAreaPhotons = 0.0;
+	    double eta = pho_superClusterEta[i];
+	    getPhotonEffAreaExo15004( eta, effAreaPhotons );
+	    std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoFastjetAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons << " ";
+	    double cut = 0;
+	    if( fabs(pho_superClusterEta[i]) < 1.4442 )
+	      {
+		std::cout << (2.75 - 2.5) + 0.0045*phoPt[i] ;
+		cut = (2.75 - 2.5) + 0.0045*phoPt[i];
+	      } 
+	    else if ( abs(pho_superClusterEta[i]) < 2.0 )
+	      {
+		std::cout <<  (2.0 - 2.5) + 0.0045*phoPt[i] ;
+		cut = (2.0 - 2.5) + 0.0045*phoPt[i];
+	      }
+	    else
+	      {
+		std::cout <<   (2.0 - 2.5) + 0.0030*phoPt[i] ;
+		cut = (2.0 - 2.5) + 0.0030*phoPt[i];
+	      }
+	    
+	    std::cout << " "
+		      << bool( pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons < cut) << " "
+		      << std::endl;
+	  }
+	  
+
+	  //Require Loose Isolation
 	if ( !photonPassLooseIsoExo15004(i) )
 	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 Isolation" << std::endl;
+	    if ( _phodebug ) { 
+	      std::cout << "[DEBUG]: failed Exo15004 Isolation" << " "
+			<< pho_pfIsoChargedHadronIso[i] << " ";
+	      double effAreaPhotons = 0.0;
+	      double eta = pho_superClusterEta[i];
+	      getPhotonEffAreaExo15004( eta, effAreaPhotons );
+	      std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoFastjetAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons << " ";
+	      if( fabs(pho_superClusterEta[i]) < 1.4442 )
+		{
+		  std::cout << (2.75 - 2.5) + 0.0045*phoPt[i] ;
+		} 
+	      else if ( abs(pho_superClusterEta[i]) < 2.0 )
+		{
+		  std::cout <<  (2.0 - 2.5) + 0.0045*phoPt[i] ;
+		}
+	      else
+		{
+		  std::cout <<   (2.0 - 2.5) + 0.0030*phoPt[i] ;
+		}
+
+	      std::cout << " "
+			<< std::endl;
+	    }
             continue;
 	  }
 	//Defining Corrected Photon momentum
