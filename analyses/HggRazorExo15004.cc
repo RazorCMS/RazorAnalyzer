@@ -4,6 +4,7 @@
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
+#include "EnergyScaleCorrection_class.hh"
 //C++ INCLUDES
 #include <map>
 #include <fstream>
@@ -70,11 +71,15 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //*****************************************************************************
   //Settings
   //*****************************************************************************
-  bool use25nsSelection = false;
-  if (option == 1) use25nsSelection = true;
+  bool doPhotonScaleCorrection = false;
 
-  std::cout << "[INFO]: use25nsSelection --> " << use25nsSelection << std::endl;
-  
+  bool doEleVeto = true;
+  if (option == 1) doEleVeto = false;
+
+  std::cout << "[INFO]: option = " << option << std::endl;
+  std::cout << "[INFO]: doEleVeto --> " << doEleVeto << std::endl;
+   std::cout << "[INFO]: doPhotonScaleCorrection --> " << doPhotonScaleCorrection << std::endl;
+ 
     //initialization: create one TTree for each analysis box 
   if ( _info) std::cout << "Initializing..." << std::endl;
   cout << "Combine Trees = " << combineTrees << "\n";
@@ -87,11 +92,26 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //one tree to hold all events                                                                                           
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
   
+  //Get CMSSW path directory
+  char* cmsswPath;
+  cmsswPath = getenv("CMSSW_BASE");
+
+  //Photon Energy Scale and Resolution Corrections
+   std::string photonCorrectionPath = "";
+  if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
+
+  EnergyScaleCorrection_class photonCorrector(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
+  if(!isData) {
+    photonCorrector.doScale = false; 
+    photonCorrector.doSmearings = true;
+  } else {
+    photonCorrector.doScale = true; 
+    photonCorrector.doSmearings = false;
+  }
+
   //Including Jet Corrections
   std::vector<JetCorrectorParameters> correctionParameters;
   //get correct directory for JEC files (different for lxplus and t3-higgs)
-  char* cmsswPath;
-  cmsswPath = getenv("CMSSW_BASE");
   std::string pathname;
   if ( cmsswPath != NULL ) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
   std::cout << "Getting JEC parameters from " << pathname << std::endl;
@@ -598,7 +618,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     }
   }
   
-  use25nsSelection = true;
+  bool use25nsSelection = true;
   std::cout << "use25nsSelection-->" << use25nsSelection << std::endl;
   //begin loop
   if (fChain == 0) return;
@@ -814,7 +834,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     }
 
 
-    bool  _phodebug = false;
+    bool  _phodebug = true;
     if ( 
 	  (run == 257822 && event == 822442671)
 	  || 	  (run == 258443 && event == 281637095)
@@ -832,175 +852,184 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     
     int nPhotonsAbove40GeV = 0;
     //std::cout << "nphotons: " << nPhotons << std::endl;
-    for( int i = 0; i < nPhotons; i++ )
-      {
+    for( int i = 0; i < nPhotons; i++ ) {
 
-	//Require Loose Photon ID
-	if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	if ( !photonPassLooseIDWithoutEleVetoExo15004(i) )
+      double scale = photonCorrector.ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+      double smear = photonCorrector.getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+ 
+      //Require Loose Photon ID
+      if ( _phodebug ) {
+	std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] 
+		  << " | " << scale << " " << smear << " "
+		  << std::endl;
+      }
+      if ( !photonPassLooseIDWithoutEleVetoExo15004(i) ) {
+	if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 ID" << std::endl;
+	continue;
+      }
+
+      //Require electron veto
+      if (doEleVeto) {
+	if ( !pho_passEleVeto[i] ) {
+	  if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 Ele Veto" << std::endl;
+	  continue;
+	}	  
+      }
+	
+      if ( _phodebug ) { 
+	std::cout << "[DEBUG]: Exo15004 Isolation" << " "
+		  << pho_pfIsoChargedHadronIso[i] << " ";
+	double effAreaPhotons = 0.0;
+	double eta = pho_superClusterEta[i];
+	getPhotonEffAreaExo15004( eta, effAreaPhotons );
+	std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoFastjetAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons << " ";
+	double cut = 0;
+	if( fabs(pho_superClusterEta[i]) < 1.4442 )
 	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 ID" << std::endl;
-	    continue;
-	  }
-
-	//Require electron veto
-	  if ( !pho_passEleVeto[i] )
+	    std::cout << (2.75 - 2.5) + 0.0045*phoPt[i] ;
+	    cut = (2.75 - 2.5) + 0.0045*phoPt[i];
+	  } 
+	else if ( abs(pho_superClusterEta[i]) < 2.0 )
 	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 Ele Veto" << std::endl;
-	    continue;
+	    std::cout <<  (2.0 - 2.5) + 0.0045*phoPt[i] ;
+	    cut = (2.0 - 2.5) + 0.0045*phoPt[i];
 	  }
+	else
+	  {
+	    std::cout <<   (2.0 - 2.5) + 0.0030*phoPt[i] ;
+	    cut = (2.0 - 2.5) + 0.0030*phoPt[i];
+	  }
+	    
+	std::cout << " "
+		  << bool( pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons < cut) << " "
+		  << std::endl;
+      }
+	  
 
-
+      //Require Loose Isolation
+      if ( !photonPassLooseIsoExo15004(i) )
+	{
 	  if ( _phodebug ) { 
-	    std::cout << "[DEBUG]: Exo15004 Isolation" << " "
+	    std::cout << "[DEBUG]: failed Exo15004 Isolation" << " "
 		      << pho_pfIsoChargedHadronIso[i] << " ";
 	    double effAreaPhotons = 0.0;
 	    double eta = pho_superClusterEta[i];
 	    getPhotonEffAreaExo15004( eta, effAreaPhotons );
 	    std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoFastjetAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons << " ";
-	    double cut = 0;
 	    if( fabs(pho_superClusterEta[i]) < 1.4442 )
 	      {
 		std::cout << (2.75 - 2.5) + 0.0045*phoPt[i] ;
-		cut = (2.75 - 2.5) + 0.0045*phoPt[i];
 	      } 
 	    else if ( abs(pho_superClusterEta[i]) < 2.0 )
 	      {
 		std::cout <<  (2.0 - 2.5) + 0.0045*phoPt[i] ;
-		cut = (2.0 - 2.5) + 0.0045*phoPt[i];
 	      }
 	    else
 	      {
 		std::cout <<   (2.0 - 2.5) + 0.0030*phoPt[i] ;
-		cut = (2.0 - 2.5) + 0.0030*phoPt[i];
 	      }
-	    
+
 	    std::cout << " "
-		      << bool( pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons < cut) << " "
 		      << std::endl;
 	  }
-	  
+	  continue;
+	}
 
-	  //Require Loose Isolation
-	if ( !photonPassLooseIsoExo15004(i) )
-	  {
-	    if ( _phodebug ) { 
-	      std::cout << "[DEBUG]: failed Exo15004 Isolation" << " "
-			<< pho_pfIsoChargedHadronIso[i] << " ";
-	      double effAreaPhotons = 0.0;
-	      double eta = pho_superClusterEta[i];
-	      getPhotonEffAreaExo15004( eta, effAreaPhotons );
-	      std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoFastjetAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons << " ";
-	      if( fabs(pho_superClusterEta[i]) < 1.4442 )
-		{
-		  std::cout << (2.75 - 2.5) + 0.0045*phoPt[i] ;
-		} 
-	      else if ( abs(pho_superClusterEta[i]) < 2.0 )
-		{
-		  std::cout <<  (2.0 - 2.5) + 0.0045*phoPt[i] ;
-		}
-	      else
-		{
-		  std::cout <<   (2.0 - 2.5) + 0.0030*phoPt[i] ;
-		}
+      //Defining Corrected Photon momentum
+      float pho_pt = phoPt[i];//nominal pt
+      if (doPhotonScaleCorrection) {
+	pho_pt_corr = phoPt[i]*scale; //scale corrected pt
+      }
 
-	      std::cout << " "
-			<< std::endl;
+      TVector3 vec;
+      //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+      vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
+	
+      if ( phoPt[i] < 20.0 )
+	//if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
+	{
+	  if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
+	  //continue;
+	}
+	
+      if( fabs(pho_superClusterEta[i]) > 2.5 )
+	{
+	  //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
+	  if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
+	  continue; 
+	}
+	
+      if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
+	{
+	  //Removing gap photons
+	  if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
+	  continue;
+	}
+      //photon passes
+      if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
+      //setting up photon 4-momentum with zero mass
+      TLorentzVector thisPhoton;
+      thisPhoton.SetVectM( vec, .0 );
+
+      //-----------------------------
+      //uncorrected photon 4-momentum
+      //-----------------------------
+      TVector3 vtx( pvX, pvY, pvZ );
+      TVector3 phoPos;
+      if ( fabs( pho_superClusterEta[i] ) < 1.479 )
+	{
+	  phoPos.SetXYZ( EB_R*cos( pho_superClusterPhi[i]), EB_R*sin( pho_superClusterPhi[i] ), EB_R*sinh( pho_superClusterEta[i] ) );
+	}
+      else
+	{
+	  double R = fabs( EE_Z/sinh( pho_superClusterEta[i] ) );
+	    
+	  if ( pho_superClusterEta[i] > .0 )
+	    {
+	      phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), EE_Z);
 	    }
-            continue;
-	  }
-	//Defining Corrected Photon momentum
-	//float pho_pt = phoPt[i];//nominal pt
-	float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
-	TVector3 vec;
-	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
-	vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
-	
-	if ( phoPt[i] < 20.0 )
-	  //if ( phoE[i]/cosh( phoEta[i] ) < 24.0 )
-	  {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	    //continue;
-	  }
-	
-	if( fabs(pho_superClusterEta[i]) > 2.5 )
-	  {
-	    //allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
-	    continue; 
-	  }
-	
-	if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
-	  {
-	    //Removing gap photons
-	    if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
-	    continue;
-	  }
-	//photon passes
-	if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
-	//setting up photon 4-momentum with zero mass
-	TLorentzVector thisPhoton;
-	thisPhoton.SetVectM( vec, .0 );
-
-	//-----------------------------
-	//uncorrected photon 4-momentum
-	//-----------------------------
-	TVector3 vtx( pvX, pvY, pvZ );
-	TVector3 phoPos;
-	if ( fabs( pho_superClusterEta[i] ) < 1.479 )
-	  {
-	    phoPos.SetXYZ( EB_R*cos( pho_superClusterPhi[i]), EB_R*sin( pho_superClusterPhi[i] ), EB_R*sinh( pho_superClusterEta[i] ) );
-	  }
-	else
-	  {
-	    double R = fabs( EE_Z/sinh( pho_superClusterEta[i] ) );
+	  else
+	    {
+	      phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), -EE_Z);
+	    }
 	    
-	    if ( pho_superClusterEta[i] > .0 )
-	      {
-		phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), EE_Z);
-	      }
-	    else
-	      {
-		phoPos.SetXYZ( R*cos( pho_superClusterPhi[i] ), R*sin( pho_superClusterPhi[i] ), -EE_Z);
-	      }
-	    
-	  }
+	}
 	
-	//TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
-	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] ); 
+      //TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
+      TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] ); 
 	
-	//std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
-	//std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
-	//Filling Photon Candidate
-	NewPhotonCandidate tmp_phoCand;
-	tmp_phoCand.Index = i;
-	tmp_phoCand.photon = thisPhoton;
-	tmp_phoCand.photonSC = phoSC;
-	//std::cout << pho_superClusterEta[i] << std::endl;
-	//std::cout << pho_superClusterEnergy[i] << std::endl;
-	tmp_phoCand.scE   = pho_superClusterEnergy[i];
-	//std::cout << pho_superClusterEnergy[i] << std::endl;
-	tmp_phoCand.scPt  = pho_superClusterEnergy[i]/cosh( pho_superClusterEta[i] );
-	tmp_phoCand.scEta = pho_superClusterEta[i];
-	tmp_phoCand.scPhi = pho_superClusterPhi[i];
-	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
-	tmp_phoCand.R9 = phoR9[i];
-	tmp_phoCand.HoverE = pho_HoverE[i];
-	/*tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
+      //std::cout << "phoSC_Pt: " << phoSC.Pt() << " phoCorrPt: " << thisPhoton.Pt() << std::endl;
+      //std::cout << "phoSC_Eta: " << phoSC.Eta() << " originalSC_Eta: " << pho_superClusterEta[i] << std::endl;
+      //Filling Photon Candidate
+      NewPhotonCandidate tmp_phoCand;
+      tmp_phoCand.Index = i;
+      tmp_phoCand.photon = thisPhoton;
+      tmp_phoCand.photonSC = phoSC;
+      //std::cout << pho_superClusterEta[i] << std::endl;
+      //std::cout << pho_superClusterEnergy[i] << std::endl;
+      tmp_phoCand.scE   = pho_superClusterEnergy[i];
+      //std::cout << pho_superClusterEnergy[i] << std::endl;
+      tmp_phoCand.scPt  = pho_superClusterEnergy[i]/cosh( pho_superClusterEta[i] );
+      tmp_phoCand.scEta = pho_superClusterEta[i];
+      tmp_phoCand.scPhi = pho_superClusterPhi[i];
+      tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
+      tmp_phoCand.R9 = phoR9[i];
+      tmp_phoCand.HoverE = pho_HoverE[i];
+      /*tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
 	tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
 	tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
-	*/
-	tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
-	tmp_phoCand.sumNeutralHadronEt = pho_pfIsoNeutralHadronIso[i];
-	tmp_phoCand.sumPhotonEt  = pho_pfIsoPhotonIso[i];
-	tmp_phoCand.sigmaEOverE  = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
-	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-	tmp_phoCand._passIso = photonPassLooseIsoExo15004(i);
-	//std::cout << "phoCand: " << phoCand.size() << std::endl;
-	phoCand.push_back( tmp_phoCand );
-	//std::cout << "phoCand: " << phoCand.size() << std::endl;
-	nSelectedPhotons++;
-      }
+      */
+      tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
+      tmp_phoCand.sumNeutralHadronEt = pho_pfIsoNeutralHadronIso[i];
+      tmp_phoCand.sumPhotonEt  = pho_pfIsoPhotonIso[i];
+      tmp_phoCand.sigmaEOverE  = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
+      tmp_phoCand._passEleVeto = pho_passEleVeto[i];
+      tmp_phoCand._passIso = photonPassLooseIsoExo15004(i);
+      //std::cout << "phoCand: " << phoCand.size() << std::endl;
+      phoCand.push_back( tmp_phoCand );
+      //std::cout << "phoCand: " << phoCand.size() << std::endl;
+      nSelectedPhotons++;
+    }
     
     //std::cout << "[DEBUG]: nphotons--> " << phoCand.size() << " " << nSelectedPhotons << std::endl;
     
