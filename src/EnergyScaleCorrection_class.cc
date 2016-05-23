@@ -267,6 +267,7 @@ void EnergyScaleCorrection_class::ReadSmearingFromFile(std::string filename)
 #ifdef PEDANTIC_OUTPUT
   std::cout << "[STATUS] Reading smearing values from file: " << filename << std::endl;
 #endif
+  std::cout << "[STATUS] Reading smearing values from file: " << filename << std::endl;
 
   std::ifstream f_in( filename.c_str());
   if(!f_in.good()) {
