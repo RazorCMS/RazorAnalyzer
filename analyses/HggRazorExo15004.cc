@@ -15,6 +15,7 @@
 //ROOT INCLUDES
 #include <TH1F.h>
 #include <TH2D.h>
+#include "TRandom3.h"
 
 using namespace std;
 
@@ -71,7 +72,8 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //*****************************************************************************
   //Settings
   //*****************************************************************************
-  bool doPhotonScaleCorrection = false;
+  TRandom3 random(3003);
+  bool doPhotonScaleCorrection = true;
 
   bool doEleVeto = true;
   if (option == 1) doEleVeto = false;
@@ -247,34 +249,6 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   //pu histo
   //----------
   TH1D* puhisto = new TH1D("pileup", "", 50, 0, 50);
-
-  /*
-    This is to debug and sync with Alex's events
-  */
-  std::ifstream ifs ( "HggRazorMissing.txt", std::fstream::in );
-  std::string r_run, e_evt;
-  std::map< std::string, evt > mymap;
-  if ( ifs.is_open() )
-    {
-      while ( ifs.good() )
-	{
-	  ifs >> r_run >> e_evt;
-	  std::string tmp = r_run + e_evt;
-	  evt tmp_evt;
-	  tmp_evt.run = r_run;
-	  tmp_evt.event = e_evt;
-	  if ( mymap.find( tmp ) == mymap.end() )
-	    {
-	      mymap[tmp] = tmp_evt;
-	    }
-	}
-    }
-  else
-    {
-      std::cout << "[ERROR]: unable to open file" << std::endl;
-    }
-  
-  if( _info ) std::cout << "[INFO]: map size: " << mymap.size() << std::endl;
   
   //separate trees for individual boxes
   map<string, TTree*> razorBoxes;
@@ -834,10 +808,10 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     }
 
 
-    bool  _phodebug = true;
+    bool  _phodebug = false;
     if ( 
-	  (run == 257822 && event == 822442671)
-	  || 	  (run == 258443 && event == 281637095)
+	  (run == 259626 && event == 77751174)
+	  || 	  (run == 256729 && event == 900614347)
 
 	 ) {
       _phodebug = true;
@@ -896,8 +870,8 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	  }
 	else
 	  {
-	    std::cout <<   (2.0 - 2.5) + 0.0030*phoPt[i] ;
-	    cut = (2.0 - 2.5) + 0.0030*phoPt[i];
+	    std::cout <<   (2.0 - 2.5) + 0.0045*phoPt[i] ;
+	    cut = (2.0 - 2.5) + 0.0045*phoPt[i];
 	  }
 	    
 	std::cout << " "
@@ -922,7 +896,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	      } 
 	    else if ( abs(pho_superClusterEta[i]) < 2.0 )
 	      {
-		std::cout <<  (2.0 - 2.5) + 0.0045*phoPt[i] ;
+		std::cout <<  (2.0 - 2.5) + 0.0030*phoPt[i] ;
 	      }
 	    else
 	      {
@@ -936,9 +910,13 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	}
 
       //Defining Corrected Photon momentum
-      float pho_pt = phoPt[i];//nominal pt
+      float pho_pt_corr = phoPt[i];//nominal pt
       if (doPhotonScaleCorrection) {
-	pho_pt_corr = phoPt[i]*scale; //scale corrected pt
+	if (isData) {
+	  pho_pt_corr = phoPt[i]*scale; 
+	} else {
+	  pho_pt_corr = phoPt[i]*(1+scale*random.Gaus());
+	}
       }
 
       TVector3 vec;
