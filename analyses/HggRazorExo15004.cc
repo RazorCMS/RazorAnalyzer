@@ -6,6 +6,7 @@
 #include "BTagCalibrationStandalone.h"
 #include "EnergyScaleCorrection_class.hh"
 //C++ INCLUDES
+#include <sys/stat.h>
 #include <map>
 #include <fstream>
 #include <vector>
@@ -915,7 +916,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	if (isData) {
 	  pho_pt_corr = phoPt[i]*scale; 
 	} else {
-	  pho_pt_corr = phoPt[i]*(1+scale*random.Gaus());
+	  //pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
 	}
       }
 
