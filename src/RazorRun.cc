@@ -253,6 +253,7 @@ int main(int argc, char* argv[]){
     else if(analysisType == "hggrazorExo15004" || analysisType == "hggrazorexo15004"){
       cout << "Executing higgs->diphoton razor analysis (EXO15004)..." << endl;
       analyzer.EnableEventInfo();
+      analyzer.EnablePVAll();
       analyzer.EnableJets();
       analyzer.EnableMet();
       analyzer.EnableElectrons();
