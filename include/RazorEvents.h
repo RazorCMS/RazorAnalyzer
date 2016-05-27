@@ -590,6 +590,7 @@ public :
    TBranch        *b_genQScale;   //!
    TBranch        *b_genAlphaQCD;   //!
    TBranch        *b_genAlphaQED;   //!
+   TBranch        *b_lheComments;   //!
    TBranch        *b_scaleWeights;   //!
    TBranch        *b_pdfWeights;   //!
    TBranch        *b_alphasWeights;   //!
@@ -669,6 +670,7 @@ void RazorEvents::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set object pointer
+   lheComments = 0;
    scaleWeights = 0;
    pdfWeights = 0;
    alphasWeights = 0;
@@ -954,6 +956,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genQScale", &genQScale, &b_genQScale);
    fChain->SetBranchAddress("genAlphaQCD", &genAlphaQCD, &b_genAlphaQCD);
    fChain->SetBranchAddress("genAlphaQED", &genAlphaQED, &b_genAlphaQED);
+   fChain->SetBranchAddress("lheComments", &lheComments, &b_lheComments);
    fChain->SetBranchAddress("scaleWeights", &scaleWeights, &b_scaleWeights);
    fChain->SetBranchAddress("pdfWeights", &pdfWeights, &b_pdfWeights);
    fChain->SetBranchAddress("alphasWeights", &alphasWeights, &b_alphasWeights);
