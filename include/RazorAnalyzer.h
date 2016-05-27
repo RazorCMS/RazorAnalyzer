@@ -30,6 +30,7 @@ class RazorAnalyzer: public RazorEvents {
         virtual ~RazorAnalyzer();
 
         void EnableEventInfo();
+        void EnablePVAll();
         void EnableMuons();
         void EnableElectrons();
         void EnableTaus();

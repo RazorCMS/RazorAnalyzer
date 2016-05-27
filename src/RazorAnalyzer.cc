@@ -17,6 +17,7 @@ RazorAnalyzer::~RazorAnalyzer()
 
 void RazorAnalyzer::EnableAll(){
     EnableEventInfo();
+    EnablePVAll();
     EnableMuons();
     EnableElectrons();
     EnableTaus();
@@ -46,6 +47,16 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
     fChain->SetBranchStatus("HLTDecision", 1);
     fChain->SetBranchStatus("HLTPrescale", 1);
+}
+
+void RazorAnalyzer::EnablePVAll() {
+    fChain->SetBranchStatus("nPVAll",1);
+    fChain->SetBranchStatus("pvAllX",1);
+    fChain->SetBranchStatus("pvAllY",1);
+    fChain->SetBranchStatus("pvAllZ",1);
+    fChain->SetBranchStatus("pvAllLogSumPtSq",1);
+    fChain->SetBranchStatus("pvAllSumPx",1);
+    fChain->SetBranchStatus("pvAllSumPy",1);
 }
 
 void RazorAnalyzer::EnablePileup(){
@@ -200,6 +211,11 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_superClusterZ", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
     fChain->SetBranchStatus("pho_passHLTFilter", 1);
+    fChain->SetBranchStatus("pho_convType", 1);
+    fChain->SetBranchStatus("pho_convTrkZ", 1);
+    fChain->SetBranchStatus("pho_convTrkClusZ", 1);
+    fChain->SetBranchStatus("pho_vtxSumPx", 1);
+    fChain->SetBranchStatus("pho_vtxSumPy", 1);
 }
 
 void RazorAnalyzer::EnableJets(){
