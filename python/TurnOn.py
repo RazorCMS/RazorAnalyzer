@@ -35,6 +35,8 @@ if __name__ == '__main__':
                   help="denominator trigger")
     parser.add_option('--path-names',dest="pathNames",default="data/RazorHLTPathnames.dat",type="string",
                   help="text file containing mapping between array index and path name")
+    parser.add_option('--tree-name',dest="treeName",default="RazorInclusive",type="string",
+                  help="tree name to use")
     parser.add_option('-l','--lumi',dest="lumi", default=3000.,type="float",
                   help="integrated luminosity in pb^-1")
     
@@ -61,8 +63,9 @@ if __name__ == '__main__':
     for f in args:
         if f.lower().endswith('.root'):
             rootFile = rt.TFile(f)
-            tree = rootFile.Get("RazorInclusive")
-
+            tree = rootFile.Get(options.treeName)
+                
+                
     dPhiCut = 99999
     mRmin = 0
     mRmax = 999999
