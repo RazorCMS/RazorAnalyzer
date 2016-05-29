@@ -356,7 +356,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     razorTree->Branch("met", &met, "met/F");
     razorTree->Branch("mjj_leadingJets", &mjj_leadingJets, "mjj_leadingJets/F");
     razorTree->Branch("mjj_hemispheres", &mjj_hemispheres, "mjj_hemispheres/F");
-    razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[150]/O");
+    razorTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[300]/O");
     //MET filters
     razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
     razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
@@ -890,18 +890,122 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         bool passedSingleLeptonTrigger = false;
         bool passedHadronicTrigger= false;
 
-        if (isData) {
-            passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
-                    || HLTDecision[30] || HLTDecision[31] 
-                    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-            passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
-                    || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
-                    HLTDecision[26] || HLTDecision[27] ||
-                    HLTDecision[28] || HLTDecision[29]);      
-            passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
-                    || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
-                    || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
-                    || HLTDecision[143] || HLTDecision[144]);
+        if (isData) {	  
+      /* 2015 data dilepton triggers:
+	 30    HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
+	 31    HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
+	 41    HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
+	 43    HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ
+	 47    HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+	 48    HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+	 49    HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL
+	 50    HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL
+      passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
+				    || HLTDecision[30] || HLTDecision[31] 
+				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
+      */
+      /* 2016 data dilepton triggers:
+
+	 44    HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
+	 45    HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
+	 57    HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
+	 59    HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ
+	 64    HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL
+	 65    HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+	 66    HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+	 67    HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL
+	 68    HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL
+      */
+      passedDileptonTrigger = bool( HLTDecision[44] || HLTDecision[45] 
+				    || HLTDecision[57] || HLTDecision[59] 
+				    || HLTDecision[64] || HLTDecision[65] || HLTDecision[66] || HLTDecision[67] || HLTDecision[68]);
+      /* 2015 data single lepton triggers:
+	 2    HLT_Mu50
+	 7    HLT_IsoMu20
+	 11    HLT_IsoMu27
+	 12    HLT_IsoTkMu20
+	 15    HLT_IsoTkMu27
+	 22    HLT_Ele23_WPLoose_Gsf
+	 23    HLT_Ele27_WPLoose_Gsf
+	 24    HLT_Ele27_eta2p1_WPLoose_Gsf
+	 25    HLT_Ele27_eta2p1_WPTight_Gsf
+	 26    HLT_Ele32_eta2p1_WPLoose_Gsf
+	 27    HLT_Ele32_eta2p1_WPTight_Gsf
+	 28    HLT_Ele105_CaloIdVT_GsfTrkIdT
+	 29    HLT_Ele115_CaloIdVT_GsfTrkIdT      
+      passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
+				       || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
+				       HLTDecision[26] || HLTDecision[27] ||
+				       HLTDecision[28] || HLTDecision[29]);
+      */
+      /* 2016 data single lepton triggers:
+	 4    HLT_Mu50
+	 6    HLT_Mu45_eta2p1
+	 12    HLT_IsoMu18
+	 13    HLT_IsoMu20
+	 18    HLT_IsoMu27
+	 19    HLT_IsoTkMu18
+	 20    HLT_IsoTkMu20
+	 24    HLT_IsoTkMu27
+	 27    HLT_Ele22_eta2p1_WPLoose_Gsf
+	 28    HLT_Ele22_eta2p1_WPTight_Gsf
+	 29    HLT_Ele23_WPLoose_Gsf
+	 30    HLT_Ele24_eta2p1_WPLoose_Gsf
+	 31    HLT_Ele25_WPTight_Gsf
+	 32    HLT_Ele25_eta2p1_WPLoose_Gsf
+	 33    HLT_Ele25_eta2p1_WPTight_Gsf
+	 34    HLT_Ele27_WPLoose_Gsf
+	 35    HLT_Ele27_WPTight_Gsf
+	 36    HLT_Ele27_eta2p1_WPLoose_Gsf
+	 37    HLT_Ele27_eta2p1_WPTight_Gsf
+	 38    HLT_Ele32_eta2p1_WPLoose_Gsf
+	 39    HLT_Ele32_eta2p1_WPTight_Gsf
+	 42    HLT_Ele105_CaloIdVT_GsfTrkIdT
+	 43    HLT_Ele115_CaloIdVT_GsfTrkIdT
+      */
+      passedSingleLeptonTrigger = bool(HLTDecision[4] || HLTDecision[6] || HLTDecision[12] || HLTDecision[13] || HLTDecision[18] || HLTDecision[19] ||
+				       HLTDecision[20] || HLTDecision[24] ||
+				       HLTDecision[27] || HLTDecision[28] || HLTDecision[29] || HLTDecision[30] || HLTDecision[31] || HLTDecision[32] || HLTDecision[33] ||
+				       HLTDecision[34] || HLTDecision[35] || HLTDecision[36] || HLTDecision[37] || 
+				       HLTDecision[38] || HLTDecision[39] ||
+				       HLTDecision[42] || HLTDecision[43]);
+      /* 2015 data hadronic triggers:
+	 134    HLT_RsqMR240_Rsq0p09_MR200
+	 135    HLT_RsqMR240_Rsq0p09_MR200_4jet
+	 136    HLT_RsqMR270_Rsq0p09_MR200
+	 137    HLT_RsqMR270_Rsq0p09_MR200_4jet
+	 138    HLT_RsqMR260_Rsq0p09_MR200
+	 139    HLT_RsqMR260_Rsq0p09_MR200_4jet
+	 140    HLT_RsqMR300_Rsq0p09_MR200
+	 141    HLT_RsqMR300_Rsq0p09_MR200_4jet
+	 142    HLT_Rsq0p25
+	 143    HLT_Rsq0p30
+	 144    HLT_Rsq0p36
+      passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
+				   || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
+				   || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
+				   || HLTDecision[143] || HLTDecision[144]);
+      */
+      /* 2016 data hadronic trigger:
+	 164    HLT_RsqMR240_Rsq0p09_MR200
+	 165    HLT_RsqMR240_Rsq0p09_MR200_4jet
+	 166    HLT_RsqMR270_Rsq0p09_MR200
+	 167    HLT_RsqMR270_Rsq0p09_MR200_4jet
+	 168    HLT_RsqMR260_Rsq0p09_MR200
+	 169    HLT_RsqMR260_Rsq0p09_MR200_4jet
+	 170    HLT_RsqMR300_Rsq0p09_MR200
+	 171    HLT_RsqMR300_Rsq0p09_MR200_4jet
+	 172    HLT_Rsq0p25
+	 173    HLT_Rsq0p30
+	 174    HLT_Rsq0p36
+	 175    HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200
+	 176    HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200
+      */
+      passedHadronicTrigger = bool(HLTDecision[164] || HLTDecision[165] || HLTDecision[166] 
+				   || HLTDecision[167] || HLTDecision[168] || HLTDecision[160] 
+				   || HLTDecision[170] || HLTDecision[171] || HLTDecision[172] 
+				   || HLTDecision[173] || HLTDecision[174] || HLTDecision[175]
+				   || HLTDecision[176] );
         } else {
             passedDileptonTrigger = bool(HLTDecision[41] || HLTDecision[43] 
                     || HLTDecision[30] || HLTDecision[31] 
