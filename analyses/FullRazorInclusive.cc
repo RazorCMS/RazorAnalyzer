@@ -2492,24 +2492,25 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
 	if (isFastsimSMS) {
 	  bool isPathologicalFastsimEvent = false;		  
-	  assert(leadingJetIndex >= 0);
 
-	  //Match to Gen Jet
-	  bool isMatch = false;
-	  for(int j = 0; j < nGenJets; j++){
-	    double tmpDR = deltaR( genJetEta[j],genJetPhi[j], jetEta[leadingJetIndex],jetPhi[leadingJetIndex]);
-	    if ( tmpDR < 0.4
-		 ) {	
-	      isMatch = true;
+	  if (leadingJetIndex >= 0) {
+	    //Match to Gen Jet
+	    bool isMatch = false;
+	    for(int j = 0; j < nGenJets; j++){
+	      double tmpDR = deltaR( genJetEta[j],genJetPhi[j], jetEta[leadingJetIndex],jetPhi[leadingJetIndex]);
+	      if ( tmpDR < 0.4
+		   ) {	
+		isMatch = true;
+	      }
+	    }	  
+	    // these are the pathological fastsim jets
+	    if (!isMatch && jetChargedHadronEnergyFraction[leadingJetIndex] < 0.1 ) {
+	      isPathologicalFastsimEvent = true;
 	    }
-	  }	  
-	  // these are the pathological fastsim jets
-	  if (!isMatch && jetChargedHadronEnergyFraction[leadingJetIndex] < 0.1 ) {
-	    isPathologicalFastsimEvent = true;
+	    if (isPathologicalFastsimEvent) continue;
 	  }
-	  if (isPathologicalFastsimEvent) continue;
 	}
-
+	
 
 
         /////////////////////////////////
@@ -2541,7 +2542,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
         //Nominal event weight
         if(!isData){
-            weight *= pileupWeight; 
+	  weight *= pileupWeight; 
             if (passedSingleLeptonTrigger) {
                 weight *= muonEffCorrFactor;
                 weight *= muonTrigCorrFactor;
@@ -2554,7 +2555,24 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 weight *= tauEffCorrFactor;
                 weight *= hadronicTrigCorrFactor;
             }
-            weight *= btagCorrFactor;    
+            weight *= btagCorrFactor;   
+
+	    // if (weight < 0.1) {
+	    //   cout << "weight: " << weight << " | "
+	    // 	   << pileupWeight << " " << NPU << " | "
+	    // 	   << passedSingleLeptonTrigger << " / " << passedHadronicTrigger << " | "
+	    // 	   << muonEffCorrFactor << " "
+	    // 	   << muonTrigCorrFactor << " "
+	    // 	   << eleEffCorrFactor << " " 
+	    // 	   << eleTrigCorrFactor << " "
+	    // 	   << vetoMuonEffCorrFactor << " "
+	    // 	   << vetoEleEffCorrFactor << " "
+	    // 	   << tauEffCorrFactor << " "
+	    // 	   << hadronicTrigCorrFactor << " "
+	    // 	   << btagCorrFactor << " "
+	    // 	   << "\n";
+	    // }
+ 
         }
 
         //Fill normalization histogram
