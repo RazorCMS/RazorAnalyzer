@@ -1176,10 +1176,10 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
                 float vtxY = pvAllY[ipv];
                 float vtxZ = pvAllZ[ipv];
                 
-                TVector3 pho1perp(pho1.scX-vtxX,pho1.scY-vtxY,0.);
-                TVector3 pho2perp(pho2.scX-vtxX,pho2.scY-vtxY,0.);
-
-                TVector3 diphoPt = pho1E*pho1perp.Unit() + pho2E*pho2perp.Unit();
+                TVector3 pho1dir(pho1.scX-vtxX,pho1.scY-vtxY,pho1.scZ-vtxZ);
+                TVector3 pho2dir(pho2.scX-vtxX,pho2.scY-vtxY,pho2.scZ-vtxZ);
+                TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
+                TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
                 
                 TVector3 vtxSumPt(pvAllSumPx[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
                 
