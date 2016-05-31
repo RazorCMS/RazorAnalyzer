@@ -64,7 +64,7 @@ struct evt
 };
 
 //#define _phodebug 0
-#define _debug    0
+//#define _debug    0
 #define _info     0
 
 const double EB_R = 129.0;
@@ -367,6 +367,8 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
   float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
   bool  Pho_passEleVeto[2], Pho_passIso[2];
   int   Pho_motherID[2];
+  int   vtxIndex;
+  float vtxZCoordinate;
 
   //jet information
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
@@ -553,7 +555,9 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     razorTree->Branch("n_Jets_JESUp", &n_Jets_JESUp, "n_Jets_JESUp/I");
     razorTree->Branch("n_Jets_JESDown", &n_Jets_JESDown, "n_Jets_JESDown/I");
     razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
-      
+    razorTree->Branch("vtxIndex", &vtxIndex, "vtxIndex/I");
+    razorTree->Branch("vtxZ", &vtxZCoordinate, "vtxZ/F");
+
     //GenParticles
     razorTree->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
     razorTree->Branch("gParticleMotherId", gParticleMotherId, "gParticleMotherId[nGenParticle]/I");
@@ -732,7 +736,9 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     lumi = lumiNum; 
     event = eventNum;
     passedDiphotonTrigger = false;
-      
+    vtxIndex = -1;
+    vtxZCoordinate = -999;
+
     //selected photons variables
     for ( int i = 0; i < 2; i++ )
       {
@@ -817,7 +823,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	  }
 	else
 	  {
-	    std::cerr << "[WARNING]: scaleWeight size less than 9, actual size is: " << (*scaleWeights).size() << std::endl;
+	    //std::cerr << "[WARNING]: scaleWeight size less than 9, actual size is: " << (*scaleWeights).size() << std::endl;
 	  }
 	
 	sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
@@ -869,12 +875,53 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 
 
     bool  _phodebug = false;
+    bool  _debug = false;
     if ( 
-	  (run == 259626 && event == 77751174)
-	  || 	  (run == 256729 && event == 900614347)
-
+	// 	 (run == 256729 && event == 269921886) ||
+	// (run == 257400 && event == 127188682) ||
+	// (run == 257599 && event == 108881956) ||
+	// (run == 257613 && event == 1282245884) ||
+	// (run == 257613 && event == 1484038499) ||
+	// (run == 257816 && event == 273391612) ||
+	//	(run == 257819 && event == 83569895) 
+	// (run == 257968 && event == 142707054) ||
+	// (run == 258136 && event == 72682254) ||
+	// (run == 258158 && event == 1850722854) ||
+	// (run == 258158 && event == 1250805677) ||
+	// (run == 258159 && event == 377785791) ||
+	// (run == 258443 && event == 179542426) ||
+	// (run == 258445 && event == 341660356) ||
+	// (run == 258448 && event == 325186177) ||
+	// (run == 258706 && event == 990974756) ||
+	// (run == 258745 && event == 328487941) ||
+	// (run == 258750 && event == 201641389) ||
+	// (run == 259685 && event == 695148722) ||
+	// (run == 259686 && event == 507090748) ||
+	// (run == 259822 && event == 279242627) ||
+	// (run == 259861 && event == 37355040) ||
+	// (run == 260431 && event == 586968601) ||
+	// (run == 260576 && event == 376146124) ||
+	// (run == 260593 && event == 119035561) ||
+	// (run == 260627 && event == 1994303627) ||
+	// (run == 260627 && event == 2521359747) ||
+	// (run == 260627 && event == 938064018) ||
+	// (run == 260627 && event == 1155826876) ||
+	// (run == 260627 && event == 1471919793) ||
+	
+	//Skimmed events
+	(run == 258702  && event ==  379963951) ||
+	(run == 258706  && event ==  474624788) ||
+	(run == 258712  && event ==  283214660) ||
+	(run == 259884  && event ==   92563797) ||
+	(run == 260426  && event ==  628269368) ||
+	(run == 260431  && event ==  338608305) ||
+	(run == 260532  && event ==  416752953) ||
+	(run == 260627  && event ==  288969568) ||
+	(run == 260627  && event ==  703977794) ||
+	(run == 260627  && event ==  854678036) 
 	 ) {
       _phodebug = true;
+      _debug = true;
       std::cout << "Event: " << run << " " << event << "\n";
     }
 
@@ -949,7 +996,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	    double effAreaPhotons = 0.0;
 	    double eta = pho_superClusterEta[i];
 	    getPhotonEffAreaExo15004( eta, effAreaPhotons );
-	    std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoFastjetAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons << " ";
+	    std::cout << pho_pfIsoPhotonIso[i] << " " << fixedGridRhoAll << " " << effAreaPhotons << " " << pho_pfIsoPhotonIso[i] - fixedGridRhoAll*effAreaPhotons << " ";
 	    if( fabs(pho_superClusterEta[i]) < 1.4442 )
 	      {
 		std::cout << (2.75 - 2.5) + 0.0045*phoPt[i] ;
@@ -975,12 +1022,11 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
 	if (isData) {
 	  pho_pt_corr = phoPt[i]*scale; 
 	} else {
-	  //pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
+	  pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
 	}
       }
 
       TVector3 vec;
-      //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
       vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 	
       if ( phoPt[i] < 20.0 )
@@ -1137,8 +1183,15 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
                 
                 TVector3 vtxSumPt(pvAllSumPx[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
                 
+
+		if (_debug) {
+		  std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
+			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
+			    << "\n";
+		}
+
                 logsumpt2 = pvAllLogSumPtSq[ipv];
-                ptbal = -vtxSumPt.Dot(diphoPt.Unit());
+                ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
                 
                 bool hasconv1 = pho1.convType>=0;
@@ -1178,21 +1231,30 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
                 
                 if (hasconv1 || hasconv2) {
                   pull_conv = std::abs(convz-vtxZ)/convsz;
-                  pull_conv = std::min(10.f,pull_conv);
+                  pull_conv = std::min(10.f,pull_conv); 
                 }
                 else {
                   pull_conv = 10.;
                 }
                 
                 float bdtval = vtxmvareader->EvaluateMVA("BDT");
-                                
+
+		if (_debug) std::cout << "Vertex: " << ipv << " " << pvAllZ[ipv] << " : " 
+				      << ptasym << " " << ptbal << " " << logsumpt2 << " " << pull_conv << " " << nConv << " : "
+				      << bdtval << "\n";
+                              
                 if (bdtval > maxbdtval) {
                   maxbdtval = bdtval;
                   ipvmax = ipv;
                 }
                 
               }
-                              
+
+	      if (_debug) std::cout << "Vertex Selected: " << ipvmax << "\n\n";
+	      
+	      vtxIndex = ipvmax;
+	      vtxZCoordinate =  pvAllZ[ipvmax];
+
               float vtxX = pvAllX[ipvmax];
               float vtxY = pvAllY[ipvmax];
               float vtxZ = pvAllZ[ipvmax];
