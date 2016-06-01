@@ -382,7 +382,6 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     btags: optional -- used only to specify which fit to load
     dataDrivenQCD: optional -- if True, the abs(dPhiRazor) < 2.8 cut will be inverted for QCD and the yields in the high dPhi control region will be extrapolated into the low dPhi region using a power law.
     """
-
     titles = {
         "MR": "M_{R} [GeV]", 
         "Rsq": "R^{2}",
@@ -407,7 +406,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         samplesForQCD = copy.copy(samples)
         samplesForQCD.remove('QCD')
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+['datadrivenqcd'], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, makePlots=False, dataDrivenQCD=False)
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+['datadrivenqcd'], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill)
         #subtract backgrounds from QCD prediction
         macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
         print "Now back to our signal region..."
@@ -1021,6 +1020,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 
         #divide and write out
         for n,h in signalRegionSFs.iteritems():
+            h.SetDirectory(0)
             h.Divide(histToCorrect)
             #zero any negative scale factors
             for bx in range(h.GetSize()+1):
@@ -1048,8 +1048,6 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
                 h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
             print "Writing histogram",h.GetName(),"to file"
             h.Write(regionNameReduced+"ScaleFactors"+n)
-
-    vetoLeptonOutfile.Close()
 
     #plot correction factors in 2D (not yet implemented for 1 or 3 dimensions)
     comment = "MC-Data"
@@ -1091,7 +1089,10 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
         cols = [xRanges, yRanges, sfs, statUncerts]
         plotting.table_basic(headers, cols, caption="Difference between MC and data yields in veto lepton control region", printstr="corrFactorTable"+regionNameReduced, printdir=printdir)
 
-    return vlHists['Central']
+    if histToCorrect is not None and not doDataOverMC:
+        return signalRegionSFs['Central']
+    else:
+        return vlHists['Central']
 
 #########################################
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING

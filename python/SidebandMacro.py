@@ -17,22 +17,32 @@ SAMPLES_HADRONIC = ["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJ
 SAMPLES_HADRONIC_REDUCED = ["Other", "QCD", "ZInv", "WJets", "TTJets"]
 SAMPLES_LEPTONIC = ["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"]
 SAMPLES_LEPTONIC_REDUCED = ["Other", "ZInv", "WJets", "TTJets"]
-SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC, "FourToSixJet":SAMPLES_HADRONIC, "SevenJet":SAMPLES_HADRONIC }
-SAMPLES_REDUCED = { "MultiJet":SAMPLES_HADRONIC_REDUCED, "MuMultiJet":SAMPLES_LEPTONIC_REDUCED, "EleMultiJet":SAMPLES_LEPTONIC_REDUCED, "FourToSixJet":SAMPLES_HADRONIC_REDUCED, "SevenJet":SAMPLES_HADRONIC_REDUCED }
+SAMPLES = { "MultiJet":SAMPLES_HADRONIC, "MuMultiJet":SAMPLES_LEPTONIC, "EleMultiJet":SAMPLES_LEPTONIC, 
+            "DiJet":SAMPLES_HADRONIC, "MuJet":SAMPLES_LEPTONIC, "EleJet":SAMPLES_LEPTONIC,
+            "FourToSixJet":SAMPLES_HADRONIC, "SevenJet":SAMPLES_HADRONIC }
+SAMPLES_REDUCED = { "MultiJet":SAMPLES_HADRONIC_REDUCED, "MuMultiJet":SAMPLES_LEPTONIC_REDUCED, 
+                    "EleMultiJet":SAMPLES_LEPTONIC_REDUCED, "DiJet":SAMPLES_HADRONIC_REDUCED, 
+                    "MuJet":SAMPLES_LEPTONIC_REDUCED, "EleJet":SAMPLES_LEPTONIC_REDUCED,
+                    "FourToSixJet":SAMPLES_HADRONIC_REDUCED, "SevenJet":SAMPLES_HADRONIC_REDUCED }
 
-BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet", "FourToSixJet", "SevenJet"]
+BOXES = ["MultiJet", "MuMultiJet", "EleMultiJet", "DiJet", "MuJet", "EleJet", "FourToSixJet", "SevenJet"]
 
 DIR_MC = "Backgrounds"
 DIR_DATA = "Backgrounds"
 #DIR_MC = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p23_Background_20160108/"
-#DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106" #old data 
 #DIR_DATA = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForMoriond20160119/RazorSkim"
+DATA_HTMHT = 'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter'
+DATA_SINGLEELECTRON = 'RazorInclusive_SingleElectron_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter'
+DATA_SINGLEMUON = 'RazorInclusive_SingleMuon_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter' 
 DATA_NAMES={
-    'MultiJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
-    'EleMultiJet':'RazorInclusive_SingleElectron_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
-    'MuMultiJet':'RazorInclusive_SingleMuon_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
-    'FourToSixJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
-    'SevenJet':'RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_Filtered',
+    'MultiJet':DATA_HTMHT,
+    'EleMultiJet':DATA_SINGLEELECTRON,
+    'MuMultiJet':DATA_SINGLEMUON,
+    'DiJet':DATA_HTMHT,
+    'MuJet':DATA_SINGLEMUON,
+    'EleJet':DATA_SINGLEELECTRON,
+    'FourToSixJet':DATA_HTMHT,
+    'SevenJet':DATA_HTMHT,
     }
 FILENAMES_MC = {
         "TTJets1L"    : DIR_MC+"/"+"FullRazorInclusive_TTJets1L_1pb_weighted.root",
@@ -54,6 +64,9 @@ TOYS_FILES = {
         "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
         "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
         "EleMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_EleMultiJet.root",
+        "DiJet":None,
+        "MuJet":None,
+        "EleJet":None,
         "FourToSixJet":None,
         "SevenJet":None,
         }
@@ -66,7 +79,9 @@ commonShapeErrors = [('singletopnorm',"SingleTop"),('othernorm',"Other"),('qcdno
 commonShapeErrors += [('btaginvcrosscheck',['ZInv']),('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),('sfstatzinv',['ZInv']),('sfsyszinv',['ZInv']),'jes','ees','mes',('ttcrosscheck',['TTJets2L']),('sfstatttjets',['TTJets1L','TTJets2L']),('sfsysttjets',['TTJets1L','TTJets2L']),('sfstatwjets',['WJets']),('sfsyswjets',['WJets'])]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
-shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors, 'FourToSixJet':hadShapeErrors, 'SevenJet':hadShapeErrors }
+shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors, 
+           'DiJet':hadShapeErrors, 'MuJet':lepShapeErrors, 'EleJet':lepShapeErrors,
+           'FourToSixJet':hadShapeErrors, 'SevenJet':hadShapeErrors }
 
 cfg = Config.Config(config)
 binsMRHad = cfg.getBinning("MultiJet")[0]
@@ -75,7 +90,9 @@ hadronicBinning = { "MR":binsMRHad, "Rsq":binsRsqHad, ("MR","Rsq"):[] }
 binsMRLep = cfg.getBinning("MuMultiJet")[0]
 binsRsqLep = cfg.getBinning("MuMultiJet")[1]
 leptonicBinning = { "MR":binsMRLep, "Rsq":binsRsqLep, ("MR","Rsq"):[] }
-binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning, "FourToSixJet":hadronicBinning, "SevenJet":hadronicBinning}
+binning = { "MultiJet":hadronicBinning, "MuMultiJet":leptonicBinning, "EleMultiJet":leptonicBinning, 
+            "DiJet":hadronicBinning, "MuJet":leptonicBinning, "EleJet":leptonicBinning,
+            "FourToSixJet":hadronicBinning, "SevenJet":hadronicBinning}
 
 blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2,len(binning[b]["Rsq"])+1)] for b in binning}
 
@@ -83,8 +100,10 @@ dirName="SignalRegionPlots"
 
 #scale factor file names
 sfdir = "data/ScaleFactors/RazorMADD2015/"
-sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
-sfFile_7Jet = sfdir+'/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root'
+sfFile = sfdir+'/RazorScaleFactors_Inclusive_Uncorrected.root'
+sfFile_nJets = sfdir+'/RazorNJetsScaleFactors.root'
+#sfFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
+#sfFile_7Jet = sfdir+'/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root'
 gjetsupdownFile = sfdir+'/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root'
 vetolepPtFile = sfdir+'/RazorVetoLeptonPtCrossCheck.root'
 vetotauPtFile = sfdir+'/RazorVetoTauPtCrossCheck.root'
@@ -133,7 +152,7 @@ if __name__ == "__main__":
     if args.unblind:
         dirName += '_Unblinded'
     if args.noFit: 
-        toysToUse = None
+        toysToUse = {}
         del plotOpts['sideband']
     boxesToUse = ["MultiJet", "MuMultiJet", "EleMultiJet"]
     if args.box is not None:
@@ -158,6 +177,10 @@ if __name__ == "__main__":
             }
     sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
     for name in sfHists: assert sfHists[name]
+    #get njets scale factor histogram
+    sfNJetsFile = rt.TFile.Open(sfFile_nJets)
+    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
+    assert sfHists['NJets']
     #get histograms for wjetsinv/gjets scale factor comparison
     gjetsupdownTFile = rt.TFile.Open(gjetsupdownFile)
     sfHists['ZInvUp'] = gjetsupdownTFile.Get('WJetsInvScaleFactors')
@@ -219,11 +242,11 @@ if __name__ == "__main__":
     #get 'down' version of histogram
     sfHists['ZInvBDown'] = invertHistogram(sfHists['ZInvBUp'])
 
-    sevenJetSFHists = loadScaleFactorHists(sfFilename=sfFile_7Jet, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
-    sfHists7Jet = sfHists.copy()
-    sfHists7Jet.update(sevenJetSFHists)
+    #sevenJetSFHists = loadScaleFactorHists(sfFilename=sfFile_7Jet, processNames=SAMPLES_HADRONIC, scaleFactorNames=sfNames, debugLevel=debugLevel)
+    #sfHists7Jet = sfHists.copy()
+    #sfHists7Jet.update(sevenJetSFHists)
 
-    auxSFs = {} #do not correct veto lepton pt or eta
+    auxSFs = {"NJets":("nSelectedJets","1")} #do not correct veto lepton pt or eta
 
     #estimate yields in signal region
     for boxName in boxesToUse:
@@ -244,28 +267,24 @@ if __name__ == "__main__":
         shapesToUse = copy.copy(shapes[boxName])
         if args.noSys:
             shapesToUse = []
-        if toysToUse[boxName] is None and 'sideband' in plotOpts:
+        if (boxName not in toysToUse or toysToUse[boxName] is None) and 'sideband' in plotOpts:
             del plotOpts['sideband']
 
         sfHistsToUse = sfHists
-        if boxName == 'SevenJet':
-            sfHistsToUse = sfHists7Jet
+        auxSFsToUse = auxSFs
+        #if boxName == 'SevenJet':
+            #sfHistsToUse = sfHists7Jet
 
         #disable scale factors option
         if args.noSFs:
             print "Ignoring all scale factor histograms and uncertainties from scale factor cross checks."
             sfHistsToUse = {}
+            auxSFsToUse = {}
             toRemove = ['btaginvcrosscheck','btagcrosscheckrsq','btagcrosscheckmr','sfsyszinv','ttcrosscheck','zllcrosscheck','sfsysttjets','sfsyswjets','vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck']
             #remove scale factor cross check uncertainties
             shapesToUse = [s for s in shapesToUse if s not in toRemove]
             #this removes scale factor uncertainties that are listed as tuples
             shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
-
-        #apply veto lepton correction only to Multijet box
-        if boxName == 'MultiJet' or boxName == 'FourToSixJet' or boxName == 'SevenJet':
-            auxSFsToUse = auxSFs
-        else:
-            auxSFsToUse = {}
 
         #loop over btag bins
         if args.btags is not None:

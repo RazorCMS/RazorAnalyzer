@@ -4,7 +4,7 @@ import ROOT as rt
 
 #local imports
 from macro import macro
-from macro.razorAnalysis import wjetsSingleLeptonCutsMC, wjetsSingleLeptonCutsData, ttjetsSingleLeptonCutsMC, ttjetsSingleLeptonCutsData, xbinsSignal, colsSignal
+from macro.razorAnalysis import wjetsSingleLeptonCutsMC, ttjetsSingleLeptonCutsMC, xbinsSignal, colsSignal, cutsData_2016, cutsData_2015
 from macro.razorWeights import *
 from macro.razorMacros import *
 from SidebandMacro import LUMI as LUMI_DATA
@@ -19,7 +19,8 @@ SAMPLES_Veto = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"
 SAMPLES_WJ1L_INV = ["Other", "ZInv", "QCD", "DYJets", "SingleTop", "TTJets", "WJetsInv"]
 SAMPLES_DYJ2L_INV = ["Other", "SingleTop", "WJets", "TTJets", "DYJets"]
 
-DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/"
+DIR_1L = "ControlRegions"
+#DIR_1L = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/"
 PREFIX_1L = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
 FILENAMES_1L = {
             "TTJets"   : DIR_1L+"/"+PREFIX_1L+"_TTJets_1pb_weighted_RazorSkim.root",
@@ -43,7 +44,8 @@ FILENAMES_2L = {
             "Data"     : DIR_2L+"/"+PREFIX_2L+"_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_RazorSkim.root"
             }
 
-DIR_1L_INV = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonAddToMETFull_1p23_2015Final/RazorNJets80Skim/"
+DIR_1L_INV = "ControlRegions"
+#DIR_1L_INV = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonAddToMETFull_1p23_2015Final/RazorSkim/"
 PREFIX_1L_INV = "RunTwoRazorControlRegions_OneLeptonAddToMetFull_SingleLeptonSkim"
 FILENAMES_1L_INV = {
             "TTJets"   : DIR_1L_INV+"/"+PREFIX_1L_INV+"_TTJets_1pb_weighted_RazorSkim.root",
@@ -55,6 +57,8 @@ FILENAMES_1L_INV = {
             "QCD"      : DIR_1L_INV+"/"+PREFIX_1L_INV+"_QCD_HTBinned_1pb_weighted_RazorSkim.root",
             "Data"     : DIR_1L_INV+"/"+PREFIX_1L_INV+"_SingleLepton_Run2015D_RazorSkim_GoodLumiGolden_NoDuplicates.root"
             }
+
+DATA_2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLepton_2016B_PRv2_GoodLumiGolden_RazorSkim_NoDuplicates.root"
 
 weightOpts = []
 
@@ -87,12 +91,24 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
+    parser.add_argument("--use-2016-data", dest="use2016Data", action="store_true",
+                                help="Use 2016 data")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
 
     #initialize
     weightHists = {}
     sfHists = {}
+    cutsData = cutsData_2015
+
+    #choose data file
+    if args.use2016Data: 
+        FILENAMES_1L["Data"] = DATA_2016
+        FILENAMES_2L["Data"] = DATA_2016
+        FILENAMES_1L_INV["Data"] = DATA_2016
+        printdir = "ControlSamplePlots2016"
+        LUMI_DATA = 589
+        cutsData = cutsData_2016
 
     #make output directory
     os.system('mkdir -p '+printdir)
@@ -103,22 +119,11 @@ if __name__ == "__main__":
     plotOpts = { 'comment':False }
 
     ##########################################################
-    # #DYJets control sample
-    ##########################################################
-    # dyjetsDileptonHists = makeControlSampleHists("DYJetsDilepton", 
-    #             filenames=FILENAMES_2L, samples=SAMPLES_DYJ2L, 
-    #             cutsMC=dyjetsDileptonCutsMC, cutsData=dyjetsDileptonCutsData, 
-    #             bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
-    #             weightHists=weightHists, plotDensity=False, sfHists=sfHists, weightOpts=weightOpts, 
-    #             printdir=printdir, debugLevel=debugLevel)
-    # appendScaleFactors("DYJets", dyjetsDileptonHists, sfHists, lumiData=LUMI_DATA, debugLevel=debugLevel, printdir=printdir)
-
-    ##########################################################
     #TTJets control sample
     ##########################################################
     ttjetsSingleLeptonHists = makeControlSampleHists("TTJetsSingleLepton", 
                 filenames=FILENAMES_1L, samples=SAMPLES_TTJ1L, 
-                cutsMC=ttjetsSingleLeptonCutsMC, cutsData=ttjetsSingleLeptonCutsData, 
+                cutsMC=ttjetsSingleLeptonCutsMC, cutsData=cutsData["TTJetsSingleLepton"], 
                 bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, sfVars=sfVars, debugLevel=debugLevel,
@@ -132,7 +137,7 @@ if __name__ == "__main__":
     #sfHists_ForWJets = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_TTJets.root", processNames=SAMPLES_WJ1L, debugLevel=debugLevel)
     wjetsSingleLeptonHists = makeControlSampleHists("WJetsSingleLepton", 
                 filenames=FILENAMES_1L, samples=SAMPLES_WJ1L, 
-                cutsMC=wjetsSingleLeptonCutsMC, cutsData=wjetsSingleLeptonCutsData, 
+                cutsMC=wjetsSingleLeptonCutsMC, cutsData=cutsData["WJetsSingleLepton"], 
                 bins=ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                 weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                 printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel,
@@ -147,7 +152,7 @@ if __name__ == "__main__":
     #sfHists_ForWJetsInv = loadScaleFactorHists(sfFilename="data/ScaleFactors/RazorScaleFactors_Inclusive_TTJets.root", processNames=SAMPLES_WJ1L_INV, debugLevel=debugLevel)
     wjetsSingleLeptonInvHists = makeControlSampleHists("WJetsSingleLeptonInv", 
                  filenames=FILENAMES_1L_INV, samples=SAMPLES_WJ1L_INV, 
-                 cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=wjetsSingleLeptonInvCutsData, 
+                 cutsMC=wjetsSingleLeptonInvCutsMC, cutsData=cutsData["WJetsSingleLeptonInv"], 
                  bins=ZNuNu_1L_ControlRegionBinning, lumiMC=MCLUMI, lumiData=LUMI_DATA, 
                  weightHists=weightHists, sfHists=sfHists, weightOpts=weightOpts, 
                  printdir=printdir, plotDensity=False, sfVars=sfVars, debugLevel=debugLevel,

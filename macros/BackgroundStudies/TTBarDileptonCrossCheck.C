@@ -219,6 +219,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
   TH2Poly *WJetsSFHist = (TH2Poly*)RazorScaleFactorFile->Get("WJetsScaleFactors");
   assert(WJetsSFHist);
 
+  TH1F *NJetsSFHist = 0;
+  if (option == "2JetMR300Rsq0p15") {
+      TFile *RazorNJetsScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors.root",cmsswPath), "READ");
+      NJetsSFHist = (TH1F*)RazorNJetsScaleFactorFile->Get("NJetsCorrectionScaleFactors");
+      assert(NJetsSFHist);
+  }
+
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
@@ -418,6 +425,10 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	if (option == "4JetMR300Rsq0p15" ) {
 	  if (!(events->NJets40 >= 4 && events->MR > 300 && events->Rsq > 0.15 )) continue;	  
 	}
+
+        if ( option == "2JetMR300Rsq0p15" ) {
+          if (!(events->NJets40 >= 2 && events->NJets40 < 4 && events->MR > 300 && events->Rsq > 0.15 )) continue;
+        }
       
 	//MET Filters
 	if (!(events->Flag_HBHENoiseFilter && events->Flag_goodVertices && events->Flag_eeBadScFilter)) continue;
@@ -463,6 +474,9 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	  if (processLabels[i] == "WJets") {
 	    razorSF = WJetsSFHist->GetBinContent( WJetsSFHist->FindBin(fmin(fmax(events->MR,400.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
 	  }
+          if (option == "2JetMR300Rsq0p15") {
+            razorSF *= NJetsSFHist->GetBinContent( NJetsSFHist->FindBin(events->NJets40) );
+          }
 	  weight *= razorSF;
 	}
 
@@ -706,10 +720,8 @@ void TTBarDileptonCrossCheck( int option = 0) {
   //*********************************************************************
   if (option == 0) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",-1,"MR300Rsq0p15_all");
 
-  if (option == 1) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"4JetMR300Rsq0p15",-1,"4JetMR300Rsq0p15_all");
+  else if (option == 1) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"4JetMR300Rsq0p15",-1,"4JetMR300Rsq0p15_all");
 
+  else if (option == 2) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles, processLabels, colors, lumi, "2JetMR300Rsq0p15",-1,"2JetMR300Rsq0p15_all");
 
 }
-
-
-

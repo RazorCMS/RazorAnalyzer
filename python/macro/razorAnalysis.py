@@ -13,10 +13,12 @@ import macro
 
 #Hadronic trigger indices
 hadronicTriggerNums = [134,135,136,137,138,139,140,141,142,143,144]
+hadronicTriggerNumsData_2016 = range(164,172)
 
 #Single lepton trigger indices
 singleLeptonTriggerNumsData = [2,7,11,12,15,22,23,24,25,26,27,28,29]
 singleLeptonTriggerNumsMC = [2,7,11,12,15,18,19,20,21,28,29,160]
+singleLeptonTriggerNumsData_2016 = [4,6,15,22,35,33,36,41,42]
 
 #Dilepton trigger indices
 dileptonTriggerNums = [41,43,30,31,47,48,49,50]
@@ -36,7 +38,6 @@ def appendNoiseFilters(cuts, tree):
         if hasattr(tree, bit):
             ret += " && " + bit
     return ret
-
 
 ### TTJets Single Lepton Control Region
 
@@ -65,6 +66,14 @@ wjetsSingleLeptonBins = {
         "MR" : [300, 350, 400, 450, 500, 550, 700, 900, 1200, 4000],
         "Rsq": [0.15,0.175,0.20,0.225, 0.25,0.30,0.41,0.52,1.5]
         }
+
+### Cuts for computing NJets correction 
+OneLeptonForNJetsCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+OneLeptonForNJetsCutsData = appendTriggerCuts(OneLeptonForNJetsCuts, singleLeptonTriggerNumsData)
+OneLeptonForNJetsCutsMC = appendTriggerCuts(OneLeptonForNJetsCuts, singleLeptonTriggerNumsMC)
+OneLeptonInvForNJetsCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight)"
+OneLeptonInvForNJetsCutsData = appendTriggerCuts(OneLeptonInvForNJetsCuts, singleLeptonTriggerNumsData)
+OneLeptonInvForNJetsCutsMC = appendTriggerCuts(OneLeptonInvForNJetsCuts, singleLeptonTriggerNumsMC)
 
 ### 1-lepton Control Region: W+Jets & TTJets 
 #inclusive cuts
@@ -137,6 +146,10 @@ vetoLeptonControlRegionCuts = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && l
 vetoLeptonControlRegionCutsData = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
 vetoLeptonControlRegionCutsMC = appendTriggerCuts(vetoLeptonControlRegionCuts, hadronicTriggerNums)
 
+### DiJet veto lepton control region
+vetoLeptonDiJetControlRegionCutsData = vetoLeptonControlRegionCutsData.replace('NJets40 >= 4', 'NJets40 >= 2')
+vetoLeptonDiJetControlRegionCutsMC = vetoLeptonControlRegionCutsMC.replace('NJets40 >= 4', 'NJets40 >= 2')
+
 vetoElectronControlRegionCuts = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 4 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
 vetoElectronControlRegionCutsData = appendTriggerCuts(vetoElectronControlRegionCuts, hadronicTriggerNums)
 vetoElectronControlRegionCutsMC = appendTriggerCuts(vetoElectronControlRegionCuts, hadronicTriggerNums)
@@ -158,6 +171,10 @@ vetoTauControlRegionCuts = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() 
 vetoTauControlRegionCutsData = appendTriggerCuts(vetoTauControlRegionCuts, hadronicTriggerNums)
 vetoTauControlRegionCutsMC = appendTriggerCuts(vetoTauControlRegionCuts, hadronicTriggerNums)
 
+### DiJet veto tau control region
+vetoTauDiJetControlRegionCutsData = vetoTauControlRegionCutsData.replace('NJets40 >= 4', 'NJets40 >= 2')
+vetoTauDiJetControlRegionCutsMC = vetoTauControlRegionCutsMC.replace('NJets40 >= 4', 'NJets40 >= 2')
+
 vetoTauControlRegion7JetCuts = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && NJets40 >= 7 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
 vetoTauControlRegion7JetCutsData = appendTriggerCuts(vetoTauControlRegion7JetCuts, hadronicTriggerNums)
 vetoTauControlRegion7JetCutsMC = appendTriggerCuts(vetoTauControlRegion7JetCuts, hadronicTriggerNums)
@@ -170,8 +187,11 @@ vetoTauControlRegionBins = {
 
 ### 0L Region for Veto Lepton/Tau Cross Check
 cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+cutsDiJetForVeto = "(box == 14) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 cutsMultiJetForVetoLepton = cutsMultiJetForVeto+" && ( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13 ) && leadingGenLeptonPt > 5"
 cutsMultiJetForVetoTau = cutsMultiJetForVeto+" && abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"
+cutsDiJetForVetoLepton = cutsDiJetForVeto+" && ( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13 ) && leadingGenLeptonPt > 5"
+cutsDiJetForVetoTau = cutsDiJetForVeto+" && abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"
 
 
 ### WJets Single Lepton Invisible Control Region
@@ -221,6 +241,9 @@ wjetsSingleLeptonInvBins = {
 dyjetsDileptonInvCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
 dyjetsDileptonInvCutsData = appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsData)
 dyjetsDileptonInvCutsMC = appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsMC)
+
+dyjetsDileptonInvDiJetCutsData = dyjetsDileptonInvCutsData + ' && NJets_NoZ >= 2 && NJets_NoZ < 4'
+dyjetsDileptonInvDiJetCutsMC = dyjetsDileptonInvCutsMC + ' && NJets_NoZ >= 2 && NJets_NoZ < 4'
 
 #dyjetsDileptonInv4JetCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && NJets_NoZ >= 4 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
 dyjetsDileptonInv4JetCuts = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NJets80_NoZ >= 2 && NJets_NoZ >= 4 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
@@ -306,10 +329,26 @@ hadronicSidebandBins = {
     }
 hadronicBlindBins = [(x,y) for x in range(3,len(hadronicSidebandBins["MR"])+1) for y in range(2,len(hadronicSidebandBins["Rsq"])+1)]
 
+#dictionaries
+cutsData_2015 = {
+        "TTJetsSingleLepton":appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsData),
+        "WJetsSingleLepton":appendTriggerCuts(wjetsSingleLeptonCuts, singleLeptonTriggerNumsData),
+        "WJetsSingleLeptonInv":appendTriggerCuts(wjetsSingleLeptonInvCuts, singleLeptonTriggerNumsData),
+        "DYJetsDileptonInv":appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsData),
+        }
+cutsData_2016 = {
+        "TTJetsSingleLepton":appendTriggerCuts(ttjetsSingleLeptonCuts, singleLeptonTriggerNumsData_2016),
+        "WJetsSingleLepton":appendTriggerCuts(wjetsSingleLeptonCuts, singleLeptonTriggerNumsData_2016),
+        "WJetsSingleLeptonInv":appendTriggerCuts(wjetsSingleLeptonInvCuts, singleLeptonTriggerNumsData_2016),
+        "DYJetsDileptonInv":appendTriggerCuts(dyjetsDileptonInvCuts, singleLeptonTriggerNumsData_2016),
+        }
+
 #Non-grid binning for signal region
 
-xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "FourToSixJet":{}, "SevenJet":{}}
-colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "FourToSixJet":{}, "SevenJet":{}}
+xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, 
+                "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
+colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, 
+                "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
 
 xbinsSignal["MultiJet"]["0B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["1B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
@@ -323,10 +362,15 @@ xbinsSignal["MuMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MuMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["MuMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 
+
 xbinsSignal["EleMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+
+xbinsSignal["DiJet"] = xbinsSignal["MultiJet"]
+xbinsSignal["MuJet"] = xbinsSignal["MuMultiJet"]
+xbinsSignal["EleJet"] = xbinsSignal["EleMultiJet"]
 
 colsSignal["MultiJet"]["0B"] = [
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
@@ -434,6 +478,10 @@ colsSignal["EleMultiJet"]["3B"] = [
         ]
 
 colsSignal["FourToSixJet"] = colsSignal["MultiJet"]
+
+colsSignal["DiJet"] = colsSignal["MultiJet"]
+colsSignal["MuJet"] = colsSignal["MuMultiJet"]
+colsSignal["EleJet"] = colsSignal["EleMultiJet"]
 
 xbinsSignal["SevenJet"]["0B"] = [ 500, 600, 700, 900, 1200, 4000 ]
 xbinsSignal["SevenJet"]["1B"] = [ 500, 600, 700, 900, 1200, 4000 ]
