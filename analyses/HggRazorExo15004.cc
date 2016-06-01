@@ -877,48 +877,15 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
     bool  _phodebug = false;
     bool  _debug = false;
     if ( 
-	// 	 (run == 256729 && event == 269921886) ||
-	// (run == 257400 && event == 127188682) ||
-	// (run == 257599 && event == 108881956) ||
-	// (run == 257613 && event == 1282245884) ||
-	// (run == 257613 && event == 1484038499) ||
-	// (run == 257816 && event == 273391612) ||
-	//	(run == 257819 && event == 83569895) 
-	// (run == 257968 && event == 142707054) ||
-	// (run == 258136 && event == 72682254) ||
-	// (run == 258158 && event == 1850722854) ||
-	// (run == 258158 && event == 1250805677) ||
-	// (run == 258159 && event == 377785791) ||
-	// (run == 258443 && event == 179542426) ||
-	// (run == 258445 && event == 341660356) ||
-	// (run == 258448 && event == 325186177) ||
-	// (run == 258706 && event == 990974756) ||
-	// (run == 258745 && event == 328487941) ||
-	// (run == 258750 && event == 201641389) ||
-	// (run == 259685 && event == 695148722) ||
-	// (run == 259686 && event == 507090748) ||
-	// (run == 259822 && event == 279242627) ||
-	// (run == 259861 && event == 37355040) ||
-	// (run == 260431 && event == 586968601) ||
-	// (run == 260576 && event == 376146124) ||
-	// (run == 260593 && event == 119035561) ||
-	// (run == 260627 && event == 1994303627) ||
-	// (run == 260627 && event == 2521359747) ||
-	// (run == 260627 && event == 938064018) ||
-	// (run == 260627 && event == 1155826876) ||
-	// (run == 260627 && event == 1471919793) ||
-	
-	//Skimmed events
-	(run == 258702  && event ==  379963951) ||
-	(run == 258706  && event ==  474624788) ||
-	(run == 258712  && event ==  283214660) ||
-	(run == 259884  && event ==   92563797) ||
-	(run == 260426  && event ==  628269368) ||
-	(run == 260431  && event ==  338608305) ||
-	(run == 260532  && event ==  416752953) ||
-	(run == 260627  && event ==  288969568) ||
-	(run == 260627  && event ==  703977794) ||
-	(run == 260627  && event ==  854678036) 
+	(run == 257969  && event == 862653894) ||
+	(run == 258158  && event == 2009129070) ||
+	(run == 258443  && event == 79092577 ) ||
+	(run == 259721  && event == 69584193 ) ||
+	(run == 260536  && event == 246155173 ) ||
+	(run == 258136  && event == 72682254 ) ||
+	(run == 258443  && event == 179542426 ) ||
+	(run == 259822  && event == 191351229 ) ||
+	(run == 260427  && event == 86898837 ) 
 	 ) {
       _phodebug = true;
       _debug = true;
@@ -1021,10 +988,13 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
       if (doPhotonScaleCorrection) {
 	if (isData) {
 	  pho_pt_corr = phoPt[i]*scale; 
+	  if (_phodebug) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
 	} else {
 	  pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
 	}
       }
+
+     
 
       TVector3 vec;
       vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
@@ -1267,7 +1237,7 @@ void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int 
               pho2dir = pho2dir.Unit();
               pho2.photon.SetPxPyPzE(pho2dir.x()*pho2E,pho2dir.y()*pho2E,pho2dir.z()*pho2E,pho2E);
               
-            }
+            } //end if do MVA Vertex
             
 	    if ( _debug )
 	      {
