@@ -1,17 +1,28 @@
 #include "RazorAnalyzer.h"
 
-//From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
-//Preliminary operating points derived from ttbar events
-bool RazorAnalyzer::isCSVL(int i){
+//From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80X
+bool RazorAnalyzer::isCSVL(int i, string dataset){
+  if (dataset == "74X") {
     return jetCISV[i] > 0.605;
+  } else {
+    return jetCISV[i] > 0.460;
+  }
 }
 
-bool RazorAnalyzer::isCSVM(int i){
+bool RazorAnalyzer::isCSVM(int i, string dataset){
+  if (dataset == "74X") {
     return jetCISV[i] > 0.890;
+  } else {
+    return jetCISV[i] > 0.800;
+  }
 }
 
-bool RazorAnalyzer::isCSVT(int i){
+bool RazorAnalyzer::isCSVT(int i, string dataset){
+  if (dataset == "74X") {
     return jetCISV[i] > 0.970;
+  } else {
+    return jetCISV[i] > 0.935;
+  }
 }
 
 
