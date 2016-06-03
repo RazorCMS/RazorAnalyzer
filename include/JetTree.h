@@ -41,6 +41,7 @@
       Float_t                 fJetArea;
       Float_t                 fJetPileupId;
       Int_t                   fJetPartonFlavor;
+      Float_t                 fJetJEC;
 
     public:
       /// this is the main element
@@ -79,6 +80,7 @@
         fJetArea                                     = 0.0;
         fJetPileupId                                 = 0.0;
         fJetPartonFlavor                             = 0;
+        fJetJEC                                      = 0;
       }
     
       /// load a JetTree
@@ -115,6 +117,7 @@
         tree_->Branch("Area",&fJetArea,"Area/F"); 
         tree_->Branch("PileupId",&fJetPileupId,"PileupId/F"); 
         tree_->Branch("PartonFlavor",&fJetPartonFlavor,"PartonFlavor/I"); 
+        tree_->Branch("JEC",&fJetJEC,"JEC/F"); 
 
       } 
 
@@ -147,6 +150,7 @@
 	tree_->SetBranchAddress("Area",&fJetArea);
 	tree_->SetBranchAddress("PileupId",&fJetPileupId);
         tree_->SetBranchAddress("PartonFlavor",&fJetPartonFlavor);
+        tree_->SetBranchAddress("JEC",&fJetJEC);
 
         gErrorIgnoreLevel = currentState;
       }

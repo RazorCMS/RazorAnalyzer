@@ -13,12 +13,19 @@ using namespace std;
 void RazorAnalyzer::JetNtupler(string outputfilename , int Option)
 {
     //initialization: create one TTree for each analysis box 
-    std::vector<JetCorrectorParameters> correctionParameters;
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
-    correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
-    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-
+  char* cmsswPath;
+  cmsswPath = getenv("CMSSW_BASE");
+  string pathname;
+  if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
+  cout << "Getting JEC parameters from " << pathname << endl;
+  
+  std::vector<JetCorrectorParameters> correctionParameters;
+  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L2Relative_AK4PFchs.txt", pathname.c_str())));
+  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+   
+  FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
+  
     cout << "Initializing..." << endl;
     string outfilename = outputfilename;
     if (outfilename == "") outfilename = "JetNtuple.root";
@@ -77,6 +84,7 @@ void RazorAnalyzer::JetNtupler(string outputfilename , int Option)
 	  jetTree->fJetPartonFlavor = jetPartonFlavor[i];
 	  jetTree->fJetPileupId = jetPileupId[i];
 	  jetTree->fJetPartonFlavor = jetPartonFlavor[i];
+	  jetTree->fJetJEC = JEC;
 
 	  //Match to Gen Jet
 	  int matchedIndex = -1;
