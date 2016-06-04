@@ -167,9 +167,9 @@ class RazorAnalyzer: public RazorEvents {
 
 
         //functions in RazorAuxJet.cc     
-        bool isCSVL(int i, string dataset = "2016");
-        bool isCSVM(int i, string dataset = "2016");
-        bool isCSVT(int i, string dataset = "2016");
+        bool isCSVL(int i, string dataset = "80X");
+        bool isCSVM(int i, string dataset = "80X");
+        bool isCSVT(int i, string dataset = "80X");
 	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 					  double rho, double jetArea,
 					  FactorizedJetCorrector *jetcorrector,  
