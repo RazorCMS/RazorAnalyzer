@@ -540,6 +540,7 @@ void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool
 	  }
 	}
 	pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
+        events->pileupWeight = pileupWeight;
       }
 
 

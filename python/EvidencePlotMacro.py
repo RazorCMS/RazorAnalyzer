@@ -10,11 +10,7 @@ from RunCombine import exec_me
 import macro.macro as macro
 from SidebandMacro import SAMPLES, LUMI, config
 from framework import Config
-
-SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
-NOPILEUPWEIGHTS_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
-BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
+import WriteRazorMADDCard 
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -35,6 +31,8 @@ if __name__ == "__main__":
             help='Use samples with problematic fastsim events removed')
     parser.add_argument('--no-pileup-weights', dest="noPileupWeights", action='store_true', 
             help='Use samples without pileup weights set to 1')
+    parser.add_argument('--private-fullsim', dest='privateFullsim', action='store_true',
+            help='use privately produced fullsim signal samples')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -46,11 +44,13 @@ if __name__ == "__main__":
     box = args.box
     boxList = box.split('_') #interpret box1_box2_... as a list of boxes to combine
 
-    dirToUse = SIGNAL_DIR
+    dirToUse = WriteRazorMADDCard.SIGNAL_DIR
     if args.noPathologies:
-        dirToUse = NOPATHOLOGIES_SIGNAL_DIR
+        dirToUse = WriteRazorMADDCard.NOPATHOLOGIES_SIGNAL_DIR
     elif args.noPileupWeights:
-        dirToUse = NOPILEUPWEIGHTS_SIGNAL_DIR
+        dirToUse = WriteRazorMADDCard.NOPILEUPWEIGHTS_SIGNAL_DIR
+    elif args.privateFullsim:
+        dirToUse = WriteRazorMADDCard.PRIVATEFULLSIM_SIGNAL_DIR
 
     #make output directory
     os.system('mkdir -p '+outDir)
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         signalHist = signalHists[modelName]
 
         #make combined unrolled histograms for background
-        makeRazorBinEvidencePlots(curBox, samples=samples, inDir=BACKGROUND_DIR, outDir=outDir, 
+        makeRazorBinEvidencePlots(curBox, samples=samples, inDir=WriteRazorMADDCard.BACKGROUND_DIR, outDir=outDir, 
                 signalHist=signalHist, unrollBins=unrollBins, debugLevel=debugLevel, zmin=1e-3)
         #draw signal and background in unrolled format
         if args.model == 'T2tt':
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         else:
             print "Model %s is not yet implemented in EvidencePlotMacro; using default signal string"
             signalString = "Signal"
-        makeRazorMCTotalPlusSignalPlot(curBox, samples, inDir=BACKGROUND_DIR, signalHist = signalHist, 
+        makeRazorMCTotalPlusSignalPlot(curBox, samples, inDir=WriteRazorMADDCard.BACKGROUND_DIR, signalHist = signalHist, 
                 outDir=outDir, unrollBins=unrollBins, signalString=signalString, modelName=modelName, 
                 debugLevel=debugLevel)
 

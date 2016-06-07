@@ -56,6 +56,7 @@ class ControlSampleEvents {
   Int_t                   option;
   Float_t                 genWeight;
   Float_t                 weight;
+  Float_t                 pileupWeight;
   Float_t                 btagW;
   Float_t                 btagW_up;
   Float_t                 btagW_down;
@@ -296,6 +297,7 @@ class ControlSampleEvents {
     option               = -1;
     genWeight            = 0.0;
     weight               = 0.0;
+    pileupWeight         = 0.0;
     btagW                = 1.0;
     btagW_up             = 1.0;
     btagW_down           = 1.0;
@@ -526,6 +528,7 @@ class ControlSampleEvents {
     tree_->Branch("option",&option,"option/I");
     tree_->Branch("genWeight",&genWeight,"genWeight/F");
     tree_->Branch("weight",&weight,"weight/F");
+    tree_->Branch("pileupWeight",&pileupWeight,"pileupWeight/F");
     tree_->Branch("btagW",&btagW,"btagW/F");
     tree_->Branch("btagW_up",&btagW_up,"btagW_up/F");
     tree_->Branch("btagW_down",&btagW_down,"btagW_down/F");
@@ -846,6 +849,7 @@ class ControlSampleEvents {
     tree_->SetBranchAddress("option",&option);
     tree_->SetBranchAddress("genWeight",&genWeight);
     tree_->SetBranchAddress("weight",&weight);
+    tree_->SetBranchAddress("pileupWeight",&pileupWeight);
     tree_->SetBranchAddress("btagW",&btagW);
     tree_->SetBranchAddress("btagW_up",&btagW_up);
     tree_->SetBranchAddress("btagW_down",&btagW_down);
@@ -889,6 +893,7 @@ class ControlSampleEvents {
       tree_->SetBranchStatus("lep1Eta", 1);
       tree_->SetBranchStatus("MET", 1);
       tree_->SetBranchStatus("weight", 1);
+      tree_->SetBranchStatus("pileupWeight", 1);
       tree_->SetBranchStatus("MR", 1);
       tree_->SetBranchStatus("Rsq", 1);
       tree_->SetBranchStatus("NJets40", 1);

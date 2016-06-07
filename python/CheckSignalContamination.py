@@ -12,17 +12,26 @@ from RunCombine import exec_me
 from macro.razorAnalysis import xbinsSignal, colsSignal
 from macro.macro import importHists, makeTH2PolyFromColumns, fillTH2PolyFromTH2, stitch
 import os
+import WriteRazorMADDCard
 
-SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
+#SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
 #SIGNAL_DIR = "Signals"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 #BACKGROUND_DIR = "Moriond2016"
 
-def checkSignalContamination(config, outDir, lumi, box, model, mLSP, mGluino=-1, mStop=-1, mergeBins=False, treeName="RazorInclusive"):
+def checkSignalContamination(config, outDir, lumi, box, model, mLSP, mGluino=-1, mStop=-1, mergeBins=False, treeName="RazorInclusive", noPathologies=False, noPileupWeights=False, privateFullsim=False):
     cfg = Config.Config(config)
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
+
+    dirToUse = WriteRazorMADDCard.SIGNAL_DIR
+    if noPathologies:
+        dirToUse = WriteRazorMADDCard.NOPATHOLOGIES_SIGNAL_DIR
+    elif noPileupWeights:
+        dirToUse = WriteRazorMADDCard.NOPILEUPWEIGHTS_SIGNAL_DIR
+    elif privateFullsim:
+        dirToUse = WriteRazorMADDCard.PRIVATEFULLSIM_SIGNAL_DIR
 
     unrollBins = None
     if mergeBins:
@@ -39,13 +48,13 @@ def checkSignalContamination(config, outDir, lumi, box, model, mLSP, mGluino=-1,
         yBR = float(model[model.find('y')+1:].replace('p','.'))
         brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
         modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
-        fileName = SIGNAL_DIR+'/SMS-T1ttbb_%i_%i.root'%(mGluino,mLSP)
+        fileName = dirToUse+'/SMS-T1ttbb_%i_%i.root'%(mGluino,mLSP)
     elif 'T2' in model:
         modelName = 'SMS-%s_%i_%i'%(model,mStop,mLSP)
-        fileName = SIGNAL_DIR+'/%s.root'%(modelName)
+        fileName = dirToUse+'/%s.root'%(modelName)
     else:
         modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
-        fileName = SIGNAL_DIR+'/%s.root'%(modelName)
+        fileName = dirToUse+'/%s.root'%(modelName)
         
     os.system('python python/SMSTemplates.py %s -c %s -d %s/ --lumi %s --box %s --no-signal-sys %s %s'%(mergeBinsString,config,outDir,lumi,box,brString,fileName))
         
