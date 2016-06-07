@@ -4,6 +4,7 @@
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
+#include "EnergyScaleCorrection_class.hh"
 //C++ INCLUDES
 #include <map>
 #include <fstream>
@@ -13,6 +14,7 @@
 //ROOT INCLUDES
 #include <TH1F.h>
 #include <TH2D.h>
+#include "TRandom3.h"
 
 using namespace std;
 
@@ -64,11 +66,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   //*****************************************************************************
   //Settings
   //*****************************************************************************
-  bool use25nsSelection = false;
-  if (option == 1) use25nsSelection = true;
+  TRandom3 random(3003);
+  bool doPhotonScaleCorrection = true;
 
-  std::cout << "[INFO]: use25nsSelection --> " << use25nsSelection << std::endl;
-  
+  bool doEleVeto = true;
+  if (option == 1) doEleVeto = false;
+
+  std::cout << "[INFO]: option = " << option << std::endl;
+  std::cout << "[INFO]: doEleVeto --> " << doEleVeto << std::endl;
+  std::cout << "[INFO]: doPhotonScaleCorrection --> " << doPhotonScaleCorrection << std::endl;
+ 
   //initialization: create one TTree for each analysis box 
   if ( _info ) std::cout << "Initializing..." << std::endl;
   std::cout << "Combine Trees = " << combineTrees << std::endl;
@@ -84,13 +91,29 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   //---------------------------
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
   
+  //Get CMSSW Directory
+  char* cmsswPath;
+  cmsswPath = getenv("CMSSW_BASE");
+
+  //--------------------------------
+  //Photon Energy Scale and Resolution Corrections
+  //--------------------------------
+   std::string photonCorrectionPath = "";
+  if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
+
+  EnergyScaleCorrection_class photonCorrector(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
+  if(!isData) {
+    photonCorrector.doScale = false; 
+    photonCorrector.doSmearings = true;
+  } else {
+    photonCorrector.doScale = true; 
+    photonCorrector.doSmearings = false;
+  }
+
   //--------------------------------
   //Including Jet Energy Corrections
   //--------------------------------
   std::vector<JetCorrectorParameters> correctionParameters;
-  //get correct directory for JEC files (different for lxplus and t3-higgs)
-  char* cmsswPath;
-  cmsswPath = getenv("CMSSW_BASE");
   std::string pathname;
   if ( cmsswPath != NULL ) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
   std::cout << "Getting JEC parameters from " << pathname << std::endl;
@@ -518,8 +541,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	}
     }
   
-  use25nsSelection = true;
-  std::cout << "use25nsSelection-->" << use25nsSelection << std::endl;
   //begin loop
   if ( fChain == 0 ) return;
   Long64_t nentries = fChain->GetEntriesFast();
@@ -683,9 +704,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       if(combineTrees) razorbox = LowRes;
       
       //TODO: triggers!
-      // bool passedDiphotonTrigger = true;
-      passedDiphotonTrigger = ( HLTDecision[65] );
-      //if(!passedDiphotonTrigger) continue;
+      //bool passedDiphotonTrigger = true;      
+      // if (dataset == "76XX") {
+      // 	passedDiphotonTrigger = ( HLTDecision[65] );
+      // } else if (dataset == "80X") {
+      // 	passedDiphotonTrigger = ( HLTDecision[83] );
+      // }     
       
       //--------------
       //muon selection
@@ -703,11 +727,11 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       //------------------
       for( int i = 0; i < nElectrons; i++ )
 	{
-	  if( !isLooseElectron(i,use25nsSelection) ) continue; 
+	  if( !isLooseElectron(i) ) continue; 
 	  if( elePt[i] < 10 ) continue;
 	  if( abs(eleEta[i]) > 2.5 ) continue;
 	  nLooseElectrons++;
-      	  if( isTightElectron(i,use25nsSelection) ) nTightElectrons++;
+      	  if( isTightElectron(i) ) nTightElectrons++;
 	}
       //-------------
       //tau selection
@@ -726,25 +750,35 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       int nPhotonsAbove40GeV = 0;
       for(int i = 0; i < nPhotons; i++)
 	{
+
+	  double scale = photonCorrector.ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+	  double smear = photonCorrector.getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+
 	  //ID cuts -- apply isolation after candidate pair selection
 	  if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) 
+	if ( !photonPassLooseIDWithoutEleVeto(i) ) 
 	  {
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
-	    continue;
+	    //continue;
 	  }
 	
 	//Defining Corrected Photon momentum
-	//float pho_pt = phoPt[i];//nominal pt
-	float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
+	float pho_pt_corr = phoPt[i];
+	if (doPhotonScaleCorrection) {
+	  if (isData) {
+	    pho_pt_corr = phoPt[i]*scale; 
+	    if (_phodebug) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
+	  } else {
+	    pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
+	  }
+	}
 	TVector3 vec;
-	//vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
 	vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 	
 	if ( phoPt[i] < 20.0 )
 	  {
 	    if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	    continue;
+	    //continue;
 	  }
 	
 	if( fabs(pho_superClusterEta[i]) > 2.5 )
@@ -792,7 +826,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	    
 	  }
 	
-	//TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_superClusterEnergy[i] );
 	TLorentzVector phoSC = GetCorrectedMomentum( vtx, phoPos, pho_RegressionE[i] );
 	
 	//Filling Photon Candidate
@@ -801,16 +834,16 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 	tmp_phoCand.photon = thisPhoton;
 	tmp_phoCand.photonSC = phoSC;
 	tmp_phoCand.scEta = pho_superClusterEta[i];
-	tmp_phoCand.scEta = pho_superClusterPhi[i];
+	tmp_phoCand.scPhi = pho_superClusterPhi[i];
 	tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
 	tmp_phoCand.R9 = phoR9[i];
 	tmp_phoCand.HoverE = pho_HoverE[i];
-	tmp_phoCand.sumChargedHadronPt = pho_sumChargedHadronPt[i];
-	tmp_phoCand.sumNeutralHadronEt = pho_sumNeutralHadronEt[i];
-	tmp_phoCand.sumPhotonEt = pho_sumPhotonEt[i];
+	tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
+	tmp_phoCand.sumNeutralHadronEt = pho_pfIsoNeutralHadronIso[i];
+	tmp_phoCand.sumPhotonEt = pho_pfIsoPhotonIso[i];
 	tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-	tmp_phoCand._passIso = photonPassLooseIso(i,use25nsSelection);
+	tmp_phoCand._passIso = photonPassLooseIso(i);
 	phoCand.push_back( tmp_phoCand );
 	
 	nSelectedPhotons++;
@@ -823,7 +856,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       {
 	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " 
 				<< phoCand.size() << std::endl;
-	continue;
+	//continue;
       }
     //--------------------------------------
     //Require at least two photon candidates
@@ -838,7 +871,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 				    << " pho_eta: " << phoEta[i] 
 				    << " SIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
 	  }
-	continue;
+	//continue;
       }
     
     
@@ -1363,7 +1396,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
     if( n_Jets == 0 )
       {
 	if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	continue;
+	//continue;
       }
 
     //std::cout << "njets-->" << n_Jets << std::endl;
