@@ -274,7 +274,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     //For signal ISR systematic uncertainty
     float ISRSystWeightUp, ISRSystWeightDown;
     //For pileup systematic uncertainty
-    float pileupWeightUp, pileupWeightDown;
+    float pileupWeight, pileupWeightUp, pileupWeightDown;
     //For lepton efficiency scale factor uncertainty
     float sf_muonEffUp, sf_muonEffDown;
     float sf_eleEffUp, sf_eleEffDown;
@@ -378,6 +378,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         razorTree->Branch("weight", &weight, "weight/F");
         razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
         razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
+        razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
 	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
@@ -576,6 +577,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	    subLeadingGenLeptonType = 0;
   	    ISRSystWeightUp = 1.0;
   	    ISRSystWeightDown = 1.0;
+	    pileupWeight = 1.0;
 	    pileupWeightUp = 1.0;
 	    pileupWeightDown = 1.0;
             sf_muonEffUp = 1.0;
@@ -1032,7 +1034,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         /////////////////////////////////
 
         double NPU = 0;
-        double pileupWeight = 1.0;
+        pileupWeight = 1.0;
         if(!isData){
 	  //Get number of PU interactions
 	  for (int i = 0; i < nBunchXing; i++) {
