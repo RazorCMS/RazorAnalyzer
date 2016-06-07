@@ -2595,26 +2595,33 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	//***********************************
 	//Filter out the Pathological Events
 	//***********************************
-
 	if (isFastsimSMS) {
 	  bool isPathologicalFastsimEvent = false;		  
-
-	  if (leadingJetIndex >= 0) {
+	  
+	  for (int i = 0; i < nJets; i++){
+	    double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+						   tmpRho, jetJetArea[i], JetCorrector);   	  
+	    double jetCorrPt = jetPt[i]*JEC;
+	    if (jetCorrPt < 20) continue;
+	    if (fabs(jetEta[i]) > 2.5) continue;
+	    
 	    //Match to Gen Jet
 	    bool isMatch = false;
 	    for(int j = 0; j < nGenJets; j++){
-	      double tmpDR = deltaR( genJetEta[j],genJetPhi[j], jetEta[leadingJetIndex],jetPhi[leadingJetIndex]);
+	      double tmpDR = deltaR( genJetEta[j],genJetPhi[j], jetEta[i],jetPhi[i]);
 	      if ( tmpDR < 0.4
 		   ) {	
 		isMatch = true;
 	      }
-	    }	  
+	    }
+
 	    // these are the pathological fastsim jets
-	    if (!isMatch && jetChargedHadronEnergyFraction[leadingJetIndex] < 0.1 ) {
+	    if (!isMatch && jetChargedHadronEnergyFraction[i] < 0.1 ) {
 	      isPathologicalFastsimEvent = true;
 	    }
-	    if (isPathologicalFastsimEvent) continue;
 	  }
+	  //reject event if it's pathological
+	  if (isPathologicalFastsimEvent) continue;	  
 	}
 	
 
