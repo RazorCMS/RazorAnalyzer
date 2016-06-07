@@ -2600,7 +2600,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	  
 	  for (int i = 0; i < nJets; i++){
 	    double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-						   tmpRho, jetJetArea[i], JetCorrector);   	  
+						   fixedGridRhoFastjetAll, jetJetArea[i], JetCorrector);   	  
 	    double jetCorrPt = jetPt[i]*JEC;
 	    if (jetCorrPt < 20) continue;
 	    if (fabs(jetEta[i]) > 2.5) continue;
