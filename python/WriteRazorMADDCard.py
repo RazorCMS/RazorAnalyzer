@@ -10,14 +10,16 @@ from RunCombine import exec_me
 from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 import macro.macro as macro
 from SidebandMacro import SAMPLES, LUMI, config
-from CheckSignalContamination import checkSignalContamination
+import CheckSignalContamination
 from framework import Config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-NOPATHOLOGIES_SIGNAL_DIR = "Signals_WithPileupWeights"
-#NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
+#NOPATHOLOGIES_SIGNAL_DIR = "Signals_WithPileupWeights"
+NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
 NOPILEUPWEIGHTS_SIGNAL_DIR = "Signals_NoPileupWeights"
 #NOPILEUPWEIGHTS_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
+PRIVATEFULLSIM_SIGNAL_DIR = "Signals_PrivateFullsim"
+#PRIVATEFULLSIM_SIGNAL_DIR = "root://eoscms:///store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combinedFullSim"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 LIMIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
@@ -54,6 +56,8 @@ if __name__ == "__main__":
             help='number of signal events to use for template histograms')
     parser.add_argument('--save-workspace', dest='saveWorkspace', action='store_true',
             help='save combine workspace in output file')
+    parser.add_argument('--private-fullsim', dest='privateFullsim', action='store_true',
+            help='use privately produced fullsim signal samples')
 
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -84,12 +88,18 @@ if __name__ == "__main__":
         if args.contamination or args.reducedEff:
             #get level of contamination in control regions
             print "Computing signal contamination level in control regions"
-            ttContamHist = checkSignalContamination("config/run2_20151229_ControlRegion.config",
+            ttContamHist = CheckSignalContamination.checkSignalContamination(
+                   "config/run2_20151229_ControlRegion.config",
                    outDir=outDir, lumi=LUMI, box="TTJetsSingleLeptonControlRegion", model=args.model,
-                   mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True)
-            wContamHist = checkSignalContamination("config/run2_20151229_ControlRegion.config",
+                   mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True,
+                   noPathologies=args.noPathologies, noPileupWeights=args.noPileupWeights,
+                   privateFullsim=args.privateFullsim)
+            wContamHist = CheckSignalContamination.checkSignalContamination(
+                   "config/run2_20151229_ControlRegion.config",
                    outDir=outDir, lumi=LUMI, box="WJetControlRegion", model=args.model,
-                   mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True)
+                   mLSP=args.mLSP, mGluino=args.mGluino, mStop=args.mStop, mergeBins=True,
+                   noPathologies=args.noPathologies, noPileupWeights=args.noPileupWeights,
+                   privateFullsim=args.privateFullsim)
             contamHists = { "TTJets1L":ttContamHist, "TTJets2L":ttContamHist, "WJets":wContamHist }
 
             #scale contamination level by expected signal strength exclusion
@@ -137,6 +147,8 @@ if __name__ == "__main__":
             dirToUse = NOPATHOLOGIES_SIGNAL_DIR
         elif args.noPileupWeights:
             dirToUse = NOPILEUPWEIGHTS_SIGNAL_DIR
+        elif args.privateFullsim:
+            dirToUse = PRIVATEFULLSIM_SIGNAL_DIR
         if 'T1' in args.model or 'T5' in args.model:
             modelName = 'SMS-'+args.model+'_'+str(args.mGluino)+'_'+str(args.mLSP)
         else:
@@ -162,6 +174,8 @@ if __name__ == "__main__":
     
         #apply reduced efficiency method to correct for the presence of signal in the control regions
         if args.reducedEff:
+            beforeHist = signalHists[modelName].Clone()
+            beforeHist.SetLineColor(rt.kRed)
             macro.doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists, sfHists, unrollBins=unrollBins, debugLevel=debugLevel)
 
         #combine signal and background dictionaries
