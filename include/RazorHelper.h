@@ -18,16 +18,18 @@
 class RazorHelper {
 
     public:
-        // Constructor takes a string specifying which set of files to load
+        // constructor takes a string specifying which set of files to load.
+        // supported tags are: "Razor2015", "Razor2016"
         RazorHelper(std::string tag_, bool isData_, bool isFastsim_); 
         virtual ~RazorHelper();
 
-        // for pileup
+        // retrieve pileup weights (nominal, up, and down versions)
         double getPileupWeight(int NPU);
         double getPileupWeightUp(int NPU);
         double getPileupWeightDown(int NPU);
 
-        // for lepton
+        // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
+        // (see FullRazorInclusive analyzer for an example of how to use these)
         void processTightMuonScaleFactors(float pt, float eta, bool isTight, 
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
         void processVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
@@ -37,7 +39,7 @@ class RazorHelper {
         void processVetoElectronScaleFactors(float pt, float eta, bool isVeto, 
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
 
-        // for trigger
+        // get HLT path numbers for 2-lepton, 1-lepton, and 0-lepton (razor) triggers
         std::vector<int> getDileptonTriggerNums() { return dileptonTriggerNums; }
         std::vector<int> getSingleLeptonTriggerNums() { return singleLeptonTriggerNums; }
         std::vector<int> getHadronicTriggerNums() { return hadronicTriggerNums; }
@@ -46,11 +48,11 @@ class RazorHelper {
         void processSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
             float &sf, float &sfUp, float &sfDown);
 
-        // for JECs
+        // JEC tools
         FactorizedJetCorrector *getJetCorrector() { return JetCorrector; }
         double getJecUnc( float pt, float eta );
 
-        // for btag 
+        // retrieve b-tag efficiency scale factors for the medium CSVv2 working point
         void processBTagScaleFactors(float pt, float eta, int flavor, bool isCSVM,
                 float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown, 
                 float &sfMistagUp, float &sfMistagDown);
