@@ -402,7 +402,7 @@ void RazorHelper::loadJECs_Razor2015_76X() {
 //  2016 
 ////////////////////////////////////////////////
 
-void RazorHelper::loadTag_Razor2016() {
+void RazorHelper::loadTag_Razor2016_80X() {
     loadPileup_Razor2015();
     loadLepton_Razor2015();
     loadJECs_Razor2015();
