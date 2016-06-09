@@ -376,7 +376,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
 	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
 	   && ele_HoverE[i] < 0.0597
 	   && fabs(ele_d0[i]) < 0.0111	   
-	   && fabs(ele_dZ[i]) < 0.466
+	   && fabs(ele_dZ[i]) < 0.0466
 	   && ele_OneOverEminusOneOverP[i] < 0.012
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
