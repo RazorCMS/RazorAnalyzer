@@ -13,13 +13,14 @@ JETCORR = $(SRCDIR)/JetCorrectorParameters.cc $(SRCDIR)/SimpleJetCorrectionUncer
 JETCORROBJ = $(JETCORR:cc=o)
 EXECUTABLES = RazorRun NormalizeNtuple SkimNtuple
 
-.PHONY: clean all lxplus
+.PHONY: clean all lxplus t3higgs
 
-all: $(addprefix $(SCRATCHDIR)/, $(EXECUTABLES))
+t3higgs: $(addprefix $(SCRATCHDIR)/, $(EXECUTABLES))
 	mv $(addprefix $(SCRATCHDIR)/, $(EXECUTABLES)) .
 	@for d in $(DIRS); do (cd $$d; $(MAKE) $(MFLAGS) ); done
-lxplus: $(EXECUTABLES)
+all: $(EXECUTABLES)
 	@for d in $(DIRS); do (cd $$d; $(MAKE) $(MFLAGS) ); done
+lxplus: all
 
 clean:
 	@-rm $(EXECUTABLES)
@@ -32,6 +33,9 @@ $(INCLUDEDIR)/rootdict.cc:
 $(SRCDIR)/SimpleTable.o: $(SRCDIR)/SimpleTable.cc 
 	$(CXX) -c $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
+$(SRCDIR)/RazorHelper.o: $(SRCDIR)/RazorHelper.cc 
+	$(CXX) -c $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
+
 $(SRCDIR)/RazorEvents.o: $(SRCDIR)/RazorEvents.C $(INCLUDEDIR)/RazorEvents.h
 	$(CXX) $(SRCDIR)/RazorEvents.C $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
@@ -41,7 +45,7 @@ $(SRCDIR)/RazorAnalyzer.o: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.cc
 $(JETCORROBJ): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) $<
 
-$(SCRATCHDIR)/RazorRun: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.o $(ANALYSES) $(JETCORROBJ) $(AUX) $(SRCDIR)/RazorRun.cc
+$(SCRATCHDIR)/RazorRun: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.o $(SRCDIR)/RazorHelper.o $(ANALYSES) $(JETCORROBJ) $(AUX) $(SRCDIR)/RazorRun.cc
 	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
 $(SCRATCHDIR)/NormalizeNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/NormalizeNtuple.cc $(INCLUDEDIR)/rootdict.o
@@ -50,7 +54,7 @@ $(SCRATCHDIR)/NormalizeNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/NormalizeNtuple
 $(SCRATCHDIR)/SkimNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/SkimNtuple.cc $(INCLUDEDIR)/rootdict.o
 	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
-RazorRun: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.o $(ANALYSES) $(JETCORROBJ) $(AUX) $(SRCDIR)/RazorRun.cc
+RazorRun: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.o $(SRCDIR)/RazorHelper.o $(ANALYSES) $(JETCORROBJ) $(AUX) $(SRCDIR)/RazorRun.cc
 	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
 NormalizeNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/NormalizeNtuple.cc $(INCLUDEDIR)/rootdict.o

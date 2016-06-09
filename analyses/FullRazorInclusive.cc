@@ -1,5 +1,6 @@
 #define RazorAnalyzer_cxx
 #include "RazorAnalyzer.h"
+#include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
@@ -50,216 +51,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
     TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
     TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
 
-    char* cmsswPath;
-    cmsswPath = getenv("CMSSW_BASE");
-    if (cmsswPath == NULL) {
-        cout << "Warning: CMSSW_BASE not detected. Exiting..." << endl;
-        return;
-    }
+    //Initialize helper
+    RazorHelper helper("Razor2015", isData, isFastsimSMS);
 
-    /////////////////////////////////
-    //Pileup Weights
-    /////////////////////////////////
-
-    TFile *pileupWeightFile = 0;
-    TH1F *pileupWeightHist = 0;
-    TH1F *pileupWeightSysUpHist = 0;
-    TH1F *pileupWeightSysDownHist = 0;
-    if(!isData){
-
-      string pathname;
-      if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
-      else {
-        cout << "ERROR: CMSSW_BASE not detected. Exiting...";
-	assert(false);
-      }
-
-      pileupWeightFile = TFile::Open(Form("%s/PileupReweight_Spring15MCTo2015Data.root",pathname.c_str()));
-      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
-      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
-      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
-      assert(pileupWeightHist);
-      assert(pileupWeightSysUpHist);
-      assert(pileupWeightSysDownHist);
-    }
-
-    /////////////////////////////////
-    //Lepton and b-tag Efficiency 
-    /////////////////////////////////
-
-    TH2D *eleTightEfficiencyHist = 0;
-    TH2D *muTightEfficiencyHist = 0;
-    TH2D *eleVetoEfficiencyHist = 0;
-    TH2D *muVetoEfficiencyHist = 0;
-    TH2D *tauLooseEfficiencyHist = 0;
-    TH2D *btagMediumEfficiencyHist = 0;
-    TH2D *btagMediumCharmEfficiencyHist = 0;
-    TH2D *btagMediumLightJetsEfficiencyHist = 0;
-    TH2D *eleTightEffFastsimSFHist = 0;
-    TH2D *muTightEffFastsimSFHist = 0;
-    TH2D *eleVetoEffFastsimSFHist = 0;
-    TH2D *muVetoEffFastsimSFHist = 0;
-    //TH2D *btagMediumEffFastsimSFHist = 0;
-    if(!isData){
-        TFile *eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
-        eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
-        eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
-        assert(eleTightEfficiencyHist);
-        eleTightEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
-        eleVetoEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronVeto_FastsimScaleFactor");
-        assert(eleTightEffFastsimSFHist);
-        assert(eleVetoEffFastsimSFHist);
-        TFile *muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
-        muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
-        muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
-        assert(muTightEfficiencyHist);
-        muTightEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
-        muVetoEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonVeto_FastsimScaleFactor");
-        assert(muTightEffFastsimSFHist);
-        assert(muVetoEffFastsimSFHist);
-        TFile *tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
-        tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
-        assert(tauLooseEfficiencyHist);
-        TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
-        btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
-        assert(btagMediumEfficiencyHist);
-        //btagMediumEffFastsimSFHist = (TH2D*)btagEfficiencyFile->Get("BTagMedium_FastsimScaleFactor");
-        TFile *btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/CharmJetBTagEffFastsimToFullsimCorrectionFactors.root");
-        btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("BTagEff_Medium_Fullsim");
-        assert(btagMediumCharmEfficiencyHist);
-        TFile *btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/LightJetBTagEffFastsimToFullsimCorrectionFactors.root");
-        btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
-        assert(btagMediumLightJetsEfficiencyHist);
-    }
-
-    /////////////////////////////////
-    //Lepton Efficiency Correction Factors
-    /////////////////////////////////
-
-    TH2D *eleTightEffSFHist = 0;
-    TH2D *muTightEffSFHist = 0;
-    TH2D *eleVetoEffSFHist = 0;
-    TH2D *muVetoEffSFHist = 0;
-    if(!isData){
-        TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root");
-        eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
-        assert(eleTightEffSFHist);
-        TFile *muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
-        muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
-        assert(muTightEffSFHist);
-        TFile *vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoElectronSelectionEffDenominatorReco_2015Final_Golden.root");
-        eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
-        assert(eleVetoEffSFHist);
-        TFile *vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
-        muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
-        assert(muVetoEffSFHist);
-    }
-
-    /////////////////////////////////
-    //Trigger Efficiency Correction Factors
-    /////////////////////////////////
-
-    TH2D *eleTrigSFHist = 0;
-    TH2D *muTrigSFHist = 0;
-    if(!isData){
-        TFile *eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015Final_Golden.root");
-        eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-        assert(eleTrigSFHist);
-        TFile *muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015Final_Golden.root"); 
-        muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
-        assert(muTrigSFHist);
-    }
-
-    TH2D *eleTrigEffFromFullsimHist = 0;
-    TH2D *muTrigEffFromFullsimHist = 0;
-    if(isFastsimSMS){
-        TFile *eleTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleElectronTriggerEfficiencyFromFullsim.root");
-        eleTrigEffFromFullsimHist = (TH2D*)eleTrigEffFromFullsimFile->Get("hEffEtaPt");
-        assert(eleTrigEffFromFullsimHist);
-        TFile *muTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleMuonTriggerEfficiencyFromFullsim.root"); 
-        muTrigEffFromFullsimHist = (TH2D*)muTrigEffFromFullsimFile->Get("hEffEtaPt");
-        assert(muTrigEffFromFullsimHist);
-    }
-    
-    /////////////////////////////////
-    //Jet Energy Corrections
-    /////////////////////////////////
-
-    //Get directory for JEC files 
-    string pathname;
-    if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
-    else {
-        cout << "Warning: CMSSW_BASE not detected.  Looking for JEC parameters in data/JEC";
-        pathname = "data/JEC/";
-    }
-
-    //Get JEC files
-    cout << "Getting JEC parameters from " << pathname << endl;
-    std::vector<JetCorrectorParameters> correctionParameters;
-    if (isData) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-    }
-    else if (isFastsimSMS) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    }
-    else {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    }
-    //Set up JEC machinery 
-    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    // JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
-    //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
-
-    //Get JEC uncertainty file and set up JetCorrectionUncertainty
-    string jecUncPath;
-    if (isData) {
-        jecUncPath = pathname+"/Summer15_25nsV6_DATA_Uncertainty_AK4PFchs.txt";
-    }
-    else if (isFastsimSMS) {
-      jecUncPath = pathname+"/Fastsim_MCRUN2_74_V9_Uncertainty_AK4PFchs.txt";
-    }
-    else {
-        jecUncPath = pathname+"/Summer15_25nsV6_MC_Uncertainty_AK4PFchs.txt";
-    }
-    JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
-
-    /////////////////////////////////
-    //B-tagging scale factors
-    /////////////////////////////////
-
-    string bTagPathname = "";
-    if (cmsswPath != NULL) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
-    else bTagPathname = "data/ScaleFactors/";
-    //Fullsim
-    BTagCalibration btagcalib("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
-    BTagCalibrationReader btagreader(&btagcalib,               // calibration instance
-				     BTagEntry::OP_MEDIUM,  // operating point
-				     "mujets",               // measurement type
-				     "central");           // systematics type
-    BTagCalibrationReader btagreader_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
-    BTagCalibrationReader btagreader_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
-    BTagCalibrationReader btagreaderMistag(&btagcalib,      // calibration instance
-				     BTagEntry::OP_MEDIUM,  // operating point
-				     "comb",                // measurement type
-				     "central");            // systematics type
-    BTagCalibrationReader btagreaderMistag_up(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    // sys up
-    BTagCalibrationReader btagreaderMistag_do(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
-
-    //Fastsim
-    BTagCalibration btagcalibfastsim("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
-    BTagCalibrationReader btagreaderfastsim(&btagcalibfastsim,               // calibration instance
-            BTagEntry::OP_MEDIUM,  // operating point
-            "fastsim",               // measurement type
-            "central");           // systematics type
-    BTagCalibrationReader btagreaderfastsim_up(&btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  // sys up
-    BTagCalibrationReader btagreaderfastsim_do(&btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  // sys down
+    // Get jet corrector
+    FactorizedJetCorrector *JetCorrector = helper.getJetCorrector();
 
     /////////////////////////////////
     //Tree Initialization
@@ -892,136 +688,27 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         bool passedSingleLeptonTrigger = false;
         bool passedHadronicTrigger= false;
 
-        if (isData) {	  
-      /* 2015 data dilepton triggers:
-	 30    HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
-	 31    HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
-	 41    HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
-	 43    HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ
-	 47    HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-	 48    HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-	 49    HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL
-	 50    HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL
-      passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
-				    || HLTDecision[30] || HLTDecision[31] 
-				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-      */
-      /* 2016 data dilepton triggers:
-
-	 44    HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
-	 45    HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
-	 57    HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
-	 59    HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ
-	 64    HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL
-	 65    HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-	 66    HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-	 67    HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL
-	 68    HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL
-      */
-      passedDileptonTrigger = bool( HLTDecision[44] || HLTDecision[45] 
-				    || HLTDecision[57] || HLTDecision[59] 
-				    || HLTDecision[64] || HLTDecision[65] || HLTDecision[66] || HLTDecision[67] || HLTDecision[68]);
-      /* 2015 data single lepton triggers:
-	 2    HLT_Mu50
-	 7    HLT_IsoMu20
-	 11    HLT_IsoMu27
-	 12    HLT_IsoTkMu20
-	 15    HLT_IsoTkMu27
-	 22    HLT_Ele23_WPLoose_Gsf
-	 23    HLT_Ele27_WPLoose_Gsf
-	 24    HLT_Ele27_eta2p1_WPLoose_Gsf
-	 25    HLT_Ele27_eta2p1_WPTight_Gsf
-	 26    HLT_Ele32_eta2p1_WPLoose_Gsf
-	 27    HLT_Ele32_eta2p1_WPTight_Gsf
-	 28    HLT_Ele105_CaloIdVT_GsfTrkIdT
-	 29    HLT_Ele115_CaloIdVT_GsfTrkIdT      
-      passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
-				       || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
-				       HLTDecision[26] || HLTDecision[27] ||
-				       HLTDecision[28] || HLTDecision[29]);
-      */
-      /* 2016 data single lepton triggers:
-	 4    HLT_Mu50
-	 6    HLT_Mu45_eta2p1
-	 12    HLT_IsoMu18
-	 13    HLT_IsoMu20
-	 18    HLT_IsoMu27
-	 19    HLT_IsoTkMu18
-	 20    HLT_IsoTkMu20
-	 24    HLT_IsoTkMu27
-	 27    HLT_Ele22_eta2p1_WPLoose_Gsf
-	 28    HLT_Ele22_eta2p1_WPTight_Gsf
-	 29    HLT_Ele23_WPLoose_Gsf
-	 30    HLT_Ele24_eta2p1_WPLoose_Gsf
-	 31    HLT_Ele25_WPTight_Gsf
-	 32    HLT_Ele25_eta2p1_WPLoose_Gsf
-	 33    HLT_Ele25_eta2p1_WPTight_Gsf
-	 34    HLT_Ele27_WPLoose_Gsf
-	 35    HLT_Ele27_WPTight_Gsf
-	 36    HLT_Ele27_eta2p1_WPLoose_Gsf
-	 37    HLT_Ele27_eta2p1_WPTight_Gsf
-	 38    HLT_Ele32_eta2p1_WPLoose_Gsf
-	 39    HLT_Ele32_eta2p1_WPTight_Gsf
-	 42    HLT_Ele105_CaloIdVT_GsfTrkIdT
-	 43    HLT_Ele115_CaloIdVT_GsfTrkIdT
-      */
-      passedSingleLeptonTrigger = bool(HLTDecision[4] || HLTDecision[6] || HLTDecision[12] || HLTDecision[13] || HLTDecision[18] || HLTDecision[19] ||
-				       HLTDecision[20] || HLTDecision[24] ||
-				       HLTDecision[27] || HLTDecision[28] || HLTDecision[29] || HLTDecision[30] || HLTDecision[31] || HLTDecision[32] || HLTDecision[33] ||
-				       HLTDecision[34] || HLTDecision[35] || HLTDecision[36] || HLTDecision[37] || 
-				       HLTDecision[38] || HLTDecision[39] ||
-				       HLTDecision[42] || HLTDecision[43]);
-      /* 2015 data hadronic triggers:
-	 134    HLT_RsqMR240_Rsq0p09_MR200
-	 135    HLT_RsqMR240_Rsq0p09_MR200_4jet
-	 136    HLT_RsqMR270_Rsq0p09_MR200
-	 137    HLT_RsqMR270_Rsq0p09_MR200_4jet
-	 138    HLT_RsqMR260_Rsq0p09_MR200
-	 139    HLT_RsqMR260_Rsq0p09_MR200_4jet
-	 140    HLT_RsqMR300_Rsq0p09_MR200
-	 141    HLT_RsqMR300_Rsq0p09_MR200_4jet
-	 142    HLT_Rsq0p25
-	 143    HLT_Rsq0p30
-	 144    HLT_Rsq0p36
-      passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
-				   || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
-				   || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
-				   || HLTDecision[143] || HLTDecision[144]);
-      */
-      /* 2016 data hadronic trigger:
-	 164    HLT_RsqMR240_Rsq0p09_MR200
-	 165    HLT_RsqMR240_Rsq0p09_MR200_4jet
-	 166    HLT_RsqMR270_Rsq0p09_MR200
-	 167    HLT_RsqMR270_Rsq0p09_MR200_4jet
-	 168    HLT_RsqMR260_Rsq0p09_MR200
-	 169    HLT_RsqMR260_Rsq0p09_MR200_4jet
-	 170    HLT_RsqMR300_Rsq0p09_MR200
-	 171    HLT_RsqMR300_Rsq0p09_MR200_4jet
-	 172    HLT_Rsq0p25
-	 173    HLT_Rsq0p30
-	 174    HLT_Rsq0p36
-	 175    HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200
-	 176    HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200
-      */
-      passedHadronicTrigger = bool(HLTDecision[164] || HLTDecision[165] || HLTDecision[166] 
-				   || HLTDecision[167] || HLTDecision[168] || HLTDecision[160] 
-				   || HLTDecision[170] || HLTDecision[171] || HLTDecision[172] 
-				   || HLTDecision[173] || HLTDecision[174] || HLTDecision[175]
-				   || HLTDecision[176] );
-        } else {
-            passedDileptonTrigger = bool(HLTDecision[41] || HLTDecision[43] 
-                    || HLTDecision[30] || HLTDecision[31] 
-                    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-            passedSingleLeptonTrigger = bool( HLTDecision[2] || HLTDecision[7] || HLTDecision[12] 
-                    || HLTDecision[11] || HLTDecision[15] 
-                    || HLTDecision[18] || HLTDecision[19] || HLTDecision[20] 
-                    || HLTDecision[21] || HLTDecision[28] || HLTDecision[29]);
-            passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
-                    || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
-                    || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
-                    || HLTDecision[143] || HLTDecision[144]);    
+        vector<int> dileptonTriggerNums = helper.getDileptonTriggerNums();
+        vector<int> singleLeptonTriggerNums = helper.getSingleLeptonTriggerNums();
+        vector<int> hadronicTriggerNums = helper.getHadronicTriggerNums();
+        for( unsigned int itrig = 0; itrig < dileptonTriggerNums.size(); itrig++ ) {
+            if (HLTDecision[dileptonTriggerNums[itrig]]) {
+                passedDileptonTrigger = true;
+                break;
+            }
         }
-
+        for( unsigned int itrig = 0; itrig < singleLeptonTriggerNums.size(); itrig++ ) {
+            if (HLTDecision[singleLeptonTriggerNums[itrig]]) {
+                passedSingleLeptonTrigger = true;
+                break;
+            }
+        }
+        for( unsigned int itrig = 0; itrig < hadronicTriggerNums.size(); itrig++ ) {
+            if (HLTDecision[hadronicTriggerNums[itrig]]) {
+                passedHadronicTrigger = true;
+                break;
+            }
+        }
         //ignore trigger for Fastsim
         if(isFastsimSMS){
             passedDileptonTrigger = true;
@@ -1042,12 +729,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	      NPU = nPUmean[i];
 	    }
 	  }
-	  //NOTE: reweight with nPV for now
-	  //pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPV));
-	  pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
-	  pileupWeightUp = pileupWeightSysUpHist->GetBinContent(pileupWeightSysUpHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;
-	  pileupWeightDown = pileupWeightSysDownHist->GetBinContent(pileupWeightSysDownHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;	    
-	  
+          pileupWeight = helper.getPileupWeight(NPU);
+          pileupWeightUp = helper.getPileupWeightUp(NPU) / pileupWeight;
+          pileupWeightDown = helper.getPileupWeightDown(NPU) / pileupWeight;
         }
 	
         /////////////////////////////////
@@ -1073,20 +757,16 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         const float MUON_TIGHT_CUT = 20;
         //Loop muons
         for (int i = 0; i < nMuons; i++){
-
             //TLorentzVector for this muon
             TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
-
             //acceptance cut
             if (abs(muonEta[i]) > 2.4) continue;
-
             //lepton scale uncertainty
             if (!isData) {
                 float muonPtUp = muonPt[i];
                 float muonPtDown = muonPt[i];
                 float muonEUp = muonE[i];
                 float muonEDown = muonE[i];
-
                 //get up/down muon momenta
                 float sfUp = 1.0;
                 float sfDown = 1.0;
@@ -1104,7 +784,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 muonEDown *= sfDown;
                 TLorentzVector thisMuonUp = makeTLorentzVector(muonPtUp, muonEta[i], muonPhi[i], muonEUp); 
                 TLorentzVector thisMuonDown = makeTLorentzVector(muonPtDown, muonEta[i], muonPhi[i], muonEDown); 
-
                 //Veto selection
                 if (isVetoMuon(i)) {
                     if (muonPtUp > MUON_VETO_CUT) {
@@ -1138,141 +817,25 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     }
                 }
             }
-
             //baseline pt cut
             if (muonPt[i] < MUON_VETO_CUT) continue;
-
             //tight lepton efficiency scale factor
             if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedSingleLeptonTrigger && muonPt[i] > MUON_TIGHT_CUT) {
-                double effTight = muTightEfficiencyHist->GetBinContent(
-                        muTightEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTightEfficiencyHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double effTight_FastsimSFUp = effTight;
-                double effTight_FastsimSFDown = effTight;
-                if (isFastsimSMS) { //correct efficiency for Fastsim
-                    double sf = muTightEffFastsimSFHist->GetBinContent(
-                        muTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                    double sfErr = muTightEffFastsimSFHist->GetBinError(
-                        muTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                    effTight *= sf; 
-                    effTight_FastsimSFUp *= (sf + sfErr);
-                    effTight_FastsimSFDown *= (sf - sfErr);
-                }
-                double effTightSF = muTightEffSFHist->GetBinContent( 
-                        muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double effTightSFErr = muTightEffSFHist->GetBinError( 
-                        muTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTightEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double effTightSFUp = effTightSF + effTightSFErr;
-                double effTightSFDown = effTightSF - effTightSFErr;
-                double tmpTightSF = 1.0;
-                double tmpTightSFUp = 1.0;
-                double tmpTightSFDown = 1.0;
-                double tmpTightSF_FastsimSFUp = 1.0;
-                double tmpTightSF_FastsimSFDown = 1.0;
-
-                if (isTightMuon(i)) {
-                    tmpTightSF = effTightSF;
-                    tmpTightSFUp = effTightSFUp;
-                    tmpTightSFDown = effTightSFDown;
-                    tmpTightSF_FastsimSFUp = effTightSF;
-                    tmpTightSF_FastsimSFDown = effTightSF;
-                } 
-                else {
-                    if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
-                    if (effTight*effTightSFUp < 1.0) tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
-                    if (effTight*effTightSFDown < 1.0) tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
-                    if (effTight_FastsimSFUp*effTightSF < 1.0) tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
-                    if (effTight_FastsimSFDown*effTightSF < 1.0) tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
-                }
-                muonEffCorrFactor *= tmpTightSF;
-                sf_muonEffUp *= tmpTightSFUp/tmpTightSF;
-                sf_muonEffDown *= tmpTightSFDown/tmpTightSF;
-                sf_muonEffFastsimSFUp *= tmpTightSF_FastsimSFUp/tmpTightSF;
-                sf_muonEffFastsimSFDown *= tmpTightSF_FastsimSFDown/tmpTightSF;
+                helper.processTightMuonScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
+                    muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
             }
-
             //veto lepton efficiency scale factor
-            if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedHadronicTrigger && muonPt[i] > 20) { //NOTE: do not use these scale factors below 20 GeV for now
-                double effVeto = muVetoEfficiencyHist->GetBinContent(
-                        muVetoEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muVetoEfficiencyHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double effVeto_FastsimSFUp = effVeto;
-                double effVeto_FastsimSFDown = effVeto;
-                if (isFastsimSMS) { //correct efficiency for Fastsim
-                    double sf = muVetoEffFastsimSFHist->GetBinContent(
-                        muVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                    double sfErr = muVetoEffFastsimSFHist->GetBinError(
-                        muVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                    effVeto *= sf; 
-                    effVeto_FastsimSFUp *= (sf + sfErr);
-                    effVeto_FastsimSFDown *= (sf - sfErr);
-                }
-                double effVetoSF = muVetoEffSFHist->GetBinContent( 
-                        muVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muVetoEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double effVetoSFErr = muVetoEffSFHist->GetBinError( 
-                        muVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muVetoEffSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double effVetoSFUp = effVetoSF + effVetoSFErr;
-                double effVetoSFDown = effVetoSF - effVetoSFErr;
-                double tmpVetoSF = 1.0;
-                double tmpVetoSFUp = 1.0;
-                double tmpVetoSFDown = 1.0;
-                double tmpVetoSF_FastsimSFUp = 1.0;
-                double tmpVetoSF_FastsimSFDown = 1.0;
-
-                if (isVetoMuon(i)) {
-                    tmpVetoSF = effVetoSF;
-                    tmpVetoSFUp = effVetoSFUp;
-                    tmpVetoSFDown = effVetoSFDown;
-                    tmpVetoSF_FastsimSFUp = effVetoSF;
-                    tmpVetoSF_FastsimSFDown = effVetoSF;
-                } 
-                else {
-                    if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
-                    if (effVeto*effVetoSFUp < 1.0) tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
-                    if (effVeto*effVetoSFUp < 1.0) tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
-                    if (effVeto_FastsimSFUp*effVetoSF < 1.0) tmpVetoSF_FastsimSFUp = (1/effVeto_FastsimSFUp - effVetoSF) / (1/effVeto_FastsimSFUp - 1);
-                    if (effVeto_FastsimSFDown*effVetoSF < 1.0) tmpVetoSF_FastsimSFDown = (1/effVeto_FastsimSFDown - effVetoSF) / (1/effVeto_FastsimSFDown - 1);
-                }
-                vetoMuonEffCorrFactor *= tmpVetoSF;
-                sf_vetoMuonEffUp *= tmpVetoSFUp/tmpVetoSF;
-                sf_vetoMuonEffDown *= tmpVetoSFDown/tmpVetoSF;
-                sf_vetoMuonEffFastsimSFUp *= tmpVetoSF_FastsimSFUp/tmpVetoSF;
-                sf_vetoMuonEffFastsimSFDown *= tmpVetoSF_FastsimSFDown/tmpVetoSF;
+            if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedHadronicTrigger 
+                    && muonPt[i] > 20) { //NOTE: do not use these scale factors below 20 GeV for now
+                helper.processVetoMuonScaleFactors( muonPt[i], muonEta[i], isVetoMuon(i),
+                    vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
+                    sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );
             }
-
             //Trigger scale factor
             if(!isData && muonPt[i] >= MUON_TIGHT_CUT){
-                double trigSF = muTrigSFHist->GetBinContent( 
-                        muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double trigSFErr = muTrigSFHist->GetBinError( 
-                        muTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(muonPt[i],199.9),10.01)),
-                        muTrigSFHist->GetYaxis()->FindFixBin(fabs(muonEta[i]))); 
-                double trigSFUp = trigSF + trigSFErr;
-                double trigSFDown = trigSF - trigSFErr;
-                if (passedSingleLeptonTrigger && isTightMuon(i)){
-                    muonTrigCorrFactor *= trigSF;
-                    sf_muonTrigUp *= trigSFUp/trigSF;
-                    sf_muonTrigDown *= trigSFDown/trigSF;
-                }
-		if (isFastsimSMS) {
-		  if (passedSingleLeptonTrigger && isTightMuon(i)) {
-		    double singleMuonTriggerEfficiencyFromFullsim = 
-		      muTrigEffFromFullsimHist->GetBinContent( muTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(muonEta[i])),
-							       muTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(muonPt[i],999.9),15.01))); 
-		    muonTrigCorrFactor *= singleMuonTriggerEfficiencyFromFullsim;
-		  }		  
-		}
+                helper.processSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
+                        passedSingleLeptonTrigger, muonTrigCorrFactor, sf_muonTrigUp, sf_muonTrigDown );
             }
-
             //Veto selection
             if (isVetoMuon(i)){
                 nVetoMuons++;
@@ -1311,27 +874,22 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
         const float ELE_TIGHT_CUT = 25;
         //Loop electrons
         for (int i = 0; i < nElectrons; i++){
-
             //Remove overlaps
             bool overlap = false;
             for (auto& lep : GoodLeptons){
                 if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
             }
             if (overlap) continue;
-
             //TLorentzVector for this electron
             TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-
             //acceptance cut
             if (fabs(eleEta[i]) > 2.5) continue;
-
             //lepton scale uncertainty
             if (!isData) {
                 float elePtUp = elePt[i];
                 float elePtDown = elePt[i];
                 float eleEUp = eleE[i];
                 float eleEDown = eleE[i];
-
                 //get up/down ele momenta
                 float sfUp = 1.0;
                 float sfDown = 1.0;
@@ -1349,7 +907,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 eleEDown *= sfDown;
                 TLorentzVector thisElectronUp = makeTLorentzVector(elePtUp, eleEta[i], elePhi[i], eleEUp); 
                 TLorentzVector thisElectronDown = makeTLorentzVector(elePtDown, eleEta[i], elePhi[i], eleEDown); 
-
                 //Veto selection
                 if (isVetoElectron(i)) {
                     if (elePtUp > ELE_VETO_CUT) {
@@ -1383,147 +940,27 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                     }
                 }
             }
-
-
             //baseline pt cut
             if (elePt[i] < ELE_VETO_CUT) continue;
-
             //Calculate MC->Data scale factors
             if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedSingleLeptonTrigger && elePt[i] > ELE_TIGHT_CUT) {
                 //Tight scale factor
-                double effTight = eleTightEfficiencyHist->GetBinContent(
-                        eleTightEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
-                        eleTightEfficiencyHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double effTight_FastsimSFUp = effTight;
-                double effTight_FastsimSFDown = effTight;
-                if (isFastsimSMS) { //correct efficiency for Fastsim
-                    double sf = eleTightEffFastsimSFHist->GetBinContent(
-                        eleTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
-                        eleTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                    double sfErr = eleTightEffFastsimSFHist->GetBinError(
-                        eleTightEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
-                        eleTightEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                    effTight *= sf;
-                    effTight_FastsimSFUp *= (sf + sfErr);
-                    effTight_FastsimSFDown *= (sf - sfErr);
-                }
-                double effTightSF = eleTightEffSFHist->GetBinContent( 
-                        eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
-                        eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double effTightSFErr = eleTightEffSFHist->GetBinError( 
-                        eleTightEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
-                        eleTightEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                //add 2% uncertainty in quadrature with existing error
-                double effTightSFUp = effTightSF + sqrt(effTightSFErr*effTightSFErr + (0.02*effTightSF)*(0.02*effTightSF));
-                double effTightSFDown = effTightSF - sqrt(effTightSFErr*effTightSFErr + (0.02*effTightSF)*(0.02*effTightSF));
-                double tmpTightSF = 1.0;
-                double tmpTightSFUp = 1.0;
-                double tmpTightSFDown = 1.0;
-                double tmpTightSF_FastsimSFUp = 1.0;
-                double tmpTightSF_FastsimSFDown = 1.0;
-
-                if (isTightElectron(i)) {
-                    tmpTightSF = effTightSF;
-                    tmpTightSFUp = effTightSFUp;
-                    tmpTightSFDown = effTightSFDown;
-                    tmpTightSF_FastsimSFUp = effTightSF;
-                    tmpTightSF_FastsimSFDown = effTightSF;
-                } 
-                else { 
-                    if (effTight*effTightSF < 1.0) tmpTightSF = (1/effTight - effTightSF) / (1/effTight - 1);
-                    if (effTight*effTightSFUp < 1.0) tmpTightSFUp = (1/effTight - effTightSFUp) / (1/effTight - 1);
-                    if (effTight*effTightSFDown < 1.0) tmpTightSFDown = (1/effTight - effTightSFDown) / (1/effTight - 1);
-                    if (effTight_FastsimSFUp*effTightSF < 1.0) tmpTightSF_FastsimSFUp = (1/effTight_FastsimSFUp - effTightSF) / (1/effTight_FastsimSFUp - 1);
-                    if (effTight_FastsimSFDown*effTightSF < 1.0) tmpTightSF_FastsimSFDown = (1/effTight_FastsimSFDown - effTightSF) / (1/effTight_FastsimSFDown - 1);
-                }
-                eleEffCorrFactor *= tmpTightSF;
-                sf_eleEffUp *= tmpTightSFUp/tmpTightSF;
-                sf_eleEffDown *= tmpTightSFDown/tmpTightSF;
-                sf_eleEffFastsimSFUp *= tmpTightSF_FastsimSFUp/tmpTightSF;
-                sf_eleEffFastsimSFDown *= tmpTightSF_FastsimSFDown/tmpTightSF;
+                helper.processTightElectronScaleFactors(elePt[i], eleEta[i], isTightElectron(i), 
+                        eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
+                        sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
             }
-
             //Veto scale factor
-            if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedHadronicTrigger && elePt[i] > 20) { //NOTE: only use scale factors for electrons above 20 GeV for now
-                double effVeto = eleVetoEfficiencyHist->GetBinContent(
-                        eleVetoEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
-                        eleVetoEfficiencyHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double effVeto_FastsimSFUp = effVeto;
-                double effVeto_FastsimSFDown = effVeto;
-                if (isFastsimSMS) { //correct efficiency for Fastsim
-                    double sf = eleVetoEffFastsimSFHist->GetBinContent(
-                        eleVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
-                        eleVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                    double sfErr = eleVetoEffFastsimSFHist->GetBinError(
-                        eleVetoEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)),
-                        eleVetoEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                    effVeto *= sf; 
-                    effVeto_FastsimSFUp *= (sf + sfErr);
-                    effVeto_FastsimSFDown *= (sf - sfErr);
-                }
-                double effVetoSF = eleVetoEffSFHist->GetBinContent( 
-                        eleVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
-                        eleVetoEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double effVetoSFErr = eleVetoEffSFHist->GetBinError( 
-                        eleVetoEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
-                        eleVetoEffSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                //add 2% uncertainty in quadrature with existing error
-                double effVetoSFUp = effVetoSF + sqrt(effVetoSFErr*effVetoSFErr + (0.02*effVetoSF)*(0.02*effVetoSF));
-                double effVetoSFDown = effVetoSF - sqrt(effVetoSFErr*effVetoSFErr + (0.02*effVetoSF)*(0.02*effVetoSF));
-
-                double tmpVetoSF = 1.0;
-                double tmpVetoSFUp = 1.0;
-                double tmpVetoSFDown = 1.0;
-                double tmpVetoSF_FastsimSFUp = 1.0;
-                double tmpVetoSF_FastsimSFDown = 1.0;
-
-                if (isVetoElectron(i)) {
-                    tmpVetoSF = effVetoSF;
-                    tmpVetoSFUp = effVetoSFUp;
-                    tmpVetoSFDown = effVetoSFDown;
-                    tmpVetoSF_FastsimSFUp = effVetoSF;
-                    tmpVetoSF_FastsimSFDown = effVetoSF;
-                } 
-                else { 
-                    if (effVeto*effVetoSF < 1.0) tmpVetoSF = (1/effVeto - effVetoSF) / (1/effVeto - 1);
-                    if (effVeto*effVetoSFUp < 1.0) tmpVetoSFUp = (1/effVeto - effVetoSFUp) / (1/effVeto - 1);
-                    if (effVeto*effVetoSFDown < 1.0) tmpVetoSFDown = (1/effVeto - effVetoSFDown) / (1/effVeto - 1);
-                    if (effVeto_FastsimSFUp*effVetoSF < 1.0) tmpVetoSF_FastsimSFUp = (1/effVeto_FastsimSFUp - effVetoSF) / (1/effVeto_FastsimSFUp - 1);
-                    if (effVeto_FastsimSFDown*effVetoSF < 1.0) tmpVetoSF_FastsimSFDown = (1/effVeto_FastsimSFDown - effVetoSF) / (1/effVeto_FastsimSFDown - 1);
-                }
-                vetoEleEffCorrFactor *= tmpVetoSF;
-                sf_vetoEleEffUp *= tmpVetoSFUp/tmpVetoSF;
-                sf_vetoEleEffDown *= tmpVetoSFDown/tmpVetoSF;
-                sf_vetoEleEffFastsimSFUp *= tmpVetoSF_FastsimSFUp/tmpVetoSF;
-                sf_vetoEleEffFastsimSFDown *= tmpVetoSF_FastsimSFDown/tmpVetoSF;
+            if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedHadronicTrigger 
+                    && elePt[i] > 20) { //NOTE: only use scale factors for electrons above 20 GeV for now
+                helper.processVetoElectronScaleFactors(elePt[i], eleEta[i], isVetoElectron(i), 
+                        vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
+                        sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
             }
-
             //Trigger scale factor
             if(!isData && elePt[i] > ELE_TIGHT_CUT){
-                double trigSF = eleTrigSFHist->GetBinContent( 
-                        eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
-                        eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double trigSFErr = eleTrigSFHist->GetBinError( 
-                        eleTrigSFHist->GetXaxis()->FindFixBin(fmax(fmin(elePt[i],199.9),10.01)), 
-                        eleTrigSFHist->GetYaxis()->FindFixBin(fabs(eleEta[i]))); 
-                double trigSFUp = trigSF + trigSFErr + 0.02; //extra 2% systematic for 2015 dataset due to temporary beamspot move
-                double trigSFDown = trigSF - trigSFErr - 0.02;
-                if (passedSingleLeptonTrigger && isTightElectron(i)){
-                    eleTrigCorrFactor *= trigSF;
-                    sf_eleTrigUp *= trigSFUp/trigSF;
-                    sf_eleTrigDown *= trigSFDown/trigSF;
-                }
-		
-		if (isFastsimSMS) {
-		  if (passedSingleLeptonTrigger && isTightElectron(i) && elePt[i] > ELE_TIGHT_CUT){
-		    double singleElectronTriggerEfficiencyFromFullsim = 
-		      eleTrigEffFromFullsimHist->GetBinContent( eleTrigEffFromFullsimHist->GetXaxis()->FindFixBin(fabs(eleEta[i])), 
-								eleTrigEffFromFullsimHist->GetYaxis()->FindFixBin(fmax(fmin(elePt[i],999.9),25.01))); 
-		    eleTrigCorrFactor *= singleElectronTriggerEfficiencyFromFullsim;		    
-		  }
-		}
+                helper.processSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
+                        passedSingleLeptonTrigger, eleTrigCorrFactor, sf_eleTrigUp, sf_eleTrigDown );
             }
-
             //Veto selection
             if (isVetoElectron(i)){
                 nVetoElectrons++;
@@ -1551,39 +988,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             //Baseline cuts
             if (tauPt[i] < TAU_LOOSE_CUT) continue;
             if (fabs(tauEta[i]) > 2.4) continue;
-
-            //Calculate MC->Data scale factors
-            /*if (!isData && RazorAnalyzer::matchesGenTau(tauEta[i],tauPhi[i]) && passedHadronicTrigger) {
-                //Loose scale factor
-                double effLoose = tauLooseEfficiencyHist->GetBinContent(
-                        tauLooseEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(tauPt[i],199.9),10.01)),
-                        tauLooseEfficiencyHist->GetYaxis()->FindFixBin(fabs(tauEta[i]))); 
-                double effLooseSF = tauLooseEffSFHist->GetBinContent( 
-                        tauLooseEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(tauPt[i],199.9),10.01)), 
-                        tauLooseEffSFHist->GetYaxis()->FindFixBin(fabs(tauEta[i]))); 
-                double effLooseSFErr = tauLooseEffSFHist->GetBinError( 
-                        tauLooseEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(tauPt[i],199.9),10.01)), 
-                        tauLooseEffSFHist->GetYaxis()->FindFixBin(fabs(tauEta[i]))); 
-                double effLooseSFUp = effLooseSF + effLooseSFErr;
-                double effLooseSFDown = effLooseSF - effLooseSFErr;
-                double tmpLooseSF = 1.0;
-                double tmpLooseSFUp = 1.0;
-                double tmpLooseSFDown = 1.0;
-
-                if (isLooseTau(i)) {
-                    tmpLooseSF = effLooseSF;
-                    tmpLooseSFUp = effLooseSFUp;
-                    tmpLooseSFDown = effLooseSFDown;
-                } 
-                else { 
-                    if (effLoose*effLooseSF < 1.0) tmpLooseSF = (1/effLoose - effLooseSF) / (1/effLoose - 1);
-                    if (effLoose*effLooseSFUp < 1.0) tmpLooseSFUp = (1/effLoose - effLooseSFUp) / (1/effLoose - 1);
-                    if (effLoose*effLooseSFDown < 1.0) tmpLooseSFDown = (1/effLoose - effLooseSFDown) / (1/effLoose - 1);
-                }
-                tauEffCorrFactor *= tmpLooseSF;
-                sf_tauEffUp *= tmpLooseSFUp/tmpLooseSF;
-                sf_tauEffDown *= tmpLooseSFDown/tmpLooseSF;
-            }*/
 
             //remove overlaps
             bool overlap = false;
@@ -1640,9 +1044,8 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 	    if (!jetPassIDTight[i]) continue;
 	  }
 
-
 	  //Apply pileup jet ID 
-            //UNDER CONSTRUCTION (No working point yet for Run2)
+            //No working point yet for Run2
             //int level = 2; //loose jet ID
             //if (!((jetPileupIdFlag[i] & (1 << level)) != 0)) continue;
 
@@ -1655,7 +1058,6 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
             double jetEnergySmearFactor = 1.0;
             double jetEnergySmearFactorUp = 1.0;
             double jetEnergySmearFactorDown = 1.0;
-            //UNDER CONSTRUCTION
             //if (!isData) {
             //    jetEnergySmearFactor = JetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, random);
             //    jetEnergySmearFactorUp = UpDownJetEnergySmearingFactor(jetPt[i]*JEC, jetEta[i], NPU, JetResolutionCalculator, jetPt[i]*JEC*jetEnergySmearFactor, "up");
@@ -1768,125 +1170,11 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
                 MetY_Type1Corr += -1 * (thisJet.Py() - L1CorrJet.Py());
             }
 
-	    //****************************************************************************
             //Apply b-tagging correction factor 
-	    //****************************************************************************
             if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
-	      double effMedium = 0;
-	      BTagEntry::JetFlavor jetType = BTagEntry::FLAV_B;
-	      if ( abs(jetPartonFlavor[i]) == 5) {
-                effMedium = btagMediumEfficiencyHist->GetBinContent(
-                            btagMediumEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
-                            btagMediumEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
-		jetType = BTagEntry::FLAV_B;
-	      } else if ( abs(jetPartonFlavor[i]) == 4) {
-                effMedium = btagMediumCharmEfficiencyHist->GetBinContent(
-                            btagMediumCharmEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
-                            btagMediumCharmEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
-		jetType = BTagEntry::FLAV_C;
-	      } else {
-                effMedium = btagMediumLightJetsEfficiencyHist->GetBinContent(
-                            btagMediumLightJetsEfficiencyHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.0)),
-                            btagMediumLightJetsEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
-		jetType = BTagEntry::FLAV_UDSG;
-	      }
-
-	      //get scale factor
-	      double jet_scalefactor = -1;
-	      double jet_scalefactorUp = -1;
-	      double jet_scalefactorDown = -1;  
-	      
-	      if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) {
-		if (jetCorrPt < 670.) { //670 is the largest pt range listed in the CSV text file
-		  jet_scalefactor = btagreader.eval(jetType, jetEta[i], jetCorrPt); 
-		  jet_scalefactorUp = btagreader_up.eval(jetType, jetEta[i], jetCorrPt);
-		  jet_scalefactorDown = btagreader_do.eval(jetType, jetEta[i], jetCorrPt);
-		}
-		else {
-		  jet_scalefactor = btagreader.eval(jetType, jetEta[i], 669);
-		  jet_scalefactorUp = btagreader_up.eval(jetType, jetEta[i], 669);
-		  jet_scalefactorDown = btagreader_do.eval(jetType, jetEta[i], 669);
-		}
-	      } else {
-		jet_scalefactor = 0.907317;
-		jet_scalefactorUp = 1.257317;		  
-		jet_scalefactorDown = 0.557317;		
-	      }
-	      double jet_scalefactorFastsimUp = jet_scalefactor;
-	      double jet_scalefactorFastsimDown = jet_scalefactor;
-
-	      //correct efficiency for Fastsim
-	      //Do this only for b-jets for now
-	      if (isFastsimSMS && abs(jetPartonFlavor[i]) == 5) { 
-		//double sf = btagMediumEffFastsimSFHist->GetBinContent(
-		//    btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
-		//    btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
-		//double sfErr = btagMediumEffFastsimSFHist->GetBinError(
-		//    btagMediumEffFastsimSFHist->GetXaxis()->FindFixBin(fmax(fmin(jetCorrPt,199.9),10.01)),
-		//    btagMediumEffFastsimSFHist->GetYaxis()->FindFixBin(fabs(jetEta[i]))); 
-		if (jetCorrPt < 670.) {
-		  double jet_scalefactorFastsim = btagreaderfastsim.eval(jetType, jetEta[i], jetCorrPt);
-		  jet_scalefactor *= jet_scalefactorFastsim;
-		  jet_scalefactorUp *= jet_scalefactorFastsim;
-		  jet_scalefactorDown *= jet_scalefactorFastsim;
-		  jet_scalefactorFastsimUp *= btagreaderfastsim_up.eval(jetType, jetEta[i], jetCorrPt);
-		  jet_scalefactorFastsimDown *= btagreaderfastsim_do.eval(jetType, jetEta[i], jetCorrPt);
-		}
-		else {
-		  double jet_scalefactorFastsim = btagreaderfastsim.eval(jetType, jetEta[i], 669);
-		  jet_scalefactor *= jet_scalefactorFastsim;
-		  jet_scalefactorUp *= jet_scalefactorFastsim;
-		  jet_scalefactorDown *= jet_scalefactorFastsim;
-		  jet_scalefactorFastsimUp *= btagreaderfastsim_up.eval(jetType, jetEta[i], 669);
-		  jet_scalefactorFastsimDown *= btagreaderfastsim_do.eval(jetType, jetEta[i], 669);
-		}
-	      }
-
-	      //apply and propagate scale factor
-	      if (jet_scalefactor <= 0 || jet_scalefactorUp <= 0 || jet_scalefactorDown <= 0){
-		// cout << "Warning: b-tag scale factor is <= 0!" << endl;
-	      }
-	      else if (isCSVM(i)){
-		btagCorrFactor *= jet_scalefactor;
-		if (abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) {
-		  sf_btagUp *= jet_scalefactorUp/jet_scalefactor;
-		  sf_btagDown *= jet_scalefactorDown/jet_scalefactor;
-		  sf_btagFastsimSFUp *= jet_scalefactorFastsimUp / jet_scalefactor;
-		  sf_btagFastsimSFDown *= jet_scalefactorFastsimDown / jet_scalefactor;
-		} else {
-		  sf_bmistagUp *= jet_scalefactorUp/jet_scalefactor;
-		  sf_bmistagDown *= jet_scalefactorDown/jet_scalefactor;
-		  //cout << "mistag: " << jet_scalefactor << " : " << btagCorrFactor << " : " << sf_bmistagUp << " " << sf_bmistagDown << "\n";
-		}
-	      }
-	      else {
-		//only apply the scale factor on the inefficiency, if the corrected efficiency doesn't go above 100%
-		//only record up/down systematics if the nominal and up and down corrected systematics do not go above 100%
-		double sf = 1.0;
-		if (effMedium * jet_scalefactor < 1.0) sf = (1/effMedium - jet_scalefactor) / (1/effMedium - 1);
-		btagCorrFactor *= sf;
-		if (abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4) {
-		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorUp < 1.0) {
-		    sf_btagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1) / sf;
-		  }
-		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorDown < 1.0) {
-		    sf_btagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1) / sf;
-		  }
-		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorFastsimUp < 1.0) {
-		    sf_btagFastsimSFUp *= (1/effMedium - jet_scalefactorFastsimUp) / (1/effMedium - 1) / sf;
-		  }
-		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorFastsimDown < 1.0) {
-		    sf_btagFastsimSFDown *= (1/effMedium - jet_scalefactorFastsimDown) / (1/effMedium - 1) / sf;
-		  }
-		} else {
-		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorUp < 1.0) {
-		    sf_bmistagUp *= (1/effMedium - jet_scalefactorUp) / (1/effMedium - 1) / sf;
-		  } 
-		  if (effMedium * jet_scalefactor < 1.0 && effMedium*jet_scalefactorDown < 1.0) {
-		    sf_bmistagDown *= (1/effMedium - jet_scalefactorDown) / (1/effMedium - 1) / sf;
-		  }
-		}
-	      }
+                helper.processBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),
+                        btagCorrFactor, sf_btagUp, sf_btagDown, sf_btagFastsimSFUp, sf_btagFastsimSFDown,
+                        sf_bmistagUp, sf_bmistagDown );
             }
 	    
             //Cut on jet eta
@@ -1894,9 +1182,7 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, bool isData, bool isF
 
             //Get uncertainty on JEC and JER
             if(!isData){
-                jecUnc->setJetEta(jetEta[i]);
-                jecUnc->setJetPt(jetCorrPt);
-                double unc = jecUnc->getUncertainty(true);
+                double unc = helper.getJecUnc( jetCorrPt, jetEta[i] );
                 double jetPtJESUp = jetCorrPt*(1+unc);
                 double jetPtJESDown = jetCorrPt/(1+unc);
                 double jetPtJERUp = jetPt[i]*JEC*jetEnergySmearFactorUp;
