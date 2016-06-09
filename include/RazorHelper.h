@@ -58,7 +58,8 @@ class RazorHelper {
     private:
         // member functions
         void loadTag_Razor2015(); // Final set of files used in 2015
-        void loadTag_Razor2016(); // Evolving configuration for 2016
+        void loadTag_Razor2015_76X(); // Configuration for 2015 ReReco 
+        void loadTag_Razor2016_80X(); // Evolving configuration for 2016 PromptReco
         void loadTag_Null(); // Default when tag is not provided
         void loadCMSSWPath();
         double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9);
@@ -74,14 +75,21 @@ class RazorHelper {
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, float &sfDown, 
             float fastsimPtCut = 10.01, float extraSyst = 0.);
 
-        // for Razor2015 tag
+        // for Razor2015 74X tag
         void loadPileup_Razor2015();
         void loadLepton_Razor2015();
         void loadTrigger_Razor2015();
         void loadJECs_Razor2015();
         void loadBTag_Razor2015();
 
-        // for Razor2016 tag
+        // for Razor2015 76X ReReco tag
+        void loadPileup_Razor2015_76X();
+        void loadLepton_Razor2015_76X();
+        void loadTrigger_Razor2015_76X();
+        void loadJECs_Razor2015_76X();
+        void loadBTag_Razor2015_76X();
+
+        // for Razor2016 80X tag
         void loadTrigger_Razor2016();
          
         // member data

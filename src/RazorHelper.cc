@@ -17,6 +17,16 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2015();
     }
 
+    // tag for 2015 76X ReReco data
+    if (tag == "Razor2015_76X") {
+        loadTag_Razor2015_76X();
+    }
+
+    // tag for 2016 80X PromptReco data
+    if (tag == "Razor2016_80X") {
+        loadTag_Razor2016_80X();
+    }
+
     // tag not found
     else {
         std::cout << "Error in RazorHelper::RazorHelper : specified tag " << tag << " is not supported!" << std::endl;
@@ -317,6 +327,76 @@ void RazorHelper::loadTrigger_Razor2015() {
         hadronicTriggerNums = { 134,135,136,137,138,139,140,141,142,143,144 };
     }
 }
+
+////////////////////////////////////////////////
+//  2015 76X ReReco
+////////////////////////////////////////////////
+
+void RazorHelper::loadTag_Razor2015_76X() {
+    loadPileup_Razor2015_76X();
+    loadLepton_Razor2015(); //we'll use the same here for now
+    loadJECs_Razor2015_76X();   //
+    loadBTag_Razor2015();   //we'll use the same here for now, but this needs to be updated
+    loadTrigger_Razor2015();//use the same for now
+}
+
+void RazorHelper::loadPileup_Razor2015_76X() {
+    // pileup weights
+    std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
+    pileupWeightFile = TFile::Open(
+            Form("%s/src/RazorAnalyzer/data/PileupReweight2015_7_6.root", cmsswPath.c_str()));
+    pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+    pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+    pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+}
+
+void RazorHelper::loadJECs_Razor2015_76X() {
+    std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
+    // load JEC parameters
+    std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
+    std::vector<JetCorrectorParameters> correctionParameters;
+    if (isData) {
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+    }
+    else if (isFastsim) {
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+    }
+    else {
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));  
+    }
+    JetCorrector = new FactorizedJetCorrector(correctionParameters);
+
+    // get JEC uncertainty file and set up JetCorrectionUncertainty
+    std::string jecUncPath;
+    if (isData) {
+        jecUncPath = jecPathname+"/Fall15_25nsV2_DATA_Uncertainty_AK4PFchs.txt";
+    }
+    else if (isFastsim) {
+        jecUncPath = jecPathname+"/Fall15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
+    }
+    else {
+        jecUncPath = jecPathname+"/Fall15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
+    }
+    jecUnc = new JetCorrectionUncertainty(jecUncPath);
+}
+
 
 ////////////////////////////////////////////////
 //  2016 
