@@ -69,10 +69,15 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
 
+  string analysisTag = "";
+  if (option == 0 || option == 1) analysisTag = "2015_76X";
+  else if (option == 10 || option == 11) analysisTag = "2016_80X";
+
   bool doEleVeto = true;
-  if (option == 1) doEleVeto = false;
+  if (option == 1 || option == 11) doEleVeto = false;
 
   std::cout << "[INFO]: option = " << option << std::endl;
+  std::cout << "[INFO]: analysisTag --> " << analysisTag << std::endl;
   std::cout << "[INFO]: doEleVeto --> " << doEleVeto << std::endl;
   std::cout << "[INFO]: doPhotonScaleCorrection --> " << doPhotonScaleCorrection << std::endl;
  
@@ -101,13 +106,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
    std::string photonCorrectionPath = "";
   if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
 
-  EnergyScaleCorrection_class photonCorrector(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
+  EnergyScaleCorrection_class *photonCorrector = 0;
+  if (analysisTag == "2015_76X") {
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
+  } else if (analysisTag == "2016_80X") {
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016B", photonCorrectionPath.c_str()));
+  }
+
   if(!isData) {
-    photonCorrector.doScale = false; 
-    photonCorrector.doSmearings = true;
+    photonCorrector->doScale = false; 
+    photonCorrector->doSmearings = true;
   } else {
-    photonCorrector.doScale = true; 
-    photonCorrector.doSmearings = false;
+    photonCorrector->doScale = true; 
+    photonCorrector->doSmearings = false;
   }
 
   //--------------------------------
@@ -117,21 +128,32 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   std::string pathname;
   if ( cmsswPath != NULL ) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
   std::cout << "Getting JEC parameters from " << pathname << std::endl;
-  if ( isData ) 
-    {
+  if (analysisTag == "2015_76X") {  
+    if ( isData ) {
       std::cout << "[INFO]: getting data JEC" << std::endl;
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-    } 
-  else 
-    {
+    } else  {
       std::cout << "[INFO]: getting MC JEC" << std::endl;
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
     }
+  } else if (analysisTag == "2016_80X") {
+    if ( isData ) {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+    } else  {
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    }
+
+  }
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
   //------------------------------------------------------------
   //Get JEC uncertainty file and set up JetCorrectionUncertainty
@@ -751,8 +773,8 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       for(int i = 0; i < nPhotons; i++)
 	{
 
-	  double scale = photonCorrector.ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
-	  double smear = photonCorrector.getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+	  double scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+	  double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
 
 	  //ID cuts -- apply isolation after candidate pair selection
 	  if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
@@ -1587,4 +1609,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   SumPdfWeights->Write();
   puhisto->Write();
   outFile->Close();
+
+
+  delete photonCorrector;
 }
