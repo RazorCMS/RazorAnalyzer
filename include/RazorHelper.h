@@ -13,6 +13,7 @@
 #include "FactorizedJetCorrector.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
+#include "SimpleJetResolution.h"
 #include "BTagCalibrationStandalone.h"
 
 class RazorHelper {
@@ -28,32 +29,43 @@ class RazorHelper {
         double getPileupWeightUp(int NPU);
         double getPileupWeightDown(int NPU);
 
+        // get lepton scale factor (without up/down uncertainties)
+        double getTightMuonScaleFactor(float pt, float eta, bool isTight);
+        double getVetoMuonScaleFactor(float pt, float eta, bool isVeto);
+        double getTightElectronScaleFactor(float pt, float eta, bool isTight);
+        double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
+
         // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
         // (see FullRazorInclusive analyzer for an example of how to use these)
-        void processTightMuonScaleFactors(float pt, float eta, bool isTight, 
+        void updateTightMuonScaleFactors(float pt, float eta, bool isTight, 
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
-        void processVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
+        void updateVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
-        void processTightElectronScaleFactors(float pt, float eta, bool isTight, 
+        void updateTightElectronScaleFactors(float pt, float eta, bool isTight, 
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
-        void processVetoElectronScaleFactors(float pt, float eta, bool isVeto, 
+        void updateVetoElectronScaleFactors(float pt, float eta, bool isVeto, 
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
 
         // get HLT path numbers for 2-lepton, 1-lepton, and 0-lepton (razor) triggers
         std::vector<int> getDileptonTriggerNums() { return dileptonTriggerNums; }
         std::vector<int> getSingleLeptonTriggerNums() { return singleLeptonTriggerNums; }
         std::vector<int> getHadronicTriggerNums() { return hadronicTriggerNums; }
-        void processSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
+        double getSingleMuTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger);
+        double getSingleEleTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger);
+        void updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
             float &sf, float &sfUp, float &sfDown);
-        void processSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
+        void updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
             float &sf, float &sfUp, float &sfDown);
 
         // JEC tools
         FactorizedJetCorrector *getJetCorrector() { return JetCorrector; }
+        SimpleJetResolution *getJetResolutionCalculator() { return JetResolutionCalculator; }
         double getJecUnc( float pt, float eta );
 
         // retrieve b-tag efficiency scale factors for the medium CSVv2 working point
-        void processBTagScaleFactors(float pt, float eta, int flavor, bool isCSVM,
+        double getBTagScaleFactor(float pt, float eta, int flavor, bool isCSVM);
+        // get all b-tag scale factors (including up, down, and fastsim)
+        void updateBTagScaleFactors(float pt, float eta, int flavor, bool isCSVM,
                 float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown, 
                 float &sfMistagUp, float &sfMistagDown);
 
@@ -70,10 +82,14 @@ class RazorHelper {
         double getPassOrFailScaleFactor(double eff, double sf, bool passes);
         std::vector<double> getLeptonScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
                 double pt, double eta, bool passes, double smear=0.0);
-        void processScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, float pt, 
+        double getLeptonScaleFactor(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
+                double pt, double eta, bool passes);
+        void updateScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, float pt, 
                 float eta, bool passes, float &sf, float &sfUp, float &sfDown, 
                 float &sfFastsimUp, float &sfFastsimDown, float smear=0.0);
-        void processTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
+        double getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta, 
+                bool isTight, bool passedTrigger, float fastsimPtCut = 10.01, float ptCut=10.01);
+        void updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, float &sfDown, 
             float fastsimPtCut = 10.01, float extraSyst = 0.);
 
@@ -146,8 +162,11 @@ class RazorHelper {
         std::vector<int> hadronicTriggerNums;
 
         // for jet energy corrections
+        std::vector<JetCorrectorParameters> correctionParameters;
+        JetCorrectorParameters *JetResolutionParameters;
         FactorizedJetCorrector *JetCorrector;
         JetCorrectionUncertainty *jecUnc;
+        SimpleJetResolution *JetResolutionCalculator;
 
         // for b-tag
         TFile *btagEfficiencyFile;
