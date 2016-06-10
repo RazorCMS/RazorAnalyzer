@@ -4,13 +4,16 @@ import rootTools
 from framework import Config
 import sys
 from array import *
+import csv
 
 k_T = 1.
 k_Z = 1.
 k_W = 1.
 
 k_QCD = {}
-    
+
+triggerDict = {}
+
 boxes = {'MuEle':'(box==0)',
          'MuMu':'(box==1)',
          'EleEle':'(box==2)',
@@ -180,7 +183,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
 
     btagMin =  args['nBtag'].getMin()
     btagMax =  args['nBtag'].getMax()
-    
+        
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
@@ -190,16 +193,23 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
 
     cuts = getCuts(workspace,box)
 
+    
     if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
-        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in range(134,145)])
+        triggerNameList = ['HLT_RsqMR240_Rsq0p09_MR200', 'HLT_RsqMR240_Rsq0p09_MR200_4jet', 'HLT_RsqMR270_Rsq0p09_MR200', 'HLT_RsqMR270_Rsq0p09_MR200_4jet', 'HLT_RsqMR260_Rsq0p09_MR200', 'HLT_RsqMR260_Rsq0p09_MR200_4jet', 'HLT_RsqMR300_Rsq0p09_MR200', 'HLT_RsqMR300_Rsq0p09_MR200_4jet', 'HLT_Rsq0p25', 'HLT_Rsq0p30', 'HLT_Rsq0p36']
+        triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
+        triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
 
     if isData and box in ['MuSixJet', 'MuFourJet', 'MuMultiJet', 'MuJet', 'EleSixJet', 'EleFourJet', 'EleMultiJet', 'EleJet']:
-        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in [2, 7, 12, 11, 15, 22, 23, 24, 25, 26, 27, 28, 29]])
+        triggerNameList = ['HLT_Mu50', 'HLT_IsoMu20', 'HLT_IsoTkMu20', 'HLT_IsoMu27', 'HLT_IsoTkMu27', 'HLT_IsoTkMu27', 'HLT_Ele23_WPLoose_Gsf', 'HLT_Ele27_WPLoose_Gsf', 'HLT_Ele27_eta2p1_WPLoose_Gsf', 'HLT_Ele27_eta2p1_WPTight_Gsf', 'HLT_Ele32_eta2p1_WPLoose_Gsf', 'HLT_Ele32_eta2p1_WPTight_Gsf', 'HLT_Ele105_CaloIdVT_GsfTrkIdT', 'HLT_Ele115_CaloIdVT_GsfTrkIdT']        
+        triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
+        triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData and box in ['MuMu', 'MuEle', 'EleEle']:
-        triggerCuts = ' || '.join(['HLTDecision[%i]'%i for i in [41, 43, 30, 31, 47, 48, 49, 50]])
+        triggerNameList = ['HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ', 'HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ', 'HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ', 'HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ', 'HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL', 'HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL', 'HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL','HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL']    
+        triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
+        triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData:
@@ -268,6 +278,8 @@ if __name__ == '__main__':
                   help="remove QCD, while augmenting remaining MC backgrounds")    
     parser.add_option('--data',dest="isData", default=False,action='store_true',
                   help="flag to use trigger decision and MET flags")
+    parser.add_option('--path-names',dest="pathNames",default="data/RazorHLTPathnames_2016.dat",type="string",
+                  help="text file containing mapping between array index and path name")
 
 
     (options,args) = parser.parse_args()
@@ -291,6 +303,13 @@ if __name__ == '__main__':
     btagMin =  w.var('nBtag').getMin()
     btagMax =  w.var('nBtag').getMax()
 
+    
+    f = open(options.pathNames)
+    csvin = csv.reader(f,delimiter=' ')
+    for row in csvin:
+        triggerDict[row[-1]] = int(row[0])
+
+        
     if removeQCD:
         # first get sum of weights for each background per b-tag bin ( sumW[label] )
         sumW = {}
