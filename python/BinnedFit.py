@@ -22,29 +22,24 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         hesse_status = -1
         
     else:
-        if fitRange != 'Full':
+        if fitRange!='Full':
             nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
             m2 = rt.RooMinimizer(nll)
             m2.setStrategy(0)
-            #m2.setEps(1e-5)
-            #m2.setMaxFunctionCalls(100000)
-            #m2.setMaxIterations(100000)
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
-        
-        nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+
+        if fitRange=='Full':
+            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+        else:
+            nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
         m2 = rt.RooMinimizer(nll)
-        m2.setStrategy(1)
-        #m2.setEps(1e-5)
-        m2.setMaxFunctionCalls(100000)
-        m2.setMaxIterations(100000)
-        hesse_status = m2.minimize('Minuit2','hesse')
+        m2.setStrategy(2)
+        m2.setMaxFunctionCalls(1000000)
+        m2.setMaxIterations(1000000)
         migrad_status = m2.minimize('Minuit2','migrad')
         improve_status = m2.minimize('Minuit2','improve')
         hesse_status = m2.minimize('Minuit2','hesse')
-        migrad_status = m2.minimize('Minuit2','migrad')
-        hesse_status = m2.minimize('Minuit2','hesse')
-        #hesse_status = m2.minimize('Minuit2','hesse')
         fr = m2.save()
 
     if fr.covQual() != 3:
@@ -147,6 +142,7 @@ if __name__ == '__main__':
         print "restoring parameters from fit"
         frIn.Print("V")
         for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
+            #if 'Ntot' in p.GetName(): continue
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
             
@@ -316,30 +312,30 @@ if __name__ == '__main__':
             else:            
                 h_labels.append("%i b-tag" % z[k-1] )
                 
-    h_data_nBtagRsqMR_fine = rt.TH3D("h_data_nBtagRsqMR_fine","h_data_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
-    h_nBtagRsqMR_fine = rt.TH3D("h_nBtagRsqMR_fine","h_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
-    opt = [rt.RooFit.CutRange(myRange) for myRange in plotRegion.split(',')]
-    data_reduce = w.data("RMRTree").reduce(opt[0])
-    for iOpt in range(1,len(opt)):
-        data_reduce.append(w.data("RMRTree").reduce(opt[iOpt]))
-    data_reduce.fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
+    ## h_data_nBtagRsqMR_fine = rt.TH3D("h_data_nBtagRsqMR_fine","h_data_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
+    ## h_nBtagRsqMR_fine = rt.TH3D("h_nBtagRsqMR_fine","h_nBtagRsqMR_fine",len(xFine)-1,xFine,len(yFine)-1,yFine,len(zFine)-1,zFine)
+    ## opt = [rt.RooFit.CutRange(myRange) for myRange in plotRegion.split(',')]
+    ## data_reduce = w.data("RMRTree").reduce(opt[0])
+    ## for iOpt in range(1,len(opt)):
+    ##     data_reduce.append(w.data("RMRTree").reduce(opt[iOpt]))
+    ## data_reduce.fillHistogram(h_data_nBtagRsqMR_fine,rt.RooArgList(w.var("MR"),w.var("Rsq"),w.var("nBtag")))
     
-    for i in range(1,len(xFine)):
-        for j in range(1,len(yFine)):
-            for k in range(1,len(zFine)):                
-                w.var('MR').setVal((xFine[i]+xFine[i-1])/2.)
-                w.var('Rsq').setVal((yFine[j]+yFine[j-1])/2.)
-                w.var('nBtag').setVal((zFine[k]+zFine[k-1])/2.)
-                inSideband = 0
-                for myRange in plotRegion.split(','):
-                    inSideband += ( w.var('MR').inRange(myRange) * w.var('Rsq').inRange(myRange) * w.var('nBtag').inRange(myRange) )
-                if not inSideband: continue  
-                value, errorFlag = getBinEvents(i,j,k,xFine,yFine,zFine,w,box)
-                if not errorFlag:
-                    h_nBtagRsqMR_fine.SetBinContent(i,j,k,value)
+    ## for i in range(1,len(xFine)):
+    ##     for j in range(1,len(yFine)):
+    ##         for k in range(1,len(zFine)):                
+    ##             w.var('MR').setVal((xFine[i]+xFine[i-1])/2.)
+    ##             w.var('Rsq').setVal((yFine[j]+yFine[j-1])/2.)
+    ##             w.var('nBtag').setVal((zFine[k]+zFine[k-1])/2.)
+    ##             inSideband = 0
+    ##             for myRange in plotRegion.split(','):
+    ##                 inSideband += ( w.var('MR').inRange(myRange) * w.var('Rsq').inRange(myRange) * w.var('nBtag').inRange(myRange) )
+    ##             if not inSideband: continue  
+    ##             value, errorFlag = getBinEvents(i,j,k,xFine,yFine,zFine,w,box)
+    ##             if not errorFlag:
+    ##                 h_nBtagRsqMR_fine.SetBinContent(i,j,k,value)
             
-    h_data_RsqMR_fine = h_data_nBtagRsqMR_fine.Project3D("yxe")
-    h_RsqMR_fine = h_nBtagRsqMR_fine.Project3D("yxe")
+    ## h_data_RsqMR_fine = h_data_nBtagRsqMR_fine.Project3D("yxe")
+    ## h_RsqMR_fine = h_nBtagRsqMR_fine.Project3D("yxe")
 
     btagLabel = ""
     if z[-1] == z[0]+1 and z[-1]==4:
@@ -387,8 +383,7 @@ if __name__ == '__main__':
         print1DProj(c,tdirectory,h_Rsq,h_data_Rsq,options.outDir+"/h_Rsq_%s.pdf"%box,"R^{2}",eventsLabel,lumiLabel,boxLabel,plotLabel,options.isData,doSignalInj,options,None,h_Rsq_components,h_colors,h_labels)
     
         #print2DScatter(c,tdirectory,h_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Fit",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)
-        print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)
-    
+        #print2DScatter(c,tdirectory,h_data_RsqMR_fine,options.outDir+"/h_RsqMR_scatter_data_log_%s.pdf"%(box),"M_{R} [GeV]", "R^{2}", "Sim. Data",lumiLabel,boxLabel,plotLabel,x,y,1e-1,h_data_RsqMR_fine.GetMaximum(),options.isData)
 
     outFileName = "BinnedFitResults_%s.root"%(box)
     outFile = rt.TFile.Open(options.outDir+"/"+outFileName,'recreate')
