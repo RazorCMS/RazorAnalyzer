@@ -218,8 +218,8 @@ int main(int argc, char* argv[]){
     else if(analysisType == "razorfull" || analysisType == "fullrazor" || analysisType == "FullRazorInclusive"){
         cout << "Executing full razor inclusive analysis..." << endl;
         analyzer.EnableAll();
-        bool isFastsimSMS = (option == 1); //specify option = 1 to split fastsim signal samples by mass point
-        analyzer.FullRazorInclusive(outputFileName, isData, isFastsimSMS); 
+        bool isFastsimSMS = (option == 1 || option == 11); //specify option = 1 to split fastsim signal samples by mass point
+        analyzer.FullRazorInclusive(outputFileName, option, isData, isFastsimSMS); 
     }
     else if(analysisType == "hggrazor" || analysisType == "HggRazor"){
         cout << "Executing higgs->diphoton razor analysis..." << endl;
