@@ -645,21 +645,21 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, int option, bool isDa
             if (muonPt[i] < MUON_VETO_CUT) continue;
             //tight lepton efficiency scale factor
             if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedSingleLeptonTrigger 
-                    && muonPt[i] > MUON_TIGHT_CUT) {
-                helper->processTightMuonScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
-                    muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
+		&& muonPt[i] > MUON_TIGHT_CUT) {
+	      helper->updateTightMuonScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
+						   muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
             }
             //veto lepton efficiency scale factor
             if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedHadronicTrigger 
-                    && muonPt[i] > 20) { //NOTE: do not use these scale factors below 20 GeV for now
-                helper->processVetoMuonScaleFactors( muonPt[i], muonEta[i], isVetoMuon(i),
-                    vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
-                    sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );
+		&& muonPt[i] > 20) { //NOTE: do not use these scale factors below 20 GeV for now
+	      helper->updateVetoMuonScaleFactors( muonPt[i], muonEta[i], isVetoMuon(i),
+						  vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
+						  sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );
             }
             //Trigger scale factor
             if(!isData && muonPt[i] >= MUON_TIGHT_CUT){
-                helper->processSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
-                        passedSingleLeptonTrigger, muonTrigCorrFactor, sf_muonTrigUp, sf_muonTrigDown );
+	      helper->updateSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
+							 passedSingleLeptonTrigger, muonTrigCorrFactor, sf_muonTrigUp, sf_muonTrigDown );
             }
             //Veto selection
             if (isVetoMuon(i)){
@@ -766,21 +766,21 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, int option, bool isDa
             //Calculate MC->Data scale factors
             if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedSingleLeptonTrigger && elePt[i] > ELE_TIGHT_CUT) {
                 //Tight scale factor
-                helper->processTightElectronScaleFactors(elePt[i], eleEta[i], isTightElectron(i), 
-                        eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
-                        sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
+	      helper->updateTightElectronScaleFactors(elePt[i], eleEta[i], isTightElectron(i), 
+						      eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
+						      sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
             }
             //Veto scale factor
             if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedHadronicTrigger 
-                    && elePt[i] > 20) { //NOTE: only use scale factors for electrons above 20 GeV for now
-                helper->processVetoElectronScaleFactors(elePt[i], eleEta[i], isVetoElectron(i), 
-                        vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
-                        sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
+		&& elePt[i] > 20) { //NOTE: only use scale factors for electrons above 20 GeV for now
+	      helper->updateVetoElectronScaleFactors(elePt[i], eleEta[i], isVetoElectron(i), 
+						     vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
+						     sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
             }
             //Trigger scale factor
             if(!isData && elePt[i] > ELE_TIGHT_CUT){
-                helper->processSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
-                        passedSingleLeptonTrigger, eleTrigCorrFactor, sf_eleTrigUp, sf_eleTrigDown );
+	      helper->updateSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
+							  passedSingleLeptonTrigger, eleTrigCorrFactor, sf_eleTrigUp, sf_eleTrigDown );
             }
             //Veto selection
             if (isVetoElectron(i)){
@@ -908,9 +908,9 @@ void RazorAnalyzer::FullRazorInclusive(string outFileName, int option, bool isDa
             if (matchesLepton) continue;
             //Apply b-tagging correction factor 
             if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
-                helper->processBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),
-                        btagCorrFactor, sf_btagUp, sf_btagDown, sf_btagFastsimSFUp, sf_btagFastsimSFDown,
-                        sf_bmistagUp, sf_bmistagDown );
+	      helper->updateBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),
+					      btagCorrFactor, sf_btagUp, sf_btagDown, sf_btagFastsimSFUp, sf_btagFastsimSFDown,
+					      sf_bmistagUp, sf_bmistagDown );
             }
             //Cut on jet eta
             if (fabs(jetEta[i]) > 3.0) continue;

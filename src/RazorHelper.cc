@@ -13,17 +13,17 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
     }
 
     // tag for 2015 data
-    if (tag == "Razor2015") {
+    else if (tag == "Razor2015") {
         loadTag_Razor2015();
     }
 
     // tag for 2015 76X ReReco data
-    if (tag == "Razor2015_76X") {
+    else if (tag == "Razor2015_76X") {
         loadTag_Razor2015_76X();
     }
 
     // tag for 2016 80X PromptReco data
-    if (tag == "Razor2016_80X") {
+    else if (tag == "Razor2016_80X") {
         loadTag_Razor2016_80X();
     }
 
@@ -99,6 +99,19 @@ RazorHelper::~RazorHelper() {
         muTrigEffFromFullsimFile->Close();
         delete muTrigEffFromFullsimFile;
     }
+    if (JetCorrector) delete JetCorrector;
+    if (JetResolutionParameters) delete JetResolutionParameters;
+    if (JetResolutionCalculator) delete JetResolutionCalculator;
+    if (btagcalib) delete btagcalib;
+    if (btagreader) delete btagreader;
+    if (btagreader_up) delete btagreader_up;
+    if (btagreader_do) delete btagreader_do;
+    if (btagreaderMistag) delete btagreaderMistag;
+    if (btagreaderMistag_up) delete btagreaderMistag_up;
+    if (btagreaderMistag_do) delete btagreaderMistag_do;
+    if (btagreaderfastsim) delete btagreaderfastsim;
+    if (btagreaderfastsim_up) delete btagreaderfastsim_up;
+    if (btagreaderfastsim_do) delete btagreaderfastsim_do;
 }
 
 // Retrieves CMSSW_BASE and stores in variable cmsswPath
@@ -225,7 +238,7 @@ void RazorHelper::loadJECs_Razor2015() {
     std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
     // load JEC parameters
     std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
-    std::vector<JetCorrectorParameters> correctionParameters;
+    correctionParameters = std::vector<JetCorrectorParameters>();
     if (isData) {
       correctionParameters.push_back(JetCorrectorParameters(
                   Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
@@ -253,6 +266,8 @@ void RazorHelper::loadJECs_Razor2015() {
                   Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
     }
     JetCorrector = new FactorizedJetCorrector(correctionParameters);
+    JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+    JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     // get JEC uncertainty file and set up JetCorrectionUncertainty
     std::string jecUncPath;
@@ -354,7 +369,7 @@ void RazorHelper::loadJECs_Razor2015_76X() {
     std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
     // load JEC parameters
     std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
-    std::vector<JetCorrectorParameters> correctionParameters;
+    correctionParameters = std::vector<JetCorrectorParameters>();
     if (isData) {
       correctionParameters.push_back(JetCorrectorParameters(
                   Form("%s/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
@@ -382,6 +397,8 @@ void RazorHelper::loadJECs_Razor2015_76X() {
                   Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));  
     }
     JetCorrector = new FactorizedJetCorrector(correctionParameters);
+    JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+    JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
 
     // get JEC uncertainty file and set up JetCorrectionUncertainty
     std::string jecUncPath;
@@ -560,7 +577,7 @@ std::vector<double> RazorHelper::getLeptonScaleFactors(TH2D *effHist, TH2D *sfHi
 }
 
 // Helper function to retrieve computed scale factor values
-void RazorHelper::processScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
+void RazorHelper::updateScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
         float pt, float eta, bool passes, float &sf, float &sfUp, float &sfDown, 
         float &sfFastsimUp, float &sfFastsimDown, float smear) {
 
@@ -575,40 +592,96 @@ void RazorHelper::processScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsim
     sfFastsimDown *= scaleFactors[4]/scaleFactors[0];
 }
 
-void RazorHelper::processTightMuonScaleFactors(float pt, float eta, bool isTight, 
+void RazorHelper::updateTightMuonScaleFactors(float pt, float eta, bool isTight, 
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
 
-    processScaleFactors( muTightEfficiencyHist, muTightEffSFHist, muTightEffFastsimSFHist, 
+    updateScaleFactors( muTightEfficiencyHist, muTightEffSFHist, muTightEffFastsimSFHist, 
             pt, eta, isTight, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown );
 
 }
 
-void RazorHelper::processVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
+void RazorHelper::updateVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
         
-    processScaleFactors( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist, 
+    updateScaleFactors( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist, 
             pt, eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown );
 
 }
 
-void RazorHelper::processTightElectronScaleFactors(float pt, float eta, bool isTight, 
+void RazorHelper::updateTightElectronScaleFactors(float pt, float eta, bool isTight, 
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
 
-    processScaleFactors( eleTightEfficiencyHist, eleTightEffSFHist, eleTightEffFastsimSFHist, 
+    updateScaleFactors( eleTightEfficiencyHist, eleTightEffSFHist, eleTightEffFastsimSFHist, 
             pt, eta, isTight, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
 
 }
 
-void RazorHelper::processVetoElectronScaleFactors(float pt, float eta, bool isVeto, 
+void RazorHelper::updateVetoElectronScaleFactors(float pt, float eta, bool isVeto, 
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
         
-    processScaleFactors( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist, 
+    updateScaleFactors( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist, 
             pt, eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
 
 }
 
+// Computes a single lepton scale factor
+double RazorHelper::getLeptonScaleFactor(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
+        double pt, double eta, bool passes) {
+    double eff = lookupPtEtaScaleFactor( effHist, pt, eta );
+    if (isFastsim) { //correct efficiency for Fastsim
+        double sf = lookupPtEtaScaleFactor( fastsimHist, pt, eta );
+        eff *= sf; 
+    }
+    double effSF = lookupPtEtaScaleFactor( sfHist, pt, eta );
+
+    return getPassOrFailScaleFactor( eff, effSF, passes );
+}
+
+double RazorHelper::getTightMuonScaleFactor(float pt, float eta, bool isTight) {
+    return getLeptonScaleFactor( muTightEfficiencyHist, muTightEffSFHist, muTightEffFastsimSFHist,
+            pt, eta, isTight );
+}
+
+double RazorHelper::getVetoMuonScaleFactor(float pt, float eta, bool isVeto) {
+    return getLeptonScaleFactor( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist,
+            pt, eta, isVeto );
+}
+
+double RazorHelper::getTightElectronScaleFactor(float pt, float eta, bool isTight) {
+    return getLeptonScaleFactor( eleTightEfficiencyHist, eleTightEffSFHist, eleTightEffFastsimSFHist,
+            pt, eta, isTight );
+}
+
+double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto) {
+    return getLeptonScaleFactor( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist,
+            pt, eta, isVeto );
+}
+
+double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta, 
+        bool isTight, bool passedTrigger, float fastsimPtCut, float ptCut) {
+    double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta, 199.9, ptCut );
+    if (isFastsim) {
+        // note that the fastsim trigger histograms have pt on the y-axis
+        trigSF *= lookupEtaPtScaleFactor( fastsimHist, pt, eta, 999.9, fastsimPtCut );
+    }
+    if (passedTrigger && isTight){
+        return trigSF;
+    }
+    return 1.0;
+}
+
+double RazorHelper::getSingleMuTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger) {
+    return getTriggerScaleFactor( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, 
+            isTight, passedTrigger, 15.01, 20.01 );
+}
+
+double RazorHelper::getSingleEleTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger) {
+    return getTriggerScaleFactor( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, 
+            isTight, passedTrigger, 25.01, 25.01 );
+}
+
 // Helper function to retrieve trigger scale factors
-void RazorHelper::processTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
+void RazorHelper::updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
         float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, float &sfDown, 
         float fastsimPtCut, float extraSyst) {
     double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta );
@@ -629,18 +702,18 @@ void RazorHelper::processTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist,
     }
 }
 
-void RazorHelper::processSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
+void RazorHelper::updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
         float &sf, float &sfUp, float &sfDown) {
 
-    processTriggerScaleFactors( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, isTight, passedTrigger,
+    updateTriggerScaleFactors( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, isTight, passedTrigger,
             sf, sfUp, sfDown, 15.01 );
 
 }
 
-void RazorHelper::processSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
+void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
         float &sf, float &sfUp, float &sfDown) {
 
-    processTriggerScaleFactors( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, isTight, passedTrigger,
+    updateTriggerScaleFactors( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, isTight, passedTrigger,
             sf, sfUp, sfDown, 25.01, 0.02 );
 
 }
@@ -652,8 +725,45 @@ double RazorHelper::getJecUnc( float pt, float eta ) {
     return jecUnc->getUncertainty(true);
 }
 
-// Compute b-tag scale factors
-void RazorHelper::processBTagScaleFactors(float pt, float eta, int flavor, bool isCSVM,
+// Get one b-tag scale factor
+double RazorHelper::getBTagScaleFactor(float pt, float eta, int flavor, bool isCSVM) {
+    // Get efficiency and jet flavor
+    double effMedium = 0;
+    BTagEntry::JetFlavor jetType = BTagEntry::FLAV_B;
+    if ( abs(flavor) == 5) {
+        effMedium = lookupPtEtaScaleFactor( btagMediumEfficiencyHist, pt, eta );
+        jetType = BTagEntry::FLAV_B;
+    } 
+    else if ( abs(flavor) == 4) {
+        effMedium = lookupPtEtaScaleFactor( btagMediumCharmEfficiencyHist, pt, eta );
+        jetType = BTagEntry::FLAV_C;
+    } 
+    else {
+        effMedium = lookupPtEtaScaleFactor( btagMediumLightJetsEfficiencyHist, pt, eta );
+        jetType = BTagEntry::FLAV_UDSG;
+    }
+
+    // Get scale factor
+    if (pt >= 670) pt = 669; //670 is the largest pt range listed in the CSV text file
+    double jet_scalefactor = -1;
+    if ( abs(flavor) == 5 || abs(flavor) == 4 ) {
+        jet_scalefactor = btagreader->eval(jetType, eta, pt); 
+    }
+    else {
+        jet_scalefactor = 0.907317;
+    }
+
+    //correct efficiency for Fastsim
+    //Do this only for b-jets for now
+    if (isFastsim && abs(flavor) == 5) { 
+        jet_scalefactor *= btagreaderfastsim->eval(jetType, eta, pt);
+    }
+
+    return getPassOrFailScaleFactor( effMedium, jet_scalefactor, isCSVM );
+}
+
+// Compute all b-tag scale factors
+void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool isCSVM,
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown, 
         float &sfMistagUp, float &sfMistagDown) {
     // Get efficiency and jet flavor
