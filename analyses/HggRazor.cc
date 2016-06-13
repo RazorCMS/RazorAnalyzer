@@ -1,6 +1,7 @@
 #define RazorAnalyzer_cxx
 //LOCAL INCLUDES
 #include "RazorAnalyzer.h"
+#include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
@@ -72,6 +73,10 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   string analysisTag = "";
   if (option == 0 || option == 1) analysisTag = "2015_76X";
   else if (option == 10 || option == 11) analysisTag = "2016_80X";
+  else {
+    cout << "Error: analysisoption == " << option << " is not supported. Exiting.\n";
+    return;
+  }
 
   bool doEleVeto = true;
   if (option == 1 || option == 11) doEleVeto = false;
@@ -101,6 +106,14 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   cmsswPath = getenv("CMSSW_BASE");
 
   //--------------------------------
+  //Initialize helper
+  //--------------------------------
+  RazorHelper *helper = 0;
+  if (analysisTag == "2015_76X") helper = new RazorHelper("Razor2015", isData, false);
+  else if (analysisTag == "2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
+  else helper = new RazorHelper("", isData, false);
+  
+  //--------------------------------
   //Photon Energy Scale and Resolution Corrections
   //--------------------------------
    std::string photonCorrectionPath = "";
@@ -124,77 +137,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
   //--------------------------------
   //Including Jet Energy Corrections
   //--------------------------------
-  std::vector<JetCorrectorParameters> correctionParameters;
-  std::string pathname;
-  if ( cmsswPath != NULL ) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
-  std::cout << "Getting JEC parameters from " << pathname << std::endl;
-  if (analysisTag == "2015_76X") {  
-    if ( isData ) {
-      std::cout << "[INFO]: getting data JEC" << std::endl;
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-    } else  {
-      std::cout << "[INFO]: getting MC JEC" << std::endl;
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    }
-  } else if (analysisTag == "2016_80X") {
-    if ( isData ) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-    } else  {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV1_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    }
-
-  }
-  FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
-  //------------------------------------------------------------
-  //Get JEC uncertainty file and set up JetCorrectionUncertainty
-  //------------------------------------------------------------
-  string jecUncPath;
-  if ( isData ) 
-    {
-      jecUncPath = pathname+"/Fall15_25nsV2_DATA_Uncertainty_AK4PFchs.txt";
-    }
-  else 
-    {
-      jecUncPath = pathname+"/Fall15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
-    }
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(jecUncPath);
-  
-  //--------------
-  //Pileup Weights
-  //--------------
-
-  TFile *pileupWeightFile = 0;
-  TH1F *pileupWeightHist = 0;
-  TH1F *pileupWeightSysUpHist = 0;
-  TH1F *pileupWeightSysDownHist = 0;
-  if( !isData )
-    {
-      string pathname;
-      if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
-      else 
-	{
-	  std::cout << "ERROR: CMSSW_BASE not detected. Exiting..." << std::endl;
-	  assert(false);
-	}
-      
-      pileupWeightFile = TFile::Open(Form("%s/PileupReweight2015_7_6.root",pathname.c_str()));
-      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
-      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
-      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
-      assert(pileupWeightHist);
-      assert(pileupWeightSysUpHist);
-      assert(pileupWeightSysDownHist);
-    }
+  FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
 
   //---------------
   //btag efficiency
@@ -671,25 +614,19 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
       //------------------
       //Pileup reweighting
       //------------------
-      //double pileupWeight = 1.0;
-      if( !isData )
-	{
-	  //Get number of PU interactions
-	  for (int i = 0; i < nBunchXing; i++) 
-	    {
-	      if (BunchXing[i] == 0) 
-		{
-		  NPU = nPUmean[i];
-		}
-	    }
-	  puhisto->Fill(NPU);
-	  //NOTE: reweight with nPV for now
-	  //pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(nPV));
-	  pileupWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU));
-	  pileupWeightUp = pileupWeightSysUpHist->GetBinContent(pileupWeightSysUpHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;
-	  pileupWeightDown = pileupWeightSysDownHist->GetBinContent(pileupWeightSysDownHist->GetXaxis()->FindFixBin(NPU)) / pileupWeight;    
-	
+      pileupWeight = 1.0;
+      if( !isData ) {
+	//Get number of PU interactions
+	for (int i = 0; i < nBunchXing; i++) {
+	  if (BunchXing[i] == 0) {
+	    NPU = nPUmean[i];
+	  }
 	}
+	puhisto->Fill(NPU);
+	pileupWeight = helper->getPileupWeight(NPU);
+	pileupWeightUp = helper->getPileupWeightUp(NPU) / pileupWeight;
+	pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;	
+      }
       
       /////////////////////////////////
       //Scale and PDF variations
@@ -1157,6 +1094,7 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
                                                                                ,btagLooseLightJetsEfficiencyHist->GetYaxis()->FindFixBin(fabs(jetEta[i])));
 		    jetType = BTagEntry::FLAV_UDSG;
 		  }
+
 		//----------------
 		//get scale factor
 		//----------------
@@ -1269,101 +1207,12 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 		    
 		  }
 		
-		//---------------------------
-		//Two CSV working points
-		//---------------------------
-		/*
-		//Apply Scale Factors
-		if ( jetSF_Med <= 0 || jetSF_MedUp <= 0 || jetSF_MedDown <= 0  || jetSF_Loo <= 0 || jetSF_LooUp <= 0 || jetSF_LooDown <= 0 )
-		  {
-		    std::cout << "Warning: b-tag scale factor is <= 0!" << std::endl;
-		    std::cout << jetSF_Med << " " << jetSF_MedUp << " " << jetSF_MedDown << " " << jetSF_Loo << " " << jetSF_LooUp << " " << jetSF_LooDown << std::endl;
-		  }
-		else if ( isCSVM(i) )
-		  {
-		    btagCorrFactor *= jetSF_Med;
-		    if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4 )
-		      {
-			sf_btagUp *= jetSF_MedUp/jetSF_Med;
-			sf_btagDown *= jetSF_MedDown/jetSF_Med;
-		      } 
-		    else 
-		      {
-			sf_bmistagUp *= jetSF_MedUp/jetSF_Med;
-			sf_bmistagDown *= jetSF_MedDown/jetSF_Med;
-		      }
-		  }
-		else if ( isCSVL(i) )
-                  {
-		    double sf = 1.0;
-		    if ( jetSF_Loo*effLoose - jetSF_Med*effMedium > 0  && (effLoose - effMedium) > 0 )
-		      {
-			sf = (jetSF_Loo*effLoose - jetSF_Med*effMedium) / (effLoose - effMedium);
-		      }
-		    
-		    btagCorrFactor *= sf;
-		    if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4 )
-                      {
-                        if ( (jetSF_Loo*effLoose - jetSF_Med*effMedium) > 0 && (jetSF_LooUp*effLoose - jetSF_Med*effMedium) > 0  && (effLoose - effMedium) > 0 )
-                          {
-                            sf_btagUp *= (jetSF_LooUp*effLoose - jetSF_Med*effMedium) / (effLoose - effMedium) / sf;
-                          }
-                        if ( (jetSF_Loo*effLoose - jetSF_Med*effMedium) > 0 && (jetSF_LooDown*effLoose - jetSF_Med*effMedium) > 0 && (effLoose - effMedium) > 0 )
-                          {
-                            sf_btagDown *= (jetSF_LooDown*effLoose - jetSF_Med*effMedium) / (effLoose - effMedium) / sf;
-                          }
-                      }
-                    else
-                      {
-			if ( (jetSF_Loo*effLoose - jetSF_Med*effMedium) > 0 && (jetSF_LooUp*effLoose - jetSF_Med*effMedium) > 0 && (effLoose - effMedium) > 0 )
-                          {
-                            sf_bmistagUp *= (jetSF_LooUp*effLoose - jetSF_Med*effMedium) / (effLoose - effMedium) / sf;
-                          }
-                        if ( (jetSF_Loo*effLoose - jetSF_Med*effMedium) > 0 && (jetSF_LooDown*effLoose - jetSF_Med*effMedium) > 0 && (effLoose - effMedium) > 0 )
-                          {
-                            sf_bmistagDown *= (jetSF_LooDown*effLoose - jetSF_Med*effMedium) / (effLoose - effMedium) / sf;
-                          }
-		      }
-                  }
-		else 
-		  {
-		    //only apply the scale factor on the inefficiency, if the corrected efficiency doesn't go above 100%
-		    //only record up/down systematics if the nominal and up and down corrected systematics do not go above 100%
-		    double sf = 1.0;
-		    if ( effMedium*jetSF_Loo < 1.0 ) sf = (1/effMedium - jetSF_Loo) / (1/effMedium - 1);
-		    btagCorrFactor *= sf;
-		    if ( abs(jetPartonFlavor[i]) == 5 || abs(jetPartonFlavor[i]) == 4 ) 
-		      {
-			if (effMedium*jetSF_Loo < 1.0 && effMedium*jetSF_LooUp < 1.0) 
-			  {
-			    sf_btagUp *= (1/effMedium - jetSF_LooUp) / (1/effMedium - 1) / sf;
-			  }
-			if ( effMedium*jetSF_Loo < 1.0 && effMedium*jetSF_LooDown < 1.0 )
-			  {
-			    sf_btagDown *= (1/effMedium - jetSF_LooDown) / (1/effMedium - 1) / sf;
-			  }
-		      } 
-		    else 
-		      {
-			if ( effMedium*jetSF_Loo < 1.0 && effMedium*jetSF_LooUp < 1.0 )
-			  {
-			    sf_bmistagUp *= (1/effMedium - jetSF_LooUp) / (1/effMedium - 1) / sf;
-			  } 
-			if ( effMedium*jetSF_Loo < 1.0 && effMedium*jetSF_LooDown < 1.0 )
-			  {
-			    sf_bmistagDown *= (1/effMedium - jetSF_LooDown) / (1/effMedium - 1) / sf;
-			  }
-		      }
-		  }
-		*/
 	      }//Jetcut
 	  }//isData
 	
 	if ( !isData )
 	  {
-	    jecUnc->setJetEta(jetEta[i]);
-	    jecUnc->setJetPt(jetCorrPt);
-	    double unc = jecUnc->getUncertainty(true);
+	    double unc = helper->getJecUnc( jetCorrPt, jetEta[i] );
 	    double jetPtJESUp = jetCorrPt*(1+unc);
 	    double jetPtJESDown = jetCorrPt/(1+unc);
 	    double jetEJESUp = jetCorrE*(1+unc);
@@ -1612,4 +1461,6 @@ void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, 
 
 
   delete photonCorrector;
+  delete helper;
+
 }
