@@ -47,33 +47,7 @@ class RazorAnalyzer: public RazorEvents {
         void EnableAll();
 
         //------ LIST OF ANALYSES ------//
-        virtual void DummyAnalysis();
-        virtual void RazorInclusive(string outFileName = "RazorInclusive.root", bool combineTrees = false, bool isData = false, bool isFastsimSMS = false);
-        virtual void HggRazor(string outFileName = "HggRazor.root", bool combineTrees = false, int option = 0, bool isData = false );
-	virtual void HggRazorGenLevel(string outFileName = "HggRazorGenLevel.root", bool combineTrees = false, int option = 0, bool isData = false );
-	virtual void HggRazorExo15004(string outFileName = "HggRazorExo15004.root", bool combineTrees = false, int option = 0, bool isData = false );
-        virtual void FullRazorInclusive(string outFileName = "FullRazorInclusive.root", int option = 0, bool isData = false, bool isFastsimSMS = false);
-        virtual void MatchedRazorInclusive(string outFileName = "MatchedRazorInclusive.root", bool combineTrees = false);
-	virtual void RazorVetoLeptonStudy(string outputfilename = "RazorVetoLeptonStudy", bool combineTrees = false);
-	virtual void ElectronNtupler(string outputfilename = "", int Option = -1);
-	virtual void MuonNtupler(string outputfilename = "", int Option = -1);
-	virtual void TauNtupler(string outputfilename = "", int Option = -1);
-	virtual void JetNtupler(string outputfilename = "", int Option = -1);
-        virtual void PhotonNtupler(string outputfilename = "PhotonNtuple.root", int Option = -1); 
-        virtual void RazorMetAna(string outFileName = "RazorMET.root");
-	virtual void RazorDM(string outFileName = "RazorDM.root", bool combineTrees = false, bool isData = false );
-	virtual void Monojet(string outFileName = "Monojet.root", bool combineTrees = false, bool isData = false );
-	virtual void RazorPhotonDM(string outFileName = "RazorPhotonDM.root", bool combineTrees = false, bool isData = false );
-	virtual void RazorAlphaT(string outFileName = "RazorAlphaT.root", bool combineTrees = false, bool isData = false );
-	virtual void RazorControlRegions(string outFileName = "RazorControlRegions.root", int option = -1, bool isData = false);
-	virtual void VetoLeptonEfficiencyControlRegion(string outFileName = "TTBarTagAndProbeRegion.root", int option = 0);
-        virtual void RazorPhotonStudy(string outputfilename = "RazorPhotonStudy.root", bool isData = false, bool filterEvents = true, bool isRunOne = true);
-        virtual void MakeMCPileupDistribution(string outputfilename = "MCPileupDistribution.root", string label = "defaultSample");
-	virtual void RazorZAnalysis(string outFileName = "RazorZAnalysis.root", bool combineTrees = false);
-        virtual void HbbRazor(string outFileName = "HbbRazor.root", bool combineTrees = false, bool isData = false, bool isRunOne = false);
-        virtual void HZZRazor(string outFileName = "HZZRazor.root", bool isData = false);
-	virtual void RazorQCDStudy(string outFileName = "RazorQCDStudy.root", bool isData = false, bool isRunOne = false);
-	virtual void RazorTagAndProbe(string outFileName = "RazorTagAndProbe.root", int option = -1, bool isData = false);
+        virtual void Analyze();
 
         //functions in RazorAuxMuon.cc
 	float GetMuonEffectiveAreaMean(int i, string type );
