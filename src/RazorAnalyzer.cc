@@ -368,7 +368,9 @@ void RazorAnalyzer::EnableGenParticles(){
     fChain->SetBranchStatus("gParticlePhi", 1);
 }
 
+//////////////////////////////
 //ELECTRON
+//////////////////////////////
 
 float RazorAnalyzer::GetElectronScaleCorrection( double pt, double eta ) {  
   double scaleCorr = 1.0;
@@ -1177,829 +1179,9 @@ bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter){
   return match;
 }
 
-// GEN
-
-//Finds closes gen electron and returns index to gParticle
-int RazorAnalyzer::findClosestGenElectron(double eta, double phi) {
-  int matchedIndex = -1;
-  float minDR = 999.0;
-  for(int j = 0; j < nGenParticle; j++){
-    if (gParticleStatus[j] != 1) continue;
-    if (abs(gParticleId[j]) != 11) continue; 
-    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1
-	 && deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < minDR
-	 ) {
-      matchedIndex = j;
-      minDR = deltaR( eta, phi, gParticleEta[j], gParticlePhi[j]);
-    }
-  }
-  
-  return matchedIndex;
-};
-
-
-//Finds closes gen muon and returns index to gParticle
-int RazorAnalyzer::findClosestGenMuon(double eta, double phi) {
-  int matchedIndex = -1;
-  float minDR = 999.0;
-  for(int j = 0; j < nGenParticle; j++){
-    if (gParticleStatus[j] != 1) continue;
-    if (abs(gParticleId[j]) != 13) continue;
-    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1
-	 && deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < minDR
-	 ) {
-      matchedIndex = j;
-      minDR = deltaR( eta, phi, gParticleEta[j], gParticlePhi[j]);
-    }
-  }
-  
-  return matchedIndex;
-};
-
-//Finds closest gen jet and returns index to gParticle
-int RazorAnalyzer::findClosestGenJet(double eta, double phi) {
-  int matchedIndex = -1;
-  float minDR = 999.0;
-  for(int j = 0; j < nGenJets; j++){
-    //    if (gParticleStatus[j] != 1) continue;
-    //if (abs(gParticleId[j]) != 13) continue;
-
-    if ( deltaR(eta, phi, genJetEta[j], genJetPhi[j]) < 0.3
-         && deltaR(eta, phi, genJetEta[j], genJetPhi[j]) < minDR
-         ) {
-      matchedIndex = j;
-      minDR = deltaR( eta, phi, genJetEta[j], genJetPhi[j]);
-    }
-
-  }
-
-  return matchedIndex;
-};
-
-
-
-//Checks if the gParticle is a tau and that comes from a W or a Z
-bool RazorAnalyzer::isGenTau(int index){
-  return ( abs(gParticleId[index]) == 15 && gParticleStatus[index] == 2 &&
-	   (abs(gParticleMotherId[index]) == 23 ||abs(gParticleMotherId[index]) == 24) 
-	   );
-};
-
-
-//Checks if the gParticle is a tau and that comes from a W or a Z
-bool RazorAnalyzer::isGenLeptonicTau(int index){
-  if (abs(gParticleId[index]) == 15 && gParticleStatus[index] == 2 
-      && (abs(gParticleMotherId[index]) == 24 || abs(gParticleMotherId[index]) == 23)
-      ) {    
-
-    for(int k = 0; k < nGenParticle; k++){
-      if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == index) {
-	return true;
-      }
-    }
-  }
-  return false;
-};
- 
-//Finds closes gen tau and returns index to gParticle
-int RazorAnalyzer::findClosestGenTau(double eta, double phi) {
-  int matchedIndex = -1;
-  float minDR = 999.0;
-  for(int j = 0; j < nGenParticle; j++){
-    if (abs(gParticleId[j]) != 15) continue;
-    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1
-	 && deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < minDR
-	 ) {
-      matchedIndex = j;
-      minDR = deltaR( eta, phi, gParticleEta[j], gParticlePhi[j]);
-    }
-  }
-  
-  return matchedIndex;
-};
-
-int RazorAnalyzer::findClosestRecoTau(double eta, double phi) {
-  int matchedIndex = -1;
-  float minDR = 999.0;
-  for(int j = 0; j < nTaus; j++){
-    if ( deltaR(eta, phi, tauEta[j], tauPhi[j]) < 0.1
-	 && deltaR(eta, phi, tauEta[j], tauPhi[j]) < minDR
-	 ) {
-      matchedIndex = j;
-      minDR = deltaR(eta, phi, tauEta[j], tauPhi[j]);
-    }
-  }
-
-  return matchedIndex;
-};
-
-//Finds closest gen tau and checks its mother, if matched return pdgID
-int RazorAnalyzer::GetTauMatchedID(double eta, double phi){
-  int matchedID = 0;
-  int matchedIndex = findClosestGenTau(eta, phi);
-
-  //find muon if no tau was found
-  if (matchedIndex < 0) matchedIndex = findClosestGenMuon(eta,phi);
-  if (matchedIndex >= 0) {
-    return gParticleId[matchedIndex];
-  }
-
-  //find electron if no tau or muon was found
-  if (matchedIndex < 0) matchedIndex = findClosestGenElectron(eta,phi);
-  if (matchedIndex >= 0) {
-    return gParticleId[matchedIndex];
-  }
-
-  //if nothing was found
-  if(matchedIndex < 0) return 0;//No Match -> ID == 0
-  if (gParticleMotherId[matchedIndex] > 50) {
-    matchedID = gParticleMotherId[matchedIndex];
-  } else if (abs(gParticleMotherId[matchedIndex]) == 23 || 
-	     abs(gParticleMotherId[matchedIndex]) == 24) {
-    matchedID = gParticleId[matchedIndex];
-  }
-  
-  return matchedID;
-};
-
-//Returns index of the closest parton. If no match is found returns zero.
-int RazorAnalyzer::findClosestParton(float eta, float phi){
-  float minDRToParton = 9999;
-  int partonIndex = -1;
-  for(int j = 0; j < nGenParticle; j++){
-    //only look for outgoing partons                                                                    
-    if  (!( ( (abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21)
-	    && gParticleStatus[j] == 23)
-	 ) continue;
-    double tmpDR = deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]);
-    if ( tmpDR < minDRToParton ) {
-      minDRToParton = tmpDR;
-      partonIndex = j;
-    }
-  }
-  
-  return partonIndex;
-};
-
-
-//Checks if a gen muon is in the given eta and phi direction
-bool RazorAnalyzer::matchesGenMuon(double eta, double phi){
-  bool result = false;
-  for(int j = 0; j < nGenParticle; j++){
-    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
-	 abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1 &&
-	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
-	 ) {
-      result = true;
-      break;
-    }    
-  }
-  return result;
-};
-
-//Checks if a gen electron is in the given eta and phi direction
-bool RazorAnalyzer::matchesGenElectron(double eta, double phi){
-  bool result = false;
-  for(int j = 0; j < nGenParticle; j++){
-    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
-	 abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 &&
-	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
-	 ) {
-      result = true;
-      break;
-    }    
-  }
-  return result;
-};
-
-// JET 
-
-//From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80X
-bool RazorAnalyzer::isCSVL(int i, string dataset){
-  if (dataset == "74X") {
-    return jetCISV[i] > 0.605;
-  } else {
-    return jetCISV[i] > 0.460;
-  }
-}
-
-bool RazorAnalyzer::isCSVM(int i, string dataset){
-  if (dataset == "74X") {
-    return jetCISV[i] > 0.890;
-  } else {
-    return jetCISV[i] > 0.800;
-  }
-}
-
-bool RazorAnalyzer::isCSVT(int i, string dataset){
-  if (dataset == "74X") {
-    return jetCISV[i] > 0.970;
-  } else {
-    return jetCISV[i] > 0.935;
-  }
-}
-
-
-
-//Jet Energy Corrections
-double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
-						 double rho, double jetArea,
-						 FactorizedJetCorrector *jetcorrector,
-						 int jetCorrectionLevel,
-						 bool printDebug) {
-  if (!jetcorrector) {
-    cout << "WWARNING: Jet corrector pointer is null. Returning JEC = 0. \n";
-    return 0;
-  }
-
-  jetcorrector->setJetEta(jetEta);
-  jetcorrector->setJetPt(jetRawPt);
-  jetcorrector->setJetPhi(jetPhi);
-  jetcorrector->setJetE(jetE);
-  jetcorrector->setRho(rho);
-  jetcorrector->setJetA(jetArea);
-
-  std::vector<float> corrections;
-  corrections = jetcorrector->getSubCorrections();
-
-  if (printDebug) cout << "Computing Jet Energy Corrections for jet with raw momentum: " << jetRawPt << " " << jetEta << " " << jetPhi << "\n";
-
-  double cumulativeCorrection = 1.0;
-  for (UInt_t j=0; j<corrections.size(); ++j) {
-
-    //only correct up to the required level. if -1, then do all correction levels
-    if (jetCorrectionLevel >= 0 && int(j) > jetCorrectionLevel) continue;
-
-    double currentCorrection = corrections.at(j)/cumulativeCorrection;
-    cumulativeCorrection = corrections.at(j);
-    if (printDebug) cout << "Correction Level " << j << " : current correction = " << currentCorrection << " , cumulative correction = " << cumulativeCorrection << "\n";
-  }
-  if (printDebug) cout << "Final Cumulative Correction: " << cumulativeCorrection << "\n";
-  
-  return cumulativeCorrection;
-
-}
-
-//compute the smeared jet pt (if option = "up" or "down", will change the smear factor by +/- 1 sigma )
-//NOTE: these are Run 1 recommendations and should be replaced as soon as a Run 2 prescription is available.  
-double RazorAnalyzer::JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, TRandom3 *random ) {
-
-  std::vector<float> fJetEta, fJetPtNPU;
-  fJetEta.push_back(jetEta);  
-  fJetPtNPU.push_back(jetPt); 
-  fJetPtNPU.push_back(NPU); 
-  double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
-  
-  double c = 1;
-  if (fabs(jetEta) < 0.5) c = 1.079;
-  else if(fabs(jetEta) < 1.1) c = 1.099;
-  else if(fabs(jetEta) < 1.7) c = 1.121;
-  else if(fabs(jetEta) < 2.3) c = 1.208;
-  else if(fabs(jetEta) < 2.8) c = 1.254;
-  else if(fabs(jetEta) < 3.2) c = 1.395;
-  else if(fabs(jetEta) < 5.0) c = 1.056;
-
-  double sigma = sqrt( c*c - 1) * MCJetResolution;
-
-  return fmax( 1.0 + random->Gaus(0, sigma) , 0);
-
-}
-
-//return smearing factor for up/down shift in JER 
-double RazorAnalyzer::UpDownJetEnergySmearingFactor(double unsmearedPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, double smearedPt, string option){
-    //get jet resolution
-    std::vector<float> fJetEta, fJetPtNPU;
-    fJetEta.push_back(jetEta);  
-    fJetPtNPU.push_back(unsmearedPt); 
-    fJetPtNPU.push_back(NPU); 
-    double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
-
-    //get sigma used to smear the jet
-    double c = 1;
-    if (fabs(jetEta) < 0.5) c = 1.079;
-    else if(fabs(jetEta) < 1.1) c = 1.099;
-    else if(fabs(jetEta) < 1.7) c = 1.121;
-    else if(fabs(jetEta) < 2.3) c = 1.208;
-    else if(fabs(jetEta) < 2.8) c = 1.254;
-    else if(fabs(jetEta) < 3.2) c = 1.395;
-    else if(fabs(jetEta) < 5.0) c = 1.056;
-    double sigma = sqrt( c*c - 1) * MCJetResolution;
-    //get number of sigmas the jet was smeared
-    double z = (smearedPt / unsmearedPt - 1) /sigma;
-
-    if(option == "up"){ //get c plus 1 sigma
-        double cUp = 1.0;
-        if (fabs(jetEta) < 0.5) cUp = 1.105;
-        else if(fabs(jetEta) < 1.1) cUp = 1.127;
-        else if(fabs(jetEta) < 1.7) cUp = 1.150;
-        else if(fabs(jetEta) < 2.3) cUp = 1.254;
-        else if(fabs(jetEta) < 2.8) cUp = 1.316;
-        else if(fabs(jetEta) < 3.2) cUp = 1.458;
-        else if(fabs(jetEta) < 5.0) cUp = 1.247;
-        double sigmaUp = sqrt( cUp*cUp - 1) * MCJetResolution;
-        return 1.0 + z*sigmaUp;
-    }
-    else if(option == "down"){ //get c minus 1 sigma
-        double cDown = 1.0;
-        if (fabs(jetEta) < 0.5) cDown = 1.053;
-        else if(fabs(jetEta) < 1.1) cDown = 1.071;
-        else if(fabs(jetEta) < 1.7) cDown = 1.092;
-        else if(fabs(jetEta) < 2.3) cDown = 1.162;
-        else if(fabs(jetEta) < 2.8) cDown = 1.192;
-        else if(fabs(jetEta) < 3.2) cDown = 1.332;
-        else if(fabs(jetEta) < 5.0) cDown = 0.865;
-        double sigmaDown = sqrt( cDown*cDown - 1) * MCJetResolution;
-        return 1.0 + z*sigmaDown;
-    }
-    else{ 
-        std::cout << "Error in UpDownJetEnergySmear: please specify option='up' or 'down'.  Returning 1.0" << std::endl;
-    }
-    return 1.0;
-}
-
-
-//b-tagging scale factors from https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation53XReReco/SFb-pt_WITHttbar_payload_EPS13.txt
-//(if option = "up" or "down", will change the scale factor by +/- 1 sigma)
-//NOTE: These are the Run 1 recommended scale factors and should be replaced as soon as Run 2 factors are available.
-double RazorAnalyzer::BTagScaleFactor(double jetPt, bool CSVM, string option){
-    double tmpBTagCorrFactor = 1.0;
-    //nominal correction factor
-    double tmpCorrFactor = 0.938887 + 0.00017124 * jetPt + (-2.76366e-07) * jetPt * jetPt ;
-
-    if(option == "up" || option == "down"){
-        double uncertainty = 0.0;
-        if (jetPt < 30) uncertainty = 0.0415707;
-        else if (jetPt < 40) uncertainty = 0.0204209;
-        else if (jetPt < 50) uncertainty = 0.0223227;
-        else if (jetPt < 60) uncertainty = 0.0206655;
-        else if (jetPt < 70) uncertainty = 0.0199325;
-        else if (jetPt < 80) uncertainty = 0.0174121;
-        else if (jetPt < 100) uncertainty = 0.0202332;
-        else if (jetPt < 120) uncertainty = 0.0182446;
-        else if (jetPt < 160) uncertainty = 0.0159777;
-        else if (jetPt < 210) uncertainty = 0.0218531;
-        else if (jetPt < 260) uncertainty = 0.0204688;
-        else if (jetPt < 320) uncertainty = 0.0265191;
-        else if (jetPt < 400) uncertainty = 0.0313175;
-        else if (jetPt < 500) uncertainty = 0.0415417;
-        else if (jetPt < 600) uncertainty = 0.0740446;
-        else if (jetPt < 800) uncertainty = 0.0596716;
-        else uncertainty = 2*0.0596716;
-
-        if (option == "up") tmpCorrFactor += uncertainty;
-        else if (option == "down") tmpCorrFactor -= uncertainty;
-    }
-
-    double MCEff = 1.0;
-    if (jetPt < 50) MCEff = 0.65;
-    else if (jetPt < 80) MCEff = 0.70;
-    else if (jetPt < 120) MCEff = 0.73;
-    else if (jetPt < 210) MCEff = 0.73;
-    else MCEff = 0.66;
-
-    //If pass CSV Medium
-    if (CSVM) {
-        tmpBTagCorrFactor = tmpCorrFactor;
-    } else {
-        tmpBTagCorrFactor = (1/MCEff - tmpCorrFactor) / (1/MCEff - 1);
-    }
-    return tmpBTagCorrFactor;
-}
-
-// MISC 
-
-double RazorAnalyzer::deltaPhi(double phi1, double phi2) {
-  double dphi = phi1-phi2;
-  while (dphi > TMath::Pi())
-    dphi -= TMath::TwoPi();
-  while (dphi <= -TMath::Pi())
-    dphi += TMath::TwoPi();
-  return dphi;
-}
-
-double RazorAnalyzer::deltaR(double eta1, double phi1, double eta2, double phi2) {
-  double dphi = deltaPhi(phi1,phi2);
-  double deta = eta1 - eta2;
-  return sqrt( dphi*dphi + deta*deta);
-}
-
-TLorentzVector RazorAnalyzer::makeTLorentzVector(double pt, double eta, double phi, double energy){
-    TLorentzVector vec;
-    vec.SetPtEtaPhiE(pt, eta, phi, energy);
-    return vec;
-}
-
-TLorentzVector RazorAnalyzer::makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass){
-    TLorentzVector vec;
-    vec.SetPtEtaPhiM(pt, eta, phi, mass);
-    return vec;
-}
-
-double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets) 
-{   
-    int nJets = jets.size();
-    vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
-    vector<TLorentzVector> possibleHem2s;
-    double alphaT = 0;
-    
-    if(nJets < 2) return alphaT;
-    
-    int nComb = pow(2, nJets); // # possible combinations
-    
-    // steal from the getHemispheres method
-
-    //step 1: store all possible partitions of the input jets
-    int j_count;
-    for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
-        TLorentzVector j_temp1, j_temp2;
-        int itemp = i;
-        j_count = nComb/2;
-        int count = 0;
-        
-        while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2
-            if(itemp/j_count == 1){
-                j_temp1 += jets[count];
-            } else {
-                j_temp2 += jets[count];
-            }
-            itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count
-            j_count /= 2;
-            count++;
-        }
-        possibleHem1s.push_back(j_temp1);
-        possibleHem2s.push_back(j_temp2);
-    }
-    
-    //step 2: Select combination that mininize |ET1 - ET2|
-    double eMin = -1;
-    TLorentzVector myHem1;
-    TLorentzVector myHem2;
-
-    for(size_t i=0; i < possibleHem1s.size(); i++)
-    {
-        double eTemp = fabs(possibleHem1s[i].Et() - possibleHem2s[i].Et());
-        if (eMin < 0 || eTemp < eMin)
-        {
-            eMin = eTemp;
-            myHem1 = possibleHem1s[i];
-            myHem2 = possibleHem2s[i];
-        }
-    }
-    
-    float MhtX = 0., MhtY = 0.;
-    float HT = 0.; 
-    for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
-
-      TLorentzVector MyMHT;
-      MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
-
-    float MHT = MyMHT.Pt();
-
-    // Calculate alphaT
-    alphaT = 0.5 * (1-eMin/HT)/sqrt(1-pow(MHT/HT,2));
-
-    return alphaT;  
-}
-
-double RazorAnalyzer::GetDPhiMin(vector<TLorentzVector> jets)
-    // This variable is used in the alphaT analysis
-{
-    int nJets = jets.size();
-    double dPhiMin = -1.;
-    float HT = 0.;
-    float MhtX = 0.;
-    float MhtY = 0.;
-    // Search for min dPhi between recomputed missing HT and test jets
-    for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
-    TLorentzVector MyMHT;
-    MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
-
-    for (auto& obj : jets)
-    {
-    // Recompute MHT by ignoring a test jet 
-        float recomputedMHTX = MhtX - obj.Px();
-        float recomputedMHTY = MhtY - obj.Py();
-        TLorentzVector recomputedMHT;
-        recomputedMHT.SetPxPyPzE(-recomputedMHTX, -recomputedMHTY, 0, sqrt(pow(recomputedMHTX,2) + pow(recomputedMHTY,2)));
-        double phiTemp = fabs(recomputedMHT.Phi() - obj.Phi());
-        if (dPhiMin < 0 || phiTemp < dPhiMin)   dPhiMin = phiTemp;
-    }
-
-    return dPhiMin;
-}
-
-vector<TLorentzVector> RazorAnalyzer::getHemispheres(vector<TLorentzVector> jets){
-    int nJets = jets.size();
-    vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
-    vector<TLorentzVector> possibleHem2s;
-
-    if(nJets < 2){ //return empty hemispheres if there are fewer than 2 jets provided
-        TLorentzVector emptyHem1, emptyHem2;
-        vector<TLorentzVector> emptyHemsOut;
-        emptyHemsOut.push_back(emptyHem1);
-        emptyHemsOut.push_back(emptyHem2);
-        return emptyHemsOut;
-    }
-
-    //stolen from https://github.com/pierinim/BSMatLHC/blob/master/BSMApp/src/CMS/CMSHemisphere.cc
-    int nComb = pow(2, nJets);
-
-    //step 1: store all possible partitions of the input jets
-    int j_count;
-    for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
-        TLorentzVector j_temp1, j_temp2;
-        int itemp = i;
-        j_count = nComb/2;
-        int count = 0;
-        while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2
-            if(itemp/j_count == 1){
-                j_temp1 += jets[count];
-            } else {
-                j_temp2 += jets[count];
-            }
-            itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count
-            j_count /= 2;
-            count++;
-        }
-        possibleHem1s.push_back(j_temp1);
-        possibleHem2s.push_back(j_temp2);
-    }
-
-    //step 2: choose the partition that minimizes m1^2 + m2^2
-    double mMin = -1;
-    TLorentzVector myHem1;
-    TLorentzVector myHem2;
-    for(size_t i=0; i < possibleHem1s.size(); i++){
-        double mTemp = possibleHem1s[i].M2() + possibleHem2s[i].M2();
-        if(mMin < 0 || mTemp < mMin){
-            mMin = mTemp;
-            myHem1 = possibleHem1s[i];
-            myHem2 = possibleHem2s[i];
-        }
-    }
-
-    //return the hemispheres in decreasing order of pt
-    vector<TLorentzVector> hemsOut;
-    if(myHem1.Pt() > myHem2.Pt()){
-        hemsOut.push_back(myHem1);
-        hemsOut.push_back(myHem2);
-    } else {
-        hemsOut.push_back(myHem2);
-        hemsOut.push_back(myHem1);
-    }
-
-    return hemsOut;
-}
-
-std::vector< std::vector<int> > RazorAnalyzer::getHemispheresV2( std::vector<TLorentzVector> jets )
-{
-  //returns vector with original indices to jets
-  int nJets = jets.size();
-  vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations                                                              
-  std::vector< std::vector<int> > index1;
-  vector<TLorentzVector> possibleHem2s;
-  std::vector< std::vector<int> > index2;
-
-  if(nJets < 2){ //return empty hemispheres if there are fewer than 2 jets provided                                                           
-    std::vector<int> emptyIndex1, emptyIndex2;
-    std::vector< std::vector<int> > void_return;
-    void_return.push_back( emptyIndex1 );
-    void_return.push_back( emptyIndex2 );
-    return void_return;
-  }
-  
-  //stolen from https://github.com/pierinim/BSMatLHC/blob/master/BSMApp/src/CMS/CMSHemisphere.cc                                              
-  int nComb = pow(2, nJets);
-  //std::cout << "njets: " << nJets << " ncomb: " << nComb << std::endl;
-  //step 1: store all possible partitions of the input jets                                                                                   
-  int j_count;
-  for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
-    //std::cout << "=iter: " << i << std::endl; 
-    TLorentzVector j_temp1, j_temp2;
-    std::vector<int> tmp_index1, tmp_index2;
-    int itemp = i;
-    j_count = nComb/2;
-    int count = 0;
-    while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2               
-      //std::cout << "j_count: " << j_count << " itemp: " << itemp << " count: " << count << std::endl; 
-      if(itemp/j_count == 1){
-	j_temp1 += jets[count];
-	tmp_index1.push_back( count );
-      } else {
-	j_temp2 += jets[count];
-	tmp_index2.push_back( count );
-      }
-      itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count                                                            
-      j_count /= 2;
-      count++;
-    }
-    possibleHem1s.push_back(j_temp1);
-    index1.push_back( tmp_index1 );
-    possibleHem2s.push_back(j_temp2);
-    index2.push_back( tmp_index2 );
-  }
-  
-  //step 2: choose the partition that minimizes m1^2 + m2^2                                                                                   
-  double mMin = -1;
-  TLorentzVector myHem1;
-  TLorentzVector myHem2;
-  int partition_index = -1;
-  for(size_t i=0; i < possibleHem1s.size(); i++){
-    double mTemp = possibleHem1s[i].M2() + possibleHem2s[i].M2();
-    if(mMin < 0 || mTemp < mMin){
-      mMin = mTemp;
-      myHem1 = possibleHem1s[i];
-      myHem2 = possibleHem2s[i];
-      partition_index = i;
-    }
-  }
-
-  //return the hemispheres in decreasing order of pt                                                                                          
-  vector<TLorentzVector> hemsOut;
-  std::vector< std::vector<int> > index_out;
-  if(myHem1.Pt() > myHem2.Pt()){
-    hemsOut.push_back(myHem1);
-    hemsOut.push_back(myHem2);
-    index_out.push_back( index1[partition_index] );
-    index_out.push_back( index2[partition_index] );
-  } else {
-    hemsOut.push_back(myHem2);
-    hemsOut.push_back(myHem1);
-    index_out.push_back( index2[partition_index] );
-    index_out.push_back( index1[partition_index] );
-  }
-  
-  return index_out;
-};
-
-
-double RazorAnalyzer::computeMR(TLorentzVector hem1, TLorentzVector hem2){
-    return sqrt(pow(hem1.P() + hem2.P(), 2) - pow(hem1.Pz() + hem2.Pz(), 2));
-}
-
-double RazorAnalyzer::computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector pfMet){
-    double mR = computeMR(hem1, hem2);
-    double term1 = pfMet.Pt()/2*(hem1.Pt() + hem2.Pt());
-    double term2 = pfMet.Px()/2*(hem1.Px() + hem2.Px()) + pfMet.Py()/2*(hem1.Py() + hem2.Py()); //dot product of MET with (p1T + p2T)
-    double mTR = sqrt(term1 - term2);
-    return (mTR / mR) * (mTR / mR);
-}
-
-
-double RazorAnalyzer::GetMT( TLorentzVector visible, TVector3 met )
-{
-  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
-  //return sqrt( visible.M2() + 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
-  return sqrt( 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
-};
-
-double RazorAnalyzer::GetMT( TLorentzVector visible, TLorentzVector met )
-{
-  TVector3 _met( met.Px(), met.Py(), met.Pz() );
-  return GetMT( visible, _met );
-};
-
-
-double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TVector3 met )
-{
-  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
-  //return sqrt( visible.M2() + 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
-  return sqrt( 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
-};
-
-double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TLorentzVector met )
-{
-  TVector3 _met( met.Px(), met.Py(), met.Pz() );
-  return GetMTEnergy( visible, _met );
-};
-
-
-double RazorAnalyzer::GetDphi( TLorentzVector visible, TVector3 met )
-{
-  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
-  return vis.DeltaPhi( met );
-};
-
-double RazorAnalyzer::GetDphi( TLorentzVector visible, TLorentzVector met )
-{
-  TVector3 _met( met.Px(), met.Py(), met.Pz() );
-  return GetDphi( visible, _met );
-};
-
-//auxiliary functions for RazorInclusive and MatchedRazorInclusive analyses
-bool RazorAnalyzer::passesHadronicRazorBaseline(double MR, double Rsq){
-    bool passes = true;
-    if(MR < 0 || Rsq < 0) passes = false;
-    //temporarily disable these
-    //if(MR < 400 || Rsq < 0.25) passes = false;
-    //if(MR < 450 && Rsq < 0.3) passes = false;
-    return passes;
-}
-
-bool RazorAnalyzer::passesLeptonicRazorBaseline(double MR, double Rsq){
-    bool passes = true;
-    if(MR < 0 || Rsq < 0) passes = false;
-    //temporarily disable these
-    // if(MR < 300 || Rsq < 0.15) passes = false;
-    // if(MR < 350 && Rsq < 0.2) passes = false;
-    return passes;
-}
-
-//Checks if ToSubtract matches any particles in Collection, and subtracts the momentum of ToSubtract from the closest one
-int RazorAnalyzer::SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch){
-    //if Collection has any elements within R<deltaRMatch of the vector ToSubtract, find the closest such element
-    //otherwise, return -1
-    double closestDR = -1;
-    int closestDRIndex = -1;
-    for(uint i = 0; i < Collection.size(); i++){
-        double thisDR = Collection[i].DeltaR(ToSubtract);
-        if(closestDR < 0 || thisDR < closestDR){
-            closestDR = thisDR;
-            closestDRIndex = i;
-        }
-    }
-    if(closestDR < 0 || closestDR > deltaRMatch){ //if we didn't look at any objects or we didn't get one within 0.4, return -1
-        return -1;
-    }
-    
-    //subtract the momentum (magnitude) of ToSubtract from that of the closest vector in Collection
-
-    //if we're subtracting away everything, just set the vector to 0 and return the index of the changed vector
-    if(ToSubtract.P() >= Collection[closestDRIndex].P()){ 
-        Collection[closestDRIndex].SetPtEtaPhiE(0.0, 0.0, 0.0, 0.0);
-        return closestDRIndex;
-    }
-    //otherwise, scale the 4-momentum by the appropriate factor
-    double scalePFactor = (Collection[closestDRIndex].P() - ToSubtract.P())/Collection[closestDRIndex].P(); // = new P / old P
-    Collection[closestDRIndex].SetPxPyPzE(Collection[closestDRIndex].Px()*scalePFactor, Collection[closestDRIndex].Py()*scalePFactor, Collection[closestDRIndex].Pz()*scalePFactor, Collection[closestDRIndex].E()*scalePFactor);
-    return closestDRIndex;
-}
-
-double RazorAnalyzer::calcMT2(float testMass, bool massive, vector<TLorentzVector> jets, TLorentzVector MET, int hemi_seed, int hemi_association)
-{
-  //computes MT2 using a test mass of testMass, with hemispheres made massless if massive is set to false
-  //hemispheres are clustered by finding the grouping of input jets that minimizes the Lund distance
-  
-  if(jets.size() < 2) return -9999; //need at least two jets for the calculation
-  vector<float> px, py, pz, E;
-  for(uint i = 0; i < jets.size(); i++){
-    //push 4vector components onto individual lists
-    px.push_back(jets[i].Px());
-    py.push_back(jets[i].Py());
-    pz.push_back(jets[i].Pz());
-    E.push_back(jets[i].E());
-  }
-  
-  //form the hemispheres using the provided Hemisphere class
-  Hemisphere* hemis = new Hemisphere(px, py, pz, E, hemi_seed, hemi_association);
-  vector<int> grouping = hemis->getGrouping();
-  TLorentzVector pseudojet1(0.,0.,0.,0.);
-  TLorentzVector pseudojet2(0.,0.,0.,0.);
-        
-  //make the hemisphere vectors
-  for(uint i=0; i<px.size(); ++i){
-    if(grouping[i]==1){
-      pseudojet1.SetPx(pseudojet1.Px() + px[i]);
-      pseudojet1.SetPy(pseudojet1.Py() + py[i]);
-      pseudojet1.SetPz(pseudojet1.Pz() + pz[i]);
-      pseudojet1.SetE( pseudojet1.E()  + E[i]);   
-    }else if(grouping[i] == 2){
-      pseudojet2.SetPx(pseudojet2.Px() + px[i]);
-      pseudojet2.SetPy(pseudojet2.Py() + py[i]);
-      pseudojet2.SetPz(pseudojet2.Pz() + pz[i]);
-      pseudojet2.SetE( pseudojet2.E()  + E[i]);
-    }
-  }
-  delete hemis;
-  
-  //now compute MT2 using the Davismt2 class
-  
-  //these arrays contain (mass, px, py) for the pseudojets and the MET
-  double pa[3];
-  double pb[3];
-  double pmiss[3];
-  
-  pmiss[0] = 0;
-  pmiss[1] = static_cast<double> (MET.Px());
-  pmiss[2] = static_cast<double> (MET.Py());
-  
-  pa[0] = static_cast<double> (massive ? pseudojet1.M() : 0);
-  pa[1] = static_cast<double> (pseudojet1.Px());
-  pa[2] = static_cast<double> (pseudojet1.Py());
-  
-  pb[0] = static_cast<double> (massive ? pseudojet2.M() : 0);
-  pb[1] = static_cast<double> (pseudojet2.Px());
-  pb[2] = static_cast<double> (pseudojet2.Py());
-  
-  Davismt2 *mt2 = new Davismt2();
-  mt2->set_momenta(pa, pb, pmiss);
-  mt2->set_mn(testMass);
-  Float_t MT2=mt2->get_mt2();
-  delete mt2;
-  return MT2;
-};
-
+//////////////////////////////
 // MUON
+//////////////////////////////
 
 float RazorAnalyzer::GetMuonEffectiveAreaMean(int i, string type ){ 
 
@@ -2220,7 +1402,236 @@ bool RazorAnalyzer::matchMuonHLTFilters(int i, string HLTFilter){
   return match;
 }
 
+//////////////////////////////
+// TAU
+//////////////////////////////
+
+bool RazorAnalyzer::isLooseTau(int i){
+  bool pass = false;
+  if (tau_IsLoose[i]) {
+    pass = true;
+  }
+
+  return pass;
+}
+
+bool RazorAnalyzer::isMediumTau(int i){
+  bool pass = false;
+  if (tau_IsMedium[i]) {
+    pass = true;
+  }
+
+  return pass;
+}
+
+bool RazorAnalyzer::isTightTau(int i){
+  bool pass = false;
+  if (tau_IsTight[i]) {
+    pass = true;
+  }
+
+  return pass;
+}
+
+//////////////////////////////
+// JET 
+//////////////////////////////
+
+//From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80X
+bool RazorAnalyzer::isCSVL(int i, string dataset){
+  if (dataset == "74X") {
+    return jetCISV[i] > 0.605;
+  } else {
+    return jetCISV[i] > 0.460;
+  }
+}
+
+bool RazorAnalyzer::isCSVM(int i, string dataset){
+  if (dataset == "74X") {
+    return jetCISV[i] > 0.890;
+  } else {
+    return jetCISV[i] > 0.800;
+  }
+}
+
+bool RazorAnalyzer::isCSVT(int i, string dataset){
+  if (dataset == "74X") {
+    return jetCISV[i] > 0.970;
+  } else {
+    return jetCISV[i] > 0.935;
+  }
+}
+
+
+
+//Jet Energy Corrections
+double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
+						 double rho, double jetArea,
+						 FactorizedJetCorrector *jetcorrector,
+						 int jetCorrectionLevel,
+						 bool printDebug) {
+  if (!jetcorrector) {
+    cout << "WWARNING: Jet corrector pointer is null. Returning JEC = 0. \n";
+    return 0;
+  }
+
+  jetcorrector->setJetEta(jetEta);
+  jetcorrector->setJetPt(jetRawPt);
+  jetcorrector->setJetPhi(jetPhi);
+  jetcorrector->setJetE(jetE);
+  jetcorrector->setRho(rho);
+  jetcorrector->setJetA(jetArea);
+
+  std::vector<float> corrections;
+  corrections = jetcorrector->getSubCorrections();
+
+  if (printDebug) cout << "Computing Jet Energy Corrections for jet with raw momentum: " << jetRawPt << " " << jetEta << " " << jetPhi << "\n";
+
+  double cumulativeCorrection = 1.0;
+  for (UInt_t j=0; j<corrections.size(); ++j) {
+
+    //only correct up to the required level. if -1, then do all correction levels
+    if (jetCorrectionLevel >= 0 && int(j) > jetCorrectionLevel) continue;
+
+    double currentCorrection = corrections.at(j)/cumulativeCorrection;
+    cumulativeCorrection = corrections.at(j);
+    if (printDebug) cout << "Correction Level " << j << " : current correction = " << currentCorrection << " , cumulative correction = " << cumulativeCorrection << "\n";
+  }
+  if (printDebug) cout << "Final Cumulative Correction: " << cumulativeCorrection << "\n";
+  
+  return cumulativeCorrection;
+
+}
+
+//compute the smeared jet pt (if option = "up" or "down", will change the smear factor by +/- 1 sigma )
+//NOTE: these are Run 1 recommendations and should be replaced as soon as a Run 2 prescription is available.  
+double RazorAnalyzer::JetEnergySmearingFactor( double jetPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, TRandom3 *random ) {
+
+  std::vector<float> fJetEta, fJetPtNPU;
+  fJetEta.push_back(jetEta);  
+  fJetPtNPU.push_back(jetPt); 
+  fJetPtNPU.push_back(NPU); 
+  double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
+  
+  double c = 1;
+  if (fabs(jetEta) < 0.5) c = 1.079;
+  else if(fabs(jetEta) < 1.1) c = 1.099;
+  else if(fabs(jetEta) < 1.7) c = 1.121;
+  else if(fabs(jetEta) < 2.3) c = 1.208;
+  else if(fabs(jetEta) < 2.8) c = 1.254;
+  else if(fabs(jetEta) < 3.2) c = 1.395;
+  else if(fabs(jetEta) < 5.0) c = 1.056;
+
+  double sigma = sqrt( c*c - 1) * MCJetResolution;
+
+  return fmax( 1.0 + random->Gaus(0, sigma) , 0);
+
+}
+
+//return smearing factor for up/down shift in JER 
+double RazorAnalyzer::UpDownJetEnergySmearingFactor(double unsmearedPt, double jetEta, double NPU, SimpleJetResolution *JetResolutionCalculator, double smearedPt, string option){
+    //get jet resolution
+    std::vector<float> fJetEta, fJetPtNPU;
+    fJetEta.push_back(jetEta);  
+    fJetPtNPU.push_back(unsmearedPt); 
+    fJetPtNPU.push_back(NPU); 
+    double MCJetResolution = JetResolutionCalculator->resolution(fJetEta,fJetPtNPU);
+
+    //get sigma used to smear the jet
+    double c = 1;
+    if (fabs(jetEta) < 0.5) c = 1.079;
+    else if(fabs(jetEta) < 1.1) c = 1.099;
+    else if(fabs(jetEta) < 1.7) c = 1.121;
+    else if(fabs(jetEta) < 2.3) c = 1.208;
+    else if(fabs(jetEta) < 2.8) c = 1.254;
+    else if(fabs(jetEta) < 3.2) c = 1.395;
+    else if(fabs(jetEta) < 5.0) c = 1.056;
+    double sigma = sqrt( c*c - 1) * MCJetResolution;
+    //get number of sigmas the jet was smeared
+    double z = (smearedPt / unsmearedPt - 1) /sigma;
+
+    if(option == "up"){ //get c plus 1 sigma
+        double cUp = 1.0;
+        if (fabs(jetEta) < 0.5) cUp = 1.105;
+        else if(fabs(jetEta) < 1.1) cUp = 1.127;
+        else if(fabs(jetEta) < 1.7) cUp = 1.150;
+        else if(fabs(jetEta) < 2.3) cUp = 1.254;
+        else if(fabs(jetEta) < 2.8) cUp = 1.316;
+        else if(fabs(jetEta) < 3.2) cUp = 1.458;
+        else if(fabs(jetEta) < 5.0) cUp = 1.247;
+        double sigmaUp = sqrt( cUp*cUp - 1) * MCJetResolution;
+        return 1.0 + z*sigmaUp;
+    }
+    else if(option == "down"){ //get c minus 1 sigma
+        double cDown = 1.0;
+        if (fabs(jetEta) < 0.5) cDown = 1.053;
+        else if(fabs(jetEta) < 1.1) cDown = 1.071;
+        else if(fabs(jetEta) < 1.7) cDown = 1.092;
+        else if(fabs(jetEta) < 2.3) cDown = 1.162;
+        else if(fabs(jetEta) < 2.8) cDown = 1.192;
+        else if(fabs(jetEta) < 3.2) cDown = 1.332;
+        else if(fabs(jetEta) < 5.0) cDown = 0.865;
+        double sigmaDown = sqrt( cDown*cDown - 1) * MCJetResolution;
+        return 1.0 + z*sigmaDown;
+    }
+    else{ 
+        std::cout << "Error in UpDownJetEnergySmear: please specify option='up' or 'down'.  Returning 1.0" << std::endl;
+    }
+    return 1.0;
+}
+
+
+//b-tagging scale factors from https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation53XReReco/SFb-pt_WITHttbar_payload_EPS13.txt
+//(if option = "up" or "down", will change the scale factor by +/- 1 sigma)
+//NOTE: These are the Run 1 recommended scale factors and should be replaced as soon as Run 2 factors are available.
+double RazorAnalyzer::BTagScaleFactor(double jetPt, bool CSVM, string option){
+    double tmpBTagCorrFactor = 1.0;
+    //nominal correction factor
+    double tmpCorrFactor = 0.938887 + 0.00017124 * jetPt + (-2.76366e-07) * jetPt * jetPt ;
+
+    if(option == "up" || option == "down"){
+        double uncertainty = 0.0;
+        if (jetPt < 30) uncertainty = 0.0415707;
+        else if (jetPt < 40) uncertainty = 0.0204209;
+        else if (jetPt < 50) uncertainty = 0.0223227;
+        else if (jetPt < 60) uncertainty = 0.0206655;
+        else if (jetPt < 70) uncertainty = 0.0199325;
+        else if (jetPt < 80) uncertainty = 0.0174121;
+        else if (jetPt < 100) uncertainty = 0.0202332;
+        else if (jetPt < 120) uncertainty = 0.0182446;
+        else if (jetPt < 160) uncertainty = 0.0159777;
+        else if (jetPt < 210) uncertainty = 0.0218531;
+        else if (jetPt < 260) uncertainty = 0.0204688;
+        else if (jetPt < 320) uncertainty = 0.0265191;
+        else if (jetPt < 400) uncertainty = 0.0313175;
+        else if (jetPt < 500) uncertainty = 0.0415417;
+        else if (jetPt < 600) uncertainty = 0.0740446;
+        else if (jetPt < 800) uncertainty = 0.0596716;
+        else uncertainty = 2*0.0596716;
+
+        if (option == "up") tmpCorrFactor += uncertainty;
+        else if (option == "down") tmpCorrFactor -= uncertainty;
+    }
+
+    double MCEff = 1.0;
+    if (jetPt < 50) MCEff = 0.65;
+    else if (jetPt < 80) MCEff = 0.70;
+    else if (jetPt < 120) MCEff = 0.73;
+    else if (jetPt < 210) MCEff = 0.73;
+    else MCEff = 0.66;
+
+    //If pass CSV Medium
+    if (CSVM) {
+        tmpBTagCorrFactor = tmpCorrFactor;
+    } else {
+        tmpBTagCorrFactor = (1/MCEff - tmpCorrFactor) / (1/MCEff - 1);
+    }
+    return tmpBTagCorrFactor;
+}
+
+//////////////////////////////
 // PHOTON
+//////////////////////////////
 
 bool RazorAnalyzer::photonPassesElectronVeto(int i){
     //use presence of a pixel seed as proxy for an electron veto
@@ -2691,31 +2102,635 @@ bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
     }
 };
 
-// TAU
+//////////////////////////////
+// GEN
+//////////////////////////////
 
-bool RazorAnalyzer::isLooseTau(int i){
-  bool pass = false;
-  if (tau_IsLoose[i]) {
-    pass = true;
+//Finds closes gen electron and returns index to gParticle
+int RazorAnalyzer::findClosestGenElectron(double eta, double phi) {
+  int matchedIndex = -1;
+  float minDR = 999.0;
+  for(int j = 0; j < nGenParticle; j++){
+    if (gParticleStatus[j] != 1) continue;
+    if (abs(gParticleId[j]) != 11) continue; 
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1
+	 && deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < minDR
+	 ) {
+      matchedIndex = j;
+      minDR = deltaR( eta, phi, gParticleEta[j], gParticlePhi[j]);
+    }
+  }
+  
+  return matchedIndex;
+};
+
+
+//Finds closes gen muon and returns index to gParticle
+int RazorAnalyzer::findClosestGenMuon(double eta, double phi) {
+  int matchedIndex = -1;
+  float minDR = 999.0;
+  for(int j = 0; j < nGenParticle; j++){
+    if (gParticleStatus[j] != 1) continue;
+    if (abs(gParticleId[j]) != 13) continue;
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1
+	 && deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < minDR
+	 ) {
+      matchedIndex = j;
+      minDR = deltaR( eta, phi, gParticleEta[j], gParticlePhi[j]);
+    }
+  }
+  
+  return matchedIndex;
+};
+
+//Finds closest gen jet and returns index to gParticle
+int RazorAnalyzer::findClosestGenJet(double eta, double phi) {
+  int matchedIndex = -1;
+  float minDR = 999.0;
+  for(int j = 0; j < nGenJets; j++){
+    //    if (gParticleStatus[j] != 1) continue;
+    //if (abs(gParticleId[j]) != 13) continue;
+
+    if ( deltaR(eta, phi, genJetEta[j], genJetPhi[j]) < 0.3
+         && deltaR(eta, phi, genJetEta[j], genJetPhi[j]) < minDR
+         ) {
+      matchedIndex = j;
+      minDR = deltaR( eta, phi, genJetEta[j], genJetPhi[j]);
+    }
+
   }
 
-  return pass;
-}
+  return matchedIndex;
+};
 
-bool RazorAnalyzer::isMediumTau(int i){
-  bool pass = false;
-  if (tau_IsMedium[i]) {
-    pass = true;
+
+
+//Checks if the gParticle is a tau and that comes from a W or a Z
+bool RazorAnalyzer::isGenTau(int index){
+  return ( abs(gParticleId[index]) == 15 && gParticleStatus[index] == 2 &&
+	   (abs(gParticleMotherId[index]) == 23 ||abs(gParticleMotherId[index]) == 24) 
+	   );
+};
+
+
+//Checks if the gParticle is a tau and that comes from a W or a Z
+bool RazorAnalyzer::isGenLeptonicTau(int index){
+  if (abs(gParticleId[index]) == 15 && gParticleStatus[index] == 2 
+      && (abs(gParticleMotherId[index]) == 24 || abs(gParticleMotherId[index]) == 23)
+      ) {    
+
+    for(int k = 0; k < nGenParticle; k++){
+      if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == index) {
+	return true;
+      }
+    }
+  }
+  return false;
+};
+ 
+//Finds closes gen tau and returns index to gParticle
+int RazorAnalyzer::findClosestGenTau(double eta, double phi) {
+  int matchedIndex = -1;
+  float minDR = 999.0;
+  for(int j = 0; j < nGenParticle; j++){
+    if (abs(gParticleId[j]) != 15) continue;
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1
+	 && deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < minDR
+	 ) {
+      matchedIndex = j;
+      minDR = deltaR( eta, phi, gParticleEta[j], gParticlePhi[j]);
+    }
+  }
+  
+  return matchedIndex;
+};
+
+int RazorAnalyzer::findClosestRecoTau(double eta, double phi) {
+  int matchedIndex = -1;
+  float minDR = 999.0;
+  for(int j = 0; j < nTaus; j++){
+    if ( deltaR(eta, phi, tauEta[j], tauPhi[j]) < 0.1
+	 && deltaR(eta, phi, tauEta[j], tauPhi[j]) < minDR
+	 ) {
+      matchedIndex = j;
+      minDR = deltaR(eta, phi, tauEta[j], tauPhi[j]);
+    }
   }
 
-  return pass;
-}
+  return matchedIndex;
+};
 
-bool RazorAnalyzer::isTightTau(int i){
-  bool pass = false;
-  if (tau_IsTight[i]) {
-    pass = true;
+//Finds closest gen tau and checks its mother, if matched return pdgID
+int RazorAnalyzer::GetTauMatchedID(double eta, double phi){
+  int matchedID = 0;
+  int matchedIndex = findClosestGenTau(eta, phi);
+
+  //find muon if no tau was found
+  if (matchedIndex < 0) matchedIndex = findClosestGenMuon(eta,phi);
+  if (matchedIndex >= 0) {
+    return gParticleId[matchedIndex];
   }
 
-  return pass;
+  //find electron if no tau or muon was found
+  if (matchedIndex < 0) matchedIndex = findClosestGenElectron(eta,phi);
+  if (matchedIndex >= 0) {
+    return gParticleId[matchedIndex];
+  }
+
+  //if nothing was found
+  if(matchedIndex < 0) return 0;//No Match -> ID == 0
+  if (gParticleMotherId[matchedIndex] > 50) {
+    matchedID = gParticleMotherId[matchedIndex];
+  } else if (abs(gParticleMotherId[matchedIndex]) == 23 || 
+	     abs(gParticleMotherId[matchedIndex]) == 24) {
+    matchedID = gParticleId[matchedIndex];
+  }
+  
+  return matchedID;
+};
+
+//Returns index of the closest parton. If no match is found returns zero.
+int RazorAnalyzer::findClosestParton(float eta, float phi){
+  float minDRToParton = 9999;
+  int partonIndex = -1;
+  for(int j = 0; j < nGenParticle; j++){
+    //only look for outgoing partons                                                                    
+    if  (!( ( (abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 5) || abs(gParticleId[j]) == 21)
+	    && gParticleStatus[j] == 23)
+	 ) continue;
+    double tmpDR = deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]);
+    if ( tmpDR < minDRToParton ) {
+      minDRToParton = tmpDR;
+      partonIndex = j;
+    }
+  }
+  
+  return partonIndex;
+};
+
+
+//Checks if a gen muon is in the given eta and phi direction
+bool RazorAnalyzer::matchesGenMuon(double eta, double phi){
+  bool result = false;
+  for(int j = 0; j < nGenParticle; j++){
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
+	 abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1 &&
+	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
+	 ) {
+      result = true;
+      break;
+    }    
+  }
+  return result;
+};
+
+//Checks if a gen electron is in the given eta and phi direction
+bool RazorAnalyzer::matchesGenElectron(double eta, double phi){
+  bool result = false;
+  for(int j = 0; j < nGenParticle; j++){
+    if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
+	 abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 &&
+	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
+	 ) {
+      result = true;
+      break;
+    }    
+  }
+  return result;
+};
+
+//////////////////////////////
+// MISC 
+//////////////////////////////
+
+double RazorAnalyzer::deltaPhi(double phi1, double phi2) {
+  double dphi = phi1-phi2;
+  while (dphi > TMath::Pi())
+    dphi -= TMath::TwoPi();
+  while (dphi <= -TMath::Pi())
+    dphi += TMath::TwoPi();
+  return dphi;
 }
+
+double RazorAnalyzer::deltaR(double eta1, double phi1, double eta2, double phi2) {
+  double dphi = deltaPhi(phi1,phi2);
+  double deta = eta1 - eta2;
+  return sqrt( dphi*dphi + deta*deta);
+}
+
+TLorentzVector RazorAnalyzer::makeTLorentzVector(double pt, double eta, double phi, double energy){
+    TLorentzVector vec;
+    vec.SetPtEtaPhiE(pt, eta, phi, energy);
+    return vec;
+}
+
+TLorentzVector RazorAnalyzer::makeTLorentzVectorPtEtaPhiM(double pt, double eta, double phi, double mass){
+    TLorentzVector vec;
+    vec.SetPtEtaPhiM(pt, eta, phi, mass);
+    return vec;
+}
+
+double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets) 
+{   
+    int nJets = jets.size();
+    vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
+    vector<TLorentzVector> possibleHem2s;
+    double alphaT = 0;
+    
+    if(nJets < 2) return alphaT;
+    
+    int nComb = pow(2, nJets); // # possible combinations
+    
+    // steal from the getHemispheres method
+
+    //step 1: store all possible partitions of the input jets
+    int j_count;
+    for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
+        TLorentzVector j_temp1, j_temp2;
+        int itemp = i;
+        j_count = nComb/2;
+        int count = 0;
+        
+        while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2
+            if(itemp/j_count == 1){
+                j_temp1 += jets[count];
+            } else {
+                j_temp2 += jets[count];
+            }
+            itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count
+            j_count /= 2;
+            count++;
+        }
+        possibleHem1s.push_back(j_temp1);
+        possibleHem2s.push_back(j_temp2);
+    }
+    
+    //step 2: Select combination that mininize |ET1 - ET2|
+    double eMin = -1;
+    TLorentzVector myHem1;
+    TLorentzVector myHem2;
+
+    for(size_t i=0; i < possibleHem1s.size(); i++)
+    {
+        double eTemp = fabs(possibleHem1s[i].Et() - possibleHem2s[i].Et());
+        if (eMin < 0 || eTemp < eMin)
+        {
+            eMin = eTemp;
+            myHem1 = possibleHem1s[i];
+            myHem2 = possibleHem2s[i];
+        }
+    }
+    
+    float MhtX = 0., MhtY = 0.;
+    float HT = 0.; 
+    for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+
+      TLorentzVector MyMHT;
+      MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
+
+    float MHT = MyMHT.Pt();
+
+    // Calculate alphaT
+    alphaT = 0.5 * (1-eMin/HT)/sqrt(1-pow(MHT/HT,2));
+
+    return alphaT;  
+}
+
+double RazorAnalyzer::GetDPhiMin(vector<TLorentzVector> jets)
+    // This variable is used in the alphaT analysis
+{
+    int nJets = jets.size();
+    double dPhiMin = -1.;
+    float HT = 0.;
+    float MhtX = 0.;
+    float MhtY = 0.;
+    // Search for min dPhi between recomputed missing HT and test jets
+    for (auto& obj : jets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+    TLorentzVector MyMHT;
+    MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
+
+    for (auto& obj : jets)
+    {
+    // Recompute MHT by ignoring a test jet 
+        float recomputedMHTX = MhtX - obj.Px();
+        float recomputedMHTY = MhtY - obj.Py();
+        TLorentzVector recomputedMHT;
+        recomputedMHT.SetPxPyPzE(-recomputedMHTX, -recomputedMHTY, 0, sqrt(pow(recomputedMHTX,2) + pow(recomputedMHTY,2)));
+        double phiTemp = fabs(recomputedMHT.Phi() - obj.Phi());
+        if (dPhiMin < 0 || phiTemp < dPhiMin)   dPhiMin = phiTemp;
+    }
+
+    return dPhiMin;
+}
+
+vector<TLorentzVector> RazorAnalyzer::getHemispheres(vector<TLorentzVector> jets){
+    int nJets = jets.size();
+    vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations
+    vector<TLorentzVector> possibleHem2s;
+
+    if(nJets < 2){ //return empty hemispheres if there are fewer than 2 jets provided
+        TLorentzVector emptyHem1, emptyHem2;
+        vector<TLorentzVector> emptyHemsOut;
+        emptyHemsOut.push_back(emptyHem1);
+        emptyHemsOut.push_back(emptyHem2);
+        return emptyHemsOut;
+    }
+
+    //stolen from https://github.com/pierinim/BSMatLHC/blob/master/BSMApp/src/CMS/CMSHemisphere.cc
+    int nComb = pow(2, nJets);
+
+    //step 1: store all possible partitions of the input jets
+    int j_count;
+    for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
+        TLorentzVector j_temp1, j_temp2;
+        int itemp = i;
+        j_count = nComb/2;
+        int count = 0;
+        while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2
+            if(itemp/j_count == 1){
+                j_temp1 += jets[count];
+            } else {
+                j_temp2 += jets[count];
+            }
+            itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count
+            j_count /= 2;
+            count++;
+        }
+        possibleHem1s.push_back(j_temp1);
+        possibleHem2s.push_back(j_temp2);
+    }
+
+    //step 2: choose the partition that minimizes m1^2 + m2^2
+    double mMin = -1;
+    TLorentzVector myHem1;
+    TLorentzVector myHem2;
+    for(size_t i=0; i < possibleHem1s.size(); i++){
+        double mTemp = possibleHem1s[i].M2() + possibleHem2s[i].M2();
+        if(mMin < 0 || mTemp < mMin){
+            mMin = mTemp;
+            myHem1 = possibleHem1s[i];
+            myHem2 = possibleHem2s[i];
+        }
+    }
+
+    //return the hemispheres in decreasing order of pt
+    vector<TLorentzVector> hemsOut;
+    if(myHem1.Pt() > myHem2.Pt()){
+        hemsOut.push_back(myHem1);
+        hemsOut.push_back(myHem2);
+    } else {
+        hemsOut.push_back(myHem2);
+        hemsOut.push_back(myHem1);
+    }
+
+    return hemsOut;
+}
+
+std::vector< std::vector<int> > RazorAnalyzer::getHemispheresV2( std::vector<TLorentzVector> jets )
+{
+  //returns vector with original indices to jets
+  int nJets = jets.size();
+  vector<TLorentzVector> possibleHem1s; //holds possible hemisphere combinations                                                              
+  std::vector< std::vector<int> > index1;
+  vector<TLorentzVector> possibleHem2s;
+  std::vector< std::vector<int> > index2;
+
+  if(nJets < 2){ //return empty hemispheres if there are fewer than 2 jets provided                                                           
+    std::vector<int> emptyIndex1, emptyIndex2;
+    std::vector< std::vector<int> > void_return;
+    void_return.push_back( emptyIndex1 );
+    void_return.push_back( emptyIndex2 );
+    return void_return;
+  }
+  
+  //stolen from https://github.com/pierinim/BSMatLHC/blob/master/BSMApp/src/CMS/CMSHemisphere.cc                                              
+  int nComb = pow(2, nJets);
+  //std::cout << "njets: " << nJets << " ncomb: " << nComb << std::endl;
+  //step 1: store all possible partitions of the input jets                                                                                   
+  int j_count;
+  for(int i = 1; i < nComb-1; i++){ //note we omit the trivial hemisphere combinations (0 and nComb-1)
+    //std::cout << "=iter: " << i << std::endl; 
+    TLorentzVector j_temp1, j_temp2;
+    std::vector<int> tmp_index1, tmp_index2;
+    int itemp = i;
+    j_count = nComb/2;
+    int count = 0;
+    while(j_count > 0){ //decompose i into binary '1's and '0's ; put the '1' jets into j_temp1 and the '0' jets into j_temp2               
+      //std::cout << "j_count: " << j_count << " itemp: " << itemp << " count: " << count << std::endl; 
+      if(itemp/j_count == 1){
+	j_temp1 += jets[count];
+	tmp_index1.push_back( count );
+      } else {
+	j_temp2 += jets[count];
+	tmp_index2.push_back( count );
+      }
+      itemp -= j_count*(itemp/j_count); //note this is always (0 or 1)*j_count                                                            
+      j_count /= 2;
+      count++;
+    }
+    possibleHem1s.push_back(j_temp1);
+    index1.push_back( tmp_index1 );
+    possibleHem2s.push_back(j_temp2);
+    index2.push_back( tmp_index2 );
+  }
+  
+  //step 2: choose the partition that minimizes m1^2 + m2^2                                                                                   
+  double mMin = -1;
+  TLorentzVector myHem1;
+  TLorentzVector myHem2;
+  int partition_index = -1;
+  for(size_t i=0; i < possibleHem1s.size(); i++){
+    double mTemp = possibleHem1s[i].M2() + possibleHem2s[i].M2();
+    if(mMin < 0 || mTemp < mMin){
+      mMin = mTemp;
+      myHem1 = possibleHem1s[i];
+      myHem2 = possibleHem2s[i];
+      partition_index = i;
+    }
+  }
+
+  //return the hemispheres in decreasing order of pt                                                                                          
+  vector<TLorentzVector> hemsOut;
+  std::vector< std::vector<int> > index_out;
+  if(myHem1.Pt() > myHem2.Pt()){
+    hemsOut.push_back(myHem1);
+    hemsOut.push_back(myHem2);
+    index_out.push_back( index1[partition_index] );
+    index_out.push_back( index2[partition_index] );
+  } else {
+    hemsOut.push_back(myHem2);
+    hemsOut.push_back(myHem1);
+    index_out.push_back( index2[partition_index] );
+    index_out.push_back( index1[partition_index] );
+  }
+  
+  return index_out;
+};
+
+
+double RazorAnalyzer::computeMR(TLorentzVector hem1, TLorentzVector hem2){
+    return sqrt(pow(hem1.P() + hem2.P(), 2) - pow(hem1.Pz() + hem2.Pz(), 2));
+}
+
+double RazorAnalyzer::computeRsq(TLorentzVector hem1, TLorentzVector hem2, TLorentzVector pfMet){
+    double mR = computeMR(hem1, hem2);
+    double term1 = pfMet.Pt()/2*(hem1.Pt() + hem2.Pt());
+    double term2 = pfMet.Px()/2*(hem1.Px() + hem2.Px()) + pfMet.Py()/2*(hem1.Py() + hem2.Py()); //dot product of MET with (p1T + p2T)
+    double mTR = sqrt(term1 - term2);
+    return (mTR / mR) * (mTR / mR);
+}
+
+
+double RazorAnalyzer::GetMT( TLorentzVector visible, TVector3 met )
+{
+  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
+  //return sqrt( visible.M2() + 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
+  return sqrt( 2.0*( vis.Pt()*met.Pt() - vis.Dot( met ) ) );
+};
+
+double RazorAnalyzer::GetMT( TLorentzVector visible, TLorentzVector met )
+{
+  TVector3 _met( met.Px(), met.Py(), met.Pz() );
+  return GetMT( visible, _met );
+};
+
+
+double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TVector3 met )
+{
+  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
+  //return sqrt( visible.M2() + 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
+  return sqrt( 2.0*( visible.E()*met.Pt() - vis.Dot( met ) ) );
+};
+
+double RazorAnalyzer::GetMTEnergy( TLorentzVector visible, TLorentzVector met )
+{
+  TVector3 _met( met.Px(), met.Py(), met.Pz() );
+  return GetMTEnergy( visible, _met );
+};
+
+
+double RazorAnalyzer::GetDphi( TLorentzVector visible, TVector3 met )
+{
+  TVector3 vis( visible.Px(), visible.Py(), visible.Pz() );
+  return vis.DeltaPhi( met );
+};
+
+double RazorAnalyzer::GetDphi( TLorentzVector visible, TLorentzVector met )
+{
+  TVector3 _met( met.Px(), met.Py(), met.Pz() );
+  return GetDphi( visible, _met );
+};
+
+//auxiliary functions for RazorInclusive and MatchedRazorInclusive analyses
+bool RazorAnalyzer::passesHadronicRazorBaseline(double MR, double Rsq){
+    bool passes = true;
+    if(MR < 0 || Rsq < 0) passes = false;
+    //temporarily disable these
+    //if(MR < 400 || Rsq < 0.25) passes = false;
+    //if(MR < 450 && Rsq < 0.3) passes = false;
+    return passes;
+}
+
+bool RazorAnalyzer::passesLeptonicRazorBaseline(double MR, double Rsq){
+    bool passes = true;
+    if(MR < 0 || Rsq < 0) passes = false;
+    //temporarily disable these
+    // if(MR < 300 || Rsq < 0.15) passes = false;
+    // if(MR < 350 && Rsq < 0.2) passes = false;
+    return passes;
+}
+
+//Checks if ToSubtract matches any particles in Collection, and subtracts the momentum of ToSubtract from the closest one
+int RazorAnalyzer::SubtractParticleFromCollection(TLorentzVector ToSubtract, vector<TLorentzVector>& Collection, float deltaRMatch){
+    //if Collection has any elements within R<deltaRMatch of the vector ToSubtract, find the closest such element
+    //otherwise, return -1
+    double closestDR = -1;
+    int closestDRIndex = -1;
+    for(uint i = 0; i < Collection.size(); i++){
+        double thisDR = Collection[i].DeltaR(ToSubtract);
+        if(closestDR < 0 || thisDR < closestDR){
+            closestDR = thisDR;
+            closestDRIndex = i;
+        }
+    }
+    if(closestDR < 0 || closestDR > deltaRMatch){ //if we didn't look at any objects or we didn't get one within 0.4, return -1
+        return -1;
+    }
+    
+    //subtract the momentum (magnitude) of ToSubtract from that of the closest vector in Collection
+
+    //if we're subtracting away everything, just set the vector to 0 and return the index of the changed vector
+    if(ToSubtract.P() >= Collection[closestDRIndex].P()){ 
+        Collection[closestDRIndex].SetPtEtaPhiE(0.0, 0.0, 0.0, 0.0);
+        return closestDRIndex;
+    }
+    //otherwise, scale the 4-momentum by the appropriate factor
+    double scalePFactor = (Collection[closestDRIndex].P() - ToSubtract.P())/Collection[closestDRIndex].P(); // = new P / old P
+    Collection[closestDRIndex].SetPxPyPzE(Collection[closestDRIndex].Px()*scalePFactor, Collection[closestDRIndex].Py()*scalePFactor, Collection[closestDRIndex].Pz()*scalePFactor, Collection[closestDRIndex].E()*scalePFactor);
+    return closestDRIndex;
+}
+
+double RazorAnalyzer::calcMT2(float testMass, bool massive, vector<TLorentzVector> jets, TLorentzVector MET, int hemi_seed, int hemi_association)
+{
+  //computes MT2 using a test mass of testMass, with hemispheres made massless if massive is set to false
+  //hemispheres are clustered by finding the grouping of input jets that minimizes the Lund distance
+  
+  if(jets.size() < 2) return -9999; //need at least two jets for the calculation
+  vector<float> px, py, pz, E;
+  for(uint i = 0; i < jets.size(); i++){
+    //push 4vector components onto individual lists
+    px.push_back(jets[i].Px());
+    py.push_back(jets[i].Py());
+    pz.push_back(jets[i].Pz());
+    E.push_back(jets[i].E());
+  }
+  
+  //form the hemispheres using the provided Hemisphere class
+  Hemisphere* hemis = new Hemisphere(px, py, pz, E, hemi_seed, hemi_association);
+  vector<int> grouping = hemis->getGrouping();
+  TLorentzVector pseudojet1(0.,0.,0.,0.);
+  TLorentzVector pseudojet2(0.,0.,0.,0.);
+        
+  //make the hemisphere vectors
+  for(uint i=0; i<px.size(); ++i){
+    if(grouping[i]==1){
+      pseudojet1.SetPx(pseudojet1.Px() + px[i]);
+      pseudojet1.SetPy(pseudojet1.Py() + py[i]);
+      pseudojet1.SetPz(pseudojet1.Pz() + pz[i]);
+      pseudojet1.SetE( pseudojet1.E()  + E[i]);   
+    }else if(grouping[i] == 2){
+      pseudojet2.SetPx(pseudojet2.Px() + px[i]);
+      pseudojet2.SetPy(pseudojet2.Py() + py[i]);
+      pseudojet2.SetPz(pseudojet2.Pz() + pz[i]);
+      pseudojet2.SetE( pseudojet2.E()  + E[i]);
+    }
+  }
+  delete hemis;
+  
+  //now compute MT2 using the Davismt2 class
+  
+  //these arrays contain (mass, px, py) for the pseudojets and the MET
+  double pa[3];
+  double pb[3];
+  double pmiss[3];
+  
+  pmiss[0] = 0;
+  pmiss[1] = static_cast<double> (MET.Px());
+  pmiss[2] = static_cast<double> (MET.Py());
+  
+  pa[0] = static_cast<double> (massive ? pseudojet1.M() : 0);
+  pa[1] = static_cast<double> (pseudojet1.Px());
+  pa[2] = static_cast<double> (pseudojet1.Py());
+  
+  pb[0] = static_cast<double> (massive ? pseudojet2.M() : 0);
+  pb[1] = static_cast<double> (pseudojet2.Px());
+  pb[2] = static_cast<double> (pseudojet2.Py());
+  
+  Davismt2 *mt2 = new Davismt2();
+  mt2->set_momenta(pa, pb, pmiss);
+  mt2->set_mn(testMass);
+  Float_t MT2=mt2->get_mt2();
+  delete mt2;
+  return MT2;
+};
+

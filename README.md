@@ -5,29 +5,28 @@ Class for analyzing the 2015 razor ntuples
 
 Setup
 -------------
-From t3-higgs:
 
+    cmsrel CMSSW_7_1_5
+    cd CMSSW_7_1_5/src
     git clone https://github.com/RazorCMS/RazorAnalyzer.git
     cd RazorAnalyzer
     make
   
 Defining a new analysis
 -------------
-1) Copy analyses/DummyAnalysis.cc and modify it to define your analyzer's behavior.  Be sure to change the name of the DummyAnalysis() function.
+1) Copy analyses/DummyAnalyzer.cc and replace each instance of "DummyAnalyzer" with the name of your desired analyzer.  Modify the body of the Analyze function to define your analyzer's behavior.  You do NOT need to write a header file for the analyzer class; the Makefile will generate one for you automatically.  
 
-2) Add your analysis under "LIST OF ANALYSES" in include/RazorAnalyzer.h.
-
-3) In src/RazorRun.cc, under "EXECUTE YOUR ANALYSIS" add the option to execute your analysis code.
+2) Do `make`.  This will create an executable `bin/Run<name of your analyzer>`. You can execute your analysis using this program directly or by calling it via the `RazorRun` script. 
 
 Running
 ------------
 After compiling, 
 
-    ./RazorRun <list of input files> <analysis type>
+    ./RazorRun <list of input files> <name of your analyzer> <options>
   
 Example: to execute a dummy analysis that does nothing,
 
-    ./RazorRun lists/TTJets_List_Test.txt dummy
+    ./RazorRun lists/TTJets_List_Test.txt DummyAnalyzer
 
 Normalizing the processed ntuples
 ------------
@@ -36,14 +35,6 @@ The NormalizeNtuple macro opens a specified set of files and adds a 'weight' bra
     ./NormalizeNtuple <input file>
 
 See lists/filestonormalize/testTTJets.txt for an example input file to be used with NormalizeNtuple.
-
-Running over many samples at once
------------
-The script 'runEverything' takes as input the name of a directory containing lists of files to process.  Ex:
-
-    ./runEverything lists/27Oct2014/
-
-The script will (locally) run the RazorInclusive analysis on each sample listed in the given directory, run NormalizeNtuple to add event weights, and add all of the output files together.
 
 Fitting samples and setting limits
 -----------

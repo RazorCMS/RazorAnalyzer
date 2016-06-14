@@ -2,7 +2,6 @@
 
 void DummyAnalyzer::Analyze(bool isData, int option, string outputFileName, string label)
 {
-    //RazorAnalyzer::Analyze(isData, option, outputFileName, label);
     if (fChain == 0) return;
 
     Long64_t nentries = fChain->GetEntriesFast();
