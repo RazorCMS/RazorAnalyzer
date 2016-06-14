@@ -20,7 +20,7 @@ HELPERSCRIPT = python/MakeAnalyzerCode.py
 .PHONY: clean all lxplus 
 
 all: $(EXECUTABLES)
-#	@for d in $(DIRS); do (cd $$d; $(MAKE) $(MFLAGS) ); done
+	@for d in $(DIRS); do (cd $$d; $(MAKE) $(MFLAGS) ); done
 lxplus: all
 
 clean:
