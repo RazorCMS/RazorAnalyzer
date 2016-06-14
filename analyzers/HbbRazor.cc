@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "HbbRazor.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -18,10 +17,12 @@ struct greater_than_pt{
     }
 };
 
-void RazorAnalyzer::HbbRazor(string outFileName, bool combineTrees, bool isData, bool isRunOne)
+void HbbRazor::Analyze(bool isData, int option, string outFileName, string label)
 {
-  //initialization: create one TTree for each analysis box 
+  //initialization: create one TTree for each analysis box
   cout << "Initializing..." << endl;
+  bool combineTrees = true;
+  bool isRunOne = false;
   bool printdebug = false;
 
   // //Pileup Weights

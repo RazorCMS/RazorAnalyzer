@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "MakeMCPileupDistribution.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -23,7 +22,7 @@ void NormalizeHist(TH1F *hist) {
 }
 
 
-void RazorAnalyzer::MakeMCPileupDistribution(string outFileName, string label)
+void MakeMCPileupDistribution::Analyze(bool isData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;

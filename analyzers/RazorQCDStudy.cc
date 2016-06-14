@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorQCDStudy.h"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.h"
 
@@ -16,11 +15,12 @@ struct greater_than_pt{
     }
 };
  
-void RazorAnalyzer::RazorQCDStudy( string outputfilename, bool isData, bool isRunOne)
+void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, string label)
 {
 
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
+    bool isRunOne = (option == 1);
     cout << "IsData = " << isData << "\n";
 
     TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333

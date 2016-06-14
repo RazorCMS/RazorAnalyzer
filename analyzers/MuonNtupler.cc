@@ -1,5 +1,4 @@
-#define MuonNtupler_cxx
-#include "RazorAnalyzer.h"
+#include "MuonNtupler.h"
 #include "MuonTree.h"
 
 //C++ includes
@@ -9,7 +8,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::MuonNtupler(string outputfilename , int Option)
+void MuonNtupler::Analyze(bool isData, int Option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;

@@ -16,8 +16,8 @@ RazorAnalyzer::~RazorAnalyzer()
 
 }
 
-void RazorAnalyzer::Analyze() {
-    cout << "Analyze method called on base RazorAnalyzer instance.  Doing nothing..." << endl;
+void RazorAnalyzer::Analyze(bool isData, int option, string outputFileName, string label) {
+    cout << "Analyze method called on base RazorAnalyzer instance.  Parameters were: " << isData << " " << option << " " << outputFileName << " " << label << endl;
 }
 
 //NOTE: the functions below need to be maintained by hand.  If variables are added or removed from the ntuple, these functions need to be updated to reflect the changes.

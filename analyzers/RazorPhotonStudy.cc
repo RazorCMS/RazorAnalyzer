@@ -1,7 +1,6 @@
 //Produces trees for estimating lepton selection efficiency (using gen-level information) and for studying the use of DY+Jets, W+Jets, and G+Jets control regions to model the distribution of the Z->invisible background in the razor analysis.
 
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorPhotonStudy.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -17,13 +16,15 @@ struct greater_than_pt{
     }
 };
 
-void RazorAnalyzer::RazorPhotonStudy(string outputfilename, bool isData, bool filterEvents, bool isRunOne)
+void RazorPhotonStudy::Analyze(bool isData, int option, string outputfilename, string label)
 {
     //****************************************************//
     //            Initialization of the tree              //
     //****************************************************//
 
     cout << "Initializing..." << endl;
+    bool isRunOne = true;
+    bool filterEvents = !(option == 1);
 
     //random number generator for jet smearing
     TRandom3 *random = new TRandom3();

@@ -26,3 +26,5 @@ test.*
 *.gif
 *.png
 bin/*
+src/Run*.cc
+analyzers/*.h

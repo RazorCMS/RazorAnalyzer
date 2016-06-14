@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorMetAna.h"
 
 //C++ includes
 
@@ -12,7 +11,7 @@ using namespace std;
 bool passesHadronicRazorBaselineCopy(double MR, double Rsq); //makes sense to put these into RazorAnalyzer
 bool passesLeptonicRazorBaselineCopy(double MR, double Rsq);
 
-void RazorAnalyzer::RazorMetAna(string outFileName)
+void RazorMetAna::Analyze(bool isData, int option, string outFileName, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;

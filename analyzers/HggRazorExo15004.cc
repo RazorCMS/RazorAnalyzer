@@ -1,6 +1,5 @@
-#define RazorAnalyzer_cxx
 //LOCAL INCLUDES
-#include "RazorAnalyzer.h"
+#include "HggRazorExo15004.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
@@ -103,13 +102,15 @@ const float SIGMATRKCLUSZ[12] = { 0.0298574,
                                 };
 
 //Testing branching and merging
-void RazorAnalyzer::HggRazorExo15004(string outFileName, bool combineTrees, int option, bool isData )
+void HggRazorExo15004::Analyze(bool isData, int option, string outFileName, string label)
 {
+  std::cout << "in analyzer" << std::endl;
   gROOT->Reset();
   //*****************************************************************************
   //Settings
   //*****************************************************************************
   TRandom3 random(3003);
+  bool combineTrees = true;
   bool doPhotonScaleCorrection = true;
 
   bool doEleVeto = true;

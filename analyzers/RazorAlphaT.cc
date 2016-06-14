@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorAlphaT.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -9,14 +8,15 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
+void RazorAlphaT::Analyze(bool isData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
+  bool combineTrees = true;
   if ( outFileName.empty() )
     {
-      cout << "RazorDM: Output filename not specified!" << endl << "Using default output name RazorDM.root" << endl;
-      outFileName = "RazorDM.root";
+      cout << "RazorAlphaT: Output filename not specified!" << endl << "Using default output name RazorAlphaT.root" << endl;
+      outFileName = "RazorAlphaT.root";
     }
   if (combineTrees) cout << "Using combineTrees" << endl;
   else cout << "Using razorBoxes" << endl;
@@ -57,7 +57,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
   
   //one tree to hold all events
-  TTree *razorTree = new TTree("RazorDM", "Info on selected razor DM events");
+  TTree *razorTree = new TTree("RazorAlphaT", "Info on selected razor DM events");
   
   // tree to compute the cut efficiency
   //TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
@@ -85,14 +85,13 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
   UInt_t run, lumi, event;
   float MuonPt[5], MuonEta[5], MuonPhi[5], MuonE[5];
   float ElePt[5], EleEta[5], ElePhi[5], EleE[5];
-  float MR, deltaPhi;
+  float MR;
   float HT, MHT;
   float alphaT, dPhiMin;
   float Rsq, t1Rsq, RsqCorr, t1RsqCorr;
   float t1metPt, t1metPhi, metPtCorr, metPhiCorr, t1metPtCorr, t1metPhiCorr;
   RazorBox box;
   float JetPt_uncorr[30], JetEta_uncorr[30], JetPhi_uncorr[30], JetE_uncorr[30];
-  float LeadJetNeutralHadronFraction, LeadJetChargedHadronFraction;
   float JetPt[30], JetEta[30], JetPhi[30], JetE[30];
   bool hasMatchingGenJet[30];
   int matchingGenJetIndex[30];
@@ -125,8 +124,6 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("JetPt", JetPt, "JetPt[nSelectedJets]/F");
       razorTree->Branch("JetEta", JetEta, "JetEta[nSelectedJets]/F");
       razorTree->Branch("JetPhi", JetPhi, "JetPhi[nSelectedJets]/F");
-      razorTree->Branch("LeadJetNeutralHadronFraction", &LeadJetNeutralHadronFraction, "LeadJetNeutralHadronFraction/F"); 
-      razorTree->Branch("LeadJetChargedHadronFraction", &LeadJetChargedHadronFraction, "LeadJetChargedHadronFraction/F"); 
       
       razorTree->Branch("alphaT", &alphaT, "alphaT/F");
       razorTree->Branch("dPhiMin", &dPhiMin, "dPhiMin/F");
@@ -134,7 +131,6 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       razorTree->Branch("MR", &MR, "MR/F");
       razorTree->Branch("Rsq", &Rsq, "Rsq/F");
       razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
-      razorTree->Branch("deltaPhi", &deltaPhi, "deltaPhi/F");
       razorTree->Branch("metPt", &metPt, "metPt/F");
       razorTree->Branch("metPhi", &metPhi, "metPhi/F");
       razorTree->Branch("t1metPt", &t1metPt, "t1metPt/F");
@@ -223,7 +219,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[120]/O");
     }
   }
     
@@ -262,15 +258,12 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
         dPhiMin   = -1.0;
         MR        = -1.0;
         Rsq       = -1.0;
-	    deltaPhi     = -1.0;
 	    t1Rsq     = -1.0;
 	    RsqCorr   = -1.0;
 	    t1RsqCorr = -1.0;
       leadingJetPt = -1;
       leadingJetEta = 0.0;
       subLeadingJetPt = -1;
-	    LeadJetChargedHadronFraction = -1.; 
-	    LeadJetNeutralHadronFraction = -1.; 
 	  
 	for ( int j = 0; j < 30; j++ )
           {
@@ -346,12 +339,10 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	//------------------------
 	vector<TLorentzVector> GoodJets;
 	vector<TLorentzVector> GoodJets_uncorr;
-    vector<float> JetChargedHadronFraction;
-    vector<float> JetNeutralHadronFraction;
         int numJetsAbove80GeV = 0;
 	for( int i = 0; i < nJets; i++ )
 	  {
-	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue; 
+	    if(jetPt[i] < 40.0 || fabs(jetEta[i]) > 3.0) continue; 
 	    
 	    //ADDED LINES
 	    //int level = 2; //3rd bit of jetPileupIdFlag
@@ -393,10 +384,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	    GoodJets_uncorr.push_back(thisJet_uncorr);
 	    
 	    GoodJets.push_back(thisJet);
-        JetNeutralHadronFraction.push_back(jetNeutralHadronEnergyFraction[i]);
-        JetChargedHadronFraction.push_back(jetChargedHadronEnergyFraction[i]);
-	    
-        nSelectedJets++;
+	    nSelectedJets++;
 	    //b-tagging 
 	    if(isCSVL(i)) nBTaggedJetsL++;
 	    if(isCSVM(i)) nBTaggedJetsM++;
@@ -405,15 +393,15 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	
         if ( numJetsAbove80GeV < 2 ) continue; //event fails to have two 80 GeV jets
 	
-	    int jIndex = 0;
-	    for (auto& tmpJet: GoodJets_uncorr)
-	    {
+	int jIndex = 0;
+	for (auto& tmpJet: GoodJets_uncorr)
+	  {
 	    JetPt_uncorr[jIndex] = tmpJet.Pt();
 	    JetE_uncorr[jIndex] = tmpJet.E();
 	    JetPhi_uncorr[jIndex] = tmpJet.Phi();
 	    JetEta_uncorr[jIndex] = tmpJet.Eta();
 	    jIndex=jIndex+1;
-	    }  
+	  }  
 
 	//Find whether there is a matching genJet for the reconstructed jet
 	jIndex = 0;
@@ -445,16 +433,11 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	    subLeadingJetPt = leadingJetPt;
 	    leadingJetPt = JetPt[jIndex];
         leadingJetEta = JetEta[jIndex];
-        LeadJetNeutralHadronFraction = JetNeutralHadronFraction.at(jIndex);
-        LeadJetChargedHadronFraction = JetChargedHadronFraction.at(jIndex);
 	    }
 	    else if (JetPt[jIndex]>subLeadingJetPt && JetPt[jIndex]<14000) 
         {
 	     subLeadingJetPt = JetPt[jIndex];
 	    }
-        auto sortJets = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ? true : false; };
-        std::sort( GoodJets.begin() , GoodJets.end(), sortJets);
-	    
 	    jIndex++;
 	  }
     
@@ -473,8 +456,8 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
     MR    = computeMR(hemispheres[0], hemispheres[1]); 
 	Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
-    deltaPhi = fabs(hemispheres[0].DeltaPhi(hemispheres[1])); 
-
+   
+   
     // Compute HT and MHT
     float MhtX = 0., MhtY = 0.;
     HT = 0.; 
@@ -638,8 +621,7 @@ void RazorAnalyzer::RazorDM(string outFileName, bool combineTrees, bool isData )
 	      razorTree->Fill();
 	    }
 	    else razorBoxes["OneBJet"]->Fill();
-	  } 
-      
+	  }       
     }//end of event loop
     
     cout << "Writing output trees..." << endl;

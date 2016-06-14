@@ -1,6 +1,5 @@
 
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "VetoLeptonEfficiencyControlRegion.h"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.h"
 
@@ -14,7 +13,7 @@ using namespace std;
 //**********************************************************************************
 //Do Event Selection type selection : Dilepton selection
 //**********************************************************************************
-void RazorAnalyzer::VetoLeptonEfficiencyControlRegion( string outputfilename, int option)
+void VetoLeptonEfficiencyControlRegion::Analyze(bool isData, int option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;

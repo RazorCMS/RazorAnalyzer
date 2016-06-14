@@ -1,6 +1,5 @@
 
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorVetoLeptonStudy.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -29,10 +28,11 @@ using namespace std;
 bool RazorVetoLeptonStudy_PassesHadronicRazorBaseline(double MR, double Rsq);
 bool RazorVetoLeptonStudy_PassesLeptonicRazorBaseline(double MR, double Rsq);
 
-void RazorAnalyzer::RazorVetoLeptonStudy( string outputfilename, bool combineTrees)
+void RazorVetoLeptonStudy::Analyze(bool isData, int option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
+    bool combineTrees = (option == 1);
     std::vector<JetCorrectorParameters> correctionParameters;
     correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
     correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));

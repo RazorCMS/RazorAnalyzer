@@ -47,7 +47,7 @@ class RazorAnalyzer: public RazorEvents {
         void EnableAll();
 
         //------ LIST OF ANALYSES ------//
-        virtual void Analyze();
+        virtual void Analyze(bool isData, int option, string outputFileName, string label);
 
         //functions in RazorAuxMuon.cc
 	float GetMuonEffectiveAreaMean(int i, string type );

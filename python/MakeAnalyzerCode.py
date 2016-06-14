@@ -9,7 +9,7 @@ if len(sys.argv) != 2:
 analyzer = sys.argv[1]
 
 inNames = ['include/AnalyzerTemplate.txt','src/RunAnalyzerTemplate.txt']
-outNames = ['include/'+analyzer+'.h','src/Run'+analyzer+'.cc']
+outNames = ['analyzers/'+analyzer+'.h','src/Run'+analyzer+'.cc']
 
 for i in range(len(inNames)):
     with open(inNames[i]) as inF:

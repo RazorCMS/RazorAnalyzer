@@ -1,5 +1,4 @@
-#define ElectronNtupler_cxx
-#include "RazorAnalyzer.h"
+#include "ElectronNtupler.h"
 #include "ElectronTree.h"
 
 //C++ includes
@@ -9,7 +8,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
+void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;

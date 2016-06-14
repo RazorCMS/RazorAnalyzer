@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "Monojet.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -11,10 +10,11 @@
 
 using namespace std;
 
-void RazorAnalyzer::Monojet(string outFileName, bool combineTrees, bool isData )
+void Monojet::Analyze(bool isData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
+  bool combineTrees = true;
   if ( outFileName.empty() )
     {
       cout << "Monojet: Output filename not specified!" << endl << "Using default output name Monojet.root" << endl;

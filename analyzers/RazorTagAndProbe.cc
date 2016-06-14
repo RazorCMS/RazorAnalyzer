@@ -1,6 +1,5 @@
 
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorTagAndProbe.h"
 #include "JetCorrectorParameters.h"
 #include "TagAndProbePair.h"
 
@@ -17,7 +16,7 @@ struct greater_than_pt{
     }
 };
  
-void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool isData)
+void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;    

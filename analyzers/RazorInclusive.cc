@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorInclusive.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -13,9 +12,11 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorInclusive(string outFileName, bool combineTrees, bool isData, bool isFastsimSMS)
+void RazorInclusive::Analyze(bool isData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
+  bool combineTrees = true;
+  bool isFastsimSMS = (option == 1);
   cout << "Initializing..." << endl;
   if(isFastsimSMS) cout << "Will split up the output according to SUSY particle masses" << endl;
   bool printdebug = false;

@@ -1,5 +1,4 @@
-#define TauNtupler_cxx
-#include "RazorAnalyzer.h"
+#include "TauNtupler.h"
 #include "TauTree.h"
 
 //C++ includes
@@ -9,7 +8,8 @@
 
 using namespace std;
 
-void RazorAnalyzer::TauNtupler(string outputfilename , int Option){
+void TauNtupler::Analyze(bool isData, int Option, string outputfilename, string label)
+{
   //initialization: create one TTree for each analysis box 
   std::cout << "Initializing..." << std::endl;
   std::string outfilename = outputfilename;

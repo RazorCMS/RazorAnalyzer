@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorControlRegions.h"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.h"
 #include "JetCorrectionUncertainty.h"
@@ -25,7 +24,7 @@ struct greater_than_pt{
     }
 };
  
-void RazorAnalyzer::RazorControlRegions( string outputfilename, int option, bool isData)
+void RazorControlRegions::Analyze(bool isData, int option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;

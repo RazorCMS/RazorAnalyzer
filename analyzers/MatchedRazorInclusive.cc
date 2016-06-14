@@ -1,7 +1,6 @@
 //MatchedRazorInclusive implements the inclusive razor selection, computes MR from all jets matching in DeltaR with gen-level jets, and partitions the selected events into boxes according to lepton and jet content.
 
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "MatchedRazorInclusive.h"
 
 //C++ includes
 
@@ -10,10 +9,11 @@
 
 using namespace std;
 
-void RazorAnalyzer::MatchedRazorInclusive(string outFileName, bool combineTrees)
+void MatchedRazorInclusive::Analyze(bool isData, int option, string outFileName, string label)
 {
     //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
+    bool combineTrees = false;
     if (outFileName.empty()){
         cout << "MatchedRazorInclusive: Output filename not specified!" << endl << "Using default output name MatchedRazorInclusive.root" << endl;
         outFileName = "MatchedRazorInclusive.root";

@@ -1,6 +1,5 @@
-#define RazorAnalyzer_cxx
 //LOCAL INCLUDES
-#include "RazorAnalyzer.h"
+#include "HggRazor.h"
 #include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
@@ -62,11 +61,12 @@ const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
 //Testing branching and merging
-void RazorAnalyzer::HggRazor(string outFileName, bool combineTrees, int option, bool isData )
+void HggRazor::Analyze(bool isData, int option, string outFileName, string label)
 {
   //*****************************************************************************
   //Settings
   //*****************************************************************************
+  bool combineTrees = true;
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
 

@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorZAnalysis.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -10,10 +9,11 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorZAnalysis(string outFileName, bool combineTrees)
+void RazorZAnalysis::Analyze(bool isData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
+  bool combineTrees = true;
   if (outFileName.empty()){
     cout << "RazorInclusive: Output filename not specified!" << endl << "Using default output name RazorInclusive.root" << endl;
     outFileName = "RazorInclusive.root";

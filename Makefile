@@ -8,7 +8,7 @@ BINDIR = bin
 INCLUDELIST= SimpleTable.h Linkdef.h
 
 ANALYZERS = $(wildcard $(ANADIR)/*.cc)
-ANALYZERSH = $(addprefix $(INCLUDEDIR)/,$(notdir $(ANALYZERS:cc=h)))
+ANALYZERSH = $(ANALYZERS:cc=h)
 ANALYZERSOBJ = $(ANALYZERS:cc=o)
 RUNNERS = $(addprefix $(BINDIR)/Run,$(notdir $(basename $(ANALYZERS))))
 RUNNERSCC = $(addsuffix .cc,$(addprefix $(ANADIR),$(notdir RUNNERS)))
@@ -43,8 +43,8 @@ $(SRCDIR)/RazorAnalyzer.o: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.cc
 $(UTILSOBJ): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) $<
 
-$(ANALYZERSOBJ): $(ANADIR)/%.o: $(ANADIR)/%.cc $(INCLUDEDIR)/%.h
-	$(CXX) -c $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) $<
+$(ANALYZERSOBJ): $(ANADIR)/%.o: $(ANADIR)/%.cc $(ANADIR)/%.h
+	$(CXX) -c $(CXXFLAGS) -I$(INCLUDEDIR) -I$(ANADIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) $<
 
 $(ANALYZERSH): 
 	$(HELPERSCRIPT) $(notdir $(basename $@))
@@ -53,7 +53,7 @@ $(RUNNERSCC):
 	$(HELPERSCRIPT) $(notdir $(basename $($@:Run=)))
 
 $(RUNNERS): $(BINDIR)/Run%: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.o $(UTILSOBJ) $(ANADIR)/%.o $(SRCDIR)/Run%.cc
-	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) 
+	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) -I$(ANADIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) 
 
 NormalizeNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/NormalizeNtuple.cc $(INCLUDEDIR)/rootdict.o
 	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)

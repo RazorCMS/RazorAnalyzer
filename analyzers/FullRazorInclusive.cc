@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "FullRazorInclusive.h"
 #include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
@@ -88,14 +87,14 @@ class RazorVarCollection {
         string tag;
 };
 
-void RazorAnalyzer::FullRazorInclusive(string outFileName, int option, bool isData, bool isFastsimSMS)
+void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, string label)
 {
     /////////////////////////////////
     //Basic setup
     /////////////////////////////////
 
     cout << "Initializing..." << endl;
-    //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+    bool isFastsimSMS = (option == 1 || option == 11);
 
     //Output file
     if (outFileName.empty()){

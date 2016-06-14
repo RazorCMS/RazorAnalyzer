@@ -1,5 +1,4 @@
-#define JetNtupler_cxx
-#include "RazorAnalyzer.h"
+#include "JetNtupler.h"
 #include "JetTree.h"
 #include "JetCorrectorParameters.h"
 
@@ -10,7 +9,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::JetNtupler(string outputfilename , int Option)
+void JetNtupler::Analyze(bool isData, int Option, string outputfilename, string label)
 {
     //initialization: create one TTree for each analysis box 
   char* cmsswPath;

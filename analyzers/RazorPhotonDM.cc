@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "RazorPhotonDM.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -9,14 +8,26 @@
 
 using namespace std;
 
-void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isData )
+#define _phodebug 0
+#define use25nsSelection 1
+
+
+struct PhotonCand
+{
+  TLorentzVector pho;
+  bool passIso;
+  bool passEleVeto;
+};
+
+void RazorPhotonDM::Analyze(bool isData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;
+  bool combineTrees = true;
   if ( outFileName.empty() )
     {
-      cout << "RazorAlphaT: Output filename not specified!" << endl << "Using default output name RazorAlphaT.root" << endl;
-      outFileName = "RazorAlphaT.root";
+      cout << "RazorPhotonDM: Output filename not specified!" << endl << "Using default output name RazorPhotonDM.root" << endl;
+      outFileName = "RazorPhotonDM.root";
     }
   if (combineTrees) cout << "Using combineTrees" << endl;
   else cout << "Using razorBoxes" << endl;
@@ -57,7 +68,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
   
   //one tree to hold all events
-  TTree *razorTree = new TTree("RazorAlphaT", "Info on selected razor DM events");
+  TTree *razorTree = new TTree("RazorPhotonDM", "Info on selected razor DM events");
   
   // tree to compute the cut efficiency
   //TTree *effTree = new TTree("CutEfficiency","Efficiencies of cuts on DM events"); 
@@ -80,6 +91,9 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   
   //tree variables
+  int nPho;
+  float PhoPt[50], PhoEta[50], PhoPhi[50];
+  bool PhoPassIso[50], PhoPassEleVeto[50];
   int nSelectedJets, nBTaggedJetsL, nBTaggedJetsM, nBTaggedJetsT;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
   UInt_t run, lumi, event;
@@ -101,10 +115,17 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
     //set branches on big tree
   if(combineTrees)
     {
-    razorTree->Branch("run",&run,"run/i");
-    razorTree->Branch("lumi",&lumi,"lumi/i");
-    razorTree->Branch("event",&event,"event/i");
-   
+      razorTree->Branch("run",&run,"run/i");
+      razorTree->Branch("lumi",&lumi,"lumi/i");
+      razorTree->Branch("event",&event,"event/i");
+      
+      razorTree->Branch("nPho", &nPho, "nPho/i");
+      razorTree->Branch("PhoPt", PhoPt, "PhoPt[nPho]/F");
+      razorTree->Branch("PhoEta", PhoEta, "PhoEta[nPho]/F");
+      razorTree->Branch("PhoPhi", PhoPhi, "PhoPhi[nPho]/F");
+      razorTree->Branch("PhoPassIso", PhoPassIso, "PhoPassIso[nPho]/O");
+      razorTree->Branch("PhoPassEleVeto", PhoPassEleVeto, "PhoPassEleVeto[nPho]/O");
+      
       razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
       razorTree->Branch("nBTaggedJetsL", &nBTaggedJetsL, "nBTaggedJetsL/I");
       razorTree->Branch("nBTaggedJetsM", &nBTaggedJetsM, "nBTaggedJetsM/I");
@@ -219,7 +240,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
       box.second->Branch("hasMatchingGenJet", hasMatchingGenJet, "hasMatchingGenJet[nSelectedJets]/O");
       box.second->Branch("matchingGenJetIndex", matchingGenJetIndex, "matchingGenJetIndex[nSelectedJets]/I");
       
-      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[120]/O");
+      box.second->Branch("HLTDecision", HLTDecision, "HLTDecision[160]/O");
     }
   }
     
@@ -245,10 +266,11 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
         event = eventNum;
 
         //reset tree variables
+	nPho = 0;
         nSelectedJets = 0;
         nBTaggedJetsL = 0;
-	    nBTaggedJetsM = 0;
-	    nBTaggedJetsT =0;
+	nBTaggedJetsM = 0;
+	nBTaggedJetsT =0;
         nLooseMuons = 0;
         nTightMuons = 0;
         nLooseElectrons = 0;
@@ -258,13 +280,13 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
         dPhiMin   = -1.0;
         MR        = -1.0;
         Rsq       = -1.0;
-	    t1Rsq     = -1.0;
-	    RsqCorr   = -1.0;
-	    t1RsqCorr = -1.0;
-      leadingJetPt = -1;
-      leadingJetEta = 0.0;
-      subLeadingJetPt = -1;
-	  
+	t1Rsq     = -1.0;
+	RsqCorr   = -1.0;
+	t1RsqCorr = -1.0;
+	leadingJetPt = -1;
+	leadingJetEta = 0.0;
+	subLeadingJetPt = -1;
+	
 	for ( int j = 0; j < 30; j++ )
           {
 	    JetE_uncorr[j]   = 0.0;
@@ -276,20 +298,19 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	    JetPhi[j] = 0.0;
 	    JetEta[j] = 0.0;
           }
+	
+	for ( int j = 0; j < 50; j++ )
+	  {
+	    PhoPt[j]  = -999;
+	    PhoEta[j] = -999;
+	    PhoPhi[j] = -999;
+	    PhoPassIso[j] = false;
+	    PhoPassEleVeto[j] = false;
+	  }
+	
         if(combineTrees) box = NONE;
 
-	//DEBUGGING GENJETS OUTPUT
-	/*	if (jentry < 5){
-	  cout << "nGenJets: " << nGenJets << endl;
-	  for (int j = 0; j < nGenJets; j++){
-	    cout << "genJetE: " << genJetE[j] << endl;
-	    cout << "genJetPt: " << genJetPt[j] << endl;
-	    cout << "genJetEta: " << genJetEta[j] << endl;
-	    cout << "genJetPhi: " << genJetPhi[j] << endl;
-	  }
-	}
-	*/
-        //TODO: triggers!
+	//TODO: triggers!
         bool passedLeptonicTrigger = true;
         bool passedHadronicTrigger= true;
         if ( !(passedLeptonicTrigger || passedHadronicTrigger) ) continue; //ensure event passed a trigger
@@ -307,7 +328,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	  if( isTightMuon(i) ) nTightMuons++;
         }
 	
-
+	
 	//------------------------------
 	// Reco+ID Muons
 	//------------------------------
@@ -335,6 +356,85 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	
         
 	//------------------------
+	//Photon ID + Selection
+	//------------------------
+	//photon selection
+	std::vector<TLorentzVector> GoodPhotons;
+	std::vector< PhotonCand > GoodPhoCand;
+	int nPhotonsAbove40GeV = 0;
+	for(int i = 0; i < nPhotons; i++)
+	  {
+	    //ID cuts -- apply isolation after candidate pair selection
+	    if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
+	    if ( !photonPassLooseIDWithoutEleVeto(i,use25nsSelection) ) 
+	      {
+		if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+		continue;
+	      }
+
+	    //only isolated photons
+	    if ( !photonPassLooseIso(i,use25nsSelection) ) continue;
+	    
+	    //Defining Corrected Photon momentum
+	    //float pho_pt = phoPt[i];//nominal pt
+	    float pho_pt_corr = pho_RegressionE[i]/cosh(phoEta[i]);//regression corrected pt
+	    TVector3 vec;
+	    //vec.SetPtEtaPhi( pho_pt, phoEta[i], phoPhi[i] );
+	    vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
+	    
+	    if ( phoPt[i] < 20.0 )
+	      {
+		if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
+		continue;
+	      }
+	    
+	    if( fabs(pho_superClusterEta[i]) > 2.5 )
+	      {
+		//allow photons in the endcap here, but if one of the two leading photons is in the endcap, reject the event
+		if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
+		continue; 
+	      }
+	    
+	    if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
+	      {
+		//Removing gap photons
+		if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
+		continue;
+	      }
+	    //photon passes
+	    if( phoPt[i] > 34.0 ) nPhotonsAbove40GeV++;
+	    //setting up photon 4-momentum with zero mass
+	    TLorentzVector thisPhoton;
+	    thisPhoton.SetVectM( vec, .0 );
+	    GoodPhotons.push_back( thisPhoton );
+	    PhotonCand mypho;
+	    mypho.pho = thisPhoton;
+	    mypho.passIso = photonPassLooseIso(i,use25nsSelection);
+	    mypho.passEleVeto = pho_passEleVeto[i];
+	    GoodPhoCand.push_back( mypho );
+	    nPho++;
+	  }
+	
+	if ( nPho < 1 ) continue;
+	//sort photons
+	auto sortVLV = []( TLorentzVector a, TLorentzVector b ){ return a.Pt() > b.Pt() ?  true : false; };
+	auto sortPhotonCand = [] ( PhotonCand a, PhotonCand b ){ return a.pho.Pt() > b.pho.Pt() ? true : false; };
+	std::sort( GoodPhotons.begin(), GoodPhotons.end(), sortVLV );
+	std::sort( GoodPhoCand.begin(), GoodPhoCand.end(), sortPhotonCand );
+	
+	int iPho = 0;
+	for( auto& tmp : GoodPhoCand )
+	  {
+	    PhoPt[iPho] = tmp.pho.Pt();
+	    PhoEta[iPho] = tmp.pho.Eta();
+	    PhoPhi[iPho] = tmp.pho.Phi();
+	    PhoPassIso[iPho] = tmp.passIso;
+	    PhoPassEleVeto[iPho] = tmp.passEleVeto;
+	    iPho++;
+	  }
+
+	
+	//------------------------
 	//Jet ID + Correction
 	//------------------------
 	vector<TLorentzVector> GoodJets;
@@ -342,7 +442,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
         int numJetsAbove80GeV = 0;
 	for( int i = 0; i < nJets; i++ )
 	  {
-	    if(jetPt[i] < 40.0 || fabs(jetEta[i]) > 3.0) continue; 
+	    if(jetPt[i] < 30.0 || fabs(jetEta[i]) > 3.0) continue; 
 	    
 	    //ADDED LINES
 	    //int level = 2; //3rd bit of jetPileupIdFlag
@@ -380,7 +480,15 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	      }
 	    if ( deltaR > 0.0 && deltaR < 0.3 ) continue; //jet matches a Loose Electron
 	    
-	    if ( thisJet.Pt() > 80.0 ) numJetsAbove80GeV++;
+	    deltaR = -1.0;
+	    for ( auto& pho : GoodPhotons )
+	      {
+		double thisDR = thisJet_uncorr.DeltaR(pho);
+		if(deltaR < 0.0 || thisDR < deltaR) deltaR = thisDR;
+	      }
+	     if ( deltaR > 0.0 && deltaR < 0.5 ) continue; //jet matches a ID photon
+	     
+	     if ( thisJet.Pt() > 80.0 ) numJetsAbove80GeV++;
 	    GoodJets_uncorr.push_back(thisJet_uncorr);
 	    
 	    GoodJets.push_back(thisJet);
@@ -391,7 +499,9 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	    if(isCSVT(i)) nBTaggedJetsT++;
 	  }
 	
-        if ( numJetsAbove80GeV < 2 ) continue; //event fails to have two 80 GeV jets
+        if ( numJetsAbove80GeV < 1 ) continue; //event fails to have two 80 GeV jets
+	//sort Jets
+	std::sort( GoodJets.begin(), GoodJets.end(), sortVLV );
 	
 	int jIndex = 0;
 	for (auto& tmpJet: GoodJets_uncorr)
@@ -402,7 +512,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	    JetEta_uncorr[jIndex] = tmpJet.Eta();
 	    jIndex=jIndex+1;
 	  }  
-
+	
 	//Find whether there is a matching genJet for the reconstructed jet
 	jIndex = 0;
 	for ( auto& tmpJet : GoodJets )
@@ -418,7 +528,7 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	      }
 	    jIndex++;
 	  }
-
+	
 	//output information for corrected jets
 	jIndex = 0;
 	for (auto& tmpJet: GoodJets)
@@ -427,47 +537,41 @@ void RazorAnalyzer::RazorAlphaT(string outFileName, bool combineTrees, bool isDa
 	    JetE[jIndex]   = tmpJet.E();
 	    JetEta[jIndex] = tmpJet.Eta();
 	    JetPhi[jIndex] = tmpJet.Phi();
-	
-        if (JetPt[jIndex]> leadingJetPt && JetPt[jIndex]<14000) 
-        {
-	    subLeadingJetPt = leadingJetPt;
-	    leadingJetPt = JetPt[jIndex];
-        leadingJetEta = JetEta[jIndex];
-	    }
-	    else if (JetPt[jIndex]>subLeadingJetPt && JetPt[jIndex]<14000) 
-        {
-	     subLeadingJetPt = JetPt[jIndex];
-	    }
 	    jIndex++;
 	  }
-    
-    // Compute the variables alpha T and dPhiMin using the selected jets
-    alphaT = GetAlphaT(GoodJets);
-    dPhiMin = GetDPhiMin(GoodJets);  
 
+	//Create Photon+Jet Collection
+	std::vector<TLorentzVector> PhotonsAndJets;
+	for( auto& tmp : GoodPhotons ) PhotonsAndJets.push_back( tmp );
+	for( auto& tmp : GoodJets ) PhotonsAndJets.push_back( tmp );
+	
+	// Compute the variables alpha T and dPhiMin using the selected jets
+	alphaT = GetAlphaT(PhotonsAndJets);
+	dPhiMin = GetDPhiMin(PhotonsAndJets);  
+	
 	//Compute the razor variables using the selected jets and possibly leptons
 	TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
 	TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
 	t1metPt  = metType1Pt;
 	t1metPhi = metType1Phi;
 	
-    vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
-    
-    MR    = computeMR(hemispheres[0], hemispheres[1]); 
+	vector<TLorentzVector> hemispheres = getHemispheres( PhotonsAndJets );
+	
+	MR    = computeMR(hemispheres[0], hemispheres[1]); 
 	Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
 	t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
-   
-   
-    // Compute HT and MHT
-    float MhtX = 0., MhtY = 0.;
-    HT = 0.; 
-    for (auto& obj : GoodJets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+	
 
-      TLorentzVector MyMHT;
-      MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
-
-      MHT = MyMHT.Pt();
-    
+	// Compute HT and MHT
+	float MhtX = 0., MhtY = 0.;
+	HT = 0.; 
+	for (auto& obj : PhotonsAndJets) { HT += obj.Pt(); MhtX += obj.Px(); MhtY += obj.Py(); }
+	
+	TLorentzVector MyMHT;
+	MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
+	
+	MHT = MyMHT.Pt();
+	
 	//MuMu Box
         if ( passedLeptonicTrigger && nLooseMuons > 1 && nLooseElectrons == 0 && nBTaggedJetsL == 0 )
 	  {

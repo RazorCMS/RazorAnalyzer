@@ -1,10 +1,9 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "PhotonNtupler.h"
 #include "PhotonTree.h"
 
 using namespace std;
 
-void RazorAnalyzer::PhotonNtupler(string outputFilename , int Option)
+void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, string label)
 {
     cout << "Initializing..." << endl;
     string outfilename = outputFilename;

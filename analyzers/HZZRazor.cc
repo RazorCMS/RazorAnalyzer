@@ -1,5 +1,4 @@
-#define RazorAnalyzer_cxx
-#include "RazorAnalyzer.h"
+#include "HZZRazor.h"
 #include "JetCorrectorParameters.h"
 
 //C++ includes
@@ -12,7 +11,7 @@
 
 using namespace std;
 
-void RazorAnalyzer::HZZRazor(string outFileName, bool IsData)
+void HZZRazor::Analyze(bool IsData, int option, string outFileName, string label)
 {
   //initialization: create one TTree for each analysis box 
   cout << "Initializing..." << endl;

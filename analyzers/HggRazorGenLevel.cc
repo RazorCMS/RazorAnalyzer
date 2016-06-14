@@ -1,6 +1,5 @@
-#define RazorAnalyzer_cxx
 //LOCAL INCLUDES
-#include "RazorAnalyzer.h"
+#include "HggRazorGenLevel.h"
 #include "JetCorrectorParameters.h"
 //C++ INCLUDES
 #include <map>
@@ -52,11 +51,12 @@ const double EB_R = 129.0;
 const double EE_Z = 317.0;
 
 //Testing branching and merging
-void RazorAnalyzer::HggRazorGenLevel(string outFileName, bool combineTrees, int option, bool isData )
+void HggRazorGenLevel::Analyze(bool isData, int option, string outFileName, string label)
 {
   //*****************************************************************************
   //Settings
   //*****************************************************************************
+  bool combineTrees = true;
   bool use25nsSelection = false;
   if (option == 1) use25nsSelection = true;
 
