@@ -1,10 +1,10 @@
 include ../Makefile.inc
 
 INCLUDEDIR= src
-SHARED = libRazorRun2.so
+SHARED = lib/libRazorRun2.so
 INCLUDELIST= RooRazor2DTail_SYS.h RooRazor3DBinPdf.h RooRazor3DBinErrorPdf.h RooRazor3DBinNumericRsqTurnOffPdf.h RooRazor3DBinNumericMRSlopePdf.h RooRazor3DBinMRSlopePdf.h RooRazor3DBinMRSlopeErrorPdf.h MLMixedSample.h RooBTagMult.h RooSigmoid.h Linkdef.h
 
-.PHONY: $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/RooRazor3DBinPdf.o $(INCLUDEDIR)/RooRazor3DBinErrorPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopeErrorPdf.o $(INCLUDEDIR)/RooBTagMult.o $(INCLUDEDIR)/RooSigmoid.o $(INCLUDEDIR)/MLMixedSample.o
+.PHONY: clean all
 
 all: $(SHARED) 
 
@@ -43,10 +43,8 @@ $(INCLUDEDIR)/MLMixedSample.o:
 
 $(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/RooRazor3DBinPdf.o $(INCLUDEDIR)/RooRazor3DBinErrorPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericRsqTurnOffPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopeErrorPdf.o $(INCLUDEDIR)/RooBTagMult.o $(INCLUDEDIR)/RooSigmoid.o $(INCLUDEDIR)/MLMixedSample.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^
-	mv $(SHARED) lib/
 
 clean:
 	@rm -f $(INCLUDEDIR)/*.o
 	@rm -f $(INCLUDEDIR)/rootdict.*
 	@rm -f $(SHARED) 
-	@rm -f lib/$(SHARED)

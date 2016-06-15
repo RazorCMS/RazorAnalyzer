@@ -1,4 +1,3 @@
-RazorRun
 eos
 plots*
 NormalizeNtuple
@@ -26,3 +25,6 @@ test.*
 *.tex
 *.gif
 *.png
+bin/*
+src/Run*.cc
+analyzers/*.h
