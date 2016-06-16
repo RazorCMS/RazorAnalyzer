@@ -92,11 +92,11 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	  eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - 0.5*ele_chargedPileupMiniIso[i]);
 
 	  UInt_t tmpTriggerBit = 0;
-	  if (matchElectronHLTFilters(i, "Ele27Loose")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
-	  if (matchElectronHLTFilters(i, "Ele27Tight")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
-	  if (matchElectronHLTFilters(i, "Ele32Tight")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
-	  if (matchElectronHLTFilters(i, "Ele105")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele105;
-	  if (matchElectronHLTFilters(i, "Ele115")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele115;
+	  if (matchElectronHLTFilters(i, "Ele27Loose", "2016")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
+	  if (matchElectronHLTFilters(i, "Ele27Tight", "2016")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
+	  if (matchElectronHLTFilters(i, "Ele32Tight", "2016")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
+	  if (matchElectronHLTFilters(i, "Ele105", "2016")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele105;
+	  if (matchElectronHLTFilters(i, "Ele115", "2016")) tmpTriggerBit |= ElectronTree::kEleTrigger_Ele115;
 	  eleTree->fEleTriggerBit = tmpTriggerBit;
 
 	  //Match to Gen particle
@@ -281,11 +281,11 @@ void RazorAnalyzer::ElectronNtupler(string outputfilename , int Option)
 	    eleTree->fMiniIso = ele_chargedMiniIso[matchedIndex] + ele_photonAndNeutralHadronMiniIso[matchedIndex];
 	    eleTree->fMiniIsoDBCorr = ele_chargedMiniIso[matchedIndex] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[matchedIndex] - 0.5*ele_chargedPileupMiniIso[matchedIndex]);
 	    eleTree->fEleTriggerBit = 0;
-	    if (matchElectronHLTFilters(matchedIndex, "Ele27Loose")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
-	    if (matchElectronHLTFilters(matchedIndex, "Ele27Tight")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
-	    if (matchElectronHLTFilters(matchedIndex, "Ele32Tight")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
-	    if (matchElectronHLTFilters(matchedIndex, "Ele105")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105;
-	    if (matchElectronHLTFilters(matchedIndex, "Ele115")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele27Loose", "2016")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Loose;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele27Tight", "2016")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele27Tight;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele32Tight", "2016")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele32Tight;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele105", "2016")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele105;
+	    if (matchElectronHLTFilters(matchedIndex, "Ele115", "2016")) eleTree->fEleTriggerBit |= ElectronTree::kEleTrigger_Ele115;
 
 
 	  } else {
