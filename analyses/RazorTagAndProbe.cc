@@ -118,23 +118,7 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
     //TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
 
     bool printSyncDebug = false;
-    std::vector<JetCorrectorParameters> correctionParameters;
-
-    if (isData) {
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));    
-    } else {
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L1FastJet_AK4PFchs.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L2Relative_AK4PFchs.txt"));
-      correctionParameters.push_back(JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_2_0/src/RazorAnalyzer/data/PHYS14_V2_MC_L3Absolute_AK4PFchs.txt"));  
-    }
-    
-    //FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    // JetCorrectorParameters *JetResolutionParameters = 
-    //   new JetCorrectorParameters("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_5_3_26/src/RazorAnalyzer/data/JetResolutionInputAK5PF.txt");
-    //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
-
+ 
     //*************************************************************************
     //Set up Output File
     //*************************************************************************
@@ -385,33 +369,34 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
 	      pass = isEGammaPOGTightElectron(indexProbe);
 	    }
 	    if (numeratorType == 50) {	    
-	      pass = matchElectronHLTFilters(indexProbe, "SingleElectron");
+	      pass = matchElectronHLTFilters(indexProbe, "SingleElectron", "2016");
 	    }
 	    if (numeratorType == 51) {	     
-	      pass = matchElectronHLTFilters(indexProbe, "Ele23Loose");
+	      pass = matchElectronHLTFilters(indexProbe, "Ele23Loose", "2016");
 	    }
 	    if (numeratorType == 52) {	     
-	      pass = matchElectronHLTFilters(indexProbe, "Ele27Loose");
+	      pass = matchElectronHLTFilters(indexProbe, "Ele27Loose", "2016");
 	    }
 	    if (numeratorType == 53) {	     
-	      pass = matchElectronHLTFilters(indexProbe, "Ele27Tight");
+	      pass = matchElectronHLTFilters(indexProbe, "Ele27Tight", "2016");
 	    }
 	    if (numeratorType == 54) {	     
-	      pass = matchElectronHLTFilters(indexProbe, "Ele32Tight");
+	      pass = matchElectronHLTFilters(indexProbe, "Ele32Tight", "2016");
 	    }
 	    if (numeratorType == 60) {	     
-	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele23Loose") ||
-			   matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
-			   matchElectronHLTFilters(indexProbe, "Ele27Tight") ||
-			   matchElectronHLTFilters(indexProbe, "Ele32Tight"));
+	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele23Loose", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Loose", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Tight", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele32Tight", "2016"));
 	    }
 	    if (numeratorType == 61) {	     
-	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele23Loose") ||
-			   matchElectronHLTFilters(indexProbe, "Ele27Loose") ||
-			   matchElectronHLTFilters(indexProbe, "Ele27Tight") ||
-			   matchElectronHLTFilters(indexProbe, "Ele32Tight") || 
-			   matchElectronHLTFilters(indexProbe, "Ele105") ||
-			   matchElectronHLTFilters(indexProbe, "Ele115") 
+	      pass = bool( matchElectronHLTFilters(indexProbe, "Ele23Loose", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Loose", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele27Tight", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele32Loose", "2016") || 
+			   matchElectronHLTFilters(indexProbe, "Ele32Tight", "2016") || 
+			   matchElectronHLTFilters(indexProbe, "Ele105", "2016") ||
+			   matchElectronHLTFilters(indexProbe, "Ele115", "2016") 
 			   );
 	    }
 	    TPPair->pass = pass;
@@ -607,12 +592,12 @@ void RazorAnalyzer::RazorTagAndProbe( string outputfilename, int option, bool is
       //Photons
       //*********************************************************
       if (objectTypeOption == 3) {
-	
+	std::cout << "event: \n";
 	//*******************************************************
 	//Loop over Tag electrons
 	//*******************************************************
 	for(int indexTag = 0; indexTag < nElectrons; indexTag++){
-
+	  std::cout << "Tag : " << elePt[indexTag] << " " << eleEta[indexTag] << "\n";
 	  if(elePt[indexTag] < 30) continue;
 	  if(fabs(eleEta[indexTag]) > 2.5) continue;
 	  
