@@ -14,12 +14,10 @@ import CheckSignalContamination
 from framework import Config
 
 SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-#NOPATHOLOGIES_SIGNAL_DIR = "Signals_WithPileupWeights"
-NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
-NOPILEUPWEIGHTS_SIGNAL_DIR = "Signals_NoPileupWeights"
-#NOPILEUPWEIGHTS_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
-PRIVATEFULLSIM_SIGNAL_DIR = "Signals_PrivateFullsim"
-#PRIVATEFULLSIM_SIGNAL_DIR = "root://eoscms:///store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combinedFullSim"
+NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2015/V1p24_WithFastsimPathologyFilter20160607/combined"
+#NOPATHOLOGIES_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined_old"
+NOPILEUPWEIGHTS_SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combined"
+PRIVATEFULLSIM_SIGNAL_DIR = "root://eoscms:///store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_RemovedPathologicalJets20160414/combinedFullSim"
 BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 LIMIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
 
