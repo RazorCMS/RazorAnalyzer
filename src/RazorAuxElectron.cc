@@ -713,7 +713,112 @@ bool RazorAnalyzer::matchProbeSCHLTFilters(int i){
   return match;
 }
 
-bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter){
+bool RazorAnalyzer::matchElectronHLTFilters(int i, string HLTFilter, string analysisTag) {
+  if (analysisTag == "2015") return matchElectronHLTFilters2015(i, HLTFilter);
+  else if (analysisTag == "2016") return matchElectronHLTFilters2016(i, HLTFilter);
+  else {
+    cout << "Analysis Tag " << analysisTag << " is not supported. Returning false.\n";
+    return false;
+  }
+}
+
+
+bool RazorAnalyzer::matchElectronHLTFilters2016(int i, string HLTFilter){
+  bool match = false;
+
+  if (HLTFilter == "SingleElectron") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][1] || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
+	//MC filters
+	|| ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele23Loose") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][1] 	
+	 ) {
+      match = true;
+    }
+  }
+  if (HLTFilter == "Ele27Loose") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][5] || ele_passHLTFilter[i][7]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele27Tight") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][6]  || ele_passHLTFilter[i][8]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele32Loose") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][12] 
+	 ) {
+      match = true;
+    }
+  }
+
+  if (HLTFilter == "Ele32Tight") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][13] 
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Ele105") {
+    if ( ele_passHLTFilter[i][17] ) match = true;
+  }
+  if (HLTFilter == "Ele115") {
+    if ( ele_passHLTFilter[i][19] ) match = true;
+  }
+   
+  if (HLTFilter == "DoubleElectronLeg1") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][24] || ele_passHLTFilter[i][28]
+	 ) {
+      match = true;
+    }
+  }
+
+  if (HLTFilter == "DoubleElectronLeg2") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][25] || ele_passHLTFilter[i][29]
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "DoubleElectronLeg2DZ") {
+    if ( 
+	//Data filters
+	ele_passHLTFilter[i][26] || ele_passHLTFilter[i][30]
+	 ) {
+      match = true;
+    }
+  }
+   
+  return match;
+}
+
+bool RazorAnalyzer::matchElectronHLTFilters2015(int i, string HLTFilter){
   bool match = false;
 
   if (HLTFilter == "SingleElectron") {
