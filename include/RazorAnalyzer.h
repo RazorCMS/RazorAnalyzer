@@ -114,7 +114,9 @@ class RazorAnalyzer: public RazorEvents {
 	bool passHZZElectronIso(int i);
 	bool passHZZElectronPreselection(int i);
 	bool isHZZElectron(int i);
-	bool matchElectronHLTFilters( int i, string HLTFilter);
+	bool matchElectronHLTFilters( int i, string HLTFilter, string analysisTag);
+	bool matchElectronHLTFilters2015( int i, string HLTFilter);
+	bool matchElectronHLTFilters2016( int i, string HLTFilter);
 	bool matchProbeElectronHLTFilters( int i);
 	bool matchProbeSCHLTFilters( int i);
 	bool matchTagElectronHLTFilters( int i);
