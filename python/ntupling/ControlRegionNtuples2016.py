@@ -126,3 +126,23 @@ SAMPLES['Photon'] = {
                 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
             ],
         }
+
+DATA = {}
+DATA['1L'] = {
+        "SingleMuon":[
+                'SingleMuon_2016B_PRv2',
+            ],
+        "SingleElectron":[
+                'SingleElectron_2016B_PRv2',
+            ]
+        }
+DATA['1LInv'] = DATA['1L'].copy()
+DATA['2L'] = DATA['1L'].copy()
+DATA['2LInv'] = DATA['1L'].copy()
+DATA['VetoL'] = DATA['1L'].copy()
+DATA['VetoTau'] = DATA['1L'].copy()
+DATA['Photon'] = {
+        "SinglePhoton":[
+                'SinglePhoton_2016B_PRv2',
+                ]
+        }

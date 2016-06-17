@@ -499,8 +499,8 @@ if __name__ == '__main__':
             rebinXsecUL[clsType] = rt.swissCrossRebin(rebinXsecUL[clsType],"NE")
 
         # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
-        #xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        #xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
+        xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # fix axes
         xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))

@@ -55,6 +55,11 @@ GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                        
 GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         2300
 GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          277.4
 GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           93.38
+GJets_DR-0p4_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 22760
+GJets_DR-0p4_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 4703
+GJets_DR-0p4_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 836.4
+GJets_DR-0p4_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 83.51
+GJets_DR-0p4_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 24.21
 WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                              61526.7
 WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    1345*1.21
 WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                     359.7*1.21
@@ -170,6 +175,8 @@ GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8         
 QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80_TuneCUETP8M1_13TeV_Pythia8       162060000*0.0016
 QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8       108000000*0.000225
 QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8       54120000*0.002
+WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                                     405.271
+WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.2147
 
 #SUSY SMSs (PHYS14)
 SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.325388

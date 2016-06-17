@@ -3,22 +3,26 @@ import math
 import os
 import glob
 import argparse
-from subprocess import call
+from subprocess import call, check_output
 
-from ControlRegionNtuples2016 import SAMPLES, SKIMS, DIRS, OPTIONS, VERSION
+from ControlRegionNtuples2016 import SAMPLES, SKIMS, DIRS, OPTIONS, VERSION, DATA
 
-def submitJobs(analyzer,tag):
-    # hard-coded parameters
+def submitJobs(analyzer,tag,isData=False):
+    # parameters
+    samples = SAMPLES
     queue = '8nh'
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     listdir = 'lists/Run2/razorNtupler'+VERSION+'/MC'
+    if isData:
+        listdir = listdir.replace('/MC','/data')
+        samples = DATA
     filesperjob = 10
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
-    for process in SAMPLES[tag]:
-        for sample in SAMPLES[tag][process]:
+    for process in samples[tag]:
+        for sample in samples[tag][process]:
             inlist = os.path.join(basedir,listdir,sample+'.cern.txt')
             if not os.path.isfile(inlist):
                 print "Warning: list file not found for",sample
@@ -29,19 +33,22 @@ def submitJobs(analyzer,tag):
             #submit
             for ijob in range(maxjob+1):
                 outfile = '%s_%s.Job%dof%d.root'%(analyzer,sample,ijob,maxjob)
-                if not os.path.isfile( os.path.join(DIRS[tag],outfile) ):
+                if not os.path.isfile( os.path.join(DIRS[tag],'jobs',outfile) ):
                     print "Job %d of %d"%(ijob,maxjob)
                     logfile = os.path.join(basedir,'output','%s_%s_%d.out'%(analyzer,sample,ijob))
                     jobname = '_'.join([analyzer,sample,str(ijob)])
-                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,str(0),
+                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,str(int(isData)),
                         str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
                         DIRS[tag].replace('eos/cms','')+'/jobs', os.environ['CMSSW_BASE']+'/src']
                     print ' '.join(cmd)
                     call(cmd)
 
-def haddFiles(analyzer,tag):
-    for process in SAMPLES[tag]:
-        for sample in SAMPLES[tag][process]:
+def haddFiles(analyzer,tag,isData=False):
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    for process in samples[tag]:
+        for sample in samples[tag][process]:
             print "Sample:",sample
             fname = DIRS[tag]+'/'+analyzer+'_'+sample+'.root'
             query = DIRS[tag]+'/jobs/'+analyzer+'_'+sample+'.Job*.root'
@@ -84,33 +91,88 @@ def haddNormalizedFiles(analyzer,tag):
         else:
             print "Skipping process",process,"because no input files were found!"
 
+def removeDuplicates(analyzer,tag):
+    #first hadd all datasets together
+    haddList = []
+    for process in DATA[tag]:
+        print "Dataset:",process
+        for sample in DATA[tag][process]:
+            fname = DIRS[tag]+'/'+analyzer+'_'+sample+'.root'
+            print fname,
+            if os.path.isfile( fname ):
+                print "found!"
+                haddList.append( fname )
+            else:
+                print "not found..."
+    outName = DIRS[tag]+'/'+analyzer+'_Data.root'
+    if len(haddList) > 0:
+        call(['hadd',outName]+haddList)
+    else:
+        print "No input files were found!"
+        return
+    #now remove duplicates
+    outNameNoDuplicates = outName.replace('_Data','_Data_NoDuplicates')
+    dupMacro = 'macros/RemoveDuplicateEvents.C'
+    macroCall = "root -l '%s++(\"%s\",\"%s\")'"%(dupMacro,outName,outNameNoDuplicates)
+    print macroCall
+    call(macroCall,shell=True)
+
+def goodLumi(analyzer,tag):
+    #get location of good lumi script and python file containing JSON link
+    script = check_output(['which', 'FWLiteGoodLumi'])
+    pythonFile = os.path.join(os.environ['CMSSW_BASE'],'src','RazorCommon','Tools','python','loadJson.py')
+    #call script
+    inName = DIRS[tag]+'/'+analyzer+'_Data_NoDuplicates.root'
+    outName = inName.replace('.root','_GoodLumiGolden.root')
+    call(['FWLiteGoodLumi',pythonFile,inName,outName])
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('tag',help='1L, 2L, ...')
     parser.add_argument('--analyzer',default='RazorControlRegions',help='Analyzer name')
+    parser.add_argument('--data',action='store_true',help='Run on data (MC otherwise)')
     parser.add_argument('--submit',action='store_true',help='Submit batch jobs')
     parser.add_argument('--hadd',action='store_true',help='Combine ntuple files')
     parser.add_argument('--normalize',action='store_true',help='Normalize ntuple files')
     parser.add_argument('--hadd-final',dest='haddFinal',action='store_true',help='Combine normalized ntuple files')
+    parser.add_argument('--remove-duplicates',dest='removeDuplicates',action='store_true',help='Remove duplicates')
+    parser.add_argument('--good-lumi',dest='goodLumi',action='store_true',help='Apply good lumi selection')
     args = parser.parse_args()
     analyzer = args.analyzer
     tag = args.tag
+    isData = args.data
 
     print "Analyzer:",analyzer
     print "Tag:",tag
 
     if args.submit:
         print "Submit batch jobs..."
-        submitJobs(analyzer,tag)
+        submitJobs(analyzer,tag,isData)
 
     if args.hadd:
         print "Combine ntuples..."
-        haddFiles(analyzer,tag)
+        haddFiles(analyzer,tag,isData)
 
     if args.normalize:
         print "Normalize ntuples..."
+        if isData:
+            sys.exit("Error: options --data and --normalize do not make sense together!")
         normalizeFiles(analyzer,tag)
 
     if args.haddFinal:
         print "Combine normalized files..."
+        if isData:
+            sys.exit("Error: options --data and --hadd-final do not make sense together!")
         haddNormalizedFiles(analyzer,tag)
+
+    if args.removeDuplicates:
+        print "Remove duplicate events..."
+        if not isData:
+            print "--data was not specified, but I assume you want to use data."
+        removeDuplicates(analyzer,tag)
+
+    if args.goodLumi:
+        print "Apply good lumi selection..."
+        if not isData:
+            print "--data was not specified, but I assume you want to use data."
+        goodLumi(analyzer,tag)
