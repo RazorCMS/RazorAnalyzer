@@ -31,7 +31,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     cout << "IsData = " << isData << "\n";
 
     // initialize helper
-    RazorHelper helper("Razor2015", isData, false);
+    RazorHelper helper("Razor2016_80X", isData, false);
 
     // retrieve JEC tools
     FactorizedJetCorrector *JetCorrector = helper.getJetCorrector();

@@ -55,6 +55,11 @@ GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                        
 GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         2300
 GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          277.4
 GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           93.38
+GJets_DR-0p4_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 22760
+GJets_DR-0p4_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 4703
+GJets_DR-0p4_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 836.4
+GJets_DR-0p4_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 83.51
+GJets_DR-0p4_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 24.21
 WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                              61526.7
 WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    1345*1.21
 WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                     359.7*1.21
@@ -79,6 +84,10 @@ ZJetsToNuNu_HT-100To200_13TeV-madgraph                                          
 ZJetsToNuNu_HT-200To400_13TeV-madgraph                                             78.36*1.23
 ZJetsToNuNu_HT-400To600_13TeV-madgraph                                             10.94*1.23
 ZJetsToNuNu_HT-600ToInf_13TeV-madgraph                                              4.20*1.23
+ZJetsToNuNu_HT-600To800_13TeV-madgraph                                           0.853    
+ZJetsToNuNu_HT-800To1200_13TeV-madgraph                                          0.3942 
+ZJetsToNuNu_HT-1200To2500_13TeV-madgraph                                         0.0974
+ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph                                          0.0002308
 DYJetsToNuNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                             3811.0
 TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           1.61
 TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          0.663
@@ -96,6 +105,7 @@ ST_t-channel_4f_scaledown_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1      
 ST_t-channel_4f_scaleup_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1           70.69
 ST_t-channel_5f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1                   70.69
 ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1             80.95*0.324
+ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1 80.95
 ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1                103.02*0.428
 ST_tW_antitop_5f_DS_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1              35.6
 ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1                 35.6
@@ -120,6 +130,7 @@ ZZTo4L_13TeV_powheg_pythia8                                                     
 ZZTo4Q_13TeV_amcatnloFXFX_madspin_pythia8                                           6.842
 ZZ_TuneCUETP8M1_13TeV-pythia8                                                      16.523
 WWJJToLNuQQ_LT_13TeV-madgraph-pythia8                                              25.973
+WWW_4F_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                          0.2086
 WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.05565
 WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.1651
 ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.01398
@@ -164,6 +175,8 @@ GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8         
 QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80_TuneCUETP8M1_13TeV_Pythia8       162060000*0.0016
 QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8       108000000*0.000225
 QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8       54120000*0.002
+WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                                     405.271
+WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8                                             0.2147
 
 #SUSY SMSs (PHYS14)
 SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8             0.325388
