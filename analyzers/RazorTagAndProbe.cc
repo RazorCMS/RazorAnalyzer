@@ -564,9 +564,15 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
 	    if (numeratorType == 60) {
 	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu20") 
 			  || matchMuonHLTFilters(indexProbe, "IsoTkMu20") 
+			  || matchMuonHLTFilters(indexProbe, "IsoMu22") 
+			  || matchMuonHLTFilters(indexProbe, "IsoTkMu22") 
+			  || matchMuonHLTFilters(indexProbe, "IsoMu24") 
+			  || matchMuonHLTFilters(indexProbe, "IsoTkMu24") 
 			  || matchMuonHLTFilters(indexProbe, "IsoMu27") 
 			  || matchMuonHLTFilters(indexProbe, "IsoTkMu27") 
-			  || matchMuonHLTFilters(indexProbe, "Mu50"));
+			  || matchMuonHLTFilters(indexProbe, "Mu50")
+			  || matchMuonHLTFilters(indexProbe, "TkMu50")
+			  );
 	    }
 	    if (numeratorType == 61) {
 	      pass = bool(matchMuonHLTFilters(indexProbe, "IsoMu20") 
@@ -591,12 +597,12 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
       //Photons
       //*********************************************************
       if (objectTypeOption == 3) {
-	std::cout << "event: \n";
+	//std::cout << "event: \n";
 	//*******************************************************
 	//Loop over Tag electrons
 	//*******************************************************
 	for(int indexTag = 0; indexTag < nElectrons; indexTag++){
-	  std::cout << "Tag : " << elePt[indexTag] << " " << eleEta[indexTag] << "\n";
+	  //std::cout << "Tag : " << elePt[indexTag] << " " << eleEta[indexTag] << "\n";
 	  if(elePt[indexTag] < 30) continue;
 	  if(fabs(eleEta[indexTag]) > 2.5) continue;
 	  
