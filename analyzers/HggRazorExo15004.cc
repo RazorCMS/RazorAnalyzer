@@ -114,7 +114,7 @@ void HggRazorExo15004::Analyze(bool isData, int option, string outFileName, stri
   bool doPhotonScaleCorrection = true;
 
   bool doEleVeto = true;
-  if (option == 1) doEleVeto = false;
+  if (option == 1 || option == 11) doEleVeto = false;
 
   std::cout << "[INFO]: option = " << option << std::endl;
   std::cout << "[INFO]: doEleVeto --> " << doEleVeto << std::endl;
@@ -139,14 +139,20 @@ void HggRazorExo15004::Analyze(bool isData, int option, string outFileName, stri
   //Photon Energy Scale and Resolution Corrections
    std::string photonCorrectionPath = "";
   if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
+ 
+  EnergyScaleCorrection_class *photonCorrector = 0;
+  if (option == 0 || option == 1) {
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
+  } else if (option == 10 || option == 11) {
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016B", photonCorrectionPath.c_str()));
+  }
 
-  EnergyScaleCorrection_class photonCorrector(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
   if(!isData) {
-    photonCorrector.doScale = false; 
-    photonCorrector.doSmearings = true;
+    photonCorrector->doScale = false; 
+    photonCorrector->doSmearings = true;
   } else {
-    photonCorrector.doScale = true; 
-    photonCorrector.doSmearings = false;
+    photonCorrector->doScale = true; 
+    photonCorrector->doSmearings = false;
   }
   
   //MVA Vertex Selection
@@ -903,8 +909,8 @@ void HggRazorExo15004::Analyze(bool isData, int option, string outFileName, stri
     //std::cout << "nphotons: " << nPhotons << std::endl;
     for( int i = 0; i < nPhotons; i++ ) {
 
-      double scale = photonCorrector.ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
-      double smear = photonCorrector.getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+      double scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+      double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
  
       //Require Loose Photon ID
       if ( _phodebug ) {
@@ -1893,5 +1899,7 @@ void HggRazorExo15004::Analyze(bool isData, int option, string outFileName, stri
   SumPdfWeights->Write();
   puhisto->Write();
   outFile->Close();
-  
+
+  delete photonCorrector;
+
 }
