@@ -150,7 +150,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "0.6 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -445,25 +445,24 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 	if (isData || (option != "Inclusive" && processLabels[i] == "QCD") ) {	  
 	  double dataWeight = 1;
-	  if (events->pho1.Pt() > 185) {
+	  if (events->pho1.Pt() > 185) { //Photon165
 	    dataWeight = 1;
-	    if (events->HLTDecision[93] && events->pho1HLTFilter[22]) passTrigger = true;
-	  }
-	  else if (events->pho1.Pt() > 135) {
-	    dataWeight = events->HLTPrescale[92];
-	    if (events->HLTDecision[92] && events->pho1HLTFilter[23]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 105) {
-	    dataWeight = events->HLTPrescale[91];
-	    if (events->HLTDecision[91] && events->pho1HLTFilter[24]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 85) {
-	    dataWeight = events->HLTPrescale[90];
-	    if (events->HLTDecision[90] && events->pho1HLTFilter[25]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 58){
-	    dataWeight = events->HLTPrescale[89];
-	    if (events->HLTDecision[89] && events->pho1HLTFilter[26]) passTrigger = true;
-	  } else {
-	    dataWeight = events->HLTPrescale[88];
-	    if (events->HLTDecision[88] && events->pho1HLTFilter[27]) passTrigger = true;
+	    if (events->HLTDecision[112] && events->pho1HLTFilter[27]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 135) { //Photon120
+	    dataWeight = events->HLTPrescale[111] * 0.2;
+	    if (events->HLTDecision[111] && events->pho1HLTFilter[26]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 105) { //Photon90
+	    dataWeight = events->HLTPrescale[110] * 0.2 * 0.85;
+	    if (events->HLTDecision[110] && events->pho1HLTFilter[25]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 85) { //Photon75
+	    dataWeight = events->HLTPrescale[109] * 0.2 * 0.85;
+	    if (events->HLTDecision[109] && events->pho1HLTFilter[24]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 58){ //Photon50
+	    dataWeight = events->HLTPrescale[108] * 0.2 * 0.85;
+	    if (events->HLTDecision[108] && events->pho1HLTFilter[23]) passTrigger = true;
+	  } else { //Photon36
+	    dataWeight = events->HLTPrescale[107] * 0.2 * 0.85 * 6000;
+	    if (events->HLTDecision[107] && events->pho1HLTFilter[22]) passTrigger = true;
 	  } 
 	  
 	  if (isData) {
@@ -490,7 +489,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  if (! (events->pho1_sigmaietaieta < 0.0271)) continue;
 	}
 	if (! (events->pho1_chargediso < 2.5)) continue;
-	if (! (events->pho1.Pt() > 50)) continue;
+	if (! (events->pho1.Pt() > 58)) continue;
   
 	//By default it's EG Loose selection + chargedIso < 2.5 GeV.
 	//We can tighten the cuts if we wish...
@@ -530,7 +529,6 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	 }
 
 
-
 	//******************************
 	//Fill histograms
 	//******************************		
@@ -558,34 +556,34 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  //************************************************************
 	  //Histograms to compute scale factors for each trigger path
 	  //************************************************************		
-	  if (events->HLTDecision[88]) {
-	    PhotonPt_HLTPho36->Fill( events->pho1.Pt(), events->HLTPrescale[88]);
-	    if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho36_42To50 += events->HLTPrescale[88];
-	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho36_58To70 += events->HLTPrescale[88];	    
+	  if (events->HLTDecision[107]) {
+	    PhotonPt_HLTPho36->Fill( events->pho1.Pt(), events->HLTPrescale[107] * 0.2 * 0.85 * 6000);
+	    if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho36_42To50 += events->HLTPrescale[107] * 0.2 * 0.85 * 6000;
+	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho36_58To70 += events->HLTPrescale[107] * 0.2 * 0.85 * 6000;	    
 	  }
-	  if (events->HLTDecision[89]) {
-	    PhotonPt_HLTPho50->Fill( events->pho1.Pt(), events->HLTPrescale[89]);    
-	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho50_58To70 += events->HLTPrescale[89];	    
-	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho50_85To95 += events->HLTPrescale[89];	    
+	  if (events->HLTDecision[108]) {
+	    PhotonPt_HLTPho50->Fill( events->pho1.Pt(), events->HLTPrescale[108] * 0.2 * 0.85);    
+	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho50_58To70 += events->HLTPrescale[108] * 0.2 * 0.85;	    
+	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho50_85To95 += events->HLTPrescale[108] * 0.2 * 0.85;	    
 	  }
-	  if (events->HLTDecision[90]) {
-	    PhotonPt_HLTPho75->Fill( events->pho1.Pt(), events->HLTPrescale[90]);
-	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho75_85To95 += events->HLTPrescale[90];	    
-	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho75_105To115 += events->HLTPrescale[90];	    
+	  if (events->HLTDecision[109]) {
+	    PhotonPt_HLTPho75->Fill( events->pho1.Pt(), events->HLTPrescale[109] * 0.2 * 0.85);
+	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho75_85To95 += events->HLTPrescale[109] * 0.2 * 0.85;	    
+	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho75_105To115 += events->HLTPrescale[109] * 0.2 * 0.85;	    
 	  }
-	  if (events->HLTDecision[91]) {
-	    PhotonPt_HLTPho90->Fill( events->pho1.Pt(), events->HLTPrescale[91]);
-	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho90_105To115 += events->HLTPrescale[91];	    
-	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho90_135To145 += events->HLTPrescale[91];	    
+	  if (events->HLTDecision[110]) {
+	    PhotonPt_HLTPho90->Fill( events->pho1.Pt(), events->HLTPrescale[110] * 0.2 * 0.85);
+	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho90_105To115 += events->HLTPrescale[110] * 0.2 * 0.85;	    
+	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho90_135To145 += events->HLTPrescale[110] * 0.2 * 0.85;	    
 	  }
-	  if (events->HLTDecision[92]) {
-	    PhotonPt_HLTPho120->Fill( events->pho1.Pt(), events->HLTPrescale[92]);
-	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho120_135To145 += events->HLTPrescale[92];	    
-	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho120_185To200 += events->HLTPrescale[92];	    
+	  if (events->HLTDecision[111]) {
+	    PhotonPt_HLTPho120->Fill( events->pho1.Pt(), events->HLTPrescale[111] * 0.2);
+	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho120_135To145 += events->HLTPrescale[111] * 0.2;	    
+	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho120_185To200 += events->HLTPrescale[111] * 0.2;	    
 	  }
-	  if (events->HLTDecision[93]) {
-	    PhotonPt_HLTPho165->Fill( events->pho1.Pt(), events->HLTPrescale[93]);
-	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho165_185To200 += events->HLTPrescale[93];	    
+	  if (events->HLTDecision[112]) {
+	    PhotonPt_HLTPho165->Fill( events->pho1.Pt(), events->HLTPrescale[112]);
+	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho165_185To200 += events->HLTPrescale[112];	    
 	  }
 
 
@@ -930,9 +928,9 @@ void SelectPhotonControlSample( int option = 0) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/PhotonFull/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root");     
   } else {
-    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root");     
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/PhotonFull/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root");     
   }
 
   vector<string> bkgfiles_gjets;
@@ -941,38 +939,38 @@ void SelectPhotonControlSample( int option = 0) {
   vector<string> bkgfiles_other;
 
   if (option >= 10) {
-    bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
+    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
   } else {
-    bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_gjetsFrag.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden_RazorSkim.root"); 
-    bkgfiles_other.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_gjetsFrag.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/PhotonFull/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root"); 
+    bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
   }
    
 
   bkgfiles.push_back(bkgfiles_gjets);
-  bkgfiles.push_back(bkgfiles_gjetsFrag);
+  // bkgfiles.push_back(bkgfiles_gjetsFrag);
   bkgfiles.push_back(bkgfiles_qcd);
-  bkgfiles.push_back(bkgfiles_other);
+  // bkgfiles.push_back(bkgfiles_other);
 
   processLabels.push_back("GJets");  
-  processLabels.push_back("GJetsFrag");  
+  // processLabels.push_back("GJetsFrag");  
   processLabels.push_back("QCD");
-  processLabels.push_back("Other");
+  // processLabels.push_back("Other");
 
   colors.push_back(kOrange);
-  colors.push_back(kOrange+4);
+  // colors.push_back(kOrange+4);
   colors.push_back(kMagenta);
-  colors.push_back(kCyan);
+  // colors.push_back(kCyan);
   
-  double lumi = 2300;
+  double lumi = 589;
 
   //*********************************************************************
   //GJets Control Region
