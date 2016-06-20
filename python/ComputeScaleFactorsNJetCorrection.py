@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     for region,analysis in regions.iteritems():
         #make output directory
-        outdir = 'Plots/'+region
+        outdir = 'Plots/'+tag+'/'+region
         os.system('mkdir -p '+outdir)
         #set up analysis
         process = sfNames[region]

@@ -43,9 +43,24 @@ def passTrigger(event, triggerNumList):
 def pileupWeight(event, wHists, puBranch="NPV", debugLevel=0):
     if "pileup" in wHists:
         if not hasattr(event, puBranch):
-            print "Error in pileupWeight: tree does not have a branch for",puBranch
+            print "Error in pileupWeight: tree does not have a branch for ",puBranch
             sys.exit()
         pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(getattr(event, puBranch)))
+        if debugLevel > 1: print puBranch," weight:",pileupWeight,"(",puBranch,"=",getattr(event, puBranch),")"
+        return pileupWeight
+    else:
+        print "Error in pileupWeight: pileup reweighting histogram not found!"
+        sys.exit()
+
+def reapplyPileupWeight(event, wHists, puBranch="NPU_0", weightBranch="pileupWeight", debugLevel=0):
+    """Get (pileupweight)/(oldpileupweight)"""
+    if "pileup" in wHists:
+        if not hasattr(event, puBranch):
+            sys.exit( "Error in pileupWeight: tree does not have a branch for "+puBranch )
+        elif not hasattr(event, weightBranch):
+            sys.exit( "Error in pileupWeight: tree does not have a branch for "+weightBranch )
+        pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(
+            getattr(event, puBranch))) / getattr(event,weightBranch)
         if debugLevel > 1: print puBranch," weight:",pileupWeight,"(",puBranch,"=",getattr(event, puBranch),")"
         return pileupWeight
     else:
@@ -157,6 +172,8 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             eventWeight *= pileupWeight(event, wHists, debugLevel=debugLevel)
         elif str.lower("doNVtxWeights") in lweightOpts:
             eventWeight *= pileupWeight(event, wHists, puBranch="nVtx", debugLevel=debugLevel)
+        elif str.lower("reapplyNPUWeights") in lweightOpts:
+            eventWeight *= reapplyPileupWeight(event, wHists, debugLevel=debugLevel)
 
         #lepton scale factors
         if str.lower("doLep1Weights") in lweightOpts:

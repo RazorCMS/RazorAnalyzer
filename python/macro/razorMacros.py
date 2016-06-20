@@ -567,21 +567,21 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     for f in files: files[f].Close()
     return hists
 
-def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, weightHists={}, sfHists={}, 
-        sfVars=("MR","Rsq"), treeName="ControlSampleEvent", weightOpts=[], shapeErrors=[], 
-        fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, printdir=".", 
-        auxSFs={}, dataDrivenQCD=False, noFill=False, exportShapeErrs=False, 
-        propagateScaleFactorErrs=True, debugLevel=0):
+def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=("MR","Rsq"), 
+        treeName="ControlSampleEvent", shapeErrors=[], fitToyFiles=None, boxName=None, btags=-1, 
+        blindBins=None, makePlots=True, printdir=".", auxSFs={}, dataDrivenQCD=False, noFill=False, 
+        exportShapeErrs=False, propagateScaleFactorErrs=True, debugLevel=0):
     """Use the razorAnalysis.Analysis object to call makeControlSampleHists function"""
 
     return makeControlSampleHists( regionName=analysis.region, filenames=analysis.filenames, 
-            samples=analysis.samples, cutsMC=analysis.cutsMC, cutsData=analysis.cutsData, bins=analysis.binning, 
-            plotOpts=plotOpts, lumiData=analysis.lumi, weightHists=weightHists, sfHists=sfHists, 
-            treeName=treeName, weightOpts=weightOpts, shapeErrors=shapeErrors, fitToyFiles=fitToyFiles, 
-            boxName=boxName, btags=btags, blindBins=blindBins, makePlots=makePlots, printdir=printdir, 
-            auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, unrollBins=analysis.unrollBins, noFill=noFill,
-            exportShapeErrs=exportShapeErrs, propagateScaleFactorErrs=propagateScaleFactorErrs,
-            sfVars=sfVars, debugLevel=debugLevel)
+            samples=analysis.samples, cutsMC=analysis.cutsMC, cutsData=analysis.cutsData, 
+            bins=analysis.binning, plotOpts=plotOpts, lumiData=analysis.lumi, 
+            weightHists=analysis.weightHists, sfHists=sfHists, treeName=treeName, 
+            weightOpts=analysis.weightOpts, shapeErrors=shapeErrors, fitToyFiles=fitToyFiles, 
+            boxName=boxName, btags=btags, blindBins=blindBins, makePlots=makePlots, 
+            printdir=printdir, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, 
+            unrollBins=analysis.unrollBins, noFill=noFill, exportShapeErrs=exportShapeErrs, 
+            propagateScaleFactorErrs=propagateScaleFactorErrs, sfVars=sfVars, debugLevel=debugLevel)
 
 def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):
     """Loads the output of makeControlSampleHists from a file and creates plots"""

@@ -424,7 +424,7 @@ void plotGJetsScaleFactorSystematics() {
   cv->SaveAs("GJetsVsWJetsSystematic.pdf");
 
   TFile *outf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","UPDATE");
-  outf->WriteTObject(GJetsScaleFactor_Down);
+  outf->WriteTObject(GJetsScaleFactor_Down, GJetsScaleFactor_Down->GetName(), "WRITEDELETE");
   outf->Close();
 
 }
@@ -435,5 +435,7 @@ void plotScaleFactorHistograms() {
   gROOT->SetBatch();
   //plotScaleFactor();
   plotGJetsScaleFactorSystematics();
+
+  gApplication->Terminate();
 
 }

@@ -38,7 +38,7 @@ if __name__ == "__main__":
         process = region.replace('SingleLepton','')
         (xbins,cols) = analysis.unrollBins
         #make output directory
-        outdir = 'Plots/'+region
+        outdir = 'Plots/'+tag+'/'+region
         os.system('mkdir -p '+outdir)
         #get correct variable names
         sfVars = ("MR","Rsq")

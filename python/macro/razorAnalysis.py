@@ -9,6 +9,21 @@ import csv
 from framework import Config
 
 #####################################
+### WEIGHTS NEEDED
+#####################################
+
+razorWeightOpts = {
+        "Razor2015":[],
+        "Razor2016":["reapplyNPUWeights"], #need this temporarily until PU distribution is final
+        }
+razorWeightHists = {
+        "Razor2015":{},
+        "Razor2016":{ "pileup":
+            ("data/PileupWeights/PileupReweight2016_06032016.root", "PileupReweight")
+                }
+        }
+
+#####################################
 ### NTUPLES
 #####################################
 
@@ -147,61 +162,61 @@ razorNtuples["SignalLepton"]["Razor2015"] = razorNtuples["SignalHadronic"]["Razo
 razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorInclusive_SingleLepton_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter.root"
 
 ### 2016 ntuples
-dirCR2016 = "/afs/cern.ch/user/d/duanders/work/run2Studies/CMSSW_7_1_5/src/RazorAnalyzer/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/"
+dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/"
 dir1L2016 = dirCR2016+'/OneLeptonRazorSkimLeptonSkim'
-dir1LInv2016 = dirCR2016+'/OneLeptonRazorSkimLeptonSkim'
-dir2LInv2016 = dirCR2016+'/OneLeptonRazorSkimLeptonSkim'
-dirVetoL2016 = dirCR2016+'/OneLeptonRazorSkimLeptonSkim'
-dirVetoTau2016 = dirCR2016+'/OneLeptonRazorSkimLeptonSkim'
+dir1LInv2016 = dirCR2016+'/OneLeptonInvRazorSkimLeptonSkim'
+dir2LInv2016 = dirCR2016+'/DileptonRazorSkimDileptonSkim'
+dirVetoL2016 = dirCR2016+'/VetoLeptonRazorSkim'
+dirVetoTau2016 = dirCR2016+'/VetoTauRazorSkim'
 
 razorNtuples["SingleLepton"]["Razor2016"] = {
-        "TTJets"   : dir1L2016+"/RazorControlRegions_TTJets_1pb_weighted_RazorSkim.root",
-        "WJets"    : dir1L2016+"/RazorControlRegions_WJets_1pb_weighted_RazorSkim.root",
-        "SingleTop": dir1L2016+"/RazorControlRegions_SingleTop_1pb_weighted_RazorSkim.root",
-        "DYJets"   : dir1L2016+"/RazorControlRegions_DYJets_1pb_weighted_RazorSkim.root",
-        "Other"    : dir1L2016+"/RazorControlRegions_Other_1pb_weighted_RazorSkim.root",
-        "ZInv"     : dir1L2016+"/RazorControlRegions_ZInv_1pb_weighted_RazorSkim.root",
-        "QCD"      : dir1L2016+"/RazorControlRegions_QCD_1pb_weighted_RazorSkim.root",       
+        "TTJets"   : dir1L2016+"/RazorControlRegions_TTJets_1pb_weighted.root",
+        "WJets"    : dir1L2016+"/RazorControlRegions_WJets_1pb_weighted.root",
+        "SingleTop": dir1L2016+"/RazorControlRegions_SingleTop_1pb_weighted.root",
+        "DYJets"   : dir1L2016+"/RazorControlRegions_DYJets_1pb_weighted.root",
+        "Other"    : dir1L2016+"/RazorControlRegions_Other_1pb_weighted.root",
+        "ZInv"     : dir1L2016+"/RazorControlRegions_ZInv_1pb_weighted.root",
+        "QCD"      : dir1L2016+"/RazorControlRegions_QCD_1pb_weighted.root",       
         "Data"     : dir1L2016+"/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"
         }
 razorNtuples["SingleLeptonInv"]["Razor2016"] = {
-        "TTJets"   : dir1LInv2016+"/RazorControlRegions_TTJets_1pb_weighted_RazorSkim.root",
-        "WJetsInv"    : dir1LInv2016+"/RazorControlRegions_WJets_1pb_weighted_RazorSkim.root",
-        "SingleTop": dir1LInv2016+"/RazorControlRegions_SingleTop_1pb_weighted_RazorSkim.root",
-        "DYJets"   : dir1LInv2016+"/RazorControlRegions_DYJets_1pb_weighted_RazorSkim.root",
-        "Other"    : dir1LInv2016+"/RazorControlRegions_Other_1pb_weighted_RazorSkim.root",
-        "ZInv"     : dir1LInv2016+"/RazorControlRegions_ZInv_1pb_weighted_RazorSkim.root",
-        "QCD"      : dir1LInv2016+"/RazorControlRegions_QCD_1pb_weighted_RazorSkim.root",       
+        "TTJets"   : dir1LInv2016+"/RazorControlRegions_TTJets_1pb_weighted.root",
+        "WJetsInv"    : dir1LInv2016+"/RazorControlRegions_WJets_1pb_weighted.root",
+        "SingleTop": dir1LInv2016+"/RazorControlRegions_SingleTop_1pb_weighted.root",
+        "DYJets"   : dir1LInv2016+"/RazorControlRegions_DYJets_1pb_weighted.root",
+        "Other"    : dir1LInv2016+"/RazorControlRegions_Other_1pb_weighted.root",
+        "ZInv"     : dir1LInv2016+"/RazorControlRegions_ZInv_1pb_weighted.root",
+        "QCD"      : dir1LInv2016+"/RazorControlRegions_QCD_1pb_weighted.root",       
         "Data"     : dir1LInv2016+"/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"
         }
 razorNtuples["DileptonInv"]["Razor2016"] = {
-        "TTJets"   : dir2LInv2016+"/RazorControlRegions_TTJets_1pb_weighted_RazorSkim.root",
-        "WJets"    : dir2LInv2016+"/RazorControlRegions_WJets_1pb_weighted_RazorSkim.root",
-        "SingleTop": dir2LInv2016+"/RazorControlRegions_SingleTop_1pb_weighted_RazorSkim.root",
-        "DYJetsInv"   : dir2LInv2016+"/RazorControlRegions_DYJets_1pb_weighted_RazorSkim.root",
-        "Other"    : dir2LInv2016+"/RazorControlRegions_Other_1pb_weighted_RazorSkim.root",
-        "ZInv"     : dir2LInv2016+"/RazorControlRegions_ZInv_1pb_weighted_RazorSkim.root",
-        "QCD"      : dir2LInv2016+"/RazorControlRegions_QCD_1pb_weighted_RazorSkim.root",       
+        "TTJets"   : dir2LInv2016+"/RazorControlRegions_TTJets_1pb_weighted.root",
+        "WJets"    : dir2LInv2016+"/RazorControlRegions_WJets_1pb_weighted.root",
+        "SingleTop": dir2LInv2016+"/RazorControlRegions_SingleTop_1pb_weighted.root",
+        "DYJetsInv"   : dir2LInv2016+"/RazorControlRegions_DYJets_1pb_weighted.root",
+        "Other"    : dir2LInv2016+"/RazorControlRegions_Other_1pb_weighted.root",
+        "ZInv"     : dir2LInv2016+"/RazorControlRegions_ZInv_1pb_weighted.root",
+        "QCD"      : dir2LInv2016+"/RazorControlRegions_QCD_1pb_weighted.root",       
         "Data"     : dir2LInv2016+"/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"
         }
 razorNtuples["VetoLepton"]["Razor2016"] = {
-        "TTJets"   : dirVetoL2016+"/RazorControlRegions_TTJets_1pb_weighted_RazorSkim.root",
-        "WJets"    : dirVetoL2016+"/RazorControlRegions_WJets_1pb_weighted_RazorSkim.root",
-        "SingleTop": dirVetoL2016+"/RazorControlRegions_SingleTop_1pb_weighted_RazorSkim.root",
-        "DYJets"   : dirVetoL2016+"/RazorControlRegions_DYJets_1pb_weighted_RazorSkim.root",
-        "Other"    : dirVetoL2016+"/RazorControlRegions_Other_1pb_weighted_RazorSkim.root",
-        "ZInv"     : dirVetoL2016+"/RazorControlRegions_ZInv_1pb_weighted_RazorSkim.root",
-        "QCD"      : dirVetoL2016+"/RazorControlRegions_QCD_1pb_weighted_RazorSkim.root",       
+        "TTJets"   : dirVetoL2016+"/RazorControlRegions_TTJets_1pb_weighted.root",
+        "WJets"    : dirVetoL2016+"/RazorControlRegions_WJets_1pb_weighted.root",
+        "SingleTop": dirVetoL2016+"/RazorControlRegions_SingleTop_1pb_weighted.root",
+        "DYJets"   : dirVetoL2016+"/RazorControlRegions_DYJets_1pb_weighted.root",
+        "Other"    : dirVetoL2016+"/RazorControlRegions_Other_1pb_weighted.root",
+        "ZInv"     : dirVetoL2016+"/RazorControlRegions_ZInv_1pb_weighted.root",
+        "QCD"      : dirVetoL2016+"/RazorControlRegions_QCD_1pb_weighted.root",       
         "Data"     : dirVetoL2016+"/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"
         }
 razorNtuples["VetoTau"]["Razor2016"] = {
-        "TTJets"   : dirVetoTau2016+"/RazorControlRegions_TTJets_1pb_weighted_RazorSkim.root",
-        "WJets"    : dirVetoTau2016+"/RazorControlRegions_WJets_1pb_weighted_RazorSkim.root",
-        "SingleTop": dirVetoTau2016+"/RazorControlRegions_SingleTop_1pb_weighted_RazorSkim.root",
-        "DYJets"   : dirVetoTau2016+"/RazorControlRegions_DYJets_1pb_weighted_RazorSkim.root",
-        "Other"    : dirVetoTau2016+"/RazorControlRegions_Other_1pb_weighted_RazorSkim.root",
-        "ZInv"     : dirVetoTau2016+"/RazorControlRegions_ZInv_1pb_weighted_RazorSkim.root",
-        "QCD"      : dirVetoTau2016+"/RazorControlRegions_QCD_1pb_weighted_RazorSkim.root",       
+        "TTJets"   : dirVetoTau2016+"/RazorControlRegions_TTJets_1pb_weighted.root",
+        "WJets"    : dirVetoTau2016+"/RazorControlRegions_WJets_1pb_weighted.root",
+        "SingleTop": dirVetoTau2016+"/RazorControlRegions_SingleTop_1pb_weighted.root",
+        "DYJets"   : dirVetoTau2016+"/RazorControlRegions_DYJets_1pb_weighted.root",
+        "Other"    : dirVetoTau2016+"/RazorControlRegions_Other_1pb_weighted.root",
+        "ZInv"     : dirVetoTau2016+"/RazorControlRegions_ZInv_1pb_weighted.root",
+        "QCD"      : dirVetoTau2016+"/RazorControlRegions_QCD_1pb_weighted.root",       
         "Data"     : dirVetoTau2016+"/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"
         }
 razorNtuples["SignalHadronic"]["Razor2016"] = {
@@ -777,12 +792,15 @@ class Analysis:
         if tag == "Razor2015":
             self.lumi = 2300
         elif tag == "Razor2016":
-            self.lumi = 2600
+            self.lumi = 589
+            #self.lumi = 2600
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 
         #load information for analysis
         self.getAnalysis()
+        #weight options
+        self.getWeightOpts()
 
     def getAnalysis(self):
         btag = str( max(0, self.nbMin) )+"B"
@@ -996,3 +1014,10 @@ class Analysis:
         self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )
         self.cutsData = self.trigInfoData.appendTriggerCuts( self.cuts )
 
+    def getWeightOpts(self):
+        self.weightOpts = razorWeightOpts[self.tag]
+        self.weightFiles = {}
+        self.weightHists = {}
+        for wType,wInfo in razorWeightHists[self.tag].iteritems():
+            self.weightFiles[wType] = rt.TFile.Open(wInfo[0])
+            self.weightHists[wType] = self.weightFiles[wType].Get(wInfo[1])

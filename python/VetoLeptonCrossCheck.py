@@ -93,7 +93,7 @@ if __name__ == "__main__":
     for region in regionsOrder:
         analysis = regions[region]
         #make output directory
-        outdir = 'Plots/'+region
+        outdir = 'Plots/'+tag+'/'+region
         os.system('mkdir -p '+outdir)
         #set up analysis
         if region.startswith('Veto'):
@@ -119,11 +119,11 @@ if __name__ == "__main__":
             elif 'VetoTau' in region:
                 auxSFsToUse[region.replace('PtCorr','')] = ("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15")
         #sanity check
-        print "Region:",region
+        print "\nRegion:",region
         print "Tree name:",treeName
         print "Aux SFs to use:",auxSFsToUse
         print "Variable for correction:",varForCorrection
-        print "Signal region variable for correction:",sigVarForCorrection
+        print "Signal region variable for correction:",sigVarForCorrection,"\n"
         #perform analysis
         hists[region] = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 sfHists=sfHists, sfVars=sfVars, printdir=outdir, auxSFs=auxSFsToUse, 
@@ -150,9 +150,10 @@ if __name__ == "__main__":
                     mtEfficiencyHist=mtHistToUse, dPhiEfficiencyHist=dphiHistToUse, 
                     sfHists=sfHists, printdir=outdir)
             #write out to file
-            print "Writing scale factor histogram",sfHists[region].GetName(),"to file"
+            sfHistClone = sfHists[region].Clone()
+            print "Writing scale factor histogram",sfHistClone.GetName(),"to file"
             outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "UPDATE")
-            outfile.Append(sfHists[region])
+            outfile.Append(sfHistClone)
             outfile.Write()
             outfile.Close()
 

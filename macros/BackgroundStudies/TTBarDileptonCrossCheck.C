@@ -25,6 +25,7 @@
 #include <TCanvas.h>                
 #include <TLegend.h> 
 #include <THStack.h> 
+#include "TApplication.h"
 
 #include "include/ControlSampleEvents.h"
 #include "macros/tdrstyle.C"
@@ -717,5 +718,7 @@ void TTBarDileptonCrossCheck( int option = 0) {
   else if (option == 1) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,"4JetMR300Rsq0p15",-1,"MultiJet");
 
   else if (option == 2) RunSelectTTBarDileptonControlSample(datafiles, bkgfiles, processLabels, colors, lumi, "2JetMR300Rsq0p15",-1,"DiJet");
+
+  gApplication->Terminate();
 
 }
