@@ -256,10 +256,10 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   TFile *SFInputFile = 0;
   TFile *NJetsSFInputFile = 0;
   if (SFOption == 0) SFInputFile = 0;
-  else if (SFOption == 1) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root",cmsswPath), "READ");
+  else if (SFOption == 1) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root",cmsswPath), "READ");
   else if (SFOption == 2) {
-      SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root",cmsswPath), "READ");
-      NJetsSFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorGJetsScaleFactorVsNJets.root",cmsswPath), "READ");
+      SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root",cmsswPath), "READ");
+      NJetsSFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2015.root",cmsswPath), "READ");
   }
   else if (SFOption == 3) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root",cmsswPath), "READ");
   TH2Poly *InputSFHist = 0;
@@ -688,7 +688,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
         }
     }
 
-    TFile *SFFile = TFile::Open("RazorScaleFactors_Inclusive_GJetsInv.root", "UPDATE");
+    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root", "UPDATE");
     SFFile->WriteTObject(HistSF, "GJetsInvScaleFactors", "WriteDelete");
     SFFile->Close();
 
@@ -743,7 +743,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       cout << "\n\n";
 
     }
-    TFile *SFFile = TFile::Open("RazorGJetsScaleFactorVsNJets.root", "UPDATE");
+    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2015.root", "UPDATE");
     SFFile->WriteTObject(HistCorrection_NJets, "GJetsScaleFactorVsNJets", "WriteDelete");
     SFFile->Close();
   }
@@ -785,7 +785,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       cout << "\n\n";
 
     }
-    TFile *SFFile = TFile::Open("RazorZNuNuBTagClosureTests.root", "UPDATE");
+    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorBTagClosureTests_Razor2015.root", "UPDATE");
     SFFile->WriteTObject(HistSysUnc_NBTag, "ZNuNuBTagClosureSysUnc", "WriteDelete");
     SFFile->Close();
   }

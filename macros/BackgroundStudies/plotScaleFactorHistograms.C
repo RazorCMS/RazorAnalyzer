@@ -4,9 +4,7 @@
 
 void plotScaleFactor() {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
-  // TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_Uncorrected.root","READ");
-  // TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_GJetsInv.root","READ");
+  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -18,7 +16,6 @@ void plotScaleFactor() {
   TH2Poly *wInvUp = (TH2Poly*)inf->Get("WJetsInvScaleFactorsUp");
   TH2Poly *wInvDown = (TH2Poly*)inf->Get("WJetsInvScaleFactorsDown");
   TH2Poly *GJetInvNominal = (TH2Poly*)inf->Get("GJetsInvScaleFactors");
-
 
   TCanvas *cv = 0;
   gStyle->SetPaintTextFormat("4.2f");
@@ -323,7 +320,7 @@ void plotScaleFactor() {
 
 void plotGJetsScaleFactorSystematics() {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","READ");
+  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -335,7 +332,6 @@ void plotGJetsScaleFactorSystematics() {
   TH2Poly *wInvUp = (TH2Poly*)inf->Get("WJetsInvScaleFactorsUp");
   TH2Poly *wInvDown = (TH2Poly*)inf->Get("WJetsInvScaleFactorsDown");
   TH2Poly *GJetInvNominal = (TH2Poly*)inf->Get("GJetsInvScaleFactors");
-
 
   TCanvas *cv = 0;
   gStyle->SetPaintTextFormat("4.2f");
@@ -385,8 +381,8 @@ void plotGJetsScaleFactorSystematics() {
       double wjet = wInvNominal->GetBinContent(wBinNum);
 
       //Set bin content of each histogram
-      GJetsSystematicUnc->SetBinContent(i, (gjet - wjet)/gjet );
-      //GJetsSystematicUnc->SetBinContent(i, fabs(gjet - wjet)/gjet );
+      //GJetsSystematicUnc->SetBinContent(i, (gjet - wjet)/gjet );
+      GJetsSystematicUnc->SetBinContent(i, fabs(gjet - wjet)/gjet );
       GJetsScaleFactor_Down->SetBinContent(i, gjet - (wjet - gjet) );
 
       cout << "Bin " << i << " : " << gjet << " , " << wjet << " , " <<  gjet - (wjet - gjet) << "\n";
@@ -427,17 +423,7 @@ void plotGJetsScaleFactorSystematics() {
   cv->SaveAs("GJetsVsWJetsSystematic.png");
   cv->SaveAs("GJetsVsWJetsSystematic.pdf");
 
-  TFile *outf = new TFile("RazorScaleFactors_Inclusive_CorrectedToMultiJet.root","UPDATE");
-  outf->WriteTObject(ttbarNominal);
-  outf->WriteTObject(ttbarUp);
-  outf->WriteTObject(ttbarDown);
-  outf->WriteTObject(wNominal);
-  outf->WriteTObject(wUp);
-  outf->WriteTObject(wDown);
-  outf->WriteTObject(wInvNominal);
-  outf->WriteTObject(wInvUp);
-  outf->WriteTObject(wInvDown);
-  outf->WriteTObject(GJetInvNominal);
+  TFile *outf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","UPDATE");
   outf->WriteTObject(GJetsScaleFactor_Down);
   outf->Close();
 

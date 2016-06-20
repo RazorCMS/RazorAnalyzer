@@ -28,3 +28,4 @@ test.*
 bin/*
 src/Run*.cc
 analyzers/*.h
+Plots

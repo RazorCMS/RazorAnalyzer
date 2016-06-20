@@ -395,42 +395,6 @@ def loadWeightHists(filenames={}, histnames={}, debugLevel=0):
         wFiles[name].Close()
     return wHists
 
-def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], scaleFactorNames={}, debugLevel=0):
-    """Returns a dict with available scale factor histograms"""
-    if debugLevel > 0:
-        print "Opening scale factor file",sfFilename
-    sfFile = rt.TFile.Open(sfFilename)
-    assert sfFile
-    sfHists = {}
-    for pname in processNames:
-        histname = pname
-        if pname in scaleFactorNames:
-            histname = scaleFactorNames[pname]
-        if debugLevel > 0: print "Looking for scale factor histogram",histname,"for",pname,"...",        
-
-        tmp = sfFile.Get(histname+"ScaleFactors")
-        if tmp: 
-            sfHists[pname] = tmp
-            sfHists[pname].SetDirectory(0)
-            if debugLevel > 0: print "Found!"
-        else:
-            if debugLevel > 0: print ""
-
-        #get up/down histograms
-        tmp = sfFile.Get(histname+"ScaleFactorsUp")
-        if tmp: 
-            sfHists[pname+"Up"] = tmp
-            sfHists[pname+"Up"].SetDirectory(0)
-            if debugLevel > 0: print "Up histogram found!"
-        tmp = sfFile.Get(histname+"ScaleFactorsDown")
-        if tmp: 
-            sfHists[pname+"Down"] = tmp
-            sfHists[pname+"Down"].SetDirectory(0)
-            if debugLevel > 0: print "Down histogram found!"
-
-    sfFile.Close()
-    return sfHists
-
 def getSFHistNameForErrorOpt(errorOpt, name):
     """Returns the key in the scale factor histogram dictionary for the given error option"""
     if errorOpt in ['sfsysttjetsUp','sfsyswjetsUp','sfsyszinvUp']:
@@ -527,16 +491,6 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
     #return dictionary with needed information
     sfsNeeded = { histNames[i]:(varNames[i],cuts[i]) for i in range(len(histNames)) }
     auxSFs.update(sfsNeeded)
-
-def invertHistogram(hist):
-    """Replaces contents of each hist bin with 1/(contents).  Updates bin errors accordingly.
-       For bins with no contents, does nothing."""
-    ret = hist.Clone(hist.GetName()+"Inverted")
-    for b in range(hist.GetSize()+1):
-        if hist.GetBinContent(b) != 0:
-            ret.SetBinContent( b, 1.0/hist.GetBinContent(b) )
-            ret.SetBinError( b, hist.GetBinError(b) / (hist.GetBinContent(b))**2 )
-    return ret
 
 def splitShapeErrorsByType(shapeErrors):
     """Takes a list of shape uncertainties and splits it into two lists: the first is the list of uncertainties applied as per-event scale factors, and the second is the list of uncertainties that require separate processing."""

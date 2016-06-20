@@ -151,7 +151,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     }
 
     //Basic tree variables
-    int nVtx; 
+    int nVtx, NPU; 
     float weight = 1.0;
     //For signal ISR systematic uncertainty
     float ISRSystWeightUp, ISRSystWeightDown;
@@ -228,6 +228,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
+        razorTree->Branch("NPU", &NPU, "NPU/I");
 	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
 	razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
 	razorTree->Branch("leadingGenLeptonType", &leadingGenLeptonType, "leadingGenLeptonType/I");
@@ -310,6 +311,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         weight = genWeight;
         nLooseTaus = 0;
         if(!isData){
+            NPU = -1;
 	    leadingGenLeptonPt = -9;
 	    leadingGenLeptonEta = -9;
 	    leadingGenLeptonType = 0;
@@ -553,7 +555,6 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Pileup reweighting
         /////////////////////////////////
 
-        double NPU = 0;
         pileupWeight = 1.0;
         if(!isData){
 	  //Get number of PU interactions

@@ -1110,3 +1110,50 @@ def splitByUnrollBins(hist, unrollBins):
             outHist.SetBinError(bx, hist.GetBinError(bn))
         outHists.append(outHist)
     return outHists
+
+def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], scaleFactorNames={}, debugLevel=0):
+    """Returns a dict with available scale factor histograms"""
+    if debugLevel > 0:
+        print "Opening scale factor file",sfFilename
+    sfFile = rt.TFile.Open(sfFilename)
+    assert sfFile
+    sfHists = {}
+    for pname in processNames:
+        histname = pname
+        if pname in scaleFactorNames:
+            histname = scaleFactorNames[pname]
+        if debugLevel > 0: print "Looking for scale factor histogram",histname,"for",pname,"...",        
+
+        tmp = sfFile.Get(histname+"ScaleFactors")
+        if tmp: 
+            sfHists[pname] = tmp
+            sfHists[pname].SetDirectory(0)
+            if debugLevel > 0: print "Found!"
+        else:
+            if debugLevel > 0: print ""
+
+        #get up/down histograms
+        tmp = sfFile.Get(histname+"ScaleFactorsUp")
+        if tmp: 
+            sfHists[pname+"Up"] = tmp
+            sfHists[pname+"Up"].SetDirectory(0)
+            if debugLevel > 0: print "Up histogram found!"
+        tmp = sfFile.Get(histname+"ScaleFactorsDown")
+        if tmp: 
+            sfHists[pname+"Down"] = tmp
+            sfHists[pname+"Down"].SetDirectory(0)
+            if debugLevel > 0: print "Down histogram found!"
+
+    sfFile.Close()
+    return sfHists
+
+def invertHistogram(hist):
+    """Replaces contents of each hist bin with 1/(contents).  Updates bin errors accordingly.
+       For bins with no contents, does nothing."""
+    ret = hist.Clone(hist.GetName()+"Inverted")
+    for b in range(hist.GetSize()+1):
+        if hist.GetBinContent(b) != 0:
+            ret.SetBinContent( b, 1.0/hist.GetBinContent(b) )
+            ret.SetBinError( b, hist.GetBinError(b) / (hist.GetBinContent(b))**2 )
+    return ret
+
