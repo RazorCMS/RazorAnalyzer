@@ -1,6 +1,6 @@
 #!/bin/env python
 import math
-import os
+import os,sys
 import glob
 import argparse
 from subprocess import call, check_output
@@ -37,8 +37,8 @@ def submitJobs(analyzer,tag,isData=False):
                     print "Job %d of %d"%(ijob,maxjob)
                     logfile = os.path.join(basedir,'output','%s_%s_%d.out'%(analyzer,sample,ijob))
                     jobname = '_'.join([analyzer,sample,str(ijob)])
-                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,str(int(isData)),
-                        str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
+                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
+                            str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
                         DIRS[tag].replace('eos/cms','')+'/jobs', os.environ['CMSSW_BASE']+'/src']
                     print ' '.join(cmd)
                     call(cmd)
@@ -121,10 +121,18 @@ def goodLumi(analyzer,tag):
     #get location of good lumi script and python file containing JSON link
     script = check_output(['which', 'FWLiteGoodLumi'])
     pythonFile = os.path.join(os.environ['CMSSW_BASE'],'src','RazorCommon','Tools','python','loadJson.py')
+    #copy file locally
+    localInName = analyzer+'_Data_NoDuplicates.root'
+    localOutName = localInName.replace('.root','_GoodLumiGolden.root')
+    inName = DIRS[tag]+'/'+localInName
+    call(['cp',inName,'.'])
     #call script
-    inName = DIRS[tag]+'/'+analyzer+'_Data_NoDuplicates.root'
-    outName = inName.replace('.root','_GoodLumiGolden.root')
-    call(['FWLiteGoodLumi',pythonFile,inName,outName])
+    print "FWLiteGoodLumi %s %s %s"%(pythonFile,localInName,localOutName)
+    call(['FWLiteGoodLumi',pythonFile,localInName,localOutName])
+    #move to target directory
+    call(['mv',localOutName,DIRS[tag]])
+    #remove temp file
+    call(['rm',localInName])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -141,6 +149,10 @@ if __name__ == '__main__':
     analyzer = args.analyzer
     tag = args.tag
     isData = args.data
+
+    #check if EOS is mounted
+    if not os.path.isdir('eos/cms/store'):
+        sys.exit("Please mount EOS under ./eos before using this tool.")
 
     print "Analyzer:",analyzer
     print "Tag:",tag

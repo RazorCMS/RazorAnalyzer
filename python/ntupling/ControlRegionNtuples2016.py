@@ -6,9 +6,11 @@ SKIMS = { '1L':'OneLeptonRazorSkimLeptonSkim',
           'VetoL':'VetoLeptonRazorSkim',
           'VetoTau':'VetoTauRazorSkim',
           'Photon':'PhotonRazorSkimPhotonSkim',
+          'Signal':'FullRazorInclusive',
         }
 DIR = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/'+VERSION
 DIRS = { tag:DIR+'/'+SKIMS[tag] for tag in SKIMS }
+DIRS['Signal'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION
 
 OPTIONS = { '1L':1101,
             '1LInv':2102,
@@ -17,6 +19,7 @@ OPTIONS = { '1L':1101,
             'VetoL':1007,
             'VetoTau':1009,
             'Photon':5505,
+            'Signal':10
           }
 
 SAMPLES = {}
@@ -126,6 +129,7 @@ SAMPLES['Photon'] = {
                 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
             ],
         }
+SAMPLES['Signal'] = SAMPLES['1L'].copy()
 
 DATA = {}
 DATA['1L'] = {
@@ -146,3 +150,5 @@ DATA['Photon'] = {
                 'SinglePhoton_2016B_PRv2',
                 ]
         }
+DATA['Signal'] = DATA['1L'].copy()
+DATA['Signal']["HTMHT"] = ['HTMHT_2016B_PRv2']
