@@ -170,8 +170,10 @@ void RazorHelper::loadTag_Null() {
     // single lepton trigger scale factors
     eleTrigSFFile = 0;
     eleTrigSFHist = 0;
+    eleTrigSFErrHist = 0;
     muTrigSFFile = 0; 
     muTrigSFHist = 0;
+    muTrigSFErrHist = 0;
 
     eleTrigEffFromFullsimFile = 0;
     eleTrigEffFromFullsimHist = 0;
@@ -326,6 +328,9 @@ void RazorHelper::loadTrigger_Razor2015() {
     muTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleMuonTriggerEfficiencyFromFullsim.root"); 
     muTrigEffFromFullsimHist = (TH2D*)muTrigEffFromFullsimFile->Get("hEffEtaPt");
 
+    eleTrigSFErrHist = 0;
+    muTrigSFErrHist = 0;
+
     //get trigger numbers
     dileptonTriggerNums = std::vector<int>(8);
     hadronicTriggerNums = std::vector<int>(11);
@@ -431,15 +436,17 @@ void RazorHelper::loadTag_Razor2016_80X() {
 void RazorHelper::loadTrigger_Razor2016() {
     // single lepton trigger scale factors
     std::cout << "RazorHelper: loading trigger efficiency histograms" << std::endl;
-    eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015Final_Golden.root");
-    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015Final_Golden.root"); 
-    muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+    eleTrigSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_2p6ifb/SingleElectronTriggerEfficiency.root");
+    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("hEffEtaPt");
+    eleTrigSFErrHist = (TH2D*)eleTrigSFFile->Get("hErrlEtaPt");
+    muTrigSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_2p6ifb/SingleMuonTriggerEfficiency.root"); 
+    muTrigSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
+    muTrigSFErrHist = (TH2D*)muTrigSFFile->Get("hErrlEtaPt");
 
-    eleTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleElectronTriggerEfficiencyFromFullsim.root");
-    eleTrigEffFromFullsimHist = (TH2D*)eleTrigEffFromFullsimFile->Get("hEffEtaPt");
-    muTrigEffFromFullsimFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleMuonTriggerEfficiencyFromFullsim.root"); 
-    muTrigEffFromFullsimHist = (TH2D*)muTrigEffFromFullsimFile->Get("hEffEtaPt");
+    eleTrigEffFromFullsimFile = 0;
+    eleTrigEffFromFullsimHist = 0;
+    muTrigEffFromFullsimFile = 0; 
+    muTrigEffFromFullsimHist = 0;
 
     //get trigger numbers
     dileptonTriggerNums = std::vector<int>(9);
@@ -670,14 +677,36 @@ double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float
     return 1.0;
 }
 
+double RazorHelper::getTriggerScaleFactor_Razor2016(TH2D *sfHist, float pt, float eta,
+        bool isTight, bool passedTrigger, float ptCut) {
+    // trigger scale factors have pt on the y-axis
+    double trigSF = lookupEtaPtScaleFactor( sfHist, pt, eta, 199.9, ptCut );
+    if (passedTrigger && isTight){
+        return trigSF;
+    }
+    return 1.0;
+}
+
 double RazorHelper::getSingleMuTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger) {
-    return getTriggerScaleFactor( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, 
-            isTight, passedTrigger, 15.01, 20.01 );
+    if (tag == "Razor2016_80X") {
+        return getTriggerScaleFactor_Razor2016( muTrigSFHist, pt, eta, 
+                isTight, passedTrigger, 20.01);
+    }
+    else {
+        return getTriggerScaleFactor( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, 
+                isTight, passedTrigger, 15.01, 20.01 );
+    }
 }
 
 double RazorHelper::getSingleEleTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger) {
-    return getTriggerScaleFactor( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, 
-            isTight, passedTrigger, 25.01, 25.01 );
+    if (tag == "Razor2016_80X") {
+        return getTriggerScaleFactor_Razor2016( eleTrigSFHist, pt, eta, 
+                isTight, passedTrigger, 25.01 );
+    }
+    else {
+        return getTriggerScaleFactor( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, 
+                isTight, passedTrigger, 25.01, 25.01 );
+    }
 }
 
 // Helper function to retrieve trigger scale factors
@@ -702,19 +731,43 @@ void RazorHelper::updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist,
     }
 }
 
-void RazorHelper::updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
-        float &sf, float &sfUp, float &sfDown) {
-
-    updateTriggerScaleFactors( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, isTight, passedTrigger,
-            sf, sfUp, sfDown, 15.01 );
-
+void RazorHelper::updateTriggerScaleFactors_Razor2016(TH2D *sfHist, TH2D *errHist, 
+        float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
+        float &sfDown, float extraSyst) {
+    //trigger scale factors have pt on the y-axis
+    double trigSF = lookupEtaPtScaleFactor( sfHist, pt, eta );
+    double trigSFErr = lookupEtaPtScaleFactor( errHist, pt, eta );
+    double trigSFUp = trigSF + trigSFErr + extraSyst;
+    double trigSFDown = trigSF - trigSFErr - extraSyst;
+    if (passedTrigger && isTight){
+        sf *= trigSF;
+        sfUp *= trigSFUp/trigSF;
+        sfDown *= trigSFDown/trigSF;
+    }
 }
 
-void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
-        float &sf, float &sfUp, float &sfDown) {
+void RazorHelper::updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, 
+        bool passedTrigger, float &sf, float &sfUp, float &sfDown) {
+    if (tag == "Razor2016_80X") {
+        updateTriggerScaleFactors_Razor2016( muTrigSFHist, muTrigSFErrHist, pt, eta, isTight,
+                passedTrigger, sf, sfUp, sfDown );
+    }
+    else {
+        updateTriggerScaleFactors( muTrigSFHist, muTrigEffFromFullsimHist, pt, eta, isTight, 
+                passedTrigger, sf, sfUp, sfDown, 15.01 );
+    }
+}
 
-    updateTriggerScaleFactors( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, isTight, passedTrigger,
-            sf, sfUp, sfDown, 25.01, 0.02 );
+void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, 
+        bool passedTrigger, float &sf, float &sfUp, float &sfDown) {
+    if (tag == "Razor2016_80X") {
+        updateTriggerScaleFactors_Razor2016( eleTrigSFHist, eleTrigSFErrHist, pt, eta, isTight,
+                passedTrigger, sf, sfUp, sfDown );
+    }
+    else {
+    updateTriggerScaleFactors( eleTrigSFHist, eleTrigEffFromFullsimHist, pt, eta, isTight, 
+            passedTrigger, sf, sfUp, sfDown, 25.01, 0.02 );
+    }
 
 }
 

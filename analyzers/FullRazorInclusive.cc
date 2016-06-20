@@ -122,12 +122,18 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
     //Initialize helper
     RazorHelper *helper = 0;
-    if (option == 0 || option == 1) helper = new RazorHelper("Razor2015", isData, isFastsimSMS);
-    else if (option == 10 || option == 11) helper = new RazorHelper("Razor2016_80X", isData, isFastsimSMS);
+    string analysisTag;
+    if (option == 0 || option == 1) {
+        analysisTag = "Razor2015";
+    }
+    else if (option == 10 || option == 11) {
+        analysisTag = "Razor2016_80X";
+    }
     else {
       cout << "Error: option == " << option << " is not supported. Exiting.\n";
       return;
     }
+    helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
 
     // Get jet corrector
     FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
@@ -544,8 +550,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                 break;
             }
         }
-        //ignore trigger for Fastsim
-        if(isFastsimSMS){
+        //ignore trigger for Fastsim, and for 80X MC
+        if(isFastsimSMS || (analysisTag == "Razor2016_80X" && !isData)){
             passedDileptonTrigger = true;
             passedSingleLeptonTrigger = true;
             passedHadronicTrigger = true;

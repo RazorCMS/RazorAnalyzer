@@ -89,9 +89,14 @@ class RazorHelper {
                 float &sfFastsimUp, float &sfFastsimDown, float smear=0.0);
         double getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta, 
                 bool isTight, bool passedTrigger, float fastsimPtCut = 10.01, float ptCut=10.01);
+        double getTriggerScaleFactor_Razor2016(TH2D *sfHist, float pt, float eta, 
+                bool isTight, bool passedTrigger, float ptCut=10.01);
         void updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
-            float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, float &sfDown, 
-            float fastsimPtCut = 10.01, float extraSyst = 0.);
+            float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
+            float &sfDown, float fastsimPtCut = 10.01, float extraSyst = 0.);
+        void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, TH2D *errHist,
+            float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
+            float &sfDown, float extraSyst = 0.);
 
         // for Razor2015 74X tag
         void loadPileup_Razor2015();
@@ -155,6 +160,8 @@ class RazorHelper {
         TFile *muTrigEffFromFullsimFile;
         TH2D *eleTrigSFHist;
         TH2D *muTrigSFHist;
+        TH2D *eleTrigSFErrHist;
+        TH2D *muTrigSFErrHist;
         TH2D *eleTrigEffFromFullsimHist;
         TH2D *muTrigEffFromFullsimHist;
         std::vector<int> dileptonTriggerNums;
