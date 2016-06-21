@@ -891,11 +891,14 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if(pho_pt_corr < 30) continue;
 	  if(fabs(phoEta[i]) > 2.5) continue;
 	  
-	  if(!(pho_passHLTFilter[i][22] || pho_passHLTFilter[i][23]  || pho_passHLTFilter[i][24]  || pho_passHLTFilter[i][25]  || pho_passHLTFilter[i][26] 
-	       || pho_passHLTFilter[i][27]  || pho_passHLTFilter[i][28] || pho_passHLTFilter[i][29] || pho_passHLTFilter[i][30]  
-	       || pho_passHLTFilter[i][31]  || pho_passHLTFilter[i][32] || pho_passHLTFilter[i][33] || pho_passHLTFilter[i][34] 
-	       || pho_passHLTFilter[i][35]  || pho_passHLTFilter[i][36] || pho_passHLTFilter[i][37] || pho_passHLTFilter[i][38]
-	       )) continue;
+          //NOTE not running these for MC because trigger is broken in 80X samples
+          if(isData) {
+              if(!(pho_passHLTFilter[i][22] || pho_passHLTFilter[i][23]  || pho_passHLTFilter[i][24]  || pho_passHLTFilter[i][25]  || pho_passHLTFilter[i][26] 
+                          || pho_passHLTFilter[i][27]  || pho_passHLTFilter[i][28] || pho_passHLTFilter[i][29] || pho_passHLTFilter[i][30]  
+                          || pho_passHLTFilter[i][31]  || pho_passHLTFilter[i][32] || pho_passHLTFilter[i][33] || pho_passHLTFilter[i][34] 
+                          || pho_passHLTFilter[i][35]  || pho_passHLTFilter[i][36] || pho_passHLTFilter[i][37] || pho_passHLTFilter[i][38]
+                  )) continue;
+          }
 	  
 	  double tmpEffAreaChargedHadrons = 0.0;
 	  double tmpEffAreaNeutralHadrons = 0.0;
@@ -1615,7 +1618,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       if(razorSkimOption == 5)
 	{
 	  if (!(
-		events->MR_NoPho < 300
+		events->MR_NoPho > 300
 		&& events->Rsq_NoPho > 0.15
 		)
 	      ) passSkim = false;	

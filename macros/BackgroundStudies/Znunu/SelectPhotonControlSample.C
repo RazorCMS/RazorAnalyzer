@@ -150,7 +150,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "0.6 fb^{-1}";
+  lumi_13TeV = "2.6 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -412,8 +412,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	}
 
 	if (isnan(events->weight) || isinf(events->weight)) {
-	  continue;
 	  cout << "...bad event: " << weight << " " << "\n";
+	  continue;
 	}
 
 	//******************************
@@ -600,7 +600,6 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  histMRRsqUnrolled[i]->Fill(MRRsqBin+0.5, weight);
 	  histMRVsRsq[i]->Fill(events->MR_NoPho, events->Rsq_NoPho, weight);
 	}
-
 
       } //loop over events
     } //loop over input files
@@ -928,9 +927,9 @@ void SelectPhotonControlSample( int option = 0) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/PhotonFull/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root");     
+    datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root");     
   } else {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/PhotonFull/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root");     
+    datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root");     
   }
 
   vector<string> bkgfiles_gjets;
@@ -939,19 +938,19 @@ void SelectPhotonControlSample( int option = 0) {
   vector<string> bkgfiles_other;
 
   if (option >= 10) {
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
+    bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
   } else {
-    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_gjetsFrag.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p1/PhotonFull/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root"); 
-    bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
+    bkgfiles_gjetsFrag.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"); 
+    bkgfiles_other.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_Other_1pb_weighted.root"); 
   }
    
 
@@ -970,7 +969,7 @@ void SelectPhotonControlSample( int option = 0) {
   colors.push_back(kMagenta);
   // colors.push_back(kCyan);
   
-  double lumi = 589;
+  double lumi = 2600;
 
   //*********************************************************************
   //GJets Control Region
