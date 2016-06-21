@@ -114,6 +114,16 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   else helper = new RazorHelper("", isData, false);
   
   //--------------------------------
+  //Photon Trigger Efficiency
+  //--------------------------------
+  TFile *photonTriggerEffFile_LeadingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTLeadingLegEffDenominatorLoose.root");
+  TFile *photonTriggerEffFile_TrailingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTTrailingLegEffDenominatorLoose.root");
+  TH2D *photonTriggerEffHist_LeadingLeg = (TH2D*)photonTriggerEffFile_LeadingLeg->Get("hEffEtaPt");
+  TH2D *photonTriggerEffHist_TrailingLeg = (TH2D*)photonTriggerEffFile_TrailingLeg->Get("hEffEtaPt");
+  assert(photonTriggerEffHist_LeadingLeg);
+  assert(photonTriggerEffHist_TrailingLeg);
+
+  //--------------------------------
   //Photon Energy Scale and Resolution Corrections
   //--------------------------------
    std::string photonCorrectionPath = "";
@@ -992,6 +1002,34 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     pTGammaGammaSC = HiggsCandidateSC.Pt();
     if ( _debug ) std::cout << "[DEBUG]: mgg-> " << mGammaGamma << " pTgg->" << pTGammaGamma << std::endl;
     
+    //******************************************************
+    //compute trigger efficiency weights for MC
+    //******************************************************
+    double triggerEffWeight = 1.0;
+    double leadPhoPt=0;
+    double leadPhoEta=0;
+    double trailingPhoPt=0;
+    double trailingPhoEta=0;
+    if (Pho_Pt[0] > Pho_Pt[1]) {
+      leadPhoPt = Pho_Pt[0];
+      leadPhoEta = Pho_Eta[0];
+      trailingPhoPt = Pho_Pt[1];
+      trailingPhoEta= Pho_Eta[1];
+    } else {
+      leadPhoPt = Pho_Pt[1];
+      leadPhoEta = Pho_Eta[1];
+      trailingPhoPt = Pho_Pt[0];
+      trailingPhoEta= Pho_Eta[0];
+    }
+    double triggerEffLeadingLeg = 
+      photonTriggerEffHist_LeadingLeg->GetBinContent( photonTriggerEffHist_LeadingLeg->GetXaxis()->FindFixBin( fabs(leadPhoEta) ),
+						      photonTriggerEffHist_LeadingLeg->GetYaxis()->FindFixBin( fmax( fmin(leadPhoPt,199.9), 20.01 ) )
+						      );
+    double triggerEffTrailingLeg = 
+      photonTriggerEffHist_TrailingLeg->GetBinContent( photonTriggerEffHist_TrailingLeg->GetXaxis()->FindFixBin( fabs(trailingPhoEta) ),
+						       photonTriggerEffHist_TrailingLeg->GetYaxis()->FindFixBin( fmax( fmin(trailingPhoPt,199.9), 20.01 ) )
+						       );
+    triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
 
     //***********************************************************
     //get mother ID of photons
