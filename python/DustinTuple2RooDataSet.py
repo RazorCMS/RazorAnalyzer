@@ -25,6 +25,8 @@ boxes = {'MuEle':'(box==0)',
          'EleFourJet':'(box==7)',
          'EleMultiJet':'(box==6||box==7)',
          'EleJet':'(box==8)',
+         'LeptonMultiJet':'(box==3||box==4||box==6||box==7)',
+         'LeptonJet':'(box==5||box==8)',
          'LooseLeptonSixJet':'(box==9)',
          'LooseLeptonFourJet':'(box==10)',
          'LooseLeptonMultiJet':'(box==9||box==10)',
@@ -200,7 +202,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
         triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
 
-    if isData and box in ['MuSixJet', 'MuFourJet', 'MuMultiJet', 'MuJet', 'EleSixJet', 'EleFourJet', 'EleMultiJet', 'EleJet']:
+    if isData and box in ['MuSixJet', 'MuFourJet', 'MuMultiJet', 'MuJet', 'EleSixJet', 'EleFourJet', 'EleMultiJet', 'EleJet','LeptonJet','LeptonMultiJet']:
         triggerNameList = ['HLT_Mu50', 'HLT_IsoMu20', 'HLT_IsoTkMu20', 'HLT_IsoMu27', 'HLT_IsoTkMu27', 'HLT_IsoTkMu27', 'HLT_Ele23_WPLoose_Gsf', 'HLT_Ele27_WPLoose_Gsf', 'HLT_Ele27_eta2p1_WPLoose_Gsf', 'HLT_Ele27_eta2p1_WPTight_Gsf', 'HLT_Ele32_eta2p1_WPLoose_Gsf', 'HLT_Ele32_eta2p1_WPTight_Gsf', 'HLT_Ele105_CaloIdVT_GsfTrkIdT', 'HLT_Ele115_CaloIdVT_GsfTrkIdT']        
         triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
         triggerCuts = ' || '.join(triggerList)
@@ -308,7 +310,6 @@ if __name__ == '__main__':
     csvin = csv.reader(f,delimiter=' ')
     for row in csvin:
         triggerDict[row[-1]] = int(row[0])
-
         
     if removeQCD:
         # first get sum of weights for each background per b-tag bin ( sumW[label] )
