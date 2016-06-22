@@ -296,10 +296,6 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_trkPOG_toomanystripclus53X", 1);
     fChain->SetBranchStatus("Flag_trkPOG_logErrorTooManyClusters", 1);
     fChain->SetBranchStatus("Flag_METFilters", 1);    
-    fChain->SetBranchStatus("Flag_EcalDeadCellEvent", 1);    
-    fChain->SetBranchStatus("Flag_IsNotDeadEcalCluster", 1);    
-    fChain->SetBranchStatus("Flag_EcalDeadDR", 1);    
-    fChain->SetBranchStatus("Flag_EcalBoundaryDR", 1);    
 
     fChain->SetBranchStatus("metType1PtJetResUp", 1);
     fChain->SetBranchStatus("metType1PtJetResDown", 1);
