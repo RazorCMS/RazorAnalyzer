@@ -114,7 +114,8 @@ class RazorHelper {
 
         // for Razor2016 80X tag
         void loadTrigger_Razor2016();
-         
+	void loadJECs_Razor2016();
+
         // member data
         std::string tag;
         bool isData;

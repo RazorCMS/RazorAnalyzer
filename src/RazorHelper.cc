@@ -285,6 +285,7 @@ void RazorHelper::loadJECs_Razor2015() {
     jecUnc = new JetCorrectionUncertainty(jecUncPath);
 }
 
+
 void RazorHelper::loadBTag_Razor2015() {
     // b-tag efficiencies and scale factors
     std::cout << "RazorHelper: loading btag efficiency histograms" << std::endl;
@@ -427,7 +428,7 @@ void RazorHelper::loadJECs_Razor2015_76X() {
 void RazorHelper::loadTag_Razor2016_80X() {
     loadPileup_Razor2015();
     loadLepton_Razor2015();
-    loadJECs_Razor2015();
+    loadJECs_Razor2016();
     loadBTag_Razor2015();
     //migrated to 2016 version
     loadTrigger_Razor2016();
@@ -465,6 +466,56 @@ void RazorHelper::loadTrigger_Razor2016() {
         hadronicTriggerNums = { 134,135,136,137,138,139,140,141,142,143,144 };
     }
 }
+
+void RazorHelper::loadJECs_Razor2016() {
+    std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
+    // load JEC parameters
+    std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
+    correctionParameters = std::vector<JetCorrectorParameters>();
+    if (isData) {
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+    }
+    else if (isFastsim) {
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fastsim_MCRUN2_74_V9_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fastsim_MCRUN2_74_V9_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Fastsim_MCRUN2_74_V9_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+    }
+    else {
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParameters.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_25nsV3_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+    }
+    JetCorrector = new FactorizedJetCorrector(correctionParameters);
+    JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+    JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+
+    // get JEC uncertainty file and set up JetCorrectionUncertainty
+    std::string jecUncPath;
+    if (isData) {
+        jecUncPath = jecPathname+"/Spring16_25nsV3_DATA_Uncertainty_AK4PFchs.txt";
+    }
+    else if (isFastsim) {
+        jecUncPath = jecPathname+"/Fastsim_MCRUN2_74_V9_Uncertainty_AK4PFchs.txt";
+    }
+    else {
+        jecUncPath = jecPathname+"/Spring16_25nsV3_MC_Uncertainty_AK4PFchs.txt";
+    }
+    jecUnc = new JetCorrectionUncertainty(jecUncPath);
+}
+
 
 ////////////////////////////////////////////////
 //  Utilities
