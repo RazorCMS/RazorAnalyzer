@@ -1,4 +1,4 @@
-VERSION = "V3p2"
+VERSION = "V3p3"
 SKIMS = { '1L':'OneLeptonRazorSkimLeptonSkim',
           '1LInv':'OneLeptonInvRazorSkimLeptonSkim',
           '2L':'DileptonRazorSkimDileptonSkim',
@@ -35,6 +35,7 @@ SAMPLES['1L'] = {
                 'DYJetsToLL_M-5to50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         "QCD":[
+                'QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
@@ -87,6 +88,7 @@ SAMPLES['1L'] = {
                 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         "ZInv":[
+                'ZJetsToNuNu_HT-100To200_13TeV-madgraph',
                 'ZJetsToNuNu_HT-200To400_13TeV-madgraph',
                 'ZJetsToNuNu_HT-400To600_13TeV-madgraph',
                 'ZJetsToNuNu_HT-600To800_13TeV-madgraph',
@@ -143,8 +145,8 @@ DATA['1L'] = {
 DATA['1LInv'] = DATA['1L'].copy()
 DATA['2L'] = DATA['1L'].copy()
 DATA['2LInv'] = DATA['1L'].copy()
-DATA['VetoL'] = DATA['1L'].copy()
-DATA['VetoTau'] = DATA['1L'].copy()
+DATA['VetoL'] = { 'HTMHT':['HTMHT_2016B_PRv2'] }
+DATA['VetoTau'] = { 'HTMHT':['HTMHT_2016B_PRv2'] }
 DATA['Photon'] = {
         "SinglePhoton":[
                 'SinglePhoton_2016B_PRv2',

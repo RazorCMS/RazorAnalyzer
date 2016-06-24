@@ -52,12 +52,18 @@ def pileupWeight(event, wHists, puBranch="NPV", debugLevel=0):
         print "Error in pileupWeight: pileup reweighting histogram not found!"
         sys.exit()
 
-def reapplyPileupWeight(event, wHists, puBranch="NPU_0", weightBranch="pileupWeight", debugLevel=0):
+def reapplyPileupWeight(event, wHists, weightBranch="pileupWeight", debugLevel=0):
     """Get (pileupweight)/(oldpileupweight)"""
     if "pileup" in wHists:
-        if not hasattr(event, puBranch):
-            sys.exit( "Error in pileupWeight: tree does not have a branch for "+puBranch )
-        elif not hasattr(event, weightBranch):
+        #use NPU_0 or NPU, whichever exists in the tree
+        if not hasattr(event, "NPU_0"):
+            if not hasattr(event, "NPU"):
+                sys.exit( "Error in pileupWeight: tree does not have a branch for NPU_0 or NPU" )
+            else:
+                puBranch = "NPU"
+        else:
+            puBranch = "NPU_0"
+        if not hasattr(event, weightBranch):
             sys.exit( "Error in pileupWeight: tree does not have a branch for "+weightBranch )
         pileupWeight = wHists["pileup"].GetBinContent(wHists["pileup"].GetXaxis().FindFixBin(
             getattr(event, puBranch))) / getattr(event,weightBranch)

@@ -28,7 +28,7 @@
 
 #include <CalStyleRemix.hh>
 
-void take_ratios() {
+void take_ratios_JJ() {
 
   enum {mr=0, ljpt, rsq};
   enum {razor=0, dijet};
@@ -51,7 +51,7 @@ void take_ratios() {
   Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 900, 1000, ymax};
   //Float_t ybins[nbiny+1] = {ymin, 450, 500, 550, 600, 700, 800, ymax};
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  TString pname = "npf_vs_mr_razor.png";
+  TString pname = "npf_vs_mr_dijet.png";
 
   // for leading jet pt
   //Int_t binIn=ljpt;
@@ -77,19 +77,21 @@ void take_ratios() {
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_rsq_razor.png";
 
-  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_2015JECs/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root","read");
+  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_2015JECs/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3/FullRazorInclusive_HTMHT_2016B_PRv2_GoodLumiGoldenJun16.root","read");
   TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_QCD_1pb_weighted.root","read");
   TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
   TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
+  //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("/afs/cern.ch/work/j/jlawhorn/Znunu_Blarg.root","read");
 
   //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
   //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
   //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
-  
-  TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
+  TString cut_str="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)";
+  //TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
 //*(leadingJetPt>300)";// && leadingJetPt<300)";
   TString cut_str_dat=cut_str+"*(Rsq<0.25)";
   TString cut_str_mc="*weight*2061";
@@ -189,14 +191,14 @@ void take_ratios() {
   //dPhiPF_D->Add(dPhiPF_W, -1);
   //dPhiPF_D->Add(dPhiPF_Z, -1);
 
-  //9.10981e+12   4.90629e+13   4.34389e+06  -6.75286e-17
-  // 2  p1          -5.00116e+00   8.35076e-01   6.67793e-05  -3.23865e-03
-  // 3  p2           4.79514e-02 
+  //1  p0           4.10404e+19   1.07981e+20  -2.34338e+17  -5.66712e-22
+  //2  p1          -7.51605e+00   4.43840e-01   1.56820e-03  -8.53370e-02
+  //3  p2           4.20132e-03   2.27274e-03   2.64188e-06   2.13945e+00
 
   TF1 *qcd_fxn = new TF1("qcd_fxn","[0]*x^[1]+[2]", 400, 2500);
-  qcd_fxn->SetParameter(0,9.1e12);
-  qcd_fxn->SetParameter(1,-5.0);
-  qcd_fxn->SetParameter(2,0.048);
+  qcd_fxn->SetParameter(0,4.1e19);
+  qcd_fxn->SetParameter(1,-7.5);
+  qcd_fxn->SetParameter(2,0.0042);
 
   Double_t wtf=0, lesswtf=0;
 

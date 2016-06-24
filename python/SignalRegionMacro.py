@@ -3,7 +3,7 @@ import ROOT as rt
 
 from macro import macro
 from macro.razorAnalysis import Analysis
-from macro.razorMacros import runFitAndToys, makeControlSampleHists
+from macro.razorMacros import runFitAndToys, makeControlSampleHistsForAnalysis
 
 FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
 FULL_FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016/Full"
@@ -42,8 +42,6 @@ shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet'
            'DiJet':hadShapeErrors, 'MuJet':lepShapeErrors, 'EleJet':lepShapeErrors,
            'FourToSixJet':hadShapeErrors, 'SevenJet':hadShapeErrors }
 
-blindBins = {b:[(x,y) for x in range(2,len(binning[b]["MR"])+1) for y in range(2,len(binning[b]["Rsq"])+1)] for b in binning}
-
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
@@ -69,8 +67,6 @@ if __name__ == "__main__":
             dest='noFill')
     parser.add_argument('--no-sfs', help="ignore MC scale factors", action="store_true", 
             dest="noSFs")
-    parser.add_argument('--b-inclusive', help="do not bin in number of b-tags", action="store_true",
-            dest='bInclusive')
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', type=int, help="choose a number of btags")
     parser.add_argument("--tag", dest="tag", default="Razor2015",
@@ -83,7 +79,6 @@ if __name__ == "__main__":
 
     #initialize
     plotOpts = {"SUS15004":True}
-    weightHists = {}
 
     doSideband=(not args.full)
     toysToUse = TOYS_FILES
@@ -136,84 +131,96 @@ if __name__ == "__main__":
     sfdir = "data/ScaleFactors/RazorMADD2015/"
     sfFile = sfdir+'/RazorScaleFactors_%s.root'%(tag)
     sfFile_nJets = sfdir+'/RazorNJetsScaleFactors_%s.root'%(tag)
-    vetolepFile = sfdir+'/RazorVetoLeptonCrossCheck_%s.root'%(tag)
+    vetolepFile = sfdir+'/RazorVetoLeptonClosureTests_%s.root'%(tag)
     ttFile = sfdir+'/TTBarDileptonSystematic_%s.root'%(tag)
     dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck_%s.root'%(tag)
     btagFile = sfdir+'/RazorBTagClosureTests_%s.root'%(tag)
 
     #get MR-Rsq scale factor histograms
     sfNames={
-            "ZInv":"GJetsInv",
+            "ZInv":"WJetsInv",
+            #"ZInv":"GJetsInv",
             "TTJets1L":"TTJets",
             "TTJets2L":"TTJets",
             }
-    processNames = regions.itervalues.next().samples
-    sfHists = loadScaleFactorHists(sfFilename=sfFile, processNames=processNames, 
+    processNames = regions.itervalues().next().samples
+    sfHists = macro.loadScaleFactorHists(sfFilename=sfFile, processNames=processNames, 
             scaleFactorNames=sfNames, debugLevel=debugLevel)
     #reopen the file and grab the ZNuNu up/down histograms
     #down scale factors are (gjets - (wjets-gjets))
-    sfTFile = rt.TFile.Open(gjetsupdownFile)
+    sfTFile = rt.TFile.Open(sfFile)
     sfHists['ZInvUp'] = sfTFile.Get('WJetsInvScaleFactors')
     sfHists['ZInvDown'] = sfTFile.Get('GJetsInvScaleFactors_Down') 
     #get njets scale factor histogram
     sfNJetsFile = rt.TFile.Open(sfFile_nJets)
+    #TODO: also get photon version
     sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
     #get veto lepton and tau scale factor histograms
-    vlFile = rt.TFile.Open(vetolepFile)
-    sfHists['VetoLeptonPtUp'] = vlFile.Get('VetoLeptonPtScaleFactors')
-    sfHists['VetoLeptonPtDown'] = invertHistogram(sfHists['VetoLeptonPtUp'])
-    sfHists['VetoTauPtUp'] = vlFile.Get('VetoTauPtScaleFactors')
-    sfHists['VetoTauPtDown'] = invertHistogram(sfHists['VetoTauPtUp'])
-    sfHists['VetoLeptonEtaUp'] = vlFile.Get('VetoLeptonEtaScaleFactors')
-    sfHists['VetoLeptonEtaDown'] = invertHistogram(sfHists['VetoLeptonEtaUp'])
-    sfHists['VetoTauEtaUp'] = vlFile.Get('VetoTauEtaScaleFactors')
-    sfHists['VetoTauEtaDown'] = invertHistogram(sfHists['VetoTauEtaUp'])
-    #get DYJets and TTBar Dilepton cross check scale factor histograms
-    ttTFile = rt.TFile.Open(ttFile)
-    sfHists['TTJetsDileptonUp'] = ttTFile.Get('TTBarDileptonSystematic')
-    #convert to correct SF histogram format
-    for nb in range(sfHists['TTJetsDileptonUp'].GetSize()+1):
-        sfHists['TTJetsDileptonUp'].SetBinContent( nb, 
-                sfHists['TTJetsDileptonUp'].GetBinContent(nb)+1.0 )
-    #get 'down' version of histogram
-    sfHists['TTJetsDileptonDown'] = invertHistogram(sfHists['TTJetsDileptonUp'])
-    dyTFile = rt.TFile.Open(dyFile)
-    sfHists['DYJetsInvUp'] = dyTFile.Get('DYJetsDileptonInvCrossCheckScaleFactors')
-    sfHists['DYJetsInvDown'] = invertHistogram(sfHists['DYJetsInvUp'])
-    btagTFile = rt.TFile.Open(btagFile)
-    for b in range(4):
-        bs = str(b)
-        sfHists['MR'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BMRScaleFactors')
-        sfHists['Rsq'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BRsqScaleFactors')
-        sfHists['MR'+bs+'BDown'] = invertHistogram(sfHists['MR'+bs+'BUp'])
-        sfHists['Rsq'+bs+'BDown'] = invertHistogram(sfHists['Rsq'+bs+'BUp'])
-    #get ZInv b-tag cross check histogram
-    invbtagTFile = rt.TFile.Open(invbtagFile)
-    sfHists['ZInvBUp'] = invbtagTFile.Get('ZNuNuBTagClosureSysUnc')
-    #convert to correct SF histogram format
-    for nb in range(sfHists['ZInvBUp'].GetSize()+1):
-        sfHists['ZInvBUp'].SetBinContent( nb, sfHists['ZInvBUp'].GetBinContent(nb)+1.0 )
-    #get 'down' version of histogram
-    sfHists['ZInvBDown'] = invertHistogram(sfHists['ZInvBUp'])
+    #vlFile = rt.TFile.Open(vetolepFile)
+    ##TODO: change the names of these histograms and load both MultiJet and DiJet versions
+    #sfHists['VetoLeptonPtUp'] = vlFile.Get('VetoLeptonPtScaleFactors')
+    #sfHists['VetoLeptonPtDown'] = macro.invertHistogram(sfHists['VetoLeptonPtUp'])
+    #sfHists['VetoTauPtUp'] = vlFile.Get('VetoTauPtScaleFactors')
+    #sfHists['VetoTauPtDown'] = macro.invertHistogram(sfHists['VetoTauPtUp'])
+    #sfHists['VetoLeptonEtaUp'] = vlFile.Get('VetoLeptonEtaScaleFactors')
+    #sfHists['VetoLeptonEtaDown'] = macro.invertHistogram(sfHists['VetoLeptonEtaUp'])
+    #sfHists['VetoTauEtaUp'] = vlFile.Get('VetoTauEtaScaleFactors')
+    #sfHists['VetoTauEtaDown'] = macro.invertHistogram(sfHists['VetoTauEtaUp'])
+    ##get DYJets and TTBar Dilepton cross check scale factor histograms
+    ##TODO: get both MultiJet and DiJet versions
+    #ttTFile = rt.TFile.Open(ttFile)
+    #sfHists['TTJetsDileptonUp'] = ttTFile.Get('TTBarDileptonSystematic')
+    ##convert to correct SF histogram format
+    #for nb in range(sfHists['TTJetsDileptonUp'].GetSize()+1):
+    #    sfHists['TTJetsDileptonUp'].SetBinContent( nb, 
+    #            sfHists['TTJetsDileptonUp'].GetBinContent(nb)+1.0 )
+    ##get 'down' version of histogram
+    #sfHists['TTJetsDileptonDown'] = macro.invertHistogram(sfHists['TTJetsDileptonUp'])
+    #dyTFile = rt.TFile.Open(dyFile)
+    ##TODO: get both MultiJet and DiJet versions
+    #sfHists['DYJetsInvUp'] = dyTFile.Get('DYJetsDileptonInvCrossCheckScaleFactors')
+    #sfHists['DYJetsInvDown'] = macro.invertHistogram(sfHists['DYJetsInvUp'])
+    #btagTFile = rt.TFile.Open(btagFile)
+    ##TODO: get both MultiJet and DiJet versions
+    #for b in range(4):
+    #    bs = str(b)
+    #    sfHists['MR'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BMRScaleFactors')
+    #    sfHists['Rsq'+bs+'BUp'] = btagTFile.Get('OneLepton'+bs+'BRsqScaleFactors')
+    #    sfHists['MR'+bs+'BDown'] = macro.invertHistogram(sfHists['MR'+bs+'BUp'])
+    #    sfHists['Rsq'+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+bs+'BUp'])
+    ##get ZInv b-tag cross check histogram
+    #sfHists['ZInvBUp'] = btagTFile.Get('ZNuNuBTagClosureSysUnc')
+    ##convert to correct SF histogram format
+    #for nb in range(sfHists['ZInvBUp'].GetSize()+1):
+    #    sfHists['ZInvBUp'].SetBinContent( nb, sfHists['ZInvBUp'].GetBinContent(nb)+1.0 )
+    ##get 'down' version of histogram
+    #sfHists['ZInvBDown'] = macro.invertHistogram(sfHists['ZInvBUp'])
 
     auxSFs = {"NJets":("nSelectedJets","1")} #do not correct veto lepton pt or eta
 
     #estimate yields in signal region
-    for boxName in boxesToUse:
+    for region in regionsOrder:
+        analysis = regions[region]
+        boxName = region[:-2]
+        btags = int(region[-2])
+        print "\nBox:",region,"("+boxName,str(btags),"B-tag)"
+
+        #make output directory
+        outdir = "Plots/"+tag+"/"+region
+        os.system('mkdir -p '+outdir)
+
+        blindBins = [(x,y) for x in range(2,len(analysis.binning["MR"])+1) 
+                for y in range(2,len(analysis.binning["Rsq"])+1)]
 
         #apply options
-        blindBinsToUse = blindBins[boxName]
-        if args.unblind: blindBinsToUse = None
-        samplesToUse = SAMPLES[boxName]
-        if args.noQCD and 'QCD' in samplesToUse:
-            samplesToUse.remove('QCD')
-        if args.noMC: samplesToUse = []
-        if samplesToUse is None or len(samplesToUse) == 0:
-            filesToUse = {"Data":FILENAMES[boxName]["Data"]}
-        else:
-            filesToUse = FILENAMES[boxName]
+        if args.unblind: blindBins = None
+        if args.noQCD and 'QCD' in analysis.samples:
+            analysis.samples.remove('QCD')
+        if args.noMC: analysis.samples = []
+        if analysis.samples is None or len(analysis.samples) == 0:
+            analysis.filenames = {"Data":analysis.filenames["Data"]}
         if args.noData: 
-            del filesToUse['Data']
+            del analysis.filenames['Data']
         shapesToUse = copy.copy(shapes[boxName])
         if args.noSys:
             shapesToUse = []
@@ -222,10 +229,8 @@ if __name__ == "__main__":
 
         sfHistsToUse = sfHists
         auxSFsToUse = auxSFs
-        #if boxName == 'SevenJet':
-            #sfHistsToUse = sfHists7Jet
 
-        #disable scale factors option
+        #option to disable scale factors
         if args.noSFs:
             print "Ignoring all scale factor histograms and uncertainties from scale factor cross checks."
             sfHistsToUse = {}
@@ -236,44 +241,19 @@ if __name__ == "__main__":
             #this removes scale factor uncertainties that are listed as tuples
             shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
 
-        #loop over btag bins
-        if args.btags is not None:
-            btaglist = [args.btags]
-        elif args.bInclusive:
-            btaglist = [0]
-        else:
-            btaglist = [0,1,2,3]
-        for btags in btaglist:
-            print "\n---",boxName,"Box,",btags,"B-tags ---"
-            #get correct b-tag closure test histogram
-            if not args.noSFs:
-                sfHistsToUse['MRBUp'] = sfHistsToUse['MR'+str(btags)+'BUp']
-                sfHistsToUse['MRBDown'] = sfHistsToUse['MR'+str(btags)+'BDown']
-                sfHistsToUse['RsqBUp'] = sfHistsToUse['Rsq'+str(btags)+'BUp']
-                sfHistsToUse['RsqBDown'] = sfHistsToUse['Rsq'+str(btags)+'BDown']
-            #get correct cuts string
-            thisBoxCuts = razorCuts[boxName]
-            if btags >= 3 or args.bInclusive: #inclusive if requested or if we are doing 3B
-                thisBoxCuts += " && nBTaggedJets >= "+str(btags)
-            else:
-                thisBoxCuts += " && nBTaggedJets == "+str(btags)
+        #get correct b-tag closure test histogram
+        if not (args.noSFs or args.noSys):
+            sfHistsToUse['MRBUp'] = sfHistsToUse['MR'+str(btags)+'BUp']
+            sfHistsToUse['MRBDown'] = sfHistsToUse['MR'+str(btags)+'BDown']
+            sfHistsToUse['RsqBUp'] = sfHistsToUse['Rsq'+str(btags)+'BUp']
+            sfHistsToUse['RsqBDown'] = sfHistsToUse['Rsq'+str(btags)+'BDown']
 
-            if not args.bInclusive:
-                extboxName = boxName+str(btags)+"BTag"
-                nBtags = btags
-            else:
-                extboxName = boxName
-                nBtags = -1
-            unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
-            hists = makeControlSampleHists(extboxName, 
-                    filenames=filesToUse, samples=samplesToUse, 
-                    cutsMC=thisBoxCuts, cutsData=thisBoxCuts, 
-                    bins=binning[boxName], lumiMC=MCLUMI, lumiData=LUMI, 
-                    weightHists=weightHists, sfHists=sfHistsToUse, treeName="RazorInclusive", 
-                    weightOpts=weightOpts, shapeErrors=shapesToUse, 
-                    fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBinsToUse,
-                    btags=nBtags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=dirName, 
-                    plotOpts=plotOpts, unrollBins=unrollBins, noFill=args.noFill,
-                    makePlots = (not args.export), exportShapeErrs=args.export, propagateScaleFactorErrs=False)
-
-            macro.exportHists(hists, outFileName='razorHistograms'+extboxName+'.root', outDir=dirName, debugLevel=debugLevel)
+        #run analysis
+        hists = makeControlSampleHistsForAnalysis( analysis,
+                sfHists=sfHistsToUse, treeName="RazorInclusive", 
+                shapeErrors=shapesToUse, fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBins,
+                btags=btags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=outdir, 
+                plotOpts=plotOpts, noFill=args.noFill, exportShapeErrs=True, propagateScaleFactorErrs=False)
+        #export histograms
+        macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', outDir=outdir, 
+                debugLevel=debugLevel)

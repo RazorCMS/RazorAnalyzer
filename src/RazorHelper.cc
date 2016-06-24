@@ -428,10 +428,10 @@ void RazorHelper::loadJECs_Razor2015_76X() {
 void RazorHelper::loadTag_Razor2016_80X() {
     loadPileup_Razor2015();
     loadLepton_Razor2015();
-    loadJECs_Razor2016();
     loadBTag_Razor2015();
     //migrated to 2016 version
     loadTrigger_Razor2016();
+    loadJECs_Razor2016();
 }
 
 void RazorHelper::loadTrigger_Razor2016() {

@@ -17,6 +17,7 @@
 #include <TGraphAsymmErrors.h>
 #include <TCanvas.h>
 #include <TLegend.h>
+#include <TLatex.h>
 #include <TBenchmark.h>                   // class to track macro running statistics
 #include <vector>                         // STL vector class
 #include <iostream>                       // standard I/O
@@ -64,14 +65,21 @@ void makepaperplots() {
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_rsq_razor.png";
 
-  TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_2015JECs/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_QCD_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
+
+  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
+  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
+  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
   
-  TString cut_str="weight*(box==11||box==12)*puWeight*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(Rsq<0.25)";
+  TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
   TString cut_str_dat=cut_str+"*(Rsq<0.25)";
+  TString cut_str_mc="*weight*2061";
 
   //--------------------------------------------------------------
   //
@@ -89,32 +97,35 @@ void makepaperplots() {
   TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny+2, &ybins2[0]); fxn_plus_err->Sumw2();  
 
   // open trees
-  TTree *tQ = (TTree*) fQ->Get("QCDTree");
-  TTree *tD = (TTree*) fD->Get("QCDTree");
-  TTree *tT = (TTree*) fT->Get("QCDTree");
-  TTree *tW = (TTree*) fW->Get("QCDTree");
-  TTree *tZ = (TTree*) fZ->Get("QCDTree");
+  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
+  TTree *tD = (TTree*) fD->Get("RazorInclusive");
+  TTree *tT = (TTree*) fT->Get("RazorInclusive");
+  TTree *tW = (TTree*) fW->Get("RazorInclusive");
+  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
   if (binIn==mr) {
-    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Q", cut_str);
+    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Q", cut_str+cut_str_mc);
     tD->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_D", cut_str_dat);
-    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_T", cut_str);
-    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_W", cut_str);
-    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Z", cut_str);
+    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_T", cut_str+cut_str_mc);
+    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_W", cut_str+cut_str_mc);
+    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Z", cut_str+cut_str_mc);
   } else if (binIn==rsq) {
-    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Q", cut_str);
+    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Q", cut_str+cut_str_mc);
     tD->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_D", cut_str_dat);
-    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_T", cut_str);
-    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_W", cut_str);
-    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Z", cut_str);
+    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_T", cut_str+cut_str_mc);
+    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_W", cut_str+cut_str_mc);
+    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Z", cut_str+cut_str_mc);
   }
 
   TF1 *qcd_fxn = new TF1("qcd_fxn","[0]*x^[1]+[2]", 400, 3000);
-  qcd_fxn->SetParameter(0,3.1e7);
-  qcd_fxn->SetParameter(1,-3.1);
-  qcd_fxn->SetParameter(2,0.062);
+  qcd_fxn->SetParameter(0,9.1e12);
+  qcd_fxn->SetParameter(1,-5.0);
+  qcd_fxn->SetParameter(2,0.048);
+  //qcd_fxn->SetParameter(0,3.1e7);
+  //qcd_fxn->SetParameter(1,-3.1);
+  //qcd_fxn->SetParameter(2,0.062);
 
   fxn_plus_err->SetBinContent(1,qcd_fxn->Eval(ymin-25));
   fxn_plus_err->SetBinError(1,qcd_fxn->Eval(ymin-25)*0.87);
@@ -203,7 +214,7 @@ void makepaperplots() {
       if (nPass>0 && nFail>0) {
 	nPF=nPass/nFail;
 
-	Float_t drsq=0.5*dPhiPF_D->GetYaxis()->GetBinWidth(j+1);
+	drsq=0.5*dPhiPF_D->GetYaxis()->GetBinWidth(j+1);
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP + dnF );
 	Float_t dnPF_l=nPF*TMath::Sqrt( dnP + dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
@@ -270,12 +281,16 @@ void makepaperplots() {
   leg->AddEntry(qcd_with_mr[0], "QCD MC Simulation", "pel");
   leg->AddEntry(fxn_plus_err, "Functional Form Model", "lf");
 
+  //qcd_fxn->SetParameter(0,9.1e12);
+  //qcd_fxn->SetParameter(1,-5.0);
+  //qcd_fxn->SetParameter(2,0.048);
+
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.035);
   tex->SetTextFont(42);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.485, 0.66, "#zeta = 3.1 #times 10^{7} (M_{R} / GeV)^{-3.1} + 0.062");
+  tex->DrawLatex(0.485, 0.66, "#zeta = 9.1 #times 10^{12} (M_{R} / GeV)^{-5.0} + 0.048");
 
   leg->Draw();
 
@@ -284,7 +299,7 @@ void makepaperplots() {
   tex->SetTextFont(62);   tex->SetTextSize(0.065);
   tex->SetLineWidth(2);
   tex->Draw();
-  tex = new TLatex(0.71,0.93,"2.3 fb^{-1} (13 TeV)");
+  tex = new TLatex(0.71,0.93,"2.06 fb^{-1} (13 TeV)");
   tex->SetNDC();
   tex->SetTextFont(42);   tex->SetTextSize(0.05);
   tex->SetLineWidth(2);
