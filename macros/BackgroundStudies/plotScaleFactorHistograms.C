@@ -4,7 +4,7 @@
 
 void plotScaleFactor() {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","READ");
+  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root","READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -320,7 +320,7 @@ void plotScaleFactor() {
 
 void plotGJetsScaleFactorSystematics() {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","READ");
+  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root","READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -423,7 +423,7 @@ void plotGJetsScaleFactorSystematics() {
   cv->SaveAs("GJetsVsWJetsSystematic.png");
   cv->SaveAs("GJetsVsWJetsSystematic.pdf");
 
-  TFile *outf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root","UPDATE");
+  TFile *outf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root","UPDATE");
   outf->WriteTObject(GJetsScaleFactor_Down, GJetsScaleFactor_Down->GetName(), "WRITEDELETE");
   outf->Close();
 
@@ -433,7 +433,7 @@ void plotGJetsScaleFactorSystematics() {
 
 void plotScaleFactorHistograms() {
   gROOT->SetBatch();
-  //plotScaleFactor();
+  plotScaleFactor();
   plotGJetsScaleFactorSystematics();
 
   gApplication->Terminate();

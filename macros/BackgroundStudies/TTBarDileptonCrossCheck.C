@@ -116,7 +116,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "2.6 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -211,13 +211,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 
   TFile *RazorScaleFactorFile = 0;
   TH1F *NJetsSFHist = 0;
-  RazorScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root",cmsswPath), "READ");
+  RazorScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root",cmsswPath), "READ");
   TH2Poly *TTBarSFHist = (TH2Poly*)RazorScaleFactorFile->Get("TTJetsScaleFactors");
   assert(TTBarSFHist);
   TH2Poly *WJetsSFHist = (TH2Poly*)RazorScaleFactorFile->Get("WJetsScaleFactors");
   assert(WJetsSFHist);
 
-  TFile *RazorNJetsScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2015.root",cmsswPath), "READ");
+  TFile *RazorNJetsScaleFactorFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2016.root",cmsswPath), "READ");
   NJetsSFHist = (TH1F*)RazorNJetsScaleFactorFile->Get("NJetsCorrectionScaleFactors");
   assert(NJetsSFHist);
 
@@ -346,19 +346,18 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	bool passTrigger = false;
 
 	//Use Single Lepton Triggers
-	if ( events->HLTDecision[2] || events->HLTDecision[7] || events->HLTDecision[12] || events->HLTDecision[11] || events->HLTDecision[15])  
+	if ( events->HLTDecision[4] || events->HLTDecision[6] || events->HLTDecision[12] || 
+                events->HLTDecision[13] || events->HLTDecision[18] || events->HLTDecision[19] || 
+                events->HLTDecision[20] || events->HLTDecision[24] || events->HLTDecision[27] || 
+                events->HLTDecision[28] || events->HLTDecision[29] || events->HLTDecision[30] || 
+                events->HLTDecision[31] || events->HLTDecision[32] || events->HLTDecision[33] || 
+                events->HLTDecision[34] || events->HLTDecision[35] || events->HLTDecision[36] || 
+                events->HLTDecision[37] || events->HLTDecision[38] || events->HLTDecision[39] || 
+                events->HLTDecision[42] || events->HLTDecision[43])  
 	  passTrigger = true;
 
-	if (isData) {
-	  if ( events->HLTDecision[22] || events->HLTDecision[23] || events->HLTDecision[24] || 
-	       events->HLTDecision[25] || events->HLTDecision[26] ||
-	       events->HLTDecision[27] || events->HLTDecision[28] || events->HLTDecision[29]	  
-	       ) passTrigger = true;
-	} else {
-	  if ( events->HLTDecision[18] || events->HLTDecision[19] || events->HLTDecision[20] || 
-	       events->HLTDecision[21] ||
-	       events->HLTDecision[28] || events->HLTDecision[29] || events->HLTDecision[160]	  
-	       ) passTrigger = true;
+	if (!isData) {
+            passTrigger = true;
 	}
 
 	if (!passTrigger) continue;
@@ -497,7 +496,7 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	  if (lep1MT > 120) {
 	    histNJets40[i]->Fill( events->NJets40, 0.5 );
 	    histNJets80[i]->Fill( events->NJets80, 0.5 );
-	    histNBtags[i]->Fill( events->NBJetsLoose, 0.5 );	    	   
+	    histNBtags[i]->Fill( events->NBJetsMedium, 0.5 );	    	   
 	    histMR[i]->Fill(events->MR, 0.5);
 	    histRsq[i]->Fill(events->Rsq, 0.5);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5);
@@ -514,7 +513,7 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	  if (lep1MT > 120) {
 	    histNJets40[i]->Fill( events->NJets40, 0.5*weight );
 	    histNJets80[i]->Fill( events->NJets80, 0.5*weight );
-	    histNBtags[i]->Fill( events->NBJetsLoose, 0.5*weight );	    	   
+	    histNBtags[i]->Fill( events->NBJetsMedium, 0.5*weight );	    	   
 	    histMR[i]->Fill(events->MR, 0.5*weight);
 	    histRsq[i]->Fill(events->Rsq, 0.5*weight);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5*weight);
@@ -528,6 +527,9 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	double lep2MT = sqrt(events->lep2.M2() + 2*events->MET*events->lep2.Pt()*(1 - cos( acos(cos(events->METPhi - events->lep2.Phi())))));
 
 	if (isData) {
+            if (events->MR > 900) {
+                cout << events->MR << " " << events->run << " " << events->lumi << " " << events->event << endl;
+            }
 	  histLeptonPt[i]->Fill(events->lep2.Pt(), 0.5);
 	  histLeptonEta[i]->Fill(events->lep2.Eta(), 0.5);
 	  histMET[i]->Fill(events->MET, 0.5);
@@ -537,7 +539,7 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	    dataYield += 0.5;
 	    histNJets40[i]->Fill( events->NJets40, 0.5 );
 	    histNJets80[i]->Fill( events->NJets80, 0.5 );
-	    histNBtags[i]->Fill( events->NBJetsLoose, 0.5 );	    	   
+	    histNBtags[i]->Fill( events->NBJetsMedium, 0.5 );	    	   
 	    histMR[i]->Fill(events->MR, 0.5);
 	    histRsq[i]->Fill(events->Rsq, 0.5);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5);
@@ -554,7 +556,7 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	    MCYield += weight * 0.5;
 	    histNJets40[i]->Fill( events->NJets40, 0.5*weight );
 	    histNJets80[i]->Fill( events->NJets80, 0.5*weight );
-	    histNBtags[i]->Fill( events->NBJetsLoose, 0.5*weight );	    	   
+	    histNBtags[i]->Fill( events->NBJetsMedium, 0.5*weight );	    	   
 	    histMR[i]->Fill(events->MR, 0.5*weight);
 	    histRsq[i]->Fill(events->Rsq, 0.5*weight);	   
 	    histMRVsRsq[i]->Fill(events->MR,events->Rsq, 0.5*weight);
@@ -639,7 +641,7 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
   // //--------------------------------------------------------------------------------------------------------------
   // // Output
   // //==============================================================================================================
-  TFile *file = TFile::Open(Form("data/ScaleFactors/RazorMADD2015/TTBarDileptonSystematic_%s_Razor2015.root",label.c_str()), 
+  TFile *file = TFile::Open(Form("data/ScaleFactors/RazorMADD2015/TTBarDileptonSystematic_%s_Razor2016.root",label.c_str()), 
           "UPDATE");
   file->cd();
   file->WriteTObject(histSystematics, "TTBarDileptonSystematic", "WriteDelete");
@@ -674,8 +676,7 @@ void TTBarDileptonCrossCheck( int option = 0) {
   string datafile = "";
 
   //No Skims  
-  datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_Run2015D_GoodLumiGolden.root");
-  datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_Run2015D_GoodLumiGolden.root");
+  datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/DileptonRazorSkimDileptonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root");
 
   vector<string> bkgfiles_ttbar;
   vector<string> bkgfiles_wjets;
@@ -684,11 +685,11 @@ void TTBarDileptonCrossCheck( int option = 0) {
   vector<string> bkgfiles_vv; 
   vector<string> bkgfiles_ttv;
 
-  bkgfiles_ttbar.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
-  bkgfiles_wjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root"); 
-  bkgfiles_singletop.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted_RazorSkim.root");  
-  bkgfiles_dy.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root");    
-  bkgfiles_vv.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/DileptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted_RazorSkim.root");   
+  bkgfiles_ttbar.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_TTJets_1pb_weighted.root");    
+  bkgfiles_wjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_WJets_1pb_weighted.root"); 
+  bkgfiles_singletop.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_SingleTop_1pb_weighted.root");  
+  bkgfiles_dy.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_DYJets_1pb_weighted.root");    
+  bkgfiles_vv.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_Other_1pb_weighted.root");   
 
   bkgfiles.push_back(bkgfiles_ttbar);
   bkgfiles.push_back(bkgfiles_dy);

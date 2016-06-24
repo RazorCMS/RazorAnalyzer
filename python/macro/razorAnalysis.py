@@ -47,8 +47,10 @@ razorSamples = {
         "VetoTau":["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"],
         "WJetsSingleLeptonInv":["Other", "ZInv", "QCD", "DYJets", "SingleTop", "TTJets", "WJetsInv"],
         "DYJetsDileptonInv":["Other", "SingleTop", "WJets", "TTJets", "DYJetsInv"],
-        "SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"],
-        "SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"],
+        "SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"],
+        "SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"],
+        #"SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"],
+        #"SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"],
         }
 razorSamplesReduced = {
         "TTJetsSingleLepton":["Other", "WJets", "TTJets"],
@@ -162,12 +164,26 @@ razorNtuples["SignalLepton"]["Razor2015"] = razorNtuples["SignalHadronic"]["Razo
 razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorInclusive_SingleLepton_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter.root"
 
 ### 2016 ntuples
-dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/"
-dir1L2016 = dirCR2016+'/OneLeptonRazorSkimLeptonSkim'
-dir1LInv2016 = dirCR2016+'/OneLeptonInvRazorSkimLeptonSkim'
-dir2LInv2016 = dirCR2016+'/DileptonRazorSkimDileptonSkim'
-dirVetoL2016 = dirCR2016+'/VetoLeptonRazorSkim'
-dirVetoTau2016 = dirCR2016+'/VetoTauRazorSkim'
+dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
+dirSR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
+versionMC2016 = "V3p2"
+versionData2016 = "V3p3"
+
+#on EOS
+#dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonRazorSkimLeptonSkim'
+#dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonInvRazorSkimLeptonSkim'
+#dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonRazorSkimDileptonSkim'
+#dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLeptonRazorSkim'
+#dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
+#dirSignal2016 = dirSR2016+'/'+versionMC2016
+
+#local directories
+dir1L2016 = 'Backgrounds/1L'
+dir1LInv2016 = 'Backgrounds/1LInv'
+dir2LInv2016 = 'Backgrounds/2LInv'
+dirVetoL2016 = 'Backgrounds/VetoL'
+dirVetoTau2016 = 'Backgrounds/VetoTau'
+dirSignal2016 = 'Backgrounds/Signal2016'
 
 razorNtuples["SingleLepton"]["Razor2016"] = {
         "TTJets"   : dir1L2016+"/RazorControlRegions_TTJets_1pb_weighted.root",
@@ -220,7 +236,25 @@ razorNtuples["VetoTau"]["Razor2016"] = {
         "Data"     : dirVetoTau2016+"/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"
         }
 razorNtuples["SignalHadronic"]["Razor2016"] = {
+        "TTJets"   : dirSignal2016+"/FullRazorInclusive_TTJets_1pb_weighted.root",
+        "WJets"    : dirSignal2016+"/FullRazorInclusive_WJets_1pb_weighted.root",
+        "SingleTop": dirSignal2016+"/FullRazorInclusive_SingleTop_1pb_weighted.root",
+        "DYJets"   : dirSignal2016+"/FullRazorInclusive_DYJets_1pb_weighted.root",
+        "Other"    : dirSignal2016+"/FullRazorInclusive_Other_1pb_weighted.root",
+        "ZInv"     : dirSignal2016+"/FullRazorInclusive_ZInv_1pb_weighted.root",
+        #QCD predicted using data driven method
+        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root",
+        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root"
         }
+razorNtuples["SignalLepton"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
+razorNtuples["SignalMuon"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
+razorNtuples["SignalElectron"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
+
+#update version number for data, in case different
+for name,files in razorNtuples.iteritems():
+    if "Razor2016" in files:
+        files["Razor2016"]["Data"] = files["Razor2016"]["Data"].replace(
+                '/'+versionMC2016+'/','/'+versionData2016+'/')
 
 #####################################
 ### TRIGGER
@@ -476,12 +510,14 @@ razorBinning = {}
 razorBinning["SingleLepton"] = {
         "MR" : [300, 400, 500, 600, 700, 900, 1200, 4000],
         "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets40" : [1,2,4,20]
+        "NJets40" : [1,2,4,20],
+        "NBJetsMedium" : [0,1,2,3,4],
         }
 razorBinning["SingleLeptonInv"] = {
         "MR_NoW" : [300, 400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoW" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets_NoW" : [1,2,4,20]
+        "NJets_NoW" : [1,2,4,20],
+        "NBJetsMedium" : [0,1,2,3,4],
         }
 
 ### Veto lepton control region
@@ -489,6 +525,7 @@ razorBinning["VetoLepton"] =  {
         "MR" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq" : [0.25,0.30,0.41,0.52,0.64,1.5],
         "NJets40" : [1,2,4,20],
+        "NBJetsMedium" : [0,1,2,3,4],
         "lep1.Pt()" : [5, 10, 15, 20.,30.,40.,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
@@ -505,6 +542,7 @@ razorBinning["VetoTau"] = {
         "MR" : [400, 500, 600, 700, 900, 4000],
         "Rsq" : [0.25,0.30,0.41,1.5],
         "NJets40" : [1,2,4,20],
+        "NBJetsMedium" : [0,1,2,3,4],
         "lep1.Pt()" : [20,30,40,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
@@ -792,8 +830,8 @@ class Analysis:
         if tag == "Razor2015":
             self.lumi = 2300
         elif tag == "Razor2016":
-            self.lumi = 589
-            #self.lumi = 2600
+            #self.lumi = 589
+            self.lumi = 2600
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 

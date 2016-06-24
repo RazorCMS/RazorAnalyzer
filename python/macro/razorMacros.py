@@ -669,7 +669,7 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
 #######################################
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, lumiData=0, signifThreshold=0., th2PolyXBins=None, th2PolyCols=None, debugLevel=0, printdir="."):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, lumiData=0, signifThreshold=0., th2PolyXBins=None, th2PolyCols=None, debugLevel=0, printdir=".",makePlots=True):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to uncertainty on the background normalization (controlled by the normErrFraction argument).
     
@@ -844,7 +844,7 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
 
     #plot scale factors in 2D (not yet implemented for 1 or 3 dimensions)
     c = rt.TCanvas("c"+process+"SFs", "c", 800, 600)
-    if not isinstance(var, basestring) and len(var) == 2: 
+    if not isinstance(var, basestring) and len(var) == 2 and makePlots==True: 
         plotting.draw2DHist(c, sfHists[process], xtitle=var[0], ytitle=var[1], zmin=0.0, zmax=1.8, printstr=process+"ScaleFactors", lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", commentstr="", drawErrs=True, logz=False, numDigits=2, printdir=printdir)
 
         if not doTotalMC and not th2PolyXBins:

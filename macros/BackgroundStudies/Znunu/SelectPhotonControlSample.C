@@ -256,10 +256,10 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   TFile *SFInputFile = 0;
   TFile *NJetsSFInputFile = 0;
   if (SFOption == 0) SFInputFile = 0;
-  else if (SFOption == 1) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root",cmsswPath), "READ");
+  else if (SFOption == 1) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root",cmsswPath), "READ");
   else if (SFOption == 2) {
-      SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root",cmsswPath), "READ");
-      NJetsSFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2015.root",cmsswPath), "READ");
+      SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root",cmsswPath), "READ");
+      NJetsSFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2016.root",cmsswPath), "READ");
   }
   else if (SFOption == 3) SFInputFile = TFile::Open(Form("%s/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Inclusive_CorrectedTo7Jet.root",cmsswPath), "READ");
   TH2Poly *InputSFHist = 0;
@@ -470,11 +470,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  }
 
 	} else {
-	  if (
-	       events->HLTDecision[88] || events->HLTDecision[89] || events->HLTDecision[90] 
-	       || events->HLTDecision[91] || events->HLTDecision[92] || 
-	      events->HLTDecision[93]
-	      ) passTrigger = true;
+	      passTrigger = true; //ignore trigger for MC
 	}
 
 	if (!passTrigger) continue;
@@ -489,7 +485,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  if (! (events->pho1_sigmaietaieta < 0.0271)) continue;
 	}
 	if (! (events->pho1_chargediso < 2.5)) continue;
-	if (! (events->pho1.Pt() > 58)) continue;
+	if (! (events->pho1.Pt() > 185)) continue;
+	//if (! (events->pho1.Pt() > 58)) continue;
   
 	//By default it's EG Loose selection + chargedIso < 2.5 GeV.
 	//We can tighten the cuts if we wish...
@@ -687,7 +684,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
         }
     }
 
-    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2015.root", "UPDATE");
+    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root", "UPDATE");
     SFFile->WriteTObject(HistSF, "GJetsInvScaleFactors", "WriteDelete");
     SFFile->Close();
 
@@ -742,7 +739,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       cout << "\n\n";
 
     }
-    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2015.root", "UPDATE");
+    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2016.root", "UPDATE");
     SFFile->WriteTObject(HistCorrection_NJets, "GJetsScaleFactorVsNJets", "WriteDelete");
     SFFile->Close();
   }
@@ -784,7 +781,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       cout << "\n\n";
 
     }
-    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorBTagClosureTests_Razor2015.root", "UPDATE");
+    TFile *SFFile = TFile::Open("data/ScaleFactors/RazorMADD2015/RazorBTagClosureTests_Razor2016.root", "UPDATE");
     SFFile->WriteTObject(HistSysUnc_NBTag, "ZNuNuBTagClosureSysUnc", "WriteDelete");
     SFFile->Close();
   }
@@ -947,8 +944,14 @@ void SelectPhotonControlSample( int option = 0) {
     bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
     bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
   } else {
-    bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
-    bkgfiles_gjetsFrag.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
+    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
+    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
+    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
+    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
+    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
+    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
+    bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJetsDR0p4_1pb_weighted.root");    
+    //bkgfiles_gjetsFrag.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
     bkgfiles_qcd.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"); 
     bkgfiles_other.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_Other_1pb_weighted.root"); 
   }
