@@ -40,6 +40,7 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         migrad_status = m2.minimize('Minuit2','migrad')
         improve_status = m2.minimize('Minuit2','improve')
         hesse_status = m2.minimize('Minuit2','hesse')
+        
         fr = m2.save()
 
     if fr.covQual() != 3:
