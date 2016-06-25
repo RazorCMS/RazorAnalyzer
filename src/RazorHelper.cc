@@ -426,12 +426,83 @@ void RazorHelper::loadJECs_Razor2015_76X() {
 ////////////////////////////////////////////////
 
 void RazorHelper::loadTag_Razor2016_80X() {
-    loadPileup_Razor2015();
-    loadLepton_Razor2015();
-    loadBTag_Razor2015();
-    //migrated to 2016 version
+    loadPileup_Razor2016();
+    loadLepton_Razor2016();
+    loadBTag_Razor2016();
     loadTrigger_Razor2016();
     loadJECs_Razor2016();
+}
+
+void RazorHelper::loadPileup_Razor2016() {
+    // pileup weights
+    std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
+    pileupWeightFile = TFile::Open(
+            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_06172016.root", cmsswPath.c_str()));
+    pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+    pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+    pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+}
+
+void RazorHelper::loadLepton_Razor2016(){
+    // electron efficiencies and scale factors
+    std::cout << "RazorHelper: loading electron efficiency histograms" << std::endl;
+    eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
+    eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root");
+    vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoElectronSelectionEffDenominatorReco_2015Final_Golden.root");
+    eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+    eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+    eleTightEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
+    eleVetoEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronVeto_FastsimScaleFactor");
+    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
+    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
+
+    // muon efficiencies and scale factors
+    std::cout << "RazorHelper: loading muon efficiency histograms" << std::endl;
+    muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
+    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
+    muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
+    muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
+    muTightEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
+    muVetoEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonVeto_FastsimScaleFactor");
+    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
+    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
+
+    // tau efficiencies and scale factors
+    std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
+    tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
+    tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
+
+}
+
+void RazorHelper::loadBTag_Razor2016() {
+    // b-tag efficiencies and scale factors
+    std::cout << "RazorHelper: loading btag efficiency histograms" << std::endl;
+    btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
+    btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVM_Fullsim_80X.root");
+    btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root");
+    btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("Efficiency_PtEta");
+    btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
+    btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
+
+    std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
+    // Fullsim
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
+    btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
+                                           BTagEntry::OP_MEDIUM,     // operating point
+				           "mujets",                 // measurement type
+				           "central");               // systematics type
+    btagreader_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
+    btagreader_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
+    btagreaderMistag = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "central");
+    btagreaderMistag_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    // sys up
+    btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
+
+    // Fastsim
+    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
 }
 
 void RazorHelper::loadTrigger_Razor2016() {

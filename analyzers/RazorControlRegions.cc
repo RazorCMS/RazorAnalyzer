@@ -954,6 +954,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       int nBJetsLoose40GeV = 0;
       int nBJetsMedium40GeV = 0;
       int nBJetsTight40GeV = 0;
+      events->NGenBJets = 0;
       events->bjet1.SetPtEtaPhiM(0,0,0,0);
       events->bjet2.SetPtEtaPhiM(0,0,0,0);
       events->bjet1PassLoose = false;
@@ -1049,6 +1050,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
 
 	if (abs(jetPartonFlavor[i]) == 5) {
+	  //count number of bjets in acceptance
+	  if (thisJet.Pt() > 40 && fabs(thisJet.Eta()) < 2.4) events->NGenBJets++;
+
 	  if (!bjet1Found) {
 	    bjet1Found = true;
 	    events->bjet1.SetPtEtaPhiM(thisJet.Pt(), thisJet.Eta(), thisJet.Phi(), thisJet.M());
