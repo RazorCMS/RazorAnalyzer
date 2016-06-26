@@ -864,6 +864,7 @@ class ControlSampleEvents {
     tree_->SetBranchAddress("Rsq",&Rsq);
     tree_->SetBranchAddress("NJets40",&NJets40);
     tree_->SetBranchAddress("NJets80",&NJets80);
+    tree_->SetBranchAddress("NGenBJets",&NGenBJets);
     tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);
     tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
     tree_->SetBranchAddress("NBJetsTight",&NBJetsTight);
