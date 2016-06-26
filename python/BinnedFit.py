@@ -22,7 +22,7 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         hesse_status = -1
         
     else:
-        if fitRange!='Full':
+        if fitRange!='Full' and False:
             nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
             m2 = rt.RooMinimizer(nll)
             m2.setStrategy(0)
@@ -34,10 +34,15 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         else:
             nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
         m2 = rt.RooMinimizer(nll)
+        m2.setMinimizerType('Minuit2')
         m2.setStrategy(2)
+        m2.setEps(0.01)
         m2.setMaxFunctionCalls(1000000)
         m2.setMaxIterations(1000000)
+        scan_status = m2.minimize('Minuit2', 'scan')
         migrad_status = m2.minimize('Minuit2','migrad')
+        #scan_status = m2.minimize('Minuit2', 'scan')
+        #simplex_status = m2.minimize('Minuit2', 'simplex')
         improve_status = m2.minimize('Minuit2','improve')
         hesse_status = m2.minimize('Minuit2','hesse')
         

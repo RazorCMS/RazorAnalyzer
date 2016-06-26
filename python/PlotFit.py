@@ -592,12 +592,12 @@ def setDataHist(h_data,xTitle,yTitle,densityCorr=False,color=rt.kBlack):
         #h_data.SetMinimum(max(1e-1,1e-1*h_data.GetBinContent(h_data.GetMinimumBin())))
         if densityCorr and "_MR_" in h_data.GetName():
             h_data.SetMinimum(1e-6)
-        elif 'Rsq' in h_data.GetName() or 'MR' in h_data.GetName():
-            h_data.SetMinimum(0.5) 
-        elif 'MR' in h_data.GetName():
-            h_data.SetMinimum(5e-2)
+        elif '_Rsq_' in h_data.GetName() or 'nBtagRsqMR_y' in h_data.GetName():
+            h_data.SetMinimum(5e-2) 
+        elif 'MR' in h_data.GetName() or 'nBtagRsqMR_x' in h_data.GetName():
+            h_data.SetMinimum(5e-4)
         else:
-            h_data.SetMinimum(5e-2) # for th1x
+            h_data.SetMinimum(5e-4) # for th1x
     return h_data
 
 def getDivideHistos(h,hClone,h_data,xTitle,divTitle):
@@ -808,7 +808,7 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
 
     
     nBinsMR = 5
-    if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel:
+    if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel or 'LeptonMultiJet' in boxLabel or 'EleJet' in boxLabel or 'MuJet' in boxLabel or 'LeptonJet' in boxLabel:
         nBinsMR = 7
     
     
@@ -1858,6 +1858,18 @@ if __name__ == '__main__':
     h_RsqMR_nsigma = h_RsqMR_statnsigma.Clone("h_RsqMR_nsigma")
     if computeErrors:
         h_RsqMR_nsigma = getNsigma2D(h_RsqMR_nsigma,h_data_RsqMR,toyTree,options,"yx",0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
+        if options.plotRegion!='Full':            
+            for i in range(1,h_RsqMR_nsigma.GetNbinsX()+1):
+                for j in range(1,h_RsqMR_nsigma.GetNbinsY()+1):
+                    w.var('MR').setVal(h_RsqMR_nsigma.GetXaxis().GetBinCenter(i))
+                    w.var('Rsq').setVal(h_RsqMR_nsigma.GetYaxis().GetBinCenter(j))
+                    w.var('nBtag').setVal(0.)
+                    inSideband = 0
+                    for fitname in options.plotRegion.split(','):
+                        inSideband += ( w.var('MR').inRange(fitname) * w.var('Rsq').inRange(fitname) * w.var('nBtag').inRange(fitname) )
+                    if not inSideband:
+                        h_RsqMR_nsigma.SetBinContent(i,j,0)
+
 
     h_RsqMR_nsigma_components = []
     h_RsqMR_statnsigma_components = []
@@ -1867,7 +1879,20 @@ if __name__ == '__main__':
         for k in range(1,len(z)):
             h_RsqMR_nsigma_btag = h_RsqMR_nsigma.Clone("h_RsqMR_nsigma_%ibtag"%z[k-1])
             if computeErrors:
-                h_RsqMR_nsigma_components.append(getNsigma2D(h_RsqMR_nsigma_btag,h_data_RsqMR_components[k-1],toyTree,options,"yx",0,len(x)-1,0,len(y)-1,k,k,x,y,z))
+                h_RsqMR_nsigma_btag = getNsigma2D(h_RsqMR_nsigma_btag,h_data_RsqMR_components[k-1],toyTree,options,"yx",0,len(x)-1,0,len(y)-1,k,k,x,y,z)
+                if options.plotRegion!='Full':            
+                    for i in range(1,h_RsqMR_nsigma_btag.GetNbinsX()+1):
+                        for j in range(1,h_RsqMR_nsigma_btag.GetNbinsY()+1):
+                            w.var('MR').setVal(h_RsqMR_nsigma_btag.GetXaxis().GetBinCenter(i))
+                            w.var('Rsq').setVal(h_RsqMR_nsigma_btag.GetYaxis().GetBinCenter(j))
+                            w.var('nBtag').setVal(z[k-1])
+                            inSideband = 0
+                            for fitname in options.plotRegion.split(','):
+                                inSideband += ( w.var('MR').inRange(fitname) * w.var('Rsq').inRange(fitname) * w.var('nBtag').inRange(fitname) )
+                            if not inSideband:
+                                h_RsqMR_nsigma_btag.SetBinContent(i,j,0)                                
+                h_RsqMR_nsigma_components.append(h_RsqMR_nsigma_btag)
+                            
             h_RsqMR_statnsigma_btag = h_RsqMR_statnsigma.Clone("h_RsqMR_statnsigma_%ibtag"%z[k-1])
             for i in range(1,h_RsqMR_statnsigma_btag.GetNbinsX()+1):
                 for j in range(1,h_RsqMR_statnsigma_btag.GetNbinsY()+1):
