@@ -194,6 +194,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     float subLeadingGenLeptonEta;
     float subLeadingGenLeptonPt;
     int   subLeadingGenLeptonType;
+    int NGenBJets;
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
@@ -241,6 +242,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	razorTree->Branch("subLeadingGenLeptonPt", &subLeadingGenLeptonPt, "subLeadingGenLeptonPt/F");
 	razorTree->Branch("subLeadingGenLeptonEta", &subLeadingGenLeptonEta, "subLeadingGenLeptonEta/F");
 	razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
+	razorTree->Branch("NGenBJets", &NGenBJets, "NGenBJets/I");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_vetoMuonEffUp", &sf_vetoMuonEffUp, "sf_vetoMuonEffUp/F");
@@ -324,6 +326,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	    subLeadingGenLeptonPt = -9;
 	    subLeadingGenLeptonEta = -9;
 	    subLeadingGenLeptonType = 0;
+	    NGenBJets = 0;
   	    ISRSystWeightUp = 1.0;
   	    ISRSystWeightDown = 1.0;
 	    pileupWeight = 1.0;
@@ -912,6 +915,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
             //Remove overlaps
             if (matchesLepton) continue;
+
+	    //Count Number of Gen-Level Matched BJets
+	    if (abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 40 && fabs(jetEta[i]) < 2.4) NGenBJets++;
+
             //Apply b-tagging correction factor 
             if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
 	      helper->updateBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),
