@@ -1,5 +1,7 @@
 #include "RazorQCDStudy.h"
+#include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
+#include "JetCorrectionUncertainty.h"
 #include "ControlSampleEvents.h"
 
 //C++ includes
@@ -18,226 +20,197 @@ struct greater_than_pt{
 void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, string label)
 {
 
-    //initialization: create one TTree for each analysis box 
-    cout << "Initializing..." << endl;
-    bool isRunOne = (option == 1);
-    cout << "IsData = " << isData << "\n";
-
-    TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
-
-    bool printSyncDebug = false;
-    std::vector<JetCorrectorParameters> correctionParameters;
-
-    char* cmsswPath;
-    cmsswPath = getenv("CMSSW_BASE");
-    string pathname;
-    if(cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/JEC/";
-    cout << "Getting JEC parameters from " << pathname << endl;
-
-    if (isData) {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
-    } else {
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-      correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    }
-
-    FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
-    JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
-    SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
-
-    TFile *pileupWeightFile = 0;
-    TH1F *pileupWeightHist = 0;
-    if(!isData){
-      
-      string pathname;
-      if (cmsswPath != NULL) pathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
-      else {
-	cout << "ERROR: CMSSW_BASE not detected. Exiting...";
-	assert(false);
-      }
-      pileupWeightFile = TFile::Open(Form("%s/PileupReweight_Spring15MCTo2015Data.root",pathname.c_str()));
-      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
-      assert(pileupWeightHist);
-    }
-    
-    //*************************************************************************
-    //Set up Output File
-    //*************************************************************************
-    string outfilename = outputfilename;
-    if (outfilename == "") outfilename = "RazorControlRegions.root";
-    TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
-    TTree *outTree = new TTree("QCDTree", "Info on selected razor inclusive events");
-    //tree variables
-    Float_t                 weight;
-    Float_t                 puWeight;
-    UInt_t                  run;
-    UInt_t                  lumi;
-    UInt_t                  event;
-    UInt_t                  NPU_0;
-    UInt_t                  NPU_Minus1;
-    UInt_t                  NPU_Plus1;
-    UInt_t                  NPV;
-    Float_t                 Rho;
-    Bool_t                  hltDecision[150];
-    Int_t                   hltPrescale[150];
-    Float_t                 MR;
-    Float_t                 Rsq;
-    Float_t                 minDPhi;
-    Float_t                 minDPhiN;
-    Float_t                 dPhiRazor;
-    Float_t                 MET;
-    Float_t                 HT;
-    Float_t                 MHT;
-    Float_t                 MHTPhi;
-    Float_t                 diffMetMht;
-    UInt_t                  NJets40;
-    UInt_t                  NJets80;
-    UInt_t                  NBJetsLoose;
-    UInt_t                  NBJetsMedium;
-    UInt_t                  NBJetsTight;
-    Float_t                 genJetMR;
-    Float_t                 genJetRsq;
-    Float_t                 genJetDPhiRazor;    
-    Float_t                 genJetHT;
-    Float_t                 maxJetGenDiff;
-    int NJets;
-    int box;
-    int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
-    int nVetoMuons, nVetoElectrons, nLooseTaus;
-    float leadingJetPt, subLeadingJetPt;
-    float leadingTightMuPt, leadingTightElePt;
-    float leadingMuPt, leadingElePt;
-    float zPt, zEta, zPhi, zMass;
-    bool passedDileptonTrigger;
-    bool passedSingleLeptonTrigger;
-    bool passedHadronicTrigger;
-    bool passedDijetTrigger;
-    float JetE[99];
-    float JetPt[99];
-    float JetEta[99];
-    float JetPhi[99];
-    float GenJetE[99];
-    float GenJetPt[99];
-    float GenJetEta[99];
-    float GenJetPhi[99];
-    bool  JetIDTight[99];
-    float PtNeutrinoClosestToJet[99]; 
-    float DRNeutrinoClosestToJet[99];
-    float JetChargedEMEnergyFraction[99];
-    float JetNeutralEMEnergyFraction[99];
-    float JetChargedHadEnergyFraction[99];
-    float JetNeutralHadEnergyFraction[99];
-    float JetPartonFlavor[99];
-    float JetPileupID[99];
-    float JetGenDiff[99];
-    
-    //book the branches that go in all types of trees
-    outTree->Branch("weight",&weight,"weight/F");
-    outTree->Branch("puWeight",&puWeight,"puWeight/F");
-    outTree->Branch("run",&run,"run/i");
-    outTree->Branch("lumi",&lumi,"lumi/i");
-    outTree->Branch("event",&event,"event/i");
-    outTree->Branch("NPU_0",&NPU_0,"NPU_0/i");
-    outTree->Branch("NPU_Minus1",&NPU_Minus1,"NPU_Minus1/i");
-    outTree->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
-    outTree->Branch("NPV",&NPV,"NPV/i");
-    outTree->Branch("Rho",&Rho,"Rho/F");
-    outTree->Branch("HLTDecision",&hltDecision,"HLTDecision[150]/O");
-    outTree->Branch("HLTPrescale",&hltPrescale,"HLTPrescale[150]/I");
-    outTree->Branch("MR",&MR,"MR/F");
-    outTree->Branch("Rsq",&Rsq,"Rsq/F");
-    outTree->Branch("minDPhi",&minDPhi,"minDPhi/F"); 
-    outTree->Branch("minDPhiN",&minDPhiN,"minDPhiN/F"); 
-    outTree->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
-    outTree->Branch("MET",&MET,"MET/F");
-    outTree->Branch("HT",&HT,"HT/F");
-    outTree->Branch("MHT",&MHT,"MHT/F");
-    outTree->Branch("MHTPhi",&MHTPhi,"MHTPhi/F");
-    outTree->Branch("diffMetMht",&diffMetMht,"diffMetMht/F");
-    outTree->Branch("NJets40",&NJets40,"NJets40/i");
-    outTree->Branch("NJets80",&NJets80,"NJets80/i");
-    outTree->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
-    outTree->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
-    outTree->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
-    outTree->Branch("leadingJetPt",&leadingJetPt,"leadingJetPt/F");
-    outTree->Branch("subLeadingJetPt",&subLeadingJetPt,"subLeadingJetPt/F");
-    outTree->Branch("leadingMuPt",&leadingMuPt,"leadingMuPt/F");
-    outTree->Branch("leadingElePt",&leadingElePt,"leadingElePt/F");
-    outTree->Branch("genJetMR",&genJetMR,"genJetMR/F");
-    outTree->Branch("genJetRsq",&genJetRsq,"genJetRsq/F");
-    outTree->Branch("genJetDPhiRazor",&genJetDPhiRazor,"genJetDPhiRazor/F");
-    outTree->Branch("genJetHT",&genJetHT,"genJetHT/F");	  
-    outTree->Branch("genMET",&genMetPt,"genMET/F");	         
-    outTree->Branch("genMETPhi",&genMetPhi,"genMETPhi/F");	         
-    outTree->Branch("maxJetGenDiff",&maxJetGenDiff,"maxJetGenDiff/F");
-    outTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
-    outTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
-    outTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
-    outTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
-    outTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter,"Flag_EcalDeadCellTriggerPrimitiveFilter/O");
-    outTree->Branch("Flag_goodVertices", &Flag_goodVertices,"Flag_goodVertices/O");
-    outTree->Branch("Flag_EcalDeadCellBoundaryEnergyFilter", &Flag_EcalDeadCellBoundaryEnergyFilter,"Flag_EcalDeadCellBoundaryEnergyFilter/O");
-    outTree->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter,"Flag_trackingFailureFilter/O");
-    outTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter,"Flag_eeBadScFilter/O");
-    outTree->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter,"Flag_ecalLaserCorrFilter/O");
-    outTree->Branch("Flag_trkPOGFilters", &Flag_trkPOGFilters,"Flag_trkPOGFilters/O");
-    outTree->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X,"Flag_trkPOG_manystripclus53X/O");
-    outTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X,"Flag_trkPOG_toomanystripclus53X/O");
-    outTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters,"Flag_trkPOG_logErrorTooManyClusters/O");
-    outTree->Branch("Flag_METFilters", &Flag_METFilters,"Flag_METFilters/O");	
-    outTree->Branch("passedDileptonTrigger", &passedDileptonTrigger,"passedDileptonTrigger/O");	
-    outTree->Branch("passedSingleLeptonTrigger", &passedSingleLeptonTrigger,"passedSingleLeptonTrigger/O");	
-    outTree->Branch("passedHadronicTrigger", &passedHadronicTrigger,"passedHadronicTrigger/O");	
-    outTree->Branch("passedDijetTrigger", &passedDijetTrigger,"passedDijetTrigger/O");	
-    outTree->Branch("nJets", &NJets,"nJets/I");
-    outTree->Branch("box", &box, "box/I");
-    outTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
-    outTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
-    outTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
-    outTree->Branch("nVetoElectrons", &nVetoElectrons, "nVetoElectrons/I");
-    outTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
-    outTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
-    outTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
-    outTree->Branch("zPt",&zPt,"zPt/F");
-    outTree->Branch("zEta",&zEta,"zEta/F");
-    outTree->Branch("zPhi",&zPhi,"zPhi/F");
-    outTree->Branch("zMass",&zMass,"zMass/F");
-    outTree->Branch("JetE", JetE,"JetE[nJets]/F");
-    outTree->Branch("JetPt", JetPt,"JetPt[nJets]/F");
-    outTree->Branch("JetEta", JetEta,"JetEta[nJets]/F");
-    outTree->Branch("JetPhi", JetPhi,"JetPhi[nJets]/F");
-    outTree->Branch("GenJetE", GenJetE,"GenJetE[nJets]/F");
-    outTree->Branch("GenJetPt", GenJetPt,"GenJetPt[nJets]/F");
-    outTree->Branch("GenJetEta", GenJetEta,"GenJetEta[nJets]/F");
-    outTree->Branch("GenJetPhi", GenJetPhi,"GenJetPhi[nJets]/F");
-    outTree->Branch("JetGenDiff", JetGenDiff,"JetGenDiff[nJets]/F");
-    outTree->Branch("JetIDTight", JetIDTight,"JetIDTight[nJets]/O");
-    outTree->Branch("PtNeutrinoClosestToJet", PtNeutrinoClosestToJet,"PtNeutrinoClosestToJet[nJets]/F");
-    outTree->Branch("DRNeutrinoClosestToJet", DRNeutrinoClosestToJet,"DRNeutrinoClosestToJet[nJets]/F");
-    outTree->Branch("JetChargedEMEnergyFraction", JetChargedEMEnergyFraction,"JetChargedEMEnergyFraction[nJets]/F");
-    outTree->Branch("JetNeutralEMEnergyFraction", JetNeutralEMEnergyFraction,"JetNeutralEMEnergyFraction[nJets]/F");
-    outTree->Branch("JetChargedHadEnergyFraction", JetChargedHadEnergyFraction,"JetChargedHadEnergyFraction[nJets]/F");
-    outTree->Branch("JetNeutralHadEnergyFraction", JetNeutralHadEnergyFraction,"JetNeutralHadEnergyFraction[nJets]/F");
-    outTree->Branch("JetPartonFlavor", JetPartonFlavor,"JetPartonFlavor[nJets]/F");
-    outTree->Branch("JetPileupID", JetPileupID,"JetPileupID[nJets]/F");
-
-    //histogram containing total number of processed events (for normalization)
-    TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
-    TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
-
-    //*************************************************************************
-    //Look over Input File Events
-    //*************************************************************************
-    if (fChain == 0) return;
-    cout << "Total Events: " << fChain->GetEntries() << "\n";
-    Long64_t nentries = fChain->GetEntriesFast();
-    Long64_t nbytes = 0, nb = 0;
-    //for (Long64_t jentry=0; jentry<100;jentry++) {
-    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+  //initialization: create one TTree for each analysis box 
+  //cout << "Initializing..." << endl;
+  bool isRunOne = (option == 1);
+  //cout << "IsData = " << isData << "\n";
+  bool isFastsimSMS = (option == 1 || option == 11);
+  
+  TRandom3 *random = new TRandom3(33333); //Artur wants this number 33333
+  
+  bool printSyncDebug = false;
+  
+  RazorHelper *helper = 0;
+  string analysisTag = "Razor2016_80X";
+  helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
+  
+  // Get jet corrector
+  FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
+  //JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
+  //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
+  
+  //*************************************************************************
+  //Set up Output File
+  //*************************************************************************
+  string outfilename = outputfilename;
+  if (outfilename == "") outfilename = "RazorControlRegions.root";
+  TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
+  TTree *outTree = new TTree("QCDTree", "Info on selected razor inclusive events");
+  //tree variables
+  Float_t                 weight;
+  Float_t                 pileupWeight;
+  UInt_t                  run;
+  UInt_t                  lumi;
+  UInt_t                  event;
+  UInt_t                  NPU;
+  UInt_t                  NPV;
+  Float_t                 Rho;
+  Bool_t                  hltDecision[150];
+  Int_t                   hltPrescale[150];
+  Float_t                 MR;
+  Float_t                 Rsq;
+  Float_t                 minDPhi;
+  Float_t                 minDPhiN;
+  Float_t                 dPhiRazor;
+  Float_t                 MET;
+  Float_t                 HT;
+  Float_t                 MHT;
+  Float_t                 MHTPhi;
+  Float_t                 diffMetMht;
+  UInt_t                  NJets40;
+  UInt_t                  NJets80;
+  UInt_t                  NBJetsLoose;
+  UInt_t                  NBJetsMedium;
+  UInt_t                  NBJetsTight;
+  Float_t                 genJetMR;
+  Float_t                 genJetRsq;
+  Float_t                 genJetDPhiRazor;    
+  Float_t                 genJetHT;
+  Float_t                 maxJetGenDiff;
+  int NJets;
+  int box;
+  int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus;
+  int nVetoMuons, nVetoElectrons, nLooseTaus;
+  float leadingJetPt, subLeadingJetPt;
+  float leadingTightMuPt, leadingTightElePt;
+  float leadingMuPt, leadingElePt;
+  float zPt, zEta, zPhi, zMass;
+  bool passedDileptonTrigger;
+  bool passedSingleLeptonTrigger;
+  bool passedHadronicTrigger;
+  bool passedDijetTrigger;
+  float JetE[99];
+  float JetPt[99];
+  float JetEta[99];
+  float JetPhi[99];
+  float GenJetE[99];
+  float GenJetPt[99];
+  float GenJetEta[99];
+  float GenJetPhi[99];
+  bool  JetIDTight[99];
+  float PtNeutrinoClosestToJet[99]; 
+  float DRNeutrinoClosestToJet[99];
+  float JetChargedEMEnergyFraction[99];
+  float JetNeutralEMEnergyFraction[99];
+  float JetChargedHadEnergyFraction[99];
+  float JetNeutralHadEnergyFraction[99];
+  float JetPartonFlavor[99];
+  float JetPileupID[99];
+  float JetGenDiff[99];
+  
+  //book the branches that go in all types of trees
+  outTree->Branch("weight",&weight,"weight/F");
+  outTree->Branch("pileupWeight",&pileupWeight,"pileupWeight/F");
+  outTree->Branch("run",&run,"run/i");
+  outTree->Branch("lumi",&lumi,"lumi/i");
+  outTree->Branch("event",&event,"event/i");
+  outTree->Branch("NPU",&NPU,"NPU/i");
+  //outTree->Branch("NPU_Minus1",&NPU_Minus1,"NPU_Minus1/i");
+  //outTree->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
+  outTree->Branch("NPV",&NPV,"NPV/i");
+  outTree->Branch("Rho",&Rho,"Rho/F");
+  outTree->Branch("HLTDecision",&hltDecision,"HLTDecision[150]/O");
+  outTree->Branch("HLTPrescale",&hltPrescale,"HLTPrescale[150]/I");
+  outTree->Branch("MR",&MR,"MR/F");
+  outTree->Branch("Rsq",&Rsq,"Rsq/F");
+  outTree->Branch("minDPhi",&minDPhi,"minDPhi/F"); 
+  outTree->Branch("minDPhiN",&minDPhiN,"minDPhiN/F"); 
+  outTree->Branch("dPhiRazor",&dPhiRazor,"dPhiRazor/F");
+  outTree->Branch("MET",&MET,"MET/F");
+  outTree->Branch("HT",&HT,"HT/F");
+  outTree->Branch("MHT",&MHT,"MHT/F");
+  outTree->Branch("MHTPhi",&MHTPhi,"MHTPhi/F");
+  outTree->Branch("diffMetMht",&diffMetMht,"diffMetMht/F");
+  outTree->Branch("NJets40",&NJets40,"NJets40/i");
+  outTree->Branch("NJets80",&NJets80,"NJets80/i");
+  outTree->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
+  outTree->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
+  outTree->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
+  outTree->Branch("leadingJetPt",&leadingJetPt,"leadingJetPt/F");
+  outTree->Branch("subLeadingJetPt",&subLeadingJetPt,"subLeadingJetPt/F");
+  outTree->Branch("leadingMuPt",&leadingMuPt,"leadingMuPt/F");
+  outTree->Branch("leadingElePt",&leadingElePt,"leadingElePt/F");
+  outTree->Branch("genJetMR",&genJetMR,"genJetMR/F");
+  outTree->Branch("genJetRsq",&genJetRsq,"genJetRsq/F");
+  outTree->Branch("genJetDPhiRazor",&genJetDPhiRazor,"genJetDPhiRazor/F");
+  outTree->Branch("genJetHT",&genJetHT,"genJetHT/F");	  
+  outTree->Branch("genMET",&genMetPt,"genMET/F");	         
+  outTree->Branch("genMETPhi",&genMetPhi,"genMETPhi/F");	         
+  outTree->Branch("maxJetGenDiff",&maxJetGenDiff,"maxJetGenDiff/F");
+  outTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
+  outTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
+  outTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
+  outTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
+  outTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter,"Flag_EcalDeadCellTriggerPrimitiveFilter/O");
+  outTree->Branch("Flag_goodVertices", &Flag_goodVertices,"Flag_goodVertices/O");
+  outTree->Branch("Flag_EcalDeadCellBoundaryEnergyFilter", &Flag_EcalDeadCellBoundaryEnergyFilter,"Flag_EcalDeadCellBoundaryEnergyFilter/O");
+  outTree->Branch("Flag_trackingFailureFilter", &Flag_trackingFailureFilter,"Flag_trackingFailureFilter/O");
+  outTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter,"Flag_eeBadScFilter/O");
+  outTree->Branch("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter,"Flag_ecalLaserCorrFilter/O");
+  outTree->Branch("Flag_trkPOGFilters", &Flag_trkPOGFilters,"Flag_trkPOGFilters/O");
+  outTree->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X,"Flag_trkPOG_manystripclus53X/O");
+  outTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X,"Flag_trkPOG_toomanystripclus53X/O");
+  outTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters,"Flag_trkPOG_logErrorTooManyClusters/O");
+  outTree->Branch("Flag_METFilters", &Flag_METFilters,"Flag_METFilters/O");	
+  outTree->Branch("passedDileptonTrigger", &passedDileptonTrigger,"passedDileptonTrigger/O");	
+  outTree->Branch("passedSingleLeptonTrigger", &passedSingleLeptonTrigger,"passedSingleLeptonTrigger/O");	
+  outTree->Branch("passedHadronicTrigger", &passedHadronicTrigger,"passedHadronicTrigger/O");	
+  outTree->Branch("passedDijetTrigger", &passedDijetTrigger,"passedDijetTrigger/O");	
+  outTree->Branch("nJets", &NJets,"nJets/I");
+  outTree->Branch("box", &box, "box/I");
+  outTree->Branch("nVetoMuons", &nVetoMuons, "nVetoMuons/I");
+  outTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+  outTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+  outTree->Branch("nVetoElectrons", &nVetoElectrons, "nVetoElectrons/I");
+  outTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+  outTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+  outTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
+  outTree->Branch("zPt",&zPt,"zPt/F");
+  outTree->Branch("zEta",&zEta,"zEta/F");
+  outTree->Branch("zPhi",&zPhi,"zPhi/F");
+  outTree->Branch("zMass",&zMass,"zMass/F");
+  outTree->Branch("JetE", JetE,"JetE[nJets]/F");
+  outTree->Branch("JetPt", JetPt,"JetPt[nJets]/F");
+  outTree->Branch("JetEta", JetEta,"JetEta[nJets]/F");
+  outTree->Branch("JetPhi", JetPhi,"JetPhi[nJets]/F");
+  outTree->Branch("GenJetE", GenJetE,"GenJetE[nJets]/F");
+  outTree->Branch("GenJetPt", GenJetPt,"GenJetPt[nJets]/F");
+  outTree->Branch("GenJetEta", GenJetEta,"GenJetEta[nJets]/F");
+  outTree->Branch("GenJetPhi", GenJetPhi,"GenJetPhi[nJets]/F");
+  outTree->Branch("JetGenDiff", JetGenDiff,"JetGenDiff[nJets]/F");
+  outTree->Branch("JetIDTight", JetIDTight,"JetIDTight[nJets]/O");
+  outTree->Branch("PtNeutrinoClosestToJet", PtNeutrinoClosestToJet,"PtNeutrinoClosestToJet[nJets]/F");
+  outTree->Branch("DRNeutrinoClosestToJet", DRNeutrinoClosestToJet,"DRNeutrinoClosestToJet[nJets]/F");
+  outTree->Branch("JetChargedEMEnergyFraction", JetChargedEMEnergyFraction,"JetChargedEMEnergyFraction[nJets]/F");
+  outTree->Branch("JetNeutralEMEnergyFraction", JetNeutralEMEnergyFraction,"JetNeutralEMEnergyFraction[nJets]/F");
+  outTree->Branch("JetChargedHadEnergyFraction", JetChargedHadEnergyFraction,"JetChargedHadEnergyFraction[nJets]/F");
+  outTree->Branch("JetNeutralHadEnergyFraction", JetNeutralHadEnergyFraction,"JetNeutralHadEnergyFraction[nJets]/F");
+  outTree->Branch("JetPartonFlavor", JetPartonFlavor,"JetPartonFlavor[nJets]/F");
+  outTree->Branch("JetPileupID", JetPileupID,"JetPileupID[nJets]/F");
+  
+  //histogram containing total number of processed events (for normalization)
+  TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
+  TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
+  
+  //*************************************************************************
+  //Look over Input File Events
+  //*************************************************************************
+  if (fChain == 0) return;
+  cout << "Total Events: " << fChain->GetEntries() << "\n";
+  Long64_t nentries = fChain->GetEntriesFast();
+  Long64_t nbytes = 0, nb = 0;
+  //for (Long64_t jentry=0; jentry<100;jentry++) {
+  for (Long64_t jentry=0; jentry<nentries;jentry++) {
       //begin event
       if(jentry % 1000000 == 0) cout << "Processing entry " << jentry << endl;
       Long64_t ientry = LoadTree(jentry);
@@ -276,61 +249,55 @@ void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, stri
       run = runNum;
       lumi = lumiNum;
       event = eventNum;
-      
-      //get NPU
-      for (int i=0; i < nBunchXing; ++i) {
-	if (BunchXing[i] == 0) {
-	  NPU_0 = nPUmean[i];
-	}
-	if (BunchXing[i] == -1) {
-	  NPU_Minus1 = nPUmean[i];
-	}
-	if (BunchXing[i] == 1) {
-	  NPU_Plus1 = nPUmean[i];
-	}	  
-      }
-      NPV = nPV;
 
-      puWeight = 1;
-      if (!isData) puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(NPU_0));
+      pileupWeight = 1.0;
+      if(!isData){
+	//Get number of PU interactions
+	for (int i = 0; i < nBunchXing; i++) {
+	  if (BunchXing[i] == 0) {
+	    NPU= nPUmean[i];
+	  }
+	}
+	pileupWeight = helper->getPileupWeight(NPU);
+	//pileupWeightUp = helper->getPileupWeightUp(NPU) / pileupWeight;
+	//pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;
+      }
+      
+      NPV = nPV;
 
       passedDileptonTrigger = false;
       passedSingleLeptonTrigger = false;
       passedHadronicTrigger= false;
-      passedDijetTrigger= false;
-      
-      if (isData) {
-	passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
-				      || HLTDecision[30] || HLTDecision[31] 
-				      || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-	passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
-					 || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
-					 HLTDecision[26] || HLTDecision[27] ||
-					 HLTDecision[28] || HLTDecision[29]);
-	passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
-				     || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
-				     || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
-				     || HLTDecision[143] || HLTDecision[144]);
-	passedDijetTrigger = bool( HLTDecision[105] || HLTDecision[106] || HLTDecision[107] || HLTDecision[108] 
-				   || HLTDecision[109] || HLTDecision[110] || HLTDecision[111] || HLTDecision[112] 
-				   || HLTDecision[113] );
-      } else {
-	passedDileptonTrigger = bool(HLTDecision[41] || HLTDecision[43]
-				     || HLTDecision[30] || HLTDecision[31] 
-				     || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-	passedSingleLeptonTrigger = bool( HLTDecision[2] || HLTDecision[7] || HLTDecision[12] 
-					  || HLTDecision[11] || HLTDecision[15] 
-					  || HLTDecision[18] || HLTDecision[19] || HLTDecision[20] 
-					  || HLTDecision[21] || HLTDecision[28] || HLTDecision[29]);
-	passedHadronicTrigger = bool(HLTDecision[134] || HLTDecision[135] || HLTDecision[136] 
-				     || HLTDecision[137] || HLTDecision[138] || HLTDecision[139] 
-				     || HLTDecision[140] || HLTDecision[141] || HLTDecision[142] 
-				     || HLTDecision[143] || HLTDecision[144]);    
-	passedDijetTrigger = bool( HLTDecision[105] || HLTDecision[106] || HLTDecision[107] || HLTDecision[108] 
-				   || HLTDecision[109] || HLTDecision[110] || HLTDecision[111] || HLTDecision[112] 
-				   || HLTDecision[113] );
+
+      vector<int> dileptonTriggerNums = helper->getDileptonTriggerNums();
+      vector<int> singleLeptonTriggerNums = helper->getSingleLeptonTriggerNums();
+      vector<int> hadronicTriggerNums = helper->getHadronicTriggerNums();
+      for( unsigned int itrig = 0; itrig < dileptonTriggerNums.size(); itrig++ ) {
+	if (HLTDecision[dileptonTriggerNums[itrig]]) {
+	  passedDileptonTrigger = true;
+	  break;
+	}
       }
-      //passedLeptonicTrigger = passedSingleLeptonTrigger || passedDileptonTrigger;
+      for( unsigned int itrig = 0; itrig < singleLeptonTriggerNums.size(); itrig++ ) {
+	if (HLTDecision[singleLeptonTriggerNums[itrig]]) {
+	  passedSingleLeptonTrigger = true;
+	  break;
+	}
+      }
+      for( unsigned int itrig = 0; itrig < hadronicTriggerNums.size(); itrig++ ) {
+	if (HLTDecision[hadronicTriggerNums[itrig]]) {
+	  passedHadronicTrigger = true;
+	  break;
+	}
+      }
+      if (HLTDecision[129]) passedDijetTrigger = true ;
+
+      //ignore trigger for Fastsim, and for 80X MC
+      if(analysisTag == "Razor2016_80X" && !isData){
+	passedDileptonTrigger = true;
+	passedSingleLeptonTrigger = true;
+	passedHadronicTrigger = true;
+      }
 
       vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
       TLorentzVector leadingTightMu, leadingTightEle; //used for mT calculation
@@ -502,37 +469,44 @@ void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, stri
 	double tmpRho = fixedGridRhoFastjetAll;
 	if (isRunOne) tmpRho = fixedGridRhoAll;
 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-					       tmpRho, jetJetArea[i], 
-					       JetCorrector);   
+					       tmpRho, jetJetArea[i], JetCorrector);
 
+	//double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+	//tmpRho, jetJetArea[i], 
+	//JetCorrector);   
+	
 	double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-						     tmpRho, jetJetArea[i], 
-						     JetCorrector, 0); 
+						     tmpRho, jetJetArea[i], JetCorrector, 0);  
+	
+	//double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
+	//tmpRho, jetJetArea[i], 
+	//JetCorrector, 0); 
+	
 	Rho = tmpRho;
-
+	
 	double jetEnergySmearFactor = 1.0;
 	if (!isData) {
 	  std::vector<float> fJetEta, fJetPtNPU;
 	  fJetEta.push_back(jetEta[i]);  
 	  fJetPtNPU.push_back(jetPt[i]*JEC); 
-	  fJetPtNPU.push_back(NPU_0); 
+	  fJetPtNPU.push_back(NPU); 
 	  if (printSyncDebug) {
 	    cout << "Jet: " << jetPt[i] << " " << jetEta[i] << " " << jetPhi[i] << "\n";
-	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
-		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
+	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " \n ";
+	    //<< JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
-	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], NPU_0, JetResolutionCalculator, random);
+	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], NPU_0, JetResolutionCalculator, random);
 	  jetEnergySmearFactor = 1.0;
 	}
 	if (printSyncDebug) {
 	  cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";
 	}
-
+	
 	TLorentzVector thisJet = makeTLorentzVector(jetPt[i]*JEC*jetEnergySmearFactor, jetEta[i], jetPhi[i], jetE[i]*JEC*jetEnergySmearFactor);
 	TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
 	TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);
 	double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
-
+	
 	//*******************************
 	//Add to Type1 Met Correction
 	//*******************************
@@ -762,17 +736,17 @@ void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, stri
 	box = EleEle;
 	if (zMass<60 || zMass>120) continue;
       }
-      else if (nVetoMuons>0 || nVetoElectrons>0) {
+      else if (nVetoMuons+nVetoElectrons>0) {
       	continue;
       }
       //MultiJet Box                                
       else if(passedHadronicTrigger && NJets80 >= 2 && NJets40 > 3){
       	box = FourJet;
       }
-      else if (NJets40>1 && nVetoElectrons==0 && nVetoMuons==0) {
-      	box = 100;
+      else if (NJets80>1 && nVetoElectrons==0 && nVetoMuons==0) {
+      	box = DiJet;
       }
-      if (!(box==MuMu||box==EleEle||box==FourJet||box==100)) continue;
+      if (!(box==MuMu||box==EleEle||box==FourJet||box==DiJet)) continue;
       //if (!(box==MuMu||box==EleEle)) continue;
       outTree->Fill();
       

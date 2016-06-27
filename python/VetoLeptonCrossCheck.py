@@ -78,7 +78,8 @@ if __name__ == "__main__":
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
+            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"WJetsInv" },
+            #processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
             debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))

@@ -159,6 +159,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     //Basic tree variables
     int nVtx, NPU; 
     float weight = 1.0;
+    float btagCorrFactor;
     //For signal ISR systematic uncertainty
     float ISRSystWeightUp, ISRSystWeightDown;
     //For pileup systematic uncertainty
@@ -194,6 +195,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     float subLeadingGenLeptonEta;
     float subLeadingGenLeptonPt;
     int   subLeadingGenLeptonType;
+    int NGenBJets;
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
@@ -234,6 +236,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
+        razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
         razorTree->Branch("NPU", &NPU, "NPU/I");
 	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
 	razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
@@ -241,6 +244,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	razorTree->Branch("subLeadingGenLeptonPt", &subLeadingGenLeptonPt, "subLeadingGenLeptonPt/F");
 	razorTree->Branch("subLeadingGenLeptonEta", &subLeadingGenLeptonEta, "subLeadingGenLeptonEta/F");
 	razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
+	razorTree->Branch("NGenBJets", &NGenBJets, "NGenBJets/I");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_vetoMuonEffUp", &sf_vetoMuonEffUp, "sf_vetoMuonEffUp/F");
@@ -324,11 +328,13 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	    subLeadingGenLeptonPt = -9;
 	    subLeadingGenLeptonEta = -9;
 	    subLeadingGenLeptonType = 0;
+	    NGenBJets = 0;
   	    ISRSystWeightUp = 1.0;
   	    ISRSystWeightDown = 1.0;
 	    pileupWeight = 1.0;
 	    pileupWeightUp = 1.0;
 	    pileupWeightDown = 1.0;
+	    btagCorrFactor = 1.0;
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
             sf_vetoMuonEffUp = 1.0;
@@ -843,8 +849,6 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Jet selection
         /////////////////////////////////
 
-        //BTag scale factor
-        float btagCorrFactor = 1.0;
         //Hadronic trigger efficiency scale factor
         float hadronicTrigCorrFactor = 1.0; //flat trigger scale factor
         if (isFastsimSMS) {
@@ -912,6 +916,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
             //Remove overlaps
             if (matchesLepton) continue;
+
+	    //Count Number of Gen-Level Matched BJets
+	    if (abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 40 && fabs(jetEta[i]) < 2.4) NGenBJets++;
+
             //Apply b-tagging correction factor 
             if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
 	      helper->updateBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),

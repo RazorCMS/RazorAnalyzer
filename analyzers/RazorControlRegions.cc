@@ -951,9 +951,10 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       int numJetsAbove40GeV = 0;
       double MetX_Type1Corr = 0;
       double MetY_Type1Corr = 0;
-      int nBJetsLoose20GeV = 0;
-      int nBJetsMedium20GeV = 0;
-      int nBJetsTight20GeV = 0;
+      int nBJetsLoose40GeV = 0;
+      int nBJetsMedium40GeV = 0;
+      int nBJetsTight40GeV = 0;
+      events->NGenBJets = 0;
       events->bjet1.SetPtEtaPhiM(0,0,0,0);
       events->bjet2.SetPtEtaPhiM(0,0,0,0);
       events->bjet1PassLoose = false;
@@ -1049,6 +1050,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
 
 	if (abs(jetPartonFlavor[i]) == 5) {
+	  //count number of bjets in acceptance
+	  if (thisJet.Pt() > 40 && fabs(thisJet.Eta()) < 2.4) events->NGenBJets++;
+
 	  if (!bjet1Found) {
 	    bjet1Found = true;
 	    events->bjet1.SetPtEtaPhiM(thisJet.Pt(), thisJet.Eta(), thisJet.Phi(), thisJet.M());
@@ -1089,7 +1093,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	//b-tag corrector
 	//---------------
 	double thisJetPt = jetPt[i]*JEC*jetEnergySmearFactor;
-	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > 30. )
+	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > 40. )
 	  {
               float tmpSF = 1.0;
               helper.updateBTagScaleFactors( thisJetPt, jetEta[i], 5, isCSVM(i), 
@@ -1100,9 +1104,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	/*std::cout << "jetPt: " << thisJetPt << " eta: " << jetEta[i] << " flavor: " << jetPartonFlavor[i]
 	  << " events->btagW: " << events->btagW << std::endl;*/
 	
-	if (jetPt[i]*JEC > 20 && isCSVL(i) ) nBJetsLoose20GeV++;
-	if (jetPt[i]*JEC > 20 && isCSVM(i) ) nBJetsMedium20GeV++;
-	if (jetPt[i]*JEC > 20 && isCSVT(i) ) nBJetsTight20GeV++;
+	if (jetPt[i]*JEC > 40 && isCSVL(i) ) nBJetsLoose40GeV++;
+	if (jetPt[i]*JEC > 40 && isCSVM(i) ) nBJetsMedium40GeV++;
+	if (jetPt[i]*JEC > 40 && isCSVT(i) ) nBJetsTight40GeV++;
 
 	if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
 
@@ -1232,7 +1236,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	cout << "MR = " << events->MR << " Rsq = " << events->Rsq << " | "
 	     << " Mll = " << (events->lep1 + events->lep2).M() << " | " 
 	     << " NJets80 = " << numJetsAbove80GeV << " NJets40 = " << numJetsAbove40GeV << " GoodPFObjects.size() = " << GoodPFObjects.size() << " "
-	     << " MET = " << MyMET.Pt() << " MetPhi = " << MyMET.Phi() << " nBTagsMedium = " << nBJetsMedium20GeV << "\n";
+	     << " MET = " << MyMET.Pt() << " MetPhi = " << MyMET.Phi() << " nBTagsMedium = " << nBJetsMedium40GeV << "\n";
       }
 
       events->MET = MyMET.Pt();
@@ -1243,9 +1247,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       events->METRawPhi = PFMETUnCorr.Phi();
       events->NJets40 = numJetsAbove40GeV;
       events->NJets80 = numJetsAbove80GeV;
-      events->NBJetsLoose = nBJetsLoose20GeV;
-      events->NBJetsMedium = nBJetsMedium20GeV;
-      events->NBJetsTight = nBJetsTight20GeV;
+      events->NBJetsLoose = nBJetsLoose40GeV;
+      events->NBJetsMedium = nBJetsMedium40GeV;
+      events->NBJetsTight = nBJetsTight40GeV;
 
       ///
       events-> metType1PtJetResUp          = metType1PtJetResUp;	      

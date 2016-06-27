@@ -34,7 +34,7 @@ if __name__ == "__main__":
             scaleFactorNames={ "DYJetsInv":"GJetsInv" }, debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
+    sfHists['NJets'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
     sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
     auxSFs = {"NJets":("NJets_NoZ","1")} 
     outfile = rt.TFile(

@@ -113,8 +113,12 @@ class RazorHelper {
         void loadBTag_Razor2015_76X();
 
         // for Razor2016 80X tag
-        void loadTrigger_Razor2016();
-         
+        void loadPileup_Razor2016();
+        void loadLepton_Razor2016();
+	void loadTrigger_Razor2016();
+	void loadJECs_Razor2016();
+        void loadBTag_Razor2016();
+
         // member data
         std::string tag;
         bool isData;

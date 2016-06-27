@@ -77,15 +77,22 @@ void take_ratios() {
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_rsq_razor.png";
 
-  TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_2015JECs/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_QCD_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
+
+  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
+  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
+  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
+  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
   
-  TString cut_str="weight*(box==11||box==12)*puWeight*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(Rsq<0.25)";
+  TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
 //*(leadingJetPt>300)";// && leadingJetPt<300)";
   TString cut_str_dat=cut_str+"*(Rsq<0.25)";
+  TString cut_str_mc="*weight*2061";
 
   //--------------------------------------------------------------
   //
@@ -150,42 +157,46 @@ void take_ratios() {
   TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny, &ybins[0]); fxn_plus_err->Sumw2();
 
   // open trees
-  TTree *tQ = (TTree*) fQ->Get("QCDTree");
-  TTree *tD = (TTree*) fD->Get("QCDTree");
-  TTree *tT = (TTree*) fT->Get("QCDTree");
-  TTree *tW = (TTree*) fW->Get("QCDTree");
-  TTree *tZ = (TTree*) fZ->Get("QCDTree");
+  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
+  TTree *tD = (TTree*) fD->Get("RazorInclusive");
+  TTree *tT = (TTree*) fT->Get("RazorInclusive");
+  TTree *tW = (TTree*) fW->Get("RazorInclusive");
+  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
   if (binIn==mr) {
-    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Q", cut_str);
+    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Q", cut_str+cut_str_mc);
     tD->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_D", cut_str_dat);
-    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_T", cut_str);
-    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_W", cut_str);
-    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Z", cut_str);
+    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_T", cut_str+cut_str_mc);
+    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_W", cut_str+cut_str_mc);
+    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:MR:Rsq>>dPhiPF_Z", cut_str+cut_str_mc);
   } else if (binIn==ljpt) {
-    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Q", cut_str);
+    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Q", cut_str+cut_str_mc);
     tD->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_D", cut_str_dat);
-    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_T", cut_str);
-    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_W", cut_str);
-    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Z", cut_str);
+    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_T", cut_str+cut_str_mc);
+    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_W", cut_str+cut_str_mc);
+    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:leadingJetPt:leadingJetPt>>dPhiPF_Z", cut_str+cut_str_mc);
   } else if (binIn==rsq) {
-    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Q", cut_str);
+    tQ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Q", cut_str+cut_str_mc);
     tD->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_D", cut_str_dat);
-    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_T", cut_str);
-    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_W", cut_str);
-    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Z", cut_str);
+    tT->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_T", cut_str+cut_str_mc);
+    tW->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_W", cut_str+cut_str_mc);
+    tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Z", cut_str+cut_str_mc);
   }
 
   //dPhiPF_D->Add(dPhiPF_T, -1);
   //dPhiPF_D->Add(dPhiPF_W, -1);
   //dPhiPF_D->Add(dPhiPF_Z, -1);
 
+  //9.10981e+12   4.90629e+13   4.34389e+06  -6.75286e-17
+  // 2  p1          -5.00116e+00   8.35076e-01   6.67793e-05  -3.23865e-03
+  // 3  p2           4.79514e-02 
+
   TF1 *qcd_fxn = new TF1("qcd_fxn","[0]*x^[1]+[2]", 400, 2500);
-  qcd_fxn->SetParameter(0,3.1e7);
-  qcd_fxn->SetParameter(1,-3.1);
-  qcd_fxn->SetParameter(2,0.062);
+  qcd_fxn->SetParameter(0,9.1e12);
+  qcd_fxn->SetParameter(1,-5.0);
+  qcd_fxn->SetParameter(2,0.048);
 
   Double_t wtf=0, lesswtf=0;
 
@@ -221,14 +232,14 @@ void take_ratios() {
 	wtf+=qcd_fxn->Eval(rsq)*(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
 	lesswtf+=(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
 	cout << (nPF - qcd_fxn->Eval(rsq))/qcd_fxn->Eval(rsq) << endl;
-
+	
 	Float_t drsq=0.5*dPhiPF_Q->GetYaxis()->GetBinWidth(j+1);
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
 	Float_t dnPF_l=nPF*TMath::Sqrt( dnP*dnP + dnF*dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
 
 	fxn_plus_err->SetBinContent(k+1,qcd_fxn->Eval(rsq));
-	fxn_plus_err->SetBinError(k+1,qcd_fxn->Eval(rsq)*0.87);
+	fxn_plus_err->SetBinError(k+1,qcd_fxn->Eval(rsq)*1.5);
 	//fxn_plus_err->SetBinContent(k+1,0.192443);
 	//fxn_plus_err->SetBinError(k+1,0.192443*0.87);
   
@@ -336,7 +347,7 @@ void take_ratios() {
   //qcd_with_mr[i]->SetTitle("300 < lead. jet p_T");
   qcd_with_mr[i]->Draw("ap e1");
   dat_with_mr[i]->Draw("p e1 same");
-  //if (binIn==mr) qcd_with_mr[i]->Fit(qcd_fxn,"R");
+  if (binIn==mr) qcd_with_mr[i]->Fit(qcd_fxn,"R");
   //qcd_with_mr[i]->Fit(qcd_fxn,"R");
   fxn_plus_err->SetFillColor(kYellow);
   fxn_plus_err->SetFillStyle(1001);

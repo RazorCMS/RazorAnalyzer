@@ -63,6 +63,8 @@ def getCuts(workspace, box):
     btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
+    elif box in ["DiJet","LeptonJet","EleJet","MuJet"]:
+        btagCutoff = 2
 
     #get the optimal cuts for each box
     if box in ["DiJet", "FourJet", "SixJet", "MuMu", "MuEle", "EleEle", "MultiJet", "FourToSixJet", "SevenJet"]: 
@@ -138,6 +140,8 @@ def getSumOfWeights(tree, cfg, box, workspace, useWeight, f, globalScaleFactor):
     btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
+    elif box in ["DiJet","LeptonJet","EleJet","MuJet"]:
+        btagCutoff = 2
         
     boxCut = boxes[box]
 
@@ -189,9 +193,11 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
     label = f.replace('.root','').split('/')[-1]
     htemp = rt.TH1D('htemp2_%s'%label,'htemp2_%s'%label,len(z)-1,z)
 
-    btagCutoff = btagMax - 1
+    btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
+    elif box in ["DiJet","LeptonJet","EleJet","MuJet"]:
+        btagCutoff = 2
 
     cuts = getCuts(workspace,box)
 
@@ -215,7 +221,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData:
-        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter'])
+        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter','Flag_EcalDeadCellTriggerPrimitiveFilter'])
         cuts = cuts + ' && ( ' + flagCuts + ' ) '
     
     print "Cuts:",cuts
