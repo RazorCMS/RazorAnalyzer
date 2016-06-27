@@ -159,6 +159,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     //Basic tree variables
     int nVtx, NPU; 
     float weight = 1.0;
+    float btagCorrFactor;
     //For signal ISR systematic uncertainty
     float ISRSystWeightUp, ISRSystWeightDown;
     //For pileup systematic uncertainty
@@ -235,6 +236,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
+        razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
         razorTree->Branch("NPU", &NPU, "NPU/I");
 	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
 	razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
@@ -332,6 +334,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	    pileupWeight = 1.0;
 	    pileupWeightUp = 1.0;
 	    pileupWeightDown = 1.0;
+	    btagCorrFactor = 1.0;
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
             sf_vetoMuonEffUp = 1.0;
@@ -846,8 +849,6 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Jet selection
         /////////////////////////////////
 
-        //BTag scale factor
-        float btagCorrFactor = 1.0;
         //Hadronic trigger efficiency scale factor
         float hadronicTrigCorrFactor = 1.0; //flat trigger scale factor
         if (isFastsimSMS) {
