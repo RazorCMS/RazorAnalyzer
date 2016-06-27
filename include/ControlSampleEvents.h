@@ -105,6 +105,7 @@ class ControlSampleEvents {
   Bool_t                  lep2PassTightIso;
   Float_t                 lep2MinDRToBJet;     
   Float_t                 lep2Activity;
+  Int_t                   NGenBJets;
   TLorentzVector          bjet1;
   TLorentzVector          bjet2;
   Bool_t                  bjet1PassLoose;
@@ -346,6 +347,7 @@ class ControlSampleEvents {
     lep2PassTightIso     = 0.0;
     lep2MinDRToBJet      = 0.0;
     lep2Activity         = 0.0;
+    NGenBJets            = -1;
     bjet1                = TLorentzVector();
     bjet2                = TLorentzVector();
     bjet1PassLoose       = 0.0;
@@ -542,6 +544,7 @@ class ControlSampleEvents {
     tree_->Branch("MET",&MET,"MET/F");
     tree_->Branch("NJets40",&NJets40,"NJets40/i");
     tree_->Branch("NJets80",&NJets80,"NJets80/i");
+    tree_->Branch("NGenBJets",&NGenBJets,"NGenBJets/I");
     tree_->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
     tree_->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
     tree_->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
@@ -861,6 +864,7 @@ class ControlSampleEvents {
     tree_->SetBranchAddress("Rsq",&Rsq);
     tree_->SetBranchAddress("NJets40",&NJets40);
     tree_->SetBranchAddress("NJets80",&NJets80);
+    tree_->SetBranchAddress("NGenBJets",&NGenBJets);
     tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);
     tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
     tree_->SetBranchAddress("NBJetsTight",&NBJetsTight);
