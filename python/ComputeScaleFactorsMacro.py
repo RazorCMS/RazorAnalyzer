@@ -14,7 +14,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--tag", dest="tag", default="Razor2015",
+    parser.add_argument("--tag", dest="tag", required=True,
                                 help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
     args = parser.parse_args()

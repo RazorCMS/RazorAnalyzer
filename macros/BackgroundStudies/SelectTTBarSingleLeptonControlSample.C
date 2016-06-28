@@ -24,10 +24,10 @@
 #include <TLegend.h> 
 #include <THStack.h> 
 
-#include "RazorAnalyzer/include/ControlSampleEvents.h"
-#include "RazorAnalyzer/macros/tdrstyle.C"
-#include "RazorAnalyzer/macros/CMS_lumi.C"
-#include "RazorAnalyzer/include/RecoilCorrector.hh"
+#include "include/ControlSampleEvents.h"
+#include "macros/tdrstyle.C"
+#include "macros/CMS_lumi.C"
+#include "include/RecoilCorrector.hh"
 
 #endif
 
@@ -113,7 +113,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //****************************
   //Add CMS and Lumi Labels
   //****************************
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "2.6 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -262,6 +262,8 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
   vector<TH1D*> histNJets40;
   vector<TH1D*> histNJets80;
   vector<TH1D*> histNBtags;
+  vector<TH1D*> histJet1Pt;
+  vector<TH1D*> histJet2Pt;
   vector<TH2F*> histMRVsRsq;
 
   assert (inputfiles.size() == processLabels.size());
@@ -276,6 +278,8 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
     histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", 15, -0.5, 14.5));
     histNJets80.push_back(new TH1D(Form("histNJets80_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 80); Number of Events", 10, -0.5, 9.5));
     histNBtags.push_back(new TH1D(Form("histNBtags_%s",processLabels[i].c_str()), "; Number of B tags; Number of Events", 10, -0.5,9.5));
+    histJet1Pt.push_back(new TH1D(Form("histJet1Pt_%s",processLabels[i].c_str()), "; Leading jet p_{T}; Number of Events", 100, 0, 1000));
+    histJet2Pt.push_back(new TH1D(Form("histJet2Pt_%s",processLabels[i].c_str()), "; Subleading jet p_{T}; Number of Events", 100, 0, 1000));
     histMRVsRsq.push_back(new TH2F(Form("histMRVsRsq_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; R^{2}; Number of Events", NMRBins-1, MRBins, NRsqBins-1, RsqBins));
     histMR[i]->Sumw2();
     histRsq[i]->Sumw2();
@@ -285,6 +289,8 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
     histNJets40[i]->Sumw2();
     histNJets80[i]->Sumw2();
     histNBtags[i]->Sumw2();  
+    histJet1Pt[i]->Sumw2();  
+    histJet2Pt[i]->Sumw2();  
   }
  
   double dataYield = 0;
@@ -336,21 +342,18 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
 
 	//Single Lepton Triggers:
 	//Use Single Lepton Triggers
-	if ( events->HLTDecision[2] || events->HLTDecision[7] || events->HLTDecision[12] 
-	     || events->HLTDecision[11] || events->HLTDecision[15]
-	     )  
-	  passTrigger = true;
-
 	if (isData) {
-	  if ( events->HLTDecision[22] || events->HLTDecision[23] || events->HLTDecision[24] || 
-	       events->HLTDecision[25] || events->HLTDecision[26] ||
-	       events->HLTDecision[27] || events->HLTDecision[28] || events->HLTDecision[29]	  
+	  if ( events->HLTDecision[4] || events->HLTDecision[6] || events->HLTDecision[12] || 
+	       events->HLTDecision[13] || events->HLTDecision[18] ||
+	       events->HLTDecision[19] || events->HLTDecision[20] || events->HLTDecision[24] ||
+	       events->HLTDecision[27] || events->HLTDecision[28] || events->HLTDecision[29] ||
+	       events->HLTDecision[30] || events->HLTDecision[31] || events->HLTDecision[32] ||
+	       events->HLTDecision[33] || events->HLTDecision[34] || events->HLTDecision[35] ||
+	       events->HLTDecision[36] || events->HLTDecision[37] || events->HLTDecision[38] ||
+	       events->HLTDecision[39] || events->HLTDecision[42] || events->HLTDecision[43] 
 	       ) passTrigger = true;
 	} else {
-	  if ( events->HLTDecision[18] || events->HLTDecision[19] || events->HLTDecision[20] || 
-	       events->HLTDecision[21] ||
-	       events->HLTDecision[28] || events->HLTDecision[29] || events->HLTDecision[160]
-	       ) passTrigger = true;
+            passTrigger = true;
 	}
       
 	if (!passTrigger) continue;
@@ -511,6 +514,8 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
 	  dataYield += 1.0;
 	  histLep1Pt[i]->Fill(events->lep1.Pt());
 	  histLep1Eta[i]->Fill(events->lep1.Eta());
+	  histJet1Pt[i]->Fill(events->jet1.Pt());
+	  histJet2Pt[i]->Fill(events->jet2.Pt());
 	  histLep1MT[i]->Fill(lep1MT);
 
 	  histMET[i]->Fill(met);
@@ -530,6 +535,8 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
 	  MCYield += weight;
 	  histLep1Pt[i]->Fill(events->lep1.Pt(), weight);
 	  histLep1Eta[i]->Fill(events->lep1.Eta(), weight);
+	  histJet1Pt[i]->Fill(events->jet1.Pt(), weight);
+	  histJet2Pt[i]->Fill(events->jet2.Pt(), weight);
 	  histLep1MT[i]->Fill(lep1MT, weight);
 	  histMET[i]->Fill(met , weight);
 	  histNJets40[i]->Fill( events->NJets40 , weight);
@@ -647,6 +654,8 @@ void RunSelectTTBarSingleLeptonControlSample( vector<string> datafiles, vector<v
   PlotDataAndStackedBkg( histNBtags, processLabels, color, true, "NBtags", Label);
   PlotDataAndStackedBkg( histLep1Pt, processLabels, color, true, "Lep1Pt", Label);
   PlotDataAndStackedBkg( histLep1Eta, processLabels, color, true, "Lep1Eta", Label);
+  PlotDataAndStackedBkg( histJet1Pt, processLabels, color, true, "Jet1Pt", Label);
+  PlotDataAndStackedBkg( histJet2Pt, processLabels, color, true, "Jet2Pt", Label);
   PlotDataAndStackedBkg( histLep1MT, processLabels, color, true, "Lep1MT", Label);
   PlotDataAndStackedBkg( histMET, processLabels, color, true, "MET", Label);
 
@@ -726,11 +735,11 @@ void SelectTTBarSingleLeptonControlSample( int option = -1) {
 
   //MR300 Skims
   if (option == 1 || option == 2 || option == 11 || option == 12 || option == 101 || option == 102) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_SingleMuon_Run2015D_GoodLumiGolden_RazorSkim.root");
+    datafiles.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Data_NoDuplicates_GoodLumiGolden.root");
   } 
-  if (option == 0 || option == 2 || option == 10 || option == 12 || option == 100 || option == 102) {
-    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_SingleElectron_Run2015D_GoodLumiGolden_RazorSkim.root");
-  }
+  //if (option == 0 || option == 2 || option == 10 || option == 12 || option == 100 || option == 102) {
+   // datafiles.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Data_NoDuplicates_GoodLumiGolden.root");
+  //}
 
   vector<string> bkgfiles_ttbar;
   vector<string> bkgfiles_wjets;
@@ -740,18 +749,11 @@ void SelectTTBarSingleLeptonControlSample( int option = -1) {
   vector<string> bkgfiles_qcd;
   vector<string> bkgfiles_znunu;
 
-  if (option >= 100) {
-    bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root_RazorSkim.root");
-  } else {
-    //bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root_RazorSkim.root");
-    bkgfiles_wjets.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_WJetsToLNu_HTBinned_1pb_weighted_RazorSkim.root");
-  }
-
-  bkgfiles_ttbar.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_TTJets_1pb_weighted_RazorSkim.root");
-  bkgfiles_singletop.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_SingleTop_1pb_weighted_RazorSkim.root");
-  bkgfiles_dy.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_DYJetsToLL_HTBinned_1pb_weighted_RazorSkim.root");
-  bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_VVV_1pb_weighted_RazorSkim.root");
-  bkgfiles_vv.push_back("/afs/cern.ch/user/s/sixie/eos2/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/OneLeptonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_TTV_1pb_weighted_RazorSkim.root");
+  bkgfiles_wjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_WJets_1pb_weighted.root");
+  bkgfiles_ttbar.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_TTJets_1pb_weighted.root");
+  bkgfiles_singletop.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_SingleTop_1pb_weighted.root");
+  bkgfiles_dy.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_DYJets_1pb_weighted.root");
+  bkgfiles_vv.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3_New/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Other_1pb_weighted.root");
 
 
   bkgfiles.push_back(bkgfiles_wjets);
@@ -778,7 +780,8 @@ void SelectTTBarSingleLeptonControlSample( int option = -1) {
   //colors.push_back(k);  
   colors.push_back(kGray);
   
-  double lumi = 2185;
+  double lumi = 2600;
+  //double lumi = 2185;
 
 
 

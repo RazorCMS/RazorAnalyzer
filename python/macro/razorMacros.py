@@ -438,6 +438,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     inputs = filenames
     files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
     for name in inputs: 
+        print "Checking",name,"..."
         assert files[name] #check input files
         if debugLevel > 0: print "Opened file",inputs[name]
     trees = macro.makeTreeDict(files, treeName, debugLevel)
