@@ -84,10 +84,10 @@ ZJetsToNuNu_HT-100To200_13TeV-madgraph                                          
 ZJetsToNuNu_HT-200To400_13TeV-madgraph                                             78.36*1.23
 ZJetsToNuNu_HT-400To600_13TeV-madgraph                                             10.94*1.23
 ZJetsToNuNu_HT-600ToInf_13TeV-madgraph                                              4.20*1.23
-ZJetsToNuNu_HT-600To800_13TeV-madgraph                                           0.853    
-ZJetsToNuNu_HT-800To1200_13TeV-madgraph                                          0.3942 
-ZJetsToNuNu_HT-1200To2500_13TeV-madgraph                                         0.0974
-ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph                                          0.0002308
+ZJetsToNuNu_HT-600To800_13TeV-madgraph                                              0.853*1.23    
+ZJetsToNuNu_HT-800To1200_13TeV-madgraph                                             0.3942*1.23 
+ZJetsToNuNu_HT-1200To2500_13TeV-madgraph                                            0.0974*1.23
+ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph                                             0.0002308*1.23
 DYJetsToNuNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                             3811.0
 TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           1.61
 TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          0.663
