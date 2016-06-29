@@ -283,6 +283,8 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
     fChain->SetBranchStatus("Flag_HBHETightNoiseFilter", 1);
     fChain->SetBranchStatus("Flag_HBHEIsoNoiseFilter", 1);
+    fChain->SetBranchStatus("Flag_badChargedCandidateFilter", 1);
+    fChain->SetBranchStatus("Flag_badMuonFilter", 1);
     fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
     fChain->SetBranchStatus("Flag_hcalLaserEventFilter", 1);
     fChain->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1);
