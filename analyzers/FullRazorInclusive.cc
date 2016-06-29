@@ -592,7 +592,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         float vetoMuonEffCorrFactor = 1.0;
         //Cut parameters
         const float MUON_VETO_CUT = 5;
-        const float MUON_TIGHT_CUT = 20;
+        const float MUON_TIGHT_CUT = 25;
         //Loop muons
         for (int i = 0; i < nMuons; i++){
             //TLorentzVector for this muon
@@ -706,7 +706,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         float eleTrigCorrFactor = 1.0;
         //Cut parameters
         const float ELE_VETO_CUT = 5;
-        const float ELE_TIGHT_CUT = 25;
+        const float ELE_TIGHT_CUT = 30;
         //Loop electrons
         for (int i = 0; i < nElectrons; i++){
             //Remove overlaps
