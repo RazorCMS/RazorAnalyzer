@@ -25,6 +25,7 @@
 #include <TLegend.h> 
 #include <THStack.h> 
 #include <TH2Poly.h>
+#include "TApplication.h"
 
 #include "include/ControlSampleEvents.h"
 #include "macros/tdrstyle.C"
@@ -950,10 +951,10 @@ void SelectPhotonControlSample( int option = 0) {
     //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
     //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
     //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
-    bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJetsDR0p4_1pb_weighted.root");    
+    bkgfiles_gjets.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_GJetsDR0p4_1pb_weighted_RazorSkim.root");    
     //bkgfiles_gjetsFrag.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root"); 
-    bkgfiles_other.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_Other_1pb_weighted.root"); 
+    bkgfiles_qcd.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_GoodLumiGolden.root"); 
+    bkgfiles_other.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
   }
    
 
@@ -996,6 +997,8 @@ void SelectPhotonControlSample( int option = 0) {
      RunSelectPhotonControlSample(datafiles, bkgfiles,processLabels, colors, lumi,0,"Inclusive","Inclusive");
    }
 
+   //quit root afterwards
+   gApplication->Terminate();
 
 }
 

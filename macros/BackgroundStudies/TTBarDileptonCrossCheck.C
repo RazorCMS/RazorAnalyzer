@@ -676,7 +676,7 @@ void TTBarDileptonCrossCheck( int option = 0) {
   string datafile = "";
 
   //No Skims  
-  datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/DileptonRazorSkimDileptonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root");
+  datafiles.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_Data_NoDuplicates_GoodLumiGolden.root");
 
   vector<string> bkgfiles_ttbar;
   vector<string> bkgfiles_wjets;
@@ -685,11 +685,11 @@ void TTBarDileptonCrossCheck( int option = 0) {
   vector<string> bkgfiles_vv; 
   vector<string> bkgfiles_ttv;
 
-  bkgfiles_ttbar.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_TTJets_1pb_weighted.root");    
-  bkgfiles_wjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_WJets_1pb_weighted.root"); 
-  bkgfiles_singletop.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_SingleTop_1pb_weighted.root");  
-  bkgfiles_dy.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_DYJets_1pb_weighted.root");    
-  bkgfiles_vv.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/DileptonRazorSkimDileptonSkim/RazorControlRegions_Other_1pb_weighted.root");   
+  bkgfiles_ttbar.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_1pb_weighted_RazorSkim.root");    
+  bkgfiles_wjets.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJets_1pb_weighted_RazorSkim.root"); 
+  bkgfiles_singletop.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted_RazorSkim.root");  
+  bkgfiles_dy.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJets_1pb_weighted_RazorSkim.root");    
+  bkgfiles_vv.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_Other_1pb_weighted_RazorSkim.root");   
 
   bkgfiles.push_back(bkgfiles_ttbar);
   bkgfiles.push_back(bkgfiles_dy);

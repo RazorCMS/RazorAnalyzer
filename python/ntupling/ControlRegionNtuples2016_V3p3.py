@@ -1,16 +1,32 @@
-VERSION = "V3p3"
-SKIMS = { '1L':'OneLeptonRazorSkimLeptonSkim',
-          '1LInv':'OneLeptonInvRazorSkimLeptonSkim',
-          '2L':'DileptonRazorSkimDileptonSkim',
-          '2LInv':'DileptonInvRazorSkimDileptonSkim',
-          'VetoL':'VetoLeptonRazorSkim',
-          'VetoTau':'VetoTauRazorSkim',
-          'Photon':'PhotonRazorSkimPhotonSkim',
-          'Signal':'FullRazorInclusive',
-        }
+VERSION = "V3p3_New"
+TREETYPES = { '1L':'OneLeptonFull',
+              '1LInv':'OneLeptonAddToMET',
+              '2L':'DileptonFull',
+              '2LInv':'DileptonAddToMET',
+              'VetoL':'VetoLepton',
+              'VetoTau':'VetoTau',
+              'Photon':'PhotonAddToMET',
+              'Signal':'',
+              }
+#adapt to Si's file naming system
+TREETYPEEXT = TREETYPES.copy()
+TREETYPEEXT['1LInv'] = (TREETYPEEXT['1LInv'].replace('MET','Met'))+'Full'
+TREETYPEEXT['2LInv'] = (TREETYPEEXT['2LInv'].replace('MET','Met'))+'Full'
+TREETYPEEXT['VetoL'] += 'Full'
+TREETYPEEXT['VetoTau'] += 'Full_RazorSkim'
+TREETYPEEXT['Photon'] = 'PhotonFull'
+SKIMS = { '1L':'SingleLeptonSkim',
+          '1LInv':'SingleLeptonSkim',
+          '2L':'DileptonSkim',
+          '2LInv':'DileptonSkim',
+          'VetoL':'',
+          'VetoTau':'',
+          'Photon':'',
+          'Signal':'',
+          }
 DIR = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/'+VERSION
-DIRS = { tag:DIR+'/'+SKIMS[tag] for tag in SKIMS }
-DIRS['Signal'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION
+DIRS = { tag:DIR+'/'+TREETYPES[tag] for tag in TREETYPES }
+DIRS['Signal'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION+'/Signal'
 
 OPTIONS = { '1L':1101,
             '1LInv':2102,
@@ -21,6 +37,16 @@ OPTIONS = { '1L':1101,
             'Photon':5505,
             'Signal':10
           }
+
+SUFFIXES = { '1L':'',
+             '1LInv':'_NoW',
+             '2L':'',
+             '2LInv':'_NoZ',
+             'VetoL':'',
+             'VetoTau':'',
+             'Photon':'_NoPho',
+             'Signal':''
+             }
 
 SAMPLES = {}
 SAMPLES['1L'] = {
@@ -46,15 +72,16 @@ SAMPLES['1L'] = {
             ],
         "SingleTop":[
                 'ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1',
-                'ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1',
+                'ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
+                'ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
                 'ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
                 'ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
             ],
-        "TTJets":[
-                'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-            ],
+        #"TTJets":[
+        #        'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #    ],
         "Other":[
                 'WWTo2L2Nu_13TeV-powheg',
                 'WWTo4Q_13TeV-powheg',
@@ -78,15 +105,15 @@ SAMPLES['1L'] = {
                 'ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
             ],
-        "WJets":[
-                'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-            ],
+        #"WJets":[
+        #        'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #        'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+        #    ],
         "ZInv":[
                 'ZJetsToNuNu_HT-100To200_13TeV-madgraph',
                 'ZJetsToNuNu_HT-200To400_13TeV-madgraph',

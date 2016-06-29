@@ -14,7 +14,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--tag", dest="tag", default="Razor2015",
+    parser.add_argument("--tag", dest="tag", required=True,
                                 help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--no-corr", dest="noCorr", action='store_true',
                                 help="Don't apply scale factor correction")
@@ -29,7 +29,8 @@ if __name__ == "__main__":
     plotOpts = { 'comment':False }
     regions = {}
     #define all tests
-    for name,jets in {"OneJet":(0,1),"DiJet":(2,3),"MultiJet":(4,-1),"Inclusive":(-1,-1)}.iteritems():
+    for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
+    #for name,jets in {"OneJet":(1,3),"DiJet":(2,3),"MultiJet":(4,-1),"Inclusive":(-1,-1)}.iteritems():
         regionName = "OneLepton"+name+"ClosureTest"
         if noCorr:
             regionName += "_NoCorr"
@@ -56,10 +57,9 @@ if __name__ == "__main__":
     if noCorr:
         sfHists = {}
         auxSFs = {}
-    else:
-        outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorBTagClosureTests_%s.root"%(tag), "RECREATE")
 
     for region,analysis in regions.iteritems():
+        print "\nRegion:",region,"\n"
         #make output directory
         outdir = 'Plots/'+tag+'/'+region
         os.system('mkdir -p '+outdir)
@@ -79,10 +79,10 @@ if __name__ == "__main__":
                 outDir=outdir, debugLevel=debugLevel )
         #write out scale factors
         if not noCorr:
+            outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorBTagClosureTests_%s.root"%(tag),
+                    "UPDATE")
             print "Writing scale factor histogram",sfHists[region+"MR"].GetName(),"to file"
             outfile.cd()
             sfHists[region+"MR"].Write( sfHists[region+"MR"].GetName() )
             sfHists[region+"Rsq"].Write( sfHists[region+"Rsq"].GetName() )
-
-    if not noCorr:
-        outfile.Close()
+            outfile.Close()

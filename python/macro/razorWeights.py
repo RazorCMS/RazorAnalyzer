@@ -73,6 +73,22 @@ def reapplyPileupWeight(event, wHists, weightBranch="pileupWeight", debugLevel=0
         print "Error in pileupWeight: pileup reweighting histogram not found!"
         sys.exit()
 
+def getNBJetsWeight(event, debugLevel=0):
+    """Reweight according to number of gen-level b-jets"""
+    sfTag = 0.95
+    sfNoTag = (1/.68 - sfTag) / (1/.68 - 1) #using 0.68 as the average b-tag efficiency
+    bWeight = 1.0
+    nTags = event.NBJetsMedium
+    nGenB = event.NGenBJets
+    for nb in range(nGenB):
+        if nTags > nb: #we successfully tagged this many jets
+            bWeight *= sfTag
+        else: #we didn't tag this many jets
+            bWeight *= sfNoTag
+    if debugLevel > 1:
+        print "Found",nGenB,"gen b-jets in event and tagged",nTags,"; assigning a weight of",bWeight
+    return bWeight
+
 def leptonWeight(event, wHists, doLep2=False, debugLevel=0):
     """Weights using leading lepton pt and eta.  If doLep2 is True, weights using subleading lepton too."""
     #check for histograms
@@ -173,23 +189,27 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
 
+        #reweighting in number of b-jets
+        if 'nbjets' in lweightOpts:
+            eventWeight *= getNBJetsWeight(event, debugLevel=debugLevel)
+
         #pileup reweighting
-        if str.lower("doNPVWeights") in lweightOpts:
-            eventWeight *= pileupWeight(event, wHists, debugLevel=debugLevel)
-        elif str.lower("doNVtxWeights") in lweightOpts:
-            eventWeight *= pileupWeight(event, wHists, puBranch="nVtx", debugLevel=debugLevel)
-        elif str.lower("reapplyNPUWeights") in lweightOpts:
+        if str.lower("reapplyNPUWeights") in lweightOpts:
             eventWeight *= reapplyPileupWeight(event, wHists, debugLevel=debugLevel)
+        #elif str.lower("doNPVWeights") in lweightOpts:
+        #    eventWeight *= pileupWeight(event, wHists, debugLevel=debugLevel)
+        #elif str.lower("doNVtxWeights") in lweightOpts:
+        #    eventWeight *= pileupWeight(event, wHists, puBranch="nVtx", debugLevel=debugLevel)
 
         #lepton scale factors
-        if str.lower("doLep1Weights") in lweightOpts:
-            doLep2 = (str.lower("doLep2Weights") in lweightOpts)
-            eventWeight *= leptonWeight(event, wHists, doLep2, debugLevel=debugLevel)
+        #if str.lower("doLep1Weights") in lweightOpts:
+        #    doLep2 = (str.lower("doLep2Weights") in lweightOpts)
+        #    eventWeight *= leptonWeight(event, wHists, doLep2, debugLevel=debugLevel)
 
         #trigger scale factors
-        if str.lower("do1LepTrigWeights") in lweightOpts:
-            doLep2Trig = (str.lower("doLep2TrigWeights") in lweightOpts)
-            eventWeight *= leptonTriggerWeight(event, wHists, doLep2Trig, debugLevel=debugLevel)
+        #if str.lower("do1LepTrigWeights") in lweightOpts:
+        #    doLep2Trig = (str.lower("doLep2TrigWeights") in lweightOpts)
+        #    eventWeight *= leptonTriggerWeight(event, wHists, doLep2Trig, debugLevel=debugLevel)
 
     #up/down corrections for systematics
     normErrFraction=0.2
