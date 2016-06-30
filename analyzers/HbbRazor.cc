@@ -119,7 +119,7 @@ void HbbRazor::Analyze(bool isData, int option, string outFileName, string label
   int n_Jets = 0;
   float jet_E[10], jet_Pt[10], jet_Eta[10], jet_Phi[10];
 
-  bool  passed_DiPFJet80_DiPFJet30_BTagCSVd07d05, passed_DiPFJet80_DiPFJet30_BTagCSVd07d05d05, passed_DiPFJet80_DiPFJet30_BTagCSVd07d05d03, passed_DiJet80Eta2p6_BTagIP3DFastPVLoose, passed_QuadJet45, passed_QuadJet50;
+  bool  passed_DiPFJet80_DiPFJet30_BTagCSVd07d05, passed_DiPFJet80_DiPFJet30_BTagCSVd07d05d05, passed_DiPFJet80_DiPFJet30_BTagCSVd07d05d03, passed_DiJet80Eta2p6_BTagIP3DFastPVLoose, passed_QuadJet45, passed_QuadJet50, passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200, passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200;
   float theRsq_t0, met_t0, theRsq_t1, met_t1, theRsq_t01, met_t01;
   int nVtx, nPU_mean;
 
@@ -153,6 +153,8 @@ void HbbRazor::Analyze(bool isData, int option, string outFileName, string label
     razorTree->Branch("passed_DiJet80Eta2p6_BTagIP3DFastPVLoose", &passed_DiJet80Eta2p6_BTagIP3DFastPVLoose, "passed_DiJet80Eta2p6_BTagIP3DFastPVLoose/O");
     razorTree->Branch("passed_QuadJet45", &passed_QuadJet45, "passed_QuadJet45/O");
     razorTree->Branch("passed_QuadJet50", &passed_QuadJet50, "passed_QuadJet50/O");
+    razorTree->Branch("passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200", &passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200, "passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200/0");
+    razorTree->Branch("passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200", &passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200, "passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200/0");
     razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
     razorTree->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
@@ -207,6 +209,8 @@ void HbbRazor::Analyze(bool isData, int option, string outFileName, string label
     passed_DiJet80Eta2p6_BTagIP3DFastPVLoose = false;
     passed_QuadJet45 = false;
     passed_QuadJet50 = false;
+    passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200 = false;
+    passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200 = false;
     theRsq_t0  = 0;
     theRsq_t1  = 0;
     theRsq_t01 = 0;
@@ -227,7 +231,9 @@ void HbbRazor::Analyze(bool isData, int option, string outFileName, string label
     if(HLTDecision[94] == 1 ) passed_DiJet80Eta2p6_BTagIP3DFastPVLoose = true;
     if(HLTDecision[95] == 1 ) passed_QuadJet45 = true;
     if(HLTDecision[96] == 1 ) passed_QuadJet50 = true;
-    
+    if(HLTDecision[175] == 1 ) passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200 = true;
+    if(HLTDecision[176] == 1 ) passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200 = true;
+
     // PU information
     nVtx = nPV;
     if(!isData)
