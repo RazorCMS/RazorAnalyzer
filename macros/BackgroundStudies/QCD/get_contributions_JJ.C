@@ -33,11 +33,19 @@ void get_contributions_JJ() {
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
-  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3/FullRazorInclusive_HTMHT_2016B_PRv2_GoodLumiGoldenJun16.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_QCD_1pb_weighted.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
+  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/JetHT_2016B_PRv2_Golden.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016withBadTracks/HTMHT_2016B_PRv2_Golden.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/ZJetsToNuNu_13TeV-madgraph_1pb_weighted.root","read");
+
+  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/JetHT_2016B_PRv2_Golden.root","read");
+  //TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
+
+  //TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
+  //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
+  //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
 
   //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/JetHT_Run2015D_PRv4_Golden_skim.root","read");
   //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
@@ -48,7 +56,11 @@ void get_contributions_JJ() {
   TString cut_str_rsq="*(Rsq<0.25)";
   TString cut_str="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)";
   TString cut_str_dat="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)";
-  TString cut_str_mc="*weight*2061";
+  //TString cut_str="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
+  //TString cut_str_dat="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
+  //TString cut_str_mc="*2600*(!TMath::IsNaN(weight))";
+  //  TString cut_str_mc="*(weight && !TMath::IsNaN(weight))";
+  TString cut_str_mc="*(weight)*2600";
 
   //TString cut_str="weight*2061*(box==14)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
  
@@ -230,11 +242,11 @@ void get_contributions_JJ() {
   TH1F *hDPhiR_mr5_Z = new TH1F("hDPhiR_mr5_Z", "hDPhiR_mr5_Z", nbin, &xbins[0]); hDPhiR_mr5_Z->Sumw2();
 
   // open trees
-  TTree *tD = (TTree*) fD->Get("RazorInclusive");
-  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
-  TTree *tT = (TTree*) fT->Get("RazorInclusive");
-  TTree *tW = (TTree*) fW->Get("RazorInclusive");
-  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
+  TTree *tD = (TTree*) fD->Get("QCDTree");
+  TTree *tQ = (TTree*) fQ->Get("QCDTree");
+  TTree *tT = (TTree*) fT->Get("QCDTree");
+  TTree *tW = (TTree*) fW->Get("QCDTree");
+  TTree *tZ = (TTree*) fZ->Get("QCDTree");
 
   //--------------------------------------------------------------
   //
@@ -869,8 +881,8 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("MR_fail_dijet.png");
 
-  c->SetLogy(1);
-  hRsq_Q->GetYaxis()->SetRangeUser(1,1000*TMath::Max(hRsq_Q->GetMaximum(), hRsq_D->GetMaximum()));
+  //  c->SetLogy(1);
+  hRsq_Q->GetYaxis()->SetRangeUser(1,1.2*TMath::Max(hRsq_Q->GetMaximum(), hRsq_D->GetMaximum()));
   hRsq_Q->GetXaxis()->SetTitle("R^{2}");
   hRsq_Q->GetYaxis()->SetTitle("Events");
   hRsq_Q->SetTitle("");
@@ -882,7 +894,7 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Rsq_dijet.png");
 
-  hRsq_pass_Q->GetYaxis()->SetRangeUser(1,1000*TMath::Max(hRsq_pass_Q->GetMaximum(), hRsq_pass_D->GetMaximum()));
+  hRsq_pass_Q->GetYaxis()->SetRangeUser(1,1.2*TMath::Max(hRsq_pass_Q->GetMaximum(), hRsq_pass_D->GetMaximum()));
   hRsq_pass_Q->GetXaxis()->SetTitle("R^{2}");
   hRsq_pass_Q->GetYaxis()->SetTitle("Events");
   hRsq_pass_Q->SetTitle("");
@@ -894,7 +906,7 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Rsq_pass_dijet.png");
 
-  hRsq_fail_Q->GetYaxis()->SetRangeUser(1,1000*TMath::Max(hRsq_fail_Q->GetMaximum(), hRsq_fail_D->GetMaximum()));
+  hRsq_fail_Q->GetYaxis()->SetRangeUser(1,1.2*TMath::Max(hRsq_fail_Q->GetMaximum(), hRsq_fail_D->GetMaximum()));
   hRsq_fail_Q->GetXaxis()->SetTitle("R^{2}");
   hRsq_fail_Q->GetYaxis()->SetTitle("Events");
   hRsq_fail_Q->SetTitle("");
@@ -906,8 +918,8 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Rsq_fail_dijet.png");
   
-  c->SetLogy(1);
-  hLjpt_Q->GetYaxis()->SetRangeUser(1,10000*TMath::Max(hLjpt_Q->GetMaximum(), hLjpt_D->GetMaximum()));
+  //c->SetLogy(1);
+  hLjpt_Q->GetYaxis()->SetRangeUser(1,1.2*TMath::Max(hLjpt_Q->GetMaximum(), hLjpt_D->GetMaximum()));
   hLjpt_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
   hLjpt_Q->GetYaxis()->SetTitle("Events");
   hLjpt_Q->SetTitle("");
@@ -919,7 +931,7 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Ljpt_dijet.png");
 
-  hLjpt_pass_Q->GetYaxis()->SetRangeUser(1,10000*TMath::Max(hLjpt_pass_Q->GetMaximum(), hLjpt_pass_D->GetMaximum()));
+  hLjpt_pass_Q->GetYaxis()->SetRangeUser(1,1.2*TMath::Max(hLjpt_pass_Q->GetMaximum(), hLjpt_pass_D->GetMaximum()));
   hLjpt_pass_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
   hLjpt_pass_Q->GetYaxis()->SetTitle("Events");
   hLjpt_pass_Q->SetTitle("");
@@ -931,7 +943,7 @@ void get_contributions_JJ() {
   leg->Draw();
   c->SaveAs("Ljpt_pass_dijet.png");
 
-  hLjpt_fail_Q->GetYaxis()->SetRangeUser(1,10000*TMath::Max(hLjpt_fail_Q->GetMaximum(), hLjpt_fail_D->GetMaximum()));
+  hLjpt_fail_Q->GetYaxis()->SetRangeUser(1,1.2*TMath::Max(hLjpt_fail_Q->GetMaximum(), hLjpt_fail_D->GetMaximum()));
   hLjpt_fail_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
   hLjpt_fail_Q->GetYaxis()->SetTitle("Events");
   hLjpt_fail_Q->SetTitle("");
