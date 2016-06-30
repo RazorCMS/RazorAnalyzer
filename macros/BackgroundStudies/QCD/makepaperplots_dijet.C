@@ -29,7 +29,7 @@
 
 #include <CalStyleRemix.hh>
 
-void makepaperplots() {
+void makepaperplots_dijet() {
 
   enum {mr=0, ljpt, rsq};
   enum {razor=0, dijet};
@@ -42,16 +42,16 @@ void makepaperplots() {
   // for mr
 
   Int_t binIn=mr;
-  const Int_t nbinx=1, nbiny=6, nbinz=2;
+  const Int_t nbinx=1, nbiny=4, nbinz=2;
   Float_t xmin=0.15, xmax=0.25; 
   Float_t ymin=400,  ymax=3000;
   Float_t zmin=0,    zmax=2;
   Float_t xbins[nbinx+1] = {xmin, xmax};
-  Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 1000, ymax};
+  Float_t ybins[nbiny+1] = {ymin, 600, 800, 1000, ymax};
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
 
-  TString pname = "npf_vs_mr_razor_fit.pdf";
-  TString pname2 = "npf_vs_mr_razor_fit.C";
+  TString pname = "npf_vs_mr_dijet_fit.pdf";
+  TString pname2 = "npf_vs_mr_dijet_fit.C";
 
   // for rsq
   //Int_t binIn=rsq;
@@ -83,10 +83,10 @@ void makepaperplots() {
   //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
   //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
   //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
-  
-  TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter)*(Rsq<0.25)";
-  TString cut_str_dat=cut_str+"*(Rsq<0.25)*(passedHadronicTrigger)";
-  TString cut_str_mc="*weight*2600";
+
+  TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
+  TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)*(passedHadronicTrigger)";
+  TString cut_str_mc="*(weight)*2600";  
 
   //--------------------------------------------------------------
   //
@@ -101,7 +101,7 @@ void makepaperplots() {
   TH3F *dPhiPF_Z = new TH3F("dPhiPF_Z", "dPhiPF_Z", nbinx, &xbins[0], nbiny, &ybins[0], nbinz, &zbins[0]); dPhiPF_Z->Sumw2();
 
   //Float_t ybins[nbiny+1] = {ymin, 500, 600, 700, 800, 1000, ymax};
-  Float_t ybins2[nbiny+3] = {float(ymin - 0.1), ymin, 500, 600, 700, 800, 1000, ymax, float(ymax + 0.1)};
+  Float_t ybins2[nbiny+3] = {float(ymin - 0.1), ymin, 600, 800, 1000, ymax, float(ymax + 0.1)};
   TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny+2, &ybins2[0]); fxn_plus_err->Sumw2();  
 
   // open trees
@@ -128,17 +128,17 @@ void makepaperplots() {
   }
 
   TF1 *qcd_fxn = new TF1("qcd_fxn","[0]", 400, 2500);
-  qcd_fxn->SetParameter(0,0.242121);
+  qcd_fxn->SetParameter(0,0.102603);
 
   //qcd_fxn->SetParameter(0,3.1e7);
   //qcd_fxn->SetParameter(1,-3.1);
   //qcd_fxn->SetParameter(2,0.062);
 
   fxn_plus_err->SetBinContent(1,qcd_fxn->Eval(ymin-25));
-  fxn_plus_err->SetBinError(1,qcd_fxn->Eval(ymin-25)*0.85);
+  fxn_plus_err->SetBinError(1,qcd_fxn->Eval(ymin-25)*0.8);
 
   fxn_plus_err->SetBinContent(nbiny+2,qcd_fxn->Eval(ymax+25));
-  fxn_plus_err->SetBinError(nbiny+2,qcd_fxn->Eval(ymax+25)*0.85);
+  fxn_plus_err->SetBinError(nbiny+2,qcd_fxn->Eval(ymax+25)*0.8);
 
   Double_t wtf=0, lesswtf=0;
 
@@ -297,7 +297,7 @@ void makepaperplots() {
   tex->SetTextSize(0.035);
   tex->SetTextFont(42);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.485, 0.66, "#zeta = 0.242");
+  tex->DrawLatex(0.485, 0.66, "#zeta = 0.103");
 
   leg->Draw();
 
