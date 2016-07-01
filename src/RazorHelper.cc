@@ -665,13 +665,16 @@ double RazorHelper::lookupEtaPtScaleFactor(TH2D *hist, double pt, double eta, do
 
 // Gets the correct event-level scale factor depending on whether the object passes or fails selection
 double RazorHelper::getPassOrFailScaleFactor(double eff, double sf, bool passes) {
-    if (passes) {
-        return sf;
-    }
-    else if (eff*sf >= 1.0 || eff >= 1.0) { //provide safety against infinite or negative weights
-        return 1.0;
-    }
-    return (1/eff - sf) / (1/eff - 1);
+  if (passes) {
+    return sf;
+  }
+  else if (eff*sf >= 1.0 || eff >= 1.0) { //provide safety against infinite or negative weights
+    return 1.0;
+  }
+  else if (eff == 0 || sf == 0) { //provide safety against infinite or negative weights
+    return 0.0;
+  }
+  return (1/eff - sf) / (1/eff - 1);
 }
 
 // Helper function for computing scale factors from histograms
