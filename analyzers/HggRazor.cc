@@ -52,7 +52,7 @@ struct evt
 
 #define _phodebug 0
 #define _debug    0
-#define _info     0
+#define _info     1
 
 const double EB_R = 129.0;
 const double EE_Z = 317.0;
@@ -71,15 +71,24 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   bool doPhotonScaleCorrection = true;
 
   string analysisTag = "";
-  if (option == 0 || option == 1) analysisTag = "2015_76X";
-  else if (option == 10 || option == 11) analysisTag = "2016_80X";
+  if (option >= 0 && option <= 9) analysisTag = "2015_76X";
+  else if (option >= 10 && option <= 19) analysisTag = "2016_80X";
   else {
     cout << "Error: analysisoption == " << option << " is not supported. Exiting.\n";
     return;
   }
 
-  bool doEleVeto = true;
-  if (option == 1 || option == 11) doEleVeto = false;
+  bool doEleVeto = false;
+  if (option == 1 || option == 2 || option == 3 || 
+      option == 11 || option == 12 || option == 13) doEleVeto = true;
+
+  bool doRequireIso = false;
+  if (option == 2 || option == 3 || 
+      option == 12 || option == 13) doRequireIso = true;
+
+  bool doMRSkim = false;
+  if (option ==3 || option == 13) doMRSkim = true;
+
 
   std::cout << "[INFO]: option = " << option << std::endl;
   std::cout << "[INFO]: analysisTag --> " << analysisTag << std::endl;
@@ -266,7 +275,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float theMR, theMR_JESUp, theMR_JESDown;
   float theRsq, theRsq_JESUp, theRsq_JESDown, t1Rsq, t1Rsq_JESUp, t1Rsq_JESDown;
   float MET, MET_JESUp, MET_JESDown, t1MET, t1MET_JESUp, t1MET_JESDown;
-  
+  float HT;
+
+
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
   float mbbZ, mbbZ_L, mbbH, mbbH_L;
@@ -286,6 +297,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
   int n_Jets_JESUp, n_Jets_JESDown; 
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
+  bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
+
   //------------------------
   //set branches on big tree
   //------------------------
@@ -316,6 +329,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //MET filters
       razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
       razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
+      razorTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
+      razorTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
       razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
       razorTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, "Flag_hcalLaserEventFilter/O");
       razorTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/O");
@@ -356,6 +371,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       razorTree->Branch("t1MET", &t1MET, "t1MET/F");
       razorTree->Branch("t1MET_JESUp", &t1MET_JESUp, "t1MET_JESUp/F");
       razorTree->Branch("t1MET_JESDown", &t1MET_JESDown, "t1MET_JESDown/F");
+      razorTree->Branch("HT", &HT, "HT/F");
+
       razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
       razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
       razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -412,6 +429,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
       razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
       razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
+      razorTree->Branch("jetIsCSVL", jetIsCSVL, "jetIsCSVL[n_Jets]/O");
+      razorTree->Branch("jetIsCSVM", jetIsCSVM, "jetIsCSVM[n_Jets]/O");
+      razorTree->Branch("jetIsCSVT", jetIsCSVT, "jetIsCSVT[n_Jets]/O");
       razorTree->Branch("n_Jets_JESUp", &n_Jets_JESUp, "n_Jets_JESUp/I");
       razorTree->Branch("n_Jets_JESDown", &n_Jets_JESDown, "n_Jets_JESDown/I");
       razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
@@ -617,6 +637,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  jet_Pt[i]  = -99.;
 	  jet_Eta[i] = -99.;
 	  jet_Phi[i] = -99.;
+	  jetIsCSVL[i] = 0;  
+	  jetIsCSVM[i] = 0;  
+	  jetIsCSVT[i] = 0;  
 	}
 
 
@@ -1074,6 +1097,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     float MetYCorr_JESDown = 0;
     
     vector<TLorentzVector> GoodJets;
+    vector<bool> GoodJetsIsCVSL;
+    vector<bool> GoodJetsIsCVSM;
+    vector<bool> GoodJetsIsCVST;
     vector<TLorentzVector> GoodJetsJESUp;
     vector<TLorentzVector> GoodJetsJESDown;
     vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
@@ -1097,6 +1123,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
       
 	GoodJets.push_back(thisJet);
+	GoodJetsIsCVSL.push_back(isCSVL(i));
+	GoodJetsIsCVSM.push_back(isCSVM(i));
+	GoodJetsIsCVST.push_back(isCSVT(i));
 	n_Jets++;
 	
 	double jetCorrPt = thisJet.Pt();
@@ -1315,18 +1344,24 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     //std::cout << "njets-->" << n_Jets << std::endl;
     
     int iJet = 0;
-    for ( auto tmp_jet : GoodJets )
-      {
-	jet_E[iJet] = tmp_jet.E();
-	jet_Pt[iJet] = tmp_jet.Pt();
-	jet_Eta[iJet] = tmp_jet.Eta();
-	jet_Phi[iJet] = tmp_jet.Phi();
-	iJet++;
-      }
+    for ( int iJet = 0; iJet < GoodJets.size() ; iJet++ ) {
+      jet_E[iJet] = GoodJets[iJet].E();
+      jet_Pt[iJet] = GoodJets[iJet].Pt();
+      jet_Eta[iJet] = GoodJets[iJet].Eta();
+      jet_Phi[iJet] = GoodJets[iJet].Phi();
+      jetIsCSVL[iJet] = GoodJetsIsCVSL[iJet];
+      jetIsCSVM[iJet] = GoodJetsIsCVSM[iJet];
+      jetIsCSVT[iJet] = GoodJetsIsCVST[iJet];
+      iJet++;
+    }
     
     //Compute the razor variables using the selected jets and the diphoton system
+    HT = Pho_Pt[0] + Pho_Pt[1]; //HT = sum of photon pT  + jet pT
     vector<TLorentzVector> JetsPlusHiggsCandidate;
-    for( auto& jet : GoodJets ) JetsPlusHiggsCandidate.push_back(jet);
+    for( auto& jet : GoodJets ) {
+      JetsPlusHiggsCandidate.push_back(jet);
+      HT += jet.Pt();
+    }
     JetsPlusHiggsCandidate.push_back(HiggsCandidate);
     
     TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
