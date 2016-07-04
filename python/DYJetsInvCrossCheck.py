@@ -1,7 +1,7 @@
 import sys, os, argparse, copy
 import ROOT as rt
 
-from macro import macro
+from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
@@ -34,9 +34,9 @@ if __name__ == "__main__":
             scaleFactorNames={ "DYJetsInv":"GJetsInv" }, debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJets'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
+    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
+    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
     sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
-    auxSFs = {"NJets":("NJets_NoZ","1")} 
     outfile = rt.TFile(
         "data/ScaleFactors/RazorMADD2015/RazorDYJetsDileptonInvCrossCheck_%s.root"%(tag), "RECREATE")
     
@@ -44,6 +44,8 @@ if __name__ == "__main__":
         #make output directory
         outdir = 'Plots/'+tag+'/'+region
         os.system('mkdir -p '+outdir)
+        #prepare analysis
+        auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets_NoZ')
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
             sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel )
