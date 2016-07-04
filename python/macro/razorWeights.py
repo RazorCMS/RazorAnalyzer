@@ -8,11 +8,17 @@ import sys
 #####################################
 
 #QCD systematic error
-QCDNORMERRFRACTION = 0.87
+QCDNORMERRFRACTION_DIJET = 0.85
+QCDNORMERRFRACTION_MULTIJET = 0.80
+#QCDNORMERRFRACTION = 0.87 #used in 2015
 
-def getQCDExtrapolationFactor(MR):
+def getQCDExtrapolationFactor(MR,region='multijet'):
     """Get QCD extrapolation factor as a function of MR"""
-    return 3.1e+7*(MR**(-3.1)) + 0.062
+    #return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
+    if region.lower() == 'dijet':
+        return 0.103
+    else:
+        return 0.242
 
 WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
@@ -183,8 +189,13 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
     if len(lweightOpts) > 0:
 
         #QCD extrapolation weight
-        if 'datadrivenqcd' in lweightOpts: 
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR)
+        if 'datadrivenqcddijet' in lweightOpts: 
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
+            if debugLevel > 1:
+                print "QCD extrapolation factor:",qcdExtrapolationFactor
+            eventWeight *= qcdExtrapolationFactor
+        elif 'datadrivenqcdmultijet' in lweightOpts: 
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
             if debugLevel > 1:
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
@@ -306,12 +317,15 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
 def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     lweightOpts = map(str.lower, weightOpts)
 
-    if 'datadrivenqcd' not in lweightOpts:
+    if 'datadrivenqcddijet' not in lweightOpts and 'datadrivenqcdmultijet' not in lweightOpts:
         eventWeight = scale
         if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
         return eventWeight
     else: #data-driven QCD estimate
-        qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR)
+        if 'datadrivenqcddijet' in lweightOpts:
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
+        elif 'datadrivenqcdmultijet' in lweightOpts:
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
         eventWeight = qcdExtrapolationFactor*scale
         if debugLevel > 1:
             print "QCD extrapolation factor:",qcdExtrapolationFactor
@@ -449,7 +463,7 @@ def getSFHistNameForErrorOpt(errorOpt, name):
 
 vetoLeptonAuxCuts="(abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13) && leadingGenLeptonPt > 5"
 vetoTauAuxCuts="abs(leadingGenLeptonType) == 15 && leadingGenLeptonPt > 20"
-def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
+def getAuxSFsForErrorOpt(auxSFs={}, errorOpt="", auxSFsPerProcess=False):
     """
     Returns scale factor histogram names needed to compute the indicated shape uncertainty.
     Format of the input/output is { "HistogramName":("variableName", "cuts"), ... }
@@ -533,7 +547,11 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt=""):
 
     #return dictionary with needed information
     sfsNeeded = { histNames[i]:(varNames[i],cuts[i]) for i in range(len(histNames)) }
-    auxSFs.update(sfsNeeded)
+    if auxSFsPerProcess:
+        for process in auxSFs:
+            auxSFs[process].update(sfsNeeded.copy())
+    else:
+        auxSFs.update(sfsNeeded)
 
 def splitShapeErrorsByType(shapeErrors):
     """Takes a list of shape uncertainties and splits it into two lists: the first is the list of uncertainties applied as per-event scale factors, and the second is the list of uncertainties that require separate processing."""
@@ -589,3 +607,15 @@ def splitShapeErrorsByType(shapeErrors):
             print "Warning in splitShapeErrorsByType: error option",thisShape,"is not supported!"
 
     return sfUncertainties, otherUncertainties
+
+def getNJetsSFs(analysis,jetName='NJets40'):
+    """From an Analysis object, get the needed NJets scale factors"""
+    auxSFs = { process:{} for process in analysis.samples }
+    for name in ['WJets','TTJets','TTJets1L','TTJets2L']:
+        if name in analysis.samples:
+            auxSFs[name] = {'NJets':(jetName,'1')}
+    for name in ['WJetsInv','DYJetsInv','ZInv','GJetsInv']:
+        if name in analysis.samples:
+            auxSFs[name] = {"NJetsInv":(jetName,"1")}
+    return auxSFs
+

@@ -247,8 +247,10 @@ razorNtuples["SignalHadronic"]["Razor2016"] = {
         "Other"    : dirSignal2016+"/FullRazorInclusive_Other_1pb_weighted"+skimstr+".root",
         "ZInv"     : dirSignal2016+"/FullRazorInclusive_ZInv_1pb_weighted"+skimstr+".root",
         #QCD predicted using data driven method
-        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root",
-        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root"
+        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden2p6fb.root",
+        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden2p6fb.root"
+        #"QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden800pb.root",
+        #"Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden800pb.root"
         }
 razorNtuples["SignalLepton"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
 razorNtuples["SignalMuon"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
@@ -409,34 +411,37 @@ def appendBoxCuts(cuts, boxNums):
     """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
     return '('+(' || '.join(['box == '+str(n) for n in boxNums])) + ") && " + cuts
 
-recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter","Flag_goodVertices","Flag_eeBadScFilter"]
-def appendNoiseFilters(cuts, tree):
+recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter","Flag_goodVertices",
+        "Flag_eeBadScFilter","Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
+        #"Flag_badChargedCandidateFilter","Flag_badMuonFilter"
+        ]
+def appendNoiseFilters(cuts, tree=None):
     ret = copy.copy(cuts)
     for bit in recommendedNoiseFilters:
-        if hasattr(tree, bit):
+        if (tree is None) or hasattr(tree, bit):
             ret += " && " + bit
     return ret
 
 # 1-lepton control region
-razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 300 && Rsq > 0.15"
 
 # 1-lepton invisible control region
-razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && TMath::Finite(weight) && ( weight < 0.01 || weight == 1)"
+razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && ( weight < 0.01 || weight == 1)"
 
 # TTJets 2-lepton control region
-razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && ((abs(lep2Type) == 11 && lep2.Pt() > 25) || (abs(lep2Type) == 13 && lep2.Pt() > 20)) && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15 && TMath::Finite(weight)"
+razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && ((abs(lep2Type) == 11 && lep2.Pt() > 25) || (abs(lep2Type) == 13 && lep2.Pt() > 20)) && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15"
 
 # DYJets 2-lepton invisible control region
-razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 300 && Rsq_NoZ > 0.15 && TMath::Finite(weight)"
+razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 300 && Rsq_NoZ > 0.15"
 
 # Veto lepton control region
-razorCuts["VetoLepton"]  = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+razorCuts["VetoLepton"]  = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
 
-razorCuts["VetoElectron"] = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+razorCuts["VetoElectron"] = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
 
-razorCuts["VetoMuon"] = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+razorCuts["VetoMuon"] = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
 
-razorCuts["VetoTau"] = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25 && TMath::Finite(weight)"
+razorCuts["VetoTau"] = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
 
 # Hadronic boxes with inverted lepton veto
 cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
@@ -576,10 +581,14 @@ cfg = Config.Config(signalConfig)
 razorBinning["SignalHadronic"] = {
         "MR" : cfg.getBinning("MultiJet")[0],
         "Rsq" : cfg.getBinning("MultiJet")[1],
+        #"leadingJetPt": range(0, 1000, 100),
+        #"subleadingJetPt": range(0, 1000, 100),
         }
 razorBinning["SignalLeptonic"] = {
         "MR" : cfg.getBinning("MuMultiJet")[0],
         "Rsq" : cfg.getBinning("MuMultiJet")[1],
+        #"leadingJetPt": range(0, 1000, 100),
+        #"subleadingJetPt": range(0, 1000, 100),
         }
 
 ### Add 2D razor binning to each region
@@ -835,6 +844,7 @@ class Analysis:
             self.lumi = 2300
         elif tag == "Razor2016":
             #self.lumi = 589
+            #self.lumi = 804
             self.lumi = 2600
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
@@ -1037,6 +1047,7 @@ class Analysis:
             sys.exit("Error: analysis region "+self.region+" is not implemented!")
 
         #add jet and bjet and trigger requirements to cuts
+        if self.region in razorBoxes: self.cuts = appendNoiseFilters(self.cuts)
         self.addJetCuts()
         self.addTriggerCuts()
 
@@ -1053,7 +1064,7 @@ class Analysis:
     def addTriggerCuts(self):
         self.trigInfoMC = TriggerUtils(self.trigType, self.tag, isData=False)
         self.trigInfoData = TriggerUtils(self.trigType, self.tag, isData=True)
-        self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )
+        self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )+' && TMath::Finite(weight) && (!TMath::IsNaN(weight))'
         self.cutsData = self.trigInfoData.appendTriggerCuts( self.cuts )
 
     def getWeightOpts(self):

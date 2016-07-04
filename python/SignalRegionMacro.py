@@ -1,21 +1,18 @@
 import sys,os,argparse,copy
 import ROOT as rt
 
-from macro import macro
+from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis
 from macro.razorMacros import runFitAndToys, makeControlSampleHistsForAnalysis
 
-FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016"
-FULL_FIT_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FitResults/ResultForMoriond2016/Full"
+FIT_DIR = "Fits"
 TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MultiJet.root",
-        "MuMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_MuMultiJet.root",
-        "EleMultiJet":FIT_DIR+"/toys_Bayes_varyN_noStat_EleMultiJet.root",
-        "DiJet":None, "MuJet":None, "EleJet":None, "FourToSixJet":None, "SevenJet":None,
-        "LeptonJet":None, "LeptonMultiJet":None,
+        "MultiJet":FIT_DIR+"/toys_Bayes_noStat_MultiJet.root",
+        "LeptonMultiJet":FIT_DIR+"/toys_Bayes_noStat_LeptonMultiJet.root",
+        "DiJet":FIT_DIR+"/toys_Bayes_noStat_DiJet.root",
+        "LeptonJet":FIT_DIR+"/toys_Bayes_noStat_LeptonJet.root",
         }
 FULL_TOYS_FILES = {
-        "EleMultiJet":FULL_FIT_DIR+"/toys_Bayes_noStat_EleMultiJet.root",
         }
 
 commonShapeErrors = [
@@ -38,9 +35,9 @@ commonShapeErrors = [
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
 hadShapeErrors = commonShapeErrors+['vetolepptcrosscheck','vetotauptcrosscheck',
         'vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
-shapes = { 'MultiJet':hadShapeErrors, 'MuMultiJet':lepShapeErrors, 'EleMultiJet':lepShapeErrors, 
-           'DiJet':hadShapeErrors, 'MuJet':lepShapeErrors, 'EleJet':lepShapeErrors,
-           'FourToSixJet':hadShapeErrors, 'SevenJet':hadShapeErrors }
+shapes = { 'MultiJet':hadShapeErrors, 'LeptonMultiJet':lepShapeErrors, 
+           'DiJet':hadShapeErrors, 'LeptonJet':lepShapeErrors, 
+           }
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -69,7 +66,7 @@ if __name__ == "__main__":
             dest="noSFs")
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', type=int, help="choose a number of btags")
-    parser.add_argument("--tag", dest="tag", default="Razor2015",
+    parser.add_argument("--tag", dest="tag", required=True,
             help="Analysis tag, e.g. Razor2015")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -85,12 +82,12 @@ if __name__ == "__main__":
     dirSuffix = ""
     if not doSideband:
         toysToUse = FULL_TOYS_FILES
-        dirSuffix += '_Full'
+        dirSuffix += 'Full'
         plotOpts['sideband'] = False
     else:
         plotOpts['sideband'] = True
-    if args.unblind:
-        dirSuffix += '_Unblinded'
+    if not args.unblind:
+        dirSuffix += 'Blinded'
     if args.noFit: 
         toysToUse = {}
         del plotOpts['sideband']
@@ -102,7 +99,9 @@ if __name__ == "__main__":
     else:
         btaglist = [0,1,2,3]
     if args.noSFs:
-        dirSuffix += '_NoSFs'
+        dirSuffix += 'NoSFs'
+    if args.noSys:
+        dirSuffix += 'NoSys'
 
     regionsOrder = []
     regions = {}
@@ -121,7 +120,7 @@ if __name__ == "__main__":
                 else:
                     nbMax = btags #exclusive
             #define analysis region
-            extBox = box+str(btags)+"B"
+            extBox = '%s%dB%s'%(box,btags,dirSuffix)
             regionsOrder.append(extBox)
             regions[extBox] = Analysis(box, tag=tag, nbMin=btags, nbMax=nbMax)
 
@@ -159,11 +158,11 @@ if __name__ == "__main__":
     vlFile = rt.TFile.Open(vetolepFile)
     for ltype in ['VetoLepton','VetoTau']:
         for jtype in ['DiJet','MultiJet']:
-            name = ltype+jtype
-            sfHists[name+'PtUp'] = vlFile.Get(name+'ScaleFactors')
-            sfHists[name+'PtDown'] = macro.invertHistogram(sfHists[name+'PtUp'])
-            sfHists[name+'EtaUp'] = vlFile.Get(name+'PtCorrScaleFactors')
-            sfHists[name+'EtaDown'] = macro.invertHistogram(sfHists[name+'EtaUp'])
+            name = jtype+'For'+ltype
+            sfHists[ltype+jtype+'PtUp'] = vlFile.Get(name+'ScaleFactors')
+            sfHists[ltype+jtype+'PtDown'] = macro.invertHistogram(sfHists[ltype+jtype+'PtUp'])
+            sfHists[ltype+jtype+'EtaUp'] = vlFile.Get(name+'PtCorrScaleFactors')
+            sfHists[ltype+jtype+'EtaDown'] = macro.invertHistogram(sfHists[ltype+jtype+'EtaUp'])
     #get DYJets and TTBar Dilepton cross check scale factor histograms
     ttTFiles = { "DiJet":rt.TFile.Open(ttFileDiJet), "MultiJet":rt.TFile.Open(ttFileMultiJet) }
     for ttname, ttfile in ttTFiles.iteritems():
@@ -179,12 +178,14 @@ if __name__ == "__main__":
     for jtype in ['DiJet','MultiJet']:
         sfHists['DYJetsInv'+jtype+'Up'] = dyTFile.Get('DYJetsDileptonInv'+jtype+'ScaleFactors')
         sfHists['DYJetsInv'+jtype+'Down'] = macro.invertHistogram(sfHists['DYJetsInv'+jtype+'Up'])
+    #get b-tag closure test results
     btagTFile = rt.TFile.Open(btagFile)
-    for jtype in ['OneJet','DiJet','MultiJet']:
+    for jtype in ['DiJet','MultiJet']:
         for b in range(4):
+            if jtype == 'DiJet' and b > 2: continue
             bs = str(b)
-            sfHists['MR'+jtype+bs+'BUp'] = btagTFile.Get('OneLepton'+jtype+bs+'BMRScaleFactors')
-            sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get('OneLepton'+jtype+bs+'BRsqScaleFactors')
+            sfHists['MR'+jtype+bs+'BUp'] = btagTFile.Get('OneLepton'+jtype+'ClosureTest'+bs+'BMRScaleFactors')
+            sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get('OneLepton'+jtype+'ClosureTest'+bs+'BRsqScaleFactors')
             sfHists['MR'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['MR'+jtype+bs+'BUp'])
             sfHists['Rsq'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+jtype+bs+'BUp'])
     #get ZInv b-tag cross check histogram
@@ -195,15 +196,19 @@ if __name__ == "__main__":
     #get 'down' version of histogram
     sfHists['ZInvBDown'] = macro.invertHistogram(sfHists['ZInvBUp'])
 
+    #check that everything came out correctly
+    for h,hist in sfHists.iteritems():
+        if debugLevel > 0:
+            print "Checking scale factor histogram:",h
+        assert hist
+
     #estimate yields in signal region
     for region in regionsOrder:
         analysis = regions[region]
-        boxName = region[:-2]
-        btags = int(region[-2])
+        boxName = region.replace(dirSuffix,'')[:-2]
+        btags = int(region.replace(dirSuffix,'')[-2])
         #get correct NJets scale factors
-        auxSFs = { process:{"NJets":("nSelectedJets","1")} for process in analysis.samples }
-        if 'ZInv' in auxSFs:
-            auxSFs['ZInv'] = {"NJetsInv":("nSelectedJets","1")}
+        auxSFs = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
 
         print "\nBox:",region,"("+boxName,str(btags),"B-tag)"
 
@@ -248,6 +253,7 @@ if __name__ == "__main__":
         #b-tag closure tests
         for b in range(4):
             bs = str(b)
+            if jtype == 'DiJet' and b > 2: continue
             for updown in ['BUp','BDown']:
                 for mrrsq in ['MR','Rsq']:
                     sfHistsToUse[mrrsq+bs+updown] = sfHistsToUse[mrrsq+jtype+bs+updown]

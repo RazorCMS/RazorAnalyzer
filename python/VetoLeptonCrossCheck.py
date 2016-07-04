@@ -1,7 +1,7 @@
 import sys, os, argparse, copy
 import ROOT as rt
 
-from macro import macro
+from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors, makeVetoLeptonCorrectionHist
 
@@ -78,15 +78,13 @@ if __name__ == "__main__":
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"WJetsInv" },
-            #processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
+            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
             debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
+    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
     sfVars = ("MR","Rsq")
-    auxSFs = {"NJets":("NJets40","1")} 
-    auxSFsSR = {"NJets":("nSelectedJets","1")} 
     outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
     outfile.Close()
 
@@ -98,10 +96,10 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #set up analysis
         if region.startswith('Veto'):
-            auxSFsToUse = auxSFs.copy()
+            auxSFsToUse = razorWeights.getNJetsSFs(analysis,jetName='NJets40')
             treeName = "ControlSampleEvent"
         else:
-            auxSFsToUse = auxSFsSR.copy()
+            auxSFsToUse = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
             treeName = "RazorInclusive"
         #set up lepton pt correction
         varForCorrection = "lep1.Pt()"

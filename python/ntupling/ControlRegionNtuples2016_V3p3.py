@@ -77,11 +77,11 @@ SAMPLES['1L'] = {
                 'ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
                 'ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
             ],
-        #"TTJets":[
-        #        'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #    ],
+        "TTJets":[
+                'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+            ],
         "Other":[
                 'WWTo2L2Nu_13TeV-powheg',
                 'WWTo4Q_13TeV-powheg',
@@ -105,15 +105,15 @@ SAMPLES['1L'] = {
                 'ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
             ],
-        #"WJets":[
-        #        'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #        'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-        #    ],
+        "WJets":[
+                'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+            ],
         "ZInv":[
                 'ZJetsToNuNu_HT-100To200_13TeV-madgraph',
                 'ZJetsToNuNu_HT-200To400_13TeV-madgraph',

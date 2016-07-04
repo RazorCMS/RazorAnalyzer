@@ -348,8 +348,17 @@ def subtractBkgsInData(process, hists={}, dataName="Data", debugLevel=0):
                 print "Zeroing negative prediction",hists[dataName][var].GetBinContent(bx),"for",dataName
                 hists[dataName][var].SetBinContent(bx, 0)
 
+def cleanVarName(var):
+    """Remove unwanted characters from string for use in filenames"""
+    #replace dots and slashes with underscores
+    out = var.replace('.','_').replace('/','_')
+    #remove other characters
+    toremove = '(){}<>#$%+-=*&|[]'
+    return out.translate(None,toremove)
+
 def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}):
     """Make stacked plots of quantities of interest, with data overlaid"""
+    print "Preparing histograms for plotting..."
     #format MC histograms
     for name in mcNames: 
         for var in histDict[name]: plotting.setHistColor(histDict[name][var], name)
@@ -379,6 +388,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     legend=None
     plotFit = ("Fit" in histDict)
     for i,var in enumerate(varList): 
+        print "Variable:",var
         if not isinstance(var, basestring) and len(var) == 2: #2D plots
             mcDict = None 
             if len(mcNames) > 0:
@@ -411,34 +421,35 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                 ytitle = vartitles[var[1]]
             else:
                 ytitle = var[1]
+            printstr = "%s_%s"%(cleanVarName(var[0]+var[1]),printName)
             #make plots
             if 'SUS15004' in special:
-                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
                         unrollBins=unrollBins, printdir=printdir)
                 #do MC total (no stack)
                 plotting.plot_SUS15004_FitVsMCTotal(c, mcTotal=mcPrediction, fit=fitPrediction, 
-                        printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, commentstr=commentstr, 
+                        printstr=printstr+'MCTotal', lumistr=lumistr, commentstr=commentstr, 
                         unrollBins=unrollBins, printdir=printdir)
             elif 'CR15004' in special:
-                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=var[0]+var[1]+printName, 
+                plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
                         unrollBins=unrollBins, printdir=printdir, ratiomin=0, ratiomax=2, controlRegion=True)
             else:
                 plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
-                        ytitle=ytitle, printstr=var[0]+var[1]+printName, lumistr=lumistr, commentstr=commentstr, 
+                        ytitle=ytitle, printstr=printstr, lumistr=lumistr, commentstr=commentstr, 
                         saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, 
                         nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, 
                         unrollBins=unrollBins, printdir=printdir)
                 #do MC total (no stack)
                 plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
-                        ytitle=ytitle, printstr=var[0]+var[1]+printName+'MCTotal', lumistr=lumistr, 
+                        ytitle=ytitle, printstr=printstr+'MCTotal', lumistr=lumistr, 
                         commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, 
                         nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, 
                         printdir=printdir)
             #draw bin mapping
             if unrollBins[0] is not None and unrollBins[1] is not None:
-                plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=var[0]+var[1]+printName+"BINNING", printdir=printdir)
+                plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=printstr+"BINNING", printdir=printdir)
         #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var].Clone(histDict[name][var].GetName()+"Clone") for name in mcNames}
@@ -486,15 +497,16 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             xtitle = var
         if var in ['MR','Rsq','MR_NoW',"Rsq_NoW","MR_NoZ","Rsq_NoZ", "lep1.Pt()", "genlep1.Pt()","leadingGenLeptonPt"]: logx = True
         else: logx = False
+        printstr = "%s_%s"%(cleanVarName(var),printName)
         if blindBins is None:
             if 'SUS15004' in special:
-                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
+                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
             elif 'CR15004' in special:
-                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
+                plotting.plot_SUS15004_1D(c, mc=stack, data=obsData, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, printdir=printdir)
             else:
-                plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+                plotting.plot_basic(c, mc=stack, data=obsData, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         else:
-            plotting.plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=var+"_"+printName, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
+            plotting.plot_basic(c, mc=stack, data=None, fit=fitPrediction, leg=legend, xtitle=xtitle, ytitle=ytitle, printstr=printstr, logx=logx, lumistr=lumistr, ymin=ymin, commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, printdir=printdir)
         legend.Delete()
 
 def transformVarsInString(string, varNames, suffix):
@@ -821,7 +833,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         if name in sfHists:
             sfHistToUse = sfHists[name]
             print("Using scale factors from histogram "+sfHistToUse.GetName())
-        if isinstance(auxSFs,dict) and name in auxSFs and isinstance(auxSFs[name],dict):
+        if name in auxSFs and isinstance(auxSFs[name],dict):
             auxSFsToUse = auxSFs[name]
         else:
             auxSFsToUse = auxSFs
@@ -855,8 +867,12 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
                 shapeHistsToUse[curShape+'Up'] = shapeHists[name][curShape+'Up']
                 shapeHistsToUse[curShape+'Down'] = shapeHists[name][curShape+'Down']
                 shapeNamesToUse.append(curShape)
-                shapeAuxSFsToUse[curShape+'Up'] = shapeAuxSFs[curShape+'Up']
-                shapeAuxSFsToUse[curShape+'Down'] = shapeAuxSFs[curShape+'Down']
+                if name in shapeAuxSFs[curShape+'Up'] and isinstance(shapeAuxSFs[curShape+'Up'],dict):
+                    shapeAuxSFsToUse[curShape+'Up'] = shapeAuxSFs[curShape+'Up'][name]
+                    shapeAuxSFsToUse[curShape+'Down'] = shapeAuxSFs[curShape+'Down'][name]
+                else:
+                    shapeAuxSFsToUse[curShape+'Up'] = shapeAuxSFs[curShape+'Up']
+                    shapeAuxSFsToUse[curShape+'Down'] = shapeAuxSFs[curShape+'Down']
                 shapeAuxSFHists[curShape+'Up'] = {n:sfHists[n] for n in shapeAuxSFsToUse[curShape+'Up']} 
                 shapeAuxSFHists[curShape+'Down'] = {n:sfHists[n] for n in shapeAuxSFsToUse[curShape+'Down']} 
                 shapeSFHists[curShape+'Up'] = None
@@ -999,6 +1015,7 @@ def combineBackgroundHists(hists, combineBackgrounds, listOfVars, debugLevel=0):
         combListPresent = filter(lambda c: c in hists, combList)
         if len(combListPresent) != len(combList):
             print "Warning in combineBackground hists:",(len(combList)-len(combListPresent)),"of",len(combList),"requested background processes are not present in the histogram collection"
+            print "(Looking for %s, Found %s)"%(' '.join(combList),' '.join(combListPresent))
         if len(combListPresent) == 0: continue
         for v in listOfVars: #loop over variables
             #make a new histogram for the combined backgrounds
