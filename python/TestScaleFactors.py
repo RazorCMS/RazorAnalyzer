@@ -1,7 +1,7 @@
 import sys, os, argparse
 import ROOT as rt
 
-from macro import macro
+from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
@@ -53,10 +53,8 @@ if __name__ == "__main__":
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
-    auxSFs = {"NJets":("NJets40","1")} 
     if noCorr:
         sfHists = {}
-        auxSFs = {}
 
     for region,analysis in regions.iteritems():
         print "\nRegion:",region,"\n"
@@ -65,6 +63,9 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #set up analysis
         (xbins,cols) = analysis.unrollBins
+        auxSFs = razorWeights.getNJetsSFs(analysis)
+        if noCorr:
+            auxSFs = {}
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
                 sfVars=sfVars, printdir=outdir, auxSFs=auxSFs, btags=analysis.nbMin,

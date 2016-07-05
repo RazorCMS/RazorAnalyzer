@@ -80,11 +80,13 @@ def haddFiles(analyzer,tag,isData=False,force=False):
             else:
                 print "Warning: no files found (",query,")"
 
-def normalizeFiles(analyzer,tag):
+def normalizeFiles(analyzer,tag,force=False):
     #make list file for normalizing
     paths = glob.glob( DIRS[tag]+'/*.root' )
     with open('ntuples_'+tag+'.txt','w') as normfile:
         for f in paths:
+            #check if normalized file exists
+            if (not force) and os.path.isfile( f.replace('.root','_1pb_weighted.root') ): continue
             sample = os.path.basename(f).replace('.root','').replace(
                     getSamplePrefix(analyzer,tag)+'_','')
             #check if we need this sample
@@ -238,7 +240,7 @@ if __name__ == '__main__':
         print "Normalize ntuples..."
         if isData:
             sys.exit("Error: options --data and --normalize do not make sense together!")
-        normalizeFiles(analyzer,tag)
+        normalizeFiles(analyzer,tag,force)
 
     if args.haddFinal:
         print "Combine normalized files..."

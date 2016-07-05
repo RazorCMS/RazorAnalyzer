@@ -5,10 +5,10 @@ import ROOT as rt
 
 #local imports
 from framework import Config
-from macro.razorAnalysis import xbinsSignal, colsSignal
+from macro.razorAnalysis import Analysis
 from macro.razorMacros import plotControlSampleHists
 import macro.macro as macro
-from SidebandMacro import SAMPLES, SAMPLES_REDUCED, LUMI, MCLUMI, blindBins, shapes
+from SignalRegionMacro import shapes
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -21,60 +21,67 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
     parser.add_argument("--full", help="label plot as full fit", action='store_true')
-    parser.add_argument('--box', help="choose a box")
-    parser.add_argument('--btags', help="choose number of b-tags", type=int)
-    parser.add_argument('--dir', help="output directory (should contain the ROOT files with the razor histograms)", default="SignalRegionPlots", dest='dirName')
+    parser.add_argument('--box', help="choose a box",required=True)
+    parser.add_argument('--btags', help="choose number of b-tags", type=int, required=True)
     parser.add_argument('--no-sfs', help='Uncertainties from scale factor cross checks will be ignored', action='store_true',dest='noSFs')
+    parser.add_argument('--no-sys', help='Do not propagate systematic uncertainties', action='store_true',dest='noSys')
+    parser.add_argument("--tag", dest="tag", required=True,
+            help="Analysis tag, e.g. Razor2015")
+    parser.add_argument("--dir", help="Specify input/output directory")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
-    dirName = args.dirName
+    tag = args.tag
+    box = args.box
+    btags = args.btags
+    if tag not in ["Razor2015","Razor2016"]:
+        sys.exit("Error: tag "+tag+" not supported!")
+    dirName = 'Plots/%s/%s%dB'%(tag,box,btags)
 
     plotOpts = {"SUS15004":True}
-    doSideband=(not args.full)
-    if not doSideband:
-        plotOpts['sideband'] = False
-    else:
-        plotOpts['sideband'] = True
     plotOpts["combineBackgrounds"] = { 
             "Other":["SingleTop","DYJets","Other"], 
-            "TTJets":["TTJets1L","TTJets2L"] }
+            "TTJets":["TTJets1L","TTJets2L","TTJets"] }
 
-    boxesToUse = ["MultiJet","MuMultiJet","EleMultiJet"]
-    if args.box is not None:
-        boxesToUse = [args.box]
+    analysis = Analysis(box, tag=tag, nbMin=btags, nbMax=btags)
 
-    #make output directory
-    os.system('mkdir -p '+dirName)
+    #apply options
+    blindBins = [(x,y) for x in range(2,len(analysis.binning["MR"])+1) 
+            for y in range(2,len(analysis.binning["Rsq"])+1)]
+    if args.unblind: blindBins = None
+    samples = analysis.samples
+    plotOpts["combineSamples"] = analysis.samplesReduced
 
-    #estimate yields in signal region
-    for boxName in boxesToUse:
+    shapesToUse = copy.copy(shapes[box])
 
-        #apply options
-        blindBinsToUse = blindBins[boxName]
-        if args.unblind: blindBinsToUse = None
-        samplesToUse = SAMPLES[boxName]
-        plotOpts["combineSamples"] = SAMPLES_REDUCED[boxName]
+    #option to disable scale factors
+    if args.noSFs:
+        print "Ignoring all uncertainties from scale factor cross checks."
+        toRemove = ['btaginvcrosscheck','btagcrosscheckrsq','btagcrosscheckmr','sfsyszinv','ttcrosscheck','zllcrosscheck','sfsysttjets','sfsyswjets','vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck']
+        #remove scale factor cross check uncertainties
+        shapesToUse = [s for s in shapesToUse if s not in toRemove]
+        #this removes scale factor uncertainties that are listed as tuples
+        shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
+        dirName += 'NoSFs'
+    #option to disable systematics
+    if args.noSys:
+        print "Ignoring systematic uncertainties."
+        shapesToUse = []
+        dirName += 'NoSys'
 
-        shapesToUse = copy.copy(shapes[boxName])
-        #option to disable scale factors
-        if args.noSFs:
-            print "Ignoring all uncertainties from scale factor cross checks."
-            toRemove = ['btaginvcrosscheck','btagcrosscheckrsq','btagcrosscheckmr','sfsyszinv','ttcrosscheck','zllcrosscheck','sfsysttjets','sfsyswjets','vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck']
-            #remove scale factor cross check uncertainties
-            shapesToUse = [s for s in shapesToUse if s not in toRemove]
-            #this removes scale factor uncertainties that are listed as tuples
-            shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
+    print "\n---",box,"Box,",btags,"B-tags ---"
 
-        #loop over btag bins
-        if args.btags is not None:
-            btaglist = [args.btags]
-        else:
-            btaglist = [0,1,2,3]
-        for btags in btaglist:
-            print "\n---",boxName,"Box,",btags,"B-tags ---"
+    if args.dir is not None:
+        dirName = args.dir
 
-            extboxName = boxName+str(btags)+"BTag"
-            unrollBins = (xbinsSignal[boxName][str(btags)+'B'], colsSignal[boxName][str(btags)+'B'])
-            inFile = dirName+'/razorHistograms'+extboxName+'.root'
+    extbox = box+str(btags)+"B"
+    unrollBins = analysis.unrollBins
+    inFile = dirName+'/razorHistograms'+extbox+'.root'
+    if args.noSFs:
+        inFile = inFile.replace('.root','NoSFs.root')
+    if args.noSys:
+        inFile = inFile.replace('.root','NoSys.root')
+    lumi = analysis.lumi
 
-            plotControlSampleHists(extboxName, inFile, samples=samplesToUse, plotOpts=plotOpts, lumiMC=MCLUMI, lumiData=LUMI, boxName=boxName, btags=btags, blindBins=blindBinsToUse, debugLevel=debugLevel, printdir=dirName, unrollBins=unrollBins, shapeErrors=shapesToUse)
+    plotControlSampleHists(extbox, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
+            btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi,
+            unrollBins=unrollBins, shapeErrors=shapesToUse)

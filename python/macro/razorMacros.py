@@ -97,6 +97,8 @@ def getFitCorrelationMatrix(config, box, fitToyFile, debugLevel=0):
     return corrMatrix
 
 def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btags=-1, debugLevel=0, noStat=False):
+    FIT_SCALE_FACTOR = 1.0
+    #FIT_SCALE_FACTOR = 800./2600
     print "Loading fit histograms"
     if noStat: 
         print "Using only systematic errors on fit points"
@@ -115,6 +117,7 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
 
     #load fit information, including toys
     toyFile = rt.TFile.Open(fitToyFile)
+    print "Opening fit file",fitToyFile
     assert toyFile
     if debugLevel > 0: print "Opened file",fitToyFile,"to get Bayesian toy results"
     toyTree = toyFile.Get("myTree")
@@ -139,27 +142,29 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
     #store best fit and uncertainty in each bin
     #1D
     binSumDict = getBinSumDicts('x', 0,len(bins['MR'])-1,0,len(bins['Rsq'])-1,zmin,zmax,bins['MR'],bins['Rsq'],z)
+    print z, zmin,zmax
+    print binSumDict
     for i,sumName in binSumDict.iteritems():
         if dataName in hists: nObs = hists[dataName]["MR"].GetBinContent(i)
         else: nObs = 0
         bestFit, rms, pvalue, nsigma, c = getBestFitRms(toyTree,sumName,nObs,c,options,"")
-        hists["Fit"]["MR"].SetBinContent(i,bestFit)
-        hists["Fit"]["MR"].SetBinError(i,rms)
+        hists["Fit"]["MR"].SetBinContent(i,bestFit * FIT_SCALE_FACTOR)
+        hists["Fit"]["MR"].SetBinError(i,rms * FIT_SCALE_FACTOR)
     binSumDict = getBinSumDicts('y', 0, len(bins['MR'])-1,0,len(bins['Rsq'])-1,zmin,zmax,bins['MR'],bins['Rsq'],z)
     for i,sumName in binSumDict.iteritems():
         if dataName in hists: nObs = hists[dataName]["Rsq"].GetBinContent(i)
         else: nObs = 0
         bestFit, rms, pvalue, nsigma, c = getBestFitRms(toyTree,sumName,nObs,c,options,"")
-        hists["Fit"]["Rsq"].SetBinContent(i,bestFit)
-        hists["Fit"]["Rsq"].SetBinError(i,rms)
+        hists["Fit"]["Rsq"].SetBinContent(i,bestFit * FIT_SCALE_FACTOR)
+        hists["Fit"]["Rsq"].SetBinError(i,rms * FIT_SCALE_FACTOR)
     #2D
     binSumDict = getBinSumDicts('yx', 0, len(bins['MR'])-1,0,len(bins['Rsq'])-1,zmin,zmax,bins['MR'],bins['Rsq'],z)
     for (i,j),sumName in binSumDict.iteritems():
         if dataName in hists: nObs = hists[dataName][("MR","Rsq")].GetBinContent(i,j)
         else: nObs = 0
         bestFit, rms, pvalue, nsigma, c = getBestFitRms(toyTree,sumName,nObs,c,options=options,plotName="")
-        hists["Fit"][("MR","Rsq")].SetBinContent(i,j,bestFit)
-        hists["Fit"][("MR","Rsq")].SetBinError(i,j,rms)
+        hists["Fit"][("MR","Rsq")].SetBinContent(i,j,bestFit * FIT_SCALE_FACTOR)
+        hists["Fit"][("MR","Rsq")].SetBinError(i,j,rms * FIT_SCALE_FACTOR)
 
 def get3DRazorFitHistogram(configFile, fitToyFile, boxName, debugLevel=0):
     print "Getting 3D fit histogram from",fitToyFile
@@ -253,17 +258,24 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
     for m in mcNames:
         mcs.append([])
     #for each bin, get values for all table columns
+    if pred is not None:
+        refHist = pred
+    elif len(mcHists) > 0:
+        refHist = mcHists[0]
+    else:
+        refHist = obs
     if unrollBins is None: #TH2F case
-        for bx in range(1, pred.GetNbinsX()+1):
-            for by in range(1, pred.GetNbinsY()+1):
-                xbinLowEdges.append('%.0f' % (pred.GetXaxis().GetBinLowEdge(bx)))
-                xbinUpEdges.append('%.0f' % (pred.GetXaxis().GetBinUpEdge(bx)))
-                ybinLowEdges.append(str(pred.GetYaxis().GetBinLowEdge(by)))
-                ybinUpEdges.append(str(pred.GetYaxis().GetBinUpEdge(by)))
+        for bx in range(1, refHist.GetNbinsX()+1):
+            for by in range(1, refHist.GetNbinsY()+1):
+                xbinLowEdges.append('%.0f' % (refHist.GetXaxis().GetBinLowEdge(bx)))
+                xbinUpEdges.append('%.0f' % (refHist.GetXaxis().GetBinUpEdge(bx)))
+                ybinLowEdges.append(str(refHist.GetYaxis().GetBinLowEdge(by)))
+                ybinUpEdges.append(str(refHist.GetYaxis().GetBinUpEdge(by)))
                 zbinLowEdges.append('%.0f' % (btags))
-                prediction = pred.GetBinContent(bx,by)
-                uncert = pred.GetBinError(bx,by)
-                preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
+                if pred is not None:
+                    prediction = pred.GetBinContent(bx,by)
+                    uncert = pred.GetBinError(bx,by)
+                    preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
                 if obs is not None: 
                     observed = obs.GetBinContent(bx,by)
                     obses.append('%.2f' % (observed))
@@ -277,7 +289,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
                     totalMC += mcHists[i].GetBinContent(bx,by)
                     totalMCErr = ( totalMCErr**2 + (mcHists[i].GetBinError(bx,by))**2 )**(0.5)
                 if len(mcNames) > 0:
-                    if useMCFitSys: #add (MC-fit) in quadrature with MC error
+                    if useMCFitSys and pred is not None: #add (MC-fit) in quadrature with MC error
                         totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
                     totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
     else: #some bins are merged TH2Poly style
@@ -290,11 +302,18 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         mergedFit = plotting.unroll2DHistograms([pred], unrollBins[0], unrollBins[1])[0]
         mergedObs = plotting.unroll2DHistograms([obs], unrollBins[0], unrollBins[1])[0] 
         mergedMCs = plotting.unroll2DHistograms(mcHists, unrollBins[0], unrollBins[1]) 
-        for bx in range(1, mergedFit.GetNbinsX()+1):
+        if pred is not None:
+            refHist = mergedFit
+        elif len(mcNames) > 0:
+            refHist = mergedMCs[0]
+        else:
+            refHist = mergedObs
+        for bx in range(1, refHist.GetNbinsX()+1):
                 zbinLowEdges.append('%.0f' % (btags))
-                prediction = mergedFit.GetBinContent(bx)
-                uncert = mergedFit.GetBinError(bx)
-                preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
+                if pred is not None:
+                    prediction = mergedFit.GetBinContent(bx)
+                    uncert = mergedFit.GetBinError(bx)
+                    preds.append('%.2f $\\pm$ %.2f' % (prediction, uncert))
                 if obs is not None: 
                     observed = mergedObs.GetBinContent(bx)
                     obses.append('%.2f' % (observed))
@@ -305,7 +324,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
                     totalMC += mergedMCs[i].GetBinContent(bx)
                     totalMCErr = ( totalMCErr**2 + (mergedMCs[i].GetBinError(bx))**2 )**(0.5)
                 if len(mcNames) > 0:
-                    if useMCFitSys: #add (MC-fit) in quadrature with MC error
+                    if useMCFitSys and pred is not None: #add (MC-fit) in quadrature with MC error
                         totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
                     totalMCs.append('%.2f $\\pm$ %.2f' % (max(0,totalMC), totalMCErr))
         
@@ -320,10 +339,10 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if obs is not None: 
             cols.append(obses)
             headers.append("Observed")
-        if not useMCFitSys:
+        if not useMCFitSys and pred is not None:
             headers = headers + ["Fit Prediction"]
             cols = cols + [preds]
-            if nsigma is not None: 
+            if nsigma is not None and len(nsigmas) > 0: 
                 cols.append(nsigmas)
                 headers.append("Number of sigmas")
         caption += " ("+str(btags)+" b-tags)"
@@ -334,10 +353,10 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         if obs is not None:
             cols.append(obses)
             headers.append("Observed")
-        if not useMCFitSys:
+        if not useMCFitSys and pred is not None:
             headers = headers + ["Fit Prediction"]
             cols = cols + [preds]
-            if nsigma is not None: 
+            if nsigma is not None and len(nsigmas) > 0: 
                 cols.append(nsigmas)
                 headers.append("Number of sigmas")
     if len(mcNames) > 0:
@@ -405,8 +424,12 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         cutsForQCDData = cutsData.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
         samplesForQCD = copy.copy(samples)
         samplesForQCD.remove('QCD')
+        if 'DiJet' in boxName:
+            qcdOption = 'datadrivenqcddijet'
+        else:
+            qcdOption = 'datadrivenqcdmultijet'
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+['datadrivenqcd'], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill)
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill)
         #subtract backgrounds from QCD prediction
         macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
         print "Now back to our signal region..."
@@ -443,8 +466,15 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0: print "Opened file",inputs[name]
     trees = macro.makeTreeDict(files, treeName, debugLevel)
 
-    #add noise filters to cuts if bits are present in tree
-    if dataName in trees: cutsData = appendNoiseFilters(cutsData, trees[dataName]) 
+    #extra scale factors can be defined per-process or globally for all processes
+    #(the auxSFs dictionary will have an extra layer in that case)
+    auxSFsPerProcess = False
+    for key in auxSFs:
+        if auxSFsPerProcess: break
+        for item in auxSFs[key]:
+            if isinstance(item, dict):
+                auxSFsPerProcess = True
+                break
 
     #split histograms into those that can be applied via per-event weights, and those that require further processing
     sfShapes, otherShapes = splitShapeErrorsByType(shapeErrors)
@@ -455,10 +485,12 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             curShape = shape[0]
         else:
             curShape = shape
-        shapeAuxSFs[curShape+'Up'] = copy.copy(auxSFs)
-        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Up'], errorOpt=curShape+'Up')
-        shapeAuxSFs[curShape+'Down'] = copy.copy(auxSFs)
-        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Down'], errorOpt=curShape+'Down')
+        shapeAuxSFs[curShape+'Up'] = copy.deepcopy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Up'], errorOpt=curShape+'Up',
+                auxSFsPerProcess=auxSFsPerProcess)
+        shapeAuxSFs[curShape+'Down'] = copy.deepcopy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=shapeAuxSFs[curShape+'Down'], errorOpt=curShape+'Down',
+                auxSFsPerProcess=auxSFsPerProcess)
     print "\nThese shape uncertainties will be applied via event-level weights:"
     print sfShapes
     print "\nOther shape uncertainties:"
@@ -483,19 +515,26 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             hists['QCD'][var] = histsForQCD['QCD'][var].Clone()
             hists['QCD'][var].SetDirectory(0)
             if 'qcdnormUp' in shapeHists['QCD']:
+                if 'DiJet' in boxName:
+                    qcdNormErrFrac = QCDNORMERRFRACTION_DIJET
+                else:
+                    qcdNormErrFrac = QCDNORMERRFRACTION_MULTIJET
                 if debugLevel > 0:
-                    print "Including up/down systematic error on QCD for",var
+                    print "Including fractional up/down systematic error (%.2f) on QCD for"%(qcdNormErrFrac),var
                 shapeHists['QCD']['qcdnormUp'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Up')
-                shapeHists['QCD']['qcdnormUp'][var].Scale(QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormUp'][var].Scale(qcdNormErrFrac)
                 shapeHists['QCD']['qcdnormUp'][var].SetDirectory(0)
                 shapeHists['QCD']['qcdnormDown'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
-                shapeHists['QCD']['qcdnormDown'][var].Scale(1.0/QCDNORMERRFRACTION)
+                shapeHists['QCD']['qcdnormDown'][var].Scale(1.0/qcdNormErrFrac)
                 shapeHists['QCD']['qcdnormDown'][var].SetDirectory(0)
         for name in histsForQCD:
             for var in histsForQCD[name]:
                 histsForQCD[name][var].Delete()
-    if 'datadrivenqcd' in map(str.lower, weightOpts): #use QCD extrapolation on data
-        dataWeightOpts.append('datadrivenqcd')
+    #use QCD extrapolation on data
+    if 'datadrivenqcddijet' in map(str.lower, weightOpts): 
+        dataWeightOpts.append('datadrivenqcddijet')
+    if 'datadrivenqcdmultijet' in map(str.lower, weightOpts): 
+        dataWeightOpts.append('datadrivenqcdmultijet')
             
     #fill histograms by looping over all trees
     if dataName in trees:
@@ -518,16 +557,18 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             curShape = shape
         print "\n"+curShape,"Up:"
         #get any scale factor histograms needed to apply this up variation
-        auxSFsToUse = copy.copy(auxSFs)
-        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up")
+        auxSFsToUse = copy.deepcopy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Up",
+                auxSFsPerProcess=auxSFsPerProcess)
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
         macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, propagateScaleFactorErrs=False, debugLevel=debugLevel)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
-        auxSFsToUse = copy.copy(auxSFs)
-        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down")
+        auxSFsToUse = copy.deepcopy(auxSFs)
+        getAuxSFsForErrorOpt(auxSFs=auxSFsToUse, errorOpt=curShape+"Down",
+                auxSFsPerProcess=auxSFsPerProcess)
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
@@ -647,17 +688,21 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
 
     #make tex table
-    dataForTable = None
-    if ("MR","Rsq") in listOfVars and 'Fit' in hists:
+    if ("MR","Rsq") in listOfVars:
+        dataForTable = None
+        fitForTable = None
         print "Making TeX table with predictions in each analysis bin"
         if dataName in hists: 
             dataForTable=hists[dataName][("MR","Rsq")]
             print "Including observed data yields in table"
-        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
+        if 'Fit' in hists:
+            fitForTable=hists['Fit'][('MR','Rsq')]
+            print "Including fit predictions in table"
+        makeRazor2DTable(pred=fitForTable,obs=dataForTable,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, 
-                useMCFitSys=True, printdir=printdir)
-        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
+                useMCFitSys=False, printdir=printdir)
+        makeRazor2DTable(pred=fitForTable,obs=None,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
