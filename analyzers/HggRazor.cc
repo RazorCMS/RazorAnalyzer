@@ -973,8 +973,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.5) ) continue;
 	// status = 22 for Higgs bosons in MadGraph/Pythia8
 	//if(gParticleStatus[g] != 1) continue;
-	if(!(gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
 	if(gParticleId[g] != 22) continue;
+	if(!( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
 	Pho_motherID[0] = gParticleMotherId[g];
 	//cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
       }
@@ -984,8 +984,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.5) ) continue;
 	// status = 22 for Higgs bosons in MadGraph/Pythia8
 	//if(gParticleStatus[g] != 1) continue;
-	if(!(gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
 	if(gParticleId[g] != 22) continue;
+	if(!( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
 	Pho_motherID[1] = gParticleMotherId[g];      
 	//cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
       }
