@@ -116,7 +116,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //Initialize helper
   //--------------------------------
   RazorHelper *helper = 0;
-  if (analysisTag == "2015_76X") helper = new RazorHelper("Razor2015", isData, false);
+  if (analysisTag == "2015_76X") helper = new RazorHelper("Razor2015_76X", isData, false);
   else if (analysisTag == "2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
   else helper = new RazorHelper("", isData, false);
   
