@@ -540,6 +540,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  Pho_sigmaEOverE[i]        = -99.;
 	  Pho_passEleVeto[i]        = false;
 	  Pho_passIso[i]            = false;
+	  Pho_motherID[i]           = 0;
 	}
       
       //jets
@@ -956,44 +957,44 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       }
       double triggerEffLeadingLeg = 
 	photonTriggerEffHist_LeadingLeg->GetBinContent( photonTriggerEffHist_LeadingLeg->GetXaxis()->FindFixBin( fabs(leadPhoEta) ),
-							photonTriggerEffHist_LeadingLeg->GetYaxis()->FindFixBin( fmax( fmin(leadPhoPt,199.9), 20.01 ) )
+							photonTriggerEffHist_LeadingLeg->GetYaxis()->FindFixBin( fmax( fmin(leadPhoPt,99.9), 20.01 ) )
 							);
       double triggerEffTrailingLeg = 
 	photonTriggerEffHist_TrailingLeg->GetBinContent( photonTriggerEffHist_TrailingLeg->GetXaxis()->FindFixBin( fabs(trailingPhoEta) ),
-							 photonTriggerEffHist_TrailingLeg->GetYaxis()->FindFixBin( fmax( fmin(trailingPhoPt,199.9), 20.01 ) )
+							 photonTriggerEffHist_TrailingLeg->GetYaxis()->FindFixBin( fmax( fmin(trailingPhoPt,99.9), 20.01 ) )
 							 );
       triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
 
       //***********************************************************
       //get mother ID of photons
       //***********************************************************
-      // cout << "Photon1 : " << Pho_Pt[0] << " " << Pho_Eta[0] << " " << Pho_Phi[0] << "\n";
+      //cout << "Photon1 : " << Pho_Pt[0] << " " << Pho_Eta[0] << " " << Pho_Phi[0] << "\n";
       for(int g = 0; g < nGenParticle; g++){
 	if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.5) ) continue;
 	// status = 22 for Higgs bosons in MadGraph/Pythia8
 	//if(gParticleStatus[g] != 1) continue;
-	if(gParticleStatus[g] != 22) continue;
+	if(!(gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
 	if(gParticleId[g] != 22) continue;
 	Pho_motherID[0] = gParticleMotherId[g];
 	//cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
       }
 
-      // cout << "Photon2 : " << Pho_Pt[1] << " " << Pho_Eta[1] << " " << Pho_Phi[1] << "\n";
+      //cout << "Photon2 : " << Pho_Pt[1] << " " << Pho_Eta[1] << " " << Pho_Phi[1] << "\n";
       for(int g = 0; g < nGenParticle; g++){
 	if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.5) ) continue;
 	// status = 22 for Higgs bosons in MadGraph/Pythia8
 	//if(gParticleStatus[g] != 1) continue;
-	if(gParticleStatus[g] != 22) continue;
+	if(!(gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
 	if(gParticleId[g] != 22) continue;
 	Pho_motherID[1] = gParticleMotherId[g];      
 	//cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
       }
 
-      // cout << "\nGenParticles:\n";
-      // for(int g = 0; g < nGenParticle; g++){
-      //   cout << "GenParticle: " << gParticleId[g] << " " << gParticleStatus[g] << " : " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
-      // }
-      // cout << "\n\n";
+       // cout << "\nGenParticles:\n";
+       // for(int g = 0; g < nGenParticle; g++){
+       //   cout << "GenParticle: " << gParticleId[g] << " " << gParticleStatus[g] << " : " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
+       // }
+       // cout << "\n\n";
 
 
 
