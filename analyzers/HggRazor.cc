@@ -77,16 +77,17 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     return;
   }
 
-  bool doEleVeto = false;
-  if (option == 1 || option == 2 || option == 3 || 
-      option == 11 || option == 12 || option == 13) doEleVeto = true;
-
+  bool doMRSkim = false;
   bool doRequireIso = false;
+  bool doEleVeto = false;
+
+  if (option == 1 || option == 2 || option == 3 || 
+      option == 11 || option == 12 || option == 13) doMRSkim = true;
+  
   if (option == 2 || option == 3 || 
       option == 12 || option == 13) doRequireIso = true;
 
-  bool doMRSkim = false;
-  if (option ==3 || option == 13) doMRSkim = true;
+  if (option ==3 || option == 13) doEleVeto = true;
 
 
   std::cout << "[INFO]: option = " << option << std::endl;
@@ -667,6 +668,13 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	      continue;
 	    }
 	
+	  //**********************************************************
+	  //Isolation and electron veto are introduced here 
+	  //if we want to use the "regular" selection sequence
+	  //**********************************************************
+	  if (!(pho_passEleVeto[i] && photonPassLooseIso(i))) continue;
+
+
 	  //Defining Corrected Photon momentum
 	  float pho_pt_corr = phoPt[i];
 	  if (doPhotonScaleCorrection) {
