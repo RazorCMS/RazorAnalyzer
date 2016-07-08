@@ -539,7 +539,7 @@ void RazorHelper::loadTrigger_Razor2016() {
 }
 
 void RazorHelper::loadJECs_Razor2016() {
-    std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
+    std::cout << "RazorHelper: loading jet energy correction constants, using Spring16_25nsV6." << std::endl;
     // load JEC parameters
     std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
     correctionParameters = std::vector<JetCorrectorParameters>();
@@ -555,11 +555,11 @@ void RazorHelper::loadJECs_Razor2016() {
     }
     else if (isFastsim) {
       correctionParameters.push_back(JetCorrectorParameters(
-                  Form("%s/Fastsim_MCRUN2_74_V9_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Spring16_FastSimV1_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(
-                  Form("%s/Fastsim_MCRUN2_74_V9_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Spring16_FastSimV1_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParameters.push_back(JetCorrectorParameters(
-                  Form("%s/Fastsim_MCRUN2_74_V9_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Spring16_FastSimV1_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
     }
     else {
       correctionParameters.push_back(JetCorrectorParameters(
@@ -579,7 +579,7 @@ void RazorHelper::loadJECs_Razor2016() {
         jecUncPath = jecPathname+"/Spring16_25nsV6_DATA_Uncertainty_AK4PFchs.txt";
     }
     else if (isFastsim) {
-        jecUncPath = jecPathname+"/Fastsim_MCRUN2_74_V9_Uncertainty_AK4PFchs.txt";
+        jecUncPath = jecPathname+"/Spring16_FastSimV1_MC_Uncertainty_AK4PFchs.txt";
     }
     else {
         jecUncPath = jecPathname+"/Spring16_25nsV6_MC_Uncertainty_AK4PFchs.txt";
