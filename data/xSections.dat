@@ -210,12 +210,12 @@ DMV_NNPDF30_Vector_Mphi-100_Mchi-10_gSM-0p25_gDM-1p0_13TeV-powheg               
 #Higgs branching fraction to gamma gamma taken from 
 #https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR3
 
-GluGluToHToGG_M-125_13TeV-powheg_pythia8                                            0.1001376
-VBF_HToGG_M-125_13TeV-powheg_pythia8                                                0.00854544
-WH_ZH_HToGG_M-125_13TeV-powheg_pythia8                                              0.005129088
-ZH_HToGG_M-125_13TeV-powheg_pythia8						    0.001982688
-WH_HToGG_M-125_13TeV-powheg_pythia8						    0.0031464
-TTbarH_HToGG_M-125_13TeV-powheg_pythia8						    0.00115938
+GluGluToHToGG_M-125_13TeV-powheg_pythia8                                            48.58*2.28e-03
+VBF_HToGG_M-125_13TeV-powheg_pythia8                                                3.748*2.28e-03
+WH_ZH_HToGG_M-125_13TeV-powheg_pythia8                                              2.2496*2.28e-03
+ZH_HToGG_M-125_13TeV-powheg_pythia8						    0.8839*2.28e-03
+WH_HToGG_M-125_13TeV-powheg_pythia8						    1.373*2.28e-03
+TTbarH_HToGG_M-125_13TeV-powheg_pythia8						    0.5071*2.28e-03
 T2H_mb250									    0.098472744
 T2H_mb300									    0.038833644
 T2H_mb350									    0.0172669416
@@ -231,7 +231,7 @@ sb350   3.78661*2.0*2.270e-3
 sb400   1.83537*2.0*2.270e-3
 sb450   0.948333*2.0*2.270e-3
 sb500   0.51848*2.0*2.270e-3
-GluGluHToGG_M125_13TeV_amcatnloFXFX_pythia8             43.92*2.28e-03 
+GluGluHToGG_M125_13TeV_amcatnloFXFX_pythia8             48.58*2.28e-03 
 VBFHToGG_M125_13TeV_amcatnlo_pythia8                    3.748*2.28e-03 
 VHToGG_M125_13TeV_amcatnloFXFX_madspin_pythia8          2.2496*2.28e-03 
 ttHJetToGG_M125_13TeV_amcatnloFXFX_madspin_pythia8      0.5085*2.28e-03 
@@ -239,7 +239,7 @@ bbHToGG_M-125_4FS_yb2_13TeV_amcatnlo                    0.5116*2.28e-03
 bbHToGG_M-125_4FS_ybyt_13TeV_amcatnlo                   0.5116*2.28e-03 
 DiPhotonJetsBox_M40_80-Sherpa                           299.3
 DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8     84.0
-ttHToGG_M125_13TeV_powheg_pythia8                       0.5085*2.28e-03 
-ZH_HToGG_ZToAll_M125_13TeV_powheg_pythia8               0.8696*2.28e-03 
-WplusH_HToGG_WToAll_M125_13TeV_powheg_pythia8 		0.8472*2.28e-03 
+ttHToGG_M125_13TeV_powheg_pythia8                       0.5071*2.28e-03 
+ZH_HToGG_ZToAll_M125_13TeV_powheg_pythia8               0.8839*2.28e-03 
+WplusH_HToGG_WToAll_M125_13TeV_powheg_pythia8 		0.8400*2.28e-03 
 WminusH_HToGG_WToAll_M125_13TeV_powheg_pythia8          0.5328*2.28e-03
