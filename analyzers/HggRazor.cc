@@ -669,11 +669,11 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	    }
 	
 	  //**********************************************************
-	  //Isolation and electron veto are introduced here 
+	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
 	  //**********************************************************
 	  if (!(pho_passEleVeto[i] && photonPassLooseIso(i))) continue;
-
+	  if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
 
 	  //Defining Corrected Photon momentum
 	  float pho_pt_corr = phoPt[i];
