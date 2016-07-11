@@ -578,6 +578,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       /////////////////////////////////
       //Scale and PDF variations
       /////////////////////////////////
+
       if ( (*scaleWeights).size() >= 9 ) 
 	{
 	  sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
@@ -1390,8 +1391,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		}//end second jet loop
 	    }//end first jet loop
 	}
-    
-    
+
+
       //------------------------------------------------
       //I n v a ri a n t   m a s s   r e s o l u t i o n
       //------------------------------------------------
