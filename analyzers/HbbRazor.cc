@@ -4,6 +4,9 @@
 //C++ includes
 #include <sys/stat.h>
 #include <assert.h>
+#include <iostream>
+#include <iomanip>
+
 
 //ROOT includes
 #include "TH1F.h"
@@ -33,7 +36,7 @@ void HbbRazor::Analyze(bool isData, int option, string outFileName, string label
   //   pileupWeightHist = (TH1D*)pileupWeightFile->Get("PUWeight_Run1");
   //   assert(pileupWeightHist);
   // }
-
+  //debug
   if (outFileName.empty()){
     cout << "HbbRazor: Output filename not specified!" << endl << "Using default output name HbbRazor.root" << endl;
     outFileName = "HbbRazor.root";
@@ -153,8 +156,8 @@ void HbbRazor::Analyze(bool isData, int option, string outFileName, string label
     razorTree->Branch("passed_DiJet80Eta2p6_BTagIP3DFastPVLoose", &passed_DiJet80Eta2p6_BTagIP3DFastPVLoose, "passed_DiJet80Eta2p6_BTagIP3DFastPVLoose/O");
     razorTree->Branch("passed_QuadJet45", &passed_QuadJet45, "passed_QuadJet45/O");
     razorTree->Branch("passed_QuadJet50", &passed_QuadJet50, "passed_QuadJet50/O");
-    razorTree->Branch("passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200", &passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200, "passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200/0");
-    razorTree->Branch("passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200", &passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200, "passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200/0");
+    razorTree->Branch("passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200", &passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200, "passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_BTagCSV_p063_p20_Mbb60_200/O");
+    razorTree->Branch("passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200", &passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200, "passed_HLT_Rsq0p02_MR300_TriPFJet80_60_40_DoubleBTagCSV_p063_Mbb60_200/O");
     razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
     razorTree->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
     razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
