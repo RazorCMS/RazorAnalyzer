@@ -89,15 +89,18 @@ for ijob in range(njobs):
     outputfile.write("#!/bin/sh\n\n")
     
     outputfile.write( "cd " + pwd )
+    outputfile.write( "\npwd")
     outputfile.write( "\neval `scramv1 run -sh`;" )
+    outputfile.write( "\ncd -")
+    outputfile.write( "\npwd")
     if _isData:
-        outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " --isData" + " -f=" + rootOutput + " -n=" + option )
+        outputfile.write( "\n. " + pwd +  "/RazorRun " + inputfilename  + " " + appName + " --isData" + " -f=" + rootOutput + " -n=" + option )
     else :
-        outputfile.write( "\n./RazorRun " + inputfilename  + " " + appName + " -f=" + rootOutput + " -n=" + option )
+        outputfile.write( "\n. " + pwd + "/RazorRun " + inputfilename  + " " + appName + " -f=" + rootOutput + " -n=" + option )
         
     outputfile.close
-    print "bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName
-    os.system("bsub -q 1nh source " + outputName + " -o " +logName+ " -e " +errName)
+    print "bsub -q 1nh -e " +errName+ " -o " +logName + "  source " + outputName
+    os.system("bsub -q 1nh -e " +errName+ " -o " +logName + "  source " + outputName)
     os.system("sleep 1\n")
     scriptfile=pwd+"/"+outputName
     ijob = ijob+1
