@@ -663,17 +663,16 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 
 	  //ID cuts -- apply isolation after candidate pair selection
 	  if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	  if ( !photonPassLooseIDWithoutEleVeto(i) ) 
-	    {
-	      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
-	      continue;
-	    }
+	  if ( !photonPassLooseIDWithoutEleVeto(i) ) {
+	    if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+	    continue;
+	  }
 	
 	  //**********************************************************
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
 	  //**********************************************************
-	  if (!(pho_passEleVeto[i] && photonPassLooseIso(i))) continue;
+	  if (!(pho_passEleVeto[i] && photonPassLooseIso(i))) continue;	  
 	  if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
 
 	  //Defining Corrected Photon momentum
@@ -749,7 +748,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  tmp_phoCand.photonSC = phoSC;
 	  tmp_phoCand.scEta = pho_superClusterEta[i];
 	  tmp_phoCand.scPhi = pho_superClusterPhi[i];
-	  tmp_phoCand.SigmaIetaIeta = phoSigmaIetaIeta[i];
+	  tmp_phoCand.SigmaIetaIeta = phoFull5x5SigmaIetaIeta[i];
 	  tmp_phoCand.R9 = phoR9[i];
 	  tmp_phoCand.HoverE = pho_HoverE[i];
 	  tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
@@ -781,7 +780,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	for(int i = 0; i < nPhotons; i++) {
 	  if ( _debug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] 
 				  << " pho_eta: " << phoEta[i] 
-				  << " SIetaIeta: " << phoSigmaIetaIeta[i] << std::endl;
+				  << " SIetaIeta: " << phoFull5x5SigmaIetaIeta[i] << std::endl;
 	}
 	continue;
       }
@@ -999,7 +998,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	//cout << "Nearby GenParticle: " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
       }
 
-       // cout << "\nGenParticles:\n";
+      //cout << "\nGenParticles:\n";
        // for(int g = 0; g < nGenParticle; g++){
        //   cout << "GenParticle: " << gParticleId[g] << " " << gParticleStatus[g] << " : " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherId[g] << "\n";
        // }
