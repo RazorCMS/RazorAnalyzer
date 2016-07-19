@@ -55,7 +55,7 @@ double getNormalizationWeight(string filename, string datasetName, double intLum
   double CrossSection = xstab.Get(datasetName.c_str());  
   double Weight = CrossSection * intLumi / NEvents;
   // weight for data is always 1 (-1 to make a trick for fakes)
-  if(CrossSection < 0) Weight = -1.0;
+  //if(CrossSection < 0) Weight = -1.0;
 
   cout << "Cross Section = " << CrossSection << " for dataset " << datasetName << "\n";
   cout << "Events get weight: " << Weight << "\n";
