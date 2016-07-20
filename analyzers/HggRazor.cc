@@ -82,10 +82,10 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   bool doEleVeto = false;
 
   if (option == 1 || option == 2 || option == 3 || 
-      option == 11 || option == 12 || option == 13) doMRSkim = true;
+      option == 11 || option == 12 || option == 13) doRequireIso = true;
   
   if (option == 2 || option == 3 || 
-      option == 12 || option == 13) doRequireIso = true;
+      option == 12 || option == 13) doMRSkim = true;
 
   if (option ==3 || option == 13) doEleVeto = true;
 
@@ -141,7 +141,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   if (analysisTag == "2015_76X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
   } else if (analysisTag == "2016_80X") {
-    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016B", photonCorrectionPath.c_str()));
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   }
 
   if(!isData) {
