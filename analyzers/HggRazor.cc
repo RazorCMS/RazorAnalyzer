@@ -77,22 +77,44 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     return;
   }
 
+  //***************************************************
+  //What the options means:
+  //option 0 / 10: Regular Selection, No MR Skim
+  //option 1 / 11: Regular Selection, MR>150 Skim
+  //option 2 / 12: NoEleVeto, No MR Skim
+  //option 3 / 13: NoPhotonID, No MR Skim
+  //option 4 / 14: NoPhotonIso, No MR Skim
+  //option 5 / 15: NoPhotonID, NoPhotonIso, No MR Skim
+  //option 6 / 16: NoPhotonID, NoPhotonIso, NoEleVeto, No MR Skim
+  //option 7 / 17: TightPhotonID, LooseIso
+  //option 7 / 17: LooseID, TightIso
+  //option 7 / 17: TightID , TightIso
+
   bool doMRSkim = false;
-  bool doRequireIso = false;
-  bool doEleVeto = false;
+  bool doRequireIso = true;
+  bool doRequireID = true;
+  bool doEleVeto = true;
+  bool doRequireTightID = false;
+  bool doRequireTightIso = false;
 
-  if (option == 1 || option == 2 || option == 3 || 
-      option == 11 || option == 12 || option == 13) doRequireIso = true;
-  
-  if (option == 2 || option == 3 || 
-      option == 12 || option == 13) doMRSkim = true;
-
-  if (option ==3 || option == 13) doEleVeto = true;
-
+  if (option == 1 || option == 11) doMRSkim = true;
+  if (option == 2 || option == 12) doEleVeto = false;
+  if (option == 3 || option == 13) doRequireID = false;
+  if (option == 4 || option == 14) doRequireIso = false;
+  if (option == 5 || option == 15) { doRequireID = false; doRequireIso = false; }
+  if (option == 6 || option == 16) { doRequireID = false;doRequireIso = false; doEleVeto = false; }
+  if (option == 7 || option == 17) doRequireTightID = true; 
+  if (option == 8 || option == 18) doRequireTightIso = true;
+  if (option == 9 || option == 19) { doRequireTightID = true; doRequireTightIso = true; }
 
   std::cout << "[INFO]: option = " << option << std::endl;
   std::cout << "[INFO]: analysisTag --> " << analysisTag << std::endl;
+  std::cout << "[INFO]: doRequireID --> " << doRequireID << std::endl;
+  std::cout << "[INFO]: doRequireIso --> " << doRequireIso << std::endl;
   std::cout << "[INFO]: doEleVeto --> " << doEleVeto << std::endl;
+  std::cout << "[INFO]: doMRSkim --> " << doMRSkim << std::endl;
+  std::cout << "[INFO]: doRequireTightID --> " << doRequireTightID << std::endl;
+  std::cout << "[INFO]: doRequireTightIso --> " << doRequireTightIso << std::endl;
   std::cout << "[INFO]: doPhotonScaleCorrection --> " << doPhotonScaleCorrection << std::endl;
  
   //initialization: create one TTree for each analysis box 
@@ -610,14 +632,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       
       razorbox = LowRes;
       
-      //TODO: triggers!
-      //bool passedDiphotonTrigger = true;      
-      // if (dataset == "76XX") {
-      // 	passedDiphotonTrigger = ( HLTDecision[65] );
-      // } else if (dataset == "80X") {
-      // 	passedDiphotonTrigger = ( HLTDecision[83] );
-      // }     
-      
       //--------------
       //muon selection
       //--------------
@@ -663,17 +677,34 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 
 	  //ID cuts -- apply isolation after candidate pair selection
 	  if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	  if ( !photonPassLooseIDWithoutEleVeto(i) ) {
-	    if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
-	    continue;
+	  if (doRequireID) {
+	    if ( !photonPassLooseIDWithoutEleVeto(i) ) {
+	      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+	      continue;
+	    }
 	  }
+	  if (doRequireTightID) {
+	    if ( !photonPassTightIDWithoutEleVeto(i) ) {
+	      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 Tight ID" << std::endl;
+	      continue;
+	    }
+	  }
+	  
 	
 	  //**********************************************************
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
 	  //**********************************************************
-	  if (!(pho_passEleVeto[i] && photonPassLooseIso(i))) continue;	  
 	  if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
+	  if (doEleVeto) {
+	    if (!(pho_passEleVeto[i])) continue;
+	  }
+	  if (doRequireIso) {
+	    if (!(photonPassLooseIso(i))) continue;
+	  }
+	  if (doRequireTightIso) {
+	    if (!(photonPassTightIso(i))) continue;
+	  }	  	  	  
 
 	  //Defining Corrected Photon momentum
 	  float pho_pt_corr = phoPt[i];
@@ -693,22 +724,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	      if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
 	      continue;
 	    }
-	
-	  if( fabs(pho_superClusterEta[i]) > 2.5 )
-	    {
-	      //allow photons in the endcap here, 
-	      //but if one of the two leading photons is in the endcap,
-	      //reject the event
-	      if ( _phodebug ) std::cout << "[DEBUG]: failed eta" << std::endl;
-	      continue; 
-	    }
-	
+		
 	  if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
 	    {
 	      //Removing gap photons
 	      if ( _phodebug ) std::cout << "[INFO]: failed gap" << std::endl;
 	      continue;
 	    }
+
 	  //photon passes
 	  if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
 	  //setting up photon 4-momentum with zero mass
@@ -826,7 +849,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	    
 	      if( diphotonMass < 50 )
 		{
-		  if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 100 GeV: mgg-> " << diphotonMass << std::endl;
+		  if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 50 GeV: mgg-> " << diphotonMass << std::endl;
 		  if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
 		  continue;
 		}
@@ -910,32 +933,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		    << std::endl;
 	}
     
-
-      //------------------------------------------------------------
-      //Define Skim Requirements
-      //------------------------------------------------------------
-      if (doEleVeto) {
-	if( !Pho_passEleVeto[0] || !Pho_passEleVeto[1] ) {
-	  if ( _debug ) std::cout << "[DEBUG]: Failed EleVeto: pho1, pho2: " << Pho_passEleVeto[0] << ", " << Pho_passEleVeto[1] << std::endl;
-	  if ( _debug ) std::cout << "[DEBUG]: pho1Pt: " << Pho_Pt[0] << " pho2Pt: " << Pho_Pt[1] << std::endl;
-	  for ( auto& phoC : phoSelectedCand ) {
-	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
-	  }
-	  continue;
-	}
-      }
-
-      //if the best candidate pair has a non-isolated photon, reject the event
-      if (doRequireIso) {
-	if( !Pho_passIso[0] || !Pho_passIso[1] ) {
-	  if ( _debug ) std::cout << "[DEBUG]: Failed ISO: pho1, pho2: " << Pho_passIso[0] << ", " << Pho_passIso[1] << std::endl;
-	  if ( _debug ) std::cout << "[DEBUG]: pho1Pt: " << Pho_Pt[0] << " pho2Pt: " << Pho_Pt[1] << std::endl;
-	  for ( auto& phoC : phoSelectedCand ) {
-	    if ( _debug ) std::cout << "===> phopt: " << phoC.photon.Pt() << " phoEta: " << phoC.photon.Eta() << std::endl;
-	  }
-	  continue;
-	}
-      }
 
       //record higgs candidate info
       mGammaGamma    = HiggsCandidate.M();
@@ -1251,16 +1248,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		  GoodCSVLJets.push_back(make_pair(thisJet, false));
 		}
 	    }
-	}
-    
-      //if there are no good jets, reject the event
-      if( n_Jets == 0 )
-	{
-	  if ( _debug ) std::cout << "[DEBUG]: No Jets Selected" << std::endl;
-	  //continue;
-	}
-
-      //std::cout << "njets-->" << n_Jets << std::endl;
+	}    
     
       for ( int iJet = 0; iJet < int(GoodJets.size()) ; iJet++ ) {
 	jet_E[iJet] = GoodJets[iJet].E();
@@ -1399,35 +1387,23 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 
       //Writing output to tree
       //HighPt Box
-      if ( pTGammaGamma > 110.0 )
-	{
-	  razorbox = HighPt;
-	  razorTree->Fill();
-	}
+      if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
+
       //Hbb Box
-      else if ( mbbH > 110.0 && mbbH < 140.0 )
-	{
-	  razorbox = Hbb;
-	  razorTree->Fill();
-	}
+      else if ( mbbH > 110.0 && mbbH < 140.0 ) razorbox = Hbb;
+
       //Zbb Box
-      else if( mbbZ > 76.0 && mbbZ < 106.0 )
-	{
-	  razorbox = Zbb;
-	  razorTree->Fill();
-	}
+      else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
+
       //HighRes Box
-      else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 )
-	{
-	  razorbox = HighRes;
-	  razorTree->Fill();
-	}
+      else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 ) razorbox = HighRes;
+
       //LowRes Box
-      else
-	{
-	  razorbox = LowRes;
-	  razorTree->Fill();
-	}
+      else razorbox = LowRes;
+
+      //Fill Event
+      razorTree->Fill();
+
       //end of event loop
     }
   
