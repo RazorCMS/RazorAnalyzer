@@ -222,33 +222,50 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
   else bTagPathname = "data/ScaleFactors/";
   //Fullsim
-  BTagCalibration btagcalib("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
+
+  TString effMeasType, misMeasType;
+  BTagCalibration *btagcalib =0;
+  if (analysisTag == "2015_76X") {
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
+    effMeasType="mujets";
+    misMeasType="comb";
+  } else if (analysisTag == "2016_80X") {
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
+    effMeasType="mujets";
+    misMeasType="incl";
+  }
+
   //Medium WP
-  BTagCalibrationReader btagreaderM(&btagcalib,           //calibration instance
+  BTagCalibrationReader btagreaderM(btagcalib,           //calibration instance
 				    BTagEntry::OP_MEDIUM, //operating point
-				    "mujets",             //measurement type
+				    effMeasType.Data(),             //measurement type
 				    "central");           //systematics type
-  BTagCalibrationReader btagreaderM_up(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");   //sys up
-  BTagCalibrationReader btagreaderM_do(&btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down"); //sys down
-  BTagCalibrationReader btagreaderMistagM(&btagcalib,            //calibration instance
+  BTagCalibrationReader btagreaderM_up(btagcalib, BTagEntry::OP_MEDIUM, effMeasType.Data(), "up");   //sys up
+  BTagCalibrationReader btagreaderM_do(btagcalib, BTagEntry::OP_MEDIUM, effMeasType.Data(), "down"); //sys down
+  BTagCalibrationReader btagreaderMistagM(btagcalib,            //calibration instance
 					  BTagEntry::OP_MEDIUM,  //operating point
-					  "comb",                //measurement type
+					  misMeasType.Data(),                //measurement type
 					  "central");            //systematics type
-  BTagCalibrationReader btagreaderMistagM_up(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    //sys up
-  BTagCalibrationReader btagreaderMistagM_do(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  //sys down
+  //BTagCalibrationReader btagreaderMistagM_up(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    //sys up
+  BTagCalibrationReader btagreaderMistagM_up(btagcalib, BTagEntry::OP_MEDIUM, misMeasType.Data(), "up");    //sys up
+  //BTagCalibrationReader btagreaderMistagM_do(&btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  //sys down
+  BTagCalibrationReader btagreaderMistagM_do(btagcalib, BTagEntry::OP_MEDIUM, misMeasType.Data(), "down");  //sys down
   //Loose WP
-  BTagCalibrationReader btagreaderL(&btagcalib,           //calibration instance
+  BTagCalibrationReader btagreaderL(btagcalib,           //calibration instance
 				    BTagEntry::OP_LOOSE,  //operating point
-				    "mujets",             //measurement type
+				    effMeasType.Data(),             //measurement type
 				    "central");           //systematics type
-  BTagCalibrationReader btagreaderL_up(&btagcalib, BTagEntry::OP_LOOSE, "mujets", "up");  //sys up
-  BTagCalibrationReader btagreaderL_do(&btagcalib, BTagEntry::OP_LOOSE, "mujets", "down");  //sys down
-  BTagCalibrationReader btagreaderMistagL(&btagcalib,           //calibration instance
+  BTagCalibrationReader btagreaderL_up(btagcalib, BTagEntry::OP_LOOSE, effMeasType.Data(), "up");  //sys up
+  BTagCalibrationReader btagreaderL_do(btagcalib, BTagEntry::OP_LOOSE, effMeasType.Data(), "down");  //sys down
+  BTagCalibrationReader btagreaderMistagL(btagcalib,           //calibration instance
 					  BTagEntry::OP_LOOSE,  //operating point
-					  "comb",               //measurement type
+					  //"comb",               //measurement type
+					  misMeasType.Data(),               //measurement type
 					  "central");           //systematics type
-  BTagCalibrationReader btagreaderMistagL_up(&btagcalib, BTagEntry::OP_LOOSE, "comb", "up");    //sys up
-  BTagCalibrationReader btagreaderMistagL_do(&btagcalib, BTagEntry::OP_LOOSE, "comb", "down");  //sys down
+  //BTagCalibrationReader btagreaderMistagL_up(&btagcalib, BTagEntry::OP_LOOSE, "comb", "up");    //sys up
+  BTagCalibrationReader btagreaderMistagL_up(btagcalib, BTagEntry::OP_LOOSE, misMeasType.Data(), "up");    //sys up
+  //BTagCalibrationReader btagreaderMistagL_do(&btagcalib, BTagEntry::OP_LOOSE, "comb", "down");  //sys down
+  BTagCalibrationReader btagreaderMistagL_do(btagcalib, BTagEntry::OP_LOOSE, misMeasType.Data(), "down");  //sys down
 
   //----------
   //pu histo
