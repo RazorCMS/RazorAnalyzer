@@ -144,7 +144,7 @@ void HggRazorExo15004::Analyze(bool isData, int option, string outFileName, stri
   if (option == 0 || option == 1) {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
   } else if (option == 10 || option == 11) {
-    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016B", photonCorrectionPath.c_str()));
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   }
 
   if(!isData) {
