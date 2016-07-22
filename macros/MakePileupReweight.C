@@ -56,9 +56,9 @@ void MakePileupReweight(int option = 0) {
 
 
   TFile *pileupTargetFile = 0;
-  if (option == 0) pileupTargetFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/MyDataPileupHistogram.root", "READ");
-  else if (option == 1) pileupTargetFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/MyDataPileupHistogramUp.root", "READ");
-  else if (option == 2) pileupTargetFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/MyDataPileupHistogramDown.root", "READ");
+  if (option == 0) pileupTargetFile = new TFile("PileupTarget_2016_ICHEP.root", "READ");
+  else if (option == 1) pileupTargetFile = new TFile("PileupTarget_2016_ICHEP_SysUp.root", "READ");
+  else if (option == 2) pileupTargetFile = new TFile("PileupTarget_2016_ICHEP_SysDown.root", "READ");
   else {
     return;
   }
@@ -66,9 +66,9 @@ void MakePileupReweight(int option = 0) {
   assert(pileupTargetHist);
   std::cout << "pileupTargetHist " << pileupTargetHist->Integral() << std::endl;
 
-  TFile *pileupSourceFile = new TFile("/afs/cern.ch/work/c/cpena/public/CMSSW_7_6_3/src/RazorAnalyzer/data/DoubleEG_Run2015_CMSSW_7_6_March15.root", "READ");
+  TFile *pileupSourceFile = new TFile("data/PileupWeights/PileupSource_MC80X.root", "READ");
   //TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PileupSourceHist");
-  TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("pileup"); 
+  TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PUMean"); 
   assert(pileupSourceHist);
   std::cout << "pileupSourceFile " << pileupSourceHist->Integral() << std::endl;
   std::cout << "FILES RETRIEVED" << std::endl;
@@ -108,7 +108,7 @@ void MakePileupReweight(int option = 0) {
   }
   cout << "int = " << k << "\n";
 
-  TFile *file = TFile::Open("PileupReweight2015.root", "UPDATE");
+  TFile *file = TFile::Open("PileupReweight2016_ICHEP.root", "UPDATE");
   file->cd();
   if (option == 0) file->WriteTObject(PileupReweight, "PileupReweight", "WriteDelete");
   else if (option == 1) file->WriteTObject(PileupReweight, "PileupReweightSysUp", "WriteDelete");
