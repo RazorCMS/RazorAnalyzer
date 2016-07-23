@@ -489,7 +489,7 @@ void RazorHelper::loadPhoton_Razor2016(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_ICHEP.root");
-    phoLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
 }
 
 
@@ -535,9 +535,9 @@ void RazorHelper::loadTrigger_Razor2016() {
 
     //diphoton trigger scale factors
     diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose.root"); 
-    diphotonTrigLeadingLegEffSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
+    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
     diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose.root"); 
-    diphotonTrigTrailingLegEffSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
     
 
     eleTrigEffFromFullsimFile = 0;
@@ -818,6 +818,7 @@ double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto)
 double RazorHelper::getPhotonScaleFactor(float pt, float eta) {
   double sf = 1.0;
   if (phoLooseEffSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
+  else { std::cout << "[WARNING] Could not load phoLooseEffSFHist.\n"; }
   return sf;
 }
 
