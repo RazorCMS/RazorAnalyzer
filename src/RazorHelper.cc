@@ -446,7 +446,7 @@ void RazorHelper::loadPileup_Razor2016() {
     // pileup weights
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
     pileupWeightFile = TFile::Open(
-            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_06172016.root", cmsswPath.c_str()));
+            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_ICHEP.root", cmsswPath.c_str()));
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
