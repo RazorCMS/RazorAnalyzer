@@ -356,6 +356,7 @@ void RazorHelper::loadTrigger_Razor2015() {
 void RazorHelper::loadTag_Razor2015_76X() {
     loadPileup_Razor2015_76X();
     loadLepton_Razor2015(); //we'll use the same here for now
+    loadPhoton_Razor2015_76X();
     loadJECs_Razor2015_76X();   //
     loadBTag_Razor2015();   //we'll use the same here for now, but this needs to be updated
     loadTrigger_Razor2015();//use the same for now
@@ -369,6 +370,13 @@ void RazorHelper::loadPileup_Razor2015_76X() {
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+}
+
+void RazorHelper::loadPhoton_Razor2015_76X(){
+    // photon efficiency scale factors
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2015/efficiency_results_PhoLooseEffDenominatorReco_2015.root");
+    phoLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
 }
 
 void RazorHelper::loadJECs_Razor2015_76X() {
@@ -428,6 +436,7 @@ void RazorHelper::loadJECs_Razor2015_76X() {
 void RazorHelper::loadTag_Razor2016_80X() {
     loadPileup_Razor2016();
     loadLepton_Razor2016();
+    loadPhoton_Razor2016();
     loadBTag_Razor2016();
     loadTrigger_Razor2016();
     loadJECs_Razor2016();
@@ -475,6 +484,15 @@ void RazorHelper::loadLepton_Razor2016(){
 
 }
 
+
+void RazorHelper::loadPhoton_Razor2016(){
+    // photon efficiency scale factors
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_ICHEP.root");
+    phoLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+}
+
+
 void RazorHelper::loadBTag_Razor2016() {
     // b-tag efficiencies and scale factors
     std::cout << "RazorHelper: loading btag efficiency histograms" << std::endl;
@@ -514,6 +532,13 @@ void RazorHelper::loadTrigger_Razor2016() {
     muTrigSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_2p6ifb/SingleMuonTriggerEfficiency.root"); 
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
     muTrigSFErrHist = (TH2D*)muTrigSFFile->Get("hErrlEtaPt");
+
+    //diphoton trigger scale factors
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose.root"); 
+    diphotonTrigLeadingLegEffSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose.root"); 
+    diphotonTrigTrailingLegEffSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
+    
 
     eleTrigEffFromFullsimFile = 0;
     eleTrigEffFromFullsimHist = 0;
@@ -789,6 +814,13 @@ double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto)
             pt, eta, isVeto );
 }
 
+
+double RazorHelper::getPhotonScaleFactor(float pt, float eta) {
+  double sf = 1.0;
+  if (phoLooseEffSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
+  return sf;
+}
+
 double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta, 
         bool isTight, bool passedTrigger, float fastsimPtCut, float ptCut) {
     double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta, 199.9, ptCut );
@@ -894,6 +926,18 @@ void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool i
             passedTrigger, sf, sfUp, sfDown, 25.01, 0.02 );
     }
 
+}
+
+double RazorHelper::getDiphotonTrigLeadingLegEff(float pt, float eta) {
+  double sf = 1.0;
+  if (diphotonTrigLeadingLegEffSFHist) sf = lookupEtaPtScaleFactor( diphotonTrigLeadingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
+  return sf; 
+}
+
+double RazorHelper::getDiphotonTrigTrailingLegEff(float pt, float eta) {
+  double sf = 1.0;
+  if (diphotonTrigTrailingLegEffSFHist) sf = lookupEtaPtScaleFactor( diphotonTrigTrailingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
+  return sf; 
 }
 
 // Retrieve jet energy uncertainty as a function of pt and eta

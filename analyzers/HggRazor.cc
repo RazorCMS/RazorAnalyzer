@@ -146,12 +146,12 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //--------------------------------
   //Photon Trigger Efficiency
   //--------------------------------
-  TFile *photonTriggerEffFile_LeadingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTLeadingLegEffDenominatorLoose.root");
-  TFile *photonTriggerEffFile_TrailingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTTrailingLegEffDenominatorLoose.root");
-  TH2D *photonTriggerEffHist_LeadingLeg = (TH2D*)photonTriggerEffFile_LeadingLeg->Get("hEffEtaPt");
-  TH2D *photonTriggerEffHist_TrailingLeg = (TH2D*)photonTriggerEffFile_TrailingLeg->Get("hEffEtaPt");
-  assert(photonTriggerEffHist_LeadingLeg);
-  assert(photonTriggerEffHist_TrailingLeg);
+  // TFile *photonTriggerEffFile_LeadingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTLeadingLegEffDenominatorLoose.root");
+  // TFile *photonTriggerEffFile_TrailingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTTrailingLegEffDenominatorLoose.root");
+  // TH2D *photonTriggerEffHist_LeadingLeg = (TH2D*)photonTriggerEffFile_LeadingLeg->Get("hEffEtaPt");
+  // TH2D *photonTriggerEffHist_TrailingLeg = (TH2D*)photonTriggerEffFile_TrailingLeg->Get("hEffEtaPt");
+  // assert(photonTriggerEffHist_LeadingLeg);
+  // assert(photonTriggerEffHist_TrailingLeg);
 
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
@@ -297,6 +297,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float weight;
   float pileupWeight, pileupWeightUp, pileupWeightDown;
   float triggerEffWeight;
+  float photonEffSF;
   float ISRSystWeightUp, ISRSystWeightDown;
   //For btag scale factor uncertainty
   float btagCorrFactor;
@@ -347,6 +348,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
   razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
   razorTree->Branch("triggerEffWeight", &triggerEffWeight, "triggerEffWeight/F");
+  razorTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
       
@@ -977,15 +979,16 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	trailingPhoPt = Pho_Pt[0];
 	trailingPhoEta= Pho_Eta[0];
       }
-      double triggerEffLeadingLeg = 
-	photonTriggerEffHist_LeadingLeg->GetBinContent( photonTriggerEffHist_LeadingLeg->GetXaxis()->FindFixBin( fabs(leadPhoEta) ),
-							photonTriggerEffHist_LeadingLeg->GetYaxis()->FindFixBin( fmax( fmin(leadPhoPt,99.9), 20.01 ) )
-							);
-      double triggerEffTrailingLeg = 
-	photonTriggerEffHist_TrailingLeg->GetBinContent( photonTriggerEffHist_TrailingLeg->GetXaxis()->FindFixBin( fabs(trailingPhoEta) ),
-							 photonTriggerEffHist_TrailingLeg->GetYaxis()->FindFixBin( fmax( fmin(trailingPhoPt,99.9), 20.01 ) )
-							 );
+      double triggerEffLeadingLeg = helper->getDiphotonTrigLeadingLegEff( leadPhoPt, leadPhoEta );
+      double triggerEffTrailingLeg = helper->getDiphotonTrigTrailingLegEff( trailingPhoPt, trailingPhoEta );
       triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
+
+      //******************************************************
+      //compute photon efficiency scale factor
+      //******************************************************
+      photonEffSF = 
+	helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta) * 
+	helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);
 
       //***********************************************************
       //get mother ID of photons

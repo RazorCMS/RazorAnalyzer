@@ -35,6 +35,9 @@ class RazorHelper {
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
 
+	//get photon eff scale factor
+        double getPhotonScaleFactor(float pt, float eta);
+
         // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
         // (see FullRazorInclusive analyzer for an example of how to use these)
         void updateTightMuonScaleFactors(float pt, float eta, bool isTight, 
@@ -56,6 +59,10 @@ class RazorHelper {
             float &sf, float &sfUp, float &sfDown);
         void updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
             float &sf, float &sfUp, float &sfDown);
+
+	// get diphoton trigger efficiency scale factor
+	double getDiphotonTrigLeadingLegEff(float pt, float eta);
+   	double getDiphotonTrigTrailingLegEff(float pt, float eta);      
 
         // JEC tools
         FactorizedJetCorrector *getJetCorrector() { return JetCorrector; }
@@ -108,6 +115,7 @@ class RazorHelper {
         // for Razor2015 76X ReReco tag
         void loadPileup_Razor2015_76X();
         void loadLepton_Razor2015_76X();
+        void loadPhoton_Razor2015_76X();
         void loadTrigger_Razor2015_76X();
         void loadJECs_Razor2015_76X();
         void loadBTag_Razor2015_76X();
@@ -115,6 +123,7 @@ class RazorHelper {
         // for Razor2016 80X tag
         void loadPileup_Razor2016();
         void loadLepton_Razor2016();
+        void loadPhoton_Razor2016();
 	void loadTrigger_Razor2016();
 	void loadJECs_Razor2016();
         void loadBTag_Razor2016();
@@ -157,7 +166,11 @@ class RazorHelper {
         TFile *tauEfficiencyFile;
         TH2D *tauLooseEfficiencyHist;
 
-        // for triggers
+	// for photons
+        TFile *phoEffSFFile;
+        TH2D *phoLooseEffSFHist;
+
+        // for single lepton triggers
         TFile *eleTrigSFFile;
         TFile *muTrigSFFile;
         TFile *eleTrigEffFromFullsimFile;
@@ -168,6 +181,14 @@ class RazorHelper {
         TH2D *muTrigSFErrHist;
         TH2D *eleTrigEffFromFullsimHist;
         TH2D *muTrigEffFromFullsimHist;
+
+	//for photon triggers
+        TFile *diphotonTrigLeadingLegEffSFFile;
+        TFile *diphotonTrigTrailingLegEffSFFile;
+	TH2D *diphotonTrigLeadingLegEffSFHist;
+	TH2D *diphotonTrigTrailingLegEffSFHist;
+
+	//Trigger indices
         std::vector<int> dileptonTriggerNums;
         std::vector<int> singleLeptonTriggerNums;
         std::vector<int> hadronicTriggerNums;
