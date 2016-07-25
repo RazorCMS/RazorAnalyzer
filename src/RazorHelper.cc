@@ -376,7 +376,7 @@ void RazorHelper::loadPhoton_Razor2015_76X(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2015/efficiency_results_PhoLooseEffDenominatorReco_2015.root");
-    phoLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
 }
 
 void RazorHelper::loadJECs_Razor2015_76X() {
