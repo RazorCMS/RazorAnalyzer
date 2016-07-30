@@ -286,6 +286,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     }
   
   //histogram containing total number of processed events (for normalization)
+  TH1F *histNISRJets = new TH1F("NISRJets", "NISRJets", 7, -0.5, 6.5);
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
   TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
@@ -299,6 +300,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float triggerEffWeight;
   float photonEffSF;
   float ISRSystWeightUp, ISRSystWeightDown;
+  int NISRJets;
   //For btag scale factor uncertainty
   float btagCorrFactor;
   float sf_btagUp, sf_btagDown;
@@ -351,6 +353,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
+  razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
       
   razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
   razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
@@ -510,6 +513,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //reset tree variables
       ISRSystWeightUp   = 1.0;
       ISRSystWeightDown = 1.0;
+      NISRJets          = 0;
       pileupWeight      = 1.0;
       pileupWeightUp    = 1.0;
       pileupWeightDown  = 1.0;
@@ -648,7 +652,125 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 
       if ( _debug ) std::cout << "============" << std::endl;
       if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
-      
+     
+ 
+      //*************************************************************************
+      //count ISR Jets
+      //*************************************************************************
+      if (!isData) {
+	for(int i = 0; i < nJets; i++) {
+	  
+	  //Jet Corrections                                                                      
+	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
+						  fixedGridRhoAll, jetJetArea[i],
+						  JetCorrector );	 
+	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+	
+	  //these are the cuts Ana/Manuel told me to use
+	  if ( thisJet.Pt() > 30 && fabs( thisJet.Eta()) < 2.4 && jetPassIDLoose[i]) {
+	    
+	    //try to match to gen partons
+	    //Follow prescription here: https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L1268-L1295
+	    bool match = false;
+	    for(int g = 0; g < nGenParticle; g++){
+	      
+	      double dR = deltaR( gParticleEta[g], gParticlePhi[g] , thisJet.Eta() , thisJet.Phi());
+	      if (dR > 0.3) continue;
+	      
+	      //check match against leptons
+	      if (abs(gParticleId[g]) == 11 || abs(gParticleId[g]) == 13 || abs(gParticleId[g]) == 15 ) {
+		match = true;
+		cout << "match lepton\n";
+	      }
+
+	      //check match against prompt photons
+	      if (abs(gParticleId[g]) == 22 &&
+		  ( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23) &&
+		  (abs(gParticleMotherId[g]) == 25 || abs(gParticleMotherId[g]) == 21 || abs(gParticleMotherId[g]) == 2212 ||
+		   (abs(gParticleMotherId[g]) >= 1 && abs(gParticleMotherId[g]) <= 6) )
+		  ) {
+		match = true;
+		cout << "match prompt photon\n";
+	      }
+	      
+	      //match to quarks
+	      if (gParticleStatus[g] == 23 && abs(gParticleId[g]) <= 5 &&
+		  ( abs(gParticleMotherId[g]) == 6 ||  abs(gParticleMotherId[g]) == 23 ||  abs(gParticleMotherId[g]) == 24 
+		    ||  abs(gParticleMotherId[g]) == 25 ||  abs(gParticleMotherId[g]) > 1e6)) {
+		match = true;
+	      }       		
+	    }	      
+	    if (!match) NISRJets++;
+	  }
+	}
+      }
+      //Fill N ISR Jet       
+      histNISRJets->SetBinContent( min(NISRJets,6)+1, histNISRJets->GetBinContent(min(NISRJets,6)+1) + genWeight);
+  
+      //************************************************************************
+      //For Debugging
+      //************************************************************************
+      // if (NISRJets >=1) {
+      // 	cout << "\n\n" << "NISRJets = " << NISRJets << "\n";
+
+      // 	for(int i = 0; i < nJets; i++) {
+	    
+      // 	  //Jet Corrections                                                                      
+      // 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
+      // 						  fixedGridRhoAll, jetJetArea[i],
+      // 						  JetCorrector );	 
+      // 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+	  
+      // 	  //these are the cuts Ana/Manuel told me to use
+      // 	  if ( thisJet.Pt() > 30 && fabs( thisJet.Eta()) < 2.4 && jetPassIDLoose[i]) {
+	  
+      // 	    cout << "Jet : " << thisJet.Pt() << " " << thisJet.Eta() << " " << thisJet.Phi() << "\n" ;
+
+      // 	    bool match = false;
+      // 	    for(int g = 0; g < nGenParticle; g++){
+	      
+      // 	      double dR = deltaR( gParticleEta[g], gParticlePhi[g] , thisJet.Eta() , thisJet.Phi());
+      // 	      if (dR > 0.3) continue;
+
+      // 	      cout << "Nearby GenParticle " << g << " : " << gParticleId[g] << " " << gParticleStatus[g] << " | " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherIndex[g] << " " << gParticleMotherId[g] << "\n";
+
+      // 	      if (abs(gParticleId[g]) == 11 || abs(gParticleId[g]) == 13 || abs(gParticleId[g]) == 15 ) {
+      // 		match = true;
+      // 		cout << "match lepton\n";
+      // 	      }
+
+      // 	      if (abs(gParticleId[g]) == 22 &&
+      // 		  ( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23) &&
+      // 		  (abs(gParticleMotherId[g]) == 25 || abs(gParticleMotherId[g]) == 21 || abs(gParticleMotherId[g]) == 2212 ||
+      // 		   (abs(gParticleMotherId[g]) >= 1 && abs(gParticleMotherId[g]) <= 6) )
+      // 		  ) {
+      // 		match = true;
+      // 		cout << "match prompt photon\n";
+      // 	      }
+	      
+      // 	      if (gParticleStatus[g] == 23 && abs(gParticleId[g]) <= 5 &&
+      // 		  ( abs(gParticleMotherId[g]) == 6 ||  abs(gParticleMotherId[g]) == 23 ||  abs(gParticleMotherId[g]) == 24 
+      // 		    ||  abs(gParticleMotherId[g]) == 25 ||  abs(gParticleMotherId[g]) > 1e6)) {
+      // 		match = true;
+      // 		cout << "match parton\n";
+      // 	      }     
+      // 	    }	    	    
+      // 	  }
+      // 	}       
+
+      // 	for(int g = 0; g < nGenParticle; g++){
+      // 	  cout << "GenParticle " << g << " : " << gParticleId[g] << " " << gParticleStatus[g] << " | " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherIndex[g] << " " << gParticleMotherId[g] << "\n";	 
+      // 	}
+
+      // }
+
+      //*************************************************************************
+
+
+
+      //*************************************************************************
+      //Start Object Selection
+      //*************************************************************************
       razorbox = LowRes;
       
       //--------------
@@ -808,23 +930,23 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //if there is no photon with pT above 40 GeV, reject the event
       //------------------------------------------------------------
       if( nPhotonsAbove40GeV == 0 ) {
-	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " 
-				<< phoCand.size() << std::endl;
-	continue;
+      	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " 
+      				<< phoCand.size() << std::endl;
+      	continue;
       }
 
       //--------------------------------------
       //Require at least two photon candidates
       //--------------------------------------
       if ( phoCand.size() < 2 ) {
-	if ( _debug ) std::cout << "[INFO]: not enough photon, nphotons: " 
-				<< phoCand.size() << std::endl;
-	for(int i = 0; i < nPhotons; i++) {
-	  if ( _debug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] 
-				  << " pho_eta: " << phoEta[i] 
-				  << " SIetaIeta: " << phoFull5x5SigmaIetaIeta[i] << std::endl;
-	}
-	continue;
+      	if ( _debug ) std::cout << "[INFO]: not enough photon, nphotons: " 
+      				<< phoCand.size() << std::endl;
+      	for(int i = 0; i < nPhotons; i++) {
+      	  if ( _debug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] 
+      				  << " pho_eta: " << phoEta[i] 
+      				  << " SIetaIeta: " << phoFull5x5SigmaIetaIeta[i] << std::endl;
+      	}
+      	continue;
       }
       
       
@@ -1039,6 +1161,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       vector<TLorentzVector> GoodJetsJESUp;
       vector<TLorentzVector> GoodJetsJESDown;
       vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
+
       for(int i = 0; i < nJets; i++)
 	{
 	  //Jet Corrections                                                                      
@@ -1050,9 +1173,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	
 	  if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
 	  if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
-	  //int level = 2; //loose jet ID
 	  if ( !jetPassIDLoose[i] ) continue;
-	  //if ( !((jetPileupIdFlag[i] & (1 << level)) != 0) ) continue;
 	
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
@@ -1268,8 +1389,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		  GoodCSVLJets.push_back(make_pair(thisJet, false));
 		}
 	    }
-	}    
-    
+	} //loop over jets
+      
       for ( int iJet = 0; iJet < int(GoodJets.size()) ; iJet++ ) {
 	jet_E[iJet] = GoodJets[iJet].E();
 	jet_Pt[iJet] = GoodJets[iJet].Pt();
@@ -1436,6 +1557,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   SumWeights->Write();
   SumScaleWeights->Write();
   SumPdfWeights->Write();
+  histNISRJets->Write();
   puhisto->Write();
   outFile->Close();
 
