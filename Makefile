@@ -37,8 +37,16 @@ $(SRCDIR)/SimpleTable.o: $(SRCDIR)/SimpleTable.cc
 $(SRCDIR)/RazorEvents.o: $(SRCDIR)/RazorEvents.C $(INCLUDEDIR)/RazorEvents.h
 	$(CXX) $(SRCDIR)/RazorEvents.C $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
+$(SRCDIR)/RazorEventsRun1.o: $(SRCDIR)/RazorEventsRun1.C $(INCLUDEDIR)/RazorEventsRun1.h
+	$(CXX) $(SRCDIR)/RazorEventsRun1.C $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
+
+
 $(SRCDIR)/RazorAnalyzer.o: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.cc
 	$(CXX) $(SRCDIR)/RazorAnalyzer.cc $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
+
+$(SRCDIR)/RazorAnalyzerRun1.o: $(SRCDIR)/RazorEventsRun1.o $(SRCDIR)/RazorAnalyzerRun1.cc
+	$(CXX) $(SRCDIR)/RazorAnalyzerRun1.cc $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
+
 
 $(UTILSOBJ): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) $<
@@ -52,7 +60,7 @@ $(ANALYZERSH):
 $(RUNNERSCC): 
 	$(HELPERSCRIPT) $(notdir $(basename $($@:Run=)))
 
-$(RUNNERS): $(BINDIR)/Run%: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.o $(UTILSOBJ) $(ANADIR)/%.o $(SRCDIR)/Run%.cc
+$(RUNNERS): $(BINDIR)/Run%: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorEventsRun1.o $(SRCDIR)/RazorAnalyzer.o $(SRCDIR)/RazorAnalyzerRun1.o $(UTILSOBJ) $(ANADIR)/%.o $(SRCDIR)/Run%.cc
 	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) -I$(ANADIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) 
 
 NormalizeNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/NormalizeNtuple.cc $(INCLUDEDIR)/rootdict.o

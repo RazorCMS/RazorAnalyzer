@@ -11,6 +11,9 @@ analyzer = sys.argv[1]
 inNames = ['include/AnalyzerTemplate.txt','src/RunAnalyzerTemplate.txt']
 outNames = ['analyzers/'+analyzer+'.h','src/Run'+analyzer+'.cc']
 
+if analyzer.find("Run1") > 0:
+	inNames = ['include/AnalyzerTemplateRun1.txt','src/RunAnalyzerTemplateRun1.txt']
+
 for i in range(len(inNames)):
     with open(inNames[i]) as inF:
         with open(outNames[i],'w') as outF:
