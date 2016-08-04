@@ -30,7 +30,7 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
         virtual ~RazorAnalyzerRun1();
 
         void EnableEventInfo();
-        void EnablePVAll();
+//        void EnablePVAll();
         void EnableMuons();
         void EnableElectrons();
         void EnableTaus();
@@ -52,15 +52,15 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
         //functions in RazorAuxMuon.cc
 	float GetMuonEffectiveAreaMean(int i, string type );
 	bool isMuonPOGLooseMuon(int i, bool applyID = true, bool applyIso = true);
-	bool isMuonPOGMediumMuon(int i, bool applyID = true, bool applyIso = true);
+//	bool isMuonPOGMediumMuon(int i, bool applyID = true, bool applyIso = true);
         bool isMuonPOGTightMuon(int i, bool applyID = true, bool applyIso = true);
-	bool isVetoMuon(int i, bool applyID = true, bool applyIso = true);
-	bool isLooseMuon(int i, bool applyID = true, bool applyIso = true);
-        bool isTightMuon(int i, bool applyID = true, bool applyIso = true);
+//	bool isVetoMuon(int i, bool applyID = true, bool applyIso = true);
+//	bool isLooseMuon(int i, bool applyID = true, bool applyIso = true);
+//      bool isTightMuon(int i, bool applyID = true, bool applyIso = true);
         bool passHZZMuonPreselection(int i);
         bool isHZZMuon(int i);
-	bool matchMuonHLTFilters( int i, string HLTFilter);
-	bool matchTagMuonHLTFilters( int i);
+//	bool matchMuonHLTFilters( int i, string HLTFilter);
+//	bool matchTagMuonHLTFilters( int i);
 
         //functions in RazorAuxElectron.cc
 	float GetElectronScaleCorrection( double pt, double eta );
@@ -70,30 +70,30 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
         bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
         bool isEGammaPOGTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isVetoElectron(int i, bool applyID = true, bool applyIso = true);
-        bool isLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-	bool isMVANonTrigVetoElectron(int i, bool applyID = true, bool applyIso = true);
+//      bool isVetoElectron(int i, bool applyID = true, bool applyIso = true);
+//      bool isLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+//      bool isMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+//      bool isTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+//	bool isMVANonTrigVetoElectron(int i, bool applyID = true, bool applyIso = true);
         bool passEGammaPOGVetoElectronID(int i, bool use25nsCuts = true);
         bool passEGammaPOGLooseElectronID(int i, bool use25nsCuts = true);
         bool passEGammaPOGMediumElectronID(int i, bool use25nsCuts = true);
         bool passEGammaPOGTightElectronID(int i, bool use25nsCuts = true);
-	bool passMVANonTrigVetoElectronID(int i);
+//	bool passMVANonTrigVetoElectronID(int i);
         bool passEGammaPOGVetoElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGLooseElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGMediumElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGTightElectronIso(int i, bool use25nsCuts = true);
-	bool passMVANonTrigVetoElectronIso(int i);
+//	bool passMVANonTrigVetoElectronIso(int i);
 	bool passHZZElectronIso(int i);
 	bool passHZZElectronPreselection(int i);
 	bool isHZZElectron(int i);
-	bool matchElectronHLTFilters( int i, string HLTFilter, string analysisTag);
-	bool matchElectronHLTFilters2015( int i, string HLTFilter);
-	bool matchElectronHLTFilters2016( int i, string HLTFilter);
-	bool matchProbeElectronHLTFilters( int i);
-	bool matchProbeSCHLTFilters( int i);
-	bool matchTagElectronHLTFilters( int i);
+//	bool matchElectronHLTFilters( int i, string HLTFilter, string analysisTag);
+//	bool matchElectronHLTFilters2015( int i, string HLTFilter);
+//	bool matchElectronHLTFilters2016( int i, string HLTFilter);
+//	bool matchProbeElectronHLTFilters( int i);
+//	bool matchProbeSCHLTFilters( int i);
+//	bool matchTagElectronHLTFilters( int i);
 
         //functions in RazorAuxTau.cc
         bool isLooseTau(int i);
@@ -104,27 +104,27 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	void getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90);
+//      bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90);
 	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassLooseID(int i, bool use25nsCuts = true);
 	bool photonPassMediumID(int i, bool use25nsCuts = true);
 	bool photonPassTightID(int i, bool use25nsCuts = true);
-	bool photonPassLooseIso(int i, bool use25nsCuts = true);
-	bool photonPassMediumIso(int i, bool use25nsCuts = true);
-	bool photonPassTightIso(int i, bool use25nsCuts = true);
-        bool isLoosePhoton(int i, bool use25nsCuts = true);
-        bool isMediumPhoton(int i, bool use25nsCuts = true);
-        bool isTightPhoton(int i, bool use25nsCuts = true);
-        bool isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts = true);
-        bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
-        bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+//	bool photonPassLooseIso(int i, bool use25nsCuts = true);
+//	bool photonPassMediumIso(int i, bool use25nsCuts = true);
+//	bool photonPassTightIso(int i, bool use25nsCuts = true);
+//        bool isLoosePhoton(int i, bool use25nsCuts = true);
+//        bool isMediumPhoton(int i, bool use25nsCuts = true);
+//        bool isTightPhoton(int i, bool use25nsCuts = true);
+//        bool isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+//        bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+//        bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool matchPhotonHLTFilters( int i, string HLTFilter);
 	void getPhotonEffAreaExo15004( float eta, double& effAreaPho );
 	bool photonPassLooseIDWithoutEleVetoExo15004(int i);
-	bool photonPassesIsolationExo15004(int i, double PFChHadIsoCut, double PFPhotIsoCut );
-	bool photonPassLooseIsoExo15004(int i);
+//	bool photonPassesIsolationExo15004(int i, double PFChHadIsoCut, double PFPhotIsoCut );
+//	bool photonPassLooseIsoExo15004(int i);
 	TLorentzVector GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE );
 
 	/* //function in HggRazorAuxPhoton.cc */

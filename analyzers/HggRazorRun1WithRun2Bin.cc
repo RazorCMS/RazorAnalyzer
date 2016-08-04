@@ -290,7 +290,7 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
   TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
-  TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
+//  TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
 
   //--------------
   //tree variables
@@ -367,14 +367,14 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
   razorTree->Branch("sf_renScaleDown", &sf_renScaleDown, "sf_renScaleDown/F");
   razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
   razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
-  razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
+//  razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
   razorTree->Branch("sf_pdf", "std::vector<float>",&sf_pdf); //sf PDF
       
   //MET filters
   razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
-  razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
-  razorTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
-  razorTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
+//  razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
+//  razorTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
+//  razorTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
   razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
   razorTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, "Flag_hcalLaserEventFilter/O");
   razorTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/O");
@@ -395,10 +395,10 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
   razorTree->Branch("NPU", &NPU, "npu/i");
   razorTree->Branch("nLooseBTaggedJets", &nLooseBTaggedJets, "nLooseBTaggedJets/I");
   razorTree->Branch("nMediumBTaggedJets", &nMediumBTaggedJets, "nMediumBTaggedJets/I");
-  razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
-  razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
-  razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
-  razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
+//  razorTree->Branch("nLooseMuons", &nLooseMuons, "nLooseMuons/I");
+//  razorTree->Branch("nTightMuons", &nTightMuons, "nTightMuons/I");
+//  razorTree->Branch("nLooseElectrons", &nLooseElectrons, "nLooseElectrons/I");
+//  razorTree->Branch("nTightElectrons", &nTightElectrons, "nTightElectrons/I");
   razorTree->Branch("nTightTaus", &nTightTaus, "nTightTaus/I");
   razorTree->Branch("MR", &theMR, "MR/F");
   razorTree->Branch("MR_JESUp", &theMR_JESUp, "MR_JESUp/F");
@@ -436,12 +436,12 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
   razorTree->Branch("pho1SigmaIetaIeta", &Pho_SigmaIetaIeta[0], "pho1SigmaIetaIeta/F");
   razorTree->Branch("pho1R9", &Pho_R9[0], "pho1R9/F");
   razorTree->Branch("pho1HoverE", &Pho_HoverE[0], "pho1HoverE/F");
-  razorTree->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
-  razorTree->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
-  razorTree->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
+//  razorTree->Branch("pho1sumChargedHadronPt", &Pho_sumChargedHadronPt[0], "pho1sumChargedHadronPt/F");
+//  razorTree->Branch("pho1sumNeutralHadronEt", &Pho_sumNeutralHadronEt[0], "pho1sumNeutralHadronEt/F");
+//  razorTree->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
   razorTree->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
   razorTree->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
-  razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
+//  razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
   razorTree->Branch("pho1MotherID", &Pho_motherID[0], "pho1MotherID/I");
       
   razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
@@ -455,12 +455,12 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
   razorTree->Branch("pho2SigmaIetaIeta", &Pho_SigmaIetaIeta[1], "pho2SigmaIetaIeta/F");
   razorTree->Branch("pho2R9", &Pho_R9[1], "pho2R9/F");
   razorTree->Branch("pho2HoverE", &Pho_HoverE[1], "pho2HoverE/F");
-  razorTree->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
-  razorTree->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
-  razorTree->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
+//  razorTree->Branch("pho2sumChargedHadronPt", &Pho_sumChargedHadronPt[1], "pho2sumChargedHadronPt/F");
+//  razorTree->Branch("pho2sumNeutralHadronEt", &Pho_sumNeutralHadronEt[1], "pho2sumNeutralHadronEt/F");
+//  razorTree->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
   razorTree->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
   razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
-  razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
+//  razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
   razorTree->Branch("pho2MotherID", &Pho_motherID[1], "pho2MotherID/I");
       
   razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
@@ -623,7 +623,7 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
       /////////////////////////////////
       //Scale and PDF variations
       /////////////////////////////////
-
+/*
       if ( (*scaleWeights).size() >= 9 ) 
 	{
 	  sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
@@ -641,14 +641,14 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 	  SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
 	  SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
 	}
-      
+  */    
       sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
-      for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
+     /* for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
 	{
 	  sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
 	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
 	}
-      
+      */
 
       if ( _debug ) std::cout << "============" << std::endl;
       if ( _debug ) std::cout << "run == " << run << " && evt == " << event << std::endl;
@@ -778,22 +778,22 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
       //--------------
       for( int i = 0; i < nMuons; i++ )
 	{
-	  if(!isLooseMuon(i)) continue;  
+	  //if(!isLooseMuon(i)) continue;  
 	  if(muonPt[i] < 10) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
-	  nLooseMuons++;
-	  if( isTightMuon(i) ) nTightMuons++;
+	  //nLooseMuons++;
+	  //if( isTightMuon(i) ) nTightMuons++;
 	}
       //------------------
       //electron selection
       //------------------
       for( int i = 0; i < nElectrons; i++ )
 	{
-	  if( !isLooseElectron(i) ) continue; 
+//	  if( !isLooseElectron(i) ) continue; 
 	  if( elePt[i] < 10 ) continue;
 	  if( abs(eleEta[i]) > 2.5 ) continue;
-	  nLooseElectrons++;
-      	  if( isTightElectron(i) ) nTightElectrons++;
+//	  nLooseElectrons++;
+//      	  if( isTightElectron(i) ) nTightElectrons++;
 	}
       //-------------
       //tau selection
@@ -841,10 +841,10 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 	    if (!(pho_passEleVeto[i])) continue;
 	  }
 	  if (doRequireIso) {
-	    if (!(photonPassLooseIso(i))) continue;
+//	    if (!(photonPassLooseIso(i))) continue;
 	  }
 	  if (doRequireTightIso) {
-	    if (!(photonPassTightIso(i))) continue;
+//	    if (!(photonPassTightIso(i))) continue;
 	  }	  	  	  
 
 	  //Defining Corrected Photon momentum
@@ -915,12 +915,12 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 	  tmp_phoCand.SigmaIetaIeta = phoFull5x5SigmaIetaIeta[i];
 	  tmp_phoCand.R9 = phoR9[i];
 	  tmp_phoCand.HoverE = pho_HoverE[i];
-	  tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
-	  tmp_phoCand.sumNeutralHadronEt = pho_pfIsoNeutralHadronIso[i];
-	  tmp_phoCand.sumPhotonEt = pho_pfIsoPhotonIso[i];
+//	  tmp_phoCand.sumChargedHadronPt = pho_pfIsoChargedHadronIso[i];
+//	  tmp_phoCand.sumNeutralHadronEt = pho_pfIsoNeutralHadronIso[i];
+//	  tmp_phoCand.sumPhotonEt = pho_pfIsoPhotonIso[i];
 	  tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	  tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-	  tmp_phoCand._passIso = photonPassLooseIso(i);
+//	  tmp_phoCand._passIso = photonPassLooseIso(i);
 	  phoCand.push_back( tmp_phoCand );
 	
 	  nSelectedPhotons++;
@@ -1053,8 +1053,8 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 	  Pho_SigmaIetaIeta[_pho_index]      = tmpPho.SigmaIetaIeta;
 	  Pho_R9[_pho_index]                 = tmpPho.R9;
 	  Pho_HoverE[_pho_index]             = tmpPho.HoverE;
-	  Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
-	  Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
+//	  Pho_sumChargedHadronPt[_pho_index] = tmpPho.sumChargedHadronPt;
+//	  Pho_sumNeutralHadronEt[_pho_index] = tmpPho.sumNeutralHadronEt;
 	  Pho_sumPhotonEt[_pho_index]        = tmpPho.sumPhotonEt;
 	  Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
 	  Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
@@ -1556,7 +1556,7 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
   NEvents->Write();
   SumWeights->Write();
   SumScaleWeights->Write();
-  SumPdfWeights->Write();
+//  SumPdfWeights->Write();
   histNISRJets->Write();
   puhisto->Write();
   outFile->Close();

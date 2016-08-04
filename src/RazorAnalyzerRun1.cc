@@ -24,7 +24,7 @@ void RazorAnalyzerRun1::Analyze(bool isData, int option, string outputFileName, 
 
 void RazorAnalyzerRun1::EnableAll(){
     EnableEventInfo();
-    EnablePVAll();
+//    EnablePVAll();
     EnableMuons();
     EnableElectrons();
     EnableTaus();
@@ -53,18 +53,18 @@ void RazorAnalyzerRun1::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
     fChain->SetBranchStatus("HLTDecision", 1);
-    fChain->SetBranchStatus("HLTPrescale", 1);
+//    fChain->SetBranchStatus("HLTPrescale", 1);
 }
 
-void RazorAnalyzerRun1::EnablePVAll() {
-    fChain->SetBranchStatus("nPVAll",1);
-    fChain->SetBranchStatus("pvAllX",1);
-    fChain->SetBranchStatus("pvAllY",1);
-    fChain->SetBranchStatus("pvAllZ",1);
-    fChain->SetBranchStatus("pvAllLogSumPtSq",1);
-    fChain->SetBranchStatus("pvAllSumPx",1);
-    fChain->SetBranchStatus("pvAllSumPy",1);
-}
+//void RazorAnalyzerRun1::EnablePVAll() {
+//    fChain->SetBranchStatus("nPVAll",1);
+//    fChain->SetBranchStatus("pvAllX",1);
+//    fChain->SetBranchStatus("pvAllY",1);
+//    fChain->SetBranchStatus("pvAllZ",1);
+//    fChain->SetBranchStatus("pvAllLogSumPtSq",1);
+//    fChain->SetBranchStatus("pvAllSumPx",1);
+//    fChain->SetBranchStatus("pvAllSumPy",1);
+//}
 
 void RazorAnalyzerRun1::EnablePileup(){
     fChain->SetBranchStatus("nBunchXing", 1);
@@ -81,7 +81,7 @@ void RazorAnalyzerRun1::EnableMuons(){
     fChain->SetBranchStatus("muonPhi", 1);
     fChain->SetBranchStatus("muonCharge", 1);
     fChain->SetBranchStatus("muonIsLoose", 1);
-    fChain->SetBranchStatus("muonIsMedium", 1);
+//    fChain->SetBranchStatus("muonIsMedium", 1);
     fChain->SetBranchStatus("muonIsTight", 1);
     fChain->SetBranchStatus("muon_d0", 1);
     fChain->SetBranchStatus("muon_dZ", 1);
@@ -94,12 +94,12 @@ void RazorAnalyzerRun1::EnableMuons(){
     fChain->SetBranchStatus("muon_photonIso", 1);
     fChain->SetBranchStatus("muon_neutralHadIso", 1);
     fChain->SetBranchStatus("muon_ptrel", 1);
-    fChain->SetBranchStatus("muon_chargedMiniIso", 1);
-    fChain->SetBranchStatus("muon_photonAndNeutralHadronMiniIso", 1);
-    fChain->SetBranchStatus("muon_chargedPileupMiniIso", 1);
-    fChain->SetBranchStatus("muon_activityMiniIsoAnnulus", 1);
-    fChain->SetBranchStatus("muon_passSingleMuTagFilter", 1);
-    fChain->SetBranchStatus("muon_passHLTFilter", 1);
+//    fChain->SetBranchStatus("muon_chargedMiniIso", 1);
+//    fChain->SetBranchStatus("muon_photonAndNeutralHadronMiniIso", 1);
+//    fChain->SetBranchStatus("muon_chargedPileupMiniIso", 1);
+//    fChain->SetBranchStatus("muon_activityMiniIsoAnnulus", 1);
+//    fChain->SetBranchStatus("muon_passSingleMuTagFilter", 1);
+//    fChain->SetBranchStatus("muon_passHLTFilter", 1);
 }
 
 void RazorAnalyzerRun1::EnableElectrons(){
@@ -118,8 +118,8 @@ void RazorAnalyzerRun1::EnableElectrons(){
     fChain->SetBranchStatus("ele_HoverE", 1);
     fChain->SetBranchStatus("ele_d0", 1);
     fChain->SetBranchStatus("ele_dZ", 1);
-    fChain->SetBranchStatus("ele_ip3d", 1);
-    fChain->SetBranchStatus("ele_ip3dSignificance", 1);
+//    fChain->SetBranchStatus("ele_ip3d", 1);
+//    fChain->SetBranchStatus("ele_ip3dSignificance", 1);
     fChain->SetBranchStatus("ele_pileupIso", 1);
     fChain->SetBranchStatus("ele_chargedIso", 1);
     fChain->SetBranchStatus("ele_photonIso", 1);
@@ -132,16 +132,16 @@ void RazorAnalyzerRun1::EnableElectrons(){
     fChain->SetBranchStatus("ele_RegressionE", 1);
     fChain->SetBranchStatus("ele_CombineP4", 1);
     fChain->SetBranchStatus("ele_ptrel", 1);
-    fChain->SetBranchStatus("ele_chargedMiniIso", 1);
-    fChain->SetBranchStatus("ele_photonAndNeutralHadronMiniIso", 1);
-    fChain->SetBranchStatus("ele_chargedPileupMiniIso", 1);
-    fChain->SetBranchStatus("ele_activityMiniIsoAnnulus", 1);
-    fChain->SetBranchStatus("ele_passSingleEleTagFilter", 1); 
-    fChain->SetBranchStatus("ele_passTPOneTagFilter", 1); 
-    fChain->SetBranchStatus("ele_passTPTwoTagFilter", 1); 
-    fChain->SetBranchStatus("ele_passTPOneProbeFilter", 1); 
-    fChain->SetBranchStatus("ele_passTPTwoProbeFilter", 1); 
-    fChain->SetBranchStatus("ele_passHLTFilter", 1); 
+//    fChain->SetBranchStatus("ele_chargedMiniIso", 1);
+//    fChain->SetBranchStatus("ele_photonAndNeutralHadronMiniIso", 1);
+//    fChain->SetBranchStatus("ele_chargedPileupMiniIso", 1);
+//    fChain->SetBranchStatus("ele_activityMiniIsoAnnulus", 1);
+//    fChain->SetBranchStatus("ele_passSingleEleTagFilter", 1); 
+//    fChain->SetBranchStatus("ele_passTPOneTagFilter", 1); 
+//    fChain->SetBranchStatus("ele_passTPTwoTagFilter", 1); 
+//    fChain->SetBranchStatus("ele_passTPOneProbeFilter", 1); 
+//    fChain->SetBranchStatus("ele_passTPTwoProbeFilter", 1); 
+//    fChain->SetBranchStatus("ele_passHLTFilter", 1); 
 }
 
 void RazorAnalyzerRun1::EnableTaus(){
@@ -161,9 +161,9 @@ void RazorAnalyzerRun1::EnableTaus(){
     fChain->SetBranchStatus("tau_passMuVetoTight", 1);
     fChain->SetBranchStatus("tau_ID", 1);
     fChain->SetBranchStatus("tau_combinedIsoDeltaBetaCorr3Hits", 1);
-    fChain->SetBranchStatus("tau_chargedIsoPtSum", 1);
-    fChain->SetBranchStatus("tau_neutralIsoPtSum", 1);
-    fChain->SetBranchStatus("tau_puCorrPtSum", 1);
+//    fChain->SetBranchStatus("tau_chargedIsoPtSum", 1);
+//    fChain->SetBranchStatus("tau_neutralIsoPtSum", 1);
+//    fChain->SetBranchStatus("tau_puCorrPtSum", 1);
     fChain->SetBranchStatus("tau_eleVetoMVA", 1);
     fChain->SetBranchStatus("tau_eleVetoCategory", 1);
     fChain->SetBranchStatus("tau_muonVetoMVA", 1);
@@ -199,30 +199,30 @@ void RazorAnalyzerRun1::EnablePhotons(){
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
     fChain->SetBranchStatus("pho_sumWorstVertexChargedHadronPt", 1);
-    fChain->SetBranchStatus("pho_pfIsoChargedHadronIso", 1);
-    fChain->SetBranchStatus("pho_pfIsoChargedHadronIsoWrongVtx", 1);
-    fChain->SetBranchStatus("pho_pfIsoNeutralHadronIso", 1);
-    fChain->SetBranchStatus("pho_pfIsoPhotonIso", 1);
-    fChain->SetBranchStatus("pho_pfIsoModFrixione", 1);
-    fChain->SetBranchStatus("pho_pfIsoSumPUPt", 1);    
+//    fChain->SetBranchStatus("pho_pfIsoChargedHadronIso", 1);
+//    fChain->SetBranchStatus("pho_pfIsoChargedHadronIsoWrongVtx", 1);
+//    fChain->SetBranchStatus("pho_pfIsoNeutralHadronIso", 1);
+//    fChain->SetBranchStatus("pho_pfIsoPhotonIso", 1);
+//    fChain->SetBranchStatus("pho_pfIsoModFrixione", 1);
+//    fChain->SetBranchStatus("pho_pfIsoSumPUPt", 1);    
     fChain->SetBranchStatus("pho_isConversion", 1);
     fChain->SetBranchStatus("pho_passEleVeto", 1);
     fChain->SetBranchStatus("pho_RegressionE", 1);
     fChain->SetBranchStatus("pho_RegressionEUncertainty", 1);
     fChain->SetBranchStatus("pho_IDMVA", 1);
-    fChain->SetBranchStatus("pho_superClusterEnergy", 1);
+//    fChain->SetBranchStatus("pho_superClusterEnergy", 1);
     fChain->SetBranchStatus("pho_superClusterEta", 1);
     fChain->SetBranchStatus("pho_superClusterPhi", 1);
-    fChain->SetBranchStatus("pho_superClusterX", 1);
-    fChain->SetBranchStatus("pho_superClusterY", 1);
-    fChain->SetBranchStatus("pho_superClusterZ", 1);
+//    fChain->SetBranchStatus("pho_superClusterX", 1);
+//    fChain->SetBranchStatus("pho_superClusterY", 1);
+//    fChain->SetBranchStatus("pho_superClusterZ", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
-    fChain->SetBranchStatus("pho_passHLTFilter", 1);
-    fChain->SetBranchStatus("pho_convType", 1);
-    fChain->SetBranchStatus("pho_convTrkZ", 1);
-    fChain->SetBranchStatus("pho_convTrkClusZ", 1);
-    fChain->SetBranchStatus("pho_vtxSumPx", 1);
-    fChain->SetBranchStatus("pho_vtxSumPy", 1);
+//    fChain->SetBranchStatus("pho_passHLTFilter", 1);
+//    fChain->SetBranchStatus("pho_convType", 1);
+//    fChain->SetBranchStatus("pho_convTrkZ", 1);
+//    fChain->SetBranchStatus("pho_convTrkClusZ", 1);
+//    fChain->SetBranchStatus("pho_vtxSumPx", 1);
+//    fChain->SetBranchStatus("pho_vtxSumPy", 1);
 }
 
 void RazorAnalyzerRun1::EnableJets(){
@@ -244,18 +244,18 @@ void RazorAnalyzerRun1::EnableJets(){
     fChain->SetBranchStatus("jetPassEleFrac", 1);
     fChain->SetBranchStatus("jetPartonFlavor", 1);
     fChain->SetBranchStatus("jetHadronFlavor", 1);
-    fChain->SetBranchStatus("jetChargedEMEnergyFraction", 1);
-    fChain->SetBranchStatus("jetNeutralEMEnergyFraction", 1);
-    fChain->SetBranchStatus("jetChargedHadronEnergyFraction", 1);
-    fChain->SetBranchStatus("jetNeutralHadronEnergyFraction", 1);
-    fChain->SetBranchStatus("jetMuonEnergyFraction", 1);
-    fChain->SetBranchStatus("jetHOEnergyFraction", 1);
-    fChain->SetBranchStatus("jetHFHadronEnergyFraction", 1);
-    fChain->SetBranchStatus("jetHFEMEnergyFraction", 1);
-    fChain->SetBranchStatus("jetAllMuonPt", 1);
-    fChain->SetBranchStatus("jetAllMuonEta", 1);
-    fChain->SetBranchStatus("jetAllMuonPhi", 1);
-    fChain->SetBranchStatus("jetAllMuonM", 1);
+//    fChain->SetBranchStatus("jetChargedEMEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetNeutralEMEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetChargedHadronEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetNeutralHadronEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetMuonEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetHOEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetHFHadronEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetHFEMEnergyFraction", 1);
+//    fChain->SetBranchStatus("jetAllMuonPt", 1);
+//    fChain->SetBranchStatus("jetAllMuonEta", 1);
+//    fChain->SetBranchStatus("jetAllMuonPhi", 1);
+//    fChain->SetBranchStatus("jetAllMuonM", 1);
 }
 
 void RazorAnalyzerRun1::EnableFatJets(){
@@ -269,22 +269,22 @@ void RazorAnalyzerRun1::EnableFatJets(){
 void RazorAnalyzerRun1::EnableMet(){
     fChain->SetBranchStatus("metPt", 1);
     fChain->SetBranchStatus("metPhi", 1);
-    fChain->SetBranchStatus("metNoHFPt", 1);
-    fChain->SetBranchStatus("metNoHFPhi", 1);
+//    fChain->SetBranchStatus("metNoHFPt", 1);
+//    fChain->SetBranchStatus("metNoHFPhi", 1);
     fChain->SetBranchStatus("metType0Pt", 1);
     fChain->SetBranchStatus("metType0Phi", 1);
     fChain->SetBranchStatus("metType1Pt", 1);
     fChain->SetBranchStatus("metType1Phi", 1);
     fChain->SetBranchStatus("metType0Plus1Pt", 1);
     fChain->SetBranchStatus("metType0Plus1Phi", 1);
-    fChain->SetBranchStatus("metPuppiPt", 1);
-    fChain->SetBranchStatus("metPuppiPhi", 1);
+//    fChain->SetBranchStatus("metPuppiPt", 1);
+//    fChain->SetBranchStatus("metPuppiPhi", 1);
     fChain->SetBranchStatus("sumMET", 1);
     fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
-    fChain->SetBranchStatus("Flag_HBHETightNoiseFilter", 1);
-    fChain->SetBranchStatus("Flag_HBHEIsoNoiseFilter", 1);
-    fChain->SetBranchStatus("Flag_badChargedCandidateFilter", 1);
-    fChain->SetBranchStatus("Flag_badMuonFilter", 1);
+//    fChain->SetBranchStatus("Flag_HBHETightNoiseFilter", 1);
+//    fChain->SetBranchStatus("Flag_HBHEIsoNoiseFilter", 1);
+//    fChain->SetBranchStatus("Flag_badChargedCandidateFilter", 1);
+//    fChain->SetBranchStatus("Flag_badMuonFilter", 1);
     fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
     fChain->SetBranchStatus("Flag_hcalLaserEventFilter", 1);
     fChain->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 1);
@@ -299,34 +299,34 @@ void RazorAnalyzerRun1::EnableMet(){
     fChain->SetBranchStatus("Flag_trkPOG_logErrorTooManyClusters", 1);
     fChain->SetBranchStatus("Flag_METFilters", 1);    
 
-    fChain->SetBranchStatus("metType1PtJetResUp", 1);
-    fChain->SetBranchStatus("metType1PtJetResDown", 1);
-    fChain->SetBranchStatus("metType1PtJetEnUp", 1);
-    fChain->SetBranchStatus("metType1PtJetEnDown", 1);
-    fChain->SetBranchStatus("metType1PtMuonEnUp", 1);
-    fChain->SetBranchStatus("metType1PtMuonEnDown", 1);
-    fChain->SetBranchStatus("metType1PtElectronEnUp", 1);
-    fChain->SetBranchStatus("metType1PtElectronEnDown", 1);
-    fChain->SetBranchStatus("metType1PtTauEnUp", 1);
-    fChain->SetBranchStatus("metType1PtTauEnDown", 1);
-    fChain->SetBranchStatus("metType1PtUnclusteredEnUp", 1);
-    fChain->SetBranchStatus("metType1PtUnclusteredEnDown", 1);
-    fChain->SetBranchStatus("metType1PtPhotonEnUp", 1);
-    fChain->SetBranchStatus("metType1PtPhotonEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiJetResUp", 1);
-    fChain->SetBranchStatus("metType1PhiJetResDown", 1);
-    fChain->SetBranchStatus("metType1PhiJetEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiJetEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiMuonEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiMuonEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiElectronEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiElectronEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiTauEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiTauEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiUnclusteredEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiUnclusteredEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiPhotonEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiPhotonEnDown", 1);
+//    fChain->SetBranchStatus("metType1PtJetResUp", 1);
+//    fChain->SetBranchStatus("metType1PtJetResDown", 1);
+//    fChain->SetBranchStatus("metType1PtJetEnUp", 1);
+//    fChain->SetBranchStatus("metType1PtJetEnDown", 1);
+//    fChain->SetBranchStatus("metType1PtMuonEnUp", 1);
+//    fChain->SetBranchStatus("metType1PtMuonEnDown", 1);
+//    fChain->SetBranchStatus("metType1PtElectronEnUp", 1);
+//    fChain->SetBranchStatus("metType1PtElectronEnDown", 1);
+//    fChain->SetBranchStatus("metType1PtTauEnUp", 1);
+//    fChain->SetBranchStatus("metType1PtTauEnDown", 1);
+//    fChain->SetBranchStatus("metType1PtUnclusteredEnUp", 1);
+//    fChain->SetBranchStatus("metType1PtUnclusteredEnDown", 1);
+//    fChain->SetBranchStatus("metType1PtPhotonEnUp", 1);
+//    fChain->SetBranchStatus("metType1PtPhotonEnDown", 1);
+//    fChain->SetBranchStatus("metType1PhiJetResUp", 1);
+//    fChain->SetBranchStatus("metType1PhiJetResDown", 1);
+//    fChain->SetBranchStatus("metType1PhiJetEnUp", 1);
+//    fChain->SetBranchStatus("metType1PhiJetEnDown", 1);
+//    fChain->SetBranchStatus("metType1PhiMuonEnUp", 1);
+//    fChain->SetBranchStatus("metType1PhiMuonEnDown", 1);
+//    fChain->SetBranchStatus("metType1PhiElectronEnUp", 1);
+//    fChain->SetBranchStatus("metType1PhiElectronEnDown", 1);
+//    fChain->SetBranchStatus("metType1PhiTauEnUp", 1);
+//    fChain->SetBranchStatus("metType1PhiTauEnDown", 1);
+//    fChain->SetBranchStatus("metType1PhiUnclusteredEnUp", 1);
+//    fChain->SetBranchStatus("metType1PhiUnclusteredEnDown", 1);
+//    fChain->SetBranchStatus("metType1PhiPhotonEnUp", 1);
+//    fChain->SetBranchStatus("metType1PhiPhotonEnDown", 1);
 }
 
 void RazorAnalyzerRun1::EnableRazor(){
@@ -348,10 +348,10 @@ void RazorAnalyzerRun1::EnableMC(){
     fChain->SetBranchStatus("genQScale", 1);
     fChain->SetBranchStatus("genAlphaQCD", 1);
     fChain->SetBranchStatus("genAlphaQED", 1);
-    fChain->SetBranchStatus("lheComments", 1);
-    fChain->SetBranchStatus("scaleWeights", 1);
-    fChain->SetBranchStatus("pdfWeights", 1);
-    fChain->SetBranchStatus("alphasWeights", 1);
+//    fChain->SetBranchStatus("lheComments", 1);
+//    fChain->SetBranchStatus("scaleWeights", 1);
+//    fChain->SetBranchStatus("pdfWeights", 1);
+//    fChain->SetBranchStatus("alphasWeights", 1);
 }
 
 void RazorAnalyzerRun1::EnableGenParticles(){
@@ -486,47 +486,47 @@ bool RazorAnalyzerRun1::isEGammaPOGTightElectron(int i, bool applyID, bool apply
   return pass;
 }
 
-bool RazorAnalyzerRun1::isVetoElectron(int i, bool applyID, bool applyIso){
+/*bool RazorAnalyzerRun1::isVetoElectron(int i, bool applyID, bool applyIso){
   return isMVANonTrigVetoElectron(i, applyID, applyIso);
 }
+*/
+//bool RazorAnalyzerRun1::isLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+//  bool pass = true;
+//  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+//  if (applyID) {
+//    if (!passEGammaPOGLooseElectronID(i,use25nsCuts)) pass = false;
+//  }
+//  if (applyIso) {
+//    if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
+//  }
+//  return pass;
+//}
 
-bool RazorAnalyzerRun1::isLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
-  bool pass = true;
-  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
-  if (applyID) {
-    if (!passEGammaPOGLooseElectronID(i,use25nsCuts)) pass = false;
-  }
-  if (applyIso) {
-    if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
-  }
-  return pass;
-}
+//bool RazorAnalyzerRun1::isMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+//  bool pass = true;
+//  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+//  if (applyID) {
+//    if (!passEGammaPOGMediumElectronID(i,use25nsCuts)) pass = false;
+//  }
+//  if (applyIso) {
+//    if (!((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
+//  }
+//  return pass;
+//}
 
-bool RazorAnalyzerRun1::isMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
-  bool pass = true;
-  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
-  if (applyID) {
-    if (!passEGammaPOGMediumElectronID(i,use25nsCuts)) pass = false;
-  }
-  if (applyIso) {
-    if (!((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
-  }
-  return pass;
-}
+//bool RazorAnalyzerRun1::isTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+//  bool pass = true;
+//  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+//  if (applyID) {
+//    if (!passEGammaPOGTightElectronID(i,use25nsCuts)) pass = false;
+//  }
+//  if (applyIso) {
+//    if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
+//  }
+//  return pass;
+//}
 
-bool RazorAnalyzerRun1::isTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
-  bool pass = true;
-  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
-  if (applyID) {
-    if (!passEGammaPOGTightElectronID(i,use25nsCuts)) pass = false;
-  }
-  if (applyIso) {
-    if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
-  }
-  return pass;
-}
-
-bool RazorAnalyzerRun1::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso){
+/*bool RazorAnalyzerRun1::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso){
 
   bool pass = true;
   if (applyID) {
@@ -537,7 +537,7 @@ bool RazorAnalyzerRun1::isMVANonTrigVetoElectron(int i, bool applyID, bool apply
   }
   return pass;
 }
-
+*/
 bool RazorAnalyzerRun1::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
   bool pass = false;
 
@@ -802,7 +802,7 @@ bool RazorAnalyzerRun1::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
   return pass;
 }
 
-bool RazorAnalyzerRun1::passMVANonTrigVetoElectronID(int i){
+/*bool RazorAnalyzerRun1::passMVANonTrigVetoElectronID(int i){
 
   Int_t subdet = 0;
   if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
@@ -829,7 +829,7 @@ bool RazorAnalyzerRun1::passMVANonTrigVetoElectronID(int i){
   return pass;
 
 }
-
+*/
 bool RazorAnalyzerRun1::passEGammaPOGVetoElectronIso(int i, bool use25nsCuts){
   bool pass = false;
 
@@ -966,19 +966,19 @@ bool RazorAnalyzerRun1::passEGammaPOGTightElectronIso(int i, bool use25nsCuts){
   return pass;
 }
 
-bool RazorAnalyzerRun1::passMVANonTrigVetoElectronIso(int i){
+//bool RazorAnalyzerRun1::passMVANonTrigVetoElectronIso(int i){
  
-  bool pass = false;
-  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
-  if (  ( (elePt[i] > 20 && (ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.2 )
-	  ||
-	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) < 5)
-	  )
-	) {
-    pass = true;
-  }
-  return pass;
-}
+//  bool pass = false;
+//  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+//  if (  ( (elePt[i] > 20 && (ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.2 )
+//	  ||
+//	   (elePt[i] <= 20 && (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) < 5)
+//	  )
+//	) {
+//    pass = true;
+//  }
+//  return pass;
+//}
 
 bool RazorAnalyzerRun1::passHZZElectronPreselection(int i){
 
@@ -1042,58 +1042,58 @@ bool RazorAnalyzerRun1::isHZZElectron(int i){
 
 
 
-bool RazorAnalyzerRun1::matchTagElectronHLTFilters(int i){
-  bool match = false;
-  if ( 
-      //Data filters
-      ele_passHLTFilter[i][1] 
-      || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
-      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53] || ele_passHLTFilter[i][57] || ele_passHLTFilter[i][60]      
-      //MC filters
-      || ele_passHLTFilter[i][64] 
-      || ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
-       ) {
-    match = true;
-  }
+//bool RazorAnalyzerRun1::matchTagElectronHLTFilters(int i){
+//  bool match = false;
+//  if ( 
+//      //Data filters
+//      ele_passHLTFilter[i][1] 
+//      || ele_passHLTFilter[i][5] || ele_passHLTFilter[i][6] || ele_passHLTFilter[i][12] || ele_passHLTFilter[i][13] 
+//      || ele_passHLTFilter[i][49] || ele_passHLTFilter[i][53] || ele_passHLTFilter[i][57] || ele_passHLTFilter[i][60]      
+//      //MC filters
+//      || ele_passHLTFilter[i][64] 
+//      || ele_passHLTFilter[i][3] || ele_passHLTFilter[i][8] || ele_passHLTFilter[i][10] || ele_passHLTFilter[i][15]
+//       ) {
+//    match = true;
+//  }
 
-  return match;
-}
+//  return match;
+//}
 
-bool RazorAnalyzerRun1::matchProbeElectronHLTFilters(int i){
-  bool match = false;
-  if ( 
-      ele_passHLTFilter[i][50] || ele_passHLTFilter[i][51]     
-      || ele_passHLTFilter[i][61]     || ele_passHLTFilter[i][62]     
-       ) {
-    match = true;
-  }
+//bool RazorAnalyzerRun1::matchProbeElectronHLTFilters(int i){
+//  bool match = false;
+//  if ( 
+//      ele_passHLTFilter[i][50] || ele_passHLTFilter[i][51]     
+//      || ele_passHLTFilter[i][61]     || ele_passHLTFilter[i][62]     
+//       ) {
+//    match = true;
+//  }
   
-  return match;
-}
+//  return match;
+//}
 
-bool RazorAnalyzerRun1::matchProbeSCHLTFilters(int i){
-  bool match = false;
-  if ( 
-      ele_passHLTFilter[i][54] || ele_passHLTFilter[i][55] 
-      || ele_passHLTFilter[i][58]    || ele_passHLTFilter[i][59]    
-       ) {
-    match = true;
-  }
+//bool RazorAnalyzerRun1::matchProbeSCHLTFilters(int i){
+//  bool match = false;
+//  if ( 
+//      ele_passHLTFilter[i][54] || ele_passHLTFilter[i][55] 
+//      || ele_passHLTFilter[i][58]    || ele_passHLTFilter[i][59]    
+//       ) {
+//    match = true;
+//  }
   
-  return match;
-}
+//  return match;
+//}
 
-bool RazorAnalyzerRun1::matchElectronHLTFilters(int i, string HLTFilter, string analysisTag) {
-  if (analysisTag == "2015") return matchElectronHLTFilters2015(i, HLTFilter);
-  else if (analysisTag == "2016") return matchElectronHLTFilters2016(i, HLTFilter);
-  else {
-    cout << "Analysis Tag " << analysisTag << " is not supported. Returning false.\n";
-    return false;
-  }
-}
+//bool RazorAnalyzerRun1::matchElectronHLTFilters(int i, string HLTFilter, string analysisTag) {
+//  if (analysisTag == "2015") return matchElectronHLTFilters2015(i, HLTFilter);
+//  else if (analysisTag == "2016") return matchElectronHLTFilters2016(i, HLTFilter);
+//  else {
+//    cout << "Analysis Tag " << analysisTag << " is not supported. Returning false.\n";
+//    return false;
+//  }
+//}
 
 
-bool RazorAnalyzerRun1::matchElectronHLTFilters2016(int i, string HLTFilter){
+/*bool RazorAnalyzerRun1::matchElectronHLTFilters2016(int i, string HLTFilter){
   bool match = false;
 
   if (HLTFilter == "SingleElectron") {
@@ -1281,7 +1281,7 @@ bool RazorAnalyzerRun1::matchElectronHLTFilters2015(int i, string HLTFilter){
    
   return match;
 }
-
+*/
 //////////////////////////////
 // MUON
 //////////////////////////////
@@ -1332,6 +1332,7 @@ bool RazorAnalyzerRun1::isMuonPOGLooseMuon(int i, bool applyID, bool applyIso){
   return pass;
 }
 
+/*
 bool RazorAnalyzerRun1::isMuonPOGMediumMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
   if (applyID) {
@@ -1342,6 +1343,7 @@ bool RazorAnalyzerRun1::isMuonPOGMediumMuon(int i, bool applyID, bool applyIso){
   }
   return pass;
 }
+*/
 
 bool RazorAnalyzerRun1::isMuonPOGTightMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
@@ -1354,7 +1356,7 @@ bool RazorAnalyzerRun1::isMuonPOGTightMuon(int i, bool applyID, bool applyIso){
   return pass;
 }   
 
-bool RazorAnalyzerRun1::isVetoMuon(int i, bool applyID, bool applyIso){
+/*bool RazorAnalyzerRun1::isVetoMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/muonPt[i]));
   if (applyID) {
@@ -1393,7 +1395,7 @@ bool RazorAnalyzerRun1::isTightMuon(int i, bool applyID, bool applyIso){
   }
   return pass;
 }   
-
+*/
 
 
 
@@ -1424,12 +1426,12 @@ bool RazorAnalyzerRun1::isHZZMuon(int i){
 
 
 
-bool RazorAnalyzerRun1::matchTagMuonHLTFilters(int i){
+/*bool RazorAnalyzerRun1::matchTagMuonHLTFilters(int i){
   return  matchMuonHLTFilters(i, "SingleMuon");
 }
+*/
 
-
-bool RazorAnalyzerRun1::matchMuonHLTFilters(int i, string HLTFilter){
+/*bool RazorAnalyzerRun1::matchMuonHLTFilters(int i, string HLTFilter){
   bool match = false;
 
   if (HLTFilter == "SingleMuon") {
@@ -1516,7 +1518,7 @@ bool RazorAnalyzerRun1::matchMuonHLTFilters(int i, string HLTFilter){
    
   return match;
 }
-
+*/
 //////////////////////////////
 // TAU
 //////////////////////////////
@@ -1849,7 +1851,7 @@ void RazorAnalyzerRun1::getPhotonEffArea90( float eta, double& effAreaChHad, dou
 
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
-bool RazorAnalyzerRun1::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90){
+/*bool RazorAnalyzerRun1::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90){
     //get effective area for isolation calculations
     double effAreaChargedHadrons = 0.0;
     double effAreaNeutralHadrons = 0.0;
@@ -1880,7 +1882,7 @@ bool RazorAnalyzerRun1::photonPassesIsolation(int i, double PFChHadIsoCut, doubl
     //photon passed all cuts
     return true;
 }
-
+*/
 bool RazorAnalyzerRun1::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
 
   bool pass = true;
@@ -1993,7 +1995,7 @@ bool RazorAnalyzerRun1::photonPassTightID(int i, bool use25nsCuts){
 }
 
 
-bool RazorAnalyzerRun1::photonPassLooseIso(int i, bool use25nsCuts){
+/*bool RazorAnalyzerRun1::photonPassLooseIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
@@ -2052,7 +2054,9 @@ bool RazorAnalyzerRun1::photonPassTightIso(int i, bool use25nsCuts){
     }
   }
 }
+*/
 
+/*
 bool RazorAnalyzerRun1::isLoosePhoton(int i, bool use25nsCuts){
 
   bool pass = true;
@@ -2061,7 +2065,9 @@ bool RazorAnalyzerRun1::isLoosePhoton(int i, bool use25nsCuts){
 
   return pass;
 }
+*/
 
+/*
 bool RazorAnalyzerRun1::isMediumPhoton(int i, bool use25nsCuts){
   bool pass = true;
 
@@ -2070,7 +2076,9 @@ bool RazorAnalyzerRun1::isMediumPhoton(int i, bool use25nsCuts){
 
   return pass;
 }
+*/
 
+/*
 bool RazorAnalyzerRun1::isTightPhoton(int i, bool use25nsCuts){
   bool pass = true;
   if (!isTightPhotonWithoutEleVeto(i,use25nsCuts)) pass = false;
@@ -2079,6 +2087,10 @@ bool RazorAnalyzerRun1::isTightPhoton(int i, bool use25nsCuts){
   return pass;
 }
 
+*/
+
+
+/*
 bool RazorAnalyzerRun1::isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   bool pass = true;
@@ -2088,7 +2100,9 @@ bool RazorAnalyzerRun1::isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
+*/
 
+/*
 bool RazorAnalyzerRun1::isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts){
   bool pass = true;
 
@@ -2097,7 +2111,9 @@ bool RazorAnalyzerRun1::isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
+*/
 
+/*
 bool RazorAnalyzerRun1::isTightPhotonWithoutEleVeto(int i, bool use25nsCuts){
   bool pass = true;
 
@@ -2106,9 +2122,9 @@ bool RazorAnalyzerRun1::isTightPhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
+*/
 
-
-bool RazorAnalyzerRun1::matchPhotonHLTFilters(int i, string HLTFilter){
+/*bool RazorAnalyzerRun1::matchPhotonHLTFilters(int i, string HLTFilter){
   bool match = false;
 
   if (HLTFilter == "DiPhoton30_18_WithPixMatch_Leg1") {
@@ -2133,7 +2149,7 @@ bool RazorAnalyzerRun1::matchPhotonHLTFilters(int i, string HLTFilter){
    
   return match;
 }
-
+*/
 TLorentzVector RazorAnalyzerRun1::GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE )
 {
   TVector3 phoDir = phoPos - vtx;
@@ -2157,7 +2173,7 @@ bool RazorAnalyzerRun1::photonPassLooseIDWithoutEleVetoExo15004( int i )
   return pass;
 };
  
-bool RazorAnalyzerRun1::photonPassesIsolationExo15004(int i, double PFChHadIsoCut, double PFPhotIsoCut )
+/*bool RazorAnalyzerRun1::photonPassesIsolationExo15004(int i, double PFChHadIsoCut, double PFPhotIsoCut )
 {
   double effAreaPhotons = 0.0;
   double eta = pho_superClusterEta[i];
@@ -2176,7 +2192,7 @@ bool RazorAnalyzerRun1::photonPassesIsolationExo15004(int i, double PFChHadIsoCu
   //photon passed all cuts
   return true;
 };
-
+*/
 void RazorAnalyzerRun1::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
 {
   if ( fabs( eta ) < 0.9 )
@@ -2200,7 +2216,7 @@ void RazorAnalyzerRun1::getPhotonEffAreaExo15004( float eta, double& effAreaPho 
       effAreaPho = 0.22;
     }
 };
-
+/*
 bool RazorAnalyzerRun1::photonPassLooseIsoExo15004(int i)
 {
   if( fabs(pho_superClusterEta[i]) < 1.4442 )
@@ -2216,7 +2232,7 @@ bool RazorAnalyzerRun1::photonPassLooseIsoExo15004(int i)
       return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.003*phoPt[i] );
     }
 };
-
+*/
 //////////////////////////////
 // GEN
 //////////////////////////////
