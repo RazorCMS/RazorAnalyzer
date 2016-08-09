@@ -5,6 +5,37 @@
 
 using namespace std;
 
+
+float EB_GetPFchHadIsoCut( ){ return EB_PFchHadIsoCut; };
+float EB_GetPFchHadIsoCut_VL( ){ return 2.0*EB_PFchHadIsoCut; };
+float EB_GetPFchHadIsoCut_M( ){ return 1.5; };
+float EB_GetPFchHadIsoCut_T( ){ return 0.91; };
+
+float EB_GetPFnHadIsoCut( float pt ){ return (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFnHadIsoCut_VL( float pt ){ return (2.*EB_PFphoIsoConst + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFnHadIsoCut_M( float pt ){ return (1.0 + EB_PFnHadIsoSlope*pt); };
+float EB_GetPFnHadIsoCut_T( float pt ){ return (0.33 + EB_PFnHadIsoSlope*pt); };
+
+float EB_GetPFphoIsoCut( float pt ){ return (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
+float EB_GetPFphoIsoCut_VL( float pt ){ return (2.*EB_PFphoIsoConst + EB_PFphoIsoSlope*pt); };
+float EB_GetPFphoIsoCut_M( float pt ){ return (0.7 + EB_PFphoIsoSlope*pt); };
+float EB_GetPFphoIsoCut_T( float pt ){ return (0.61 + EB_PFphoIsoSlope*pt); };
+
+float EE_GetPFchHadIsoCut( ){ return EE_PFchHadIsoCut; };
+float EE_GetPFchHadIsoCut_VL( ){ return 2*EE_PFchHadIsoCut; };
+float EE_GetPFchHadIsoCut_M( ){ return 1.2; };
+float EE_GetPFchHadIsoCut_T( ){ return 0.65; };
+
+float EE_GetPFnHadIsoCut( float pt ){ return (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
+float EE_GetPFnHadIsoCut_VL( float pt ){ return (2.*EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt); };
+float EE_GetPFnHadIsoCut_M( float pt ){ return (1.5 + EE_PFnHadIsoSlope*pt); };
+float EE_GetPFnHadIsoCut_T( float pt ){ return (0.93 + EE_PFnHadIsoSlope*pt); };
+
+float EE_GetPFphoIsoCut_M( float pt ){ return (1.0 + 0.005*pt); };
+float EE_GetPFphoIsoCut_T( float pt ){ return (0.54 + 0.005*pt); };
+
+
+
 RazorAnalyzerRun1::RazorAnalyzerRun1(TTree *tree) : RazorEventsRun1(tree)
 {
     //turn off all branches
@@ -1851,7 +1882,7 @@ void RazorAnalyzerRun1::getPhotonEffArea90( float eta, double& effAreaChHad, dou
 
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
-/*bool RazorAnalyzerRun1::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90){
+bool RazorAnalyzerRun1::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90){
     //get effective area for isolation calculations
     double effAreaChargedHadrons = 0.0;
     double effAreaNeutralHadrons = 0.0;
@@ -1868,21 +1899,21 @@ void RazorAnalyzerRun1::getPhotonEffArea90( float eta, double& effAreaChHad, dou
       }
 
     //Rho corrected PF charged hadron isolation
-    double PFIsoCorrected_ChHad = max(pho_pfIsoChargedHadronIso[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    double PFIsoCorrected_ChHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
     if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
     
     //Rho corrected PF neutral hadron isolation
-    double PFIsoCorrected_NeuHad = max(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    double PFIsoCorrected_NeuHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
     
     //Rho corrected PF photon isolation
-    double PFIsoCorrected_Photons = max(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
 
     //photon passed all cuts
     return true;
 }
-*/
+
 bool RazorAnalyzerRun1::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
 
   bool pass = true;
@@ -1995,7 +2026,7 @@ bool RazorAnalyzerRun1::photonPassTightID(int i, bool use25nsCuts){
 }
 
 
-/*bool RazorAnalyzerRun1::photonPassLooseIso(int i, bool use25nsCuts){
+bool RazorAnalyzerRun1::photonPassLooseIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
@@ -2054,9 +2085,9 @@ bool RazorAnalyzerRun1::photonPassTightIso(int i, bool use25nsCuts){
     }
   }
 }
-*/
 
-/*
+
+
 bool RazorAnalyzerRun1::isLoosePhoton(int i, bool use25nsCuts){
 
   bool pass = true;
@@ -2065,9 +2096,9 @@ bool RazorAnalyzerRun1::isLoosePhoton(int i, bool use25nsCuts){
 
   return pass;
 }
-*/
 
-/*
+
+
 bool RazorAnalyzerRun1::isMediumPhoton(int i, bool use25nsCuts){
   bool pass = true;
 
@@ -2076,9 +2107,9 @@ bool RazorAnalyzerRun1::isMediumPhoton(int i, bool use25nsCuts){
 
   return pass;
 }
-*/
 
-/*
+
+
 bool RazorAnalyzerRun1::isTightPhoton(int i, bool use25nsCuts){
   bool pass = true;
   if (!isTightPhotonWithoutEleVeto(i,use25nsCuts)) pass = false;
@@ -2087,22 +2118,23 @@ bool RazorAnalyzerRun1::isTightPhoton(int i, bool use25nsCuts){
   return pass;
 }
 
-*/
 
 
-/*
+
+
 bool RazorAnalyzerRun1::isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   bool pass = true;
 
   if (!photonPassLooseIDWithoutEleVeto(i,use25nsCuts)) pass = false;
-  if(!photonPassLooseIso(i,use25nsCuts)) pass = false;
+  //if(!photonPassLooseIso(i,use25nsCuts)) pass = false;
+  if(!photonPassIsoRun1( i ,  false )) pass = false;
 
   return pass;
 }
-*/
 
-/*
+
+
 bool RazorAnalyzerRun1::isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts){
   bool pass = true;
 
@@ -2111,9 +2143,9 @@ bool RazorAnalyzerRun1::isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
-*/
 
-/*
+
+
 bool RazorAnalyzerRun1::isTightPhotonWithoutEleVeto(int i, bool use25nsCuts){
   bool pass = true;
 
@@ -2122,7 +2154,7 @@ bool RazorAnalyzerRun1::isTightPhotonWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
-*/
+
 
 /*bool RazorAnalyzerRun1::matchPhotonHLTFilters(int i, string HLTFilter){
   bool match = false;
@@ -2864,4 +2896,414 @@ double RazorAnalyzerRun1::calcMT2(float testMass, bool massive, vector<TLorentzV
   delete mt2;
   return MT2;
 };
+
+
+////////Run1 functions//////////////////
+
+
+bool RazorAnalyzerRun1::passEleVetoRun1( int i )
+{
+  return pho_passEleVeto[i];
+};
+
+
+/*
+//photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
+bool RazorAnalyzerRun1::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut){
+    //get effective area for isolation calculations
+    double effAreaChargedHadrons = 0.0;
+    double effAreaNeutralHadrons = 0.0;
+    double effAreaPhotons = 0.0;
+    if(fabs(pho_superClusterEta[i]) < 1.0){
+        effAreaChargedHadrons = 0.0130;
+        effAreaNeutralHadrons = 0.0056;
+        effAreaPhotons = 0.0896;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 1.479){
+        effAreaChargedHadrons = 0.0096;
+        effAreaNeutralHadrons = 0.0107;
+        effAreaPhotons = 0.0762;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.0){
+        effAreaChargedHadrons = 0.0107;
+        effAreaNeutralHadrons = 0.0019;
+        effAreaPhotons = 0.0383;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.2){
+        effAreaChargedHadrons = 0.0077;
+        effAreaNeutralHadrons = 0.0011;
+        effAreaPhotons = 0.0534;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.3){
+        effAreaChargedHadrons = 0.0088;
+        effAreaNeutralHadrons = 0.0077;
+        effAreaPhotons = 0.0846;
+    }
+    else if(fabs(pho_superClusterEta[i]) < 2.4){
+        effAreaChargedHadrons = 0.0065;
+        effAreaNeutralHadrons = 0.0178;
+        effAreaPhotons = 0.1032;
+    }
+    else{
+        effAreaChargedHadrons = 0.0030;
+        effAreaNeutralHadrons = 0.1675;
+        effAreaPhotons = 0.1598;
+    }
+
+    //Rho corrected PF charged hadron isolation
+    double PFIsoCorrected_ChHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
+    
+    //Rho corrected PF neutral hadron isolation
+    double PFIsoCorrected_NeuHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
+    
+    //Rho corrected PF photon isolation
+    double PFIsoCorrected_Photons = max(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
+
+    //photon passed all cuts
+    return true;
+}
+
+*/
+void RazorAnalyzerRun1::getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+  if( fabs( eta ) < 1.0 )
+    {
+      effAreaChHad = 0.012;
+      effAreaNHad  = 0.030;
+      effAreaPho   = 0.148;
+    }
+  else if( fabs( eta ) < 1.479 )
+    {
+      effAreaChHad = 0.010;
+      effAreaNHad  = 0.057;
+      effAreaPho   = 0.130;
+    }
+  else if( fabs( eta ) < 2.0 )
+    {
+      effAreaChHad = 0.014;
+      effAreaNHad  = 0.039;
+      effAreaPho   = 0.112;
+    }
+  else if( fabs( eta ) < 2.2 )
+    {
+      effAreaChHad = 0.012;
+      effAreaNHad  = 0.015;
+      effAreaPho   = 0.216;
+    }
+  else if( fabs( eta ) < 2.3 )
+    {
+      effAreaChHad = 0.016;
+      effAreaNHad  = 0.024;
+      effAreaPho   = 0.262;
+    }
+  else if( fabs( eta ) < 2.4 )
+    {
+      effAreaChHad = 0.020;
+      effAreaNHad  = 0.039;
+      effAreaPho   = 0.260;
+    }
+  else
+    {
+      effAreaChHad = 0.012;
+      effAreaNHad  = 0.072;
+      effAreaPho   = 0.266;
+    }
+};
+
+//----------------------------------------
+// R u n 1   L o o s e  I s o l a t i o n
+//----------------------------------------
+bool RazorAnalyzerRun1::photonPassIsoRun1( int i , bool _debug )
+{
+  //Define variables
+  float eta = pho_superClusterEta[i];
+  float pt  = phoPt[i];//default pt
+  bool _isEB = false;
+  if ( fabs( eta ) < 1.48 ) _isEB = true;
+  //get effective area for isolation calculations                                                
+  double effAreaChargedHadrons = 0.0;
+  double effAreaNeutralHadrons = 0.0;
+  double effAreaPhotons = 0.0;
+  getPhotonEffAreaRun1( eta, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
+  if ( _debug )
+    {
+      std::cout << "chA:" << effAreaChargedHadrons << " nA: " << effAreaNeutralHadrons << " phoA: " << effAreaPhotons << std::endl;
+      std::cout << "chHad: " << pho_sumChargedHadronPt[i] << std::endl;
+      std::cout << "nHad: " << pho_sumNeutralHadronEt[i] << std::endl;
+      std::cout << "pho: " << pho_sumPhotonEt[i] << std::endl;
+      std::cout << "pu: " << fixedGridRhoAll << std::endl;
+    }
+  //Compute Photon Isolation
+  //Rho corrected PF charged hadron isolation
+  double PFIsoCorrected_chHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
+  //Rho corrected PF neutral hadron isolation                                                                              
+  double PFIsoCorrected_nHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoAll*effAreaNeutralHadrons, 0.);
+  //Rho corrected PF photon isolation                                                              
+  double PFIsoCorrected_pho = max(pho_sumPhotonEt[i] - fixedGridRhoAll*effAreaPhotons, 0.);
+  if ( _debug )
+    {
+      std::cout << "chHad Iso: " << PFIsoCorrected_chHad << std::endl;
+      std::cout << "nHad Iso: " <<PFIsoCorrected_nHad <<std::endl;
+      std::cout << "pho Iso: " << PFIsoCorrected_pho <<std::endl; 
+    }
+  
+  //Apply Isolation
+  if ( _isEB )
+    {
+      if ( PFIsoCorrected_chHad > EB_PFchHadIsoCut )
+	{
+	  if ( _debug ) std::cout << "EB, Iso: failed chHadIso, cut @ " << EB_PFchHadIsoCut << std::endl;
+	  return false;
+	}
+      if ( PFIsoCorrected_nHad > (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt) )
+	{
+	  if ( _debug ) std::cout << "EB, Iso: failed nHadIso, cut @ " << (EB_PFnHadIsoConst + EB_PFnHadIsoSlope*pt) << std::endl;
+	  return false;
+	}
+      if ( PFIsoCorrected_pho > (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt) )
+	{
+	  if ( _debug ) std::cout << "EB, Iso: failed phoIso, cut @ " << (EB_PFphoIsoConst + EB_PFphoIsoSlope*pt) << std::endl;
+	  return false;
+	}
+    }
+  else
+    {
+      if ( PFIsoCorrected_chHad > EE_PFchHadIsoCut )
+	{
+	  if ( _debug ) std::cout << "EE, Iso: failed chHadIso, cut @ " << EE_PFchHadIsoCut << std::endl;
+	  return false;
+	}
+      if ( PFIsoCorrected_nHad > (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt) )
+	{
+	  if ( _debug ) std::cout << "EE, Iso: failed nHadIso, cut @ " << (EE_PFnHadIsoConst + EE_PFnHadIsoSlope*pt) << std::endl;
+	  return false;
+	}
+    }
+  
+  return true;
+};
+
+
+bool RazorAnalyzerRun1::photonPassIsoRun1( int i , WP wp, bool _debug )
+{
+  //Define variables                                                                                
+  float eta = pho_superClusterEta[i];
+  float pt  = phoPt[i];//default pt                                          
+  bool _isEB = false;
+  if ( fabs( eta ) < 1.48 ) _isEB = true;
+  //get effective area for isolation calculations         
+  double effAreaChargedHadrons = 0.0;
+  double effAreaNeutralHadrons = 0.0;
+  double effAreaPhotons = 0.0;
+  getPhotonEffAreaRun1( eta, effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons );
+  if ( _debug )
+    {
+      std::cout << "chA:" << effAreaChargedHadrons << " nA: " << effAreaNeutralHadrons << " phoA: " << effAreaPhotons << std::endl;
+      std::cout << "chHad: " << pho_sumChargedHadronPt[i] << std::endl;
+      std::cout << "nHad: " << pho_sumNeutralHadronEt[i] << std::endl;
+      std::cout << "pho: " << pho_sumPhotonEt[i] << std::endl;
+      std::cout << "pu: " << fixedGridRhoAll << std::endl;
+    }
+  //Compute Photon Isolation                                                             
+  //Rho corrected PF charged hadron isolation                                                     
+  double PFIsoCorrected_chHad = max(pho_sumChargedHadronPt[i] - fixedGridRhoAll*effAreaChargedHadrons, 0.);
+  //Rho corrected PF neutral hadron isolation                                                         
+  double PFIsoCorrected_nHad = max(pho_sumNeutralHadronEt[i] - fixedGridRhoAll*effAreaNeutralHadrons, 0.);
+  //Rho corrected PF photon isolation                                                                   
+  double PFIsoCorrected_pho = max(pho_sumPhotonEt[i] - fixedGridRhoAll*effAreaPhotons, 0.);
+  if ( _debug )
+    {
+      std::cout << "chHad Iso: " << PFIsoCorrected_chHad << std::endl;
+      std::cout << "nHad Iso: " <<PFIsoCorrected_nHad <<std::endl;
+      std::cout << "pho Iso: " << PFIsoCorrected_pho <<std::endl;
+    }
+  double _EB_chHadCut, _EB_nHadCut, _EB_phoCut;
+  double _EE_chHadCut, _EE_nHadCut, _EE_phoCut;
+  if ( wp == WP::VeryLoose )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut_VL();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut_VL( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut_VL( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut_VL();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut_VL( pt );
+      _EE_phoCut   = 999.;
+    }
+  else if ( wp == WP::Loose )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut( pt );
+      _EE_phoCut   = 999.;
+    }
+  else if (wp == WP::Medium )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut_M();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut_M( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut_M( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut_M();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut_M( pt );
+      _EE_phoCut   = EE_GetPFphoIsoCut_M( pt );
+    }
+  else if (wp == WP::Tight )
+    {
+      _EB_chHadCut = EB_GetPFchHadIsoCut_T();
+      _EB_nHadCut  = EB_GetPFnHadIsoCut_T( pt );
+      _EB_phoCut   = EB_GetPFphoIsoCut_T( pt );
+      _EE_chHadCut = EE_GetPFchHadIsoCut_T();
+      _EE_nHadCut  = EE_GetPFnHadIsoCut_T( pt );
+      _EE_phoCut   = EE_GetPFphoIsoCut_T( pt );
+    }
+
+
+  else
+    {
+      std::cerr << "[ERROR]: unrecognized working point!" << std::endl;
+      return false;
+    }
+  //Apply Isolation
+  if ( _isEB )
+    {
+      if ( PFIsoCorrected_chHad > _EB_chHadCut )
+        {
+          if ( _debug ) std::cout << "EB, Iso: failed chHadIso, cut @ " << _EB_chHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_nHad > _EB_nHadCut )
+        {
+          if ( _debug ) std::cout << "EB, Iso: failed nHadIso, cut @ " << _EB_nHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_pho > _EB_phoCut )
+        {
+          if ( _debug ) std::cout << "EB, Iso: failed phoIso, cut @ " << _EB_phoCut << std::endl;
+          return false;
+        }
+    }
+  else
+    {
+      if ( PFIsoCorrected_chHad > _EE_chHadCut )
+        {
+          if ( _debug ) std::cout << "EE, Iso: failed chHadIso, cut @ " << _EE_chHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_nHad > _EE_nHadCut )
+        {
+          if ( _debug ) std::cout << "EE, Iso: failed nHadIso, cut @ " << _EE_nHadCut << std::endl;
+          return false;
+        }
+      if ( PFIsoCorrected_pho > _EE_phoCut )
+	{
+	  if ( _debug ) std::cout << "EE, Iso: failed phoIso, cut @ " << _EE_phoCut << std::endl;
+          return false;
+	}
+    }
+  
+  return true;
+};
+
+
+//Cut Based Photon ID WP 90/85 (EB/EE) recommendation from EGamma: https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonID2012
+bool RazorAnalyzerRun1::isGoodPhotonRun1( int i, bool _iso = false, bool _debug = false)
+{
+  bool _isEB = false;
+  if ( fabs( pho_superClusterEta[i] ) < 1.48 ) _isEB = true;
+  if ( _isEB )
+    {
+      //EB
+      if ( !passEleVetoRun1( i ) ) 
+	{
+	  if ( _debug ) std::cout << "EB, ID: failed CSEV" << std::endl;
+	  return false;
+	}
+      if ( pho_HoverE[i] > EB_HoverECut )
+	{
+	  if ( _debug ) std::cout << "EB, ID: failed HoveE: " << pho_HoverE[i] << std::endl;
+	  return false;// HoverE Cut
+	}
+      if ( phoSigmaIetaIeta[i] > EB_SigmaIetaIetaCut )
+	{
+	  if ( _debug ) std::cout << "EB, ID: failed SigmaIetaIeta: " << phoSigmaIetaIeta[i] <<  std::endl;
+	  return false;// SigmaIetaIeta Cut
+	}
+      if ( _iso && !photonPassIsoRun1( i, _debug ) ) return false;//Apply Isolation if flag (_iso) is true
+      //if ( _iso) std::cout << "yes, passed ISO" << std::endl;
+    }
+  else
+    {
+      //EE
+      if ( !passEleVetoRun1( i ) )
+	{
+	  if ( _debug ) std::cout << "EE, ID: failed CSEV" << std::endl;
+	  return false;
+	}
+      if ( pho_HoverE[i] > EE_HoverECut )
+	{
+	  if ( _debug ) std::cout << "EE, ID: failed HoveE: " << pho_HoverE[i] << std::endl;
+	  return false;// HoverE Cut 
+	}
+      if ( phoSigmaIetaIeta[i] > EE_SigmaIetaIetaCut )
+	{
+	  if ( _debug ) std::cout << "EE, ID: failed SigmaIetaIeta: " << phoSigmaIetaIeta[i] <<  std::endl;
+	  return false;// SigmaIetaIeta Cut
+	}
+      if ( _iso && !photonPassIsoRun1( i, _debug ) ) return false;//Apply Isolation if flag (_iso) is true
+    }
+
+  return true;
+};
+
+
+/*
+void RazorAnalyzerRun1::getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+  if( fabs( eta ) < 1.0 )
+    {
+      effAreaChHad = 0.0234;
+      effAreaNHad  = 0.0053;
+      effAreaPho   = 0.0896;
+    }
+  else if( fabs( eta ) < 1.479 )
+    {
+      effAreaChHad = 0.0189;
+      effAreaNHad  = 0.0103;
+      effAreaPho   = 0.0762;
+    }
+  else if( fabs( eta ) < 2.0 )
+    {
+      effAreaChHad = 0.0171;
+      effAreaNHad  = 0.0057;
+      effAreaPho   = 0.0383;
+    }
+  else if( fabs( eta ) < 2.2 )
+    {
+      effAreaChHad = 0.0129;
+      effAreaNHad  = 0.0070;
+      effAreaPho   = 0.0534;
+    }
+  else if( fabs( eta ) < 2.3 )
+    {
+      effAreaChHad = 0.0110;
+      effAreaNHad  = 0.0152;
+      effAreaPho   = 0.0846;
+    }
+  else if( fabs( eta ) < 2.4 )
+    {
+      effAreaChHad = 0.0074;
+      effAreaNHad  = 0.0230;
+      effAreaPho   = 0.1032;
+    }
+  else
+    {
+      effAreaChHad = 0.0035;
+      effAreaNHad  = 0.1709;
+      effAreaPho   = 0.1598;
+    }
+};
+
+*/
 

@@ -441,7 +441,7 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 //  razorTree->Branch("pho1sumPhotonEt", &Pho_sumPhotonEt[0], "pho1sumPhotonEt/F");
   razorTree->Branch("pho1sigmaEOverE", &Pho_sigmaEOverE[0], "pho1sigmaEOverE/F");
   razorTree->Branch("pho1passEleVeto", &Pho_passEleVeto[0], "pho1passEleVeto/O");
-//  razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
+  razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
   razorTree->Branch("pho1MotherID", &Pho_motherID[0], "pho1MotherID/I");
       
   razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
@@ -460,7 +460,7 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 //  razorTree->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
   razorTree->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
   razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
-//  razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
+  razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
   razorTree->Branch("pho2MotherID", &Pho_motherID[1], "pho2MotherID/I");
       
   razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
@@ -841,10 +841,10 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 	    if (!(pho_passEleVeto[i])) continue;
 	  }
 	  if (doRequireIso) {
-//	    if (!(photonPassLooseIso(i))) continue;
+	    if (!(photonPassIsoRun1( i , WP::Loose, false ))) continue;
 	  }
 	  if (doRequireTightIso) {
-//	    if (!(photonPassTightIso(i))) continue;
+	    if (!(photonPassIsoRun1( i , WP::Tight, false ))) continue;
 	  }	  	  	  
 
 	  //Defining Corrected Photon momentum
@@ -920,7 +920,7 @@ void HggRazorRun1WithRun2Bin::Analyze(bool isData, int option, string outFileNam
 //	  tmp_phoCand.sumPhotonEt = pho_pfIsoPhotonIso[i];
 	  tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	  tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-//	  tmp_phoCand._passIso = photonPassLooseIso(i);
+	  tmp_phoCand._passIso = photonPassIsoRun1( i ,  false );//photonPassLooseIso(i);
 	  phoCand.push_back( tmp_phoCand );
 	
 	  nSelectedPhotons++;

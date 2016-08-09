@@ -24,6 +24,56 @@
 #include <iostream>
 using namespace std;
 
+
+
+constexpr bool  EB_EleVeto           = true;
+constexpr float EB_HoverECut         = 0.05;
+constexpr float EB_SigmaIetaIetaCut  = 0.012;
+constexpr float EB_PFchHadIsoCut     = 2.6;
+constexpr float EB_PFnHadIsoConst    = 3.5;
+constexpr float EB_PFnHadIsoSlope    = 0.04;
+constexpr float EB_PFphoIsoConst     = 1.3;
+constexpr float EB_PFphoIsoSlope     = 0.005;
+
+constexpr bool  EE_EleVeto           = true;
+constexpr float EE_HoverECut         = 0.05;
+constexpr float EE_SigmaIetaIetaCut  = 0.034;
+constexpr float EE_PFchHadIsoCut     = 2.3;
+constexpr float EE_PFnHadIsoConst    = 2.9;
+constexpr float EE_PFnHadIsoSlope    = 0.04;
+
+enum class WP { VeryLoose, Loose, Medium, Tight };
+
+float EB_GetPFchHadIsoCut( );
+float EB_GetPFchHadIsoCut_VL( );
+float EB_GetPFchHadIsoCut_M( );
+float EB_GetPFchHadIsoCut_T( );
+
+float EB_GetPFnHadIsoCut( float pt );
+float EB_GetPFnHadIsoCut_VL( float pt );
+float EB_GetPFnHadIsoCut_M( float pt );
+float EB_GetPFnHadIsoCut_T( float pt );
+
+float EB_GetPFphoIsoCut( float pt );
+float EB_GetPFphoIsoCut_VL( float pt );
+float EB_GetPFphoIsoCut_M( float pt );
+float EB_GetPFphoIsoCut_T( float pt );
+
+float EE_GetPFchHadIsoCut( );
+float EE_GetPFchHadIsoCut_VL( );
+float EE_GetPFchHadIsoCut_M( );
+float EE_GetPFchHadIsoCut_T( );
+
+float EE_GetPFnHadIsoCut( float pt );
+float EE_GetPFnHadIsoCut_VL( float pt );
+float EE_GetPFnHadIsoCut_M( float pt );
+float EE_GetPFnHadIsoCut_T( float pt );
+
+float EE_GetPFphoIsoCut_M( float pt );
+float EE_GetPFphoIsoCut_T( float pt );
+
+
+
 class RazorAnalyzerRun1: public RazorEventsRun1 {
     public :
         RazorAnalyzerRun1(TTree *tree=0);
@@ -64,26 +114,26 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
 
         //functions in RazorAuxElectron.cc
 	float GetElectronScaleCorrection( double pt, double eta );
-	float GetElectronEffectiveAreaMean(int i, bool use25nsCuts = true);
+	float GetElectronEffectiveAreaMean(int i, bool use25nsCuts = false);
 	float GetElectronEffectiveArea90(int i);
-        bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-        bool isEGammaPOGTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+        bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
+        bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
+        bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
+        bool isEGammaPOGTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
 //      bool isVetoElectron(int i, bool applyID = true, bool applyIso = true);
-//      bool isLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-//      bool isMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
-//      bool isTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true);
+//      bool isLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
+//      bool isMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
+//      bool isTightElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = false);
 //	bool isMVANonTrigVetoElectron(int i, bool applyID = true, bool applyIso = true);
-        bool passEGammaPOGVetoElectronID(int i, bool use25nsCuts = true);
-        bool passEGammaPOGLooseElectronID(int i, bool use25nsCuts = true);
-        bool passEGammaPOGMediumElectronID(int i, bool use25nsCuts = true);
-        bool passEGammaPOGTightElectronID(int i, bool use25nsCuts = true);
+        bool passEGammaPOGVetoElectronID(int i, bool use25nsCuts = false);
+        bool passEGammaPOGLooseElectronID(int i, bool use25nsCuts = false);
+        bool passEGammaPOGMediumElectronID(int i, bool use25nsCuts = false);
+        bool passEGammaPOGTightElectronID(int i, bool use25nsCuts = false);
 //	bool passMVANonTrigVetoElectronID(int i);
-        bool passEGammaPOGVetoElectronIso(int i, bool use25nsCuts = true);
-        bool passEGammaPOGLooseElectronIso(int i, bool use25nsCuts = true);
-        bool passEGammaPOGMediumElectronIso(int i, bool use25nsCuts = true);
-        bool passEGammaPOGTightElectronIso(int i, bool use25nsCuts = true);
+        bool passEGammaPOGVetoElectronIso(int i, bool use25nsCuts = false);
+        bool passEGammaPOGLooseElectronIso(int i, bool use25nsCuts = false);
+        bool passEGammaPOGMediumElectronIso(int i, bool use25nsCuts = false);
+        bool passEGammaPOGTightElectronIso(int i, bool use25nsCuts = false);
 //	bool passMVANonTrigVetoElectronIso(int i);
 	bool passHZZElectronIso(int i);
 	bool passHZZElectronPreselection(int i);
@@ -104,22 +154,22 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	void getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-//      bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90);
-	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
-	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
-	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
-	bool photonPassLooseID(int i, bool use25nsCuts = true);
-	bool photonPassMediumID(int i, bool use25nsCuts = true);
-	bool photonPassTightID(int i, bool use25nsCuts = true);
-//	bool photonPassLooseIso(int i, bool use25nsCuts = true);
-//	bool photonPassMediumIso(int i, bool use25nsCuts = true);
-//	bool photonPassTightIso(int i, bool use25nsCuts = true);
-//        bool isLoosePhoton(int i, bool use25nsCuts = true);
-//        bool isMediumPhoton(int i, bool use25nsCuts = true);
-//        bool isTightPhoton(int i, bool use25nsCuts = true);
-//        bool isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts = true);
-//        bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
-//        bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+      bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90);
+	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = false);
+	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = false);
+	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = false);
+	bool photonPassLooseID(int i, bool use25nsCuts = false);
+	bool photonPassMediumID(int i, bool use25nsCuts = false);
+	bool photonPassTightID(int i, bool use25nsCuts = false);
+	bool photonPassLooseIso(int i, bool use25nsCuts = false);
+	bool photonPassMediumIso(int i, bool use25nsCuts = false);
+	bool photonPassTightIso(int i, bool use25nsCuts = false);
+        bool isLoosePhoton(int i, bool use25nsCuts = false);
+        bool isMediumPhoton(int i, bool use25nsCuts = false);
+        bool isTightPhoton(int i, bool use25nsCuts = false);
+        bool isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts = false);
+        bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = false);
+        bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = false);
 	bool matchPhotonHLTFilters( int i, string HLTFilter);
 	void getPhotonEffAreaExo15004( float eta, double& effAreaPho );
 	bool photonPassLooseIDWithoutEleVetoExo15004(int i);
@@ -130,11 +180,11 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
 	/* //function in HggRazorAuxPhoton.cc */
 	/* // R u n 1   C u t   B a s e d   I D */
 	/* //---------------------------------- */
-	/* bool isGoodPhotonRun1( int i, bool _iso, bool _debug ); */
-	/* bool photonPassIsoRun1( int i, bool _debug ); */
-	/* bool photonPassIsoRun1( int i , WP wp, bool _debug ); */
-	/* void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho ); */
-	/* bool passEleVetoRun1( int i ); */
+	 bool isGoodPhotonRun1( int i, bool _iso, bool _debug); 
+	 bool photonPassIsoRun1( int i, bool _debug =false); 
+	 bool photonPassIsoRun1( int i , WP wp, bool _debug=false );
+	 void getPhotonEffAreaRun1( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho ); 
+	 bool passEleVetoRun1( int i ); 
 	/* // R u n 2   C u t   B a s e d   I D */
 	/* //---------------------------------- */
 	/* bool isGoodPhotonRun2( int i, bool _iso, WP wp, bool _debug ); */
