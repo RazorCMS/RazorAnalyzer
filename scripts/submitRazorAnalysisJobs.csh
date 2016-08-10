@@ -815,4 +815,47 @@ set files = `cat tmp.txt`
 hadd $sample.root $files && rm tmp.txt
 end
 
+##########################
+# HggRazor Bkg shape study - Inverse Photon Isolation - 2015 data
+##########################
+foreach sample( \
+DoubleEG_2015C \
+DoubleEG_2015D \
+)
+  echo "Sample " $sample
+  set inputfilelist="/afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/RazorAnalyzer/lists/Run2/razorNtuplerV2p4/data/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/RazorAnalyzer/submission/HggBkgShapeStudy_${sample}_${jobnumber}.out -J HggBkgShapeStudy_${sample}_${jobnumber} /afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_zhicai.csh  HggRazorForBkgShape $inputfilelist yes 10 $filesPerJob $jobnumber HggRazorForBkgShape_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/HggRazor/ICHEP2016Combined/V3p4_BkgShapeStudyOnly_PhotonCorrJuly20_InvertedIso_20160810/2015jobs/
+    sleep 0.1
+  end
+
+end
+
+##########################
+# HggRazor Bkg shape study - Inverse Photon Isolation - 2016 data
+##########################
+
+foreach sample( \
+DoubleEG_2016B_PRv2 \
+DoubleEG_2016C_PRv2 \
+DoubleEG_2016D_PRv2 \
+)
+  echo "Sample " $sample
+  set inputfilelist="/afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/RazorAnalyzer/lists/Run2/razorNtuplerV3p4/data/${sample}.cern.txt"
+  set filesPerJob = 1
+  set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
+  set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
+
+  foreach jobnumber(`seq 0 1 $maxjob`)
+    echo "job " $jobnumber " out of " $maxjob
+    bsub -q 8nm -o /afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/RazorAnalyzer/submission/HggBkgShapeStudy_${sample}_${jobnumber}.out -J HggBkgShapeStudy_${sample}_${jobnumber} /afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_zhicai.csh  HggRazorForBkgShape $inputfilelist yes 20 $filesPerJob $jobnumber HggRazorForBkgShape_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/HggRazor/ICHEP2016Combined/V3p4_BkgShapeStudyOnly_PhotonCorrJuly20_InvertedIso_20160810/2016jobs/
+    sleep 0.1
+  end
+
+end
 
