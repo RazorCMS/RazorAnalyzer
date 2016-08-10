@@ -1,4 +1,4 @@
-cp ../bin/HggRazorRun1WithRun2Bin ../
+cp ../bin/RunHggRazorRun1WithRun2Bin ../
 ./submit_lxplus_Run1.py ../lists/razorNtuplerV1p8-Run1/Data_DoublePhoton_Run2012B.cern.txt True Data_DoublePhoton_Run2012B 5 HggRazorRun1WithRun2Bin 1
 ./submit_lxplus_Run1.py ../lists/razorNtuplerV1p8-Run1/Data_DoublePhoton_Run2012C.cern.txt True Data_DoublePhoton_Run2012C 5 HggRazorRun1WithRun2Bin 1
 ./submit_lxplus_Run1.py ../lists/razorNtuplerV1p8-Run1/Data_DoublePhoton_Run2012D.cern.txt True Data_DoublePhoton_Run2012D 5 HggRazorRun1WithRun2Bin 1
