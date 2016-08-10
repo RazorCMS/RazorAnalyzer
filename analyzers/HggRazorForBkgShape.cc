@@ -108,7 +108,7 @@ void HggRazorForBkgShape::Analyze(bool isData, int option, string outFileName, s
   if (option == 7 || option == 17) doRequireTightID = true; 
   if (option == 8 || option == 18) doRequireTightIso = true;
   if (option == 9 || option == 19) { doRequireTightID = true; doRequireTightIso = true; }
-  if (option == 10 || option == 20) { doRequireIso = true; doMRSkim = true; doInverseIso=true;}
+  if (option == 10 || option == 20) { doRequireIso = true; doMRSkim = true; doRequireIso=false;}
 
   std::cout << "[INFO]: option = " << option << std::endl;
   std::cout << "[INFO]: analysisTag --> " << analysisTag << std::endl;
@@ -349,6 +349,7 @@ void HggRazorForBkgShape::Analyze(bool isData, int option, string outFileName, s
   //set branches on big tree
   //------------------------
   //only save the branches for bkg shape studies (AIC and bias tests)
+/*
   razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
   razorTree->Branch("pho1passIso", &Pho_passIso[0], "pho1passIso/O");
   razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
@@ -363,7 +364,13 @@ void HggRazorForBkgShape::Analyze(bool isData, int option, string outFileName, s
   razorTree->Branch("Flag_goodVertices", &Flag_goodVertices, "Flag_goodVertices/O");
   razorTree->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter, "Flag_eeBadScFilter/O");
   razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
-/*
+  razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+  razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
+  razorTree->Branch("mbbH", &mbbH, "mbbH/F");
+  razorTree->Branch("mbbZ_L", &mbbZ_L, "mbbZ_L/F");
+  razorTree->Branch("mbbH_L", &mbbH_L, "mbbH_L/F");
+*/
+
   razorTree->Branch("weight", &weight, "weight/F");
   razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
   razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
@@ -509,7 +516,7 @@ void HggRazorForBkgShape::Analyze(bool isData, int option, string outFileName, s
   razorTree->Branch("gParticlePt", gParticlePt, "gParticlePt[nGenParticle]/F");
   razorTree->Branch("gParticlePhi", gParticlePhi, "gParticlePhi[nGenParticle]/F");
   razorTree->Branch("gParticleEta", gParticleEta, "gParticleEta[nGenParticle]/F");
-*/
+
 
   //begin loop
   if ( fChain == 0 ) return;
