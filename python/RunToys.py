@@ -283,7 +283,7 @@ def runToys(w,options,cfg,seed):
     elif options.box == 'EleMultiJet':
         xFactor = [2.0, 1.8, 1.2, 1.2] #xFactor for each b-tag bin
     widgets = ['Running %s toys '%unc, Percentage(), ' ', Bar(marker=RotatingMarker()),' ', ETA(), ' ', FileTransferSpeed()]
-    pbar = ProgressBar(widgets=widgets, max_value=options.nToys).start()
+    pbar = ProgressBar(widgets=widgets, maxval=options.nToys).start()
     iAttempt = -1
     while iToy < options.nToys:
         iAttempt+=1

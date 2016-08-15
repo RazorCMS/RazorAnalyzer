@@ -221,7 +221,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData:
-        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter','Flag_EcalDeadCellTriggerPrimitiveFilter'])
+        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter','Flag_EcalDeadCellTriggerPrimitiveFilter','Flag_CSCTightHaloFilter','Flag_badChargedCandidateFilter','Flag_badMuonFilter'])
         cuts = cuts + ' && ( ' + flagCuts + ' ) '
     
     print "Cuts:",cuts
