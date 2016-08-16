@@ -17,7 +17,7 @@ echo " "; echo "Initialize CMSSW"; echo " "
 set workDir=`pwd`
 
 setenv SCRAM_ARCH slc6_amd64_gcc491
-cd    /afs/cern.ch/work/j/jmao/RAZORRUN2/CMSSW_7_4_7/src/
+cd    /afs/cern.ch/work/j/jmao/public/releases/CMSSW_7_4_7/src/
 eval `scramv1 runtime -csh`
 cd -
 
