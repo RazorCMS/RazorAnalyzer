@@ -505,7 +505,7 @@ void RazorHelper::loadBTag_Razor2016() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "mujets",                 // measurement type
@@ -1047,4 +1047,22 @@ void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool i
         sfMistagUp *= getPassOrFailScaleFactor( effMedium, jet_scalefactorUp, isCSVM ) / tmpSF;
         sfMistagDown *= getPassOrFailScaleFactor( effMedium, jet_scalefactorDown, isCSVM ) / tmpSF;
     }
+}
+
+// top pt reweighting from https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
+float RazorHelper::getTopPtWeight( float ptT, float ptTbar ) {
+    // do not extrapolate correction beyond pt = 400 GeV
+    if( ptT > 400 ) ptT = 400;
+    if( ptTbar > 400 ) ptTbar = 400;
+
+    float a = 0.156; // from 8 TeV, still recommended for 13 TeV use
+    float b = -0.00137; //from 8 TeV, still recommended for 13 TeV use
+
+    // weight from top
+    float weightT = exp( a + b*ptT );
+    // weight from antitop
+    float weightTbar = exp( a + b*ptTbar );
+
+    // combine into total weight
+    return sqrt( weightT * weightTbar );
 }

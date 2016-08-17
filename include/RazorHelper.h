@@ -76,6 +76,9 @@ class RazorHelper {
                 float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown, 
                 float &sfMistagUp, float &sfMistagDown);
 
+        // top pt reweighting
+        float getTopPtWeight( float ptT, float ptTbar );
+
     private:
         // member functions
         void loadTag_Razor2015(); // Final set of files used in 2015

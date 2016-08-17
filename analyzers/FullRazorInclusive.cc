@@ -116,6 +116,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
+    TH1F *SumTopPtWeights = new TH1F("SumTopPtWeights", "SumTopPtWeights", 1, 0.5, 1.5);
     TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
     TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
     TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
@@ -159,7 +160,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     //Basic tree variables
     int nVtx, NPU; 
     float weight = 1.0;
-    float btagCorrFactor;
+    float btagCorrFactor, topPtWeight;
     //For signal ISR systematic uncertainty
     float ISRSystWeightUp, ISRSystWeightDown;
     //For pileup systematic uncertainty
@@ -239,6 +240,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
         razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
         razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
+        razorTree->Branch("topPtWeight", &topPtWeight, "topPtWeight/F");
         razorTree->Branch("NPU", &NPU, "NPU/I");
 	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
 	razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
@@ -337,6 +339,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	    pileupWeightUp = 1.0;
 	    pileupWeightDown = 1.0;
 	    btagCorrFactor = 1.0;
+	    topPtWeight = 1.0;
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
             sf_vetoMuonEffUp = 1.0;
@@ -382,6 +385,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         /////////////////////////////////
         //MC particles
         /////////////////////////////////
+        float ptTop = -1;
+        float ptAntitop = -1;
 	if(!isData) {
 	  for(int j = 0; j < nGenParticle; j++){
 	    
@@ -431,7 +436,20 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	      }
 	    }
 
+            //top
+            if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && ptTop < 0 ) {
+                ptTop = gParticlePt[j];
+            }
+            //antitop
+            if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && ptAntitop < 0 ) {
+                ptAntitop = gParticlePt[j];
+            }
+
 	  } //loop over gen particles
+          // get top pt weight
+          if ( ptTop > 0 && ptAntitop > 0 ) {
+              topPtWeight = helper->getTopPtWeight( ptTop, ptAntitop );
+          }
 	} //if !isData
 	
 	if(isFastsimSMS){
@@ -1208,6 +1226,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
         //Fill normalization histogram
         NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
+        SumTopPtWeights->SetBinContent( 1, SumTopPtWeights->GetBinContent(1) + topPtWeight );
         SumWeights->Fill(1.0, weight);
 
         /////////////////////////////////
@@ -1306,6 +1325,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         outFile->cd();
         razorTree->Write();
         NEvents->Write();
+        SumTopPtWeights->Write();
         SumWeights->Write();
         SumScaleWeights->Write();
         SumPdfWeights->Write();
