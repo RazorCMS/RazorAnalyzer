@@ -46,9 +46,15 @@ echo ""
 
 
 # Get ready to run in your home directory
+if (${isData} == "false") then
+   set isDataOption = ""
+else 
+   set isDataOption = "--isData"
+endif
+
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isData} ${outputfile} ${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isData} ${outputfile} ${option} |& tee ${outputfile}.log
+echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isDataOption} --outputFile=${outputfile} --optionNumber=${option}
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isDataOption} --outputFile=${outputfile} --optionNumber=${option} |& tee ${outputfile}.log
 
 ls -ltr 
 
@@ -59,6 +65,16 @@ echo $outputDirectory
 cmsMkdir $outputDirectory
 cmsStage -f $outputfile $outputDirectory
 #cmsStage -f ${outputfile}.log $outputDirectory
+
+set tempOutputfile = `echo $outputfile | sed 's/.root//'`
+foreach f ( ${tempOutputfile}_*.root )
+   cmsStage -f $f $outputDirectory
+end
+
+#mkdir -p eos
+#eosmount eos
+#cp -v $outputfile eos/cms/$outputDirectory
+#eosumount eos
 
 set status=`echo $?`
 echo "Status: $status"
