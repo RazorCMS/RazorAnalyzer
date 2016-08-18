@@ -116,6 +116,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     //histogram containing total number of processed events (for normalization)
     int NEventProcessed = 0;
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+    TH1F *SumTopPtWeights = new TH1F("SumTopPtWeights", "SumTopPtWeights", 1, 1, 2);
  
     //*************************************************************************
     //Look over Input File Events
@@ -191,6 +192,26 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       for(int j = 0; j < nGenParticle; j++){
 	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 24) genWBosonIndex = j;
 	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 23) genZBosonIndex = j;
+      }
+
+      //Find ttbar pair
+      float ptTop = -1;
+      float ptAntitop = -1;
+      for(int j = 0; j < nGenParticle; j++){
+          //top
+          if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && ptTop < 0 ) {
+              ptTop = gParticlePt[j];
+          }
+          //antitop
+          if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && ptAntitop < 0 ) {
+              ptAntitop = gParticlePt[j];
+          }
+      }
+      // get top pt weight
+      if ( ptTop > 0 && ptAntitop > 0 ) {
+          events->topPtWeight = helper.getTopPtWeight( ptTop, ptAntitop );
+          // fill sum of top pt weights
+          SumTopPtWeights->SetBinContent( 1, SumTopPtWeights->GetBinContent(1) + events->topPtWeight);
       }
 
       //Next find the status 23 lepton and neutrinos from W or Z decay
