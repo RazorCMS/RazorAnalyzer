@@ -376,7 +376,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -419,19 +419,22 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         print "Note: ignoring dataDrivenQCD option because QCD is not in the list of samples to process!"
         dataDrivenQCD = False
     if dataDrivenQCD:
-        print "\nWill first process the high deltaPhi control region to obtain QCD prediction"
+        print "\nWill first process the data to obtain QCD prediction"
         cutsForQCDBkg = cutsMC.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
         cutsForQCDData = cutsData.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
         samplesForQCD = copy.copy(samples)
         samplesForQCD.remove('QCD')
-        if 'DiJet' in boxName:
+        if boxName is not None and 'DiJet' in boxName:
             qcdOption = 'datadrivenqcddijet'
+        elif 'GJets' in regionName:
+            qcdOption = 'qcdphoton'
         else:
             qcdOption = 'datadrivenqcdmultijet'
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill)
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts)
         #subtract backgrounds from QCD prediction
-        macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
+        if qcdOption == 'datadrivenqcddijet' or qcdOption == 'datadrivenqcdmultijet':
+            macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
         print "Now back to our signal region..."
     else:
         histsForQCD = None
@@ -495,6 +498,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     print sfShapes
     print "\nOther shape uncertainties:"
     print otherShapes
+    print "\n These event reweighting options will be used:"
+    print weightOpts
 
     #define histograms to fill
     hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
@@ -533,9 +538,14 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #use QCD extrapolation on data
     if 'datadrivenqcddijet' in map(str.lower, weightOpts): 
         dataWeightOpts.append('datadrivenqcddijet')
-    if 'datadrivenqcdmultijet' in map(str.lower, weightOpts): 
+    elif 'datadrivenqcdmultijet' in map(str.lower, weightOpts): 
         dataWeightOpts.append('datadrivenqcdmultijet')
+    elif 'qcdphoton' in map(str.lower, weightOpts): 
+        dataWeightOpts.append('qcdphoton')
             
+    print "\n These event reweighting options will be used for data:"
+    print dataWeightOpts
+
     #fill histograms by looping over all trees
     if dataName in trees:
         print("\nData:")
@@ -545,7 +555,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     if debugLevel > 0:
         print "\nMisc SF hists to use:"
         print auxSFs
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts) 
 
     #get up/down histogram variations
     for shape in otherShapes:
@@ -563,7 +573,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, propagateScaleFactorErrs=False, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Up"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Up", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, propagateScaleFactorErrs=False, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts)
         print "\n"+curShape,"Down:"
         #get any scale factor histograms needed to apply this down variation
         auxSFsToUse = copy.deepcopy(auxSFs)
@@ -572,7 +582,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         if debugLevel > 0:
             print "Auxiliary SF hists to use:"
             print auxSFsToUse
-        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, propagateScaleFactorErrs=False, debugLevel=debugLevel)
+        macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, propagateScaleFactorErrs=False, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts)
 
     if exportShapeErrs:
         #save shape histograms in hists dictionary
@@ -623,6 +633,7 @@ def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=
             boxName=boxName, btags=btags, blindBins=blindBins, makePlots=makePlots, 
             printdir=printdir, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, 
             unrollBins=analysis.unrollBins, noFill=noFill, exportShapeErrs=exportShapeErrs, 
+            extraCuts=analysis.extraCuts, extraWeightOpts=analysis.extraWeightOpts,
             propagateScaleFactorErrs=propagateScaleFactorErrs, sfVars=sfVars, debugLevel=debugLevel)
 
 def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):

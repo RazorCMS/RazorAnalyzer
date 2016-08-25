@@ -17,6 +17,8 @@ if __name__ == "__main__":
     parser.add_argument("--tag", dest="tag", required=True,
                                 help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
+    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
+            dest='noFill')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -28,10 +30,13 @@ if __name__ == "__main__":
     plotOpts = { 'comment':False }
 
     regionsOrder = ["TTJetsSingleLepton", "WJetsSingleLepton", "WJetsSingleLeptonInv"]
+    if tag != "Razor2015":
+        regionsOrder.insert(0, "GJetsInv")
     regions = {
             "TTJetsSingleLepton":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1),
             "WJetsSingleLepton":Analysis("WJetsSingleLepton",tag=tag,nbMax=0),
             "WJetsSingleLeptonInv":Analysis("WJetsSingleLeptonInv",tag=tag,nbMax=0),
+            "GJetsInv":Analysis("GJetsInv",tag=tag)
             }
 
     for region in regionsOrder:
@@ -45,10 +50,16 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #get correct variable names
         sfVars = ("MR","Rsq")
-        if "Inv" in region: sfVars = ("MR_NoW", "Rsq_NoW")
+        if region == "GJetsInv": sfVars = ("MR_NoPho","Rsq_NoPho")
+        elif "Inv" in region: sfVars = ("MR_NoW", "Rsq_NoW")
+        #QCD estimate for photon region
+        if region == 'GJetsInv':
+            dataDrivenQCD = True
+        else:
+            dataDrivenQCD = False
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
-                sfVars=sfVars, printdir=outdir, debugLevel=debugLevel ) 
+                sfVars=sfVars, printdir=outdir, debugLevel=debugLevel, noFill=args.noFill, dataDrivenQCD=dataDrivenQCD) 
         #compute scale factors
         appendScaleFactors(process, hists, sfHists, lumiData=analysis.lumi, th2PolyXBins=xbins, 
                 th2PolyCols=cols, debugLevel=debugLevel, var=sfVars, printdir=outdir)

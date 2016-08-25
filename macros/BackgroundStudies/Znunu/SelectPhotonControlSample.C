@@ -151,7 +151,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "2.6 fb^{-1}";
+  lumi_13TeV = "20.1 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -400,6 +400,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       if ( processLabels[i] == "Data") isData = true;
     
       cout << "process: " << processLabels[i] << " | file " << inputfiles[i][j] << " | Total Entries: " << events->tree_->GetEntries() << "\n";
+      float processYield = 0.0;
+      int processNEvents = 0;
       for(UInt_t ientry=0; ientry < events->tree_->GetEntries(); ientry++) {       	
 	events->tree_->GetEntry(ientry);
       
@@ -506,8 +508,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	}
       
 	//MET Filters
-	if (!(events->Flag_HBHENoiseFilter && events->Flag_goodVertices && events->Flag_eeBadScFilter)) continue;
-
+	if (!(events->Flag_HBHENoiseFilter && events->Flag_goodVertices && events->Flag_eeBadScFilter && events->Flag_EcalDeadCellTriggerPrimitiveFilter && events->Flag_CSCTightHaloFilter)) continue;
 
 	// //******************************
 	// //Apply Scale Factors
@@ -587,6 +588,8 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 
 	} else {
 	  MCYield += weight;
+          processNEvents ++;
+	  processYield += weight;
 	  histPhotonPt[i]->Fill(events->pho1.Pt(), weight);
 	  histPhotonEta[i]->Fill(events->pho1.Eta(), weight);
 	  histMET[i]->Fill(events->MET, weight);
@@ -600,6 +603,11 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	}
 
       } //loop over events
+      if (isData) cout << "Data yield: " << dataYield << endl;
+      else {
+          cout << "Selected events: " << processNEvents << endl;
+          cout << "Process yield: " << processYield << endl;
+      }
     } //loop over input files
   } //loop over input file groups
 
@@ -925,9 +933,11 @@ void SelectPhotonControlSample( int option = 0) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root");     
+    datafiles.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
+    //datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/PhotonAddToMET/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
   } else {
-    datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p3/PhotonRazorSkimPhotonSkim/RazorControlRegions_Data_NoDuplicates_GoodLumiGolden.root");     
+    datafiles.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
+    //datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/PhotonAddToMET/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
   }
 
   vector<string> bkgfiles_gjets;
@@ -951,29 +961,30 @@ void SelectPhotonControlSample( int option = 0) {
     //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
     //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
     //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
-    bkgfiles_gjets.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_GJetsDR0p4_1pb_weighted_RazorSkim.root");    
-    //bkgfiles_gjetsFrag.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_GoodLumiGolden.root"); 
-    bkgfiles_other.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
+    bkgfiles_gjets.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_GJetsDR0p4_1pb_weighted.root");    
+    bkgfiles_gjetsFrag.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_GJets_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"); 
+    bkgfiles_other.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted.root"); 
   }
    
 
   bkgfiles.push_back(bkgfiles_gjets);
-  // bkgfiles.push_back(bkgfiles_gjetsFrag);
+  bkgfiles.push_back(bkgfiles_gjetsFrag);
   bkgfiles.push_back(bkgfiles_qcd);
-  // bkgfiles.push_back(bkgfiles_other);
+  bkgfiles.push_back(bkgfiles_other);
 
   processLabels.push_back("GJets");  
-  // processLabels.push_back("GJetsFrag");  
+  processLabels.push_back("GJetsFrag");  
   processLabels.push_back("QCD");
-  // processLabels.push_back("Other");
+  processLabels.push_back("Other");
 
   colors.push_back(kOrange);
-  // colors.push_back(kOrange+4);
+  colors.push_back(kOrange+4);
   colors.push_back(kMagenta);
-  // colors.push_back(kCyan);
+  colors.push_back(kCyan);
   
-  double lumi = 2600;
+ // double lumi = 12900;
+  double lumi = 20100;
 
   //*********************************************************************
   //GJets Control Region
