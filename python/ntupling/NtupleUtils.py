@@ -1,11 +1,15 @@
 #!/bin/env python
+
+### Sequence for data: submit --> hadd --> skim --> hadd-final --> remove-duplicates --> good-lumi --> copy-local
+### Sequence for MC: submit --> hadd --> normalize --> hadd-final --> copy-local
+
 import math
 import os,sys
 import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuples2016_V3p3 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES
+from ControlRegionNtuples2016_V3p5 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES
 
 def getSamplePrefix(analyzer,tag):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
@@ -24,7 +28,7 @@ def getFileName(analyzer,tag,sample):
 def submitJobs(analyzer,tag,isData=False,submit=False):
     # parameters
     samples = SAMPLES
-    queue = '8nh'
+    queue = '1nh'
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC'
     jobssuffix = '/jobs'
@@ -119,43 +123,50 @@ def haddNormalizedFiles(analyzer,tag,force=False):
             print "Skipping process",process,"because no input files were found!"
             print "Failed to create file",outName
 
-def skimNtuples(analyzer,tag):
-    #make local output directory
-    dirName = 'Backgrounds/'+tag
-    call(['mkdir','-p',dirName])
-    #make list file for skimming
-    with open('skim_'+tag+'.txt','w') as skimfile:
-        for process in SAMPLES[tag]:
-            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+process+'_1pb_weighted.root'
-            if os.path.isfile( fname ):
-                print "Adding",process,"to skim file"
-                skimfile.write(fname+'\n')
-            else:
-                print "Input file for",process,"not found!"
-    skimString = 'MR%s > 300 && Rsq%s > 0.15'%(SUFFIXES[tag],SUFFIXES[tag])
-    print "Skimming with",skimString
-    call(['./SkimNtuple','skim_'+tag+'.txt',dirName,'RazorSkim',skimString])
-
-def removeDuplicates(analyzer,tag):
-    #first hadd all datasets together
+def combineData(analyzer,tag,force=False):
     haddList = []
     for process in DATA[tag]:
         print "Dataset:",process
         for sample in DATA[tag][process]:
-            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+sample+'.root'
+            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+sample+'_RazorSkim.root'
             print fname,
             if os.path.isfile( fname ):
                 print "found!"
                 haddList.append( fname )
             else:
                 print "not found..."
-    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data.root'
+    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_RazorSkim.root'
     if len(haddList) > 0:
-        call(['hadd',outName]+haddList)
+        if force:
+            call(['hadd','-f',outName]+haddList)
+        else:
+            call(['hadd',outName]+haddList)
     else:
         print "No input files were found!"
         return
-    #now remove duplicates
+
+def skimNtuples(analyzer,tag,isData=False):
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    #make list file for skimming
+    with open('skim_'+tag+'.txt','w') as skimfile:
+        for process in samples[tag]:
+            for sample in samples[tag][process]:
+                fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample)
+                if not isData: fname = fname.replace('.root','_1pb_weighted.root')
+                if os.path.isfile( fname ):
+                    print "Adding",sample,"to skim file"
+                    skimfile.write(fname+'\n')
+                else:
+                    print "Input file for",sample,"not found!"
+                    print "( looking for",fname,")"
+    skimString = 'MR%s > 300 && Rsq%s > 0.15'%(SUFFIXES[tag],SUFFIXES[tag])
+    print "Skimming with",skimString
+    call(['./SkimNtuple','skim_'+tag+'.txt',DIRS[tag],'RazorSkim',skimString])
+
+def removeDuplicates(analyzer,tag):
+    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_RazorSkim.root'
     outNameNoDuplicates = outName.replace('_Data','_Data_NoDuplicates')
     dupMacro = 'macros/RemoveDuplicateEvents.C'
     macroCall = "root -l '%s++(\"%s\",\"%s\")'"%(dupMacro,outName,outNameNoDuplicates)
@@ -167,7 +178,7 @@ def goodLumi(analyzer,tag):
     script = check_output(['which', 'FWLiteGoodLumi'])
     pythonFile = os.path.join(os.environ['CMSSW_BASE'],'src','RazorCommon','Tools','python','loadJson.py')
     #copy file locally
-    localInName = getSamplePrefix(analyzer,tag)+'_Data_NoDuplicates.root'
+    localInName = getSamplePrefix(analyzer,tag)+'_Data_NoDuplicates_RazorSkim.root'
     localOutName = localInName.replace('.root','_GoodLumiGolden.root')
     inName = DIRS[tag]+'/'+localInName
     call(['cp',inName,'.'])
@@ -187,12 +198,12 @@ def copyLocal(analyzer,tag,isData=False):
     localdir = 'Backgrounds/'+tag
     call(['mkdir','-p',localdir])
     if isData:
-        fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_NoDuplicates_GoodLumiGolden.root'
+        fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root'
         print "cp",fname,localdir
         call(['cp',fname,localdir])
     else:
         for process in samples[tag]:
-            fname = DIRS[tag]+'/'+getFileName(analyzer,tag)+'_'+process+'_1pb_weighted.root'
+            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+process+'_1pb_weighted.root'
             print "cp",fname,localdir
             call(['cp',fname,localdir])
 
@@ -245,14 +256,13 @@ if __name__ == '__main__':
     if args.haddFinal:
         print "Combine normalized files..."
         if isData:
-            sys.exit("Error: options --data and --hadd-final do not make sense together!")
-        haddNormalizedFiles(analyzer,tag,force)
+            combineData(analyzer,tag,force)
+        else:
+            haddNormalizedFiles(analyzer,tag,force)
 
     if args.skim:
-        print "Skim finished ntuples and copy locally..."
-        if isData:
-            sys.exit("Error: please do not use --data and --skim together (not implemented)")
-        skimNtuples(analyzer,tag)
+        print "Skim finished ntuples..."
+        skimNtuples(analyzer,tag,isData)
 
     if args.removeDuplicates:
         print "Remove duplicate events..."

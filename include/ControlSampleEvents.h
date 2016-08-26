@@ -57,6 +57,8 @@ class ControlSampleEvents {
   Float_t                 genWeight;
   Float_t                 weight;
   Float_t                 pileupWeight;
+  Float_t                 topPtWeight;
+  Float_t                 trigWeight1L;
   Float_t                 btagW;
   Float_t                 btagW_up;
   Float_t                 btagW_down;
@@ -299,6 +301,8 @@ class ControlSampleEvents {
     genWeight            = 0.0;
     weight               = 0.0;
     pileupWeight         = 0.0;
+    topPtWeight          = 1.0;
+    trigWeight1L         = 1.0;
     btagW                = 1.0;
     btagW_up             = 1.0;
     btagW_down           = 1.0;
@@ -579,6 +583,8 @@ class ControlSampleEvents {
       tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("lep1MTnoHF",&lep1MTnoHF,"lep1MTnoHF/F");
+      tree_->Branch("topPtWeight",&topPtWeight,"topPtWeight/F");
+      tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
@@ -640,6 +646,8 @@ class ControlSampleEvents {
       tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
       tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
       tree_->Branch("lep1Activity",&lep1Activity,"lep1Activity/F");
+      tree_->Branch("topPtWeight",&topPtWeight,"topPtWeight/F");
+      tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
@@ -707,6 +715,8 @@ class ControlSampleEvents {
       tree_->Branch("lep2PassTightIso",&lep2PassTightIso,"lep2PassTightIso/O");
       tree_->Branch("lep2MinDRToBJet",&lep2MinDRToBJet,"lep2MinDRToBJet/F");
       tree_->Branch("lep2Activity",&lep2Activity,"lep2Activity/F");
+      tree_->Branch("topPtWeight",&topPtWeight,"topPtWeight/F");
+      tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
       tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
       tree_->Branch("bjet1PassTight",&bjet1PassTight,"bjet1PassTight/O");
@@ -747,6 +757,8 @@ class ControlSampleEvents {
       tree_->Branch("lep1PassVeto",&lep1PassVeto,"lep1PassVeto/O");
       tree_->Branch("lep1PassLoose",&lep1PassLoose,"lep1PassLoose/O");
       tree_->Branch("lep1PassTight",&lep1PassTight,"lep1PassTight/O");
+      tree_->Branch("topPtWeight",&topPtWeight,"topPtWeight/F");
+      tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
@@ -781,6 +793,8 @@ class ControlSampleEvents {
       tree_->Branch("lep2PassVeto",&lep2PassVeto,"lep2PassVeto/O");
       tree_->Branch("lep2PassLoose",&lep2PassLoose,"lep2PassLoose/O");
       tree_->Branch("lep2PassTight",&lep2PassTight,"lep2PassTight/O");
+      tree_->Branch("topPtWeight",&topPtWeight,"topPtWeight/F");
+      tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("u1",&u1,"u1/F");
       tree_->Branch("u2",&u2,"u2/F");
@@ -898,6 +912,8 @@ class ControlSampleEvents {
       tree_->SetBranchStatus("MET", 1);
       tree_->SetBranchStatus("weight", 1);
       tree_->SetBranchStatus("pileupWeight", 1);
+      tree_->SetBranchStatus("topPtWeight", 1);
+      tree_->SetBranchStatus("trigWeight1L", 1);
       tree_->SetBranchStatus("MR", 1);
       tree_->SetBranchStatus("Rsq", 1);
       tree_->SetBranchStatus("NJets40", 1);
@@ -913,6 +929,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1PassTight",&lep1PassTight);
       tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
       tree_->SetBranchAddress("lep1MT",&lep1MT);	
+      tree_->SetBranchAddress("topPtWeight", &topPtWeight);
+      tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("METPhi",&METPhi);
       tree_->SetBranchAddress("METnoHF",&METnoHF);
@@ -943,6 +961,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
       tree_->SetBranchAddress("lep1MT",&lep1MT);
       tree_->SetBranchAddress("lep1Activity",&lep1Activity);
+      tree_->SetBranchAddress("topPtWeight", &topPtWeight);
+      tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("METPhi",&METPhi);
       tree_->SetBranchAddress("METnoHF",&METnoHF);
@@ -1011,6 +1031,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep2PassTightIso",&lep2PassTightIso);
       tree_->SetBranchAddress("lep2MinDRToBJet",&lep2MinDRToBJet);
       tree_->SetBranchAddress("lep2Activity",&lep2Activity);
+      tree_->SetBranchAddress("topPtWeight", &topPtWeight);
+      tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
       tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
       tree_->SetBranchAddress("bjet1PassTight",&bjet1PassTight);
@@ -1050,6 +1072,8 @@ class ControlSampleEvents {
     if (treeType == kTreeType_OneLeptonAdd2MET_Full ) {
       tree_->SetBranchAddress("lep1",&lep1Ptr);
       tree_->SetBranchAddress("lep1Type",&lep1Type);
+      tree_->SetBranchAddress("topPtWeight", &topPtWeight);
+      tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("MR_NoW", &MR_NoW);
       tree_->SetBranchAddress("Rsq_NoW",&Rsq_NoW);
       tree_->SetBranchAddress("MET",&MET);
@@ -1078,6 +1102,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("lep2",          &lep2Ptr);
       tree_->SetBranchAddress("lep1Type",&lep1Type);
       tree_->SetBranchAddress("lep2Type",&lep2Type);
+      tree_->SetBranchAddress("topPtWeight", &topPtWeight);
+      tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("MR_NoZ",        &MR_NoZ);
       tree_->SetBranchAddress("Rsq_NoZ",       &Rsq_NoZ);
       tree_->SetBranchAddress("MET",	       &MET);

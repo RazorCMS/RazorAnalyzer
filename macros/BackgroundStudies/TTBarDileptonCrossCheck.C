@@ -116,7 +116,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "2.6 fb^{-1}";
+  lumi_13TeV = "20.1 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -470,7 +470,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	  }
           razorSF *= NJetsSFHist->GetBinContent( NJetsSFHist->FindBin(events->NJets40) );
 	  weight *= razorSF;
+
+          // top pt reweighting
+          if ( events->topPtWeight > 0 ) {
+              weight *= events->topPtWeight;
+          }
 	}
+
 
 
 	//******************************
@@ -676,7 +682,7 @@ void TTBarDileptonCrossCheck( int option = 0) {
   string datafile = "";
 
   //No Skims  
-  datafiles.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_Data_NoDuplicates_GoodLumiGolden.root");
+  datafiles.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");
 
   vector<string> bkgfiles_ttbar;
   vector<string> bkgfiles_wjets;
@@ -685,11 +691,11 @@ void TTBarDileptonCrossCheck( int option = 0) {
   vector<string> bkgfiles_vv; 
   vector<string> bkgfiles_ttv;
 
-  bkgfiles_ttbar.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_1pb_weighted_RazorSkim.root");    
-  bkgfiles_wjets.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJets_1pb_weighted_RazorSkim.root"); 
-  bkgfiles_singletop.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted_RazorSkim.root");  
-  bkgfiles_dy.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJets_1pb_weighted_RazorSkim.root");    
-  bkgfiles_vv.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_Other_1pb_weighted_RazorSkim.root");   
+  bkgfiles_ttbar.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_1pb_weighted.root");    
+  bkgfiles_wjets.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJets_1pb_weighted.root"); 
+  bkgfiles_singletop.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted.root");  
+  bkgfiles_dy.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJets_1pb_weighted.root");    
+  bkgfiles_vv.push_back("Backgrounds/2L/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_Other_1pb_weighted.root");   
 
   bkgfiles.push_back(bkgfiles_ttbar);
   bkgfiles.push_back(bkgfiles_dy);
@@ -709,7 +715,7 @@ void TTBarDileptonCrossCheck( int option = 0) {
   colors.push_back(kOrange-3);
   colors.push_back(kRed+1);
  
-   double lumi = 2300;
+   double lumi = 20100;
 
   //*********************************************************************
   //All final states Control Region

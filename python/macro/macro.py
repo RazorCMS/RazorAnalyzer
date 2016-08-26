@@ -362,7 +362,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     #format MC histograms
     for name in mcNames: 
         for var in histDict[name]: plotting.setHistColor(histDict[name][var], name)
-    mcTitles = {'WJets':'W+Jets', 'DYJets':'Z #rightarrow ll','TTJets':'t#bar{t}+Jets', 'TTJets2L':'2l t#bar{t}+Jets', 'TTJets1L':'1l t#bar{t}+Jets', 'SingleTop':'Single top', 'QCD':'QCD', 'ZInv':'Z #rightarrow #nu #nu', 'GJets':'#gamma+Jets', 'GJetsFrag':'#gamma+Jets (frag.)','Other':'Other'}
+    mcTitles = {'WJets':'W+Jets', 'DYJets':'Z #rightarrow ll','TTJets':'t#bar{t}+Jets', 'TTJets2L':'2l t#bar{t}+Jets', 'TTJets1L':'1l t#bar{t}+Jets', 'SingleTop':'Single top', 'QCD':'QCD', 'ZInv':'Z #rightarrow #nu #nu', 'GJets':'#gamma+Jets', 'GJetsInv':'#gamma+Jets', 'GJetsFrag':'#gamma+Jets (frag.)','Other':'Other'}
     titles = {name:(mcTitles[name] if name in mcTitles else name) for name in mcNames}
 
     #get data histograms
@@ -390,6 +390,9 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
     for i,var in enumerate(varList): 
         print "Variable:",var
         if not isinstance(var, basestring) and len(var) == 2: #2D plots
+            unrollBinsToUse = (None,None)
+            if 'MR' in var[0] and 'Rsq' in var[1]:
+                unrollBinsToUse = unrollBins
             mcDict = None 
             if len(mcNames) > 0:
                 mcDict = {} #for stacked unrolled plots
@@ -426,30 +429,30 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             if 'SUS15004' in special:
                 plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
-                        unrollBins=unrollBins, printdir=printdir)
+                        unrollBins=unrollBinsToUse, printdir=printdir)
                 #do MC total (no stack)
                 plotting.plot_SUS15004_FitVsMCTotal(c, mcTotal=mcPrediction, fit=fitPrediction, 
                         printstr=printstr+'MCTotal', lumistr=lumistr, commentstr=commentstr, 
-                        unrollBins=unrollBins, printdir=printdir)
+                        unrollBins=unrollBinsToUse, printdir=printdir)
             elif 'CR15004' in special:
                 plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
-                        unrollBins=unrollBins, printdir=printdir, ratiomin=0, ratiomax=2, controlRegion=True)
+                        unrollBins=unrollBinsToUse, printdir=printdir, ratiomin=0, ratiomax=2, controlRegion=True)
             else:
                 plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
                         ytitle=ytitle, printstr=printstr, lumistr=lumistr, commentstr=commentstr, 
                         saveroot=True, savepdf=True, savepng=True, nsigmaFitData=nsigmaFitData, 
                         nsigmaFitMC=nsigmaFitMC, mcDict=mcDict, mcSamples=mcNames, ymin=ymin, 
-                        unrollBins=unrollBins, printdir=printdir)
+                        unrollBins=unrollBinsToUse, printdir=printdir)
                 #do MC total (no stack)
                 plotting.plot_basic_2D(c, mc=mcPrediction, data=obsData, fit=fitPrediction, xtitle=xtitle, 
                         ytitle=ytitle, printstr=printstr+'MCTotal', lumistr=lumistr, 
                         commentstr=commentstr, saveroot=True, savepdf=True, savepng=True, 
-                        nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBins, 
+                        nsigmaFitData=nsigmaFitData, nsigmaFitMC=nsigmaFitMC, ymin=ymin, unrollBins=unrollBinsToUse, 
                         printdir=printdir)
             #draw bin mapping
-            if unrollBins[0] is not None and unrollBins[1] is not None:
-                plotting.drawUnrolledBinMapping(c, unrollBins, xtitle=xtitle, ytitle=ytitle, printstr=printstr+"BINNING", printdir=printdir)
+            if unrollBinsToUse[0] is not None and unrollBinsToUse[1] is not None:
+                plotting.drawUnrolledBinMapping(c, unrollBinsToUse, xtitle=xtitle, ytitle=ytitle, printstr=printstr+"BINNING", printdir=printdir)
         #for other variables make 1D plots
         if not isinstance(var, basestring): continue #only consider strings
         varHists = {name:histDict[name][var].Clone(histDict[name][var].GetName()+"Clone") for name in mcNames}
@@ -820,7 +823,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, propagateScaleFactorErrs=True, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
     Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
     sumweights=0.0
@@ -847,9 +850,18 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             sfVarsToUse = sfVars[name]
             print "Reweighting in",sfVarsToUse
         weightOptsToUse = copy.copy(weightOpts)
+        #add additional per-process weight options
+        if name in extraWeightOpts:
+            weightOptsToUse += extraWeightOpts[name]
+            print "Using extra weight options",extraWeightOpts[name],"for this process"
         #remove inapplicable option
         if 'nbjets' in weightOptsToUse and (name != 'TTJets' or not hasattr(treeDict[name],'NGenBJets')):
             weightOptsToUse.remove('nbjets')
+
+        #get cuts
+        cutsToUse = cuts
+        if name in extraCuts:
+            cutsToUse += " && "+extraCuts[name]
 
         #prepare additional shape histograms if needed
         shapeHistsToUse = {}
@@ -884,7 +896,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             print "Will fill histograms for these shape uncertainties:"
             print shapeNamesToUse
 
-        sumweights += loopTree(treeDict[name], weightF, cuts, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
 def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, downHist, sfHist, contamHist, debugLevel=0):

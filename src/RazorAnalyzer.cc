@@ -2390,7 +2390,7 @@ bool RazorAnalyzer::matchesGenMuon(double eta, double phi){
   for(int j = 0; j < nGenParticle; j++){
     if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
 	 abs(gParticleId[j]) == 13 && gParticleStatus[j] == 1 &&
-	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
+	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 15) 
 	 ) {
       result = true;
       break;
@@ -2405,7 +2405,7 @@ bool RazorAnalyzer::matchesGenElectron(double eta, double phi){
   for(int j = 0; j < nGenParticle; j++){
     if ( deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]) < 0.1 && 
 	 abs(gParticleId[j]) == 11 && gParticleStatus[j] == 1 &&
-	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24) 
+	 (abs(gParticleMotherId[j]) == 23 ||abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 15) 
 	 ) {
       result = true;
       break;

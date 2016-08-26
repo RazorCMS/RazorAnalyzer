@@ -66,6 +66,8 @@ if __name__ == "__main__":
             dest="noSFs")
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', type=int, help="choose a number of btags")
+    parser.add_argument('--b-inclusive', help='do not bin in btags', action='store_true',
+            dest='bInclusive')
     parser.add_argument("--tag", dest="tag", required=True,
             help="Analysis tag, e.g. Razor2015")
     args = parser.parse_args()
@@ -102,6 +104,8 @@ if __name__ == "__main__":
         dirSuffix += 'NoSFs'
     if args.noSys:
         dirSuffix += 'NoSys'
+    if args.bInclusive:
+        dirSuffix += 'BInclusive'
 
     regionsOrder = []
     regions = {}
@@ -119,6 +123,9 @@ if __name__ == "__main__":
                     nbMax = -1 #no upper limit
                 else:
                     nbMax = btags #exclusive
+            if args.bInclusive:
+                nbMin = 0
+                nbMax = 10
             #define analysis region
             extBox = '%s%dB%s'%(box,btags,dirSuffix)
             regionsOrder.append(extBox)

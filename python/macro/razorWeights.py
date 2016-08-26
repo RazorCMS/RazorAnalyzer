@@ -182,6 +182,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
     #nominal weight
     eventWeight = event.weight*scale
     if debugLevel > 1: 
+        print "Weight options:",weightOpts
         print "Error option:",errorOpt
         print "Weight from ntuple:",event.weight
         print "Scale by:",scale
@@ -199,10 +200,21 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             if debugLevel > 1:
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
+        elif 'qcdphoton' in lweightOpts:
+            qcdWeight = 0.05
+            if debugLevel > 1:
+                print "QCD weight:",qcdWeight
+            eventWeight *= qcdWeight 
 
         #reweighting in number of b-jets
         if 'nbjets' in lweightOpts:
             eventWeight *= getNBJetsWeight(event, debugLevel=debugLevel)
+
+        #top pt reweighting
+        if 'toppt' in lweightOpts and hasattr(event, 'topPtWeight') and event.topPtWeight > 0:
+            if debugLevel > 1:
+                print "Top pt weight:",event.topPtWeight
+            eventWeight *=  event.topPtWeight
 
         #pileup reweighting
         if str.lower("reapplyNPUWeights") in lweightOpts:
@@ -221,6 +233,12 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
         #if str.lower("do1LepTrigWeights") in lweightOpts:
         #    doLep2Trig = (str.lower("doLep2TrigWeights") in lweightOpts)
         #    eventWeight *= leptonTriggerWeight(event, wHists, doLep2Trig, debugLevel=debugLevel)
+
+        if 'photonkfactor' in lweightOpts:
+            kfactor = 1.44
+            if debugLevel > 1:
+                print "Photon k-factor",kfactor
+            eventWeight *= kfactor
 
     #up/down corrections for systematics
     normErrFraction=0.2
@@ -317,7 +335,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
 def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     lweightOpts = map(str.lower, weightOpts)
 
-    if 'datadrivenqcddijet' not in lweightOpts and 'datadrivenqcdmultijet' not in lweightOpts:
+    if len(lweightOpts) == 0:
         eventWeight = scale
         if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
         return eventWeight
@@ -326,6 +344,11 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
             qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
         elif 'datadrivenqcdmultijet' in lweightOpts:
             qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
+        elif 'qcdphoton' in lweightOpts:
+            qcdExtrapolationFactor = 0.05
+        else:
+            qcdExtrapolationFactor = 1.0
+            print "Warning: data weight options",lweightOpts,"may not make sense; see macro.razorWeights.weight_data"
         eventWeight = qcdExtrapolationFactor*scale
         if debugLevel > 1:
             print "QCD extrapolation factor:",qcdExtrapolationFactor

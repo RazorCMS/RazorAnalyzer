@@ -116,6 +116,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     //histogram containing total number of processed events (for normalization)
     int NEventProcessed = 0;
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+    TH1F *SumTopPtWeights = new TH1F("SumTopPtWeights", "SumTopPtWeights", 1, 1, 2);
  
     //*************************************************************************
     //Look over Input File Events
@@ -191,6 +192,26 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       for(int j = 0; j < nGenParticle; j++){
 	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 24) genWBosonIndex = j;
 	if ( gParticleStatus[j] == 22 && abs(gParticleId[j]) == 23) genZBosonIndex = j;
+      }
+
+      //Find ttbar pair
+      float ptTop = -1;
+      float ptAntitop = -1;
+      for(int j = 0; j < nGenParticle; j++){
+          //top
+          if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && ptTop < 0 ) {
+              ptTop = gParticlePt[j];
+          }
+          //antitop
+          if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && ptAntitop < 0 ) {
+              ptAntitop = gParticlePt[j];
+          }
+      }
+      // get top pt weight
+      if ( ptTop > 0 && ptAntitop > 0 ) {
+          events->topPtWeight = helper.getTopPtWeight( ptTop, ptAntitop );
+          // fill sum of top pt weights
+          SumTopPtWeights->SetBinContent( 1, SumTopPtWeights->GetBinContent(1) + events->topPtWeight);
       }
 
       //Next find the status 23 lepton and neutrinos from W or Z decay
@@ -425,9 +446,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       //Find Reconstructed Leptons
       //*************************************************************************
       float muonEffCorrFactor = 1.0;
-      float muonTrigCorrFactor = 1.0;
       float eleEffCorrFactor = 1.0;
-      float eleTrigCorrFactor = 1.0;
+      float probabilityToFail1LTrig = 1.0;
 
       vector<int> VetoLeptonIndex; 
       vector<int> VetoLeptonType;
@@ -519,10 +539,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       ) {	    
             muonEffCorrFactor *= helper.getTightMuonScaleFactor( muonPt[i], muonEta[i], isTightMuon(i) );
 
-	    //For single lepton samples, also get trigger efficiency correction
-	    if ( treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
-	      muonTrigCorrFactor *= helper.getSingleMuTriggerScaleFactor( muonPt[i], muonEta[i], true, true );
-	    }
+	    //also get trigger efficiency correction
+            probabilityToFail1LTrig *= ( 1 - helper.getSingleMuTriggerScaleFactor( muonPt[i], muonEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
 	  }
 
 	  //For Veto Lepton Options, use only veto leptons
@@ -609,14 +627,12 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
 		|| treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
 		)	       
-	       && muonPt[i] > 20
+	       && elePt[i] > 25
 	       ) {	    
 	    eleEffCorrFactor *= helper.getTightElectronScaleFactor( elePt[i], eleEta[i], isTightElectron(i) );
 
-	    //For single lepton samples, also get trigger efficiency correction
-	    if ( treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12) {
-	      eleTrigCorrFactor *= helper.getSingleEleTriggerScaleFactor( elePt[i], eleEta[i], true, true );
-	    }
+	    //also get trigger efficiency correction
+	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerScaleFactor( elePt[i], eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
 	    
 	  }
 
@@ -1544,12 +1560,20 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       //****************************************************************************
       //Compute All Event Weights
       //****************************************************************************
-      
+
       events->weight = events->genWeight
 	* pileupWeight
 	* muonEffCorrFactor * eleEffCorrFactor 
-	* muonTrigCorrFactor * eleTrigCorrFactor 
 	* events->btagW;
+
+      // lepton trigger weight
+      if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
+                  || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14 ) ) {
+          events->trigWeight1L = 1 - probabilityToFail1LTrig; //efficiency = 1 - P( all leptons fail )
+          if ( events->trigWeight1L == 0 ) events->trigWeight1L = 1.0; //don't allow zero weight
+          events->weight *= events->trigWeight1L;
+      }
+      
 
       //****************************************************************************
       //Event Skimming

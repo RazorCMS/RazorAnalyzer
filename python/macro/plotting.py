@@ -81,7 +81,7 @@ def getLinesForUnrolled(hist):
     return lines
 
 def setHistColor(hist, name):
-    colors = {"WJets":rt.kRed+1, "WJetsInv":rt.kRed+1, "DYJets":rt.kBlue+1, "DYJetsInv":rt.kBlue+1, "TTJets":rt.kGreen+2, "TTJets1L":rt.kGreen+2, "TTJets2L":rt.kGreen+3, "ZInv":rt.kCyan+1, "QCD":rt.kMagenta, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1, "GJets":rt.kOrange , "GJetsFrag":(rt.kOrange+4), "Other":rt.kAzure+4}
+    colors = {"WJets":rt.kRed+1, "WJetsInv":rt.kRed+1, "DYJets":rt.kBlue+1, "DYJetsInv":rt.kBlue+1, "TTJets":rt.kGreen+2, "TTJets1L":rt.kGreen+2, "TTJets2L":rt.kGreen+3, "ZInv":rt.kCyan+1, "QCD":rt.kMagenta, "SingleTop":rt.kOrange-3, "VV":rt.kViolet+3, "TTV":rt.kGreen-7, "DYJetsLow":rt.kBlue+1, "GJets":rt.kOrange, "GJetsInv":rt.kOrange, "GJetsFrag":(rt.kOrange+4), "Other":rt.kAzure+4}
     """Sets histogram color"""
     if name in colors: hist.SetFillColor(colors[name])
     else: print "Warning in macro.py: histogram fill color not set for",name
@@ -520,7 +520,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
     pad1.Delete()
 
-def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette=53, grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawColz=True):
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette='RAINBOW', grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawColz=True):
     """Draw a single 2D histogram and print to file"""
     rt.gStyle.SetNumberContours(99)
     if palette == "FF":
@@ -1193,8 +1193,8 @@ def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", commentstr="", 
         print "Error in plot_SUS15004: please provide list of MC samples and associated histograms!"
         return
     ymin=5e-3
-    mcTitles = {'WJets':'W+Jets', 'DYJets':'Z #rightarrow ll','TTJets':'t#bar{t}+Jets', 'TTJets2L':'2l t#bar{t}+Jets', 'TTJets1L':'1l t#bar{t}+Jets', 'SingleTop':'Single top', 'QCD':'QCD', 'ZInv':'Z #rightarrow #nu #nu', 'GJets':'#gamma+Jets', 'GJetsFrag':'#gamma+Jets (frag.)', 'Other':'Other'}
-    mcOrdering = ['GJets','GJetsFrag','WJets','ZInv','TTJets','TTJets1L','TTJets2L','DYJets','SingleTop','QCD','Other']
+    mcTitles = {'WJets':'W+Jets', 'DYJets':'Z #rightarrow ll','TTJets':'t#bar{t}+Jets', 'TTJets2L':'2l t#bar{t}+Jets', 'TTJets1L':'1l t#bar{t}+Jets', 'SingleTop':'Single top', 'QCD':'QCD', 'ZInv':'Z #rightarrow #nu #nu', 'GJets':'#gamma+Jets', 'GJetsInv':'#gamma+Jets', 'GJetsFrag':'#gamma+Jets (frag.)', 'Other':'Other'}
+    mcOrdering = ['GJets','GJetsInv','GJetsFrag','WJets','ZInv','TTJets','TTJets1L','TTJets2L','DYJets','SingleTop','QCD','Other']
     #unroll 2D hists to plot in 1D
     if unrollBins[0] is None or unrollBins[1] is None: #if unrolledBins not provided, use histogram binning
         unrollBins = getUnrollBinsFromHistogram(data)

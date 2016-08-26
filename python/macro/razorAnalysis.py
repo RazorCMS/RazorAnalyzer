@@ -17,6 +17,7 @@ razorWeightOpts = {
         "Razor2016":[
                      #"reapplyNPUWeights", #remove pileup weight and multiply by new PU weight
                      #"nbjets" #apply an extra btag correction
+                     'toppt' #apply top pt weight
                      ], 
         }
 razorWeightHists = {
@@ -40,35 +41,32 @@ razorNtuples = {
         "SignalMuon":{},
         "SignalElectron":{},
         "SignalLepton":{},
+        "Photon":{},
         }
 
 razorSamples = {
         "TTJetsSingleLepton":["Other", "DYJets", "SingleTop", "WJets", "TTJets"],
         "WJetsSingleLepton":["Other", "DYJets", "SingleTop", "TTJets", "WJets"],
-        #"WJetsSingleLepton":["Other", "QCD", "DYJets", "SingleTop", "TTJets", "WJets"],
         "TTJetsDilepton":["Other", "DYJets", "SingleTop", "WJets", "TTJets"],
         "VetoLepton":["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"],
         "VetoTau":["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"],
-        "WJetsSingleLeptonInv":["DYJets", "SingleTop", "TTJets", "WJetsInv"],
-        #"WJetsSingleLeptonInv":["Other", "ZInv", "QCD", "DYJets", "SingleTop", "TTJets", "WJetsInv"],
+        "WJetsSingleLeptonInv":["Other","DYJets", "SingleTop", "TTJets", "WJetsInv"],
         "DYJetsDileptonInv":["Other", "SingleTop", "WJets", "TTJets", "DYJetsInv"],
         "SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"],
         "SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"],
-        #"SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets2L", "TTJets1L"],
-        #"SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"],
+        "Photon":["Other", "QCD", "GJetsFrag", "GJetsInv"],
         }
 razorSamplesReduced = {
         "TTJetsSingleLepton":["Other", "WJets", "TTJets"],
         "WJetsSingleLepton":["Other", "TTJets", "WJets"],
-        #"WJetsSingleLepton":["Other", "QCD", "TTJets", "WJets"],
         "TTJetsDilepton":["Other", "WJets", "TTJets"],
         "VetoLepton":["Other", "ZInv", "QCD", "WJets", "TTJets"],
         "VetoTau":["Other", "ZInv", "QCD", "WJets", "TTJets"],
-        "WJetsSingleLeptonInv":["TTJets", "WJetsInv"],
-        #"WJetsSingleLeptonInv":["Other", "ZInv", "QCD", "TTJets", "WJetsInv"],
+        "WJetsSingleLeptonInv":["Other", "TTJets", "WJetsInv"],
         "DYJetsDileptonInv":["Other", "WJets", "TTJets", "DYJetsInv"],
         "SignalHadronic":["Other", "QCD", "ZInv", "WJets", "TTJets"],
         "SignalLeptonic":["Other", "ZInv", "WJets", "TTJets"],
+        "Photon":["Other", "QCD", "GJetsFrag", "GJetsInv"],
         }
 
 ### 2015 ntuples
@@ -167,15 +165,16 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p2"
-versionData2016 = "V3p3"
+versionMC2016 = "V3p5"
+versionData2016 = "V3p5"
 
 prefix1L2016 = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
 prefix1LInv2016 = "RunTwoRazorControlRegions_OneLeptonAddToMetFull_SingleLeptonSkim" 
 prefix2LInv2016 = "RunTwoRazorControlRegions_DileptonAddToMetFull_DileptonSkim"
 prefixVetoL2016 = "RunTwoRazorControlRegions_VetoLeptonFull"
 prefixVetoTau2016 = "RunTwoRazorControlRegions_VetoTauFull_RazorSkim"
-skimstr = "_RazorSkim"
+prefixPhoton2016 = "RunTwoRazorControlRegions_PhotonFull"
+skimstr = ""
 
 #on EOS
 #dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonRazorSkimLeptonSkim'
@@ -192,6 +191,7 @@ dir2LInv2016 = 'Backgrounds/2LInv'
 dirVetoL2016 = 'Backgrounds/VetoL'
 dirVetoTau2016 = 'Backgrounds/VetoTau'
 dirSignal2016 = 'Backgrounds/Signal'
+dirPhoton2016 = 'Backgrounds/Photon'    
 
 razorNtuples["SingleLepton"]["Razor2016"] = {
         "TTJets"   : dir1L2016+"/"+prefix1L2016+"_TTJets_1pb_weighted"+skimstr+".root",
@@ -199,15 +199,15 @@ razorNtuples["SingleLepton"]["Razor2016"] = {
         "SingleTop": dir1L2016+"/"+prefix1L2016+"_SingleTop_1pb_weighted"+skimstr+".root",
         "DYJets"   : dir1L2016+"/"+prefix1L2016+"_DYJets_1pb_weighted"+skimstr+".root",
         "Other"    : dir1L2016+"/"+prefix1L2016+"_Other_1pb_weighted"+skimstr+".root",
-        "Data"     : dir1L2016+"/"+prefix1L2016+"_Data_NoDuplicates_GoodLumiGolden.root"
+        "Data"     : dir1L2016+"/"+prefix1L2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["SingleLeptonInv"]["Razor2016"] = {
         "TTJets"   : dir1LInv2016+"/"+prefix1LInv2016+"_TTJets_1pb_weighted"+skimstr+".root",
         "WJetsInv"    : dir1LInv2016+"/"+prefix1LInv2016+"_WJets_1pb_weighted"+skimstr+".root",
         "SingleTop": dir1LInv2016+"/"+prefix1LInv2016+"_SingleTop_1pb_weighted"+skimstr+".root",
         "DYJets"   : dir1LInv2016+"/"+prefix1LInv2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        #"Other"    : dir1LInv2016+"/"+prefix1LInv2016+"_Other_1pb_weighted"+skimstr+".root",
-        "Data"     : dir1LInv2016+"/"+prefix1LInv2016+"_Data_NoDuplicates_GoodLumiGolden.root"
+        "Other"    : dir1LInv2016+"/"+prefix1LInv2016+"_Other_1pb_weighted"+skimstr+".root",
+        "Data"     : dir1LInv2016+"/"+prefix1LInv2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["DileptonInv"]["Razor2016"] = {
         "TTJets"   : dir2LInv2016+"/"+prefix2LInv2016+"_TTJets_1pb_weighted"+skimstr+".root",
@@ -215,9 +215,7 @@ razorNtuples["DileptonInv"]["Razor2016"] = {
         "SingleTop": dir2LInv2016+"/"+prefix2LInv2016+"_SingleTop_1pb_weighted"+skimstr+".root",
         "DYJetsInv"   : dir2LInv2016+"/"+prefix2LInv2016+"_DYJets_1pb_weighted"+skimstr+".root",
         "Other"    : dir2LInv2016+"/"+prefix2LInv2016+"_Other_1pb_weighted"+skimstr+".root",
-        #"ZInv"     : dir2LInv2016+"/"+prefix2LInv2016+"_ZInv_1pb_weighted"+skimstr+".root",
-        #"QCD"      : dir2LInv2016+"/"+prefix2LInv2016+"_QCD_1pb_weighted"+skimstr+".root",       
-        "Data"     : dir2LInv2016+"/"+prefix2LInv2016+"_Data_NoDuplicates_GoodLumiGolden.root"
+        "Data"     : dir2LInv2016+"/"+prefix2LInv2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["VetoLepton"]["Razor2016"] = {
         "TTJets"   : dirVetoL2016+"/"+prefixVetoL2016+"_TTJets_1pb_weighted"+skimstr+".root",
@@ -227,7 +225,7 @@ razorNtuples["VetoLepton"]["Razor2016"] = {
         "Other"    : dirVetoL2016+"/"+prefixVetoL2016+"_Other_1pb_weighted"+skimstr+".root",
         "ZInv"     : dirVetoL2016+"/"+prefixVetoL2016+"_ZInv_1pb_weighted"+skimstr+".root",
         "QCD"      : dirVetoL2016+"/"+prefixVetoL2016+"_QCD_1pb_weighted"+skimstr+".root",       
-        "Data"     : dirVetoL2016+"/"+prefixVetoL2016+"_Data_NoDuplicates_GoodLumiGolden.root"
+        "Data"     : dirVetoL2016+"/"+prefixVetoL2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["VetoTau"]["Razor2016"] = {
         "TTJets"   : dirVetoTau2016+"/"+prefixVetoTau2016+"_TTJets_1pb_weighted"+skimstr+".root",
@@ -237,7 +235,15 @@ razorNtuples["VetoTau"]["Razor2016"] = {
         "Other"    : dirVetoTau2016+"/"+prefixVetoTau2016+"_Other_1pb_weighted"+skimstr+".root",
         "ZInv"     : dirVetoTau2016+"/"+prefixVetoTau2016+"_ZInv_1pb_weighted"+skimstr+".root",
         "QCD"      : dirVetoTau2016+"/"+prefixVetoTau2016+"_QCD_1pb_weighted"+skimstr+".root",       
-        "Data"     : dirVetoTau2016+"/"+prefixVetoTau2016+"_Data_NoDuplicates_GoodLumiGolden.root"
+        "Data"     : dirVetoTau2016+"/"+prefixVetoTau2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+        }
+razorNtuples["Photon"]["Razor2016"] = {
+        "GJetsInv"    : dirPhoton2016+"/"+prefixPhoton2016+"_GJetsDR0p4_1pb_weighted"+skimstr+".root",
+        "GJetsFrag": dirPhoton2016+"/"+prefixPhoton2016+"_GJets_1pb_weighted"+skimstr+".root",
+        "Other"    : dirPhoton2016+"/"+prefixPhoton2016+"_Other_1pb_weighted"+skimstr+".root",
+        #QCD predicted using data driven method
+        "QCD"      : dirPhoton2016+"/"+prefixPhoton2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
+        "Data"     : dirPhoton2016+"/"+prefixPhoton2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
         }
 razorNtuples["SignalHadronic"]["Razor2016"] = {
         "TTJets"   : dirSignal2016+"/FullRazorInclusive_TTJets_1pb_weighted"+skimstr+".root",
@@ -247,10 +253,8 @@ razorNtuples["SignalHadronic"]["Razor2016"] = {
         "Other"    : dirSignal2016+"/FullRazorInclusive_Other_1pb_weighted"+skimstr+".root",
         "ZInv"     : dirSignal2016+"/FullRazorInclusive_ZInv_1pb_weighted"+skimstr+".root",
         #QCD predicted using data driven method
-        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden2p6fb.root",
-        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden2p6fb.root"
-        #"QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden800pb.root",
-        #"Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden800pb.root"
+        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden2p6fb.root",
+        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden2p6fb.root"
         }
 razorNtuples["SignalLepton"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
 razorNtuples["SignalMuon"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
@@ -267,7 +271,7 @@ for name,files in razorNtuples.iteritems():
 #####################################
 
 triggerNames = {}
-for ttype in ["Razor", "SingleLepton", "Dilepton"]: triggerNames[ttype] = { "Data":{}, "MC":{} }
+for ttype in ["Razor", "SingleLepton", "Dilepton", "Photon"]: triggerNames[ttype] = { "Data":{}, "MC":{} }
 
 # 2015 triggers
 # Data
@@ -342,10 +346,14 @@ triggerNames["SingleLepton"]["Data"]["Razor2016"] = [
         'HLT_Ele105_CaloIdVT_GsfTrkIdT',
         ]
 triggerNames["Dilepton"]["Data"]["Razor2016"] = copy.copy(triggerNames["Dilepton"]["Data"]["Razor2015"])
+triggerNames["Photon"]["Data"]["Razor2016"] = [
+        'HLT_Photon165_R9Id90_HE10_IsoM',
+        ]
 #MC (samples have broken HLT menu)
 triggerNames["Razor"]["MC"]["Razor2016"] = [ 'PASS' ]
 triggerNames["SingleLepton"]["MC"]["Razor2016"] = [ 'PASS' ]
 triggerNames["Dilepton"]["MC"]["Razor2016"] = [ 'PASS' ]
+triggerNames["Photon"]["MC"]["Razor2016"] = [ 'PASS' ]
 
 class TriggerUtils(object):
     """Stores and retrieves trigger names"""
@@ -406,6 +414,7 @@ class TriggerUtils(object):
 #####################################
 
 razorCuts = {}
+razorExtraCuts = {} #per-process cuts
 
 def appendBoxCuts(cuts, boxNums):
     """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
@@ -413,7 +422,7 @@ def appendBoxCuts(cuts, boxNums):
 
 recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter","Flag_goodVertices",
         "Flag_eeBadScFilter","Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
-        #"Flag_badChargedCandidateFilter","Flag_badMuonFilter"
+        "Flag_badChargedCandidateFilter","Flag_badMuonFilter"
         ]
 def appendNoiseFilters(cuts, tree=None):
     ret = copy.copy(cuts)
@@ -442,6 +451,13 @@ razorCuts["VetoElectron"] = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() 
 razorCuts["VetoMuon"] = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
 
 razorCuts["VetoTau"] = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
+
+# Photon control region
+razorCuts["Photon"] = "pho1.Pt() > 185 && pho1_chargediso < 2.5 && ((abs(pho1.Eta()) < 1.5 && pho1_sigmaietaieta < 0.0103) || (abs(pho1.Eta()) >= 1.5 && pho1_sigmaietaieta < 0.0271)) && NJets80_NoPho >= 2 && MR_NoPho > 400 && Rsq_NoPho > 0.25 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
+razorExtraCuts["Photon"] = {
+        "GJetsInv":"!(abs(pho1_motherID) > 5 && pho1_motherID != 21 && pho1_motherID != 2212) && minDRGenPhotonToParton >= 0.4",
+        "GJetsFrag":"!(abs(pho1_motherID) > 5 && pho1_motherID != 21 && pho1_motherID != 2212) && minDRGenPhotonToParton < 0.4",
+        }
 
 # Hadronic boxes with inverted lepton veto
 cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
@@ -521,12 +537,16 @@ razorBinning["SingleLepton"] = {
         "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,1.5],
         "NJets40" : [1,2,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
+        "HT" : range(0, 2000, 200),
+        "MET" : range(0, 500, 50),
         }
 razorBinning["SingleLeptonInv"] = {
         "MR_NoW" : [300, 400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoW" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,1.5],
         "NJets_NoW" : [1,2,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
+        "HT_NoW" : range(0, 2000, 200),
+        "MET_NoW" : range(0, 500, 50),
         }
 
 ### Veto lepton control region
@@ -575,6 +595,16 @@ razorBinning["DYJetsDileptonInvReduced"] = {
         "NJets_NoZ" : [1,2,4,20]
         }
 
+### Photon control region
+razorBinning["Photon"] = {
+        "MR_NoPho" : [400, 500, 600, 700, 900, 1200, 4000],
+        "Rsq_NoPho" : [0.25, 0.30, 0.41, 0.52, 0.64, 1.5],
+        "NJets_NoPho" : [0,4,20],
+        "NBJetsMedium" : [0,1,2,3,4],
+        "HT_NoPho" : range(0, 2000, 200),
+        "MET_NoPho" : range(0, 500, 50),
+        }
+
 ### Signal region
 signalConfig = "config/run2_20151108_Preapproval_2b3b_data.config"
 cfg = Config.Config(signalConfig)
@@ -601,6 +631,10 @@ for region,binning in razorBinning.iteritems():
         binning[("MR_NoZ","Rsq_NoZ")] = []
     if "MR_NoPho" in binning and "Rsq_NoPho" in binning:
         binning[("MR_NoPho","Rsq_NoPho")] = []
+    if "HT" in binning and "MET" in binning:
+        binning[("HT","MET")] = []
+    if "HT" in binning and "met" in binning:
+        binning[("HT","met")] = []
 
 ### Non-grid binning 
 xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
@@ -843,9 +877,8 @@ class Analysis:
         if tag == "Razor2015":
             self.lumi = 2300
         elif tag == "Razor2016":
-            #self.lumi = 589
-            #self.lumi = 804
-            self.lumi = 2600
+            #self.lumi = 12900 #ICHEP dataset
+            self.lumi = 20100
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 
@@ -856,6 +889,8 @@ class Analysis:
 
     def getAnalysis(self):
         btag = str( max(0, self.nbMin) )+"B"
+        self.extraCuts = {}
+        self.extraWeightOpts = {}
         if self.region == "SingleLepton":
             self.trigType = "SingleLepton"
             self.jetVar = "NJets40"
@@ -932,6 +967,19 @@ class Analysis:
             self.cuts = razorCuts["DYJetsDileptonInv"]
             self.binning = razorBinning["DYJetsDileptonInvReduced"]
             self.unrollBins = (None,None)
+
+        elif self.region == "GJetsInv":
+            self.trigType = "Photon"
+            self.jetVar = "NJets_NoPho"
+            self.bjetVar = "NBJetsMedium"
+            self.filenames = razorNtuples["Photon"][self.tag]
+            self.samples = razorSamples["Photon"]
+            self.samplesReduced = razorSamplesReduced["Photon"]
+            self.cuts = razorCuts["Photon"]
+            self.binning = razorBinning["Photon"]
+            self.unrollBins = (xbinsSignal["GJetsInv"]["0B"],colsSignal["GJetsInv"]["0B"])
+            self.extraWeightOpts = { "GJetsInv":["photonkfactor"], "GJetsFrag":["photonkfactor"] }
+            self.extraCuts = razorExtraCuts["Photon"]
 
         elif self.region == "VetoLeptonControlRegion":
             self.trigType = "Razor"
@@ -1066,6 +1114,8 @@ class Analysis:
         self.trigInfoData = TriggerUtils(self.trigType, self.tag, isData=True)
         self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )+' && TMath::Finite(weight) && (!TMath::IsNaN(weight))'
         self.cutsData = self.trigInfoData.appendTriggerCuts( self.cuts )
+        if self.region == 'GJetsInv':
+            self.cutsData += ' && pho1HLTFilter[27]'
 
     def getWeightOpts(self):
         self.weightOpts = razorWeightOpts[self.tag]
@@ -1074,3 +1124,4 @@ class Analysis:
         for wType,wInfo in razorWeightHists[self.tag].iteritems():
             self.weightFiles[wType] = rt.TFile.Open(wInfo[0])
             self.weightHists[wType] = self.weightFiles[wType].Get(wInfo[1])
+
