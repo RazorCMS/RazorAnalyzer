@@ -32,8 +32,10 @@ class RazorHelper {
         // get lepton scale factor (without up/down uncertainties)
         double getTightMuonScaleFactor(float pt, float eta, bool isTight);
         double getVetoMuonScaleFactor(float pt, float eta, bool isVeto);
+        double getMuonTrackScaleFactor(float pt, float eta);
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
+        double getEleGSFTrackScaleFactor(float pt, float eta);
 
 	//get photon eff scale factor
         double getPhotonScaleFactor(float pt, float eta);
@@ -86,9 +88,9 @@ class RazorHelper {
         void loadTag_Razor2016_80X(); // Evolving configuration for 2016 PromptReco
         void loadTag_Null(); // Default when tag is not provided
         void loadCMSSWPath();
-        double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9);
-        double lookupPtEtaScaleFactorError(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9);
-        double lookupEtaPtScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9);
+        double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
+        double lookupPtEtaScaleFactorError(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
+        double lookupEtaPtScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
         double getPassOrFailScaleFactor(double eff, double sf, bool passes);
         std::vector<double> getLeptonScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
                 double pt, double eta, bool passes, double smear=0.0);
@@ -147,23 +149,27 @@ class RazorHelper {
         TFile *eleEfficiencyFile;
         TFile *eleEffSFFile;
         TFile *vetoEleEffSFFile;
+        TFile *eleGSFTrackEffSFFile;
         TH2D *eleTightEfficiencyHist;
         TH2D *eleVetoEfficiencyHist;
         TH2D *eleTightEffFastsimSFHist;
         TH2D *eleVetoEffFastsimSFHist;
         TH2D *eleTightEffSFHist;
         TH2D *eleVetoEffSFHist;
+        TH2D *eleGSFTrackEffSFHist;
 
         // for muons
         TFile *muEfficiencyFile;
         TFile *muEffSFFile;
         TFile *vetoMuEffSFFile;
+        TFile *muTrackEffSFFile;
         TH2D *muTightEfficiencyHist;
         TH2D *muVetoEfficiencyHist;
         TH2D *muTightEffFastsimSFHist;
         TH2D *muVetoEffFastsimSFHist;
         TH2D *muTightEffSFHist;
         TH2D *muVetoEffSFHist;
+        TH2D *muTrackEffSFHist;
 
         // for taus
         TFile *tauEfficiencyFile;
