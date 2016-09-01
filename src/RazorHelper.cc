@@ -1066,3 +1066,38 @@ float RazorHelper::getTopPtWeight( float ptT, float ptTbar ) {
     // combine into total weight
     return sqrt( weightT * weightTbar );
 }
+
+// electron scale corrections, derived privately on 2016 data
+float RazorHelper::getElectronScaleCorrection( float eta ) {
+    if ( fabs(eta) < 0.4 ) {
+        return 1/0.993387;
+    }
+    else if ( fabs(eta) < 0.8 ) {
+        return 1/0.993516;
+    }
+    else if ( fabs(eta) < 1.4442 ) {
+        return 1/0.990877;
+    }
+    else {
+        return 1/0.998137;
+    }
+}
+
+float RazorHelper::getElectronResCorrection( float eta ) {
+    if ( fabs(eta) < 0.4 ) {
+        return 0.0137622;
+    }
+    else if ( fabs(eta) < 0.8 ) {
+        return 0.961012;
+    }
+    else if ( fabs(eta) < 1.4442 ) {
+        return 1.01832;
+    }
+    else {
+        return 1.29274;
+    }
+}
+
+float RazorHelper::getCorrectedElectronPt( float pt, float eta ) {
+    return gRandom->Gaus( pt*getElectronScaleCorrection(eta), getElectronResCorrection(eta) );
+}

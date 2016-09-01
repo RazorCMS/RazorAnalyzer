@@ -461,6 +461,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       vector<TLorentzVector> GoodLeptons;//leptons used to compute hemispheres
       vector<int> GoodLeptonType;//leptons used to compute hemispheres
       vector<bool> GoodLeptonIsTight;//leptons used to compute hemispheres
+      vector<bool> GoodLeptonIsMedium;//leptons used to compute hemispheres
       vector<bool> GoodLeptonIsLoose;//leptons used to compute hemispheres
       vector<bool> GoodLeptonIsVeto;//leptons used to compute hemispheres
       vector<double> GoodLeptonActivity;//leptons used to compute hemispheres
@@ -521,6 +522,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  GoodLeptons.push_back(thisMuon);
 	  GoodLeptonType.push_back(13 * -1 * muonCharge[i]);
 	  GoodLeptonIsTight.push_back( isTightMuon(i) );
+	  GoodLeptonIsMedium.push_back( isTightMuon(i) ); //tight and medium muon selections are currently the same
 	  GoodLeptonIsLoose.push_back( isLooseMuon(i) );
 	  GoodLeptonIsVeto.push_back( isVetoMuon(i) );
 	  GoodLeptonActivity.push_back( muon_activityMiniIsoAnnulus[i] );
@@ -556,7 +558,13 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
       for(int i = 0; i < nElectrons; i++){
 
-	if(elePt[i] < 5) continue;
+        //correct the electron pt in MC
+        float eleCorrPt = elePt[i];
+        if ( !isData ) {
+            eleCorrPt = helper.getCorrectedElectronPt( elePt[i], eleEta[i] );
+        }
+
+	if(eleCorrPt < 5) continue;
 	if(fabs(eleEta[i]) > 2.5) continue;
 
 	//don't count electrons that were already selected as muons
@@ -566,26 +574,26 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	}
 	if (alreadySelected) continue;
 
-	if( isTightElectron(i) && elePt[i] > 25 ) {
+	if( isTightElectron(i) && eleCorrPt > 25 ) {
 	  TightLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  TightLeptonIndex.push_back(i);
-	  TightLeptonPt.push_back(elePt[i]);
+	  TightLeptonPt.push_back(eleCorrPt);
 	}
 	else if(isVetoElectron(i)) {
 	  VetoLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  VetoLeptonIndex.push_back(i);
-	  VetoLeptonPt.push_back(elePt[i]);
+	  VetoLeptonPt.push_back(eleCorrPt);
 	}
             
-	if (printSyncDebug) cout << "ele " << i << " " << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Veto = " << isVetoElectron(i) << " \n";
+	if (printSyncDebug) cout << "ele " << i << " " << eleCorrPt << " " << eleEta[i] << " " << elePhi[i] << " : Tight = " << isTightElectron(i) << " Veto = " << isVetoElectron(i) << " \n";
 
 	if(!isVetoElectron(i)) continue; 
 
 	TLorentzVector thisElectron;
 	if (isData) {
-	  thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
+	  thisElectron.SetPtEtaPhiM( eleCorrPt, eleEta[i], elePhi[i], 0.000511);
 	} else {
-	  thisElectron.SetPtEtaPhiM( elePt[i], eleEta[i], elePhi[i], 0.000511);
+	  thisElectron.SetPtEtaPhiM( eleCorrPt, eleEta[i], elePhi[i], 0.000511);
 	}
 
 	//*******************************************************
@@ -611,6 +619,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  GoodLeptons.push_back(thisElectron);        
 	  GoodLeptonType.push_back(11 * -1 * eleCharge[i]);
 	  GoodLeptonIsTight.push_back( isTightElectron(i) );
+	  GoodLeptonIsMedium.push_back( isMediumElectron(i) );
 	  GoodLeptonIsLoose.push_back( isLooseElectron(i) );
 	  GoodLeptonIsVeto.push_back( isVetoElectron(i) );
 	  GoodLeptonActivity.push_back( ele_activityMiniIsoAnnulus[i] );
@@ -627,12 +636,12 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
 		|| treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14
 		)	       
-	       && elePt[i] > 25
+	       && eleCorrPt > 25
 	       ) {	    
-	    eleEffCorrFactor *= helper.getTightElectronScaleFactor( elePt[i], eleEta[i], isTightElectron(i) );
+	    eleEffCorrFactor *= helper.getTightElectronScaleFactor( eleCorrPt, eleEta[i], isTightElectron(i) );
 
 	    //also get trigger efficiency correction
-	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerScaleFactor( elePt[i], eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
+	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerScaleFactor( eleCorrPt, eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
 	    
 	  }
 
@@ -640,7 +649,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if ( treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
 	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
 	       ) {
-	    eleEffCorrFactor *= helper.getVetoElectronScaleFactor( elePt[i], eleEta[i], isVetoElectron(i) );
+	    eleEffCorrFactor *= helper.getVetoElectronScaleFactor( eleCorrPt, eleEta[i], isVetoElectron(i) );
 	  }
 	}
 
@@ -679,6 +688,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  GoodLeptons.push_back(thisTau);        
 	  GoodLeptonType.push_back(15);
 	  GoodLeptonIsTight.push_back( isTightTau(i) );
+	  GoodLeptonIsMedium.push_back( isMediumTau(i) );
 	  GoodLeptonIsLoose.push_back( isLooseTau(i) );
 	  GoodLeptonIsVeto.push_back( isLooseTau(i) );
 	  GoodLeptonActivity.push_back( 9999 );
@@ -696,6 +706,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	    TLorentzVector tmpV = GoodLeptons[j]; 
 	    int tmpType = GoodLeptonType[j];
 	    bool tmpIsTight = GoodLeptonIsTight[j];
+	    bool tmpIsMedium = GoodLeptonIsMedium[j];
 	    bool tmpIsLoose = GoodLeptonIsLoose[j];
 	    bool tmpIsVeto = GoodLeptonIsVeto[j];
 	    double tmpActivity = GoodLeptonActivity[j];
@@ -703,6 +714,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	    GoodLeptons[j] = GoodLeptons[j+1];
 	    GoodLeptonType[j] = GoodLeptonType[j+1];
 	    GoodLeptonIsTight[j] = GoodLeptonIsTight[j+1];
+	    GoodLeptonIsMedium[j] = GoodLeptonIsMedium[j+1];
 	    GoodLeptonIsLoose[j] = GoodLeptonIsLoose[j+1];
 	    GoodLeptonIsVeto[j] = GoodLeptonIsVeto[j+1];
 	    GoodLeptonActivity[j] = GoodLeptonActivity[j+1];
@@ -710,6 +722,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	    GoodLeptons[j+1] = tmpV;
 	    GoodLeptonType[j+1] = tmpType;
 	    GoodLeptonIsTight[j+1] = tmpIsTight;
+	    GoodLeptonIsMedium[j+1] = tmpIsMedium;
 	    GoodLeptonIsLoose[j+1] = tmpIsLoose;
 	    GoodLeptonIsVeto[j+1] = tmpIsVeto;	  
 	    GoodLeptonActivity[j+1] = tmpActivity;
@@ -729,6 +742,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       events->lep2MatchedGenLepIndex = -1;
       events->lep1PassVeto = false;
       events->lep1PassLoose = false;
+      events->lep1PassMedium = false;
       events->lep1PassTight = false;
       events->lep2PassVeto = false;
       events->lep2PassLoose = false;
@@ -767,6 +781,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	      events->lep1MatchedGenLepIndex = 2;
 	    }
 	    events->lep1PassTight = GoodLeptonIsTight[i];
+	    events->lep1PassMedium = GoodLeptonIsMedium[i];
 	    events->lep1PassLoose = GoodLeptonIsLoose[i];
 	    events->lep1PassVeto = GoodLeptonIsVeto[i];
 	    events->lep1Activity = GoodLeptonActivity[i];
@@ -824,6 +839,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	      events->lep1MatchedGenLepIndex = 2;
 	    }
 	    events->lep1PassTight = GoodLeptonIsTight[i];
+	    events->lep1PassMedium = GoodLeptonIsMedium[i];
 	    events->lep1PassLoose = GoodLeptonIsLoose[i];
 	    events->lep1PassVeto = GoodLeptonIsVeto[i];
 	    events->lep1Activity = GoodLeptonActivity[i];
@@ -855,6 +871,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 		events->lep2MatchedGenLepIndex = 2;
 	      }
 	      events->lep2PassTight = GoodLeptonIsTight[i];
+	      events->lep2PassMedium = GoodLeptonIsMedium[i];
 	      events->lep2PassLoose = GoodLeptonIsLoose[i];
 	      events->lep2PassVeto = GoodLeptonIsVeto[i];
 	      events->lep2Activity = GoodLeptonActivity[i];

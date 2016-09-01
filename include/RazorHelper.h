@@ -10,6 +10,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2D.h"
+#include "TRandom.h"
 #include "FactorizedJetCorrector.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
@@ -79,6 +80,9 @@ class RazorHelper {
         // top pt reweighting
         float getTopPtWeight( float ptT, float ptTbar );
 
+        // electron scale corrections
+        float getCorrectedElectronPt( float pt, float eta );
+
     private:
         // member functions
         void loadTag_Razor2015(); // Final set of files used in 2015
@@ -107,6 +111,8 @@ class RazorHelper {
         void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, TH2D *errHist,
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
             float &sfDown, float extraSyst = 0.);
+        float getElectronScaleCorrection( float eta ); //for electron energy corrections
+        float getElectronResCorrection( float eta ); //for electron energy corrections
 
         // for Razor2015 74X tag
         void loadPileup_Razor2015();
