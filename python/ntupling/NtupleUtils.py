@@ -11,26 +11,27 @@ from subprocess import call, check_output
 
 from ControlRegionNtuples2016_V3p5 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES
 
-def getSamplePrefix(analyzer,tag):
+def getSamplePrefix(analyzer,tag,reHLT=False):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
             (TREETYPEEXT[tag]!='')*('_'+TREETYPEEXT[tag]))+(
-            (SKIMS[tag]!='')*('_'+SKIMS[tag]))
+            (SKIMS[tag]!='')*('_'+SKIMS[tag]))+(
+            (reHLT==True)*('_reHLT'))
 
-def getJobFileName(analyzer,tag,sample,ijob,maxjob):
-    prefix = getSamplePrefix(analyzer,tag)
+def getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT=False):
+    prefix = getSamplePrefix(analyzer,tag,reHLT)
     return '%s_%s.Job%dof%d.root'%(prefix,sample,ijob,maxjob)
-    #return '%s_%s_25ns.Job%dOf%d.root'%(prefix,sample,ijob,maxjob)
 
-def getFileName(analyzer,tag,sample):
-    prefix = getSamplePrefix(analyzer,tag)
+def getFileName(analyzer,tag,sample,reHLT=False):
+    prefix = getSamplePrefix(analyzer,tag,reHLT)
     return '%s_%s.root'%(prefix,sample)
 
-def submitJobs(analyzer,tag,isData=False,submit=False):
+def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False):
     # parameters
     samples = SAMPLES
     queue = '1nh'
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC'
+    if reHLT: listdir += 'reHLT'
     jobssuffix = '/jobs'
     if isData:
         listdir = listdir.replace('/MC','/data')
@@ -40,8 +41,11 @@ def submitJobs(analyzer,tag,isData=False,submit=False):
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
+    print samples[tag]
     for process in samples[tag]:
+        print process
         for sample in samples[tag][process]:
+            print sample
             inlist = os.path.join(basedir,listdir,sample+'.cern.txt')
             if not os.path.isfile(inlist):
                 print "Warning: list file",inlist,"not found!"
@@ -51,7 +55,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False):
             print "Sample:",sample," maxjob =",maxjob
             #submit
             for ijob in range(maxjob+1):
-                outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob)
+                outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT)
                 if not os.path.isfile( DIRS[tag]+jobssuffix+'/'+outfile ):
                     print "Job %d of %d"%(ijob,maxjob)
                     logfile = os.path.join(basedir,'output','%s_%s_%d.out'%(analyzer,sample,ijob))
@@ -63,16 +67,15 @@ def submitJobs(analyzer,tag,isData=False,submit=False):
                     if submit:
                         call(cmd)
 
-def haddFiles(analyzer,tag,isData=False,force=False):
+def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False):
     samples = SAMPLES
     if isData:
         samples = DATA
     for process in samples[tag]:
         for sample in samples[tag][process]:
             print "Sample:",sample
-            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample)
-            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample).replace('.root','*.Job*.root'))
-            #query = DIRS[tag]+'/../../../jobs/'+(getFileName(analyzer,tag,sample).replace('.root','*.Job*.root'))
+            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,reHLT)
+            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT).replace('.root','*.Job*.root'))
             jobfiles = glob.glob( query )
             if os.path.isfile( fname ) and not force:
                 print "File",fname,"exists; skipping"
@@ -84,7 +87,7 @@ def haddFiles(analyzer,tag,isData=False,force=False):
             else:
                 print "Warning: no files found (",query,")"
 
-def normalizeFiles(analyzer,tag,force=False):
+def normalizeFiles(analyzer,tag,force=False,reHLT=False):
     #make list file for normalizing
     paths = glob.glob( DIRS[tag]+'/*.root' )
     with open('ntuples_'+tag+'.txt','w') as normfile:
@@ -92,7 +95,7 @@ def normalizeFiles(analyzer,tag,force=False):
             #check if normalized file exists
             if (not force) and os.path.isfile( f.replace('.root','_1pb_weighted.root') ): continue
             sample = os.path.basename(f).replace('.root','').replace(
-                    getSamplePrefix(analyzer,tag)+'_','')
+                    getSamplePrefix(analyzer,tag,reHLT)+'_','')
             #check if we need this sample
             for process in SAMPLES[tag]:
                 if sample in SAMPLES[tag][process]:
@@ -100,20 +103,20 @@ def normalizeFiles(analyzer,tag,force=False):
                     break
     call(['./NormalizeNtuple','ntuples_'+tag+'.txt'])
 
-def haddNormalizedFiles(analyzer,tag,force=False):
+def haddNormalizedFiles(analyzer,tag,force=False,reHLT=False):
     for process in SAMPLES[tag]:
         print "Process:",process
         haddList = []
         for sample in SAMPLES[tag][process]:
             print "Sample:",sample,
-            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample).replace(
+            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,reHLT).replace(
                     '.root','_1pb_weighted.root')
             if os.path.isfile( fname ):
                 print "found!"
                 haddList.append( fname )
             else:
                 print "not found..."
-        outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+process+'_1pb_weighted.root'
+        outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,reHLT)+'_'+process+'_1pb_weighted.root'
         if len(haddList) > 0:
             if force:
                 call(['hadd','-f',outName]+haddList)
@@ -223,6 +226,7 @@ if __name__ == '__main__':
     parser.add_argument('--remove-duplicates',dest='removeDuplicates',action='store_true',help='Remove duplicates')
     parser.add_argument('--good-lumi',dest='goodLumi',action='store_true',help='Apply good lumi selection')
     parser.add_argument('--copy-local',dest='copyLocal',action='store_true',help='Copy files locally')
+    parser.add_argument('--reHLT',action='store_true',help='Process reHLT samples')
     args = parser.parse_args()
     tag = args.tag
     analyzer = args.analyzer
@@ -231,6 +235,7 @@ if __name__ == '__main__':
     isData = args.data
     noSub = args.noSub
     force = args.force
+    reHLT = args.reHLT
 
     #check if EOS is mounted
     if not os.path.isdir('eos/cms/store'):
@@ -241,24 +246,24 @@ if __name__ == '__main__':
 
     if args.submit:
         print "Submit batch jobs..."
-        submitJobs(analyzer,tag,isData,submit=(not noSub))
+        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT)
 
     if args.hadd:
         print "Combine ntuples..."
-        haddFiles(analyzer,tag,isData,force)
+        haddFiles(analyzer,tag,isData,force,reHLT=reHLT)
 
     if args.normalize:
         print "Normalize ntuples..."
         if isData:
             sys.exit("Error: options --data and --normalize do not make sense together!")
-        normalizeFiles(analyzer,tag,force)
+        normalizeFiles(analyzer,tag,force,reHLT=reHLT)
 
     if args.haddFinal:
         print "Combine normalized files..."
         if isData:
             combineData(analyzer,tag,force)
         else:
-            haddNormalizedFiles(analyzer,tag,force)
+            haddNormalizedFiles(analyzer,tag,force,reHLT=reHLT)
 
     if args.skim:
         print "Skim finished ntuples..."

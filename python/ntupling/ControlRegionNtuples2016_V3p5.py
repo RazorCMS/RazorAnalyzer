@@ -1,4 +1,4 @@
-VERSION = "V3p5"
+VERSION = "V3p5_UpdatedScaleFactors27August"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -7,6 +7,8 @@ TREETYPES = { '1L':'OneLeptonFull',
               'VetoTau':'VetoTau',
               'Photon':'PhotonAddToMET',
               'Signal':'',
+              '2LNoSkim':'DileptonFull_Inclusive',
+              '2LAbsolutelyNoSkim':'DileptonFull_NoEventSelection',
               }
 #adapt to Si's file naming system
 TREETYPEEXT = TREETYPES.copy()
@@ -23,6 +25,8 @@ SKIMS = { '1L':'SingleLeptonSkim',
           'VetoTau':'',
           'Photon':'',
           'Signal':'',
+          '2LNoSkim':'DileptonSkim',
+          '2LAbsolutelyNoSkim':'',
           }
 DIR = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/'+VERSION
 DIRS = { tag:DIR+'/'+TREETYPES[tag] for tag in TREETYPES }
@@ -35,7 +39,9 @@ OPTIONS = { '1L':1101,
             'VetoL':1007,
             'VetoTau':1009,
             'Photon':5505,
-            'Signal':10
+            'Signal':10,
+            '2LNoSkim':203,
+            '2LAbsolutelyNoSkim':3
           }
 
 SUFFIXES = { '1L':'',
@@ -45,7 +51,9 @@ SUFFIXES = { '1L':'',
              'VetoL':'',
              'VetoTau':'',
              'Photon':'_NoPho',
-             'Signal':''
+             'Signal':'',
+             '2LNoSkim':'',
+             '2LAbsolutelyNoSkim':'',
              }
 
 SAMPLES = {}
@@ -126,6 +134,10 @@ SAMPLES['1L'] = {
         }
 SAMPLES['1LInv'] = SAMPLES['1L'].copy()
 SAMPLES['2L'] = SAMPLES['1L'].copy()
+SAMPLES['2LNoSkim'] = { "DYJets":['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'] }
+SAMPLES['2LAbsolutelyNoSkim'] = { 
+                "DYJets":['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
+                "DYJetsNLO":['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'] }
 SAMPLES['2LInv'] = SAMPLES['1L'].copy()
 SAMPLES['VetoL'] = SAMPLES['1L'].copy()
 SAMPLES['VetoTau'] = SAMPLES['1L'].copy()
@@ -168,6 +180,7 @@ DATA['1L'] = {
                 'SingleMuon_2016D_PRv2',
                 'SingleMuon_2016E_PRv2',
                 'SingleMuon_2016F_PRv1',
+                'SingleMuon_2016G_PRv1',
             ],
         "SingleElectron":[
                 'SingleElectron_2016B_PRv2',
@@ -175,10 +188,13 @@ DATA['1L'] = {
                 'SingleElectron_2016D_PRv2',
                 'SingleElectron_2016E_PRv2',
                 'SingleElectron_2016F_PRv1',
+                'SingleElectron_2016G_PRv1',
             ]
         }
 DATA['1LInv'] = DATA['1L'].copy()
 DATA['2L'] = DATA['1L'].copy()
+DATA['2LNoSkim'] = DATA['1L'].copy()
+DATA['2LAbsolutelyNoSkim'] = DATA['1L'].copy()
 DATA['2LInv'] = DATA['1L'].copy()
 DATA['VetoL'] = { 'HTMHT':[
                 'HTMHT_2016B_PRv2',
@@ -186,6 +202,7 @@ DATA['VetoL'] = { 'HTMHT':[
                 'HTMHT_2016D_PRv2',
                 'HTMHT_2016E_PRv2',
                 'HTMHT_2016F_PRv1',
+                'HTMHT_2016G_PRv1',
                 ] }
 DATA['VetoTau'] = { 'HTMHT':[
                 'HTMHT_2016B_PRv2',
@@ -193,6 +210,7 @@ DATA['VetoTau'] = { 'HTMHT':[
                 'HTMHT_2016D_PRv2',
                 'HTMHT_2016E_PRv2',
                 'HTMHT_2016F_PRv1',
+                'HTMHT_2016G_PRv1',
                 ] }
 DATA['Photon'] = {
         "SinglePhoton":[
@@ -201,6 +219,7 @@ DATA['Photon'] = {
                 'SinglePhoton_2016D_PRv2',
                 'SinglePhoton_2016E_PRv2',
                 'SinglePhoton_2016F_PRv1',
+                'SinglePhoton_2016G_PRv1',
                 ]
         }
 DATA['Signal'] = DATA['1L'].copy()
@@ -210,4 +229,5 @@ DATA['Signal']["HTMHT"] = [
                 'HTMHT_2016D_PRv2',
                 'HTMHT_2016E_PRv2',
                 'HTMHT_2016F_PRv1',
+                'HTMHT_2016G_PRv1',
                 ]
