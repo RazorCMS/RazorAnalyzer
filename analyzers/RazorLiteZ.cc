@@ -365,12 +365,11 @@ void RazorLiteZ::Analyze(bool isData, int option, string outputfilename, string 
 	  }
 
 	  //tag must pass tight cuts
-	  if ( !isEGammaPOGTightElectron(indexTag) ) continue;
+	  if ( !isEGammaPOGMediumElectron(indexTag) ) continue;
 
 	  //Tag must match single electron HLT Filters OR tag leg filter of the dedicated T&P trigger
-	  if ( !matchTagElectronHLTFilters(indexTag)) continue;
-
-	  if ( !( ( (ele_chargedIso[indexTag] + fmax(0.0,  ele_photonIso[indexTag] + ele_neutralHadIso[indexTag] - GetElectronEffectiveAreaMean(indexTag)*fixedGridRhoFastjetAll)) / elePt[indexTag] < 0.02) ) ) continue;
+          //Trigger: HLT_Ele27_WPTight_Gsf_v* (filter 6)
+	  if ( !(ele_passHLTFilter[indexTag][6] && HLTDecision[35]) ) continue;
 
 	  TLorentzVector vtag;
 	  vtag.SetPtEtaPhiM(elePt[indexTag], eleEta[indexTag], elePhi[indexTag], ELE_MASS);
@@ -487,10 +486,8 @@ void RazorLiteZ::Analyze(bool isData, int option, string outputfilename, string 
 	  if ( !isMuonPOGTightMuon(indexTag) ) continue;
 	  
 	  //Tag must match single electron HLT Filters OR tag leg filter of the dedicated T&P trigger
-	  if ( !matchTagMuonHLTFilters(indexTag)) continue;
+	  if ( !(muon_passHLTFilter[indexTag][11] && HLTDecision[16]) ) continue;
 
-	  if ( !( ( (muon_chargedIso[indexTag] + fmax(0.0,  muon_photonIso[indexTag] + muon_neutralHadIso[indexTag] - 0.5*muon_pileupIso[indexTag])) / muonPt[indexTag] < 0.07) ) ) continue;
-	 
 	  TLorentzVector vtag;
 	  vtag.SetPtEtaPhiM(muonPt[indexTag], muonEta[indexTag], muonPhi[indexTag], MU_MASS);
 

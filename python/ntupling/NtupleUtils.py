@@ -232,6 +232,8 @@ if __name__ == '__main__':
     analyzer = args.analyzer
     if tag == 'Signal':
         analyzer = 'FullRazorInclusive'
+    elif tag == 'LiteZMu' or tag == 'LiteZEle':
+        analyzer = 'RazorLiteZ'
     isData = args.data
     noSub = args.noSub
     force = args.force

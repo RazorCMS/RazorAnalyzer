@@ -32,7 +32,7 @@ std::string ParseCommandLine( int argc, char* argv[], std::string opt )
 
 void usage()
 {
-  std::cerr << "Usage: Run%ANALYZER%  <input list>  [options]\n[options]:\n"
+  std::cerr << "Usage: RunRazorLiteZ  <input list>  [options]\n[options]:\n"
 	    << "-d  --isData\n"
 	    << "-f  --outputFile=<output filename> (optional)\n"
 	    << "-n  --optionNumber=<option number> (optional)\n"
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]){
     RazorLiteZ analyzer(theChain);
     
     //------ EXECUTE ------//
-    cout << "Executing %ANALYZER%..." << endl;
+    cout << "Executing RazorLiteZ..." << endl;
     analyzer.EnableAll();
     analyzer.Analyze(isData, option, outputFileName, label);
     cout << "Process completed!" << endl;

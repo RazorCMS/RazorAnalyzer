@@ -386,38 +386,44 @@ float RazorAnalyzer::GetElectronScaleCorrection( double pt, double eta ) {
 
 float RazorAnalyzer::GetElectronEffectiveAreaMean(int i, bool use25nsCuts ){ 
 
-  double effArea = 0.0;
-  //Effective areas below are for the sum of Neutral Hadrons + Photons
-  if (use25nsCuts) {
-    if (fabs(eleEta_SC[i]) < 1.0) {
-      effArea = 0.0960;
-    } else if (fabs(eleEta_SC[i]) < 1.479) {
-      effArea = 0.0947;	
-    } else if (fabs(eleEta_SC[i]) < 2.0) {
-      effArea = 0.0580;	
-    } else if (fabs(eleEta_SC[i]) < 2.2) {
-      effArea = 0.0688;	
-    } else if (fabs(eleEta_SC[i]) < 2.3) {
-      effArea = 0.0967;	
-    } else if (fabs(eleEta_SC[i]) < 2.4) {
-      effArea = 0.1195;	
-    } else if (fabs(eleEta_SC[i]) < 2.5) {
-      effArea = 0.1475;	
-    } 
-  } else {
-    if (fabs(eleEta_SC[i]) < 0.8) {
-      effArea = 0.0973;
-    } else if (fabs(eleEta_SC[i]) < 1.3) {
-      effArea = 0.0954;
-    } else if (fabs(eleEta_SC[i]) < 2.0) {
-      effArea = 0.0632;	
-    } else if (fabs(eleEta_SC[i]) < 2.2) {
-      effArea = 0.0727;	
-    } else {
-      effArea = 0.1337;	
-    } 
-  }
-  return effArea;
+    double effArea = 0.0;
+    //Effective areas below are for the sum of Neutral Hadrons + Photons
+    if (use25nsCuts) {
+        // These are the Spring15 25ns effective areas reported in this presentation:
+        // https://indico.cern.ch/event/369239/contributions/874575/attachments/1134761/1623262/talk_effective_areas_25ns.pdf
+        if (fabs(eleEta_SC[i]) < 1.0) {
+            effArea = 0.1752;
+        } else if (fabs(eleEta_SC[i]) < 1.479) {
+            effArea = 0.1862;	
+        } else if (fabs(eleEta_SC[i]) < 2.0) {
+            effArea = 0.1411;	
+        } else if (fabs(eleEta_SC[i]) < 2.2) {
+            effArea = 0.1534;	
+        } else if (fabs(eleEta_SC[i]) < 2.3) {
+            effArea = 0.1903;	
+        } else if (fabs(eleEta_SC[i]) < 2.4) {
+            effArea = 0.2243;	
+        } else if (fabs(eleEta_SC[i]) < 2.5) {
+            effArea = 0.2687;	
+        }
+        return effArea;
+    }
+    else {
+        // These are the Spring15 50ns effective areas reported in this presentation:
+        // https://indico.cern.ch/event/369235/contributions/874560/attachments/734635/1007867/Rami_EffAreas.pdf
+        if (fabs(eleEta_SC[i]) < 0.8) {
+            effArea = 0.0973;
+        } else if (fabs(eleEta_SC[i]) < 1.3) {
+            effArea = 0.0954;
+        } else if (fabs(eleEta_SC[i]) < 2.0) {
+            effArea = 0.0632;	
+        } else if (fabs(eleEta_SC[i]) < 2.2) {
+            effArea = 0.0727;	
+        } else {
+            effArea = 0.1337;	
+        } 
+    }
+    return effArea;
 }
 
 float RazorAnalyzer::GetElectronEffectiveArea90(int i){ 

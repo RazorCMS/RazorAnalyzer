@@ -1,4 +1,4 @@
-VERSION = "V3p5_UpdatedScaleFactors27August"
+VERSION = "V3p5_NewElectronEffAreas"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -9,6 +9,8 @@ TREETYPES = { '1L':'OneLeptonFull',
               'Signal':'',
               '2LNoSkim':'DileptonFull_Inclusive',
               '2LAbsolutelyNoSkim':'DileptonFull_NoEventSelection',
+              'LiteZEle':'',
+              'LiteZMu':'',
               }
 #adapt to Si's file naming system
 TREETYPEEXT = TREETYPES.copy()
@@ -27,10 +29,14 @@ SKIMS = { '1L':'SingleLeptonSkim',
           'Signal':'',
           '2LNoSkim':'DileptonSkim',
           '2LAbsolutelyNoSkim':'',
+          'LiteZEle':'',
+          'LiteZMu':'',
           }
 DIR = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/'+VERSION
 DIRS = { tag:DIR+'/'+TREETYPES[tag] for tag in TREETYPES }
 DIRS['Signal'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION+'/Signal'
+DIRS['LiteZEle'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorLiteZ/2016/'+VERSION+'/Electron'
+DIRS['LiteZMu'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorLiteZ/2016/'+VERSION+'/Muon'
 
 OPTIONS = { '1L':1101,
             '1LInv':2102,
@@ -41,7 +47,9 @@ OPTIONS = { '1L':1101,
             'Photon':5505,
             'Signal':10,
             '2LNoSkim':203,
-            '2LAbsolutelyNoSkim':3
+            '2LAbsolutelyNoSkim':3,
+            'LiteZEle':1,
+            'LiteZMu':2,
           }
 
 SUFFIXES = { '1L':'',
@@ -54,6 +62,8 @@ SUFFIXES = { '1L':'',
              'Signal':'',
              '2LNoSkim':'',
              '2LAbsolutelyNoSkim':'',
+             'LiteZEle':'',
+             'LiteZMu':'',
              }
 
 SAMPLES = {}
@@ -171,6 +181,8 @@ SAMPLES['Photon'] = {
             ],
         }
 SAMPLES['Signal'] = SAMPLES['1L'].copy()
+SAMPLES['LiteZEle'] = SAMPLES['2LAbsolutelyNoSkim'].copy()
+SAMPLES['LiteZMu'] = SAMPLES['2LAbsolutelyNoSkim'].copy()
 
 DATA = {}
 DATA['1L'] = {
@@ -231,3 +243,21 @@ DATA['Signal']["HTMHT"] = [
                 'HTMHT_2016F_PRv1',
                 'HTMHT_2016G_PRv1',
                 ]
+DATA['LiteZEle'] = {}
+DATA['LiteZEle']['SingleElectron'] = [
+        'SingleElectron_2016B_PRv2',
+        'SingleElectron_2016C_PRv2',
+        'SingleElectron_2016D_PRv2',
+        'SingleElectron_2016E_PRv2',
+        'SingleElectron_2016F_PRv1',
+        'SingleElectron_2016G_PRv1',
+        ]
+DATA['LiteZMu'] = {}
+DATA['LiteZMu']['SingleMuon'] = [
+        'SingleMuon_2016B_PRv2',
+        'SingleMuon_2016C_PRv2',
+        'SingleMuon_2016D_PRv2',
+        'SingleMuon_2016E_PRv2',
+        'SingleMuon_2016F_PRv1',
+        'SingleMuon_2016G_PRv1',
+        ]
