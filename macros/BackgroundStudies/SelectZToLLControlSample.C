@@ -33,6 +33,7 @@
 
 #endif
 
+//bool isReHLT = true;
 bool isReHLT = false;
 
 //*************************************************************************************************
@@ -275,7 +276,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
 //=== MAIN MACRO ================================================================================================= 
 
 
-void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "", string etaRangeOption = "Inclusive") {
+void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "", string etaRangeOption = "Inclusive", string pileupWeightFileName="data/PileupWeights/PileupReweight2016_ICHEP.root") {
 
   //****************************************
   //Set Plot Style
@@ -291,7 +292,9 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
   //============================================================================================================== 
   bool printdebug = false;
 
-  TFile *pileupWeightFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_06172016.root", "READ");
+  TFile *pileupWeightFile = TFile::Open(pileupWeightFileName.c_str(), "READ"); //pileup file from jiajing
+  //TFile *pileupWeightFile = TFile::Open("/afs/cern.ch/work/j/jmao/public/releases/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_ICHEP.root", "READ"); //pileup file from jiajing
+  //TFile *pileupWeightFile = TFile::Open("/afs/cern.ch/work/j/jmao/public/releases/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight.root", "READ"); //pileup file from jiajing
   TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
   assert(pileupWeightHist);
 
@@ -422,14 +425,10 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	double puWeight = 1;      
 	double weight = 1;
 	if (!isData) {
-	  // puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
-	  // if (events->pileupWeight>0) weight = lumi * events->weight / events->pileupWeight * puWeight;
-	  // else weight = 0;
-	  //weight = lumi * 0.00176494 * puWeight;
-	  //weight = lumi*events->weight;
-	  //weight = lumi * 1.2245e-04;
-	  //weight = lumi * 7.001851e-04;
-            weight = lumi*events->weight;
+            weight = lumi * events->weight;
+            puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
+            if (events->pileupWeight>0) weight = lumi * events->weight / events->pileupWeight * puWeight;
+            else weight = 0;
             if ( isReHLT ) weight /= events->trigWeight1L;
 	}
 
@@ -437,15 +436,6 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	//Trigger Selection
 	//******************************
 	bool passTrigger = false;
-
-	// //Use Single Lepton Triggers
-	// if ( events->HLTDecision[2] || 
-	//      events->HLTDecision[7] ||  
-	//      events->HLTDecision[11] ||
-	//      events->HLTDecision[12] ||
-	//      events->HLTDecision[15]
-	//      )  
-	//   passTrigger = true;
 
 	if (isData) {
 	  if ( events->HLTDecision[12] || events->HLTDecision[19]    //IsoMu18, IsoTkMu18
@@ -481,15 +471,6 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
                 passTrigger = true;
             }
 
-	  //For 74X MC
-	  // if ( events->HLTDecision[2] || events->HLTDecision[7] ||  events->HLTDecision[11] 
-	  //      ||events->HLTDecision[12] ||events->HLTDecision[15]
-	  //      //|| events->HLTDecision[19] 
-	  //      || events->HLTDecision[20] 
-	  //      //|| events->HLTDecision[21] || events->HLTDecision[28] || events->HLTDecision[29] 
-	  //      //|| events->HLTDecision[160]	  
-	  //      ) passTrigger = true;
-
 	}
 
 	if (!passTrigger) continue;
@@ -512,8 +493,6 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	l2.SetPtEtaPhiM( events->lep2.Pt() , events->lep2.Eta(), events->lep2.Phi(), events->lep2.M());
      
 	//Single lepton triggered data requires leading lepton pt cut
-	//if ( !( l1.Pt() > 80 || l2.Pt() > 80)) continue;
-	//if (! (l1.Pt() > 60 && l2.Pt() > 60
 	if ( !( l1.Pt() > 30 || l2.Pt() > 30)) continue;
 	if (! (l1.Pt() > 20 && l2.Pt() > 20
 	       && events->lep1PassTight && events->lep2PassTight)
@@ -932,11 +911,18 @@ void SelectZToLLControlSample( int option = 0) {
   vector<string> processLabels;
   vector<int> colors;
 
+  double lumi = 0;
+  string pileupWeightFileName = "data/PileupWeights/PileupReweight2016_ICHEP.root";
+  string runstr = "";
+
+  lumi = 12900;
+
+
   //Inclusive sample
   if (option % 10 == 1) {
     datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_2016BCD_GoodLumiGolden_12p9ifb.root");    
   } else if (option % 10 == 0) {
-    datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_2016BCD_GoodLumiGolden_12p9ifb.root");
+    datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_2016BCD_GoodLumiGolden_12p9ifb.root");    
   } else if (option % 10 == 2) {
       datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_2016BCD_GoodLumiGolden_12p9ifb.root");    
      datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_2016BCD_GoodLumiGolden_12p9ifb.root");
@@ -949,7 +935,6 @@ void SelectZToLLControlSample( int option = 0) {
   vector<string> bkgfiles_wjets;
   if (option % 100 >= 10) {
    
-    // bkgfiles_dy.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
       if( isReHLT ) {
           bkgfiles_dy.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5_UpdatedScaleFactors27August/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_reHLT_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
       }
@@ -958,10 +943,6 @@ void SelectZToLLControlSample( int option = 0) {
       }
 
 
-    // bkgfiles_ttbar.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
-    // bkgfiles_vv.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_VV_1pb_weighted.root");
-    // bkgfiles_singletop.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleTop_1pb_weighted.root");
-    //bkgfiles_wjets.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
   } else if (option % 100 < 10) {
     bkgfiles_dy.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted_RazorSkim.root");
     bkgfiles_ttbar.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/RazorSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");
@@ -993,9 +974,6 @@ void SelectZToLLControlSample( int option = 0) {
   //colors.push_back(kRed);
   // colors.push_back(kOrange+1);
 
-
-   double lumi = 0;
-   lumi = 12900;
 
    int channel = -1;
    string optionStr = "";
@@ -1035,13 +1013,15 @@ void SelectZToLLControlSample( int option = 0) {
       label = label + etaRangeOption;
   }
 
+  label = label + runstr;
+
   // run the analysis
   cout << "Luminosity: " << lumi << endl;
   cout << "Option: " << optionStr << endl;
   cout << "Channel: " << channel << endl;
   cout << "Label: " << label << endl;
   cout << "Eta range: " << etaRangeOption << endl;
-  RunSelectZToLLControlSample( datafiles, bkgfiles, processLabels, colors, lumi, optionStr, channel, label, etaRangeOption );
+  RunSelectZToLLControlSample( datafiles, bkgfiles, processLabels, colors, lumi, optionStr, channel, label, etaRangeOption, pileupWeightFileName );
 
   gApplication->Terminate();
 
