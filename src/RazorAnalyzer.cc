@@ -555,7 +555,7 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.181
 	   && fabs(ele_d0[i]) < 0.0564
 	   && fabs(ele_dZ[i]) < 0.472
-	   && ele_OneOverEminusOneOverP[i] < 0.207
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.207
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -568,7 +568,7 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.116
 	  && fabs(ele_d0[i]) < 0.222
 	  && fabs(ele_dZ[i]) < 0.921
-	  && ele_OneOverEminusOneOverP[i] < 0.174
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.174
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 3
 	  ) {
@@ -586,7 +586,7 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.186
 	   && fabs(ele_d0[i]) < 0.0621
 	   && fabs(ele_dZ[i]) < 0.613
-	   && ele_OneOverEminusOneOverP[i] < 0.239
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.239
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -599,7 +599,7 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0962
 	  && fabs(ele_d0[i]) < 0.279
 	  && fabs(ele_dZ[i]) < 0.947
-	  && ele_OneOverEminusOneOverP[i] < 0.141
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.141
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 3
 	  ) {
@@ -621,7 +621,7 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.104
 	   && fabs(ele_d0[i]) < 0.0261
 	   && fabs(ele_dZ[i]) < 0.41
-	   && ele_OneOverEminusOneOverP[i] < 0.102
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.102
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -634,7 +634,7 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0897
 	  && fabs(ele_d0[i]) < 0.118
 	  && fabs(ele_dZ[i]) < 0.822
-	  && ele_OneOverEminusOneOverP[i] < 0.126
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.126
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 1
 	  ) {
@@ -652,7 +652,7 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.0765
 	   && fabs(ele_d0[i]) < 0.0227
 	   && fabs(ele_dZ[i]) < 0.379
-	   && ele_OneOverEminusOneOverP[i] < 0.184
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.184
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -665,7 +665,7 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0824
 	  && fabs(ele_d0[i]) < 0.242
 	  && fabs(ele_dZ[i]) < 0.921
-	  && ele_OneOverEminusOneOverP[i] < 0.125
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.125
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 1
 	  ) {
@@ -687,7 +687,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.0876
 	   && fabs(ele_d0[i]) < 0.0118
 	   && fabs(ele_dZ[i]) < 0.373
-	   && ele_OneOverEminusOneOverP[i] < 0.0174
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.0174
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -700,7 +700,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0678
 	  && fabs(ele_d0[i]) < 0.0739
 	  && fabs(ele_dZ[i]) < 0.602
-	  && ele_OneOverEminusOneOverP[i] < 0.0898
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0898
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 1
 	  ) {
@@ -718,7 +718,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.0372
 	   && fabs(ele_d0[i]) < 0.0151
 	   && fabs(ele_dZ[i]) < 0.238
-	   && ele_OneOverEminusOneOverP[i] < 0.118	 
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.118	 
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -731,7 +731,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0546
 	  && fabs(ele_d0[i]) < 0.0535
 	  && fabs(ele_dZ[i]) < 0.572
-	  && ele_OneOverEminusOneOverP[i] < 0.104
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.104
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 1
 	  ) {
@@ -753,7 +753,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.0597
 	   && fabs(ele_d0[i]) < 0.0111	   
 	   && fabs(ele_dZ[i]) < 0.0466
-	   && ele_OneOverEminusOneOverP[i] < 0.012
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.012
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -766,7 +766,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0615
 	  && fabs(ele_d0[i]) < 0.0351
 	  && fabs(ele_dZ[i]) < 0.417
-	  && ele_OneOverEminusOneOverP[i] < 0.00999
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.00999
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 1
 	  ) {
@@ -784,7 +784,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
 	   && ele_HoverE[i] < 0.0372
 	   && fabs(ele_d0[i]) < 0.0144
 	   && fabs(ele_dZ[i]) < 0.323
-	   && ele_OneOverEminusOneOverP[i] < 0.0174
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.0174
 	   && ele_PassConvVeto[i]
 	   && ele_MissHits[i] <= 2
 	   ) {
@@ -797,7 +797,7 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
 	  && ele_HoverE[i] < 0.0544
 	  && fabs(ele_d0[i]) < 0.0377
 	  && fabs(ele_dZ[i]) < 0.571
-	  && ele_OneOverEminusOneOverP[i] < 0.01
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.01
 	  && ele_PassConvVeto[i]
 	  && ele_MissHits[i] <= 1
 	  ) {

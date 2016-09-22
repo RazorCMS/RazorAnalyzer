@@ -445,8 +445,6 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       //*************************************************************************
       //Find Reconstructed Leptons
       //*************************************************************************
-      float muonEffCorrFactor = 1.0;
-      float eleEffCorrFactor = 1.0;
       float probabilityToFail1LTrig = 1.0;
 
       vector<int> VetoLeptonIndex; 
@@ -539,8 +537,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 		)	       
 	       && muonPt[i] > 20
 	       ) {	    
-            muonEffCorrFactor *= helper.getTightMuonScaleFactor( muonPt[i], muonEta[i], isTightMuon(i) );
-            muonEffCorrFactor *= helper.getMuonTrackScaleFactor( muonPt[i], muonEta[i] ); //apply track efficiency scale factor
+            events->muonEffWeight *= helper.getTightMuonScaleFactor( muonPt[i], muonEta[i], isTightMuon(i) );
+            events->muonEffWeight *= helper.getMuonTrackScaleFactor( muonPt[i], muonEta[i] ); //apply track efficiency scale factor
 
 	    //also get trigger efficiency correction
             probabilityToFail1LTrig *= ( 1 - helper.getSingleMuTriggerScaleFactor( muonPt[i], muonEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
@@ -550,8 +548,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if ( treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
 	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
 	       ) {
-	     muonEffCorrFactor *= helper.getVetoMuonScaleFactor( muonPt[i], muonEta[i], isVetoMuon(i) );
-             muonEffCorrFactor *= helper.getMuonTrackScaleFactor( muonPt[i], muonEta[i] ); //apply track efficiency scale factor
+	     events->muonEffWeight *= helper.getVetoMuonScaleFactor( muonPt[i], muonEta[i], isVetoMuon(i) );
+             events->muonEffWeight *= helper.getMuonTrackScaleFactor( muonPt[i], muonEta[i] ); //apply track efficiency scale factor
 	  }
 	}
 
@@ -640,8 +638,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 		)	       
 	       && eleCorrPt > 25
 	       ) {	    
-	    eleEffCorrFactor *= helper.getTightElectronScaleFactor( eleCorrPt, eleEta[i], isTightElectron(i) );
-            eleEffCorrFactor *= helper.getEleGSFTrackScaleFactor( eleCorrPt, eleEta[i] ); //apply track efficiency scale factor
+	    events->eleEffWeight *= helper.getTightElectronScaleFactor( eleCorrPt, eleEta[i], isTightElectron(i) );
+            events->eleEffWeight *= helper.getEleGSFTrackScaleFactor( eleCorrPt, eleEta[i] ); //apply track efficiency scale factor
 
 	    //also get trigger efficiency correction
 	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerScaleFactor( eleCorrPt, eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
@@ -652,8 +650,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if ( treeTypeOption == 6 || treeTypeOption == 7 || treeTypeOption == 9 
 	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
 	       ) {
-	    eleEffCorrFactor *= helper.getVetoElectronScaleFactor( eleCorrPt, eleEta[i], isVetoElectron(i) );
-            eleEffCorrFactor *= helper.getEleGSFTrackScaleFactor( eleCorrPt, eleEta[i] ); //apply track efficiency scale factor
+	    events->eleEffWeight *= helper.getVetoElectronScaleFactor( eleCorrPt, eleEta[i], isVetoElectron(i) );
+            events->eleEffWeight *= helper.getEleGSFTrackScaleFactor( eleCorrPt, eleEta[i] ); //apply track efficiency scale factor
 	  }
 	}
 
@@ -1584,7 +1582,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
       events->weight = events->genWeight
 	* pileupWeight
-	* muonEffCorrFactor * eleEffCorrFactor 
+	* events->muonEffWeight * events->eleEffWeight 
 	* events->btagW;
 
       // lepton trigger weight
