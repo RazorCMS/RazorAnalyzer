@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Thu May 26 16:55:01 2016 by ROOT version 6.06/01
+// Thu Sep 29 22:19:14 2016 by ROOT version 6.06/01
 // from TTree RazorEvents/selected miniAOD information
-// found on file: razorNtuple.root
+// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -74,6 +74,13 @@ public :
    Float_t         muon_activityMiniIsoAnnulus[40];   //[nMuons]
    Bool_t          muon_passSingleMuTagFilter[40];   //[nMuons]
    Bool_t          muon_passHLTFilter[40][100];   //[nMuons]
+   Float_t         muon_validFractionTrackerHits[40];   //[nMuons]
+   Bool_t          muon_isGlobal[40];   //[nMuons]
+   Float_t         muon_normChi2[40];   //[nMuons]
+   Float_t         muon_chi2LocalPosition[40];   //[nMuons]
+   Float_t         muon_kinkFinder[40];   //[nMuons]
+   Float_t         muon_segmentCompatability[40];   //[nMuons]
+   Bool_t          muonIsICHEPMedium[40];   //[nMuons]
    Int_t           nElectrons;
    Float_t         eleE[40];   //[nElectrons]
    Float_t         elePt[40];   //[nElectrons]
@@ -174,6 +181,7 @@ public :
    Float_t         pho_RegressionEUncertainty[40];   //[nPhotons]
    Float_t         pho_IDMVA[40];   //[nPhotons]
    Float_t         pho_superClusterEnergy[40];   //[nPhotons]
+   Float_t         pho_superClusterRawEnergy[40];   //[nPhotons]
    Float_t         pho_superClusterEta[40];   //[nPhotons]
    Float_t         pho_superClusterPhi[40];   //[nPhotons]
    Float_t         pho_superClusterX[40];   //[nPhotons]
@@ -240,6 +248,8 @@ public :
    Float_t         metNoHFPhi;
    Float_t         metPuppiPt;
    Float_t         metPuppiPhi;
+   Float_t         metCaloPt;
+   Float_t         metCaloPhi;
    Float_t         metType1PtJetResUp;
    Float_t         metType1PtJetResDown;
    Float_t         metType1PtJetEnUp;
@@ -367,6 +377,13 @@ public :
    TBranch        *b_muon_activityMiniIsoAnnulus;   //!
    TBranch        *b_muon_passSingleMuTagFilter;   //!
    TBranch        *b_muon_passHLTFilter;   //!
+   TBranch        *b_muon_validFractionTrackerHits;   //!
+   TBranch        *b_muon_isGlobal;   //!
+   TBranch        *b_muon_normChi2;   //!
+   TBranch        *b_muon_chi2LocalPosition;   //!
+   TBranch        *b_muon_kinkFinder;   //!
+   TBranch        *b_muon_segmentCompatability;   //!
+   TBranch        *b_muonIsICHEPMedium;   //!
    TBranch        *b_nElectrons;   //!
    TBranch        *b_eleE;   //!
    TBranch        *b_elePt;   //!
@@ -467,6 +484,7 @@ public :
    TBranch        *b_pho_RegressionEUncertainty;   //!
    TBranch        *b_pho_IDMVA;   //!
    TBranch        *b_pho_superClusterEnergy;   //!
+   TBranch        *b_pho_superClusterRawEnergy;   //!
    TBranch        *b_pho_superClusterEta;   //!
    TBranch        *b_pho_superClusterPhi;   //!
    TBranch        *b_pho_superClusterX;   //!
@@ -533,6 +551,8 @@ public :
    TBranch        *b_metNoHFPhi;   //!
    TBranch        *b_metPuppiPt;   //!
    TBranch        *b_metPuppiPhi;   //!
+   TBranch        *b_metCaloPt;   //!
+   TBranch        *b_metCaloPhi;   //!
    TBranch        *b_metType1PtJetResUp;   //!
    TBranch        *b_metType1PtJetResDown;   //!
    TBranch        *b_metType1PtJetEnUp;   //!
@@ -627,11 +647,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("razorNtuple.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("razorNtuple.root");
+         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("razorNtuple.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -674,7 +694,7 @@ void RazorEvents::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set object pointer
-   lheComments = 0;
+  lheComments = 0;
    scaleWeights = 0;
    pdfWeights = 0;
    alphasWeights = 0;
@@ -735,6 +755,13 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("muon_activityMiniIsoAnnulus", muon_activityMiniIsoAnnulus, &b_muon_activityMiniIsoAnnulus);
    fChain->SetBranchAddress("muon_passSingleMuTagFilter", muon_passSingleMuTagFilter, &b_muon_passSingleMuTagFilter);
    fChain->SetBranchAddress("muon_passHLTFilter", muon_passHLTFilter, &b_muon_passHLTFilter);
+   fChain->SetBranchAddress("muon_validFractionTrackerHits", muon_validFractionTrackerHits, &b_muon_validFractionTrackerHits);
+   fChain->SetBranchAddress("muon_isGlobal", muon_isGlobal, &b_muon_isGlobal);
+   fChain->SetBranchAddress("muon_normChi2", muon_normChi2, &b_muon_normChi2);
+   fChain->SetBranchAddress("muon_chi2LocalPosition", muon_chi2LocalPosition, &b_muon_chi2LocalPosition);
+   fChain->SetBranchAddress("muon_kinkFinder", muon_kinkFinder, &b_muon_kinkFinder);
+   fChain->SetBranchAddress("muon_segmentCompatability", muon_segmentCompatability, &b_muon_segmentCompatability);
+   fChain->SetBranchAddress("muonIsICHEPMedium", muonIsICHEPMedium, &b_muonIsICHEPMedium);
    fChain->SetBranchAddress("nElectrons", &nElectrons, &b_nElectrons);
    fChain->SetBranchAddress("eleE", eleE, &b_eleE);
    fChain->SetBranchAddress("elePt", elePt, &b_elePt);
@@ -835,6 +862,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_RegressionEUncertainty", pho_RegressionEUncertainty, &b_pho_RegressionEUncertainty);
    fChain->SetBranchAddress("pho_IDMVA", pho_IDMVA, &b_pho_IDMVA);
    fChain->SetBranchAddress("pho_superClusterEnergy", pho_superClusterEnergy, &b_pho_superClusterEnergy);
+   fChain->SetBranchAddress("pho_superClusterRawEnergy", pho_superClusterRawEnergy, &b_pho_superClusterRawEnergy);
    fChain->SetBranchAddress("pho_superClusterEta", pho_superClusterEta, &b_pho_superClusterEta);
    fChain->SetBranchAddress("pho_superClusterPhi", pho_superClusterPhi, &b_pho_superClusterPhi);
    fChain->SetBranchAddress("pho_superClusterX", pho_superClusterX, &b_pho_superClusterX);
@@ -901,6 +929,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("metNoHFPhi", &metNoHFPhi, &b_metNoHFPhi);
    fChain->SetBranchAddress("metPuppiPt", &metPuppiPt, &b_metPuppiPt);
    fChain->SetBranchAddress("metPuppiPhi", &metPuppiPhi, &b_metPuppiPhi);
+   fChain->SetBranchAddress("metCaloPt", &metCaloPt, &b_metCaloPt);
+   fChain->SetBranchAddress("metCaloPhi", &metCaloPhi, &b_metCaloPhi);
    fChain->SetBranchAddress("metType1PtJetResUp", &metType1PtJetResUp, &b_metType1PtJetResUp);
    fChain->SetBranchAddress("metType1PtJetResDown", &metType1PtJetResDown, &b_metType1PtJetResDown);
    fChain->SetBranchAddress("metType1PtJetEnUp", &metType1PtJetEnUp, &b_metType1PtJetEnUp);

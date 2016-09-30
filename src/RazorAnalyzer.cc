@@ -98,6 +98,13 @@ void RazorAnalyzer::EnableMuons(){
     fChain->SetBranchStatus("muon_photonAndNeutralHadronMiniIso", 1);
     fChain->SetBranchStatus("muon_chargedPileupMiniIso", 1);
     fChain->SetBranchStatus("muon_activityMiniIsoAnnulus", 1);
+    fChain->SetBranchStatus("muon_validFractionTrackerHits", 1);
+    fChain->SetBranchStatus("muon_isGlobal", 1);
+    fChain->SetBranchStatus("muon_normChi2", 1);
+    fChain->SetBranchStatus("muon_chi2LocalPosition", 1);
+    fChain->SetBranchStatus("muon_kinkFinder", 1);
+    fChain->SetBranchStatus("muon_segmentCompatability", 1);
+    fChain->SetBranchStatus("muonIsICHEPMedium", 1);
     fChain->SetBranchStatus("muon_passSingleMuTagFilter", 1);
     fChain->SetBranchStatus("muon_passHLTFilter", 1);
 }
@@ -211,6 +218,7 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_RegressionEUncertainty", 1);
     fChain->SetBranchStatus("pho_IDMVA", 1);
     fChain->SetBranchStatus("pho_superClusterEnergy", 1);
+    fChain->SetBranchStatus("pho_superClusterRawEnergy", 1);
     fChain->SetBranchStatus("pho_superClusterEta", 1);
     fChain->SetBranchStatus("pho_superClusterPhi", 1);
     fChain->SetBranchStatus("pho_superClusterX", 1);
@@ -279,6 +287,8 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metType0Plus1Phi", 1);
     fChain->SetBranchStatus("metPuppiPt", 1);
     fChain->SetBranchStatus("metPuppiPhi", 1);
+    fChain->SetBranchStatus("metCaloPt", 1);
+    fChain->SetBranchStatus("metCaloPhi", 1);
     fChain->SetBranchStatus("sumMET", 1);
     fChain->SetBranchStatus("Flag_HBHENoiseFilter", 1);
     fChain->SetBranchStatus("Flag_HBHETightNoiseFilter", 1);
@@ -1341,7 +1351,7 @@ bool RazorAnalyzer::isMuonPOGLooseMuon(int i, bool applyID, bool applyIso){
 bool RazorAnalyzer::isMuonPOGMediumMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
   if (applyID) {
-    if (!(muonIsMedium[i] && fabs(muon_ip3dSignificance[i]) < 4)) pass = false;
+    if (!(muonIsICHEPMedium[i] && fabs(muon_ip3dSignificance[i]) < 4)) pass = false;
   }
   if (applyIso) {
     if (!((muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.12)) pass = false;
@@ -1392,7 +1402,7 @@ bool RazorAnalyzer::isTightMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/muonPt[i]));
   if (applyID) {
-    if (!(muonIsMedium[i] && fabs(muon_ip3dSignificance[i]) < 4 && fabs(muon_d0[i]) < 0.2)) pass = false;
+    if (!(muonIsICHEPMedium[i] && fabs(muon_ip3dSignificance[i]) < 4 && fabs(muon_d0[i]) < 0.2)) pass = false;
   }
   if (applyIso) {
     if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)) )/muonPt[i] < 0.2)) pass = false;
