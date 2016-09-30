@@ -66,7 +66,7 @@ TH2Poly* MakeTH2PolyForGJets(string name){
 }
 
 void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label, double ymin = 1e-1, double ymax = 1e4  ) {
-
+  string plotsDir = "Plots/Razor2016/PhotonControlRegionMacro";
   TCanvas *cv =0;
   TLegend *legend = 0;
 
@@ -151,7 +151,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "20.1 fb^{-1}";
+  lumi_13TeV = "1.7 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -215,15 +215,16 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->Draw("pe");
   
   pad1->SetLogy(false);
-  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s.png",varName.c_str(), label.c_str()));
-  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s.pdf",varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("%s/Razor_PhotonControlRegion_%s%s.png",
+              plotsDir.c_str(), varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("%s/Razor_PhotonControlRegion_%s%s.pdf",
+              plotsDir.c_str(), varName.c_str(), label.c_str()));
   
   pad1->SetLogy(true);
-  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s_Logy.png",varName.c_str(),label.c_str()));
-  cv->SaveAs(Form("Razor_PhotonControlRegion_%s%s_Logy.pdf",varName.c_str(),label.c_str()));
-
-
- 
+  cv->SaveAs(Form("%s/Razor_PhotonControlRegion_%s%s_Logy.png",
+              plotsDir.c_str(), varName.c_str(),label.c_str()));
+  cv->SaveAs(Form("%s/Razor_PhotonControlRegion_%s%s_Logy.pdf",
+              plotsDir.c_str(), varName.c_str(),label.c_str()));
 
 }
 
@@ -984,7 +985,8 @@ void SelectPhotonControlSample( int option = 0) {
   colors.push_back(kCyan);
   
  // double lumi = 12900;
-  double lumi = 20100;
+  double lumi = 1687;
+  //double lumi = 20100;
 
   //*********************************************************************
   //GJets Control Region

@@ -34,6 +34,7 @@
 #endif
 
 void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label ) {
+  string plotsDir = "Plots/Razor2016/TTBarDileptonControlRegionMacro";
 
   TCanvas *cv =0;
   TLegend *legend = 0;
@@ -116,7 +117,8 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //Add CMS and Lumi Labels
   //****************************
   // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "20.1 fb^{-1}";
+  lumi_13TeV = "1.7 fb^{-1}";
+    //lumi_13TeV = "20.1 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -175,15 +177,16 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   histDataOverMC->Draw("pe");
   
   pad1->SetLogy(false);
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s.png",varName.c_str(), label.c_str()));
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s.pdf",varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("%s/Razor_TTBarDileptonCrossCheckRegion_%s%s.png", 
+              plotsDir.c_str(), varName.c_str(), label.c_str()));
+  cv->SaveAs(Form("%s/Razor_TTBarDileptonCrossCheckRegion_%s%s.pdf", 
+              plotsDir.c_str(), varName.c_str(), label.c_str()));
   
   pad1->SetLogy(true);
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s_Logy.png",varName.c_str(),label.c_str()));
-  cv->SaveAs(Form("Razor_TTBarDileptonCrossCheckRegion_%s%s_Logy.pdf",varName.c_str(),label.c_str()));
-
-
- 
+  cv->SaveAs(Form("%s/Razor_TTBarDileptonCrossCheckRegion_%s%s_Logy.png",
+              plotsDir.c_str(), varName.c_str(),label.c_str()));
+  cv->SaveAs(Form("%s/Razor_TTBarDileptonCrossCheckRegion_%s%s_Logy.pdf",
+              plotsDir.c_str(), varName.c_str(),label.c_str()));
 
 }
 
@@ -417,11 +420,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	}
 
 	if (option == "4JetMR300Rsq0p15" ) {
-	  if (!(events->NJets40 >= 4 && events->MR > 300 && events->Rsq > 0.15 )) continue;	  
+	  if (!(events->NJets40 >= 4 && events->MR > 300 && 
+                      events->Rsq > 0.15 && events->NBJetsMedium >= 1)) continue;	  
 	}
 
         if ( option == "2JetMR300Rsq0p15" ) {
-          if (!(events->NJets40 >= 2 && events->NJets40 < 4 && events->MR > 300 && events->Rsq > 0.15 )) continue;
+          if (!(events->NJets40 >= 2 && events->NJets40 < 4 && events->MR > 300 && 
+                      events->Rsq > 0.15 && events->NBJetsMedium >= 1 )) continue;
         }
       
 	//MET Filters
@@ -715,7 +720,8 @@ void TTBarDileptonCrossCheck( int option = 0) {
   colors.push_back(kOrange-3);
   colors.push_back(kRed+1);
  
-   double lumi = 20100;
+  double lumi = 1687;
+   //double lumi = 20100;
 
   //*********************************************************************
   //All final states Control Region
