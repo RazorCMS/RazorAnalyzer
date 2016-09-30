@@ -14,7 +14,7 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
     phoTree->tree_->SetAutoFlush(0);
     
     cout << "Run With Option = " << Option << "\n";
-    bool use25nsSelection = false;
+    bool use25nsSelection = true;
     UInt_t NPhotonsFilled = 0;
 
 
