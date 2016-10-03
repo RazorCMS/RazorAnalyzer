@@ -555,267 +555,151 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso)
 }
 
 bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
-  bool pass = false;
-
-  if (use25nsCuts) {
+    // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
+    }
+    bool pass = false;
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0152
-	   && fabs(ele_dPhi[i]) < 0.216
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0114
-	   && ele_HoverE[i] < 0.181
-	   && fabs(ele_d0[i]) < 0.0564
-	   && fabs(ele_dZ[i]) < 0.472
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.207
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
+        if ( fabs(ele_dEta[i]) < 0.00749
+                && fabs(ele_dPhi[i]) < 0.228
+                && eleFull5x5SigmaIetaIeta[i] < 0.0115
+                && ele_HoverE[i] < 0.356
+                && fabs(ele_d0[i]) < 0.05
+                && fabs(ele_dZ[i]) < 0.10
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.299
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 2
+           ) {
+            pass = true;
+        }
     } else {
-      if (fabs(ele_dEta[i]) < 0.0113
-	  && fabs(ele_dPhi[i]) < 0.237
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0352
-	  && ele_HoverE[i] < 0.116
-	  && fabs(ele_d0[i]) < 0.222
-	  && fabs(ele_dZ[i]) < 0.921
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.174
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 3
-	  ) {
-	pass = true;
-      }
+        if (fabs(ele_dEta[i]) < 0.00895
+                && fabs(ele_dPhi[i]) < 0.213
+                && eleFull5x5SigmaIetaIeta[i] < 0.037
+                && ele_HoverE[i] < 0.211
+                && fabs(ele_d0[i]) < 0.1
+                && fabs(ele_dZ[i]) < 0.2
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.15
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 3
+           ) {
+            pass = true;
+        }
     } 
-  } 
-
-  //50ns cuts below
-  else {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0126
-	   && fabs(ele_dPhi[i]) < 0.107
-	   && eleFull5x5SigmaIetaIeta[i] < 0.012
-	   && ele_HoverE[i] < 0.186
-	   && fabs(ele_d0[i]) < 0.0621
-	   && fabs(ele_dZ[i]) < 0.613
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.239
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.0109
-	  && fabs(ele_dPhi[i]) < 0.219
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0339
-	  && ele_HoverE[i] < 0.0962
-	  && fabs(ele_d0[i]) < 0.279
-	  && fabs(ele_dZ[i]) < 0.947
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.141
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 3
-	  ) {
-	pass = true;
-      }
-    } 
-  }
-  return pass;
+    return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
-  bool pass = false;
-  
-  if (use25nsCuts) {
+    // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
+    }
+    bool pass = false;
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0105
-	   && fabs(ele_dPhi[i]) < 0.115
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0103
-	   && ele_HoverE[i] < 0.104
-	   && fabs(ele_d0[i]) < 0.0261
-	   && fabs(ele_dZ[i]) < 0.41
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.102
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
+        if ( fabs(ele_dEta[i]) < 0.00477
+                && fabs(ele_dPhi[i]) < 0.222
+                && eleFull5x5SigmaIetaIeta[i] < 0.011
+                && ele_HoverE[i] < 0.298
+                && fabs(ele_d0[i]) < 0.05
+                && fabs(ele_dZ[i]) < 0.10
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.241
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 1
+           ) {
+            pass = true;
+        }
     } else {
-      if (fabs(ele_dEta[i]) < 0.00814
-	  && fabs(ele_dPhi[i]) < 0.182
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0301
-	  && ele_HoverE[i] < 0.0897
-	  && fabs(ele_d0[i]) < 0.118
-	  && fabs(ele_dZ[i]) < 0.822
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.126
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
+        if (fabs(ele_dEta[i]) < 0.00868
+                && fabs(ele_dPhi[i]) < 0.213
+                && eleFull5x5SigmaIetaIeta[i] < 0.0314
+                && ele_HoverE[i] < 0.101
+                && fabs(ele_d0[i]) < 0.1
+                && fabs(ele_dZ[i]) < 0.2
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 1
+           ) {
+            pass = true;
+        }
     } 
-  }
-
-  //50ns cuts below
-  else {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.00976
-	   && fabs(ele_dPhi[i]) < 0.0929
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0105
-	   && ele_HoverE[i] < 0.0765
-	   && fabs(ele_d0[i]) < 0.0227
-	   && fabs(ele_dZ[i]) < 0.379
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.184
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.00952
-	  && fabs(ele_dPhi[i]) < 0.181
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0318
-	  && ele_HoverE[i] < 0.0824
-	  && fabs(ele_d0[i]) < 0.242
-	  && fabs(ele_dZ[i]) < 0.921
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.125
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
-    } 
-  }
-  return pass;
+    return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
-  bool pass = false;
-
-  if (use25nsCuts) {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0103
-	   && fabs(ele_dPhi[i]) < 0.0336
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
-	   && ele_HoverE[i] < 0.0876
-	   && fabs(ele_d0[i]) < 0.0118
-	   && fabs(ele_dZ[i]) < 0.373
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.0174
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.00733
-	  && fabs(ele_dPhi[i]) < 0.114
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0283
-	  && ele_HoverE[i] < 0.0678
-	  && fabs(ele_d0[i]) < 0.0739
-	  && fabs(ele_dZ[i]) < 0.602
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0898
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
+    // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
     }
-  } 
-
-  //50ns cuts below
-  else {
+    bool pass = false;
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0094
-	   && fabs(ele_dPhi[i]) < 0.0296
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
-	   && ele_HoverE[i] < 0.0372
-	   && fabs(ele_d0[i]) < 0.0151
-	   && fabs(ele_dZ[i]) < 0.238
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.118	 
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
+        if ( fabs(ele_dEta[i]) < 0.00311
+                && fabs(ele_dPhi[i]) < 0.103
+                && eleFull5x5SigmaIetaIeta[i] < 0.00998
+                && ele_HoverE[i] < 0.253
+                && fabs(ele_d0[i]) < 0.05
+                && fabs(ele_dZ[i]) < 0.10
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.134
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 1
+           ) {
+            pass = true;
+        }
     } else {
-      if (fabs(ele_dEta[i]) < 0.00773
-	  && fabs(ele_dPhi[i]) < 0.148
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0287
-	  && ele_HoverE[i] < 0.0546
-	  && fabs(ele_d0[i]) < 0.0535
-	  && fabs(ele_dZ[i]) < 0.572
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.104
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
-    }
-  }
-  return pass;
+        if (fabs(ele_dEta[i]) < 0.00609
+                && fabs(ele_dPhi[i]) < 0.045
+                && eleFull5x5SigmaIetaIeta[i] < 0.0298
+                && ele_HoverE[i] < 0.0878
+                && fabs(ele_d0[i]) < 0.1
+                && fabs(ele_dZ[i]) < 0.2
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.13
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 1
+           ) {
+            pass = true;
+        }
+    } 
+    return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
-  bool pass = false;
-
-  if (use25nsCuts) {
+    // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
+    }
+    bool pass = false;
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.00926
-	   && fabs(ele_dPhi[i]) < 0.0336
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
-	   && ele_HoverE[i] < 0.0597
-	   && fabs(ele_d0[i]) < 0.0111	   
-	   && fabs(ele_dZ[i]) < 0.0466
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.012
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
+        if ( fabs(ele_dEta[i]) < 0.00308
+                && fabs(ele_dPhi[i]) < 0.0816
+                && eleFull5x5SigmaIetaIeta[i] < 0.00998
+                && ele_HoverE[i] < 0.0414
+                && fabs(ele_d0[i]) < 0.05
+                && fabs(ele_dZ[i]) < 0.10
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 1
+           ) {
+            pass = true;
+        }
     } else {
-      if (fabs(ele_dEta[i]) < 0.00724
-	  && fabs(ele_dPhi[i]) < 0.0918
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0279
-	  && ele_HoverE[i] < 0.0615
-	  && fabs(ele_d0[i]) < 0.0351
-	  && fabs(ele_dZ[i]) < 0.417
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.00999
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
+        if (fabs(ele_dEta[i]) < 0.00605
+                && fabs(ele_dPhi[i]) < 0.0394
+                && eleFull5x5SigmaIetaIeta[i] < 0.0292
+                && ele_HoverE[i] < 0.0641
+                && fabs(ele_d0[i]) < 0.1
+                && fabs(ele_dZ[i]) < 0.2
+                && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
+                && ele_PassConvVeto[i]
+                && ele_MissHits[i] <= 1
+           ) {
+            pass = true;
+        }
     } 
-  } 
-
-  //50ns cuts below
-  else {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0095
-	   && fabs(ele_dPhi[i]) < 0.0291
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
-	   && ele_HoverE[i] < 0.0372
-	   && fabs(ele_d0[i]) < 0.0144
-	   && fabs(ele_dZ[i]) < 0.323
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.0174
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.00762
-	  && fabs(ele_dPhi[i]) < 0.0439
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0287
-	  && ele_HoverE[i] < 0.0544
-	  && fabs(ele_d0[i]) < 0.0377
-	  && fabs(ele_dZ[i]) < 0.571
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.01
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
-    } 
-  }
-  return pass;
+    return pass;
 }
 
 bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
@@ -847,139 +731,91 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 }
 
 bool RazorAnalyzer::passEGammaPOGVetoElectronIso(int i, bool use25nsCuts){
-  bool pass = false;
-
-  if (use25nsCuts) {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveArea90(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.126
-	   ) {
-	pass = true;
-      }
-    } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveArea90(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.144
-	   ) {
-	pass = true;
-      }
+    // Recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
     }
-  }
+    bool pass = false;
 
-  //50ns cuts below
-  else {
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.161
-	   ) {
-	pass = true;
-      }
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.175
+           ) {
+            pass = true;
+        }
     } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.193
-	   ) {
-	pass = true;
-      }
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.159
+           ) {
+            pass = true;
+        }
     }
-  }
-  return pass;
+    return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGLooseElectronIso(int i, bool use25nsCuts){
-  bool pass = false;
+    // Recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
+    }
+    bool pass = false;
 
-  if (use25nsCuts) {
-     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveArea90(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0893
-	   ) {
-	pass = true;
-      }
-    } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveArea90(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.121
-	   ) {
-	pass = true;
-      }
-    } 
- } 
-
-  //50ns cuts below
-  else {
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.118
-	   ) {
-	pass = true;
-      }
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0994
+           ) {
+            pass = true;
+        }
     } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.118
-	   ) {
-	pass = true;
-      }
-    } 
-  }
-  return pass;
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.107
+           ) {
+            pass = true;
+        }
+    }
+    return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGMediumElectronIso(int i, bool use25nsCuts){
-  bool pass = false;
+    // Recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
+    }
+    bool pass = false;
 
-  if(use25nsCuts) {
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0766
-	   ) {
-	pass = true;
-      }
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0695
+           ) {
+            pass = true;
+        }
     } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0678
-	   ) {
-	pass = true;
-      }
-    } 
-  }
-
- //50ns cuts below
-  else {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0987
-	   ) {
-	pass = true;
-      }
-    } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0902
-	   ) {
-	pass = true;
-      }
-    } 
-  }
-  return pass;
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0821
+           ) {
+            pass = true;
+        }
+    }
+    return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGTightElectronIso(int i, bool use25nsCuts){
-  bool pass = false;
+    // Recommended for analyses performed on 2016 data using 8XX releases.
+    if (!use25nsCuts) {
+        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+        return false;
+    }
+    bool pass = false;
 
-  if (use25nsCuts) {
     if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0354
-	   ) {
-	pass = true;
-      }
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0588
+           ) {
+            pass = true;
+        }
     } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0646
-	   ) {
-	pass = true;
-      }
-    } 
-  } 
-
- //50ns cuts below
-  else {
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0468
-	   ) {
-	pass = true;
-      }
-    } else {
-      if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0759
-	   ) {
-	pass = true;
-      }
-    } 
-  }
-  return pass;
+        if ( (ele_chargedIso[i] + fmax(0.0,  ele_photonIso[i] + ele_neutralHadIso[i] - GetElectronEffectiveAreaMean(i)*fixedGridRhoFastjetAll)) / elePt[i] < 0.0571
+           ) {
+            pass = true;
+        }
+    }
+    return pass;
 }
 
 bool RazorAnalyzer::passMVANonTrigVetoElectronIso(int i){

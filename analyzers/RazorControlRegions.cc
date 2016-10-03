@@ -561,7 +561,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
         //correct the electron pt in MC
         float eleCorrPt = elePt[i];
         if ( !isData ) {
-            eleCorrPt = helper.getCorrectedElectronPt( elePt[i], eleEta[i] );
+            //this correction is disabled for now until we have implemented the POG recommended correction
+            //eleCorrPt = helper.getCorrectedElectronPt( elePt[i], eleEta[i] );
         }
 
 	if(eleCorrPt < 5) continue;
@@ -1676,6 +1677,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	if (printSyncDebug) cout<<"Filling the tree... " <<endl;
 	events->tree_->Fill();
       }
+
 
     }//end of event loop
 
