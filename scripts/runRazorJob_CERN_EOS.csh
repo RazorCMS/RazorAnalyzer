@@ -24,7 +24,7 @@ cd -
 pwd
 # env
 
-cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun ./
+cp $CMSSW_BASE/src/RazorAnalyzer/bin/Run${analysisType} ./
 
 echo " "; echo "Show where we are"; echo " "
 hostname
@@ -53,8 +53,8 @@ else
 endif
 
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isDataOption} --outputFile=${outputfile} --optionNumber=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isDataOption} --outputFile=${outputfile} --optionNumber=${option} |& tee ${outputfile}.log
+echo ./Run${analysisType} inputfilelistForThisJob_${jobnumber}.txt ${isDataOption} --outputFile=${outputfile} --optionNumber=${option}
+./Run${analysisType} inputfilelistForThisJob_${jobnumber}.txt ${isDataOption} --outputFile=${outputfile} --optionNumber=${option} |& tee ${outputfile}.log
 
 ls -ltr 
 
