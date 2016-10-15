@@ -1214,9 +1214,9 @@ bool RazorAnalyzer::isVetoMuon(int i, bool applyID, bool applyIso){
   }
   if (applyIso) {
     if (!(
-	  ( muonPt[i] > 20 && (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)) )/muonPt[i] < 0.2 )
+	  ( muonPt[i] > 20 && (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)) )/muonPt[i] < 0.2 )
 	  ||
-	  ( muonPt[i] <= 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i) )) < 10 )
+	  ( muonPt[i] <= 20 && (muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral") )) < 10 )
 	  )) pass = false;
   }
   return pass;
@@ -1229,7 +1229,7 @@ bool RazorAnalyzer::isLooseMuon(int i, bool applyID, bool applyIso){
     if (!(muonIsLoose[i] && fabs(muon_ip3dSignificance[i]) < 4)) pass = false;
   }
   if (applyIso) {
-    if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/muonPt[i] < 0.2)) pass = false;
+    if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)))/muonPt[i] < 0.2)) pass = false;
   }
   return pass;
 }
@@ -1241,7 +1241,7 @@ bool RazorAnalyzer::isTightMuon(int i, bool applyID, bool applyIso){
     if (!(muonIsICHEPMedium[i] && fabs(muon_ip3dSignificance[i]) < 4 && fabs(muon_d0[i]) < 0.2)) pass = false;
   }
   if (applyIso) {
-    if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)) )/muonPt[i] < 0.2)) pass = false;
+    if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)) )/muonPt[i] < 0.2)) pass = false;
   }
   return pass;
 }   
