@@ -408,7 +408,45 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       events->genlep2.SetPtEtaPhiM(0,0,0,0);
       events->genlep1Type=0;
       events->genlep2Type=0;
+      int elePtCutForTrackSFs = 5;  
+      int muonPtCutForTrackSFs = 5;  
+      if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
+                  || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 
+                  || treeTypeOption == 14 ) ) {
+          muonPtCutForTrackSFs = 20;
+          elePtCutForTrackSFs = 25;
+      }
       for (uint i=0;i<genLeptonIndex.size();i++) {
+          // For each gen electron or muon passing the pt requirement, determine if it was reconstructed.
+          // Then apply appropriate track reco scale factor.
+          if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > elePtCutForTrackSFs) {
+              bool isReconstructed = false;
+              for( int j = 0; j < nElectrons; j++ ) {
+                  if ( elePt[j] < elePtCutForTrackSFs ) continue;
+                  double dR = deltaR( eleEta[j], elePhi[j], 
+                          gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
+                  if( dR < 0.1 ) {
+                      isReconstructed = true;
+                      break;
+                  }
+              }
+              events->eleRecoEffWeight *= helper.getEleGSFTrackScaleFactor( 
+                      gParticlePt[genLeptonIndex[i]], gParticleEta[genLeptonIndex[i]], isReconstructed ); 
+          }
+          if (abs(gParticleId[genLeptonIndex[i]]) == 13 && gParticlePt[genLeptonIndex[i]] > muonPtCutForTrackSFs) {
+              bool isReconstructed = false;
+              for( int j = 0; j < nMuons; j++ ) {
+                  if ( muonPt[j] < muonPtCutForTrackSFs ) continue;
+                  double dR = deltaR( muonEta[j], muonPhi[j], 
+                          gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
+                  if( dR < 0.1 ) {
+                      isReconstructed = true;
+                      break;
+                  }
+              }
+              events->muonRecoEffWeight *= helper.getMuonTrackScaleFactor( 
+                      gParticlePt[genLeptonIndex[i]], gParticleEta[genLeptonIndex[i]], isReconstructed ); 
+          }
 	if(i==0) {
 	  double mass = 0.000511;
 	  if (abs(gParticleId[genLeptonIndex[i]]) == 13) mass = 0.1057;
@@ -538,7 +576,6 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       && muonPt[i] > 20
 	       ) {	    
             events->muonEffWeight *= helper.getTightMuonScaleFactor( muonPt[i], muonEta[i], isTightMuon(i) );
-            events->muonEffWeight *= helper.getMuonTrackScaleFactor( muonPt[i], muonEta[i] ); //apply track efficiency scale factor
 
 	    //also get trigger efficiency correction
             probabilityToFail1LTrig *= ( 1 - helper.getSingleMuTriggerScaleFactor( muonPt[i], muonEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
@@ -549,7 +586,6 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
 	       ) {
 	     events->muonEffWeight *= helper.getVetoMuonScaleFactor( muonPt[i], muonEta[i], isVetoMuon(i) );
-             events->muonEffWeight *= helper.getMuonTrackScaleFactor( muonPt[i], muonEta[i] ); //apply track efficiency scale factor
 	  }
 	}
 
@@ -640,7 +676,6 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       && eleCorrPt > 25
 	       ) {	    
 	    events->eleEffWeight *= helper.getTightElectronScaleFactor( eleCorrPt, eleEta[i], isTightElectron(i) );
-            events->eleEffWeight *= helper.getEleGSFTrackScaleFactor( eleCorrPt, eleEta[i] ); //apply track efficiency scale factor
 
 	    //also get trigger efficiency correction
 	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerScaleFactor( eleCorrPt, eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
@@ -652,7 +687,6 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       || treeTypeOption == 16 || treeTypeOption == 17 || treeTypeOption == 19 
 	       ) {
 	    events->eleEffWeight *= helper.getVetoElectronScaleFactor( eleCorrPt, eleEta[i], isVetoElectron(i) );
-            events->eleEffWeight *= helper.getEleGSFTrackScaleFactor( eleCorrPt, eleEta[i] ); //apply track efficiency scale factor
 	  }
 	}
 
@@ -1584,6 +1618,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       events->weight = events->genWeight
 	* pileupWeight
 	* events->muonEffWeight * events->eleEffWeight 
+	* events->muonRecoEffWeight * events->eleRecoEffWeight 
 	* events->btagW;
 
       // lepton trigger weight

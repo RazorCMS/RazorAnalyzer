@@ -33,10 +33,10 @@ class RazorHelper {
         // get lepton scale factor (without up/down uncertainties)
         double getTightMuonScaleFactor(float pt, float eta, bool isTight);
         double getVetoMuonScaleFactor(float pt, float eta, bool isVeto);
-        double getMuonTrackScaleFactor(float pt, float eta);
+        double getMuonTrackScaleFactor(float pt, float eta, bool isReconstructed);
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
-        double getEleGSFTrackScaleFactor(float pt, float eta);
+        double getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed);
 
 	//get photon eff scale factor
         double getPhotonScaleFactor(float pt, float eta);
@@ -163,6 +163,7 @@ class RazorHelper {
         TH2D *eleTightEffSFHist;
         TH2D *eleVetoEffSFHist;
         TH2D *eleGSFTrackEffSFHist;
+        TH2D *eleGSFTrackEffHist;
 
         // for muons
         TFile *muEfficiencyFile;
@@ -176,6 +177,7 @@ class RazorHelper {
         TH2D *muTightEffSFHist;
         TH2D *muVetoEffSFHist;
         TH2D *muTrackEffSFHist;
+        TH2D *muTrackEffHist;
 
         // for taus
         TFile *tauEfficiencyFile;

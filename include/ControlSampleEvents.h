@@ -61,6 +61,8 @@ class ControlSampleEvents {
   Float_t                 trigWeight1L;
   Float_t                 muonEffWeight;
   Float_t                 eleEffWeight;
+  Float_t                 muonRecoEffWeight;
+  Float_t                 eleRecoEffWeight;
   Float_t                 btagW;
   Float_t                 btagW_up;
   Float_t                 btagW_down;
@@ -313,6 +315,8 @@ class ControlSampleEvents {
     trigWeight1L         = 1.0;
     muonEffWeight        = 1.0;
     eleEffWeight         = 1.0;
+    muonRecoEffWeight    = 1.0;
+    eleRecoEffWeight     = 1.0;
     btagW                = 1.0;
     btagW_up             = 1.0;
     btagW_down           = 1.0;
@@ -604,6 +608,8 @@ class ControlSampleEvents {
       tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("muonEffWeight",&muonEffWeight,"muonEffWeight/F");
       tree_->Branch("eleEffWeight",&eleEffWeight,"eleEffWeight/F");
+      tree_->Branch("muonRecoEffWeight",&muonRecoEffWeight,"muonRecoEffWeight/F");
+      tree_->Branch("eleRecoEffWeight",&eleRecoEffWeight,"eleRecoEffWeight/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
@@ -670,6 +676,8 @@ class ControlSampleEvents {
       tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("eleEffWeight",&eleEffWeight,"eleEffWeight/F");
       tree_->Branch("muonEffWeight",&muonEffWeight,"muonEffWeight/F");
+      tree_->Branch("eleRecoEffWeight",&eleRecoEffWeight,"eleRecoEffWeight/F");
+      tree_->Branch("muonRecoEffWeight",&muonRecoEffWeight,"muonRecoEffWeight/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("METnoHF", &METnoHF, "METnoHF/F");
@@ -747,6 +755,8 @@ class ControlSampleEvents {
       tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("eleEffWeight",&eleEffWeight,"eleEffWeight/F");
       tree_->Branch("muonEffWeight",&muonEffWeight,"muonEffWeight/F");
+      tree_->Branch("eleRecoEffWeight",&eleRecoEffWeight,"eleRecoEffWeight/F");
+      tree_->Branch("muonRecoEffWeight",&muonRecoEffWeight,"muonRecoEffWeight/F");
       tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
       tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
       tree_->Branch("bjet1PassTight",&bjet1PassTight,"bjet1PassTight/O");
@@ -792,6 +802,8 @@ class ControlSampleEvents {
       tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("eleEffWeight",&eleEffWeight,"eleEffWeight/F");
       tree_->Branch("muonEffWeight",&muonEffWeight,"muonEffWeight/F");
+      tree_->Branch("eleRecoEffWeight",&eleRecoEffWeight,"eleRecoEffWeight/F");
+      tree_->Branch("muonRecoEffWeight",&muonRecoEffWeight,"muonRecoEffWeight/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
       tree_->Branch("MR_NoW",&MR_NoW,"MR_NoW/F");
@@ -832,6 +844,8 @@ class ControlSampleEvents {
       tree_->Branch("trigWeight1L",&trigWeight1L,"trigWeight1L/F");
       tree_->Branch("eleEffWeight",&eleEffWeight,"eleEffWeight/F");
       tree_->Branch("muonEffWeight",&muonEffWeight,"muonEffWeight/F");
+      tree_->Branch("eleRecoEffWeight",&eleRecoEffWeight,"eleRecoEffWeight/F");
+      tree_->Branch("muonRecoEffWeight",&muonRecoEffWeight,"muonRecoEffWeight/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("u1",&u1,"u1/F");
       tree_->Branch("u2",&u2,"u2/F");
@@ -953,6 +967,8 @@ class ControlSampleEvents {
       tree_->SetBranchStatus("trigWeight1L", 1);
       tree_->SetBranchStatus("eleEffWeight", 1);
       tree_->SetBranchStatus("muonEffWeight", 1);
+      tree_->SetBranchStatus("eleRecoEffWeight", 1);
+      tree_->SetBranchStatus("muonRecoEffWeight", 1);
       tree_->SetBranchStatus("MR", 1);
       tree_->SetBranchStatus("Rsq", 1);
       tree_->SetBranchStatus("NJets40", 1);
@@ -973,6 +989,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("eleEffWeight", &eleEffWeight);
       tree_->SetBranchAddress("muonEffWeight", &muonEffWeight);
+      tree_->SetBranchAddress("eleRecoEffWeight", &eleRecoEffWeight);
+      tree_->SetBranchAddress("muonRecoEffWeight", &muonRecoEffWeight);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("METPhi",&METPhi);
       tree_->SetBranchAddress("METnoHF",&METnoHF);
@@ -1008,6 +1026,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("eleEffWeight", &eleEffWeight);
       tree_->SetBranchAddress("muonEffWeight", &muonEffWeight);
+      tree_->SetBranchAddress("eleRecoEffWeight", &eleRecoEffWeight);
+      tree_->SetBranchAddress("muonRecoEffWeight", &muonRecoEffWeight);
       tree_->SetBranchAddress("MET",&MET);
       tree_->SetBranchAddress("METPhi",&METPhi);
       tree_->SetBranchAddress("METnoHF",&METnoHF);
@@ -1086,6 +1106,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("eleEffWeight", &eleEffWeight);
       tree_->SetBranchAddress("muonEffWeight", &muonEffWeight);
+      tree_->SetBranchAddress("eleRecoEffWeight", &eleRecoEffWeight);
+      tree_->SetBranchAddress("muonRecoEffWeight", &muonRecoEffWeight);
       tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
       tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
       tree_->SetBranchAddress("bjet1PassTight",&bjet1PassTight);
@@ -1129,6 +1151,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("eleEffWeight", &eleEffWeight);
       tree_->SetBranchAddress("muonEffWeight", &muonEffWeight);
+      tree_->SetBranchAddress("eleRecoEffWeight", &eleRecoEffWeight);
+      tree_->SetBranchAddress("muonRecoEffWeight", &muonRecoEffWeight);
       tree_->SetBranchAddress("MR_NoW", &MR_NoW);
       tree_->SetBranchAddress("Rsq_NoW",&Rsq_NoW);
       tree_->SetBranchAddress("MET",&MET);
@@ -1161,6 +1185,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("trigWeight1L", &trigWeight1L);
       tree_->SetBranchAddress("eleEffWeight", &eleEffWeight);
       tree_->SetBranchAddress("muonEffWeight", &muonEffWeight);
+      tree_->SetBranchAddress("eleRecoEffWeight", &eleRecoEffWeight);
+      tree_->SetBranchAddress("muonRecoEffWeight", &muonRecoEffWeight);
       tree_->SetBranchAddress("MR_NoZ",        &MR_NoZ);
       tree_->SetBranchAddress("Rsq_NoZ",       &Rsq_NoZ);
       tree_->SetBranchAddress("MET",	       &MET);

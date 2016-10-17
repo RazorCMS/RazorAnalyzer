@@ -218,6 +218,7 @@ void RazorHelper::loadLepton_Razor2015(){
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
     eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
     eleGSFTrackEffSFHist = 0;
+    eleGSFTrackEffHist = 0;
 
     // muon efficiencies and scale factors
     std::cout << "RazorHelper: loading muon efficiency histograms" << std::endl;
@@ -231,6 +232,7 @@ void RazorHelper::loadLepton_Razor2015(){
     muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
     muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
     muTrackEffSFHist = 0;
+    muTrackEffHist = 0;
 
     // tau efficiencies and scale factors
     std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
@@ -470,6 +472,7 @@ void RazorHelper::loadLepton_Razor2016(){
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
     eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
     eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("EGamma_SF2D");
+    eleGSFTrackEffHist = 0;
 
     // muon efficiencies and scale factors
     std::cout << "RazorHelper: loading muon efficiency histograms" << std::endl;
@@ -484,6 +487,7 @@ void RazorHelper::loadLepton_Razor2016(){
     muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
     muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
     muTrackEffSFHist = (TH2D*)muTrackEffSFFile->Get("muon");
+    muTrackEffHist = 0;
 
     // tau efficiencies and scale factors
     std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
@@ -836,8 +840,16 @@ double RazorHelper::getVetoMuonScaleFactor(float pt, float eta, bool isVeto) {
             pt, eta, isVeto );
 }
 
-double RazorHelper::getMuonTrackScaleFactor(float pt, float eta) {
-    return lookupPtEtaScaleFactor( muTrackEffSFHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+double RazorHelper::getMuonTrackScaleFactor(float pt, float eta, bool isReconstructed) {
+    double eff = 0.99;
+    if (muTrackEffHist) {
+        eff = lookupPtEtaScaleFactor( muTrackEffHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+    }
+    else {
+        std::cout << "[WARNING] Muon tracking efficiency histogram not loaded!" << std::endl;
+    }
+    double sf = lookupPtEtaScaleFactor( muTrackEffSFHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+    return getPassOrFailScaleFactor( eff, sf, isReconstructed );
 }
 
 double RazorHelper::getTightElectronScaleFactor(float pt, float eta, bool isTight) {
@@ -850,8 +862,16 @@ double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto)
             pt, eta, isVeto );
 }
 
-double RazorHelper::getEleGSFTrackScaleFactor(float pt, float eta) {
-    return lookupEtaPtScaleFactor( eleGSFTrackEffSFHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+double RazorHelper::getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed) {
+    double eff = 0.99;
+    if (eleGSFTrackEffHist) {
+        eff = lookupEtaPtScaleFactor( eleGSFTrackEffHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+    }
+    else {
+        std::cout << "[WARNING] Electron GSF tracking efficiency histogram not loaded!" << std::endl;
+    }
+    double sf = lookupEtaPtScaleFactor( eleGSFTrackEffSFHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+    return getPassOrFailScaleFactor( eff, sf, isReconstructed );
 }
 
 
