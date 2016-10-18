@@ -38,83 +38,24 @@ bool PassSelection( bool *HLTDecision, int wp ) {
 
  //trigger
   if (wp == 1) {
-    pass = HLTDecision[94];
+    pass = HLTDecision[164];
   }
   if (wp == 2) {
-    pass = HLTDecision[95];
+    pass = HLTDecision[165];
   }
   if (wp == 3) {
-    pass = HLTDecision[96];
+    pass = HLTDecision[166];
   }
   if (wp == 4) {
-    pass = HLTDecision[97];
-  }
-  if (wp == 10) {
-    pass = HLTDecision[94] || HLTDecision[95];
-  }
-  if (wp == 11) {
-    pass = HLTDecision[96] || HLTDecision[97];
-  }
-
-  // if (wp == 5) {
-  //   pass = HLTDecision[90];
-  // }
-  // if (wp == 6) {
-  //   pass = HLTDecision[91];
-  // }
-  // if (wp == 7) {
-  //   pass = HLTDecision[92];
-  // }
-  // if (wp == 8) {
-  //   pass = HLTDecision[93];
-  // }
-  // if (wp == 15) {
-  //   pass = HLTDecision[90] || HLTDecision[91];
-  // }
-  // if (wp == 16) {
-  //   pass = HLTDecision[92] || HLTDecision[93];
-  // }
-
-
-  // //trigger
-  // if (wp == 1) {
-  //   pass = HLTDecision[138];
-  // }
-  // if (wp == 2) {
-  //   pass = HLTDecision[139];
-  // }
-  // if (wp == 3) {
-  //   pass = HLTDecision[140];
-  // }
-  // if (wp == 4) {
-  //   pass = HLTDecision[141];
-  // }
-  // if (wp == 10) {
-  //   pass = HLTDecision[138] || HLTDecision[139];
-  // }
-  // if (wp == 11) {
-  //   pass = HLTDecision[140] || HLTDecision[141];
-  // }
-
-  if (wp == 5) {
-    pass = HLTDecision[134];
-  }
-  if (wp == 6) {
-    pass = HLTDecision[135];
-  }
-  if (wp == 7) {
-    pass = HLTDecision[136];
-  }
-  if (wp == 8) {
-    pass = HLTDecision[137];
+    pass = HLTDecision[167];
   }
   if (wp == 15) {
-    pass = HLTDecision[134] || HLTDecision[135];
+    pass = HLTDecision[164] || HLTDecision[165];
   }
   if (wp == 16) {
-    pass = HLTDecision[136] || HLTDecision[137];
+    pass = HLTDecision[166] || HLTDecision[167];
   }
-
+  
   return pass;  
 }
 
@@ -131,8 +72,8 @@ void plotRazorTriggerEfficiency() {
   TFile *fileTrigger_RsqMR300_Rsq0p09_MR200_TTJets = new TFile("Efficiency_RazorTrigger_RsqMR300_Rsq0p09_MR200_All_TTJets_25ns.root","READ");
   TFile *fileTrigger_RsqMR260_Rsq0p09_MR200_WJets = new TFile("Efficiency_RazorTrigger_RsqMR260_Rsq0p09_MR200_All_WJets_25ns.root","READ");
   TFile *fileTrigger_RsqMR300_Rsq0p09_MR200_WJets = new TFile("Efficiency_RazorTrigger_RsqMR300_Rsq0p09_MR200_All_WJets_25ns.root","READ");
-  TFile *fileTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D.root","READ");
-  TFile *fileTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2015D.root","READ");
+  TFile *fileTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2016B.root","READ");
+  TFile *fileTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData = new TFile("Efficiency_RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2016B.root","READ");
 
   TH2F* effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets = (TH2F*)fileTrigger_RsqMR260_Rsq0p09_MR200_TTJets->Get("Efficiency_MRRsq");
   TH2F* effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets = (TH2F*)fileTrigger_RsqMR300_Rsq0p09_MR200_TTJets->Get("Efficiency_MRRsq");
@@ -168,8 +109,8 @@ void plotRazorTriggerEfficiency() {
   hline->SetLineColor(kBlack);
   vline->Draw();
   hline->Draw();
-  cv->SaveAs("RazorTriggerEfficiencyVsMR_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.gif");
-  cv->SaveAs("RazorTriggerEfficiencyVsMR_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.pdf");
+  cv->SaveAs("RazorTriggerEfficiencyVsMR_RsqMR240_Rsq0p09_MR200_AllLeptonData_2016B.gif");
+  cv->SaveAs("RazorTriggerEfficiencyVsMR_RsqMR240_Rsq0p09_MR200_AllLeptonData_2016B.pdf");
 
 
   cv = new TCanvas("cv","cv", 800,600);
@@ -193,86 +134,87 @@ void plotRazorTriggerEfficiency() {
   hline->SetLineColor(kBlack);
   vline->Draw();
   hline->Draw();
-  cv->SaveAs("RazorTriggerEfficiencyVsRsq_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.gif");
-  cv->SaveAs("RazorTriggerEfficiencyVsRsq_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.pdf");
+  cv->SaveAs("RazorTriggerEfficiencyVsRsq_RsqMR240_Rsq0p09_MR200_AllLeptonData_2016B.gif");
+  cv->SaveAs("RazorTriggerEfficiencyVsRsq_RsqMR240_Rsq0p09_MR200_AllLeptonData_2016B.pdf");
 
 
-  cv = new TCanvas("cv","cv", 800,600);
-  cv->SetRightMargin(0.15);
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->SetStats(0);
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->GetYaxis()->SetRangeUser(0,0.8);
+ 
+  // cv = new TCanvas("cv","cv", 800,600);
+  // cv->SetRightMargin(0.15);
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->SetStats(0);
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->GetYaxis()->SetRangeUser(0,0.8);
   
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->Draw("colz");
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_TTJets->Draw("colz");
 
-  boxLabel = new TLatex();
-  boxLabel->SetNDC();
-  boxLabel->SetTextSize(0.040);
-  boxLabel->SetTextFont(42);
-  boxLabel->SetTextColor(kBlack);
-  boxLabel->DrawLatex(0.2,0.92,"Hadronic & Loose Lepton Categories ( t#bar{t} Monte Carlo )");
-  boxLabel->DrawLatex(0.4,0.85,"RsqMR260_Rsq0p09_MR200 Trigger");
-  boxLabel->Draw();
+  // boxLabel = new TLatex();
+  // boxLabel->SetNDC();
+  // boxLabel->SetTextSize(0.040);
+  // boxLabel->SetTextFont(42);
+  // boxLabel->SetTextColor(kBlack);
+  // boxLabel->DrawLatex(0.2,0.92,"Hadronic & Loose Lepton Categories ( t#bar{t} Monte Carlo )");
+  // boxLabel->DrawLatex(0.4,0.85,"RsqMR260_Rsq0p09_MR200 Trigger");
+  // boxLabel->Draw();
  
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.gif");
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.pdf");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.gif");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.pdf");
 
 
-  cv = new TCanvas("cv","cv", 800,600);
-  cv->SetRightMargin(0.15);
-  effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets->SetStats(0);
-  effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
-  effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets->Draw("colz");
+  // cv = new TCanvas("cv","cv", 800,600);
+  // cv->SetRightMargin(0.15);
+  // effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets->SetStats(0);
+  // effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  // effPtTrigger_RsqMR300_Rsq0p09_MR200_TTJets->Draw("colz");
 
-  boxLabel = new TLatex();
-  boxLabel->SetNDC();
-  boxLabel->SetTextSize(0.040);
-  boxLabel->SetTextFont(42);
-  boxLabel->SetTextColor(kBlack);
-  boxLabel->DrawLatex(0.2,0.92,"Hadronic & Loose Lepton Categories ( t#bar{t} Monte Carlo )");
-  boxLabel->DrawLatex(0.4,0.85,"RsqMR300_Rsq0p09_MR200 Trigger");
-  boxLabel->Draw();
+  // boxLabel = new TLatex();
+  // boxLabel->SetNDC();
+  // boxLabel->SetTextSize(0.040);
+  // boxLabel->SetTextFont(42);
+  // boxLabel->SetTextColor(kBlack);
+  // boxLabel->DrawLatex(0.2,0.92,"Hadronic & Loose Lepton Categories ( t#bar{t} Monte Carlo )");
+  // boxLabel->DrawLatex(0.4,0.85,"RsqMR300_Rsq0p09_MR200 Trigger");
+  // boxLabel->Draw();
  
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.gif");
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.pdf");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.gif");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_TTJetsHadronicBoxes_MC.pdf");
 
 
-  cv = new TCanvas("cv","cv", 800,600);
-  cv->SetRightMargin(0.15);
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_WJets->SetStats(0);
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_WJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
-  effPtTrigger_RsqMR260_Rsq0p09_MR200_WJets->Draw("colz");
+  // cv = new TCanvas("cv","cv", 800,600);
+  // cv->SetRightMargin(0.15);
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_WJets->SetStats(0);
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_WJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  // effPtTrigger_RsqMR260_Rsq0p09_MR200_WJets->Draw("colz");
 
-  boxLabel = new TLatex();
-  boxLabel->SetNDC();
-  boxLabel->SetTextSize(0.040);
-  boxLabel->SetTextFont(42);
-  boxLabel->SetTextColor(kBlack);
-  boxLabel->DrawLatex(0.2,0.92,"1-Lepton Categories ( W+Jets Monte Carlo )");
-  boxLabel->DrawLatex(0.4,0.85,"RsqMR260_Rsq0p09_MR200 Trigger");
-  boxLabel->Draw();
+  // boxLabel = new TLatex();
+  // boxLabel->SetNDC();
+  // boxLabel->SetTextSize(0.040);
+  // boxLabel->SetTextFont(42);
+  // boxLabel->SetTextColor(kBlack);
+  // boxLabel->DrawLatex(0.2,0.92,"1-Lepton Categories ( W+Jets Monte Carlo )");
+  // boxLabel->DrawLatex(0.4,0.85,"RsqMR260_Rsq0p09_MR200 Trigger");
+  // boxLabel->Draw();
  
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.gif");
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.pdf");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.gif");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR260_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.pdf");
 
 
-  cv = new TCanvas("cv","cv", 800,600);
-  cv->SetRightMargin(0.15);
-  effPtTrigger_RsqMR300_Rsq0p09_MR200_WJets->SetStats(0);
-  effPtTrigger_RsqMR300_Rsq0p09_MR200_WJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
-  effPtTrigger_RsqMR300_Rsq0p09_MR200_WJets->Draw("colz");
+  // cv = new TCanvas("cv","cv", 800,600);
+  // cv->SetRightMargin(0.15);
+  // effPtTrigger_RsqMR300_Rsq0p09_MR200_WJets->SetStats(0);
+  // effPtTrigger_RsqMR300_Rsq0p09_MR200_WJets->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  // effPtTrigger_RsqMR300_Rsq0p09_MR200_WJets->Draw("colz");
 
-  boxLabel = new TLatex();
-  boxLabel->SetNDC();
-  boxLabel->SetTextSize(0.040);
-  boxLabel->SetTextFont(42);
-  boxLabel->SetTextColor(kBlack);
-  boxLabel->DrawLatex(0.2,0.92,"1-Lepton Lepton Categories ( W+Jets Monte Carlo )");
-  boxLabel->DrawLatex(0.4,0.85,"RsqMR300_Rsq0p09_MR200 Trigger");
-  boxLabel->Draw();
+  // boxLabel = new TLatex();
+  // boxLabel->SetNDC();
+  // boxLabel->SetTextSize(0.040);
+  // boxLabel->SetTextFont(42);
+  // boxLabel->SetTextColor(kBlack);
+  // boxLabel->DrawLatex(0.2,0.92,"1-Lepton Lepton Categories ( W+Jets Monte Carlo )");
+  // boxLabel->DrawLatex(0.4,0.85,"RsqMR300_Rsq0p09_MR200 Trigger");
+  // boxLabel->Draw();
  
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.gif");
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.pdf");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.gif");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR300_Rsq0p09_MR200_WJetsOneLeptonBoxes_MC.pdf");
 
 
   //*******************************************************************************  
@@ -280,44 +222,43 @@ void plotRazorTriggerEfficiency() {
   //*******************************************************************************
 
 
-  cv = new TCanvas("cv","cv", 800,600);
-  cv->SetRightMargin(0.15);
-  effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->SetStats(0);
-  effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->SetTitle("; M_{R} [GeV/c^{2}]; R^{2}; Efficiency");
-  //effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->GetYaxis()->SetRangeUser(0,0.8);
-  effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->Draw("colz");
+  // cv = new TCanvas("cv","cv", 800,600);
+  // cv->SetRightMargin(0.15);
+  // effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->SetStats(0);
+  // effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->SetTitle("; M_{R} [GeV/c^{2}]; R^{2}; Efficiency");
+  // //effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->GetYaxis()->SetRangeUser(0,0.8);
+  // effPtTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData->Draw("colz");
 
-  boxLabel = new TLatex();
-  boxLabel->SetNDC();
-  boxLabel->SetTextSize(0.040);
-  boxLabel->SetTextFont(42);
-  boxLabel->SetTextColor(kBlack);
-  boxLabel->DrawLatex(0.2,0.92,"1-Lepton Categories ( Lepton Trigger Data )");
-  boxLabel->DrawLatex(0.4,0.85,"RsqMR240_Rsq0p09_MR200 Trigger");
-  boxLabel->Draw();
+  // boxLabel = new TLatex();
+  // boxLabel->SetNDC();
+  // boxLabel->SetTextSize(0.040);
+  // boxLabel->SetTextFont(42);
+  // boxLabel->SetTextColor(kBlack);
+  // boxLabel->DrawLatex(0.2,0.92,"1-Lepton Categories ( Lepton Trigger Data )");
+  // boxLabel->DrawLatex(0.4,0.85,"RsqMR240_Rsq0p09_MR200 Trigger");
+  // boxLabel->Draw();
  
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.gif");
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.pdf");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.gif");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B.pdf");
 
-  return;
 
-  cv = new TCanvas("cv","cv", 800,600);
-  cv->SetRightMargin(0.15);
-  effPtTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData->SetStats(0);
-  effPtTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
-  effPtTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData->Draw("colz");
+  // cv = new TCanvas("cv","cv", 800,600);
+  // cv->SetRightMargin(0.15);
+  // effPtTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData->SetStats(0);
+  // effPtTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData->SetTitle("; M_{R} [GeV/c^{2}; R^{2}; Efficiency");
+  // effPtTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData->Draw("colz");
 
-  boxLabel = new TLatex();
-  boxLabel->SetNDC();
-  boxLabel->SetTextSize(0.040);
-  boxLabel->SetTextFont(42);
-  boxLabel->SetTextColor(kBlack);
-  boxLabel->DrawLatex(0.2,0.92,"1-Lepton Lepton Categories ( Lepton Trigger Data )");
-  boxLabel->DrawLatex(0.4,0.85,"RsqMR270_Rsq0p09_MR200 Trigger");
-  boxLabel->Draw();
+  // boxLabel = new TLatex();
+  // boxLabel->SetNDC();
+  // boxLabel->SetTextSize(0.040);
+  // boxLabel->SetTextFont(42);
+  // boxLabel->SetTextColor(kBlack);
+  // boxLabel->DrawLatex(0.2,0.92,"1-Lepton Lepton Categories ( Lepton Trigger Data )");
+  // boxLabel->DrawLatex(0.4,0.85,"RsqMR270_Rsq0p09_MR200 Trigger");
+  // boxLabel->Draw();
  
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR270_Rsq0p09_MR200_AllLeptonData_2015B.gif");
-  cv->SaveAs("RazorTriggerEfficiency_RsqMR270_Rsq0p09_MR200_AllLeptonData_2015B.pdf");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR270_Rsq0p09_MR200_AllLeptonData_2015B.gif");
+  // cv->SaveAs("RazorTriggerEfficiency_RsqMR270_Rsq0p09_MR200_AllLeptonData_2015B.pdf");
 
  
 }
@@ -425,7 +366,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
   float leadingMuonPt = 0;
   float allMuonPt = 0;
 
-  tree->SetBranchAddress("weight",&weight);
+  //  tree->SetBranchAddress("weight",&weight);
   tree->SetBranchAddress("box",&box);
   tree->SetBranchAddress("nVtx",&nvtx);
   tree->SetBranchAddress("nBTaggedJets",&nBTaggedJets);
@@ -455,7 +396,6 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     
     if (ientry % 100000 == 0) cout << "Event " << ientry << endl;
 
-
     //Cuts
     if (!(nJets80 >= 2)) continue;
 
@@ -469,17 +409,17 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
       if (!(box == 6 || box == 7 || box ==  8)) continue;      
     }
 
-    //Select 1L and 2L boxes
+   //Select 1L and 2L boxes
     if (option == 1 || option == 11) {
       //1L and 2L boxes
-      bool passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
-				    || HLTDecision[30] || HLTDecision[31] 
-				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-      bool passedSingleLeptonTrigger = bool(HLTDecision[2] || HLTDecision[7] || HLTDecision[12] || HLTDecision[11] || HLTDecision[15]
-				       || HLTDecision[22] || HLTDecision[23] || HLTDecision[24] || HLTDecision[25] || 
-				       HLTDecision[26] || HLTDecision[27] ||
-				       HLTDecision[28] || HLTDecision[29]);      
-      if (!(passedDileptonTrigger || passedSingleLeptonTrigger)) continue;
+      // bool passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
+      // 				    || HLTDecision[30] || HLTDecision[31] 
+      // 				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
+      bool passedSingleLeptonTrigger = bool(HLTDecision[12] || HLTDecision[19] || HLTDecision[15] || HLTDecision[22] 
+					    || HLTDecision[35] || HLTDecision[37]);
+      
+
+      if (!(passedSingleLeptonTrigger)) continue;
       // if (!(box == 0 || box == 1 || box == 2 || box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;
       
       //only 1L boxes
@@ -489,7 +429,6 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
 
 
     }
-
 
     //Use events triggered by HT
     if (option == 2) {
@@ -507,6 +446,12 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     }
 
 
+    //Cleaning Cuts
+    if (!(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)) continue;
+    if (leadingMuonPt > 100) continue;
+    if (allMuonPt > 100) continue;
+    if (fabs(dPhiRazor) > 2.8) continue;
+
     //**** MR - Rsq ****
     histDenominatorMRRsq->Fill(MR,Rsq);
     if(PassSelection(HLTDecision,wp)) {
@@ -516,10 +461,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
 
     //Cuts
     if (!(MR > 300 && Rsq > 0.15)) continue;
-    if (!(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)) continue;
-    if (leadingMuonPt > 100) continue;
-    if (allMuonPt > 100) continue;
-
+ 
     //Remove double counted events        
     if(!(processedRunEvents.find(make_pair(run, event)) == processedRunEvents.end())) {
       continue;
@@ -536,7 +478,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
 	histNumeratorMR->Fill(MR);
       } else {
 	if (MR > 700) {
-	  cout << "Fail Event: " << run << " " << lumi << " " << event << " : " << MR << " " << Rsq << " " << bool(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter) << "\n";
+	  //cout << "Fail Event: " << run << " " << lumi << " " << event << " : " << MR << " " << Rsq << " " << bool(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter) << "\n";
 	}
       }
     }
@@ -554,7 +496,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
       }
     }
  
-     
+
   }
 
   //--------------------------------------------------------------------------------------------------------------
@@ -582,7 +524,6 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
   RsqBins.push_back(0.62);
   RsqBins.push_back(0.74);
   RsqBins.push_back(0.86);
-  RsqBins.push_back(1.0);
   RsqBins.push_back(1.5);
 
   // vector<double> MRBins; 
@@ -674,36 +615,10 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
 
   if (option == 2) {
  
-    //***************************************
-    // Try all different lepton datasets
-    //***************************************
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_MuonEG_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_MuonEG_2015B");   
-     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_SingleElectron_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_SingleElectron_2015B");   
-     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_SingleMuon_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_SingleMuon_2015B");   
-     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_DoubleMuon_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_DoubleMuon_2015B");   
-     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_DoubleEG_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_DoubleEG_2015B");   
-     // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_Tau_Run2015B_GoodLumi.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_Tau_2015B");   
-
-  
-
-    //***************************************
-    // Use combined data
-    //***************************************
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 5, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_AllLeptonData_2015B");   
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 6, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_4jet_AllLeptonData_2015B");   
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 7, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_AllLeptonData_2015B");   
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_AllLeptonData_Run2015B_GoodLumi.root", 8, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_4jet_AllLeptonData_2015B");   
-
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p19_ForFullStatus20151030/oldData/RazorInclusive_CombinedLeptonic_Run2015D_GoodLumiGolden.root", 16, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_AllLeptonData_2015D");   
-
-    //For Preapproval
-    //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p20_ForFullStatus20151030/Data/RazorInclusive_SingleLepton_Run2015D_GoodLumiGolden_NoDuplicates_razorskim.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");   
-
- 
-    //Update with full data
-    //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForPreappFreezing20151106/RazorInclusive_SingleLepton_Run2015D_2093pb_GoodLumiGolden_RazorSkim_FilteredNew.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");
-    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForARCReview20151129/RazorSkim/RazorInclusive_SingleLepton_Run2015D_2093pb_GoodLumiGolden_RazorSkim.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");
-    // ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForARCReview20151129/RazorInclusive_SingleLepton_Run2015D_2093pb_GoodLumiGolden.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");
+    //2015 Data    
+    //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForARCReview20151129/RazorSkim/RazorInclusive_SingleLepton_Run2015D_2093pb_GoodLumiGolden_RazorSkim.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");
+    //2016 Data
+    ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/2016/V3p1/RazorInclusive_SingleElectron_2016B_PRv2_GoodsLumiGolden.root", 16, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2016B");
 
 
   }
@@ -723,30 +638,9 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
     ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_MET_Run2015B_GoodLumi.root", 16, 4, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_METData_2015B");   
   }
 
-  plotRazorTriggerEfficiency();
+  if (option == 0) {
+    plotRazorTriggerEfficiency();
+  }
 
 }
 
-//From Original List
-// Fail Event: 257645 167 251814017 : 835.619 0.27643   [100 GeV muon pointing towards 300 GeV MET]
-// Fail Event: 257613 755 1175463234 : 503.502 0.693747 [multiple muon candidates pointing opposite 400 GeV MET]
-// Fail Event: 257969 302 460892689 : 842.363 0.413267 [500 GeV muon candidate]
-// Fail Event: 258213 100 156470040 : 2385.23 0.659029 [There's a 1.8 TeV muon that makes 1.8 TeV jet and MET on the other side]
-// Fail Event: 258706 527 910886714 : 850.483 0.285281 [ 96 GeV muon candidate ]
-// Fail Event: 258749 392 606446915 : 589.925 0.613662 
-
-//List Using Full Dataset
-// Fail Event: 257613 274 439769688 : 433.081 0.611026 1
-// Fail Event: 257613 755 1175463234 : 503.502 0.71551 1
-// Fail Event: 257645 167 251814017 : 835.619 0.265672 1
-// Fail Event: 257969 302 460892689 : 842.363 0.476384 1
-// Fail Event: 258434 434 693577789 : 492.271 0.636223 1
-// Fail Event: 258749 392 606446915 : 589.925 0.613665 1
-// Fail Event: 260627 241 410839559 : 787.445 0.285764 1
-// Fail Event: 260627 434 775693637 : 684.199 0.852556 1  [There's a muon candidate track with pT=490 GeV points in same direction as MET = 600 GeV]
-// Fail Event: 258177 1214 1723026183 : 812.455 0.289098 1
-// Fail Event: 258213 100 156470040 : 2385.23 0.697181 1 
-// Fail Event: 258706 527 910886714 : 850.483 0.295537 1 
-// Fail Event: 258742 123 228201222 : 949.302 0.293481 1 
-// Fail Event: 259685 626 1147610736 : 827.493 0.315976 1
-// Fail Event: 260627 1491 2729036001 : 550.596 0.636919 1
