@@ -27,6 +27,11 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2016_80X();
     }
 
+    // tag for 2016G 80X data
+    else if (tag == "Razor2016G_80X") {
+        loadTag_Razor2016G_80X();
+    }
+
     // tag not found
     else {
         std::cout << "Error in RazorHelper::RazorHelper : specified tag " << tag << " is not supported!" << std::endl;
@@ -43,9 +48,13 @@ RazorHelper::~RazorHelper() {
         pileupWeightFile->Close();
         delete pileupWeightFile;
     }
-    if (eleEfficiencyFile) {
-        eleEfficiencyFile->Close();
-        delete eleEfficiencyFile;
+    if (eleTightEfficiencyFile) {
+        eleTightEfficiencyFile->Close();
+        delete eleTightEfficiencyFile;
+    }
+    if (eleVetoEfficiencyFile) {
+        eleVetoEfficiencyFile->Close();
+        delete eleVetoEfficiencyFile;
     }
     if (eleEffSFFile) {
         eleEffSFFile->Close();
@@ -55,9 +64,13 @@ RazorHelper::~RazorHelper() {
         vetoEleEffSFFile->Close();
         delete vetoEleEffSFFile;
     }
-    if (muEfficiencyFile) {
-        muEfficiencyFile->Close();
-        delete muEfficiencyFile;
+    if (muTightEfficiencyFile) {
+        muTightEfficiencyFile->Close();
+        delete muTightEfficiencyFile;
+    }
+    if (muVetoEfficiencyFile) {
+        muVetoEfficiencyFile->Close();
+        delete muVetoEfficiencyFile;
     }
     if (muEffSFFile) {
         muEffSFFile->Close();
@@ -134,7 +147,8 @@ void RazorHelper::loadTag_Null() {
     pileupWeightSysDownHist = 0;
 
     // electron efficiencies and scale factors
-    eleEfficiencyFile = 0;
+    eleTightEfficiencyFile = 0;
+    eleVetoEfficiencyFile = 0;
     eleEffSFFile = 0;
     vetoEleEffSFFile = 0;
     eleTightEfficiencyHist = 0;
@@ -145,7 +159,8 @@ void RazorHelper::loadTag_Null() {
     eleVetoEffSFHist = 0;
 
     // muon efficiencies and scale factors
-    muEfficiencyFile = 0;
+    muTightEfficiencyFile = 0;
+    muVetoEfficiencyFile = 0;
     muEffSFFile = 0;
     vetoMuEffSFFile = 0;
     muTightEfficiencyHist = 0;
@@ -208,13 +223,14 @@ void RazorHelper::loadLepton_Razor2015(){
 
     // electron efficiencies and scale factors
     std::cout << "RazorHelper: loading electron efficiency histograms" << std::endl;
-    eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
+    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
+    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
     eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root");
     vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoElectronSelectionEffDenominatorReco_2015Final_Golden.root");
-    eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
-    eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
-    eleTightEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
-    eleVetoEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronVeto_FastsimScaleFactor");
+    eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+    eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+    eleTightEffFastsimSFHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
+    eleVetoEffFastsimSFHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronVeto_FastsimScaleFactor");
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
     eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
     eleGSFTrackEffSFHist = 0;
@@ -222,13 +238,14 @@ void RazorHelper::loadLepton_Razor2015(){
 
     // muon efficiencies and scale factors
     std::cout << "RazorHelper: loading muon efficiency histograms" << std::endl;
-    muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
+    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
+    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
     muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
     vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
-    muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
-    muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
-    muTightEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
-    muVetoEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonVeto_FastsimScaleFactor");
+    muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim");
+    muTightEffFastsimSFHist = (TH2D*)muTightEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
+    muVetoEffFastsimSFHist = (TH2D*)muVetoEfficiencyFile->Get("MuonVeto_FastsimScaleFactor");
     muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
     muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
     muTrackEffSFHist = 0;
@@ -449,9 +466,10 @@ void RazorHelper::loadTag_Razor2016_80X() {
 
 void RazorHelper::loadPileup_Razor2016() {
     // pileup weights
+    // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
     pileupWeightFile = TFile::Open(
-            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_ICHEP.root", cmsswPath.c_str()));
+            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_26p4.root", cmsswPath.c_str()));
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -460,34 +478,41 @@ void RazorHelper::loadPileup_Razor2016() {
 void RazorHelper::loadLepton_Razor2016(){
 
     // electron efficiencies and scale factors
-    std::cout << "RazorHelper: loading electron efficiency histograms" << std::endl;
-    eleEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.root");
-    eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_results_TightElectronSelectionEffDenominatorReco_2016ICHEP_Golden.root");
-    vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_results_VetoElectronSelectionEffDenominatorReco_2016ICHEP_Golden.root");
-    eleGSFTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_GsfTracking_2016ICHEP_Golden.root");
-    eleTightEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
-    eleVetoEfficiencyHist = (TH2D*)eleEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
-    eleTightEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronTight_FastsimScaleFactor");
-    eleVetoEffFastsimSFHist = (TH2D*)eleEfficiencyFile->Get("ElectronVeto_FastsimScaleFactor");
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016 electron efficiency histograms" << std::endl;
+    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root"); 
+    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root"); 
+    eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016_26p4_Golden.root");
+    vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoElectronSelectionEffDenominatorReco_2016_26p4_Golden.root");
+    eleGSFTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiencySF_muEleTracking_2016_average.root");
+    eleGSFTrackEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
+
+    eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("Efficiency_PtEta");
+    eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("Efficiency_PtEta");
+    eleTightEffFastsimSFHist = 0;
+    eleVetoEffFastsimSFHist = 0;
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
     eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
-    eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("EGamma_SF2D");
-    eleGSFTrackEffHist = 0;
+    eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
+    eleGSFTrackEffHist = (TH2D*)eleGSFTrackEffFile->Get("Efficiency_PtEta");
 
     // muon efficiencies and scale factors
-    std::cout << "RazorHelper: loading muon efficiency histograms" << std::endl;
-    muEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.root");
-    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_results_TightMuonSelectionEffDenominatorReco_2016ICHEP_Golden.root"); 
-    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_results_VetoMuonSelectionEffDenominatorReco_2016ICHEP_Golden.root"); 
-    muTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_TrackReconstruction_2016ICHEP.root");
-    muTightEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Tight_Fullsim");
-    muVetoEfficiencyHist = (TH2D*)muEfficiencyFile->Get("MuonEff_Veto_Fullsim");
-    muTightEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
-    muVetoEffFastsimSFHist = (TH2D*)muEfficiencyFile->Get("MuonVeto_FastsimScaleFactor");
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016 muon efficiency histograms" << std::endl;
+    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root"); 
+    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Veto_Fullsim.root"); 
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016_26p4_Golden.root"); 
+    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorReco_2016_26p4_Golden.root"); 
+    muTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiencySF_muEleTracking_2016_average.root");
+    muTrackEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
+    muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("Efficiency_PtEta");
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("Efficiency_PtEta"); 
+    muTightEffFastsimSFHist = 0;
+    muVetoEffFastsimSFHist = 0;
     muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
     muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
     muTrackEffSFHist = (TH2D*)muTrackEffSFFile->Get("muon");
-    muTrackEffHist = 0;
+    muTrackEffHist = (TH2D*)muTrackEffFile->Get("Efficiency_PtEta");
 
     // tau efficiencies and scale factors
     std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
@@ -537,20 +562,20 @@ void RazorHelper::loadBTag_Razor2016() {
 
 void RazorHelper::loadTrigger_Razor2016() {
     // single lepton trigger scale factors
-    std::cout << "RazorHelper: loading trigger efficiency histograms" << std::endl;
-    eleTrigSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/SingleElectronTriggerEfficiency.root");
-    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("hEffEtaPt");
-    eleTrigSFErrHist = (TH2D*)eleTrigSFFile->Get("hErrlEtaPt");
-    muTrigSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/SingleMuonTriggerEfficiency.root"); 
-    muTrigSFHist = (TH2D*)muTrigSFFile->Get("hEffEtaPt");
-    muTrigSFErrHist = (TH2D*)muTrigSFFile->Get("hErrlEtaPt");
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016 trigger efficiency histograms" << std::endl;
+    eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_26p4_Golden.root");
+    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
+    eleTrigSFErrHist = 0;
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_26p4_Golden.root"); 
+    muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+    muTrigSFErrHist = 0;
 
     //diphoton trigger scale factors
     diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose.root"); 
     diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
     diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose.root"); 
     diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
-    
 
     eleTrigEffFromFullsimFile = 0;
     eleTrigEffFromFullsimHist = 0;
@@ -558,21 +583,9 @@ void RazorHelper::loadTrigger_Razor2016() {
     muTrigEffFromFullsimHist = 0;
 
     //get trigger numbers
-    dileptonTriggerNums = std::vector<int>(9);
-    hadronicTriggerNums = std::vector<int>(13);
-    if( isData ) {
-        dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
-        singleLeptonTriggerNums = std::vector<int>(41);
-        singleLeptonTriggerNums = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43 };
-        hadronicTriggerNums = { 164,165,166,167,168,169,170,171,172,173,174,175,176 };
-    }
-    else {
-        //NOTE: 2015 TRIGGER NUMBERS
-        dileptonTriggerNums = { 41,43,30,31,47,48,49,50 };
-        singleLeptonTriggerNums = std::vector<int>(11);
-        singleLeptonTriggerNums = { 2,7,12,11,15,18,19,20,21,28,29 };
-        hadronicTriggerNums = { 134,135,136,137,138,139,140,141,142,143,144 };
-    }
+    dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
+    singleLeptonTriggerNums = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43 };
+    hadronicTriggerNums = { 164,165,166,167,168,169,170,171,172,173,174,175,176 };
 }
 
 void RazorHelper::loadJECs_Razor2016() {
@@ -622,6 +635,101 @@ void RazorHelper::loadJECs_Razor2016() {
         jecUncPath = jecPathname+"/Spring16_25nsV6_MC_Uncertainty_AK4PFchs.txt";
     }
     jecUnc = new JetCorrectionUncertainty(jecUncPath);
+}
+
+
+////////////////////////////////////////////////
+//  2016 G
+////////////////////////////////////////////////
+
+void RazorHelper::loadTag_Razor2016G_80X() {
+    loadPileup_Razor2016G();
+    loadLepton_Razor2016G();
+    loadPhoton_Razor2016(); // same as 2016 inclusive
+    loadBTag_Razor2016(); // same as 2016 inclusive
+    loadTrigger_Razor2016G();
+    loadJECs_Razor2016(); // same as 2016 inclusive
+}
+
+void RazorHelper::loadPileup_Razor2016G() {
+    // pileup weights
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016G pileup weight histograms" << std::endl;
+    pileupWeightFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016G.root");
+    pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+    pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+    pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+}
+
+void RazorHelper::loadLepton_Razor2016G(){
+
+    // electron efficiencies and scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016G electron efficiency histograms" << std::endl;
+    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root"); 
+    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root"); 
+    eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root");
+    vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoElectronSelectionEffDenominatorReco_2016G_Golden.root");
+
+    eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("Efficiency_PtEta");
+    eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("Efficiency_PtEta");
+    eleTightEffFastsimSFHist = 0;
+    eleVetoEffFastsimSFHist = 0;
+    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
+    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
+    eleGSFTrackEffSFHist = 0;
+    eleGSFTrackEffHist = 0;
+
+    // muon efficiencies and scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016G muon efficiency histograms" << std::endl;
+    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root"); 
+    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Veto_Fullsim.root"); 
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016G_Golden.root"); 
+    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorReco_2016G_Golden.root"); 
+    muTrackEffSFFile = 0;
+    muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("Efficiency_PtEta");
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("Efficiency_PtEta"); 
+    muTightEffFastsimSFHist = 0;
+    muVetoEffFastsimSFHist = 0;
+    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
+    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
+    muTrackEffSFHist = 0;
+    muTrackEffHist = 0;
+
+    // tau efficiencies and scale factors
+    std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
+    tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.root");
+    tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
+
+}
+
+void RazorHelper::loadTrigger_Razor2016G() {
+    // single lepton trigger scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016G trigger efficiency histograms" << std::endl;
+    eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016G_Golden.root");
+    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
+    eleTrigSFErrHist = 0;
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_Golden.root"); 
+    muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+    muTrigSFErrHist = 0;
+
+    //diphoton trigger scale factors
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose.root"); 
+    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose.root"); 
+    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
+
+    eleTrigEffFromFullsimFile = 0;
+    eleTrigEffFromFullsimHist = 0;
+    muTrigEffFromFullsimFile = 0; 
+    muTrigEffFromFullsimHist = 0;
+
+    //get trigger numbers
+    dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
+    singleLeptonTriggerNums = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43 };
+    hadronicTriggerNums = { 164,165,166,167,168,169,170,171,172,173,174,175,176 };
 }
 
 
@@ -865,11 +973,12 @@ double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto)
 double RazorHelper::getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed) {
     double eff = 0.99;
     if (eleGSFTrackEffHist) {
-        eff = lookupEtaPtScaleFactor( eleGSFTrackEffHist, pt, eta, 10.1, 199.9, false ); //use signed eta
+        eff = lookupPtEtaScaleFactor( eleGSFTrackEffHist, pt, eta, 10.1, 199.9, false ); //use signed eta
     }
     else {
         std::cout << "[WARNING] Electron GSF tracking efficiency histogram not loaded!" << std::endl;
     }
+    // note that the electron GSF tracking efficiency histogram has eta on the x-axis
     double sf = lookupEtaPtScaleFactor( eleGSFTrackEffSFHist, pt, eta, 10.1, 199.9, false ); //use signed eta
     return getPassOrFailScaleFactor( eff, sf, isReconstructed );
 }
@@ -897,8 +1006,7 @@ double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float
 
 double RazorHelper::getTriggerScaleFactor_Razor2016(TH2D *sfHist, float pt, float eta,
         bool isTight, bool passedTrigger, float ptCut) {
-    // trigger scale factors have pt on the y-axis
-    double trigSF = lookupEtaPtScaleFactor( sfHist, pt, eta, 199.9, ptCut );
+    double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta, 199.9, ptCut );
     if (passedTrigger && isTight){
         return trigSF;
     }
@@ -952,9 +1060,8 @@ void RazorHelper::updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist,
 void RazorHelper::updateTriggerScaleFactors_Razor2016(TH2D *sfHist, TH2D *errHist, 
         float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
         float &sfDown, float extraSyst) {
-    //trigger scale factors have pt on the y-axis
-    double trigSF = lookupEtaPtScaleFactor( sfHist, pt, eta );
-    double trigSFErr = lookupEtaPtScaleFactor( errHist, pt, eta );
+    double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta );
+    double trigSFErr = lookupPtEtaScaleFactorError( sfHist, pt, eta );
     double trigSFUp = trigSF + trigSFErr + extraSyst;
     double trigSFDown = trigSF - trigSFErr - extraSyst;
     if (passedTrigger && isTight){

@@ -90,6 +90,7 @@ class RazorHelper {
         void loadTag_Razor2015(); // Final set of files used in 2015
         void loadTag_Razor2015_76X(); // Configuration for 2015 ReReco 
         void loadTag_Razor2016_80X(); // Evolving configuration for 2016 PromptReco
+        void loadTag_Razor2016G_80X(); // Special configuration for Run2016G
         void loadTag_Null(); // Default when tag is not provided
         void loadCMSSWPath();
         double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
@@ -139,6 +140,11 @@ class RazorHelper {
 	void loadJECs_Razor2016();
         void loadBTag_Razor2016();
 
+        // for Razor2016G 80X tag
+        void loadPileup_Razor2016G();
+        void loadLepton_Razor2016G();
+	void loadTrigger_Razor2016G();
+
         // member data
         std::string tag;
         bool isData;
@@ -152,10 +158,12 @@ class RazorHelper {
         TH1F *pileupWeightSysDownHist;
 
         // for electrons
-        TFile *eleEfficiencyFile;
+        TFile *eleTightEfficiencyFile;
+        TFile *eleVetoEfficiencyFile;
         TFile *eleEffSFFile;
         TFile *vetoEleEffSFFile;
         TFile *eleGSFTrackEffSFFile;
+        TFile *eleGSFTrackEffFile;
         TH2D *eleTightEfficiencyHist;
         TH2D *eleVetoEfficiencyHist;
         TH2D *eleTightEffFastsimSFHist;
@@ -166,10 +174,12 @@ class RazorHelper {
         TH2D *eleGSFTrackEffHist;
 
         // for muons
-        TFile *muEfficiencyFile;
+        TFile *muTightEfficiencyFile;
+        TFile *muVetoEfficiencyFile;
         TFile *muEffSFFile;
         TFile *vetoMuEffSFFile;
         TFile *muTrackEffSFFile;
+        TFile *muTrackEffFile;
         TH2D *muTightEfficiencyHist;
         TH2D *muVetoEfficiencyHist;
         TH2D *muTightEffFastsimSFHist;

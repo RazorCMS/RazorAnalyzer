@@ -26,12 +26,16 @@ struct greater_than_pt{
  
 void RazorControlRegions::Analyze(bool isData, int option, string outputfilename, string label)
 {
-    //initialization: create one TTree for each analysis box 
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
+    string tag = "Razor2016_80X";
+    if ( label != "" ) {
+        tag = label;
+    }
+
     // initialize helper
-    RazorHelper helper("Razor2016_80X", isData, false);
+    RazorHelper helper(tag, isData, false);
 
     // retrieve JEC tools
     FactorizedJetCorrector *JetCorrector = helper.getJetCorrector();
@@ -419,33 +423,35 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       for (uint i=0;i<genLeptonIndex.size();i++) {
           // For each gen electron or muon passing the pt requirement, determine if it was reconstructed.
           // Then apply appropriate track reco scale factor.
-          if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > elePtCutForTrackSFs) {
-              bool isReconstructed = false;
-              for( int j = 0; j < nElectrons; j++ ) {
-                  if ( elePt[j] < elePtCutForTrackSFs ) continue;
-                  double dR = deltaR( eleEta[j], elePhi[j], 
-                          gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
-                  if( dR < 0.1 ) {
-                      isReconstructed = true;
-                      break;
+          if ( tag == "Razor2016_80X" ) {
+              if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > elePtCutForTrackSFs) {
+                  bool isReconstructed = false;
+                  for( int j = 0; j < nElectrons; j++ ) {
+                      if ( elePt[j] < elePtCutForTrackSFs ) continue;
+                      double dR = deltaR( eleEta[j], elePhi[j], 
+                              gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
+                      if( dR < 0.1 ) {
+                          isReconstructed = true;
+                          break;
+                      }
                   }
+                  events->eleRecoEffWeight *= helper.getEleGSFTrackScaleFactor( 
+                          gParticlePt[genLeptonIndex[i]], gParticleEta[genLeptonIndex[i]], isReconstructed ); 
               }
-              events->eleRecoEffWeight *= helper.getEleGSFTrackScaleFactor( 
-                      gParticlePt[genLeptonIndex[i]], gParticleEta[genLeptonIndex[i]], isReconstructed ); 
-          }
-          if (abs(gParticleId[genLeptonIndex[i]]) == 13 && gParticlePt[genLeptonIndex[i]] > muonPtCutForTrackSFs) {
-              bool isReconstructed = false;
-              for( int j = 0; j < nMuons; j++ ) {
-                  if ( muonPt[j] < muonPtCutForTrackSFs ) continue;
-                  double dR = deltaR( muonEta[j], muonPhi[j], 
-                          gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
-                  if( dR < 0.1 ) {
-                      isReconstructed = true;
-                      break;
+              if (abs(gParticleId[genLeptonIndex[i]]) == 13 && gParticlePt[genLeptonIndex[i]] > muonPtCutForTrackSFs) {
+                  bool isReconstructed = false;
+                  for( int j = 0; j < nMuons; j++ ) {
+                      if ( muonPt[j] < muonPtCutForTrackSFs ) continue;
+                      double dR = deltaR( muonEta[j], muonPhi[j], 
+                              gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
+                      if( dR < 0.1 ) {
+                          isReconstructed = true;
+                          break;
+                      }
                   }
+                  events->muonRecoEffWeight *= helper.getMuonTrackScaleFactor( 
+                          gParticlePt[genLeptonIndex[i]], gParticleEta[genLeptonIndex[i]], isReconstructed ); 
               }
-              events->muonRecoEffWeight *= helper.getMuonTrackScaleFactor( 
-                      gParticlePt[genLeptonIndex[i]], gParticleEta[genLeptonIndex[i]], isReconstructed ); 
           }
 	if(i==0) {
 	  double mass = 0.000511;
