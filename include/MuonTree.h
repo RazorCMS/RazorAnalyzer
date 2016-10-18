@@ -223,7 +223,7 @@
         tree_->Branch("lumi",&fLumiSectionNumber,"lumi/i");
         tree_->Branch("event",&fEventNumber,"event/i");
         tree_->Branch("EventNumberParity",&fMuEventNumberParity,"EventNumberParity/O"); 
-        tree_->Branch("NPU",&fNPU,"NPU/F"); 
+        tree_->Branch("NPU",&fNPU,"NPU/i"); 
         tree_->Branch("Rho",&fRho,"Rho/F"); 
 	tree_->Branch("RhoNeutralCentral",&fRhoNeutralCentral,"RhoNeutralCentral/F"); 
         tree_->Branch("NVertices",&fNVertices,"NVertices/F"); 
