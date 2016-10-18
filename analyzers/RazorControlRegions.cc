@@ -426,7 +426,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       for (uint i=0;i<genLeptonIndex.size();i++) {
           // For each gen electron or muon passing the pt requirement, determine if it was reconstructed.
           // Then apply appropriate track reco scale factor.
-          if ( tag == "Razor2016_80X" ) {
+          if ( tag == "Razor2016_80X" || tag == "Razor2016_ICHEP_80X" ) {
               if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > elePtCutForTrackSFs) {
                   bool isReconstructed = false;
                   for( int j = 0; j < nElectrons; j++ ) {
