@@ -1631,7 +1631,11 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       if ( (treeTypeOption == 1 || treeTypeOption == 2 || treeTypeOption == 11 || treeTypeOption == 12
                   || treeTypeOption == 3 || treeTypeOption == 4 || treeTypeOption == 13 || treeTypeOption == 14 ) ) {
           events->trigWeight1L = 1 - probabilityToFail1LTrig; //efficiency = 1 - P( all leptons fail )
-          if ( events->trigWeight1L == 0 ) events->trigWeight1L = 1.0; //don't allow zero weight
+
+	  //if there are no leptons in the event, then probabilityToFail1LTrig remains at 1.0 and trigWeight1L is 0
+	  //we will give such events a weight of 1.0, to preserve information of other weights
+          if ( events->trigWeight1L == 0 ) events->trigWeight1L = 1.0; 
+
           events->weight *= events->trigWeight1L;
       }
       
