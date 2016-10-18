@@ -12,6 +12,7 @@ set jobnumber=$6
 set outputfile=$7
 set outputDirectory=$8
 set cmsswDir=$9
+set label=$10
 
 echo " "; echo "Initialize CMSSW"; echo " "
 set workDir=`pwd`
@@ -48,7 +49,7 @@ endif
 # Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
 echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} |& tee ${outputfile}.log
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
 
 ls -ltr 
 
