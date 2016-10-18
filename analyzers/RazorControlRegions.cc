@@ -18,6 +18,9 @@ using namespace std;
 
 const int NUM_PDF_WEIGHTS = 60;
 
+const int JET_PT_CUT = 40;
+const int BJET_PT_CUT = 40;
+
 struct greater_than_pt{
     inline bool operator() (const TLorentzVector& p1, const TLorentzVector& p2){
         return p1.Pt() > p2.Pt();
@@ -1132,7 +1135,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
 	if (abs(jetPartonFlavor[i]) == 5) {
 	  //count number of bjets in acceptance
-	  if (thisJet.Pt() > 40 && fabs(thisJet.Eta()) < 2.4) events->NGenBJets++;
+	  if (thisJet.Pt() > BJET_PT_CUT && fabs(thisJet.Eta()) < 2.4) events->NGenBJets++;
 
 	  if (!bjet1Found) {
 	    bjet1Found = true;
@@ -1174,7 +1177,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	//b-tag corrector
 	//---------------
 	double thisJetPt = jetPt[i]*JEC*jetEnergySmearFactor;
-	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > 40. )
+	if ( !isData && abs( jetPartonFlavor[i] ) == 5 && fabs( jetEta[i] ) < 2.4 && thisJetPt > BJET_PT_CUT )
 	  {
               float tmpSF = 1.0;
               helper.updateBTagScaleFactors( thisJetPt, jetEta[i], 5, isCSVM(i), 
@@ -1185,11 +1188,11 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	/*std::cout << "jetPt: " << thisJetPt << " eta: " << jetEta[i] << " flavor: " << jetPartonFlavor[i]
 	  << " events->btagW: " << events->btagW << std::endl;*/
 	
-	if (jetPt[i]*JEC > 40 && isCSVL(i) ) nBJetsLoose40GeV++;
-	if (jetPt[i]*JEC > 40 && isCSVM(i) ) nBJetsMedium40GeV++;
-	if (jetPt[i]*JEC > 40 && isCSVT(i) ) nBJetsTight40GeV++;
+	if (jetPt[i]*JEC > BJET_PT_CUT && isCSVL(i) ) nBJetsLoose40GeV++;
+	if (jetPt[i]*JEC > BJET_PT_CUT && isCSVM(i) ) nBJetsMedium40GeV++;
+	if (jetPt[i]*JEC > BJET_PT_CUT && isCSVT(i) ) nBJetsTight40GeV++;
 
-	if(jetPt[i]*JEC*jetEnergySmearFactor < 40) continue;
+	if(jetPt[i]*JEC*jetEnergySmearFactor < JET_PT_CUT) continue;
 
 	// calculate MHT
 	if(jetPt[i]*JEC*jetEnergySmearFactor > 20)
@@ -1366,7 +1369,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       ///
 
       events->HT = 0;
-      for(auto& pfobj : GoodPFObjects) events->HT += pfobj.Pt();
+      for(auto& jet : GoodJets) events->HT += jet.Pt();
 	
       //compute M_T for lep1 and MET
       events->lep1MT = sqrt(events->lep1.M2() + 2*MyMET.Pt()*events->lep1.Pt()*(1 - cos(deltaPhi(MyMET.Phi(),events->lep1.Phi()))));
@@ -1472,7 +1475,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	vector<TLorentzVector> GoodJetsNoLeadPhoton = GoodJets;
 	int subtractedIndex = SubtractParticleFromCollection(GoodPhotons[0], GoodJetsNoLeadPhoton);
 	if(subtractedIndex >= 0){
-	  if(GoodJetsNoLeadPhoton[subtractedIndex].Pt() < 40){ //erase this jet
+	  if(GoodJetsNoLeadPhoton[subtractedIndex].Pt() < JET_PT_CUT){ //erase this jet
 	    GoodJetsNoLeadPhoton.erase(GoodJetsNoLeadPhoton.begin()+subtractedIndex);
 	  }
 	}	
@@ -1504,7 +1507,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       // GenJET MR and HT
       vector<TLorentzVector> GenJetObjects;
       for(int j = 0; j < nGenJets; j++){
-	if (genJetPt[j] > 40 && fabs(genJetEta[j]) < 3) {
+	if (genJetPt[j] > JET_PT_CUT && fabs(genJetEta[j]) < 3) {
 	  TLorentzVector thisGenJet = makeTLorentzVector(genJetPt[j], genJetEta[j], genJetPhi[j], genJetE[j]);
 	  GenJetObjects.push_back(thisGenJet);
 	  events->genJetHT += genJetPt[j];
@@ -1527,7 +1530,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	TotalLepVec = TotalLepVec + lep; //add this muon's momentum to the sum
 	int subtractedIndex = SubtractParticleFromCollection(lep, GoodJetsNoLeptons);
 	if(subtractedIndex >= 0){
-	  if(GoodJetsNoLeptons[subtractedIndex].Pt() < 40){ //erase this jet
+	  if(GoodJetsNoLeptons[subtractedIndex].Pt() < JET_PT_CUT){ //erase this jet
 	    GoodJetsNoLeptons.erase(GoodJetsNoLeptons.begin()+subtractedIndex);
 	  }
 	}
