@@ -46,6 +46,7 @@ class ElectronTree {
   Float_t                 fEleEcalEnergy; 
   Bool_t                  fEleIsEcalDriven;
   UInt_t                  fEleTriggerBit;
+  UInt_t                  fNPU;
   Float_t                 fRho; 
   Float_t                 fRhoNeutralCentral; 
   Float_t                 fNVertices; 
@@ -213,6 +214,7 @@ class ElectronTree {
     fEleEcalEnergy 		       = 0.0;
     fEleIsEcalDriven	       = 0.0;
     fEleTriggerBit	       = 0.0;
+    fNPU                       = 0;
     fRho  		       = 0.0;
     fRhoNeutralCentral         = 0.0;
     fNVertices 		       = 0.0;
@@ -349,6 +351,7 @@ class ElectronTree {
     tree_->Branch("event",&fEventNumber,"event/i");
     tree_->Branch("EventNumberParity",&fEleEventNumberParity,"EventNumberParity/O"); 
     tree_->Branch("rho",&fRho,"rho/F"); 
+    tree_->Branch("NPU",&fNPU,"NPU/i"); 
     tree_->Branch("rhoNeutralCentral",&fRhoNeutralCentral,"rhoNeutralCentral/F"); 
     tree_->Branch("pt",&fElePt,"pt/F"); 
     tree_->Branch("eta",&fEleEta,"eta/F"); 
@@ -495,6 +498,7 @@ class ElectronTree {
     tree_->SetBranchAddress("event",&fEventNumber);
     tree_->SetBranchAddress("EventNumberParity",&fEleEventNumberParity);
     tree_->SetBranchAddress("rho",&fRho);
+    tree_->SetBranchAddress("NPU",&fNPU);
     tree_->SetBranchAddress("rhoNeutralCentral",&fRhoNeutralCentral);
     tree_->SetBranchAddress("pt",&fElePt);
     tree_->SetBranchAddress("eta",&fEleEta);

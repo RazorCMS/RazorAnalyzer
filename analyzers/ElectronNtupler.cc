@@ -35,6 +35,15 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
 
+      //Get NPU
+      int npu = 0;
+      //Get number of PU interactions
+      for (int i = 0; i < nBunchXing; i++) {
+	if (BunchXing[i] == 0) {
+	  npu = nPUmean[i];
+	}
+      }
+
       //****************************************
       //Tree entries based on reco objects
       //****************************************
@@ -61,6 +70,7 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
 	  eleTree->fElePhi = elePhi[i]; 
 	  eleTree->fEleSCEta = eleEta_SC[i]; 
 	  eleTree->fEleTriggerBit = 0;
+	  eleTree->fNPU = npu; 
 	  eleTree->fRho = fixedGridRhoFastjetAll; 
 	  eleTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
 	  eleTree->fNVertices = nPV; 
@@ -198,7 +208,7 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
 	    if (abs(gParticleId[i]) != 11) continue;	      
 	    if (!(abs(gParticleMotherId[i]) == 23 || 
 		  abs(gParticleMotherId[i]) == 24)
-		) continue;
+		) continue; 
 	  }
 
 	  if(gParticlePt[i] < 5) continue;
@@ -214,6 +224,7 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
 	  eleTree->fEleGenPt = gParticlePt[i];
 	  eleTree->fEleGenEta = gParticleEta[i];
 	  eleTree->fEleGenPhi = gParticlePhi[i];
+	  eleTree->fNPU = npu; 
 	  eleTree->fRho = fixedGridRhoFastjetAll; 
 	  eleTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
 	  eleTree->fNVertices = nPV; 
@@ -295,7 +306,6 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
 	    eleTree->fElePhi = 0;
 	    eleTree->fEleSCEta = 0;
 	    eleTree->fEleTriggerBit = 0;
-	    eleTree->fRho = 0; 
 	    eleTree->fEleD0 = 0;
 	    eleTree->fEleDZ = 0;
 	    eleTree->fElePassConversion = false;

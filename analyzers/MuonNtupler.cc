@@ -35,6 +35,15 @@ void MuonNtupler::Analyze(bool isData, int Option, string outputfilename, string
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       
+      //Get NPU
+      int npu = 0;
+      //Get number of PU interactions
+      for (int i = 0; i < nBunchXing; i++) {
+	if (BunchXing[i] == 0) {
+	  npu = nPUmean[i];
+	}
+      }
+
       bool printDecay = false;
       //****************************************
       //Tree entries based on reco objects
@@ -58,6 +67,7 @@ void MuonNtupler::Analyze(bool isData, int Option, string outputfilename, string
 	  muTree->fMuPt = muonPt[i]; 
 	  muTree->fMuEta = muonEta[i]; 
 	  muTree->fMuPhi = muonPhi[i]; 
+	  muTree->fNPU = npu;
 	  muTree->fRho = fixedGridRhoFastjetAll; 
 	  muTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral; 
 	  muTree->fNVertices = nPV; 
@@ -186,7 +196,6 @@ void MuonNtupler::Analyze(bool isData, int Option, string outputfilename, string
 		  abs(gParticleMotherId[i]) == 24)
 		) continue;
 	  }
-
 	  if(gParticlePt[i] < 5) continue;
 
 	  //***********************
@@ -201,6 +210,7 @@ void MuonNtupler::Analyze(bool isData, int Option, string outputfilename, string
 	  muTree->fMuGenPt = gParticlePt[i];
 	  muTree->fMuGenEta = gParticleEta[i];
 	  muTree->fMuGenPhi = gParticlePhi[i];
+	  muTree->fNPU = npu;
 	  muTree->fRho = fixedGridRhoFastjetAll; 
 	  muTree->fRhoNeutralCentral = fixedGridRhoFastjetCentralNeutral;
 	  muTree->fNVertices = nPV; 
