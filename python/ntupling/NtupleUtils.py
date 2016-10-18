@@ -9,23 +9,24 @@ import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuples2016_V3p5 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES
+from ControlRegionNtuples2016_V3p6 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
-def getSamplePrefix(analyzer,tag,reHLT=False):
+def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
             (TREETYPEEXT[tag]!='')*('_'+TREETYPEEXT[tag]))+(
             (SKIMS[tag]!='')*('_'+SKIMS[tag]))+(
-            (reHLT==True)*('_reHLT'))
+            (reHLT==True)*('_reHLT'))+(
+            (label != '')*('_'+label))
 
-def getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT=False):
-    prefix = getSamplePrefix(analyzer,tag,reHLT)
+def getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT=False,label=''):
+    prefix = getSamplePrefix(analyzer,tag,reHLT,label)
     return '%s_%s.Job%dof%d.root'%(prefix,sample,ijob,maxjob)
 
-def getFileName(analyzer,tag,sample,reHLT=False):
-    prefix = getSamplePrefix(analyzer,tag,reHLT)
+def getFileName(analyzer,tag,sample,reHLT=False,label=''):
+    prefix = getSamplePrefix(analyzer,tag,reHLT,label)
     return '%s_%s.root'%(prefix,sample)
 
-def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False):
+def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     # parameters
     samples = SAMPLES
     queue = '1nh'
@@ -41,11 +42,8 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False):
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
-    print samples[tag]
     for process in samples[tag]:
-        print process
         for sample in samples[tag][process]:
-            print sample
             inlist = os.path.join(basedir,listdir,sample+'.cern.txt')
             if not os.path.isfile(inlist):
                 print "Warning: list file",inlist,"not found!"
@@ -55,27 +53,29 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False):
             print "Sample:",sample," maxjob =",maxjob
             #submit
             for ijob in range(maxjob+1):
-                outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT)
+                outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT,label)
                 if not os.path.isfile( DIRS[tag]+jobssuffix+'/'+outfile ):
                     print "Job %d of %d"%(ijob,maxjob)
-                    logfile = os.path.join(basedir,'output','%s_%s_%d.out'%(analyzer,sample,ijob))
-                    jobname = '_'.join([analyzer,sample,str(ijob)])
+                    logfile = os.path.join(basedir,'output','%s_%s_%s_%d.out'%(
+                            analyzer,sample,label,ijob))
+                    jobname = '_'.join([analyzer,sample,label,str(ijob)])
                     cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
-                        DIRS[tag].replace('eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src']
+                        DIRS[tag].replace('eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src',
+                        label]
                     print ' '.join(cmd)
                     if submit:
                         call(cmd)
 
-def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False):
+def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
     samples = SAMPLES
     if isData:
         samples = DATA
     for process in samples[tag]:
         for sample in samples[tag][process]:
             print "Sample:",sample
-            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,reHLT)
-            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT).replace('.root','*.Job*.root'))
+            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,reHLT,label)
+            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT,label).replace('.root','*.Job*.root'))
             jobfiles = glob.glob( query )
             if os.path.isfile( fname ) and not force:
                 print "File",fname,"exists; skipping"
@@ -87,7 +87,7 @@ def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False):
             else:
                 print "Warning: no files found (",query,")"
 
-def normalizeFiles(analyzer,tag,force=False,reHLT=False):
+def normalizeFiles(analyzer,tag,force=False,reHLT=False,label=''):
     #make list file for normalizing
     paths = glob.glob( DIRS[tag]+'/*.root' )
     with open('ntuples_'+tag+'.txt','w') as normfile:
@@ -95,7 +95,7 @@ def normalizeFiles(analyzer,tag,force=False,reHLT=False):
             #check if normalized file exists
             if (not force) and os.path.isfile( f.replace('.root','_1pb_weighted.root') ): continue
             sample = os.path.basename(f).replace('.root','').replace(
-                    getSamplePrefix(analyzer,tag,reHLT)+'_','')
+                    getSamplePrefix(analyzer,tag,reHLT,label)+'_','')
             #check if we need this sample
             for process in SAMPLES[tag]:
                 if sample in SAMPLES[tag][process]:
@@ -103,20 +103,20 @@ def normalizeFiles(analyzer,tag,force=False,reHLT=False):
                     break
     call(['./NormalizeNtuple','ntuples_'+tag+'.txt'])
 
-def haddNormalizedFiles(analyzer,tag,force=False,reHLT=False):
+def haddNormalizedFiles(analyzer,tag,force=False,reHLT=False,label=''):
     for process in SAMPLES[tag]:
         print "Process:",process
         haddList = []
         for sample in SAMPLES[tag][process]:
             print "Sample:",sample,
-            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,reHLT).replace(
+            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,reHLT,label).replace(
                     '.root','_1pb_weighted.root')
             if os.path.isfile( fname ):
                 print "found!"
                 haddList.append( fname )
             else:
                 print "not found..."
-        outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,reHLT)+'_'+process+'_1pb_weighted.root'
+        outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,reHLT,label)+'_'+process+'_1pb_weighted.root'
         if len(haddList) > 0:
             if force:
                 call(['hadd','-f',outName]+haddList)
@@ -126,19 +126,23 @@ def haddNormalizedFiles(analyzer,tag,force=False,reHLT=False):
             print "Skipping process",process,"because no input files were found!"
             print "Failed to create file",outName
 
-def combineData(analyzer,tag,force=False):
+def combineData(analyzer,tag,force=False,skim=True,label=''):
     haddList = []
     for process in DATA[tag]:
         print "Dataset:",process
         for sample in DATA[tag][process]:
-            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+sample+'_RazorSkim.root'
+            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_'+sample+'.root'
+            if skim:
+                fname = fname.replace('.root','_RazorSkim.root')
             print fname,
             if os.path.isfile( fname ):
                 print "found!"
                 haddList.append( fname )
             else:
                 print "not found..."
-    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_RazorSkim.root'
+    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data.root'
+    if skim:
+        outName = outName.replace('.root','_RazorSkim.root')
     if len(haddList) > 0:
         if force:
             call(['hadd','-f',outName]+haddList)
@@ -148,7 +152,7 @@ def combineData(analyzer,tag,force=False):
         print "No input files were found!"
         return
 
-def skimNtuples(analyzer,tag,isData=False):
+def skimNtuples(analyzer,tag,isData=False,label=''):
     samples = SAMPLES
     if isData:
         samples = DATA
@@ -156,7 +160,7 @@ def skimNtuples(analyzer,tag,isData=False):
     with open('skim_'+tag+'.txt','w') as skimfile:
         for process in samples[tag]:
             for sample in samples[tag][process]:
-                fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample)
+                fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,label=label)
                 if not isData: fname = fname.replace('.root','_1pb_weighted.root')
                 if os.path.isfile( fname ):
                     print "Adding",sample,"to skim file"
@@ -168,32 +172,30 @@ def skimNtuples(analyzer,tag,isData=False):
     print "Skimming with",skimString
     call(['./SkimNtuple','skim_'+tag+'.txt',DIRS[tag],'RazorSkim',skimString])
 
-def removeDuplicates(analyzer,tag):
-    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_RazorSkim.root'
+def removeDuplicates(analyzer,tag,skim=True,label=''):
+    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data.root'
+    if skim:
+        outName = outName.replace('.root','_RazorSkim.root')
     outNameNoDuplicates = outName.replace('_Data','_Data_NoDuplicates')
     dupMacro = 'macros/RemoveDuplicateEvents.C'
     macroCall = "root -l '%s++(\"%s\",\"%s\")'"%(dupMacro,outName,outNameNoDuplicates)
     print macroCall
     call(macroCall,shell=True)
 
-def goodLumi(analyzer,tag):
+def goodLumi(analyzer,tag,skim=True,label=''):
     #get location of good lumi script and python file containing JSON link
     script = check_output(['which', 'FWLiteGoodLumi'])
     pythonFile = os.path.join(os.environ['CMSSW_BASE'],'src','RazorCommon','Tools','python','loadJson.py')
     #copy file locally
-    localInName = getSamplePrefix(analyzer,tag)+'_Data_NoDuplicates_RazorSkim.root'
-    localOutName = localInName.replace('.root','_GoodLumiGolden.root')
-    inName = DIRS[tag]+'/'+localInName
-    call(['cp',inName,'.'])
+    inName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data_NoDuplicates.root'
+    if skim:
+        inName = inName.replace('.root','_RazorSkim.root')
+    outName = inName.replace('.root','_GoodLumiGolden.root')
     #call script
-    print "FWLiteGoodLumi %s %s %s"%(pythonFile,localInName,localOutName)
-    call(['FWLiteGoodLumi',pythonFile,localInName,localOutName])
-    #move to target directory
-    call(['mv',localOutName,DIRS[tag]])
-    #remove temp file
-    call(['rm',localInName])
+    print "FWLiteGoodLumi %s %s %s"%(pythonFile,inName,outName)
+    call(['FWLiteGoodLumi',pythonFile,inName,outName])
 
-def copyLocal(analyzer,tag,isData=False):
+def copyLocal(analyzer,tag,isData=False,skim=True,label=''):
     samples = SAMPLES
     if isData:
         samples = DATA
@@ -201,19 +203,20 @@ def copyLocal(analyzer,tag,isData=False):
     localdir = 'Backgrounds/'+tag
     call(['mkdir','-p',localdir])
     if isData:
-        fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root'
+        fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data_NoDuplicates_GoodLumiGolden.root'
+        if skim:
+            fname = fname.replace('GoodLumiGolden.root','RazorSkim_GoodLumiGolden.root')
         print "cp",fname,localdir
         call(['cp',fname,localdir])
     else:
         for process in samples[tag]:
-            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag)+'_'+process+'_1pb_weighted.root'
+            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_'+process+'_1pb_weighted.root'
             print "cp",fname,localdir
             call(['cp',fname,localdir])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('tag',help='1L, 2L, ...')
-    parser.add_argument('--analyzer',default='RazorControlRegions',help='Analyzer name')
     parser.add_argument('--data',action='store_true',help='Run on data (MC otherwise)')
     parser.add_argument('--submit',action='store_true',help='Submit batch jobs')
     parser.add_argument('--no-sub', dest='noSub',action='store_true', 
@@ -227,17 +230,17 @@ if __name__ == '__main__':
     parser.add_argument('--good-lumi',dest='goodLumi',action='store_true',help='Apply good lumi selection')
     parser.add_argument('--copy-local',dest='copyLocal',action='store_true',help='Copy files locally')
     parser.add_argument('--reHLT',action='store_true',help='Process reHLT samples')
+    parser.add_argument('--no-skim',dest='noSkim',action='store_true',help='Do not assume skimmed data')
+    parser.add_argument('--label', help='label for RazorRun',default='') 
     args = parser.parse_args()
     tag = args.tag
-    analyzer = args.analyzer
-    if tag == 'Signal':
-        analyzer = 'FullRazorInclusive'
-    elif tag == 'LiteZMu' or tag == 'LiteZEle':
-        analyzer = 'RazorLiteZ'
+    analyzer = ANALYZERS[tag]
     isData = args.data
     noSub = args.noSub
     force = args.force
     reHLT = args.reHLT
+    skim = not args.noSkim
+    label = args.label
 
     #check if EOS is mounted
     if not os.path.isdir('eos/cms/store'):
@@ -248,41 +251,41 @@ if __name__ == '__main__':
 
     if args.submit:
         print "Submit batch jobs..."
-        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT)
+        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,label=label)
 
     if args.hadd:
         print "Combine ntuples..."
-        haddFiles(analyzer,tag,isData,force,reHLT=reHLT)
+        haddFiles(analyzer,tag,isData,force,reHLT=reHLT,label=label)
 
     if args.normalize:
         print "Normalize ntuples..."
         if isData:
             sys.exit("Error: options --data and --normalize do not make sense together!")
-        normalizeFiles(analyzer,tag,force,reHLT=reHLT)
+        normalizeFiles(analyzer,tag,force,reHLT=reHLT,label=label)
 
     if args.haddFinal:
         print "Combine normalized files..."
         if isData:
-            combineData(analyzer,tag,force)
+            combineData(analyzer,tag,force,skim,label=label)
         else:
-            haddNormalizedFiles(analyzer,tag,force,reHLT=reHLT)
+            haddNormalizedFiles(analyzer,tag,force,reHLT=reHLT,label=label)
 
     if args.skim:
         print "Skim finished ntuples..."
-        skimNtuples(analyzer,tag,isData)
+        skimNtuples(analyzer,tag,isData,label=label)
 
     if args.removeDuplicates:
         print "Remove duplicate events..."
         if not isData:
             print "--data was not specified, but I assume you want to use data."
-        removeDuplicates(analyzer,tag)
+        removeDuplicates(analyzer,tag,skim,label=label)
 
     if args.goodLumi:
         print "Apply good lumi selection..."
         if not isData:
             print "--data was not specified, but I assume you want to use data."
-        goodLumi(analyzer,tag)
+        goodLumi(analyzer,tag,skim,label=label)
 
     if args.copyLocal:
         print "Copy files locally..."
-        copyLocal(analyzer,tag,isData)
+        copyLocal(analyzer,tag,isData,skim,label=label)

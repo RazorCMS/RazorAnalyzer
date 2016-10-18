@@ -58,6 +58,8 @@ class RazorHelper {
         std::vector<int> getHadronicTriggerNums() { return hadronicTriggerNums; }
         double getSingleMuTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger);
         double getSingleEleTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger);
+        double getSingleMuTriggerEfficiency(float pt, float eta, bool isTight, bool passedTrigger);
+        double getSingleEleTriggerEfficiency(float pt, float eta, bool isTight, bool passedTrigger);
         void updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
             float &sf, float &sfUp, float &sfDown);
         void updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
@@ -91,6 +93,7 @@ class RazorHelper {
         void loadTag_Razor2015_76X(); // Configuration for 2015 ReReco 
         void loadTag_Razor2016_80X(); // Evolving configuration for 2016 PromptReco
         void loadTag_Razor2016G_80X(); // Special configuration for Run2016G
+        void loadTag_Razor2016_ICHEP_80X(); // Special configuration for Run2016G
         void loadTag_Null(); // Default when tag is not provided
         void loadCMSSWPath();
         double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
@@ -108,10 +111,12 @@ class RazorHelper {
                 bool isTight, bool passedTrigger, float fastsimPtCut = 10.01, float ptCut=10.01);
         double getTriggerScaleFactor_Razor2016(TH2D *sfHist, float pt, float eta, 
                 bool isTight, bool passedTrigger, float ptCut=10.01);
+        double getTriggerEfficiency(TH2D *effHist, float pt, float eta, 
+                bool isTight, bool passedTrigger, float ptCut=10.01);
         void updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
             float &sfDown, float fastsimPtCut = 10.01, float extraSyst = 0.);
-        void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, TH2D *errHist,
+        void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, 
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
             float &sfDown, float extraSyst = 0.);
         float getElectronScaleCorrection( float eta ); //for electron energy corrections
@@ -144,6 +149,11 @@ class RazorHelper {
         void loadPileup_Razor2016G();
         void loadLepton_Razor2016G();
 	void loadTrigger_Razor2016G();
+
+        // for Razor2016 ICHEP 80X tag
+        void loadPileup_Razor2016_ICHEP();
+        void loadLepton_Razor2016_ICHEP();
+	void loadTrigger_Razor2016_ICHEP();
 
         // member data
         std::string tag;
@@ -198,16 +208,14 @@ class RazorHelper {
         TH2D *phoLooseEffSFHist;
 
         // for single lepton triggers
+        TFile *eleTrigEffFile;
+        TFile *muTrigEffFile;
         TFile *eleTrigSFFile;
         TFile *muTrigSFFile;
-        TFile *eleTrigEffFromFullsimFile;
-        TFile *muTrigEffFromFullsimFile;
+        TH2D *eleTrigEffHist;
+        TH2D *muTrigEffHist;
         TH2D *eleTrigSFHist;
         TH2D *muTrigSFHist;
-        TH2D *eleTrigSFErrHist;
-        TH2D *muTrigSFErrHist;
-        TH2D *eleTrigEffFromFullsimHist;
-        TH2D *muTrigEffFromFullsimHist;
 
 	//for photon triggers
         TFile *diphotonTrigLeadingLegEffSFFile;

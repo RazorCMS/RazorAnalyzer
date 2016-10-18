@@ -24,6 +24,9 @@ struct greater_than_pt{
     }
 };
  
+// Usage of input parameters:
+// -option: used to select output tree type.  See table below for available options.
+// -label: used to specify the analysis tag (Razor2015, Razor2016, etc)
 void RazorControlRegions::Analyze(bool isData, int option, string outputfilename, string label)
 {
     cout << "Initializing..." << endl;
@@ -423,7 +426,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       for (uint i=0;i<genLeptonIndex.size();i++) {
           // For each gen electron or muon passing the pt requirement, determine if it was reconstructed.
           // Then apply appropriate track reco scale factor.
-          if ( tag == "Razor2016_80X" ) {
+          if ( tag == "Razor2016_80X" || tag == "Razor2016_ICHEP_80X" ) {
               if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > elePtCutForTrackSFs) {
                   bool isReconstructed = false;
                   for( int j = 0; j < nElectrons; j++ ) {
@@ -583,8 +586,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       ) {	    
             events->muonEffWeight *= helper.getTightMuonScaleFactor( muonPt[i], muonEta[i], isTightMuon(i) );
 
-	    //also get trigger efficiency correction
-            probabilityToFail1LTrig *= ( 1 - helper.getSingleMuTriggerScaleFactor( muonPt[i], muonEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
+	    //Trigger efficiency correction.  Note that this computes raw trigger efficiency, 
+            //not MC-to-data scale factors.  MC-to-data trigger scale factors are not currently supported. 
+            probabilityToFail1LTrig *= ( 1 - helper.getSingleMuTriggerEfficiency( muonPt[i], muonEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
 	  }
 
 	  //For Veto Lepton Options, use only veto leptons
@@ -683,8 +687,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       ) {	    
 	    events->eleEffWeight *= helper.getTightElectronScaleFactor( eleCorrPt, eleEta[i], isTightElectron(i) );
 
-	    //also get trigger efficiency correction
-	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerScaleFactor( eleCorrPt, eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
+	    //Trigger efficiency correction.  Note that this computes raw trigger efficiency, 
+            //not MC-to-data scale factors.  MC-to-data trigger scale factors are not currently supported. 
+	    probabilityToFail1LTrig *= ( 1 - helper.getSingleEleTriggerEfficiency( eleCorrPt, eleEta[i], true, true ) ); //update probability that no lepton fires a 1L trigger
 	    
 	  }
 
