@@ -58,6 +58,8 @@ class RazorHelper {
         std::vector<int> getHadronicTriggerNums() { return hadronicTriggerNums; }
         double getSingleMuTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger);
         double getSingleEleTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger);
+        double getSingleMuTriggerEfficiency(float pt, float eta, bool isTight, bool passedTrigger);
+        double getSingleEleTriggerEfficiency(float pt, float eta, bool isTight, bool passedTrigger);
         void updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
             float &sf, float &sfUp, float &sfDown);
         void updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, bool passedTrigger,
@@ -108,10 +110,12 @@ class RazorHelper {
                 bool isTight, bool passedTrigger, float fastsimPtCut = 10.01, float ptCut=10.01);
         double getTriggerScaleFactor_Razor2016(TH2D *sfHist, float pt, float eta, 
                 bool isTight, bool passedTrigger, float ptCut=10.01);
+        double getTriggerEfficiency(TH2D *effHist, float pt, float eta, 
+                bool isTight, bool passedTrigger, float ptCut=10.01);
         void updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
             float &sfDown, float fastsimPtCut = 10.01, float extraSyst = 0.);
-        void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, TH2D *errHist,
+        void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, 
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
             float &sfDown, float extraSyst = 0.);
         float getElectronScaleCorrection( float eta ); //for electron energy corrections
@@ -198,16 +202,14 @@ class RazorHelper {
         TH2D *phoLooseEffSFHist;
 
         // for single lepton triggers
+        TFile *eleTrigEffFile;
+        TFile *muTrigEffFile;
         TFile *eleTrigSFFile;
         TFile *muTrigSFFile;
-        TFile *eleTrigEffFromFullsimFile;
-        TFile *muTrigEffFromFullsimFile;
+        TH2D *eleTrigEffHist;
+        TH2D *muTrigEffHist;
         TH2D *eleTrigSFHist;
         TH2D *muTrigSFHist;
-        TH2D *eleTrigSFErrHist;
-        TH2D *muTrigSFErrHist;
-        TH2D *eleTrigEffFromFullsimHist;
-        TH2D *muTrigEffFromFullsimHist;
 
 	//for photon triggers
         TFile *diphotonTrigLeadingLegEffSFFile;
