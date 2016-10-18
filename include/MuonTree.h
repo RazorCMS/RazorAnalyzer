@@ -35,6 +35,7 @@
       UInt_t                  fLumiSectionNumber;
       UInt_t                  fEventNumber;
       Bool_t                  fMuEventNumberParity;
+      UInt_t                  fNPU; 
       Float_t                 fRho; 
       Float_t                 fRhoNeutralCentral; 
       Float_t                 fNVertices; 
@@ -132,6 +133,7 @@
         fLumiSectionNumber	   = 0.0;
         fEventNumber		   = 0.0;
         fMuEventNumberParity	   = 0.0;
+        fNPU 			   = 0.0;
         fRho 			   = 0.0;
 	fRhoNeutralCentral         = 0.0;
         fNVertices 		   = 0.0;
@@ -221,6 +223,7 @@
         tree_->Branch("lumi",&fLumiSectionNumber,"lumi/i");
         tree_->Branch("event",&fEventNumber,"event/i");
         tree_->Branch("EventNumberParity",&fMuEventNumberParity,"EventNumberParity/O"); 
+        tree_->Branch("NPU",&fNPU,"NPU/F"); 
         tree_->Branch("Rho",&fRho,"Rho/F"); 
 	tree_->Branch("RhoNeutralCentral",&fRhoNeutralCentral,"RhoNeutralCentral/F"); 
         tree_->Branch("NVertices",&fNVertices,"NVertices/F"); 
@@ -310,6 +313,7 @@
         tree_->SetBranchAddress("lumi",&fLumiSectionNumber);
         tree_->SetBranchAddress("event",&fEventNumber);
         tree_->SetBranchAddress("EventNumberParity",&fMuEventNumberParity);
+        tree_->SetBranchAddress("NPU",&fNPU);
         tree_->SetBranchAddress("Rho",&fRho);
 	tree_->SetBranchAddress("RhoNeutralCentral",&fRhoNeutralCentral);
         tree_->SetBranchAddress("NVertices",&fNVertices);
