@@ -1,4 +1,4 @@
-VERSION = "V3p5_NewElectronEffAreas"
+VERSION = "V3p5_14October2016_NewElectronID"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',

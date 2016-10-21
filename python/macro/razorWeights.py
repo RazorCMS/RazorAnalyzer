@@ -79,6 +79,60 @@ def reapplyPileupWeight(event, wHists, weightBranch="pileupWeight", debugLevel=0
         print "Error in pileupWeight: pileup reweighting histogram not found!"
         sys.exit()
 
+def reapplyLepEffWeight(event, wHists, eleBranch="eleEffWeight", muBranch="muonEffWeight", debugLevel=0):
+    """Get (new lepton weight)/(old lepton weight)"""
+    if abs(event.lep1Type) == 13:
+        if "muoneff" in wHists:
+            if not hasattr(event, muBranch):
+                sys.exit( "Error in reapplyLepEffWeight: tree does not have a branch for "+muBranch )
+            muWeight = wHists["muoneff"].GetBinContent(
+                    wHists["muoneff"].GetXaxis().FindFixBin( max( min(event.lep1.Pt(), 199.9), 20.01 ) ),
+                    wHists["muoneff"].GetYaxis().FindFixBin( abs( event.lep1.Eta() ) ) ) / getattr( event, muBranch )
+            if debugLevel > 1: 
+                print "Muon weight:",muWeight,"(",muBranch,"=",getattr(event, muBranch),")"
+            return muWeight
+        else:
+            print "Error: muon efficiency reweighting histogram not found!"
+            sys.exit()
+    elif abs(event.lep1Type) == 11:
+        if "eleeff" in wHists:
+            if not hasattr(event, eleBranch):
+                sys.exit( "Error in reapplyLepEffWeight: tree does not have a branch for "+eleBranch )
+            eleWeight = wHists["eleeff"].GetBinContent(
+                    wHists["eleeff"].GetXaxis().FindFixBin( max( min(event.lep1.Pt(), 199.9), 20.01 ) ),
+                    wHists["eleeff"].GetYaxis().FindFixBin( abs( event.lep1.Eta() ) ) ) / getattr( event, eleBranch )
+            if debugLevel > 1: 
+                print "Electron weight:",eleWeight,"(",eleBranch,"=",getattr(event, eleBranch),")"
+            return eleWeight
+        else:
+            print "Error: electron efficiency reweighting histogram not found!"
+            sys.exit()
+
+def reapplyLepTrigWeight(event, wHists, trigBranch="trigWeight1L", debugLevel=0):
+    """Get (new trig weight)/(old trig weight)"""
+    if not hasattr(event, trigBranch):
+        sys.exit( "Error in reapplyLepTrigWeight: tree does not have a branch for "+trigBranch )
+    oldWeight = getattr( event, trigBranch )
+    if abs(event.lep1Type) == 13:
+        if "muontrig" in wHists:
+            newWeight = wHists["muontrig"].GetBinContent(
+                    wHists["muontrig"].GetXaxis().FindFixBin( abs( event.lep1.Eta() ) ),
+                    wHists["muontrig"].GetYaxis().FindFixBin( max( min(event.lep1.Pt(), 199.9), 20.01 ) ) ) 
+        else:
+            print "Error: muon trigger reweighting histogram not found!"
+            sys.exit()
+    elif abs(event.lep1Type) == 11:
+        if "eletrig" in wHists:
+            newWeight = wHists["eletrig"].GetBinContent(
+                    wHists["eletrig"].GetXaxis().FindFixBin( abs( event.lep1.Eta() ) ),
+                    wHists["eletrig"].GetYaxis().FindFixBin( max( min(event.lep1.Pt(), 199.9), 20.01 ) ) )
+        else:
+            print "Error: electron trigger reweighting histogram not found!"
+            sys.exit()
+    if debugLevel > 1: 
+        print "Trigger weight:",newWeight,"( old weight =",oldWeight,")"
+    return newWeight / oldWeight
+
 def getNBJetsWeight(event, debugLevel=0):
     """Reweight according to number of gen-level b-jets"""
     sfTag = 0.95
@@ -225,6 +279,12 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
         #    eventWeight *= pileupWeight(event, wHists, puBranch="nVtx", debugLevel=debugLevel)
 
         #lepton scale factors
+        if str.lower("reapplyLepWeights") in lweightOpts:
+            eventWeight *= reapplyLepEffWeight(event, wHists, debugLevel=debugLevel)
+        if str.lower("reapplyTrigWeights") in lweightOpts:
+            eventWeight *= reapplyLepTrigWeight(event, wHists, debugLevel=debugLevel)
+        elif str.lower("removeTrigWeights") in lweightOpts:
+            eventWeight /= event.trigWeight1L
         #if str.lower("doLep1Weights") in lweightOpts:
         #    doLep2 = (str.lower("doLep2Weights") in lweightOpts)
         #    eventWeight *= leptonWeight(event, wHists, doLep2, debugLevel=debugLevel)

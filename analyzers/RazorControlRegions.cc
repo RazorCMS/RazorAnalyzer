@@ -18,8 +18,8 @@ using namespace std;
 
 const int NUM_PDF_WEIGHTS = 60;
 
-const int JET_PT_CUT = 40;
-const int BJET_PT_CUT = 40;
+const int JET_PT_CUT = 30;
+const int BJET_PT_CUT = 30;
 
 struct greater_than_pt{
     inline bool operator() (const TLorentzVector& p1, const TLorentzVector& p2){
@@ -1103,7 +1103,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
 		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
-	  jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
+	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
 	}
 	if (printSyncDebug) {
 	  cout << "Jet Smearing Factor " << jetEnergySmearFactor << "\n";
