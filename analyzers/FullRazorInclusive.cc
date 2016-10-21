@@ -600,6 +600,15 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
           pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;
         }
 	
+
+
+
+
+
+
+
+
+
         /////////////////////////////////
         //Muon selection
         /////////////////////////////////
@@ -675,19 +684,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
             //baseline pt cut
             if (muonPt[i] < MUON_VETO_CUT) continue;
-            //tight lepton efficiency scale factor
-            if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedSingleLeptonTrigger 
-		&& muonPt[i] > MUON_TIGHT_CUT) {
-	      helper->updateTightMuonScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
-						   muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
-            }
-            //veto lepton efficiency scale factor
-            if (!isData && RazorAnalyzer::matchesGenMuon(muonEta[i], muonPhi[i]) && passedHadronicTrigger 
-		&& muonPt[i] > 20) { //NOTE: do not use these scale factors below 20 GeV for now
-	      helper->updateVetoMuonScaleFactors( muonPt[i], muonEta[i], isVetoMuon(i),
-						  vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
-						  sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );
-            }
+
             //Trigger scale factor
             if(!isData && muonPt[i] >= MUON_TIGHT_CUT){
 	      helper->updateSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
@@ -715,6 +712,9 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                 }
             }
         }
+
+
+
 
         /////////////////////////////////
         //Electron selection
@@ -795,20 +795,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
             //baseline pt cut
             if (elePt[i] < ELE_VETO_CUT) continue;
-            //Calculate MC->Data scale factors
-            if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedSingleLeptonTrigger && elePt[i] > ELE_TIGHT_CUT) {
-                //Tight scale factor
-	      helper->updateTightElectronScaleFactors(elePt[i], eleEta[i], isTightElectron(i), 
-						      eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
-						      sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
-            }
-            //Veto scale factor
-            if (!isData && RazorAnalyzer::matchesGenElectron(eleEta[i],elePhi[i]) && passedHadronicTrigger 
-		&& elePt[i] > 20) { //NOTE: only use scale factors for electrons above 20 GeV for now
-	      helper->updateVetoElectronScaleFactors(elePt[i], eleEta[i], isVetoElectron(i), 
-						     vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
-						     sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
-            }
+
             //Trigger scale factor
             if(!isData && elePt[i] > ELE_TIGHT_CUT){
 	      helper->updateSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
@@ -835,6 +822,95 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                 }
             }
         }
+
+
+	/////////////////////////////////////////////////////////////////////////////////////
+        //Compute Electron and Muon Selection Efficiency Correction Factors
+	//Use Gen-Level Leptons as denominator
+        /////////////////////////////////////////////////////////////////////////////////////
+	if (!isData) {
+	  for(int j = 0; j < nGenParticle; j++){
+	  
+	    //look for electrons or muons
+	    if ( (abs(gParticleId[j]) == 11 ||abs(gParticleId[j]) == 13) 
+		 && gParticleStatus[j] == 1 	      
+		 && ( (abs(gParticleId[j]) == 11 && abs(gParticleEta[j]) < 2.5) ||  
+		      (abs(gParticleId[j]) == 13 && abs(gParticleEta[j]) < 2.4))
+		 && gParticlePt[j] > 5
+		 &&
+		 ( abs(gParticleMotherId[j]) == 24 
+		   || abs(gParticleMotherId[j]) == 23 
+		   || ( (abs(gParticleMotherId[j]) == 15 || abs(gParticleMotherId[j]) == 13 || abs(gParticleMotherId[j]) == 11 )
+			&& gParticleMotherIndex[j] >= 0 
+			&& (abs(gParticleMotherId[gParticleMotherIndex[j]]) == 24 || 
+			    abs(gParticleMotherId[gParticleMotherIndex[j]]) == 23)
+			)
+		   )
+		 )  {	      
+	      
+	      //match to tight or veto ele
+	      if (abs(gParticleId[j]) == 11) {
+		bool isSelectedTight = false;
+		bool isSelectedVeto = false;
+		for (int i = 0; i < nElectrons; i++){
+		  if (fabs(eleEta[i]) > 2.5) continue;
+		  if (elePt[i] < ELE_VETO_CUT) continue;
+		  if (deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) > 0.1) continue;
+		  if (elePt[i] > ELE_TIGHT_CUT && isTightElectron(i)) isSelectedTight = true;
+		  if (isVetoElectron(i)) isSelectedVeto = true;
+		}
+
+		//if event passes single lepton trigger, apply correction factor for tight
+		if (passedSingleLeptonTrigger && gParticlePt[j] > ELE_TIGHT_CUT) {
+		  helper->updateTightElectronScaleFactors(gParticlePt[j], gParticleEta[j], isSelectedTight,
+							  eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
+							  sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
+		}
+
+		//if event passes hadronic Trigger, apply correction factor for veto
+		if (passedHadronicTrigger) {
+		  //for pT below 10 GeV, use the correction for 10 GeV
+		  helper->updateVetoElectronScaleFactors( fmax( gParticlePt[j], 10.01) , gParticleEta[j], isSelectedVeto,
+							  vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
+							  sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
+		}
+		
+	      } //end if electrons
+
+	      //match to tight or veto muon
+	      if (abs(gParticleId[j]) == 13) {
+		bool isSelectedTight = false;
+		bool isSelectedVeto = false;
+		for (int i = 0; i < nMuons; i++){
+		  if (fabs(muonEta[i]) > 2.4) continue;
+		  if (muonPt[i] < MUON_VETO_CUT) continue;
+		  if (deltaR( muonEta[i], muonPhi[i], gParticleEta[j], gParticlePhi[j]) > 0.1) continue;
+		  if (muonPt[i] > MUON_TIGHT_CUT && isTightMuon(i)) isSelectedTight = true;
+		  if (isVetoMuon(i)) isSelectedVeto = true;
+		}		
+	      
+		//if event passes single lepton trigger, apply correction factor for tight
+		if (passedSingleLeptonTrigger && gParticlePt[j] > MUON_TIGHT_CUT) {
+		  helper->updateTightMuonScaleFactors( gParticlePt[j], gParticleEta[j], isSelectedTight,
+						       muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, 
+						       sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
+		}
+		
+		//if event passes hadronic Trigger, apply correction factor for veto
+		if (passedHadronicTrigger) {
+		  //for pT below 10 GeV, use the correction for 10 GeV
+		  helper->updateVetoMuonScaleFactors( fmax( gParticlePt[j], 10.01) , gParticleEta[j], isSelectedVeto,
+						      vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
+						      sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );	
+		}
+
+	      } //end if muons
+	  
+	    }//match gen leptons
+	  }//loop over gen particles
+	}//end if data
+
+
 
         /////////////////////////////////
         //Tau selection
