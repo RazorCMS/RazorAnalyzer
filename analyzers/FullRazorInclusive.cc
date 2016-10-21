@@ -686,6 +686,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             if (muonPt[i] < MUON_VETO_CUT) continue;
 
             //Trigger scale factor
+	    //Note: The current scheme for applying the trigger scale factor is only correct for the 1-lepton box
+	    //For the 2-lepton boxes, the way we apply these scale factors now is wrong.
             if(!isData && muonPt[i] >= MUON_TIGHT_CUT){
 	      helper->updateSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
 							 passedSingleLeptonTrigger, muonTrigCorrFactor, sf_muonTrigUp, sf_muonTrigDown );
@@ -797,6 +799,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             if (elePt[i] < ELE_VETO_CUT) continue;
 
             //Trigger scale factor
+	    //Note: The current scheme for applying the trigger scale factor is only correct for the 1-lepton box
+	    //For the 2-lepton boxes, the way we apply these scale factors now is wrong.
             if(!isData && elePt[i] > ELE_TIGHT_CUT){
 	      helper->updateSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
 							  passedSingleLeptonTrigger, eleTrigCorrFactor, sf_eleTrigUp, sf_eleTrigDown );
