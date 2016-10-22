@@ -796,6 +796,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  }
 	} //loop over good leptons	
 
+
 	//******************************************************
 	//compute lepton efficiency scale factors 	
 	//******************************************************
@@ -822,7 +823,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > genElePtCut && abs(gParticleEta[genLeptonIndex[i]]) < 2.5) {
 	    bool isSelected = false;
 	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
-	      if ( abs(GoodLeptonType[j]) == 11 && elePt[j] < genElePtCut ) continue;
+	      if ( abs(GoodLeptonType[j]) == 11 && GoodLeptons[j].Pt() < genElePtCut ) continue;
 	      if (useTightSelection) {
 		if (!GoodLeptonIsTight[j]) continue;
 	      } else {
@@ -845,38 +846,40 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 									  isSelected ); 
 	    }
 	  }
+
 	  if (abs(gParticleId[genLeptonIndex[i]]) == 13 && gParticlePt[genLeptonIndex[i]] > genMuonPtCut && abs(gParticleEta[genLeptonIndex[i]]) < 2.4) {
+
 	    bool isSelected = false;
-	    for( int j = 0; j < nMuons; j++ ) {
-	      if ( abs(GoodLeptonType[j]) == 13 && elePt[j] < genMuonPtCut ) continue;
+	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
+	      if ( abs(GoodLeptonType[j]) == 13 && GoodLeptons[j].Pt() < genMuonPtCut ) continue;
 	      if (useTightSelection) {
-		if (!GoodLeptonIsTight[j]) continue;
+	      	if (!GoodLeptonIsTight[j]) continue;
 	      } else {
-		if (!GoodLeptonIsVeto[j]) continue;
+	      	if (!GoodLeptonIsVeto[j]) continue;
 	      }
 	      double dR = deltaR( GoodLeptons[j].Eta() , GoodLeptons[j].Phi(),
-				  gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
+	      			  gParticleEta[genLeptonIndex[i]], gParticlePhi[genLeptonIndex[i]] );
 	      if( dR < 0.1 ) {
-		isSelected = true;
-		break;
+	      	isSelected = true;
+	      	break;
 	      }
 	    }
 	    if (useTightSelection) {
 	      events->muonEffWeight *= helper.getTightMuonScaleFactor( gParticlePt[genLeptonIndex[i]], 
-								  gParticleEta[genLeptonIndex[i]], 
-								  isSelected ); 
+	    							       gParticleEta[genLeptonIndex[i]], 
+	    							       isSelected ); 
 	    } else {
 	      events->muonEffWeight *= helper.getVetoMuonScaleFactor( gParticlePt[genLeptonIndex[i]], 
-								       gParticleEta[genLeptonIndex[i]], 
-								       isSelected ); 
+	    							      gParticleEta[genLeptonIndex[i]], 
+	    							      isSelected ); 
 	      
 	    }
 	  }
 	}
 	  	
-      } // if using 1-lepton or 2-lepton control region option
+      } // endif using 1-lepton or 2-lepton control region option
       
-      
+
       //************************************************************************
       //For Loose Lepton + Veto lepton control region option
       //First select a Loose Lepton, assign it to lep1
