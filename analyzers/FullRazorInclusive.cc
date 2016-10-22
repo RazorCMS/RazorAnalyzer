@@ -1272,34 +1272,45 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Nominal event weight
         if(!isData){
             weight *= pileupWeight; 
-            if (passedSingleLeptonTrigger) {
-                weight *= muonEffCorrFactor;
-                weight *= muonTrigCorrFactor;
-                weight *= eleEffCorrFactor;
-                weight *= eleTrigCorrFactor;
+
+            if (passedSingleLeptonTrigger && 
+		(mainVars[""]->box == MuEle || mainVars[""]->box == MuMu || mainVars[""]->box == EleEle || 
+		 mainVars[""]->box == MuSixJet || mainVars[""]->box == MuFourJet || mainVars[""]->box == MuJet 
+		 || mainVars[""]->box == EleSixJet || mainVars[""]->box == EleFourJet || mainVars[""]->box == EleJet
+		 )
+		) {
+	      weight *= muonEffCorrFactor;
+	      weight *= muonTrigCorrFactor;
+	      weight *= eleEffCorrFactor;
+	      weight *= eleTrigCorrFactor;
             }
-            else if(passedHadronicTrigger) {
-                weight *= vetoMuonEffCorrFactor;
-                weight *= vetoEleEffCorrFactor;
-                weight *= tauEffCorrFactor;
-                weight *= hadronicTrigCorrFactor;
+            else if(passedHadronicTrigger &&
+		    (mainVars[""]->box == LooseLeptonSixJet || mainVars[""]->box == LooseLeptonFourJet 
+		     || mainVars[""]->box == SixJet || mainVars[""]->box == FourJet
+		     ||  mainVars[""]->box == LooseLeptonDiJet || mainVars[""]->box == DiJet
+		     )
+		    ) {
+	      weight *= vetoMuonEffCorrFactor;
+	      weight *= vetoEleEffCorrFactor;
+	      weight *= tauEffCorrFactor;
+	      weight *= hadronicTrigCorrFactor;
             }
             weight *= btagCorrFactor;   
 
             // if (weight < 0.1) {
-            //   cout << "weight: " << weight << " | "
-            // 	   << pileupWeight << " " << NPU << " | "
-            // 	   << passedSingleLeptonTrigger << " / " << passedHadronicTrigger << " | "
-            // 	   << muonEffCorrFactor << " "
-            // 	   << muonTrigCorrFactor << " "
-            // 	   << eleEffCorrFactor << " " 
-            // 	   << eleTrigCorrFactor << " "
-            // 	   << vetoMuonEffCorrFactor << " "
-            // 	   << vetoEleEffCorrFactor << " "
-            // 	   << tauEffCorrFactor << " "
-            // 	   << hadronicTrigCorrFactor << " "
-            // 	   << btagCorrFactor << " "
-            // 	   << "\n";
+              // cout << "weight: " << weight << " | "
+              // 	   << pileupWeight << " " << NPU << " | "
+              // 	   << passedSingleLeptonTrigger << " / " << passedHadronicTrigger << " | "
+              // 	   << muonEffCorrFactor << " "
+              // 	   << muonTrigCorrFactor << " "
+              // 	   << eleEffCorrFactor << " " 
+              // 	   << eleTrigCorrFactor << " "
+              // 	   << vetoMuonEffCorrFactor << " "
+              // 	   << vetoEleEffCorrFactor << " "
+              // 	   << tauEffCorrFactor << " "
+              // 	   << hadronicTrigCorrFactor << " "
+              // 	   << btagCorrFactor << " "
+              // 	   << "\n";
             // }
 
         }
