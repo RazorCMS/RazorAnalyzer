@@ -1652,49 +1652,51 @@ void RazorAnalyzer::getPhotonEffAreaRun2( float eta, double& effAreaChHad, doubl
     }
 };
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
 {
   if( fabs( eta ) < 1.0 )
     {
-      effAreaChHad = 0.0456;
-      effAreaNHad  = 0.0599;
-      effAreaPho   = 0.1271;
+      effAreaChHad = 0.0360;
+      effAreaNHad  = 0.0597;
+      effAreaPho   = 0.1210;
     }
   else if( fabs( eta ) < 1.479 )
     {
-      effAreaChHad = 0.0500;
-      effAreaNHad  = 0.0819;
-      effAreaPho   = 0.1101;
+      effAreaChHad = 0.0377;
+      effAreaNHad  = 0.0807;
+      effAreaPho   = 0.1107;
     }
   else if( fabs( eta ) < 2.0 )
     {
-      effAreaChHad = 0.0340;
-      effAreaNHad  = 0.0696;
-      effAreaPho   = 0.0756;
+      effAreaChHad = 0.0306;
+      effAreaNHad  = 0.0629;
+      effAreaPho   = 0.0699;
     }
   else if( fabs( eta ) < 2.2 )
     {
-      effAreaChHad = 0.0383;
-      effAreaNHad  = 0.0360;
-      effAreaPho   = 0.1175;
+      effAreaChHad = 0.0283;
+      effAreaNHad  = 0.0197;
+      effAreaPho   = 0.1056;
     }
   else if( fabs( eta ) < 2.3 )
     {
-      effAreaChHad = 0.0339;
-      effAreaNHad  = 0.0360;
-      effAreaPho   = 0.1498;
+      effAreaChHad = 0.0254;
+      effAreaNHad  = 0.0184;
+      effAreaPho   = 0.1457;
     }
   else if( fabs( eta ) < 2.4 )
     {
-      effAreaChHad = 0.0303;
-      effAreaNHad  = 0.0462;
-      effAreaPho   = 0.1857;
+      effAreaChHad = 0.0217;
+      effAreaNHad  = 0.0284;
+      effAreaPho   = 0.1719;
     }
   else
     {
-      effAreaChHad = 0.0240;
-      effAreaNHad  = 0.0656;
-      effAreaPho   = 0.2183;
+      effAreaChHad = 0.0167;
+      effAreaNHad  = 0.0591;
+      effAreaPho   = 0.1998;
     }
 };
 
@@ -1733,6 +1735,8 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     return true;
 }
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
 
   bool pass = true;
@@ -1740,75 +1744,46 @@ bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0102) pass = false;   
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01042) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0274) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.02683) pass = false;    
     }
   } 
-
-  //50 ns cuts below
-  else {
-    if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
-    } else { 
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0277) pass = false;    
-    }
-  }
 
   return pass;
 }
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts){
   bool pass = true;
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01012) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0266) pass = false;    
-    }
-  }
-
-  //50 ns cuts below
-  else {
-    if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
-    } else { 
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.02678) pass = false;    
     }
   }
 
   return pass;
 }
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
   bool pass = true;
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0099) pass = false;   
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01012) pass = false;   
     } else { 
       if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0266) pass = false;    
-    }
-  }
-
-  //50 ns cuts below
-  else {
-    if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0100) pass = false;   
-    } else { 
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0267) pass = false;    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.02649) pass = false;    
     }
   }
 
@@ -1845,64 +1820,46 @@ bool RazorAnalyzer::photonPassTightID(int i, bool use25nsCuts){
 }
 
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 3.32, 1.92 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.81 + 0.0053*phoPt[i], true );
+      return photonPassesIsolation(i, 1.325, 4.50 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.554 + 0.0047*phoPt[i], true );
     } else {
-      return photonPassesIsolation(i, 1.97, 11.86 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.83 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 1.293, 4.187 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.86 + 0.0034*phoPt[i], true);
     }
   } 
 
-  //50ns cuts below
-  else {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 2.44, 2.57+exp( 0.0044*phoPt[i] + 0.5809 ), 1.92 + 0.0043*phoPt[i], false );
-    } else {
-      return photonPassesIsolation(i, 1.84, 4.00+exp( 0.0040*phoPt[i] + 0.9402 ), 2.15 + 0.0041*phoPt[i], false);
-    }
-  }
 }
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.31, 2.46 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.05 + 0.0053*phoPt[i], true);
+      return photonPassesIsolation(i, 0.789, 2.364 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 0.425 + 0.0047*phoPt[i], true);
     } else {
-      return photonPassesIsolation(i, 0.95, 4.97 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.14 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 0.447, 1.765 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.15 + 0.0034*phoPt[i], true);
     }
   }
 
-  //50ns cuts below
-  else {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.31, 0.60+exp( 0.0044*phoPt[i] + 0.5809 ), 1.33 + 0.0043*phoPt[i], false);
-    } else {
-      return photonPassesIsolation(i, 1.25, 1.65+exp( 0.0040*phoPt[i] + 0.9402 ), 1.02 + 0.0041*phoPt[i], false);
-    }
-  }
 }
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.73, 1.14 + 0.0014*phoPt[i] + 0.000019*phoPt[i]*phoPt[i], 0.05 + 0.0053*phoPt[i], true);
+        return photonPassesIsolation(i, 0.227, 1.691 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 0.346 + 0.0047*phoPt[i], true);
     } else {
-      return photonPassesIsolation(i, 0.27, 3.71 + 0.0139*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 0.11 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 0.146, 0.432 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.75 + 0.0034*phoPt[i], true);
     }
   } 
 
-  //50ns cuts below
-  else {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.91, 0.33+exp( 0.0044*phoPt[i] + 0.5809 ), 0.61 + 0.0043*phoPt[i], false);
-    } else {
-      return photonPassesIsolation(i, 0.65, 0.93+exp( 0.0040*phoPt[i] + 0.9402 ), 0.54 + 0.0041*phoPt[i], false);
-    }
-  }
 }
 
 bool RazorAnalyzer::isLoosePhoton(int i, bool use25nsCuts){
