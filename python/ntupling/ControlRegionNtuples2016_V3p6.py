@@ -1,4 +1,4 @@
-VERSION = "V3p6_20October2016_NoJetSmearing"
+VERSION = "V3p6_24October2016_CustomType1MET"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -216,16 +216,16 @@ DATA['1L'] = {
                 'SingleMuon_2016C_PRv2',
                 'SingleMuon_2016D_PRv2',
                 'SingleMuon_2016E_PRv2',
-                'SingleMuon_2016F_PRv2',
-                'SingleMuon_2016G_PRv2',
+                'SingleMuon_2016F_PRv1',
+                'SingleMuon_2016G_PRv1',
             ],
         "SingleElectron":[
                 'SingleElectron_2016B_PRv2',
                 'SingleElectron_2016C_PRv2',
                 'SingleElectron_2016D_PRv2',
                 'SingleElectron_2016E_PRv2',
-                'SingleElectron_2016F_PRv2',
-                'SingleElectron_2016G_PRv2',
+                'SingleElectron_2016F_PRv1',
+                'SingleElectron_2016G_PRv1',
             ]
         }
 DATA['1LInv'] = DATA['1L'].copy()
@@ -238,16 +238,16 @@ DATA['VetoL'] = { 'HTMHT':[
                 'HTMHT_2016C_PRv2',
                 'HTMHT_2016D_PRv2',
                 'HTMHT_2016E_PRv2',
-                'HTMHT_2016F_PRv2',
-                'HTMHT_2016G_PRv2',
+                'HTMHT_2016F_PRv1',
+                'HTMHT_2016G_PRv1',
                 ] }
 DATA['VetoTau'] = { 'HTMHT':[
                 'HTMHT_2016B_PRv2',
                 'HTMHT_2016C_PRv2',
                 'HTMHT_2016D_PRv2',
                 'HTMHT_2016E_PRv2',
-                'HTMHT_2016F_PRv2',
-                'HTMHT_2016G_PRv2',
+                'HTMHT_2016F_PRv1',
+                'HTMHT_2016G_PRv1',
                 ] }
 DATA['Photon'] = {
         "SinglePhoton":[
@@ -255,8 +255,8 @@ DATA['Photon'] = {
                 'SinglePhoton_2016C_PRv2',
                 'SinglePhoton_2016D_PRv2',
                 'SinglePhoton_2016E_PRv2',
-                'SinglePhoton_2016F_PRv2',
-                'SinglePhoton_2016G_PRv2',
+                'SinglePhoton_2016F_PRv1',
+                'SinglePhoton_2016G_PRv1',
                 ]
         }
 DATA['Signal'] = DATA['1L'].copy()
@@ -265,8 +265,8 @@ DATA['Signal']["HTMHT"] = [
                 'HTMHT_2016C_PRv2',
                 'HTMHT_2016D_PRv2',
                 'HTMHT_2016E_PRv2',
-                'HTMHT_2016F_PRv2',
-                'HTMHT_2016G_PRv2',
+                'HTMHT_2016F_PRv1',
+                'HTMHT_2016G_PRv1',
                 ]
 DATA['LiteZEle'] = {}
 DATA['LiteZEle']['SingleElectron'] = [
@@ -274,8 +274,8 @@ DATA['LiteZEle']['SingleElectron'] = [
         'SingleElectron_2016C_PRv2',
         'SingleElectron_2016D_PRv2',
         'SingleElectron_2016E_PRv2',
-        'SingleElectron_2016F_PRv2',
-        'SingleElectron_2016G_PRv2',
+        'SingleElectron_2016F_PRv1',
+        'SingleElectron_2016G_PRv1',
         ]
 DATA['LiteZMu'] = {}
 DATA['LiteZMu']['SingleMuon'] = [
@@ -283,8 +283,8 @@ DATA['LiteZMu']['SingleMuon'] = [
         'SingleMuon_2016C_PRv2',
         'SingleMuon_2016D_PRv2',
         'SingleMuon_2016E_PRv2',
-        'SingleMuon_2016F_PRv2',
-        'SingleMuon_2016G_PRv2',
+        'SingleMuon_2016F_PRv1',
+        'SingleMuon_2016G_PRv1',
         ]
 DATA['1LSusySync'] = {}
 DATA['1LSusySync']['HTMHT'] = [
@@ -292,6 +292,6 @@ DATA['1LSusySync']['HTMHT'] = [
     'HTMHT_2016C_PRv2',
     'HTMHT_2016D_PRv2',
     'HTMHT_2016E_PRv2',
-    'HTMHT_2016F_PRv2',
-    'HTMHT_2016G_PRv2',
+    'HTMHT_2016F_PRv1',
+    'HTMHT_2016G_PRv1',
     ] 
