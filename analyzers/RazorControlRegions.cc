@@ -1308,8 +1308,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      //      TLorentzVector MyMET = PFMETCustomType1;
-      TLorentzVector MyMET = PFMETType1;
+      TLorentzVector MyMET = PFMETCustomType1;
+      //TLorentzVector MyMET = PFMETType1;
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";

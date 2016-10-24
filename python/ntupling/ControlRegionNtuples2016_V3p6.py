@@ -1,4 +1,4 @@
-VERSION = "V3p6_20October2016_NoJetSmearing"
+VERSION = "V3p6_24October2016_CustomType1MET"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
