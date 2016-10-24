@@ -851,7 +851,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
 	    bool isSelected = false;
 	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
-	      if (!(abs(GoodLeptonType[j]) == 13 && GoodLeptons[j].Pt() < genMuonPtCut)) continue;
+	      if (!(abs(GoodLeptonType[j]) == 13 && GoodLeptons[j].Pt() > genMuonPtCut)) continue;
 	      if (useTightSelection) {
 	      	if (!GoodLeptonIsTight[j]) continue;
 	      } else {
