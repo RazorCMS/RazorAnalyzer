@@ -823,7 +823,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > genElePtCut && abs(gParticleEta[genLeptonIndex[i]]) < 2.5) {
 	    bool isSelected = false;
 	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
-	      if ( abs(GoodLeptonType[j]) == 11 && GoodLeptons[j].Pt() < genElePtCut ) continue;
+	      if (!(abs(GoodLeptonType[j]) == 11 && GoodLeptons[j].Pt() > genElePtCut)) continue;
 	      if (useTightSelection) {
 		if (!GoodLeptonIsTight[j]) continue;
 	      } else {
@@ -851,7 +851,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 
 	    bool isSelected = false;
 	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
-	      if ( abs(GoodLeptonType[j]) == 13 && GoodLeptons[j].Pt() < genMuonPtCut ) continue;
+	      if (!(abs(GoodLeptonType[j]) == 13 && GoodLeptons[j].Pt() < genMuonPtCut)) continue;
 	      if (useTightSelection) {
 	      	if (!GoodLeptonIsTight[j]) continue;
 	      } else {
@@ -1005,10 +1005,11 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  getPhotonEffArea90( phoEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
 	  
 	  //Use Loose Photon ID and charged Iso < 2.5 GeV
-	  if (!( photonPassLooseID(i,true)
-		 //pho_HoverE[i] < 0.05 && photonPassesElectronVeto(i)
-		 && 
-		 max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5
+	  if (!( 		
+		photonPassLooseID(i,true) //use this for deriving scale factor
+		//pho_HoverE[i] < 0.05 && photonPassesElectronVeto(i) //use this for performing fits
+		&& 
+		max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5
 		 )
 	      ) continue;
 	  
