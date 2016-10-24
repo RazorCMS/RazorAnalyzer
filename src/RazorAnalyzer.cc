@@ -1749,7 +1749,10 @@ bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
       if(pho_HoverE[i] > 0.05) pass = false;
       if(phoFull5x5SigmaIetaIeta[i] > 0.02683) pass = false;    
     }
-  } 
+  }  else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
 
   return pass;
 }
@@ -1767,6 +1770,9 @@ bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts){
       if(pho_HoverE[i] > 0.05) pass = false;
       if(phoFull5x5SigmaIetaIeta[i] > 0.02678) pass = false;    
     }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
   }
 
   return pass;
@@ -1785,6 +1791,9 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
       if(pho_HoverE[i] > 0.05) pass = false;
       if(phoFull5x5SigmaIetaIeta[i] > 0.02649) pass = false;    
     }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
   }
 
   return pass;
@@ -1830,7 +1839,10 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
     } else {
       return photonPassesIsolation(i, 1.293, 4.187 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.86 + 0.0034*phoPt[i], true);
     }
-  } 
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    return false;
+  }
 
 }
 
@@ -1844,6 +1856,9 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
     } else {
       return photonPassesIsolation(i, 0.447, 1.765 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.15 + 0.0034*phoPt[i], true);
     }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    return false;
   }
 
 }
@@ -1858,7 +1873,10 @@ bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts){
     } else {
       return photonPassesIsolation(i, 0.146, 0.432 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.75 + 0.0034*phoPt[i], true);
     }
-  } 
+  }  else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    return false;
+  }
 
 }
 
