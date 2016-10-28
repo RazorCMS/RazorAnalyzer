@@ -1,5 +1,10 @@
 #!/bin/env python
 
+### Submit jobs using NtupleUtils.py, then check jobs' statuses every 30 seconds. 
+### When jobs are done, automatically proceed to the next step in the sequence 
+### MC: hadd --> normalize --> hadd-final 
+### Data: hadd --> hadd-final --> remove-duplicates
+
 import os, sys, subprocess
 import argparse
 import time
