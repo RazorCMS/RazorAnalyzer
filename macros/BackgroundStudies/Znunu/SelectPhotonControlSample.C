@@ -66,7 +66,7 @@ TH2Poly* MakeTH2PolyForGJets(string name){
 }
 
 void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, vector<int> color,  bool hasData, string varName, string label, double ymin = 1e-1, double ymax = 1e4  ) {
-  string plotsDir = "Plots/Razor2016/PhotonControlRegionMacro";
+  string plotsDir = "./";
   TCanvas *cv =0;
   TLegend *legend = 0;
 
@@ -130,12 +130,12 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
     stack->GetHistogram()->GetYaxis()->SetTitleOffset(1.0);
     stack->GetHistogram()->GetYaxis()->SetTitleSize(0.05);
     stack->GetHistogram()->GetXaxis()->SetTitleSize(0.15);
-    stack->SetMaximum( 1.2* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
+    stack->SetMaximum( 1.5* fmax( stack->GetMaximum(), hist[0]->GetMaximum()) );
     //stack->SetMinimum( 1e-4 );
     //stack->SetMinimum( 1e-1 );
     //stack->SetMaximum( 1e4 );
-    stack->SetMinimum( ymin );
-    stack->SetMaximum( ymax );
+    // stack->SetMinimum( ymin );
+    // stack->SetMaximum( ymax );
 
     if (hasData) {
       hist[0]->SetMarkerStyle(20);      
@@ -150,8 +150,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //****************************
   //Add CMS and Lumi Labels
   //****************************
-  // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "1.7 fb^{-1}";
+  lumi_13TeV = "26.4 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -335,7 +334,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
     histMR.push_back(new TH1D(Form("histMR_%s",processLabels[i].c_str()), "; M_{R} [GeV/c^{2}]; Number of Events", NMRBins-1, MRBins));
     histRsq.push_back(new TH1D(Form("histRsq_%s",processLabels[i].c_str()), "; R^{2} ; Number of Events", NRsqBins-1, RsqBins));
     histMRRsqUnrolled.push_back(new TH1D(Form("histMRRsqUnrolled_%s",processLabels[i].c_str()), "; Bin Number ; Number of Events / Bin Area", (NMRBins-1)*(NRsqBins-1), 0, (NMRBins-1)*(NRsqBins-1)));
-    histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 100, 0, 400));    
+    histPhotonPt.push_back(new TH1D(Form("histPhotonPt_%s",processLabels[i].c_str()), "; Photon p_{T} [GeV/c] ; Number of Events", 200, 0, 1000));    
     histPhotonEta.push_back(new TH1D(Form("histPhotonEta_%s",processLabels[i].c_str()), "; Photon #eta ; Number of Events", 50, -3, 3));
     histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), "; MET [GeV] ; Number of Events", 25, 0, 500));
     histNJets40.push_back(new TH1D(Form("histNJets40_%s",processLabels[i].c_str()), "; Number of Jets (p_{T} > 40); Number of Events", NNJetBins-1, NJetBins));
@@ -430,7 +429,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  if(processLabels[i]  == "GJets" && events->minDRGenPhotonToParton < 0.4) continue;
 	  if(processLabels[i]  == "GJetsFrag" && isFake) continue;	  
 	  if(processLabels[i]  == "GJetsFrag" && events->minDRGenPhotonToParton >= 0.4) continue;
-	  if(processLabels[i]  == "GJets" || processLabels[i]  == "GJetsFrag") weight *= 1.44; //Overall K-Factor & photon efficiency correction
+	  if(processLabels[i]  == "GJets" || processLabels[i]  == "GJetsFrag") weight *= 1.00; //Overall K-Factor & photon efficiency correction
 
 	  if (option == "Inclusive") {
 	    if(processLabels[i] == "QCD" && !isFake) continue;
@@ -451,22 +450,22 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  double dataWeight = 1;
 	  if (events->pho1.Pt() > 185) { //Photon165
 	    dataWeight = 1;
-	    if (events->HLTDecision[112] && events->pho1HLTFilter[27]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 135) { //Photon120
-	    dataWeight = events->HLTPrescale[111] * 0.2;
-	    if (events->HLTDecision[111] && events->pho1HLTFilter[26]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 105) { //Photon90
-	    dataWeight = events->HLTPrescale[110] * 0.2 * 0.85;
-	    if (events->HLTDecision[110] && events->pho1HLTFilter[25]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 85) { //Photon75
-	    dataWeight = events->HLTPrescale[109] * 0.2 * 0.85;
-	    if (events->HLTDecision[109] && events->pho1HLTFilter[24]) passTrigger = true;
-	  } else if (events->pho1.Pt() > 58){ //Photon50
-	    dataWeight = events->HLTPrescale[108] * 0.2 * 0.85;
-	    if (events->HLTDecision[108] && events->pho1HLTFilter[23]) passTrigger = true;
+	    if (events->HLTDecision[102] && events->pho1HLTFilter[36]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 138) { //Photon120
+	    dataWeight = events->HLTPrescale[100] * 0.865329;
+	    if (events->HLTDecision[100] && events->pho1HLTFilter[34]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 108) { //Photon90
+	    dataWeight = events->HLTPrescale[99] * 0.865329 * 1.10333;
+	    if (events->HLTDecision[99] && events->pho1HLTFilter[33]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 88) { //Photon75
+	    dataWeight = events->HLTPrescale[98] * 0.865329 * 1.10333 * 1.07172;
+	    if (events->HLTDecision[98] && events->pho1HLTFilter[32]) passTrigger = true;
+	  } else if (events->pho1.Pt() > 60){ //Photon50
+	    dataWeight = events->HLTPrescale[97] * 0.865329 * 1.10333 * 1.07172 * 1.11478;
+	    if (events->HLTDecision[97] && events->pho1HLTFilter[31]) passTrigger = true;
 	  } else { //Photon36
-	    dataWeight = events->HLTPrescale[107] * 0.2 * 0.85 * 6000;
-	    if (events->HLTDecision[107] && events->pho1HLTFilter[22]) passTrigger = true;
+	    dataWeight = events->HLTPrescale[96] * 0.865329 * 1.10333 * 1.07172 * 1.11478 * 9127.14;
+	    if (events->HLTDecision[96] && events->pho1HLTFilter[30]) passTrigger = true;
 	  } 
 	  
 	  if (isData) {
@@ -489,8 +488,10 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  if (! (events->pho1_sigmaietaieta < 0.0271)) continue;
 	}
 	if (! (events->pho1_chargediso < 2.5)) continue;
+	if (! (events->pho1.Pt() > 60)) continue;
+
 	if (! (events->pho1.Pt() > 185)) continue;
-	//if (! (events->pho1.Pt() > 58)) continue;
+
   
 	//By default it's EG Loose selection + chargedIso < 2.5 GeV.
 	//We can tighten the cuts if we wish...
@@ -556,34 +557,34 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  //************************************************************
 	  //Histograms to compute scale factors for each trigger path
 	  //************************************************************		
-	  if (events->HLTDecision[107]) {
-	    PhotonPt_HLTPho36->Fill( events->pho1.Pt(), events->HLTPrescale[107] * 0.2 * 0.85 * 6000);
-	    if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho36_42To50 += events->HLTPrescale[107] * 0.2 * 0.85 * 6000;
-	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho36_58To70 += events->HLTPrescale[107] * 0.2 * 0.85 * 6000;	    
+	  if (events->HLTDecision[96]) {
+	    PhotonPt_HLTPho36->Fill( events->pho1.Pt(), events->HLTPrescale[96]* 0.865329 * 1.10333 * 1.07172 * 1.11478 * 9127.14);
+	    if (events->pho1.Pt() > 42 && events->pho1.Pt() < 50) YieldPho36_42To50 += events->HLTPrescale[96] ;
+	    if (events->pho1.Pt() > 60 && events->pho1.Pt() < 70) YieldPho36_58To70 += events->HLTPrescale[96] ;	    
 	  }
-	  if (events->HLTDecision[108]) {
-	    PhotonPt_HLTPho50->Fill( events->pho1.Pt(), events->HLTPrescale[108] * 0.2 * 0.85);    
-	    if (events->pho1.Pt() > 58 && events->pho1.Pt() < 70) YieldPho50_58To70 += events->HLTPrescale[108] * 0.2 * 0.85;	    
-	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho50_85To95 += events->HLTPrescale[108] * 0.2 * 0.85;	    
+	  if (events->HLTDecision[97]) {
+	    PhotonPt_HLTPho50->Fill( events->pho1.Pt(), events->HLTPrescale[97] * 0.865329 * 1.10333 * 1.07172 * 1.11478 );    
+	    if (events->pho1.Pt() > 60 && events->pho1.Pt() < 70) YieldPho50_58To70 += events->HLTPrescale[97] ;	    
+	    if (events->pho1.Pt() > 88 && events->pho1.Pt() < 95) YieldPho50_85To95 += events->HLTPrescale[97] ;	    
 	  }
-	  if (events->HLTDecision[109]) {
-	    PhotonPt_HLTPho75->Fill( events->pho1.Pt(), events->HLTPrescale[109] * 0.2 * 0.85);
-	    if (events->pho1.Pt() > 85 && events->pho1.Pt() < 95) YieldPho75_85To95 += events->HLTPrescale[109] * 0.2 * 0.85;	    
-	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho75_105To115 += events->HLTPrescale[109] * 0.2 * 0.85;	    
+	  if (events->HLTDecision[98]) {
+	    PhotonPt_HLTPho75->Fill( events->pho1.Pt(), events->HLTPrescale[98] * 0.865329 * 1.10333 * 1.07172   );
+	    if (events->pho1.Pt() > 88 && events->pho1.Pt() < 95) YieldPho75_85To95 += events->HLTPrescale[98] ;	    
+	    if (events->pho1.Pt() > 108 && events->pho1.Pt() < 115) YieldPho75_105To115 += events->HLTPrescale[98] ;	    
 	  }
-	  if (events->HLTDecision[110]) {
-	    PhotonPt_HLTPho90->Fill( events->pho1.Pt(), events->HLTPrescale[110] * 0.2 * 0.85);
-	    if (events->pho1.Pt() > 105 && events->pho1.Pt() < 115) YieldPho90_105To115 += events->HLTPrescale[110] * 0.2 * 0.85;	    
-	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho90_135To145 += events->HLTPrescale[110] * 0.2 * 0.85;	    
+	  if (events->HLTDecision[99]) {
+	    PhotonPt_HLTPho90->Fill( events->pho1.Pt(), events->HLTPrescale[99] * 0.865329 * 1.10333);
+	    if (events->pho1.Pt() > 108 && events->pho1.Pt() < 115) YieldPho90_105To115 += events->HLTPrescale[99] ;	    
+	    if (events->pho1.Pt() > 138 && events->pho1.Pt() < 145) YieldPho90_135To145 += events->HLTPrescale[99] ;	    
 	  }
-	  if (events->HLTDecision[111]) {
-	    PhotonPt_HLTPho120->Fill( events->pho1.Pt(), events->HLTPrescale[111] * 0.2);
-	    if (events->pho1.Pt() > 135 && events->pho1.Pt() < 145) YieldPho120_135To145 += events->HLTPrescale[111] * 0.2;	    
-	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho120_185To200 += events->HLTPrescale[111] * 0.2;	    
+	  if (events->HLTDecision[100]) {
+	    PhotonPt_HLTPho120->Fill( events->pho1.Pt(), events->HLTPrescale[100] * 0.865329);
+	    if (events->pho1.Pt() > 138 && events->pho1.Pt() < 145) YieldPho120_135To145 += events->HLTPrescale[100] ;	    
+	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho120_185To200 += events->HLTPrescale[100] ;	    
 	  }
-	  if (events->HLTDecision[112]) {
-	    PhotonPt_HLTPho165->Fill( events->pho1.Pt(), events->HLTPrescale[112]);
-	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho165_185To200 += events->HLTPrescale[112];	    
+	  if (events->HLTDecision[102]) {
+	    PhotonPt_HLTPho165->Fill( events->pho1.Pt(), events->HLTPrescale[102]);
+	    if (events->pho1.Pt() > 185 && events->pho1.Pt() < 200) YieldPho165_185To200 += events->HLTPrescale[102];	    
 	  }
 
 
@@ -934,11 +935,9 @@ void SelectPhotonControlSample( int option = 0) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
-    //datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/PhotonAddToMET/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016_GoodLumiGolden_26p4ifb_MR300Skim.root");         
   } else {
-    datafiles.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
-    //datafiles.push_back("root://eoscms:///eos/cms//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/PhotonAddToMET/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root");     
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016_GoodLumiGolden_26p4ifb_MR300Skim.root");         
   }
 
   vector<string> bkgfiles_gjets;
@@ -947,25 +946,21 @@ void SelectPhotonControlSample( int option = 0) {
   vector<string> bkgfiles_other;
 
   if (option >= 10) {
-    bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
-    bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");     
-  } else {
-    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted_RazorSkim.root");    
-    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    //bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p2/PhotonRazorSkimPhotonSkim/RazorControlRegions_GJets_1pb_weighted.root");    
-    bkgfiles_gjets.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_GJetsDR0p4_1pb_weighted.root");    
-    bkgfiles_gjetsFrag.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_GJets_1pb_weighted.root");    
-    bkgfiles_qcd.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"); 
-    bkgfiles_other.push_back("Backgrounds/Photon/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted.root"); 
+    // bkgfiles_gjets.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8_1pb_weighted.root");    
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root"); 
+    // bkgfiles_qcd.push_back("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2015/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_1pb_weighted.root");  
+    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted.root");    
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted.root");  
+  } else {  
+    bkgfiles_gjets.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_MR300Skim.root");    
+    bkgfiles_gjetsFrag.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RazorSkim/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted_MR300Skim.root");    
+    bkgfiles_qcd.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RazorSkim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016_GoodLumiGolden_26p4ifb_MR300Skim.root"); 
+    bkgfiles_other.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6/PhotonAddToMET/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_MR300Skim.root"); 
   }
    
 
@@ -984,9 +979,7 @@ void SelectPhotonControlSample( int option = 0) {
   colors.push_back(kMagenta);
   colors.push_back(kCyan);
   
- // double lumi = 12900;
-  double lumi = 1687;
-  //double lumi = 20100;
+  double lumi = 26400;
 
   //*********************************************************************
   //GJets Control Region
