@@ -123,17 +123,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
     //Initialize helper
     RazorHelper *helper = 0;
-    string analysisTag;
-    if (option == 0 || option == 1) {
-        analysisTag = "Razor2015";
-    }
-    else if (option == 10 || option == 11) {
-        analysisTag = "Razor2016_80X";
-    }
-    else {
-      cout << "Error: option == " << option << " is not supported. Exiting.\n";
-      return;
-    }
+    string analysisTag = "Razor2016_80X";
+    if ( label != "") analysisTag = label;
     helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
 
     // Get jet corrector
