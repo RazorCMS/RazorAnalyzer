@@ -655,7 +655,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  N_GJetsDirect = histMRRsqUnrolled[j]->GetBinContent(i);
 	  NErr_GJetsDirect = histMRRsqUnrolled[j]->GetBinError(i);
 	}
-	if ( processLabels[j] == "GJetFrag") {
+	if ( processLabels[j] == "GJetsFrag") {
 	  N_GJetsFrag = histMRRsqUnrolled[j]->GetBinContent(i);
 	  NErr_GJetsFrag = histMRRsqUnrolled[j]->GetBinError(i);
 	}      
@@ -665,7 +665,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	}      
       }
      
-      double N_dataMinusBkg = N_data - N_QCD - N_GJetsFrag - NErr_Other;
+      double N_dataMinusBkg = N_data - N_QCD - N_GJetsFrag - N_Other;
       double NErr_dataMinusBkg = sqrt( N_data + pow(NErr_QCD,2) + pow(NErr_GJetsFrag,2) + pow( NErr_Other, 2));
 
       //get bin number in TH2Poly
@@ -679,8 +679,15 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
       SFDenom->SetBinContent(binNum, SFDenom->GetBinContent(binNum) + N_GJetsDirect); //add to yield
       SFDenom->SetBinError(binNum-1, sqrt( pow(SFDenom->GetBinError(binNum), 2) + pow(NErr_GJetsDirect, 2) ) ); //add error in quadrature -- note binNum-1 needed to get around TH2Poly bug
 
+      cout << "TH2Poly Bin Number = " << binNum << "\n";
       cout << "Data-Bkg : " << N_dataMinusBkg << " +/- " << NErr_dataMinusBkg << "\n";
       cout << "MC (GJets) : " << N_GJetsDirect << " +/- " << NErr_GJetsDirect << "\n";
+      cout << "TH2Poly Numerator = " << SFNum->GetBinContent(binNum) << "\n";
+      cout << "TH2Poly Denominator = " << SFDenom->GetBinContent(binNum) << "\n";
+      cout << "Data: " << N_data << "\n";
+      cout << "QCD: " << N_QCD << "\n";
+      cout << "GJetsFrag: " << N_GJetsFrag << "\n";
+      cout << "Other: " << N_Other << "\n";
       cout << "\n\n";
     }
 
@@ -725,7 +732,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	  N_GJetsDirect = histNJets40[j]->GetBinContent(i);
 	  NErr_GJetsDirect = histNJets40[j]->GetBinError(i);
 	}
-	if ( processLabels[j] == "GJetFrag") {
+	if ( processLabels[j] == "GJetsFrag") {
 	  N_GJetsFrag = histNJets40[j]->GetBinContent(i);
 	  NErr_GJetsFrag = histNJets40[j]->GetBinError(i);
 	}      
@@ -773,7 +780,7 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
 	if ( processLabels[j] == "GJets") {
 	  N_GJetsDirect = histNBtags[j]->GetBinContent(i);
 	}
-	if ( processLabels[j] == "GJetFrag") {
+	if ( processLabels[j] == "GJetsFrag") {
 	  N_GJetsFrag = histNBtags[j]->GetBinContent(i);
 	}      
 	if ( processLabels[j] == "Other") {
@@ -801,25 +808,25 @@ void RunSelectPhotonControlSample(  vector<string> datafiles, vector<vector<stri
   //--------------------------------------------------------------------------------------------------------------
   // Plot Event Density for MR-Rsq spectrum 
   //==============================================================================================================
-  for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
+  // for (int i=1; i <= (NMRBins-1)*(NRsqBins-1); ++i) {
     
-    int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
-    int bin_j = ((i-1) % (NRsqBins-1)) + 1;        
-    cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << " : " 
-	 << "MR: " << histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i) << " - " << histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) << " , "
-	 << "Rsq: " << histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j) << " - " << histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) << " : "
-	 << (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i))  << " * "
-	 << (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j))
-	 << "\n";
-    double binVolume = (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i)) *
-      (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j));
+  //   int bin_i = int ((i-1) / (NRsqBins-1)) + 1;
+  //   int bin_j = ((i-1) % (NRsqBins-1)) + 1;        
+  //   cout << "Bin: " << i << " -> " << bin_i << " , " << bin_j << " : " 
+  // 	 << "MR: " << histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i) << " - " << histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) << " , "
+  // 	 << "Rsq: " << histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j) << " - " << histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) << " : "
+  // 	 << (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i))  << " * "
+  // 	 << (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j))
+  // 	 << "\n";
+  //   double binVolume = (histMRVsRsq[0]->GetXaxis()->GetBinUpEdge(bin_i) - histMRVsRsq[0]->GetXaxis()->GetBinLowEdge(bin_i)) *
+  //     (histMRVsRsq[0]->GetYaxis()->GetBinUpEdge(bin_j) - histMRVsRsq[0]->GetYaxis()->GetBinLowEdge(bin_j));
          
-    for (uint j=0; j < inputfiles.size(); ++j) {
-      histMRRsqUnrolled[j]->SetBinContent( i , histMRRsqUnrolled[j]->GetBinContent(i) / binVolume );
-      histMRRsqUnrolled[j]->SetBinError( i , histMRRsqUnrolled[j]->GetBinError(i) / binVolume );
-    }        
+  //   for (uint j=0; j < inputfiles.size(); ++j) {
+  //     histMRRsqUnrolled[j]->SetBinContent( i , histMRRsqUnrolled[j]->GetBinContent(i) / binVolume );
+  //     histMRRsqUnrolled[j]->SetBinError( i , histMRRsqUnrolled[j]->GetBinError(i) / binVolume );
+  //   }        
 
-  }
+  // }
     
 
   //--------------------------------------------------------------------------------------------------------------
