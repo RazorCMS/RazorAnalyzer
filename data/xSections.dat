@@ -55,11 +55,11 @@ GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                        
 GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                         2305
 GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                          274.4
 GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                           93.46
-GJets_DR-0p4_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 22760
-GJets_DR-0p4_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 4703
-GJets_DR-0p4_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 836.4
-GJets_DR-0p4_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 83.51
-GJets_DR-0p4_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                 24.21
+GJets_DR-0p4_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                  18560
+GJets_DR-0p4_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                  5000
+GJets_DR-0p4_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                  1079
+GJets_DR-0p4_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                   125.9
+GJets_DR-0p4_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    43.36
 WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8                              61526.7
 WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                    1345*1.21
 WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                     359.7*1.21
