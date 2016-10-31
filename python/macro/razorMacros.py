@@ -613,7 +613,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles)
+    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles, debugLevel=debugLevel)
 
     #close files and return
     for f in files: files[f].Close()
@@ -719,7 +719,7 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
 
     #print histograms
     rt.SetOwnership(c, False)
-    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=None, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles)
+    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=None, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles, debugLevel=debugLevel)
 
 
 #######################################

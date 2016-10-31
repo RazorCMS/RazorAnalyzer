@@ -14,6 +14,8 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
+    parser.add_argument("--muons", help="require muons", action='store_true')
+    parser.add_argument("--electrons", help="require electrons", action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = "Razor2016"
@@ -30,12 +32,22 @@ if __name__ == "__main__":
 
     for region in regionsOrder:
         analysis = regions[region]
+        name = region
+        #apply extra lepton cuts
+        if args.muons:
+            analysis.cutsData += " && abs(lep1Type) == 13"
+            analysis.cutsMC += " && abs(lep1Type) == 13"
+            name += "_Muons"
+        if args.electrons:
+            analysis.cutsData += " && abs(lep1Type) == 11"
+            analysis.cutsMC += " && abs(lep1Type) == 11"
+            name += "_Electrons"
         #make output directory
-        outdir = 'Plots/'+tag+'/'+region
+        outdir = 'Plots/'+tag+'/'+name
         os.system('mkdir -p '+outdir)
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 printdir=outdir, debugLevel=debugLevel ) 
         #export histograms
-        macro.exportHists(hists, outFileName='controlHistograms'+region+'.root', 
+        macro.exportHists(hists, outFileName='controlHistograms'+name+'.root', 
             outDir=outdir, debugLevel=debugLevel)

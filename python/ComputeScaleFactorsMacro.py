@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys, os, argparse
 import ROOT as rt
 
@@ -14,8 +15,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--tag", dest="tag", required=True,
-                                help="Analysis tag, e.g. Razor2015")
+    parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016")
     parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
     parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
             dest='noFill')
@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     #initialize
     sfHists = {}
-    plotOpts = { 'comment':False }
+    plotOpts = { 'comment':False, "SUS15004":True }
 
     regionsOrder = ["TTJetsSingleLepton", "WJetsSingleLepton", "WJetsSingleLeptonInv"]
     if tag != "Razor2015":

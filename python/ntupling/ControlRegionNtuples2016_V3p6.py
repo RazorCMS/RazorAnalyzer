@@ -1,4 +1,4 @@
-VERSION = "V3p6_24October2016_CustomType1MET"
+VERSION = "V3p6_25October2016_CustomType1MET"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -188,17 +188,19 @@ SAMPLES['Photon'] = {
                 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         "QCD":[
-                'QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8',
-                'QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8',
-                'QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8',
-                'QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8',
+                'QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         "Other":[
                 'TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8',
                 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
                 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
-                'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
             ],
         }
 SAMPLES['Signal'] = SAMPLES['1L'].copy()

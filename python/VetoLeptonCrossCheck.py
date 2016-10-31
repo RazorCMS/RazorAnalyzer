@@ -14,7 +14,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--tag", dest="tag", default="Razor2015",
+    parser.add_argument("--tag", dest="tag", default="Razor2016",
                                 help="Analysis tag, e.g. Razor2015")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
@@ -78,12 +78,12 @@ if __name__ == "__main__":
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
+            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"WJetsInv" },
             debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
-    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
+    sfHists['NJetsInv'] = sfNJetsFile.Get("NJetsNoWCorrectionScaleFactors")
     sfVars = ("MR","Rsq")
     outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
     outfile.Close()

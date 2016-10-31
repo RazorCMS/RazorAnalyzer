@@ -156,8 +156,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //****************************
   //Add CMS and Lumi Labels
   //****************************
-  lumi_13TeV = "12.9 fb^{-1}";
-  //lumi_13TeV = "Run257396-257400";
+  lumi_13TeV = "12.9 fb^{-1}"; 
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -231,9 +230,6 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   cv->SaveAs(Form("Razor_ZToLLCR_%s%s_Logy.png",varName.c_str(),label.c_str()));
   cv->SaveAs(Form("Razor_ZToLLCR_%s%s_Logy.pdf",varName.c_str(),label.c_str()));
 
-
- 
-
 }
 
 
@@ -276,7 +272,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
 //=== MAIN MACRO ================================================================================================= 
 
 
-void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "", string etaRangeOption = "Inclusive", string pileupWeightFileName="data/PileupWeights/PileupReweight2016_ICHEP.root") {
+void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "", string etaRangeOption = "Inclusive", string pileupWeightFileName="data/PileupWeights/PileupReweight2016_26p4.root") {
 
   //****************************************
   //Set Plot Style
@@ -293,28 +289,33 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
   bool printdebug = false;
 
   TFile *pileupWeightFile = TFile::Open(pileupWeightFileName.c_str(), "READ"); //pileup file from jiajing
-  //TFile *pileupWeightFile = TFile::Open("/afs/cern.ch/work/j/jmao/public/releases/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_ICHEP.root", "READ"); //pileup file from jiajing
-  //TFile *pileupWeightFile = TFile::Open("/afs/cern.ch/work/j/jmao/public/releases/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight.root", "READ"); //pileup file from jiajing
   TH1F *pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
   assert(pileupWeightHist);
 
-  TFile *eleEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root","READ");
+  TFile *eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016_ICHEP_Golden.root","READ");
   TH2D *eleEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
   assert(eleEffSFHist);
 
-  TFile *muonEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root","READ");
+  TFile *muonEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016_ICHEP_Golden.root","READ");
   TH2D *muonEffSFHist = (TH2D*)muonEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
   assert(muonEffSFHist);
 
-  TFile *eleTriggerEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_2p6ifb/SingleElectronTriggerEfficiency.root","READ");
-  TH2D *eleTriggerEffSFHist = (TH2D*)eleTriggerEffSFFile->Get("hEffEtaPt");
+  TFile *eleTriggerEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_ICHEP_Golden.root","READ");
+  TH2D *eleTriggerEffSFHist = (TH2D*)eleTriggerEffSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
   assert(eleTriggerEffSFHist);
 
-  TFile *muonTriggerEffSFFile = TFile::Open("root://eoscms//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_2p6ifb/SingleElectronTriggerEfficiency.root","READ");
-  TH2D *muonTriggerEffSFHist = (TH2D*)muonTriggerEffSFFile->Get("hEffEtaPt");
+  TFile *muonTriggerEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_ICHEP_Golden.root","READ");
+  TH2D *muonTriggerEffSFHist = (TH2D*)muonTriggerEffSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
   assert(muonTriggerEffSFHist);
 
 
+  // RECO scale factors for electrons and muons (from EGM and MUO POGS)
+
+  TFile *eleGSFTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_GsfTracking_2016ICHEP_Golden.root");
+  TH2D *eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("EGamma_SF2D"); //x-axis: eta.  y-axis: pt
+
+  TFile *muTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_TrackReconstruction_2016ICHEP.root");
+  TH2D *muTrackEffSFHist = (TH2D*)muTrackEffSFFile->Get("muon"); //x-axis: pt.  y-axis: eta
 
   //*****************************************************************************************
   //Make some histograms
@@ -411,6 +412,7 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
       map<pair<uint,uint>, bool > processedRunEvents;
 
       ControlSampleEvents *events = new ControlSampleEvents;
+      cout << "Input file: " << inputfiles[i][j] << endl;
       events->LoadTree(inputfiles[i][j].c_str(), ControlSampleEvents::kTreeType_Dilepton_Full);
   
       bool isData = false;
@@ -425,11 +427,14 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	double puWeight = 1;      
 	double weight = 1;
 	if (!isData) {
-            weight = lumi * events->weight;
-            puWeight = pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
-            if (events->pileupWeight>0) weight = lumi * events->weight / events->pileupWeight * puWeight;
-            else weight = 0;
+            weight = events->weight * lumi;
             if ( isReHLT ) weight /= events->trigWeight1L;
+
+            //commented out -- use weights directly from tree instead
+            //weight *= pileupWeightHist->GetBinContent(pileupWeightHist->GetXaxis()->FindFixBin(events->NPU_0));
+            //weight /= events->pileupWeight;
+            //weight /= events->muonEffWeight;
+            //weight /= events->eleEffWeight;
 	}
 
 	//******************************
@@ -569,66 +574,75 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	//******************************
 	if (!isData) {
 	  double triggerEffScaleFactor = 1.0;
-	  double triggerEff1 = 0;
-	  double triggerEff2 = 0;
 	  if (abs(events->lep1Type) == 11  ) {
-	    triggerEffScaleFactor *= eleTriggerEffSFHist->GetBinContent( eleTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())),
-									 eleTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),25.01))
+	    triggerEffScaleFactor *= eleTriggerEffSFHist->GetBinContent( eleTriggerEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),25.01)),
+									 eleTriggerEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta()))
 								 );	
-	    triggerEff1 = eleTriggerEffSFHist->GetBinContent( eleTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())),
-									 eleTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),25.01))
-								 );
-
-	    //cout << "test: " << events->lep1.Eta() << " " << events->lep1.Pt() << " : " << eleTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())) << " " << eleTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),25.01)) << "\n";
-
 	  }
 	  if (abs(events->lep2Type) == 11 ) {
-	    triggerEffScaleFactor *= eleTriggerEffSFHist->GetBinContent(  eleTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep2.Eta())),
-								  eleTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),25.01))
-								  );
-	    triggerEff2 = eleTriggerEffSFHist->GetBinContent(  eleTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep2.Eta())),
-								  eleTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),25.01))
+	    triggerEffScaleFactor *= eleTriggerEffSFHist->GetBinContent(  eleTriggerEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),25.01)),
+								  eleTriggerEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep2.Eta()))
 								  );
 	  }
 	  if (abs(events->lep1Type) == 13) {
-	    triggerEffScaleFactor *= muonTriggerEffSFHist->GetBinContent( muonTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())),
-								  muonTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01))
+	    triggerEffScaleFactor *= muonTriggerEffSFHist->GetBinContent( muonTriggerEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01)),
+								  muonTriggerEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta()))
 								  );	 
-	    triggerEff1 = muonTriggerEffSFHist->GetBinContent( muonTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep1.Eta())),
-								  muonTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01))
-								  );	
 	  }
 	  if (abs(events->lep2Type) == 13) {
-	    triggerEffScaleFactor *= muonTriggerEffSFHist->GetBinContent(  muonTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep2.Eta())),
-								   muonTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01))
-								   );
-	    triggerEff2 = muonTriggerEffSFHist->GetBinContent(  muonTriggerEffSFHist->GetXaxis()->FindFixBin(fabs(events->lep2.Eta())),
-								   muonTriggerEffSFHist->GetYaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01))
+	    triggerEffScaleFactor *= muonTriggerEffSFHist->GetBinContent(  muonTriggerEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01)),
+								   muonTriggerEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep2.Eta()))
 								   );
 	  }
 	
 	  double leptonEffScaleFactor = 1.0;
-	  // if (abs(events->lep1Type) == 11  ) {
-	  //   leptonEffScaleFactor *= eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01)),
-	  // 							 eleEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta()))
-	  // 							 );	 
-	  // }
-	  // if (abs(events->lep2Type) == 11 ) {
-	  //   leptonEffScaleFactor *= eleEffSFHist->GetBinContent(  eleEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01)),
-	  // 							  eleEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep2.Eta()))
-	  // 							  );
-	  // }
-	  // if (abs(events->lep1Type) == 13) {
-	  //   leptonEffScaleFactor *= muonEffSFHist->GetBinContent( muonEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01)),
-	  // 							  muonEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta()))
-	  // 							  );	 
-	  // }
-	  // if (abs(events->lep2Type) == 13) {
-	  //   leptonEffScaleFactor *= muonEffSFHist->GetBinContent(  muonEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01)),
-	  // 							   muonEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep2.Eta()))
-	  // 							   );
-	  // }
-	
+	   if (abs(events->lep1Type) == 11  ) {
+	     leptonEffScaleFactor *= eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01)),
+	   							 eleEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta()))
+	   							 );	 
+	   }
+	   if (abs(events->lep2Type) == 11 ) {
+	     leptonEffScaleFactor *= eleEffSFHist->GetBinContent(  eleEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01)),
+	   							  eleEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep2.Eta()))
+	   							  );
+	   }
+	   if (abs(events->lep1Type) == 13) {
+	     leptonEffScaleFactor *= muonEffSFHist->GetBinContent( muonEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),20.01)),
+	   							  muonEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta()))
+	   							  );	 
+	   }
+	   if (abs(events->lep2Type) == 13) {
+	     leptonEffScaleFactor *= muonEffSFHist->GetBinContent(  muonEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep2.Pt(),199.9),20.01)),
+	   							   muonEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep2.Eta()))
+	   							   );
+	   }
+
+           // Apply RECO scale factor corrections 
+           if (abs(events->lep1Type) == 11) {
+               leptonEffScaleFactor *= eleGSFTrackEffSFHist->GetBinContent(
+                       eleGSFTrackEffSFHist->GetXaxis()->FindFixBin( events->lep1.Eta() ), //note: eta not |eta|
+                       eleGSFTrackEffSFHist->GetYaxis()->FindFixBin( events->lep1.Pt() )
+                       );
+           }
+           if (abs(events->lep2Type) == 11) {
+               leptonEffScaleFactor *= eleGSFTrackEffSFHist->GetBinContent(
+                       eleGSFTrackEffSFHist->GetXaxis()->FindFixBin( events->lep2.Eta() ), //note: eta not |eta|
+                       eleGSFTrackEffSFHist->GetYaxis()->FindFixBin( events->lep2.Pt() )
+                       );
+           }
+           if (abs(events->lep1Type) == 13) {
+               leptonEffScaleFactor *= muTrackEffSFHist->GetBinContent(
+                       muTrackEffSFHist->GetXaxis()->FindFixBin( events->lep1.Pt() ),
+                       muTrackEffSFHist->GetYaxis()->FindFixBin( events->lep1.Eta() )
+                       );
+           }
+           if (abs(events->lep2Type) == 13) {
+               leptonEffScaleFactor *= muTrackEffSFHist->GetBinContent(
+                       muTrackEffSFHist->GetXaxis()->FindFixBin( events->lep2.Pt() ),
+                       muTrackEffSFHist->GetYaxis()->FindFixBin( events->lep2.Eta() )
+                       );
+           }
+
 	  // cout << events->lep1.Pt() << " " << events->lep1.Eta() << " : " << eleEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),15.01)) << " "
 	  //      << eleEffSFHist->GetYaxis()->FindFixBin(fabs(events->lep1.Eta())) << " : "
 	  //      << eleEffSFHist->GetBinContent( eleEffSFHist->GetXaxis()->FindFixBin(fmax(fmin(events->lep1.Pt(),199.9),15.01)),
@@ -647,13 +661,12 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
 	  //      << "\n";
 	  // cout << "lepton SF: " << leptonEffScaleFactor << " " << weight << " \n";
 	     
-	  // weight *= leptonEffScaleFactor;
-
-	  //cout << "Trigger Eff: " << triggerEff1 << " " << triggerEff2 << " " << triggerEffScaleFactor << " : " << weight << " --> ";
-	  //weight *= triggerEffScaleFactor;
-	  //cout << weight << "\n";
+            //Commented out -- the lepton and trigger weights from the ntuple are used
+            //weight *= leptonEffScaleFactor;
+            //weight *= triggerEffScaleFactor;
 
 	}
+
 
 	if (isnan(events->weight) || isinf(events->weight)) {
 	  cout << "...bad event: " << weight << " " << (l1+l2).M() << "\n";
@@ -885,7 +898,6 @@ void RunSelectZToLLControlSample( vector<string> datafiles, vector<vector<string
   for(int i=0; i<int(histMRVsRsq.size()); i++) {
     file->WriteTObject(histMRVsRsq[i], Form("histMRVsRsq_%s",processLabels[i].c_str()), "WriteDelete");
   }
-  //file->WriteTObject(statUnc_MRVsRsq,"statUnc_MRVsRsq_TTJets","WriteDelete");
 
   file->WriteTObject(DataMinusBkg_MRVsRsq, "DataMinusBkg_MRVsRsq", "WriteDelete");
   file->WriteTObject(MCToDataScaleFactor_MRVsRsq, "MCToDataScaleFactor_MRVsRsq", "WriteDelete");
@@ -911,21 +923,17 @@ void SelectZToLLControlSample( int option = 0) {
   vector<string> processLabels;
   vector<int> colors;
 
-  double lumi = 0;
   string pileupWeightFileName = "data/PileupWeights/PileupReweight2016_ICHEP.root";
-  string runstr = "";
-
-  lumi = 12900;
-
+  string runstr = "ICHEP";
+  double lumi = 12900;
 
   //Inclusive sample
   if (option % 10 == 1) {
-    datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_2016BCD_GoodLumiGolden_12p9ifb.root");    
+    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_24October2016_CustomType1MET/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_Razor2016_ICHEP_80X_Data_NoDuplicates_GoodLumiGolden.root");    
   } else if (option % 10 == 0) {
-    datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_2016BCD_GoodLumiGolden_12p9ifb.root");    
+    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_24October2016_CustomType1MET/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_Razor2016_ICHEP_80X_Data_NoDuplicates_GoodLumiGolden.root");    
   } else if (option % 10 == 2) {
-      datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleMuon_2016BCD_GoodLumiGolden_12p9ifb.root");    
-     datafiles.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5/DileptonFull/NoMRSkim/RunTwoRazorControlRegions_DileptonFull_DileptonSkim_SingleElectron_2016BCD_GoodLumiGolden_12p9ifb.root");
+    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_24October2016_CustomType1MET/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_Razor2016_ICHEP_80X_Data_NoDuplicates_GoodLumiGolden.root");    
   }
 
   vector<string> bkgfiles_dy;
@@ -936,10 +944,10 @@ void SelectZToLLControlSample( int option = 0) {
   if (option % 100 >= 10) {
    
       if( isReHLT ) {
-          bkgfiles_dy.push_back("root://eoscms://eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p5_UpdatedScaleFactors27August/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_reHLT_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+          bkgfiles_dy.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_24October2016_CustomType1MET/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_reHLT_Razor2016_ICHEP_80X_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
       }
       else {
-          bkgfiles_dy.push_back("Backgrounds/2LNoSkim/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
+          bkgfiles_dy.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_24October2016_CustomType1MET/DileptonFull_Inclusive/RunTwoRazorControlRegions_DileptonFull_Inclusive_DileptonSkim_reHLT_Razor2016_ICHEP_80X_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");
       }
 
 

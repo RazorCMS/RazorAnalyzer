@@ -14,29 +14,36 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--tag", dest="tag", required=True,
-                                help="Analysis tag, e.g. Razor2015")
+    parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
 
     #initialize
-    plotOpts = { "comment":False }
+    plotOpts = { 'comment':False, "SUS15004":True }
     regions = {
             "OneLeptonForNJets":Analysis("SingleLepton",tag=tag),
-            "OneLeptonInvForNJets":Analysis("SingleLeptonInv",tag=tag)
+            "OneLeptonInvForNJets":Analysis("SingleLeptonInv",tag=tag),
+            "GJetsInvForNJets":Analysis("GJetsInv",tag=tag),
             }
     sfVars = {
             "OneLeptonForNJets":("MR","Rsq"),
-            "OneLeptonInvForNJets":{ "WJetsInv":("MR_NoW","Rsq_NoW"), "TTJets":("MR","Rsq") }
+            "OneLeptonInvForNJets":{ "WJetsInv":("MR_NoW","Rsq_NoW"), "TTJets":("MR","Rsq") },
+            "GJetsInvForNJets":("MR_NoPho","Rsq_NoPho")
             }
     sfHists = { region:macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
             processNames=regions[region].samples, debugLevel=debugLevel) for region in regions }
-    sfNames = { "OneLeptonForNJets":"NJetsCorrection", "OneLeptonInvForNJets":"NJetsNoWCorrection" }
-    njetsNames = { "OneLeptonForNJets":"NJets40", "OneLeptonInvForNJets":"NJets_NoW" }
+    sfNames = { 
+            "OneLeptonForNJets":"NJetsCorrection", 
+            "OneLeptonInvForNJets":"NJetsNoWCorrection",
+            "GJetsInvForNJets":"NJetsNoPhoCorrection",
+            }
+    njetsNames = { 
+            "OneLeptonForNJets":"NJets40", 
+            "OneLeptonInvForNJets":"NJets_NoW",
+            "GJetsInvForNJets":"NJets_NoPho",
+            }
     outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag), 
             "RECREATE")
 
@@ -50,9 +57,10 @@ if __name__ == "__main__":
         sfHistsToUse = sfHists[region]
         sfVarsToUse = sfVars[region]
         njetsName = njetsNames[region]
+        dataDrivenQCD = ( region == "GJetsInvForNJets" )
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHistsToUse,
-                sfVars=sfVarsToUse, printdir=outdir, debugLevel=debugLevel )
+                sfVars=sfVarsToUse, printdir=outdir, debugLevel=debugLevel, dataDrivenQCD=dataDrivenQCD )
         #compute scale factors
         appendScaleFactors( process, hists, sfHistsToUse, lumiData=analysis.lumi, 
                 debugLevel=debugLevel, var=njetsName, printdir=outdir )

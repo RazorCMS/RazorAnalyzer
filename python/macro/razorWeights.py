@@ -285,6 +285,8 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             eventWeight *= reapplyLepTrigWeight(event, wHists, debugLevel=debugLevel)
         elif str.lower("removeTrigWeights") in lweightOpts:
             eventWeight /= event.trigWeight1L
+        if str.lower("removePileupWeights") in lweightOpts:
+            eventWeight /= event.pileupWeight
         #if str.lower("doLep1Weights") in lweightOpts:
         #    doLep2 = (str.lower("doLep2Weights") in lweightOpts)
         #    eventWeight *= leptonWeight(event, wHists, doLep2, debugLevel=debugLevel)

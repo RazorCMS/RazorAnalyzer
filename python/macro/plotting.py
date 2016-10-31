@@ -1229,7 +1229,7 @@ def plot_SUS15004_FitVsMCTotal(c, mcTotal=0, fit=0, printstr="hist", lumistr="",
     ymin=5e-3
     #unroll 2D hists to plot in 1D
     if unrollBins[0] is None or unrollBins[1] is None: #if unrolledBins not provided, use histogram binning
-        unrollBins = getUnrollBinsFromHistogram(data)
+        unrollBins = getUnrollBinsFromHistogram(mcTotal)
     unrolled = unroll2DHistograms([mcTotal, fit], unrollBins[0], unrollBins[1], labelBins=True)
     unrolled[0].SetFillColor(rt.kAzure-9)
     mcStack = makeStack({"MC":unrolled[0]}, ["MC"], "MC")

@@ -356,7 +356,7 @@ def cleanVarName(var):
     toremove = '(){}<>#$%+-=*&|[]'
     return out.translate(None,toremove)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}):
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}, debugLevel=0):
     """Make stacked plots of quantities of interest, with data overlaid"""
     print "Preparing histograms for plotting..."
     #format MC histograms
@@ -425,6 +425,18 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             else:
                 ytitle = var[1]
             printstr = "%s_%s"%(cleanVarName(var[0]+var[1]),printName)
+            #print histograms
+            if debugLevel > 0:
+                if dataHists is not None:
+                    print "Data histogram:"
+                    obsData.Print("all")
+                if len(mcNames) > 0:
+                    print "MC histogram:"
+                    mcPrediction.Print("all")
+                    for name in mcNames:
+                        print name,"histogram:"
+                        mcDict[name].Print("all")
+                
             #make plots
             if 'SUS15004' in special:
                 plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 

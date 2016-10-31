@@ -14,7 +14,7 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
-    parser.add_argument("--tag", dest="tag", required=True,
+    parser.add_argument("--tag", dest="tag", default="Razor2016",
                                 help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--no-corr", dest="noCorr", action='store_true',
                                 help="Don't apply scale factor correction")

@@ -20,7 +20,8 @@ razorWeightOpts = {
                      #'toppt', #apply top pt weight
                      #'reapplyLepWeights', #remove lepton efficiency weights and multiply by new weight
                      #'reapplyTrigWeights', #remove lepton trigger weights and multiply by new weight
-                     'removeTrigWeights', #divide event weight by trigger weight 
+                     #'removeTrigWeights', #divide event weight by trigger weight 
+                     #'removePileupWeights', #divide event weight by pileup weight
                      ], 
         }
 razorWeightHists = {
@@ -194,7 +195,7 @@ skimstr = ""
 #dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLeptonRazorSkim'
 #dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
 #dirSignal2016 = dirSR2016+'/'+versionMC2016
-dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_18October2016/OneLeptonFull/"
+dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
 dir1L2016 = 'Backgrounds/1L'
@@ -203,7 +204,8 @@ dir2LInv2016 = 'Backgrounds/2LInv'
 dirVetoL2016 = 'Backgrounds/VetoL'
 dirVetoTau2016 = 'Backgrounds/VetoTau'
 dirSignal2016 = 'Backgrounds/Signal'
-dirPhoton2016 = 'Backgrounds/Photon'    
+dirPhoton2016 = 'Backgrounds/Photon_FromSi'    
+#dirPhoton2016 = 'Backgrounds/Photon'    
 
 razorNtuples["SingleLepton"]["Razor2016"] = {
         "TTJets"   : dir1L2016+"/"+prefix1L2016+"_TTJets_1pb_weighted"+skimstr+".root",
@@ -250,8 +252,8 @@ razorNtuples["VetoTau"]["Razor2016"] = {
         "Data"     : dirVetoTau2016+"/"+prefixVetoTau2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["Photon"]["Razor2016"] = {
-        "GJetsInv"    : dirPhoton2016+"/"+prefixPhoton2016+"_GJetsDR0p4_1pb_weighted"+skimstr+".root",
-        "GJetsFrag": dirPhoton2016+"/"+prefixPhoton2016+"_GJets_1pb_weighted"+skimstr+".root",
+        "GJetsInv"    : dirPhoton2016+"/"+prefixPhoton2016+"_GJets_1pb_weighted"+skimstr+".root",
+        "GJetsFrag": dirPhoton2016+"/"+prefixPhoton2016+"_QCD_1pb_weighted"+skimstr+".root",
         "Other"    : dirPhoton2016+"/"+prefixPhoton2016+"_Other_1pb_weighted"+skimstr+".root",
         #QCD predicted using data driven method
         "QCD"      : dirPhoton2016+"/"+prefixPhoton2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
@@ -265,8 +267,8 @@ razorNtuples["SignalHadronic"]["Razor2016"] = {
         "Other"    : dirSignal2016+"/FullRazorInclusive_Other_1pb_weighted"+skimstr+".root",
         "ZInv"     : dirSignal2016+"/FullRazorInclusive_ZInv_1pb_weighted"+skimstr+".root",
         #QCD predicted using data driven method
-        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden2p6fb.root",
-        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden2p6fb.root"
+        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",
+        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["SignalLepton"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
 razorNtuples["SignalMuon"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
@@ -275,8 +277,7 @@ razorNtuples["SusySync"]["Razor2016"] = {
         "TTJets"    : dirSusySync2016+"/"+prefixSusySync2016+"_TTJets_1pb_weighted_HTMETSkim.root",
         "WJets"     : dirSusySync2016+"/"+prefixSusySync2016+"_WJets_1pb_weighted_HTMETSkim.root",
         "SingleTop" : dirSusySync2016+"/"+prefixSusySync2016+"_SingleTop_1pb_weighted_HTMETSkim.root",
-        "Data"      : "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_20October2016_NoJetSmearing/OneLeptonFull/"+
-                        prefixSusySync2016+"_HTMHT_2016BCD_PRv2_HTMETSkim_NoDuplicates_GoodLumiGolden.root"
+        "Data"      : dirSusySync2016+"/"+prefixSusySync2016+"_HTMHT_2016BCD_PRv2_NoDuplicates_GoodLumiGolden.root"
         }
 
 #update version number for data, in case different
@@ -366,7 +367,7 @@ triggerNames["SingleLepton"]["Data"]["Razor2016"] = [
         ]
 triggerNames["Dilepton"]["Data"]["Razor2016"] = copy.copy(triggerNames["Dilepton"]["Data"]["Razor2015"])
 triggerNames["Photon"]["Data"]["Razor2016"] = [
-        'HLT_Photon165_R9Id90_HE10_IsoM',
+        'HLT_Photon165_HE10',
         ]
 triggerNames["SusySync"]["Data"]["Razor2016"] = [
         'HLT_PFMET100_PFMHT100_IDTight',
@@ -484,7 +485,7 @@ razorExtraCuts["Photon"] = {
         }
 
 # For October 2016 SUSY synchronization exercise
-razorCuts["SusySync"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 25 && MET > 250 && HT > 250 && NJets40 >= 2 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
+razorCuts["SusySync"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 25 && abs(lep1.Eta()) < 2.4 && MET > 250 && HT > 250 && NJets40 >= 2 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
 
 # Hadronic boxes with inverted lepton veto
 cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 400.000000 && Rsq > 0.250000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
@@ -640,6 +641,9 @@ razorBinning["SusySync"] = {
         "NBJetsMedium" : [0,1,2,3,4],
         "HT" : range(250, 2050, 200),
         "MET" : range(250, 1000, 50),
+        "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "NPV" : range(60),
         }
 
 ### Signal region
@@ -914,8 +918,7 @@ class Analysis:
         if tag == "Razor2015":
             self.lumi = 2300
         elif tag == "Razor2016":
-            self.lumi = 12900 #ICHEP dataset
-            #self.lumi = 1687
+            self.lumi = 26400
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 
@@ -1015,7 +1018,7 @@ class Analysis:
             self.cuts = razorCuts["Photon"]
             self.binning = razorBinning["Photon"]
             self.unrollBins = (xbinsSignal["GJetsInv"]["0B"],colsSignal["GJetsInv"]["0B"])
-            self.extraWeightOpts = { "GJetsInv":["photonkfactor"], "GJetsFrag":["photonkfactor"] }
+            #self.extraWeightOpts = { "GJetsInv":["photonkfactor"], "GJetsFrag":["photonkfactor"] }
             self.extraCuts = razorExtraCuts["Photon"]
 
         elif self.region == "SusySync":
@@ -1163,7 +1166,7 @@ class Analysis:
         self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )+' && TMath::Finite(weight) && (!TMath::IsNaN(weight))'
         self.cutsData = self.trigInfoData.appendTriggerCuts( self.cuts )
         if self.region == 'GJetsInv':
-            self.cutsData += ' && pho1HLTFilter[27]'
+            self.cutsData += ' && pho1HLTFilter[36]'
 
     def getWeightOpts(self):
         self.weightOpts = razorWeightOpts[self.tag]

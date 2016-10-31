@@ -1,4 +1,4 @@
-import sys, os, argparse, copy
+import sys, os, argparse
 import ROOT as rt
 
 from macro import macro, razorWeights
@@ -19,48 +19,46 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
 
     #initialize
-    plotOpts = { "comment":False, 'SUS15004CR':True } 
-    regions = {
-            "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3),
-            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
-            }
+    plotOpts = { 'comment':False, "SUS15004":True }
+    regions = {}
+    #define all tests
+    for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
+        regionName = "GJetsInv"+name+"ClosureTest"
+        regions[regionName] = Analysis("GJetsInv",tag=tag,
+                njetsMin=jets[0], njetsMax=jets[1])
+
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["DYJetsDileptonInvDiJet"].samples, 
-            scaleFactorNames={ "DYJetsInv":"GJetsInv" }, debugLevel=debugLevel)
+            processNames=regions.itervalues().next().samples, debugLevel=debugLevel)
+    sfVars = ("MR_NoPho","Rsq_NoPho")
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
-    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
-    sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
-    outfile = rt.TFile(
-        "data/ScaleFactors/RazorMADD2015/RazorDYJetsDileptonInvCrossCheck_%s.root"%(tag), "RECREATE")
-    
+    sfHists['NJetsInv'] = sfNJetsFile.Get("NJetsNoPhoCorrectionScaleFactors")
     for region,analysis in regions.iteritems():
+        print "\nRegion:",region,"\n"
         #make output directory
         outdir = 'Plots/'+tag+'/'+region
         os.system('mkdir -p '+outdir)
-        #prepare analysis
-        auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets_NoZ')
+        #set up analysis
+        (xbins,cols) = analysis.unrollBins
+        auxSFs = razorWeights.getNJetsSFs(analysis, jetName=analysis.jetVar)
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
-            sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel )
-        #record discrepancies > 1 sigma
-        tmpSFHists = copy.copy(sfHists)
-        del tmpSFHists["DYJetsInv"]
-        appendScaleFactors("DYJetsInv", hists, tmpSFHists, lumiData=analysis.lumi, 
-            debugLevel=debugLevel, var=sfVars["DYJetsInv"], signifThreshold=1.0, printdir=outdir)
+                sfVars=sfVars, printdir=outdir, auxSFs=auxSFs, btags=analysis.nbMin,
+                dataDrivenQCD=True, debugLevel=debugLevel )
+        #compute scale factors
+        appendScaleFactors( region+"NBJets", hists, sfHists, lumiData=analysis.lumi, 
+                var="NBJetsMedium", debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir )
         #export histograms
         macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
                 outDir=outdir, debugLevel=debugLevel )
         #write out scale factors
-        print "Writing histogram",tmpSFHists["DYJetsInv"].GetName(),"to file"
+        outfile = rt.TFile(
+                "data/ScaleFactors/RazorMADD2015/RazorGJetsBTagClosureTests_%s.root"%(tag),
+                "UPDATE")
+        print "Writing scale factor histogram",sfHists[region+"NBJets"].GetName(),"to file"
         outfile.cd()
-        tmpSFHists["DYJetsInv"].Write(region+"ScaleFactors")
-
-    outfile.Close()
-
+        sfHists[region+"NBJets"].Write( sfHists[region+"NBJets"].GetName() )
+        outfile.Close()
