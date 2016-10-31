@@ -615,7 +615,8 @@ razorBinning["SignalRegionForVetoTau"] = {
 razorBinning["DYJetsDileptonInv"] = {
         "MR_NoZ" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoZ" : [0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets_NoZ" : [1,2,4,20]
+        "NJets_NoZ" : [1,2,4,20],
+        "1" : [0.5, 1.5]
         }
 razorBinning["DYJetsDileptonInvReduced"] = {
         "MR_NoZ" : [400, 500, 600, 700, 900, 4000],
