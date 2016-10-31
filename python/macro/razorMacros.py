@@ -458,6 +458,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #SUS-15-004 style for unrolled plots
     if "SUS15004" in plotOpts and plotOpts["SUS15004"]:
         special += "SUS15004"
+    elif "SUS15004CR" in plotOpts and plotOpts["SUS15004CR"]:
+        special += "CR15004"
 
     #set up files and trees
     if debugLevel > 0: print ""

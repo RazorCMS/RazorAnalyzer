@@ -20,7 +20,7 @@ if __name__ == "__main__":
     tag = args.tag
 
     #initialize
-    plotOpts = { 'comment':False, "SUS15004":True }
+    plotOpts = { 'comment':False, "SUS15004CR":True }
     regions = {
             "OneLeptonForNJets":Analysis("SingleLepton",tag=tag),
             "OneLeptonInvForNJets":Analysis("SingleLeptonInv",tag=tag),

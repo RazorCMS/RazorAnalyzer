@@ -26,7 +26,7 @@ if __name__ == "__main__":
     noCorr = args.noCorr
 
     #initialize
-    plotOpts = { 'comment':False }
+    plotOpts = { "comment":False, 'SUS15004CR':True } 
     regions = {}
     #define all tests
     for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():

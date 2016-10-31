@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     #initialize
     sfHists = {}
-    plotOpts = { 'comment':False, "SUS15004":True }
+    plotOpts = { 'comment':False, "SUS15004CR":True }
 
     regionsOrder = ["TTJetsSingleLepton", "WJetsSingleLepton", "WJetsSingleLeptonInv"]
     if tag != "Razor2015":

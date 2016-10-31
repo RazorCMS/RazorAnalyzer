@@ -21,7 +21,7 @@ if __name__ == "__main__":
     tag = args.tag
 
     #initialize
-    plotOpts = { 'comment':False, "SUS15004":True }
+    plotOpts = { 'comment':False, "SUS15004CR":True }
     regions = {}
     #define all tests
     for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
