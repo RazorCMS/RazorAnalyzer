@@ -116,9 +116,7 @@ void PlotDataAndStackedBkg( vector<TH1D*> hist , vector<string> processLabels, v
   //****************************
   //Add CMS and Lumi Labels
   //****************************
-  // lumi_13TeV = "42 pb^{-1}";
-  lumi_13TeV = "1.7 fb^{-1}";
-    //lumi_13TeV = "20.1 fb^{-1}";
+  lumi_13TeV = "26.4 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   CMS_lumi(pad1,4,0);
@@ -349,15 +347,9 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	bool passTrigger = false;
 
 	//Use Single Lepton Triggers
-	if ( events->HLTDecision[4] || events->HLTDecision[6] || events->HLTDecision[12] || 
-                events->HLTDecision[13] || events->HLTDecision[18] || events->HLTDecision[19] || 
-                events->HLTDecision[20] || events->HLTDecision[24] || events->HLTDecision[27] || 
-                events->HLTDecision[28] || events->HLTDecision[29] || events->HLTDecision[30] || 
-                events->HLTDecision[31] || events->HLTDecision[32] || events->HLTDecision[33] || 
-                events->HLTDecision[34] || events->HLTDecision[35] || events->HLTDecision[36] || 
-                events->HLTDecision[37] || events->HLTDecision[38] || events->HLTDecision[39] || 
-                events->HLTDecision[42] || events->HLTDecision[43])  
-	  passTrigger = true;
+        if (events->HLTDecision[4] || events->HLTDecision[6] || events->HLTDecision[15] || 
+            events->HLTDecision[22] || events->HLTDecision[33] || events->HLTDecision[35] || 
+            events->HLTDecision[36] || events->HLTDecision[41] || events->HLTDecision[42]) passTrigger = true;
 
 	if (!isData) {
             passTrigger = true;
@@ -478,10 +470,9 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 
           // top pt reweighting
           if ( events->topPtWeight > 0 ) {
-              weight *= events->topPtWeight;
+              //weight *= events->topPtWeight;
           }
 	}
-
 
 
 	//******************************
@@ -498,13 +489,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	}
 
 	if (isData) {
-	  dataYield += 0.5;
 	  histLeptonPt[i]->Fill(events->lep1.Pt(), 0.5);
 	  histLeptonEta[i]->Fill(events->lep1.Eta(), 0.5);
 	  histMET[i]->Fill(events->MET, 0.5);
 	  histLep1MT[i]->Fill(lep1MT, 0.5);
 
 	  if (lep1MT > 120) {
+            dataYield += 0.5;
 	    histNJets40[i]->Fill( events->NJets40, 0.5 );
 	    histNJets80[i]->Fill( events->NJets80, 0.5 );
 	    histNBtags[i]->Fill( events->NBJetsMedium, 0.5 );	    	   
@@ -538,9 +529,6 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	double lep2MT = sqrt(events->lep2.M2() + 2*events->MET*events->lep2.Pt()*(1 - cos( acos(cos(events->METPhi - events->lep2.Phi())))));
 
 	if (isData) {
-            if (events->MR > 900) {
-                cout << events->MR << " " << events->run << " " << events->lumi << " " << events->event << endl;
-            }
 	  histLeptonPt[i]->Fill(events->lep2.Pt(), 0.5);
 	  histLeptonEta[i]->Fill(events->lep2.Eta(), 0.5);
 	  histMET[i]->Fill(events->MET, 0.5);
@@ -720,8 +708,7 @@ void TTBarDileptonCrossCheck( int option = 0) {
   colors.push_back(kOrange-3);
   colors.push_back(kRed+1);
  
-  double lumi = 1687;
-   //double lumi = 20100;
+  double lumi = 26400;
 
   //*********************************************************************
   //All final states Control Region
