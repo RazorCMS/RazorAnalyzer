@@ -383,8 +383,8 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	if (!(events->lep1PassTight && events->lep2PassTight && l1.Pt() > 30 && l2.Pt() > 30)) continue;
   
 	//dilepton mass cut
-	if ( (l1+l2).M() < 20) continue;
-	if ( events->MET < 40) continue;
+        if ( events->mll < 20 ) continue;
+	if ( events->MET < 40 ) continue;
 
 	//Z-mass window cut
 	if ( abs(events->lep1Type) == abs(events->lep2Type) 
@@ -460,12 +460,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	  double razorSF = 1.0;
 	  if (processLabels[i] == "TTJets") {
 
-	    razorSF = TTBarSFHist->GetBinContent( TTBarSFHist->FindBin(fmin(fmax(events->MR,400.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
+	    razorSF = TTBarSFHist->GetBinContent( TTBarSFHist->FindBin(fmin(fmax(events->MR,300.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
+            razorSF *= NJetsSFHist->GetBinContent( NJetsSFHist->FindBin(events->NJets40) );
 	  }
 	  if (processLabels[i] == "WJets") {
-	    razorSF = WJetsSFHist->GetBinContent( WJetsSFHist->FindBin(fmin(fmax(events->MR,400.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
+	    razorSF = WJetsSFHist->GetBinContent( WJetsSFHist->FindBin(fmin(fmax(events->MR,300.1),3999), fmin(fmax(events->Rsq,0.151),1.49)));
+            razorSF *= NJetsSFHist->GetBinContent( NJetsSFHist->FindBin(events->NJets40) );
 	  }
-          razorSF *= NJetsSFHist->GetBinContent( NJetsSFHist->FindBin(events->NJets40) );
 	  weight *= razorSF;
 
           // top pt reweighting
@@ -506,13 +507,13 @@ void RunSelectTTBarDileptonControlSample(  vector<string> datafiles, vector<vect
 	  }
 
 	} else {
-	  MCYield += weight * 0.5;
 	  histLeptonPt[i]->Fill(events->lep1.Pt(), 0.5*weight);
 	  histLeptonEta[i]->Fill(events->lep1.Eta(), 0.5*weight);
 	  histMET[i]->Fill(events->MET, 0.5*weight);
 	  histLep1MT[i]->Fill(lep1MT, 0.5*weight);
 
 	  if (lep1MT > 120) {
+            MCYield += weight * 0.5;
 	    histNJets40[i]->Fill( events->NJets40, 0.5*weight );
 	    histNJets80[i]->Fill( events->NJets80, 0.5*weight );
 	    histNBtags[i]->Fill( events->NBJetsMedium, 0.5*weight );	    	   
