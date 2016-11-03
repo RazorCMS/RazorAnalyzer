@@ -160,6 +160,9 @@ SAMPLES['1L'] = {
                 'ZJetsToNuNu_HT-1200To2500_13TeV-madgraph',
                 'ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph',
             ],
+        "TTJetsInclusive":[
+                'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+            ],
         }
 SAMPLES['1LInv'] = SAMPLES['1L'].copy()
 SAMPLES['2L'] = SAMPLES['1L'].copy()
