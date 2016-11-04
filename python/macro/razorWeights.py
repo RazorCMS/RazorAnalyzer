@@ -1,5 +1,6 @@
 ##Weight and trigger utilities for inclusive razor analysis
 
+import math
 import ROOT as rt
 import sys
 
@@ -229,6 +230,31 @@ def leptonTriggerWeight(event, wHists, doLep2=False, debugLevel=0):
             print "2-lepton trigger weight:",trigWeight
     return trigWeight
 
+def getMTForTTBarDilepton(event, lepID):
+    """Computes the MT from the specified lepton (1 or 2, according to lepID) and the MET"""
+    met = event.MET
+    phi = event.METPhi
+    if lepID == 1:
+        lep = event.lep1
+    elif lepID == 2:
+        lep = event.lep2
+    else:
+        raise ValueError("invalid lepton ID")
+    return ( lep.M2() + 2*met*lep.Pt()*( 1 - math.cos(math.acos(math.cos(phi-lep.Phi()))) ) )**(0.5)
+
+def getTTBarDileptonWeight(event):
+    """Returns 0.5 times the number of leptons passing the MT cut"""
+    weight = 0
+    #lepton 1
+    lep1MT = getMTForTTBarDilepton(event, 1)
+    if lep1MT > 120:
+        weight += 0.5
+    #lepton 2
+    lep2MT = getMTForTTBarDilepton(event, 2)
+    if lep2MT > 120:
+        weight += 0.5
+    return weight
+
 def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     """Apply pileup weights and other known MC correction factors"""
     lweightOpts = map(str.lower, weightOpts)
@@ -301,6 +327,10 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             if debugLevel > 1:
                 print "Photon k-factor",kfactor
             eventWeight *= kfactor
+
+        #reweighting for ttbar dilepton control region
+        if 'ttbardileptonmt' in lweightOpts:
+            eventWeight *= getTTBarDileptonWeight(event)
 
     #up/down corrections for systematics
     normErrFraction=0.2
@@ -401,6 +431,8 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
         eventWeight = scale
         if debugLevel > 1: print("Applying a weight of "+str(eventWeight))
         return eventWeight
+    elif 'ttbardileptonmt' in lweightOpts:
+        return scale * getTTBarDileptonWeight(event)
     else: #data-driven QCD estimate
         if 'datadrivenqcddijet' in lweightOpts:
             qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
@@ -696,9 +728,11 @@ def splitShapeErrorsByType(shapeErrors):
 def getNJetsSFs(analysis,jetName='NJets40'):
     """From an Analysis object, get the needed NJets scale factors"""
     auxSFs = { process:{} for process in analysis.samples }
-    for name in ['WJets','TTJets','TTJets1L','TTJets2L']:
+    if "WJets" in analysis.samples:
+        auxSFs["WJets"] = {'NJetsWJets':(jetName,'1')}
+    for name in ['TTJets','TTJets1L','TTJets2L']:
         if name in analysis.samples:
-            auxSFs[name] = {'NJets':(jetName,'1')}
+            auxSFs[name] = {'NJetsTTJets':(jetName,'1')}
     for name in ['WJetsInv','DYJetsInv','ZInv','GJetsInv']:
         if name in analysis.samples:
             auxSFs[name] = {"NJetsInv":(jetName,"1")}

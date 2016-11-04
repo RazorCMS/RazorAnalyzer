@@ -52,7 +52,8 @@ if __name__ == "__main__":
     sfVars = ("MR","Rsq")
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
+    sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
+    sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
     if noCorr:
         sfHists = {}
 

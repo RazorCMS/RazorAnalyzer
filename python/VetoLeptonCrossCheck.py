@@ -16,6 +16,8 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("--tag", dest="tag", default="Razor2016",
                                 help="Analysis tag, e.g. Razor2015")
+    parser.add_argument("--muons", help="require muons", action='store_true')
+    parser.add_argument("--electrons", help="require electrons", action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -82,7 +84,8 @@ if __name__ == "__main__":
             debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
+    sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
+    sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
     sfHists['NJetsInv'] = sfNJetsFile.Get("NJetsNoWCorrectionScaleFactors")
     sfVars = ("MR","Rsq")
     outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
@@ -91,8 +94,18 @@ if __name__ == "__main__":
     hists = {}
     for region in regionsOrder:
         analysis = regions[region]
-        #make output directory
         outdir = 'Plots/'+tag+'/'+region
+        #modify cuts and output dir if running with ele/mu separately
+        if args.electrons:
+            analysis.cutsData += " && abs(lep1Type) == 11"
+            analysis.cutsMC += " && abs(lep1Type) == 11"
+            outdir = outdir.replace('Lepton','Electron')
+            if 'Tau' in region: continue
+        if args.muons:
+            analysis.cutsData += " && abs(lep1Type) == 13"
+            analysis.cutsMC += " && abs(lep1Type) == 13"
+            outdir = outdir.replace('Lepton','Muon')
+            if 'Tau' in region: continue
         os.system('mkdir -p '+outdir)
         #set up analysis
         if region.startswith('Veto'):
@@ -108,15 +121,19 @@ if __name__ == "__main__":
             varForCorrection = "abs(lep1.Eta())"
             sigVarForCorrection = "abs(leadingGenLeptonEta)"
             if region.startswith('VetoLepton'):
-                auxSFsToUse[region.replace('PtCorr','')] = ("lep1.Pt()", 
-                        "abs(lep1Type) == 11 || abs(lep1Type) == 13")
+                for proc in analysis.samples:
+                    auxSFsToUse[proc][region.replace('PtCorr','')] = ("lep1.Pt()", 
+                            "abs(lep1Type) == 11 || abs(lep1Type) == 13")
             elif region.startswith('VetoTau'):
-                auxSFsToUse[region.replace('PtCorr','')] = ("lep1.Pt()", "abs(lep1Type) == 15")
+                for proc in analysis.samples:
+                    auxSFsToUse[proc][region.replace('PtCorr','')] = ("lep1.Pt()", "abs(lep1Type) == 15")
             elif 'VetoLepton' in region:
-                auxSFsToUse[region.replace('PtCorr','')] = ("leadingGenLeptonPt", 
-                        "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
+                for proc in analysis.samples:
+                    auxSFsToUse[proc][region.replace('PtCorr','')] = ("leadingGenLeptonPt", 
+                            "abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13")
             elif 'VetoTau' in region:
-                auxSFsToUse[region.replace('PtCorr','')] = ("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15")
+                for proc in analysis.samples:
+                    auxSFsToUse[proc][region.replace('PtCorr','')] = ("leadingGenLeptonPt", "abs(leadingGenLeptonType) == 15")
         #sanity check
         print "\nRegion:",region
         print "Tree name:",treeName

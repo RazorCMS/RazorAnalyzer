@@ -376,7 +376,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, dataWeightOpts=[]):
     """Basic function for filling histograms and making plots.
 
     regionName: name of the box/bin/control region (used for plot labels)
@@ -431,7 +431,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         else:
             qcdOption = 'datadrivenqcdmultijet'
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts)
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts, dataWeightOpts=dataWeightOpts)
         #subtract backgrounds from QCD prediction
         if qcdOption == 'datadrivenqcddijet' or qcdOption == 'datadrivenqcdmultijet':
             macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
@@ -507,7 +507,6 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     
-    dataWeightOpts = []
     samplesToUse = copy.copy(samples) #MC samples to process
     if dataDrivenQCD:
         #do not process QCD as a MC sample
@@ -635,8 +634,9 @@ def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=
             boxName=boxName, btags=btags, blindBins=blindBins, makePlots=makePlots, 
             printdir=printdir, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, 
             unrollBins=analysis.unrollBins, noFill=noFill, exportShapeErrs=exportShapeErrs, 
-            extraCuts=analysis.extraCuts, extraWeightOpts=analysis.extraWeightOpts,
-            propagateScaleFactorErrs=propagateScaleFactorErrs, sfVars=sfVars, debugLevel=debugLevel)
+            extraCuts=analysis.extraCuts, extraWeightOpts=analysis.extraWeightOpts, 
+            dataWeightOpts=analysis.dataWeightOpts, propagateScaleFactorErrs=propagateScaleFactorErrs, 
+            sfVars=sfVars, debugLevel=debugLevel)
 
 def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):
     """Loads the output of makeControlSampleHists from a file and creates plots"""

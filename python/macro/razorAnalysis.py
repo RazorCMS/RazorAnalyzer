@@ -41,6 +41,7 @@ razorWeightHists = {
 
 razorNtuples = { 
         "SingleLepton":{},
+        "Dilepton":{},
         "SingleLeptonInv":{},
         "DileptonInv":{},
         "VetoLepton":{},
@@ -180,6 +181,7 @@ versionMC2016 = "V3p5_26September2016_RemoveEleScaleCorrections"
 versionData2016 = "V3p5_26September2016_RemoveEleScaleCorrections"
 
 prefix1L2016 = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
+prefix2L2016 = "RunTwoRazorControlRegions_DileptonFull_DileptonSkim"
 prefix1LInv2016 = "RunTwoRazorControlRegions_OneLeptonAddToMetFull_SingleLeptonSkim" 
 prefix2LInv2016 = "RunTwoRazorControlRegions_DileptonAddToMetFull_DileptonSkim"
 prefixVetoL2016 = "RunTwoRazorControlRegions_VetoLeptonFull"
@@ -199,6 +201,7 @@ dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/201
 
 #local directories
 dir1L2016 = 'Backgrounds/1L'
+dir2L2016 = 'Backgrounds/2L'
 dir1LInv2016 = 'Backgrounds/1LInv'
 dir2LInv2016 = 'Backgrounds/2LInv'
 dirVetoL2016 = 'Backgrounds/VetoL'
@@ -214,6 +217,14 @@ razorNtuples["SingleLepton"]["Razor2016"] = {
         "DYJets"   : dir1L2016+"/"+prefix1L2016+"_DYJets_1pb_weighted"+skimstr+".root",
         "Other"    : dir1L2016+"/"+prefix1L2016+"_Other_1pb_weighted"+skimstr+".root",
         "Data"     : dir1L2016+"/"+prefix1L2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+        }
+razorNtuples["Dilepton"]["Razor2016"] = {
+        "TTJets"   : dir2L2016+"/"+prefix2L2016+"_TTJets_1pb_weighted"+skimstr+".root",
+        "WJets"    : dir2L2016+"/"+prefix2L2016+"_WJets_1pb_weighted"+skimstr+".root",
+        "SingleTop": dir2L2016+"/"+prefix2L2016+"_SingleTop_1pb_weighted"+skimstr+".root",
+        "DYJets"   : dir2L2016+"/"+prefix2L2016+"_DYJets_1pb_weighted"+skimstr+".root",
+        "Other"    : dir2L2016+"/"+prefix2L2016+"_Other_1pb_weighted"+skimstr+".root",
+        "Data"     : dir2L2016+"/"+prefix2L2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
         }
 razorNtuples["SingleLeptonInv"]["Razor2016"] = {
         "TTJets"   : dir1LInv2016+"/"+prefix1LInv2016+"_TTJets_1pb_weighted"+skimstr+".root",
@@ -463,7 +474,7 @@ razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep
 razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && ( weight < 0.01 || weight == 1)"
 
 # TTJets 2-lepton control region
-razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && ((abs(lep2Type) == 11 && lep2.Pt() > 25) || (abs(lep2Type) == 13 && lep2.Pt() > 20)) && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15"
+razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter"
 
 # DYJets 2-lepton invisible control region
 razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 300 && Rsq_NoZ > 0.15"
@@ -609,6 +620,26 @@ razorBinning["SignalRegionForVetoTau"] = {
         "nSelectedJets" : [1,2,4,20],
         "leadingGenLeptonPt" : [20,30,40,100,1000],
         "abs(leadingGenLeptonEta)" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        }
+
+### DYJets Dilepton Invisible Control Region
+razorBinning["TTJetsDilepton"] = {
+        "MR" : [300, 400, 500, 700, 900, 4000],
+        "Rsq" : [0.15, 0.20, 0.25, 0.30, 0.41, 1.5],
+        "NJets40" : [1,2,3,4,5,6,20],
+        "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "MET" : range(250, 1000, 50),
+        "NBJetsMedium" : [0,1,2,3,4],
+        }
+razorBinning["TTJetsDileptonReduced"] = {
+        "MR" : [300, 400, 500, 700, 900, 4000],
+        "Rsq" : [0.15, 0.20, 0.30, 1.5],
+        "NJets40" : [4,5,6,20],
+        "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "MET" : range(250, 1000, 50),
+        "NBJetsMedium" : [0,1,2,3,4],
         }
 
 ### DYJets Dilepton Invisible Control Region
@@ -987,6 +1018,28 @@ class Analysis:
             self.binning = razorBinning["SingleLeptonInv"]
             self.unrollBins = (xbinsSignal["WJetsSingleLeptonInv"]["0B"], colsSignal["WJetsSingleLeptonInv"]["0B"])
 
+        elif self.region == "TTJetsDilepton":
+            self.trigType = "SingleLepton"
+            self.jetVar = "NJets40"
+            self.bjetVar = "NBJetsMedium"
+            self.filenames = razorNtuples["Dilepton"][self.tag]
+            self.samples = razorSamples["TTJetsDilepton"]
+            self.samplesReduced = razorSamplesReduced["TTJetsDilepton"]
+            self.cuts = razorCuts["TTJetsDilepton"]
+            self.binning = razorBinning["TTJetsDilepton"]
+            self.unrollBins = (None,None)
+
+        elif self.region == "TTJetsDileptonMultiJet":
+            self.trigType = "SingleLepton"
+            self.jetVar = "NJets40"
+            self.bjetVar = "NBJetsMedium"
+            self.filenames = razorNtuples["Dilepton"][self.tag]
+            self.samples = razorSamples["TTJetsDilepton"]
+            self.samplesReduced = razorSamplesReduced["TTJetsDilepton"]
+            self.cuts = razorCuts["TTJetsDilepton"]
+            self.binning = razorBinning["TTJetsDileptonReduced"]
+            self.unrollBins = (None,None)
+
         elif self.region == "DYJetsDileptonInv":
             self.trigType = "SingleLepton"
             self.jetVar = "NJets_NoZ"
@@ -1170,7 +1223,8 @@ class Analysis:
             self.cutsData += ' && pho1HLTFilter[36]'
 
     def getWeightOpts(self):
-        self.weightOpts = razorWeightOpts[self.tag]
+        self.weightOpts = copy.copy(razorWeightOpts[self.tag])
+        self.dataWeightOpts = []
         self.weightFiles = {}
         self.weightHists = {}
         for wType,wInfo in razorWeightHists[self.tag].iteritems():
