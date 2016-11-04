@@ -45,7 +45,7 @@
 
 using namespace RooFit ;
 
-void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string> > bkgfiles, vector<string> bkgLabels, vector<int> bkgColors, double lumi, string option, int channelOption = -1, string label = "") {
+void RunPhotonControlSample_FitSigmaIEtaIEta(  vector<string> datafiles,  vector<string> fakeTemplateFiles,  vector<string> promptTemplateFiles,  double lumi, string option, int channelOption = -1, string label = "") {
   
   string Label = "";
   if (label != "") Label = "_" + label;
@@ -59,11 +59,11 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
 
   bool printdebug = false;
 
-  TFile *PromptFile = new TFile("PromptPhotonTemplate_EB_VarBins.root", "READ");
-  TH1F *promptHist = (TH1F*)PromptFile->Get("h1");
- 
-  TFile *PromptFile_EE = new TFile("PromptPhotonTemplate_EE_VarBins.root", "READ");
-  TH1F *promptHist_EE = (TH1F*)PromptFile_EE->Get("h1");
+  TFile *PromptFile = new TFile("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/PhotonTemplates_NoR9Triggers_Pt185MR300Rsq0p15.root", "READ");
+  TH1F *promptHist = (TH1F*)PromptFile->Get("PhotonSigmaIEtaIEtaTemplate_Prompt_Barrel"); 
+  TH1F *promptHist_EE = (TH1F*)PromptFile->Get("PhotonSigmaIEtaIEtaTemplate_Prompt_Endcap");
+  TH1F *fakeHist_EB = (TH1F*)PromptFile->Get("PhotonSigmaIEtaIEtaTemplate_Fake_Barrel"); 
+  TH1F *fakeHist_EE = (TH1F*)PromptFile->Get("PhotonSigmaIEtaIEtaTemplate_Fake_Endcap");
 
   //*****************************************************************************************
   //Make some histograms
@@ -97,33 +97,91 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
   inputfiles.push_back(datafiles);
   processLabels.push_back("Data");
   color.push_back(kBlack);
+  inputfiles.push_back(fakeTemplateFiles);
+  processLabels.push_back("FakeTemplate");
+  color.push_back(kBlack);
+  inputfiles.push_back(promptTemplateFiles);
+  processLabels.push_back("PromptTemplate");
+  color.push_back(kBlack);
   
-  assert(bkgfiles.size() == bkgLabels.size());
-  assert(bkgfiles.size() == bkgColors.size());
-  for (int i=0; i < int(bkgfiles.size()); ++i) {
-    inputfiles.push_back(bkgfiles[i]);
-    processLabels.push_back(bkgLabels[i]);
-    color.push_back(bkgColors[i]);
-  }
 
   vector<TH1D*> histSigmaIetaIeta_EB;
-  vector<TH1D*> histSigmaIetaIetaTemplate_EB;
-
   vector<TH1D*> histSigmaIetaIeta_EE;
+  vector<TH1D*> histSigmaIetaIetaTemplate_EB;
   vector<TH1D*> histSigmaIetaIetaTemplate_EE;
 
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
     histSigmaIetaIeta_EB.push_back(new TH1D(Form("histSigmaIetaIeta_EB_%s",processLabels[i].c_str()), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB));
-    histSigmaIetaIetaTemplate_EB.push_back(new TH1D(Form("histSigmaIetaIetaTemplate_EB_%s",processLabels[i].c_str()), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB));
     histSigmaIetaIeta_EE.push_back(new TH1D(Form("histSigmaIetaIeta_EE_%s",processLabels[i].c_str()), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE));
-    histSigmaIetaIetaTemplate_EE.push_back(new TH1D(Form("histSigmaIetaIetaTemplate_EE_%s",processLabels[i].c_str()), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE));
-
     histSigmaIetaIeta_EB[i]->Sumw2();
-    histSigmaIetaIetaTemplate_EB[i]->Sumw2();
     histSigmaIetaIeta_EE[i]->Sumw2();
+
+    histSigmaIetaIetaTemplate_EB.push_back(new TH1D(Form("histSigmaIetaIetaTemplate_EB_%s",processLabels[i].c_str()), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB));
+    histSigmaIetaIetaTemplate_EE.push_back(new TH1D(Form("histSigmaIetaIetaTemplate_EE_%s",processLabels[i].c_str()), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE));
+    histSigmaIetaIetaTemplate_EB[i]->Sumw2();
     histSigmaIetaIetaTemplate_EE[i]->Sumw2();
   }
+
+  TH1D *histSigmaIetaIetaFakeTemplate_EB_binned[NMRBins][NRsqBins];
+  TH1D *histSigmaIetaIetaFakeTemplate_EE_binned[NMRBins][NRsqBins];
+
+  TH1D *histSigmaIetaIetaFakeTemplate_EB_MRbinned[NMRBins];
+  TH1D *histSigmaIetaIetaFakeTemplate_EE_MRbinned[NMRBins];
+
+  TH1D *histSigmaIetaIetaFakeTemplate_EB_Rsqbinned[NRsqBins];
+  TH1D *histSigmaIetaIetaFakeTemplate_EE_Rsqbinned[NRsqBins];
+
+  for (int a=0;a<NMRBins;a++) {
+    histSigmaIetaIetaFakeTemplate_EB_MRbinned[a]  = new TH1D (Form("histSigmaIetaIetaFakeTemplate_EB_MRbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+    histSigmaIetaIetaFakeTemplate_EE_MRbinned[a]  = new TH1D (Form("histSigmaIetaIetaFakeTemplate_EE_MRbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE);
+  }
+
+  for (int a=0;a<NRsqBins;a++) {
+    histSigmaIetaIetaFakeTemplate_EB_Rsqbinned[a] = new TH1D (Form("histSigmaIetaIetaFakeTemplate_EB_Rsqbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+    histSigmaIetaIetaFakeTemplate_EE_Rsqbinned[a] = new TH1D (Form("histSigmaIetaIetaFakeTemplate_EE_Rsqbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE);
+  }
+
+  for (int a=0;a<NMRBins;a++) {
+    for (int b=0;b<NRsqBins;b++){
+      histSigmaIetaIetaFakeTemplate_EB_binned[a][b] = new TH1D (Form("histSigmaIetaIetaFakeTemplate_EB_binned_%d_%d", a, b), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+      histSigmaIetaIetaFakeTemplate_EB_binned[a][b] -> Sumw2();
+
+      histSigmaIetaIetaFakeTemplate_EE_binned[a][b] = new TH1D (Form("histSigmaIetaIetaFakeTemplate_EE_binned_%d_%d", a, b), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+      histSigmaIetaIetaFakeTemplate_EE_binned[a][b] -> Sumw2();
+    }
+  }
+
+  TH1D *histSigmaIetaIetaPromptTemplate_EB_binned[NMRBins][NRsqBins];
+  TH1D *histSigmaIetaIetaPromptTemplate_EE_binned[NMRBins][NRsqBins];
+
+  TH1D *histSigmaIetaIetaPromptTemplate_EB_MRbinned[NMRBins];
+  TH1D *histSigmaIetaIetaPromptTemplate_EE_MRbinned[NMRBins];
+
+  TH1D *histSigmaIetaIetaPromptTemplate_EB_Rsqbinned[NRsqBins];
+  TH1D *histSigmaIetaIetaPromptTemplate_EE_Rsqbinned[NRsqBins];
+
+  for (int a=0;a<NMRBins;a++) {
+    histSigmaIetaIetaPromptTemplate_EB_MRbinned[a]  = new TH1D (Form("histSigmaIetaIetaPromptTemplate_EB_MRbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+    histSigmaIetaIetaPromptTemplate_EE_MRbinned[a]  = new TH1D (Form("histSigmaIetaIetaPromptTemplate_EE_MRbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE);
+  }
+
+  for (int a=0;a<NRsqBins;a++) {
+    histSigmaIetaIetaPromptTemplate_EB_Rsqbinned[a] = new TH1D (Form("histSigmaIetaIetaPromptTemplate_EB_Rsqbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+    histSigmaIetaIetaPromptTemplate_EE_Rsqbinned[a] = new TH1D (Form("histSigmaIetaIetaPromptTemplate_EE_Rsqbinned_%d", a), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EE);
+  }
+
+  for (int a=0;a<NMRBins;a++) {
+    for (int b=0;b<NRsqBins;b++){
+      histSigmaIetaIetaPromptTemplate_EB_binned[a][b] = new TH1D (Form("histSigmaIetaIetaPromptTemplate_EB_binned_%d_%d", a, b), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+      histSigmaIetaIetaPromptTemplate_EB_binned[a][b] -> Sumw2();
+
+      histSigmaIetaIetaPromptTemplate_EE_binned[a][b] = new TH1D (Form("histSigmaIetaIetaPromptTemplate_EE_binned_%d_%d", a, b), "; Sigma_ietaieta; Number of Events", NBinsSigmaietaieta, sigmaietaieta_bins_EB);
+      histSigmaIetaIetaPromptTemplate_EE_binned[a][b] -> Sumw2();
+    }
+  }
+
+
 
   TH1D *histSigmaIetaIeta_EB_binned[NMRBins][NRsqBins];
   TH1D *histSigmaIetaIeta_EE_binned[NMRBins][NRsqBins];
@@ -156,7 +214,6 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
 
   TH2D *histSigmaIetaIeta_EB_MRRsq= new TH2D("histSigmaIetaIeta_EB_MRRsq", "; MR; Rsq", NMRBins, MRBins, NRsqBins, RsqBins);
   TH2D *histSigmaIetaIeta_EE_MRRsq= new TH2D("histSigmaIetaIeta_EE_MRRsq", "; MR; Rsq", NMRBins, MRBins, NRsqBins, RsqBins);
-
   TH1D *histSigmaIetaIeta_EB_MR= new TH1D("histSigmaIetaIeta_EB_MR", "; MR", NMRBins, MRBins);
   TH1D *histSigmaIetaIeta_EB_Rsq= new TH1D("histSigmaIetaIeta_EB_Rsq", "; Rsq", NRsqBins, RsqBins);
   TH1D *histSigmaIetaIeta_EE_MR= new TH1D("histSigmaIetaIeta_EE_MR", "; MR", NMRBins, MRBins);
@@ -193,7 +250,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
 
 	double puWeight = 1;      
 	double weight = 1;
-	if (!isData) {
+	if ( processLabels[i] == "PromptTemplate") {
 	  weight = lumi * events->weight;
 	}
 
@@ -207,52 +264,35 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
 	//******************************
 	bool passTrigger = false;
 
-	if (isData) {	  
+	if ( processLabels[i] == "Data" || processLabels[i] == "FakeTemplate" ) {	  
 	  double dataWeight = 1;
 	  if (events->pho1.Pt() > 185) {
 	    dataWeight = 1;
-	    if (events->HLTDecision[93]) passTrigger = true;
+	    if (events->HLTDecision[102] && events->pho1HLTFilter[36]) passTrigger = true;
 	  } 
-          else if (events->pho1.Pt() > 135) {
-            dataWeight = events->HLTPrescale[92];
-            if (events->HLTDecision[92] && events->pho1HLTFilter[23]) passTrigger = true;
-          } else if (events->pho1.Pt() > 105) {
-            dataWeight = events->HLTPrescale[91];
-            if (events->HLTDecision[91] && events->pho1HLTFilter[24]) passTrigger = true;
-          } else if (events->pho1.Pt() > 85) {
-            dataWeight = events->HLTPrescale[90];
-            if (events->HLTDecision[90] && events->pho1HLTFilter[25]) passTrigger = true;
-          } else if (events->pho1.Pt() > 58){
-            dataWeight = events->HLTPrescale[89];
-            if (events->HLTDecision[89] && events->pho1HLTFilter[26]) passTrigger = true;
+          else if (events->pho1.Pt() > 138) {
+            dataWeight = events->HLTPrescale[100];
+            if (events->HLTDecision[100] && events->pho1HLTFilter[34]) passTrigger = true;
+          } else if (events->pho1.Pt() > 108) {
+            dataWeight = events->HLTPrescale[99];
+            if (events->HLTDecision[99] && events->pho1HLTFilter[33]) passTrigger = true;
+          } else if (events->pho1.Pt() > 88) {
+            dataWeight = events->HLTPrescale[98];
+            if (events->HLTDecision[98] && events->pho1HLTFilter[32]) passTrigger = true;
+          } else if (events->pho1.Pt() > 60){
+            dataWeight = events->HLTPrescale[97];
+            if (events->HLTDecision[97] && events->pho1HLTFilter[31]) passTrigger = true;
           } else {
-            dataWeight = events->HLTPrescale[88];
-            if (events->HLTDecision[88] && events->pho1HLTFilter[27]) passTrigger = true;
+            dataWeight = events->HLTPrescale[96];
+            if (events->HLTDecision[96] && events->pho1HLTFilter[30]) passTrigger = true;
           }
-
-
-	  // else if (events->pho1.Pt() > 135) {
-	  //   dataWeight = events->HLTPrescale[92];
-	  //   if (events->HLTDecision[92]) passTrigger = true;
-	  // } else if (events->pho1.Pt() > 105) {
-	  //   dataWeight = events->HLTPrescale[91];
-	  //   if (events->HLTDecision[91]) passTrigger = true;
-	  // } else if (events->pho1.Pt() > 85) {
-	  //   dataWeight = events->HLTPrescale[90];
-	  //   if (events->HLTDecision[90]) passTrigger = true;
-	  // } else {
-	  //   dataWeight = events->HLTPrescale[89];
-	  //   if (events->HLTDecision[89]) passTrigger = true;
-	  // } 
 
 	  weight = dataWeight;
 
 	} else {
-	  if (
-	      events->HLTDecision[88] || events->HLTDecision[89] || events->HLTDecision[90] 
-	      || events->HLTDecision[91] || events->HLTDecision[92] || 
-	      events->HLTDecision[93]
-	      ) passTrigger = true;
+	  //For Prompt Template from MC, don't require triggers because 
+	  //the MC samples don't have proper trigger infomation
+	  passTrigger = true;
 	}
 
 	if (!passTrigger) continue;
@@ -261,72 +301,170 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
 	//Selection Cuts 
 	//******************************
 	//Photon selection
-	if (! (events->pho1.Pt() > 50)) continue;
-	// if (! (events->pho1.Pt() > 190)) continue;
-  
-	if (isData) {
-	  if (passTrigger) {
-	    
-	    if( fabs(events->pho1.Eta()) < 1.479 ) { // make the fake template for barrel photons
-	      if( events->pho1_chargediso > 2.5 && events->pho1_sigmaietaieta < 0.015 ) 
-		histSigmaIetaIetaTemplate_EB[i]->Fill(events->pho1_sigmaietaieta);
-	    } 
-	    
-	    if( fabs(events->pho1.Eta()) > 1.479 ) { // make the fake template for endcap photons
-	      if( events->pho1_chargediso > 2.5 && events->pho1_sigmaietaieta > 0.015 ) 
-		histSigmaIetaIetaTemplate_EE[i]->Fill(events->pho1_sigmaietaieta);
-	    }
+	if (! (events->pho1.Pt() > 185)) continue;
 
-	    // select photons in EB
-	    if(fabs(events->pho1.Eta()) < 1.479 && events->pho1_sigmaietaieta < 0.015 && events->pho1_chargediso < 2.5) {
-	      histSigmaIetaIeta_EB[i]->Fill(events->pho1_sigmaietaieta);
+	if ( processLabels[i] == "Data") {
+
+	  // select photons in EB
+	  if(fabs(events->pho1.Eta()) < 1.479 && events->pho1_sigmaietaieta < 0.015 && events->pho1_chargediso < 2.5) {
+	    histSigmaIetaIeta_EB[i]->Fill(events->pho1_sigmaietaieta);
 	      
-	      for(int ii = 0; ii<NMRBins; ii++)
-		for(int jj = 0; jj<NRsqBins; jj++)
-		  {
-		    if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] )
-		      if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
-			histSigmaIetaIeta_EB_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
-		      }
-		  }
-	      
-	      for(int ii = 0; ii<NMRBins; ii++) {
-		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
-		  histSigmaIetaIeta_EB_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
-		}
-	      }
+	    for(int ii = 0; ii<NMRBins; ii++) {
 	      for(int jj = 0; jj<NRsqBins; jj++) {
-		if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
-		  histSigmaIetaIeta_EB_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
-		}					      
+		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] ) {
+		  if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
+		    histSigmaIetaIeta_EB_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
+		  }
+		}
 	      }
 	    }
-	    // select photons in EE
-	    if(fabs(events->pho1.Eta()) > 1.479 && events->pho1_sigmaietaieta > 0.015 && events->pho1_chargediso < 2.5) {
-	      histSigmaIetaIeta_EE[i]->Fill(events->pho1_sigmaietaieta);
+	    
+	    for(int ii = 0; ii<NMRBins; ii++) {
+	      if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
+		histSigmaIetaIeta_EB_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
+	      }
+	    }
+	    for(int jj = 0; jj<NRsqBins; jj++) {
+	      if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
+		histSigmaIetaIeta_EB_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
+	      }					      
+	    }
+	  }
+	  // select photons in EE
+	  if(fabs(events->pho1.Eta()) > 1.479 && events->pho1_sigmaietaieta > 0.015 && events->pho1_chargediso < 2.5) {
+	    histSigmaIetaIeta_EE[i]->Fill(events->pho1_sigmaietaieta);
 	      
-	      for(int ii = 0; ii<NMRBins; ii++)
-		for(int jj = 0; jj<NRsqBins; jj++)
-		  {
-		    if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] )
-		      if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
-			histSigmaIetaIeta_EE_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
-		      }
+	    for(int ii = 0; ii<NMRBins; ii++) {
+	      for(int jj = 0; jj<NRsqBins; jj++) {
+		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] ) {
+		  if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
+		    histSigmaIetaIeta_EE_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
 		  }
+		}
+	      }
+	    }
+	    
+	    for(int ii = 0; ii<NMRBins; ii++) {
+	      if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
+		histSigmaIetaIeta_EE_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
+	      }
+	    }
+	    for(int jj = 0; jj<NRsqBins; jj++) {
+	      if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
+		histSigmaIetaIeta_EE_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
+	      }					      
+	    }
+	  }	  
+	} // end if Data
+
+	if ( processLabels[i] == "FakeTemplate") {
+	  if( fabs(events->pho1.Eta()) < 1.479 ) { // make the fake template for barrel photons
+	    if( events->pho1_chargediso > 5.0 && events->pho1_sigmaietaieta < 0.015 ) {
+	      histSigmaIetaIetaTemplate_EB[i]->Fill(events->pho1_sigmaietaieta);
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		for(int jj = 0; jj<NRsqBins; jj++) {
+		  if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] ) {
+		    if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
+		      histSigmaIetaIetaFakeTemplate_EB_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
+		    }
+		  }
+		}
+	      }
 	      
 	      for(int ii = 0; ii<NMRBins; ii++) {
 		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
-		  histSigmaIetaIeta_EE_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
+		  histSigmaIetaIetaFakeTemplate_EB_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
 		}
 	      }
 	      for(int jj = 0; jj<NRsqBins; jj++) {
 		if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
-		  histSigmaIetaIeta_EE_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
+		  histSigmaIetaIetaFakeTemplate_EB_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
 		}					      
 	      }
 	    }
 	  }
+	    
+	  if( fabs(events->pho1.Eta()) > 1.479 ) { // make the fake template for endcap photons
+	    if( events->pho1_chargediso > 5.0 && events->pho1_sigmaietaieta > 0.015 ) {
+	      histSigmaIetaIetaTemplate_EE[i]->Fill(events->pho1_sigmaietaieta);
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		for(int jj = 0; jj<NRsqBins; jj++) {
+		  if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] ) {
+		    if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
+		      histSigmaIetaIetaFakeTemplate_EE_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
+		    }
+		  }
+		}
+	      }
+	      
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
+		  histSigmaIetaIetaFakeTemplate_EE_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
+		}
+	      }
+	      for(int jj = 0; jj<NRsqBins; jj++) {
+		if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
+		  histSigmaIetaIetaFakeTemplate_EE_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
+		}
+	      }
+	    }
+	  }
+	} // end if Fake Template
+
+	if ( processLabels[i] == "PromptTemplate") {
+	  if( fabs(events->pho1.Eta()) < 1.479 ) { // make the prompt template for barrel photons
+	    if( events->pho1_chargediso < 2.5 && events->pho1_sigmaietaieta < 0.015 ) {
+	      histSigmaIetaIetaTemplate_EB[i]->Fill(events->pho1_sigmaietaieta);
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		for(int jj = 0; jj<NRsqBins; jj++) {
+		  if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] ) {
+		    if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
+		      histSigmaIetaIetaPromptTemplate_EB_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
+		    }
+		  }
+		}
+	      }
+	      
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
+		  histSigmaIetaIetaPromptTemplate_EB_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
+		}
+	      }
+	      for(int jj = 0; jj<NRsqBins; jj++) {
+		if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
+		  histSigmaIetaIetaPromptTemplate_EB_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
+		}					      
+	      }
+	    }
+	  }
+	    
+	  if( fabs(events->pho1.Eta()) > 1.479 ) { // make the prompt template for endcap photons
+	    if( events->pho1_chargediso < 2.5 && events->pho1_sigmaietaieta > 0.015 ) {
+	      histSigmaIetaIetaTemplate_EE[i]->Fill(events->pho1_sigmaietaieta);
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		for(int jj = 0; jj<NRsqBins; jj++) {
+		  if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] ) {
+		    if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] ){
+		      histSigmaIetaIetaPromptTemplate_EE_binned[ii][jj]->Fill(events->pho1_sigmaietaieta, weight);
+		    }
+		  }
+		}
+	      }
+	      
+	      for(int ii = 0; ii<NMRBins; ii++) {
+		if(events->MR_NoPho > MRBins[ii] && events->MR_NoPho < MRBins[ii+1] && events->Rsq_NoPho > 0.15 ) {
+		  histSigmaIetaIetaPromptTemplate_EE_MRbinned[ii]->Fill(events->pho1_sigmaietaieta, weight);
+		}
+	      }
+	      for(int jj = 0; jj<NRsqBins; jj++) {
+		if(events->Rsq_NoPho > RsqBins[jj] && events->Rsq_NoPho < RsqBins[jj+1] && events->MR_NoPho > 400. ){
+		  histSigmaIetaIetaPromptTemplate_EE_Rsqbinned[jj]->Fill(events->pho1_sigmaietaieta, weight);
+		}
+	      }
+	    }
+	  }
 	}
+	  	          
       } //loop over events
     } //loop over input files
   } //loop over input file groups
@@ -334,7 +472,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
   //****************************
   //Add CMS and Lumi Labels
   //****************************
-  lumi_13TeV = "2.2 fb^{-1}";
+  lumi_13TeV = "26.4 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.15;
   cmsTextSize = 0.6;
@@ -474,16 +612,20 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
   // now do the fits in the MR/Rsq bins   
   for(int ii=0; ii<NMRBins; ii++)
     for(int jj=0; jj<NRsqBins; jj++) {
+  // for(int ii=0; ii<1; ii++)
+  //   for(int jj=0; jj<1; jj++) {
       RooRealVar SIeta("SIeta","#sigma_{i#etai#eta}",rangeMin,rangeMax);
       RooDataHist dataSR("dataSR","dataSR",SIeta,Import(*histSigmaIetaIeta_EB_binned[ii][jj]));
    
-      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*promptHist));
-      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EB[0]));
-   
+      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*histSigmaIetaIetaPromptTemplate_EB_binned[ii][jj]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EB[0]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*fakeHist_EB));
+      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaFakeTemplate_EB_binned[ii][jj]));
+
       RooHistPdf PromptPDF("PromptPDF","PromptPDF",SIeta,MCprompt,0);
       RooHistPdf nonPromptPDF("nonPromptPDF","nonPromptPDF",SIeta,MCnonPrompt,0);
    
-      RooRealVar Fitfrac("Fitfrac","Fitfrac",0.7,0.,1.0);
+      RooRealVar Fitfrac("Fitfrac","Fitfrac",0.95,0.50,1.0);
    
       RooAddPdf PDF("PDF","PSR-NPSB-PDF", RooArgList(PromptPDF,nonPromptPDF),Fitfrac);
   
@@ -586,19 +728,21 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       cFit->SaveAs(Form("PurityFitEB_%d_%d.pdf", ii, jj));
     }
   
-  
   //////////////////////////
   // now do the fits in the MR bins   
   for(int ii=0; ii<NMRBins; ii++)
+  // for(int ii=0; ii<1; ii++)
     {     
       cout<<"MR BINNED FIT: "<<ii<<endl;
 
       RooRealVar SIeta("SIeta","#sigma_{i#etai#eta}",rangeMin,rangeMax);
       RooDataHist dataSR("dataSR","dataSR",SIeta,Import(*histSigmaIetaIeta_EB_MRbinned[ii]));
       
-      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*promptHist));
-      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EB[0]));
-      
+      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*histSigmaIetaIetaPromptTemplate_EB_MRbinned[ii]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EB[0]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*fakeHist_EB));
+      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaFakeTemplate_EB_MRbinned[ii]));
+   
       RooHistPdf PromptPDF("PromptPDF","PromptPDF",SIeta,MCprompt,0);
       RooHistPdf nonPromptPDF("nonPromptPDF","nonPromptPDF",SIeta,MCnonPrompt,0);
       
@@ -740,6 +884,7 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       cFit->SaveAs(Form("PurityFitEB_MRbinned_%d.pdf", ii));
     }   
   
+
   //   // now do the fits in the Rsq bins   
   for(int ii=0; ii<NRsqBins; ii++)
     {     
@@ -748,9 +893,11 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       RooRealVar SIeta("SIeta","#sigma_{i#etai#eta}",rangeMin,rangeMax);
       RooDataHist dataSR("dataSR","dataSR",SIeta,Import(*histSigmaIetaIeta_EB_Rsqbinned[ii]));
       
-      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*promptHist));
-      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EB[0]));
-      
+      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*histSigmaIetaIetaPromptTemplate_EB_Rsqbinned[ii]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EB[0]));
+       // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*fakeHist_EB));
+      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaFakeTemplate_EB_Rsqbinned[ii]));
+     
       RooHistPdf PromptPDF("PromptPDF","PromptPDF",SIeta,MCprompt,0);
       RooHistPdf nonPromptPDF("nonPromptPDF","nonPromptPDF",SIeta,MCnonPrompt,0);
       
@@ -982,9 +1129,11 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       RooRealVar SIeta("SIeta","#sigma_{i#etai#eta}",rangeMin,rangeMax);
       RooDataHist dataSR("dataSR","dataSR",SIeta,Import(*histSigmaIetaIeta_EE_binned[ii][jj]));
 	 
-      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*promptHist_EE));
-      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EE[0]));
-   
+      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*histSigmaIetaIetaPromptTemplate_EE_binned[ii][jj]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EE[0]));
+       // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*fakeHist_EE));
+      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaFakeTemplate_EE_binned[ii][jj]));
+  
       RooHistPdf PromptPDF("PromptPDF","PromptPDF",SIeta,MCprompt,0);
       RooHistPdf nonPromptPDF("nonPromptPDF","nonPromptPDF",SIeta,MCnonPrompt,0);
    
@@ -1101,8 +1250,10 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       RooRealVar SIeta("SIeta","#sigma_{i#etai#eta}",rangeMin,rangeMax);
       RooDataHist dataSR("dataSR","dataSR",SIeta,Import(*histSigmaIetaIeta_EE_MRbinned[ii]));
       
-      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*promptHist_EE));
-      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EE[0]));
+      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*histSigmaIetaIetaPromptTemplate_EE_MRbinned[ii]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EE[0]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*fakeHist_EE));
+      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaFakeTemplate_EE_MRbinned[ii]));
       
       RooHistPdf PromptPDF("PromptPDF","PromptPDF",SIeta,MCprompt,0);
       RooHistPdf nonPromptPDF("nonPromptPDF","nonPromptPDF",SIeta,MCnonPrompt,0);
@@ -1246,9 +1397,11 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
       RooRealVar SIeta("SIeta","#sigma_{i#etai#eta}",rangeMin,rangeMax);
       RooDataHist dataSR("dataSR","dataSR",SIeta,Import(*histSigmaIetaIeta_EE_Rsqbinned[ii]));
       
-      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*promptHist_EE));
-      RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EE[0]));
-      
+      RooDataHist MCprompt("MCprompt","MCprompt",SIeta,Import(*histSigmaIetaIetaPromptTemplate_EE_Rsqbinned[ii]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaTemplate_EE[0]));
+      // RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*fakeHist_EE));
+       RooDataHist MCnonPrompt("MCnonPrompt","MCnonPrompt",SIeta,Import(*histSigmaIetaIetaFakeTemplate_EE_Rsqbinned[ii]));
+     
       RooHistPdf PromptPDF("PromptPDF","PromptPDF",SIeta,MCprompt,0);
       RooHistPdf nonPromptPDF("nonPromptPDF","nonPromptPDF",SIeta,MCnonPrompt,0);
       
@@ -1428,9 +1581,11 @@ void RunPhotonControlSample_Fit(  vector<string> datafiles, vector<vector<string
   delete file;
 }
 
-void PhotonControlSample_RooFit( int option = 10) {
+void PhotonControlSample_FitSigmaIEtaIEta( int option = 10) {
 
   vector<string> datafiles;
+  vector<string> fakeTemplateFiles;
+  vector<string> promptTemplateFiles;
   vector<vector<string> > bkgfiles;
   vector<string> processLabels;
   vector<int> colors;
@@ -1440,51 +1595,25 @@ void PhotonControlSample_RooFit( int option = 10) {
 
   //No Skims  
   if (option >= 10) {
-    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_PRv4_GoodLumiGolden.root");
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016_GoodLumiGolden_26p4ifb.root");
     //  
   } else {
-    datafiles.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_Run2015D_GoodLumiGolden.root");     
+    datafiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016_GoodLumiGolden_26p4ifb_MR300Skim.root");  
+    fakeTemplateFiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/Skim/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016_GoodLumiGolden_MR300Rsq0p15Skim.root");
+    promptTemplateFiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/Skim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_MR300Rsq0p15Skim.root");
   }
 
-  vector<string> bkgfiles_gjets;
-  // vector<string> bkgfiles_qcd;
-  // vector<string> bkgfiles_other;
 
-  if (option >= 10) {
-    // bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    // bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    // bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    // bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    // bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final_HEEleVetoCut/RunTwoRazorControlRegions_PhotonFull_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root");    
-    // } else {
-    //   bkgfiles_gjets.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_GJets_HTBinned_1pb_weighted_RazorSkim.root");    
-    //   bkgfiles_qcd.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_QCD_HTBinned_1pb_weighted_RazorSkim.root"); 
-    //   bkgfiles_other.push_back("eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/PhotonFull_1p23_2015Final/RazorSkim/RunTwoRazorControlRegions_PhotonFull_Other_1pb_weighted_RazorSkim.root"); 
-  }
-   
-
-  bkgfiles.push_back(bkgfiles_gjets);
-  // bkgfiles.push_back(bkgfiles_qcd);
-  // bkgfiles.push_back(bkgfiles_other);
-
-  processLabels.push_back("GJets");  
-  // processLabels.push_back("QCD");
-  // processLabels.push_back("Other");
-
-  colors.push_back(kOrange);
-  // colors.push_back(kMagenta);
-  // colors.push_back(kCyan);
-  
-  double lumi = 2185;
+  double lumi = 26400;
 
   //*********************************************************************
   //GJets Control Region
   //*********************************************************************
   if (option == 0) {
-    RunPhotonControlSample_Fit(datafiles, bkgfiles,processLabels, colors, lumi,"MR300Rsq0p15",0,"MR300Rsq0p15");
+    RunPhotonControlSample_FitSigmaIEtaIEta(datafiles, fakeTemplateFiles, promptTemplateFiles, lumi,"MR300Rsq0p15",0,"MR300Rsq0p15");
   }
   if (option == 10) {
-    RunPhotonControlSample_Fit(datafiles, bkgfiles,processLabels, colors, lumi,"Inclusive",0,"Inclusive");
+    RunPhotonControlSample_FitSigmaIEtaIEta(datafiles, fakeTemplateFiles, promptTemplateFiles, lumi,"Inclusive",0,"Inclusive");
   }
 
 
