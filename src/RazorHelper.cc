@@ -5,6 +5,9 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         tag(tag_), isData(isData_), isFastsim(isFastsim_) {
     std::cout << "RazorHelper initializing with tag " << tag << std::endl;
 
+    eleVetoEffSFMinPt = -1;
+    muVetoEffSFMinPt = -1;
+
     // check that CMSSW is set up
     loadCMSSWPath();
     if (cmsswPath == "") {
@@ -34,7 +37,9 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
 
     // tag for 2016G unblinded 80X data
     else if (tag == "Razor2016G_SUSYUnblind_80X") {
-        loadTag_Razor2016G_SUSYUnblind_80X();
+      eleVetoEffSFMinPt = 15.01;
+      muVetoEffSFMinPt = 15.01;
+      loadTag_Razor2016G_SUSYUnblind_80X();
     }
 
     // tag for 2016 ICHEP 80X data
@@ -1134,9 +1139,8 @@ void RazorHelper::updateTightMuonScaleFactors(float pt, float eta, bool isTight,
 
 void RazorHelper::updateVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
-        
     updateScaleFactors( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist, 
-            pt, eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown );
+            fmax( pt, muVetoEffSFMinPt), eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown );
 
 }
 
@@ -1152,7 +1156,7 @@ void RazorHelper::updateVetoElectronScaleFactors(float pt, float eta, bool isVet
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
         
     updateScaleFactors( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist, 
-            pt, eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
+            fmax( pt, eleVetoEffSFMinPt), eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
 
 }
 
@@ -1176,7 +1180,7 @@ double RazorHelper::getTightMuonScaleFactor(float pt, float eta, bool isTight) {
 
 double RazorHelper::getVetoMuonScaleFactor(float pt, float eta, bool isVeto) {
     return getLeptonScaleFactor( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist,
-            pt, eta, isVeto );
+            fmax( pt, muVetoEffSFMinPt), eta, isVeto );
 }
 
 double RazorHelper::getMuonTrackScaleFactor(float pt, float eta, bool isReconstructed) {
@@ -1192,7 +1196,7 @@ double RazorHelper::getTightElectronScaleFactor(float pt, float eta, bool isTigh
 
 double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto) {
     return getLeptonScaleFactor( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist,
-            pt, eta, isVeto );
+            fmax( pt, eleVetoEffSFMinPt), eta, isVeto );
 }
 
 double RazorHelper::getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed) {

@@ -188,6 +188,7 @@ class RazorHelper {
         TH2D *eleVetoEffSFHist;
         TH2D *eleGSFTrackEffSFHist;
         TH2D *eleGSFTrackEffHist;
+	double eleVetoEffSFMinPt;
 
         // for muons
         TFile *muTightEfficiencyFile;
@@ -204,6 +205,7 @@ class RazorHelper {
         TH2D *muVetoEffSFHist;
         TH2D *muTrackEffSFHist;
         TH2D *muTrackEffHist;
+	double muVetoEffSFMinPt;
 
         // for taus
         TFile *tauEfficiencyFile;
