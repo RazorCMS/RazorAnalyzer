@@ -1002,15 +1002,25 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  double tmpEffAreaChargedHadrons = 0.0;
 	  double tmpEffAreaNeutralHadrons = 0.0;
 	  double tmpEffAreaPhotons = 0.0;
-	  getPhotonEffArea90( phoEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
+	  getPhotonEffArea90( pho_superClusterEta[i], tmpEffAreaChargedHadrons, tmpEffAreaNeutralHadrons, tmpEffAreaPhotons);
 	  
 	  //Use Loose Photon ID and charged Iso < 2.5 GeV
 	  if (!( 		
-		photonPassLooseID(i,true) //use this for deriving scale factor
-		//pho_HoverE[i] < 0.05 && photonPassesElectronVeto(i) //use this for performing fits
-		&& 
-		max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5
-		 )
+		//photonPassLooseID(i,true) //use this for deriving scale factor
+		photonPassesElectronVeto(i)
+		&& pho_HoverE[i] < 0.05  //use this for performing fits
+		&& ( (fabs(phoEta[i]) < 1.5 && 
+		      phoFull5x5SigmaIetaIeta[i] < 0.01042
+		      && fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*tmpEffAreaPhotons, 0.) < 2.554 + 0.0047*pho_pt_corr
+		      && fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*tmpEffAreaNeutralHadrons, 0.) < 4.50 + 0.0148*pho_pt_corr + 0.000017*pho_pt_corr*pho_pt_corr
+		      ) ||
+		     (fabs(phoEta[i]) > 1.5 && 
+		      phoFull5x5SigmaIetaIeta[i] < 0.02683
+		      && fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*tmpEffAreaPhotons, 0.) < 3.86 + 0.0034*pho_pt_corr
+		      && fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*tmpEffAreaNeutralHadrons, 0.) < 4.187 + 0.0163*pho_pt_corr + 0.000014*pho_pt_corr*pho_pt_corr
+		      )
+		     ))
+	      //&& max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5	      
 	      ) continue;
 	  
 	  if(pho_pt_corr > 40) nPhotonsAbove40GeV++;
@@ -1474,6 +1484,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	double effAreaPhotons = 0.0;
 	getPhotonEffArea90( pho_superClusterEta[GoodPhotonIndex[0]] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
 	events->pho1_chargediso = max(pho_sumChargedHadronPt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+	events->pho1_photoniso = max(pho_sumPhotonEt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+	events->pho1_neutralhadroniso = max(pho_sumNeutralHadronEt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+	events->pho1_hOverE = pho_HoverE[GoodPhotonIndex[0]];
 	events->pho1_pfiso = max(pho_sumChargedHadronPt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.) +
 	  max(pho_sumNeutralHadronEt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.) +
 	  max(pho_sumPhotonEt[GoodPhotonIndex[0]] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);

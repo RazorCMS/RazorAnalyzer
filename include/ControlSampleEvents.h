@@ -237,6 +237,9 @@ class ControlSampleEvents {
   Int_t                   pho1_motherID;
   Float_t                 pho1_sigmaietaieta; 
   Float_t                 pho1_chargediso;
+  Float_t                 pho1_photoniso;
+  Float_t                 pho1_neutralhadroniso;
+  Float_t                 pho1_hOverE;
   Float_t                 pho1_pfiso;
   Float_t                 minDRGenPhotonToParton;
 
@@ -492,6 +495,9 @@ class ControlSampleEvents {
     pho1_motherID = 0;
     pho1_sigmaietaieta = -999.;
     pho1_chargediso = -999.;
+    pho1_photoniso = -999.;
+    pho1_neutralhadroniso = -999.;
+    pho1_hOverE = -999.;
     pho1_pfiso = -999.;
     minDRGenPhotonToParton = -999;
 
@@ -895,6 +901,9 @@ class ControlSampleEvents {
       tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
       tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
       tree_->Branch("pho1_chargediso",&pho1_chargediso,"pho1_chargediso/F");
+      tree_->Branch("pho1_photoniso",&pho1_photoniso,"pho1_photoniso/F");
+      tree_->Branch("pho1_neutralhadroniso",&pho1_neutralhadroniso,"pho1_neutralhadroniso/F");
+      tree_->Branch("pho1_hOverE",&pho1_hOverE,"pho1_hOverE/F");
       tree_->Branch("pho1_pfiso",&pho1_pfiso,"pho1_pfiso/F");
       tree_->Branch("pho1PassTight",&pho1PassTight,"pho1PassTight/O");
       tree_->Branch("minDRGenPhotonToParton",&minDRGenPhotonToParton,"minDRGenPhotonToParton/F");
@@ -1236,6 +1245,9 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("pho1_motherID",&pho1_motherID);
       tree_->SetBranchAddress("pho1_sigmaietaieta",&pho1_sigmaietaieta);
       tree_->SetBranchAddress("pho1_chargediso",&pho1_chargediso);
+      tree_->SetBranchAddress("pho1_photoniso",&pho1_photoniso);
+      tree_->SetBranchAddress("pho1_neutralhadroniso",&pho1_neutralhadroniso);
+      tree_->SetBranchAddress("pho1_hOverE",&pho1_hOverE);
       tree_->SetBranchAddress("pho1_pfiso",&pho1_pfiso);
       tree_->SetBranchAddress("pho1PassTight",&pho1PassTight);
       tree_->SetBranchAddress("minDRGenPhotonToParton",&minDRGenPhotonToParton);
