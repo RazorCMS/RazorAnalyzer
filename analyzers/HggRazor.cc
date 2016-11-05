@@ -69,13 +69,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
 
-  string analysisTag = "";
-  if (option >= 0 && option <= 9) analysisTag = "2015_76X";
-  else if (option >= 10 && option <= 19) analysisTag = "2016_80X";
-  else {
-    cout << "Error: analysisoption == " << option << " is not supported. Exiting.\n";
-    return;
-  }
+  string analysisTag = "Razor2016_80X";
+  if ( label != "") analysisTag = label;
 
   //***************************************************
   //What the options means:
@@ -680,7 +675,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	      //check match against leptons
 	      if (abs(gParticleId[g]) == 11 || abs(gParticleId[g]) == 13 || abs(gParticleId[g]) == 15 ) {
 		match = true;
-		cout << "match lepton\n";
 	      }
 
 	      //check match against prompt photons
@@ -690,7 +684,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		   (abs(gParticleMotherId[g]) >= 1 && abs(gParticleMotherId[g]) <= 6) )
 		  ) {
 		match = true;
-		cout << "match prompt photon\n";
 	      }
 	      
 	      //match to quarks
