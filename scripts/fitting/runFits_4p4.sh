@@ -1,13 +1,12 @@
 #!/bin/bash
 
-
 #python python/DustinTuple2RooDataSet.py -c config/run2_2016.config -d Datasets -b MultiJet --data -l 4400 Run2016G_Unblinded/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind.root
 
 #python python/DustinTuple2RooDataSet.py -c config/run2_2016.config -d Datasets -b DiJet --data -l 4400 Run2016G_Unblinded/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind.root
 
-#python python/DustinTuple2RooDataSet.py -c config/run2_2016.config -d Datasets -b LeptonMultiJet --data -l 4400 Run2016G_Unblinded/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind.root
+#python python/DustinTuple2RooDataSet.py -c config/run2_2016.config -d Datasets -b LeptonMultiJet --data -l 4400 Run2016G_Unblinded/FullRazorInclusive_SingleLepton_2016G_GoodLumiGolden_SUSYUnblind.root
 
-#python python/DustinTuple2RooDataSet.py -c config/run2_2016.config -d Datasets -b LeptonJet --data -l 4400 Run2016G_Unblinded/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind.root
+#python python/DustinTuple2RooDataSet.py -c config/run2_2016.config -d Datasets -b LeptonJet --data -l 4400 Run2016G_Unblinded/FullRazorInclusive_SingleLepton_2016G_GoodLumiGolden_SUSYUnblind.root
 
 #MultiJet Full
 
@@ -52,7 +51,7 @@
 
 #LeptonMultiJet Sideband
 
-#python python/BinnedFit.py -b LeptonMultiJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Sideband/ Datasets/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-3btag_LeptonMultiJet.root --data -l 4400 --fit-region LowMR,LowRsq
+#python python/BinnedFit.py -b LeptonMultiJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Sideband/ Datasets/FullRazorInclusive_SingleLepton_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-3btag_LeptonMultiJet.root --data -l 4400 --fit-region LowMR,LowRsq
 
 #python python/RunToys.py -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Sideband/ -b LeptonMultiJet -l 4400 -i fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Sideband/BinnedFitResults_LeptonMultiJet.root --no-stat -t 1000 --fit-region LowMR,LowRsq
 
@@ -62,7 +61,7 @@
 
 #LeptonMultiJet Full
 
-#python python/BinnedFit.py -b LeptonMultiJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Full/ Datasets/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-3btag_LeptonMultiJet.root --data -l 4400 
+#python python/BinnedFit.py -b LeptonMultiJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Full/ Datasets/FullRazorInclusive_SingleLepton_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-3btag_LeptonMultiJet.root --data -l 4400 
 
 #python python/RunToys.py -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Full/ -b LeptonMultiJet -l 4400 -i fits_2016_11_14/Run2016G_Unblinded/LeptonMultiJet/Full/BinnedFitResults_LeptonMultiJet.root --no-stat -t 1000
 
@@ -72,7 +71,7 @@
 
 #LeptonJet Sideband
 
-#python python/BinnedFit.py -b LeptonJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Sideband/ Datasets/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-3btag_LeptonJet.root --data -l 4400 --fit-region LowMR,LowRsq
+#python python/BinnedFit.py -b LeptonJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Sideband/ Datasets/FullRazorInclusive_SingleLepton_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-3btag_LeptonJet.root --data -l 4400 --fit-region LowMR,LowRsq
 
 #python python/RunToys.py -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Sideband/ -b LeptonJet -l 4400 -i fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Sideband/BinnedFitResults_LeptonJet.root --no-stat -t 1000 --fit-region LowMR,LowRsq
 
@@ -82,7 +81,7 @@
 
 #LeptonJet Full
 
-#python python/BinnedFit.py -b LeptonJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Full/ Datasets/FullRazorInclusive_HTMHT_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-2btag_LeptonJet.root --data -l 4400 
+#python python/BinnedFit.py -b LeptonJet -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Full/ Datasets/FullRazorInclusive_SingleLepton_2016G_GoodLumiGolden_SUSYUnblind_lumi-4.400_0-2btag_LeptonJet.root --data -l 4400 
 
 #python python/RunToys.py -c config/run2_2016.config -d fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Full/ -b LeptonJet -l 4400 -i fits_2016_11_14/Run2016G_Unblinded/LeptonJet/Full/BinnedFitResults_LeptonJet.root --no-stat -t 1000
 
