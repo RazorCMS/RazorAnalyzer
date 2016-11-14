@@ -23,28 +23,65 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         
     else:
         if fitRange!='Full' and False:
-            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+            #nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
             m2 = rt.RooMinimizer(nll)
             m2.setStrategy(0)
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
         if fitRange=='Full':
-            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+            #nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
         else:
-            nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+            nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+            #nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+
         m2 = rt.RooMinimizer(nll)
         m2.setMinimizerType('Minuit2')
         m2.setStrategy(2)
         m2.setEps(0.01)
         m2.setMaxFunctionCalls(1000000)
         m2.setMaxIterations(1000000)
+
         scan_status = m2.minimize('Minuit2', 'scan')
+        scan_status = m2.minimize('Minuit2', 'scan')
+
+        #dijet
+        #simplex_status = m2.minimize('Minuit2', 'simplex')
+
         migrad_status = m2.minimize('Minuit2','migrad')
+        migrad_status = m2.minimize('Minuit2','migrad')
+        improve_status = m2.minimize('Minuit2','improve')
+        migrad_status = m2.minimize('Minuit2','migrad')
+        hesse_status = m2.minimize('Minuit2','hesse')
+
+        #multijet
+        #hesse_status = m2.minimize('Minuit2','hesse')
+
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #improve_status = m2.minimize('Minuit2','improve')
+        #hesse_status = 3
+
+        #dijet
+        #scan_status = m2.minimize('Minuit2', 'scan')
         #scan_status = m2.minimize('Minuit2', 'scan')
         #simplex_status = m2.minimize('Minuit2', 'simplex')
-        improve_status = m2.minimize('Minuit2','improve')
-        hesse_status = m2.minimize('Minuit2','hesse')
+        #simplex_status = m2.minimize('Minuit2', 'simplex')
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #improve_status = m2.minimize('Minuit2','improve')
+        #hesse_status = 3
+
+        #migrad_status = 3
+        
+        #hesse_status = m2.minimize('Minuit2','hesse')
+
+        #scan_status = m2.minimize('Minuit2', 'scan')
+        #improve_status = m2.minimize('Minuit2','improve')
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        
         
         fr = m2.save()
 
