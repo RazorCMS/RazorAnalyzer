@@ -19,24 +19,24 @@ boxes = {'MuEle':'(box==0)',
          'EleEle':'(box==2)',
          'MuSixJet':'(box==3)',
          'MuFourJet':'(box==4)',
-         'MuMultiJet':'(box==3||box==4)',
+         'MuMultiJet':'(box==3||box==4||box==18)',
          'MuJet':'(box==5)',
          'EleSixJet':'(box==6)',
          'EleFourJet':'(box==7)',
-         'EleMultiJet':'(box==6||box==7)',
+         'EleMultiJet':'(box==6||box==7||box==19)',
          'EleJet':'(box==8)',
-         'LeptonMultiJet':'(box==3||box==4||box==6||box==7)',
+         'LeptonMultiJet':'(box==3||box==4||box==6||box==7||box==18||box==19)',
          'LeptonJet':'(box==5||box==8)',
          'LooseLeptonSixJet':'(box==9)',
          'LooseLeptonFourJet':'(box==10)',
-         'LooseLeptonMultiJet':'(box==9||box==10)',
+         'LooseLeptonMultiJet':'(box==9||box==10||box==20)',
          'SixJet':'(box==11)',
          'FourJet':'(box==12)',
-         'FourToSixJet':'((box==11||box==12)&&(nSelectedJets>=4&&nSelectedJets<7))',
-         'SevenJet':'((box==11||box==12)&&(nSelectedJets>=7))',
-         'MultiJet':'(box==11||box==12)',
-         'FourToSixJet':'(box==11||box==12)',
-         'SevenJet':'(box==11||box==12)',
+         'FourToSixJet':'((box==11||box==12||box==21)&&(nSelectedJets>=4&&nSelectedJets<7))',
+         'SevenJet':'((box==11||box==12||box==21)&&(nSelectedJets>=7))',
+         'MultiJet':'(box==11||box==12||box==21)',
+         'FourToSixJet':'(box==11||box==12||box==21)',
+         'SevenJet':'(box==11||box==12||box==21)',
          'LooseLeptonDiJet':'(box==13)',
          'DiJet':'(box==14)'}
 
@@ -203,25 +203,65 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight, f, globalScaleFact
 
     
     if isData and box in ['MultiJet', 'SixJet', 'FourJet', 'DiJet', 'FourToSixJet', 'SevenJet', 'LooseLeptonDiJet', 'LooseLeptonSixJet', 'LooseLeptonFourJet', 'LooseLeptonMultiJet' ]:
-        triggerNameList = ['HLT_RsqMR240_Rsq0p09_MR200', 'HLT_RsqMR240_Rsq0p09_MR200_4jet', 'HLT_RsqMR270_Rsq0p09_MR200', 'HLT_RsqMR270_Rsq0p09_MR200_4jet', 'HLT_RsqMR260_Rsq0p09_MR200', 'HLT_RsqMR260_Rsq0p09_MR200_4jet', 'HLT_RsqMR300_Rsq0p09_MR200', 'HLT_RsqMR300_Rsq0p09_MR200_4jet', 'HLT_Rsq0p25', 'HLT_Rsq0p30', 'HLT_Rsq0p36']
+        triggerNameList = [
+            'HLT_RsqMR240_Rsq0p09_MR200', 
+            'HLT_RsqMR240_Rsq0p09_MR200_4jet', 
+            'HLT_RsqMR270_Rsq0p09_MR200', 
+            'HLT_RsqMR270_Rsq0p09_MR200_4jet', 
+            'HLT_RsqMR260_Rsq0p09_MR200', 
+            'HLT_RsqMR260_Rsq0p09_MR200_4jet', 
+            'HLT_RsqMR300_Rsq0p09_MR200', 
+            'HLT_RsqMR300_Rsq0p09_MR200_4jet', 
+            'HLT_Rsq0p25', 
+            'HLT_Rsq0p30', 
+            'HLT_Rsq0p36'
+            ]
         triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
         triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
 
     if isData and box in ['MuSixJet', 'MuFourJet', 'MuMultiJet', 'MuJet', 'EleSixJet', 'EleFourJet', 'EleMultiJet', 'EleJet','LeptonJet','LeptonMultiJet']:
-        triggerNameList = ['HLT_Mu50', 'HLT_IsoMu20', 'HLT_IsoTkMu20', 'HLT_IsoMu27', 'HLT_IsoTkMu27', 'HLT_IsoTkMu27', 'HLT_Ele23_WPLoose_Gsf', 'HLT_Ele27_WPLoose_Gsf', 'HLT_Ele27_eta2p1_WPLoose_Gsf', 'HLT_Ele27_eta2p1_WPTight_Gsf', 'HLT_Ele32_eta2p1_WPLoose_Gsf', 'HLT_Ele32_eta2p1_WPTight_Gsf', 'HLT_Ele105_CaloIdVT_GsfTrkIdT', 'HLT_Ele115_CaloIdVT_GsfTrkIdT']        
+        triggerNameList = [
+            'HLT_Mu50',
+            'HLT_Mu45_eta2p1',
+            'HLT_IsoMu22',
+            'HLT_IsoTkMu22',
+            'HLT_Ele25_eta2p1_WPTight_Gsf',
+            'HLT_Ele27_WPTight_Gsf',
+            'HLT_Ele27_eta2p1_WPLoose_Gsf',
+            'HLT_Ele45_WPLoose_Gsf',
+            'HLT_Ele105_CaloIdVT_GsfTrkIdT'
+            ]
         triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
         triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData and box in ['MuMu', 'MuEle', 'EleEle']:
-        triggerNameList = ['HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ', 'HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ', 'HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ', 'HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ', 'HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL', 'HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL', 'HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL','HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL']    
+        triggerNameList = [
+            'HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ', 
+            'HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ', 
+            'HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ', 
+            'HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ', 
+            'HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL', 
+            'HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL', 
+            'HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL',
+            'HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL'
+            ]
         triggerList = ['HLTDecision[%i]'%triggerDict[trigName] for trigName in triggerNameList]
         triggerCuts = ' || '.join(triggerList)
         cuts = cuts + ' && ( ' + triggerCuts + ' ) '
         
     if isData:
-        flagCuts = ' && '.join(['Flag_HBHENoiseFilter','Flag_HBHEIsoNoiseFilter','Flag_goodVertices','Flag_eeBadScFilter','Flag_EcalDeadCellTriggerPrimitiveFilter','Flag_CSCTightHaloFilter','Flag_badChargedCandidateFilter','Flag_badMuonFilter'])
+        flagCuts = ' && '.join([
+                'Flag_HBHENoiseFilter',
+                'Flag_HBHEIsoNoiseFilter',
+                'Flag_goodVertices',
+                'Flag_eeBadScFilter',
+                'Flag_EcalDeadCellTriggerPrimitiveFilter',
+                'Flag_CSCTightHaloFilter',
+                'Flag_badChargedCandidateFilter',
+                'Flag_badMuonFilter'
+                ])
         cuts = cuts + ' && ( ' + flagCuts + ' ) '
     
     print "Cuts:",cuts
