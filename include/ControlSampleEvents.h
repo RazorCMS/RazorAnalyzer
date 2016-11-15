@@ -79,8 +79,8 @@ class ControlSampleEvents {
   TLorentzVector          genlep2;
   Int_t                   genlep1Type;
   Int_t                   genlep2Type;
-  Bool_t                  HLTDecision[200];
-  Int_t                   HLTPrescale[200];
+  Bool_t                  HLTDecision[300];
+  Int_t                   HLTPrescale[300];
   Float_t                 lep1Pt;
   Float_t                 lep1Eta;
   TLorentzVector          lep1;
@@ -336,8 +336,8 @@ class ControlSampleEvents {
     genlep2              = TLorentzVector();
     genlep1Type          = 0.0;
     genlep2Type          = 0.0;
-    for(int i=0;i<200;++i) HLTDecision[i] = false;
-    for(int i=0;i<200;++i) HLTPrescale[i] = 0;
+    for(int i=0;i<300;++i) HLTDecision[i] = false;
+    for(int i=0;i<300;++i) HLTPrescale[i] = 0;
     lep1Pt               = 0.0;
     lep1Eta              = 0.0;
     lep1                 = TLorentzVector();
@@ -618,7 +618,7 @@ class ControlSampleEvents {
       tree_->Branch("eleRecoEffWeight",&eleRecoEffWeight,"eleRecoEffWeight/F");
       tree_->Branch("MET",&MET,"MET/F");
       tree_->Branch("METPhi",&METPhi,"METPhi/F");
-      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
       tree_->Branch("HT",&HT,"HT/F");
       tree_->Branch("lep1Pt",&lep1Pt,"lep1Pt/F");
       tree_->Branch("lep1Eta",&lep1Eta,"lep1Eta/F");
@@ -668,7 +668,7 @@ class ControlSampleEvents {
       tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
       tree_->Branch("event",&event,"event/i");
       tree_->Branch("processID",&processID,"processID/i");
-      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
       tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
       tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
       tree_->Branch("lep1PassVeto",&lep1PassVeto,"lep1PassVeto/O");
@@ -722,7 +722,7 @@ class ControlSampleEvents {
       tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
       tree_->Branch("event",&event,"event/i");
       tree_->Branch("processID",&processID,"processID/i");
-      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
       tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
       tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
       tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
@@ -830,7 +830,7 @@ class ControlSampleEvents {
       tree_->Branch("genWphi",&genWphi,"genWphi/F");
       tree_->Branch("recoWpt",&recoWpt,"recoWpt/F");
       tree_->Branch("recoWphi",&recoWphi,"recoWphi/F");
-      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
     }
   
     if (treeType == kTreeType_DileptonAdd2MET_Full ) {
@@ -873,13 +873,13 @@ class ControlSampleEvents {
       tree_->Branch("nMediumMuons",&nMediumMuons,"nMediumMuons/i");
       tree_->Branch("nTightMuons",&nTightMuons,"nTightMuons/i");
       tree_->Branch("HLT_Dimuon",&HLT_Dimuon,"HLT_Dimuon/O");
-      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
     }
     
     // fill the photon tree
     if (treeType == kTreeType_Photon_Full) {
-      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[200]/O");
-      tree_->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[200]/I");
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
+      tree_->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[300]/I");
       tree_->Branch("pho1HLTFilter",&pho1HLTFilter,"HLTDecision[50]/O");
       tree_->Branch("pho1","TLorentzVector", &pho1Ptr);
       tree_->Branch("pho2","TLorentzVector", &pho2Ptr);
