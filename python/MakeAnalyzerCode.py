@@ -14,6 +14,9 @@ outNames = ['analyzers/'+analyzer+'.h','src/Run'+analyzer+'.cc']
 if analyzer.find("Run1") > 0:
 	inNames = ['include/AnalyzerTemplateRun1.txt','src/RunAnalyzerTemplateRun1.txt']
 
+if analyzer.find("UpgradeTiming") > 0:
+	inNames = ['include/AnalyzerTemplateUpgradeTiming.txt','src/RunAnalyzerTemplateUpgradeTiming.txt']
+
 for i in range(len(inNames)):
     with open(inNames[i]) as inF:
         with open(outNames[i],'w') as outF:

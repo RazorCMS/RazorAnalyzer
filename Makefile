@@ -40,6 +40,9 @@ $(SRCDIR)/RazorEvents.o: $(SRCDIR)/RazorEvents.C $(INCLUDEDIR)/RazorEvents.h
 $(SRCDIR)/RazorEventsRun1.o: $(SRCDIR)/RazorEventsRun1.C $(INCLUDEDIR)/RazorEventsRun1.h
 	$(CXX) $(SRCDIR)/RazorEventsRun1.C $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
+$(SRCDIR)/RazorEventsUpgradeTiming.o: $(SRCDIR)/RazorEventsUpgradeTiming.C $(INCLUDEDIR)/RazorEventsUpgradeTiming.h
+	$(CXX) $(SRCDIR)/RazorEventsUpgradeTiming.C $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
+
 
 $(SRCDIR)/RazorAnalyzer.o: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.cc
 	$(CXX) $(SRCDIR)/RazorAnalyzer.cc $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
@@ -47,6 +50,8 @@ $(SRCDIR)/RazorAnalyzer.o: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorAnalyzer.cc
 $(SRCDIR)/RazorAnalyzerRun1.o: $(SRCDIR)/RazorEventsRun1.o $(SRCDIR)/RazorAnalyzerRun1.cc
 	$(CXX) $(SRCDIR)/RazorAnalyzerRun1.cc $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
+$(SRCDIR)/RazorAnalyzerUpgradeTiming.o: $(SRCDIR)/RazorEventsUpgradeTiming.o $(SRCDIR)/RazorAnalyzerUpgradeTiming.cc
+	$(CXX) $(SRCDIR)/RazorAnalyzerUpgradeTiming.cc $(CXXFLAGS) -I$(INCLUDEDIR) -c $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS)
 
 $(UTILSOBJ): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -I$(INCLUDEDIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) $<
@@ -60,7 +65,7 @@ $(ANALYZERSH):
 $(RUNNERSCC): 
 	$(HELPERSCRIPT) $(notdir $(basename $($@:Run=)))
 
-$(RUNNERS): $(BINDIR)/Run%: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorEventsRun1.o $(SRCDIR)/RazorAnalyzer.o $(SRCDIR)/RazorAnalyzerRun1.o $(UTILSOBJ) $(ANADIR)/%.o $(SRCDIR)/Run%.cc
+$(RUNNERS): $(BINDIR)/Run%: $(SRCDIR)/RazorEvents.o $(SRCDIR)/RazorEventsRun1.o $(SRCDIR)/RazorEventsUpgradeTiming.o $(SRCDIR)/RazorAnalyzer.o $(SRCDIR)/RazorAnalyzerRun1.o $(SRCDIR)/RazorAnalyzerUpgradeTiming.o $(UTILSOBJ) $(ANADIR)/%.o $(SRCDIR)/Run%.cc
 	$(CXX) $^ $(CXXFLAGS) -I$(INCLUDEDIR) -I$(ANADIR) $(LDFLAGS) $(LIBS) -o $@ $(CXX11FLAGS) 
 
 NormalizeNtuple: $(SRCDIR)/SimpleTable.o $(SRCDIR)/NormalizeNtuple.cc $(INCLUDEDIR)/rootdict.o
