@@ -36,6 +36,7 @@ if __name__ == "__main__":
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
+    razorWeights.loadPhotonPurityHists(sfHists, tag, debugLevel)
     for region,analysis in regions.iteritems():
         print "\nRegion:",region,"\n"
         #make output directory
@@ -44,6 +45,7 @@ if __name__ == "__main__":
         #set up analysis
         (xbins,cols) = analysis.unrollBins
         auxSFs = razorWeights.getNJetsSFs(analysis, jetName=analysis.jetVar)
+        razorWeights.getPhotonPuritySFs(auxSFs)
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
                 sfVars=sfVars, printdir=outdir, auxSFs=auxSFs, btags=analysis.nbMin,

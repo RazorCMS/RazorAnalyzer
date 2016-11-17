@@ -2,7 +2,7 @@
 import sys, os, argparse
 import ROOT as rt
 
-from macro import macro
+from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
@@ -53,11 +53,15 @@ if __name__ == "__main__":
         #QCD estimate for photon region
         if region == 'GJetsInv':
             dataDrivenQCD = True
+            auxSFs = razorWeights.getPhotonPuritySFs()
+            razorWeights.loadPhotonPurityHists(sfHists, tag, debugLevel)
         else:
             dataDrivenQCD = False
+            auxSFs = {}
         #perform analysis
-        hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
-                sfVars=sfVars, printdir=outdir, debugLevel=debugLevel, noFill=args.noFill, dataDrivenQCD=dataDrivenQCD) 
+        hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
+                sfHists=sfHists, sfVars=sfVars, printdir=outdir, debugLevel=debugLevel, 
+                auxSFs=auxSFs, noFill=args.noFill, dataDrivenQCD=dataDrivenQCD) 
         #compute scale factors
         appendScaleFactors(process, hists, sfHists, lumiData=analysis.lumi, th2PolyXBins=xbins, 
                 th2PolyCols=cols, debugLevel=debugLevel, var=sfVars, printdir=outdir)

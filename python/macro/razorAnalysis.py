@@ -34,15 +34,10 @@ razorWeightHists = {
             #"eleeff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightElectronSelectionEffDenominatorReco"),
             #"muontrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
             #"eletrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
-            "photonpurityeb":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root","histChargedIso_EB_MRRsq"),
-            "photonpurityee":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root","histChargedIso_EE_MRRsq"),
                 }
         }
-razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {
-        "photonpurityeb":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root","histChargedIso_EB_MRRsq"),
-        "photonpurityee":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root","histChargedIso_EE_MRRsq"),
-            }
-razorWeightHists["Razor2016_80X"] = razorWeightHists["Razor2016"]
+razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
+razorWeightHists["Razor2016_80X"] = {}
 
 #####################################
 ### NTUPLES

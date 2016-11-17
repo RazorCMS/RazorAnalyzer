@@ -1,3 +1,5 @@
+### NOTE: this script is no longer being maintained, and the analysis now uses 
+### ComputeScaleFactorsNJetCorrectionByProcess.py instead
 import sys, os, argparse
 import ROOT as rt
 

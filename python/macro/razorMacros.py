@@ -541,16 +541,26 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         dataWeightOpts.append('datadrivenqcddijet')
     elif 'datadrivenqcdmultijet' in map(str.lower, weightOpts): 
         dataWeightOpts.append('datadrivenqcdmultijet')
-    elif 'qcdphoton' in map(str.lower, weightOpts): 
-        dataWeightOpts.append('qcdphoton')
+    elif 'qcdphoton' in map(str.lower, weightOpts):
+        auxSFsData = auxSFs["QCD"]
+        samplesToUse = [] #skip running MC samples
+        del auxSFs["QCD"] 
+        auxSFHistsData = {name:sfHists[name] for name in auxSFsData}
+    else:
+        auxSFsData = {}
+        auxSFHistsData={}
             
     print "\n These event reweighting options will be used for data:"
     print dataWeightOpts
+    print "\n These scale factors will be used for data:"
+    print auxSFsData
 
     #fill histograms by looping over all trees
     if dataName in trees:
         print("\nData:")
-        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, noFill=noFill, debugLevel=debugLevel) 
+        macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, 
+                hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, 
+                auxSFs=auxSFsData, auxSFHists=auxSFHistsData, noFill=noFill, debugLevel=debugLevel) 
 
     print("\nMC:")
     if debugLevel > 0:
