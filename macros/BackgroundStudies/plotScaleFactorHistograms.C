@@ -2,9 +2,9 @@
 #include "macros/tdrstyle.C"
 #include "macros/CMS_lumi.C"
 
-void plotScaleFactor() {
+void plotScaleFactor(string label) {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root","READ");
+  TFile *inf = new TFile(Form("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root",label.c_str()),"READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -56,8 +56,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("GJetsInvScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("GJetsInvScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs(Form("GJetsInvScaleFactor_CorrectedToMultiJet_%s.png",label.c_str()));
+  cv->SaveAs(Form("GJetsInvScaleFactor_CorrectedToMultiJet_%s.pdf",label.c_str()));
 
   TH2Poly *GJetInvUncertainties = (TH2Poly*)GJetInvNominal->Clone("GJetInvUncertainties");
   for (int i=1; i<GJetInvUncertainties->GetNumberOfBins()+1; ++i) {
@@ -98,8 +98,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("GJetsInvScaleFactorUncertainty.png");
-  cv->SaveAs("GJetsInvScaleFactorUncertainty.pdf");
+  cv->SaveAs(Form("GJetsInvScaleFactorUncertainty_%s.png",label.c_str()));
+  cv->SaveAs(Form("GJetsInvScaleFactorUncertainty_%s.pdf",label.c_str()));
 
 
 
@@ -137,8 +137,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("WJetsInvScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("WJetsInvScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs(Form("WJetsInvScaleFactor_CorrectedToMultiJet_%s.png",label.c_str()));
+  cv->SaveAs(Form("WJetsInvScaleFactor_CorrectedToMultiJet_%s.pdf",label.c_str()));
 
 
 
@@ -175,8 +175,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("WJetsScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("WJetsScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs(Form("WJetsScaleFactor_CorrectedToMultiJet_%s.png",label.c_str()));
+  cv->SaveAs(Form("WJetsScaleFactor_CorrectedToMultiJet_%s.pdf",label.c_str()));
 
 
 
@@ -219,8 +219,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("WJetsScaleFactorUncertainty.png");
-  cv->SaveAs("WJetsScaleFactorUncertainty.pdf");
+  cv->SaveAs(Form("WJetsScaleFactorUncertainty_%s.png",label.c_str()));
+  cv->SaveAs(Form("WJetsScaleFactorUncertainty_%s.pdf",label.c_str()));
 
 
 
@@ -260,8 +260,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("TTBarScaleFactor_CorrectedToMultiJet.png");
-  cv->SaveAs("TTBarScaleFactor_CorrectedToMultiJet.pdf");
+  cv->SaveAs(Form("TTBarScaleFactor_CorrectedToMultiJet_%s.png",label.c_str()));
+  cv->SaveAs(Form("TTBarScaleFactor_CorrectedToMultiJet_%s.pdf",label.c_str()));
 
 
 
@@ -305,8 +305,8 @@ void plotScaleFactor() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("TTBarScaleFactorUncertainty.png");
-  cv->SaveAs("TTBarScaleFactorUncertainty.pdf");
+  cv->SaveAs(Form("TTBarScaleFactorUncertainty_%s.png",label.c_str()));
+  cv->SaveAs(Form("TTBarScaleFactorUncertainty_%s.pdf",label.c_str()));
 
 
 
@@ -318,9 +318,9 @@ void plotScaleFactor() {
 
 
 
-void plotGJetsScaleFactorSystematics() {
+void plotGJetsScaleFactorSystematics(string label) {
 
-  TFile *inf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root","READ");
+  TFile *inf = new TFile(Form("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root",label.c_str()),"READ");
 
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
@@ -419,10 +419,10 @@ void plotGJetsScaleFactorSystematics() {
   cmsTextSize = 0.6;
   extraOverCmsTextSize = 0.85;
   CMS_lumi(cv,4,0);
-  cv->SaveAs("GJetsVsWJetsSystematic.png");
-  cv->SaveAs("GJetsVsWJetsSystematic.pdf");
+  cv->SaveAs(Form("GJetsVsWJetsSystematic_%s.png",label.c_str()));
+  cv->SaveAs(Form("GJetsVsWJetsSystematic_%s.pdf",label.c_str()));
 
-  TFile *outf = new TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root","UPDATE");
+  TFile *outf = new TFile(Form("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root",label.c_str()),"UPDATE");
   outf->WriteTObject(GJetsScaleFactor_Down, GJetsScaleFactor_Down->GetName(), "WRITEDELETE");
   outf->Close();
 
@@ -430,10 +430,10 @@ void plotGJetsScaleFactorSystematics() {
 
 
 
-void plotScaleFactorHistograms() {
+void plotScaleFactorHistograms(string label) {
   gROOT->SetBatch();
-  plotScaleFactor();
-  plotGJetsScaleFactorSystematics();
+  plotScaleFactor(label);
+  plotGJetsScaleFactorSystematics(label);
 
   gApplication->Terminate();
 
