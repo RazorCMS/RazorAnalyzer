@@ -68,13 +68,11 @@ if __name__ == "__main__":
     parser.add_argument('--btags', type=int, help="choose a number of btags")
     parser.add_argument('--b-inclusive', help='do not bin in btags', action='store_true',
             dest='bInclusive')
-    parser.add_argument("--tag", dest="tag", required=True,
+    parser.add_argument("--tag", dest="tag", default="Razor2016",
             help="Analysis tag, e.g. Razor2015")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
 
     #initialize
     plotOpts = {"SUS15004":True}
@@ -125,7 +123,7 @@ if __name__ == "__main__":
                     nbMax = btags #exclusive
             if args.bInclusive:
                 nbMin = 0
-                nbMax = 10
+                nbMax = -1
             #define analysis region
             extBox = '%s%dB%s'%(box,btags,dirSuffix)
             regionsOrder.append(extBox)
@@ -138,10 +136,10 @@ if __name__ == "__main__":
     sfFile = sfdir+'/RazorScaleFactors_%s.root'%(tag)
     sfFile_nJets = sfdir+'/RazorNJetsScaleFactors_%s.root'%(tag)
     vetolepFile = sfdir+'/RazorVetoLeptonClosureTests_%s.root'%(tag)
-    ttFileDiJet = sfdir+'/TTBarDileptonSystematic_DiJet_%s.root'%(tag)
-    ttFileMultiJet = sfdir+'/TTBarDileptonSystematic_MultiJet_%s.root'%(tag)
+    ttFile = sfdir+'/RazorTTJetsDileptonCrossCheck_%s.root'%(tag)
     dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck_%s.root'%(tag)
     btagFile = sfdir+'/RazorBTagClosureTests_%s.root'%(tag)
+    gjetsbtagFile = sfdir+'/RazorGJetsBTagClosureTests_%s.root'%(tag)
 
     #get MR-Rsq scale factor histograms
     sfNames={
@@ -159,49 +157,41 @@ if __name__ == "__main__":
     sfHists['ZInvDown'] = sfTFile.Get('GJetsInvScaleFactors_Down') 
     #get njets scale factor histogram
     sfNJetsFile = rt.TFile.Open(sfFile_nJets)
-    sfHists['NJets'] = sfNJetsFile.Get("NJetsCorrectionScaleFactors")
-    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsScaleFactorVsNJets")
-    #get veto lepton and tau scale factor histograms
+    sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
+    sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
+    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
+    #get veto lepton/tau, DYJets, and TTBar Dilepton cross check scale factor histograms
+    #and b-tag closure results
     vlFile = rt.TFile.Open(vetolepFile)
-    for ltype in ['VetoLepton','VetoTau']:
-        for jtype in ['DiJet','MultiJet']:
+    ttTFile = rt.TFile.Open(ttFile)
+    dyTFile = rt.TFile.Open(dyFile)
+    btagTFile = rt.TFile.Open(btagFile)
+    gjetsbtagTFile = rt.TFile.Open(gjetsbtagFile)
+    for jtype in ['DiJet','MultiJet']:
+        sfHists['TTJetsDilepton'+jtype+'Up'] = ttTFile.Get("TTJetsDilepton"+jtype+"ScaleFactors")
+        sfHists['TTJetsDilepton'+jtype+'Down'] = macro.invertHistogram(
+                sfHists['TTJetsDilepton'+jtype+'Up'])
+        sfHists['DYJetsInv'+jtype+'Up'] = dyTFile.Get('DYJetsDileptonInv'+jtype+'ScaleFactors')
+        sfHists['DYJetsInv'+jtype+'Down'] = macro.invertHistogram(
+                sfHists['DYJetsInv'+jtype+'Up'])
+        for ltype in ['VetoLepton','VetoTau']:
             name = jtype+'For'+ltype
             sfHists[ltype+jtype+'PtUp'] = vlFile.Get(name+'ScaleFactors')
             sfHists[ltype+jtype+'PtDown'] = macro.invertHistogram(sfHists[ltype+jtype+'PtUp'])
             sfHists[ltype+jtype+'EtaUp'] = vlFile.Get(name+'PtCorrScaleFactors')
             sfHists[ltype+jtype+'EtaDown'] = macro.invertHistogram(sfHists[ltype+jtype+'EtaUp'])
-    #get DYJets and TTBar Dilepton cross check scale factor histograms
-    ttTFiles = { "DiJet":rt.TFile.Open(ttFileDiJet), "MultiJet":rt.TFile.Open(ttFileMultiJet) }
-    for ttname, ttfile in ttTFiles.iteritems():
-        histname = 'TTJetsDilepton'+ttname
-        sfHists[histname+'Up'] = ttfile.Get('TTBarDileptonSystematic')
-        #convert to correct SF histogram format
-        for nb in range(sfHists[histname+'Up'].GetSize()+1):
-            sfHists[histname+'Up'].SetBinContent( nb, 
-                    sfHists[histname+'Up'].GetBinContent(nb)+1.0 )
-        #get 'down' version of histogram
-        sfHists[histname+'Down'] = macro.invertHistogram(sfHists[histname+'Up'])
-    dyTFile = rt.TFile.Open(dyFile)
-    for jtype in ['DiJet','MultiJet']:
-        sfHists['DYJetsInv'+jtype+'Up'] = dyTFile.Get('DYJetsDileptonInv'+jtype+'ScaleFactors')
-        sfHists['DYJetsInv'+jtype+'Down'] = macro.invertHistogram(sfHists['DYJetsInv'+jtype+'Up'])
-    #get b-tag closure test results
-    btagTFile = rt.TFile.Open(btagFile)
-    for jtype in ['DiJet','MultiJet']:
         for b in range(4):
             if jtype == 'DiJet' and b > 2: continue
             bs = str(b)
-            sfHists['MR'+jtype+bs+'BUp'] = btagTFile.Get('OneLepton'+jtype+'ClosureTest'+bs+'BMRScaleFactors')
-            sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get('OneLepton'+jtype+'ClosureTest'+bs+'BRsqScaleFactors')
+            sfHists['MR'+jtype+bs+'BUp'] = btagTFile.Get(
+                    'OneLepton'+jtype+'ClosureTest'+bs+'BMRScaleFactors')
             sfHists['MR'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['MR'+jtype+bs+'BUp'])
+            sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get(
+                    'OneLepton'+jtype+'ClosureTest'+bs+'BRsqScaleFactors')
             sfHists['Rsq'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+jtype+bs+'BUp'])
-    #get ZInv b-tag cross check histogram
-    sfHists['ZInvBUp'] = btagTFile.Get('ZNuNuBTagClosureSysUnc')
-    #convert to correct SF histogram format
-    for nb in range(sfHists['ZInvBUp'].GetSize()+1):
-        sfHists['ZInvBUp'].SetBinContent( nb, sfHists['ZInvBUp'].GetBinContent(nb)+1.0 )
-    #get 'down' version of histogram
-    sfHists['ZInvBDown'] = macro.invertHistogram(sfHists['ZInvBUp'])
+        #get ZInv b-tag cross check histogram
+        sfHists['ZInvB'+jtype+'Up'] = btagTFile.Get('GJetsInv'+jtype+'ClosureTestNBJetsScaleFactors')
+        sfHists['ZInvB'+jtype+'Down'] = macro.invertHistogram(sfHists['ZInvB'+jtype+'Up'])
 
     #check that everything came out correctly
     for h,hist in sfHists.iteritems():
@@ -253,8 +243,8 @@ if __name__ == "__main__":
             for pteta in ['Pt','Eta']:
                 for updown in ['Up','Down']:
                     sfHistsToUse[ltype+pteta+updown] = sfHistsToUse[ltype+jtype+pteta+updown]
-        ##ttbar dilepton and dyjets dilepton
-        for name in ['TTJetsDilepton','DYJetsInv']:
+        ##ttbar dilepton, dyjets dilepton, and zinv b-tag
+        for name in ['TTJetsDilepton','DYJetsInv','ZInvB']:
             for updown in ['Up','Down']:
                 sfHistsToUse[name+updown] = sfHistsToUse[name+jtype+updown]
         #b-tag closure tests
@@ -279,9 +269,11 @@ if __name__ == "__main__":
         #run analysis
         hists = makeControlSampleHistsForAnalysis( analysis,
                 sfHists=sfHistsToUse, treeName="RazorInclusive", 
-                shapeErrors=shapesToUse, fitToyFiles=toysToUse, boxName=boxName, blindBins=blindBins,
-                btags=btags, debugLevel=debugLevel, auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=outdir, 
-                plotOpts=plotOpts, noFill=args.noFill, exportShapeErrs=True, propagateScaleFactorErrs=False)
+                shapeErrors=shapesToUse, fitToyFiles=toysToUse, boxName=boxName, 
+                blindBins=blindBins, btags=btags, debugLevel=debugLevel, 
+                auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=outdir, 
+                plotOpts=plotOpts, noFill=args.noFill, exportShapeErrs=True, 
+                propagateScaleFactorErrs=False)
         #export histograms
         macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', outDir=outdir, 
                 debugLevel=debugLevel)

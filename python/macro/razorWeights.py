@@ -255,6 +255,21 @@ def getTTBarDileptonWeight(event):
         weight += 0.5
     return weight
 
+def getPhotonPurity(event, wHists):
+    """Retrieves photon purity values from MR-Rsq histograms"""
+    #purity measurement is performed separately for barrel and endcap photons
+    if abs(event.pho1.Eta()) < 1.479:
+        h = wHists['photonpurityeb']
+    else:
+        h = wHists['photonpurityee']
+    mr = min( h.GetXaxis().GetXmax()*0.99,
+            max( h.GetXaxis().GetXmin()*1.01, 
+                event.MR_NoPho ) )
+    rsq = min( h.GetYaxis().GetXmax()*0.99,
+            max( h.GetYaxis().GetXmin()*1.01, 
+                event.Rsq_NoPho ) )
+    return h.GetBinContent( h.FindFixBin(mr, rsq) )
+
 def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     """Apply pileup weights and other known MC correction factors"""
     lweightOpts = map(str.lower, weightOpts)
@@ -281,7 +296,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
         elif 'qcdphoton' in lweightOpts:
-            qcdWeight = 0.05
+            qcdWeight = 1-getPhotonPurity(event, wHists)
             if debugLevel > 1:
                 print "QCD weight:",qcdWeight
             eventWeight *= qcdWeight 
@@ -311,6 +326,7 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             eventWeight *= reapplyLepTrigWeight(event, wHists, debugLevel=debugLevel)
         elif str.lower("removeTrigWeights") in lweightOpts:
             eventWeight /= event.trigWeight1L
+            print event.trigWeight1L, event.lep1.Pt(), event.lep1.Eta()
         if str.lower("removePileupWeights") in lweightOpts:
             eventWeight /= event.pileupWeight
         #if str.lower("doLep1Weights") in lweightOpts:
@@ -439,7 +455,7 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
         elif 'datadrivenqcdmultijet' in lweightOpts:
             qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
         elif 'qcdphoton' in lweightOpts:
-            qcdExtrapolationFactor = 0.05
+            qcdExtrapolationFactor = 1-getPhotonPurity(event, wHists)
         else:
             qcdExtrapolationFactor = 1.0
             print "Warning: data weight options",lweightOpts,"may not make sense; see macro.razorWeights.weight_data"

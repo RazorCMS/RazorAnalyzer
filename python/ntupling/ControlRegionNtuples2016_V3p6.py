@@ -207,6 +207,14 @@ SAMPLES['Photon'] = {
             ],
         }
 SAMPLES['Signal'] = SAMPLES['1L'].copy()
+SAMPLES['Signal']['TTJets1L'] = [
+                'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+            ]
+SAMPLES['Signal']['TTJets2L'] = [
+                'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+            ]
+del SAMPLES['Signal']['TTJets']
 SAMPLES['LiteZEle'] = SAMPLES['2LAbsolutelyNoSkim'].copy()
 SAMPLES['LiteZMu'] = SAMPLES['2LAbsolutelyNoSkim'].copy()
 SAMPLES['1LSusySync'] = {}

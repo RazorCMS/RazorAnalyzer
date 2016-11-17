@@ -25,22 +25,31 @@ if __name__ == "__main__":
     #Process inclusive sample twice; the first pass will compute the overall normalization 
     #and the second pass will be a rerun with the corrected normalization
     regionsOrder = ["DYJetsDileptonInvUncorr", "DYJetsDileptonInv", 
-            "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet"]
+            "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet",
+            "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr"]
     regions = {
             "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag),
             "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag),
             "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3),
             "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
+            "DYJetsDileptonInvDiJetWJetsCorr":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3),
+            "DYJetsDileptonInvMultiJetWJetsCorr":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
+    #make two dictionaries of scale factor histograms, one with GJets and one with WJets corrections
     sfHists = macro.loadScaleFactorHists( sfFilename=sfFilename,
             processNames=regions["DYJetsDileptonInvDiJet"].samples, 
             scaleFactorNames={ "DYJetsInv":"GJetsInv" }, debugLevel=debugLevel )
+    sfHistsForWCorr = macro.loadScaleFactorHists( sfFilename=sfFilename,
+            processNames=regions["DYJetsDileptonInvDiJet"].samples, 
+            scaleFactorNames={ "DYJetsInv":"WJetsInv" }, debugLevel=debugLevel )
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
-    sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
-    sfHists['NJetsInv'] = sfNJetsFile.Get("NJetsNoPhoCorrectionScaleFactors")
+    for d in [sfHists, sfHistsForWCorr]:
+        d['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
+        d['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
+        d['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
+        d['NJetsWJetsInv'] = sfNJetsFile.Get("WJetsInvScaleFactors")
     sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
     outfile = rt.TFile(
         "data/ScaleFactors/RazorMADD2015/RazorDYJetsDileptonInvCrossCheck_%s.root"%(tag), "RECREATE")
@@ -53,8 +62,14 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #prepare analysis
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets_NoZ')
+        #use the correct set of scale factors
+        if 'WJetsCorr' in region:
+            sfHistsToUse = sfHistsForWCorr
+            auxSFs['DYJetsInv'] = {'NJetsWJetsInv': ('NJets_NoZ', '1')}
+        else:
+            sfHistsToUse = sfHists
         #perform analysis
-        hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
+        hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHistsToUse,
             sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel )
         #record discrepancies > 1 sigma
         tmpSFHists = copy.copy(sfHists)

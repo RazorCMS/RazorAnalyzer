@@ -35,7 +35,7 @@ if __name__ == "__main__":
     sfVars = ("MR_NoPho","Rsq_NoPho")
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJetsInv'] = sfNJetsFile.Get("NJetsNoPhoCorrectionScaleFactors")
+    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
     for region,analysis in regions.iteritems():
         print "\nRegion:",region,"\n"
         #make output directory

@@ -431,7 +431,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         else:
             qcdOption = 'datadrivenqcdmultijet'
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts, dataWeightOpts=dataWeightOpts)
+        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts, dataWeightOpts=copy.copy(dataWeightOpts))
         #subtract backgrounds from QCD prediction
         if qcdOption == 'datadrivenqcddijet' or qcdOption == 'datadrivenqcdmultijet':
             macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)

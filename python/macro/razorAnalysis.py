@@ -24,16 +24,25 @@ razorWeightOpts = {
                      #'removePileupWeights', #divide event weight by pileup weight
                      ], 
         }
+razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
+razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightHists = {
         "Razor2015":{},
-        "Razor2016":{ #"pileup":
-            #("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016G_partial.root", "PileupReweight"),
-                #"muoneff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightMuonSelectionEffDenominatorReco"),
-                #"eleeff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightElectronSelectionEffDenominatorReco"),
-                #"muontrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
-                #"eletrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
+        "Razor2016":{ 
+            #"pileup": #("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016G_partial.root", "PileupReweight"),
+            #"muoneff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightMuonSelectionEffDenominatorReco"),
+            #"eleeff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightElectronSelectionEffDenominatorReco"),
+            #"muontrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
+            #"eletrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
+            "photonpurityeb":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root","histChargedIso_EB_MRRsq"),
+            "photonpurityee":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root","histChargedIso_EE_MRRsq"),
                 }
         }
+razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {
+        "photonpurityeb":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root","histChargedIso_EB_MRRsq"),
+        "photonpurityee":("data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root","histChargedIso_EE_MRRsq"),
+            }
+razorWeightHists["Razor2016_80X"] = razorWeightHists["Razor2016"]
 
 #####################################
 ### NTUPLES
@@ -62,8 +71,8 @@ razorSamples = {
         "VetoTau":["Other", "ZInv", "QCD", "DYJets", "SingleTop", "WJets", "TTJets"],
         "WJetsSingleLeptonInv":["Other","DYJets", "SingleTop", "TTJets", "WJetsInv"],
         "DYJetsDileptonInv":["Other", "SingleTop", "WJets", "TTJets", "DYJetsInv"],
-        "SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"],
-        "SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets"],
+        "SignalHadronic":["Other", "QCD", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L","TTJets2L"],
+        "SignalLeptonic":["Other", "DYJets", "ZInv", "SingleTop", "WJets", "TTJets1L", "TTJets2L"],
         "Photon":["Other", "QCD", "GJetsFrag", "GJetsInv"],
         "SusySync":["SingleTop", "WJets", "TTJets"],
         }
@@ -177,25 +186,36 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p5_26September2016_RemoveEleScaleCorrections"
-versionData2016 = "V3p5_26September2016_RemoveEleScaleCorrections"
+versionMC2016 = "V3p6_25October2016_CustomType1MET"
+versionData2016 = "V3p6_25October2016_CustomType1MET"
 
-prefix1L2016 = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"
-prefix2L2016 = "RunTwoRazorControlRegions_DileptonFull_DileptonSkim"
-prefix1LInv2016 = "RunTwoRazorControlRegions_OneLeptonAddToMetFull_SingleLeptonSkim" 
-prefix2LInv2016 = "RunTwoRazorControlRegions_DileptonAddToMetFull_DileptonSkim"
-prefixVetoL2016 = "RunTwoRazorControlRegions_VetoLeptonFull"
-prefixVetoTau2016 = "RunTwoRazorControlRegions_VetoTauFull_RazorSkim"
-prefixPhoton2016 = "RunTwoRazorControlRegions_PhotonFull"
-prefixSusySync2016 = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_ICHEP_80X"
+sampleTags2016 = { "Razor2016":"",
+               "Razor2016_80X":"_Razor2016_80X",
+               "Razor2016G_SUSYUnblind_80X":"_Razor2016G_SUSYUnblind_80X",
+               "Razor2016_ICHEP_80X":"_Razor2016_ICHEP_80X" }
+
+prefixes2016 = { tag:{} for tag in sampleTags2016 }
+for tag, suffix in sampleTags2016.iteritems():
+    prefixes2016[tag]["SingleLepton"] = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"+suffix
+    prefixes2016[tag]["Dilepton"] = "RunTwoRazorControlRegions_DileptonFull_DileptonSkim"+suffix
+    prefixes2016[tag]["SingleLeptonInv"] = "RunTwoRazorControlRegions_OneLeptonAddToMetFull_SingleLeptonSkim"+suffix
+    prefixes2016[tag]["DileptonInv"] = "RunTwoRazorControlRegions_DileptonAddToMetFull_DileptonSkim"+suffix
+    prefixes2016[tag]["VetoLepton"] = "RunTwoRazorControlRegions_VetoLeptonFull"+suffix
+    prefixes2016[tag]["VetoTau"] = "RunTwoRazorControlRegions_VetoTauFull_RazorSkim"+suffix
+    prefixes2016[tag]["Photon"] = "RunTwoRazorControlRegions_PhotonFull"+suffix
+    prefixes2016[tag]["Signal"] = "FullRazorInclusive"+suffix
+    prefixes2016[tag]["SusySync2016"] = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"+suffix
 skimstr = ""
 
 #on EOS
-#dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonRazorSkimLeptonSkim'
-#dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonInvRazorSkimLeptonSkim'
-#dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonRazorSkimDileptonSkim'
+#dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
+#dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
+#dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
+#dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
 #dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLeptonRazorSkim'
+#dirVetoL2016 = dirCR2016+'/V3p6_25October2016_CustomType1MET_TestTightVeto/VetoLepton'
 #dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
+#dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
 #dirSignal2016 = dirSR2016+'/'+versionMC2016
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
@@ -207,95 +227,96 @@ dir2LInv2016 = 'Backgrounds/2LInv'
 dirVetoL2016 = 'Backgrounds/VetoL'
 dirVetoTau2016 = 'Backgrounds/VetoTau'
 dirSignal2016 = 'Backgrounds/Signal'
-dirPhoton2016 = 'Backgrounds/Photon_FromSi'    
-#dirPhoton2016 = 'Backgrounds/Photon'    
+dirPhoton2016 = 'Backgrounds/Photon'    
 
-razorNtuples["SingleLepton"]["Razor2016"] = {
-        "TTJets"   : dir1L2016+"/"+prefix1L2016+"_TTJets_1pb_weighted"+skimstr+".root",
-        "WJets"    : dir1L2016+"/"+prefix1L2016+"_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dir1L2016+"/"+prefix1L2016+"_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJets"   : dir1L2016+"/"+prefix1L2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dir1L2016+"/"+prefix1L2016+"_Other_1pb_weighted"+skimstr+".root",
-        "Data"     : dir1L2016+"/"+prefix1L2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["Dilepton"]["Razor2016"] = {
-        "TTJets"   : dir2L2016+"/"+prefix2L2016+"_TTJets_1pb_weighted"+skimstr+".root",
-        "WJets"    : dir2L2016+"/"+prefix2L2016+"_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dir2L2016+"/"+prefix2L2016+"_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJets"   : dir2L2016+"/"+prefix2L2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dir2L2016+"/"+prefix2L2016+"_Other_1pb_weighted"+skimstr+".root",
-        "Data"     : dir2L2016+"/"+prefix2L2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["SingleLeptonInv"]["Razor2016"] = {
-        "TTJets"   : dir1LInv2016+"/"+prefix1LInv2016+"_TTJets_1pb_weighted"+skimstr+".root",
-        "WJetsInv"    : dir1LInv2016+"/"+prefix1LInv2016+"_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dir1LInv2016+"/"+prefix1LInv2016+"_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJets"   : dir1LInv2016+"/"+prefix1LInv2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dir1LInv2016+"/"+prefix1LInv2016+"_Other_1pb_weighted"+skimstr+".root",
-        "Data"     : dir1LInv2016+"/"+prefix1LInv2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["DileptonInv"]["Razor2016"] = {
-        "TTJets"   : dir2LInv2016+"/"+prefix2LInv2016+"_TTJets_1pb_weighted"+skimstr+".root",
-        "WJets"    : dir2LInv2016+"/"+prefix2LInv2016+"_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dir2LInv2016+"/"+prefix2LInv2016+"_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJetsInv"   : dir2LInv2016+"/"+prefix2LInv2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dir2LInv2016+"/"+prefix2LInv2016+"_Other_1pb_weighted"+skimstr+".root",
-        "Data"     : dir2LInv2016+"/"+prefix2LInv2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["VetoLepton"]["Razor2016"] = {
-        "TTJets"   : dirVetoL2016+"/"+prefixVetoL2016+"_TTJets_1pb_weighted"+skimstr+".root",
-        "WJets"    : dirVetoL2016+"/"+prefixVetoL2016+"_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dirVetoL2016+"/"+prefixVetoL2016+"_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJets"   : dirVetoL2016+"/"+prefixVetoL2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dirVetoL2016+"/"+prefixVetoL2016+"_Other_1pb_weighted"+skimstr+".root",
-        "ZInv"     : dirVetoL2016+"/"+prefixVetoL2016+"_ZInv_1pb_weighted"+skimstr+".root",
-        "QCD"      : dirVetoL2016+"/"+prefixVetoL2016+"_QCD_1pb_weighted"+skimstr+".root",       
-        "Data"     : dirVetoL2016+"/"+prefixVetoL2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["VetoTau"]["Razor2016"] = {
-        "TTJets"   : dirVetoTau2016+"/"+prefixVetoTau2016+"_TTJets_1pb_weighted"+skimstr+".root",
-        "WJets"    : dirVetoTau2016+"/"+prefixVetoTau2016+"_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dirVetoTau2016+"/"+prefixVetoTau2016+"_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJets"   : dirVetoTau2016+"/"+prefixVetoTau2016+"_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dirVetoTau2016+"/"+prefixVetoTau2016+"_Other_1pb_weighted"+skimstr+".root",
-        "ZInv"     : dirVetoTau2016+"/"+prefixVetoTau2016+"_ZInv_1pb_weighted"+skimstr+".root",
-        "QCD"      : dirVetoTau2016+"/"+prefixVetoTau2016+"_QCD_1pb_weighted"+skimstr+".root",       
-        "Data"     : dirVetoTau2016+"/"+prefixVetoTau2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["Photon"]["Razor2016"] = {
-        "GJetsInv"    : dirPhoton2016+"/"+prefixPhoton2016+"_GJets_1pb_weighted"+skimstr+".root",
-        "GJetsFrag": dirPhoton2016+"/"+prefixPhoton2016+"_QCD_1pb_weighted"+skimstr+".root",
-        "Other"    : dirPhoton2016+"/"+prefixPhoton2016+"_Other_1pb_weighted"+skimstr+".root",
-        #QCD predicted using data driven method
-        "QCD"      : dirPhoton2016+"/"+prefixPhoton2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
-        "Data"     : dirPhoton2016+"/"+prefixPhoton2016+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
-        }
-razorNtuples["SignalHadronic"]["Razor2016"] = {
-        "TTJets"   : dirSignal2016+"/FullRazorInclusive_TTJets_1pb_weighted"+skimstr+".root",
-        "WJets"    : dirSignal2016+"/FullRazorInclusive_WJets_1pb_weighted"+skimstr+".root",
-        "SingleTop": dirSignal2016+"/FullRazorInclusive_SingleTop_1pb_weighted"+skimstr+".root",
-        "DYJets"   : dirSignal2016+"/FullRazorInclusive_DYJets_1pb_weighted"+skimstr+".root",
-        "Other"    : dirSignal2016+"/FullRazorInclusive_Other_1pb_weighted"+skimstr+".root",
-        "ZInv"     : dirSignal2016+"/FullRazorInclusive_ZInv_1pb_weighted"+skimstr+".root",
-        #QCD predicted using data driven method
-        "QCD"      : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",
-        "Data"     : dirSignal2016+"/FullRazorInclusive_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
-        }
-razorNtuples["SignalLepton"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
-razorNtuples["SignalMuon"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
-razorNtuples["SignalElectron"]["Razor2016"] = razorNtuples["SignalHadronic"]["Razor2016"].copy()
-razorNtuples["SusySync"]["Razor2016"] = {
-        "TTJets"    : dirSusySync2016+"/"+prefixSusySync2016+"_TTJets_1pb_weighted_HTMETSkim.root",
-        "WJets"     : dirSusySync2016+"/"+prefixSusySync2016+"_WJets_1pb_weighted_HTMETSkim.root",
-        "SingleTop" : dirSusySync2016+"/"+prefixSusySync2016+"_SingleTop_1pb_weighted_HTMETSkim.root",
-        "Data"      : dirSusySync2016+"/"+prefixSusySync2016+"_HTMHT_2016BCD_PRv2_NoDuplicates_GoodLumiGolden.root"
-        }
+for tag in sampleTags2016:
+    razorNtuples["SingleLepton"][tag] = {
+            "TTJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "WJets"    : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_Other_1pb_weighted"+skimstr+".root",
+            "Data"     : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["Dilepton"][tag] = {
+            "TTJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "WJets"    : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_Other_1pb_weighted"+skimstr+".root",
+            "Data"     : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["SingleLeptonInv"][tag] = {
+            "TTJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "WJetsInv"    : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_Other_1pb_weighted"+skimstr+".root",
+            "Data"     : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["DileptonInv"][tag] = {
+            "TTJets"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "WJets"    : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJetsInv"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_Other_1pb_weighted"+skimstr+".root",
+            "Data"     : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["VetoLepton"][tag] = {
+            "TTJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "WJets"    : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_Other_1pb_weighted"+skimstr+".root",
+            "ZInv"     : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_ZInv_1pb_weighted"+skimstr+".root",
+            "QCD"      : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_QCD_1pb_weighted"+skimstr+".root",       
+            "Data"     : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["VetoTau"][tag] = {
+            "TTJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "WJets"    : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_Other_1pb_weighted"+skimstr+".root",
+            "ZInv"     : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_ZInv_1pb_weighted"+skimstr+".root",
+            "QCD"      : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_QCD_1pb_weighted"+skimstr+".root",       
+            "Data"     : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["Photon"][tag] = {
+            "GJetsInv"    : dirPhoton2016+"/"+prefixes2016[tag]["Photon"]+"_GJets_1pb_weighted"+skimstr+".root",
+            "GJetsFrag": dirPhoton2016+"/"+prefixes2016[tag]["Photon"]+"_QCD_1pb_weighted"+skimstr+".root",
+            "Other"    : dirPhoton2016+"/"+prefixes2016[tag]["Photon"]+"_Other_1pb_weighted"+skimstr+".root",
+            #QCD predicted using data driven method
+            "QCD"      : dirPhoton2016+"/"+prefixes2016[tag]["Photon"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
+            "Data"     : dirPhoton2016+"/"+prefixes2016[tag]["Photon"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",       
+            }
+    razorNtuples["SignalHadronic"][tag] = {
+            "TTJets1L"   : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_TTJets1L_1pb_weighted"+skimstr+".root",
+            "TTJets2L"   : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_TTJets2L_1pb_weighted"+skimstr+".root",
+            "WJets"    : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_WJets_1pb_weighted"+skimstr+".root",
+            "SingleTop": dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_SingleTop_1pb_weighted"+skimstr+".root",
+            "DYJets"   : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_DYJets_1pb_weighted"+skimstr+".root",
+            "Other"    : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Other_1pb_weighted"+skimstr+".root",
+            "ZInv"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_ZInv_1pb_weighted"+skimstr+".root",
+            #QCD predicted using data driven method
+            "QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",
+            "Data"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            }
+    razorNtuples["SignalLepton"][tag] = razorNtuples["SignalHadronic"][tag].copy()
+    razorNtuples["SignalMuon"][tag] = razorNtuples["SignalHadronic"][tag].copy()
+    razorNtuples["SignalElectron"][tag] = razorNtuples["SignalHadronic"][tag].copy()
+    razorNtuples["SusySync"][tag] = {
+            "TTJets"    : dirSusySync2016+"/"+prefixes2016[tag]["SusySync2016"]+"_TTJets_1pb_weighted_HTMETSkim.root",
+            "WJets"     : dirSusySync2016+"/"+prefixes2016[tag]["SusySync2016"]+"_WJets_1pb_weighted_HTMETSkim.root",
+            "SingleTop" : dirSusySync2016+"/"+prefixes2016[tag]["SusySync2016"]+"_SingleTop_1pb_weighted_HTMETSkim.root",
+            "Data"      : dirSusySync2016+"/"+prefixes2016[tag]["SusySync2016"]+"_HTMHT_2016BCD_PRv2_NoDuplicates_GoodLumiGolden.root"
+            }
 
-#update version number for data, in case different
-for name,files in razorNtuples.iteritems():
-    if "Razor2016" in files:
-        files["Razor2016"]["Data"] = files["Razor2016"]["Data"].replace(
-                '/'+versionMC2016+'/','/'+versionData2016+'/')
+    #update version number for data, in case different
+    for name,files in razorNtuples.iteritems():
+        if "Razor2016" in files:
+            files[tag]["Data"] = files[tag]["Data"].replace(
+                    '/'+versionMC2016+'/','/'+versionData2016+'/')
 
 #####################################
 ### TRIGGER
@@ -366,15 +387,25 @@ triggerNames["Dilepton"]["MC"]["Razor2015"] = copy.copy(triggerNames["Dilepton"]
 # Data
 triggerNames["Razor"]["Data"]["Razor2016"] = copy.copy(triggerNames["Razor"]["Data"]["Razor2015"])
 triggerNames["SingleLepton"]["Data"]["Razor2016"] = [
-        'HLT_Mu50',
-        'HLT_Mu45_eta2p1',
-        'HLT_IsoMu22',
-        'HLT_IsoTkMu22',
-        'HLT_Ele25_eta2p1_WPTight_Gsf',
-        'HLT_Ele27_WPTight_Gsf',
-        'HLT_Ele27_eta2p1_WPLoose_Gsf',
-        'HLT_Ele45_WPLoose_Gsf',
-        'HLT_Ele105_CaloIdVT_GsfTrkIdT',
+        "HLT_IsoMu20", 
+        "HLT_IsoTkMu20", 
+        "HLT_IsoMu22", 
+        "HLT_IsoTkMu22", 
+        "HLT_IsoMu24", 
+        "HLT_IsoTkMu24", 
+        "HLT_IsoMu27", 
+        "HLT_IsoTkMu27", 
+        "HLT_Mu50",
+        #"HLT_TkMu50",
+        "HLT_Ele23_WPLoose_Gsf",
+        "HLT_Ele27_WPLoose_Gsf",
+        "HLT_Ele27_WPTight_Gsf",
+        "HLT_Ele27_eta2p1_WPLoose_Gsf",
+        "HLT_Ele27_eta2p1_WPTight_Gsf",
+        "HLT_Ele32_eta2p1_WPLoose_Gsf",
+        "HLT_Ele32_eta2p1_WPTight_Gsf",
+        "HLT_Ele105_CaloIdVT_GsfTrkIdT",
+        "HLT_Ele115_CaloIdVT_GsfTrkIdT",
         ]
 triggerNames["Dilepton"]["Data"]["Razor2016"] = copy.copy(triggerNames["Dilepton"]["Data"]["Razor2015"])
 triggerNames["Photon"]["Data"]["Razor2016"] = [
@@ -391,6 +422,12 @@ triggerNames["Dilepton"]["MC"]["Razor2016"] = [ 'PASS' ]
 triggerNames["Photon"]["MC"]["Razor2016"] = [ 'PASS' ]
 triggerNames["SusySync"]["MC"]["Razor2016"] = [ 'PASS' ]
 
+#Use 2016 triggers for all 2016 eras
+for tag in ["Razor2016_80X", "Razor2016_ICHEP_80X", "Razor2016G_SUSYUnblind_80X"]:
+    for proc in triggerNames:
+        for datamc in ["Data","MC"]:
+            triggerNames[proc][datamc][tag] = triggerNames[proc][datamc]["Razor2016"]
+
 class TriggerUtils(object):
     """Stores and retrieves trigger names"""
     def __init__(self, trigType, tag, isData=False):
@@ -405,10 +442,8 @@ class TriggerUtils(object):
         self.triggerDict = {}
         if tag == 'Razor2015':
             trigFile = 'data/RazorHLTPathnames_2015.dat'
-        elif tag == 'Razor2016':
-            trigFile = 'data/RazorHLTPathnames_2016.dat'
         else:
-            self.badInit(trigType,tag)
+            trigFile = 'data/RazorHLTPathnames_2016.dat'
         with open(trigFile) as f:
             reader = csv.reader(f, delimiter=' ')
             for row in reader:
@@ -468,10 +503,10 @@ def appendNoiseFilters(cuts, tree=None):
     return ret
 
 # 1-lepton control region
-razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 300 && Rsq > 0.15"
+razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 300 && Rsq > 0.15"
 
 # 1-lepton invisible control region
-razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 25) || (abs(lep1Type) == 13 && lep1.Pt() > 20)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && ( weight < 0.01 || weight == 1)"
+razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 300 && Rsq_NoW > 0.15 && ( weight < 0.01 || weight == 1)"
 
 # TTJets 2-lepton control region
 razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter"
@@ -578,6 +613,8 @@ razorBinning["SingleLepton"] = {
         "NBJetsMedium" : [0,1,2,3,4],
         "HT" : range(0, 2000, 200),
         "MET" : range(0, 500, 50),
+        "lep1.Pt()" : [20,30,40,100,1000],
+        "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
 razorBinning["SingleLeptonInv"] = {
         "MR_NoW" : [300, 400, 500, 600, 700, 900, 1200, 4000],
@@ -949,8 +986,12 @@ class Analysis:
 
         if tag == "Razor2015":
             self.lumi = 2300
-        elif tag == "Razor2016":
+        elif tag == "Razor2016" or tag == "Razor2016_80X":
             self.lumi = 26400
+        elif tag == "Razor2016_ICHEP_80X":
+            self.lumi = 12900
+        elif tag == "Razor2016G_SUSYUnblind_80X":
+            self.lumi = 4394
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 
@@ -1072,7 +1113,6 @@ class Analysis:
             self.cuts = razorCuts["Photon"]
             self.binning = razorBinning["Photon"]
             self.unrollBins = (xbinsSignal["GJetsInv"]["0B"],colsSignal["GJetsInv"]["0B"])
-            #self.extraWeightOpts = { "GJetsInv":["photonkfactor"], "GJetsFrag":["photonkfactor"] }
             self.extraCuts = razorExtraCuts["Photon"]
 
         elif self.region == "SusySync":

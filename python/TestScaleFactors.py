@@ -21,30 +21,33 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
     noCorr = args.noCorr
 
     #initialize
     plotOpts = { "comment":False, 'SUS15004CR':True } 
     regions = {}
+    regionsOrder = []
     #define all tests
-    for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
-    #for name,jets in {"OneJet":(1,3),"DiJet":(2,3),"MultiJet":(4,-1),"Inclusive":(-1,-1)}.iteritems():
+    jetsOrder = ["Inclusive","OneJet","DiJet","MultiJet"]
+    jetsLimit = [(-1,-1),(1,1),(2,3),(4,-1)]
+    for name,jets in zip(jetsOrder, jetsLimit):
         regionName = "OneLepton"+name+"ClosureTest"
         if noCorr:
             regionName += "_NoCorr"
         regions[regionName] = Analysis("SingleLepton",tag=tag,
                 njetsMin=jets[0], njetsMax=jets[1])
+        regionsOrder.append(regionName)
         for nb in range(3):
             regions[regionName+str(nb)+"B"] = Analysis("SingleLepton",tag=tag,
                     njetsMin=jets[0], njetsMax=jets[1], nbMin=nb, nbMax=nb)
+            regionsOrder.append(regionName+str(nb)+"B")
     #add 3B test for MultiJet 
     regionName = "OneLeptonMultiJetClosureTest"
     if noCorr:
         regionName += "_NoCorr"
     regions[regionName+"3B"] = Analysis("SingleLepton",tag=tag,
             njetsMin=4, nbMin=3, nbMax=3)
+    regionsOrder.append(regionName+"3B")
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
@@ -57,7 +60,8 @@ if __name__ == "__main__":
     if noCorr:
         sfHists = {}
 
-    for region,analysis in regions.iteritems():
+    for region in regionsOrder:
+        analysis = regions[region]
         print "\nRegion:",region,"\n"
         #make output directory
         outdir = 'Plots/'+tag+'/'+region

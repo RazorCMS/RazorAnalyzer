@@ -21,27 +21,45 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
 
+    # 0) compute the GJets scale factors for all bins
     # 1) compute the TTJets scale factor for the 2-3 and >=4 jet bins
     # 2) compute the WJets scale factors for all bins, applying the TTJets ones
     # 3) compute the TTJets scale factor for the 1-jet bin, applying the WJets one
     plotOpts = { 'comment':False, "SUS15004CR":True }
-    regionsOrder = ["TTJetsForNJets", "WJetsForNJets", "TTJetsForNJetsCorrected"]
+    regionsOrder = ["GJetsInvForNJets", "TTJetsForNJets", 
+            "WJetsForNJets", "TTJetsForNJetsCorrected", "WJetsInvForNJets"]
     regions = {
+            "GJetsInvForNJets":Analysis("GJetsInv",tag=tag),
             "TTJetsForNJets":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1),
             "TTJetsForNJetsCorrected":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1),
             "WJetsForNJets":Analysis("WJetsSingleLepton",tag=tag,nbMax=0),
+            "WJetsInvForNJets":Analysis("WJetsSingleLeptonInv",tag=tag,nbMax=0),
             }
-    sfVars = ("MR","Rsq")
+    sfVars = {
+            "GJetsInvForNJets":("MR_NoPho","Rsq_NoPho"),
+            "TTJetsForNJets":("MR","Rsq"),
+            "WJetsForNJets":("MR","Rsq"),
+            "TTJetsForNJetsCorrected":("MR","Rsq"),
+            "WJetsInvForNJets":("MR_NoW","Rsq_NoW"),
+            }
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["TTJetsForNJets"].samples, 
+            processNames=regions["TTJetsForNJets"].samples+["GJetsInv",'WJetsInv'], 
             debugLevel=debugLevel)
     sfNames = { 
+            "GJetsInvForNJets":"GJetsInv", 
             "TTJetsForNJets":"TTJets", 
             "TTJetsForNJetsCorrected":"TTJets", 
             "WJetsForNJets":"WJets", 
+            "WJetsInvForNJets":"WJetsInv", 
             }
-    njetsName = "NJets40"
+    njetsNames = {
+            "GJetsInvForNJets":"NJets_NoPho",
+            "TTJetsForNJets":"NJets40",
+            "WJetsForNJets":"NJets40",
+            "TTJetsForNJetsCorrected":"NJets40",
+            "WJetsInvForNJets":"NJets_NoW",
+            }
     outfile = rt.TFile(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag), 
             "UPDATE")
@@ -54,17 +72,26 @@ if __name__ == "__main__":
         #set up analysis
         process = sfNames[region]
         (xbins,cols) = analysis.unrollBins
+        sfVarsToUse = sfVars[region]
+        njetsName = njetsNames[region]
+        dataDrivenQCD = ( region == "GJetsInvForNJets" )
         #use proper set of NJets correction factors.
         #do not correct WJets until WJets scale factors have been derived
-        auxSFs = razorWeights.getNJetsSFs(analysis)
+        auxSFs = razorWeights.getNJetsSFs(analysis,
+                jetName=njetsNames[region])
         if region == "TTJetsForNJets" or region == "WJetsForNJets":
             auxSFs["WJets"] = {}
         if region == "TTJetsForNJets" or region == "TTJetsForNJetsCorrected":
             auxSFs["TTJets"] = {}
+        if region == "GJetsInvForNJets":
+            auxSFs["GJetsInv"] = {}
+        if region == "WJetsInvForNJets":
+            auxSFs["WJetsInv"] = {}
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
-                sfHists=sfHists, sfVars=sfVars, printdir=outdir, 
-                auxSFs=auxSFs, debugLevel=debugLevel )
+                sfHists=sfHists, sfVars=sfVarsToUse, 
+                printdir=outdir, auxSFs=auxSFs, 
+                dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel )
         #compute scale factors
         sfHistsCopy = sfHists.copy()
         appendScaleFactors( process, hists, sfHistsCopy, lumiData=analysis.lumi, 

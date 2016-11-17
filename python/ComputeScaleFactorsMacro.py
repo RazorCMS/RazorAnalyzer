@@ -22,8 +22,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
 
     #initialize
     sfHists = {}

@@ -18,11 +18,10 @@ if __name__ == "__main__":
                                 help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--muons", help="require muons", action='store_true')
     parser.add_argument("--electrons", help="require electrons", action='store_true')
+    parser.add_argument("--tight", help="require tight leptons", action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
 
     #load the MT cut efficiency as a function of lepton pt
     mtHists = {}
@@ -80,14 +79,15 @@ if __name__ == "__main__":
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"WJetsInv" },
+            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
             debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
     sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
-    sfHists['NJetsInv'] = sfNJetsFile.Get("NJetsNoWCorrectionScaleFactors")
+    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
     sfVars = ("MR","Rsq")
+    #recreate output file to avoid confusion
     outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
     outfile.Close()
 
@@ -95,6 +95,14 @@ if __name__ == "__main__":
     for region in regionsOrder:
         analysis = regions[region]
         outdir = 'Plots/'+tag+'/'+region
+        if args.tight:
+            outdir = outdir.replace("Veto","Tight")
+            analysis.samples.remove('ZInv')
+            analysis.samples.remove('QCD')
+            analysis.cutsData += " && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30"
+            analysis.cutsData = analysis.cutsData.replace('&& NJets80 >= 2','')
+            analysis.cutsMC += " && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30"
+            analysis.cutsMC = analysis.cutsMC.replace('&& NJets80 >= 2','')
         #modify cuts and output dir if running with ele/mu separately
         if args.electrons:
             analysis.cutsData += " && abs(lep1Type) == 11"

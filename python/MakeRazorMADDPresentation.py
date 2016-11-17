@@ -74,8 +74,10 @@ def def_slides(plot_dir):
                 ["%s/NBJetsMedium_%s.pdf" % (control_region,control_region),]),
         ]
     slides += [
-            Slide("1L N$_{jets}$ correction", 
-                ["OneLeptonForNJets/NJets40_SingleLepton.pdf"]),
+            Slide("N$_{jets}$ correction", 
+                ["TTJetsForNJets/NJets40_TTJetsSingleLepton.pdf",
+                 "WJetsForNJets/NJets40_WJetsSingleLepton.pdf",
+                 "TTJetsForNJetsCorrected/NJets40_TTJetsSingleLepton.pdf"]),
             ]
     for jets in ['DiJet','MultiJet']:
         slides += [
@@ -91,33 +93,87 @@ def def_slides(plot_dir):
                     ["OneLepton%sClosureTest%sB/MR_SingleLepton.pdf" % (jets,B),
                      "OneLepton%sClosureTest%sB/Rsq_SingleLepton.pdf" % (jets,B)])
                     ]
-    photon_dir = "PhotonControlRegionMacro"
-    photon_title = "photon+jets control region"
-    slides += [
-            Slide(photon_title,
-                ["%s/Razor_PhotonControlRegion_PhotonPt_PhotonCR_Logy.pdf" % photon_dir,
-                 "%s/Razor_PhotonControlRegion_PhotonEta_PhotonCR_Logy.pdf" % photon_dir]),
-            Slide(photon_title,
-                ["%s/Razor_PhotonControlRegion_MR_PhotonCR_Logy.pdf" % photon_dir,
-                 "%s/Razor_PhotonControlRegion_Rsq_PhotonCR_Logy.pdf" % photon_dir]),
-            Slide(photon_title,
-                ["%s/Razor_PhotonControlRegion_MRRsqUnrolled_PhotonCR_Logy.pdf" % photon_dir,
-                 "%s/Razor_PhotonControlRegion_NBtags_PhotonCR_Logy.pdf" % photon_dir]),
-                ]
-    tt2l_dir = "TTBarDileptonControlRegionMacro"
+    tt2l_dir = "TTJetsDilepton"
     for jets in ['DiJet','MultiJet']:
+        suffix = ("MultiJet")*(jets == "MultiJet")
         tt2l_title = "t$\\bar{t}$ dilepton %s control region" % jets.lower()
+        tt2l_this_dir = tt2l_dir+jets
         slides += [
                 Slide(tt2l_title,
-                    ["%s/Razor_TTBarDileptonCrossCheckRegion_MR_%s_Logy.pdf" % (tt2l_dir,jets),
-                     "%s/Razor_TTBarDileptonCrossCheckRegion_Rsq_%s_Logy.pdf" % (tt2l_dir,jets)]),
+                    ["%s/MR_TTJetsDilepton%s.pdf" % (tt2l_this_dir,suffix),
+                     "%s/Rsq_TTJetsDilepton%s.pdf" % (tt2l_this_dir,suffix)]),
                 Slide(tt2l_title,
-                    ["%s/Razor_TTBarDileptonCrossCheckRegion_MRRsqUnrolled_%s_Logy.pdf" % (tt2l_dir,jets),
-                     "%s/Razor_TTBarDileptonCrossCheckRegion_NBtags_%s_Logy.pdf" % (tt2l_dir,jets)]),
+                    ["%s/MRRsq_TTJetsDilepton%sUnrolledDataMC.pdf" % (tt2l_this_dir,suffix)]),
                 Slide(tt2l_title,
-                    ["%s/Razor_TTBarDileptonCrossCheckRegion_NJets40_%s_Logy.pdf" % (tt2l_dir,jets),
-                     "%s/Razor_TTBarDileptonCrossCheckRegion_MET_%s_Logy.pdf" % (tt2l_dir,jets)]),
+                    ["%s/NJets40_TTJetsDilepton%s.pdf" % (tt2l_this_dir,suffix),
+                     "%s/NBJetsMedium_TTJetsDilepton%s.pdf" % (tt2l_this_dir,suffix)]),
                     ]
+    photon_dir = "GJetsInv"
+    suffixes = ["","ForNJets","DiJetClosureTest","MultiJetClosureTest"]
+    title_endings = [""," after razor correction",", dijet closure test",", multijet closure test"]
+    for suffix,ending in zip(suffixes,title_endings):
+        photon_this_dir = photon_dir+suffix
+        photon_title = "photon+jets control region"+ending
+        if suffix == "":
+            slides += [Slide(photon_title,
+                ["%s/MR_NoPhoRsq_NoPho_GJetsInvUnrolledDataMC.pdf" % photon_this_dir,
+                 "%s/GJetsInvScaleFactors.pdf" % photon_this_dir])]
+        else:
+            slides += [Slide(photon_title,
+                ["%s/MR_NoPhoRsq_NoPho_GJetsInvUnrolledDataMC.pdf" % photon_this_dir])]
+        slides += [
+                Slide(photon_title,
+                    ["%s/MR_NoPho_GJetsInv.pdf" % photon_this_dir,
+                     "%s/Rsq_NoPho_GJetsInv.pdf" % photon_this_dir]),
+                Slide(photon_title,
+                    ["%s/NJets_NoPho_GJetsInv.pdf" % photon_this_dir,
+                     "%s/NBJetsMedium_GJetsInv.pdf" % photon_this_dir]),
+                    ]
+    dy_dir = "DYJetsDileptonInv"
+    suffixes = ["Uncorr","","DiJet","MultiJet"]
+    title_endings = [" before correction"," after normalization",", dijet closure test",", multijet closure test"]
+    for suffix,ending in zip(suffixes,title_endings):
+        dy_this_dir = dy_dir+suffix
+        dy_title = "DY+jets control region"+ending
+        dy_suffix = ("MultiJet")*(suffix == "MultiJet")
+        if "Jet" in suffix:
+            slides += [ Slide(dy_title,
+                    ["%s/MR_NoZRsq_NoZ_DYJetsDileptonInv%sUnrolledDataMC.pdf" % (dy_this_dir,dy_suffix),
+                     "%s/DYJetsInvScaleFactors.pdf" % dy_this_dir]),
+                        Slide(dy_title,
+                            ["%s/NJets_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix),
+                             ]),
+                            ]
+        else:
+            slides += [ Slide(dy_title,
+                    ["%s/MR_NoZRsq_NoZ_DYJetsDileptonInv%sUnrolledDataMC.pdf" % (dy_this_dir,dy_suffix)
+                     ]),
+                    Slide(dy_title,
+                        ["%s/NJets_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix),
+                         "%s/1_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix)]),
+                        ]
+        slides += [
+                Slide(dy_title,
+                    ["%s/MR_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix),
+                     "%s/Rsq_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix)])]
+    for leptype in ["Lepton","Tau"]:
+        for jets in ["DiJet","MultiJet"]:
+            for corr in ["","PtCorr"]:
+                veto_dir = "Veto"+leptype+jets+corr
+                veto_title = "Veto %s %s control region" % (leptype.lower(),jets.lower())
+                veto_region = "Veto"+leptype+"ControlRegion"
+                if corr:
+                    veto_title += " (after $p_{T}$ correction)"
+                slides += [
+                        Slide(veto_title,
+                            ["%s/lep1_Pt_%s.pdf" % (veto_dir,veto_region),
+                             "%s/abslep1_Eta_%s.pdf" % (veto_dir,veto_region)]),
+                        Slide(veto_title,
+                            ["%s/MRRsq_%sUnrolledDataMC.pdf" % (veto_dir,veto_region)]),
+                        Slide(veto_title,
+                            ["%s/NJets40_%s.pdf" % (veto_dir,veto_region),
+                             "%s/NBJetsMedium_%s.pdf" % (veto_dir,veto_region)]),
+                            ]
 
 
     for slide in slides:
