@@ -255,21 +255,6 @@ def getTTBarDileptonWeight(event):
         weight += 0.5
     return weight
 
-def getPhotonPurity(event, wHists):
-    """Retrieves photon purity values from MR-Rsq histograms"""
-    #purity measurement is performed separately for barrel and endcap photons
-    if abs(event.pho1.Eta()) < 1.479:
-        h = wHists['photonpurityeb']
-    else:
-        h = wHists['photonpurityee']
-    mr = min( h.GetXaxis().GetXmax()*0.99,
-            max( h.GetXaxis().GetXmin()*1.01, 
-                event.MR_NoPho ) )
-    rsq = min( h.GetYaxis().GetXmax()*0.99,
-            max( h.GetYaxis().GetXmin()*1.01, 
-                event.Rsq_NoPho ) )
-    return h.GetBinContent( h.FindFixBin(mr, rsq) )
-
 def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     """Apply pileup weights and other known MC correction factors"""
     lweightOpts = map(str.lower, weightOpts)
@@ -295,11 +280,6 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             if debugLevel > 1:
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
-        elif 'qcdphoton' in lweightOpts:
-            qcdWeight = 1-getPhotonPurity(event, wHists)
-            if debugLevel > 1:
-                print "QCD weight:",qcdWeight
-            eventWeight *= qcdWeight 
 
         #reweighting in number of b-jets
         if 'nbjets' in lweightOpts:
@@ -329,20 +309,6 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             print event.trigWeight1L, event.lep1.Pt(), event.lep1.Eta()
         if str.lower("removePileupWeights") in lweightOpts:
             eventWeight /= event.pileupWeight
-        #if str.lower("doLep1Weights") in lweightOpts:
-        #    doLep2 = (str.lower("doLep2Weights") in lweightOpts)
-        #    eventWeight *= leptonWeight(event, wHists, doLep2, debugLevel=debugLevel)
-
-        #trigger scale factors
-        #if str.lower("do1LepTrigWeights") in lweightOpts:
-        #    doLep2Trig = (str.lower("doLep2TrigWeights") in lweightOpts)
-        #    eventWeight *= leptonTriggerWeight(event, wHists, doLep2Trig, debugLevel=debugLevel)
-
-        if 'photonkfactor' in lweightOpts:
-            kfactor = 1.44
-            if debugLevel > 1:
-                print "Photon k-factor",kfactor
-            eventWeight *= kfactor
 
         #reweighting for ttbar dilepton control region
         if 'ttbardileptonmt' in lweightOpts:
@@ -454,8 +420,6 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
             qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
         elif 'datadrivenqcdmultijet' in lweightOpts:
             qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
-        elif 'qcdphoton' in lweightOpts:
-            qcdExtrapolationFactor = 1-getPhotonPurity(event, wHists)
         else:
             qcdExtrapolationFactor = 1.0
             print "Warning: data weight options",lweightOpts,"may not make sense; see macro.razorWeights.weight_data"
@@ -754,3 +718,27 @@ def getNJetsSFs(analysis,jetName='NJets40'):
             auxSFs[name] = {"NJetsInv":(jetName,"1")}
     return auxSFs
 
+def loadPhotonPurityHists(sfHists={}, tag="Razor2016", debugLevel=0):
+    filenames = { "Razor2016":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root",
+            "Razor2016G_SUSYUnblind_80X":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root"
+            }
+    if tag not in filenames:
+        sys.exit("tag %s is not supported for photon purity measurement")
+    filename = filenames[tag]
+    infile = rt.TFile.Open(filename)
+    sfHists["PhotonPurityEB"] = infile.Get("histChargedIso_EB_MRRsq")
+    sfHists["PhotonPurityEB"].SetDirectory(0)
+    sfHists["PhotonPurityEE"] = infile.Get("histChargedIso_EE_MRRsq")
+    sfHists["PhotonPurityEE"].SetDirectory(0)
+    # Instead of purity values, switch to 1-purity
+    for ibin in range(sfHists["PhotonPurityEB"].GetSize()+1):
+        sfHists["PhotonPurityEB"].SetBinContent( ibin, 1 - sfHists["PhotonPurityEB"].GetBinContent(ibin) )
+        sfHists["PhotonPurityEE"].SetBinContent( ibin, 1 - sfHists["PhotonPurityEE"].GetBinContent(ibin) )
+    return sfHists
+
+def getPhotonPuritySFs(auxSFs={}):
+    if "QCD" not in auxSFs:
+        auxSFs["QCD"] = {}
+    auxSFs["QCD"]['PhotonPurityEB'] = (('MR_NoPho','Rsq_NoPho'),'abs(pho1.Eta()) < 1.479')
+    auxSFs["QCD"]['PhotonPurityEE'] = (('MR_NoPho','Rsq_NoPho'),'abs(pho1.Eta()) >= 1.479')
+    return auxSFs

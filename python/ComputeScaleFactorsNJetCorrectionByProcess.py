@@ -74,7 +74,6 @@ if __name__ == "__main__":
         (xbins,cols) = analysis.unrollBins
         sfVarsToUse = sfVars[region]
         njetsName = njetsNames[region]
-        dataDrivenQCD = ( region == "GJetsInvForNJets" )
         #use proper set of NJets correction factors.
         #do not correct WJets until WJets scale factors have been derived
         auxSFs = razorWeights.getNJetsSFs(analysis,
@@ -87,6 +86,12 @@ if __name__ == "__main__":
             auxSFs["GJetsInv"] = {}
         if region == "WJetsInvForNJets":
             auxSFs["WJetsInv"] = {}
+        if region == "GJetsInvForNJets":
+            dataDrivenQCD = True
+            razorWeights.getPhotonPuritySFs(auxSFs)
+            razorWeights.loadPhotonPurityHists(sfHists, tag, debugLevel)
+        else:
+            dataDrivenQCD = False
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 sfHists=sfHists, sfVars=sfVarsToUse, 

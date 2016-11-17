@@ -695,9 +695,15 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         auxSFForms[name] = rt.TTreeFormula(name+"Cuts", pair[1], tree)
         auxSFForms[name].GetNdata()
         #add the reweighting variable to the formula list
-        if pair[0] not in formulas:
-            formulas[pair[0]] = rt.TTreeFormula(pair[0], pair[0], tree)
-            formulas[pair[0]].GetNdata()
+        if isinstance(pair[0], basestring):
+            if pair[0] not in formulas:
+                formulas[pair[0]] = rt.TTreeFormula(pair[0], pair[0], tree)
+                formulas[pair[0]].GetNdata()
+        else: #treat as tuple
+            for var in pair[0]:
+                if var not in formulas:
+                    formulas[var] = rt.TTreeFormula(var, var, tree)
+                    formulas[var].GetNdata()
 
     #make TTreeFormulas for shape histogram scale factors
     #A list of TTreeFormulas is maintained in shapeAuxSFForms, and shapeAuxSFFormsLookup matches each shape uncertainty with the index of a TTreeFormula in shapeAuxSFForms.
