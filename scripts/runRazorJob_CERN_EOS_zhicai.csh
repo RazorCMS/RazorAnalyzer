@@ -17,7 +17,7 @@ echo " "; echo "Initialize CMSSW"; echo " "
 set workDir=`pwd`
 
 setenv SCRAM_ARCH slc6_amd64_gcc491
-cd    /afs/cern.ch/work/z/zhicaiz/public/RazorAnalyzer/CMSSW_7_6_3/src/ 
+cd    /afs/cern.ch/work/z/zhicaiz/public/release/CMSSW_7_6_3/src/ 
 eval `scramv1 runtime -csh`
 cd -
 
@@ -47,8 +47,8 @@ echo ""
 
 # Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} ${outputfile} -n=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -f=${outputfile} -n=${option} |& tee ${outputfile}.log
+echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile} 
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile} |& tee ${outputfile}.log
 
 ls -ltr 
 
