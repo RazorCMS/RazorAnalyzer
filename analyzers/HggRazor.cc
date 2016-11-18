@@ -134,8 +134,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //Initialize helper
   //--------------------------------
   RazorHelper *helper = 0;
-  if (analysisTag == "2015_76X") helper = new RazorHelper("Razor2015_76X", isData, false);
-  else if (analysisTag == "2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
+  if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, false);
+  else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
   else helper = new RazorHelper("", isData, false);
   
   //--------------------------------
@@ -155,9 +155,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
 
   EnergyScaleCorrection_class *photonCorrector = 0;
-  if (analysisTag == "2015_76X") {
+  if (analysisTag == "Razor2015_76X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
-  } else if (analysisTag == "2016_80X") {
+  } else if (analysisTag == "Razor2016_80X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   }
 
@@ -220,11 +220,11 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 
   TString effMeasType, misMeasType;
   BTagCalibration *btagcalib =0;
-  if (analysisTag == "2015_76X") {
+  if (analysisTag == "Razor2015_76X") {
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="comb";
-  } else if (analysisTag == "2016_80X") {
+  } else if (analysisTag == "Razor2016_80X") {
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="incl";
