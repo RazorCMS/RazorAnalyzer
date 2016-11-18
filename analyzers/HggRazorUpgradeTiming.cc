@@ -162,7 +162,25 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
   float logsumpt2 = 0.;
   float pull_conv = 0.;
   float nConv = 0.;
+ 
+  Int_t isMatchPv[200]; 
+  Int_t isMaxbdtPv[200]; 
+  float ptasym_all[200];// = {0.};
+  float ptbal_all[200];// = {0.};
+  float logsumpt2_all[200];// = {0.};
+  float pull_conv_all[200];// = {0.};
+  float nConv_all[200];// = {0.};
   
+  for(int i=0;i<200;i++)
+  {
+	isMatchPv[i]=0;
+	isMaxbdtPv[i]=0;
+	ptasym_all[i]=0.0;
+	ptbal_all[i]=0.0;
+     	logsumpt2_all[i]=0.0;	
+  	pull_conv_all[i]=0.0;
+	nConv_all[i]=0.0;
+  }
   
   TMVA::Reader *vtxmvareader = 0;
   if (doMVAVertex) {
@@ -577,11 +595,25 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
     razorTree->Branch("gParticleEta", gParticleEta, "gParticleEta[nGenParticle]/F");
     //MVA Vertex Selection
 
+/*
     razorTree->Branch("ptasym", &ptasym, "ptasym/F");
     razorTree->Branch("ptbal", &ptbal, "ptbal/F");
     razorTree->Branch("logsumpt2", &logsumpt2, "logsumpt2/F");
     razorTree->Branch("pull_conv", &pull_conv, "pull_conv/F");
     razorTree->Branch("nConv", &nConv, "nConv/F");
+  */
+  
+    razorTree->Branch("nPVAll", &nPVAll, "nPVAll/I");
+
+    razorTree->Branch("isMatchPv", isMatchPv, "isMatchPv[nPVAll]/I");
+    razorTree->Branch("isMaxbdtPv", isMaxbdtPv, "isMaxbdtPv[nPVAll]/I");
+
+    razorTree->Branch("ptasym_all", ptasym_all, "ptasym_all[nPVAll]/F");
+    razorTree->Branch("ptbal_all", ptbal_all, "ptbal_all[nPVAll]/F");
+    razorTree->Branch("logsumpt2_all", logsumpt2_all, "logsumpt2_all[nPVAll]/F");
+    razorTree->Branch("pull_conv_all", pull_conv_all, "pull_conv_all[nPVAll]/F");
+    razorTree->Branch("nConv_all", nConv_all, "nConv_all[nPVAll]/F");
+
 
   }
   //set branches on all trees
@@ -682,6 +714,18 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
   if( _info )  std::cout<<nentries<<std::endl;
 
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+
+  for(int i=0;i<200;i++)
+  {
+	isMatchPv[i]=0;
+	isMaxbdtPv[i]=0;
+	ptasym_all[i]=0.0;
+	ptbal_all[i]=0.0;
+     	logsumpt2_all[i]=0.0;	
+  	pull_conv_all[i]=0.0;
+	nConv_all[i]=0.0;
+  }
+ 
     //begin event
     if( _info && (jentry % 10 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;    
     Long64_t ientry = LoadTree(jentry);
@@ -1338,11 +1382,21 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
               
               float maxbdtval = -99.;
               int ipvmax = 0;
+              int ipvmatch = 0;
+	      
+              double minDist = 999999.0;
                             
               for (int ipv=0; ipv<nPVAll; ++ipv) {
                 float vtxX = pvAllX[ipv];
                 float vtxY = pvAllY[ipv];
                 float vtxZ = pvAllZ[ipv];
+		
+		double dist_this = sqrt(pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0));
+		if(dist_this < minDist)
+		{
+		    ipvmatch = ipv;
+		    minDist = dist_this;
+		}
                 
                 TVector3 pho1dir(bestCand[0].scX-vtxX,bestCand[0].scY-vtxY,bestCand[0].scZ-vtxZ);
                 TVector3 pho2dir(bestCand[1].scX-vtxX,bestCand[1].scY-vtxY,bestCand[1].scZ-vtxZ);
@@ -1415,11 +1469,20 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                   maxbdtval = bdtval;
                   ipvmax = ipv;
                 }
-                
+             	if(ipv<200)
+		{ 
+		ptasym_all[ipv]=ptasym;
+		ptbal_all[ipv]=ptbal;
+		logsumpt2_all[ipv]=logsumpt2;
+		pull_conv_all[ipv]=pull_conv;
+		nConv_all[ipv]=nConv;	  
+		}
               }
 
 	      if (_debug) std::cout << "Vertex Selected: " << ipvmax << "\n\n";
-	      
+	     
+	      isMatchPv[ipvmatch]=1; 
+	      isMaxbdtPv[ipvmax]=1; 
               for (int ipv=ipvmax; ipv<ipvmax+1; ++ipv) {
                 float vtxX = pvAllX[ipv];
                 float vtxY = pvAllY[ipv];

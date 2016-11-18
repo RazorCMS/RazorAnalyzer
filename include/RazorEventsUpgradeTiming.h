@@ -306,6 +306,8 @@ public :
    Float_t         genMetPt;
    Float_t         genMetPhi;
    Float_t         genVertexZ;
+   Float_t         genVertexX;
+   Float_t         genVertexY;
    Float_t         genWeight;
    UInt_t          genSignalProcessID;
    Float_t         genQScale;
@@ -609,6 +611,8 @@ public :
    TBranch        *b_genMetPt;   //!
    TBranch        *b_genMetPhi;   //!
    TBranch        *b_genVertexZ;   //!
+   TBranch        *b_genVertexX;   //!
+   TBranch        *b_genVertexY;   //!
    TBranch        *b_genWeight;   //!
    TBranch        *b_genSignalProcessID;   //!
    TBranch        *b_genQScale;   //!
@@ -987,6 +991,8 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("genMetPt", &genMetPt, &b_genMetPt);
    fChain->SetBranchAddress("genMetPhi", &genMetPhi, &b_genMetPhi);
    fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
+   fChain->SetBranchAddress("genVertexX", &genVertexX, &b_genVertexX);
+   fChain->SetBranchAddress("genVertexY", &genVertexY, &b_genVertexY);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
    fChain->SetBranchAddress("genSignalProcessID", &genSignalProcessID, &b_genSignalProcessID);
    fChain->SetBranchAddress("genQScale", &genQScale, &b_genQScale);
