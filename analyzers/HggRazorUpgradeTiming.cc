@@ -193,7 +193,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
     
     std::string vtxpathname;
     if ( cmsswPath != NULL ) vtxpathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
-    vtxmvareader->BookMVA("BDT",Form("%s/TMVAClassification_BDTVtxId_SL_2015.xml",vtxpathname.c_str()));
+    vtxmvareader->BookMVA("BDT",Form("%s/TMVAClassification_BDTVtxId_SL_2016.xml",vtxpathname.c_str()));
   }
 
   //Including Jet Corrections
