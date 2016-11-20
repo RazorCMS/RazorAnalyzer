@@ -293,6 +293,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     /////////////////////////////////
 
     if (fChain == 0) return;
+    cout << "Total Events: " << fChain->GetEntries() << "\n";
+    Long64_t nbytes = 0, nb = 0;    
     Long64_t nentries = fChain->GetEntriesFast();
     for (Long64_t jentry = 0; jentry < nentries; jentry++) {
 
@@ -304,7 +306,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         if (jentry % 10000 == 0) cout << "Processing entry " << jentry << endl;
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
-        fChain->GetEntry(jentry);
+
+	nb = fChain->GetEntry(jentry);
 
         //Reset tree variables
         for (auto &vars : mainVars) {
@@ -1402,6 +1405,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         }
 
     }//end of event loop
+
+    cout << "NBytes: " << nbytes << "\n";
 
     if(!isFastsimSMS){
         cout << "Writing output tree..." << endl;
