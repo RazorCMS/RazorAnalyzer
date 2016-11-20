@@ -608,11 +608,11 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
     razorTree->Branch("isMatchPv", isMatchPv, "isMatchPv[nPVAll]/I");
     razorTree->Branch("isMaxbdtPv", isMaxbdtPv, "isMaxbdtPv[nPVAll]/I");
 
-    razorTree->Branch("ptasym_all", ptasym_all, "ptasym_all[nPVAll]/F");
-    razorTree->Branch("ptbal_all", ptbal_all, "ptbal_all[nPVAll]/F");
-    razorTree->Branch("logsumpt2_all", logsumpt2_all, "logsumpt2_all[nPVAll]/F");
-    razorTree->Branch("pull_conv_all", pull_conv_all, "pull_conv_all[nPVAll]/F");
-    razorTree->Branch("nConv_all", nConv_all, "nConv_all[nPVAll]/F");
+    razorTree->Branch("ptasym", ptasym_all, "ptasym[nPVAll]/F");
+    razorTree->Branch("ptbal", ptbal_all, "ptbal[nPVAll]/F");
+    razorTree->Branch("logsumpt2", logsumpt2_all, "logsumpt2[nPVAll]/F");
+    razorTree->Branch("limPullToConv", pull_conv_all, "limPullToConv[nPVAll]/F");
+    razorTree->Branch("nConv", nConv_all, "nConv[nPVAll]/F");
 
 
   }
