@@ -136,17 +136,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   RazorHelper *helper = 0;
   if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, false);
   else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
-  else helper = new RazorHelper("", isData, false);
+  else helper = new RazorHelper(analysisTag, isData, false);
   
-  //--------------------------------
-  //Photon Trigger Efficiency
-  //--------------------------------
-  // TFile *photonTriggerEffFile_LeadingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTLeadingLegEffDenominatorLoose.root");
-  // TFile *photonTriggerEffFile_TrailingLeg = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016_Golden_2p6ifb/PhoHLTTrailingLegEffDenominatorLoose.root");
-  // TH2D *photonTriggerEffHist_LeadingLeg = (TH2D*)photonTriggerEffFile_LeadingLeg->Get("hEffEtaPt");
-  // TH2D *photonTriggerEffHist_TrailingLeg = (TH2D*)photonTriggerEffFile_TrailingLeg->Get("hEffEtaPt");
-  // assert(photonTriggerEffHist_LeadingLeg);
-  // assert(photonTriggerEffHist_TrailingLeg);
 
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
@@ -158,6 +149,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   if (analysisTag == "Razor2015_76X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_80X") {
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
+  } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   }
 
@@ -224,7 +217,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="comb";
-  } else if (analysisTag == "Razor2016_80X") {
+  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" ) {
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="incl";
