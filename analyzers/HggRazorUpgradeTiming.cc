@@ -979,6 +979,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
       double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
  
       //Require Loose Photon ID
+      /*
       if ( _phodebug ) {
 	std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] 
 		  << " | " << scale << " " << smear << " "
@@ -988,6 +989,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 ID" << std::endl;
 	continue;
       }
+     */
 
       //Require electron veto
       if (doEleVeto) {
@@ -1029,6 +1031,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 
     if( _info )  std::cout<<"DEBUG_ZZC 009"<<std::endl;
       //Require Loose Isolation
+      /*
       if ( !photonPassLooseIsoExo15004(i) )
 	{
 	  if ( _phodebug ) { 
@@ -1056,7 +1059,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	  }
 	  continue;
 	}
-
+	*/
       //Defining Corrected Photon momentum
       float pho_pt_corr = phoPt[i];//nominal pt
       if (doPhotonScaleCorrection) {
@@ -1372,7 +1375,39 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	    
 	  }//second photon loop
       }//first photon loop
-   
+  
+
+    //apply pt/m cut and mgg cut
+    
+    if(bestCand[0].photon.Pt()/HiggsCandidate.M() < (1.0/3.0)) 
+	{
+	if ( _debug ) std::cout << "rejected: pt1/mgg = "<< bestCand[0].photon.Pt()/HiggsCandidate.M()<<std::endl;
+	continue;
+	}
+    if(bestCand[1].photon.Pt()/HiggsCandidate.M() < (1.0/4.0)) 
+	{
+	if ( _debug ) std::cout << "rejected: pt2/mgg = "<< bestCand[1].photon.Pt()/HiggsCandidate.M()<<std::endl;
+	continue;
+	}
+    if(HiggsCandidate.M()<100.0) 
+	{
+	if ( _debug ) std::cout << "rejected: mgg = "<< HiggsCandidate.M()<<std::endl;
+	continue;
+	}
+    //reject fake photons
+    bool matchGenPhoton1 = false;
+    bool matchGenPhoton2 = false;
+
+    for(int g=0;g<nGenParticle;g++)
+	{
+    	if (deltaR(gParticleEta[g] , gParticlePhi[g], bestCand[0].photon.Eta(),bestCand[0].photon.Phi()) < 0.1) matchGenPhoton1 = true;
+    	if (deltaR(gParticleEta[g] , gParticlePhi[g], bestCand[1].photon.Eta(),bestCand[1].photon.Phi()) < 0.1) matchGenPhoton2 = true;
+	}
+    if(!(matchGenPhoton1&&matchGenPhoton2))
+	{
+	if ( _debug ) std::cout<<"rejected: matchGenPhoton1 = "<<matchGenPhoton1<<"  matchGenPhoton2 = "<<matchGenPhoton2<<std::endl;
+	continue;
+	}
     //save MVA vertex
 
             if (doMVAVertex) {
@@ -1639,6 +1674,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	  }
 	//continue;//apply offline
       }
+    
     //record higgs candidate info
     mGammaGamma     = HiggsCandidate.M();
     pTGammaGamma    = HiggsCandidate.Pt();
@@ -1668,7 +1704,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
     //***********************************************************
     // cout << "Photon1 : " << Pho_Pt[0] << " " << Pho_Eta[0] << " " << Pho_Phi[0] << "\n";
     for(int g = 0; g < nGenParticle; g++){
-      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.5) ) continue;
+      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.1) ) continue;
       if(gParticleStatus[g] != 1) continue;
       if(gParticleId[g] != 22) continue;
       Pho_motherID[0] = gParticleMotherId[g];
@@ -1677,7 +1713,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 
     // cout << "Photon2 : " << Pho_Pt[1] << " " << Pho_Eta[1] << " " << Pho_Phi[1] << "\n";
     for(int g = 0; g < nGenParticle; g++){
-      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.5) ) continue;
+      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.1) ) continue;
       if(gParticleStatus[g] != 1) continue;
       if(gParticleId[g] != 22) continue;
       Pho_motherID[1] = gParticleMotherId[g];      
