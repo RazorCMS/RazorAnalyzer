@@ -102,7 +102,7 @@ const float SIGMATRKCLUSZ[12] = { 0.0298574,
                                 };
 
 //Testing branching and merging
-void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName, string label)
+void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, string outFileName, string label)
 {
   std::cout << "in analyzer" << std::endl;
   gROOT->Reset();
@@ -1230,8 +1230,25 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                 TVector3 pho2dir(pho2.scX-vtxX,pho2.scY-vtxY,pho2.scZ-vtxZ);
                 TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
                 TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
-                
+                if(!useTiming)
+		{ 
                 TVector3 vtxSumPt(pvAllSumPx[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
+                
+
+		if (_debug) {
+		  std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
+			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
+			    << "\n";
+		
+		}
+		logsumpt2 = pvAllLogSumPtSq[ipv];
+                ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
+                ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+
+		}
+	  	else	
+		{ 
+                TVector3 vtxSumPt(pvAllSumPx_dt[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy_dt[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
                 
 
 		if (_debug) {
@@ -1240,10 +1257,12 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 			    << "\n";
 		}
 
-                logsumpt2 = pvAllLogSumPtSq[ipv];
+
+                logsumpt2 = pvAllLogSumPtSq_dt[ipv];
                 ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
-                
+                }
+	
                 bool hasconv1 = pho1.convType>=0;
                 bool hasconv2 = pho2.convType>=0;
                 
@@ -1425,12 +1444,24 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                 float vtxX = pvAllX[ipv];
                 float vtxY = pvAllY[ipv];
                 float vtxZ = pvAllZ[ipv];
-		
+                float vtxT = pvAllT[ipv];
+	  	if(!useTiming)
+		{	
 		double dist_this = sqrt(pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0));
 		if(dist_this < minDist)
 		{
 		    ipvmatch = ipv;
 		    minDist = dist_this;
+		}
+		}
+		else
+		{
+		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.1*0.1)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
+		if(chi2_zt < minDist)
+		{
+		     ipvmatch = ipv;
+		     minDist = chi2_zt;
+		}	
 		}
                 
                 TVector3 pho1dir(bestCand[0].scX-vtxX,bestCand[0].scY-vtxY,bestCand[0].scZ-vtxZ);
@@ -1438,6 +1469,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                 TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
                 TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
                 
+                if(!useTiming)
+		{ 
                 TVector3 vtxSumPt(pvAllSumPx[ipv]-bestCand[0].vtxSumPx[ipv]-bestCand[1].vtxSumPx[ipv], pvAllSumPy[ipv]-bestCand[0].vtxSumPy[ipv]-bestCand[1].vtxSumPy[ipv],0.);
                 
 
@@ -1446,11 +1479,26 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
 			    << "\n";
 		}
-
-                logsumpt2 = pvAllLogSumPtSq[ipv];
+		logsumpt2 = pvAllLogSumPtSq[ipv];
                 ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+                }
+		
+		else
+		{
+		TVector3 vtxSumPt(pvAllSumPx_dt[ipv]-bestCand[0].vtxSumPx[ipv]-bestCand[1].vtxSumPx[ipv], pvAllSumPy_dt[ipv]-bestCand[0].vtxSumPy[ipv]-bestCand[1].vtxSumPy[ipv],0.);
                 
+
+		if (_debug) {
+		  std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
+			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
+			    << "\n";
+		}
+		logsumpt2 = pvAllLogSumPtSq_dt[ipv];
+                ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
+                ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+		}
+
                 bool hasconv1 = bestCand[0].convType>=0;
                 bool hasconv2 = bestCand[1].convType>=0;
                 

@@ -41,9 +41,14 @@ public :
    Float_t         pvAllX[200];   //[nPVAll]
    Float_t         pvAllY[200];   //[nPVAll]
    Float_t         pvAllZ[200];   //[nPVAll]
+   Float_t         pvAllT[200];   //[nPVAll]
    Float_t         pvAllLogSumPtSq[200];   //[nPVAll]
    Float_t         pvAllSumPx[200];   //[nPVAll]
    Float_t         pvAllSumPy[200];   //[nPVAll]
+   Float_t         pvAllLogSumPtSq_dt[200];   //[nPVAll]
+   Float_t         pvAllSumPx_dt[200];   //[nPVAll]
+   Float_t         pvAllSumPy_dt[200];   //[nPVAll]
+
    Int_t           nBunchXing;
    Int_t           BunchXing[20];   //[nBunchXing]
    Int_t           nPU[20];   //[nBunchXing]
@@ -308,6 +313,7 @@ public :
    Float_t         genVertexZ;
    Float_t         genVertexX;
    Float_t         genVertexY;
+   Float_t         genVertexT;
    Float_t         genWeight;
    UInt_t          genSignalProcessID;
    Float_t         genQScale;
@@ -346,9 +352,14 @@ public :
    TBranch        *b_pvAllX;   //!
    TBranch        *b_pvAllY;   //!
    TBranch        *b_pvAllZ;   //!
+   TBranch        *b_pvAllT;   //!
    TBranch        *b_pvAllLogSumPtSq;   //!
    TBranch        *b_pvAllSumPx;   //!
    TBranch        *b_pvAllSumPy;   //!
+   TBranch        *b_pvAllLogSumPtSq_dt;   //!
+   TBranch        *b_pvAllSumPx_dt;   //!
+   TBranch        *b_pvAllSumPy_dt;   //!
+
    TBranch        *b_nBunchXing;   //!
    TBranch        *b_BunchXing;   //!
    TBranch        *b_nPU;   //!
@@ -613,6 +624,7 @@ public :
    TBranch        *b_genVertexZ;   //!
    TBranch        *b_genVertexX;   //!
    TBranch        *b_genVertexY;   //!
+   TBranch        *b_genVertexT;   //!
    TBranch        *b_genWeight;   //!
    TBranch        *b_genSignalProcessID;   //!
    TBranch        *b_genQScale;   //!
@@ -726,9 +738,14 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("pvAllX", pvAllX, &b_pvAllX);
    fChain->SetBranchAddress("pvAllY", pvAllY, &b_pvAllY);
    fChain->SetBranchAddress("pvAllZ", pvAllZ, &b_pvAllZ);
+   fChain->SetBranchAddress("pvAllT", pvAllT, &b_pvAllT);
+   fChain->SetBranchAddress("pvAllLogSumPtSq_dt", pvAllLogSumPtSq_dt, &b_pvAllLogSumPtSq_dt);
+   fChain->SetBranchAddress("pvAllSumPx_dt", pvAllSumPx_dt, &b_pvAllSumPx_dt);
+   fChain->SetBranchAddress("pvAllSumPy_dt", pvAllSumPy_dt, &b_pvAllSumPy_dt);
    fChain->SetBranchAddress("pvAllLogSumPtSq", pvAllLogSumPtSq, &b_pvAllLogSumPtSq);
    fChain->SetBranchAddress("pvAllSumPx", pvAllSumPx, &b_pvAllSumPx);
    fChain->SetBranchAddress("pvAllSumPy", pvAllSumPy, &b_pvAllSumPy);
+   
    fChain->SetBranchAddress("nBunchXing", &nBunchXing, &b_nBunchXing);
    fChain->SetBranchAddress("BunchXing", BunchXing, &b_BunchXing);
    fChain->SetBranchAddress("nPU", nPU, &b_nPU);
@@ -993,6 +1010,7 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
    fChain->SetBranchAddress("genVertexX", &genVertexX, &b_genVertexX);
    fChain->SetBranchAddress("genVertexY", &genVertexY, &b_genVertexY);
+   fChain->SetBranchAddress("genVertexT", &genVertexT, &b_genVertexT);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
    fChain->SetBranchAddress("genSignalProcessID", &genSignalProcessID, &b_genSignalProcessID);
    fChain->SetBranchAddress("genQScale", &genQScale, &b_genQScale);
