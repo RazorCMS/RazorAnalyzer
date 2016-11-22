@@ -102,7 +102,7 @@ const float SIGMATRKCLUSZ[12] = { 0.0298574,
                                 };
 
 //Testing branching and merging
-void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName, string label)
+void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, string outFileName, string label)
 {
   std::cout << "in analyzer" << std::endl;
   gROOT->Reset();
@@ -608,11 +608,11 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
     razorTree->Branch("isMatchPv", isMatchPv, "isMatchPv[nPVAll]/I");
     razorTree->Branch("isMaxbdtPv", isMaxbdtPv, "isMaxbdtPv[nPVAll]/I");
 
-    razorTree->Branch("ptasym_all", ptasym_all, "ptasym_all[nPVAll]/F");
-    razorTree->Branch("ptbal_all", ptbal_all, "ptbal_all[nPVAll]/F");
-    razorTree->Branch("logsumpt2_all", logsumpt2_all, "logsumpt2_all[nPVAll]/F");
-    razorTree->Branch("pull_conv_all", pull_conv_all, "pull_conv_all[nPVAll]/F");
-    razorTree->Branch("nConv_all", nConv_all, "nConv_all[nPVAll]/F");
+    razorTree->Branch("ptasym", ptasym_all, "ptasym[nPVAll]/F");
+    razorTree->Branch("ptbal", ptbal_all, "ptbal[nPVAll]/F");
+    razorTree->Branch("logsumpt2", logsumpt2_all, "logsumpt2[nPVAll]/F");
+    razorTree->Branch("limPullToConv", pull_conv_all, "limPullToConv[nPVAll]/F");
+    razorTree->Branch("nConv", nConv_all, "nConv[nPVAll]/F");
 
 
   }
@@ -979,6 +979,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
       double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
  
       //Require Loose Photon ID
+      /*
       if ( _phodebug ) {
 	std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] 
 		  << " | " << scale << " " << smear << " "
@@ -988,6 +989,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	if ( _phodebug ) std::cout << "[DEBUG]: failed Exo15004 ID" << std::endl;
 	continue;
       }
+     */
 
       //Require electron veto
       if (doEleVeto) {
@@ -1029,6 +1031,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 
     if( _info )  std::cout<<"DEBUG_ZZC 009"<<std::endl;
       //Require Loose Isolation
+      /*
       if ( !photonPassLooseIsoExo15004(i) )
 	{
 	  if ( _phodebug ) { 
@@ -1056,7 +1059,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	  }
 	  continue;
 	}
-
+	*/
       //Defining Corrected Photon momentum
       float pho_pt_corr = phoPt[i];//nominal pt
       if (doPhotonScaleCorrection) {
@@ -1227,8 +1230,25 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                 TVector3 pho2dir(pho2.scX-vtxX,pho2.scY-vtxY,pho2.scZ-vtxZ);
                 TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
                 TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
-                
+                if(!useTiming)
+		{ 
                 TVector3 vtxSumPt(pvAllSumPx[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
+                
+
+		if (_debug) {
+		  std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
+			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
+			    << "\n";
+		
+		}
+		logsumpt2 = pvAllLogSumPtSq[ipv];
+                ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
+                ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+
+		}
+	  	else	
+		{ 
+                TVector3 vtxSumPt(pvAllSumPx_dt[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy_dt[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
                 
 
 		if (_debug) {
@@ -1237,10 +1257,12 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 			    << "\n";
 		}
 
-                logsumpt2 = pvAllLogSumPtSq[ipv];
+
+                logsumpt2 = pvAllLogSumPtSq_dt[ipv];
                 ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
-                
+                }
+	
                 bool hasconv1 = pho1.convType>=0;
                 bool hasconv2 = pho2.convType>=0;
                 
@@ -1372,7 +1394,39 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	    
 	  }//second photon loop
       }//first photon loop
-   
+  
+
+    //apply pt/m cut and mgg cut
+    
+    if(bestCand[0].photon.Pt()/HiggsCandidate.M() < (1.0/3.0)) 
+	{
+	if ( _debug ) std::cout << "rejected: pt1/mgg = "<< bestCand[0].photon.Pt()/HiggsCandidate.M()<<std::endl;
+	continue;
+	}
+    if(bestCand[1].photon.Pt()/HiggsCandidate.M() < (1.0/4.0)) 
+	{
+	if ( _debug ) std::cout << "rejected: pt2/mgg = "<< bestCand[1].photon.Pt()/HiggsCandidate.M()<<std::endl;
+	continue;
+	}
+    if(HiggsCandidate.M()<100.0) 
+	{
+	if ( _debug ) std::cout << "rejected: mgg = "<< HiggsCandidate.M()<<std::endl;
+	continue;
+	}
+    //reject fake photons
+    bool matchGenPhoton1 = false;
+    bool matchGenPhoton2 = false;
+
+    for(int g=0;g<nGenParticle;g++)
+	{
+    	if (deltaR(gParticleEta[g] , gParticlePhi[g], bestCand[0].photon.Eta(),bestCand[0].photon.Phi()) < 0.1) matchGenPhoton1 = true;
+    	if (deltaR(gParticleEta[g] , gParticlePhi[g], bestCand[1].photon.Eta(),bestCand[1].photon.Phi()) < 0.1) matchGenPhoton2 = true;
+	}
+    if(!(matchGenPhoton1&&matchGenPhoton2))
+	{
+	if ( _debug ) std::cout<<"rejected: matchGenPhoton1 = "<<matchGenPhoton1<<"  matchGenPhoton2 = "<<matchGenPhoton2<<std::endl;
+	continue;
+	}
     //save MVA vertex
 
             if (doMVAVertex) {
@@ -1390,12 +1444,24 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                 float vtxX = pvAllX[ipv];
                 float vtxY = pvAllY[ipv];
                 float vtxZ = pvAllZ[ipv];
-		
+                float vtxT = pvAllT[ipv];
+	  	if(!useTiming)
+		{	
 		double dist_this = sqrt(pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0));
 		if(dist_this < minDist)
 		{
 		    ipvmatch = ipv;
 		    minDist = dist_this;
+		}
+		}
+		else
+		{
+		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.1*0.1)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
+		if(chi2_zt < minDist)
+		{
+		     ipvmatch = ipv;
+		     minDist = chi2_zt;
+		}	
 		}
                 
                 TVector3 pho1dir(bestCand[0].scX-vtxX,bestCand[0].scY-vtxY,bestCand[0].scZ-vtxZ);
@@ -1403,6 +1469,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
                 TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
                 TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
                 
+                if(!useTiming)
+		{ 
                 TVector3 vtxSumPt(pvAllSumPx[ipv]-bestCand[0].vtxSumPx[ipv]-bestCand[1].vtxSumPx[ipv], pvAllSumPy[ipv]-bestCand[0].vtxSumPy[ipv]-bestCand[1].vtxSumPy[ipv],0.);
                 
 
@@ -1411,11 +1479,26 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
 			    << "\n";
 		}
-
-                logsumpt2 = pvAllLogSumPtSq[ipv];
+		logsumpt2 = pvAllLogSumPtSq[ipv];
                 ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+                }
+		
+		else
+		{
+		TVector3 vtxSumPt(pvAllSumPx_dt[ipv]-bestCand[0].vtxSumPx[ipv]-bestCand[1].vtxSumPx[ipv], pvAllSumPy_dt[ipv]-bestCand[0].vtxSumPy[ipv]-bestCand[1].vtxSumPy[ipv],0.);
                 
+
+		if (_debug) {
+		  std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
+			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
+			    << "\n";
+		}
+		logsumpt2 = pvAllLogSumPtSq_dt[ipv];
+                ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
+                ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+		}
+
                 bool hasconv1 = bestCand[0].convType>=0;
                 bool hasconv2 = bestCand[1].convType>=0;
                 
@@ -1639,6 +1722,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 	  }
 	//continue;//apply offline
       }
+    
     //record higgs candidate info
     mGammaGamma     = HiggsCandidate.M();
     pTGammaGamma    = HiggsCandidate.Pt();
@@ -1668,7 +1752,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
     //***********************************************************
     // cout << "Photon1 : " << Pho_Pt[0] << " " << Pho_Eta[0] << " " << Pho_Phi[0] << "\n";
     for(int g = 0; g < nGenParticle; g++){
-      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.5) ) continue;
+      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[0],Pho_Phi[0]) < 0.1) ) continue;
       if(gParticleStatus[g] != 1) continue;
       if(gParticleId[g] != 22) continue;
       Pho_motherID[0] = gParticleMotherId[g];
@@ -1677,7 +1761,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, int option, string outFileName,
 
     // cout << "Photon2 : " << Pho_Pt[1] << " " << Pho_Eta[1] << " " << Pho_Phi[1] << "\n";
     for(int g = 0; g < nGenParticle; g++){
-      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.5) ) continue;
+      if (!(deltaR(gParticleEta[g] , gParticlePhi[g], Pho_Eta[1],Pho_Phi[1]) < 0.1) ) continue;
       if(gParticleStatus[g] != 1) continue;
       if(gParticleId[g] != 22) continue;
       Pho_motherID[1] = gParticleMotherId[g];      

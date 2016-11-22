@@ -16,8 +16,8 @@ RazorAnalyzerUpgradeTiming::~RazorAnalyzerUpgradeTiming()
 
 }
 
-void RazorAnalyzerUpgradeTiming::Analyze(bool isData, int option, string outputFileName, string label) {
-    cout << "Analyze method called on base RazorAnalyzerUpgradeTiming instance.  Parameters were: " << isData << " " << option << " " << outputFileName << " " << label << endl;
+void RazorAnalyzerUpgradeTiming::Analyze(bool isData, bool useTiming, int option, string outputFileName, string label) {
+    cout << "Analyze method called on base RazorAnalyzerUpgradeTiming instance.  Parameters were: " << isData <<"   "<< useTiming << " " << option << " " << outputFileName << " " << label << endl;
 }
 
 //NOTE: the functions below need to be maintained by hand.  If variables are added or removed from the ntuple, these functions need to be updated to reflect the changes.
@@ -61,9 +61,14 @@ void RazorAnalyzerUpgradeTiming::EnablePVAll() {
     fChain->SetBranchStatus("pvAllX",1);
     fChain->SetBranchStatus("pvAllY",1);
     fChain->SetBranchStatus("pvAllZ",1);
+    fChain->SetBranchStatus("pvAllT",1);
     fChain->SetBranchStatus("pvAllLogSumPtSq",1);
     fChain->SetBranchStatus("pvAllSumPx",1);
     fChain->SetBranchStatus("pvAllSumPy",1);
+    fChain->SetBranchStatus("pvAllLogSumPtSq_dt",1);
+    fChain->SetBranchStatus("pvAllSumPx_dt",1);
+    fChain->SetBranchStatus("pvAllSumPy_dt",1);
+
 }
 
 void RazorAnalyzerUpgradeTiming::EnablePileup(){
@@ -353,6 +358,9 @@ void RazorAnalyzerUpgradeTiming::EnableMC(){
     fChain->SetBranchStatus("genMetPt", 1);
     fChain->SetBranchStatus("genMetPhi", 1);
     fChain->SetBranchStatus("genVertexZ", 1);
+    fChain->SetBranchStatus("genVertexX", 1);
+    fChain->SetBranchStatus("genVertexY", 1);
+    fChain->SetBranchStatus("genVertexT", 1);
     fChain->SetBranchStatus("genWeight", 1);
     fChain->SetBranchStatus("genSignalProcessID", 1);
     fChain->SetBranchStatus("genQScale", 1);
@@ -2345,7 +2353,7 @@ double RazorAnalyzerUpgradeTiming::GetAlphaT(vector<TLorentzVector> jets)
 double RazorAnalyzerUpgradeTiming::GetDPhiMin(vector<TLorentzVector> jets)
     // This variable is used in the alphaT analysis
 {
-    int nJets = jets.size();
+    //int nJets = jets.size();
     double dPhiMin = -1.;
     float HT = 0.;
     float MhtX = 0.;

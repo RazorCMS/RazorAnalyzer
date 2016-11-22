@@ -34,6 +34,7 @@ void usage()
 {
   std::cerr << "Usage: Run%ANALYZER%  <input list>  [options]\n[options]:\n"
 	    << "-d  --isData\n"
+	    << "-t  --useTiming\n"
 	    << "-f  --outputFile=<output filename> (optional)\n"
 	    << "-n  --optionNumber=<option number> (optional)\n"
 	    << "-l  --optionLabel=<option Label> (optional)\n" 
@@ -62,6 +63,12 @@ int main(int argc, char* argv[]){
   std::string _d = ParseCommandLine( argc, argv, "-d" );
   bool isData = false;
   if ( _isData == "yes" || _d == "yes" ) isData = true;
+  
+  std::string _useTiming = ParseCommandLine( argc, argv, "--useTiming" );
+  std::string _t = ParseCommandLine( argc, argv, "-t" );
+  bool useTiming = false;
+  if ( _useTiming == "yes" || _t == "yes" ) useTiming = true;
+
 
   //---------------------------------------------
   //G e t t i n g   o u t p u t F i l e   N a m e  
@@ -118,6 +125,7 @@ int main(int argc, char* argv[]){
     }
   
   std::cout << "[INFO]: <input list> --> " << inputFileName << std::endl;
+  std::cout << "[INFO]: useTiming --> " << useTiming << std::endl;
   std::cout << "[INFO]: isData --> " << isData << std::endl;
   std::cout << "[INFO]: outputFileName --> " << outputFileName << std::endl;
   std::cout << "[INFO]: option --> " << option << std::endl;
@@ -170,7 +178,7 @@ int main(int argc, char* argv[]){
     //------ EXECUTE ------//
     cout << "Executing %ANALYZER%..." << endl;
     analyzer.EnableAll();
-    analyzer.Analyze(isData, option, outputFileName, label);
+    analyzer.Analyze(isData, useTiming, option, outputFileName, label);
     cout << "Process completed!" << endl;
     cerr << "------------------------------" << endl; //present so that an empty .err file corresponds to a failed job
     
