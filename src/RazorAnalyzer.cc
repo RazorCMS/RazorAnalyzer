@@ -439,21 +439,24 @@ float RazorAnalyzer::GetElectronEffectiveAreaMean(int i, bool use25nsCuts ){
 float RazorAnalyzer::GetElectronEffectiveArea90(int i){ 
 
   double effArea = 0.0;
+  //New effective areas derived from Spring 16 MC
+  //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
+
   //Effective areas below are for the sum of Neutral Hadrons + Photons
   if (fabs(eleEta_SC[i]) < 1.0) {
-    effArea = 0.1752;
+    effArea = 0.1703;
   } else if (fabs(eleEta_SC[i]) < 1.479) {
-    effArea = 0.1862;	
+    effArea = 0.1715;	
   } else if (fabs(eleEta_SC[i]) < 2.0) {
-    effArea = 0.1411;	
+    effArea = 0.1213;	
   } else if (fabs(eleEta_SC[i]) < 2.2) {
-    effArea = 0.1534;	
+    effArea = 0.1230;	
   } else if (fabs(eleEta_SC[i]) < 2.3) {
-    effArea = 0.1903;	
+    effArea = 0.1635;	
   } else if (fabs(eleEta_SC[i]) < 2.4) {
-    effArea = 0.2243;	
+    effArea = 0.1937;	
   } else if (fabs(eleEta_SC[i]) < 2.5) {
-    effArea = 0.2687;	
+    effArea = 0.2393;
   }
   return effArea;
 }
@@ -718,6 +721,24 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
   if (subdet == 0 && ptBin == 1) MVACut = -0.16;
   if (subdet == 1 && ptBin == 1) MVACut = -0.65;
   if (subdet == 2 && ptBin == 1) MVACut = -0.74;
+
+  //Giovanni Zevi Della Porta
+  //tried to match working points of 80X electron MVA with 74X electron MVA
+  //pT < 10 bin should use "HZZ" MVA
+  //pT > 10 bin should use "GeneralPurpose" MVA
+  //https://indico.cern.ch/event/590228/contributions/2380031/attachments/1375541/2088587/EGMSUS_newIDs_17Nov16.pdf
+  // if (subdet == 0 && ptBin == 0) MVACut = 0.46;
+  // if (subdet == 1 && ptBin == 0) MVACut = -0.03;
+  // if (subdet == 2 && ptBin == 0) MVACut = 0.06;
+  // For pT 10-20
+  // if (subdet == 0 && ptBin == 1) MVACut = -0.48;
+  // if (subdet == 1 && ptBin == 1) MVACut = -0.67;
+  // if (subdet == 2 && ptBin == 1) MVACut = -0.49;
+  // For pT>20
+  // if (subdet == 0 && ptBin == 1) MVACut = -0.85;
+  // if (subdet == 1 && ptBin == 1) MVACut = -0.91;
+  // if (subdet == 2 && ptBin == 1) MVACut = -0.83;
+
 
   bool pass = false;
   if (ele_IDMVANonTrig[i] > MVACut
