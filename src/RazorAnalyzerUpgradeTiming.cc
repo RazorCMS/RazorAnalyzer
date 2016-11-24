@@ -63,6 +63,10 @@ void RazorAnalyzerUpgradeTiming::EnablePVAll() {
     fChain->SetBranchStatus("pvAllZ",1);
     fChain->SetBranchStatus("pvAllT",1);
     fChain->SetBranchStatus("pvAllLogSumPtSq",1);
+    fChain->SetBranchStatus("pvNtrack_dt",1);
+    fChain->SetBranchStatus("pvNtrack",1);
+    fChain->SetBranchStatus("pvAllSumPt",1);
+    fChain->SetBranchStatus("pvAllSumPt_dt",1);
     fChain->SetBranchStatus("pvAllSumPx",1);
     fChain->SetBranchStatus("pvAllSumPy",1);
     fChain->SetBranchStatus("pvAllLogSumPtSq_dt",1);

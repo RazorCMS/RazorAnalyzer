@@ -43,10 +43,14 @@ public :
    Float_t         pvAllZ[200];   //[nPVAll]
    Float_t         pvAllT[200];   //[nPVAll]
    Float_t         pvAllLogSumPtSq[200];   //[nPVAll]
+   Float_t         pvAllSumPt[200];   //[nPVAll]
    Float_t         pvAllSumPx[200];   //[nPVAll]
+   Int_t         pvNtrack_orig[200];   //[nPVAll]
    Float_t         pvAllSumPy[200];   //[nPVAll]
    Float_t         pvAllLogSumPtSq_dt[200];   //[nPVAll]
    Float_t         pvAllSumPx_dt[200];   //[nPVAll]
+   Int_t         pvNtrack_orig_dt[200];   //[nPVAll]
+   Float_t         pvAllSumPt_dt[200];   //[nPVAll]
    Float_t         pvAllSumPy_dt[200];   //[nPVAll]
 
    Int_t           nBunchXing;
@@ -355,9 +359,13 @@ public :
    TBranch        *b_pvAllT;   //!
    TBranch        *b_pvAllLogSumPtSq;   //!
    TBranch        *b_pvAllSumPx;   //!
+   TBranch        *b_pvNtrack_orig;   //!
+   TBranch        *b_pvAllSumPt;   //!
    TBranch        *b_pvAllSumPy;   //!
    TBranch        *b_pvAllLogSumPtSq_dt;   //!
    TBranch        *b_pvAllSumPx_dt;   //!
+   TBranch        *b_pvNtrack_orig_dt;   //!
+   TBranch        *b_pvAllSumPt_dt;   //!
    TBranch        *b_pvAllSumPy_dt;   //!
 
    TBranch        *b_nBunchXing;   //!
@@ -741,9 +749,13 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("pvAllT", pvAllT, &b_pvAllT);
    fChain->SetBranchAddress("pvAllLogSumPtSq_dt", pvAllLogSumPtSq_dt, &b_pvAllLogSumPtSq_dt);
    fChain->SetBranchAddress("pvAllSumPx_dt", pvAllSumPx_dt, &b_pvAllSumPx_dt);
+   fChain->SetBranchAddress("pvNtrack_dt", pvNtrack_orig_dt, &b_pvNtrack_orig_dt);
+   fChain->SetBranchAddress("pvAllSumPt_dt", pvAllSumPt_dt, &b_pvAllSumPt_dt);
    fChain->SetBranchAddress("pvAllSumPy_dt", pvAllSumPy_dt, &b_pvAllSumPy_dt);
    fChain->SetBranchAddress("pvAllLogSumPtSq", pvAllLogSumPtSq, &b_pvAllLogSumPtSq);
    fChain->SetBranchAddress("pvAllSumPx", pvAllSumPx, &b_pvAllSumPx);
+   fChain->SetBranchAddress("pvNtrack", pvNtrack_orig, &b_pvNtrack_orig);
+   fChain->SetBranchAddress("pvAllSumPt", pvAllSumPt, &b_pvAllSumPt);
    fChain->SetBranchAddress("pvAllSumPy", pvAllSumPy, &b_pvAllSumPy);
    
    fChain->SetBranchAddress("nBunchXing", &nBunchXing, &b_nBunchXing);

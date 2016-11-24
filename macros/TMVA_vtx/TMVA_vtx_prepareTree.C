@@ -11,7 +11,7 @@
 #include <iostream>
 #include <math.h>
 
-void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_NoTiming.root", string outputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.root")
+void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU0_NoTiming.root", string outputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.root")
 {
 	float ptasym = 0.;
   	float ptbal = 0.;
@@ -20,6 +20,26 @@ void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_N
   	float nConv = 0.;
   	float weight = 1.0;
 
+	float vtxdX = 0.0;
+	float vtxdY = 0.0;
+	float vtxdZ = 0.0;
+	float vtxdT = 0.0;
+
+	float vtxPt = 0.0;
+	float vtxSumPt = 0.0;
+	float diphoPt = 0.0;	
+
+	Int_t pvNtrack = 0;
+
+	float vtxdX_all[200];
+	float vtxdY_all[200];
+	float vtxdZ_all[200];
+	float vtxdT_all[200];
+	
+	float vtxPt_all[200];
+	float vtxSumPt_all[200];
+	Int_t pvNtrack_all[200];
+	
 	Int_t nPVAll = 0;
 	Int_t isMatchPv[200];
   	Int_t isMaxbdtPv[200];
@@ -38,6 +58,16 @@ void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_N
         logsumpt2_all[i]=0.0;
         pull_conv_all[i]=0.0;
         nConv_all[i]=0.0;
+
+	vtxdX_all[i] = 0.0;
+	vtxdY_all[i] = 0.0;
+	vtxdZ_all[i] = 0.0;
+	vtxdT_all[i] = 0.0;
+
+	vtxPt_all[i] = 0.0;
+	vtxSumPt_all[i] = 0.0;
+	pvNtrack_all[i] = 0;
+	
   	}
 
 
@@ -51,6 +81,16 @@ void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_N
    tree_in->SetBranchAddress( "logsumpt2",   	logsumpt2_all);
    tree_in->SetBranchAddress( "limPullToConv",  pull_conv_all);
    tree_in->SetBranchAddress( "nConv",   	nConv_all);
+   
+   tree_in->SetBranchAddress( "vtxdX_all",   	vtxdX_all);
+   tree_in->SetBranchAddress( "vtxdY_all",   	vtxdY_all);
+   tree_in->SetBranchAddress( "vtxdZ_all",   	vtxdZ_all);
+   tree_in->SetBranchAddress( "vtxdT_all",   	vtxdT_all);
+   tree_in->SetBranchAddress( "vertexpt",   	vtxPt_all);
+   tree_in->SetBranchAddress( "vertexsumpt",   	vtxSumPt_all);
+   tree_in->SetBranchAddress( "diphotonpt",   	&diphoPt);
+   tree_in->SetBranchAddress( "pvNtrack",       pvNtrack_all);
+
 
    TFile *file_out = new TFile(outputFilename.c_str(),"RECREATE");
    TTree *tree_out_S = new TTree("TreeS", "Tree_Signal");
@@ -61,6 +101,14 @@ void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_N
    tree_out_S->Branch( "logsumpt2", 	&logsumpt2, "logsumpt2/F");
    tree_out_S->Branch( "limPullToConv", &pull_conv, "limPullToConv/F");
    tree_out_S->Branch( "nConv", 	&nConv, "nConv/F");
+   tree_out_S->Branch( "vtxdX", 	&vtxdX, "vtxdX/F");
+   tree_out_S->Branch( "vtxdY", 	&vtxdY, "vtxdY/F");
+   tree_out_S->Branch( "vtxdZ", 	&vtxdZ, "vtxdZ/F");
+   tree_out_S->Branch( "vtxdT", 	&vtxdT, "vtxdT/F");
+   tree_out_S->Branch( "vtxPt", 	&vtxPt, "vtxPt/F");
+   tree_out_S->Branch( "vtxSumPt", 	&vtxSumPt, "vtxSumPt/F");
+   tree_out_S->Branch( "diphoPt", 	&diphoPt, "diphoPt/F");
+   tree_out_S->Branch( "pvNtrack", 	&pvNtrack, "pvNtrack/I");
    //tree_out_S->Branch( "weight", 	&weight, "weight/F");
 
    tree_out_B->Branch( "ptasym",	&ptasym, "ptasym/F");
@@ -69,7 +117,15 @@ void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_N
    tree_out_B->Branch( "limPullToConv", &pull_conv, "limPullToConv/F");
    tree_out_B->Branch( "nConv", 	&nConv, "nConv/F");
    tree_out_B->Branch( "weight", 	&weight, "weight/F");
-
+   tree_out_B->Branch( "vtxdX", 	&vtxdX, "vtxdX/F");
+   tree_out_B->Branch( "vtxdY", 	&vtxdY, "vtxdY/F");
+   tree_out_B->Branch( "vtxdZ", 	&vtxdZ, "vtxdZ/F");
+   tree_out_B->Branch( "vtxdT", 	&vtxdT, "vtxdT/F");
+   tree_out_B->Branch( "vtxPt", 	&vtxPt, "vtxPt/F");
+   tree_out_B->Branch( "vtxSumPt", 	&vtxSumPt, "vtxSumPt/F");
+   tree_out_B->Branch( "diphoPt", 	&diphoPt, "diphoPt/F");
+   tree_out_B->Branch( "pvNtrack", 	&pvNtrack, "pvNtrack/I");
+ 
 
    int NEntries =  tree_in->GetEntries();
    for(int i=0;i<NEntries;i++)
@@ -82,6 +138,16 @@ void TMVA_vtx_prepareTree(string inputFilename = "../HggRazorUpgradeTiming_PU0_N
 		logsumpt2 = logsumpt2_all[j];
 		pull_conv = pull_conv_all[j];
 		nConv = nConv_all[j];
+		vtxdX = vtxdX_all[j];
+		vtxdY = vtxdY_all[j];
+		vtxdZ = vtxdZ_all[j];
+		vtxdT = vtxdT_all[j];
+
+		vtxPt = vtxPt_all[j];
+		vtxSumPt = vtxSumPt_all[j];
+
+		pvNtrack = pvNtrack_all[j];
+
 		if(!isinf(logsumpt2))
 		{
 		if(isMatchPv[j]==0)
