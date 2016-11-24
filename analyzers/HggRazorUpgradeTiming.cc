@@ -73,7 +73,7 @@ const double EE_Z = 317.0;
 const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
-const float SIGMATRKZ[12] = { 0.0125255,
+ float SIGMATRKZ[12] = { 0.0125255,
                               0.0178107,
                               0.0581667,
                               0.152157,
@@ -160,26 +160,53 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
   float ptasym = 0.;
   float ptbal = 0.;
   float logsumpt2 = 0.;
+  Float_t vertexsumpt = 0.;
+  float vertexpt = 0.;
+  float diphotonpt = 0.;
   float pull_conv = 0.;
   float nConv = 0.;
  
   Int_t isMatchPv[200]; 
   Int_t isMaxbdtPv[200]; 
+  Int_t isMaxlogsumpt2Pv[200]; 
   float ptasym_all[200];// = {0.};
   float ptbal_all[200];// = {0.};
   float logsumpt2_all[200];// = {0.};
+  Float_t vertexsumpt_all[200];// = {0.};
+  float vertexpt_all[200];// = {0.};
   float pull_conv_all[200];// = {0.};
-  float nConv_all[200];// = {0.};
-  
+  float nConv_all[200];// = {0.}; 
+  float vtxdZCoordinate_all[200];// = {0.}; 
+  float vtxdXCoordinate_all[200];// = {0.}; 
+  float vtxdYCoordinate_all[200];// = {0.}; 
+  float vtxdTCoordinate_all[200];// = {0.}; 
+  float vtxXCoordinate_all[200];// = {0.}; 
+  float vtxYCoordinate_all[200];// = {0.}; 
+  float vtxZCoordinate_all[200];// = {0.}; 
+  float vtxTCoordinate_all[200];// = {0.}; 
+  Int_t pvNtrack_all[200];// = {0.};
+
   for(int i=0;i<200;i++)
   {
 	isMatchPv[i]=0;
 	isMaxbdtPv[i]=0;
+	isMaxlogsumpt2Pv[i]=0;
 	ptasym_all[i]=0.0;
+	pvNtrack_all[i]=0;
 	ptbal_all[i]=0.0;
      	logsumpt2_all[i]=0.0;	
+     	vertexsumpt_all[i]=0.0;	
+     	vertexpt_all[i]=0.0;	
   	pull_conv_all[i]=0.0;
 	nConv_all[i]=0.0;
+	vtxdZCoordinate_all[i]=0.0;
+	vtxdXCoordinate_all[i]=0.0;
+	vtxdYCoordinate_all[i]=0.0;
+	vtxdTCoordinate_all[i]=0.0;
+	vtxXCoordinate_all[i]=0.0;
+	vtxYCoordinate_all[i]=0.0;
+	vtxZCoordinate_all[i]=0.0;
+	vtxTCoordinate_all[i]=0.0;
   }
   
   TMVA::Reader *vtxmvareader = 0;
@@ -394,6 +421,9 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
   int   Pho_motherID[2];
   int   vtxIndex;
   float vtxZCoordinate;
+  float vtxdZCoordinate;
+  float vtxTCoordinate;
+  float vtxdTCoordinate;
 
   //jet information
   int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
@@ -582,6 +612,9 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
     razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
     razorTree->Branch("vtxIndex", &vtxIndex, "vtxIndex/I");
     razorTree->Branch("vtxZ", &vtxZCoordinate, "vtxZ/F");
+    razorTree->Branch("vtxdZ", &vtxdZCoordinate, "vtxdZ/F");
+    razorTree->Branch("vtxT", &vtxTCoordinate, "vtxT/F");
+    razorTree->Branch("vtxdT", &vtxdTCoordinate, "vtxdT/F");
 
     //GenParticles
     razorTree->Branch("nGenParticle", &nGenParticle, "nGenParticle/I");
@@ -607,12 +640,25 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
 
     razorTree->Branch("isMatchPv", isMatchPv, "isMatchPv[nPVAll]/I");
     razorTree->Branch("isMaxbdtPv", isMaxbdtPv, "isMaxbdtPv[nPVAll]/I");
+    razorTree->Branch("isMaxlogsumpt2Pv", isMaxlogsumpt2Pv, "isMaxlogsumpt2Pv[nPVAll]/I");
 
     razorTree->Branch("ptasym", ptasym_all, "ptasym[nPVAll]/F");
+    razorTree->Branch("pvNtrack", pvNtrack_all, "pvNtrack[nPVAll]/I");
     razorTree->Branch("ptbal", ptbal_all, "ptbal[nPVAll]/F");
     razorTree->Branch("logsumpt2", logsumpt2_all, "logsumpt2[nPVAll]/F");
+    razorTree->Branch("vertexsumpt", vertexsumpt_all, "vertexsumpt[nPVAll]/F");
+    razorTree->Branch("vertexpt", vertexpt_all, "vertexpt[nPVAll]/F");
+    razorTree->Branch("diphotonpt", &diphotonpt, "diphotonpt/F");
     razorTree->Branch("limPullToConv", pull_conv_all, "limPullToConv[nPVAll]/F");
     razorTree->Branch("nConv", nConv_all, "nConv[nPVAll]/F");
+    razorTree->Branch("vtxdZ_all", vtxdZCoordinate_all, "vetdZ_all[nPVAll]/F");
+    razorTree->Branch("vtxdX_all", vtxdXCoordinate_all, "vetdX_all[nPVAll]/F");
+    razorTree->Branch("vtxdY_all", vtxdYCoordinate_all, "vetdY_all[nPVAll]/F");
+    razorTree->Branch("vtxdT_all", vtxdTCoordinate_all, "vetdT_all[nPVAll]/F");
+    razorTree->Branch("vtxZ_all", vtxZCoordinate_all, "vetZ_all[nPVAll]/F");
+    razorTree->Branch("vtxX_all", vtxXCoordinate_all, "vetX_all[nPVAll]/F");
+    razorTree->Branch("vtxY_all", vtxYCoordinate_all, "vetY_all[nPVAll]/F");
+    razorTree->Branch("vtxT_all", vtxTCoordinate_all, "vetT_all[nPVAll]/F");
 
 
   }
@@ -719,12 +765,25 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
   {
 	isMatchPv[i]=0;
 	isMaxbdtPv[i]=0;
+	isMaxlogsumpt2Pv[i]=0;
 	ptasym_all[i]=0.0;
+	pvNtrack_all[i]=0;
 	ptbal_all[i]=0.0;
      	logsumpt2_all[i]=0.0;	
+     	vertexsumpt_all[i]=0.0;	
+     	vertexpt_all[i]=0.0;	
   	pull_conv_all[i]=0.0;
 	nConv_all[i]=0.0;
+	vtxdZCoordinate_all[i]=0.0;
+	vtxdXCoordinate_all[i]=0.0;
+	vtxdYCoordinate_all[i]=0.0;
+	vtxdTCoordinate_all[i]=0.0;
+	vtxZCoordinate_all[i]=0.0;
+	vtxXCoordinate_all[i]=0.0;
+	vtxYCoordinate_all[i]=0.0;
+	vtxTCoordinate_all[i]=0.0;
   }
+        diphotonpt = 0.0;
  
     //begin event
     if( _info && (jentry % 10 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;    
@@ -805,6 +864,9 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
     passedDiphotonTrigger = false;
     vtxIndex = -1;
     vtxZCoordinate = -999;
+    vtxdZCoordinate = -999;
+    vtxTCoordinate = -999;
+    vtxdTCoordinate = -999;
 
     if( _info )  std::cout<<"DEBUG_ZZC 003"<<std::endl;
     //selected photons variables
@@ -1219,7 +1281,9 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
               float pho2E = pho2.photon.E();
               
               float maxbdtval = -99.;
+              float maxlogsumpt2 = -99.;
               int ipvmax = 0;
+              int ipvmaxlogsumpt2 = 0;
                             
               for (int ipv=0; ipv<nPVAll; ++ipv) {
                 float vtxX = pvAllX[ipv];
@@ -1316,17 +1380,64 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
                   maxbdtval = bdtval;
                   ipvmax = ipv;
                 }
+		if(logsumpt2 > maxlogsumpt2)
+		{
+		  maxlogsumpt2 = logsumpt2;
+		  ipvmaxlogsumpt2 = ipv;
+		}
                 
               }
 
-	      if (_debug) std::cout << "Vertex Selected: " << ipvmax << "\n\n";
+	     
+	       
+              int ipvmatch = 0;
 	      
+              double minDist = 999999.0;
+                            
+              for (int ipv=0; ipv<nPVAll; ++ipv) {
+                float vtxX = pvAllX[ipv];
+                float vtxY = pvAllY[ipv];
+                float vtxZ = pvAllZ[ipv];
+                float vtxT = pvAllT[ipv];
+	  	if(!useTiming)
+		{	
+		double dist_this = sqrt(pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0));
+		if(dist_this < minDist)
+		{
+		    ipvmatch = ipv;
+		    minDist = dist_this;
+		}
+		}
+		else
+		{
+		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.01*0.01)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
+		if(chi2_zt < minDist)
+		{
+		     ipvmatch = ipv;
+		     minDist = chi2_zt;
+		}	
+		}
+               }
+ 
 	      vtxIndex = ipvmax;
-	      vtxZCoordinate =  pvAllZ[ipvmax];
+	      
+	       
+	      if (_debug) std::cout << "maxbdt Vertex: " << ipvmax << "\n\n";
+	      if (_debug) std::cout << "gen-match Vertex: " << ipvmatch << "\n\n";
+	      if (_debug) std::cout << "maxlogsumpt2 Vertex: " << ipvmaxlogsumpt2 << "\n\n";
+	      
+	      if (_debug) std::cout << "Vertex Selected: " << vtxIndex << "\n\n";
 
-              float vtxX = pvAllX[ipvmax];
-              float vtxY = pvAllY[ipvmax];
-              float vtxZ = pvAllZ[ipvmax];
+	      vtxZCoordinate =  pvAllZ[vtxIndex];
+	      vtxdZCoordinate =  pvAllZ[vtxIndex] - genVertexZ;
+	      if(useTiming)
+		{
+		vtxTCoordinate =  pvAllT[vtxIndex];
+	      	vtxdTCoordinate =  pvAllT[vtxIndex] - genVertexT;
+		} 
+              float vtxX = pvAllX[vtxIndex];
+              float vtxY = pvAllY[vtxIndex];
+              float vtxZ = pvAllZ[vtxIndex];
               
               TVector3 pho1dir(pho1.scX-vtxX,pho1.scY-vtxY,pho1.scZ-vtxZ);
               pho1dir = pho1dir.Unit();
@@ -1433,10 +1544,12 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
 
               float pho1E = bestCand[0].photon.E();
               float pho2E = bestCand[1].photon.E();
-              
-              float maxbdtval = -99.;
+             
+  	      float maxbdtval = -99.;
+              float maxlogsumpt2 = -99.;
               int ipvmax = 0;
               int ipvmatch = 0;
+              int ipvmaxlogsumpt2 = 0;
 	      
               double minDist = 999999.0;
                             
@@ -1456,7 +1569,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
 		}
 		else
 		{
-		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.1*0.1)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
+		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.01*0.01)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
 		if(chi2_zt < minDist)
 		{
 		     ipvmatch = ipv;
@@ -1480,6 +1593,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
 			    << "\n";
 		}
 		logsumpt2 = pvAllLogSumPtSq[ipv];
+		vertexsumpt = pvAllSumPt[ipv];
+		vertexpt = vtxSumPt.Mag();
                 ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
                 }
@@ -1495,9 +1610,14 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
 			    << "\n";
 		}
 		logsumpt2 = pvAllLogSumPtSq_dt[ipv];
+		vertexsumpt = pvAllSumPt_dt[ipv];
+		//cout<<"vertexsumpt "<<ipv<<"  "<<pvAllSumPt[ipv]<<endl;	
+		vertexpt = vtxSumPt.Mag();
                 ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
                 ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
 		}
+
+		diphotonpt = diphoPt.Mag();
 
                 bool hasconv1 = bestCand[0].convType>=0;
                 bool hasconv2 = bestCand[1].convType>=0;
@@ -1552,95 +1672,62 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, int option, str
                   maxbdtval = bdtval;
                   ipvmax = ipv;
                 }
+
+		if(logsumpt2 > maxlogsumpt2)
+                {
+                  maxlogsumpt2 = logsumpt2;
+                  ipvmaxlogsumpt2 = ipv;
+                }
+
              	if(ipv<200)
 		{ 
 		ptasym_all[ipv]=ptasym;
 		ptbal_all[ipv]=ptbal;
 		logsumpt2_all[ipv]=logsumpt2;
+		vertexsumpt_all[ipv]=vertexsumpt;
+		vertexpt_all[ipv]=vertexpt;
 		pull_conv_all[ipv]=pull_conv;
 		nConv_all[ipv]=nConv;	  
+		vtxdZCoordinate_all[ipv]=pvAllZ[ipv] - genVertexZ;	  
+		vtxdXCoordinate_all[ipv]=pvAllX[ipv] - genVertexX;	  
+		vtxdYCoordinate_all[ipv]=pvAllY[ipv] - genVertexY;	  
+		vtxdTCoordinate_all[ipv]=pvAllT[ipv] - genVertexT;	  
+		vtxZCoordinate_all[ipv]=pvAllZ[ipv];	  
+		vtxXCoordinate_all[ipv]=pvAllX[ipv];	  
+		vtxYCoordinate_all[ipv]=pvAllY[ipv];	  
+		vtxTCoordinate_all[ipv]=pvAllT[ipv];	  
+		if(useTiming) 
+		{
+		pvNtrack_all[ipv] = pvNtrack_orig_dt[ipv];
+		//cout<<"pvNtrack "<<ipv<<"  "<< pvNtrack_orig_dt[ipv]<<endl;
+		}
+		else 
+		{
+		pvNtrack_all[ipv] = pvNtrack_orig[ipv];
+		//cout<<"pvNtrack "<<ipv<<"  "<< pvNtrack_orig[ipv]<<endl;
+		}
 		}
               }
 
-	      if (_debug) std::cout << "Vertex Selected: " << ipvmax << "\n\n";
+ 		vtxIndex = ipvmax;
+
+		if (_debug) std::cout << "maxbdt Vertex: " << ipvmax << "\n\n";
+                if (_debug) std::cout << "gen-match Vertex: " << ipvmatch << "\n\n";
+                if (_debug) std::cout << "maxlogsumpt2 Vertex: " << ipvmaxlogsumpt2 << "\n\n";
+
+              	if (_debug) std::cout << "Vertex Selected: " << vtxIndex << "\n\n";
+
+              	vtxZCoordinate =  pvAllZ[vtxIndex];
+              	vtxdZCoordinate =  pvAllZ[vtxIndex] - genVertexZ;
+              	if(useTiming)
+                {
+                vtxTCoordinate =  pvAllT[vtxIndex];
+                vtxdTCoordinate =  pvAllT[vtxIndex] - genVertexT;
+                }
 	     
 	      isMatchPv[ipvmatch]=1; 
 	      isMaxbdtPv[ipvmax]=1; 
-              for (int ipv=ipvmax; ipv<ipvmax+1; ++ipv) {
-                float vtxX = pvAllX[ipv];
-                float vtxY = pvAllY[ipv];
-                float vtxZ = pvAllZ[ipv];
-                
-                TVector3 pho1dir(bestCand[0].scX-vtxX,bestCand[0].scY-vtxY,bestCand[0].scZ-vtxZ);
-                TVector3 pho2dir(bestCand[1].scX-vtxX,bestCand[1].scY-vtxY,bestCand[1].scZ-vtxZ);
-                TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
-                TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
-                
-                TVector3 vtxSumPt(pvAllSumPx[ipv]-bestCand[0].vtxSumPx[ipv]-bestCand[1].vtxSumPx[ipv], pvAllSumPy[ipv]-bestCand[0].vtxSumPy[ipv]-bestCand[1].vtxSumPy[ipv],0.);
-                
-
-		if (_debug) {
-		  std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
-			    << diphoPt.Eta() << " " << diphoPt.Phi() << " "
-			    << "\n";
-		}
-
-                logsumpt2 = pvAllLogSumPtSq[ipv];
-                ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
-                ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
-                
-                bool hasconv1 = bestCand[0].convType>=0;
-                bool hasconv2 = bestCand[1].convType>=0;
-                
-                float convz1 = -99.;
-                float convsz1 = -99.;
-                float convz2 = -99.;
-                float convsz2 = -99.;
-                                
-                nConv = 0.;
-                float convz = -99.;
-                float convsz = -99.;
-                if (hasconv1) {
-                  convz1 = SIGMATRKZ[bestCand[0].convType] < SIGMATRKCLUSZ[bestCand[0].convType] ? bestCand[0].convTrkZ : bestCand[0].convTrkClusZ;
-                  convsz1 = std::min(SIGMATRKZ[bestCand[0].convType],SIGMATRKCLUSZ[bestCand[0].convType]);                  
-                  
-                  convz = convz1;
-                  convsz = convsz1;
-                  nConv = 1;
-                }
-                if (hasconv2) {
-                  convz2 = SIGMATRKZ[bestCand[1].convType] < SIGMATRKCLUSZ[bestCand[1].convType] ? bestCand[1].convTrkZ : bestCand[1].convTrkClusZ;
-                  convsz2 = std::min(SIGMATRKZ[bestCand[1].convType],SIGMATRKCLUSZ[bestCand[1].convType]);
-                  
-                  convz = convz2;
-                  convsz = convsz2;
-                  nConv = 1;
-                }
-                if (hasconv1 && hasconv2) {
-                  double w1 = 1./convsz1/convsz1;
-                  double w2 = 1./convsz2/convsz2;
-                  convz = (w1*convz1 + w2*convz2)/(w1+w2);
-                  convsz = sqrt(1./(w1+w2));
-                  nConv = 2;
-                }
-                
-                if (hasconv1 || hasconv2) {
-                  pull_conv = std::abs(convz-vtxZ)/convsz;
-                  pull_conv = std::min(10.f,pull_conv); 
-                }
-                else {
-                  pull_conv = 10.;
-                }
-                
-                float bdtval = vtxmvareader->EvaluateMVA("BDT");
-
-		if (_debug) std::cout << "Vertex: " << ipv << " " << pvAllZ[ipv] << " : " 
-				      << ptasym << " " << ptbal << " " << logsumpt2 << " " << pull_conv << " " << nConv << " : "
-				      << bdtval << "\n";
-                              
-                
-              }
-
+	      isMaxlogsumpt2Pv[ipvmaxlogsumpt2]=1; 
               
             } //end if do MVA Vertex
             

@@ -48,7 +48,7 @@
 #include "TMVA/Tools.h"
 #endif
 
-void TMVA_vtx( TString myMethodList = "" )
+void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.root", TString outputFilename = "TMVA_PU0_NoTiming_vtx.root", TString myMethodList = "")
 {
    // The explicit loading of the shared libTMVA is done in TMVAlogon.C, defined in .rootrc
    // if you use your private .rootrc, or run from a different directory, please copy the
@@ -156,8 +156,8 @@ void TMVA_vtx( TString myMethodList = "" )
    // --- Here the preparation phase begins
 
    // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
-   TString outfileName( "TMVA_vtx.root" );
-   TFile* outputFile = TFile::Open( outfileName, "RECREATE" );
+   //TString outfileName( "TMVA_vtx.root" );
+   TFile* outputFile = TFile::Open( outputFilename, "RECREATE" );
 
    // Create the factory object. Later you can choose the methods
    // whose performance you'd like to investigate. The factory is 
@@ -202,12 +202,12 @@ void TMVA_vtx( TString myMethodList = "" )
 
    // Read training and test data
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
-   TString fname = "./HggRazorUpgradeTiming_PU200_NoTiming_vtx.root";
+   //TString fname = "./HggRazorUpgradeTiming_PU200_NoTiming_vtx.root";
    
-   if (gSystem->AccessPathName( fname ))  // file does not exist in local directory
+   if (gSystem->AccessPathName( inputFilename ))  // file does not exist in local directory
       gSystem->Exec("wget http://root.cern.ch/files/tmva_class_example.root");
    
-   TFile *input = TFile::Open( fname );
+   TFile *input = TFile::Open( inputFilename );
    
    std::cout << "--- TMVAClassification       : Using input file: " << input->GetName() << std::endl;
    
