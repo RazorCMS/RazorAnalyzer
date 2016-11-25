@@ -318,6 +318,14 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
         TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);      
         double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
+
+	    //b-tagging
+        if (thisJet.Pt() > 15 && fabs(jetEta[i]) < 2.5)
+        {
+            if (jetCISV[i] > 0.46)  nBTaggedJetsL++;
+            if (jetCISV[i] > 0.80)  nBTaggedJetsM++;
+            if (jetCISV[i] > 0.935)  nBTaggedJetsT++;
+        } 
         
         if(jetCorrPt <= 30) continue;
         if(fabs(jetEta[i]) >= 3.0) continue;
@@ -329,10 +337,6 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         JetChargedHadronFraction.push_back(jetChargedHadronEnergyFraction[i]);
 	    
         nSelectedJets++;
-	    //b-tagging 
-	    if(isCSVL(i)) nBTaggedJetsL++;
-	    if(isCSVM(i)) nBTaggedJetsM++;
-	    if(isCSVT(i)) nBTaggedJetsT++;
       }
 	
 	
