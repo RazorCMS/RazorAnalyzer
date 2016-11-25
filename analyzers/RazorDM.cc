@@ -46,16 +46,16 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
   std::vector<JetCorrectorParameters> correctionParameters;
   if (isData) 
   {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_DATA_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_DATA_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_DATA_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_DATA_L2L3Residual_AK4PFchs.txt", pathname.c_str())));
   }
   else 
   {
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
-    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer15_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+    correctionParameters.push_back(JetCorrectorParameters(Form("%s/Spring16_25nsV6_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
   }
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector( correctionParameters );
@@ -139,7 +139,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       
       razorTree->Branch("MR", &MR, "MR/F");
       razorTree->Branch("Rsq", &Rsq, "Rsq/F");
-      razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
+//      razorTree->Branch("t1Rsq", &t1Rsq, "t1Rsq/F");
       razorTree->Branch("deltaPhi", &deltaPhi, "deltaPhi/F");
       razorTree->Branch("metPt", &metPt, "metPt/F");
       razorTree->Branch("metPhi", &metPhi, "metPhi/F");
@@ -308,6 +308,9 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	  } 
 	*/
       //TODO: triggers!
+      //------------------------------
+	  // Reco+ID Muons
+	  //------------------------------
       bool passedLeptonicTrigger = true;
       bool passedHadronicTrigger= true;
       if ( !(passedLeptonicTrigger || passedHadronicTrigger) ) continue; //ensure event passed a trigger
@@ -315,7 +318,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       vector<TLorentzVector> GoodLeptons; //leptons used to compute hemispheres
       for (int i = 0; i < nMuons; i++)
       {
-          if ( muonPt[i] < 10.0 || fabs(muonEta[i]) > 2.4 ) continue;  
+          if ( muonPt[i] <= 10.0 || fabs(muonEta[i]) >= 2.4 ) continue;  
 	      TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
 	      if ( isLooseMuon(i) )
           {
@@ -327,12 +330,12 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       }
       
       //------------------------------
-	  // Reco+ID Muons
+	  // Reco+ID Electron
 	  //------------------------------
 	  vector<TLorentzVector> LooseEle; //Electrons use to compute MET
       for(int i = 0; i < nElectrons; i++)
       {
-        if (elePt[i] < 10.0 || fabs(eleEta[i]) > 2.5) continue;
+        if (elePt[i] <= 10.0 || fabs(eleEta[i]) >= 2.5) continue;
         if (fabs(eleEta[i]) > 1.442 && fabs(eleEta[i]) < 1.566) continue;
         bool overlap = false;
         for(auto& lep : GoodLeptons)
@@ -356,6 +359,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	  for(int i = 0; i < nTaus; i++)
       {
           if (tauPt[i] <= 18 || fabs(tauEta[i]) >= 2.3) continue;
+          
           //remove overlaps
           bool overlap = false;
           for (auto& lep : GoodLeptons)
@@ -363,18 +367,14 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
               if (RazorAnalyzer::deltaR(tauEta[i],tauPhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
           }
           if (overlap) continue;
+          if (!(tau_ID[i] & 1)) continue;
+          if (tau_combinedIsoDeltaBetaCorr3Hits[i] > 5.) continue;
     
           TLorentzVector thisTau; thisTau.SetPtEtaPhiM(tauPt[i], tauEta[i], tauPhi[i], 1.777);
-          if(isLooseTau(i)) 
-          {
-              nLooseTaus++;
-              GoodLeptons.push_back(thisTau);  
-          }
-          if(isTightTau(i)) nTightTaus++;
-
-    //      if (!isLooseTau(i)) continue; 
+          GoodLeptons.push_back(thisTau);  
+          nLooseTaus++;
+          nTightTaus++;
 	  }
-      if (nTightTaus > 0) continue;
 	
         
 	  //------------------------
@@ -410,7 +410,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         }
         
         if(deltaR > 0 && deltaR < 0.4) continue; //jet matches a selected lepton
-	    if ( !jetPassIDTight[i] ) continue;
+	    if ( !jetPassIDLoose[i] ) continue;
 
 	    //Obtain JEC
         double tmpRho = fixedGridRhoFastjetAll;
@@ -429,8 +429,9 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         TLorentzVector L1CorrJet = makeTLorentzVector(jetPt[i]*JECLevel1, jetEta[i], jetPhi[i], jetE[i]*JECLevel1);
         TLorentzVector UnCorrJet = makeTLorentzVector(jetPt[i], jetEta[i], jetPhi[i], jetE[i]);      
         double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
-        if(jetCorrPt < 30) continue;
-        if(fabs(jetEta[i]) > 3.0) continue;
+        
+        if(jetCorrPt <= 30) continue;
+        if(fabs(jetEta[i]) >= 3.0) continue;
 	    
 	    if (thisJet.Pt() > 80.0) numJetsAbove80GeV++;
 	    GoodJets_uncorr.push_back(UnCorrJet);
@@ -445,7 +446,6 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	    if(isCSVT(i)) nBTaggedJetsT++;
       }
 	
-      if ( numJetsAbove80GeV < 2 ) continue; //event fails to have two 80 GeV jets
 	
 	  int jIndex = 0;
 	  for (auto& tmpJet: GoodJets_uncorr)
@@ -496,7 +496,6 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	    }
         auto sortJets = []( TLorentzVector a, TLorentzVector b )
         { 
-//            return a.Pt() > b.Pt() ? true : false; 
             return (a.Pt() > b.Pt()); 
         };
         
@@ -518,8 +517,8 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
     
       MR    = computeMR(hemispheres[0], hemispheres[1]); 
-	  Rsq   = computeRsq(hemispheres[0], hemispheres[1], PFMET);
-	  t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
+	  Rsq   = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
+//	  t1Rsq = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
       deltaPhi = fabs(hemispheres[0].DeltaPhi(hemispheres[1])); 
 
       // Compute HT and MHT
@@ -534,7 +533,14 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       MyMHT.SetPxPyPzE(-MhtX, -MhtY, 0, sqrt(pow(MhtX,2) + pow(MhtY,2)));
 
       MHT = MyMHT.Pt();
-    
+      if (MR < 200) continue;
+      if (Rsq < 0.35) continue;
+      if (deltaPhi > 2.5) continue;
+      if (nLooseTaus > 0 || nLooseElectrons > 0 || nLooseMuons > 0 || nBTaggedJetsL > 0) continue;
+      if (numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets
+      
+      razorTree->Fill(); 
+     /* 
 	  //MuMu Box
       if ( passedLeptonicTrigger && nLooseMuons > 1 && nLooseElectrons == 0 && nBTaggedJetsL == 0 )
 	  {
@@ -558,8 +564,8 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	    metPhiCorr = pfmet.Phi();
 	    t1metPtCorr  = t1pfmet.Pt();
 	    t1metPhiCorr = t1pfmet.Phi();
-	    RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
-	    t1RsqCorr = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+	    RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+	    //t1RsqCorr = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
 	    if(combineTrees)
 	    {
 		    box = MuMu;
@@ -589,8 +595,8 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         metPhiCorr = pfmet.Phi();
         t1metPtCorr  = t1pfmet.Pt();
         t1metPhiCorr = t1pfmet.Phi();
-        RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
-        t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        //t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
 	    if ( combineTrees )
 	    {
 		    box = EleEle;
@@ -621,8 +627,8 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         metPhiCorr = pfmet.Phi();
         t1metPtCorr  = t1pfmet.Pt();
         t1metPhiCorr = t1pfmet.Phi();
-        RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
-        t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        //t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
 	    
 	    if(combineTrees)
         {
@@ -653,8 +659,8 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
         metPhiCorr = pfmet.Phi();
         t1metPtCorr  = t1pfmet.Pt();
         t1metPhiCorr = t1pfmet.Phi();
-        RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], pfmet);
-        t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        RsqCorr   = computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
+        //t1RsqCorr =computeRsq(hemispheres[0], hemispheres[1], t1pfmet);
 	    
 	    if(combineTrees)
         {
@@ -693,8 +699,10 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	    }
 	    else razorBoxes["OneBJet"]->Fill();
 	  }
+   */ 
+//      cout << "Run " <<  run << "\tEvt " << event << endl; 
+//     cout << "Run " <<  run << "\tEvt " << event << "\tMR " << MR << "\tRsq " << Rsq << "\tMET " << t1metPt << endl;
     }//end of event loop
-    
     cout << "Writing output trees..." << endl;
     if(combineTrees) razorTree->Write();
     else for(auto& box : razorBoxes) box.second->Write();
