@@ -751,6 +751,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
 	  ) {
 	pass = true;
       }
+    }
 
     // // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
     // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
