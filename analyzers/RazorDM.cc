@@ -412,9 +412,9 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 
 
       // EVENT SELECTION
-      if (MR < 200) continue;
-      if (Rsq < 0.35) continue;
-      if (deltaPhi > 2.5) continue;
+//      if (MR < 200) continue;
+//      if (Rsq < 0.35) continue;
+//      if (deltaPhi > 2.5) continue;
       if (nLooseTaus > 0 || nLooseElectrons > 0 || nLooseMuons > 0 || nLoosePhotons > 0) continue;
       if (numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets
 //      cout << "Run " << run << "\tEvt " << event << endl;       
