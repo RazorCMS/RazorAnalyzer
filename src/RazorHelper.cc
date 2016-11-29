@@ -608,10 +608,15 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
-    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
-    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
+
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("ScaleFactor_PhoHLTLeadingLegEffDenominatorLoose");
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("ScaleFactor_PhoHLTTrailingLegEffDenominatorLoose");
 
     //get trigger numbers
     // (we are using the same list of trigger numbers for data and MC for 2016)
@@ -805,10 +810,10 @@ void RazorHelper::loadTrigger_Razor2016() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
 
     //get trigger numbers
     // (we are using the same list of trigger numbers for data and MC for 2016)
@@ -959,10 +964,10 @@ void RazorHelper::loadTrigger_Razor2016_ICHEP() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
 
     //get trigger numbers
     dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
@@ -1057,10 +1062,10 @@ void RazorHelper::loadTrigger_Razor2016G() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
 
     //get trigger numbers
     dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
@@ -1153,10 +1158,10 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
-    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("hEffEtaPt");
 
     //get trigger numbers
     dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
@@ -1504,13 +1509,25 @@ void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool i
 
 double RazorHelper::getDiphotonTrigLeadingLegEff(float pt, float eta) {
   double sf = 1.0;
-  if (diphotonTrigLeadingLegEffSFHist) sf = lookupEtaPtScaleFactor( diphotonTrigLeadingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
+  if (diphotonTrigLeadingLegEffHist) sf = lookupEtaPtScaleFactor( diphotonTrigLeadingLegEffHist, pt, eta, 20.01, 99.9 ); 
+  return sf; 
+}
+
+double RazorHelper::getDiphotonTrigLeadingLegEffSF(float pt, float eta) {
+  double sf = 1.0;
+  if (diphotonTrigLeadingLegEffSFHist) sf = lookupPtEtaScaleFactor( diphotonTrigLeadingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
   return sf; 
 }
 
 double RazorHelper::getDiphotonTrigTrailingLegEff(float pt, float eta) {
   double sf = 1.0;
-  if (diphotonTrigTrailingLegEffSFHist) sf = lookupEtaPtScaleFactor( diphotonTrigTrailingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
+  if (diphotonTrigTrailingLegEffHist) sf = lookupEtaPtScaleFactor( diphotonTrigTrailingLegEffHist, pt, eta, 20.01, 99.9 ); 
+  return sf; 
+}
+
+double RazorHelper::getDiphotonTrigTrailingLegEffSF(float pt, float eta) {
+  double sf = 1.0;
+  if (diphotonTrigTrailingLegEffSFHist) sf = lookupPtEtaScaleFactor( diphotonTrigTrailingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
   return sf; 
 }
 

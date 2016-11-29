@@ -439,25 +439,44 @@ float RazorAnalyzer::GetElectronEffectiveAreaMean(int i, bool use25nsCuts ){
 float RazorAnalyzer::GetElectronEffectiveArea90(int i){ 
 
   double effArea = 0.0;
-  //New effective areas derived from Spring 16 MC
-  //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
-
-  //Effective areas below are for the sum of Neutral Hadrons + Photons
+  //Effective areas derived on Spring15 MC
+  // We will keep using these old ones for Moriond 2017 analyses
+  //Reference: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
   if (fabs(eleEta_SC[i]) < 1.0) {
-    effArea = 0.1703;
+    effArea = 0.1752;
   } else if (fabs(eleEta_SC[i]) < 1.479) {
-    effArea = 0.1715;	
+    effArea = 0.1862;	
   } else if (fabs(eleEta_SC[i]) < 2.0) {
-    effArea = 0.1213;	
+    effArea = 0.1411;	
   } else if (fabs(eleEta_SC[i]) < 2.2) {
-    effArea = 0.1230;	
+    effArea = 0.1534;	
   } else if (fabs(eleEta_SC[i]) < 2.3) {
-    effArea = 0.1635;	
+    effArea = 0.1903;	
   } else if (fabs(eleEta_SC[i]) < 2.4) {
-    effArea = 0.1937;	
+    effArea = 0.2243;	
   } else if (fabs(eleEta_SC[i]) < 2.5) {
-    effArea = 0.2393;
+    effArea = 0.2687;
   }
+
+  // //New effective areas derived from Spring 16 MC
+  // //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
+  // //Effective areas below are for the sum of Neutral Hadrons + Photons
+  // if (fabs(eleEta_SC[i]) < 1.0) {
+  //   effArea = 0.1703;
+  // } else if (fabs(eleEta_SC[i]) < 1.479) {
+  //   effArea = 0.1715;	
+  // } else if (fabs(eleEta_SC[i]) < 2.0) {
+  //   effArea = 0.1213;	
+  // } else if (fabs(eleEta_SC[i]) < 2.2) {
+  //   effArea = 0.1230;	
+  // } else if (fabs(eleEta_SC[i]) < 2.3) {
+  //   effArea = 0.1635;	
+  // } else if (fabs(eleEta_SC[i]) < 2.4) {
+  //   effArea = 0.1937;	
+  // } else if (fabs(eleEta_SC[i]) < 2.5) {
+  //   effArea = 0.2393;
+  // }
+
   return effArea;
 }
 
@@ -558,150 +577,283 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso)
 }
 
 bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
-    // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
     if (!use25nsCuts) {
         std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
         return false;
     }
     bool pass = false;
+
+    //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
     if(fabs(eleEta_SC[i]) < 1.479) {
-        if ( fabs(ele_dEta[i]) < 0.00749
-                && fabs(ele_dPhi[i]) < 0.228
-                && eleFull5x5SigmaIetaIeta[i] < 0.0115
-                && ele_HoverE[i] < 0.356
-                && fabs(ele_d0[i]) < 0.05
-                && fabs(ele_dZ[i]) < 0.10
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.299
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 2
-           ) {
-            pass = true;
-        }
+      if ( fabs(ele_dEta[i]) < 0.0152
+	   && fabs(ele_dPhi[i]) < 0.216
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0114
+	   && ele_HoverE[i] < 0.181
+	   && fabs(ele_d0[i]) < 0.0564
+	   && fabs(ele_dZ[i]) < 0.472
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.207
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 2
+	   ) {
+	pass = true;
+      }
     } else {
-        if (fabs(ele_dEta[i]) < 0.00895
-                && fabs(ele_dPhi[i]) < 0.213
-                && eleFull5x5SigmaIetaIeta[i] < 0.037
-                && ele_HoverE[i] < 0.211
-                && fabs(ele_d0[i]) < 0.1
-                && fabs(ele_dZ[i]) < 0.2
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.15
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 3
-           ) {
-            pass = true;
-        }
+      if (fabs(ele_dEta[i]) < 0.0113
+	  && fabs(ele_dPhi[i]) < 0.237
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0352
+	  && ele_HoverE[i] < 0.116
+	  && fabs(ele_d0[i]) < 0.222
+	  && fabs(ele_dZ[i]) < 0.921
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.174
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 3
+	  ) {
+	pass = true;
+      }
     } 
+
+    // // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
+    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    //
+    // if(fabs(eleEta_SC[i]) < 1.479) {
+    //     if ( fabs(ele_dEta[i]) < 0.00749
+    //             && fabs(ele_dPhi[i]) < 0.228
+    //             && eleFull5x5SigmaIetaIeta[i] < 0.0115
+    //             && ele_HoverE[i] < 0.356
+    //             && fabs(ele_d0[i]) < 0.05
+    //             && fabs(ele_dZ[i]) < 0.10
+    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.299
+    //             && ele_PassConvVeto[i]
+    //             && ele_MissHits[i] <= 2
+    //        ) {
+    //         pass = true;
+    //     }
+    // } else {
+    //     if (fabs(ele_dEta[i]) < 0.00895
+    //             && fabs(ele_dPhi[i]) < 0.213
+    //             && eleFull5x5SigmaIetaIeta[i] < 0.037
+    //             && ele_HoverE[i] < 0.211
+    //             && fabs(ele_d0[i]) < 0.1
+    //             && fabs(ele_dZ[i]) < 0.2
+    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.15
+    //             && ele_PassConvVeto[i]
+    //             && ele_MissHits[i] <= 3
+    //        ) {
+    //         pass = true;
+    //     }
+    // } 
+
+
     return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
-    // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
     if (!use25nsCuts) {
         std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
         return false;
     }
     bool pass = false;
+
+    //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
     if(fabs(eleEta_SC[i]) < 1.479) {
-        if ( fabs(ele_dEta[i]) < 0.00477
-                && fabs(ele_dPhi[i]) < 0.222
-                && eleFull5x5SigmaIetaIeta[i] < 0.011
-                && ele_HoverE[i] < 0.298
-                && fabs(ele_d0[i]) < 0.05
-                && fabs(ele_dZ[i]) < 0.10
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.241
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 1
-           ) {
-            pass = true;
-        }
+      if ( fabs(ele_dEta[i]) < 0.0105
+	   && fabs(ele_dPhi[i]) < 0.115
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0103
+	   && ele_HoverE[i] < 0.104
+	   && fabs(ele_d0[i]) < 0.0261
+	   && fabs(ele_dZ[i]) < 0.41
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.102
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 2
+	   ) {
+	pass = true;
+      }
     } else {
-        if (fabs(ele_dEta[i]) < 0.00868
-                && fabs(ele_dPhi[i]) < 0.213
-                && eleFull5x5SigmaIetaIeta[i] < 0.0314
-                && ele_HoverE[i] < 0.101
-                && fabs(ele_d0[i]) < 0.1
-                && fabs(ele_dZ[i]) < 0.2
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 1
-           ) {
-            pass = true;
-        }
+      if (fabs(ele_dEta[i]) < 0.00814
+	  && fabs(ele_dPhi[i]) < 0.182
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0301
+	  && ele_HoverE[i] < 0.0897
+	  && fabs(ele_d0[i]) < 0.118
+	  && fabs(ele_dZ[i]) < 0.822
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.126
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
+      }
     } 
+
+    // // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
+    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // //
+    // if(fabs(eleEta_SC[i]) < 1.479) {
+    //   if ( fabs(ele_dEta[i]) < 0.00477
+    // 	   && fabs(ele_dPhi[i]) < 0.222
+    // 	   && eleFull5x5SigmaIetaIeta[i] < 0.011
+    // 	   && ele_HoverE[i] < 0.298
+    // 	   && fabs(ele_d0[i]) < 0.05
+    // 	   && fabs(ele_dZ[i]) < 0.10
+    // 	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.241
+    // 	   && ele_PassConvVeto[i]
+    // 	   && ele_MissHits[i] <= 1
+    //        ) {
+    // 	pass = true;
+    //   }
+    // } else {
+    //   if (fabs(ele_dEta[i]) < 0.00868
+    // 	  && fabs(ele_dPhi[i]) < 0.213
+    // 	  && eleFull5x5SigmaIetaIeta[i] < 0.0314
+    // 	  && ele_HoverE[i] < 0.101
+    // 	  && fabs(ele_d0[i]) < 0.1
+    // 	  && fabs(ele_dZ[i]) < 0.2
+    // 	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
+    // 	  && ele_PassConvVeto[i]
+    // 	  && ele_MissHits[i] <= 1
+    // 	  ) {
+    // 	pass = true;
+    //   }
+    // } 
+
     return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
-    // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
     if (!use25nsCuts) {
         std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
         return false;
     }
     bool pass = false;
+
+    //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
     if(fabs(eleEta_SC[i]) < 1.479) {
-        if ( fabs(ele_dEta[i]) < 0.00311
-                && fabs(ele_dPhi[i]) < 0.103
-                && eleFull5x5SigmaIetaIeta[i] < 0.00998
-                && ele_HoverE[i] < 0.253
-                && fabs(ele_d0[i]) < 0.05
-                && fabs(ele_dZ[i]) < 0.10
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.134
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 1
-           ) {
-            pass = true;
-        }
+      if ( fabs(ele_dEta[i]) < 0.0103
+	   && fabs(ele_dPhi[i]) < 0.0336
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
+	   && ele_HoverE[i] < 0.0876
+	   && fabs(ele_d0[i]) < 0.0118
+	   && fabs(ele_dZ[i]) < 0.373
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.0174
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 2
+	   ) {
+	pass = true;
+      }
     } else {
-        if (fabs(ele_dEta[i]) < 0.00609
-                && fabs(ele_dPhi[i]) < 0.045
-                && eleFull5x5SigmaIetaIeta[i] < 0.0298
-                && ele_HoverE[i] < 0.0878
-                && fabs(ele_d0[i]) < 0.1
-                && fabs(ele_dZ[i]) < 0.2
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.13
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 1
-           ) {
-            pass = true;
-        }
-    } 
+      if (fabs(ele_dEta[i]) < 0.00733
+	  && fabs(ele_dPhi[i]) < 0.114
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0283
+	  && ele_HoverE[i] < 0.0678
+	  && fabs(ele_d0[i]) < 0.0739
+	  && fabs(ele_dZ[i]) < 0.602
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0898
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
+      }
+    }
+
+    // // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
+    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    //
+    // if(fabs(eleEta_SC[i]) < 1.479) {
+    //   if ( fabs(ele_dEta[i]) < 0.00311
+    // 	   && fabs(ele_dPhi[i]) < 0.103
+    // 	   && eleFull5x5SigmaIetaIeta[i] < 0.00998
+    // 	   && ele_HoverE[i] < 0.253
+    // 	   && fabs(ele_d0[i]) < 0.05
+    // 	   && fabs(ele_dZ[i]) < 0.10
+    // 	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.134
+    // 	   && ele_PassConvVeto[i]
+    // 	   && ele_MissHits[i] <= 1
+    //        ) {
+    // 	pass = true;
+    //   }
+    // } else {
+    //   if (fabs(ele_dEta[i]) < 0.00609
+    // 	  && fabs(ele_dPhi[i]) < 0.045
+    // 	  && eleFull5x5SigmaIetaIeta[i] < 0.0298
+    // 	  && ele_HoverE[i] < 0.0878
+    // 	  && fabs(ele_d0[i]) < 0.1
+    // 	  && fabs(ele_dZ[i]) < 0.2
+    // 	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.13
+    // 	  && ele_PassConvVeto[i]
+    // 	  && ele_MissHits[i] <= 1
+    // 	  ) {
+    // 	pass = true;
+    //   }
+    // } 
+
     return pass;
 }
 
 bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
-    // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
     if (!use25nsCuts) {
         std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
         return false;
     }
     bool pass = false;
+
+    //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
     if(fabs(eleEta_SC[i]) < 1.479) {
-        if ( fabs(ele_dEta[i]) < 0.00308
-                && fabs(ele_dPhi[i]) < 0.0816
-                && eleFull5x5SigmaIetaIeta[i] < 0.00998
-                && ele_HoverE[i] < 0.0414
-                && fabs(ele_d0[i]) < 0.05
-                && fabs(ele_dZ[i]) < 0.10
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 1
-           ) {
-            pass = true;
-        }
+      if ( fabs(ele_dEta[i]) < 0.00926
+	   && fabs(ele_dPhi[i]) < 0.0336
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0101
+	   && ele_HoverE[i] < 0.0597
+	   && fabs(ele_d0[i]) < 0.0111	   
+	   && fabs(ele_dZ[i]) < 0.0466
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.012
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 2
+	   ) {
+	pass = true;
+      }
     } else {
-        if (fabs(ele_dEta[i]) < 0.00605
-                && fabs(ele_dPhi[i]) < 0.0394
-                && eleFull5x5SigmaIetaIeta[i] < 0.0292
-                && ele_HoverE[i] < 0.0641
-                && fabs(ele_d0[i]) < 0.1
-                && fabs(ele_dZ[i]) < 0.2
-                && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
-                && ele_PassConvVeto[i]
-                && ele_MissHits[i] <= 1
-           ) {
-            pass = true;
-        }
+      if (fabs(ele_dEta[i]) < 0.00724
+	  && fabs(ele_dPhi[i]) < 0.0918
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0279
+	  && ele_HoverE[i] < 0.0615
+	  && fabs(ele_d0[i]) < 0.0351
+	  && fabs(ele_dZ[i]) < 0.417
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.00999
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
+      }
     } 
+
+    // // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
+    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    //
+    // if(fabs(eleEta_SC[i]) < 1.479) {
+    //     if ( fabs(ele_dEta[i]) < 0.00308
+    //             && fabs(ele_dPhi[i]) < 0.0816
+    //             && eleFull5x5SigmaIetaIeta[i] < 0.00998
+    //             && ele_HoverE[i] < 0.0414
+    //             && fabs(ele_d0[i]) < 0.05
+    //             && fabs(ele_dZ[i]) < 0.10
+    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
+    //             && ele_PassConvVeto[i]
+    //             && ele_MissHits[i] <= 1
+    //        ) {
+    //         pass = true;
+    //     }
+    // } else {
+    //     if (fabs(ele_dEta[i]) < 0.00605
+    //             && fabs(ele_dPhi[i]) < 0.0394
+    //             && eleFull5x5SigmaIetaIeta[i] < 0.0292
+    //             && ele_HoverE[i] < 0.0641
+    //             && fabs(ele_d0[i]) < 0.1
+    //             && fabs(ele_dZ[i]) < 0.2
+    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
+    //             && ele_PassConvVeto[i]
+    //             && ele_MissHits[i] <= 1
+    //        ) {
+    //         pass = true;
+    //     }
+    // } 
+
     return pass;
 }
 

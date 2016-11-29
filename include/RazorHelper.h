@@ -68,6 +68,8 @@ class RazorHelper {
 	// get diphoton trigger efficiency scale factor
 	double getDiphotonTrigLeadingLegEff(float pt, float eta);
    	double getDiphotonTrigTrailingLegEff(float pt, float eta);      
+	double getDiphotonTrigLeadingLegEffSF(float pt, float eta);
+   	double getDiphotonTrigTrailingLegEffSF(float pt, float eta);      
 
         // JEC tools
         FactorizedJetCorrector *getJetCorrector() { return JetCorrector; }
@@ -237,8 +239,12 @@ class RazorHelper {
 	//for photon triggers
         TFile *diphotonTrigLeadingLegEffSFFile;
         TFile *diphotonTrigTrailingLegEffSFFile;
+        TFile *diphotonTrigLeadingLegEffFile;
+        TFile *diphotonTrigTrailingLegEffFile;
 	TH2D *diphotonTrigLeadingLegEffSFHist;
 	TH2D *diphotonTrigTrailingLegEffSFHist;
+	TH2D *diphotonTrigLeadingLegEffHist;
+	TH2D *diphotonTrigTrailingLegEffHist;
 
 	//Trigger indices
         std::vector<int> dileptonTriggerNums;

@@ -1087,9 +1087,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	trailingPhoPt = Pho_Pt[0];
 	trailingPhoEta= Pho_Eta[0];
       }
-      double triggerEffLeadingLeg = helper->getDiphotonTrigLeadingLegEff( leadPhoPt, leadPhoEta );
-      double triggerEffTrailingLeg = helper->getDiphotonTrigTrailingLegEff( trailingPhoPt, trailingPhoEta );
-      triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
+      double triggerEffSFLeadingLeg = helper->getDiphotonTrigLeadingLegEffSF( leadPhoPt, leadPhoEta );
+      double triggerEffSFTrailingLeg = helper->getDiphotonTrigTrailingLegEffSF( trailingPhoPt, trailingPhoEta );
+      triggerEffWeight = triggerEffSFLeadingLeg*triggerEffSFTrailingLeg;
 
       //******************************************************
       //compute photon efficiency scale factor
