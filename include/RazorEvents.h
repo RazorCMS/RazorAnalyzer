@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Thu Sep 29 22:19:14 2016 by ROOT version 6.06/01
+// Mon Nov 28 22:08:54 2016 by ROOT version 6.02/05
 // from TTree RazorEvents/selected miniAOD information
-// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root
+// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -105,8 +105,10 @@ public :
    Int_t           ele_MissHits[700];   //[nElectrons]
    Bool_t          ele_PassConvVeto[700];   //[nElectrons]
    Float_t         ele_OneOverEminusOneOverP[700];   //[nElectrons]
-   Float_t         ele_IDMVATrig[700];   //[nElectrons]
-   Float_t         ele_IDMVANonTrig[700];   //[nElectrons]
+   Float_t         ele_IDMVAGeneralPurpose[700];   //[nElectrons]
+   Int_t           ele_IDMVACategoryGeneralPurpose[700];   //[nElectrons]
+   Float_t         ele_IDMVAHZZ[700];   //[nElectrons]
+   Int_t           ele_IDMVACategoryHZZ[700];   //[nElectrons]
    Float_t         ele_RegressionE[700];   //[nElectrons]
    Float_t         ele_CombineP4[700];   //[nElectrons]
    Float_t         ele_ptrel[700];   //[nElectrons]
@@ -408,8 +410,10 @@ public :
    TBranch        *b_ele_MissHits;   //!
    TBranch        *b_ele_PassConvVeto;   //!
    TBranch        *b_ele_OneOverEminusOneOverP;   //!
-   TBranch        *b_ele_IDMVATrig;   //!
-   TBranch        *b_ele_IDMVANonTrig;   //!
+   TBranch        *b_ele_IDMVAGeneralPurpose;   //!
+   TBranch        *b_ele_IDMVACategoryGeneralPurpose;   //!
+   TBranch        *b_ele_IDMVAHZZ;   //!
+   TBranch        *b_ele_IDMVACategoryHZZ;   //!
    TBranch        *b_ele_RegressionE;   //!
    TBranch        *b_ele_CombineP4;   //!
    TBranch        *b_ele_ptrel;   //!
@@ -647,11 +651,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root");
+         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.6/MC/RunIISpring16/v1/sixie/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p6_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext1-v1_v1_v1/160925_172232/0000/razorNtuple_756.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -694,7 +698,7 @@ void RazorEvents::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set object pointer
-  lheComments = 0;
+   lheComments = 0;
    scaleWeights = 0;
    pdfWeights = 0;
    alphasWeights = 0;
@@ -786,8 +790,10 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("ele_MissHits", ele_MissHits, &b_ele_MissHits);
    fChain->SetBranchAddress("ele_PassConvVeto", ele_PassConvVeto, &b_ele_PassConvVeto);
    fChain->SetBranchAddress("ele_OneOverEminusOneOverP", ele_OneOverEminusOneOverP, &b_ele_OneOverEminusOneOverP);
-   fChain->SetBranchAddress("ele_IDMVATrig", ele_IDMVATrig, &b_ele_IDMVATrig);
-   fChain->SetBranchAddress("ele_IDMVANonTrig", ele_IDMVANonTrig, &b_ele_IDMVANonTrig);
+   fChain->SetBranchAddress("ele_IDMVAGeneralPurpose", ele_IDMVAGeneralPurpose, &b_ele_IDMVAGeneralPurpose);
+   fChain->SetBranchAddress("ele_IDMVACategoryGeneralPurpose", ele_IDMVACategoryGeneralPurpose, &b_ele_IDMVACategoryGeneralPurpose);
+   fChain->SetBranchAddress("ele_IDMVAHZZ", ele_IDMVAHZZ, &b_ele_IDMVAHZZ);
+   fChain->SetBranchAddress("ele_IDMVACategoryHZZ", ele_IDMVACategoryHZZ, &b_ele_IDMVACategoryHZZ);
    fChain->SetBranchAddress("ele_RegressionE", ele_RegressionE, &b_ele_RegressionE);
    fChain->SetBranchAddress("ele_CombineP4", ele_CombineP4, &b_ele_CombineP4);
    fChain->SetBranchAddress("ele_ptrel", ele_ptrel, &b_ele_ptrel);
