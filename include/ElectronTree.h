@@ -58,7 +58,7 @@ class ElectronTree {
   Bool_t                  fPassVetoSelection;
   Bool_t                  fPassLooseSelection;
   Bool_t                  fPassTightSelection;
-  Bool_t                  fPassMVANonTrigVetoSelection;
+  Bool_t                  fPassMVAVetoSelection;
 
   // Conversion and IP
   Float_t                 fEleD0; 
@@ -177,8 +177,8 @@ class ElectronTree {
   Float_t                 fEleClassification;
 
   //MVA Variables
-  Float_t                 fIDMVATrig;
-  Float_t                 fIDMVANonTrig;
+  Float_t                 fIDMVAHZZ;
+  Float_t                 fIDMVAGeneralPurpose;
 
  public:
   /// this is the main element
@@ -224,7 +224,7 @@ class ElectronTree {
     fPassVetoSelection                 = false;
     fPassLooseSelection                = false;
     fPassTightSelection                = false;
-    fPassMVANonTrigVetoSelection       = false;
+    fPassMVAVetoSelection       = false;
     fEleD0 			       = 0.0;
     fEleDZ 			       = 0.0;
     fEleIP3d 		       = 0.0;
@@ -326,8 +326,8 @@ class ElectronTree {
     fEleMomentumError_Regression_V1= 0.0;
     fEleMomentumError_Regression_V2= 0.0;
     fEleClassification             = 0.0;
-    fIDMVATrig                     = -9999.0;
-    fIDMVANonTrig                  = -9999.0;
+    fIDMVAHZZ                     = -9999.0;
+    fIDMVAGeneralPurpose                  = -9999.0;
 
   }
     
@@ -375,13 +375,13 @@ class ElectronTree {
     tree_->Branch("R9",&fEleR9,"R9/F"); 
     tree_->Branch("HoE",&fEleHoverE,"HoE/F"); 
     tree_->Branch("pfIso04",&fElePFIso04,"pfIso04/F"); 
-    tree_->Branch("IDMVATrig",&fIDMVATrig,"IDMVATrig/F");
-    tree_->Branch("IDMVANonTrig",&fIDMVANonTrig,"IDMVANonTrig/F");
+    tree_->Branch("IDMVAHZZ",&fIDMVAHZZ,"IDMVAHZZ/F");
+    tree_->Branch("IDMVAGeneralPurpose",&fIDMVAGeneralPurpose,"IDMVAGeneralPurpose/F");
     tree_->Branch("vertices",&fNVertices,"vertices/F"); 
     tree_->Branch("PassVetoSelection",&fPassVetoSelection,"PassVetoSelection/O"); 
     tree_->Branch("PassLooseSelection",&fPassLooseSelection,"PassLooseSelection/O"); 
     tree_->Branch("PassTightSelection",&fPassTightSelection,"PassTightSelection/O"); 
-    tree_->Branch("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection,"PassMVANonTrigVetoSelection/O"); 
+    tree_->Branch("PassMVAVetoSelection",&fPassMVAVetoSelection,"PassMVAVetoSelection/O"); 
     tree_->Branch("PtRel",&fPtRel,"PtRel/F"); 
     tree_->Branch("MiniIsoCharged",&fMiniIsoCharged,"MiniIsoCharged/F"); 
     tree_->Branch("MiniIsoNeutral",&fMiniIsoNeutral,"MiniIsoNeutral/F"); 
@@ -523,12 +523,13 @@ class ElectronTree {
     tree_->SetBranchAddress("R9",&fEleR9);
     tree_->SetBranchAddress("HoE",&fEleHoverE);
     tree_->SetBranchAddress("pfIso04",&fElePFIso04);
-    tree_->SetBranchAddress("IDMVATrig",&fIDMVATrig);
-    tree_->SetBranchAddress("IDMVANonTrig",&fIDMVANonTrig);
+    tree_->SetBranchAddress("IDMVAHZZ",&fIDMVAHZZ);
+    tree_->SetBranchAddress("IDMVAGeneralPurpose",&fIDMVAGeneralPurpose);
     tree_->SetBranchAddress("PassVetoSelection",&fPassVetoSelection);
     tree_->SetBranchAddress("PassLooseSelection",&fPassLooseSelection);
     tree_->SetBranchAddress("PassTightSelection",&fPassTightSelection);
-    tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVANonTrigVetoSelection);
+    tree_->SetBranchAddress("PassMVAVetoSelection",&fPassMVAVetoSelection);
+    //tree_->SetBranchAddress("PassMVANonTrigVetoSelection",&fPassMVAVetoSelection);
     tree_->SetBranchAddress("PtRel",&fPtRel);
     tree_->SetBranchAddress("MiniIsoCharged",&fMiniIsoCharged);
     tree_->SetBranchAddress("MiniIsoNeutral",&fMiniIsoNeutral);
