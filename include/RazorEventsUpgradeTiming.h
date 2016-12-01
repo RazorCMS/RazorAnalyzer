@@ -37,21 +37,25 @@ public :
    Float_t         fixedGridRhoFastjetCentralCalo;
    Float_t         fixedGridRhoFastjetCentralChargedPileUp;
    Float_t         fixedGridRhoFastjetCentralNeutral;
+   Float_t         beamSpotX;
+   Float_t         beamSpotY;
+   Float_t         beamSpotZ;
    Int_t           nPVAll;
-   Float_t         pvAllX[200];   //[nPVAll]
-   Float_t         pvAllY[200];   //[nPVAll]
-   Float_t         pvAllZ[200];   //[nPVAll]
-   Float_t         pvAllT[200];   //[nPVAll]
-   Float_t         pvAllLogSumPtSq[200];   //[nPVAll]
-   Float_t         pvAllSumPt[200];   //[nPVAll]
-   Float_t         pvAllSumPx[200];   //[nPVAll]
-   Int_t         pvNtrack_orig[200];   //[nPVAll]
-   Float_t         pvAllSumPy[200];   //[nPVAll]
-   Float_t         pvAllLogSumPtSq_dt[200];   //[nPVAll]
-   Float_t         pvAllSumPx_dt[200];   //[nPVAll]
-   Int_t         pvNtrack_orig_dt[200];   //[nPVAll]
-   Float_t         pvAllSumPt_dt[200];   //[nPVAll]
-   Float_t         pvAllSumPy_dt[200];   //[nPVAll]
+   Int_t           pvIndex[500];   //[nPVAll]
+   Float_t         pvAllX[500];   //[nPVAll]
+   Float_t         pvAllY[500];   //[nPVAll]
+   Float_t         pvAllZ[500];   //[nPVAll]
+   Float_t         pvAllT[500];   //[nPVAll]
+   Float_t         pvAllLogSumPtSq[500];   //[nPVAll]
+   Float_t         pvAllSumPt[500];   //[nPVAll]
+   Float_t         pvAllSumPx[500];   //[nPVAll]
+   Int_t         pvNtrack_orig[500];   //[nPVAll]
+   Float_t         pvAllSumPy[500];   //[nPVAll]
+   Float_t         pvAllLogSumPtSq_dt[500];   //[nPVAll]
+   Float_t         pvAllSumPx_dt[500];   //[nPVAll]
+   Int_t         pvNtrack_orig_dt[500];   //[nPVAll]
+   Float_t         pvAllSumPt_dt[500];   //[nPVAll]
+   Float_t         pvAllSumPy_dt[500];   //[nPVAll]
 
    Int_t           nBunchXing;
    Int_t           BunchXing[20];   //[nBunchXing]
@@ -173,7 +177,7 @@ public :
    Float_t         phoFull5x5SigmaIetaIeta[40];   //[nPhotons]
    Float_t         phoR9[40];   //[nPhotons]
    Float_t         pho_HoverE[40];   //[nPhotons]
-   Float_t         pho_sumChargedHadronPtAllVertices[40][200];   //[nPhotons]
+   Float_t         pho_sumChargedHadronPtAllVertices[40][500];   //[nPhotons]
    Float_t         pho_sumChargedHadronPt[40];   //[nPhotons]
    Float_t         pho_sumNeutralHadronEt[40];   //[nPhotons]
    Float_t         pho_sumPhotonEt[40];   //[nPhotons]
@@ -193,6 +197,10 @@ public :
    Float_t         pho_superClusterRawEnergy[40];   //[nPhotons]
    Float_t         pho_superClusterEta[40];   //[nPhotons]
    Float_t         pho_superClusterPhi[40];   //[nPhotons]
+   Float_t         pho_superClusterSeedX[40];   //[nPhotons]
+   Float_t         pho_superClusterSeedY[40];   //[nPhotons]
+   Float_t         pho_superClusterSeedZ[40];   //[nPhotons]
+   Float_t         pho_superClusterSeedT[40];   //[nPhotons]
    Float_t         pho_superClusterX[40];   //[nPhotons]
    Float_t         pho_superClusterY[40];   //[nPhotons]
    Float_t         pho_superClusterZ[40];   //[nPhotons]
@@ -201,8 +209,8 @@ public :
    Int_t           pho_convType[40];   //[nPhotons]
    Float_t         pho_convTrkZ[40];   //[nPhotons]
    Float_t         pho_convTrkClusZ[40];   //[nPhotons]
-   Float_t         pho_vtxSumPx[40][200];   //[nPhotons]
-   Float_t         pho_vtxSumPy[40][200];   //[nPhotons]
+   Float_t         pho_vtxSumPx[40][500];   //[nPhotons]
+   Float_t         pho_vtxSumPy[40][500];   //[nPhotons]
    Int_t           nJets;
    Float_t         jetE[100];   //[nJets]
    Float_t         jetPt[100];   //[nJets]
@@ -326,6 +334,10 @@ public :
    //std::vector<std::string> *lheComments;
    std::vector<float>   *scaleWeights;
    std::vector<float>   *pdfWeights;
+   std::vector<float>   *allTrackdT;
+   std::vector<float>   *allTrackPt;
+   std::vector<float>   *allTrackdZ;
+   std::vector<int>   *allTrackPvIndex;
    std::vector<float>   *alphasWeights;
    Int_t           nGenParticle;
    Int_t           gParticleMotherId[4000];   //[nGenParticle]
@@ -352,8 +364,12 @@ public :
    TBranch        *b_fixedGridRhoFastjetCentralCalo;   //!
    TBranch        *b_fixedGridRhoFastjetCentralChargedPileUp;   //!
    TBranch        *b_fixedGridRhoFastjetCentralNeutral;   //!
+   TBranch        *b_beamSpotX;   //!
+   TBranch        *b_beamSpotY;   //!
+   TBranch        *b_beamSpotZ;   //!
    TBranch        *b_nPVAll;   //!
    TBranch        *b_pvAllX;   //!
+   TBranch        *b_pvIndex;   //!
    TBranch        *b_pvAllY;   //!
    TBranch        *b_pvAllZ;   //!
    TBranch        *b_pvAllT;   //!
@@ -508,6 +524,10 @@ public :
    TBranch        *b_pho_superClusterRawEnergy;   //!
    TBranch        *b_pho_superClusterEta;   //!
    TBranch        *b_pho_superClusterPhi;   //!
+   TBranch        *b_pho_superClusterSeedX;   //!
+   TBranch        *b_pho_superClusterSeedY;   //!
+   TBranch        *b_pho_superClusterSeedZ;   //!
+   TBranch        *b_pho_superClusterSeedT;   //!
    TBranch        *b_pho_superClusterX;   //!
    TBranch        *b_pho_superClusterY;   //!
    TBranch        *b_pho_superClusterZ;   //!
@@ -641,6 +661,10 @@ public :
    //TBranch        *b_lheComments;   //!
    TBranch        *b_scaleWeights;   //!
    TBranch        *b_pdfWeights;   //!
+   TBranch        *b_allTrackdT;   //!
+   TBranch        *b_allTrackPt;   //!
+   TBranch        *b_allTrackdZ;   //!
+   TBranch        *b_allTrackPvIndex;   //!
    TBranch        *b_alphasWeights;   //!
    TBranch        *b_nGenParticle;   //!
    TBranch        *b_gParticleMotherId;   //!
@@ -721,6 +745,10 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
   //lheComments = 0;
    scaleWeights = 0;
    pdfWeights = 0;
+   allTrackdT = 0;
+   allTrackPt = 0;
+   allTrackdZ = 0;
+   allTrackPvIndex = 0;
    alphasWeights = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
@@ -742,7 +770,11 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
+   fChain->SetBranchAddress("beamSpotX", &beamSpotX, &b_beamSpotX);
+   fChain->SetBranchAddress("beamSpotY", &beamSpotY, &b_beamSpotY);
+   fChain->SetBranchAddress("beamSpotZ", &beamSpotZ, &b_beamSpotZ);
    fChain->SetBranchAddress("nPVAll", &nPVAll, &b_nPVAll);
+   fChain->SetBranchAddress("pvIndex", pvIndex, &b_pvIndex);
    fChain->SetBranchAddress("pvAllX", pvAllX, &b_pvAllX);
    fChain->SetBranchAddress("pvAllY", pvAllY, &b_pvAllY);
    fChain->SetBranchAddress("pvAllZ", pvAllZ, &b_pvAllZ);
@@ -898,6 +930,10 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("pho_superClusterRawEnergy", pho_superClusterRawEnergy, &b_pho_superClusterRawEnergy);
    fChain->SetBranchAddress("pho_superClusterEta", pho_superClusterEta, &b_pho_superClusterEta);
    fChain->SetBranchAddress("pho_superClusterPhi", pho_superClusterPhi, &b_pho_superClusterPhi);
+   fChain->SetBranchAddress("pho_superClusterSeedX", pho_superClusterSeedX, &b_pho_superClusterSeedX);
+   fChain->SetBranchAddress("pho_superClusterSeedY", pho_superClusterSeedY, &b_pho_superClusterSeedY);
+   fChain->SetBranchAddress("pho_superClusterSeedZ", pho_superClusterSeedZ, &b_pho_superClusterSeedZ);
+   fChain->SetBranchAddress("pho_superClusterSeedT", pho_superClusterSeedT, &b_pho_superClusterSeedT);
    fChain->SetBranchAddress("pho_superClusterX", pho_superClusterX, &b_pho_superClusterX);
    fChain->SetBranchAddress("pho_superClusterY", pho_superClusterY, &b_pho_superClusterY);
    fChain->SetBranchAddress("pho_superClusterZ", pho_superClusterZ, &b_pho_superClusterZ);
@@ -1031,6 +1067,10 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    //fChain->SetBranchAddress("lheComments", &lheComments, &b_lheComments);
    fChain->SetBranchAddress("scaleWeights", &scaleWeights, &b_scaleWeights);
    fChain->SetBranchAddress("pdfWeights", &pdfWeights, &b_pdfWeights);
+   fChain->SetBranchAddress("allTrackdT", &allTrackdT, &b_allTrackdT);
+   fChain->SetBranchAddress("allTrackPt", &allTrackPt, &b_allTrackPt);
+   fChain->SetBranchAddress("allTrackdZ", &allTrackdZ, &b_allTrackdZ);
+   fChain->SetBranchAddress("allTrackPvIndex", &allTrackPvIndex, &b_allTrackPvIndex);
    fChain->SetBranchAddress("alphasWeights", &alphasWeights, &b_alphasWeights);
    fChain->SetBranchAddress("nGenParticle", &nGenParticle, &b_nGenParticle);
    fChain->SetBranchAddress("gParticleMotherId", gParticleMotherId, &b_gParticleMotherId);

@@ -186,6 +186,7 @@ void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.ro
    factory->AddVariable( "var3",                "Variable 3", "units", 'F' );
    factory->AddVariable( "var4",                "Variable 4", "units", 'F' );
    */
+   factory->AddVariable( "chi2_pho_vtx",	'F');
    factory->AddVariable( "ptasym",	'F');
    factory->AddVariable( "ptbal",	'F');
    factory->AddVariable( "logsumpt2",	'F');
@@ -216,8 +217,8 @@ void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.ro
    TTree *signal     = (TTree*)input->Get("TreeS");
    TTree *background = (TTree*)input->Get("TreeB");
   
-   TString cutTrain = "Entry$%2==0";//even events for training
-   TString cutTest  = "Entry$%2==1";//odd events for testing
+   TString cutTrain = "event%2==0";//even events for training
+   TString cutTest  = "event%2==1";//odd events for testing
     
    // global event weights per tree (see below for setting event-wise weights)
    Double_t signalWeight     = 1.0;

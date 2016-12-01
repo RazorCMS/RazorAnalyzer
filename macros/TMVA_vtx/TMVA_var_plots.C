@@ -23,6 +23,7 @@ void TMVA_var_plots(string inputFilename="HggRazorUpgradeTiming_PU0_NoTiming_vtx
 
    TCanvas * myC = new TCanvas("c1","c1",100,100,800,700);
 
+
    gStyle->SetOptStat(0);
    
 
@@ -321,8 +322,80 @@ void TMVA_var_plots(string inputFilename="HggRazorUpgradeTiming_PU0_NoTiming_vtx
    myC->SaveAs(("plots/dz_logsumAbsPt_Pt_"+plot_suffix+"_sig.png").c_str());	
 
 
+   double y_max_h_dzdtchi2_sig = 3.0e6;
+   if(plot_suffix.find("PU0")!=std::string::npos) y_max_h_dzdtchi2_sig = 3000.0;
+   TH2F * h_dzdtchi2_logsumpt2_Pt_sig = new TH2F("h_dzdtchi2_logsumpt2_Pt_sig","h_dzdtchi2_logsumpt2_Pt_sig",100,0,20,100,-3,10); 
+   TH2F * h_dzdtchi2_logsumpt2_Pt_bkg = new TH2F("h_dzdtchi2_logsumpt2_Pt_bkg","h_dzdtchi2_logsumpt2_Pt_bkg",1000,0, y_max_h_dzdtchi2_sig, 100,-3,10); 
+   treeS->Draw("logsumpt2:(vtxdT*vtxdT/(0.06*0.06)+vtxdZ*vtxdZ/(0.01*0.01))>>h_dzdtchi2_logsumpt2_Pt_sig");
+   treeB->Draw("logsumpt2:(vtxdT*vtxdT/(0.06*0.06)+vtxdZ*vtxdZ/(0.01*0.01))>>h_dzdtchi2_logsumpt2_Pt_bkg");
+   h_dzdtchi2_logsumpt2_Pt_bkg->SetTitle(""); 
+   h_dzdtchi2_logsumpt2_Pt_bkg->GetXaxis()->SetTitle("#chi^{2}(dz, dt)"); 
+   h_dzdtchi2_logsumpt2_Pt_bkg->GetYaxis()->SetTitle("logsumpt2"); 
+   h_dzdtchi2_logsumpt2_Pt_bkg->Draw("colz");
+   myC->SetLogy(0);
+   myC->SaveAs(("plots/dzdtchi2_logsumpt2_Pt_"+plot_suffix+"_bkg.pdf").c_str());	
+   myC->SaveAs(("plots/dzdtchi2_logsumpt2_Pt_"+plot_suffix+"_bkg.png").c_str());	
+   h_dzdtchi2_logsumpt2_Pt_sig->SetTitle(""); 
+   h_dzdtchi2_logsumpt2_Pt_sig->GetXaxis()->SetTitle("#chi^{2}(dz, dt)"); 
+   h_dzdtchi2_logsumpt2_Pt_sig->GetYaxis()->SetTitle("logsumpt2"); 
+   h_dzdtchi2_logsumpt2_Pt_sig->Draw("colz");
+   myC->SetLogy(0);
+   myC->SaveAs(("plots/dzdtchi2_logsumpt2_Pt_"+plot_suffix+"_sig.pdf").c_str());	
+   myC->SaveAs(("plots/dzdtchi2_logsumpt2_Pt_"+plot_suffix+"_sig.png").c_str());	
 
 
+   TH2F * h_pvNtrack_logsumpt2_Pt_sig = new TH2F("h_pvNtrack_logsumpt2_Pt_sig","h_pvNtrack_logsumpt2_Pt_sig",150,0,150,100,-3,10); 
+   TH2F * h_pvNtrack_logsumpt2_Pt_bkg = new TH2F("h_pvNtrack_logsumpt2_Pt_bkg","h_pvNtrack_logsumpt2_Pt_bkg",150,0,150,100,-3,10); 
+   treeS->Draw("logsumpt2:pvNtrack>>h_pvNtrack_logsumpt2_Pt_sig");
+   treeB->Draw("logsumpt2:pvNtrack>>h_pvNtrack_logsumpt2_Pt_bkg");
+   h_pvNtrack_logsumpt2_Pt_bkg->SetTitle(""); 
+   h_pvNtrack_logsumpt2_Pt_bkg->GetXaxis()->SetTitle("# of associated tracks"); 
+   h_pvNtrack_logsumpt2_Pt_bkg->GetYaxis()->SetTitle("logsumpt2"); 
+   h_pvNtrack_logsumpt2_Pt_bkg->Draw("colz");
+   myC->SetLogy(0);
+   myC->SaveAs(("plots/pvNtrack_logsumpt2_Pt_"+plot_suffix+"_bkg.pdf").c_str());	
+   myC->SaveAs(("plots/pvNtrack_logsumpt2_Pt_"+plot_suffix+"_bkg.png").c_str());	
+   h_pvNtrack_logsumpt2_Pt_sig->SetTitle(""); 
+   h_pvNtrack_logsumpt2_Pt_sig->GetXaxis()->SetTitle("# of associated tracks"); 
+   h_pvNtrack_logsumpt2_Pt_sig->GetYaxis()->SetTitle("logsumpt2"); 
+   h_pvNtrack_logsumpt2_Pt_sig->Draw("colz");
+   myC->SetLogy(0);
+   myC->SaveAs(("plots/pvNtrack_logsumpt2_Pt_"+plot_suffix+"_sig.pdf").c_str());	
+   myC->SaveAs(("plots/pvNtrack_logsumpt2_Pt_"+plot_suffix+"_sig.png").c_str());	
+
+
+
+   TH1F * h_pvNtrack_sig = new TH1F("h_pvNtrack_sig","h_pvNtrack_sig",140,0,140); 
+   TH1F * h_pvNtrack_bkg = new TH1F("h_pvNtrack_bkg","h_pvNtrack_bkg",140,0,140); 
+   treeS->Draw("pvNtrack>>h_pvNtrack_sig");
+   treeB->Draw("pvNtrack>>h_pvNtrack_bkg");
+   MaxY=0;
+   if(h_pvNtrack_sig->GetMaximum()>MaxY) MaxY = h_pvNtrack_sig->GetMaximum();
+   if(h_pvNtrack_bkg->GetMaximum()>MaxY) MaxY = h_pvNtrack_bkg->GetMaximum();
+   h_pvNtrack_bkg->SetLineColor(2); 
+   h_pvNtrack_bkg->SetTitle(("pvNtrack_"+plot_suffix).c_str()); 
+   h_pvNtrack_bkg->GetXaxis()->SetTitle("# of associated tracks"); 
+   h_pvNtrack_bkg->GetYaxis()->SetTitle("Events"); 
+   h_pvNtrack_bkg->GetYaxis()->SetTitleOffset(1.3);
+   h_pvNtrack_bkg->GetYaxis()->SetRangeUser(1,12*MaxY);
+   h_pvNtrack_sig->SetLineColor(4); 
+   h_pvNtrack_bkg->Draw();
+   h_pvNtrack_sig->Draw("same");
+        TLegend *leg_pvNtrack = new TLegend(0.5, 0.78, 0.8, 0.89, NULL,"brNDC");
+        leg_pvNtrack->SetBorderSize(0);
+        leg_pvNtrack->SetTextSize(0.04);
+        leg_pvNtrack->SetLineColor(1);
+        leg_pvNtrack->SetLineStyle(1);
+        leg_pvNtrack->SetLineWidth(1);
+        leg_pvNtrack->SetFillColor(0);
+        leg_pvNtrack->SetFillStyle(1001);
+        leg_pvNtrack->AddEntry(h_pvNtrack_bkg, "non-gen-matched vtx" ,"l");
+        leg_pvNtrack->AddEntry(h_pvNtrack_sig, "gen-matched vtx" ,"l");
+        leg_pvNtrack->Draw();
+
+   myC->SetLogy(1);
+   myC->SaveAs(("plots/pvNtrack_"+plot_suffix+".pdf").c_str());	
+   myC->SaveAs(("plots/pvNtrack_"+plot_suffix+".png").c_str());	
 
 }
 

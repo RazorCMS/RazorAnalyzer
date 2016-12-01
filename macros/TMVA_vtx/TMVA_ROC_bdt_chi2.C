@@ -114,7 +114,7 @@ void getEff(string inputFilename, string xmlFileName)
 	}
 };
 
-void TMVA_ROC_bdt()
+void TMVA_ROC_bdt_chi2()
 {
 	TCanvas * myC = new TCanvas("c1","c1",100,100,700,700);	
 	myC->cd();
