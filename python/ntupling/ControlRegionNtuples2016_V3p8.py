@@ -1,3 +1,5 @@
+import copy
+
 VERSION = "V3p8_1Dec2016"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
@@ -260,7 +262,7 @@ DATA['VetoL'] = { 'HTMHT':[
                 'HTMHT_2016H_PRv2',
                 'HTMHT_2016H_PRv3',
                 ] }
-DATA['VetoTau'] = { 'HTMHT':DATA['VetoL']['HTMHT'].copy() }
+DATA['VetoTau'] = { 'HTMHT':copy.copy(DATA['VetoL']['HTMHT']) }
 DATA['Photon'] = {
         "SinglePhoton":[
                 'SinglePhoton_2016B_23Sep2016',
@@ -274,9 +276,10 @@ DATA['Photon'] = {
                 ]
         }
 DATA['Signal'] = DATA['1L'].copy()
-DATA['Signal']["HTMHT"] = DATA['VetoL']['HTMHT'].copy()
+DATA['Signal']["HTMHT"] = copy.copy(DATA['VetoL']['HTMHT'])
 DATA['LiteZEle'] = {}
-DATA['LiteZEle']['SingleElectron'] = DATA['1L']['SingleElectron'].copy()
-DATA['LiteZMu']['SingleMuon'] = DATA['1L']['SingleMuon'].copy()
+DATA['LiteZEle']['SingleElectron'] = copy.copy(DATA['1L']['SingleElectron'])
+DATA['LiteZMu'] = {}
+DATA['LiteZMu']['SingleMuon'] = copy.copy(DATA['1L']['SingleMuon'])
 DATA['1LSusySync'] = {}
-DATA['1LSusySync']['HTMHT'] = DATA['VetoL']['HTMHT'].copy()
+DATA['1LSusySync']['HTMHT'] = copy.copy(DATA['VetoL']['HTMHT'])
