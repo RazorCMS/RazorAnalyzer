@@ -244,7 +244,10 @@ if __name__ == '__main__':
 
     #check if EOS is mounted
     if not os.path.isdir('eos/cms/store'):
-        sys.exit("Please mount EOS under ./eos before using this tool.")
+#        sys.exit("Please mount EOS under ./eos before using this tool.")
+        cmdeos = ['/afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select','-b','fuse','mount','eos']
+        call(cmdeos)
+
 
     print "Analyzer:",analyzer
     print "Tag:",tag
@@ -289,3 +292,6 @@ if __name__ == '__main__':
     if args.copyLocal:
         print "Copy files locally..."
         copyLocal(analyzer,tag,isData,skim,label=label)
+
+    unmount = ['/afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select','-b','fuse','umount','eos']
+    call(unmount)
