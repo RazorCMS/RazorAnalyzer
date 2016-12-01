@@ -26,6 +26,7 @@ razorWeightOpts = {
         }
 razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
+razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorWeightHists = {
         "Razor2015":{},
         "Razor2016":{ 
@@ -38,6 +39,7 @@ razorWeightHists = {
         }
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
 razorWeightHists["Razor2016_80X"] = {}
+razorWeightHists["Razor2016_ICHEP_80X"] = {}
 
 #####################################
 ### NTUPLES
@@ -507,7 +509,7 @@ razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && 
 razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 300 && Rsq > 0.15 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter"
 
 # DYJets 2-lepton invisible control region
-razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 300 && Rsq_NoZ > 0.15"
+razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 400 && Rsq_NoZ > 0.25"
 
 # Veto lepton control region
 razorCuts["VetoLepton"]  = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
@@ -679,12 +681,27 @@ razorBinning["DYJetsDileptonInv"] = {
         "MR_NoZ" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoZ" : [0.25,0.30,0.41,0.52,0.64,1.5],
         "NJets_NoZ" : [1,2,4,20],
-        "1" : [0.5, 1.5]
+        "1" : [0.5, 1.5],
+        "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "lep2.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep2.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "NBJetsMedium" : [0,1,2,3,4],
+        "HT_NoZ" : range(0, 2000, 200),
+        "MET_NoZ" : range(0, 500, 50),
         }
 razorBinning["DYJetsDileptonInvReduced"] = {
         "MR_NoZ" : [400, 500, 600, 700, 900, 4000],
         "Rsq_NoZ" : [0.25,0.30,0.41,1.5],
-        "NJets_NoZ" : [1,2,4,20]
+        "NJets_NoZ" : [1,2,4,20],
+        "1" : [0.5, 1.5],
+        "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "lep2.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
+        "lep2.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "NBJetsMedium" : [0,1,2,3,4],
+        "HT_NoZ" : range(0, 2000, 200),
+        "MET_NoZ" : range(0, 500, 50),
         }
 
 ### Photon control region
@@ -695,6 +712,13 @@ razorBinning["Photon"] = {
         "NBJetsMedium" : [0,1,2,3,4],
         "HT_NoPho" : range(0, 2000, 200),
         "MET_NoPho" : range(0, 500, 50),
+        "1" : [0.5, 1.5],
+        "pho1.Pt()" : range(185, 1500, 50),
+        "pho1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "jet1.Pt()" : range(40, 1500, 50),
+        "jet1.Eta()" : [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+        "jet2.Pt()" : range(40, 1500, 50),
+        "jet2.Eta()" : [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
         }
 
 ### For October 2016 SUSY Synchronization exercise 
