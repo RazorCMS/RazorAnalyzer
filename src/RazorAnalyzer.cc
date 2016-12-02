@@ -912,7 +912,7 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
   double mvaVar = ele_IDMVAGeneralPurpose[i];
   if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
 
-  cout << ptBin << " " << subdet << " : " << ele_IDMVAGeneralPurpose[i] << " " << ele_IDMVAHZZ[i] << " --> " << mvaVar << " : cut = " <<  MVACut << " | pass = ";
+  //cout << ptBin << " " << subdet << " : " << ele_IDMVAGeneralPurpose[i] << " " << ele_IDMVAHZZ[i] << " --> " << mvaVar << " : cut = " <<  MVACut << " | pass = ";
 
   bool pass = false;
   if (mvaVar > MVACut
@@ -920,7 +920,7 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
       ) {
     pass = true;
   }
-  cout << pass << "\n";
+  //cout << pass << "\n";
 
   return pass;
 
