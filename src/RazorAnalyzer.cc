@@ -1801,7 +1801,7 @@ bool RazorAnalyzer::photonPassesElectronVeto(int i){
     return (pho_passEleVeto[i]);
 }
 
-
+//Spring 15 values
 void RazorAnalyzer::getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
 {
   if( fabs( eta ) < 1.0 )
@@ -1939,11 +1939,11 @@ bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.01042) pass = false;   
+      if(pho_HoverE[i] > 0.0597) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01031) pass = false;   
     } else { 
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.02683) pass = false;    
+      if(pho_HoverE[i] > 0.0481) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.03013) pass = false;    
     }
   }  else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -1960,11 +1960,11 @@ bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.01012) pass = false;   
+      if(pho_HoverE[i] > 0.0396) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01022) pass = false;   
     } else { 
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.02678) pass = false;    
+      if(pho_HoverE[i] > 0.0219) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.03001) pass = false;    
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -1981,11 +1981,11 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.01012) pass = false;   
+      if(pho_HoverE[i] > 0.0269) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.00994) pass = false;   
     } else { 
-      if(pho_HoverE[i] > 0.05) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.02649) pass = false;    
+      if(pho_HoverE[i] > 0.0213) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.03000) pass = false;    
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2025,15 +2025,15 @@ bool RazorAnalyzer::photonPassTightID(int i, bool use25nsCuts){
 }
 
 
-// 80X values from EGamma Presentation
-// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
+// 80X-v2.2 Cuts from EGamma Presentation
+// https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
 bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.325, 4.50 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.554 + 0.0047*phoPt[i], true );
+      return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true );
     } else {
-      return photonPassesIsolation(i, 1.293, 4.187 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.86 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true);
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2042,15 +2042,15 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
 
 }
 
-// 80X values from EGamma Presentation
-// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
+// 80X-v2.2 Cuts from EGamma Presentation
+// https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
 bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 0.789, 2.364 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 0.425 + 0.0047*phoPt[i], true);
+      return photonPassesIsolation(i, 0.441, 2.725 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.571 + 0.0047*phoPt[i], true);
     } else {
-      return photonPassesIsolation(i, 0.447, 1.765 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.15 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 0.442, 1.715 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.863 + 0.0034*phoPt[i], true);
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2059,15 +2059,15 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
 
 }
 
-// 80X values from EGamma Presentation
-// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
+// 80X-v2.2 Cuts from EGamma Presentation
+// https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
 bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.227, 1.691 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 0.346 + 0.0047*phoPt[i], true);
+        return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true);
     } else {
-      return photonPassesIsolation(i, 0.146, 0.432 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.75 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 0.034, 0.586 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.617 + 0.0034*phoPt[i], true);
     }
   }  else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
