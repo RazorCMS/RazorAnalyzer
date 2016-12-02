@@ -39,9 +39,7 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
     print ' '.join(cmd_submit)
     subprocess.call(cmd_submit)
     if submit:
-        print "Sleeping for 10s because it's good for your health..." # To make sure lxbatch received all the jobs before checking with bsub
-        time.sleep(10)
-        job_done = check_bjobs('*'+label+'*')
+        job_done = False
         while not job_done:
             time.sleep(30)
             job_done = check_bjobs('*'+label+'*')

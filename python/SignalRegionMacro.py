@@ -96,6 +96,8 @@ if __name__ == "__main__":
         boxesToUse = [args.box]
     if args.btags is not None:
         btaglist = [args.btags]
+    elif args.bInclusive:
+        btaglist = [0]
     else:
         btaglist = [0,1,2,3]
     if args.noSFs:
@@ -190,7 +192,7 @@ if __name__ == "__main__":
                     'OneLepton'+jtype+'ClosureTest'+bs+'BRsqScaleFactors')
             sfHists['Rsq'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+jtype+bs+'BUp'])
         #get ZInv b-tag cross check histogram
-        sfHists['ZInvB'+jtype+'Up'] = btagTFile.Get('GJetsInv'+jtype+'ClosureTestNBJetsScaleFactors')
+        sfHists['ZInvB'+jtype+'Up'] = gjetsbtagTFile.Get('GJetsInv'+jtype+'ClosureTestNBJetsScaleFactors')
         sfHists['ZInvB'+jtype+'Down'] = macro.invertHistogram(sfHists['ZInvB'+jtype+'Up'])
 
     #check that everything came out correctly
@@ -248,12 +250,9 @@ if __name__ == "__main__":
             for updown in ['Up','Down']:
                 sfHistsToUse[name+updown] = sfHistsToUse[name+jtype+updown]
         #b-tag closure tests
-        for b in range(4):
-            bs = str(b)
-            if jtype == 'DiJet' and b > 2: continue
-            for updown in ['BUp','BDown']:
-                for mrrsq in ['MR','Rsq']:
-                    sfHistsToUse[mrrsq+bs+updown] = sfHistsToUse[mrrsq+jtype+bs+updown]
+        for updown in ['BUp','BDown']:
+            for mrrsq in ['MR','Rsq']:
+                sfHistsToUse[mrrsq+updown] = sfHistsToUse[mrrsq+jtype+str(btags)+updown]
 
         #option to disable scale factors
         if args.noSFs:

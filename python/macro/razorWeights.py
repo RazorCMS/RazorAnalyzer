@@ -15,11 +15,11 @@ QCDNORMERRFRACTION_MULTIJET = 0.80
 
 def getQCDExtrapolationFactor(MR,region='multijet'):
     """Get QCD extrapolation factor as a function of MR"""
-    #return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
     if region.lower() == 'dijet':
         return 0.103
     else:
-        return 0.242
+        return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
+        #return 0.242
 
 WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
@@ -719,8 +719,10 @@ def getNJetsSFs(analysis,jetName='NJets40'):
     return auxSFs
 
 def loadPhotonPurityHists(sfHists={}, tag="Razor2016", debugLevel=0):
-    filenames = { "Razor2016":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root",
-            "Razor2016G_SUSYUnblind_80X":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root"
+    filenames = { 
+            "Razor2016":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity.root",
+            "Razor2016G_SUSYUnblind_80X":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root",
+            "Razor2016_ICHEP_80X":"/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/ChargedIsoFits/12p9/PhotonControlRegionPlots_MR300Rsq0p15.root"
             }
     if tag not in filenames:
         sys.exit("tag %s is not supported for photon purity measurement")
