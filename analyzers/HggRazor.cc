@@ -151,7 +151,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   } else if (analysisTag == "Razor2016_80X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_MoriondRereco") {
-    photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   }
 
   if(!isData) {
