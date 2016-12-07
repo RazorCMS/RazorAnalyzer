@@ -33,8 +33,6 @@ if __name__ == "__main__":
     tag = args.tag
     box = args.box
     btags = args.btags
-    if tag not in ["Razor2015","Razor2016"]:
-        sys.exit("Error: tag "+tag+" not supported!")
     dirName = 'Plots/%s/%s%dB'%(tag,box,btags)
 
     plotOpts = {"SUS15004":True}
@@ -62,6 +60,10 @@ if __name__ == "__main__":
         #this removes scale factor uncertainties that are listed as tuples
         shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
         dirName += 'NoSFs'
+    ###### TEMPORARY UNTIL MISTAG WEIGHTS ARE FIXED #######
+    if 'bmistag' in shapesToUse:
+        shapesToUse.remove('bmistag')
+    #######################################################
     #option to disable systematics
     if args.noSys:
         print "Ignoring systematic uncertainties."
@@ -82,6 +84,6 @@ if __name__ == "__main__":
         inFile = inFile.replace('.root','NoSys.root')
     lumi = analysis.lumi
 
-    plotControlSampleHists(extbox, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
+    plotControlSampleHists(box, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
             btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi,
             unrollBins=unrollBins, shapeErrors=shapesToUse)

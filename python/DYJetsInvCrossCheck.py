@@ -26,7 +26,8 @@ if __name__ == "__main__":
     #and the second pass will be a rerun with the corrected normalization
     regionsOrder = ["DYJetsDileptonInvUncorr", "DYJetsDileptonInv", 
             "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet",
-            "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr"]
+            "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr",
+            "DYJetsDileptonInvNoSFs"]
     regions = {
             "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag),
             "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag),
@@ -34,6 +35,7 @@ if __name__ == "__main__":
             "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
             "DYJetsDileptonInvDiJetWJetsCorr":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3),
             "DYJetsDileptonInvMultiJetWJetsCorr":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
+            "DYJetsDileptonInvNoSFs":Analysis("DYJetsDileptonInv",tag=tag),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
     #make two dictionaries of scale factor histograms, one with GJets and one with WJets corrections
@@ -66,6 +68,9 @@ if __name__ == "__main__":
         if 'WJetsCorr' in region:
             sfHistsToUse = sfHistsForWCorr
             auxSFs['DYJetsInv'] = {'NJetsWJetsInv': ('NJets_NoZ', '1')}
+        elif 'NoSFs' in region:
+            sfHistsToUse = {}
+            auxSFs = { proc:{} for proc in auxSFs }
         else:
             sfHistsToUse = sfHists
         #perform analysis

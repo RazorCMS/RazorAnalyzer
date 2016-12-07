@@ -474,12 +474,10 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #extra scale factors can be defined per-process or globally for all processes
     #(the auxSFs dictionary will have an extra layer in that case)
     auxSFsPerProcess = False
-    for key in auxSFs:
-        if auxSFsPerProcess: break
-        for item in auxSFs[key]:
-            if isinstance(item, dict):
-                auxSFsPerProcess = True
-                break
+    for key,item in auxSFs.iteritems():
+        if isinstance(item, dict):
+            auxSFsPerProcess = True
+            break
 
     #split histograms into those that can be applied via per-event weights, and those that require further processing
     sfShapes, otherShapes = splitShapeErrorsByType(shapeErrors)
@@ -537,6 +535,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             for var in histsForQCD[name]:
                 histsForQCD[name][var].Delete()
     #use QCD extrapolation on data
+    auxSFsData = {}
+    auxSFHistsData={}
     if 'datadrivenqcddijet' in map(str.lower, weightOpts): 
         dataWeightOpts.append('datadrivenqcddijet')
     elif 'datadrivenqcdmultijet' in map(str.lower, weightOpts): 
@@ -546,9 +546,6 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         samplesToUse = [] #skip running MC samples
         del auxSFs["QCD"] 
         auxSFHistsData = {name:sfHists[name] for name in auxSFsData}
-    else:
-        auxSFsData = {}
-        auxSFHistsData={}
             
     print "\n These event reweighting options will be used for data:"
     print dataWeightOpts
