@@ -679,7 +679,42 @@ def propagateScaleFactorStatErrors(sysErrSquaredHists, upHists, downHists, debug
 
 def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], shapeSFHists={}, shapeAuxSFs={}, shapeAuxSFHists={}, propagateScaleFactorErrs=True, noFill=False, debugLevel=0):
     """Loop over a single tree and fill histograms.
-    Returns the sum of the weights of selected events."""
+    Returns the sum of the weights of selected events.
+    Arguments:
+        tree: ROOT tree to process
+        weightF: python function that computes event weights
+        cuts: string indicating the cuts that should be applied
+        hists: dictionary { "var1":hist1, ... }
+            where "var1" is the name of a variable and hist1 is a ROOT histogram
+        weightHists: dictionary { "name1":hist1, ... }
+        sfHist: ROOT histogram containing scale factors
+        scale: scale factor to be applied to all event weights
+        fillF: python function that fills histograms
+        sfVars: string of tuple of strings indicating the reweighting variable
+        statErrOnly: if True, do not compute systematic errors
+        weightOpts: list of strings indicating weighting options
+        errorOpt: uncertainty option that should be applied
+        process: name of the physics process
+        auxSFs: dictionary containing additional scale factor options
+            (see makeControlSampleHistsForAnalysis for description)
+        auxSFHists: dictionary { "name1":hist1, ... }
+            where "name1" is a reweighting option included as a key in "auxSFs"
+        shapeHists: dictionary { "unc1":hists1, ... }
+            where "unc1", ... are shape uncertainties and hists1, ... are 
+            dictionaries of histograms as for the "hists" argument
+        shapeNames: list of shape uncertainty names
+        shapeSFHists: scale factor histograms needed to compute shape uncertainties:
+            { "unc1":hists1, ... }
+            where hists1, ... are dictionaries of scale factor histograms
+        shapeAuxSFs: dictionary { "unc1":auxSFs1, ... }
+            where auxSFs1, ... are dictionaries of scale factors as the "auxSFs" argument
+        shapeAuxSFHists: dictionary { "unc1":hists1, ... }
+            where hists1, .. are dictionaries of scale factor histograms
+        propagateScaleFactorErrs: if True, uncertainties from scale factors are propagated to
+            the filled histograms
+        noFill: if True, histograms are not filled
+        debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode"""
+
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
     if debugLevel > 0: print ("Cuts: "+cuts)
     #make TTreeFormulas for variables not found in the tree
@@ -843,7 +878,42 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
 
 def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, debugLevel=0):
     """calls loopTree on each tree in the dictionary.  
-    Here hists should be a dict of dicts, with hists[name] the collection of histograms to fill using treeDict[name]"""
+    Arguments:
+        treeDict: dictionary { "process1":tree1, "process2":tree2, ... }
+            where tree1, tree2, ... are TTrees
+        weightF: python function that should be used to weight the MC
+        cuts: string with cuts to be applied
+        hists: dictionary { "process1":hists1, "process2":hists2, ... }
+            where hists1, hists2, ... are dictionaries of the form
+                { "var1":hist1, "var2":hist2, ... }
+        weightHists: dictionary { "name1":hist1, ... }
+            See the weighting function for details on which weight options are supported
+        sfHists: dictionary { "name1":hist1, ... } of scale factor histograms
+        scale: overall scale factor to apply to the events
+        weightOpts: list of weighting options.
+            See the weighting function for more details.
+        errorOpt: indicates which uncertainty should be used
+        fillF: python function that should be used to fill histograms for the event.
+        sfVars: string or tuple of strings: variable to reweight
+        statErrOnly: if True, do not compute systematic uncertainties
+        boxName: name of analysis box (for razor signal region only)
+        auxSFs: auxiliary scale factor options (see description at makeControlSampleHistsForAnalysis)
+        shapeHists: dictionary { "unc1":{ ... }, ... }
+            where "unc1", ... are the names of uncertainties and { ... } 
+            are dictionaries of the form used by the "hists" argument
+        shapeNames: list of shape uncertainty names (see makeControlSampleHistsForAnalysis)
+        shapeAuxSFs: dictionary { "unc1":{ ... }, ... }
+            where "unc1", ... are the names of uncertainties and { ... }
+            are dictionaries of the form used by the "auxSFs" argument
+        noFill: do not fill histograms
+        propagateScaleFactorErrs: if True, propagate uncertainties on scale factors
+            to the filled histograms
+        extraWeightOpts: additional per-process weight options:
+            { "proc1":[opt1, opt2,...], ... }
+        extraCuts: additional per-process cuts to apply: 
+            { "proc1":"cuts1", ... }
+        debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode
+    """
     sumweights=0.0
     for name in treeDict: 
         if name not in hists: continue
