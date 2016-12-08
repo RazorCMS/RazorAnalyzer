@@ -130,12 +130,12 @@ def def_slides(plot_dir):
                      "%s/NBJetsMedium_GJetsInv.pdf" % photon_this_dir]),
                     ]
     dy_dir = "DYJetsDileptonInv"
-    suffixes = ["Uncorr","","DiJet","MultiJet"]
+    suffixes = ["Uncorr","","DiJet_Closure","MultiJet_Closure"]
     title_endings = [" before correction"," after normalization",", dijet closure test",", multijet closure test"]
     for suffix,ending in zip(suffixes,title_endings):
         dy_this_dir = dy_dir+suffix
         dy_title = "DY+jets control region"+ending
-        dy_suffix = ("MultiJet")*(suffix == "MultiJet")
+        dy_suffix = ("MultiJet")*(suffix == "MultiJet_Closure")
         if "Jet" in suffix:
             slides += [ Slide(dy_title,
                     ["%s/MR_NoZRsq_NoZ_DYJetsDileptonInv%sUnrolledDataMC.pdf" % (dy_this_dir,dy_suffix),
@@ -174,7 +174,16 @@ def def_slides(plot_dir):
                             ["%s/NJets40_%s.pdf" % (veto_dir,veto_region),
                              "%s/NBJetsMedium_%s.pdf" % (veto_dir,veto_region)]),
                             ]
-
+    for box in ["MultiJet","LeptonMultiJet"]:
+        for nb in range(4):
+            slides += [
+                    Slide("%s (%d b-tags)"%(box,nb),
+                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box)])]
+    for box in ["DiJet","LeptonJet"]:
+        for nb in range(3):
+            slides += [
+                    Slide("%s (%d b-tags)"%(box,nb),
+                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box)])]
 
     for slide in slides:
         slide.append_dir_prefix(plot_dir)

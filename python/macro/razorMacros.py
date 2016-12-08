@@ -378,29 +378,25 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 
 def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, dataWeightOpts=[]):
     """Basic function for filling histograms and making plots.
-
-    regionName: name of the box/bin/control region (used for plot labels)
-    filenames: dictionary of process:filename pairs for loading ntuples
-    samples: list of samples to process, in the order that they should appear in stacked plots, legends, etc
-    cutsMC, cutsData: strings, to be used with TTreeFormula to make selection cuts
-    bins: dictionary formatted like { "variable1":[bin0,bin1,bin2,...], "variable2":[bin0,bin1,bin2,...]}
-    lumiMC, lumiData: in /pb
-    weightHists: dictionary of weight histograms, like that produced by razorWeights.loadWeightHists
-    sfHists: dictionary of scale factor histograms, like that produced by razorWeights.loadScaleFactorHists
-    auxSFs: optional -- dict of the form "ScaleFactorName":("VariableToReweight","Cut string").  Events passing the requirements in "Cut string" are reweighted according to sfHists["ScaleFactorName"].
-    treeName: name of the tree containing input events
-    weightOpts: list of strings with directives for applying weights to the MC
-    shapeErrors: list of MC shape uncertainties [uncertainties can be strings (in which case they apply to all processes) or tuples of the form (error, [processes]) (in which case they apply to the processes indicated in the list)
-    noFill: dry run option -- histograms will not be filled.
-    exportShapeErrs: if True, shape uncertainties will not be propagated to the central histogram.  Instead they will be stored in the output dictionary under the key 'Sys'.
-
-    plotOpts: optional -- dictionary of misc plotting options (see below for supported options)
-    miscErrors: optional -- list of misc uncertainty options (see below for supported options)
-    fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
-    boxName: optional -- name of razor box
-    btags: optional -- used only to specify which fit to load
-    dataDrivenQCD: optional -- if True, the abs(dPhiRazor) < 2.8 cut will be inverted for QCD and the yields in the high dPhi control region will be extrapolated into the low dPhi region using a power law.
+        NOTE: for most purposes please call makeControlSampleHistsForAnalysis.
+        Arguments:
+            regionName: name of the box/bin/control region (used for plot labels)
+            filenames: dictionary of process:filename pairs for loading ntuples
+            samples: list of samples to process, in the order that they should 
+                appear in stacked plots, legends, etc
+            cutsMC, cutsData: strings, to be used with TTreeFormula to 
+                make selection cuts
+            bins: dictionary formatted like { "variable1":[bin0,bin1,bin2,...], 
+                "variable2":[bin0,bin1,bin2,...]}
+            lumiMC, lumiData: in /pb
+            weightHists: dictionary of weight histograms, like that produced by 
+                razorWeights.loadWeightHists
+            weightOpts: list of strings with directives for applying weights to the MC
+            miscErrors: currently unused
+            fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
     """
+    # this is used to customize histogram titles 
+    # for certain kinematic variables
     titles = {
         "MR": "M_{R} [GeV]", 
         "Rsq": "R^{2}",
@@ -424,6 +420,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         cutsForQCDData = cutsData.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
         samplesForQCD = copy.copy(samples)
         samplesForQCD.remove('QCD')
+        # TODO: replace this mechanism. qcd option should be 
+        # specified as an argument to makeControlSampleHists
+        # to avoid ad-hoc reliance on boxName
         if boxName is not None and 'DiJet' in boxName:
             qcdOption = 'datadrivenqcddijet'
         elif 'GJets' in regionName:
@@ -432,7 +431,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             qcdOption = 'datadrivenqcdmultijet'
         #recursion
         histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts, dataWeightOpts=copy.copy(dataWeightOpts))
-        #subtract backgrounds from QCD prediction
+        #backgrounds are subtracted from QCD prediction in signal region only
         if qcdOption == 'datadrivenqcddijet' or qcdOption == 'datadrivenqcdmultijet':
             macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
         print "Now back to our signal region..."
@@ -467,7 +466,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     files = {name:rt.TFile.Open(inputs[name]) for name in inputs} #get input files
     for name in inputs: 
         print "Checking",name,"..."
-        assert files[name] #check input files
+        assert files[name] #fails if ROOT could not open the file
         if debugLevel > 0: print "Opened file",inputs[name]
     trees = macro.makeTreeDict(files, treeName, debugLevel)
 
@@ -552,7 +551,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     print "\n These scale factors will be used for data:"
     print auxSFsData
 
-    #fill histograms by looping over all trees
+    #loop over data separately from MC
     if dataName in trees:
         print("\nData:")
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, 
@@ -565,7 +564,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         print auxSFs
     macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts) 
 
-    #get up/down histogram variations
+    #Some shape uncertainties cannot easily be computed in the same pass as
+    #the central histogram values (usually because the selection cuts are different).
+    #We compute these separately by looping over the MC again.
     for shape in otherShapes:
         if not isinstance(shape,basestring): #tuple (shape, [list of processes])
             shapeSamplesToUse = filter(lambda n: n in shape[1], samplesToUse)
@@ -592,11 +593,11 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             print auxSFsToUse
         macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:shapeHists[name][curShape+"Down"] for name in shapeSamplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, errorOpt=curShape+"Down", boxName=boxName, sfVars=sfVars, statErrOnly=True, auxSFs=auxSFsToUse, noFill=noFill, propagateScaleFactorErrs=False, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts)
 
+    #we either save the shape histograms separately, or propagate the uncertainties
+    #directly to the central histograms.
     if exportShapeErrs:
-        #save shape histograms in hists dictionary
         hists['Sys'] = shapeHists
     else:
-        #propagate up/down systematics to central histograms
         macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
 
     c = rt.TCanvas(regionName+"c", regionName+"c", 800, 600)
@@ -631,7 +632,55 @@ def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=
         treeName="ControlSampleEvent", shapeErrors=[], fitToyFiles=None, boxName=None, btags=-1, 
         blindBins=None, makePlots=True, printdir=".", auxSFs={}, dataDrivenQCD=False, noFill=False, 
         exportShapeErrs=False, propagateScaleFactorErrs=True, debugLevel=0):
-    """Use the razorAnalysis.Analysis object to call makeControlSampleHists function"""
+    """This is the function that should be used to fill histograms for an 
+        analysis control/signal region.
+        Arguments:
+            analysis: macro.razorAnalysis.Analysis object containing 
+                control/signal region configuration 
+            plotOpts: dictionary containing special plotting options, if any.
+                TODO: document the supported options
+            sfHists: dictionary of the form
+                    { "name1":hist1, ... }
+                where the values hist1,... are scale factor histograms
+            sfVars: string or tuple indicating which variable(s) should be used 
+                when applying MC scale factors
+            treeName: name of the input ROOT tree
+            shapeErrors: list of uncertainties for which up/down shapes should be computed.
+                There are three acceptable formats for uncertainties:
+                1) string -- name of the uncertainty 
+                    (for uncertainties affecting all physics processes)
+                2) tuple of strings ("unc","proc")
+                    (for uncertainties affecting a single physics process)
+                3) tuple ("unc", ["proc1", "proc2", ...])
+                    (for uncertainties affecting several physics processes)
+            fitToyFiles: paths to files containing fit results computed with toys
+            boxName: name of the analysis box (razor signal region only)
+            btags: number of b-tags (razor signal region only)
+            blindBins: list of 2-tuples [(x,y),...] indicating bins that should be blinded
+            makePlots: bool.  If True, results will be plotted.
+            printdir: directory where plots will be stored.
+            auxSFs: dictionary specifying additional scale factor options.
+                Two formats are supported:
+                1) { "scaleFactorName":("varName","cut"), ... }
+                    where
+                    -"scaleFactorName" is the desired key in the sfHists dictionary
+                    -"varName" is the variable to be reweighted
+                    -"cut" is a string a la TTree::Draw specifying which events to reweight
+                2) { "proc1":{ ... }, "proc2":{ ... }, ... }
+                    where "proc1", etc, are physics process names
+                    and { ... } are dictionaries formatted like in (1)
+            dataDrivenQCD: bool.  if True, data-driven QCD prediction will be obtained
+            noFill: if True, set up histograms but do not fill them
+                (note: may cause plotting code to crash)
+            exportShapeErrs: if True, up/down shape uncertainties are saved as separate histograms.
+                If False, they will be propagated to the central histogram.
+            propagateScaleFactorErrs: if True, uncertainties from applied scale factors
+                will be propagated to the filled histograms
+            debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode
+        Returns: dictionary of the form 
+            { "process1":{"var1":hist1, "var2":hist2, ...}, "process2":{...} }
+        containing the desired set of histograms, filled for each physics process."""
+            
 
     return makeControlSampleHists( regionName=analysis.region, filenames=analysis.filenames, 
             samples=analysis.samples, cutsMC=analysis.cutsMC, cutsData=analysis.cutsData, 
