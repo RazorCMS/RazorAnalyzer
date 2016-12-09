@@ -121,7 +121,7 @@ void TMVA_ROC_bdt()
 	gPad->SetLeftMargin(0.15);
 	gPad->SetBottomMargin(0.15);
 
-	getEff("HggRazorUpgradeTiming_PU200_NoTiming_vtx.root", "weights_PU200_NoTiming/TMVAClassification_BDT.weights.xml");
+	getEff("HggRazorUpgradeTiming_PU140_NoTiming_vtx.root", "weights_PU140_NoTiming/TMVAClassification_BDT.weights.xml");
 	TGraph *gr_1 = new TGraph(nEffBin,BkgEff,SigEff);
 	//TGraphErrors *gr_1 = new TGraphErrors(nEffBin, BkgEff, SigEff, errBkgEff, errSigEff);			
 	gr_1->SetLineColor(2);
@@ -142,13 +142,13 @@ void TMVA_ROC_bdt()
 	gr_1->GetXaxis()->SetLabelOffset(0.0);
 	gr_1->Draw("AL");
 
-	getEff("HggRazorUpgradeTiming_PU200_Timing_vtx.root", "weights_PU200_Timing_vtx/TMVAClassification_BDT.weights.xml");
+	getEff("HggRazorUpgradeTiming_PU140_Timing_vtx.root", "weights_PU140_Timing_vtx/TMVAClassification_BDT.weights.xml");
 	TGraph *gr_2 = new TGraph(nEffBin,BkgEff,SigEff);
 	gr_2->SetLineColor( 3 );
   	gr_2->SetLineWidth( 2 );
 	gr_2->Draw("same");
 
-	getEff("HggRazorUpgradeTiming_PU200_NoTiming_vtx.root", "../../data/TMVAClassification_BDTVtxId_SL_2016.xml");
+	getEff("HggRazorUpgradeTiming_PU140_NoTiming_vtx.root", "../../data/TMVAClassification_BDTVtxId_SL_2016.xml");
 	TGraph *gr_5 = new TGraph(nEffBin,BkgEff,SigEff);
 	gr_5->SetLineColor( 1 );
   	gr_5->SetLineWidth( 2 );
@@ -180,6 +180,6 @@ void TMVA_ROC_bdt()
 
 
 
-	myC->SaveAs("plots/ROC_vtx_PU200.pdf");
-	myC->SaveAs("plots/ROC_vtx_PU200.png");
+	myC->SaveAs("plots/ROC_vtx_PU140.pdf");
+	myC->SaveAs("plots/ROC_vtx_PU140.png");
 }

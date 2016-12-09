@@ -276,8 +276,8 @@ void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.ro
    factory->SetBackgroundWeightExpression( "weight" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycuts = ""; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = ""; // for example: TCut mycutb = "abs(var1)<0.5";
+   TCut mycuts = "chi2_pho_vtx<1000"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycutb = "chi2_pho_vtx<1000"; // for example: TCut mycutb = "abs(var1)<0.5";
 
    // Tell the factory how to use the training and testing events
    //

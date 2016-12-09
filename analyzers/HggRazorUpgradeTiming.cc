@@ -106,7 +106,7 @@ const float SIGMATRKCLUSZ[12] = { 0.0298574,
                                 };
 
 //Testing branching and merging
-void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEvent, int option, string outFileName, string label)
+void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2, bool useOddEvent, int option, string outFileName, string label)
 {
   std::cout << "in analyzer" << std::endl;
   gROOT->Reset();
@@ -163,6 +163,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
   //MVA Vertex Selection
   bool doMVAVertex = true;
   float ptasym = 0.;
+  float chi2_pho_vtx_train = 0.;
   float ptbal = 0.;
   float logsumpt2 = 0.;
   Float_t vertexsumpt = 0.;
@@ -195,6 +196,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
   float pho1_vtx_dt_all[500];// = {0.};
   float pho2_vtx_dt_all[500];// = {0.};
   float chi2_pho_vtx_gen = 0.0;// = {0.};
+  int   rank_chi2_genVtx = 0;// = {0.};
+  int   rank_chi2_min_genVtx = 0;// = {0.};
   float chi2_min_pho_vtx_gen = 0.0;// = {0.};
   float chi2_pho_vtx_all[500];// = {0.};
   float chi2_min_pho_vtx_all[500];// = {0.};
@@ -254,6 +257,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
   }
   
   TMVA::Reader *vtxmvareader = 0;
+  TMVA::Reader *vtxmvareader_chi2 = 0;
   if (doMVAVertex) {
     vtxmvareader = new TMVA::Reader( "!Color:Silent" );
     vtxmvareader->AddVariable("ptasym", &ptasym );
@@ -265,6 +269,17 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
     std::string vtxpathname;
     if ( cmsswPath != NULL ) vtxpathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
     vtxmvareader->BookMVA("BDT",Form("%s/TMVAClassification_BDTVtxId_SL_2016.xml",vtxpathname.c_str()));
+ 
+    vtxmvareader_chi2 = new TMVA::Reader( "!Color:Silent" );
+    vtxmvareader_chi2->AddVariable("chi2_pho_vtx", &chi2_pho_vtx_train );
+    vtxmvareader_chi2->AddVariable("ptasym", &ptasym );
+    vtxmvareader_chi2->AddVariable("ptbal", &ptbal );
+    vtxmvareader_chi2->AddVariable("logsumpt2", &logsumpt2 );
+    vtxmvareader_chi2->AddVariable("limPullToConv", &pull_conv );
+    vtxmvareader_chi2->AddVariable("nConv", &nConv );
+    if ( cmsswPath != NULL ) vtxpathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
+    vtxmvareader_chi2->BookMVA("BDT",Form("%s/TMVAClassification_BDTVtxId_SL_2016_chi2.xml",vtxpathname.c_str()));
+
   }
 
   //Including Jet Corrections
@@ -707,6 +722,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
     razorTree->Branch("pho1_vtx_dt", pho1_vtx_dt_all, "pho1_vtx_dt[nPVAll]/F");
     razorTree->Branch("pho2_vtx_dt", pho2_vtx_dt_all, "pho2_vtx_dt[nPVAll]/F");
     razorTree->Branch("chi2_pho_vtx_gen", &chi2_pho_vtx_gen, "chi2_pho_vtx_gen/F");
+    razorTree->Branch("rank_chi2_genVtx", &rank_chi2_genVtx, "rank_chi2_genVtx/I");
+    razorTree->Branch("rank_chi2_min_genVtx", &rank_chi2_min_genVtx, "rank_chi2_min_genVtx/I");
     razorTree->Branch("chi2_min_pho_vtx_gen", &chi2_min_pho_vtx_gen, "chi2_min_pho_vtx_gen/F");
     razorTree->Branch("chi2_pho_vtx", chi2_pho_vtx_all, "chi2_pho_vtx[nPVAll]/F");
     razorTree->Branch("ptasym", ptasym_all, "ptasym[nPVAll]/F");
@@ -850,6 +867,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
   NPV_GEN_HasLargeTrack_dt = 0;
 
   chi2_pho_vtx_gen = 0.0;
+  rank_chi2_genVtx = 0;
+  rank_chi2_min_genVtx = 0;
   chi2_min_pho_vtx_gen = 0.0;
   min_vtxT_gen = 0.0;
   pho1_vtx_dt_gen = 0.0;
@@ -1397,6 +1416,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
                 float vtxX = pvAllX[ipv];
                 float vtxY = pvAllY[ipv];
                 float vtxZ = pvAllZ[ipv];
+                float vtxT = pvAllT[ipv];
                 
                 TVector3 pho1dir(pho1.scX-vtxX,pho1.scY-vtxY,pho1.scZ-vtxZ);
                 TVector3 pho2dir(pho2.scX-vtxX,pho2.scY-vtxY,pho2.scZ-vtxZ);
@@ -1477,9 +1497,38 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
                 else {
                   pull_conv = 10.;
                 }
-                
+              
+		if(usePhoChi2)
+		{
+			chi2_pho_vtx_train = 0.0;
+		TVector3 pho1_000(pho1.scSeedX, pho1.scSeedY,pho1.scSeedZ);
+		TVector3 pho2_000(pho2.scSeedX,pho2.scSeedY,pho2.scSeedZ);
+		TVector3 pho1vtx(pho1.scSeedX-vtxX,pho1.scSeedY-vtxY,pho1.scSeedZ-vtxZ);
+                TVector3 pho2vtx(pho2.scSeedX-vtxX,pho2.scSeedY-vtxY,pho2.scSeedZ-vtxZ);
+		double CmToNs = 0.1/2.99792458;
+		double globalOffset = 0.0111;//11.1ps global offset from the result...
+		float pho1Time_m_NoSmear = pho1.scSeedT + CmToNs*pho1_000.Mag() - globalOffset;	
+		float pho2Time_m_NoSmear = pho2.scSeedT + CmToNs*pho2_000.Mag() - globalOffset;	
+		double smear_phoT = 0.03;//30 ps smearing  
+		float pho1Time_m = randomPhotonTime.Gaus(pho1Time_m_NoSmear, smear_phoT);
+		float pho2Time_m = randomPhotonTime.Gaus(pho2Time_m_NoSmear, smear_phoT);
+			if(useTiming)
+			{
+		//assuming vertex timing known
+		float pho1Time_e = vtxT + CmToNs*pho1vtx.Mag();
+		float pho2Time_e = vtxT + CmToNs*pho2vtx.Mag();
+		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e)/(smear_phoT), 2.0);	
+		}
+			else
+			{
+		double vtxT_min_chi2 = -0.5*(CmToNs*pho1vtx.Mag()+CmToNs*pho2vtx.Mag()-pho1Time_m-pho2Time_m);
+		double pho1Time_e_tmp = vtxT_min_chi2 + CmToNs*pho1vtx.Mag();
+		double pho2Time_e_tmp = vtxT_min_chi2 + CmToNs*pho2vtx.Mag();
+		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);	
+			}	
+		}  
                 float bdtval = vtxmvareader->EvaluateMVA("BDT");
-
+		if(usePhoChi2) bdtval = vtxmvareader_chi2->EvaluateMVA("BDT");
 		if (_debug) std::cout << "Vertex: " << ipv << " " << pvAllZ[ipv] << " : " 
 				      << ptasym << " " << ptbal << " " << logsumpt2 << " " << pull_conv << " " << nConv << " : "
 				      << bdtval << "\n";
@@ -1518,7 +1567,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 		}
 		else
 		{
-		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.01*0.01)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
+		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.1*0.1)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
 		if(chi2_zt < minDist)
 		{
 		     ipvmatch = ipv;
@@ -1531,7 +1580,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 	      
 	       
 	      if (_debug) std::cout << "maxbdt Vertex: " << ipvmax << "\n\n";
-	      if (_debug) std::cout << "gen-match Vertex: " << ipvmatch << "\n\n";
+	      if (_debug) std::cout << "gen-match Vertex: " << ipvmatch << "   dz: "<<sqrt(pow(pvAllZ[ipvmatch] - genVertexZ, 2.0)+pow(pvAllY[ipvmatch] - genVertexY, 2.0)+pow(pvAllX[ipvmatch] - genVertexX, 2.0))<<" ("<<(pow(pvAllZ[ipvmatch] - genVertexZ, 2.0)+pow(pvAllY[ipvmatch] - genVertexY, 2.0)+pow(pvAllX[ipvmatch] - genVertexX, 2.0))/(0.1*0.1)<<")  dT: "<<pvAllT[ipvmatch] - genVertexT<<"  ("<<pow(pvAllT[ipvmatch] - genVertexT,2.0)/(0.06*0.06)<<")  chi2_zt: "<< minDist<<"\n\n";
 	      if (_debug) std::cout << "maxlogsumpt2 Vertex: " << ipvmaxlogsumpt2 << "\n\n";
 	      
 	      if (_debug) std::cout << "Vertex Selected: " << vtxIndex << "\n\n";
@@ -1678,7 +1727,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 		}
 		else
 		{
-		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.01*0.01)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
+		  double chi2_zt = (pow(vtxZ - genVertexZ, 2.0)+pow(vtxY - genVertexY, 2.0)+pow(vtxX - genVertexX, 2.0))/(0.1*0.1)+ pow(vtxT - genVertexT, 2.0)/(0.06*0.06);
 		if(chi2_zt < minDist)
 		{
 		     ipvmatch = ipv;
@@ -1686,6 +1735,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 		}	
 		}
                 
+
+
                 TVector3 pho1dir(bestCand[0].scX-vtxX,bestCand[0].scY-vtxY,bestCand[0].scZ-vtxZ);
                 TVector3 pho2dir(bestCand[1].scX-vtxX,bestCand[1].scY-vtxY,bestCand[1].scZ-vtxZ);
                 TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
@@ -1770,11 +1821,67 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
                 else {
                   pull_conv = 10.;
                 }
-                
+       
+	     
+                // chi2 of photon-vertex timing
+                chi2_pho_vtx_train = 0.0;
+
+		TVector3 pho1vtx(bestCand[0].scSeedX-vtxX,bestCand[0].scSeedY-vtxY,bestCand[0].scSeedZ-vtxZ);
+                TVector3 pho2vtx(bestCand[1].scSeedX-vtxX,bestCand[1].scSeedY-vtxY,bestCand[1].scSeedZ-vtxZ);
+              	
+		TVector3 pho1_000(bestCand[0].scSeedX,bestCand[0].scSeedY,bestCand[0].scSeedZ);
+		TVector3 pho2_000(bestCand[1].scSeedX,bestCand[1].scSeedY,bestCand[1].scSeedZ);
+	
+		double CmToNs = 0.1/2.99792458;
+
+		double globalOffset = 0.0111;//11.54ps global offset from the result...
+
+		float pho1Time_m_NoSmear = bestCand[0].scSeedT + CmToNs*pho1_000.Mag() - globalOffset;	
+		float pho2Time_m_NoSmear = bestCand[1].scSeedT + CmToNs*pho2_000.Mag() - globalOffset;	
+		
+		double smear_phoT = 0.03;//30 ps smearing  
+			
+		float pho1Time_m = randomPhotonTime.Gaus(pho1Time_m_NoSmear, smear_phoT);
+		float pho2Time_m = randomPhotonTime.Gaus(pho2Time_m_NoSmear, smear_phoT);
+		//assuming vertex timing known
+                {
+		float pho1Time_e = vtxT + CmToNs*pho1vtx.Mag();
+		float pho2Time_e = vtxT + CmToNs*pho2vtx.Mag();
+		if(ipv<500)
+		{
+			pho1_vtx_dt_all[ipv] = pho1Time_m_NoSmear - pho1Time_e; 
+			pho2_vtx_dt_all[ipv] = pho2Time_m_NoSmear - pho2Time_e; 
+
+			chi2_pho_vtx_all[ipv] = pow((pho1Time_m - pho1Time_e)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e)/(smear_phoT), 2.0);	
+		}
+		
+		if(useTiming)
+		{
+		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e)/(smear_phoT), 2.0);
+		}
+		}
+		{
+		//assuming vertex timing not known
+		double vtxT_min_chi2 = -0.5*(CmToNs*pho1vtx.Mag()+CmToNs*pho2vtx.Mag()-pho1Time_m-pho2Time_m);
+		double pho1Time_e_tmp = vtxT_min_chi2 + CmToNs*pho1vtx.Mag();
+		double pho2Time_e_tmp = vtxT_min_chi2 + CmToNs*pho2vtx.Mag();
+	
+		if(ipv<500)
+		{
+	        chi2_min_pho_vtx_all[ipv] = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);	
+		}
+		if(!useTiming)
+		{
+		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);
+		}
+
+		}
+
                 float bdtval = vtxmvareader->EvaluateMVA("BDT");
+		if(usePhoChi2) bdtval = vtxmvareader_chi2->EvaluateMVA("BDT");
 
 		if (_debug) std::cout << "Vertex: " << ipv << " " << pvAllZ[ipv] << " : " 
-				      << ptasym << " " << ptbal << " " << logsumpt2 << " " << pull_conv << " " << nConv << " : "
+				      << chi2_pho_vtx_train<<"   "<<ptasym << " " << ptbal << " " << logsumpt2 << " " << pull_conv << " " << nConv << " : "
 				      << bdtval << "\n";
                               
                 if (bdtval > maxbdtval) {
@@ -1817,62 +1924,9 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 		}
 		}
               
-	// chi2 of photon-vertex timing
-		TVector3 pho1vtx(bestCand[0].scSeedX-vtxX,bestCand[0].scSeedY-vtxY,bestCand[0].scSeedZ-vtxZ);
-                TVector3 pho2vtx(bestCand[1].scSeedX-vtxX,bestCand[1].scSeedY-vtxY,bestCand[1].scSeedZ-vtxZ);
-              	
-		TVector3 pho1_000(bestCand[0].scSeedX,bestCand[0].scSeedY,bestCand[0].scSeedZ);
-		TVector3 pho2_000(bestCand[1].scSeedX,bestCand[1].scSeedY,bestCand[1].scSeedZ);
-	
-		double CmToNs = 0.1/2.99792458;
 
-		double globalOffset = 0.01154;//11.54ps global offset from the result...
 
-		float pho1Time_m_NoSmear = bestCand[0].scSeedT + CmToNs*pho1_000.Mag() - globalOffset;	
-		float pho2Time_m_NoSmear = bestCand[1].scSeedT + CmToNs*pho2_000.Mag() - globalOffset;	
-		
-		double smear_phoT = 0.03;//30 ps smearing  
-			
-		float pho1Time_m = randomPhotonTime.Gaus(pho1Time_m_NoSmear, smear_phoT);
-		float pho2Time_m = randomPhotonTime.Gaus(pho2Time_m_NoSmear, smear_phoT);
-		//assuming vertex timing known
-		float pho1Time_e = vtxT + CmToNs*pho1vtx.Mag();
-		float pho2Time_e = vtxT + CmToNs*pho2vtx.Mag();
-		//std::cout<<"photon-vertex timing [in ns]..."<<std::endl;
-		//std::cout<<"pho1:  "<<pho1Time_m<<" - "<<pho1Time_e<<" [d= "<<pho1vtx.Mag()<<" cm] = "<<pho1Time_m-pho1Time_e<<"   pho2:  "<<pho2Time_m<<" - "<<pho2Time_e<<" [d="<<pho2vtx.Mag()<<" cm] = "<<pho2Time_m-pho2Time_e<<std::endl;
-		if(ipv<500)
-		{
-			pho1_vtx_dt_all[ipv] = pho1Time_m_NoSmear - pho1Time_e; 
-			//pho1_vtx_dt_all[ipv] = bestCand[0].scSeedT - vtxT; 
-			pho2_vtx_dt_all[ipv] = pho2Time_m_NoSmear - pho2Time_e; 
-			//pho2_vtx_dt_all[ipv] = bestCand[1].scSeedT - vtxT; 
 
-			chi2_pho_vtx_all[ipv] = pow((pho1Time_m - pho1Time_e)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e)/(smear_phoT), 2.0);	
-		}
-		//assuming vertex timing not known, scan vertex time from -2 to 2 ns, with 1ps step
-		double min_chi2_tmp = std::numeric_limits<double>::max();
-		double vtxT_tmp = -2.0;
-
-//		std::cout<<"entering time scan to minimize chi2"<<std::endl;
-		if(ipv<500)
-		{
-		for(int iStep=0;iStep<4000;iStep++)
-		{	
-			float pho1Time_e_tmp = vtxT_tmp + CmToNs*pho1vtx.Mag();
-			float pho2Time_e_tmp = vtxT_tmp + CmToNs*pho2vtx.Mag();
-
-			double chi2_pho_vtx_this = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);	
-			if(chi2_pho_vtx_this < min_chi2_tmp) 
-			{
-			min_chi2_tmp = chi2_pho_vtx_this;	
-			min_vtxT_all[ipv] = vtxT_tmp;	
-			}
-			
-			vtxT_tmp = vtxT_tmp + 0.001;//step width is 1 ps
-
-		}
-		chi2_min_pho_vtx_all[ipv] = min_chi2_tmp;
-		}
 	
 		if(ipv==0)
 		{
@@ -1887,11 +1941,15 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
   			pho1_vtx_dt_gen = pho1Time_m_NoSmear - pho1Time_e_gen;
   			pho2_vtx_dt_gen = pho2Time_m_NoSmear - pho2Time_e_gen;
  	
-			min_chi2_tmp = std::numeric_limits<double>::max();
-                	vtxT_tmp = -2.0;
-		
-
-			for(int iStep=0;iStep<4000;iStep++)
+			//min_chi2_tmp = std::numeric_limits<double>::max();
+                	//vtxT_tmp = -2.0;
+			min_vtxT_gen = -0.5*(CmToNs*pho1vtx_gen.Mag()+CmToNs*pho2vtx_gen.Mag()-pho1Time_m-pho2Time_m);
+                	double pho1Time_e_tmp = min_vtxT_gen + CmToNs*pho1vtx_gen.Mag();
+                	double pho2Time_e_tmp = min_vtxT_gen + CmToNs*pho2vtx_gen.Mag();
+			chi2_min_pho_vtx_gen = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);
+				
+			/*
+			for(int iStep=0;iStep<8000;iStep++)
 			{	
 			float pho1Time_e_tmp = vtxT_tmp + CmToNs*pho1vtx_gen.Mag();
 			float pho2Time_e_tmp = vtxT_tmp + CmToNs*pho2vtx_gen.Mag();
@@ -1903,10 +1961,11 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 			min_vtxT_gen = vtxT_tmp;	
 			}
 			
-				vtxT_tmp = vtxT_tmp + 0.001;//step width is 1 ps
+				vtxT_tmp = vtxT_tmp + 0.0005;//step width is 1 ps
 
 			}
 			chi2_min_pho_vtx_gen = min_chi2_tmp;
+			*/
 		}	
    		if(ipv==0)
 		{
@@ -1945,6 +2004,9 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
          	}
 
 		
+	        if (_debug) std::cout << "gen-match Vertex: " << ipvmatch << "   dz: "<<sqrt(pow(pvAllZ[ipvmatch] - genVertexZ, 2.0)+pow(pvAllY[ipvmatch] - genVertexY, 2.0)+pow(pvAllX[ipvmatch] - genVertexX, 2.0))<<" ("<<(pow(pvAllZ[ipvmatch] - genVertexZ, 2.0)+pow(pvAllY[ipvmatch] - genVertexY, 2.0)+pow(pvAllX[ipvmatch] - genVertexX, 2.0))/(0.004*0.004*0.01*minDist)<<")  dT: "<<pvAllT[ipvmatch] - genVertexT<<"  ("<<pow(pvAllT[ipvmatch] - genVertexT,2.0)/(0.01*0.01*0.01*minDist)<<")  chi2_zt: "<< minDist<<"\n\n";
+
+
  		vtxIndex = ipvmax;
 
 		if (_debug) std::cout << "maxbdt Vertex: " << ipvmax << "\n\n";
@@ -1965,7 +2027,20 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEven
 	      isMatchPv[ipvmatch]=1; 
 	      isMaxbdtPv[ipvmax]=1; 
 	      isMaxlogsumpt2Pv[ipvmaxlogsumpt2]=1; 
-              
+            
+
+	     //gen vertex chi2 rank
+	     rank_chi2_genVtx = 0;
+	     rank_chi2_min_genVtx = 0;
+	     for(int ipv=0;ipv<nPVAll;ipv++)
+	     {
+		if(ipv<500)
+		{
+			if(chi2_pho_vtx_all[ipv]<chi2_pho_vtx_gen) rank_chi2_genVtx += 1;
+			if(chi2_min_pho_vtx_all[ipv]<chi2_min_pho_vtx_gen) rank_chi2_min_genVtx += 1;
+		}
+	     }
+  
             } //end if do MVA Vertex
             
     for(int i=0;i<allTrackdT->size();i++)

@@ -37,9 +37,9 @@ public :
    Float_t         fixedGridRhoFastjetCentralCalo;
    Float_t         fixedGridRhoFastjetCentralChargedPileUp;
    Float_t         fixedGridRhoFastjetCentralNeutral;
-   Float_t         beamSpotX;
-   Float_t         beamSpotY;
-   Float_t         beamSpotZ;
+   Float_t         beamSpotX=0.0;
+   Float_t         beamSpotY=0.0;
+   Float_t         beamSpotZ=0.0;
    Int_t           nPVAll;
    Int_t           pvIndex[500];   //[nPVAll]
    Float_t         pvAllX[500];   //[nPVAll]
@@ -770,9 +770,9 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
    fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
-   fChain->SetBranchAddress("beamSpotX", &beamSpotX, &b_beamSpotX);
-   fChain->SetBranchAddress("beamSpotY", &beamSpotY, &b_beamSpotY);
-   fChain->SetBranchAddress("beamSpotZ", &beamSpotZ, &b_beamSpotZ);
+//   fChain->SetBranchAddress("beamSpotX", &beamSpotX, &b_beamSpotX);
+//   fChain->SetBranchAddress("beamSpotY", &beamSpotY, &b_beamSpotY);
+//   fChain->SetBranchAddress("beamSpotZ", &beamSpotZ, &b_beamSpotZ);
    fChain->SetBranchAddress("nPVAll", &nPVAll, &b_nPVAll);
    fChain->SetBranchAddress("pvIndex", pvIndex, &b_pvIndex);
    fChain->SetBranchAddress("pvAllX", pvAllX, &b_pvAllX);
@@ -1046,8 +1046,8 @@ void RazorEventsUpgradeTiming::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, &b_Flag_trkPOG_toomanystripclus53X);
    fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
-   fChain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
-   fChain->SetBranchAddress("HLTPrescale", HLTPrescale, &b_HLTPrescale);
+//   fChain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
+//   fChain->SetBranchAddress("HLTPrescale", HLTPrescale, &b_HLTPrescale);
    fChain->SetBranchAddress("nGenJets", &nGenJets, &b_nGenJets);
    fChain->SetBranchAddress("genJetE", genJetE, &b_genJetE);
    fChain->SetBranchAddress("genJetPt", genJetPt, &b_genJetPt);

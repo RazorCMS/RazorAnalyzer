@@ -16,8 +16,8 @@ RazorAnalyzerUpgradeTiming::~RazorAnalyzerUpgradeTiming()
 
 }
 
-void RazorAnalyzerUpgradeTiming::Analyze(bool isData, bool useTiming, bool useOddEvent, int option, string outputFileName, string label) {
-    cout << "Analyze method called on base RazorAnalyzerUpgradeTiming instance.  Parameters were: " << isData <<"   "<< useTiming << " " << useOddEvent << "  " << option << " " << outputFileName << " " << label << endl;
+void RazorAnalyzerUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2, bool useOddEvent, int option, string outputFileName, string label) {
+    cout << "Analyze method called on base RazorAnalyzerUpgradeTiming instance.  Parameters were: " << isData <<"   "<< useTiming << " " <<usePhoChi2<<"   "<< useOddEvent << "  " << option << " " << outputFileName << " " << label << endl;
 }
 
 //NOTE: the functions below need to be maintained by hand.  If variables are added or removed from the ntuple, these functions need to be updated to reflect the changes.
@@ -52,14 +52,14 @@ void RazorAnalyzerUpgradeTiming::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralCalo", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
-    fChain->SetBranchStatus("HLTDecision", 1);
-    fChain->SetBranchStatus("HLTPrescale", 1);
+//    fChain->SetBranchStatus("HLTDecision", 1);
+//    fChain->SetBranchStatus("HLTPrescale", 1);
 }
 
 void RazorAnalyzerUpgradeTiming::EnablePVAll() {
-    fChain->SetBranchStatus("beamSpotX",1);
-    fChain->SetBranchStatus("beamSpotY",1);
-    fChain->SetBranchStatus("beamSpotZ",1);
+//    fChain->SetBranchStatus("beamSpotX",1);
+//    fChain->SetBranchStatus("beamSpotY",1);
+//    fChain->SetBranchStatus("beamSpotZ",1);
     fChain->SetBranchStatus("nPVAll",1);
     fChain->SetBranchStatus("pvIndex",1);
     fChain->SetBranchStatus("pvAllX",1);
