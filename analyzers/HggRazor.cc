@@ -505,8 +505,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("gParticlePhi", gParticlePhi, "gParticlePhi[nGenParticle]/F");
   razorTree->Branch("gParticleEta", gParticleEta, "gParticleEta[nGenParticle]/F");
 
-  razorTree->Branch("mChi", mChi, "mChi/I");
-  razorTree->Branch("mLSP", mLSP, "mLSP/I");
+  razorTree->Branch("mChi", &mChi, "mChi/I");
+  razorTree->Branch("mLSP", &mLSP, "mLSP/I");
 
   //begin loop
   if ( fChain == 0 ) return;
