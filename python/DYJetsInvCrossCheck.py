@@ -16,18 +16,23 @@ if __name__ == "__main__":
                                 action="store_true")
     parser.add_argument("--tag", dest="tag", default="Razor2016",
                                 help="Analysis tag, e.g. Razor2015")
+    parser.add_argument("--closure", action="store_true", help="include uncertainties from scale factor cross check")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
+    closure = args.closure
 
     #initialize
     plotOpts = { "comment":False, 'SUS15004CR':True } 
     #Process inclusive sample twice; the first pass will compute the overall normalization 
     #and the second pass will be a rerun with the corrected normalization
-    regionsOrder = ["DYJetsDileptonInvUncorr", "DYJetsDileptonInv", 
-            "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet",
-            "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr",
-            "DYJetsDileptonInvNoSFs"]
+    if closure:
+        regionsOrder = ["DYJetsDileptonInv", "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet"]
+    else:
+        regionsOrder = ["DYJetsDileptonInvUncorr", "DYJetsDileptonInv", 
+                "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet",
+                "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr",
+                "DYJetsDileptonInvNoSFs"]
     regions = {
             "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag),
             "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag),
@@ -55,12 +60,24 @@ if __name__ == "__main__":
     sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
     outfile = rt.TFile(
         "data/ScaleFactors/RazorMADD2015/RazorDYJetsDileptonInvCrossCheck_%s.root"%(tag), "RECREATE")
+    #optionally inflate scale factor uncertainties to cover difference between G+jets and W+jets SFs
+    if args.closure:
+        sfFile = rt.TFile.Open(sfFilename)
+        downHist = sfFile.Get("GJetsInvScaleFactors_Down")
+        for bn in range(sfHists["DYJetsInv"].GetNumberOfBins()+1):
+            err = sfHists["DYJetsInv"].GetBinError(bn)
+            sysErr = sfHists["DYJetsInv"].GetBinContent(bn) - downHist.GetBinContent(bn)
+            newErr = ( err*err + sysErr*sysErr )**(0.5)
+            sfHists["DYJetsInv"].SetBinError(bn-1, newErr) # adjust bin number by 1 to account for bug in ROOT
+            print "Increasing error on DYJets scale factor bin",bn,"from",err,"to",sfHists["DYJetsInv"].GetBinError(bn)
     
-    updateNorm = True
+    updateNorm = (not closure)
     for region in regionsOrder:
         analysis = regions[region]
         #make output directory
         outdir = 'Plots/'+tag+'/'+region
+        if closure:
+            outdir += '_Closure'
         os.system('mkdir -p '+outdir)
         #prepare analysis
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets_NoZ')

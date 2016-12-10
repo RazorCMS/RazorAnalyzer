@@ -6,7 +6,7 @@
 class %ANALYZER%: public RazorAnalyzerUpgradeTiming {
     public: 
         %ANALYZER%(TTree *tree=0): RazorAnalyzerUpgradeTiming(tree) { }
-        void Analyze(bool isData, bool useTiming, int option, string outputFileName, string label);
+        void Analyze(bool isData, bool useTiming, bool usePhoChi2, bool useOddEvent, int option, string outputFileName, string label);
 };
 
 #endif

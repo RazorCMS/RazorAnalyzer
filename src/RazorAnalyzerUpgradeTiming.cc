@@ -16,8 +16,8 @@ RazorAnalyzerUpgradeTiming::~RazorAnalyzerUpgradeTiming()
 
 }
 
-void RazorAnalyzerUpgradeTiming::Analyze(bool isData, bool useTiming, int option, string outputFileName, string label) {
-    cout << "Analyze method called on base RazorAnalyzerUpgradeTiming instance.  Parameters were: " << isData <<"   "<< useTiming << " " << option << " " << outputFileName << " " << label << endl;
+void RazorAnalyzerUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2, bool useOddEvent, int option, string outputFileName, string label) {
+    cout << "Analyze method called on base RazorAnalyzerUpgradeTiming instance.  Parameters were: " << isData <<"   "<< useTiming << " " <<usePhoChi2<<"   "<< useOddEvent << "  " << option << " " << outputFileName << " " << label << endl;
 }
 
 //NOTE: the functions below need to be maintained by hand.  If variables are added or removed from the ntuple, these functions need to be updated to reflect the changes.
@@ -52,12 +52,16 @@ void RazorAnalyzerUpgradeTiming::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralCalo", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralChargedPileUp", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
-    fChain->SetBranchStatus("HLTDecision", 1);
-    fChain->SetBranchStatus("HLTPrescale", 1);
+//    fChain->SetBranchStatus("HLTDecision", 1);
+//    fChain->SetBranchStatus("HLTPrescale", 1);
 }
 
 void RazorAnalyzerUpgradeTiming::EnablePVAll() {
+//    fChain->SetBranchStatus("beamSpotX",1);
+//    fChain->SetBranchStatus("beamSpotY",1);
+//    fChain->SetBranchStatus("beamSpotZ",1);
     fChain->SetBranchStatus("nPVAll",1);
+    fChain->SetBranchStatus("pvIndex",1);
     fChain->SetBranchStatus("pvAllX",1);
     fChain->SetBranchStatus("pvAllY",1);
     fChain->SetBranchStatus("pvAllZ",1);
@@ -230,6 +234,10 @@ void RazorAnalyzerUpgradeTiming::EnablePhotons(){
     fChain->SetBranchStatus("pho_superClusterRawEnergy", 1);
     fChain->SetBranchStatus("pho_superClusterEta", 1);
     fChain->SetBranchStatus("pho_superClusterPhi", 1);
+    fChain->SetBranchStatus("pho_superClusterSeedX", 1);
+    fChain->SetBranchStatus("pho_superClusterSeedY", 1);
+    fChain->SetBranchStatus("pho_superClusterSeedZ", 1);
+    fChain->SetBranchStatus("pho_superClusterSeedT", 1);
     fChain->SetBranchStatus("pho_superClusterX", 1);
     fChain->SetBranchStatus("pho_superClusterY", 1);
     fChain->SetBranchStatus("pho_superClusterZ", 1);
@@ -373,6 +381,10 @@ void RazorAnalyzerUpgradeTiming::EnableMC(){
     //fChain->SetBranchStatus("lheComments", 1);
     fChain->SetBranchStatus("scaleWeights", 1);
     fChain->SetBranchStatus("pdfWeights", 1);
+    fChain->SetBranchStatus("allTrackdT", 1);
+    fChain->SetBranchStatus("allTrackPt", 1);
+    fChain->SetBranchStatus("allTrackdZ", 1);
+    fChain->SetBranchStatus("allTrackPvIndex", 1);
     fChain->SetBranchStatus("alphasWeights", 1);
 }
 

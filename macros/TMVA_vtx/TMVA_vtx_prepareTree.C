@@ -13,6 +13,9 @@
 
 void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU0_NoTiming.root", string outputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.root")
 {
+	unsigned int event;
+	
+	float chi2_pho_vtx = 0.0;
 	float ptasym = 0.;
   	float ptbal = 0.;
   	float logsumpt2 = 0.;
@@ -31,25 +34,26 @@ void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU
 
 	Int_t pvNtrack = 0;
 
-	float vtxdX_all[200];
-	float vtxdY_all[200];
-	float vtxdZ_all[200];
-	float vtxdT_all[200];
+	float vtxdX_all[500];
+	float vtxdY_all[500];
+	float vtxdZ_all[500];
+	float vtxdT_all[500];
 	
-	float vtxPt_all[200];
-	float vtxSumPt_all[200];
-	Int_t pvNtrack_all[200];
+	float vtxPt_all[500];
+	float vtxSumPt_all[500];
+	Int_t pvNtrack_all[500];
 	
 	Int_t nPVAll = 0;
-	Int_t isMatchPv[200];
-  	Int_t isMaxbdtPv[200];
-   	float ptasym_all[200];// = {0.};
-  	float ptbal_all[200];// = {0.};
-  	float logsumpt2_all[200];// = {0.};
-  	float pull_conv_all[200];// = {0.};
-  	float nConv_all[200];// = {0.};
+	Int_t isMatchPv[500];
+  	Int_t isMaxbdtPv[500];
+   	float chi2_pho_vtx_all[500];// = {0.};
+   	float ptasym_all[500];// = {0.};
+  	float ptbal_all[500];// = {0.};
+  	float logsumpt2_all[500];// = {0.};
+  	float pull_conv_all[500];// = {0.};
+  	float nConv_all[500];// = {0.};
 
-	for(int i=0;i<200;i++)
+	for(int i=0;i<500;i++)
   	{
         isMatchPv[i]=0;
         isMaxbdtPv[i]=0;
@@ -74,8 +78,11 @@ void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU
    TFile *file_in = new TFile(inputFilename.c_str(),"READ");
    TTree *tree_in = (TTree*)file_in->Get("HggRazor");
     
+   tree_in->SetBranchAddress( "event", 		&event);
    tree_in->SetBranchAddress( "nPVAll", 	&nPVAll);
    tree_in->SetBranchAddress( "isMatchPv",   	isMatchPv);
+   if(inputFilename.find("NoTiming")!=std::string::npos) tree_in->SetBranchAddress( "chi2_min_pho_vtx", chi2_pho_vtx_all);
+   else tree_in->SetBranchAddress( "chi2_pho_vtx", chi2_pho_vtx_all);
    tree_in->SetBranchAddress( "ptasym",   	ptasym_all);
    tree_in->SetBranchAddress( "ptbal",   	ptbal_all);
    tree_in->SetBranchAddress( "logsumpt2",   	logsumpt2_all);
@@ -96,6 +103,8 @@ void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU
    TTree *tree_out_S = new TTree("TreeS", "Tree_Signal");
    TTree *tree_out_B = new TTree("TreeB", "Tree_Background");
 
+   tree_out_S->Branch( "event",		&event, "event/i");
+   tree_out_S->Branch( "chi2_pho_vtx",	&chi2_pho_vtx, "chi2_pho_vtx/F");
    tree_out_S->Branch( "ptasym",	&ptasym, "ptasym/F");
    tree_out_S->Branch( "ptbal", 	&ptbal, "ptbal/F");
    tree_out_S->Branch( "logsumpt2", 	&logsumpt2, "logsumpt2/F");
@@ -111,6 +120,8 @@ void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU
    tree_out_S->Branch( "pvNtrack", 	&pvNtrack, "pvNtrack/I");
    //tree_out_S->Branch( "weight", 	&weight, "weight/F");
 
+   tree_out_B->Branch( "event",		&event, "event/i");
+   tree_out_B->Branch( "chi2_pho_vtx",	&chi2_pho_vtx, "chi2_pho_vtx/F");
    tree_out_B->Branch( "ptasym",	&ptasym, "ptasym/F");
    tree_out_B->Branch( "ptbal", 	&ptbal, "ptbal/F");
    tree_out_B->Branch( "logsumpt2", 	&logsumpt2, "logsumpt2/F");
@@ -133,6 +144,7 @@ void TMVA_vtx_prepareTree(string inputFilename = "../../HggRazorUpgradeTiming_PU
 	tree_in->GetEntry(i);
 	for(int j=0;j<nPVAll;j++)
 	{	
+		chi2_pho_vtx = chi2_pho_vtx_all[j];
 		ptasym = ptasym_all[j];
 		ptbal = ptbal_all[j];
 		logsumpt2 = logsumpt2_all[j];

@@ -47,7 +47,7 @@ class RazorAnalyzerUpgradeTiming: public RazorEventsUpgradeTiming {
         void EnableAll();
 
         //------ LIST OF ANALYSES ------//
-        virtual void Analyze(bool isData, bool useTiming, int option, string outputFileName, string label);
+        virtual void Analyze(bool isData, bool useTiming, bool usePhoChi2, bool useOddEvent, int option, string outputFileName, string label);
 
         //functions in RazorAuxMuon.cc
 	float GetMuonEffectiveAreaMean(int i, string type );

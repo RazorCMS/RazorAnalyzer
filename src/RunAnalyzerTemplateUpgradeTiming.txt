@@ -35,6 +35,8 @@ void usage()
   std::cerr << "Usage: Run%ANALYZER%  <input list>  [options]\n[options]:\n"
 	    << "-d  --isData\n"
 	    << "-t  --useTiming\n"
+	    << "-c  --usePhoChi2\n"
+	    << "-e  --useOddEvent\n"
 	    << "-f  --outputFile=<output filename> (optional)\n"
 	    << "-n  --optionNumber=<option number> (optional)\n"
 	    << "-l  --optionLabel=<option Label> (optional)\n" 
@@ -65,9 +67,17 @@ int main(int argc, char* argv[]){
   if ( _isData == "yes" || _d == "yes" ) isData = true;
   
   std::string _useTiming = ParseCommandLine( argc, argv, "--useTiming" );
+  std::string _usePhoChi2 = ParseCommandLine( argc, argv, "--usePhoChi2" );
+  std::string _useOddEvent = ParseCommandLine( argc, argv, "--useOddEvent" );
   std::string _t = ParseCommandLine( argc, argv, "-t" );
+  std::string _c = ParseCommandLine( argc, argv, "-c" );
+  std::string _e = ParseCommandLine( argc, argv, "-e" );
   bool useTiming = false;
+  bool usePhoChi2 = false;
+  bool useOddEvent = false;
   if ( _useTiming == "yes" || _t == "yes" ) useTiming = true;
+  if ( _usePhoChi2 == "yes" || _c == "yes" ) usePhoChi2 = true;
+  if ( _useOddEvent == "yes" || _e == "yes" ) useOddEvent = true;
 
 
   //---------------------------------------------
@@ -126,6 +136,8 @@ int main(int argc, char* argv[]){
   
   std::cout << "[INFO]: <input list> --> " << inputFileName << std::endl;
   std::cout << "[INFO]: useTiming --> " << useTiming << std::endl;
+  std::cout << "[INFO]: usePhoChi2 --> " << usePhoChi2 << std::endl;
+  std::cout << "[INFO]: useOddEvent --> " << useOddEvent << std::endl;
   std::cout << "[INFO]: isData --> " << isData << std::endl;
   std::cout << "[INFO]: outputFileName --> " << outputFileName << std::endl;
   std::cout << "[INFO]: option --> " << option << std::endl;
@@ -178,7 +190,7 @@ int main(int argc, char* argv[]){
     //------ EXECUTE ------//
     cout << "Executing %ANALYZER%..." << endl;
     analyzer.EnableAll();
-    analyzer.Analyze(isData, useTiming, option, outputFileName, label);
+    analyzer.Analyze(isData, useTiming, usePhoChi2, useOddEvent, option, outputFileName, label);
     cout << "Process completed!" << endl;
     cerr << "------------------------------" << endl; //present so that an empty .err file corresponds to a failed job
     
