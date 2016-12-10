@@ -102,6 +102,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   if (option == 8 || option == 18) doRequireTightIso = true;
   if (option == 9 || option == 19) { doRequireTightID = true; doRequireTightIso = true; }
 
+  bool isFastsimSMS = (option >= 10);
+  bool is2DMassScan = (option >= 20);
   std::cout << "[INFO]: option = " << option << std::endl;
   std::cout << "[INFO]: analysisTag --> " << analysisTag << std::endl;
   std::cout << "[INFO]: doRequireID --> " << doRequireID << std::endl;
@@ -111,7 +113,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   std::cout << "[INFO]: doRequireTightID --> " << doRequireTightID << std::endl;
   std::cout << "[INFO]: doRequireTightIso --> " << doRequireTightIso << std::endl;
   std::cout << "[INFO]: doPhotonScaleCorrection --> " << doPhotonScaleCorrection << std::endl;
- 
+  std::cout << "[INFO]: isFastsimSMS --> " << isFastsimSMS << std::endl;
+  std::cout << "[INFO]: is2DMassScan --> " << is2DMassScan << std::endl;
+
   //initialization: create one TTree for each analysis box 
   if ( _info ) std::cout << "Initializing..." << std::endl;
   
@@ -126,6 +130,22 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //---------------------------
   TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
   
+  //For signal samples, create one output file and tree per signal mass point
+  map<int, TFile*> smsFiles;
+  map<int, TTree*> smsTrees;
+  map<int, TH1F*> smsNEvents;
+  map<int, TH1F*> smsSumWeights;
+  map<int, TH1F*> smsSumScaleWeights;
+  map<int, TH1F*> smsSumPdfWeights;  
+  map<pair<int,int>, TFile*> smsFiles2D;
+  map<pair<int,int>, TTree*> smsTrees2D;
+  map<pair<int,int>, TH1F*> smsNEvents2D;
+  map<pair<int,int>, TH1F*> smsSumWeights2D;
+  map<pair<int,int>, TH1F*> smsSumScaleWeights2D;
+  map<pair<int,int>, TH1F*> smsSumPdfWeights2D;
+  
+
+
   //Get CMSSW Directory
   char* cmsswPath;
   cmsswPath = getenv("CMSSW_BASE");
@@ -286,6 +306,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float weight;
   float pileupWeight, pileupWeightUp, pileupWeightDown;
   float triggerEffWeight;
+  float triggerEffSFWeight;
   float photonEffSF;
   float ISRSystWeightUp, ISRSystWeightDown;
   int NISRJets;
@@ -329,6 +350,10 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
   bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
 
+  //SMS info
+  int mChi = 0;
+  int mLSP = 0;
+
   //------------------------
   //set branches on big tree
   //------------------------
@@ -338,6 +363,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
   razorTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
   razorTree->Branch("triggerEffWeight", &triggerEffWeight, "triggerEffWeight/F");
+  razorTree->Branch("triggerEffSFWeight", &triggerEffSFWeight, "triggerEffSFWeight/F");
   razorTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
@@ -479,11 +505,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("gParticlePhi", gParticlePhi, "gParticlePhi[nGenParticle]/F");
   razorTree->Branch("gParticleEta", gParticleEta, "gParticleEta[nGenParticle]/F");
 
+  razorTree->Branch("mChi", mChi, "mChi/I");
+  razorTree->Branch("mLSP", mLSP, "mLSP/I");
 
   //begin loop
   if ( fChain == 0 ) return;
   Long64_t nentries = fChain->GetEntriesFast();
   Long64_t nbytes = 0, nb = 0;
+  std::cout << "[INFO]: Total Entries = " << fChain->GetEntries() << "\n";
   for ( Long64_t jentry=0; jentry < nentries; jentry++ )
     {
       //begin event
@@ -506,6 +535,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       pileupWeightUp    = 1.0;
       pileupWeightDown  = 1.0;
       triggerEffWeight  = 1.0;
+      triggerEffSFWeight  = 1.0;
       
       btagCorrFactor    = 1.0;
       sf_btagUp         = 1.0;
@@ -589,8 +619,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  jetIsCSVT[i] = 0;  
 	}
 
+      mChi = 0;
+      mLSP = 0;
 
-      
       //------------------
       //Pileup reweighting
       //------------------
@@ -1072,6 +1103,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //compute trigger efficiency weights for MC
       //******************************************************
       triggerEffWeight = 1.0;
+      triggerEffSFWeight = 1.0;
       double leadPhoPt=0;
       double leadPhoEta=0;
       double trailingPhoPt=0;
@@ -1087,9 +1119,12 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	trailingPhoPt = Pho_Pt[0];
 	trailingPhoEta= Pho_Eta[0];
       }
+      double triggerEffLeadingLeg = helper->getDiphotonTrigLeadingLegEff( leadPhoPt, leadPhoEta );
+      double triggerEffTrailingLeg = helper->getDiphotonTrigTrailingLegEff( trailingPhoPt, trailingPhoEta );
+      triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
       double triggerEffSFLeadingLeg = helper->getDiphotonTrigLeadingLegEffSF( leadPhoPt, leadPhoEta );
       double triggerEffSFTrailingLeg = helper->getDiphotonTrigTrailingLegEffSF( trailingPhoPt, trailingPhoEta );
-      triggerEffWeight = triggerEffSFLeadingLeg*triggerEffSFTrailingLeg;
+      triggerEffSFWeight = triggerEffSFLeadingLeg*triggerEffSFTrailingLeg;
 
       //******************************************************
       //compute photon efficiency scale factor
@@ -1512,6 +1547,116 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //------------------------------------------------
       sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
 
+      //--------------------------------------------------------------
+      //Extract SUSY model parameters from lheComment variable
+      //--------------------------------------------------------------
+ 
+      bool parsedLHE = false;
+      if(isFastsimSMS && lheComments){
+	//cout << lheComments << " " << *lheComments << "\n";
+
+	if (!is2DMassScan) {
+	  //parse lhe comment string to get Chargino/Neutralino2 masses
+	  stringstream parser(*lheComments);
+	  string item;
+	  getline(parser, item, '_'); //prefix
+	  if(getline(parser, item, '_')){ //gluino mass 
+	    mChi = atoi(item.c_str());
+	    if(mChi == 0) { //fix for the case where the model name contains an underscore
+	      if(getline(parser, item, '_')){
+		mChi = atoi(item.c_str());
+	      }
+
+	      parsedLHE = true;
+	      if (smsFiles.count(mChi) == 0){ //create file and tree
+		//format file name
+		string thisFileName = outFileName;
+		thisFileName.erase(thisFileName.end()-5, thisFileName.end());
+		thisFileName += "_" + to_string(mChi) + ".root";
+
+		smsFiles[mChi] = new TFile(thisFileName.c_str(), "recreate");
+		smsTrees[mChi] = razorTree->CloneTree(0);
+		smsNEvents[mChi] = new TH1F(Form("NEvents%d", mChi), "NEvents", 1,0.5,1.5);
+		smsSumWeights[mChi] = new TH1F(Form("SumWeights%d", mChi), "SumWeights", 1,0.5,1.5);
+		smsSumScaleWeights[mChi] = new TH1F(Form("SumScaleWeights%d", mChi), "SumScaleWeights", 6,-0.5,5.5);
+		smsSumPdfWeights[mChi] = new TH1F(Form("SumPdfWeights%d", mChi), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
+		cout << "Created new output file " << thisFileName << endl;
+	      }
+	      //Fill NEvents hist 
+	      smsNEvents[mChi]->Fill(1.0, genWeight);
+	      smsSumWeights[mChi]->Fill(1.0, weight);
+
+	      smsSumScaleWeights[mChi]->Fill(0.0, sf_facScaleUp);
+	      smsSumScaleWeights[mChi]->Fill(1.0, sf_facScaleDown);
+	      smsSumScaleWeights[mChi]->Fill(2.0, sf_renScaleUp);
+	      smsSumScaleWeights[mChi]->Fill(3.0, sf_renScaleDown);
+	      smsSumScaleWeights[mChi]->Fill(4.0, sf_facRenScaleUp);
+	      smsSumScaleWeights[mChi]->Fill(5.0, sf_facRenScaleDown);
+
+	      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+		smsSumPdfWeights[mChi]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	      } 
+
+	    }	
+	  }
+	} else {
+
+	  //parse lhe comment string to get gluino and LSP masses
+	  stringstream parser(*lheComments);
+	  string item;
+	  getline(parser, item, '_'); //prefix
+	  if(getline(parser, item, '_')){ //gluino mass 
+	    mChi = atoi(item.c_str());
+	    if(mChi == 0) { //fix for the case where the model name contains an underscore
+	      if(getline(parser, item, '_')){
+		mChi = atoi(item.c_str());
+		if(mChi == 0) { //fix for the case where the model name contains an underscore
+		  if(getline(parser, item, '_')){
+		    mChi = atoi(item.c_str());
+		  }
+		}
+	      }
+	    }
+	    if(getline(parser, item, '_')){ //LSP mass 
+	      mLSP = atoi(item.c_str());
+	      pair<int,int> smsPair = make_pair(mChi, mLSP);
+
+	      parsedLHE = true;
+	      if (smsFiles2D.count(smsPair) == 0){ //create file and tree
+		//format file name
+		string thisFileName = outFileName;
+		thisFileName.erase(thisFileName.end()-5, thisFileName.end());
+		thisFileName += "_" + to_string(mChi) + "_" + to_string(mLSP) + ".root";
+
+		smsFiles2D[smsPair] = new TFile(thisFileName.c_str(), "recreate");
+		smsTrees2D[smsPair] = razorTree->CloneTree(0);
+		smsNEvents2D[smsPair] = new TH1F(Form("NEvents%d%d", mChi, mLSP), "NEvents", 1,0.5,1.5);
+		smsSumWeights2D[smsPair] = new TH1F(Form("SumWeights%d%d", mChi, mLSP), "SumWeights", 1,0.5,1.5);
+		smsSumScaleWeights2D[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mChi, mLSP), "SumScaleWeights", 6,-0.5,5.5);
+		smsSumPdfWeights2D[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mChi, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
+		cout << "Created new output file " << thisFileName << endl;
+	      }
+	      //Fill NEvents hist 
+	      smsNEvents2D[smsPair]->Fill(1.0, genWeight);
+	      smsSumWeights2D[smsPair]->Fill(1.0, weight);
+
+	      smsSumScaleWeights2D[smsPair]->Fill(0.0, sf_facScaleUp);
+	      smsSumScaleWeights2D[smsPair]->Fill(1.0, sf_facScaleDown);
+	      smsSumScaleWeights2D[smsPair]->Fill(2.0, sf_renScaleUp);
+	      smsSumScaleWeights2D[smsPair]->Fill(3.0, sf_renScaleDown);
+	      smsSumScaleWeights2D[smsPair]->Fill(4.0, sf_facRenScaleUp);
+	      smsSumScaleWeights2D[smsPair]->Fill(5.0, sf_facRenScaleDown);
+
+	      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+		smsSumPdfWeights2D[smsPair]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	      }
+	    }
+	  }
+	}
+      } // end if fastsim
+
+
+
       //Writing output to tree
       //HighPt Box
       if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
@@ -1529,25 +1674,57 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       else razorbox = LowRes;
 
       //Fill Event
-      razorTree->Fill();
+      if (!isFastsimSMS) {
+	razorTree->Fill();
+      } else if (parsedLHE) {
+	if (!is2DMassScan) {
+	  smsTrees[mChi]->Fill();
+	} else {
+	  pair<int,int> smsPair = make_pair(mChi, mLSP);
+	  smsTrees2D[smsPair]->Fill();
+	}
+      }
 
       //end of event loop
     }
   
   if ( _info ) std::cout << "[INFO]: Number of events processed: " << NEvents->Integral() << std::endl;
-  if ( _info ) std::cout << "[INFO]: Writing output trees..." << std::endl;
-  
-  outFile->cd();
-  razorTree->Write();
-  NEvents->Write();
-  SumWeights->Write();
-  SumScaleWeights->Write();
-  SumPdfWeights->Write();
-  histNISRJets->Write();
-  puhisto->Write();
+
+  if(!isFastsimSMS){
+    if ( _info ) std::cout << "[INFO]: Writing output trees..." << std::endl;    
+    outFile->cd();
+    razorTree->Write();
+    NEvents->Write();
+    SumWeights->Write();
+    SumScaleWeights->Write();
+    SumPdfWeights->Write();
+    histNISRJets->Write();
+    puhisto->Write();
+  } else {
+    if (!isFastsimSMS) {
+      for(auto &filePtr : smsFiles){
+	cout << "Writing output tree (" << filePtr.second->GetName() << ")" << endl;
+	filePtr.second->cd();
+	smsTrees[filePtr.first]->Write();
+	smsNEvents[filePtr.first]->Write("NEvents");
+	smsSumWeights[filePtr.first]->Write("SumWeights");
+	smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
+	smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
+      }
+    } else {
+      for(auto &filePtr : smsFiles2D){
+	cout << "Writing output tree (" << filePtr.second->GetName() << ")" << endl;
+	filePtr.second->cd();
+	smsTrees2D[filePtr.first]->Write();
+	smsNEvents2D[filePtr.first]->Write("NEvents");
+	smsSumWeights2D[filePtr.first]->Write("SumWeights");
+	smsSumScaleWeights2D[filePtr.first]->Write("SumScaleWeights");
+	smsSumPdfWeights2D[filePtr.first]->Write("SumPdfWeights");
+      }
+    }
+  }
+
   outFile->Close();
-
-
   delete photonCorrector;
   delete helper;
 
