@@ -313,7 +313,7 @@ public :
    Float_t         genQScale;
    Float_t         genAlphaQCD;
    Float_t         genAlphaQED;
-   std::vector<std::string> *lheComments;
+   std::string     *lheComments;
    std::vector<float>   *scaleWeights;
    std::vector<float>   *pdfWeights;
    std::vector<float>   *alphasWeights;
