@@ -164,6 +164,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
   bool doMVAVertex = true;
   float ptasym = 0.;
   float chi2_pho_vtx_train = 0.;
+  float logchi2_pho_vtx_train = 0.;
   float ptbal = 0.;
   float logsumpt2 = 0.;
   Float_t vertexsumpt = 0.;
@@ -271,7 +272,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
     vtxmvareader->BookMVA("BDT",Form("%s/TMVAClassification_BDTVtxId_SL_2016.xml",vtxpathname.c_str()));
  
     vtxmvareader_chi2 = new TMVA::Reader( "!Color:Silent" );
-    vtxmvareader_chi2->AddVariable("chi2_pho_vtx", &chi2_pho_vtx_train );
+    vtxmvareader_chi2->AddVariable("logchi2_pho_vtx", &logchi2_pho_vtx_train );
     vtxmvareader_chi2->AddVariable("ptasym", &ptasym );
     vtxmvareader_chi2->AddVariable("ptbal", &ptbal );
     vtxmvareader_chi2->AddVariable("logsumpt2", &logsumpt2 );
@@ -1501,6 +1502,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
 		if(usePhoChi2)
 		{
 			chi2_pho_vtx_train = 0.0;
+			logchi2_pho_vtx_train = 0.0;
 		TVector3 pho1_000(pho1.scSeedX, pho1.scSeedY,pho1.scSeedZ);
 		TVector3 pho2_000(pho2.scSeedX,pho2.scSeedY,pho2.scSeedZ);
 		TVector3 pho1vtx(pho1.scSeedX-vtxX,pho1.scSeedY-vtxY,pho1.scSeedZ-vtxZ);
@@ -1518,6 +1520,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
 		float pho1Time_e = vtxT + CmToNs*pho1vtx.Mag();
 		float pho2Time_e = vtxT + CmToNs*pho2vtx.Mag();
 		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e)/(smear_phoT), 2.0);	
+		if(chi2_pho_vtx_train>0.0) logchi2_pho_vtx_train = log(chi2_pho_vtx_train);
 		}
 			else
 			{
@@ -1525,6 +1528,8 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
 		double pho1Time_e_tmp = vtxT_min_chi2 + CmToNs*pho1vtx.Mag();
 		double pho2Time_e_tmp = vtxT_min_chi2 + CmToNs*pho2vtx.Mag();
 		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);	
+	
+		if(chi2_pho_vtx_train>0.0) logchi2_pho_vtx_train = log(chi2_pho_vtx_train);
 			}	
 		}  
                 float bdtval = vtxmvareader->EvaluateMVA("BDT");
@@ -1825,6 +1830,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
 	     
                 // chi2 of photon-vertex timing
                 chi2_pho_vtx_train = 0.0;
+                logchi2_pho_vtx_train = 0.0;
 
 		TVector3 pho1vtx(bestCand[0].scSeedX-vtxX,bestCand[0].scSeedY-vtxY,bestCand[0].scSeedZ-vtxZ);
                 TVector3 pho2vtx(bestCand[1].scSeedX-vtxX,bestCand[1].scSeedY-vtxY,bestCand[1].scSeedZ-vtxZ);
@@ -1858,6 +1864,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
 		if(useTiming)
 		{
 		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e)/(smear_phoT), 2.0);
+		if(chi2_pho_vtx_train>0.0) logchi2_pho_vtx_train = log(chi2_pho_vtx_train);
 		}
 		}
 		{
@@ -1873,6 +1880,7 @@ void HggRazorUpgradeTiming::Analyze(bool isData, bool useTiming, bool usePhoChi2
 		if(!useTiming)
 		{
 		chi2_pho_vtx_train = pow((pho1Time_m - pho1Time_e_tmp)/(smear_phoT), 2.0) + pow((pho2Time_m - pho2Time_e_tmp)/(smear_phoT), 2.0);
+		if(chi2_pho_vtx_train>0.0) logchi2_pho_vtx_train = log(chi2_pho_vtx_train);
 		}
 
 		}
