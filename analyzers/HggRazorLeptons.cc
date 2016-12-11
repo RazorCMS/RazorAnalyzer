@@ -1,5 +1,5 @@
 //LOCAL INCLUDES
-#include "HggRazor.h"
+#include "HggRazorLeptons.h"
 #include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
@@ -18,12 +18,12 @@
 
 using namespace std;
 
-enum HggRazorBox {
-  HighPt = 0,
-  Hbb = 1,
-  Zbb = 2,
-  HighRes = 3,
-  LowRes = 4
+enum HggRazorLeptonsBox {
+  Zmm = 0,
+  Zee = 1,
+  OneMu = 2,
+  OneEle = 3,
+  None = 10
 };
 
 struct PhotonCandidate
@@ -61,7 +61,7 @@ const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
 //Testing branching and merging
-void HggRazor::Analyze(bool isData, int option, string outFileName, string label)
+void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, string label)
 {
   //*****************************************************************************
   //Settings
@@ -121,14 +121,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   
   if ( outFileName.empty() )
     {
-      if ( _info ) std::cout << "HggRazor: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
-      outFileName = "HggRazor.root";
+      if ( _info ) std::cout << "HggRazorLeptons: Output filename not specified!" << endl << "Using default output name HggRazorLeptons.root" << std::endl;
+      outFileName = "HggRazorLeptons.root";
     }
   TFile* outFile = new TFile( outFileName.c_str(), "RECREATE" );
   //---------------------------
   //one tree to hold all events
   //---------------------------
-  TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
+  TTree *razorTree = new TTree("HggRazorLeptons", "Info on selected razor inclusive events");
   
   //For signal samples, create one output file and tree per signal mass point
   map<int, TFile*> smsFiles;
@@ -280,19 +280,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //----------
   TH1D* puhisto = new TH1D("pileup", "", 50, 0, 50);
   
-  //separate trees for individual boxes
-  map<string, TTree*> razorBoxes;
-  vector<string> boxNames;
-  boxNames.push_back("HighPt");
-  boxNames.push_back("Hbb");
-  boxNames.push_back("Zbb");
-  boxNames.push_back("HighRes");
-  boxNames.push_back("LowRes");
-  for ( size_t i = 0; i < boxNames.size(); i++)
-    {
-      razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
-    }
-  
   //histogram containing total number of processed events (for normalization)
   TH1F *histNISRJets = new TH1F("NISRJets", "NISRJets", 7, -0.5, 6.5);
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
@@ -328,15 +315,28 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float MET, MET_JESUp, MET_JESDown, t1MET, t1MET_JESUp, t1MET_JESDown;
   float HT;
 
-
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
   float mbbZ, mbbZ_L, mbbH, mbbH_L;
   bool passedDiphotonTrigger;
-  HggRazorBox razorbox = LowRes;
+  HggRazorLeptonsBox razorbox = None;
   
   unsigned int run, lumi, event;
   
+  //selected lepton variables
+  int lep1Type = 0;
+  int lep1PassSelection = 0;
+  float lep1Pt = -999;
+  float lep1Eta = -999;
+  float lep1Phi = -999;  
+  int lep2Type = 0;
+  int lep2PassSelection = 0;
+  float lep2Pt = -999;
+  float lep2Eta = -999;
+  float lep2Phi = -999;
+  float dileptonMass = -999;
+  float lep1MT = -999;
+
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
   float PhoSC_E[2], PhoSC_Pt[2], PhoSC_Eta[2], PhoSC_Phi[2];
@@ -439,6 +439,19 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
   razorTree->Branch("box", &razorbox, "box/I");
       
+  razorTree->Branch("lep1Type", &lep1Type, "lep1Type/I");
+  razorTree->Branch("lep1PassSelection", &lep1PassSelection, "lep1PassSelection/I");
+  razorTree->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
+  razorTree->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
+  razorTree->Branch("lep1Phi", &lep1Phi, "lep1Phi/F");
+  razorTree->Branch("lep2Type", &lep2Type, "lep2Type/I");
+  razorTree->Branch("lep2PassSelection", &lep2PassSelection, "lep2PassSelection/I");
+  razorTree->Branch("lep2Pt", &lep2Pt, "lep2Pt/F");
+  razorTree->Branch("lep2Eta", &lep2Eta, "lep2Eta/F");
+  razorTree->Branch("lep2Phi", &lep2Phi, "lep2Phi/F");
+  razorTree->Branch("dileptonMass", &dileptonMass, "dileptonMass/F");
+  razorTree->Branch("lep1MT", &lep1MT, "lep1MT/F");
+
   razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
   razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
   razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
@@ -584,6 +597,20 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       event = eventNum;
       passedDiphotonTrigger = false;
       
+      //lepton variables
+      lep1Type = 0;
+      lep1PassSelection = 0;
+      lep1Pt = -999;
+      lep1Eta = -999;
+      lep1Phi = -999;  
+      lep2Type = 0;
+      lep2PassSelection = 0;
+      lep2Pt = -999;
+      lep2Eta = -999;
+      lep2Phi = -999;
+      dileptonMass = -999;
+      lep1MT = -999;
+
       //selected photons variables
       for ( int i = 0; i < 2; i++ )
 	{
@@ -724,63 +751,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //Fill N ISR Jet       
       histNISRJets->SetBinContent( min(NISRJets,6)+1, histNISRJets->GetBinContent(min(NISRJets,6)+1) + genWeight);
   
-      //************************************************************************
-      //For Debugging
-      //************************************************************************
-      // if (NISRJets >=1) {
-      // 	cout << "\n\n" << "NISRJets = " << NISRJets << "\n";
-
-      // 	for(int i = 0; i < nJets; i++) {
-	    
-      // 	  //Jet Corrections                                                                      
-      // 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-      // 						  fixedGridRhoAll, jetJetArea[i],
-      // 						  JetCorrector );	 
-      // 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
-	  
-      // 	  //these are the cuts Ana/Manuel told me to use
-      // 	  if ( thisJet.Pt() > 30 && fabs( thisJet.Eta()) < 2.4 && jetPassIDLoose[i]) {
-	  
-      // 	    cout << "Jet : " << thisJet.Pt() << " " << thisJet.Eta() << " " << thisJet.Phi() << "\n" ;
-
-      // 	    bool match = false;
-      // 	    for(int g = 0; g < nGenParticle; g++){
-	      
-      // 	      double dR = deltaR( gParticleEta[g], gParticlePhi[g] , thisJet.Eta() , thisJet.Phi());
-      // 	      if (dR > 0.3) continue;
-
-      // 	      cout << "Nearby GenParticle " << g << " : " << gParticleId[g] << " " << gParticleStatus[g] << " | " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherIndex[g] << " " << gParticleMotherId[g] << "\n";
-
-      // 	      if (abs(gParticleId[g]) == 11 || abs(gParticleId[g]) == 13 || abs(gParticleId[g]) == 15 ) {
-      // 		match = true;
-      // 		cout << "match lepton\n";
-      // 	      }
-
-      // 	      if (abs(gParticleId[g]) == 22 &&
-      // 		  ( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23) &&
-      // 		  (abs(gParticleMotherId[g]) == 25 || abs(gParticleMotherId[g]) == 21 || abs(gParticleMotherId[g]) == 2212 ||
-      // 		   (abs(gParticleMotherId[g]) >= 1 && abs(gParticleMotherId[g]) <= 6) )
-      // 		  ) {
-      // 		match = true;
-      // 		cout << "match prompt photon\n";
-      // 	      }
-	      
-      // 	      if (gParticleStatus[g] == 23 && abs(gParticleId[g]) <= 5 &&
-      // 		  ( abs(gParticleMotherId[g]) == 6 ||  abs(gParticleMotherId[g]) == 23 ||  abs(gParticleMotherId[g]) == 24 
-      // 		    ||  abs(gParticleMotherId[g]) == 25 ||  abs(gParticleMotherId[g]) > 1e6)) {
-      // 		match = true;
-      // 		cout << "match parton\n";
-      // 	      }     
-      // 	    }	    	    
-      // 	  }
-      // 	}       
-
-      // 	for(int g = 0; g < nGenParticle; g++){
-      // 	  cout << "GenParticle " << g << " : " << gParticleId[g] << " " << gParticleStatus[g] << " | " << gParticlePt[g] << " " << gParticleEta[g] << " " << gParticlePhi[g] << " : " << gParticleMotherIndex[g] << " " << gParticleMotherId[g] << "\n";	 
-      // 	}
-
-      // }
-
       //*************************************************************************
 
 
@@ -788,30 +758,143 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //*************************************************************************
       //Start Object Selection
       //*************************************************************************
-      razorbox = LowRes;
+      razorbox = None;
       
-      //--------------
-      //muon selection
-      //--------------
-      for( int i = 0; i < nMuons; i++ )
-	{
+      //-------------------------------
+      //1) Look for Zmm Candidate
+      //-------------------------------
+      double bestDimuonPt = -1;
+      TLorentzVector ZCandidate;
+      for( int i = 0; i < nMuons; i++ )	{
 	  if(!isLooseMuon(i)) continue;  
-	  if(muonPt[i] < 10) continue;
+	  if(muonPt[i] < 15) continue;
+	  if(abs(muonEta[i]) > 2.4) continue;
+	  for( int j = i+1; j < nMuons; j++ )	{
+	    if(!isLooseMuon(j)) continue;  
+	    if(muonPt[j] < 15) continue;
+	    if(abs(muonEta[j]) > 2.4) continue;
+	    
+	    TLorentzVector tmpMuon1;
+	    tmpMuon1.SetPtEtaPhiM(muonPt[i],muonEta[i], muonPhi[i],0.1057);
+	    TLorentzVector tmpMuon2;
+	    tmpMuon2.SetPtEtaPhiM(muonPt[j],muonEta[j], muonPhi[j],0.1057);
+	    double tmpMass = (tmpMuon1+tmpMuon2).M();	    
+	    double tmpDileptonPt = (tmpMuon1+tmpMuon2).Pt();
+
+	    if ( _debug ) cout << "Zmm candidate: " << tmpMass << " " << tmpDileptonPt << "\n";
+
+	    if ( tmpMass > 76 && tmpMass < 106 && tmpDileptonPt > bestDimuonPt)  {
+	      bestDimuonPt = tmpDileptonPt;
+	      razorbox = Zmm;
+	      lep1Type = 13 * -1 * muonCharge[i];
+	      lep1Pt = muonPt[i];
+	      lep1Eta = muonEta[i];
+	      lep1Phi = muonPhi[i];
+	      lep1PassSelection = 1 + 2 * isTightMuon(i);
+	      lep2Type = 13 * -1 * muonCharge[j];
+	      lep2Pt = muonPt[j];
+	      lep2Eta = muonEta[j];
+	      lep2Phi = muonPhi[j];
+	      lep2PassSelection = 1 + 2 * isTightMuon(j);
+	      dileptonMass = tmpMass;
+	      ZCandidate = tmpMuon1 + tmpMuon2;
+	    }
+	  }
+      }
+
+
+      //-------------------------------
+      //2) Look for Zee Candidate
+      //-------------------------------
+      if (razorbox == None) {
+	double bestDielectronPt = -1;
+	for( int i = 0; i < nElectrons; i++ )	{
+	  if(!isLooseElectron(i)) continue;  
+	  if(elePt[i] < 20) continue;
+	  if(abs(eleEta[i]) > 2.4) continue;
+	  for( int j = i+1; j < nElectrons; j++ )	{
+	    if(!isLooseElectron(j)) continue;  
+	    if(elePt[j] < 20) continue;
+	    if(abs(eleEta[j]) > 2.4) continue;
+	    
+	    TLorentzVector tmpElectron1;
+	    tmpElectron1.SetPtEtaPhiM(elePt[i],eleEta[i], elePhi[i],0.000511);
+	    TLorentzVector tmpElectron2;
+	    tmpElectron2.SetPtEtaPhiM(elePt[j],eleEta[j], elePhi[j],0.000511);
+	    double tmpMass = (tmpElectron1+tmpElectron2).M();	    
+	    double tmpDileptonPt = (tmpElectron1+tmpElectron2).Pt();
+
+	    if ( _debug ) cout << "Zee candidate: " << tmpMass << " " << tmpDileptonPt << "\n";
+
+	    if ( tmpMass > 76 && tmpMass < 106 && tmpDileptonPt > bestDielectronPt)  {
+	      bestDielectronPt = tmpDileptonPt;
+	      razorbox = Zee;
+	      lep1Type = 11 * -1 * eleCharge[i];
+	      lep1Pt = elePt[i];
+	      lep1Eta = eleEta[i];
+	      lep1Phi = elePhi[i];
+	      lep1PassSelection = 1 + 2 * isTightElectron(i);
+	      lep2Type = 11 * -1 * eleCharge[j];
+	      lep2Pt = elePt[j];
+	      lep2Eta = eleEta[j];
+	      lep2Phi = elePhi[j];
+	      lep2PassSelection = 1 + 2 * isTightElectron(j);
+	      dileptonMass = tmpMass;
+	      ZCandidate = tmpElectron1 + tmpElectron2;
+	    }
+	  }
+	}
+      }
+
+
+      //-------------------------------
+      //3) Look for Highest Pt Lepton
+      //-------------------------------
+      TLorentzVector LeptonCandidate;
+      if (razorbox == None) {
+	double bestLeptonPt = -1;
+   
+	for( int i = 0; i < nMuons; i++ ) {
+	  if(!isLooseMuon(i)) continue;  
+	  if(muonPt[i] < 15) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
 	  nLooseMuons++;
 	  if( isTightMuon(i) ) nTightMuons++;
+
+	  if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
+	  if (muonPt[i] > bestLeptonPt) {
+	    bestLeptonPt = muonPt[i];
+	    razorbox = OneMu;
+	    lep1Type = 13 * -1 * muonCharge[i];
+	    lep1Pt = muonPt[i];
+	    lep1Eta = muonEta[i];
+	    lep1Phi = muonPhi[i];
+	    lep1PassSelection = 1 + 2 * isTightMuon(i);
+	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.1057);
+	  }	  
 	}
-      //------------------
-      //electron selection
-      //------------------
-      for( int i = 0; i < nElectrons; i++ )
-	{
-	  if( !isLooseElectron(i) ) continue; 
-	  if( elePt[i] < 10 ) continue;
-	  if( abs(eleEta[i]) > 2.5 ) continue;
+
+	for( int i = 0; i < nElectrons; i++ ) {
+	  if(!isLooseElectron(i)) continue;  
+	  if(elePt[i] < 20) continue;
+	  if(abs(eleEta[i]) > 2.4) continue;
 	  nLooseElectrons++;
-      	  if( isTightElectron(i) ) nTightElectrons++;
+	  if( isTightElectron(i) ) nTightElectrons++;
+
+	  if ( _debug ) cout << "Ele candidate: " << elePt[i] << " " << bestLeptonPt << "\n";
+	  if (elePt[i] > bestLeptonPt) {
+	    bestLeptonPt = elePt[i];
+	    razorbox = OneEle;
+	    lep1Type = 11 * -1 * eleCharge[i];
+	    lep1Pt = elePt[i];
+	    lep1Eta = eleEta[i];
+	    lep1Phi = elePhi[i];
+	    lep1PassSelection = 1 + 2 * isTightElectron(i);
+	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.000511);
+	  }
 	}
+      }
+    
       //-------------
       //tau selection
       //-------------
@@ -821,7 +904,16 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  nTightTaus++;
 	}
       
+
+      //******************************************************
+      //If no leptons were found, skip the event
+      //******************************************************
+      if ( razorbox == None ) continue;
+      
+
+      //******************************************************
       //photon selection
+      //******************************************************
       vector<TLorentzVector> GoodPhotons;
       vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
       vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
@@ -848,7 +940,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	    }
 	  }
 	  
-	
+	  //*****************************************************************************
+	  //Photons must be separated from any selected leptons
+	  //*****************************************************************************
+	  if ( deltaR( phoEta[i], phoPhi[i], lep1Eta, lep1Phi) < 0.4 ) continue;	  
+	  if (razorbox == Zmm || razorbox == Zee) {
+	    if ( deltaR( phoEta[i], phoPhi[i], lep2Eta, lep2Phi) < 0.4 ) continue;	  
+	  }
+
 	  //**********************************************************
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
@@ -1196,9 +1295,16 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
 	  if ( !jetPassIDLoose[i] ) continue;
 	
+
+	  //Exclude selected leptons from the jet collection
+	  if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep1Eta, lep1Phi) < 0.4 ) continue;	  
+	  if (razorbox == Zmm || razorbox == Zee) {
+	    if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep2Eta, lep2Phi) < 0.4 ) continue;	  
+	  }
+
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
-	  if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
+	  if ( deltaRJetPhoton <= 0.4 ) continue;//According to the April 1st 2015 AN
       
 	  GoodJets.push_back(thisJet);
 	  GoodJetsIsCVSL.push_back(isCSVL(i));
@@ -1423,21 +1529,32 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	iJet++;
       }
     
+
       //Compute the razor variables using the selected jets and the diphoton system
       HT = Pho_Pt[0] + Pho_Pt[1]; //HT = sum of photon pT  + jet pT
-      vector<TLorentzVector> JetsPlusHiggsCandidate;
+      vector<TLorentzVector> ObjectCandidates;
       for( auto& jet : GoodJets ) {
-	JetsPlusHiggsCandidate.push_back(jet);
+	ObjectCandidates.push_back(jet);
 	HT += jet.Pt();
       }
-      JetsPlusHiggsCandidate.push_back(HiggsCandidate);
-    
+      ObjectCandidates.push_back(HiggsCandidate);
+      if (razorbox == Zmm || razorbox == Zee) ObjectCandidates.push_back(ZCandidate);
+      if (razorbox == OneMu || razorbox == OneEle) ObjectCandidates.push_back(LeptonCandidate);
+
       TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
       TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
       MET = metPt;
       t1MET = metType1Pt;
     
-      vector<TLorentzVector> hemispheres = getHemispheres(JetsPlusHiggsCandidate);
+      //need to implement the custom type1 MET corrections
+      //Note: need to compute lep1MT at this point
+      if (razorbox == OneMu) {
+	lep1MT = sqrt(0.1057*0.1057 + 2*t1PFMET.Pt()*lep1Pt*(1 - cos(deltaPhi(t1PFMET.Phi(),lep1Phi))));
+      } else if (razorbox == OneEle) {
+	lep1MT = sqrt(0.000511*0.000511 + 2*t1PFMET.Pt()*lep1Pt*(1 - cos(deltaPhi(t1PFMET.Phi(),lep1Phi))));
+      }
+
+      vector<TLorentzVector> hemispheres = getHemispheres(ObjectCandidates);
       theMR  = computeMR(hemispheres[0], hemispheres[1]); 
       if ( theMR > 0 )
 	{
@@ -1445,6 +1562,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
 	}
     
+
       //***********************
       //MR skim
       //***********************
@@ -1457,9 +1575,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       if( !isData )
 	{
 	  //JES up
-	  vector<TLorentzVector> JetsPlusHiggsCandidate_JESUp;
-	  for( auto& jet : GoodJetsJESUp ) JetsPlusHiggsCandidate_JESUp.push_back(jet);
-	  JetsPlusHiggsCandidate_JESUp.push_back(HiggsCandidate);
+	  vector<TLorentzVector> ObjectCandidates_JESUp;
+	  for( auto& jet : GoodJetsJESUp ) ObjectCandidates_JESUp.push_back(jet);
+	  ObjectCandidates_JESUp.push_back(HiggsCandidate);
 
 	  float PFMetXJESUp   = PFMET.Px() + MetXCorr_JESUp;
 	  float PFMetYJESUp   = PFMET.Py() + MetYCorr_JESUp;
@@ -1468,7 +1586,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	
 	  TLorentzVector PFMET_JESUp(PFMetXJESUp, PFMetYJESUp, 0, sqrt( pow(PFMetXJESUp,2) + pow(PFMetYJESUp,2) )); 
 	  TLorentzVector t1PFMET_JESUp(t1PFMetXJESUp, t1PFMetYJESUp, 0, sqrt( pow(t1PFMetXJESUp,2) + pow(t1PFMetYJESUp,2) ));
-	  vector<TLorentzVector> hemispheres_JESUp = getHemispheres(JetsPlusHiggsCandidate_JESUp);
+	  vector<TLorentzVector> hemispheres_JESUp = getHemispheres(ObjectCandidates_JESUp);
 	  theMR_JESUp  = computeMR(hemispheres_JESUp[0], hemispheres_JESUp[1]); 
 	  theRsq_JESUp = computeRsq(hemispheres_JESUp[0], hemispheres_JESUp[1], PFMET_JESUp);
 	  t1Rsq_JESUp  = computeRsq(hemispheres_JESUp[0], hemispheres_JESUp[1], t1PFMET_JESUp);
@@ -1476,9 +1594,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  t1MET_JESUp  = t1PFMET_JESUp.Pt();
 
 	  //JES down
-	  vector<TLorentzVector> JetsPlusHiggsCandidate_JESDown;
-	  for( auto& jet : GoodJetsJESDown ) JetsPlusHiggsCandidate_JESDown.push_back(jet);
-	  JetsPlusHiggsCandidate_JESDown.push_back(HiggsCandidate);
+	  vector<TLorentzVector> ObjectCandidates_JESDown;
+	  for( auto& jet : GoodJetsJESDown ) ObjectCandidates_JESDown.push_back(jet);
+	  ObjectCandidates_JESDown.push_back(HiggsCandidate);
 	
 	  float PFMetXJESDown   = PFMET.Px() + MetXCorr_JESDown;
 	  float PFMetYJESDown   = PFMET.Py() + MetYCorr_JESDown;
@@ -1487,7 +1605,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	
 	  TLorentzVector PFMET_JESDown(PFMetXJESDown, PFMetYJESDown, 0, sqrt( pow(PFMetXJESDown,2) + pow(PFMetYJESDown,2) )); 
 	  TLorentzVector t1PFMET_JESDown(t1PFMetXJESDown, t1PFMetYJESDown, 0, sqrt( pow(t1PFMetXJESDown,2) + pow(t1PFMetYJESDown,2) ));
-	  vector<TLorentzVector> hemispheres_JESDown = getHemispheres(JetsPlusHiggsCandidate_JESDown);
+	  vector<TLorentzVector> hemispheres_JESDown = getHemispheres(ObjectCandidates_JESDown);
 	  theMR_JESDown  = computeMR(hemispheres_JESDown[0], hemispheres_JESDown[1]); 
 	  theRsq_JESDown = computeRsq(hemispheres_JESDown[0], hemispheres_JESDown[1], PFMET_JESDown);
 	  t1Rsq_JESDown  = computeRsq(hemispheres_JESDown[0], hemispheres_JESDown[1], t1PFMET_JESDown);
@@ -1498,7 +1616,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       if ( theMR < 0.0 )
 	{
 	  if ( _debug ) std::cout << "[INFO]: MR < 150 GeV, MR: " << theMR << std::endl;
-	  for ( auto& jet : JetsPlusHiggsCandidate )
+	  for ( auto& jet : ObjectCandidates )
 	    {
 	      if ( _debug ) std::cout << "phoPT: " << pTGammaGamma 
 				      << " jet pt : " << jet.Pt() << " eta: " << jet.Eta() << " phi: " << jet.Phi() 
@@ -1655,23 +1773,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	}
       } // end if fastsim
 
-
-
-      //Writing output to tree
-      //HighPt Box
-      if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
-
-      //Hbb Box
-      else if ( mbbH > 110.0 && mbbH < 140.0 ) razorbox = Hbb;
-
-      //Zbb Box
-      else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
-
-      //HighRes Box
-      else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 ) razorbox = HighRes;
-
-      //LowRes Box
-      else razorbox = LowRes;
+      if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
 
       //Fill Event
       if (!isFastsimSMS) {
@@ -1701,7 +1803,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     histNISRJets->Write();
     puhisto->Write();
   } else {
-    if (!isFastsimSMS) {
+    if (!is2DMassScan) {
       for(auto &filePtr : smsFiles){
 	cout << "Writing output tree (" << filePtr.second->GetName() << ")" << endl;
 	filePtr.second->cd();

@@ -10,11 +10,13 @@ if __name__ == '__main__':
     parser.add_argument("inDir", help="input path")
     parser.add_argument("-s", "--smsName", default="T1bbbb", help="SMS name, e.g. T1bbbb")
     parser.add_argument("--dryRun", action="store_true")
+    parser.add_argument("--OneDScan", action="store_true")
     args = parser.parse_args()
 
     inDir=args.inDir
     smsName=args.smsName
     dryRun=args.dryRun
+    OneDScan = args.OneDScan
 
     #get list of input files
     inFiles = os.listdir(inDir)
@@ -38,29 +40,45 @@ if __name__ == '__main__':
             print "Unexpected file",f,": skipping"
             continue
 
-        try:
-            int(splitF[-2])
-            mGluino = splitF[-2]
-        except ValueError:
-            print "Cannot parse gluino mass from",f,": skipping"
-            continue
+        if not OneDScan:
+            try:
+                int(splitF[-2])
+                mGluino = splitF[-2]
+            except ValueError:
+                print "Cannot parse gluino mass from",f,": skipping"
+                continue
 
-        try:
-            int(splitF[-1])
-            mLSP = splitF[-1]
-        except ValueError:
-            print "Cannot parse LSP mass from",f,": skipping"
-            continue
+            try:
+                int(splitF[-1])
+                mLSP = splitF[-1]
+            except ValueError:
+                print "Cannot parse LSP mass from",f,": skipping"
+                continue
 
-        pair = (mGluino, mLSP)
+            pair = (mGluino, mLSP)
 
-        #add to dictionary if not present
-        if pair not in fileLists:
-            fileLists[pair] = []
+            #add to dictionary if not present
+            if pair not in fileLists:
+                fileLists[pair] = []
 
-        #add this file to appropriate list
-        fileLists[pair].append(f)
-        print "Adding",f,"to list of files for model point",pair
+            #add this file to appropriate list
+            fileLists[pair].append(f)
+            print "Adding",f,"to list of files for model point",pair
+
+        else:
+            try:
+                int(splitF[-1])
+                mGluino = splitF[-1]
+            except ValueError:
+                print "Cannot parse gluino mass from",f,": skipping"
+                continue
+
+            if mGluino not in fileLists:
+                fileLists[mGluino] = []
+
+            #add this file to appropriate list
+            fileLists[mGluino].append(f)
+            print "Adding",f,"to list of files for model point",mGluino
 
     #output directory
     outDir = inDir+'/combined'
@@ -69,8 +87,14 @@ if __name__ == '__main__':
     #hadd the files for each signal mass point
     for pair in fileLists:
         print "Signal:",smsName,pair
-        if (os.path.isfile(outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root')):
-            print "output file exists already. skip"
+        if not OneDScan:
+            if (os.path.isfile(outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root')):
+                print "output file exists already. skip"
+            else:
+                exec_me('hadd -f '+outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root '+' '.join([inDir+'/'+f+' ' for f in fileLists[pair]]), dryRun)
         else:
-            exec_me('hadd -f '+outDir+'/SMS-'+smsName+'_'+pair[0]+'_'+pair[1]+'.root '+' '.join([inDir+'/'+f+' ' for f in fileLists[pair]]), dryRun)
+            if (os.path.isfile(outDir+'/SMS-'+smsName+'_'+pair+'.root')):
+                print "output file exists already. skip"
+            else:
+                exec_me('hadd -f '+outDir+'/SMS-'+smsName+'_'+pair+'.root '+' '.join([inDir+'/'+f+' ' for f in fileLists[pair]]), dryRun)
 
