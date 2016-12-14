@@ -329,9 +329,9 @@ void RazorInclusive::Analyze(bool isData, int option, string outFileName, string
     /////////////////////////////////
 
     bool parsedLHE = false;
-    if(isFastsimSMS && lheComments->size() > 0){
+    if(isFastsimSMS && lheComments > 0){
       //parse lhe comment string to get gluino and LSP masses
-      stringstream parser((*lheComments)[lheComments->size()-1]);
+      stringstream parser((*lheComments));
       string item;
       getline(parser, item, '_'); //prefix
       if(getline(parser, item, '_')){ //gluino mass 

@@ -1320,7 +1320,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         /////////////////////////////////
 
         bool parsedLHE = false;
-        if(isFastsimSMS ){
+        if(isFastsimSMS && lheComments){
 	    //parse lhe comment string to get gluino and LSP masses
 	    stringstream parser(*lheComments);
             string item;
