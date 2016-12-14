@@ -906,12 +906,6 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
       
 
       //******************************************************
-      //If no leptons were found, skip the event
-      //******************************************************
-      if ( razorbox == None ) continue;
-      
-
-      //******************************************************
       //photon selection
       //******************************************************
       vector<TLorentzVector> GoodPhotons;
@@ -1773,6 +1767,11 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
 	}
       } // end if fastsim
 
+      //******************************************************
+      //If no leptons were found, don't fill the event
+      //******************************************************
+      if ( razorbox == None ) continue;
+      
       if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
 
       //Fill Event
