@@ -21,7 +21,6 @@ class RazorHelper {
 
     public:
         // constructor takes a string specifying which set of files to load.
-        // supported tags are: "Razor2015", "Razor2016"
         RazorHelper(std::string tag_, bool isData_, bool isFastsim_); 
         virtual ~RazorHelper();
 
@@ -93,7 +92,6 @@ class RazorHelper {
         // member functions
         void loadTag_Razor2015(); // Final set of files used in 2015
         void loadTag_Razor2015_76X(); // Configuration for 2015 ReReco 
-        void loadTag_Razor2016_80X(); // Evolving configuration for 2016 PromptReco
 	void loadTag_Razor2016_MoriondRereco(); // Configuration for 2016 Rereco
         void loadTag_Razor2016G_80X(); // Special configuration for Run2016G
         void loadTag_Razor2016G_SUSYUnblind_80X(); // For unblinded 2016 data
@@ -113,16 +111,11 @@ class RazorHelper {
                 float &sfFastsimUp, float &sfFastsimDown, float smear=0.0);
         double getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta, 
                 bool isTight, bool passedTrigger, float fastsimPtCut = 10.01, float ptCut=10.01);
-        double getTriggerScaleFactor_Razor2016(TH2D *sfHist, float pt, float eta, 
-                bool isTight, bool passedTrigger, float ptCut=10.01);
         double getTriggerEfficiency(TH2D *effHist, float pt, float eta, 
                 bool isTight, bool passedTrigger, float ptCut=10.01);
         void updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
             float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
             float &sfDown, float fastsimPtCut = 10.01, float extraSyst = 0.);
-        void updateTriggerScaleFactors_Razor2016(TH2D *sfHist, 
-            float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, 
-            float &sfDown, float extraSyst = 0.);
         float getElectronScaleCorrection( float eta ); //for electron energy corrections
         float getElectronResCorrection( float eta ); //for electron energy corrections
 
@@ -142,10 +135,7 @@ class RazorHelper {
         void loadBTag_Razor2015_76X();
 
         // for Razor2016 80X tag
-        void loadPileup_Razor2016();
-        void loadLepton_Razor2016();
         void loadPhoton_Razor2016();
-	void loadTrigger_Razor2016();
 	void loadJECs_Razor2016();
         void loadBTag_Razor2016();
 
