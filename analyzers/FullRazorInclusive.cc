@@ -128,7 +128,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
 
     // Get jet corrector
-    FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
+    std::vector<FactorizedJetCorrector*> JetCorrector = helper->getJetCorrector();
+    std::vector<std::pair<int,int> > JetCorrectorIOV = helper->getJetCorrectionsIOV();
 
     /////////////////////////////////
     //Tree Initialization
@@ -961,14 +962,17 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             //Get jet energy correction
             double tmpRho = fixedGridRhoFastjetAll;
             double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-                    tmpRho, jetJetArea[i], JetCorrector);   
+						   tmpRho, jetJetArea[i], 
+						   runNum,
+						   JetCorrectorIOV,JetCorrector);   
             //Get jet energy resolution correction, with up/down variants
             double jetEnergySmearFactor = 1.0;
             double jetEnergySmearFactorUp = 1.0;
             double jetEnergySmearFactorDown = 1.0;
             //Get L1-only jet energy correction
             double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-                    tmpRho, jetJetArea[i], JetCorrector, 0);   
+							 tmpRho, jetJetArea[i], runNum, 
+							 JetCorrectorIOV,JetCorrector, 0);   
             //TLorentzVector for this jet
             double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
             double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
@@ -1025,7 +1029,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             if (fabs(jetEta[i]) > 3.0) continue;
             //Get uncertainty on JEC and JER
             if(!isData){
-                double unc = helper->getJecUnc( jetCorrPt, jetEta[i] );
+	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 as default
                 double jetPtJESUp = jetCorrPt*(1+unc);
                 double jetPtJESDown = jetCorrPt/(1+unc);
                 double jetPtJERUp = jetPt[i]*JEC*jetEnergySmearFactorUp;
@@ -1212,7 +1216,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
             for (int i = 0; i < nJets; i++){
                 double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-                        fixedGridRhoFastjetAll, jetJetArea[i], JetCorrector);   	  
+                        fixedGridRhoFastjetAll, jetJetArea[i], runNum, JetCorrectorIOV,JetCorrector);   	  
                 double jetCorrPt = jetPt[i]*JEC;
                 if (jetCorrPt < 20) continue;
                 if (fabs(jetEta[i]) > 2.5) continue;

@@ -198,6 +198,13 @@ class RazorAnalyzerRun1: public RazorEventsRun1 {
         bool isCSVT(int i, string dataset = "80X");
 	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 					  double rho, double jetArea,
+					  int run,
+					  std::vector<std::pair<int,int> > JetCorrectionsIOV,
+					  std::vector<FactorizedJetCorrector*> jetcorrector,  
+					  int jetCorrectionLevel = -1,
+					  bool printDebug = false);
+	double JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
+					  double rho, double jetArea,
 					  FactorizedJetCorrector *jetcorrector,  
 					  int jetCorrectionLevel = -1,
 					  bool printDebug = false);

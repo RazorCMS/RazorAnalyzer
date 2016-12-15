@@ -44,8 +44,9 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     RazorHelper helper(tag, isData, false);
 
     // retrieve JEC tools
-    FactorizedJetCorrector *JetCorrector = helper.getJetCorrector();
-    SimpleJetResolution *JetResolutionCalculator = helper.getJetResolutionCalculator();
+    std::vector<FactorizedJetCorrector*> JetCorrector = helper.getJetCorrector();
+    std::vector<std::pair<int,int> > JetCorrectorIOV = helper.getJetCorrectionsIOV();
+    std::vector<SimpleJetResolution*> JetResolutionCalculator = helper.getJetResolutionCalculator();
 
     TRandom3 *random = new TRandom3(33333); 
     bool printSyncDebug = false;
@@ -822,7 +823,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
           // Then apply the appropriate scale factor
 	  if (abs(gParticleId[genLeptonIndex[i]]) == 11 && gParticlePt[genLeptonIndex[i]] > genElePtCut && abs(gParticleEta[genLeptonIndex[i]]) < 2.5) {
 	    bool isSelected = false;
-	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
+	    for( uint j = 0; j < GoodLeptons.size(); j++ ) {
 	      if (!(abs(GoodLeptonType[j]) == 11 && GoodLeptons[j].Pt() > genElePtCut)) continue;
 	      if (useTightSelection) {
 		if (!GoodLeptonIsTight[j]) continue;
@@ -850,7 +851,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if (abs(gParticleId[genLeptonIndex[i]]) == 13 && gParticlePt[genLeptonIndex[i]] > genMuonPtCut && abs(gParticleEta[genLeptonIndex[i]]) < 2.4) {
 
 	    bool isSelected = false;
-	    for( int j = 0; j < GoodLeptons.size(); j++ ) {
+	    for( uint j = 0; j < GoodLeptons.size(); j++ ) {
 	      if (!(abs(GoodLeptonType[j]) == 13 && GoodLeptons[j].Pt() > genMuonPtCut)) continue;
 	      if (useTightSelection) {
 	      	if (!GoodLeptonIsTight[j]) continue;
@@ -1097,8 +1098,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	       << " : rho = " << fixedGridRhoAll << " area = " << jetJetArea[i] << " "
 	       << " | " 
 	       << "correctedPt = " << jetPt[i]*JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-									 fixedGridRhoAll, jetJetArea[i], 
-									 JetCorrector) << " "
+									 fixedGridRhoAll, jetJetArea[i], runNum,
+									 JetCorrectorIOV, JetCorrector) << " "
 	       << " | passID = " << jetPassIDTight[i] << " passPUJetID = " << bool((jetPileupIdFlag[i] & (1 << 2)) != 0) 
 	       << " | csv = " << jetCSV[i] << " passCSVL = " << isCSVL(i) << " passCSVM = " << isCSVM(i) << " " << "\n";
 	}
@@ -1114,11 +1115,11 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	double tmpRho = fixedGridRhoFastjetAll;
 
 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-					       tmpRho, jetJetArea[i], 
-					       JetCorrector);   
+					       tmpRho, jetJetArea[i],  runNum, 
+					       JetCorrectorIOV,JetCorrector);   
 	double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-					       tmpRho, jetJetArea[i], 
-						     JetCorrector, 0);   
+						     tmpRho, jetJetArea[i], runNum,
+						     JetCorrectorIOV,JetCorrector, 0);   
 	double jetEnergySmearFactor = 1.0;
 	if (!isData) {
 	  std::vector<float> fJetEta, fJetPtNPU;
@@ -1126,8 +1127,8 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  fJetPtNPU.push_back(jetPt[i]*JEC); 
 	  fJetPtNPU.push_back(events->NPU_0); 
 	  if (printSyncDebug) {
-	    cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
-		 << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
+	    //cout << "Jet Resolution : " << jetPt[i]*JEC << " " << jetEta[i] << " " << jetPhi[i] << " : " 
+	    // << JetResolutionCalculator->resolution(fJetEta,fJetPtNPU) << "\n";
 	  }
 	  //jetEnergySmearFactor = JetEnergySmearingFactor( jetPt[i]*JEC, jetEta[i], events->NPU_0, JetResolutionCalculator, random);
 	}

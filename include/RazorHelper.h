@@ -71,9 +71,10 @@ class RazorHelper {
    	double getDiphotonTrigTrailingLegEffSF(float pt, float eta);      
 
         // JEC tools
-        FactorizedJetCorrector *getJetCorrector() { return JetCorrector; }
-        SimpleJetResolution *getJetResolutionCalculator() { return JetResolutionCalculator; }
-        double getJecUnc( float pt, float eta );
+        std::vector<FactorizedJetCorrector*> getJetCorrector() { return JetCorrector; }
+        std::vector<std::pair<int,int> > getJetCorrectionsIOV() { return JetCorrectionsIOV; }
+        std::vector<SimpleJetResolution*> getJetResolutionCalculator() { return JetResolutionCalculator; }
+        double getJecUnc( float pt, float eta, int run );
 
         // retrieve b-tag efficiency scale factors for the medium CSVv2 working point
         double getBTagScaleFactor(float pt, float eta, int flavor, bool isCSVM);
@@ -242,11 +243,12 @@ class RazorHelper {
         std::vector<int> hadronicTriggerNums;
 
         // for jet energy corrections
-        std::vector<JetCorrectorParameters> correctionParameters;
-        JetCorrectorParameters *JetResolutionParameters;
-        FactorizedJetCorrector *JetCorrector;
-        JetCorrectionUncertainty *jecUnc;
-        SimpleJetResolution *JetResolutionCalculator;
+	std::vector<std::vector<JetCorrectorParameters> > correctionParameters;
+        std::vector<JetCorrectorParameters*> JetResolutionParameters;
+        std::vector<FactorizedJetCorrector*> JetCorrector;
+        std::vector<JetCorrectionUncertainty*> jecUnc;
+        std::vector<SimpleJetResolution*> JetResolutionCalculator;
+	std::vector<std::pair<int,int> > JetCorrectionsIOV;
 
         // for b-tag
         TFile *btagEfficiencyFile;

@@ -35,7 +35,8 @@ void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, stri
   helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
   
   // Get jet corrector
-  FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
+  std::vector<FactorizedJetCorrector*> JetCorrector = helper->getJetCorrector();
+  std::vector<std::pair<int,int> > JetCorrectorIOV = helper->getJetCorrectionsIOV();
   //JetCorrectorParameters *JetResolutionParameters = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",pathname.c_str()));
   //SimpleJetResolution *JetResolutionCalculator = new SimpleJetResolution(*JetResolutionParameters);
   
@@ -469,18 +470,18 @@ void RazorQCDStudy::Analyze(bool isData, int option, string outputfilename, stri
 	double tmpRho = fixedGridRhoFastjetAll;
 	if (isRunOne) tmpRho = fixedGridRhoAll;
 	double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-					       tmpRho, jetJetArea[i], JetCorrector);
+					       tmpRho, jetJetArea[i], runNum, JetCorrectorIOV,JetCorrector);
 
 	//double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-	//tmpRho, jetJetArea[i], 
-	//JetCorrector);   
+	//tmpRho, jetJetArea[i], runNum,
+	//JetCorrectorIOV,JetCorrector);   
 	
 	double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-						     tmpRho, jetJetArea[i], JetCorrector, 0);  
+						     tmpRho, jetJetArea[i], runNum, JetCorrectorIOV,JetCorrector, 0);  
 	
 	//double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-	//tmpRho, jetJetArea[i], 
-	//JetCorrector, 0); 
+	//tmpRho, jetJetArea[i], runNum,
+	//JetCorrectorIOV,JetCorrector, 0); 
 	
 	Rho = tmpRho;
 	

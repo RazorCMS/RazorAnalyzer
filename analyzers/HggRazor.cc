@@ -185,7 +185,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //--------------------------------
   //Including Jet Energy Corrections
   //--------------------------------
-  FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
+  std::vector<FactorizedJetCorrector*> JetCorrector = helper->getJetCorrector();
+  std::vector<std::pair<int,int> > JetCorrectorIOV = helper->getJetCorrectionsIOV();
 
   //---------------
   //btag efficiency
@@ -681,8 +682,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  
 	  //Jet Corrections                                                                      
 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-						  fixedGridRhoAll, jetJetArea[i],
-						  JetCorrector );	 
+						  fixedGridRhoAll, jetJetArea[i], runNum,
+						  JetCorrectorIOV, JetCorrector );	 
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
 	
 	  //these are the cuts Ana/Manuel told me to use
@@ -734,8 +735,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	    
       // 	  //Jet Corrections                                                                      
       // 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-      // 						  fixedGridRhoAll, jetJetArea[i],
-      // 						  JetCorrector );	 
+      // 						  fixedGridRhoAll, jetJetArea[i], runNum,
+      // 						  JetCorrectorIOV, JetCorrector );	 
       // 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
 	  
       // 	  //these are the cuts Ana/Manuel told me to use
@@ -1187,8 +1188,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	{
 	  //Jet Corrections                                                                      
 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
-						  fixedGridRhoAll, jetJetArea[i],
-						  JetCorrector );
+						  fixedGridRhoAll, jetJetArea[i], runNum,
+						  JetCorrectorIOV, JetCorrector );
       
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
 	
@@ -1361,7 +1362,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	
 	  if ( !isData )
 	    {
-	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i] );
+	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 by default
 	      double jetPtJESUp = jetCorrPt*(1+unc);
 	      double jetPtJESDown = jetCorrPt/(1+unc);
 	      double jetEJESUp = jetCorrE*(1+unc);

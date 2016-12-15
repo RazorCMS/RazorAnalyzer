@@ -1630,6 +1630,59 @@ bool RazorAnalyzer::isCSVT(int i, string dataset){
 //Jet Energy Corrections
 double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
 						 double rho, double jetArea,
+						 int run,
+						 std::vector<std::pair<int,int> > JetCorrectionsIOV,
+						 std::vector<FactorizedJetCorrector*> jetcorrector,
+						 int jetCorrectionLevel,
+						 bool printDebug) {
+
+  int foundIndex = -1;
+  for (int i=0; i<JetCorrectionsIOV.size(); i++) {
+    if (run >= JetCorrectionsIOV[i].first && run <= JetCorrectionsIOV[i].second) {
+      foundIndex = i;
+    }
+  }
+  if (foundIndex == -1) {
+    cout << "Warning: run = " << run << " was not found in any valid IOV range. use default index = 0 for Jet energy corrections. \n";
+    foundIndex = 0;
+  }
+
+  if (!jetcorrector[foundIndex]) {
+    cout << "WWARNING: Jet corrector pointer is null. Returning JEC = 0. \n";
+    return 0;
+  }
+
+  jetcorrector[foundIndex]->setJetEta(jetEta);
+  jetcorrector[foundIndex]->setJetPt(jetRawPt);
+  jetcorrector[foundIndex]->setJetPhi(jetPhi);
+  jetcorrector[foundIndex]->setJetE(jetE);
+  jetcorrector[foundIndex]->setRho(rho);
+  jetcorrector[foundIndex]->setJetA(jetArea);
+
+  std::vector<float> corrections;
+  corrections = jetcorrector[foundIndex]->getSubCorrections();
+
+  if (printDebug) cout << "Computing Jet Energy Corrections for jet with raw momentum: " << jetRawPt << " " << jetEta << " " << jetPhi << "\n";
+
+  double cumulativeCorrection = 1.0;
+  for (UInt_t j=0; j<corrections.size(); ++j) {
+
+    //only correct up to the required level. if -1, then do all correction levels
+    if (jetCorrectionLevel >= 0 && int(j) > jetCorrectionLevel) continue;
+
+    double currentCorrection = corrections.at(j)/cumulativeCorrection;
+    cumulativeCorrection = corrections.at(j);
+    if (printDebug) cout << "Correction Level " << j << " : current correction = " << currentCorrection << " , cumulative correction = " << cumulativeCorrection << "\n";
+  }
+  if (printDebug) cout << "Final Cumulative Correction: " << cumulativeCorrection << "\n";
+  
+  return cumulativeCorrection;
+
+}
+
+//Jet Energy Corrections
+double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta, double jetPhi, double jetE,
+						 double rho, double jetArea,
 						 FactorizedJetCorrector *jetcorrector,
 						 int jetCorrectionLevel,
 						 bool printDebug) {
@@ -1665,6 +1718,7 @@ double RazorAnalyzer::JetEnergyCorrectionFactor( double jetRawPt, double jetEta,
   return cumulativeCorrection;
 
 }
+
 
 //compute the smeared jet pt (if option = "up" or "down", will change the smear factor by +/- 1 sigma )
 //NOTE: these are Run 1 recommendations and should be replaced as soon as a Run 2 prescription is available.  

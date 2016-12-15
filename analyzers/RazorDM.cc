@@ -49,7 +49,8 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
   helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
 
   // Get jet corrector
-  FactorizedJetCorrector *JetCorrector = helper->getJetCorrector();
+  std::vector<FactorizedJetCorrector*> JetCorrector = helper->getJetCorrector();
+  std::vector<std::pair<int,int> > JetCorrectorIOV = helper->getJetCorrectionsIOV();
  
   //tree variables
   int nSelectedJets, nBTaggedJetsL, nBTaggedJetsM, nBTaggedJetsT;
@@ -304,11 +305,11 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	    //Obtain JEC
         double tmpRho = fixedGridRhoFastjetAll;
         double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-                             tmpRho, jetJetArea[i], 
-                             JetCorrector);   
+					       tmpRho, jetJetArea[i], runNum,
+					       JetCorrectorIOV,JetCorrector);   
         double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-                               tmpRho, jetJetArea[i], 
-                               JetCorrector, 0);   
+						     tmpRho, jetJetArea[i], runNum,
+						     JetCorrectorIOV,JetCorrector, 0);   
         double jetEnergySmearFactor = 1.0;
 
 //        if (jentry == 1) cout << "FixedGridRhoAll: " << fixedGridRhoAll << endl << "jetJetArea[" << i << "]: " << jetJetArea[i] << endl; 
