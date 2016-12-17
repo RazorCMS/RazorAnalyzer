@@ -203,6 +203,7 @@ class RazorAnalyzer: public RazorEvents {
 	int findClosestRecoTau(double eta, double phi);
 	int GetTauMatchedID(double eta, double phi);
 	int findClosestParton(float eta, float phi);
+	double getGenHT();
 
 	//Added to src/RazorAuxGenLevel.cc
 	int findClosestGenJet(double eta, double phi);
