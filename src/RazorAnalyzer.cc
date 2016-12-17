@@ -1434,7 +1434,7 @@ bool RazorAnalyzer::isTightMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/muonPt[i]));
   if (applyID) {
-    if (!(muonIsICHEPMedium[i] && fabs(muon_ip3dSignificance[i]) < 4 && fabs(muon_d0[i]) < 0.2)) pass = false;
+    if (!(muonIsMedium[i] && fabs(muon_ip3dSignificance[i]) < 4 && fabs(muon_d0[i]) < 0.2)) pass = false;
   }
   if (applyIso) {
     if (!( (muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)) )/muonPt[i] < 0.2)) pass = false;
@@ -1605,7 +1605,7 @@ bool RazorAnalyzer::isCSVL(int i, string dataset){
   if (dataset == "74X") {
     return jetCISV[i] > 0.605;
   } else {
-    return jetCISV[i] > 0.460;
+    return jetCISV[i] > 0.5426;
   }
 }
 
@@ -1613,7 +1613,7 @@ bool RazorAnalyzer::isCSVM(int i, string dataset){
   if (dataset == "74X") {
     return jetCISV[i] > 0.890;
   } else {
-    return jetCISV[i] > 0.800;
+    return jetCISV[i] > 0.8484;
   }
 }
 
@@ -1621,7 +1621,7 @@ bool RazorAnalyzer::isCSVT(int i, string dataset){
   if (dataset == "74X") {
     return jetCISV[i] > 0.970;
   } else {
-    return jetCISV[i] > 0.935;
+    return jetCISV[i] > 0.9535;
   }
 }
 
