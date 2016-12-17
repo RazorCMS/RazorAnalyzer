@@ -572,8 +572,12 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
         }
         //ignore trigger for Fastsim, and for 80X MC
-        if(isFastsimSMS || ((analysisTag == "Razor2016_80X" || analysisTag == "Razor2016G_80X" 
-                          || analysisTag == "Razor2016G_SUSYUnblind_80X") && !isData)){
+        if(isFastsimSMS || 
+	   ((analysisTag == "Razor2016_MoriondRereco" 
+	     || analysisTag == "Razor2016_80X" 
+	     || analysisTag == "Razor2016G_80X" 
+	     || analysisTag == "Razor2016G_SUSYUnblind_80X") && !isData)
+	   ){
             passedDileptonTrigger = true;
             passedSingleLeptonTrigger = true;
             passedHadronicTrigger = true;
