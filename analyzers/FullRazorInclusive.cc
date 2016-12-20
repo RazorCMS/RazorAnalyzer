@@ -190,6 +190,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     int   subLeadingGenLeptonType;
     int NGenBJets;
     float genHT;
+    int NISRJets;
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
@@ -243,6 +244,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
 	razorTree->Branch("NGenBJets", &NGenBJets, "NGenBJets/I");
  	razorTree->Branch("genHT", &genHT, "genHT/F");
+ 	razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_vetoMuonEffUp", &sf_vetoMuonEffUp, "sf_vetoMuonEffUp/F");
@@ -331,6 +333,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	    subLeadingGenLeptonType = 0;
 	    NGenBJets = 0;
 	    genHT = 0;
+            NISRJets = 0;
   	    ISRSystWeightUp = 1.0;
   	    ISRSystWeightDown = 1.0;
 	    pileupWeight = 1.0;
@@ -384,6 +387,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //MC particles
         /////////////////////////////////
 	genHT = getGenHT();
+        NISRJets = getNISR( JetCorrector, JetCorrectorIOV );
         float ptTop = -1;
         float ptAntitop = -1;
 	if(!isData) {

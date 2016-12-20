@@ -76,6 +76,7 @@ class ControlSampleEvents {
   UInt_t                  NPV;
   Float_t                 Rho;
   Float_t                 genHT;
+  Int_t                   NISRJets;
   TLorentzVector          genlep1;
   TLorentzVector          genlep2;
   Int_t                   genlep1Type;
@@ -334,6 +335,7 @@ class ControlSampleEvents {
     NPV                  = 0;
     Rho                  = 0.0;
     genHT                = 0.0;
+    NISRJets             = 0;
     genlep1              = TLorentzVector();
     genlep2              = TLorentzVector();
     genlep1Type          = 0.0;
@@ -581,6 +583,7 @@ class ControlSampleEvents {
     tree_->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
     tree_->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
     tree_->Branch("genHT",&genHT,"genHT/F");
+    tree_->Branch("NISRJets",&NISRJets,"NISRJets/I");
 
     // noise filters
     tree_->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
@@ -945,6 +948,7 @@ class ControlSampleEvents {
     tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
     tree_->SetBranchAddress("NBJetsTight",&NBJetsTight);
     tree_->SetBranchAddress("genHT",&genHT);
+    tree_->SetBranchAddress("NISRJets",&NISRJets);
 
     tree_->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
     tree_->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter);

@@ -204,6 +204,7 @@ class RazorAnalyzer: public RazorEvents {
 	int GetTauMatchedID(double eta, double phi);
 	int findClosestParton(float eta, float phi);
 	double getGenHT();
+        int getNISR( std::vector<FactorizedJetCorrector*> &JetCorrector, std::vector<std::pair<int,int> > &JetCorrectorIOV ); //count number of gen-level ISR jets
 
 	//Added to src/RazorAuxGenLevel.cc
 	int findClosestGenJet(double eta, double phi);

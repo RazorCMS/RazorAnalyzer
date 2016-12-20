@@ -2516,6 +2516,54 @@ double RazorAnalyzer::getGenHT(){
   return genHT;
 };
 
+//Returns the number of gen-level ISR jets
+int RazorAnalyzer::getNISR( std::vector<FactorizedJetCorrector*> &JetCorrector, std::vector<std::pair<int,int> > &JetCorrectorIOV ) {
+    int NISRJets = 0;
+    for(int i = 0; i < nJets; i++) {
+
+        //Jet Corrections                                                                      
+        double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
+                fixedGridRhoAll, jetJetArea[i], runNum,
+                JetCorrectorIOV, JetCorrector );       
+        TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+
+        //these are the cuts Ana/Manuel told me to use
+        if ( thisJet.Pt() > 30 && fabs( thisJet.Eta()) < 2.4 && jetPassIDLoose[i]) {
+
+            //try to match to gen partons
+            //Follow prescription here: https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L1268-L1295
+            bool match = false;
+            for(int g = 0; g < nGenParticle; g++){
+
+                double dR = deltaR( gParticleEta[g], gParticlePhi[g] , thisJet.Eta() , thisJet.Phi());
+                if (dR > 0.3) continue;
+
+                //check match against leptons
+                if (abs(gParticleId[g]) == 11 || abs(gParticleId[g]) == 13 || abs(gParticleId[g]) == 15 ) {
+                    match = true;
+                }
+
+                //check match against prompt photons
+                if (abs(gParticleId[g]) == 22 &&
+                        ( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23) &&
+                        (abs(gParticleMotherId[g]) == 25 || abs(gParticleMotherId[g]) == 21 || abs(gParticleMotherId[g]) == 2212 ||
+                         (abs(gParticleMotherId[g]) >= 1 && abs(gParticleMotherId[g]) <= 6) )
+                   ) {
+                    match = true;
+                }
+
+                //match to quarks
+                if (gParticleStatus[g] == 23 && abs(gParticleId[g]) <= 5 &&
+                        ( abs(gParticleMotherId[g]) == 6 ||  abs(gParticleMotherId[g]) == 23 ||  abs(gParticleMotherId[g]) == 24 
+                          ||  abs(gParticleMotherId[g]) == 25 ||  abs(gParticleMotherId[g]) > 1e6)) {
+                    match = true;
+                }                 
+            }         
+            if (!match) NISRJets++;
+        }
+    }
+    return NISRJets;
+}
 
 
 //////////////////////////////

@@ -181,6 +181,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       }
       events->NPV = nPV;
       events->genHT = getGenHT();
+      events->NISRJets = getNISR( JetCorrector, JetCorrectorIOV );
 
         
       //************************************************************************************
