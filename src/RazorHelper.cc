@@ -1242,7 +1242,7 @@ void RazorHelper::loadTag_Razor2016G_SUSYUnblind_80X() {
     loadPhoton_Razor2016_MoriondRereco(); // same as 2016 inclusive
     loadBTag_Razor2016_MoriondRereco(); // same as 2016 inclusive
     loadTrigger_Razor2016G_SUSYUnblind();
-    loadJECs_Razor2016()_MoriondRereco; // same as 2016 inclusive
+    loadJECs_Razor2016_MoriondRereco(); // same as 2016 inclusive
 }
 
 void RazorHelper::loadPileup_Razor2016G_SUSYUnblind() {
