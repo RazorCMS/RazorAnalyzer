@@ -67,6 +67,25 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
                     if submit:
                         call(cmd)
 
+def findZombies(analyzer,tag,isData=False,reHLT=False,label=''):
+    """Looks through job files and searches for Zombies.  Prints out a list of bad files."""
+    import ROOT as rt
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    for process in samples[tag]:
+        for sample in samples[tag][process]:
+            print "Sample:",sample
+            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT,label).replace('.root','*.Job*.root'))
+            jobfiles = glob.glob( query )
+            if len(jobfiles) > 0:
+                for f in jobfiles:
+                    curFile = rt.TFile.Open(f)
+                    if not curFile:
+                        print "\nZOMBIE:",f,"\n"
+            else:
+                print "Warning: no files found (",query,")"
+
 def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
     samples = SAMPLES
     if isData:
@@ -228,6 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('--skim',action='store_true',help='Apply razor skim to final ntuples')
     parser.add_argument('--remove-duplicates',dest='removeDuplicates',action='store_true',help='Remove duplicates')
     parser.add_argument('--good-lumi',dest='goodLumi',action='store_true',help='Apply good lumi selection')
+    parser.add_argument('--find-zombies',dest='findZombies',action='store_true',help='Find zombie files')
     parser.add_argument('--copy-local',dest='copyLocal',action='store_true',help='Copy files locally')
     parser.add_argument('--reHLT',action='store_true',help='Process reHLT samples')
     parser.add_argument('--no-skim',dest='noSkim',action='store_true',help='Do not assume skimmed data')
@@ -255,6 +275,10 @@ if __name__ == '__main__':
     if args.submit:
         print "Submit batch jobs..."
         submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,label=label)
+
+    if args.findZombies:
+        print "Searching for zombie files..."
+        findZombies(analyzer,tag,isData,reHLT=reHLT,label=label)
 
     if args.hadd:
         print "Combine ntuples..."
