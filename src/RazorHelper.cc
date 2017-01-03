@@ -37,8 +37,8 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
 
     // tag for 2016G unblinded 80X data
     else if (tag == "Razor2016G_SUSYUnblind_80X") {
-      eleVetoEffSFMinPt = 15.01;
-      muVetoEffSFMinPt = 15.01;
+      //eleVetoEffSFMinPt = 15.01;
+      //muVetoEffSFMinPt = 15.01;
       loadTag_Razor2016G_SUSYUnblind_80X();
     }
 
@@ -1270,8 +1270,8 @@ void RazorHelper::loadLepton_Razor2016G_SUSYUnblind(){
     // We don't have any fastsim scale factors for this run period
     eleTightEffFastsimSFHist = 0;
     eleVetoEffFastsimSFHist = 0;
-    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorReco");
-    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorReco");
+    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorGen");
+    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
     // We don't apply any tracking scale factors for this (post-HIP-effect) run period
     eleGSFTrackEffSFHist = 0;
     eleGSFTrackEffHist = 0;
@@ -1288,8 +1288,8 @@ void RazorHelper::loadLepton_Razor2016G_SUSYUnblind(){
     // We don't have any fastsim scale factors for this run period
     muTightEffFastsimSFHist = 0;
     muVetoEffFastsimSFHist = 0;
-    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
-    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorReco");
+    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorGen");
+    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorGen");
     // We don't apply any tracking scale factors for this (post-HIP-effect) run period
     muTrackEffSFHist = 0;
     muTrackEffHist = 0;
