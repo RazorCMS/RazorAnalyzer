@@ -44,45 +44,30 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         m2.setMaxFunctionCalls(1000000)
         m2.setMaxIterations(1000000)
 
-        scan_status = m2.minimize('Minuit2', 'scan')
-        scan_status = m2.minimize('Minuit2', 'scan')
-
-        #dijet
+        #leptonic boxes
+        #scan_status = m2.minimize('Minuit2', 'scan')
+        #scan_status = m2.minimize('Minuit2', 'scan')
         #simplex_status = m2.minimize('Minuit2', 'simplex')
-
-        migrad_status = m2.minimize('Minuit2','migrad')
-        migrad_status = m2.minimize('Minuit2','migrad')
-        improve_status = m2.minimize('Minuit2','improve')
-        migrad_status = m2.minimize('Minuit2','migrad')
-        hesse_status = m2.minimize('Minuit2','hesse')
-
-        #multijet
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #improve_status = m2.minimize('Minuit2','improve')
         #hesse_status = m2.minimize('Minuit2','hesse')
 
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        #improve_status = m2.minimize('Minuit2','improve')
-        #hesse_status = 3
+        hesse_status = 3
+        migrad_status = 3
 
-        #dijet
-        #scan_status = m2.minimize('Minuit2', 'scan')
-        #scan_status = m2.minimize('Minuit2', 'scan')
-        #simplex_status = m2.minimize('Minuit2', 'simplex')
-        #simplex_status = m2.minimize('Minuit2', 'simplex')
-        #migrad_status = m2.minimize('Minuit2','migrad')
+        scan_status = m2.minimize('Minuit2', 'scan')
+        scan_status = m2.minimize('Minuit2', 'scan')
+        simplex_status = m2.minimize('Minuit2', 'simplex')
+        simplex_status = m2.minimize('Minuit2', 'simplex')
+        simplex_status = m2.minimize('Minuit2', 'simplex')
         #migrad_status = m2.minimize('Minuit2','migrad')
         #migrad_status = m2.minimize('Minuit2','migrad')
         #improve_status = m2.minimize('Minuit2','improve')
-        #hesse_status = 3
-
-        #migrad_status = 3
-        
+        #migrad_status = m2.minimize('Minuit2','migrad')
+        #migrad_status = m2.minimize('Minuit2','migrad') #multijet full, not multijet sideband
         #hesse_status = m2.minimize('Minuit2','hesse')
 
-        #scan_status = m2.minimize('Minuit2', 'scan')
-        #improve_status = m2.minimize('Minuit2','improve')
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        
-        
         fr = m2.save()
 
     if fr.covQual() != 3:
