@@ -1239,10 +1239,10 @@ void RazorHelper::loadTrigger_Razor2016G() {
 void RazorHelper::loadTag_Razor2016G_SUSYUnblind_80X() {
     loadPileup_Razor2016G_SUSYUnblind();
     loadLepton_Razor2016G_SUSYUnblind();
-    loadPhoton_Razor2016(); // same as 2016 inclusive
-    loadBTag_Razor2016(); // same as 2016 inclusive
+    loadPhoton_Razor2016_MoriondRereco(); // same as 2016 inclusive
+    loadBTag_Razor2016_MoriondRereco(); // same as 2016 inclusive
     loadTrigger_Razor2016G_SUSYUnblind();
-    loadJECs_Razor2016(); // same as 2016 inclusive
+    loadJECs_Razor2016()_MoriondRereco; // same as 2016 inclusive
 }
 
 void RazorHelper::loadPileup_Razor2016G_SUSYUnblind() {
@@ -1307,13 +1307,13 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     std::cout << "RazorHelper: loading 2016G_SUSYUnblind trigger efficiency histograms" << std::endl;
     eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016G_Rereco_SUSYUnblind_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_SUSYUnblind_Golden.root"); 
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_Rereco_SUSYUnblind_Golden.root"); 
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
 
     eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Rereco_SUSYUnblind_Golden.root");
     eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
 
-    muTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_SUSYUnblind_Golden.root");
+    muTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Rereco_SUSYUnblind_Golden.root");
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
