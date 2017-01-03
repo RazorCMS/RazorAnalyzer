@@ -25,6 +25,7 @@ razorWeightOpts = {
                      ], 
         }
 razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
+razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorWeightHists = {
@@ -38,6 +39,7 @@ razorWeightHists = {
                 }
         }
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
+razorWeightHists["Razor2016_MoriondRereco"] = {}
 razorWeightHists["Razor2016_80X"] = {}
 razorWeightHists["Razor2016_ICHEP_80X"] = {}
 
@@ -183,12 +185,13 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p6_25October2016_CustomType1MET"
-versionData2016 = "V3p6_25October2016_CustomType1MET"
+versionMC2016 = "V3p8_1Dec2016"
+versionData2016 = "V3p8_1Dec2016"
 
 sampleTags2016 = { "Razor2016":"",
                "Razor2016_80X":"_Razor2016_80X",
                "Razor2016G_SUSYUnblind_80X":"_Razor2016G_SUSYUnblind_80X",
+               "Razor2016_MoriondRereco":"_Razor2016_MoriondRereco",
                "Razor2016_ICHEP_80X":"_Razor2016_ICHEP_80X" }
 
 prefixes2016 = { tag:{} for tag in sampleTags2016 }
@@ -213,7 +216,7 @@ skimstr = ""
 #dirVetoL2016 = dirCR2016+'/V3p6_25October2016_CustomType1MET_TestTightVeto/VetoLepton'
 #dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
 #dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
-#dirSignal2016 = dirSR2016+'/'+versionMC2016
+#dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
@@ -420,7 +423,7 @@ triggerNames["Photon"]["MC"]["Razor2016"] = [ 'PASS' ]
 triggerNames["SusySync"]["MC"]["Razor2016"] = [ 'PASS' ]
 
 #Use 2016 triggers for all 2016 eras
-for tag in ["Razor2016_80X", "Razor2016_ICHEP_80X", "Razor2016G_SUSYUnblind_80X"]:
+for tag in ["Razor2016_80X", "Razor2016_ICHEP_80X", "Razor2016G_SUSYUnblind_80X", "Razor2016_MoriondRereco"]:
     for proc in triggerNames:
         for datamc in ["Data","MC"]:
             triggerNames[proc][datamc][tag] = triggerNames[proc][datamc]["Razor2016"]
@@ -735,7 +738,7 @@ razorBinning["SusySync"] = {
         }
 
 ### Signal region
-signalConfig = "config/run2_20151108_Preapproval_2b3b_data.config"
+signalConfig = "config/run2_2016.config"
 cfg = Config.Config(signalConfig)
 razorBinning["SignalHadronic"] = {
         "MR" : cfg.getBinning("MultiJet")[0],
@@ -744,8 +747,8 @@ razorBinning["SignalHadronic"] = {
         #"subleadingJetPt": range(0, 1000, 100),
         }
 razorBinning["SignalLeptonic"] = {
-        "MR" : cfg.getBinning("MuMultiJet")[0],
-        "Rsq" : cfg.getBinning("MuMultiJet")[1],
+        "MR" : cfg.getBinning("LeptonMultiJet")[0],
+        "Rsq" : cfg.getBinning("LeptonMultiJet")[1],
         #"leadingJetPt": range(0, 1000, 100),
         #"subleadingJetPt": range(0, 1000, 100),
         }
@@ -1011,6 +1014,8 @@ class Analysis:
             self.lumi = 12900
         elif tag == "Razor2016G_SUSYUnblind_80X":
             self.lumi = 4394
+        elif tag == "Razor2016_MoriondRereco":
+            self.lumi = 36800
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 
