@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p8_19Dec2016"
+VERSION = "V3p8_02Jan2017"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -142,7 +142,6 @@ SAMPLES['1L'] = {
                 'WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
-                'TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
             ],
         "WJets":[
                 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
