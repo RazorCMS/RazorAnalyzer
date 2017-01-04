@@ -10,12 +10,18 @@ if __name__ == '__main__':
             default='Razor2016_MoriondRereco')
     parser.add_argument('--mc', help='fit MC',
             action='store_true')
+    parser.add_argument('--full', help='full fit',
+            action='store_true')
+    parser.add_argument('--load', help='load dataset from file',
+            action='store_true')
+    parser.add_argument('--no-fit', dest='noFit', action='store_true',
+            help='Create dataset but do not fit')
+    parser.add_argument('--no-plot', dest='noPlot', action='store_true',
+            help='Do not make plots')
     args = parser.parse_args()
 
-    weights = { 
-            #"ZInv":1.75 
-            }
+    weights = {}
     fitter = FitInstance(args.box, tag=args.tag, isData=not args.mc, 
-            weights=weights)
-    fitter.initDataset()
-    fitter.writeWorkspace()
+            weights=weights, full=args.full)
+    fitter.doFitSequence(load=args.load, doFit=(not args.noFit),
+            plot=(not args.noPlot))
