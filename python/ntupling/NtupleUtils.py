@@ -37,7 +37,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     if isData:
         listdir = listdir.replace('/MC','/data')
         samples = DATA
-    filesperjob = 10
+    filesperjob = 3
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop

@@ -3,7 +3,7 @@
 ### Submit jobs using NtupleUtils.py, then check jobs' statuses every 30 seconds. 
 ### When jobs are done, automatically proceed to the next step in the sequence 
 ### MC: hadd --> normalize --> hadd-final 
-### Data: hadd --> hadd-final --> remove-duplicates
+### Data: hadd --> skim --> hadd-final --> remove-duplicates
 
 import os, sys, subprocess
 import argparse
@@ -50,6 +50,10 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
             cmd_normalize = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--normalize', nosub, '--label', label, data]))
             print ' '.join(cmd_normalize)
             subprocess.call(cmd_normalize)
+        else:
+            cmd_skim = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--skim', nosub, '--label', label, data]))
+            print ' '.join(cmd_skim)
+            subprocess.call(cmd_skim)
         cmd_hadd_final = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--hadd-final', nosub, '--label', label, data]))
         print ' '.join(cmd_hadd_final)
         subprocess.call(cmd_hadd_final)
