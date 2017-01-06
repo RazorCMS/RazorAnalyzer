@@ -73,18 +73,23 @@ def findZombies(analyzer,tag,isData=False,reHLT=False,label=''):
     samples = SAMPLES
     if isData:
         samples = DATA
-    for process in samples[tag]:
-        for sample in samples[tag][process]:
-            print "Sample:",sample
-            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT,label).replace('.root','*.Job*.root'))
-            jobfiles = glob.glob( query )
-            if len(jobfiles) > 0:
-                for f in jobfiles:
-                    curFile = rt.TFile.Open(f)
-                    if not curFile:
-                        print "\nZOMBIE:",f,"\n"
-            else:
-                print "Warning: no files found (",query,")"
+    zombieFileName = "Zombies_%s_%s.txt"%(tag, label)
+    if isData:
+        zombieFileName = zombieFileName.replace(".txt","_Data.txt")
+    with open(zombieFileName,'w') as zombieFile:
+        for process in samples[tag]:
+            for sample in samples[tag][process]:
+                print "Sample:",sample
+                query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT,label).replace('.root','*.Job*.root'))
+                jobfiles = glob.glob( query )
+                if len(jobfiles) > 0:
+                    for f in jobfiles:
+                        curFile = rt.TFile.Open(f)
+                        if not curFile:
+                            print "\nZOMBIE:",f,"\n"
+                            zombieFile.write(f+"\n")
+                else:
+                    print "Warning: no files found (",query,")"
 
 def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
     samples = SAMPLES

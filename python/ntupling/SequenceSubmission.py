@@ -43,6 +43,17 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
         while not job_done:
             time.sleep(30)
             job_done = check_bjobs('*'+label+'*')
+        # Before running hadd, we have to check that there are no zombie files in the output.
+        # If there are, abort immediately and let the user clean up the zombies before continuing
+        cmd_zombies = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--find-zombies', nosub, '--label', label, data]))
+        print ' '.join(cmd_zombies)
+        subprocess.call(cmd_zombies)
+        zombieFileName = "Zombies_%s_%s.txt"%(tag, label)
+        if isData:
+            zombieFileName = zombieFileName.replace(".txt","_Data.txt")
+        with open(zombieFileName) as zombieFile:
+            for line in zombieFile:
+                sys.exit("One or more zombie files were found!  See the full list in %s"%zombieFileName)
         cmd_hadd = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--hadd', nosub, '--label', label, data]))
         print ' '.join(cmd_hadd)
         subprocess.call(cmd_hadd)
