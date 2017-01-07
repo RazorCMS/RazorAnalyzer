@@ -53,14 +53,14 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
   std::vector<std::pair<int,int> > JetCorrectorIOV = helper->getJetCorrectionsIOV();
  
   //tree variables
-  int nSelectedJets, nBTaggedJetsL, nBTaggedJetsM, nBTaggedJetsT;
+  int nSelectedJets, nBTaggedJetsL, nBTaggedJetsM, nBTaggedJetsT, numJetsAbove80GeV;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus, nLooseTaus, nLoosePhotons, nTightPhotons;
   UInt_t run, lumi, event;
   float MR, deltaPhi;
   float HT, MHT;
   float alphaT, dPhiMin;
   float Rsq;
-  float t1metPt, t1metPhi;
+  float t1metPt, t1metPhi, caloMet;
   float JetPt_uncorr[30], JetEta_uncorr[30], JetPhi_uncorr[30], JetE_uncorr[30];
   float LeadJetNeutralHadronFraction, LeadJetChargedHadronFraction;
   float JetPt[30], JetEta[30], JetPhi[30], JetE[30];
@@ -74,6 +74,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       razorTree->Branch("lumi",&lumi,"lumi/i");
       razorTree->Branch("event",&event,"event/i");
    
+      razorTree->Branch("numJetsAbove80GeV", &numJetsAbove80GeV, "numJetsAbove80GeV/I");
       razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
       razorTree->Branch("nBTaggedJetsL", &nBTaggedJetsL, "nBTaggedJetsL/I");
       razorTree->Branch("nBTaggedJetsM", &nBTaggedJetsM, "nBTaggedJetsM/I");
@@ -107,6 +108,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       razorTree->Branch("deltaPhi", &deltaPhi, "deltaPhi/F");
       razorTree->Branch("metPt", &metPt, "metPt/F");
       razorTree->Branch("metPhi", &metPhi, "metPhi/F");
+      razorTree->Branch("caloMet", &caloMet, "caloMet/F");
       razorTree->Branch("t1metPt", &t1metPt, "t1metPt/F");
       razorTree->Branch("t1metPhi", &t1metPhi, "t1metPhi/F");
       razorTree->Branch("HT", &HT, "HT/F");
@@ -391,7 +393,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	  TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
 	  t1metPt  = metType1Pt;
 	  t1metPhi = metType1Phi;
-	
+      caloMet = metCaloPt;	
       vector<TLorentzVector> hemispheres = getHemispheres( GoodJets );
     
       MR    = computeMR(hemispheres[0], hemispheres[1]); 

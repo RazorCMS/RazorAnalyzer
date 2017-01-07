@@ -21,6 +21,7 @@
 #include <TLegend.h> 
 #include <THStack.h> 
 #include <TKey.h> 
+#include <TApplication.h>
 
 #endif
 
@@ -89,6 +90,7 @@ void RemoveDuplicateEvents( string inputfile, string outputfile) {
   cout << "Closing output file." << endl;
   outputFile->Close();
   delete outputFile;
+  gApplication->Terminate();
 
 }
 

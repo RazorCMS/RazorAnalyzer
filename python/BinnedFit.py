@@ -44,45 +44,54 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False):
         m2.setMaxFunctionCalls(1000000)
         m2.setMaxIterations(1000000)
 
-        scan_status = m2.minimize('Minuit2', 'scan')
-        scan_status = m2.minimize('Minuit2', 'scan')
+        hesse_status = 3
+        migrad_status = 3
 
-        #dijet
-        #simplex_status = m2.minimize('Minuit2', 'simplex')
+        print box
 
-        migrad_status = m2.minimize('Minuit2','migrad')
-        migrad_status = m2.minimize('Minuit2','migrad')
-        improve_status = m2.minimize('Minuit2','improve')
-        migrad_status = m2.minimize('Minuit2','migrad')
-        hesse_status = m2.minimize('Minuit2','hesse')
+        if box=='MultiJet':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
 
-        #multijet
-        #hesse_status = m2.minimize('Minuit2','hesse')
+        elif box=='DiJet':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
 
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        #improve_status = m2.minimize('Minuit2','improve')
-        #hesse_status = 3
+        elif box=='LeptonMultiJet':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
 
-        #dijet
-        #scan_status = m2.minimize('Minuit2', 'scan')
-        #scan_status = m2.minimize('Minuit2', 'scan')
-        #simplex_status = m2.minimize('Minuit2', 'simplex')
-        #simplex_status = m2.minimize('Minuit2', 'simplex')
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        #improve_status = m2.minimize('Minuit2','improve')
-        #hesse_status = 3
+        elif box=='LeptonJet':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            simplex_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
 
-        #migrad_status = 3
-        
-        #hesse_status = m2.minimize('Minuit2','hesse')
-
-        #scan_status = m2.minimize('Minuit2', 'scan')
-        #improve_status = m2.minimize('Minuit2','improve')
-        #migrad_status = m2.minimize('Minuit2','migrad')
-        
-        
         fr = m2.save()
 
     if fr.covQual() != 3:

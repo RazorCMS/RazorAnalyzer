@@ -3,7 +3,7 @@
 ### Submit jobs using NtupleUtils.py, then check jobs' statuses every 30 seconds. 
 ### When jobs are done, automatically proceed to the next step in the sequence 
 ### MC: hadd --> normalize --> hadd-final 
-### Data: hadd --> hadd-final --> remove-duplicates
+### Data: hadd --> skim --> hadd-final --> remove-duplicates
 
 import os, sys, subprocess
 import argparse
@@ -43,6 +43,17 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
         while not job_done:
             time.sleep(30)
             job_done = check_bjobs('*'+label+'*')
+        # Before running hadd, we have to check that there are no zombie files in the output.
+        # If there are, abort immediately and let the user clean up the zombies before continuing
+        cmd_zombies = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--find-zombies', nosub, '--label', label, data]))
+        print ' '.join(cmd_zombies)
+        subprocess.call(cmd_zombies)
+        zombieFileName = "Zombies_%s_%s.txt"%(tag, label)
+        if isData:
+            zombieFileName = zombieFileName.replace(".txt","_Data.txt")
+        with open(zombieFileName) as zombieFile:
+            for line in zombieFile:
+                sys.exit("One or more zombie files were found!  See the full list in %s"%zombieFileName)
         cmd_hadd = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--hadd', nosub, '--label', label, data]))
         print ' '.join(cmd_hadd)
         subprocess.call(cmd_hadd)
@@ -50,6 +61,10 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
             cmd_normalize = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--normalize', nosub, '--label', label, data]))
             print ' '.join(cmd_normalize)
             subprocess.call(cmd_normalize)
+        else:
+            cmd_skim = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--skim', nosub, '--label', label, data]))
+            print ' '.join(cmd_skim)
+            subprocess.call(cmd_skim)
         cmd_hadd_final = list(filter(None,['python', 'python/ntupling/NtupleUtils.py', tag, '--hadd-final', nosub, '--label', label, data]))
         print ' '.join(cmd_hadd_final)
         subprocess.call(cmd_hadd_final)
