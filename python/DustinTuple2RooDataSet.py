@@ -88,12 +88,8 @@ if __name__ == '__main__':
                   help="integrated luminosity in pb^-1")
     parser.add_option('-b','--box',dest="box", default="MultiJet",type="string",
                   help="box name")
-    parser.add_option('-q','--remove-qcd',dest="removeQCD",default=False,action='store_true',
-                  help="remove QCD, while augmenting remaining MC backgrounds")    
     parser.add_option('--data',dest="isData", default=False,action='store_true',
                   help="flag to use trigger decision and MET flags")
-    parser.add_option('--path-names',dest="pathNames",default="data/RazorHLTPathnames_2016.dat",type="string",
-                  help="text file containing mapping between array index and path name")
 
 
     (options,args) = parser.parse_args()
@@ -104,7 +100,6 @@ if __name__ == '__main__':
     lumi = options.lumi
     lumi_in = options.lumi_in
     useWeight = options.useWeight
-    removeQCD = options.removeQCD
     
     print 'Input files are %s' % ', '.join(args)
     
@@ -117,47 +112,14 @@ if __name__ == '__main__':
     btagMin =  w.var('nBtag').getMin()
     btagMax =  w.var('nBtag').getMax()
 
-    
-    f = open(options.pathNames)
-    csvin = csv.reader(f,delimiter=' ')
-    for row in csvin:
-        triggerDict[row[-1]] = int(row[0])
-        
-    if removeQCD:
-        # first get sum of weights for each background per b-tag bin ( sumW[label] )
-        sumW = {}
-        sumWQCD = 0.
-        for f in args:
-            if f.lower().endswith('.root'):
-                rootFile = rt.TFile.Open(f)
-                tree = rootFile.Get('RazorInclusive')
-                if f.lower().find('sms')==-1:
-                    
-                    label = f.replace('.root','').split('/')[-1]
-                    sumW[label] = getSumOfWeights(tree, cfg, box, w, useWeight, f, lumi/lumi_in)
-                    if label.find('QCD')!=-1: sumWQCD = sumW[label]
-        # get total sum of weights
-        sumWTotal = [sum(allW) for allW in zip( * sumW.values() )]
-
-        # get scale factor to scale other backgrounds by
-        k_QCD[box] = [total/(total - qcd) for total, qcd in zip(sumWTotal,sumWQCD)]
-         
-        print "Sum of Weights Total [ %s ] ="%box, sumWTotal
-        print "Sum of Weights QCD   [ %s ] ="%box, sumWQCD
-        print "Scale Factor k_QCD   [ %s ] ="%box, k_QCD[box]
-    else:        
-        z = array('d', cfg.getBinning(box)[2]) # nBtag binning
-        k_QCD[box] = [1. for iz in range(1,len(z))]
+    z = array('d', cfg.getBinning(box)[2]) # nBtag binning
 
     for i, f in enumerate(args):
         if f.lower().endswith('.root'):
             rootFile = rt.TFile.Open(f)
             tree = rootFile.Get('RazorInclusive')
             if f.lower().find('sms')==-1:
-                if removeQCD and f.find('QCD')!=-1:
-                    continue # do not add QCD
-                else:
-                    ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, lumi/lumi_in,  'RMRTree_%i'%i, options.isData))
+                ds.append(convertTree2Dataset(tree, cfg, box, w, useWeight, lumi/lumi_in,  'RMRTree_%i'%i, options.isData))
                 
             else:
                 modelString = f.split('/')[-1].split('.root')[0].split('_')[0]
@@ -186,7 +148,6 @@ if __name__ == '__main__':
                             thyXsec = float(line.split(',')[1]) #pb
                             thyXsecErr = 0.01*float(line.split(',')[2]) 
 
-                            
                 if isinstance( rootFile.Get('NEvents'), rt.TH1 ):
                     nEvents = rootFile.Get('NEvents').Integral()
                     globalScaleFactor = thyXsec*lumi/lumi_in/nEvents # FastSim samples
