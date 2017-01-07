@@ -807,7 +807,7 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
     hClone.Draw("e2same")
 
     
-    nBinsMR = 5
+    nBinsMR = 6
     if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel or 'LeptonMultiJet' in boxLabel or 'EleJet' in boxLabel or 'MuJet' in boxLabel or 'LeptonJet' in boxLabel:
         nBinsMR = 7
     
