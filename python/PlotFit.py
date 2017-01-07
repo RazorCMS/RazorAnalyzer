@@ -775,7 +775,7 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
     c.Write(os.path.splitext(printName)[0].split('/')[-1])
 
     
-def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,options=None,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
+def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,options=None,tLeg=None,h_components=[],h_colors=[],h_labels=[],cfg=None):
     
     if densityCorr:
         h_densitycorr = densityCorrect(h)
@@ -867,6 +867,10 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
 
     
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Stat.+Sys. n#sigma")    
+    if cfg is not None:
+        box = boxLabel.split(' ')[1]
+        x = array('d', cfg.getBinning(box)[0]) # MR binning
+        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     hDataDivideNs = get1DHistoFrom2D(h_ns,x,y,h_ns.GetName()+'1d')
     hDataDivideNs.SetMarkerStyle(8)
     hDataDivideNs.SetMarkerSize(0.75)
