@@ -5,13 +5,18 @@ from macro.razorFits import FitInstance
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    # Configuration
     parser.add_argument('box', help='Analysis box')
     parser.add_argument('--tag', help='Analysis tag', 
             default='Razor2016_MoriondRereco')
+    parser.add_argument('--config', help='Fit config to use', 
+            default='config/run2_2016.config')
+    # Fit types
     parser.add_argument('--mc', help='fit MC',
             action='store_true')
     parser.add_argument('--full', help='full fit',
             action='store_true')
+    # Actions
     parser.add_argument('--load', help='load dataset from file',
             action='store_true')
     parser.add_argument('--load-fit', dest='loadFit', action='store_true',
@@ -28,7 +33,7 @@ if __name__ == '__main__':
 
     weights = {}
     fitter = FitInstance(args.box, tag=args.tag, isData=not args.mc, 
-            weights=weights, full=args.full)
+            weights=weights, full=args.full, configFile=args.config)
     fitter.doFitSequence(load=args.load, doFit=(not args.loadFit),
             plot=(not args.noPlot), unblind=args.unblind, runToys=args.runToys,
             plotToys=args.plotToys)
