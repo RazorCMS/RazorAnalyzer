@@ -1008,21 +1008,23 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  
 	  //Use Loose Photon ID and charged Iso < 2.5 GeV
 	  if (!( 		
-		//photonPassLooseID(i,true) //use this for deriving scale factor
-		photonPassesElectronVeto(i)
-		&& pho_HoverE[i] < 0.05  //use this for performing fits
-		&& ( (fabs(phoEta[i]) < 1.5 && 
-		      phoFull5x5SigmaIetaIeta[i] < 0.01042
-		      && fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*tmpEffAreaPhotons, 0.) < 2.554 + 0.0047*pho_pt_corr
-		      && fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*tmpEffAreaNeutralHadrons, 0.) < 4.50 + 0.0148*pho_pt_corr + 0.000017*pho_pt_corr*pho_pt_corr
-		      ) ||
-		     (fabs(phoEta[i]) > 1.5 && 
-		      phoFull5x5SigmaIetaIeta[i] < 0.02683
-		      && fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*tmpEffAreaPhotons, 0.) < 3.86 + 0.0034*pho_pt_corr
-		      && fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*tmpEffAreaNeutralHadrons, 0.) < 4.187 + 0.0163*pho_pt_corr + 0.000014*pho_pt_corr*pho_pt_corr
-		      )
-		     ))
-	      //&& max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5	      
+		photonPassLooseID(i,true) //use this for deriving scale factor
+		&& max(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*tmpEffAreaChargedHadrons, 0.) < 2.5
+		&&
+		
+		photonPassesElectronVeto(i) //use this for performing fits
+		&& pho_HoverE[i] < 0.05  
+		&& ( 
+		    (fabs(phoEta[i]) < 1.5  
+		     && fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*tmpEffAreaPhotons, 0.0) < 3.630 + 0.0047*pho_pt_corr
+		     && fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*tmpEffAreaNeutralHadrons, 0.0) < 10.910 + 0.0148*pho_pt_corr + 0.000017*pho_pt_corr*pho_pt_corr
+		     ) ||
+		    (fabs(phoEta[i]) > 1.5  
+		     && fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*tmpEffAreaPhotons, 0.) < 6.641 + 0.0034*pho_pt_corr
+		     && fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*tmpEffAreaNeutralHadrons, 0.) < 5.931 + 0.0163*pho_pt_corr + 0.000014*pho_pt_corr*pho_pt_corr
+		     )
+		     )
+	       )	      
 	      ) continue;
 	  
 	  if(pho_pt_corr > 40) nPhotonsAbove40GeV++;
