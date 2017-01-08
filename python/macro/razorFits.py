@@ -7,6 +7,7 @@ from array import array
 import macro
 from razorAnalysis import Analysis
 from framework import Config
+from rootTools import RootIterator
 from DustinTuple2RooDataSet import convertTree2Dataset, initializeWorkspace
 from BinnedFit import binnedFit
 from WriteDataCard import convertDataset2TH1
@@ -242,9 +243,18 @@ class FitInstance(object):
         datahist = self.workspace.data('data_obs')
         self.sideband = convertSideband(self.fitRegion, self.workspace, 
                 self.x, self.y, self.z)
-        result = binnedFit(extRazorPdf, datahist, self.sideband)
+        result = binnedFit(extRazorPdf, datahist, self.sideband,
+                box=self.analysis.region)
         result.Print('v')
         self.addToWorkspace(result, tobject=True)
+
+    def restoreFitParams(self):
+        """Load the fit function parameters from the fit result"""
+        w = self.workspace
+        fr = w.obj("nll_extRazorPdf_data_obs")
+        for p in RootIterator.RootIterator(fr.floatParsFinal()):
+            w.var(p.GetName()).setVal(p.getVal())
+            w.var(p.GetName()).setError(p.getError())
 
     def plotCorrelationMatrix(self):
         """Plots the correlation matrix of the fit parameters"""
@@ -506,7 +516,7 @@ class FitInstance(object):
         f.Close()
 
     def doFitSequence(self, load=False, doFit=True, plot=True, unblind=False,
-            runToys=False, plotToys=False):
+            runToys=False, loadToys=False):
         """Performs all steps needed to build and fit the dataset"""
         if load:
             self.loadWorkspace()
@@ -522,9 +532,10 @@ class FitInstance(object):
         if plot:
             toysFile = None
             sysFile = None
-            if runToys or plotToys:
+            if runToys or loadToys:
                 toysFile = self.toysFile
                 sysFile = self.sysFile
+            self.restoreFitParams()
             self.plot(unblind=unblind, toysFile=toysFile,
                     sysFile=sysFile)
         self.writeWorkspace()

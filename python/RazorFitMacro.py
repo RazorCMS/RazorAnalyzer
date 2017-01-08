@@ -27,8 +27,8 @@ if __name__ == '__main__':
             help='Do not blind signal sensitive region')
     parser.add_argument('--run-toys', action='store_true',
             help='Run toy generation', dest='runToys')
-    parser.add_argument('--plot-toys', action='store_true',
-            help='Plot uncertainties from toys', dest='plotToys')
+    parser.add_argument('--load-toys', action='store_true',
+            help='Plot uncertainties from toys', dest='loadToys')
     args = parser.parse_args()
 
     weights = {}
@@ -36,4 +36,4 @@ if __name__ == '__main__':
             weights=weights, full=args.full, configFile=args.config)
     fitter.doFitSequence(load=args.load, doFit=(not args.loadFit),
             plot=(not args.noPlot), unblind=args.unblind, runToys=args.runToys,
-            plotToys=args.plotToys)
+            loadToys=args.loadToys)
