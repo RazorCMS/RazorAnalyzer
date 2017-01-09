@@ -472,7 +472,12 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     
     if pvalue <= 0.:
         print "pvalue = 0 from histogram method: reverting to gaussian approximation"
-        nsigma = (nObs-bestFit)/rms
+        #print rms
+        if rms<=0:
+            print "rms==0, this is sad"
+            nsigma = 100
+        else:
+            nsigma = (nObs-bestFit)/rms
         pvalue = 2.*rt.Math.gaussian_cdf_c(abs(nsigma))
     print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
 
@@ -775,7 +780,7 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
     c.Write(os.path.splitext(printName)[0].split('/')[-1])
 
     
-def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,options=None,tLeg=None,h_components=[],h_colors=[],h_labels=[],cfg=None):
+def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,options=None,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
     
     if densityCorr:
         h_densitycorr = densityCorrect(h)
