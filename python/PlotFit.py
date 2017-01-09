@@ -873,7 +873,6 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
     
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Stat.+Sys. n#sigma")    
     if cfg is not None:
-        print "hai?"
         box = boxLabel.split(' ')[1]
         x = array('d', cfg.getBinning(box)[0]) # MR binning
         y = array('d', cfg.getBinning(box)[1]) # Rsq binning
