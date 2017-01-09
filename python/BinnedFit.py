@@ -14,7 +14,7 @@ from PlotFit import setStyle,print1DProj,print2DScatter,get3DHistoFrom1D,getBinE
 
 densityCorr = False
 
-def binnedFit(pdf, data, fitRange='Full',useWeight=False):
+def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet'):
 
     if useWeight:
         fr = pdf.fitTo(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.SumW2Error(True),rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.Strategy(2))
@@ -266,7 +266,7 @@ if __name__ == '__main__':
     elif noFit:
         fr = rt.RooFitResult()
     else:
-        fr = binnedFit(extRazorPdf,dataHist,sideband,options.useWeight)
+        fr = binnedFit(extRazorPdf,dataHist,sideband,options.useWeight,box=box)
         total = extRazorPdf.expectedEvents(rt.RooArgSet(th1x))
         nll = 0
         iBinX = -1
