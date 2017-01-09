@@ -14,7 +14,7 @@ from PlotFit import setStyle,print1DProj,print2DScatter,get3DHistoFrom1D,getBinE
 
 densityCorr = False
 
-def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet'):
+def binnedFit(pdf, data, fitRange='Full',useWeight=False):
 
     if useWeight:
         fr = pdf.fitTo(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.SumW2Error(True),rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.Strategy(2))
@@ -63,14 +63,19 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet'):
             simplex_status = m2.minimize('Minuit2', 'simplex')
             simplex_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
         elif box=='LeptonMultiJet':
             scan_status = m2.minimize('Minuit2', 'scan')
             scan_status = m2.minimize('Minuit2', 'scan')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
+            #simplex_status = m2.minimize('Minuit2', 'simplex')
+            #simplex_status = m2.minimize('Minuit2', 'simplex')
+            #simplex_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
@@ -148,6 +153,7 @@ if __name__ == '__main__':
     cfg = Config.Config(options.config)
     
     box = options.box
+    print options.box , box
     lumi = options.lumi
     noFit = options.noFit
     fitRegion = options.fitRegion
