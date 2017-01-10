@@ -232,7 +232,7 @@ class FitInstance(object):
         for k in range(0, len(self.z)-1):
             entries = self.workspace.data("RMRTree").sumEntries(
                     "nBtag>=%i && nBtag<%i"%(self.z[k], self.z[k+1]))
-            par = "Ntot_TTj%db_MultiJet"%self.z[k]
+            par = "Ntot_TTj%db_%s"%(self.z[k],self.analysis.region)
             print "Resetting fit parameter %s to %d"%(par, entries)
             self.workspace.var(par).setVal(entries)
 
