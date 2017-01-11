@@ -28,7 +28,7 @@
 
 #include <CalStyleRemix.hh>
 
-void take_ratios_JJ() {
+void take_ratios() {
 
   enum {mr=0, ljpt, rsq};
   enum {razor=0, dijet};
@@ -38,23 +38,23 @@ void take_ratios_JJ() {
   //
   //--------------------------------------------------------------
   Int_t sample=razor;
-  //Int_t sample=dijet;
   // for mr
-  //Int_t binIn=mr;
-  ////const Int_t nbinx=1, nbiny=20, nbinz=2;
-  //const Int_t nbinx=1, nbiny=4, nbinz=2;
-  ////const Int_t nbinx=1, nbiny=1, nbinz=2;
-  ////const Int_t nbinx=1, nbiny=7, nbinz=2;
-  //Float_t xmin=0.15, xmax=0.25; 
-  //Float_t ymin=400,  ymax=3000; 
-  ////Float_t ymin=400,  ymax=1000; 
-  //Float_t zmin=0,    zmax=2;
-  //Float_t xbins[nbinx+1] = {xmin, xmax};
-  //Float_t ybins[nbiny+1] = {ymin, 600, 800, 1000, ymax};
-  ////Float_t ybins[nbiny+1] = {ymin, ymax};
-  ////Float_t ybins[nbiny+1] = {ymin, 450, 500, 550, 600, 700, 800, ymax};
-  //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  //TString pname = "npf_vs_mr_dijet.png";
+  Int_t binIn=mr;
+  //const Int_t nbinx=1, nbiny=20, nbinz=2;
+  const Int_t nbinx=1, nbiny=7, nbinz=2;
+  //const Int_t nbinx=1, nbiny=1, nbinz=2;
+  //const Int_t nbinx=1, nbiny=7, nbinz=2;
+  Float_t xmin=0.15, xmax=0.25; 
+  Float_t ymin=500,  ymax=4000; 
+  //Float_t ymin=400,  ymax=1000; 
+  Float_t zmin=0,    zmax=2;
+  Float_t xbins[nbinx+1] = {xmin, xmax};
+  Float_t ybins[nbiny+1] = {ymin, 575, 650, 750, 900, 1000, 1500, ymax};
+  //Float_t ybins[nbiny+1] = {ymin, ymax};
+  //Float_t ybins[nbiny+1] = {ymin, 450, 500, 550, 600, 700, 800, ymax};
+  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
+  //TString pname = "npf_vs_mr_multijet.png";
+  TString pname = "npf_vs_mr_dijet.png";
 
   // for leading jet pt
   //Int_t binIn=ljpt;
@@ -68,43 +68,30 @@ void take_ratios_JJ() {
   //TString pname = "npf_vs_ljpt_razor.png";
 
   // for rsq
-  Int_t binIn=rsq;
-  //const Int_t nbinx=1, nbiny=10, nbinz=2;
-  const Int_t nbinx=1, nbiny=8, nbinz=2;
-  Float_t xmin=400, xmax=3000; 
-  Float_t ymin=0.15,  ymax=0.35; 
-  Float_t zmin=0,    zmax=2;
-  Float_t xbins[nbinx+1] = {xmin, xmax};
-  //Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
-  Float_t ybins[nbiny+1] = { ymin, 0.16, 0.17, 0.18, 0.19, 0.20, 0.225, 0.25, ymax};
-  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  TString pname = "npf_vs_rsq_dijet.png";
+  //Int_t binIn=rsq;
+  ////const Int_t nbinx=1, nbiny=10, nbinz=2;
+  //const Int_t nbinx=1, nbiny=7, nbinz=2;
+  //Float_t xmin=400, xmax=3000; 
+  //Float_t ymin=0.15,  ymax=0.35; 
+  //Float_t zmin=0,    zmax=2;
+  //Float_t xbins[nbinx+1] = {xmin, xmax};
+  ////Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
+  //Float_t ybins[nbiny+1] = { ymin, 0.16, 0.17, 0.18, 0.19, 0.20, 0.25, ymax};
+  //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
+  //TString pname = "npf_vs_rsq_razor.png";
 
-  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_2015JECs/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_HTMHT_2016G_23Sep2016_SUSYUnblind.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_QCD_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_TTJetsInclusive_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_WJets_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_ZInv_1pb_weighted.root","read");
 
-  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/HTMHT_2016B_PRv2_Golden.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/ZJetsToNuNu_13TeV-madgraph_1pb_weighted.root","read");
+  //TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)";
 
-  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3/FullRazorInclusive_HTMHT_2016B_PRv2_GoodLumiGoldenJun16.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_QCD_1pb_weighted.root","read");
-  //TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
-  ////TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
-  //TFile *fZ = TFile::Open("/afs/cern.ch/work/j/jlawhorn/Znunu_Blarg.root","read");
+  TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)";
 
-  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
-
-  //TString cut_str_rsq="*(Rsq<0.25)";
-  TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
-  TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)*(passedHadronicTrigger)";
-  TString cut_str_mc="*(weight)*2600";
+  TString cut_str_dat=cut_str;
+  TString cut_str_mc="*weight*4400";
 
   //--------------------------------------------------------------
   //
@@ -169,11 +156,17 @@ void take_ratios_JJ() {
   TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny, &ybins[0]); fxn_plus_err->Sumw2();
 
   // open trees
-  TTree *tQ = (TTree*) fQ->Get("QCDTree");
-  TTree *tD = (TTree*) fD->Get("QCDTree");
-  TTree *tT = (TTree*) fT->Get("QCDTree");
-  TTree *tW = (TTree*) fW->Get("QCDTree");
-  TTree *tZ = (TTree*) fZ->Get("QCDTree");
+  //TTree *tQ = (TTree*) fQ->Get("QCDTree");
+  //TTree *tD = (TTree*) fD->Get("QCDTree");
+  //TTree *tT = (TTree*) fT->Get("QCDTree");
+  //TTree *tW = (TTree*) fW->Get("QCDTree");
+  //TTree *tZ = (TTree*) fZ->Get("QCDTree");
+
+  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
+  TTree *tD = (TTree*) fD->Get("RazorInclusive");
+  TTree *tT = (TTree*) fT->Get("RazorInclusive");
+  TTree *tW = (TTree*) fW->Get("RazorInclusive");
+  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
@@ -197,20 +190,22 @@ void take_ratios_JJ() {
     tZ->Draw("(abs(dPhiRazor)>2.8)+0.5:Rsq:MR>>dPhiPF_Z", cut_str+cut_str_mc);
   }
 
-  //dPhiPF_D->Add(dPhiPF_T, -1);
-  //dPhiPF_D->Add(dPhiPF_W, -1);
-  //dPhiPF_D->Add(dPhiPF_Z, -1);
 
-  //1  p0           4.10404e+19   1.07981e+20  -2.34338e+17  -5.66712e-22
-  //2  p1          -7.51605e+00   4.43840e-01   1.56820e-03  -8.53370e-02
-  //3  p2           4.20132e-03   2.27274e-03   2.64188e-06   2.13945e+00
+  //9.10981e+12   4.90629e+13   4.34389e+06  -6.75286e-17
+  // 2  p1          -5.00116e+00   8.35076e-01   6.67793e-05  -3.23865e-03
+  // 3  p2           4.79514e-02 
 
   //TF1 *qcd_fxn = new TF1("qcd_fxn","[0]*x^[1]+[2]", 400, 2500);
-  //TF1 *qcd_fxn = new TF1("qcd_fxn","[0]", 400, 2500);
-  TF1 *qcd_fxn = new TF1("qcd_fxn","[0]", 0, 2500);
-  qcd_fxn->SetParameter(0,0.102603);
-  //qcd_fxn->SetParameter(1,-7.5);
-  //qcd_fxn->SetParameter(2,0.0042);
+  TF1 *qcd_fxn = new TF1("qcd_fxn","[0]", 500, 4000);
+  //TF1 *qcd_fxn = new TF1("qcd_fxn","[0]", 0, 2500);
+  //qcd_fxn->SetParameter(0,0.242121);
+
+  //qcd_fxn->SetParameter(0,0.103);
+  qcd_fxn->SetParameter(0,0.0500);
+
+  //qcd_fxn->SetParameter(0,9.1e12);
+  //qcd_fxn->SetParameter(1,-5.0);
+  //qcd_fxn->SetParameter(2,0.048);
 
   Double_t wtf=0, lesswtf=0;
 
@@ -243,9 +238,12 @@ void take_ratios_JJ() {
       Float_t nPF=0;
       if (dnP>0 && dnF>0) {
 	nPF=dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))/dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2));
-	wtf+=qcd_fxn->Eval(rsq)*(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
-	lesswtf+=(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
-	cout << nPF << endl;
+	if (nPF<0.4) {
+	  wtf+=nPF;
+	  lesswtf+=1;
+	}
+	//wtf+=qcd_fxn->Eval(rsq)*(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
+	//lesswtf+=(dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,1))+dPhiPF_Q->GetBinContent(dPhiPF_Q->GetBin(i+1,j+1,2)));
 	cout << (nPF - qcd_fxn->Eval(rsq))/qcd_fxn->Eval(rsq) << endl;
 	
 	Float_t drsq=0.5*dPhiPF_Q->GetYaxis()->GetBinWidth(j+1);
@@ -254,7 +252,8 @@ void take_ratios_JJ() {
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
 
 	fxn_plus_err->SetBinContent(k+1,qcd_fxn->Eval(rsq));
-	fxn_plus_err->SetBinError(k+1,qcd_fxn->Eval(rsq)*0.85);
+	//fxn_plus_err->SetBinError(k+1,qcd_fxn->Eval(rsq)*0.8);
+	fxn_plus_err->SetBinError(k+1,qcd_fxn->Eval(rsq));
 	//fxn_plus_err->SetBinContent(k+1,0.192443);
 	//fxn_plus_err->SetBinError(k+1,0.192443*0.87);
   
@@ -263,12 +262,13 @@ void take_ratios_JJ() {
 	k++;
       }
     }
+    //cout << qcd_with_mr[i]->GetMean() << endl;
   }
 
   cout << "----" << endl;
   cout << wtf  << " / " << lesswtf << " = " << wtf/lesswtf << endl;
   cout << "----" << endl;
-  
+  wtf=0; lesswtf=0;
   vector<TGraphAsymmErrors *> dat_with_mr; 
   Float_t xrsq=0, drsq=0, dnP=0, dnF=0, dnP_T=0, dnF_T=0, dnP_W=0, dnF_W=0, dnP_Z=0, dnF_Z=0, nPass=0, nFail=0, nPF=0;
   for (Int_t i=0; i<dPhiPF_D->GetNbinsX(); i++) {
@@ -316,11 +316,12 @@ void take_ratios_JJ() {
 	nPass=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1));
 	nFail=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2));
       }
-      cout << nPass << " / " << nFail << " = " << nPass/nFail << endl;
+      //cout << nPass << " / " << nFail << " = " << nPass/nFail << endl;
       if (nPass>0 && nFail>0) {
 	nPF=nPass/nFail;
-
-	cout << (nPF - qcd_fxn->Eval(xrsq))/qcd_fxn->Eval(xrsq) << endl;
+	wtf+=nPF;
+	lesswtf+=1;
+	//cout << (nPF - qcd_fxn->Eval(xrsq))/qcd_fxn->Eval(xrsq) << endl;
 
 	Float_t drsq=0.5*dPhiPF_D->GetYaxis()->GetBinWidth(j+1);
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP + dnF );
@@ -334,13 +335,17 @@ void take_ratios_JJ() {
     }
   }
 
+  //cout << "----" << endl;
+  cout << wtf  << " / " << lesswtf << " = " << wtf/lesswtf << endl;
+  cout << "----" << endl;
+
   TLegend *leg = new TLegend(0.50,0.70,0.75,0.86);
   //TLegend *leg = new TLegend(0.25,0.70,0.50,0.86);
   leg->SetFillColor(0); leg->SetShadowColor(0); leg->SetLineColor(0);
   if (sample==razor) leg->AddEntry(dat_with_mr[0], "Data-(tt+ewk)", "pel");
   else leg->AddEntry(dat_with_mr[0], "Data", "pel");
   leg->AddEntry(qcd_with_mr[0], "QCD", "pel");
-  //leg->AddEntry(qcd_fxn, "Fit result", "l");
+  leg->AddEntry(qcd_fxn, "Fit result", "l");
 
   Int_t i=0;
   
@@ -348,11 +353,11 @@ void take_ratios_JJ() {
   else if (binIn==ljpt) qcd_with_mr[i]->GetXaxis()->SetTitle("lead. jet p_{T}");
   else if (binIn==rsq) qcd_with_mr[i]->GetXaxis()->SetTitle("R^{2}");
   qcd_with_mr[i]->GetYaxis()->SetTitle("N_{pass}/N_{fail}");
-  qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
+  qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
   //if (sample==razor && binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
   if (sample==razor && binIn==mr) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
   else if (sample==dijet && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
-  else if (sample==dijet && binIn==rsq) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 0.5);
+  else if (sample==dijet && binIn==rsq) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.0);
   else if (sample==razor && binIn==ljpt) qcd_with_mr[i]->GetYaxis()->SetRangeUser(0, 1.5);
   qcd_with_mr[i]->GetXaxis()->SetNdivisions(508);
   qcd_with_mr[i]->GetYaxis()->SetNdivisions(508);
@@ -363,7 +368,6 @@ void take_ratios_JJ() {
   qcd_with_mr[i]->Draw("ap e1");
   dat_with_mr[i]->Draw("p e1 same");
   //if (binIn==mr) qcd_with_mr[i]->Fit(qcd_fxn,"R");
-  //qcd_fxn->Draw();
   //qcd_with_mr[i]->Fit(qcd_fxn,"R");
   fxn_plus_err->SetFillColor(kYellow);
   fxn_plus_err->SetFillStyle(1001);

@@ -33,24 +33,19 @@ void get_contributions() {
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
-  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016/HTMHT_2016B_PRv2_Golden_271036-274443.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_HTMHT_2016G_23Sep2016_SUSYUnblind.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_QCD_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_TTJetsInclusive_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_WJets_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_02Jan2017/Signal/FullRazorInclusive_Razor2016G_SUSYUnblind_80X_ZInv_1pb_weighted.root","read");
 
-  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_New/FullRazorInclusive_HTMHT_2016B_PRv2_GoodLumiGolden2p6ifb.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_New/Signal/FullRazorInclusive_QCD_1pb_weighted.root","read");
-  //TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_New/Signal/FullRazorInclusive_TTJets_1pb_weighted.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_New/Signal/FullRazorInclusive_WJets_1pb_weighted.root","read");
-  //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_New/Signal/FullRazorInclusive_ZInv_1pb_weighted.root","read");
+  TString cut_str="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
+  TString cut_str_rsq="(box==11||box==12)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)";
 
-  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016withBadTracks/HTMHT_2016B_PRv2_Golden.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/ZJetsToNuNu_13TeV-madgraph_1pb_weighted.root","read");
+  //TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
+  //TString cut_str_rsq="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)";
 
-  TString cut_str_rsq="(box==11||box==12)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
-  TString cut_str="(box==11||box==12)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)";
-  TString cut_str_mc="*weight*2600";//"*(weight && !TMath::IsNaN(weight))*2600";
+  TString cut_str_mc="*weight*4400";
  
   TString cut_str_mr1="*(MR>500 && MR<600)";
   TString cut_str_mr2="*(MR>600 && MR<700)";
@@ -221,17 +216,17 @@ void get_contributions() {
   TH1F *hDPhiR_mr5_Z = new TH1F("hDPhiR_mr5_Z", "hDPhiR_mr5_Z", nbin, &xbins[0]); hDPhiR_mr5_Z->Sumw2();
 
   // open trees
-  TTree *tD = (TTree*) fD->Get("QCDTree");
-  TTree *tQ = (TTree*) fQ->Get("QCDTree");
-  TTree *tT = (TTree*) fT->Get("QCDTree");
-  TTree *tW = (TTree*) fW->Get("QCDTree");
-  TTree *tZ = (TTree*) fZ->Get("QCDTree");
+  //TTree *tD = (TTree*) fD->Get("QCDTree");
+  //TTree *tQ = (TTree*) fQ->Get("QCDTree");
+  //TTree *tT = (TTree*) fT->Get("QCDTree");
+  //TTree *tW = (TTree*) fW->Get("QCDTree");
+  //TTree *tZ = (TTree*) fZ->Get("QCDTree");
 
-  //TTree *tD = (TTree*) fD->Get("RazorInclusive");
-  //TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
-  //TTree *tT = (TTree*) fT->Get("RazorInclusive");
-  //TTree *tW = (TTree*) fW->Get("RazorInclusive");
-  //TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
+  TTree *tD = (TTree*) fD->Get("RazorInclusive");
+  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
+  TTree *tT = (TTree*) fT->Get("RazorInclusive");
+  TTree *tW = (TTree*) fW->Get("RazorInclusive");
+  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
 
   //--------------------------------------------------------------
   //
@@ -536,10 +531,10 @@ void get_contributions() {
   hMR_W->Add(hMR_Z);
 
   Double_t scale=hMR_D->Integral()/hMR_Q->Integral();
-  hMR_Q->Scale(scale);
-  hMR_T->Scale(scale);
-  hMR_W->Scale(scale);
-  hMR_Z->Scale(scale);
+  //hMR_Q->Scale(scale);
+  //hMR_T->Scale(scale);
+  //hMR_W->Scale(scale);
+  //hMR_Z->Scale(scale);
 
   hMR_pass_Q->Add(hMR_pass_T);
   hMR_pass_Q->Add(hMR_pass_W);
@@ -549,10 +544,10 @@ void get_contributions() {
   hMR_pass_W->Add(hMR_pass_Z);
 
   scale=hMR_pass_D->Integral()/hMR_pass_Q->Integral();
-  hMR_pass_Q->Scale(scale);
-  hMR_pass_T->Scale(scale);
-  hMR_pass_W->Scale(scale);
-  hMR_pass_Z->Scale(scale);
+  //hMR_pass_Q->Scale(scale);
+  //hMR_pass_T->Scale(scale);
+  //hMR_pass_W->Scale(scale);
+  //hMR_pass_Z->Scale(scale);
 
   hMR_fail_Q->Add(hMR_fail_T);
   hMR_fail_Q->Add(hMR_fail_W);
@@ -562,10 +557,10 @@ void get_contributions() {
   hMR_fail_W->Add(hMR_fail_Z);
 
   scale=hMR_fail_D->Integral()/hMR_fail_Q->Integral();
-  hMR_fail_Q->Scale(scale);
-  hMR_fail_T->Scale(scale);
-  hMR_fail_W->Scale(scale);
-  hMR_fail_Z->Scale(scale);
+  //hMR_fail_Q->Scale(scale);
+  //hMR_fail_T->Scale(scale);
+  //hMR_fail_W->Scale(scale);
+  //hMR_fail_Z->Scale(scale);
 
   hRsq_Q->Add(hRsq_T);
   hRsq_Q->Add(hRsq_W);
@@ -575,10 +570,10 @@ void get_contributions() {
   hRsq_W->Add(hRsq_Z);
 
   scale=hRsq_D->Integral()/hRsq_Q->Integral();
-  hRsq_Q->Scale(scale);
-  hRsq_T->Scale(scale);
-  hRsq_W->Scale(scale);
-  hRsq_Z->Scale(scale);
+  //hRsq_Q->Scale(scale);
+  //hRsq_T->Scale(scale);
+  //hRsq_W->Scale(scale);
+  //hRsq_Z->Scale(scale);
 
   hRsq_pass_Q->Add(hRsq_pass_T);
   hRsq_pass_Q->Add(hRsq_pass_W);
@@ -588,10 +583,10 @@ void get_contributions() {
   hRsq_pass_W->Add(hRsq_pass_Z);
 
   scale=hRsq_pass_D->Integral()/hRsq_pass_Q->Integral();
-  hRsq_pass_Q->Scale(scale);
-  hRsq_pass_T->Scale(scale);
-  hRsq_pass_W->Scale(scale);
-  hRsq_pass_Z->Scale(scale);
+  //hRsq_pass_Q->Scale(scale);
+  //hRsq_pass_T->Scale(scale);
+  //hRsq_pass_W->Scale(scale);
+  //hRsq_pass_Z->Scale(scale);
 
   hRsq_fail_Q->Add(hRsq_fail_T);
   hRsq_fail_Q->Add(hRsq_fail_W);
@@ -601,10 +596,10 @@ void get_contributions() {
   hRsq_fail_W->Add(hRsq_fail_Z);
 
   scale=hRsq_fail_D->Integral()/hRsq_fail_Q->Integral();
-  hRsq_fail_Q->Scale(scale);
-  hRsq_fail_T->Scale(scale);
-  hRsq_fail_W->Scale(scale);
-  hRsq_fail_Z->Scale(scale);
+  //hRsq_fail_Q->Scale(scale);
+  //hRsq_fail_T->Scale(scale);
+  //hRsq_fail_W->Scale(scale);
+  //hRsq_fail_Z->Scale(scale);
 
   hLjpt_Q->Add(hLjpt_T);
   hLjpt_Q->Add(hLjpt_W);
@@ -614,10 +609,10 @@ void get_contributions() {
   hLjpt_W->Add(hLjpt_Z);
 
   scale=hLjpt_D->Integral()/hLjpt_Q->Integral();
-  hLjpt_Q->Scale(scale);
-  hLjpt_T->Scale(scale);
-  hLjpt_W->Scale(scale);
-  hLjpt_Z->Scale(scale);
+  //hLjpt_Q->Scale(scale);
+  //hLjpt_T->Scale(scale);
+  //hLjpt_W->Scale(scale);
+  //hLjpt_Z->Scale(scale);
 
   hLjpt_pass_Q->Add(hLjpt_pass_T);
   hLjpt_pass_Q->Add(hLjpt_pass_W);
@@ -627,10 +622,10 @@ void get_contributions() {
   hLjpt_pass_W->Add(hLjpt_pass_Z);
 
   scale=hLjpt_pass_D->Integral()/hLjpt_pass_Q->Integral();
-  hLjpt_pass_Q->Scale(scale);
-  hLjpt_pass_T->Scale(scale);
-  hLjpt_pass_W->Scale(scale);
-  hLjpt_pass_Z->Scale(scale);
+  //hLjpt_pass_Q->Scale(scale);
+  //hLjpt_pass_T->Scale(scale);
+  //hLjpt_pass_W->Scale(scale);
+  //hLjpt_pass_Z->Scale(scale);
 
   hLjpt_fail_Q->Add(hLjpt_fail_T);
   hLjpt_fail_Q->Add(hLjpt_fail_W);
@@ -640,10 +635,10 @@ void get_contributions() {
   hLjpt_fail_W->Add(hLjpt_fail_Z);
 
   scale=hLjpt_fail_D->Integral()/hLjpt_fail_Q->Integral();
-  hLjpt_fail_Q->Scale(scale);
-  hLjpt_fail_T->Scale(scale);
-  hLjpt_fail_W->Scale(scale);
-  hLjpt_fail_Z->Scale(scale);
+  //hLjpt_fail_Q->Scale(scale);
+  //hLjpt_fail_T->Scale(scale);
+  //hLjpt_fail_W->Scale(scale);
+  //hLjpt_fail_Z->Scale(scale);
 
   hDPhiR_Q->Add(hDPhiR_T);
   hDPhiR_Q->Add(hDPhiR_W);
@@ -653,10 +648,10 @@ void get_contributions() {
   hDPhiR_W->Add(hDPhiR_Z);
 
   scale=hDPhiR_D->Integral()/hDPhiR_Q->Integral();
-  hDPhiR_Q->Scale(scale);
-  hDPhiR_T->Scale(scale);
-  hDPhiR_W->Scale(scale);
-  hDPhiR_Z->Scale(scale);
+  //hDPhiR_Q->Scale(scale);
+  //hDPhiR_T->Scale(scale);
+  //hDPhiR_W->Scale(scale);
+  //hDPhiR_Z->Scale(scale);
 
   hDPhiR_rsq1_Q->Add(hDPhiR_rsq1_T);
   hDPhiR_rsq1_Q->Add(hDPhiR_rsq1_W);
@@ -666,10 +661,10 @@ void get_contributions() {
   hDPhiR_rsq1_W->Add(hDPhiR_rsq1_Z);
 
   scale=hDPhiR_rsq1_D->Integral()/hDPhiR_rsq1_Q->Integral();
-  hDPhiR_rsq1_Q->Scale(scale);
-  hDPhiR_rsq1_T->Scale(scale);
-  hDPhiR_rsq1_W->Scale(scale);
-  hDPhiR_rsq1_Z->Scale(scale);
+  //hDPhiR_rsq1_Q->Scale(scale);
+  //hDPhiR_rsq1_T->Scale(scale);
+  //hDPhiR_rsq1_W->Scale(scale);
+  //hDPhiR_rsq1_Z->Scale(scale);
 
   hDPhiR_rsq2_Q->Add(hDPhiR_rsq2_T);
   hDPhiR_rsq2_Q->Add(hDPhiR_rsq2_W);
@@ -679,10 +674,10 @@ void get_contributions() {
   hDPhiR_rsq2_W->Add(hDPhiR_rsq2_Z);
 
   scale=hDPhiR_rsq2_D->Integral()/hDPhiR_rsq2_Q->Integral();
-  hDPhiR_rsq2_Q->Scale(scale);
-  hDPhiR_rsq2_T->Scale(scale);
-  hDPhiR_rsq2_W->Scale(scale);
-  hDPhiR_rsq2_Z->Scale(scale);
+  //hDPhiR_rsq2_Q->Scale(scale);
+  //hDPhiR_rsq2_T->Scale(scale);
+  //hDPhiR_rsq2_W->Scale(scale);
+  //hDPhiR_rsq2_Z->Scale(scale);
 
   hDPhiR_rsq3_Q->Add(hDPhiR_rsq3_T);
   hDPhiR_rsq3_Q->Add(hDPhiR_rsq3_W);
@@ -692,10 +687,10 @@ void get_contributions() {
   hDPhiR_rsq3_W->Add(hDPhiR_rsq3_Z);
 
   scale=hDPhiR_rsq3_D->Integral()/hDPhiR_rsq3_Q->Integral();
-  hDPhiR_rsq3_Q->Scale(scale);
-  hDPhiR_rsq3_T->Scale(scale);
-  hDPhiR_rsq3_W->Scale(scale);
-  hDPhiR_rsq3_Z->Scale(scale);
+  //hDPhiR_rsq3_Q->Scale(scale);
+  //hDPhiR_rsq3_T->Scale(scale);
+  //hDPhiR_rsq3_W->Scale(scale);
+  //hDPhiR_rsq3_Z->Scale(scale);
 
   hDPhiR_ljpt1_Q->Add(hDPhiR_ljpt1_T);
   hDPhiR_ljpt1_Q->Add(hDPhiR_ljpt1_W);
@@ -705,10 +700,10 @@ void get_contributions() {
   hDPhiR_ljpt1_W->Add(hDPhiR_ljpt1_Z);
 
   scale=hDPhiR_ljpt1_D->Integral()/hDPhiR_ljpt1_Q->Integral();
-  hDPhiR_ljpt1_Q->Scale(scale);
-  hDPhiR_ljpt1_T->Scale(scale);
-  hDPhiR_ljpt1_W->Scale(scale);
-  hDPhiR_ljpt1_Z->Scale(scale);
+  //hDPhiR_ljpt1_Q->Scale(scale);
+  //hDPhiR_ljpt1_T->Scale(scale);
+  //hDPhiR_ljpt1_W->Scale(scale);
+  //hDPhiR_ljpt1_Z->Scale(scale);
 
   hDPhiR_ljpt2_Q->Add(hDPhiR_ljpt2_T);
   hDPhiR_ljpt2_Q->Add(hDPhiR_ljpt2_W);
@@ -718,10 +713,10 @@ void get_contributions() {
   hDPhiR_ljpt2_W->Add(hDPhiR_ljpt2_Z);
 
   scale=hDPhiR_ljpt2_D->Integral()/hDPhiR_ljpt2_Q->Integral();
-  hDPhiR_ljpt2_Q->Scale(scale);
-  hDPhiR_ljpt2_T->Scale(scale);
-  hDPhiR_ljpt2_W->Scale(scale);
-  hDPhiR_ljpt2_Z->Scale(scale);
+  //hDPhiR_ljpt2_Q->Scale(scale);
+  //hDPhiR_ljpt2_T->Scale(scale);
+  //hDPhiR_ljpt2_W->Scale(scale);
+  //hDPhiR_ljpt2_Z->Scale(scale);
 
   hDPhiR_ljpt3_Q->Add(hDPhiR_ljpt3_T);
   hDPhiR_ljpt3_Q->Add(hDPhiR_ljpt3_W);
@@ -731,10 +726,10 @@ void get_contributions() {
   hDPhiR_ljpt3_W->Add(hDPhiR_ljpt3_Z);
 
   scale=hDPhiR_ljpt3_D->Integral()/hDPhiR_ljpt3_Q->Integral();
-  hDPhiR_ljpt3_Q->Scale(scale);
-  hDPhiR_ljpt3_T->Scale(scale);
-  hDPhiR_ljpt3_W->Scale(scale);
-  hDPhiR_ljpt3_Z->Scale(scale);
+  //hDPhiR_ljpt3_Q->Scale(scale);
+  //hDPhiR_ljpt3_T->Scale(scale);
+  //hDPhiR_ljpt3_W->Scale(scale);
+  //hDPhiR_ljpt3_Z->Scale(scale);
 
   hDPhiR_ljpt4_Q->Add(hDPhiR_ljpt4_T);
   hDPhiR_ljpt4_Q->Add(hDPhiR_ljpt4_W);
@@ -744,10 +739,10 @@ void get_contributions() {
   hDPhiR_ljpt4_W->Add(hDPhiR_ljpt4_Z);
 
   scale=hDPhiR_ljpt4_D->Integral()/hDPhiR_ljpt4_Q->Integral();
-  hDPhiR_ljpt4_Q->Scale(scale);
-  hDPhiR_ljpt4_T->Scale(scale);
-  hDPhiR_ljpt4_W->Scale(scale);
-  hDPhiR_ljpt4_Z->Scale(scale);
+  //hDPhiR_ljpt4_Q->Scale(scale);
+  //hDPhiR_ljpt4_T->Scale(scale);
+  //hDPhiR_ljpt4_W->Scale(scale);
+  //hDPhiR_ljpt4_Z->Scale(scale);
 
   hDPhiR_ljpt5_Q->Add(hDPhiR_ljpt5_T);
   hDPhiR_ljpt5_Q->Add(hDPhiR_ljpt5_W);
@@ -757,10 +752,10 @@ void get_contributions() {
   hDPhiR_ljpt5_W->Add(hDPhiR_ljpt5_Z);
 
   scale=hDPhiR_ljpt5_D->Integral()/hDPhiR_ljpt5_Q->Integral();
-  hDPhiR_ljpt5_Q->Scale(scale);
-  hDPhiR_ljpt5_T->Scale(scale);
-  hDPhiR_ljpt5_W->Scale(scale);
-  hDPhiR_ljpt5_Z->Scale(scale);
+  //hDPhiR_ljpt5_Q->Scale(scale);
+  //hDPhiR_ljpt5_T->Scale(scale);
+  //hDPhiR_ljpt5_W->Scale(scale);
+  //hDPhiR_ljpt5_Z->Scale(scale);
 
   hDPhiR_mr1_Q->Add(hDPhiR_mr1_T);
   hDPhiR_mr1_Q->Add(hDPhiR_mr1_W);
@@ -770,10 +765,10 @@ void get_contributions() {
   hDPhiR_mr1_W->Add(hDPhiR_mr1_Z);
 
   scale=hDPhiR_mr1_D->Integral()/hDPhiR_mr1_Q->Integral();
-  hDPhiR_mr1_Q->Scale(scale);
-  hDPhiR_mr1_T->Scale(scale);
-  hDPhiR_mr1_W->Scale(scale);
-  hDPhiR_mr1_Z->Scale(scale);
+  //hDPhiR_mr1_Q->Scale(scale);
+  //hDPhiR_mr1_T->Scale(scale);
+  //hDPhiR_mr1_W->Scale(scale);
+  //hDPhiR_mr1_Z->Scale(scale);
 
   hDPhiR_mr2_Q->Add(hDPhiR_mr2_T);
   hDPhiR_mr2_Q->Add(hDPhiR_mr2_W);
@@ -783,10 +778,10 @@ void get_contributions() {
   hDPhiR_mr2_W->Add(hDPhiR_mr2_Z);
 
   scale=hDPhiR_mr2_D->Integral()/hDPhiR_mr2_Q->Integral();
-  hDPhiR_mr2_Q->Scale(scale);
-  hDPhiR_mr2_T->Scale(scale);
-  hDPhiR_mr2_W->Scale(scale);
-  hDPhiR_mr2_Z->Scale(scale);
+  //hDPhiR_mr2_Q->Scale(scale);
+  //hDPhiR_mr2_T->Scale(scale);
+  //hDPhiR_mr2_W->Scale(scale);
+  //hDPhiR_mr2_Z->Scale(scale);
 
   hDPhiR_mr3_Q->Add(hDPhiR_mr3_T);
   hDPhiR_mr3_Q->Add(hDPhiR_mr3_W);
@@ -796,10 +791,10 @@ void get_contributions() {
   hDPhiR_mr3_W->Add(hDPhiR_mr3_Z);
 
   scale=hDPhiR_mr3_D->Integral()/hDPhiR_mr3_Q->Integral();
-  hDPhiR_mr3_Q->Scale(scale);
-  hDPhiR_mr3_T->Scale(scale);
-  hDPhiR_mr3_W->Scale(scale);
-  hDPhiR_mr3_Z->Scale(scale);
+  //hDPhiR_mr3_Q->Scale(scale);
+  //hDPhiR_mr3_T->Scale(scale);
+  //hDPhiR_mr3_W->Scale(scale);
+  //hDPhiR_mr3_Z->Scale(scale);
 
   hDPhiR_mr4_Q->Add(hDPhiR_mr4_T);
   hDPhiR_mr4_Q->Add(hDPhiR_mr4_W);
@@ -809,10 +804,10 @@ void get_contributions() {
   hDPhiR_mr4_W->Add(hDPhiR_mr4_Z);
 
   scale=hDPhiR_mr4_D->Integral()/hDPhiR_mr4_Q->Integral();
-  hDPhiR_mr4_Q->Scale(scale);
-  hDPhiR_mr4_T->Scale(scale);
-  hDPhiR_mr4_W->Scale(scale);
-  hDPhiR_mr4_Z->Scale(scale);
+  //hDPhiR_mr4_Q->Scale(scale);
+  //hDPhiR_mr4_T->Scale(scale);
+  //hDPhiR_mr4_W->Scale(scale);
+  //hDPhiR_mr4_Z->Scale(scale);
 
   hDPhiR_mr5_Q->Add(hDPhiR_mr5_T);
   hDPhiR_mr5_Q->Add(hDPhiR_mr5_W);
@@ -822,10 +817,10 @@ void get_contributions() {
   hDPhiR_mr5_W->Add(hDPhiR_mr5_Z);
 
   scale=hDPhiR_mr5_D->Integral()/hDPhiR_mr5_Q->Integral();
-  hDPhiR_mr5_Q->Scale(scale);
-  hDPhiR_mr5_T->Scale(scale);
-  hDPhiR_mr5_W->Scale(scale);
-  hDPhiR_mr5_Z->Scale(scale);
+  //hDPhiR_mr5_Q->Scale(scale);
+  //hDPhiR_mr5_T->Scale(scale);
+  //hDPhiR_mr5_W->Scale(scale);
+  //hDPhiR_mr5_Z->Scale(scale);
 
   TLegend *leg = new TLegend(0.67,0.57,0.89,0.86);
   leg->SetFillColor(0); leg->SetShadowColor(0); leg->SetLineColor(0);
@@ -851,7 +846,7 @@ void get_contributions() {
   hMR_Z->Draw("histsame");
   hMR_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("MR_razor.png");
+  c->SaveAs("MR_multijet.png");
 
   hMR_pass_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hMR_pass_Q->GetMaximum(), hMR_pass_D->GetMaximum()));
   hMR_pass_Q->GetXaxis()->SetTitle("M_{R}");
@@ -863,7 +858,7 @@ void get_contributions() {
   hMR_pass_Z->Draw("histsame");
   hMR_pass_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("MR_pass_razor.png");
+  c->SaveAs("MR_pass_multijet.png");
 
   hMR_fail_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hMR_fail_Q->GetMaximum(), hMR_fail_D->GetMaximum()));
   hMR_fail_Q->GetXaxis()->SetTitle("M_{R}");
@@ -875,7 +870,7 @@ void get_contributions() {
   hMR_fail_Z->Draw("histsame");
   hMR_fail_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("MR_fail_razor.png");
+  c->SaveAs("MR_fail_multijet.png");
   
   hRsq_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hRsq_Q->GetMaximum(), hRsq_D->GetMaximum()));
   hRsq_Q->GetXaxis()->SetTitle("R^{2}");
@@ -887,7 +882,7 @@ void get_contributions() {
   hRsq_Z->Draw("histsame");
   hRsq_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("Rsq_razor.png");
+  c->SaveAs("Rsq_multijet.png");
 
   hRsq_pass_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hRsq_pass_Q->GetMaximum(), hRsq_pass_D->GetMaximum()));
   hRsq_pass_Q->GetXaxis()->SetTitle("R^{2}");
@@ -899,7 +894,7 @@ void get_contributions() {
   hRsq_pass_Z->Draw("histsame");
   hRsq_pass_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("Rsq_pass_razor.png");
+  c->SaveAs("Rsq_pass_multijet.png");
 
   hRsq_fail_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hRsq_fail_Q->GetMaximum(), hRsq_fail_D->GetMaximum()));
   hRsq_fail_Q->GetXaxis()->SetTitle("R^{2}");
@@ -911,7 +906,7 @@ void get_contributions() {
   hRsq_fail_Z->Draw("histsame");
   hRsq_fail_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("Rsq_fail_razor.png");
+  c->SaveAs("Rsq_fail_multijet.png");
 
   hLjpt_Q->GetYaxis()->SetRangeUser(0.0,1.3*TMath::Max(hLjpt_Q->GetMaximum(), hLjpt_D->GetMaximum()));
   hLjpt_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
@@ -923,7 +918,7 @@ void get_contributions() {
   hLjpt_Z->Draw("histsame");
   hLjpt_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("Ljpt_razor.png");
+  c->SaveAs("Ljpt_multijet.png");
 
   hLjpt_pass_Q->GetYaxis()->SetRangeUser(0.0,1.3*TMath::Max(hLjpt_pass_Q->GetMaximum(), hLjpt_pass_D->GetMaximum()));
   hLjpt_pass_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
@@ -935,7 +930,7 @@ void get_contributions() {
   hLjpt_pass_Z->Draw("histsame");
   hLjpt_pass_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("Ljpt_pass_razor.png");
+  c->SaveAs("Ljpt_pass_multijet.png");
 
   hLjpt_fail_Q->GetYaxis()->SetRangeUser(0.0,1.3*TMath::Max(hLjpt_fail_Q->GetMaximum(), hLjpt_fail_D->GetMaximum()));
   hLjpt_fail_Q->GetXaxis()->SetTitle("lead. jet p_{T}");
@@ -947,7 +942,7 @@ void get_contributions() {
   hLjpt_fail_Z->Draw("histsame");
   hLjpt_fail_D->Draw("same e");
   leg->Draw();
-  c->SaveAs("Ljpt_fail_razor.png");
+  c->SaveAs("Ljpt_fail_multijet.png");
 
   leg->SetX1NDC(0.39); leg->SetX2NDC(0.61);
 
@@ -964,7 +959,7 @@ void get_contributions() {
 
   leg->Draw();
 
-  c->SaveAs("DPhiR_razor.png");
+  c->SaveAs("DPhiR_multijet.png");
 
   hDPhiR_rsq1_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_rsq1_Q->GetMaximum(), hDPhiR_rsq1_D->GetMaximum()));
   hDPhiR_rsq1_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -979,7 +974,7 @@ void get_contributions() {
   
   leg->Draw();
 
-  c->SaveAs("DPhiR_rsq1_razor.png");
+  c->SaveAs("DPhiR_rsq1_multijet.png");
 
   hDPhiR_rsq2_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_rsq2_Q->GetMaximum(), hDPhiR_rsq2_D->GetMaximum()));
   hDPhiR_rsq2_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -994,7 +989,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_rsq2_razor.png");
+  c->SaveAs("DPhiR_rsq2_multijet.png");
 
   hDPhiR_rsq3_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_rsq3_Q->GetMaximum(), hDPhiR_rsq3_D->GetMaximum()));
   hDPhiR_rsq3_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1009,7 +1004,7 @@ void get_contributions() {
 
   leg->Draw();
 
-  c->SaveAs("DPhiR_rsq3_razor.png");
+  c->SaveAs("DPhiR_rsq3_multijet.png");
   
   hDPhiR_ljpt1_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_ljpt1_Q->GetMaximum(), hDPhiR_ljpt1_D->GetMaximum()));
   hDPhiR_ljpt1_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1024,7 +1019,7 @@ void get_contributions() {
   
   leg->Draw();
 
-  c->SaveAs("DPhiR_ljpt1_razor.png");
+  c->SaveAs("DPhiR_ljpt1_multijet.png");
 
   hDPhiR_ljpt2_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_ljpt2_Q->GetMaximum(), hDPhiR_ljpt2_D->GetMaximum()));
   hDPhiR_ljpt2_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1039,7 +1034,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_ljpt2_razor.png");
+  c->SaveAs("DPhiR_ljpt2_multijet.png");
   
   hDPhiR_ljpt3_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_ljpt3_Q->GetMaximum(), hDPhiR_ljpt3_D->GetMaximum()));
   hDPhiR_ljpt3_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1054,7 +1049,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_ljpt3_razor.png");
+  c->SaveAs("DPhiR_ljpt3_multijet.png");
   
   hDPhiR_ljpt4_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_ljpt4_Q->GetMaximum(), hDPhiR_ljpt4_D->GetMaximum()));
   hDPhiR_ljpt4_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1069,7 +1064,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_ljpt4_razor.png");
+  c->SaveAs("DPhiR_ljpt4_multijet.png");
   
   hDPhiR_ljpt5_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_ljpt5_Q->GetMaximum(), hDPhiR_ljpt5_D->GetMaximum()));
   hDPhiR_ljpt5_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1084,7 +1079,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_ljpt5_razor.png");
+  c->SaveAs("DPhiR_ljpt5_multijet.png");
 
   hDPhiR_mr1_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr1_Q->GetMaximum(), hDPhiR_mr1_D->GetMaximum()));
   hDPhiR_mr1_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1099,7 +1094,7 @@ void get_contributions() {
   
   leg->Draw();
 
-  c->SaveAs("DPhiR_mr1_razor.png");
+  c->SaveAs("DPhiR_mr1_multijet.png");
 
   hDPhiR_mr2_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr2_Q->GetMaximum(), hDPhiR_mr2_D->GetMaximum()));
   hDPhiR_mr2_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1114,7 +1109,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_mr2_razor.png");
+  c->SaveAs("DPhiR_mr2_multijet.png");
   
   hDPhiR_mr3_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr3_Q->GetMaximum(), hDPhiR_mr3_D->GetMaximum()));
   hDPhiR_mr3_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1129,7 +1124,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_mr3_razor.png");
+  c->SaveAs("DPhiR_mr3_multijet.png");
   
   hDPhiR_mr4_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr4_Q->GetMaximum(), hDPhiR_mr4_D->GetMaximum()));
   hDPhiR_mr4_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1144,7 +1139,7 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_mr4_razor.png");
+  c->SaveAs("DPhiR_mr4_multijet.png");
   
   hDPhiR_mr5_Q->GetYaxis()->SetRangeUser(0.0,1.2*TMath::Max(hDPhiR_mr5_Q->GetMaximum(), hDPhiR_mr5_D->GetMaximum()));
   hDPhiR_mr5_Q->GetXaxis()->SetTitle("#Delta#phi_{razor}");
@@ -1159,6 +1154,6 @@ void get_contributions() {
   
   leg->Draw();
   
-  c->SaveAs("DPhiR_mr5_razor.png");
+  c->SaveAs("DPhiR_mr5_multijet.png");
 
 }
