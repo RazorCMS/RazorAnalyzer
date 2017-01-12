@@ -46,7 +46,7 @@ def runFitAndToysMC(fitDir, boxName, lumi, fileNames, mcDir='./', config='config
     #run toys
     exec_me('python python/RunToys.py -b '+boxName+' -c '+config+' -i '+fitDir+'/BinnedFitResults_'+boxName+'.root -d '+fitDir+' -t '+str(numToys)+((noStat)*" --no-stat"), False)
 
-def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, debugLevel=0):
+def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, btagsMax=3, debugLevel=0):
     print "Making Nsigma histogram using fit information"
     #set up histogram
     nsigma = data.Clone(data.GetName()+"Nsigma")
@@ -64,7 +64,7 @@ def get2DNSigmaHistogram(data, bins, fitToyFiles, boxName, btags=-1, debugLevel=
     Opt = namedtuple("Opt", ["printErrors","noStat"])
     options = Opt(False,False)
 
-    z = [0.,1.,2.,3.,4.] #b-tag binning
+    z = range(btagsMax+2) #b-tag binning
     if btags < 0: #be inclusive in b-tags
         zmin = 0
         zmax = len(z)-1
@@ -96,9 +96,8 @@ def getFitCorrelationMatrix(config, box, fitToyFile, debugLevel=0):
     corrMatrix = getCorrelationMatrix(toyTree,'yx',0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
     return corrMatrix
 
-def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btags=-1, debugLevel=0, noStat=False):
+def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btags=-1, btagsMax=3, debugLevel=0, noStat=False):
     FIT_SCALE_FACTOR = 1.0
-    #FIT_SCALE_FACTOR = 800./2600
     print "Loading fit histograms"
     if noStat: 
         print "Using only systematic errors on fit points"
@@ -127,7 +126,7 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
     #get uncertainties on fit prediction
     #using code imported from Javier's plotting script
     from PlotFit import getBinSumDicts, getBestFitRms, getErrors1D
-    z = [0.,1.,2.,3.,4.] #b-tag binning
+    z = range(btagsMax+2) # b-tag binning
     if btags < 0: #be inclusive in b-tags
         zmin = 0
         zmax = len(z)-1
@@ -141,8 +140,8 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
 
     #store best fit and uncertainty in each bin
     #1D
+    print bins
     binSumDict = getBinSumDicts('x', 0,len(bins['MR'])-1,0,len(bins['Rsq'])-1,zmin,zmax,bins['MR'],bins['Rsq'],z)
-    print z, zmin,zmax
     print binSumDict
     for i,sumName in binSumDict.iteritems():
         if dataName in hists: nObs = hists[dataName]["MR"].GetBinContent(i)
@@ -608,13 +607,17 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     dataForTable = None
     if fitToyFiles is not None and boxName in fitToyFiles and fitToyFiles[boxName] is not None and ("MR","Rsq") in bins:
         noFitStat=True
+        if boxName in ['DiJet', 'LeptonJet']:
+            btagsMax = 2
+        else:
+            btagsMax = 3
         print "Ignoring statistical uncertainty on fit prediction (except for nsigma plot)."
-        import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, debugLevel, noStat=noFitStat)
+        import2DRazorFitHistograms(hists, bins, fitToyFiles[boxName], c, dataName, btags, btagsMax, debugLevel, noStat=noFitStat)
         print "Making TeX table with predictions in each analysis bin"
         if dataName in hists: 
             print "Including observed data yields in table"
             dataForTable=hists[dataName][("MR","Rsq")]
-            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, debugLevel)
+            nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, btagsMax, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=False, printdir=printdir)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,

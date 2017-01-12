@@ -28,6 +28,17 @@ razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
+razorExtraWeightOpts = {
+        "Razor2016G_SUSYUnblind_80X":{
+            #'TTJets':['nisr'], # weight ttbar sample according to number of ISR jets
+            #'TTJets1L':['nisr'], 
+            #'TTJets2L':['nisr'],
+                 }
+        }
+razorExtraWeightOpts["Razor2016_MoriondRereco"] = razorExtraWeightOpts["Razor2016G_SUSYUnblind_80X"]
+razorExtraWeightOpts["Razor2015"] = {}
+razorExtraWeightOpts["Razor2016_80X"] = razorExtraWeightOpts["Razor2016G_SUSYUnblind_80X"]
+razorExtraWeightOpts["Razor2016_ICHEP_80X"] = razorExtraWeightOpts["Razor2016G_SUSYUnblind_80X"]
 razorWeightHists = {
         "Razor2015":{},
         "Razor2016":{ 
@@ -318,6 +329,20 @@ for tag in sampleTags2016:
             files[tag]["Data"] = files[tag]["Data"].replace(
                     '/'+versionMC2016+'/','/'+versionData2016+'/')
 
+
+#####################################
+### FITS
+#####################################
+
+razorFitDirs = { 
+        "Razor2016G_SUSYUnblind_80X":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/CMSSW_7_1_5/src/RazorAnalyzer/fits_2017_01_09/ReReco2016_02Jan/"
+        }
+razorFitFiles = { tag:{} for tag in razorFitDirs }
+for tag,path in razorFitDirs.iteritems():
+    for box in ["MultiJet","DiJet","LeptonMultiJet","LeptonJet"]:
+        razorFitFiles[tag][box] = "%s/%s/Sideband/toys_Bayes_noStat_%s.root"%(path,box,box)
+
+
 #####################################
 ### TRIGGER
 #####################################
@@ -524,7 +549,7 @@ razorCuts["VetoMuon"] = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 
 razorCuts["VetoTau"] = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 400 && Rsq > 0.25"
 
 # Photon control region
-razorCuts["Photon"] = "pho1.Pt() > 185 && pho1_chargediso < 2.5 && ((abs(pho1.Eta()) < 1.5 && pho1_sigmaietaieta < 0.0103) || (abs(pho1.Eta()) >= 1.5 && pho1_sigmaietaieta < 0.0271)) && NJets80_NoPho >= 2 && MR_NoPho > 400 && Rsq_NoPho > 0.25 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
+razorCuts["Photon"] = "pho1.Pt() > 185 && pho1_chargediso < 2.5 && ((abs(pho1.Eta()) < 1.5 && pho1_sigmaietaieta < 0.01031) || (abs(pho1.Eta()) >= 1.5 && pho1_sigmaietaieta < 0.03013)) && NJets80_NoPho >= 2 && MR_NoPho > 400 && Rsq_NoPho > 0.25 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
 razorExtraCuts["Photon"] = {
         "GJetsInv":"!(abs(pho1_motherID) > 5 && pho1_motherID != 21 && pho1_motherID != 2212) && minDRGenPhotonToParton >= 0.4",
         "GJetsFrag":"!(abs(pho1_motherID) > 5 && pho1_motherID != 21 && pho1_motherID != 2212) && minDRGenPhotonToParton < 0.4",
@@ -738,20 +763,13 @@ razorBinning["SusySync"] = {
         }
 
 ### Signal region
-signalConfig = "config/run2_2016.config"
+signalConfig = "config/run2_2017_01_07_Run2016G_SUSYUnblind_Sep23ReReco.config"
 cfg = Config.Config(signalConfig)
-razorBinning["SignalHadronic"] = {
-        "MR" : cfg.getBinning("MultiJet")[0],
-        "Rsq" : cfg.getBinning("MultiJet")[1],
-        #"leadingJetPt": range(0, 1000, 100),
-        #"subleadingJetPt": range(0, 1000, 100),
-        }
-razorBinning["SignalLeptonic"] = {
-        "MR" : cfg.getBinning("LeptonMultiJet")[0],
-        "Rsq" : cfg.getBinning("LeptonMultiJet")[1],
-        #"leadingJetPt": range(0, 1000, 100),
-        #"subleadingJetPt": range(0, 1000, 100),
-        }
+for box in ["MultiJet", "DiJet", "LeptonMultiJet", "LeptonJet"]:
+    razorBinning[box] = {
+            "MR" : cfg.getBinning(box)[0],
+            "Rsq" : cfg.getBinning(box)[1],
+            }
 
 ### Add 2D razor binning to each region
 for region,binning in razorBinning.iteritems():
@@ -774,23 +792,23 @@ xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJe
 colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
                 "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
 
-xbinsSignal["MultiJet"]["0B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MultiJet"]["1B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MultiJet"]["2B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MultiJet"]["3B"] = [ 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["0B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["1B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["2B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["3B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
 
 xbinsSignal["FourToSixJet"] = xbinsSignal["MultiJet"]
 
-xbinsSignal["MuMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MuMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MuMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MuMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["0B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["1B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["2B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["3B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
 
 
-xbinsSignal["EleMultiJet"]["0B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["EleMultiJet"]["1B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["EleMultiJet"]["2B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["EleMultiJet"]["3B"] = [ 400, 500, 600, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["0B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["1B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["2B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["3B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
 
 
 xbinsSignal["DiJet"] = xbinsSignal["MultiJet"]
@@ -806,8 +824,10 @@ colsSignal["MultiJet"]["0B"] = [
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         ]
 colsSignal["MultiJet"]["1B"] = [
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
@@ -820,10 +840,12 @@ colsSignal["MultiJet"]["2B"] = [
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 1.5 ],
         ]
 colsSignal["MultiJet"]["3B"] = [
+        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
@@ -1027,7 +1049,7 @@ class Analysis:
     def getAnalysis(self):
         btag = str( max(0, self.nbMin) )+"B"
         self.extraCuts = {}
-        self.extraWeightOpts = {}
+        self.extraWeightOpts = razorExtraWeightOpts[self.tag]
         if self.region == "SingleLepton":
             self.trigType = "SingleLepton"
             self.jetVar = "NJets40"
@@ -1246,7 +1268,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning["SignalLeptonic"]
+            self.binning = razorBinning[self.region]
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in hadronicRazorBoxes:
@@ -1257,7 +1279,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning["SignalHadronic"]
+            self.binning = razorBinning[self.region]
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         else: 

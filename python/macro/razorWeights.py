@@ -38,6 +38,26 @@ weighthistnames_DEFAULT = {
         "pileup": "NVtxReweight",
         }
 
+def getNISRCorrection(event):
+    """Computes a weight according to the number of ISR jets in the (ttbar) event.
+        Details at https://indico.cern.ch/event/592621/contributions/2398559/
+        attachments/1383909/2105089/16-12-05_ana_manuelf_isr.pdf"""
+    d = 1.071
+    n = event.NISRJets
+    if n == 0:
+        return d
+    if n == 1:
+        return d * 0.920
+    if n == 2:
+        return d * 0.821
+    if n == 3:
+        return d * 0.715
+    if n == 4:
+        return d * 0.662
+    if n == 5:
+        return d * 0.561
+    return d * 0.511
+
 def passTrigger(event, triggerNumList):
     """Checks if the event passed any trigger in the list"""
     passes = False
@@ -290,6 +310,11 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             if debugLevel > 1:
                 print "Top pt weight:",event.topPtWeight
             eventWeight *=  event.topPtWeight
+        if 'nisr' in lweightOpts:
+            nisrWeight = getNISRCorrection(event)
+            if debugLevel > 1:
+                print "NISR weight:",nisrWeight,event.NISRJets
+            eventWeight *= nisrWeight
 
         #pileup reweighting
         if str.lower("reapplyNPUWeights") in lweightOpts:
@@ -720,7 +745,7 @@ def getNJetsSFs(analysis,jetName='NJets40'):
 
 def loadPhotonPurityHists(sfHists={}, tag="Razor2016", debugLevel=0):
     filenames = { 
-            "Razor2016_MoriondRereco":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016_Rereco_36p2ifb.root",
+            "Razor2016_MoriondRereco":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016_Rereco_36p8ifb.root",
             "Razor2016G_SUSYUnblind_80X":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root",
             "Razor2016_ICHEP_80X":"/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/ChargedIsoFits/12p9/PhotonControlRegionPlots_MR300Rsq0p15.root"
             }
