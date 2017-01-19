@@ -92,6 +92,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     //2: razor skim MR_NoW > 300 && Rsq_NoW > 0.15
     //3: razor skim MR_NoZ > 300 && Rsq_NoZ > 0.15
     //5: razor skim MR_NoPho > 300 && Rsq_NoPho > 0.15
+    //8: razorDM skim MR > 150 && Rsq > 0.4
     //*********************************************
     int razorSkimOption = floor(float(option) / 1000);
     int leptonSkimOption = floor( float(option - razorSkimOption*1000) / 100);
@@ -1753,6 +1754,16 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	  if (!(
 		events->MR_NoPho > 300
 		&& events->Rsq_NoPho > 0.15
+		)
+	      ) passSkim = false;	
+	}
+      
+      //RazorDM Skim
+      if(razorSkimOption == 8)
+	{
+	  if (!(
+		events->MR > 150
+		&& events->Rsq > 0.4
 		)
 	      ) passSkim = false;	
 	}
