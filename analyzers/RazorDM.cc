@@ -44,7 +44,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
     
   //Initialize helper
   RazorHelper *helper = 0;
-  string analysisTag = "Razor2016_80X";
+  string analysisTag = "Razor2016_MoriondRereco";
   if ( label != "") analysisTag = label; 
   helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
 
@@ -54,6 +54,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
  
   //tree variables
   int nSelectedJets, nBTaggedJetsL, nBTaggedJetsM, nBTaggedJetsT, numJetsAbove80GeV;
+  int nSecondaryVertices;
   int nLooseMuons, nTightMuons, nLooseElectrons, nTightElectrons, nTightTaus, nLooseTaus, nLoosePhotons, nTightPhotons;
   UInt_t run, lumi, event;
   float MR, deltaPhi;
@@ -73,6 +74,7 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       razorTree->Branch("run",&run,"run/i");
       razorTree->Branch("lumi",&lumi,"lumi/i");
       razorTree->Branch("event",&event,"event/i");
+      razorTree->Branch("nSecondaryVertices", &nSecondaryVertices, "nSecondaryVertices/i");
    
       razorTree->Branch("numJetsAbove80GeV", &numJetsAbove80GeV, "numJetsAbove80GeV/I");
       razorTree->Branch("nSelectedJets", &nSelectedJets, "nSelectedJets/I");
@@ -141,9 +143,11 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
       run = runNum;
       lumi = lumiNum;
       event = eventNum;
-
+      nSecondaryVertices = nSlimmedSecondV;
+      
       //reset tree variables
       nSelectedJets = 0;
+      numJetsAbove80GeV = 0;
       nBTaggedJetsL = 0;
 	  nBTaggedJetsM = 0;
 	  nBTaggedJetsT =0;
@@ -286,7 +290,6 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 	  vector<TLorentzVector> GoodJets_uncorr;
       vector<float> JetChargedHadronFraction;
       vector<float> JetNeutralHadronFraction;
-      int numJetsAbove80GeV = 0;
 	  for (int i = 0; i < nJets; i++)
 	  {
       
@@ -420,7 +423,16 @@ void RazorDM::Analyze(bool isData, int option, string outFileName, string label)
 //      if (deltaPhi > 2.5) continue;
       if (nLooseTaus > 0 || nLooseElectrons > 0 || nLooseMuons > 0 || nLoosePhotons > 0) continue;
       if (numJetsAbove80GeV < 2) continue; //event fails to have two 80 GeV jets
-//      cout << "Run " << run << "\tEvt " << event << endl;       
+
+    // Monojet cuts:
+      if (t1metPt < 200) continue;
+      if (leadingJetPt < 100) continue;
+      if (dPhiMin < 0.5) continue;
+      if (fabs(leadingJetEta) > 2.5) continue;
+      if (nBTaggedJetsM > 0) continue;
+      if (LeadJetChargedHadronFraction < 0.1) continue;
+      if (LeadJetNeutralHadronFraction > 0.8) continue;
+      cout << "Run " << run << "\tEvt " << event << endl;       
       razorTree->Fill();
       fillCounter++; 
     } //end of event loop
