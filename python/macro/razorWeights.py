@@ -9,17 +9,16 @@ import sys
 #####################################
 
 #QCD systematic error
-QCDNORMERRFRACTION_DIJET = 0.85
+QCDNORMERRFRACTION_DIJET = 1.00
 QCDNORMERRFRACTION_MULTIJET = 0.80
 #QCDNORMERRFRACTION = 0.87 #used in 2015
 
 def getQCDExtrapolationFactor(MR,region='multijet'):
     """Get QCD extrapolation factor as a function of MR"""
     if region.lower() == 'dijet':
-        return 0.103
+        return 0.05
     else:
         return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
-        #return 0.242
 
 WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
