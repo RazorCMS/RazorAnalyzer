@@ -35,7 +35,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    string tag = "Razor2016_80X";
+    string tag = "Razor2016_MoriondRereco";
     if ( label != "" ) {
         tag = label;
     }
