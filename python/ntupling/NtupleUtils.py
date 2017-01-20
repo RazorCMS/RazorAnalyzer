@@ -31,6 +31,8 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     samples = SAMPLES
     queue = '1nh'
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
+    if not os.path.isdir(basedir+'/output/'):
+        os.mkdir(basedir+'/output/')
     listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC'
     if reHLT: listdir += 'reHLT'
     jobssuffix = '/jobs'
