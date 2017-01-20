@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import os
 import sys
+# Test
 # set parameters to use cmst3 batch 
 #######################################
 ### usage  cmst3_submit_manyfilesperjob.py dataset njobs applicationName queue 
