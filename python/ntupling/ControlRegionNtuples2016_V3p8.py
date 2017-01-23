@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p8_02Jan2017"
+VERSION = "V3p8_19Jan2017_DM"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -57,13 +57,13 @@ DIRS['LiteZEle'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorLiteZ/
 DIRS['LiteZMu'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorLiteZ/2016/'+VERSION+'/Muon'
 DIRS['1LSusySync'] = 'eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/'+VERSION+'/'+TREETYPES['1LSusySync']
 
-OPTIONS = { '1L':1101,
-            '1LInv':2102,
-            '2L':1203,
-            '2LInv':3204,
-            'VetoL':1007,
-            'VetoTau':1009,
-            'Photon':5505,
+OPTIONS = { '1L':6101,
+            '1LInv':7102,
+            '2L':6203,
+            '2LInv':8204,
+            'VetoL':6007,
+            'VetoTau':6009,
+            'Photon':9505,
             'Signal':10,
             '2LNoSkim':203,
             '2LAbsolutelyNoSkim':3,
@@ -71,6 +71,22 @@ OPTIONS = { '1L':1101,
             'LiteZMu':2,
             '1LSusySync':101,
           }
+
+
+#OPTIONS = { '1L':1101,
+#            '1LInv':2102,
+#            '2L':1203,
+#            '2LInv':3204,
+#            'VetoL':1007,
+#            'VetoTau':1009,
+#            'Photon':5505,
+#            'Signal':10,
+#            '2LNoSkim':203,
+#            '2LAbsolutelyNoSkim':3,
+#            'LiteZEle':1,
+#            'LiteZMu':2,
+#            '1LSusySync':101,
+#          }
 
 SUFFIXES = { '1L':'',
              '1LInv':'_NoW',
