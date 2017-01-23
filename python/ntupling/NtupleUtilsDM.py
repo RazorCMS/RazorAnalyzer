@@ -204,7 +204,7 @@ def removeDuplicates(analyzer,tag,skim=True,label=''):
         outName = outName.replace('.root','_RazorSkim.root')
     outNameNoDuplicates = outName.replace('_Data','_Data_NoDuplicates')
     dupMacro = 'macros/RemoveDuplicateEvents.C'
-    macroCall = "root -l '%s++(\"%s\",\"%s\")'"%(dupMacro,outName,outNameNoDuplicates)
+    macroCall = "root -l '%s+g(\"%s\",\"%s\")'"%(dupMacro,outName,outNameNoDuplicates)
     print macroCall
     call(macroCall,shell=True)
 

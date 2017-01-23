@@ -71,7 +71,7 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
         if isData:
             cmd_remove_duplicates = list(filter(None,['python', 'python/ntupling/NtupleUtilsDM.py', '--remove-duplicates', nosub, '--label', label, data, tag]))
             print ' '.join(cmd_remove_duplicates)
-            subprocess.call(cmd_remove_duplicates)
+            #subprocess.call(cmd_remove_duplicates)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
