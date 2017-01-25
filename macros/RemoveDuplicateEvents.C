@@ -3,8 +3,9 @@
 // Skim
 //
 //________________________________________________________________________________________________
+//
 
-#if !defined(__CINT__) || defined(__MAKECINT__)
+//#if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TROOT.h>                  // access to gROOT, entry point to ROOT system
 #include <TSystem.h>                // interface to OS
 #include <TFile.h>                  // file handle class
@@ -22,26 +23,23 @@
 #include <THStack.h> 
 #include <TKey.h> 
 #include <TApplication.h>
-
-#endif
+//#endif
 
 
 //=== MAIN MACRO ================================================================================================= 
 
+int RemoveDuplicateEvents( string inputfile, string outputfile) {
 
-void RemoveDuplicateEvents( string inputfile, string outputfile) {
-  
- 
   //create output file
   TFile *outputFile = new TFile(outputfile.c_str(), "RECREATE");
 
   //loop over all TTrees in the file
-  TFile inputFile(inputfile.c_str(), "READ");
-  inputFile.cd();
-  inputFile.Purge(); //purge unwanted TTree cycles in file
-  TIter nextkey(inputFile.GetListOfKeys());
+  TFile *inputFile = TFile::Open(inputfile.c_str(), "READ");
+  assert(inputFile);
+  inputFile->cd();
+  inputFile->Purge(); //purge unwanted TTree cycles in file
+  TIter nextkey(inputFile->GetListOfKeys());
   TKey *key;
-  //cout << "here1\n";
   while((key = (TKey*)nextkey())){
     string className = key->GetClassName();
     cout << "Getting key from file.  Class type: " << className << endl;
@@ -83,15 +81,15 @@ void RemoveDuplicateEvents( string inputfile, string outputfile) {
 
     //save
     outputTree->Write();
-    inputFile.cd();
+    inputFile->cd();
   }
 	
-  inputFile.Close();
+  inputFile->Close();
   cout << "Closing output file." << endl;
   outputFile->Close();
   delete outputFile;
   gApplication->Terminate();
-
+  return 0;
 }
 
 // void RemoveDuplicateEvents( string inputfile, string outputfile) {
