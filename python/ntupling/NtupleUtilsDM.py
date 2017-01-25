@@ -9,7 +9,7 @@ import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuples2016_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuplesDM2016_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
