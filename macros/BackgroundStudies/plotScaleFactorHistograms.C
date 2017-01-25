@@ -1,6 +1,6 @@
 
-#include "macros/tdrstyle.C"
-#include "macros/CMS_lumi.C"
+#include "../tdrstyle.C"
+#include "../CMS_lumi.C"
 
 void plotScaleFactor(string label) {
 
