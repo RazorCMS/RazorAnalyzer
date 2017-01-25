@@ -56,34 +56,31 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet'):
 
         elif box=='DiJet':
             scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
         elif box=='LeptonMultiJet':
             scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
         elif box=='LeptonJet':
             scan_status = m2.minimize('Minuit2', 'scan')
             scan_status = m2.minimize('Minuit2', 'scan')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
-            simplex_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 

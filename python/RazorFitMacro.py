@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument('--tag', help='Analysis tag', 
             default='Razor2016_MoriondRereco')
     parser.add_argument('--config', help='Fit config to use', 
-            default='config/run2_2016.config')
+            default='config/run2_2017_01_07_Run2016G_SUSYUnblind_Sep23ReReco.config')
     # Fit types
     parser.add_argument('--mc', help='fit MC',
             action='store_true')
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--load', help='load dataset from file',
             action='store_true')
     parser.add_argument('--load-fit', dest='loadFit', action='store_true',
-            help='Create dataset but do not fit')
+            help='Use existing fit result')
     parser.add_argument('--no-plot', dest='noPlot', action='store_true',
             help='Do not make plots')
     parser.add_argument('--unblind', action='store_true',
@@ -29,11 +29,14 @@ if __name__ == '__main__':
             help='Run toy generation', dest='runToys')
     parser.add_argument('--load-toys', action='store_true',
             help='Plot uncertainties from toys', dest='loadToys')
+    parser.add_argument('--input-fit-file', dest='inputFitFile',
+            help='File to load existing fit from')
     args = parser.parse_args()
 
     weights = {}
     fitter = FitInstance(args.box, tag=args.tag, isData=not args.mc, 
             weights=weights, full=args.full, configFile=args.config)
-    fitter.doFitSequence(load=args.load, doFit=(not args.loadFit),
-            plot=(not args.noPlot), unblind=args.unblind, runToys=args.runToys,
-            loadToys=args.loadToys)
+    fitter.doFitSequence(load=(args.load or args.loadFit), 
+            doFit=(not args.loadFit), plot=(not args.noPlot), 
+            unblind=args.unblind, runToys=args.runToys, loadToys=args.loadToys, 
+            inputFitFile=args.inputFitFile)

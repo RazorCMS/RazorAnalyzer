@@ -195,22 +195,26 @@ class FitInstance(object):
 
     def loadWorkspace(self, filename=None):
         """Loads the workspace from file.  If no filename is given,
-            the name returned by get_filename() will be used"""
+            the name returned by getFilename() will be used"""
         if filename is None:
             filename = self.filename
+        self.workspace = self.getWorkspaceFromFile(filename)
+
+    def getWorkspaceFromFile(self, filename):
         f = rt.TFile.Open(filename)
         if not f:
             raise FitError("File %s could not be opened"%(filename))
         wName = "w"+self.analysis.region
-        self.workspace = f.Get(wName)
-        if not self.workspace:
+        w = f.Get(wName)
+        if not w:
             raise FitError("Workspace %s not found in file %s"%(
                 wName, filename))
         print "Loaded workspace %s from file %s"%(wName,filename)
+        return w
 
     def writeWorkspace(self, filename=None):
         """Saves the workspace to a file.  If no filename is given,
-            the name returned by get_filename() will be used"""
+            the name returned by getFilename() will be used"""
         if filename is None:
             filename = self.filename
         f = rt.TFile(filename, "RECREATE")
@@ -236,9 +240,19 @@ class FitInstance(object):
             print "Resetting fit parameter %s to %d"%(par, entries)
             self.workspace.var(par).setVal(entries)
 
-    def fit(self):
+    def loadFitParamsFromFile(self, fitFile):
+        """Loads the workspace from the given file and takes the fit parameters 
+           (except normalizations) from the fit result in the workspace"""
+        w = self.getWorkspaceFromFile(fitFile)
+        self.restoreFitParams(fitResult=w.obj("nll_extRazorPdf_data_obs"))
+        print "Loaded fit parameters from file",fitFile
+
+    def fit(self, inputFitFile=None):
         """Fits the razor pdf to the data"""
-        self.setDefaultFitParams()
+        if inputFitFile is None:
+            self.setDefaultFitParams()
+        else:
+            self.loadFitParamsFromFile(inputFitFile)
         extRazorPdf = self.workspace.pdf('extRazorPdf')
         datahist = self.workspace.data('data_obs')
         self.sideband = convertSideband(self.fitRegion, self.workspace, 
@@ -248,11 +262,14 @@ class FitInstance(object):
         result.Print('v')
         self.addToWorkspace(result, tobject=True)
 
-    def restoreFitParams(self):
-        """Load the fit function parameters from the fit result"""
+    def restoreFitParams(self, fitResult=None):
+        """Load the fit function parameters from the fit result.
+            If no fit result is provided, the one from the 
+            current workspace will be used."""
         w = self.workspace
-        fr = w.obj("nll_extRazorPdf_data_obs")
-        for p in RootIterator.RootIterator(fr.floatParsFinal()):
+        if fitResult is None:
+            fitResult = w.obj("nll_extRazorPdf_data_obs")
+        for p in RootIterator.RootIterator(fitResult.floatParsFinal()):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
 
@@ -331,12 +348,10 @@ class FitInstance(object):
                 for j in range(1,hist.GetNbinsY()+1):
                     w.var('MR').setVal(hist.GetXaxis().GetBinCenter(i))
                     w.var('Rsq').setVal(hist.GetYaxis().GetBinCenter(j))
-                    w.var('nBtag').setVal(self.z[k-1])
                     inSideband = 0
                     for fitname in plotRegion.split(','):
                         inSideband += ( w.var('MR').inRange(fitname) 
-                                * w.var('Rsq').inRange(fitname) 
-                                * w.var('nBtag').inRange(fitname) )
+                                * w.var('Rsq').inRange(fitname) )
                     if not inSideband:
                         hist.SetBinContent(i,j,0)
 
@@ -516,7 +531,7 @@ class FitInstance(object):
         f.Close()
 
     def doFitSequence(self, load=False, doFit=True, plot=True, unblind=False,
-            runToys=False, loadToys=False):
+            runToys=False, loadToys=False, inputFitFile=None):
         """Performs all steps needed to build and fit the dataset"""
         if load:
             self.loadWorkspace()
@@ -524,7 +539,7 @@ class FitInstance(object):
             self.initDataset()
             self.initBinnedDataset()
         if doFit:
-            self.fit()
+            self.fit(inputFitFile=inputFitFile)
             self.plotCorrelationMatrix()
         if runToys:
             self.runToys(sysPlusStat=True)
