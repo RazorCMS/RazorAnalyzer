@@ -633,19 +633,22 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_BtoH.csv",bTagPathname.c_str()));
+
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
-				           "mujets",                 // measurement type
+				           "comb",                 // measurement type
 				           "central");               // systematics type
-    btagreader_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
-    btagreader_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
-    btagreaderMistag = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "central");
-    btagreaderMistag_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");    // sys up
-    btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
+    btagreader_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");  // sys up
+    btagreader_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
+    btagreaderMistag = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "central");
+    btagreaderMistag_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "up");    // sys up
+    btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
+    //this is not working for some reason...so use previous for now
+    //btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
+    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));    
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
@@ -686,7 +689,7 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
 }
 
 void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
-    std::cout << "RazorHelper: loading jet energy correction constants, using Spring16_23Sep2016_V2." << std::endl;
+    std::cout << "RazorHelper: loading jet energy correction constants, using Spring16_23Sep2016_V3." << std::endl;
     // initialize
     std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
     correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
@@ -700,16 +703,16 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       //IOV: 2016BCD
       std::vector<JetCorrectorParameters> correctionParametersBCD = std::vector<JetCorrectorParameters> ();
       correctionParametersBCD.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016BCDV2_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016BCDV3_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersBCD.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016BCDV2_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016BCDV3_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersBCD.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016BCDV2_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016BCDV3_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersBCD.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016BCDV2_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016BCDV3_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersBCD = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorBCD = new FactorizedJetCorrector(correctionParametersBCD);
-      std::string jecUncPathBCD = jecPathname+"/Spring16_23Sep2016BCDV2_DATA_Uncertainty_AK4PFchs.txt";
+      std::string jecUncPathBCD = jecPathname+"/Summer16_23Sep2016BCDV3_DATA_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncBCD = new JetCorrectionUncertainty(jecUncPathBCD);
       SimpleJetResolution* JetResolutionCalculatorBCD = new SimpleJetResolution(*JetResolutionParametersBCD);
 
@@ -723,16 +726,16 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       //IOV: 2016E
       std::vector<JetCorrectorParameters> correctionParametersEF = std::vector<JetCorrectorParameters> ();
       correctionParametersEF.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016EFV2_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016EFV3_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersEF.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016EFV2_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016EFV3_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersEF.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016EFV2_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016EFV3_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersEF.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016EFV2_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016EFV3_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersEF = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorEF = new FactorizedJetCorrector(correctionParametersEF);
-      std::string jecUncPathEF = jecPathname+"/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016EFV2_DATA_Uncertainty_AK4PFchs.txt";
+      std::string jecUncPathEF = jecPathname+"/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016EFV3_DATA_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncEF = new JetCorrectionUncertainty(jecUncPathEF);
       SimpleJetResolution* JetResolutionCalculatorEF = new SimpleJetResolution(*JetResolutionParametersEF);
 
@@ -746,16 +749,16 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       //IOV: 2016G
       std::vector<JetCorrectorParameters> correctionParametersG = std::vector<JetCorrectorParameters> ();
       correctionParametersG.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016GV2_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016GV3_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersG.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016GV2_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016GV3_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersG.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016GV2_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016GV3_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersG.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016GV2_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016GV3_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersG = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorG = new FactorizedJetCorrector(correctionParametersG);
-      std::string jecUncPathG = jecPathname+"/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016GV2_DATA_Uncertainty_AK4PFchs.txt";
+      std::string jecUncPathG = jecPathname+"/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016GV3_DATA_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncG = new JetCorrectionUncertainty(jecUncPathG);
       SimpleJetResolution* JetResolutionCalculatorG = new SimpleJetResolution(*JetResolutionParametersG);
 
@@ -769,16 +772,16 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       //IOV: 2016H
       std::vector<JetCorrectorParameters> correctionParametersH = std::vector<JetCorrectorParameters> ();
       correctionParametersH.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016HV2_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016HV3_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersH.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016HV2_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016HV3_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersH.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016HV2_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016HV3_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersH.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016HV2_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016HV3_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersH = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorH = new FactorizedJetCorrector(correctionParametersH);
-      std::string jecUncPathH = jecPathname+"/Spring16_23Sep2016_V2_DATA/Spring16_23Sep2016HV2_DATA_Uncertainty_AK4PFchs.txt";
+      std::string jecUncPathH = jecPathname+"/Summer16_23Sep2016V3_DATA/Summer16_23Sep2016HV3_DATA_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncH = new JetCorrectionUncertainty(jecUncPathH);
       SimpleJetResolution* JetResolutionCalculatorH = new SimpleJetResolution(*JetResolutionParametersH);
 
@@ -814,14 +817,14 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
     else {
       std::vector<JetCorrectorParameters> correctionParametersMC = std::vector<JetCorrectorParameters> ();
       correctionParametersMC.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_MC/Spring16_23Sep2016V2_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersMC.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_MC/Spring16_23Sep2016V2_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersMC.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_23Sep2016_V2_MC/Spring16_23Sep2016V2_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersMC = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorMC = new FactorizedJetCorrector(correctionParametersMC);
-      std::string jecUncPath = jecPathname+"/Spring16_23Sep2016_V2_MC/Spring16_23Sep2016V2_MC_Uncertainty_AK4PFchs.txt";
+      std::string jecUncPath = jecPathname+"/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncMC = new JetCorrectionUncertainty(jecUncPath);
       SimpleJetResolution* JetResolutionCalculatorMC = new SimpleJetResolution(*JetResolutionParametersMC);
 
@@ -1240,7 +1243,7 @@ void RazorHelper::loadTag_Razor2016G_SUSYUnblind_80X() {
     loadPileup_Razor2016G_SUSYUnblind();
     loadLepton_Razor2016G_SUSYUnblind();
     loadPhoton_Razor2016_MoriondRereco(); // same as 2016 inclusive
-    loadBTag_Razor2016_MoriondRereco(); // same as 2016 inclusive
+    loadBTag_Razor2016G_SUSYUnblind(); // same as 2016 inclusive
     loadTrigger_Razor2016G_SUSYUnblind();
     loadJECs_Razor2016_MoriondRereco(); // same as 2016 inclusive
 }
@@ -1300,6 +1303,37 @@ void RazorHelper::loadLepton_Razor2016G_SUSYUnblind(){
     tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
 
 }
+
+void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
+    // b-tag efficiencies and scale factors
+    std::cout << "RazorHelper: loading btag efficiency histograms" << std::endl;
+    btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
+    btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVM_Fullsim_80X.root");
+    btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root");
+    btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("Efficiency_PtEta");
+    btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
+    btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
+
+    std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
+    // Fullsim
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_GtoH.csv",bTagPathname.c_str()));
+    btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
+                                           BTagEntry::OP_MEDIUM,     // operating point
+				           "comb",                 // measurement type
+				           "central");               // systematics type
+    btagreader_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "mujets", "up");  // sys up
+    btagreader_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "mujets", "down");  // sys down
+    btagreaderMistag = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "central");
+    btagreaderMistag_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "up");    // sys up
+    btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
+
+    // Fastsim
+    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
+}
+
 
 void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     // single lepton trigger scale factors

@@ -161,6 +161,7 @@ class RazorHelper {
         // for Razor2016G unblinded 80X tag
         void loadPileup_Razor2016G_SUSYUnblind();
         void loadLepton_Razor2016G_SUSYUnblind();
+        void loadBTag_Razor2016G_SUSYUnblind();
 	void loadTrigger_Razor2016G_SUSYUnblind();
 
         // member data
