@@ -9,7 +9,7 @@ import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuples2016_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuplesDM2016_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
@@ -40,7 +40,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
         listdir = listdir.replace('/MC','/data')
         samples = DATA
     filesperjob = 3
-    script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
+    script=basedir+'/scripts/runRazorJob_CERN_EOS_Thong.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
@@ -194,7 +194,7 @@ def skimNtuples(analyzer,tag,isData=False,label=''):
                 else:
                     print "Input file for",sample,"not found!"
                     print "( looking for",fname,")"
-    skimString = 'MR%s > 300 && Rsq%s > 0.15'%(SUFFIXES[tag],SUFFIXES[tag])
+    skimString = 'MR%s > 150 && Rsq%s > 0.4'%(SUFFIXES[tag],SUFFIXES[tag])
     print "Skimming with",skimString
     call(['./SkimNtuple','skim_'+tag+'.txt',DIRS[tag],'RazorSkim',skimString])
 

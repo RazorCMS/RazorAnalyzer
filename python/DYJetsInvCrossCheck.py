@@ -126,8 +126,8 @@ if __name__ == "__main__":
             print "Propagating error on scale factor:",normUpdateErr
             for bn in range(sfHists["DYJetsInv"].GetNumberOfBins()+1):
                 sfHists["DYJetsInv"].SetBinContent( bn, sfHists["DYJetsInv"].GetBinContent(bn)*normUpdate )
-                sfHists["DYJetsInv"].SetBinError( bn, sfHists["DYJetsInv"].GetBinError(bn)*normUpdate )
-                sfHists["DYJetsInv"].SetBinError( bn, 
+                sfHists["DYJetsInv"].SetBinError( bn-1, sfHists["DYJetsInv"].GetBinError(bn)*normUpdate )
+                sfHists["DYJetsInv"].SetBinError( bn-1, 
                         ( ( sfHists["DYJetsInv"].GetBinError(bn))**2 + normUpdateErr*normUpdateErr )**(0.5) )
             sfHistCorr = sfHists["DYJetsInv"].Clone()
             #Write the corrected G+jets scale factor file over the old one

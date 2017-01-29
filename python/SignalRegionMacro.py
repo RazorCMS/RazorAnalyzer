@@ -2,18 +2,8 @@ import sys,os,argparse,copy
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis
-from macro.razorMacros import runFitAndToys, makeControlSampleHistsForAnalysis
-
-FIT_DIR = "Fits"
-TOYS_FILES = {
-        "MultiJet":FIT_DIR+"/toys_Bayes_noStat_MultiJet.root",
-        "LeptonMultiJet":FIT_DIR+"/toys_Bayes_noStat_LeptonMultiJet.root",
-        "DiJet":FIT_DIR+"/toys_Bayes_noStat_DiJet.root",
-        "LeptonJet":FIT_DIR+"/toys_Bayes_noStat_LeptonJet.root",
-        }
-FULL_TOYS_FILES = {
-        }
+from macro.razorAnalysis import Analysis, razorFitFiles
+from macro.razorMacros import makeControlSampleHistsForAnalysis
 
 commonShapeErrors = [
         ('singletopnorm',"SingleTop"),
@@ -53,7 +43,7 @@ if __name__ == "__main__":
             action='store_true', dest="noMC")
     parser.add_argument('--no-fit', help="do not load fit results, process data and MC only", 
             action='store_true', dest='noFit')
-    parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
+    #parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
     parser.add_argument('--no-data', help="do not process data, do fit and MC only", 
             action='store_true', dest='noData')
     parser.add_argument('--no-sys', help="no shape unncertainties or cross check systematics", 
@@ -77,15 +67,14 @@ if __name__ == "__main__":
     #initialize
     plotOpts = {"SUS15004":True}
 
-    doSideband=(not args.full)
-    toysToUse = TOYS_FILES
+    #doSideband=(not args.full)
+    toysToUse = razorFitFiles[tag]
     dirSuffix = ""
-    if not doSideband:
-        toysToUse = FULL_TOYS_FILES
-        dirSuffix += 'Full'
-        plotOpts['sideband'] = False
-    else:
-        plotOpts['sideband'] = True
+    plotOpts['sideband'] = True
+    #if not doSideband:
+    #    toysToUse = FULL_TOYS_FILES
+    #    dirSuffix += 'Full'
+    #    plotOpts['sideband'] = False
     if not args.unblind:
         dirSuffix += 'Blinded'
     if args.noFit: 

@@ -28,6 +28,7 @@ public :
    UInt_t          runNum;
    UInt_t          lumiNum;
    UInt_t          eventNum;
+   Int_t           nSlimmedSecondV;
    Float_t         pvX;
    Float_t         pvY;
    Float_t         pvZ;
@@ -333,6 +334,7 @@ public :
    TBranch        *b_runNum;   //!
    TBranch        *b_lumiNum;   //!
    TBranch        *b_eventNum;   //!
+   TBranch        *b_nSlimmedSecondV; //!
    TBranch        *b_pvX;   //!
    TBranch        *b_pvY;   //!
    TBranch        *b_pvZ;   //!
@@ -713,6 +715,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("runNum", &runNum, &b_runNum);
    fChain->SetBranchAddress("lumiNum", &lumiNum, &b_lumiNum);
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
+   fChain->SetBranchAddress("nSlimmedSecondV", &nSlimmedSecondV, &b_nSlimmedSecondV);
    fChain->SetBranchAddress("pvX", &pvX, &b_pvX);
    fChain->SetBranchAddress("pvY", &pvY, &b_pvY);
    fChain->SetBranchAddress("pvZ", &pvZ, &b_pvZ);

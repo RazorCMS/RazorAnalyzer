@@ -35,7 +35,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     cout << "Initializing..." << endl;
     cout << "IsData = " << isData << "\n";
 
-    string tag = "Razor2016_80X";
+    string tag = "Razor2016_MoriondRereco";
     if ( label != "" ) {
         tag = label;
     }
@@ -92,6 +92,10 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     //2: razor skim MR_NoW > 300 && Rsq_NoW > 0.15
     //3: razor skim MR_NoZ > 300 && Rsq_NoZ > 0.15
     //5: razor skim MR_NoPho > 300 && Rsq_NoPho > 0.15
+    //6: razorDM skim MR > 150 && Rsq > 0.4
+    //7: razorDM skim MR_NoW > 150 && Rsq_NoW > 0.4
+    //8: razorDM skim MR_NoZ > 150 && Rsq_NoZ > 0.4
+    //9: razorDM skim MR_NoPho > 150 && Rsq_NoPho > 0.4
     //*********************************************
     int razorSkimOption = floor(float(option) / 1000);
     int leptonSkimOption = floor( float(option - razorSkimOption*1000) / 100);
@@ -1756,6 +1760,43 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 		)
 	      ) passSkim = false;	
 	}
+      
+      //RazorDM Skim
+      if(razorSkimOption == 6)
+	{
+	  if (!(
+		events->MR > 150 && events->Rsq > 0.4
+		)
+	      ) passSkim = false;	
+	}
+
+      //1-lepton add to MET razorDM skim
+      if(razorSkimOption == 7)
+	{
+	  if (!(
+		events->MR_NoW > 150 && events->Rsq_NoW > 0.4
+		)
+	      ) passSkim = false;		
+	}
+      
+      //Dilepton add to MET razorDM skim
+      if(razorSkimOption == 8) 
+	{
+	  if (!(
+		events->MR_NoZ > 150 && events->Rsq_NoZ > 0.4
+		)
+	      ) passSkim = false;
+	}
+      
+      //Photon razorDM Skim
+      if(razorSkimOption == 9)
+	{
+	  if (!(
+		events->MR_NoPho > 150 && events->Rsq_NoPho > 0.4
+		)
+	      ) passSkim = false;	
+	}
+      
 
       //fill event 
       if (passSkim) {

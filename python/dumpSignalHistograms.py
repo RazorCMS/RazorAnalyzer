@@ -8,6 +8,8 @@ from macro import macro, plotting
 
 parser = argparse.ArgumentParser()
 parser.add_argument("fname",help="input ROOT file name")
+parser.add_argument("--all",action='store_true',dest="print_all",
+        help="Print all MC histograms")
 args = parser.parse_args()
 hists = macro.importHists(args.fname)
 var = ('MR','Rsq')
@@ -27,12 +29,15 @@ for proc in hists:
                     sys_dict[sys].Reset()
                 tmp = plotting.unroll2DHistograms([hists['Sys'][sys_proc][sys][var]])[0]
                 sys_dict[sys].Add(tmp)
-    elif proc == "Data":
+    elif proc == "Data" or proc == "Fit":
         print proc
-        hists[proc][var].Print("all")
+        tmp = plotting.unroll2DHistograms([hists[proc][var]])[0]
+        tmp.Print("all")
     else:
         tmp = plotting.unroll2DHistograms([hists[proc][var]])[0]
         tot.Add(tmp)
+        if args.print_all:
+            tmp.Print("all")
 print "Total MC"
 tot.Print("all")
 

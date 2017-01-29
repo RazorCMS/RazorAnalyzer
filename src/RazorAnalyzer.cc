@@ -46,6 +46,7 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("runNum", 1);
     fChain->SetBranchStatus("lumiNum", 1);
     fChain->SetBranchStatus("eventNum", 1);
+    fChain->SetBranchStatus("nSlimmedSecondV", 1);
     fChain->SetBranchStatus("fixedGridRhoAll", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetAll", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetAllCalo", 1);

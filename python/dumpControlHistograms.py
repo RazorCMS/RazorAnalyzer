@@ -10,7 +10,7 @@ from macro import macro
 parser = argparse.ArgumentParser()
 parser.add_argument("fname",help="input ROOT file name")
 parser.add_argument("varname", help="variable to print")
-parser.add_argument("--all", dest="print_all",
+parser.add_argument("--all", dest="print_all", action='store_true',
         help="Print individual MC histograms")
 parser.add_argument("--debug", action="store_true", help="print debug info")
 args = parser.parse_args()

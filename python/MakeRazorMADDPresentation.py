@@ -178,12 +178,14 @@ def def_slides(plot_dir):
         for nb in range(4):
             slides += [
                     Slide("%s (%d b-tags)"%(box,nb),
-                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box)])]
+                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
+                         "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
     for box in ["DiJet","LeptonJet"]:
         for nb in range(3):
             slides += [
                     Slide("%s (%d b-tags)"%(box,nb),
-                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box)])]
+                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
+                         "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
 
     for slide in slides:
         slide.append_dir_prefix(plot_dir)

@@ -472,7 +472,12 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     
     if pvalue <= 0.:
         print "pvalue = 0 from histogram method: reverting to gaussian approximation"
-        nsigma = (nObs-bestFit)/rms
+        #print rms
+        if rms<=0:
+            print "rms==0, this is sad"
+            nsigma = 100
+        else:
+            nsigma = (nObs-bestFit)/rms
         pvalue = 2.*rt.Math.gaussian_cdf_c(abs(nsigma))
     print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
 
@@ -775,7 +780,7 @@ def print1DProj(c,rootFile,h,h_data,printName,xTitle,yTitle,lumiLabel="",boxLabe
     c.Write(os.path.splitext(printName)[0].split('/')[-1])
 
     
-def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,options=None,tLeg=None,h_components=[],h_colors=[],h_labels=[]):
+def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",boxLabel="",plotLabel="",isData=False,doSignalInj=False,options=None,tLeg=None,h_components=[],h_colors=[],h_labels=[],cfg=None):
     
     if densityCorr:
         h_densitycorr = densityCorrect(h)
@@ -867,6 +872,10 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
 
     
     hDivide, hCloneDivide, hDataDivide  = getDivideHistos(h, hClone, h_data, xTitle, "Stat.+Sys. n#sigma")    
+    if cfg is not None:
+        box = boxLabel.split(' ')[1]
+        x = array('d', cfg.getBinning(box)[0]) # MR binning
+        y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     hDataDivideNs = get1DHistoFrom2D(h_ns,x,y,h_ns.GetName()+'1d')
     hDataDivideNs.SetMarkerStyle(8)
     hDataDivideNs.SetMarkerSize(0.75)
@@ -1994,9 +2003,9 @@ if __name__ == '__main__':
                 print1DProj(c,tdirectory,h_Rsq_components[k],h_data_Rsq_components[k],options.outDir+"/h_Rsq_%ibtag_%s.pdf"%(z[k],box),"R^{2}",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData)
             if computeErrors:
                 if doSignalInj:
-                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options,None,[h_sig_th1x_components[k]])
+                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options,None,[h_sig_th1x_components[k]], cfg=cfg)
                 else:
-                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options)
+                    print1DProjNs(c,tdirectory,h_th1x_components[k],h_data_th1x_components[k],h_RsqMR_nsigma_components[k],options.outDir+"/h_th1x_ns_%ibtag_%s.pdf"%(z[k],box),"Bin Number",eventsLabel,lumiLabel,newBoxLabel,plotLabel,options.isData,doSignalInj,options, cfg=cfg)
                 print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],options.outDir+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(z[k],box),"M_{R} [GeV]", "R^{2}", "Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,plotLabel,x,y,options.isData,sidebandFit,doSignalInj,options)
             else:                
                 if doSignalInj:

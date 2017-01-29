@@ -9,17 +9,16 @@ import sys
 #####################################
 
 #QCD systematic error
-QCDNORMERRFRACTION_DIJET = 0.85
+QCDNORMERRFRACTION_DIJET = 1.00
 QCDNORMERRFRACTION_MULTIJET = 0.80
 #QCDNORMERRFRACTION = 0.87 #used in 2015
 
 def getQCDExtrapolationFactor(MR,region='multijet'):
     """Get QCD extrapolation factor as a function of MR"""
     if region.lower() == 'dijet':
-        return 0.103
+        return 0.05
     else:
         return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
-        #return 0.242
 
 WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
@@ -37,6 +36,26 @@ weighthistnames_DEFAULT = {
         "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
         "pileup": "NVtxReweight",
         }
+
+def getNISRCorrection(event):
+    """Computes a weight according to the number of ISR jets in the (ttbar) event.
+        Details at https://indico.cern.ch/event/592621/contributions/2398559/
+        attachments/1383909/2105089/16-12-05_ana_manuelf_isr.pdf"""
+    d = 1.071
+    n = event.NISRJets
+    if n == 0:
+        return d
+    if n == 1:
+        return d * 0.920
+    if n == 2:
+        return d * 0.821
+    if n == 3:
+        return d * 0.715
+    if n == 4:
+        return d * 0.662
+    if n == 5:
+        return d * 0.561
+    return d * 0.511
 
 def passTrigger(event, triggerNumList):
     """Checks if the event passed any trigger in the list"""
@@ -290,6 +309,11 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             if debugLevel > 1:
                 print "Top pt weight:",event.topPtWeight
             eventWeight *=  event.topPtWeight
+        if 'nisr' in lweightOpts:
+            nisrWeight = getNISRCorrection(event)
+            if debugLevel > 1:
+                print "NISR weight:",nisrWeight,event.NISRJets
+            eventWeight *= nisrWeight
 
         #pileup reweighting
         if str.lower("reapplyNPUWeights") in lweightOpts:
@@ -720,7 +744,7 @@ def getNJetsSFs(analysis,jetName='NJets40'):
 
 def loadPhotonPurityHists(sfHists={}, tag="Razor2016", debugLevel=0):
     filenames = { 
-            "Razor2016_MoriondRereco":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016_Rereco_36p2ifb.root",
+            "Razor2016_MoriondRereco":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016_Rereco_36p8ifb.root",
             "Razor2016G_SUSYUnblind_80X":"data/ScaleFactors/RazorMADD2015/PhotonCR_Purity_2016G_SUSYUnblind.root",
             "Razor2016_ICHEP_80X":"/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/ChargedIsoFits/12p9/PhotonControlRegionPlots_MR300Rsq0p15.root"
             }

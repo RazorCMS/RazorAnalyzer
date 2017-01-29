@@ -7,6 +7,7 @@ from array import array
 import macro
 from razorAnalysis import Analysis
 from framework import Config
+from rootTools import RootIterator
 from DustinTuple2RooDataSet import convertTree2Dataset, initializeWorkspace
 from BinnedFit import binnedFit
 from WriteDataCard import convertDataset2TH1
@@ -115,7 +116,7 @@ class FitInstance(object):
         if not tobject:
             method(obj, rt.RooCmdArg())
         else:
-            method(obj)
+            method(obj, True)
 
     def getFilename(self):
         """Builds the name of the file to use for input/output"""
@@ -194,22 +195,26 @@ class FitInstance(object):
 
     def loadWorkspace(self, filename=None):
         """Loads the workspace from file.  If no filename is given,
-            the name returned by get_filename() will be used"""
+            the name returned by getFilename() will be used"""
         if filename is None:
             filename = self.filename
+        self.workspace = self.getWorkspaceFromFile(filename)
+
+    def getWorkspaceFromFile(self, filename):
         f = rt.TFile.Open(filename)
         if not f:
             raise FitError("File %s could not be opened"%(filename))
         wName = "w"+self.analysis.region
-        self.workspace = f.Get(wName)
-        if not self.workspace:
+        w = f.Get(wName)
+        if not w:
             raise FitError("Workspace %s not found in file %s"%(
                 wName, filename))
         print "Loaded workspace %s from file %s"%(wName,filename)
+        return w
 
     def writeWorkspace(self, filename=None):
         """Saves the workspace to a file.  If no filename is given,
-            the name returned by get_filename() will be used"""
+            the name returned by getFilename() will be used"""
         if filename is None:
             filename = self.filename
         f = rt.TFile(filename, "RECREATE")
@@ -217,15 +222,63 @@ class FitInstance(object):
         print "Wrote workspace to file %s"%(filename)
         f.Close()
 
-    def fit(self):
+    def setDefaultFitParams(self):
+        """Gets the default fit parameters from the config and applies
+            them to the variables in the current workspace"""
+        for param in self.config.getVariables(self.analysis.region, 
+                "combine_parameters"):
+            name,rest = param.replace(']','').split('[')
+            val = float(rest.split(',')[0])
+            if not ("Cut" in name or "Ntot" in name):
+                print "Resetting fit parameter %s to %.2f"%(name,val)
+                self.workspace.var(name).setVal(val)
+        # Set Ntot parameters according to number of events in dataset
+        for k in range(0, len(self.z)-1):
+            entries = self.workspace.data("RMRTree").sumEntries(
+                    "nBtag>=%i && nBtag<%i"%(self.z[k], self.z[k+1]))
+            par = "Ntot_TTj%db_%s"%(self.z[k],self.analysis.region)
+            print "Resetting fit parameter %s to %d"%(par, entries)
+            self.workspace.var(par).setVal(entries)
+
+    def loadFitParamsFromFile(self, fitFile):
+        """Loads the workspace from the given file and takes the fit parameters 
+           (except normalizations) from the fit result in the workspace"""
+        w = self.getWorkspaceFromFile(fitFile)
+        self.restoreFitParams(fitResult=w.obj("nll_extRazorPdf_data_obs"))
+        print "Loaded fit parameters from file",fitFile
+
+    def fit(self, inputFitFile=None):
         """Fits the razor pdf to the data"""
+        if inputFitFile is None:
+            self.setDefaultFitParams()
+        else:
+            self.loadFitParamsFromFile(inputFitFile)
         extRazorPdf = self.workspace.pdf('extRazorPdf')
         datahist = self.workspace.data('data_obs')
         self.sideband = convertSideband(self.fitRegion, self.workspace, 
                 self.x, self.y, self.z)
-        result = binnedFit(extRazorPdf, datahist, self.sideband)
+        result = binnedFit(extRazorPdf, datahist, self.sideband,
+                box=self.analysis.region)
         result.Print('v')
         self.addToWorkspace(result, tobject=True)
+
+    def restoreFitParams(self, fitResult=None):
+        """Load the fit function parameters from the fit result.
+            If no fit result is provided, the one from the 
+            current workspace will be used."""
+        w = self.workspace
+        if fitResult is None:
+            fitResult = w.obj("nll_extRazorPdf_data_obs")
+        for p in RootIterator.RootIterator(fitResult.floatParsFinal()):
+            w.var(p.GetName()).setVal(p.getVal())
+            w.var(p.GetName()).setError(p.getError())
+
+    def plotCorrelationMatrix(self):
+        """Plots the correlation matrix of the fit parameters"""
+        c = rt.TCanvas('c','c',400,300)
+        self.workspace.obj("nll_extRazorPdf_data_obs").correlationHist(
+                ).Draw("colz")
+        c.Print(self.dirname+"/correlationHist.pdf")
 
     def get3DFitHistos(self, sideband):
         """Returns a pair of TH3s: (data, fit prediction)"""
@@ -295,12 +348,10 @@ class FitInstance(object):
                 for j in range(1,hist.GetNbinsY()+1):
                     w.var('MR').setVal(hist.GetXaxis().GetBinCenter(i))
                     w.var('Rsq').setVal(hist.GetYaxis().GetBinCenter(j))
-                    w.var('nBtag').setVal(self.z[k-1])
                     inSideband = 0
                     for fitname in plotRegion.split(','):
                         inSideband += ( w.var('MR').inRange(fitname) 
-                                * w.var('Rsq').inRange(fitname) 
-                                * w.var('nBtag').inRange(fitname) )
+                                * w.var('Rsq').inRange(fitname) )
                     if not inSideband:
                         hist.SetBinContent(i,j,0)
 
@@ -429,7 +480,7 @@ class FitInstance(object):
 
         # Print everything out to pdf files
         btagLabel = getBtagLabel(self.z)
-        lumiLabel = "%.0f fb^{-1} (13 TeV)" % (self.analysis.lumi/1000.)
+        lumiLabel = "%.1f fb^{-1} (13 TeV)" % (self.analysis.lumi/1000.)
         boxLabel = "razor %s %s %s Fit" % (self.analysis.region,
                 btagLabel,self.fitRegion.replace('LowMR,LowRsq','Sideband'))
         plotLabel = ""
@@ -450,37 +501,37 @@ class FitInstance(object):
             for k in range(0,len(self.z)-1):
                 newBoxLabel = "razor %s %s %s Fit"%(self.analysis.region,
                     h_labels[k],self.fitRegion.replace('LowMR,LowRsq','Sideband'))
-                print1DProj(c,tdirectory,h_th1x_components[k],
-                    h_data_th1x_components[k], 
-                    self.dirname+"/h_th1x_%ibtag_%s.pdf"%(self.z[k],
-                        self.analysis.region),"Bin Number",
-                        eventsLabel,lumiLabel,newBoxLabel,plotLabel,self.isData,
-                        False, options)
-                print2DResiduals(c,tdirectory,h_RsqMR_statnsigma_components[k],
-                    self.dirname+"/h_RsqMR_statnsigma_log_%ibtag_%s.pdf"%(self.z[k],
-                    self.analysis.region), "M_{R} [GeV]", "R^{2}", 
-                    "Stat. n#sigma (Data - Fit)/sqrt(Fit)",
-                    lumiLabel,newBoxLabel,plotLabel,self.x,self.y,self.isData,
-                    sidebandFit,False,options)
                 if computeErrors:
-                    # This function does not seem to work right now?
-                    #print1DProjNs(c,tdirectory,h_th1x_components[k],
-                    #        h_data_th1x_components[k],
-                    #        h_RsqMR_nsigma_components[k],
-                    #        self.dirname+"/h_th1x_ns_%ibtag_%s.pdf"%(
-                    #            self.z[k],self.analysis.region),
-                    #        "Bin Number",eventsLabel,lumiLabel,newBoxLabel,
-                    #        plotLabel,self.isData,False,options) 
+                    print1DProjNs(c,tdirectory,h_th1x_components[k],
+                            h_data_th1x_components[k],
+                            h_RsqMR_nsigma_components[k],
+                            self.dirname+"/h_th1x_ns_%ibtag_%s.pdf"%(
+                                self.z[k],self.analysis.region),
+                            "Bin Number",eventsLabel,lumiLabel,newBoxLabel,
+                            plotLabel,self.isData,False,options,cfg=self.config) 
                     print2DResiduals(c,tdirectory,h_RsqMR_nsigma_components[k],
                             self.dirname+"/h_RsqMR_nsigma_log_%ibtag_%s.pdf"%(
                             self.z[k],self.analysis.region),"M_{R} [GeV]", 
                             "R^{2}","Stat.+Sys. n#sigma",lumiLabel,newBoxLabel,
                             plotLabel, self.x,self.y,self.isData,sidebandFit,
                             False,options)
+                else:
+                    print1DProj(c,tdirectory,h_th1x_components[k],
+                        h_data_th1x_components[k], 
+                        self.dirname+"/h_th1x_%ibtag_%s.pdf"%(self.z[k],
+                            self.analysis.region),"Bin Number",
+                            eventsLabel,lumiLabel,newBoxLabel,plotLabel,self.isData,
+                            False, options)
+                    print2DResiduals(c,tdirectory,h_RsqMR_statnsigma_components[k],
+                        self.dirname+"/h_RsqMR_statnsigma_log_%ibtag_%s.pdf"%(self.z[k],
+                        self.analysis.region), "M_{R} [GeV]", "R^{2}", 
+                        "Stat. n#sigma (Data - Fit)/sqrt(Fit)",
+                        lumiLabel,newBoxLabel,plotLabel,self.x,self.y,self.isData,
+                        sidebandFit,False,options)
         f.Close()
 
     def doFitSequence(self, load=False, doFit=True, plot=True, unblind=False,
-            runToys=False, plotToys=False):
+            runToys=False, loadToys=False, inputFitFile=None):
         """Performs all steps needed to build and fit the dataset"""
         if load:
             self.loadWorkspace()
@@ -488,16 +539,18 @@ class FitInstance(object):
             self.initDataset()
             self.initBinnedDataset()
         if doFit:
-            self.fit()
+            self.fit(inputFitFile=inputFitFile)
+            self.plotCorrelationMatrix()
         if runToys:
             self.runToys(sysPlusStat=True)
             self.runToys(sysPlusStat=False)
         if plot:
             toysFile = None
             sysFile = None
-            if runToys or plotToys:
+            if runToys or loadToys:
                 toysFile = self.toysFile
                 sysFile = self.sysFile
+            self.restoreFitParams()
             self.plot(unblind=unblind, toysFile=toysFile,
                     sysFile=sysFile)
         self.writeWorkspace()
