@@ -51,27 +51,31 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
                 continue
             has_large_file = False;
             has_very_large_file = False;
+            has_yuge_file = False;
             with open(inlist) as mylist:
                 for myfile_ in mylist:
                     myfile = myfile_.strip('\n')
                     mounted_file = myfile.replace('root://eoscms//','')
+                    if os.path.getsize(mounted_file) > 2000000000: #list has file over 2GB
+                        has_yuge_file = True
+                        print 'File '+mounted_file+' is '+str(os.path.getsize(mounted_file))+' bytes. YUGE!'
                     if os.path.getsize(mounted_file) > 1000000000: #list has file over 1GB
-                        print 'File '+mounted_file+' is '+str(os.path.getsize(mounted_file))+' bytes. VERY LARGE!'
                         has_very_large_file = True
+                        if not has_yuge_file:
+                            print 'File '+mounted_file+' is '+str(os.path.getsize(mounted_file))+' bytes. VERY LARGE!'
                     if os.path.getsize(mounted_file) > 500000000: #list has file over 500MB
                         has_large_file = True
                         if not has_very_large_file: 
                             print 'File '+mounted_file+' is '+str(os.path.getsize(mounted_file))+' bytes. LARGE!'
-
-            if has_very_large_file:
-                print '---Submitting 1 file per job.'
+            if has_yuge_file:
                 filesperjob = 1
+            elif has_very_large_file:
+                filesperjob = 2
             elif has_large_file: 
-                print '---Submitting 3 files per job.'
-                filesperjob = 3
+                filesperjob = 4
             else: 
-                print '---Submitting 10 files per job.'
                 filesperjob = 10
+            print '---Submitting '+str(filesperjob)+' file(s) per job.'
             nfiles = sum([1 for line in open(inlist)])
             maxjob = int(math.ceil( nfiles*1.0/filesperjob ))-1
             print "Sample:",sample," maxjob =",maxjob
