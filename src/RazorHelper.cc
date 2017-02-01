@@ -1240,7 +1240,7 @@ void RazorHelper::loadTag_Razor2016G_SUSYUnblind_80X() {
     loadPileup_Razor2016G_SUSYUnblind();
     loadLepton_Razor2016G_SUSYUnblind();
     loadPhoton_Razor2016_MoriondRereco(); // same as 2016 inclusive
-    loadBTag_Razor2016_SUSYUnblind(); 
+    loadBTag_Razor2016G_SUSYUnblind(); 
     loadTrigger_Razor2016G_SUSYUnblind();
     loadJECs_Razor2016_MoriondRereco(); // same as 2016 inclusive
 }
@@ -1301,7 +1301,7 @@ void RazorHelper::loadLepton_Razor2016G_SUSYUnblind(){
 
 }
 
-void RazorHelper::loadBTag_Razor2016_SUSYUnblind() {
+void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
     // b-tag efficiencies and scale factors
     std::cout << "RazorHelper: loading btag efficiency histograms" << std::endl;
     btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
