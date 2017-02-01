@@ -39,7 +39,6 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     if isData:
         listdir = listdir.replace('/MC','/data')
         samples = DATA
-    filesperjob = 3
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Thong.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
@@ -50,6 +49,29 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
             if not os.path.isfile(inlist):
                 print "Warning: list file",inlist,"not found!"
                 continue
+            has_large_file = False;
+            has_very_large_file = False;
+            with open(inlist) as mylist:
+                for myfile_ in mylist:
+                    myfile = myfile_.strip('\n')
+                    mounted_file = myfile.replace('root://eoscms//','')
+                    if os.path.getsize(mounted_file) > 1000000000: #list has file over 1GB
+                        print 'File '+mounted_file+' is '+str(os.path.getsize(mounted_file))+' bytes. VERY LARGE!'
+                        has_very_large_file = True
+                    if os.path.getsize(mounted_file) > 500000000: #list has file over 500MB
+                        has_large_file = True
+                        if not has_very_large_file: 
+                            print 'File '+mounted_file+' is '+str(os.path.getsize(mounted_file))+' bytes. LARGE!'
+
+            if has_very_large_file:
+                print '---Submitting 1 file per job.'
+                filesperjob = 1
+            elif has_large_file: 
+                print '---Submitting 3 files per job.'
+                filesperjob = 3
+            else: 
+                print '---Submitting 10 files per job.'
+                filesperjob = 10
             nfiles = sum([1 for line in open(inlist)])
             maxjob = int(math.ceil( nfiles*1.0/filesperjob ))-1
             print "Sample:",sample," maxjob =",maxjob
