@@ -163,7 +163,6 @@ class RazorHelper {
         void loadLepton_Razor2016G_SUSYUnblind();
         void loadBTag_Razor2016G_SUSYUnblind();
 	void loadTrigger_Razor2016G_SUSYUnblind();
-        void loadBTag_Razor2016G_SUSYUnblind();
 
         // member data
         std::string tag;
