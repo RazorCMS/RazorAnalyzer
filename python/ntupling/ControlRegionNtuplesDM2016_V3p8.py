@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p8_19Jan2017_DM"
+VERSION = "V3p8_2Feb2017_DM"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
