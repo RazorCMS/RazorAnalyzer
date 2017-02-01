@@ -37,6 +37,7 @@ class RazorVarCollection {
             box = RazorAnalyzer::NONE;
 
             MetXCorr = 0; MetYCorr = 0;
+	    metOverCaloMet = 0;
             leadingTightMu = TLorentzVector(); leadingTightEle = TLorentzVector();
             GoodJets = vector<TLorentzVector>();
             GoodLeptons = vector<TLorentzVector>();
@@ -46,6 +47,7 @@ class RazorVarCollection {
             if (tag == "") { conn = ""; } // remove underscore if not needed
             t->Branch(("MR"+conn+tag).c_str(), &MR, ("MR"+conn+tag+"/F").c_str());
             t->Branch(("Rsq"+conn+tag).c_str(), &Rsq, ("Rsq"+conn+tag+"/F").c_str());
+            t->Branch(("metOverCaloMet"+conn+tag).c_str(), &metOverCaloMet, ("metOverCaloMet"+conn+tag+"/F").c_str());
             t->Branch(("dPhiRazor"+conn+tag).c_str(), &dPhiRazor, ("dPhiRazor"+conn+tag+"/F").c_str());
             t->Branch(("leadingJetPt"+conn+tag).c_str(), &leadingJetPt, 
                     ("leadingJetPt"+conn+tag+"/F").c_str());
@@ -79,6 +81,7 @@ class RazorVarCollection {
         float MR,Rsq,dPhiRazor,leadingJetPt,subleadingJetPt,leadingTightMuPt,leadingTightElePt,mT,mTLoose;
         int nSelectedJets,nBTaggedJets,nJets80;
         int nVetoMuons, nTightMuons, nVetoElectrons, nTightElectrons;
+        float metOverCaloMet;
         RazorAnalyzer::RazorBox box;
         // Non-tree variables
         float MetXCorr, MetYCorr;
@@ -1145,6 +1148,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             vars.second->MR = computeMR(hemispheres[0], hemispheres[1]); 
             vars.second->Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
             vars.second->dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+	    vars.second->metOverCaloMet = MyMET.Pt()/metCaloPt;
             // Compute transverse mass 
             if (vars.second->nTightMuons + vars.second->nTightElectrons > 0){
                 TLorentzVector leadingLepton;

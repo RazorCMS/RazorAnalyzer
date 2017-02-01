@@ -634,7 +634,6 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_BtoH.csv",bTagPathname.c_str()));
-
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
@@ -646,9 +645,7 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
 
     // Fastsim
-    //this is not working for some reason...so use previous for now
-    //btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));    
+    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
@@ -864,7 +861,7 @@ void RazorHelper::loadBTag_Razor2016() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_GtoH.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "mujets",                 // measurement type
@@ -876,7 +873,7 @@ void RazorHelper::loadBTag_Razor2016() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
+    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
@@ -1243,7 +1240,7 @@ void RazorHelper::loadTag_Razor2016G_SUSYUnblind_80X() {
     loadPileup_Razor2016G_SUSYUnblind();
     loadLepton_Razor2016G_SUSYUnblind();
     loadPhoton_Razor2016_MoriondRereco(); // same as 2016 inclusive
-    loadBTag_Razor2016G_SUSYUnblind(); // same as 2016 inclusive
+    loadBTag_Razor2016G_SUSYUnblind(); 
     loadTrigger_Razor2016G_SUSYUnblind();
     loadJECs_Razor2016_MoriondRereco(); // same as 2016 inclusive
 }
@@ -1333,7 +1330,6 @@ void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
 }
-
 
 void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     // single lepton trigger scale factors
