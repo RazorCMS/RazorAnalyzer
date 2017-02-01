@@ -686,7 +686,7 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
 }
 
 void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
-    std::cout << "RazorHelper: loading jet energy correction constants, using Spring16_23Sep2016_V3." << std::endl;
+    std::cout << "RazorHelper: loading jet energy correction constants, using Summer16_23Sep2016_V3." << std::endl;
     // initialize
     std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
     correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
