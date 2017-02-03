@@ -633,7 +633,7 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_BtoH.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
@@ -861,7 +861,7 @@ void RazorHelper::loadBTag_Razor2016() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_GtoH.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "mujets",                 // measurement type
@@ -1313,7 +1313,7 @@ void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_GtoH.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_G_H.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
