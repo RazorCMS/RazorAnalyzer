@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p8_02Feb2017"
+VERSION = "V3p8_03Feb2017"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -132,17 +132,17 @@ SAMPLES['1L'] = {
                 'WWToLNuQQ_13TeV-powheg',
                 'WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8',
                 'WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8',
-                #'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',
+                'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',
                 'WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8',
-                #'ZZTo2L2Nu_13TeV_powheg_pythia8',
+                'ZZTo2L2Nu_13TeV_powheg_pythia8',
                 'ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',
                 'ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8',
-                #'ZZTo4L_13TeV_powheg_pythia8',
-                #'ZZTo4Q_13TeV_amcatnloFXFX_madspin_pythia8',
+                'ZZTo4L_13TeV_powheg_pythia8',
+                'ZZTo4Q_13TeV_amcatnloFXFX_madspin_pythia8',
                 'TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
                 'TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
                 'TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
-                #'TTZToQQ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
+                'TTZToQQ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WWW_4F_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
@@ -168,7 +168,7 @@ SAMPLES['1L'] = {
                 'ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph',
             ],
         "TTJetsInclusive":[
-                'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                #'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
