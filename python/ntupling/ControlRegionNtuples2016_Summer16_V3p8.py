@@ -212,9 +212,9 @@ SAMPLES['Photon'] = {
                 'QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         "Other":[
-                #'TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8',
+                'TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8',
                 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
-                #'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         }
 SAMPLES['Signal'] = SAMPLES['1L'].copy()
