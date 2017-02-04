@@ -9,11 +9,154 @@ from razorAnalysis import Analysis
 from framework import Config
 from rootTools import RootIterator
 from DustinTuple2RooDataSet import convertTree2Dataset, initializeWorkspace
-from BinnedFit import binnedFit
 from WriteDataCard import convertDataset2TH1
 from WriteDataCard import initializeWorkspace as initializeFitWorkspace
 from RunToys import runToys
 from PlotFit import setStyle, convertSideband, get3DHistoFrom1D, print1DProj, print1DProjNs, get1DHistoFrom2D, print2DResiduals, getErrors1D, getErrors2D, getErrors3D, getNsigma2D
+
+def fixAllFitParams(w, const=True):
+    """If const=True, 
+        fix b, n, MR0, R0, and Ntot for all btag bins.
+        Otherwise, float them for all btag bins."""
+    box = w.GetName()[1:]
+    for btags in range(4):
+        for param in ['b','n','Ntot','MR0','R0']:
+            varName = '%s_TTj%db_%s'%(param, btags, box)
+            try:
+                w.var(varName).setConstant(const)
+                if const:
+                    print "Setting %s constant"%varName
+                else:
+                    print "Floating %s"%varName
+            except ReferenceError:
+                print "Variable %s not in workspace"%varName
+
+def floatAllFitParams(w):
+    fixAllFitParams(w, const=False)
+
+def scanParams(paramsString, btags, w, minimizer):
+    """paramsString: string indicating which parameters to scan.
+        'b'=b, 'n'=n, 'm'=MR0, 'r'=Rsq0
+        Ex: 'bn' will fix all parameters except b and n for the 
+            indicated number of btags
+       btags: int indicating b-tag bin
+       w: RooWorkspace
+       minimizer: RooMinimizer object
+       """
+    fixAllFitParams(w)
+    paramsDict = { 'b':'b', 'n':'n', 'm':'MR0', 'r':'R0' }
+    box = w.GetName()[1:]
+    for char in paramsString.lower():
+        try:
+            paramName = paramsDict[char]
+        except KeyError:
+            print "parameter string should contain only b, n, m, r (%s found)"%char
+            raise
+        varName = '%s_TTj%db_%s'%(paramName, btags, box)
+        w.var(varName).setConstant(False)
+        print "Floating %s"%varName
+    scan_status = minimizer.minimize('Minuit2', 'scan')
+    floatAllFitParams(w)
+    return scan_status
+
+def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None):
+
+    if useWeight:
+        fr = pdf.fitTo(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.SumW2Error(True),rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.Strategy(2))
+        migrad_status = fr.status()
+        hesse_status = -1
+        
+    else:
+        if fitRange!='Full' and False:
+            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+            #nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+            m2 = rt.RooMinimizer(nll)
+            m2.setStrategy(0)
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        if fitRange=='Full':
+            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+            #nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+        else:
+            nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+            #nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
+
+        m2 = rt.RooMinimizer(nll)
+        m2.setMinimizerType('Minuit2')
+        m2.setStrategy(2)
+        m2.setEps(0.01)
+        m2.setMaxFunctionCalls(1000000)
+        m2.setMaxIterations(1000000)
+
+        hesse_status = 3
+        migrad_status = 3
+
+        if box=='MultiJet':
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='DiJet':
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
+            scan_status = m2.minimize('Minuit2', 'scan')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='LeptonMultiJet':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='LeptonJet':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        fr = m2.save()
+
+    if fr.covQual() != 3:
+        print ""
+        print "CAUTION: COVARIANCE QUALITY < 3"
+        print ""
+        
+    if migrad_status != 0:
+        print ""
+        print "CAUTION: MIGRAD STATUS ! = 0"
+        print ""
+
+    if hesse_status != 0:
+        print ""
+        print "CAUTION: HESSE STATUS ! = 0"
+        print ""
+        
+    return fr
 
 def unweightHist(hist):
     """Throws a Poisson toy from each bin of the histogram.
@@ -258,7 +401,7 @@ class FitInstance(object):
         self.sideband = convertSideband(self.fitRegion, self.workspace, 
                 self.x, self.y, self.z)
         result = binnedFit(extRazorPdf, datahist, self.sideband,
-                box=self.analysis.region)
+                box=self.analysis.region, w=self.workspace)
         result.Print('v')
         self.addToWorkspace(result, tobject=True)
 

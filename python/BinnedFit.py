@@ -11,97 +11,9 @@ import random
 import sys
 import math
 from PlotFit import setStyle,print1DProj,print2DScatter,get3DHistoFrom1D,getBinEvents,convertSideband,densityCorr
+from macro.razorFits import binnedFit
 
 densityCorr = False
-
-def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet'):
-
-    if useWeight:
-        fr = pdf.fitTo(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.SumW2Error(True),rt.RooFit.Save(),rt.RooFit.Minimizer('Minuit2','migrad'),rt.RooFit.Strategy(2))
-        migrad_status = fr.status()
-        hesse_status = -1
-        
-    else:
-        if fitRange!='Full' and False:
-            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(True))
-            #nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
-            m2 = rt.RooMinimizer(nll)
-            m2.setStrategy(0)
-            migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        if fitRange=='Full':
-            nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(True))
-            #nll = pdf.createNLL(data,rt.RooFit.Extended(True),rt.RooFit.Offset(False))
-        else:
-            nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
-            #nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
-
-        m2 = rt.RooMinimizer(nll)
-        m2.setMinimizerType('Minuit2')
-        m2.setStrategy(2)
-        m2.setEps(0.01)
-        m2.setMaxFunctionCalls(1000000)
-        m2.setMaxIterations(1000000)
-
-        hesse_status = 3
-        migrad_status = 3
-
-        if box=='MultiJet':
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        elif box=='DiJet':
-            scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        elif box=='LeptonMultiJet':
-            scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        elif box=='LeptonJet':
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        fr = m2.save()
-
-    if fr.covQual() != 3:
-        print ""
-        print "CAUTION: COVARIANCE QUALITY < 3"
-        print ""
-        
-    if migrad_status != 0:
-        print ""
-        print "CAUTION: MIGRAD STATUS ! = 0"
-        print ""
-
-    if hesse_status != 0:
-        print ""
-        print "CAUTION: HESSE STATUS ! = 0"
-        print ""
-        
-    return fr
     
 if __name__ == '__main__':
     parser = OptionParser()
