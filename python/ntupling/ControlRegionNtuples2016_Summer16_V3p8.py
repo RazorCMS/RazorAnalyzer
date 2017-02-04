@@ -90,7 +90,7 @@ SUFFIXES = { '1L':'',
 SAMPLES = {}
 SAMPLES['1L'] = {
         "DYJets":[
-             'DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+             #'DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
@@ -104,7 +104,7 @@ SAMPLES['1L'] = {
              'DYJetsToLL_M-5to50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              ],
         "QCD":[
-             'QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+             #'QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
@@ -133,7 +133,7 @@ SAMPLES['1L'] = {
                 'WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8',
                 'WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8',
                 'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',
-                'WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8',
+                'WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                 'ZZTo2L2Nu_13TeV_powheg_pythia8',
                 'ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8',
                 'ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8',
@@ -149,7 +149,7 @@ SAMPLES['1L'] = {
                 'ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
             ],
         "WJets":[
-                'WJetsToLNu_HT-70To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                #'WJetsToLNu_HT-70To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
