@@ -239,12 +239,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     effMeasType="mujets";
     misMeasType="comb";
   } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" ) {
-    if(!isFastsimSMS) {
+    if(isFastsimSMS) {
       btagcalib = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
       effMeasType="fastsim";
       misMeasType="fastsim";
     } else {
-
+      btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
+      effMeasType="comb";
+      misMeasType="incl";
     }
   }
 
@@ -1136,7 +1138,12 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //******************************************************
       photonEffSF = 
 	helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta) * 
-	helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);
+	helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);      
+
+      if (isFastsimSMS) {
+	photonEffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta) * 
+	  helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);
+      }
 
       //***********************************************************
       //get mother ID of photons
@@ -1706,7 +1713,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     histNISRJets->Write();
     puhisto->Write();
   } else {
-    if (!isFastsimSMS) {
+    if (!is2DMassScan) {
       for(auto &filePtr : smsFiles){
 	cout << "Writing output tree (" << filePtr.second->GetName() << ")" << endl;
 	filePtr.second->cd();

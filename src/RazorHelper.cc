@@ -558,12 +558,14 @@ void RazorHelper::loadPileup_Razor2016_MoriondRereco() {
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      std::cout << "PileupReweight_Summer16_2016_36p2ifb.root\n";
     } else {
       pileupWeightFile = TFile::Open(
 				     Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight_2016_36p2ifb.root", cmsswPath.c_str()));
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      std::cout << "PileupReweight_2016_36p2ifb.root\n";
     }
 
 
@@ -628,7 +630,10 @@ void RazorHelper::loadPhoton_Razor2016_MoriondRereco(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco.root");
-    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");   
+
+    phoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors_80X.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
 
@@ -857,6 +862,9 @@ void RazorHelper::loadPhoton_Razor2016(){
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_ICHEP.root");
     phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+
+    phoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors_80X.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
 
@@ -1618,6 +1626,13 @@ double RazorHelper::getPhotonScaleFactor(float pt, float eta) {
   double sf = 1.0;
   if (phoLooseEffSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
   else { std::cout << "[WARNING] Could not load phoLooseEffSFHist.\n"; }
+  return sf;
+}
+
+double RazorHelper::getPhotonFastsimToFullsimScaleFactor(float pt, float eta) {
+  double sf = 1.0;
+  if (phoLooseEffFastsimSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffFastsimSFHist, pt, eta, 20.01, 299.9 ); 
+  else { std::cout << "[WARNING] Could not load phoLooseEffFastsimSFHist.\n"; }
   return sf;
 }
 
