@@ -9,7 +9,7 @@ import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuplesDM2016_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuplesDM2016_Summer16_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
@@ -33,11 +33,11 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     if not os.path.isdir(basedir+'/output/'):
         os.mkdir(basedir+'/output/')
-    listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC'
+    listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'
     if reHLT: listdir += 'reHLT'
     jobssuffix = '/jobs'
     if isData:
-        listdir = listdir.replace('/MC','/data')
+        listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Thong.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
@@ -148,6 +148,7 @@ def normalizeFiles(analyzer,tag,force=False,reHLT=False,label=''):
             if (not force) and os.path.isfile( f.replace('.root','_1pb_weighted.root') ): continue
             sample = os.path.basename(f).replace('.root','').replace(
                     getSamplePrefix(analyzer,tag,reHLT,label)+'_','')
+            print sample
             #check if we need this sample
             for process in SAMPLES[tag]:
                 if sample in SAMPLES[tag][process]:
@@ -220,7 +221,7 @@ def skimNtuples(analyzer,tag,isData=False,label=''):
                 else:
                     print "Input file for",sample,"not found!"
                     print "( looking for",fname,")"
-    skimString = 'MR%s > 150 && Rsq%s > 0.4'%(SUFFIXES[tag],SUFFIXES[tag])
+    skimString = 'MR%s > 150 && Rsq%s > 0.15'%(SUFFIXES[tag],SUFFIXES[tag])
     print "Skimming with",skimString
     call(['./SkimNtuple','skim_'+tag+'.txt',DIRS[tag],'RazorSkim',skimString])
 
