@@ -3,7 +3,7 @@
 ### Submit jobs using NtupleUtilsDM.py, then check jobs' statuses every 30 seconds. 
 ### When jobs are done, automatically proceed to the next step in the sequence 
 ### MC: hadd --> normalize --> hadd-final 
-### Data: hadd --> skim --> hadd-final --> remove-duplicates
+### Data: hadd --> skim --> hadd-final --> remove-duplicates --> good-lumi
 
 import os, sys, subprocess
 import argparse
@@ -71,7 +71,11 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
         if isData:
             cmd_remove_duplicates = list(filter(None,['python', 'python/ntupling/NtupleUtilsDM.py', '--remove-duplicates', nosub, '--label', label, data, tag]))
             print ' '.join(cmd_remove_duplicates)
-            #subprocess.call(cmd_remove_duplicates)
+            subprocess.call(cmd_remove_duplicates)
+
+            cmd_good_lumi = list(filter(None,['python', 'python/ntupling/NtupleUtilsDM.py', '--good-lumi', nosub, '--label', label, data, tag]))
+            print ' '.join(cmd_good_lumi)
+            subprocess.call(cmd_good_lumi)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
