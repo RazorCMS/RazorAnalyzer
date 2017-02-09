@@ -19,9 +19,9 @@ void JetNtupler::Analyze(bool isData, int Option, string outputfilename, string 
   cout << "Getting JEC parameters from " << pathname << endl;
   
   std::vector<JetCorrectorParameters> correctionParameters;
-  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L1FastJet_AK4PFchs.txt", pathname.c_str())));
-  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L2Relative_AK4PFchs.txt", pathname.c_str())));
-  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Fastsim_MCRUN2_74_V9_L3Absolute_AK4PFchs.txt", pathname.c_str())));
+  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L1FastJet_AK4PFchs.txt", pathname.c_str())));
+  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L2Relative_AK4PFchs.txt", pathname.c_str())));
+  correctionParameters.push_back(JetCorrectorParameters(Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L3Absolute_AK4PFchs.txt", pathname.c_str())));
    
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(correctionParameters);
   
@@ -61,6 +61,7 @@ void JetNtupler::Analyze(bool isData, int Option, string outputfilename, string 
 						 JetCorrector);   
 	  
 	  if(jetPt[i]*JEC < 20) continue;
+
 
 	  //***********************
 	  //Fill Jet Variables

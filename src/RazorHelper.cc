@@ -551,11 +551,24 @@ void RazorHelper::loadPileup_Razor2016_MoriondRereco() {
     // pileup weights
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
-    pileupWeightFile = TFile::Open(
-            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight_2016_36p2ifb.root", cmsswPath.c_str()));
-    pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
-    pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
-    pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+
+    if (!isFastsim) {
+      pileupWeightFile = TFile::Open(
+				     Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight_Summer16_2016_36p2ifb.root", cmsswPath.c_str()));
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      std::cout << "PileupReweight_Summer16_2016_36p2ifb.root\n";
+    } else {
+      pileupWeightFile = TFile::Open(
+				     Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight_2016_36p2ifb.root", cmsswPath.c_str()));
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      std::cout << "PileupReweight_2016_36p2ifb.root\n";
+    }
+
+
 }
 
 void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
@@ -617,7 +630,10 @@ void RazorHelper::loadPhoton_Razor2016_MoriondRereco(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco.root");
-    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");   
+
+    phoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors_80X.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
 
@@ -633,7 +649,7 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_BtoH.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
@@ -846,6 +862,9 @@ void RazorHelper::loadPhoton_Razor2016(){
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_ICHEP.root");
     phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+
+    phoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors_80X.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
 
@@ -861,7 +880,7 @@ void RazorHelper::loadBTag_Razor2016() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_GtoH.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "mujets",                 // measurement type
@@ -1313,7 +1332,7 @@ void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
 
     std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2Moriond17_2017_1_26_GtoH.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_G_H.csv",bTagPathname.c_str()));
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
@@ -1607,6 +1626,13 @@ double RazorHelper::getPhotonScaleFactor(float pt, float eta) {
   double sf = 1.0;
   if (phoLooseEffSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
   else { std::cout << "[WARNING] Could not load phoLooseEffSFHist.\n"; }
+  return sf;
+}
+
+double RazorHelper::getPhotonFastsimToFullsimScaleFactor(float pt, float eta) {
+  double sf = 1.0;
+  if (phoLooseEffFastsimSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffFastsimSFHist, pt, eta, 20.01, 299.9 ); 
+  else { std::cout << "[WARNING] Could not load phoLooseEffFastsimSFHist.\n"; }
   return sf;
 }
 

@@ -39,6 +39,7 @@ class RazorHelper {
 
 	//get photon eff scale factor
         double getPhotonScaleFactor(float pt, float eta);
+	double getPhotonFastsimToFullsimScaleFactor(float pt, float eta);
 
         // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
         // (see FullRazorInclusive analyzer for an example of how to use these)
@@ -216,7 +217,9 @@ class RazorHelper {
 
 	// for photons
         TFile *phoEffSFFile;
+        TFile *phoEffFastsimSFFile;
         TH2D *phoLooseEffSFHist;
+        TH2D *phoLooseEffFastsimSFHist;
 
         // for single lepton triggers
         TFile *eleTrigEffFile;

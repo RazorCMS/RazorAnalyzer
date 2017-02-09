@@ -9,7 +9,7 @@ import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuples2016_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuples2016_Summer16_V3p8 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
@@ -33,11 +33,11 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     if not os.path.isdir(basedir+'/output/'):
         os.mkdir(basedir+'/output/')
-    listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC'
+    listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'
     if reHLT: listdir += 'reHLT'
     jobssuffix = '/jobs'
     if isData:
-        listdir = listdir.replace('/MC','/data')
+        listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
     filesperjob = 3
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
