@@ -1,11 +1,19 @@
-
 #include "../tdrstyle.C"
 #include "../CMS_lumi.C"
-
+#include "TH2Poly.h"
+#include "TROOT.h"
+#include "TCanvas.h"
+#include "TFile.h"
+#include "TStyle.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TApplication.h"
+#include "TPad.h"
+#include <iostream>
 void plotScaleFactor(string label) {
 
   TFile *inf = new TFile(Form("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root",label.c_str()),"READ");
-
+  inf->ls();
   TH2Poly *ttbarNominal = (TH2Poly*)inf->Get("TTJetsScaleFactors");
   TH2Poly *ttbarUp = (TH2Poly*)inf->Get("TTJetsScaleFactorsUp");
   TH2Poly *ttbarDown = (TH2Poly*)inf->Get("TTJetsScaleFactorsDown");
@@ -24,6 +32,7 @@ void plotScaleFactor(string label) {
   //Plot GJetsInv Scale Factors
   //****************************************************
   cv = new TCanvas("cv","cv", 800,600);
+  cv->cd();
   gStyle->SetPalette(53);
   GJetInvNominal->Draw("colztexte1");
   cv->SetLogx();
@@ -47,7 +56,6 @@ void plotScaleFactor(string label) {
   GJetInvNominal->SetStats(false);
   GJetInvNominal->SetMaximum(1.8);
   GJetInvNominal->SetMinimum(0.35);
-
 
   lumi_13TeV = "2.3 fb^{-1}";
   writeExtraText = true;
