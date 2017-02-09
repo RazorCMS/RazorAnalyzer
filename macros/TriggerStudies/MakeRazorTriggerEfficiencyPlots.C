@@ -2,7 +2,7 @@
 //
 // Simple Example
 //
-//root -l RazorAnalyzer/macros/ObjectStudies/MakeElectronEfficiencyPlots.C+'("/afs/cern.ch/work/q/qnguyen/public/Run2SUSY/ElectronNtuple/ElectronNtuple_PromptGenLevel_TTJets_25ns.root",-1,"Electron")'
+//root -l 'RazorAnalyzer/macros/ObjectStudies/MakeElectronEfficiencyPlots.C(2)'. Currently 2 is the only working option for 2016 data.
 //
 //________________________________________________________________________________________________
 
