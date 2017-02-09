@@ -29,3 +29,9 @@ bin/*
 src/Run*.cc
 analyzers/*.h
 Plots
+*.aux
+Zombies*
+*C_ACLiC_*
+*.nav
+*.snm
+*.toc
