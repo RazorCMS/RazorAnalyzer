@@ -1391,7 +1391,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         //Razor
         bool passCuts = false;
         for (auto &vars : mainVars) {
-            if (vars.second->MR > 150 && vars.second->Rsq > 0.4 && vars.second->box != NONE) passCuts = true;
+            if (vars.second->MR > 150 && vars.second->Rsq > 0.15 && vars.second->box != NONE) passCuts = true;
         }
         if (!passCuts) continue;
 
