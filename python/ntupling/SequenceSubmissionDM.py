@@ -78,7 +78,7 @@ def sub_sequence(tag, isData=False, submit=False, label='', email=''):
             cmd_good_lumi = list(filter(None,['python', 'python/ntupling/NtupleUtilsDM.py', '--good-lumi', nosub, '--label', label, data, tag]))
             print ' '.join(cmd_good_lumi)
             subprocess.call(cmd_good_lumi)
-       if email != '':
+        if (email != ''):
             me = 'Dustin\'s Ghost <dustin@ghost>'
             msg = MIMEText('.')
             msg['Subject'] = 'Sequence '+label+' '+tag+' (is Data?  '+str(data)+') is finished' 
