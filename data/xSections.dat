@@ -236,6 +236,12 @@ sb350   3.78661*2.0*2.270e-3
 sb400   1.83537*2.0*2.270e-3
 sb450   0.948333*2.0*2.270e-3
 sb500   0.51848*2.0*2.270e-3
+SMS-T2bH_BR-SbottomToTChi-0p5_mSbottom-300              8.51615*2.0*2.270e-3
+SMS-T2bH_BR-SbottomToTChi-0p5_mSbottom-350              3.78661*2.0*2.270e-3
+SMS-T2bH_BR-SbottomToTChi-0p5_mSbottom-400              1.83537*2.0*2.270e-3
+SMS-T2bH_BR-SbottomToTChi-0p5_mSbottom-450              0.948333*2.0*2.270e-3
+SMS-T2bH_BR-SbottomToTChi-0p5_mSbottom-500              0.51848*2.0*2.270e-3
+
 GluGluHToGG_M125_13TeV_amcatnloFXFX_pythia8             48.58*2.28e-03 
 VBFHToGG_M125_13TeV_amcatnlo_pythia8                    3.748*2.28e-03 
 VHToGG_M125_13TeV_amcatnloFXFX_madspin_pythia8          2.2496*2.28e-03 

@@ -227,8 +227,7 @@ void RazorHelper::loadTag_Razor2015() {
 void RazorHelper::loadPileup_Razor2015() {
     // pileup weights
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
-    pileupWeightFile = TFile::Open(
-            Form("%s/src/RazorAnalyzer/data/PileupReweight_Spring15MCTo2015Data.root", cmsswPath.c_str()));
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_Spring15MCTo2015Data.root");
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -284,7 +283,7 @@ void RazorHelper::loadLepton_Razor2015(){
 void RazorHelper::loadJECs_Razor2015() {
     std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
     // initialize
-    std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
+    std::string jecPathname = "./";
     correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
     JetResolutionParameters = std::vector<JetCorrectorParameters*>();
     JetCorrector = std::vector<FactorizedJetCorrector*>();
@@ -373,9 +372,9 @@ void RazorHelper::loadBTag_Razor2015() {
     btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("BTagEff_Medium_Fullsim");
     btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
 
-    std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2","./CSVv2.csv");
+
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "mujets",                 // measurement type
@@ -387,7 +386,8 @@ void RazorHelper::loadBTag_Razor2015() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
+    // btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
+    btagcalibfastsim = new BTagCalibration("csvv2", "./CSV_13TEV_Combined_20_11_2015.csv");
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
@@ -439,8 +439,7 @@ void RazorHelper::loadTag_Razor2015_76X() {
 void RazorHelper::loadPileup_Razor2015_76X() {
     // pileup weights
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
-    pileupWeightFile = TFile::Open(
-            Form("%s/src/RazorAnalyzer/data/PileupReweight2015_7_6.root", cmsswPath.c_str()));
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight2015_7_6.root");
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -457,7 +456,7 @@ void RazorHelper::loadJECs_Razor2015_76X() {
     std::cout << "RazorHelper: loading jet energy correction constants" << std::endl;
     // initialize
     // load JEC parameters
-    std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
+    std::string jecPathname = "./";
     correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
     JetResolutionParameters = std::vector<JetCorrectorParameters*>();
     JetCorrector = std::vector<FactorizedJetCorrector*>();
@@ -553,15 +552,13 @@ void RazorHelper::loadPileup_Razor2016_MoriondRereco() {
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
 
     if (!isFastsim) {
-      pileupWeightFile = TFile::Open(
-				     Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight_Summer16_2016_36p2ifb.root", cmsswPath.c_str()));
+      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_Summer16_2016_36p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
       std::cout << "PileupReweight_Summer16_2016_36p2ifb.root\n";
     } else {
-      pileupWeightFile = TFile::Open(
-				     Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight_2016_36p2ifb.root", cmsswPath.c_str()));
+      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_2016_36p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -647,9 +644,8 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
     btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
     btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
 
-    std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", "./CSVv2_Moriond17_B_H.csv");
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
@@ -661,7 +657,7 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
+    btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
@@ -704,7 +700,7 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
 void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
     std::cout << "RazorHelper: loading jet energy correction constants, using Summer16_23Sep2016_V3." << std::endl;
     // initialize
-    std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
+    std::string jecPathname = "./";
     correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
     JetResolutionParameters = std::vector<JetCorrectorParameters*>();
     JetCorrector = std::vector<FactorizedJetCorrector*>();
@@ -807,6 +803,8 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 
     }
     else if (isFastsim) {
+      std::cout << "Fastsim JEC\n";
+
       std::vector<JetCorrectorParameters> correctionParametersFastsim = std::vector<JetCorrectorParameters> ();
       correctionParametersFastsim.push_back(JetCorrectorParameters(
                   Form("%s/Spring16_FastSimV1_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
@@ -825,8 +823,8 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       JetCorrector.push_back( JetCorrectorFastsim );
       JetResolutionCalculator.push_back(JetResolutionCalculatorFastsim);
       jecUnc.push_back(jecUncFastsim);
-      JetCorrectionsIOV.push_back( std::pair<int,int>( 1, 99999999 ));
-   }
+      JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
+    }
     else {
       std::vector<JetCorrectorParameters> correctionParametersMC = std::vector<JetCorrectorParameters> ();
       correctionParametersMC.push_back(JetCorrectorParameters(
@@ -846,7 +844,7 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       JetCorrector.push_back( JetCorrectorMC );
       JetResolutionCalculator.push_back(JetResolutionCalculatorMC);
       jecUnc.push_back(jecUncMC);
-      JetCorrectionsIOV.push_back( std::pair<int,int>( 1, 99999999 ));
+      JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
     }
   
 }
@@ -878,9 +876,8 @@ void RazorHelper::loadBTag_Razor2016() {
     btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
     btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
 
-    std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", "./CSVv2_Moriond17_B_H.csv");
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "mujets",                 // measurement type
@@ -892,7 +889,7 @@ void RazorHelper::loadBTag_Razor2016() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
+    btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
@@ -901,7 +898,7 @@ void RazorHelper::loadBTag_Razor2016() {
 void RazorHelper::loadJECs_Razor2016() {
     std::cout << "RazorHelper: loading jet energy correction constants, using Spring16_25nsV6." << std::endl;
     // initialize
-    std::string jecPathname = cmsswPath + "/src/RazorAnalyzer/data/JEC/";
+    std::string jecPathname = "./";
     correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
     JetResolutionParameters = std::vector<JetCorrectorParameters*>();
     JetCorrector = std::vector<FactorizedJetCorrector*>();
@@ -1066,8 +1063,7 @@ void RazorHelper::loadPileup_Razor2016_ICHEP() {
     // pileup weights
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 ICHEP pileup weight histograms" << std::endl;
-    pileupWeightFile = TFile::Open(
-            Form("%s/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016_ICHEP.root", cmsswPath.c_str()));
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight2016_ICHEP.root");
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -1172,7 +1168,7 @@ void RazorHelper::loadPileup_Razor2016G() {
     // pileup weights
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016G pileup weight histograms" << std::endl;
-    pileupWeightFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016G.root");
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight2016G.root");
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -1268,7 +1264,7 @@ void RazorHelper::loadPileup_Razor2016G_SUSYUnblind() {
     // pileup weights
     // LAST UPDATED: 3 November 2016
     std::cout << "RazorHelper: loading 2016G_SUSYUnblind pileup weight histograms" << std::endl;
-    pileupWeightFile = TFile::Open("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016G_SUSYUnblind.root");
+    pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight2016G_SUSYUnblind.root");
     pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
     pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
     pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -1330,9 +1326,8 @@ void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
     btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
     btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
 
-    std::string bTagPathname = cmsswPath + "/src/RazorAnalyzer/data/ScaleFactors/";
     // Fullsim
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_G_H.csv",bTagPathname.c_str()));
+    btagcalib = new BTagCalibration("csvv2", "./CSVv2_Moriond17_G_H.csv");
     btagreader = new BTagCalibrationReader(btagcalib,               // calibration instance
                                            BTagEntry::OP_MEDIUM,     // operating point
 				           "comb",                 // measurement type
@@ -1344,7 +1339,7 @@ void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
+    btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
