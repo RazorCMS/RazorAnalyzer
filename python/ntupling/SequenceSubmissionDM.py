@@ -8,6 +8,8 @@
 import os, sys, subprocess
 import argparse
 import time
+import smtplib
+from email.mime.text import MIMEText
 
 def check_bjobs(job_name):
 # Get the number of running and pending jobs, only proceed if both = 0
@@ -23,7 +25,7 @@ def check_bjobs(job_name):
     return finish
 
 
-def sub_sequence(tag, isData=False, submit=False, label=''):
+def sub_sequence(tag, isData=False, submit=False, label='', email=''):
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     if not submit: 
         nosub = '--no-sub'
@@ -76,6 +78,16 @@ def sub_sequence(tag, isData=False, submit=False, label=''):
             cmd_good_lumi = list(filter(None,['python', 'python/ntupling/NtupleUtilsDM.py', '--good-lumi', nosub, '--label', label, data, tag]))
             print ' '.join(cmd_good_lumi)
             subprocess.call(cmd_good_lumi)
+        if (email != ''):
+            me = 'Dustin\'s Ghost <dustin@ghost>'
+            msg = MIMEText('.')
+            msg['Subject'] = 'Sequence '+label+' '+tag+' (is Data?  '+str(data)+') is finished' 
+            msg['From'] = me
+            msg['To'] = email
+            s = smtplib.SMTP('localhost')
+            s.sendmail(me, email, msg.as_string())
+            s.quit()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -83,7 +95,8 @@ if __name__ == '__main__':
     parser.add_argument('--label', help = 'Label for RazorRun', required = True)
     parser.add_argument('--data', action = 'store_true', help = 'Run on data (MC otherwise)')
     parser.add_argument('--no-sub', dest = 'noSub', action = 'store_true', help = 'Print commands but do not submit')
+    parser.add_argument('--email', help = 'Send email notification after sequence finished')
 
     args = parser.parse_args()
     
-    sub_sequence(args.tag, args.data, (not args.noSub), args.label)
+    sub_sequence(args.tag, args.data, (not args.noSub), args.label, args.email)
