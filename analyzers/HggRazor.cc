@@ -137,14 +137,15 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   map<int, TH1F*> smsSumWeights;
   map<int, TH1F*> smsSumScaleWeights;
   map<int, TH1F*> smsSumPdfWeights;  
+  map<int, TH1F*> smsNISRJets;  
   map<pair<int,int>, TFile*> smsFiles2D;
   map<pair<int,int>, TTree*> smsTrees2D;
   map<pair<int,int>, TH1F*> smsNEvents2D;
   map<pair<int,int>, TH1F*> smsSumWeights2D;
   map<pair<int,int>, TH1F*> smsSumScaleWeights2D;
   map<pair<int,int>, TH1F*> smsSumPdfWeights2D;
+  map<pair<int,int>, TH1F*> smsNISRJets2D;
   
-
 
   //Get CMSSW Directory
   char* cmsswPath;
@@ -162,8 +163,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
   //--------------------------------
-  std::string photonCorrectionPath = "";
-  if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
+  std::string photonCorrectionPath = "./";
+  // if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
 
   EnergyScaleCorrection_class *photonCorrector = 0;
   if (analysisTag == "Razor2015_76X") {
@@ -227,9 +228,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   //B-tagging scale factors
   //-----------------------
   
-  string bTagPathname = "";
-  if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
-  else bTagPathname = "data/ScaleFactors/";
+  string bTagPathname = "./";
+  // if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
+  // else bTagPathname = "data/ScaleFactors/";
   //Fullsim
 
   TString effMeasType, misMeasType;
@@ -693,7 +694,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
 	
 	  //these are the cuts Ana/Manuel told me to use
-	  if ( thisJet.Pt() > 30 && fabs( thisJet.Eta()) < 2.4 && jetPassIDLoose[i]) {
+	  if ( thisJet.Pt() > 30 && fabs( thisJet.Eta()) < 2.4 && jetPassIDLoose[i]) { 
 	    
 	    //try to match to gen partons
 	    //Follow prescription here: https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L1268-L1295
@@ -1592,12 +1593,13 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		smsSumWeights[mChi] = new TH1F(Form("SumWeights%d", mChi), "SumWeights", 1,0.5,1.5);
 		smsSumScaleWeights[mChi] = new TH1F(Form("SumScaleWeights%d", mChi), "SumScaleWeights", 6,-0.5,5.5);
 		smsSumPdfWeights[mChi] = new TH1F(Form("SumPdfWeights%d", mChi), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
+		smsNISRJets[mChi] = new TH1F(Form("NISRJets%d", mChi), "NISRJets", 7,-0.5,6.5);
 		cout << "Created new output file " << thisFileName << endl;
 	      }
 	      //Fill NEvents hist 
 	      smsNEvents[mChi]->Fill(1.0, genWeight);
 	      smsSumWeights[mChi]->Fill(1.0, weight);
-
+	      smsNISRJets[mChi]->Fill(min(NISRJets,6), genWeight);
 	      smsSumScaleWeights[mChi]->Fill(0.0, sf_facScaleUp);
 	      smsSumScaleWeights[mChi]->Fill(1.0, sf_facScaleDown);
 	      smsSumScaleWeights[mChi]->Fill(2.0, sf_renScaleUp);
@@ -1645,12 +1647,15 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		smsNEvents2D[smsPair] = new TH1F(Form("NEvents%d%d", mChi, mLSP), "NEvents", 1,0.5,1.5);
 		smsSumWeights2D[smsPair] = new TH1F(Form("SumWeights%d%d", mChi, mLSP), "SumWeights", 1,0.5,1.5);
 		smsSumScaleWeights2D[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mChi, mLSP), "SumScaleWeights", 6,-0.5,5.5);
-		smsSumPdfWeights2D[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mChi, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
+		smsSumPdfWeights2D[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mChi, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);		
+		smsNISRJets2D[smsPair] = new TH1F(Form("NISRJets%d%d", mChi, mLSP), "NISRJets", 7,-0.5,6.5);
+
 		cout << "Created new output file " << thisFileName << endl;
 	      }
 	      //Fill NEvents hist 
 	      smsNEvents2D[smsPair]->Fill(1.0, genWeight);
 	      smsSumWeights2D[smsPair]->Fill(1.0, weight);
+	      smsNISRJets2D[smsPair]->Fill(min(NISRJets,6), genWeight);
 
 	      smsSumScaleWeights2D[smsPair]->Fill(0.0, sf_facScaleUp);
 	      smsSumScaleWeights2D[smsPair]->Fill(1.0, sf_facScaleDown);
@@ -1722,6 +1727,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	smsSumWeights[filePtr.first]->Write("SumWeights");
 	smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
 	smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
+	smsNISRJets[filePtr.first]->Write("NISRJets");
       }
     } else {
       for(auto &filePtr : smsFiles2D){
@@ -1732,6 +1738,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	smsSumWeights2D[filePtr.first]->Write("SumWeights");
 	smsSumScaleWeights2D[filePtr.first]->Write("SumScaleWeights");
 	smsSumPdfWeights2D[filePtr.first]->Write("SumPdfWeights");
+	smsNISRJets2D[filePtr.first]->Write("NISRJets");
       }
     }
   }
