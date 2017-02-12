@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Nov 28 22:08:54 2016 by ROOT version 6.02/05
+// Sat Feb 11 04:34:12 2017 by ROOT version 6.02/05
 // from TTree RazorEvents/selected miniAOD information
-// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root
+// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -26,9 +26,9 @@ public :
    Bool_t          isData;
    Int_t           nPV;
    UInt_t          runNum;
+   UInt_t          nSlimmedSecondV;
    UInt_t          lumiNum;
    UInt_t          eventNum;
-   Int_t           nSlimmedSecondV;
    Float_t         pvX;
    Float_t         pvY;
    Float_t         pvZ;
@@ -197,6 +197,10 @@ public :
    Float_t         pho_convTrkClusZ[700];   //[nPhotons]
    Float_t         pho_vtxSumPx[700][200];   //[nPhotons]
    Float_t         pho_vtxSumPy[700][200];   //[nPhotons]
+   Float_t         pho_seedRecHitSwitchToGain6[700];   //[nPhotons]
+   Float_t         pho_seedRecHitSwitchToGain1[700];   //[nPhotons]
+   Float_t         pho_anyRecHitSwitchToGain6[700];   //[nPhotons]
+   Float_t         pho_anyRecHitSwitchToGain1[700];   //[nPhotons]
    Int_t           nJets;
    Float_t         jetE[900];   //[nJets]
    Float_t         jetPt[900];   //[nJets]
@@ -286,6 +290,8 @@ public :
    Bool_t          Flag_HBHEIsoNoiseFilter;
    Bool_t          Flag_badChargedCandidateFilter;
    Bool_t          Flag_badMuonFilter;
+   Bool_t          Flag_badGlobalMuonFilter;
+   Bool_t          Flag_duplicateMuonFilter;
    Bool_t          Flag_CSCTightHaloFilter;
    Bool_t          Flag_hcalLaserEventFilter;
    Bool_t          Flag_EcalDeadCellTriggerPrimitiveFilter;
@@ -332,9 +338,9 @@ public :
    TBranch        *b_isData;   //!
    TBranch        *b_nPV;   //!
    TBranch        *b_runNum;   //!
+   TBranch        *b_nSlimmedSecondV;   //!
    TBranch        *b_lumiNum;   //!
    TBranch        *b_eventNum;   //!
-   TBranch        *b_nSlimmedSecondV; //!
    TBranch        *b_pvX;   //!
    TBranch        *b_pvY;   //!
    TBranch        *b_pvZ;   //!
@@ -503,6 +509,10 @@ public :
    TBranch        *b_pho_convTrkClusZ;   //!
    TBranch        *b_pho_vtxSumPx;   //!
    TBranch        *b_pho_vtxSumPy;   //!
+   TBranch        *b_pho_seedRecHitSwitchToGain6;   //!
+   TBranch        *b_pho_seedRecHitSwitchToGain1;   //!
+   TBranch        *b_pho_anyRecHitSwitchToGain6;   //!
+   TBranch        *b_pho_anyRecHitSwitchToGain1;   //!
    TBranch        *b_nJets;   //!
    TBranch        *b_jetE;   //!
    TBranch        *b_jetPt;   //!
@@ -592,6 +602,8 @@ public :
    TBranch        *b_Flag_HBHEIsoNoiseFilter;   //!
    TBranch        *b_Flag_badChargedCandidateFilter;   //!
    TBranch        *b_Flag_badMuonFilter;   //!
+   TBranch        *b_Flag_badGlobalMuonFilter;   //!
+   TBranch        *b_Flag_duplicateMuonFilter;   //!
    TBranch        *b_Flag_CSCTightHaloFilter;   //!
    TBranch        *b_Flag_hcalLaserEventFilter;   //!
    TBranch        *b_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
@@ -653,11 +665,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root");
+         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.8/MC/RunIISpring16/v1/sixie/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Run2RazorNtuplerV3p8_ToCERN_MC_25ns_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_v1_v1/161124_002848/0000/razorNtuple_100.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -713,9 +725,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("isData", &isData, &b_isData);
    fChain->SetBranchAddress("nPV", &nPV, &b_nPV);
    fChain->SetBranchAddress("runNum", &runNum, &b_runNum);
+   fChain->SetBranchAddress("nSlimmedSecondV", &nSlimmedSecondV, &b_nSlimmedSecondV);
    fChain->SetBranchAddress("lumiNum", &lumiNum, &b_lumiNum);
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
-   fChain->SetBranchAddress("nSlimmedSecondV", &nSlimmedSecondV, &b_nSlimmedSecondV);
    fChain->SetBranchAddress("pvX", &pvX, &b_pvX);
    fChain->SetBranchAddress("pvY", &pvY, &b_pvY);
    fChain->SetBranchAddress("pvZ", &pvZ, &b_pvZ);
@@ -884,6 +896,10 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_convTrkClusZ", pho_convTrkClusZ, &b_pho_convTrkClusZ);
    fChain->SetBranchAddress("pho_vtxSumPx", pho_vtxSumPx, &b_pho_vtxSumPx);
    fChain->SetBranchAddress("pho_vtxSumPy", pho_vtxSumPy, &b_pho_vtxSumPy);
+   fChain->SetBranchAddress("pho_seedRecHitSwitchToGain6", pho_seedRecHitSwitchToGain6, &b_pho_seedRecHitSwitchToGain6);
+   fChain->SetBranchAddress("pho_seedRecHitSwitchToGain1", pho_seedRecHitSwitchToGain1, &b_pho_seedRecHitSwitchToGain1);
+   fChain->SetBranchAddress("pho_anyRecHitSwitchToGain6", pho_anyRecHitSwitchToGain6, &b_pho_anyRecHitSwitchToGain6);
+   fChain->SetBranchAddress("pho_anyRecHitSwitchToGain1", pho_anyRecHitSwitchToGain1, &b_pho_anyRecHitSwitchToGain1);
    fChain->SetBranchAddress("nJets", &nJets, &b_nJets);
    fChain->SetBranchAddress("jetE", jetE, &b_jetE);
    fChain->SetBranchAddress("jetPt", jetPt, &b_jetPt);
@@ -973,6 +989,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, &b_Flag_HBHEIsoNoiseFilter);
    fChain->SetBranchAddress("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, &b_Flag_badChargedCandidateFilter);
    fChain->SetBranchAddress("Flag_badMuonFilter", &Flag_badMuonFilter, &b_Flag_badMuonFilter);
+   fChain->SetBranchAddress("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter, &b_Flag_badGlobalMuonFilter);
+   fChain->SetBranchAddress("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter, &b_Flag_duplicateMuonFilter);
    fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
    fChain->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, &b_Flag_hcalLaserEventFilter);
    fChain->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, &b_Flag_EcalDeadCellTriggerPrimitiveFilter);
@@ -1001,7 +1019,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genQScale", &genQScale, &b_genQScale);
    fChain->SetBranchAddress("genAlphaQCD", &genAlphaQCD, &b_genAlphaQCD);
    fChain->SetBranchAddress("genAlphaQED", &genAlphaQED, &b_genAlphaQED);
-   fChain->SetBranchAddress("lheComments", &lheComments, &b_lheComments);
+   fChain->SetBranchAddress("lheComments", &lheComments, &b_lheComments);   
    fChain->SetBranchAddress("scaleWeights", &scaleWeights, &b_scaleWeights);
    fChain->SetBranchAddress("pdfWeights", &pdfWeights, &b_pdfWeights);
    fChain->SetBranchAddress("alphasWeights", &alphasWeights, &b_alphasWeights);
