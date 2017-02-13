@@ -31,12 +31,14 @@ if __name__ == '__main__':
             help='Plot uncertainties from toys', dest='loadToys')
     parser.add_argument('--input-fit-file', dest='inputFitFile',
             help='File to load existing fit from')
+    parser.add_argument('--no-fit', dest='noFit', action='store_true',
+            help='Do not perform fit')
     args = parser.parse_args()
 
     weights = {}
     fitter = FitInstance(args.box, tag=args.tag, isData=not args.mc, 
             weights=weights, full=args.full, configFile=args.config)
     fitter.doFitSequence(load=(args.load or args.loadFit), 
-            doFit=(not args.loadFit), plot=(not args.noPlot), 
+            doFit=(not (args.loadFit or args.noFit)), plot=(not args.noPlot), 
             unblind=args.unblind, runToys=args.runToys, loadToys=args.loadToys, 
             inputFitFile=args.inputFitFile)
