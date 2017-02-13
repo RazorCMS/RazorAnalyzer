@@ -39,7 +39,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     if isData:
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
-    script=basedir+'/scripts/runRazorJob_CERN_EOS_Thong.csh'
+    script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
