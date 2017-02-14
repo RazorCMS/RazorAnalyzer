@@ -164,6 +164,11 @@ class ControlSampleEvents {
   Float_t                 mll;
   Float_t                 u1, u2; // Parallel and perpendicular component of the recoil vector to Z
   Bool_t                  Flag_HBHENoiseFilter;//
+  Bool_t                  Flag_HBHEIsoNoiseFilter;//
+  Bool_t                  Flag_badChargedCandidateFilter;//
+  Bool_t                  Flag_badMuonFilter;//
+  Bool_t                  Flag_badGlobalMuonFilter;//
+  Bool_t                  Flag_duplicateMuonFilter;//
   Bool_t                  Flag_CSCTightHaloFilter;
   Bool_t                  Flag_hcalLaserEventFilter; //
   Bool_t                  Flag_EcalDeadCellTriggerPrimitiveFilter; //
@@ -422,6 +427,11 @@ class ControlSampleEvents {
     lep1MTnoHF           = 0.0;  
     mll                  = 0.0;
     Flag_HBHENoiseFilter = 0.0;//
+    Flag_HBHEIsoNoiseFilter = 0.0;//
+    Flag_badChargedCandidateFilter = 0.0;//
+    Flag_badMuonFilter = 0.0;//
+    Flag_badGlobalMuonFilter = 0.0;//
+    Flag_duplicateMuonFilter = 0.0;//
     Flag_CSCTightHaloFilter = 0.0;
     Flag_hcalLaserEventFilter = 0.0; //
     Flag_EcalDeadCellTriggerPrimitiveFilter = 0.0; //
@@ -587,6 +597,11 @@ class ControlSampleEvents {
 
     // noise filters
     tree_->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
+    tree_->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter,"Flag_HBHEIsoNoiseFilter/O");
+    tree_->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter,"Flag_badChargedCandidateFilter/O");
+    tree_->Branch("Flag_badMuonFilter", &Flag_badMuonFilter,"Flag_badMuonFilter/O");
+    tree_->Branch("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter,"Flag_badGlobalMuonFilter/O");
+    tree_->Branch("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter,"Flag_duplicateMuonFilter/O");
     tree_->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter,"Flag_CSCTightHaloFilter/O");
     tree_->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter,"Flag_hcalLaserEventFilter/O");
     tree_->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter,"Flag_EcalDeadCellTriggerPrimitiveFilter/O");
@@ -951,6 +966,11 @@ class ControlSampleEvents {
     tree_->SetBranchAddress("NISRJets",&NISRJets);
 
     tree_->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
+    tree_->SetBranchAddress("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter);
+    tree_->SetBranchAddress("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter);
+    tree_->SetBranchAddress("Flag_badMuonFilter", &Flag_badMuonFilter);
+    tree_->SetBranchAddress("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter);
+    tree_->SetBranchAddress("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter);
     tree_->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter);
     tree_->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter);
     tree_->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);

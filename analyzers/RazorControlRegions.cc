@@ -1417,6 +1417,11 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
     	
       //MET Filter
       events->Flag_HBHENoiseFilter = Flag_HBHENoiseFilter;
+      events->Flag_HBHEIsoNoiseFilter = Flag_HBHEIsoNoiseFilter;
+      events->Flag_badChargedCandidateFilter = Flag_badChargedCandidateFilter;
+      events->Flag_badMuonFilter = Flag_badMuonFilter;
+      events->Flag_badGlobalMuonFilter = Flag_badGlobalMuonFilter;
+      events->Flag_duplicateMuonFilter = Flag_duplicateMuonFilter;
       events->Flag_CSCTightHaloFilter = Flag_CSCTightHaloFilter;
       events->Flag_hcalLaserEventFilter = Flag_hcalLaserEventFilter;
       events->Flag_EcalDeadCellTriggerPrimitiveFilter = Flag_EcalDeadCellTriggerPrimitiveFilter;
