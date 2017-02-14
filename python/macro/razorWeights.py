@@ -333,6 +333,15 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             print event.trigWeight1L, event.lep1.Pt(), event.lep1.Eta()
         if str.lower("removePileupWeights") in lweightOpts:
             eventWeight /= event.pileupWeight
+        if str.lower("removeBtagWeights") in lweightOpts:
+            if hasattr(event, "btagW"):
+                btagWeight = event.btagW
+            elif hasattr(event, "btagCorrFactor"):
+                btagWeight = event.btagCorrFactor
+            else:
+                raise RuntimeError("Warning: btag weight branch not found in tree!")
+            if btagWeight > 0:
+                eventWeight /= btagWeight
 
         #reweighting for ttbar dilepton control region
         if 'ttbardileptonmt' in lweightOpts:

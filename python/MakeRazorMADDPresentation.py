@@ -178,14 +178,24 @@ def def_slides(plot_dir):
         for nb in range(4):
             slides += [
                     Slide("%s (%d b-tags)"%(box,nb),
-                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
-                         "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
+                         ["%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
     for box in ["DiJet","LeptonJet"]:
         for nb in range(3):
             slides += [
                     Slide("%s (%d b-tags)"%(box,nb),
-                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
-                         "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
+                         ["%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
+    #for box in ["MultiJet","LeptonMultiJet"]:
+    #    for nb in range(4):
+    #        slides += [
+    #                Slide("%s (%d b-tags)"%(box,nb),
+    #                    ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
+    #                     "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
+    #for box in ["DiJet","LeptonJet"]:
+    #    for nb in range(3):
+    #        slides += [
+    #                Slide("%s (%d b-tags)"%(box,nb),
+    #                    ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
+    #                     "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
 
     for slide in slides:
         slide.append_dir_prefix(plot_dir)
@@ -193,7 +203,7 @@ def def_slides(plot_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        in_dir = "Plots/Razor2016"
+        in_dir = "Plots/Razor2016_MoriondRereco"
     else:
         in_dir = sys.argv[1]
 

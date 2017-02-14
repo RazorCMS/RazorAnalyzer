@@ -68,7 +68,6 @@ if __name__ == "__main__":
     plotOpts = {"SUS15004":True}
 
     #doSideband=(not args.full)
-    toysToUse = razorFitFiles[tag]
     dirSuffix = ""
     plotOpts['sideband'] = True
     #if not doSideband:
@@ -80,6 +79,8 @@ if __name__ == "__main__":
     if args.noFit: 
         toysToUse = {}
         del plotOpts['sideband']
+    else:
+        toysToUse = razorFitFiles[tag]
     boxesToUse = ["MultiJet", "LeptonMultiJet", "DiJet", "LeptonJet"]
     if args.box is not None:
         boxesToUse = [args.box]

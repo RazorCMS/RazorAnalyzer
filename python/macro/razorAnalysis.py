@@ -22,6 +22,7 @@ razorWeightOpts = {
                      #'reapplyTrigWeights', #remove lepton trigger weights and multiply by new weight
                      #'removeTrigWeights', #divide event weight by trigger weight 
                      #'removePileupWeights', #divide event weight by pileup weight
+                     #'removeBtagWeights', #divide event weight by btag weight
                      ], 
         }
 razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
@@ -30,9 +31,9 @@ razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorExtraWeightOpts = {
         "Razor2016G_SUSYUnblind_80X":{
-            #'TTJets':['nisr'], # weight ttbar sample according to number of ISR jets
-            #'TTJets1L':['nisr'], 
-            #'TTJets2L':['nisr'],
+            'TTJets':['nisr'], # weight ttbar sample according to number of ISR jets
+            'TTJets1L':['nisr'], 
+            'TTJets2L':['nisr'],
                  }
         }
 razorExtraWeightOpts["Razor2016_MoriondRereco"] = razorExtraWeightOpts["Razor2016G_SUSYUnblind_80X"]
@@ -335,12 +336,13 @@ for tag in sampleTags2016:
 #####################################
 
 razorFitDirs = { 
-        "Razor2016G_SUSYUnblind_80X":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/CMSSW_7_1_5/src/RazorAnalyzer/fits_2017_01_09/ReReco2016_02Jan/"
+        "Razor2016G_SUSYUnblind_80X":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/CMSSW_7_1_5/src/RazorAnalyzer/fits_2017_01_09/ReReco2016_02Jan/",
+        "Razor2016_MoriondRereco":"/afs/cern.ch/work/d/duanders/public/RazorSidebandPlots/10Feb2017/"
         }
 razorFitFiles = { tag:{} for tag in razorFitDirs }
 for tag,path in razorFitDirs.iteritems():
     for box in ["MultiJet","DiJet","LeptonMultiJet","LeptonJet"]:
-        razorFitFiles[tag][box] = "%s/%s/Sideband/toys_Bayes_noStat_%s.root"%(path,box,box)
+        razorFitFiles[tag][box] = "%s/Fits_%s/toys_Bayes_noStat_%s.root"%(path,box,box)
 
 
 #####################################
@@ -516,9 +518,12 @@ def appendBoxCuts(cuts, boxNums):
     """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
     return '('+(' || '.join(['box == '+str(n) for n in boxNums])) + ") && " + cuts
 
-recommendedNoiseFilters = ["Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter","Flag_goodVertices",
-        "Flag_eeBadScFilter","Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
-        "Flag_badChargedCandidateFilter","Flag_badMuonFilter"
+recommendedNoiseFilters = [
+        "Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter",
+        "Flag_goodVertices", "Flag_eeBadScFilter",
+        "Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
+        "Flag_badChargedCandidateFilter","Flag_badMuonFilter",
+        "Flag_badGlobalMuonFilter", "Flag_duplicateMuonFilter"
         ]
 def appendNoiseFilters(cuts, tree=None):
     ret = copy.copy(cuts)
