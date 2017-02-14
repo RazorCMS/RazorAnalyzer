@@ -197,6 +197,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
+    bool Flag_hasEcalGainSwitch;
 
     //Set branches
     for (auto &vars : mainVars) {
@@ -229,6 +230,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
     razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
     razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
+    razorTree->Branch("Flag_hasEcalGainSwitch", &Flag_hasEcalGainSwitch, "Flag_hasEcalGainSwitch/O");
 
     if (!isData) {    
         razorTree->Branch("genWeight", &genWeight, "genWeight/F");
@@ -1187,6 +1189,23 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
         }
 
+        //////////////////////////////////////////////////////
+        //Check for any photons with Ecal Gain Switch
+        //////////////////////////////////////////////////////
+	Flag_hasEcalGainSwitch = false;
+	for (int i = 0; i < nPhotons; i++){
+	  if (phoPt[i] > 50
+	      && 
+	      (pho_seedRecHitSwitchToGain6[i] || 
+	       pho_seedRecHitSwitchToGain1[i] || 
+	       pho_anyRecHitSwitchToGain6[i] || 
+	       pho_anyRecHitSwitchToGain1[i]  
+	       )
+	      ) {
+	    Flag_hasEcalGainSwitch = true;
+	  }
+	}
+	
         /////////////////////////////////
         //Categorize into boxes
         /////////////////////////////////
