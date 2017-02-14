@@ -112,7 +112,6 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             hesse_status = m2.minimize('Minuit2','hesse')
 
         elif box=='LeptonMultiJet':
-            scan_status = m2.minimize('Minuit2', 'scan')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
@@ -123,6 +122,8 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
@@ -161,10 +162,14 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 def unweightHist(hist):
     """Throws a Poisson toy from each bin of the histogram.
         Returns the resulting unweighted histogram"""
+    rt.RooRandom.randomGenerator().SetSeed(33333)
     newHist = hist.Clone()
     for ibin in range(1, newHist.GetNbinsX()+1):
-        newHist.SetBinContent( ibin, np.random.poisson(
-            hist.GetBinContent(ibin)) )
+        if hist.GetBinContent(ibin) > 0:
+            newHist.SetBinContent( ibin, np.random.poisson(
+                hist.GetBinContent(ibin)) )
+        else:
+            newHist.SetBinContent( ibin, 0. )
     return newHist
 
 def make3DHistProjections(hist3D):
@@ -390,6 +395,15 @@ class FitInstance(object):
         self.restoreFitParams(fitResult=w.obj("nll_extRazorPdf_data_obs"))
         print "Loaded fit parameters from file",fitFile
 
+    def loadFitResultFromFile(self, fitFile):
+        """Loads the fit result from the given file and saves it in 
+            the current file."""
+        w = self.getWorkspaceFromFile(fitFile)
+        fr = w.obj("nll_extRazorPdf_data_obs")
+        if not fr:
+            raise FitError("Fit result not found in %s"%fitFile)
+        self.addToWorkspace(fr, tobject=True)
+
     def fit(self, inputFitFile=None):
         """Fits the razor pdf to the data"""
         if inputFitFile is None:
@@ -432,13 +446,12 @@ class FitInstance(object):
                 rt.RooFit.Name('central'),rt.RooFit.Asimov())
         opt = [rt.RooFit.CutRange(myRange) 
                 for myRange in sideband.split(',')]
-        asimov_reduce = asimov.reduce(opt[0])
-        dataHist_reduce = dataHist.reduce(opt[0])
+        h_th1x = asimov.reduce(opt[0]).createHistogram('h_th1x',th1x)
+        h_data_th1x = dataHist.reduce(opt[0]).createHistogram('h_data_th1x',th1x)
         for iOpt in range(1,len(opt)):
-            asimov_reduce.add(asimov.reduce(opt[iOpt]))
-            dataHist_reduce.add(dataHist.reduce(opt[iOpt]))
-        h_th1x = asimov_reduce.createHistogram('h_th1x',th1x)
-        h_data_th1x = dataHist_reduce.createHistogram('h_data_th1x',th1x)
+            h_th1x.Add(asimov.reduce(opt[iOpt]).createHistogram("h_th1x_%d"%iOpt,th1x))
+            h_data_th1x.Add(dataHist.reduce(opt[iOpt]).createHistogram(
+                "h_data_th1x_%d"%iOpt,th1x))
         h_data_nBtagRsqMR = get3DHistoFrom1D(h_data_th1x,self.x,self.y,self.z,"h_data_nBtagRsqMR")
         h_nBtagRsqMR = get3DHistoFrom1D(h_th1x,self.x,self.y,self.z,"h_nBtagRsqMR")
         return h_data_nBtagRsqMR, h_nBtagRsqMR
@@ -684,6 +697,9 @@ class FitInstance(object):
         if doFit:
             self.fit(inputFitFile=inputFitFile)
             self.plotCorrelationMatrix()
+        elif inputFitFile is not None:
+            self.loadFitParamsFromFile(inputFitFile)
+            self.loadFitResultFromFile(inputFitFile)
         if runToys:
             self.runToys(sysPlusStat=True)
             self.runToys(sysPlusStat=False)

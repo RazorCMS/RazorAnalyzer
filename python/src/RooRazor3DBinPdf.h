@@ -52,7 +52,7 @@ protected:
 
    Double_t Gfun(const Double_t x, const Double_t y) const{
      //std::cout << "Gamma(N=" << N << ",BN[(x-X0)(y-Y0)]^(1/N)=" << B*N*pow(x-X0,1/N)*pow(y-Y0,1/N) <<") = " <<  Gamma(N,B*N*pow(x-X0,1/N)*pow(y-Y0,1/N)) << std::endl;
-     return Gamma(N,B*N*pow((x-X0)*(y-Y0),1/N));
+     return N*pow(B*N,-N)*Gamma(N,B*N*pow((x-X0)*(y-Y0),1/N));
    }
 
    RooRealProxy th1x;        // dependent variable
