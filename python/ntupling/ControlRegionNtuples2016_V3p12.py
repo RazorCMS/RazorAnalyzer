@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p12_14Feb2017"
+VERSION = "V3p12_20Feb2017"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -236,24 +236,24 @@ SAMPLES['1LSusySync']["SingleTop"] = SAMPLES['1L']['SingleTop']
 DATA = {}
 DATA['1L'] = {
         "SingleMuon":[
-                'SingleMuon_2016B_23Sep2016',
-                'SingleMuon_2016C_23Sep2016',
-                'SingleMuon_2016D_23Sep2016',
-                'SingleMuon_2016E_23Sep2016',
-                'SingleMuon_2016F_23Sep2016',
-                'SingleMuon_2016G_23Sep2016',
-                'SingleMuon_2016H_PRv2',
-                'SingleMuon_2016H_PRv3',
+                'SingleMuon_2016B_03Feb2017',
+                'SingleMuon_2016C_03Feb2017',
+                'SingleMuon_2016D_03Feb2017',
+                'SingleMuon_2016E_03Feb2017',
+                'SingleMuon_2016F_03Feb2017',
+                'SingleMuon_2016G_03Feb2017',
+                'SingleMuon_2016H_03Feb2017v2',
+                'SingleMuon_2016H_03Feb2017v3',
             ],
         "SingleElectron":[
-                'SingleElectron_2016B_23Sep2016',
-                'SingleElectron_2016C_23Sep2016',
-                'SingleElectron_2016D_23Sep2016',
-                'SingleElectron_2016E_23Sep2016',
-                'SingleElectron_2016F_23Sep2016',
-                'SingleElectron_2016G_23Sep2016',
-                'SingleElectron_2016H_PRv2',
-                'SingleElectron_2016H_PRv3',
+                'SingleElectron_2016B_03Feb2017',
+                'SingleElectron_2016C_03Feb2017',
+                'SingleElectron_2016D_03Feb2017',
+                'SingleElectron_2016E_03Feb2017',
+                'SingleElectron_2016F_03Feb2017',
+                'SingleElectron_2016G_03Feb2017',
+                'SingleElectron_2016H_03Feb2017v2',
+                'SingleElectron_2016H_03Feb2017v3',
             ]
         }
 DATA['1LInv'] = DATA['1L'].copy()
@@ -262,26 +262,26 @@ DATA['2LNoSkim'] = DATA['1L'].copy()
 DATA['2LAbsolutelyNoSkim'] = DATA['1L'].copy()
 DATA['2LInv'] = DATA['1L'].copy()
 DATA['VetoL'] = { 'HTMHT':[
-                'HTMHT_2016B_23Sep2016',
-                'HTMHT_2016C_23Sep2016',
-                'HTMHT_2016D_23Sep2016',
-                'HTMHT_2016E_23Sep2016',
-                'HTMHT_2016F_23Sep2016',
-                'HTMHT_2016G_23Sep2016',
-                'HTMHT_2016H_PRv2',
-                'HTMHT_2016H_PRv3',
+                'HTMHT_2016B_03Feb2017',
+                'HTMHT_2016C_03Feb2017',
+                'HTMHT_2016D_03Feb2017',
+                'HTMHT_2016E_03Feb2017',
+                'HTMHT_2016F_03Feb2017',
+                'HTMHT_2016G_03Feb2017',
+                'HTMHT_2016H_03Feb2017v2',
+                'HTMHT_2016H_03Feb2017v3',
                 ] }
 DATA['VetoTau'] = { 'HTMHT':copy.copy(DATA['VetoL']['HTMHT']) }
 DATA['Photon'] = {
         "SinglePhoton":[
-                'SinglePhoton_2016B_23Sep2016',
-                'SinglePhoton_2016C_23Sep2016',
-                'SinglePhoton_2016D_23Sep2016',
-                'SinglePhoton_2016E_23Sep2016',
-                'SinglePhoton_2016F_23Sep2016',
-                'SinglePhoton_2016G_23Sep2016',
-                'SinglePhoton_2016H_PRv2',
-                'SinglePhoton_2016H_PRv3',
+                'SinglePhoton_2016B_03Feb2017',
+                'SinglePhoton_2016C_03Feb2017',
+                'SinglePhoton_2016D_03Feb2017',
+                'SinglePhoton_2016E_03Feb2017',
+                'SinglePhoton_2016F_03Feb2017',
+                'SinglePhoton_2016G_03Feb2017',
+                'SinglePhoton_2016H_03Feb2017v2',
+                'SinglePhoton_2016H_03Feb2017v3',
                 ]
         }
 DATA['Signal'] = DATA['1L'].copy()
