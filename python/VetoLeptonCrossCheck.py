@@ -81,11 +81,15 @@ if __name__ == "__main__":
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
             processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
             debugLevel=debugLevel)
+    sfHistsSignal = macro.loadScaleFactorHists(
+            sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag),
+            processNames=regions["DiJetForVetoLepton"].samples, scaleFactorNames={ "ZInv":"GJetsInv", "TTJets1L":"TTJets", "TTJets2L":"TTJets" }, debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
-    sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
-    sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
+    for h in [sfHists, sfHistsSignal]:
+        h['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
+        h['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
+        h['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
     sfVars = ("MR","Rsq")
     #recreate output file to avoid confusion
     outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
@@ -117,9 +121,11 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #set up analysis
         if region.startswith('Veto'):
+            sfHistsToUse = sfHists
             auxSFsToUse = razorWeights.getNJetsSFs(analysis,jetName='NJets40')
             treeName = "ControlSampleEvent"
         else:
+            sfHistsToUse = sfHistsSignal
             auxSFsToUse = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
             treeName = "RazorInclusive"
         #set up lepton pt correction
@@ -150,7 +156,7 @@ if __name__ == "__main__":
         print "Signal region variable for correction:",sigVarForCorrection,"\n"
         #perform analysis
         hists[region] = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
-                sfHists=sfHists, sfVars=sfVars, printdir=outdir, auxSFs=auxSFsToUse, 
+                sfHists=sfHistsToUse, sfVars=sfVars, printdir=outdir, auxSFs=auxSFsToUse, 
                 treeName=treeName, debugLevel=debugLevel )
         #export histograms
         macro.exportHists(hists[region], outFileName='controlHistograms'+region+'.root', 
@@ -160,8 +166,9 @@ if __name__ == "__main__":
             #make control region scale factors
             sfHists[region] = makeVetoLeptonCorrectionHist(hists[region], lumiData=analysis.lumi, 
                     debugLevel=debugLevel, var=varForCorrection, signifThreshold=1.0, 
-                    regionName=region, doDataOverMC=True, sfHists=sfHists, 
+                    regionName=region, doDataOverMC=True, sfHists=sfHistsToUse, 
                     printdir=outdir)
+            sfHistsSignal[region] = sfHists[region]
         else:
             #make signal region scale factors
             controlRegionHists = hists[regionsCorrespondence[region]]
@@ -172,7 +179,8 @@ if __name__ == "__main__":
                     signifThreshold=1.0, regionName=region, doDataOverMC=False, 
                     histsToCorrect=hists[region], signalRegionVar=sigVarForCorrection, 
                     mtEfficiencyHist=mtHistToUse, dPhiEfficiencyHist=dphiHistToUse, 
-                    sfHists=sfHists, printdir=outdir)
+                    sfHists=sfHistsToUse, printdir=outdir)
+            sfHistsSignal[region] = sfHists[region]
             #write out to file
             sfHistClone = sfHists[region].Clone()
             print "Writing scale factor histogram",sfHistClone.GetName(),"to file"

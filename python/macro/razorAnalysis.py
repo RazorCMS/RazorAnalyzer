@@ -775,6 +775,8 @@ for box in ["MultiJet", "DiJet", "LeptonMultiJet", "LeptonJet"]:
             "MR" : cfg.getBinning(box)[0],
             "Rsq" : cfg.getBinning(box)[1],
             }
+for box in ['LooseLeptonDiJet', 'LooseLeptonMultiJet']:
+    razorBinning[box] = razorBinning[box.replace('LooseLepton','')].copy()
 
 ### Add 2D razor binning to each region
 for region,binning in razorBinning.iteritems():
@@ -1023,6 +1025,10 @@ colsSignal["GJetsInv"]["0B"] = [
     [ 0.25, 0.3, 0.41, 0.52, 1.5 ],
     ]
 
+for box in ['LooseLeptonMultiJet','LooseLeptonDiJet']:
+    xbinsSignal[box] = xbinsSignal[box.replace('LooseLepton','')]
+    colsSignal[box] = colsSignal[box.replace('LooseLepton','')]
+
 class Analysis:
     """Class to hold analysis cuts, binning, input files, and trigger info"""
     def __init__(self, region, tag, njetsMin=-1, njetsMax=-1, nbMin=-1, nbMax=-1):
@@ -1042,7 +1048,7 @@ class Analysis:
         elif tag == "Razor2016G_SUSYUnblind_80X":
             self.lumi = 4394
         elif tag == "Razor2016_MoriondRereco":
-            self.lumi = 36800
+            self.lumi = 35867
         else:
             sys.exit("Error: tag"+tag+"is not supported!")
 
@@ -1276,6 +1282,17 @@ class Analysis:
             self.binning = razorBinning[self.region]
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
+        elif self.region in looseLeptonRazorBoxes:
+            self.trigType = "Razor"
+            self.jetVar = "nSelectedJets"
+            self.bjetVar = "nBTaggedJets"
+            self.filenames = razorNtuples["SignalHadronic"][self.tag]
+            self.samples = razorSamples["SignalHadronic"]
+            self.samplesReduced = razorSamplesReduced["SignalHadronic"]
+            self.cuts = razorCuts[self.region]
+            self.binning = razorBinning[self.region]
+            self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
+
         elif self.region in hadronicRazorBoxes:
             self.trigType = "Razor"
             self.jetVar = "nSelectedJets"
@@ -1291,7 +1308,7 @@ class Analysis:
             sys.exit("Error: analysis region "+self.region+" is not implemented!")
 
         #add jet and bjet and trigger requirements to cuts
-        if self.region in razorBoxes: self.cuts = appendNoiseFilters(self.cuts)
+        #self.cuts = appendNoiseFilters(self.cuts) # MC does not have all noise filters yet -- just add filter cuts to data
         self.addJetCuts()
         self.addTriggerCuts()
 
@@ -1309,7 +1326,7 @@ class Analysis:
         self.trigInfoMC = TriggerUtils(self.trigType, self.tag, isData=False)
         self.trigInfoData = TriggerUtils(self.trigType, self.tag, isData=True)
         self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )+' && TMath::Finite(weight) && (!TMath::IsNaN(weight))'
-        self.cutsData = self.trigInfoData.appendTriggerCuts( self.cuts )
+        self.cutsData = appendNoiseFilters( self.trigInfoData.appendTriggerCuts( self.cuts ) )
         if self.region == 'GJetsInv':
             self.cutsData += ' && pho1HLTFilter[36]'
 
