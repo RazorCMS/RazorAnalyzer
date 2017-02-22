@@ -716,7 +716,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode"""
 
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
-    if debugLevel > 0: print ("Cuts: "+cuts)
+    print ("Cuts: "+cuts)
     #make TTreeFormulas for variables not found in the tree
     formulas = {}
     for var in hists:
