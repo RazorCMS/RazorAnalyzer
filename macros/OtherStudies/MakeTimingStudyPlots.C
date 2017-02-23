@@ -3,6 +3,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1F.h>
+#include <TGraph.h>
 #include <THStack.h>
 #include <TLegend.h>
 #include <TCanvas.h>
@@ -191,6 +192,14 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   TH1F *hPtBarrelEndcapTiming_200PU = makeNewHist( "hPtBarrelEndcapTiming_200PU", ";p_{T 4l} [GeV/c^{2}];Number of Events", 20, 0, 200, kBlue, false );
   TH1F *hPtBarrelTiming_200PU = makeNewHist( "hPtBarrelTiming_200PU", ";p_{T 4l} [GeV/c^{2}];Number of Events", 20, 0, 200, kBlue, false );
 
+  TH1F *hRapidity_140PU = makeNewHist( "hRapidity_140PU", ";y_{Higgs};Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hRapidityBarrelEndcapTiming_140PU = makeNewHist( "hRapidityBarrelEndcapTiming_140PU", ";y_{Higgs};Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hRapidityBarrelTiming_140PU = makeNewHist( "hRapidityBarrelTiming_140PU", ";y_{Higgs};Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hRapidity_200PU = makeNewHist( "hRapidity_200PU", ";y_{Higgs};Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hRapidityBarrelEndcapTiming_200PU = makeNewHist( "hRapidityBarrelEndcapTiming_200PU", ";y_{Higgs};Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hRapidityBarrelTiming_200PU = makeNewHist( "hRapidityBarrelTiming_200PU", ";y_{Higgs};Number of Events", 20, -3, 3, kBlue, false );
+
+
   assert (inputfiles.size() == processLabels.size());
   for (int i=0; i < inputfiles.size(); ++i) {        
     EventCount.push_back(0);
@@ -331,6 +340,7 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
       TLorentzVector v4; v4.SetPtEtaPhiM(genlep4pt,genlep4eta,genlep4phi,0.1057);
       
       double pt = (v1+v2+v3+v4).Pt();
+      double y = (v1+v2+v3+v4).Rapidity();
 
       //cout << m << " \n";
 
@@ -340,6 +350,13 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
       hPt_200PU->Fill(pt, weight_200PU); 
       hPtBarrelTiming_200PU->Fill(pt, weightBarrelTiming_200PU); 
       hPtBarrelEndcapTiming_200PU->Fill(pt, weightBarrelEndcapTiming_200PU); 
+
+      hRapidity_140PU->Fill(y, weight_140PU); 
+      hRapidityBarrelTiming_140PU->Fill(y, weightBarrelTiming_140PU); 
+      hRapidityBarrelEndcapTiming_140PU->Fill(y, weightBarrelEndcapTiming_140PU); 
+      hRapidity_200PU->Fill(y, weight_200PU); 
+      hRapidityBarrelTiming_200PU->Fill(y, weightBarrelTiming_200PU); 
+      hRapidityBarrelEndcapTiming_200PU->Fill(y, weightBarrelEndcapTiming_200PU); 
 
     }
 
@@ -363,6 +380,14 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   hPtBarrelTiming_200PU->Scale(1/TotalCounts_200PU);
   hPtBarrelEndcapTiming_200PU->Scale(1/TotalCounts_200PU);
 
+  hRapidity_140PU->Scale(1/TotalCounts_140PU);
+  hRapidityBarrelTiming_140PU->Scale(1/TotalCounts_140PU);
+  hRapidityBarrelEndcapTiming_140PU->Scale(1/TotalCounts_140PU);
+
+  hRapidity_200PU->Scale(1/TotalCounts_200PU);
+  hRapidityBarrelTiming_200PU->Scale(1/TotalCounts_200PU);
+  hRapidityBarrelEndcapTiming_200PU->Scale(1/TotalCounts_200PU);
+
   //*******************************************************************************************
   //Draw Plots
   //*******************************************************************************************
@@ -374,7 +399,7 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
 
   //*******************************************************************************************
-  //M4l
+  //Higgs pT
   //*******************************************************************************************
  
   cv = new TCanvas("cv","cv", 800,800);
@@ -483,6 +508,113 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   cv->SaveAs("HZZPt_TimingStudy_1p9LinearDensity.gif");
 
 
+
+  //*******************************************************************************************
+  //Higgs Y
+  //*******************************************************************************************
+ 
+  cv = new TCanvas("cv","cv", 800,800);
+  cv->SetLeftMargin(0.15);
+  cv->SetBottomMargin(0.12);
+
+  legend = new TLegend(0.45,0.75,0.85,0.88);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(1);
+  legend->SetFillStyle(0);
+  legend->AddEntry(hRapidity_140PU, "No Timing");
+  legend->AddEntry(hRapidityBarrelTiming_140PU, "Barrel Timing Only");
+  legend->AddEntry(hRapidityBarrelEndcapTiming_140PU, "Barrel+Endcap Timing");
+
+ 
+  hRapidityBarrelEndcapTiming_140PU->Draw("hist");
+  hRapidityBarrelTiming_140PU->Draw("samehist");
+  hRapidity_140PU->Draw("samehist");
+
+  hRapidityBarrelEndcapTiming_140PU->GetYaxis()->SetTitle("Fraction of Events");
+  hRapidityBarrelEndcapTiming_140PU->GetYaxis()->SetRangeUser(0,0.4);
+  hRapidityBarrelEndcapTiming_140PU->GetYaxis()->SetTitleOffset(1.8);
+  hRapidityBarrelEndcapTiming_140PU->GetXaxis()->SetTitleOffset(1.3);
+  hRapidity_140PU->SetLineColor(kBlack);
+  hRapidityBarrelTiming_140PU->SetLineColor(kRed);
+  hRapidityBarrelEndcapTiming_140PU->SetLineColor(kBlue);
+
+  legend->Draw();
+
+  tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.030);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  //tex->DrawLatex(0.5, 0.5, "test");
+  tex->DrawLatex(0.45, 0.70, "Increase in Higgs#rightarrow ZZ#rightarrow 4l Yield");
+  tex->SetTextColor(kRed);
+  tex->DrawLatex(0.45, 0.65, (string(Form("Barrel Timing Only : %.0f", 100*(TotalCounts_140PU_BarrelTiming/TotalCounts_140PU - 1))) + "%").c_str());
+  tex->SetTextColor(kBlue);
+  tex->DrawLatex(0.45, 0.60, (string(Form("Barrel+Endcap Timing : %.0f", 100*(TotalCounts_140PU_BarrelEndcapTiming/TotalCounts_140PU - 1)))+"%").c_str());
+
+  tex->SetTextSize(0.040);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( Linear Density = 1.3 events / mm )");
+
+  tex->SetTextSize(0.030);
+  tex->DrawLatex(0.20, 0.03, "Normalized to \"No Timing\" distribution");
+
+  //tex->Draw();
+
+  cv->SaveAs("HZZRapidity_TimingStudy_1p3LinearDensity.gif");
+
+
+
+
+  cv = new TCanvas("cv","cv", 800,800);
+  cv->SetLeftMargin(0.15);
+  cv->SetBottomMargin(0.12);
+
+  legend = new TLegend(0.45,0.75,0.85,0.88);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(1);
+  legend->SetFillStyle(0);
+  legend->AddEntry(hRapidity_200PU, "No Timing");
+  legend->AddEntry(hRapidityBarrelTiming_200PU, "Barrel Timing Only");
+  legend->AddEntry(hRapidityBarrelEndcapTiming_200PU, "Barrel+Endcap Timing");
+
+ 
+  hRapidityBarrelEndcapTiming_200PU->Draw("hist");
+  hRapidityBarrelTiming_200PU->Draw("samehist");
+  hRapidity_200PU->Draw("samehist");
+
+  hRapidityBarrelEndcapTiming_200PU->GetYaxis()->SetTitle("Fraction of Events");
+  hRapidityBarrelEndcapTiming_200PU->GetYaxis()->SetRangeUser(0,0.4);
+  hRapidityBarrelEndcapTiming_200PU->GetYaxis()->SetTitleOffset(1.8);
+  hRapidityBarrelEndcapTiming_200PU->GetXaxis()->SetTitleOffset(1.3);
+  hRapidity_200PU->SetLineColor(kBlack);
+  hRapidityBarrelTiming_200PU->SetLineColor(kRed);
+  hRapidityBarrelEndcapTiming_200PU->SetLineColor(kBlue);
+
+  legend->Draw();
+
+  tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.030);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  //tex->DrawLatex(0.5, 0.5, "test");
+  tex->DrawLatex(0.45, 0.70, "Increase in Higgs#rightarrow ZZ#rightarrow 4l Yield");
+  tex->SetTextColor(kRed);
+  tex->DrawLatex(0.45, 0.65, (string(Form("Barrel Timing Only : %.0f", 100*(TotalCounts_200PU_BarrelTiming/TotalCounts_200PU - 1))) + "%").c_str());
+  tex->SetTextColor(kBlue);
+  tex->DrawLatex(0.45, 0.60, (string(Form("Barrel+Endcap Timing : %.0f", 100*(TotalCounts_200PU_BarrelEndcapTiming/TotalCounts_200PU - 1)))+"%").c_str());
+
+  tex->SetTextSize(0.040);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( Linear Density = 1.9 events / mm )");
+
+  tex->SetTextSize(0.030);
+  tex->DrawLatex(0.20, 0.03, "Normalized to \"No Timing\" distribution");
+
+  //tex->Draw();
+
+  cv->SaveAs("HZZRapidity_TimingStudy_1p9LinearDensity.gif");
 
 
 
@@ -858,6 +990,88 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
  }
 
 
+void MakeHiggsImprovementVsPileupPlot() {
+
+  const int nPoints = 20;
+  float linDensity[nPoints];
+  float effImprovementHZZ[nPoints];
+  float effImprovementHMM[nPoints];
+
+  for (int i=0; i<nPoints; i++) {
+
+    linDensity[i] = 0.3 + i * (2.0 - 0.3)/20;
+    double pileupDegradationFactor = 0.95 - (i*(2.0-0.3)/20)*(0.95-0.79)/(1.5-0.3);
+    double pileupDegradationFactorWithTiming = 0.95 - (i*(2.0-0.3)/20)*(0.95-0.91)/(1.5-0.3);
+ 
+    effImprovementHZZ[i] = 100* (pow( pileupDegradationFactorWithTiming / pileupDegradationFactor , 4) - 1);
+    effImprovementHMM[i] = 100 * (pow( pileupDegradationFactorWithTiming / pileupDegradationFactor , 2) - 1);
+  }
+
+  TGraph *graphHZZ = new TGraph( nPoints, linDensity, effImprovementHZZ);
+  TGraph *graphHMM = new TGraph( nPoints, linDensity, effImprovementHMM);
+
+
+
+  TCanvas *cv = 0;
+  TLegend *legend = 0;
+  bool firstdrawn = false;
+  TLatex *tex = 0;
+
+
+  cv = new TCanvas("cv","cv", 800,800);
+  cv->SetLeftMargin(0.15);
+  cv->SetBottomMargin(0.12);
+
+  legend = new TLegend(0.20,0.75,0.60,0.88);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+  legend->AddEntry(graphHZZ, "Higgs #rightarrow ZZ #rightarrow 4l");
+  legend->AddEntry(graphHMM, "Higgs #rightarrow #mu#mu");
+ 
+  graphHZZ->Draw("AP");
+  graphHMM->Draw("P");
+  legend->Draw();
+
+  graphHZZ->SetFillStyle(0);
+  graphHZZ->SetLineColor(kRed);
+  graphHZZ->SetLineWidth(0);
+  graphHZZ->SetMarkerColor(kRed);
+  graphHZZ->SetMarkerStyle(20);
+  graphHZZ->SetMarkerSize(2);
+  graphHMM->SetFillStyle(0);
+  graphHMM->SetLineColor(kBlue);
+  graphHMM->SetLineWidth(0);
+  graphHMM->SetMarkerColor(kBlue);
+  graphHMM->SetMarkerStyle(21);
+  graphHMM->SetMarkerSize(2);
+
+  graphHZZ->SetTitle("");
+  graphHZZ->GetXaxis()->SetTitle("Linear Pileup Density (events / mm)");
+  graphHZZ->GetXaxis()->SetTitleSize(0.045);
+  graphHZZ->GetXaxis()->SetTitleOffset(1.1);
+  graphHZZ->GetYaxis()->SetTitle("Relative Increase in Effective Luminosity (%)");
+  graphHZZ->GetYaxis()->SetTitleOffset(1.2);
+  graphHZZ->GetYaxis()->SetTitleSize(0.045);
+
+  tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.030);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+
+  tex->SetTextSize(0.040);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.15, 0.94, "Improvement in Higgs yield with Timing");
+
+  cv->SaveAs("HiggsYieldIncreaseVsLinearDensity.gif");
+  cv->SaveAs("HiggsYieldIncreaseVsLinearDensity.pdf");
+
+
+}
+
+
+
 
 
  void RunMakeHZZPlots() {
@@ -900,6 +1114,9 @@ void RunMakeHMMPlots() {
  
 
 void MakeTimingStudyPlots() {
-  //RunMakeHZZPlots();
-  RunMakeHMMPlots();  
+  RunMakeHZZPlots();
+  //RunMakeHMMPlots();  
+
+  //MakeHiggsImprovementVsPileupPlot();
+
 }
