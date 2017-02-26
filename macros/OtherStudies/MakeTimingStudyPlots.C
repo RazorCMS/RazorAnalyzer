@@ -8,6 +8,7 @@
 #include <TLegend.h>
 #include <TCanvas.h>
 #include <TLatex.h>
+#include <TLine.h>
 #include <TRandom3.h>
 #include <TMath.h>
 #include <TH2D.h>
@@ -65,25 +66,64 @@ double deltaR(double eta1, double phi1, double eta2, double phi2) {
   return sqrt( dphi*dphi + deta*deta);
 }
 
-double getMuonEff( double pt, double eta, TH2F* muonEffHist, bool moreSeverePUCondition, bool WithBarrelTiming = false, bool WithEndcapTiming = false) {
+// double getMuonEff( double pt, double eta, TH2F* muonEffHist, bool moreSeverePUCondition, bool WithBarrelTiming = false, bool WithEndcapTiming = false) {
+//   double eff = 1.0;
+
+//   eff = muonEffHist->GetBinContent( muonEffHist->GetXaxis()->FindFixBin( fmin( pt, 199.9) ), 
+// 				    muonEffHist->GetYaxis()->FindFixBin( fmin( fabs(eta), 2.39) ) );
+  
+//   double pileupDegradationFactor = 0.82/0.95;
+//   if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = 0.92/0.95;
+//   if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = 0.92/0.95;
+
+//   if (moreSeverePUCondition) {
+//     pileupDegradationFactor = 0.76/0.95;
+//     if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = 0.90/0.95;
+//     if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = 0.90/0.95;    
+//   }
+
+//   eff = eff * pileupDegradationFactor;
+//   return eff;
+// }
+
+double computeAvergeMuonEff( double pt, double eta, TH2F* muonEffHist, double linearDensity, bool WithBarrelTiming = false, bool WithEndcapTiming = false) {
+
   double eff = 1.0;
 
   eff = muonEffHist->GetBinContent( muonEffHist->GetXaxis()->FindFixBin( fmin( pt, 199.9) ), 
 				    muonEffHist->GetYaxis()->FindFixBin( fmin( fabs(eta), 2.39) ) );
   
-  double pileupDegradationFactor = 0.82/0.95;
-  if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = 0.92/0.95;
-  if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = 0.92/0.95;
+  double pileupDegradationFactorWithoutTiming = 0.95 - (linearDensity - 0.3)*(0.95-0.79)/(1.5-0.3);
+  double pileupDegradationFactorWithTiming = 0.95 - (linearDensity - 0.3)*(0.95-0.91)/(1.5-0.3);
+  
+  double pileupDegradationFactor = pileupDegradationFactorWithoutTiming;
+  if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+  if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = pileupDegradationFactorWithTiming;
 
-  if (moreSeverePUCondition) {
-    pileupDegradationFactor = 0.76/0.95;
-    if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = 0.90/0.95;
-    if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = 0.90/0.95;    
-  }
+  // if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4 ) {
+  //   cout << "test: " << eta << " " << eff << " " << linearDensity << " " << pileupDegradationFactor << " " << pileupDegradationFactorWithoutTiming << " " << pileupDegradationFactorWithTiming << "\n";
+  // }
 
   eff = eff * pileupDegradationFactor;
   return eff;
 }
+
+double getMuonEff( double pt, double eta, TH2F* muonEffHist, TH1F *linearDensityHist, bool WithBarrelTiming = false, bool WithEndcapTiming = false) {
+
+  double eff = 0.0;
+  double countBins = 0;
+
+  for (int i=1; i<linearDensityHist->GetXaxis()->GetNbins()+1; i++) {
+    double density = linearDensityHist->GetXaxis()->GetBinCenter(i);
+    eff += linearDensityHist->GetBinContent(i) * computeAvergeMuonEff( pt, eta, muonEffHist, density, WithBarrelTiming, WithEndcapTiming);
+    //cout << i << " " << density << " : " << linearDensityHist->GetBinContent(i) << " " << computeAvergeMuonEff( pt, eta, muonEffHist, density, WithBarrelTiming, WithEndcapTiming) << "\n";
+  }
+  //cout << "int eff: " << eff << "\n";
+
+  return eff;
+}
+
+
 
 void PlotData( TH1F* hist , string dataLabel, string varName, string label, string latexlabel, bool setLogy = false ) {
 
@@ -151,6 +191,10 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   //============================================================================================================== 
   TFile *muonEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Loose_Fullsim.root","READ");
   TH2F *muonEffHist = (TH2F*)muonEffFile->Get("Efficiency_PtEta");
+
+  TFile *pileupDensityFile = TFile::Open("lineDensity.root","READ");
+  TH1F *pileupDensityHist140 = (TH1F*)pileupDensityFile->Get("hL140");
+  TH1F *pileupDensityHist200 = (TH1F*)pileupDensityFile->Get("hL200");
 
   vector<string> inputfiles;
   vector<string> processLabels;
@@ -274,8 +318,7 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
       if (n % 100000 == 0) cout << "Processing Event " << n << "\n";       
       
       double weight_140PU = 1.0;
-      double weightBarrelTiming_140PU = 1.0;
-      double weightBarrelEndcapTiming_140PU = 1.0;
+      double weightBarrelTiming_140PU = 1.0;      double weightBarrelEndcapTiming_140PU = 1.0;
       double weight_200PU = 1.0;
       double weightBarrelTiming_200PU = 1.0;
       double weightBarrelEndcapTiming_200PU = 1.0;
@@ -284,18 +327,18 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
       if (!(genlep1pt > 15 && genlep2pt > 15 && genlep3pt > 5 && genlep4pt > 5)) continue;
       if (!(abs(genlep1eta) < 2.4 && abs(genlep2eta) < 2.4 && abs(genlep3eta) < 2.4 && abs(genlep4eta) < 2.4 )) continue;
 
-      weight_140PU = weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, false, false);
-      weight_140PU = weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, false, false);
-      weight_140PU = weight_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, false, false, false);
-      weight_140PU = weight_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, false, false, false);
-      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, true, false);
-      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, true, false);
-      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, false, true, false);
-      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, false, true, false);
-      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, true, true);
-      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, true, true);
-      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, false, true, true);
-      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, false, true, true);
+      weight_140PU = weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist140, false, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist140, true, false);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist140, true, true);
 
       TotalCounts_140PU += weight_140PU;
       TotalCounts_140PU_BarrelTiming += weightBarrelTiming_140PU;
@@ -306,26 +349,26 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 	cout << weight_140PU << "\n";
 	cout << genlep1pt << " " << genlep2pt << " " << genlep3pt << " " << genlep4pt <<  "\n";
 	cout << genlep1eta << " " << genlep2eta << " " << genlep3eta << " " << genlep4eta << "\n";
-	cout << weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, false, false) << " "
-	     << weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, false, false) << " "
-	     << weight_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, false, false, false) << " "
-	     << weight_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, false, false, false) << " "
+	cout << weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, false, false) << " "
+	     << weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, false, false) << " "
+	     << weight_140PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist140, false, false) << " "
+	     << weight_140PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist140, false, false) << " "
 	     << "\n";
       }
 
 
-      weight_200PU = weight_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, true, false, false);
-      weight_200PU = weight_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, true, false, false);
-      weight_200PU = weight_200PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, true, false, false);
-      weight_200PU = weight_200PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, true, false, false);
-      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, true, true, false);
-      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, true, true, false);
-      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, true, true, false);
-      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, true, true, false);
-      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, true, true, true);
-      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, true, true, true);
-      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, true, true, true);
-      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, true, true, true);
+      weight_200PU = weight_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist200, false, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist200, true, false);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep3pt, genlep3eta, muonEffHist, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep4pt, genlep4eta, muonEffHist, pileupDensityHist200, true, true);
 
       TotalCounts_200PU += weight_200PU;
       TotalCounts_200PU_BarrelTiming += weightBarrelTiming_200PU;
@@ -365,9 +408,9 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   
   }
   
-  cout << "Total: " << TotalCounts_140PU << " " << TotalCounts_200PU << "\n";
-  cout << TotalCounts_140PU_BarrelTiming << " " << TotalCounts_140PU_BarrelEndcapTiming<< "\n";
-  cout << TotalCounts_200PU_BarrelTiming << " " << TotalCounts_200PU_BarrelEndcapTiming<< "\n";
+  cout << "Total: " << "\n";
+  cout << TotalCounts_140PU << " : " << TotalCounts_140PU_BarrelTiming << " " << TotalCounts_140PU_BarrelEndcapTiming<< "\n";
+  cout << TotalCounts_200PU << " : " << TotalCounts_200PU_BarrelTiming << " " << TotalCounts_200PU_BarrelEndcapTiming<< "\n";
 
   //*******************************************************************************************
   //Normalize Hists
@@ -444,14 +487,15 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( Linear Density = 1.3 events / mm )");
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( 140 Pileup Distribution )");
 
   tex->DrawLatex(0.20, 0.20, "Normalized to");
   tex->DrawLatex(0.20, 0.15, "\"No Timing\" distribution");
 
   //tex->Draw();
 
-  cv->SaveAs("HZZPt_TimingStudy_1p3LinearDensity.gif");
+  cv->SaveAs("HZZPt_TimingStudy_140PU.gif");
+  cv->SaveAs("HZZPt_TimingStudy_140PU.pdf");
 
 
 
@@ -498,14 +542,15 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( Linear Density = 1.9 events / mm )");
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( 200 Pileup Distribution )");
 
   tex->DrawLatex(0.20, 0.20, "Normalized to");
   tex->DrawLatex(0.20, 0.15, "\"No Timing\" distribution");
 
   //tex->Draw();
 
-  cv->SaveAs("HZZPt_TimingStudy_1p9LinearDensity.gif");
+  cv->SaveAs("HZZPt_TimingStudy_200PU.gif");
+  cv->SaveAs("HZZPt_TimingStudy_200PU.pdf");
 
 
 
@@ -554,14 +599,15 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( Linear Density = 1.3 events / mm )");
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( 140 Pileup Distribution )");
 
   tex->SetTextSize(0.030);
   tex->DrawLatex(0.20, 0.03, "Normalized to \"No Timing\" distribution");
 
   //tex->Draw();
 
-  cv->SaveAs("HZZRapidity_TimingStudy_1p3LinearDensity.gif");
+  cv->SaveAs("HZZRapidity_TimingStudy_140PU.gif");
+  cv->SaveAs("HZZRapidity_TimingStudy_140PU.pdf");
 
 
 
@@ -607,14 +653,15 @@ void MakeHZZPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( Linear Density = 1.9 events / mm )");
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow ZZ#rightarrow 4l ( 200 Pileup Distribution )");
 
   tex->SetTextSize(0.030);
   tex->DrawLatex(0.20, 0.03, "Normalized to \"No Timing\" distribution");
 
   //tex->Draw();
 
-  cv->SaveAs("HZZRapidity_TimingStudy_1p9LinearDensity.gif");
+  cv->SaveAs("HZZRapidity_TimingStudy_200PU.gif");
+  cv->SaveAs("HZZRapidity_TimingStudy_200PU.pdf");
 
 
 
@@ -651,6 +698,10 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   //============================================================================================================== 
   TFile *muonEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Loose_Fullsim.root","READ");
   TH2F *muonEffHist = (TH2F*)muonEffFile->Get("Efficiency_PtEta");
+
+  TFile *pileupDensityFile = TFile::Open("lineDensity.root","READ");
+  TH1F *pileupDensityHist140 = (TH1F*)pileupDensityFile->Get("hL140");
+  TH1F *pileupDensityHist200 = (TH1F*)pileupDensityFile->Get("hL200");
 
   vector<string> inputfiles;
   vector<string> processLabels;
@@ -776,12 +827,12 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
       if (!(genlep1pt > 30 && genlep2pt > 30)) continue;
       if (!(abs(genlep1eta) < 2.4 && abs(genlep2eta) < 2.4)) continue;
 
-      weight_140PU = weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, false, false);
-      weight_140PU = weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, false, false);
-      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, true, false);
-      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, true, false);
-      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, true, true);
-      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, true, true);
+      weight_140PU = weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, false, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, true, false);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, true, true);
 
       TotalCounts_140PU += weight_140PU;
       TotalCounts_140PU_BarrelTiming += weightBarrelTiming_140PU;
@@ -792,18 +843,18 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 	cout << weight_140PU << "\n";
 	cout << genlep1pt << " " << genlep2pt << " " << genlep3pt << " " << genlep4pt <<  "\n";
 	cout << genlep1eta << " " << genlep2eta << " " << genlep3eta << " " << genlep4eta << "\n";
-	cout << weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, false, false, false) << " "
-	     << weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, false, false, false) << " "
+	cout << weight_140PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist140, false, false) << " "
+	     << weight_140PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist140, false, false) << " "
 	     << "\n";
       }
 
 
-      weight_200PU = weight_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, true, false, false);
-      weight_200PU = weight_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, true, false, false);
-      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, true, true, false);
-      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, true, true, false);
-      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, true, true, true);
-      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, true, true, true);
+      weight_200PU = weight_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist200, false, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist200, true, false);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep1pt, genlep1eta, muonEffHist, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getMuonEff( genlep2pt, genlep2eta, muonEffHist, pileupDensityHist200, true, true);
  
       TotalCounts_200PU += weight_200PU;
       TotalCounts_200PU_BarrelTiming += weightBarrelTiming_200PU;
@@ -833,9 +884,9 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
   
   }
   
-  cout << "Total: " << TotalCounts_140PU << " " << TotalCounts_200PU << "\n";
-  cout << TotalCounts_140PU_BarrelTiming << " " << TotalCounts_140PU_BarrelEndcapTiming<< "\n";
-  cout << TotalCounts_200PU_BarrelTiming << " " << TotalCounts_200PU_BarrelEndcapTiming<< "\n";
+  cout << "Total:\n";
+  cout << "140PU: " << TotalCounts_140PU << " : " << TotalCounts_140PU_BarrelTiming << " " << TotalCounts_140PU_BarrelEndcapTiming<< "\n";
+  cout << "200PU: " << TotalCounts_200PU << " : " << TotalCounts_200PU_BarrelTiming << " " << TotalCounts_200PU_BarrelEndcapTiming<< "\n";
 
   //*******************************************************************************************
   //Normalize Hists
@@ -904,14 +955,15 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow #mu#mu ( Linear Density = 1.3 events / mm )");
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow #mu#mu ( 140 Pileup Distribution )");
 
   tex->DrawLatex(0.20, 0.20, "Normalized to");
   tex->DrawLatex(0.20, 0.15, "\"No Timing\" distribution");
 
   //tex->Draw();
 
-  cv->SaveAs("HMMPt_TimingStudy_1p3LinearDensity.gif");
+  cv->SaveAs("HMMPt_TimingStudy_140PU.gif");
+  cv->SaveAs("HMMPt_TimingStudy_140PU.pdf");
 
 
 
@@ -958,14 +1010,15 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow #mu#mu ( Linear Density = 1.9 events / mm )");
+  tex->DrawLatex(0.15, 0.94, "Higgs#rightarrow #mu#mu ( 200 Pileup Distribution )");
 
   tex->DrawLatex(0.20, 0.20, "Normalized to");
   tex->DrawLatex(0.20, 0.15, "\"No Timing\" distribution");
 
   //tex->Draw();
 
-  cv->SaveAs("HMMPt_TimingStudy_1p9LinearDensity.gif");
+  cv->SaveAs("HMMPt_TimingStudy_200PU.gif");
+  cv->SaveAs("HMMPt_TimingStudy_200PU.pdf");
 
 
 
@@ -1016,7 +1069,7 @@ void MakeHiggsImprovementVsPileupPlot() {
   TLegend *legend = 0;
   bool firstdrawn = false;
   TLatex *tex = 0;
-
+  TLine *line = 0;
 
   cv = new TCanvas("cv","cv", 800,800);
   cv->SetLeftMargin(0.15);
@@ -1054,15 +1107,46 @@ void MakeHiggsImprovementVsPileupPlot() {
   graphHZZ->GetYaxis()->SetTitleOffset(1.2);
   graphHZZ->GetYaxis()->SetTitleSize(0.045);
 
+  // line = new TLine(0.14, 27.3, 2.08, 27.3);
+  // line->SetLineColor(kRed);
+  // line->SetLineWidth(4);
+  // line->SetLineStyle(2);
+  // line->Draw();
+  line = new TLine(0.14, 62, 2.08, 62);
+  line->SetLineColor(kRed);
+  line->SetLineWidth(4);
+  line->SetLineStyle(2);
+  line->Draw();
+  line = new TLine(0.14, 27, 2.08, 27);
+  line->SetLineColor(kBlue);
+  line->SetLineWidth(4);
+  line->SetLineStyle(2);
+  line->Draw();
+  // line = new TLine(0.14, 13, 2.08, 13);
+  // line->SetLineColor(kBlue);
+  // line->SetLineWidth(4);
+  // line->SetLineStyle(2);
+  // line->Draw();
+
   tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.030);
   tex->SetTextFont(42);
-  tex->SetTextColor(kBlack);
+  tex->SetTextColor(kRed);
+  // tex->DrawLatex(0.18, 0.32, "140 Pileup Average");
+  // tex->DrawLatex(0.18, 0.29, "(Higgs #rightarrow ZZ #rightarrow 4l)");
+  tex->DrawLatex(0.18, 0.53, "200 Pileup Average ");
+  tex->DrawLatex(0.18, 0.50, "(Higgs #rightarrow ZZ #rightarrow 4l)");
+  tex->SetTextColor(kBlue);
+  // tex->DrawLatex(0.65, 0.17, "140 Pileup Average");
+  // tex->DrawLatex(0.65, 0.14, "(Higgs #rightarrow #mu#mu)");
+  tex->DrawLatex(0.65, 0.25, "200 Pileup Average ");
+  tex->DrawLatex(0.65, 0.22, "(Higgs #rightarrow #mu#mu)");
 
   tex->SetTextSize(0.040);
   tex->SetTextColor(kBlack);
   tex->DrawLatex(0.15, 0.94, "Improvement in Higgs yield with Timing");
+
 
   cv->SaveAs("HiggsYieldIncreaseVsLinearDensity.gif");
   cv->SaveAs("HiggsYieldIncreaseVsLinearDensity.pdf");
@@ -1115,8 +1199,8 @@ void RunMakeHMMPlots() {
 
 void MakeTimingStudyPlots() {
   RunMakeHZZPlots();
-  //RunMakeHMMPlots();  
+  RunMakeHMMPlots();  
 
-  //MakeHiggsImprovementVsPileupPlot();
+  MakeHiggsImprovementVsPileupPlot();
 
 }
