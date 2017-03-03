@@ -1347,6 +1347,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	events->MR = computeMR(hemispheres[0], hemispheres[1]); 
 	events->Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
 	events->RsqnoHF = computeRsq(hemispheres[0], hemispheres[1], PFMETnoHFType1);
+        events->dPhiRazor = fabs(hemispheres[0].DeltaPhi(hemispheres[1]));
       }
 	
 
