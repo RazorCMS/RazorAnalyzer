@@ -289,6 +289,14 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("metType0Phi", 1);
     fChain->SetBranchStatus("metType1Pt", 1);
     fChain->SetBranchStatus("metType1Phi", 1);
+    fChain->SetBranchStatus("metEGCleanPt", 1);
+    fChain->SetBranchStatus("metEGCleanPhi", 1);
+    fChain->SetBranchStatus("metMuEGCleanPt", 1);
+    fChain->SetBranchStatus("metMuEGCleanPhi", 1);
+    fChain->SetBranchStatus("metMuEGCleanCorrPt", 1);
+    fChain->SetBranchStatus("metMuEGCleanCorrPhi", 1);
+    fChain->SetBranchStatus("metUncorrectedPt", 1);
+    fChain->SetBranchStatus("metUncorrectedPhi", 1);
     fChain->SetBranchStatus("metType0Plus1Pt", 1);
     fChain->SetBranchStatus("metType0Plus1Phi", 1);
     fChain->SetBranchStatus("metPuppiPt", 1);

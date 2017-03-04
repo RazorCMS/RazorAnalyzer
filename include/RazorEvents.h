@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sat Feb 11 04:34:12 2017 by ROOT version 6.02/05
+// Sat Mar  4 18:31:11 2017 by ROOT version 6.02/05
 // from TTree RazorEvents/selected miniAOD information
-// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root
+// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.13/Data/Rereco2016/v1/sixie/SingleMuon/Run2RazorNtuplerV3p13_ToCERN_Data_Rereco2016_Run2016B-03Feb2017_ver2-v2_v1_v1/170227_045447/0000/razorNtuple_317.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -251,6 +251,14 @@ public :
    Float_t         metType1Phi;
    Float_t         metType0Plus1Pt;
    Float_t         metType0Plus1Phi;
+   Float_t         metEGCleanPt;
+   Float_t         metEGCleanPhi;
+   Float_t         metMuEGCleanPt;
+   Float_t         metMuEGCleanPhi;
+   Float_t         metMuEGCleanCorrPt;
+   Float_t         metMuEGCleanCorrPhi;
+   Float_t         metUncorrectedPt;
+   Float_t         metUncorrectedPhi;
    Float_t         metNoHFPt;
    Float_t         metNoHFPhi;
    Float_t         metPuppiPt;
@@ -563,6 +571,14 @@ public :
    TBranch        *b_metType1Phi;   //!
    TBranch        *b_metType0Plus1Pt;   //!
    TBranch        *b_metType0Plus1Phi;   //!
+   TBranch        *b_metEGCleanPt;   //!
+   TBranch        *b_metEGCleanPhi;   //!
+   TBranch        *b_metMuEGCleanPt;   //!
+   TBranch        *b_metMuEGCleanPhi;   //!
+   TBranch        *b_metMuEGCleanCorrPt;   //!
+   TBranch        *b_metMuEGCleanCorrPhi;   //!
+   TBranch        *b_metUncorrectedPt;   //!
+   TBranch        *b_metUncorrectedPhi;   //!
    TBranch        *b_metNoHFPt;   //!
    TBranch        *b_metNoHFPhi;   //!
    TBranch        *b_metPuppiPt;   //!
@@ -665,11 +681,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.13/Data/Rereco2016/v1/sixie/SingleMuon/Run2RazorNtuplerV3p13_ToCERN_Data_Rereco2016_Run2016B-03Feb2017_ver2-v2_v1_v1/170227_045447/0000/razorNtuple_317.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root");
+         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.13/Data/Rereco2016/v1/sixie/SingleMuon/Run2RazorNtuplerV3p13_ToCERN_Data_Rereco2016_Run2016B-03Feb2017_ver2-v2_v1_v1/170227_045447/0000/razorNtuple_317.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.12/Data/Rereco2016/v1/sixie/HTMHT/Run2RazorNtuplerV3p12_ToCERN_Data_Rereco2016_Run2016G-23Sep2016-v2_v1_v1/170204_173224/0000/razorNtuple_265.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.13/Data/Rereco2016/v1/sixie/SingleMuon/Run2RazorNtuplerV3p13_ToCERN_Data_Rereco2016_Run2016B-03Feb2017_ver2-v2_v1_v1/170227_045447/0000/razorNtuple_317.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -950,6 +966,14 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("metType1Phi", &metType1Phi, &b_metType1Phi);
    fChain->SetBranchAddress("metType0Plus1Pt", &metType0Plus1Pt, &b_metType0Plus1Pt);
    fChain->SetBranchAddress("metType0Plus1Phi", &metType0Plus1Phi, &b_metType0Plus1Phi);
+   fChain->SetBranchAddress("metEGCleanPt", &metEGCleanPt, &b_metEGCleanPt);
+   fChain->SetBranchAddress("metEGCleanPhi", &metEGCleanPhi, &b_metEGCleanPhi);
+   fChain->SetBranchAddress("metMuEGCleanPt", &metMuEGCleanPt, &b_metMuEGCleanPt);
+   fChain->SetBranchAddress("metMuEGCleanPhi", &metMuEGCleanPhi, &b_metMuEGCleanPhi);
+   fChain->SetBranchAddress("metMuEGCleanCorrPt", &metMuEGCleanCorrPt, &b_metMuEGCleanCorrPt);
+   fChain->SetBranchAddress("metMuEGCleanCorrPhi", &metMuEGCleanCorrPhi, &b_metMuEGCleanCorrPhi);
+   fChain->SetBranchAddress("metUncorrectedPt", &metUncorrectedPt, &b_metUncorrectedPt);
+   fChain->SetBranchAddress("metUncorrectedPhi", &metUncorrectedPhi, &b_metUncorrectedPhi);
    fChain->SetBranchAddress("metNoHFPt", &metNoHFPt, &b_metNoHFPt);
    fChain->SetBranchAddress("metNoHFPhi", &metNoHFPhi, &b_metNoHFPhi);
    fChain->SetBranchAddress("metPuppiPt", &metPuppiPt, &b_metPuppiPt);
