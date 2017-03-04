@@ -1323,12 +1323,13 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 				  sqrt(PFMetCustomType1X*PFMetCustomType1X + PFMetCustomType1Y*PFMetCustomType1Y));
       TLorentzVector PFMETType1 = makeTLorentzVectorPtEtaPhiM(metType1Pt, 0, metType1Phi, 0);
       TLorentzVector PFMETType0Plus1 = makeTLorentzVectorPtEtaPhiM(metType0Plus1Pt, 0, metType0Plus1Phi, 0);
+      TLorentzVector PFMETMuEGCleanCorr = makeTLorentzVectorPtEtaPhiM(metMuEGCleanCorrPt, 0, metMuEGCleanCorrPhi, 0);
 
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      TLorentzVector MyMET = PFMETCustomType1;
-      //TLorentzVector MyMET = PFMETType1;
+      //TLorentzVector MyMET = PFMETCustomType1;
+      TLorentzVector MyMET = PFMETMuEGCleanCorr; //Using this for V3.13 ntuples run on 2017 Feb 03 reMiniAOD
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";
