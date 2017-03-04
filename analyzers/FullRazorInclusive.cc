@@ -1141,10 +1141,29 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         HT = 0;
         for (auto& jet : mainVars[""]->GoodJets) HT += jet.Pt();
 
+	double Type1MetXCorr = mainVars[""].second->MetXCorr;
+	double Type1MetYCorr = mainVars[""].second->MetYCorr;
+    
         for (auto &vars : mainVars) {
-            // Make MET
-            double PFMetX = metPt*cos(metPhi) + vars.second->MetXCorr;
-            double PFMetY = metPt*sin(metPhi) + vars.second->MetYCorr;
+            // Make MET	  	  
+  	    double PFMetX = 0;
+	    double PFMetY = 0;
+            
+	    //previous version did not have Jet-energy corrected MET saved in big ntuples.
+	    //therefore use corrections
+	    //PFMetX = metPt*cos(metPhi) + vars.second->MetXCorr;
+            //PFMetY = metPt*sin(metPhi) + vars.second->MetYCorr;
+
+	    //Starting from V3p13 run on Feb03 2017 reMiniAOD, metMuEGCleanCorr does have jet energy corrected MET
+	    //So for systematics need to subtract nominal type1 correction and add shifted type 1 corrections
+	    if (vars.first == "") {
+	      PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi);
+	      PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi);
+	    } else {
+	      PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi) + (vars.second->MetXCorr - Type1MetXCorr);
+	      PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi) + (vars.second->MetYCorr - Type1MetYCorr);
+	    }
+	    
             TLorentzVector MyMET;
             MyMET.SetPxPyPzE( PFMetX, PFMetY, 0, sqrt( PFMetX*PFMetX + PFMetY*PFMetY ) );
             // Compute MR, Rsq, dPhiRazor
