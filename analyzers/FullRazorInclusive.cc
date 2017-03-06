@@ -1141,8 +1141,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         HT = 0;
         for (auto& jet : mainVars[""]->GoodJets) HT += jet.Pt();
 
-	double Type1MetXCorr = mainVars[""].second->MetXCorr;
-	double Type1MetYCorr = mainVars[""].second->MetYCorr;
+	double Type1MetXCorr = mainVars[""]->MetXCorr;
+	double Type1MetYCorr = mainVars[""]->MetYCorr;
     
         for (auto &vars : mainVars) {
             // Make MET	  	  
