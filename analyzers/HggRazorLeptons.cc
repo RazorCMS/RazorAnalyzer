@@ -202,23 +202,23 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
   if ( !isData )
     {
       //Medium
-      TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/BTagEffFastsimToFullsimCorrectionFactors.root");
-      btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      TFile *btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
+      btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagMediumEfficiencyHist);
-      TFile *btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/CharmJetBTagEffFastsimToFullsimCorrectionFactors.root");
-      btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      TFile *btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVM_Fullsim_80X.root");
+      btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagMediumCharmEfficiencyHist);
-      TFile *btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/LightJetBTagEffFastsimToFullsimCorrectionFactors.root");
-      btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("BTagEff_Medium_Fullsim");
+      TFile *btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root");
+      btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagMediumLightJetsEfficiencyHist);
       //Loose
-      TFile *btagLooseEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVL_Fullsim.root");
+      TFile *btagLooseEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVL_Fullsim_80X.root");
       btagLooseEfficiencyHist = (TH2D*)btagLooseEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagLooseEfficiencyHist);
-      TFile *btagLooseCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVL_Fullsim.root");
+      TFile *btagLooseCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVL_Fullsim_80X.root");
       btagLooseCharmEfficiencyHist = (TH2D*)btagLooseCharmEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagLooseCharmEfficiencyHist);
-      TFile *btagLooseLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVL_Fullsim.root");
+      TFile *btagLooseLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVL_Fullsim_80X.root");
       btagLooseLightJetsEfficiencyHist = (TH2D*)btagLooseLightJetsEfficiencyFile->Get("Efficiency_PtEta");
       assert(btagLooseLightJetsEfficiencyHist);
     }
@@ -227,9 +227,9 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
   //B-tagging scale factors
   //-----------------------
   
-  string bTagPathname = "";
-  if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
-  else bTagPathname = "data/ScaleFactors/";
+  string bTagPathname = "./";
+  // if ( cmsswPath != NULL ) bTagPathname = string(cmsswPath) + "/src/RazorAnalyzer/data/ScaleFactors/";
+  // else bTagPathname = "data/ScaleFactors/";
   //Fullsim
 
   TString effMeasType, misMeasType;
@@ -239,9 +239,15 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
     effMeasType="mujets";
     misMeasType="comb";
   } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" ) {
-    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_ichep.csv",bTagPathname.c_str()));
-    effMeasType="mujets";
-    misMeasType="incl";
+    if(isFastsimSMS) {
+      btagcalib = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
+      effMeasType="fastsim";
+      misMeasType="fastsim";
+    } else {
+      btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_Moriond17_B_H.csv",bTagPathname.c_str()));
+      effMeasType="comb";
+      misMeasType="incl";
+    }
   }
 
   //Medium WP
@@ -296,6 +302,7 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
   float triggerEffWeight;
   float triggerEffSFWeight;
   float photonEffSF;
+  float leptonEffSF;
   float ISRSystWeightUp, ISRSystWeightDown;
   int NISRJets;
   //For btag scale factor uncertainty
@@ -366,6 +373,7 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
   razorTree->Branch("triggerEffWeight", &triggerEffWeight, "triggerEffWeight/F");
   razorTree->Branch("triggerEffSFWeight", &triggerEffSFWeight, "triggerEffSFWeight/F");
   razorTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
+  razorTree->Branch("leptonEffSF", &leptonEffSF, "leptonEffSF/F");
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
   razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
@@ -550,7 +558,8 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
       pileupWeightDown  = 1.0;
       triggerEffWeight  = 1.0;
       triggerEffSFWeight  = 1.0;
-      
+      leptonEffSF       = 1.0;
+      photonEffSF       = 1.0;
       btagCorrFactor    = 1.0;
       sf_btagUp         = 1.0;
       sf_btagDown       = 1.0;
@@ -767,11 +776,11 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
       double bestDimuonPt = -1;
       TLorentzVector ZCandidate;
       for( int i = 0; i < nMuons; i++ )	{
-	  if(!isLooseMuon(i)) continue;  
+	  if(!isVetoMuon(i)) continue;  
 	  if(muonPt[i] < 15) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
 	  for( int j = i+1; j < nMuons; j++ )	{
-	    if(!isLooseMuon(j)) continue;  
+	    if(!isVetoMuon(j)) continue;  
 	    if(muonPt[j] < 15) continue;
 	    if(abs(muonEta[j]) > 2.4) continue;
 	    
@@ -799,6 +808,13 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
 	      lep2PassSelection = 1 + 2 * isTightMuon(j);
 	      dileptonMass = tmpMass;
 	      ZCandidate = tmpMuon1 + tmpMuon2;
+
+	      //for MC apply lepton eff scale factor
+	      if (!isData ) {
+		if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+		if ( matchesGenMuon(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep2Pt, lep2Eta, true);			
+	      }
+
 	    }
 	  }
       }
@@ -810,11 +826,11 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
       if (razorbox == None) {
 	double bestDielectronPt = -1;
 	for( int i = 0; i < nElectrons; i++ )	{
-	  if(!isLooseElectron(i)) continue;  
+	  if(!isVetoElectron(i)) continue;  
 	  if(elePt[i] < 20) continue;
 	  if(abs(eleEta[i]) > 2.4) continue;
 	  for( int j = i+1; j < nElectrons; j++ )	{
-	    if(!isLooseElectron(j)) continue;  
+	    if(!isVetoElectron(j)) continue;  
 	    if(elePt[j] < 20) continue;
 	    if(abs(eleEta[j]) > 2.4) continue;
 	    
@@ -842,6 +858,13 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
 	      lep2PassSelection = 1 + 2 * isTightElectron(j);
 	      dileptonMass = tmpMass;
 	      ZCandidate = tmpElectron1 + tmpElectron2;
+
+	      //for MC apply lepton eff scale factor
+	      if (!isData ) {
+		if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
+		if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);			
+	      }
+
 	    }
 	  }
 	}
@@ -856,7 +879,7 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
 	double bestLeptonPt = -1;
    
 	for( int i = 0; i < nMuons; i++ ) {
-	  if(!isLooseMuon(i)) continue;  
+	  if(!isVetoMuon(i)) continue;  
 	  if(muonPt[i] < 15) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
 	  nLooseMuons++;
@@ -872,13 +895,17 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
 	    lep1Phi = muonPhi[i];
 	    lep1PassSelection = 1 + 2 * isTightMuon(i);
 	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.1057);
+
+	    if (!isData ) {
+	      if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+	    }
 	  }	  
 	}
 
 	for( int i = 0; i < nElectrons; i++ ) {
-	  if(!isLooseElectron(i)) continue;  
+	  if(!isVetoElectron(i)) continue;  
 	  if(elePt[i] < 20) continue;
-	  if(abs(eleEta[i]) > 2.4) continue;
+	  if(abs(eleEta[i]) > 2.5) continue;
 	  nLooseElectrons++;
 	  if( isTightElectron(i) ) nTightElectrons++;
 
@@ -892,6 +919,11 @@ void HggRazorLeptons::Analyze(bool isData, int option, string outFileName, strin
 	    lep1Phi = elePhi[i];
 	    lep1PassSelection = 1 + 2 * isTightElectron(i);
 	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.000511);
+
+	    if (!isData ) {
+	      if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
+	    }
+
 	  }
 	}
       }
