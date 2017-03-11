@@ -138,6 +138,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   map<int, TH1F*> smsSumScaleWeights;
   map<int, TH1F*> smsSumPdfWeights;  
   map<int, TH1F*> smsNISRJets;  
+  map<int, TH1F*> smsPtISR;  
   map<pair<int,int>, TFile*> smsFiles2D;
   map<pair<int,int>, TTree*> smsTrees2D;
   map<pair<int,int>, TH1F*> smsNEvents2D;
@@ -145,6 +146,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   map<pair<int,int>, TH1F*> smsSumScaleWeights2D;
   map<pair<int,int>, TH1F*> smsSumPdfWeights2D;
   map<pair<int,int>, TH1F*> smsNISRJets2D;
+  map<pair<int,int>, TH1F*> smsPtISR2D;
   
 
   //Get CMSSW Directory
@@ -303,6 +305,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   
   //histogram containing total number of processed events (for normalization)
   TH1F *histNISRJets = new TH1F("NISRJets", "NISRJets", 7, -0.5, 6.5);
+  float PtISRBins[9] = {0,50, 100,150,200,300,400,600,7000};
+  TH1F *histPtISR = new TH1F("PtISR", "PtISR", 8, PtISRBins );
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
   TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
   TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
@@ -317,7 +321,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float triggerEffSFWeight;
   float photonEffSF;
   float ISRSystWeightUp, ISRSystWeightDown;
-  int NISRJets;
+  int   NISRJets;
+  float ptISR;
   //For btag scale factor uncertainty
   float btagCorrFactor;
   float sf_btagUp, sf_btagDown;
@@ -358,14 +363,68 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
   bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
 
+  //ECALGainSwitchFlag
+  bool Flag_hasEcalGainSwitch = false;
+
   //SMS info
   int mChi = 0;
   int mLSP = 0;
 
+  float N2Pt = 0;
+  float N2Eta = 0;
+  float N2Phi = 0;
+  float N2Mass = 0;
+  float N3Pt = 0;
+  float N3Eta = 0;
+  float N3Phi = 0;
+  float N3Mass = 0;
+  float HPt = 0;
+  float HEta = 0;
+  float HPhi = 0;
+  float HMass = 0;
+  float ZPt = 0;
+  float ZEta = 0;
+  float ZPhi = 0;
+  float ZMass = 0;
+  float N1FromN2Pt = 0;
+  float N1FromN2Eta = 0;
+  float N1FromN2Phi = 0;
+  float N1FromN2Mass = 0;
+  float N1FromN3Pt = 0;
+  float N1FromN3Eta = 0;
+  float N1FromN3Phi = 0;
+  float N1FromN3Mass = 0;
+
+
   //------------------------
   //set branches on big tree
   //------------------------
-
+  razorTree->Branch("genMetPt", &genMetPt, "genMetPt/F");
+  razorTree->Branch("N2Pt", &N2Pt, "N2Pt/F");
+  razorTree->Branch("N2Eta", &N2Eta, "N2Eta/F");
+  razorTree->Branch("N2Phi", &N2Phi, "N2Phi/F");
+  razorTree->Branch("N2Mass", &N2Mass, "N2Mass/F");
+  razorTree->Branch("N3Pt", &N3Pt, "N3Pt/F");
+  razorTree->Branch("N3Eta", &N3Eta, "N3Eta/F");
+  razorTree->Branch("N3Phi", &N3Phi, "N3Phi/F");
+  razorTree->Branch("N3Mass", &N3Mass, "N3Mass/F");
+  razorTree->Branch("HPt", &HPt, "HPt/F");
+  razorTree->Branch("HEta", &HEta, "HEta/F");
+  razorTree->Branch("HPhi", &HPhi, "HPhi/F");
+  razorTree->Branch("HMass", &HMass, "HMass/F");
+  razorTree->Branch("ZPt", &ZPt, "ZPt/F");
+  razorTree->Branch("ZEta", &ZEta, "ZEta/F");
+  razorTree->Branch("ZPhi", &ZPhi, "ZPhi/F");
+  razorTree->Branch("ZMass", &ZMass, "ZMass/F");
+  razorTree->Branch("N1FromN2Pt", &N1FromN2Pt, "N1FromN2Pt/F");
+  razorTree->Branch("N1FromN2Eta", &N1FromN2Eta, "N1FromN2Eta/F");
+  razorTree->Branch("N1FromN2Phi", &N1FromN2Phi, "N1FromN2Phi/F");
+  razorTree->Branch("N1FromN2Mass", &N1FromN2Mass, "N1FromN2Mass/F");
+  razorTree->Branch("N1FromN3Pt", &N1FromN3Pt, "N1FromN3Pt/F");
+  razorTree->Branch("N1FromN3Eta", &N1FromN3Eta, "N1FromN3Eta/F");
+  razorTree->Branch("N1FromN3Phi", &N1FromN3Phi, "N1FromN3Phi/F");
+  razorTree->Branch("N1FromN3Mass", &N1FromN3Mass, "N1FromN3Mass/F");
+ 
   razorTree->Branch("weight", &weight, "weight/F");
   razorTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
   razorTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
@@ -376,7 +435,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
   razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
-      
+  razorTree->Branch("ptISR", &ptISR, "ptISR/F");
+     
   razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
   razorTree->Branch("sf_btagUp", &sf_btagUp, "sf_btagUp/F");
   razorTree->Branch("sf_btagDown", &sf_btagDown, "sf_btagDown/F");
@@ -411,7 +471,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
   razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
   razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
   razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
-      
+  razorTree->Branch("Flag_hasEcalGainSwitch", &Flag_hasEcalGainSwitch, "Flag_hasEcalGainSwitch/O");
+
   razorTree->Branch("run", &run, "run/i");
   razorTree->Branch("lumi", &lumi, "lumi/i");
   razorTree->Branch("event", &event, "event/i");
@@ -541,6 +602,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       ISRSystWeightUp   = 1.0;
       ISRSystWeightDown = 1.0;
       NISRJets          = 0;
+      ptISR             = -1;
       pileupWeight      = 1.0;
       pileupWeightUp    = 1.0;
       pileupWeightDown  = 1.0;
@@ -593,7 +655,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       lumi = lumiNum; 
       event = eventNum;
       passedDiphotonTrigger = false;
-      
+      Flag_hasEcalGainSwitch = false;
+
       //selected photons variables
       for ( int i = 0; i < 2; i++ )
 	{
@@ -733,7 +796,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       }
       //Fill N ISR Jet       
       histNISRJets->SetBinContent( min(NISRJets,6)+1, histNISRJets->GetBinContent(min(NISRJets,6)+1) + genWeight);
-  
+      histPtISR->Fill( fmin( ptISR , 6999.0), genWeight);
+
       //************************************************************************
       //For Debugging
       //************************************************************************
@@ -839,6 +903,15 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       int nPhotonsAbove40GeV = 0;
       for(int i = 0; i < nPhotons; i++)
 	{
+	  if ( (pho_seedRecHitSwitchToGain6[i] || 
+		pho_seedRecHitSwitchToGain1[i] || 
+		pho_anyRecHitSwitchToGain6[i] || 
+		pho_anyRecHitSwitchToGain1[i]  
+		)
+	       ) {
+	    Flag_hasEcalGainSwitch = true;
+	  }
+	  
 
 	  double scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
 	  double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
@@ -1435,7 +1508,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	jetIsCSVL[iJet] = GoodJetsIsCVSL[iJet];
 	jetIsCSVM[iJet] = GoodJetsIsCVSM[iJet];
 	jetIsCSVT[iJet] = GoodJetsIsCVST[iJet];
-	iJet++;
       }
     
       //Compute the razor variables using the selected jets and the diphoton system
@@ -1565,12 +1637,94 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //--------------------------------------------------------------
       //Extract SUSY model parameters from lheComment variable
       //--------------------------------------------------------------
- 
-      bool parsedLHE = false;
+       bool parsedLHE = false;
       if(isFastsimSMS && lheComments){
 	//cout << lheComments << " " << *lheComments << "\n";
 
+	//Save some information on signal particles
+	bool foundV1 = false;
+	bool foundV2 = false;
+	TLorentzVector v1;
+	TLorentzVector v2;
+	for(int g = 0; g < nGenParticle; g++){
+	  //cout << gParticleId[g] << " " << gParticleStatus[g] << " " << gParticlePt[g] << " " << gParticleEta[g] << " | " << gParticleMotherId[g] << "\n";
+	  if (gParticleStatus[g]  == 62) {
+	    if (!foundV1) {
+	      v1.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
+	      foundV1 = true;
+	    } else if(!foundV2) {
+	      v2.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
+	      foundV2 = true;
+	    } else {
+	      cout << "Warning: found more than two status=62 particles\n";
+	    }
+	  }	  
+	}
+	if ( foundV1 && foundV2) {
+	  ptISR = (v1+v2).Pt();
+	}
+	
+	
 	if (!is2DMassScan) {
+	  
+
+	  //Save some information on signal particles
+	  for(int g = 0; g < nGenParticle; g++){
+	   
+	    // original N2 produced
+	    if (gParticleId[g] == 1000023 && gParticleStatus[g]  == 62) {
+	      N2Pt = gParticlePt[g];
+	      N2Eta = gParticleEta[g];
+	      N2Phi = gParticlePhi[g];	 
+	      N2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+
+
+	    }
+	    // original N3 produced
+	    if (gParticleId[g] == 1000025 && gParticleStatus[g]  == 62) {
+	      N3Pt = gParticlePt[g];
+	      N3Eta = gParticleEta[g];
+	      N3Phi = gParticlePhi[g];	 
+	      N3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+
+
+	    // H from N2 -> H N1 decay
+	    if (gParticleId[g] == 25 && gParticleMotherId[g]  == 1000023) {
+	      HPt = gParticlePt[g];
+	      HEta = gParticleEta[g];
+	      HPhi = gParticlePhi[g];	 
+	      HMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+	    //N1 from N2 -> H N1 decay
+	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000023) {
+	      N1FromN2Pt = gParticlePt[g];
+	      N1FromN2Eta = gParticleEta[g];
+	      N1FromN2Phi = gParticlePhi[g];	 
+	      N1FromN2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+	    // Z from N3 -> Z N1 decay
+	    if (gParticleId[g] == 23 && gParticleMotherId[g]  == 1000025) {
+	      ZPt = gParticlePt[g];
+	      ZEta = gParticleEta[g];
+	      ZPhi = gParticlePhi[g];	 
+	      ZMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	      //cout << "foudn Z : " << ZPt << " " << ZMass << "\n";
+	    }
+	    //N1 from N3 -> Z N1 decay
+	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000025) {
+	      N1FromN3Pt = gParticlePt[g];
+	      N1FromN3Eta = gParticleEta[g];
+	      N1FromN3Phi = gParticlePhi[g];	 
+	      N1FromN3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+
+	  }
+
+
+
+
+
 	  //parse lhe comment string to get Chargino/Neutralino2 masses
 	  stringstream parser(*lheComments);
 	  string item;
@@ -1583,6 +1737,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	      }
 
 	      parsedLHE = true;
+
+
+	      if (fabs( mChi - N2Mass ) > 1) {
+		cout << "Weird: " << mChi << " | " << N2Mass << " " << N3Mass << " " << N1FromN2Mass << " " << N1FromN3Mass << " " << HMass << " " << ZMass << " : " << *lheComments << "\n";
+		cout << "Throwing the event out. \n";
+		continue;
+	      }      
+
 	      if (smsFiles.count(mChi) == 0){ //create file and tree
 		//format file name
 		string thisFileName = outFileName;
@@ -1596,12 +1758,14 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		smsSumScaleWeights[mChi] = new TH1F(Form("SumScaleWeights%d", mChi), "SumScaleWeights", 6,-0.5,5.5);
 		smsSumPdfWeights[mChi] = new TH1F(Form("SumPdfWeights%d", mChi), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
 		smsNISRJets[mChi] = new TH1F(Form("NISRJets%d", mChi), "NISRJets", 7,-0.5,6.5);
+		smsPtISR[mChi] = new TH1F(Form("PtISR%d", mChi), "PtISR", 8, PtISRBins);
 		cout << "Created new output file " << thisFileName << endl;
 	      }
 	      //Fill NEvents hist 
 	      smsNEvents[mChi]->Fill(1.0, genWeight);
 	      smsSumWeights[mChi]->Fill(1.0, weight);
 	      smsNISRJets[mChi]->Fill(min(NISRJets,6), genWeight);
+	      smsPtISR[mChi]->Fill(fmin( ptISR , 6999.0), genWeight);
 	      smsSumScaleWeights[mChi]->Fill(0.0, sf_facScaleUp);
 	      smsSumScaleWeights[mChi]->Fill(1.0, sf_facScaleDown);
 	      smsSumScaleWeights[mChi]->Fill(2.0, sf_renScaleUp);
@@ -1651,6 +1815,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 		smsSumScaleWeights2D[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mChi, mLSP), "SumScaleWeights", 6,-0.5,5.5);
 		smsSumPdfWeights2D[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mChi, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);		
 		smsNISRJets2D[smsPair] = new TH1F(Form("NISRJets%d%d", mChi, mLSP), "NISRJets", 7,-0.5,6.5);
+		smsPtISR2D[smsPair] = new TH1F(Form("PtISR%d%d", mChi, mLSP), "PtISR", 8,PtISRBins);
 
 		cout << "Created new output file " << thisFileName << endl;
 	      }
@@ -1658,6 +1823,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	      smsNEvents2D[smsPair]->Fill(1.0, genWeight);
 	      smsSumWeights2D[smsPair]->Fill(1.0, weight);
 	      smsNISRJets2D[smsPair]->Fill(min(NISRJets,6), genWeight);
+	      smsPtISR2D[smsPair]->Fill(fmin( ptISR , 6999.0), genWeight);
 
 	      smsSumScaleWeights2D[smsPair]->Fill(0.0, sf_facScaleUp);
 	      smsSumScaleWeights2D[smsPair]->Fill(1.0, sf_facScaleDown);
@@ -1673,6 +1839,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  }
 	}
       } // end if fastsim
+
+
 
 
 
@@ -1718,6 +1886,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
     SumScaleWeights->Write();
     SumPdfWeights->Write();
     histNISRJets->Write();
+    histPtISR->Write();
     puhisto->Write();
   } else {
     if (!is2DMassScan) {
@@ -1730,6 +1899,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
 	smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
 	smsNISRJets[filePtr.first]->Write("NISRJets");
+	smsPtISR[filePtr.first]->Write("PtISR");
       }
     } else {
       for(auto &filePtr : smsFiles2D){
@@ -1741,6 +1911,7 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	smsSumScaleWeights2D[filePtr.first]->Write("SumScaleWeights");
 	smsSumPdfWeights2D[filePtr.first]->Write("SumPdfWeights");
 	smsNISRJets2D[filePtr.first]->Write("NISRJets");
+	smsPtISR2D[filePtr.first]->Write("PtISR");
       }
     }
   }
