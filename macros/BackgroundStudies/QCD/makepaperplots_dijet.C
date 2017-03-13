@@ -66,11 +66,11 @@ void makepaperplots_dijet() {
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   //TString pname = "npf_vs_rsq_razor.png";
 
-  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/HTMHT_2016B_PRv2_Golden.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/ZJetsToNuNu_13TeV-madgraph_1pb_weighted.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_QCD_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJetsInclusive_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root","read");
 
   //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p3_2015JECs/FullRazorInclusive_Data_NoDuplicates_GoodLumiGolden.root","read");
   //TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_QCD_1pb_weighted.root","read");
@@ -78,15 +78,11 @@ void makepaperplots_dijet() {
   //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_WJets_1pb_weighted.root","read");
   //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_ZInv_1pb_weighted.root","read");
 
-  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/HTMHT_Run2015D_Golden.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Razor/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
+    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
+    TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)";
+    TString cut_str_mc="*weight*35900";
 
-  TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)";
-  TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)*(Rsq<0.25)*(passedHadronicTrigger)";
-  TString cut_str_mc="*(weight)*2600";  
+
 
   //--------------------------------------------------------------
   //
@@ -105,11 +101,11 @@ void makepaperplots_dijet() {
   TH1F *fxn_plus_err = new TH1F("fxn_plus_err","fxn_plus_err", nbiny+2, &ybins2[0]); fxn_plus_err->Sumw2();  
 
   // open trees
-  TTree *tQ = (TTree*) fQ->Get("QCDTree");
-  TTree *tD = (TTree*) fD->Get("QCDTree");
-  TTree *tT = (TTree*) fT->Get("QCDTree");
-  TTree *tW = (TTree*) fW->Get("QCDTree");
-  TTree *tZ = (TTree*) fZ->Get("QCDTree");
+  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
+  TTree *tD = (TTree*) fD->Get("RazorInclusive");
+  TTree *tT = (TTree*) fT->Get("RazorInclusive");
+  TTree *tW = (TTree*) fW->Get("RazorInclusive");
+  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
@@ -218,6 +214,8 @@ void makepaperplots_dijet() {
       dnP+=dnP_T*dnP_T+dnP_W*dnP_W+dnP_Z*dnP_Z;
       dnF+=dnF_T*dnF_T+dnF_W*dnF_W+dnP_Z*dnP_Z;
 
+      cout << nPass << ", " << nFail << endl;
+
       if (nPass>0 && nFail>0) {
 	nPF=nPass/nFail;
 
@@ -225,7 +223,7 @@ void makepaperplots_dijet() {
 	Float_t dnPF_u=nPF*TMath::Sqrt( dnP + dnF );
 	Float_t dnPF_l=nPF*TMath::Sqrt( dnP + dnF );
 	dnPF_l = (dnPF_l<nPF ? dnPF_l : nPF);
-	
+
 	// if (k==0) {
 	//   dat_with_mr[i]->SetPoint(k, xrsq-100, nPF);
 	//   dat_with_mr[i]->SetPointError(k, drsq, drsq, dnPF_l, dnPF_u);
