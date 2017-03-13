@@ -522,8 +522,8 @@ recommendedNoiseFilters = [
         "Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter",
         "Flag_goodVertices", "Flag_eeBadScFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
-        "Flag_badChargedCandidateFilter","Flag_badMuonFilter",
-        "Flag_badGlobalMuonFilter", "Flag_duplicateMuonFilter"
+        "Flag_badChargedCandidateFilter","Flag_badMuonFilter"
+        #"Flag_badGlobalMuonFilter", "Flag_duplicateMuonFilter"
         ]
 def appendNoiseFilters(cuts, tree=None):
     ret = copy.copy(cuts)
