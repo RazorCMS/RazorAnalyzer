@@ -341,7 +341,7 @@ razorFitDirs = {
         }
 razorFitFiles = { tag:{} for tag in razorFitDirs }
 for tag,path in razorFitDirs.iteritems():
-    for box in ["MultiJet","DiJet","LeptonMultiJet","LeptonJet"]:
+    for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
         razorFitFiles[tag][box] = "%s/Fits_%s/toys_Bayes_noStat_%s.root"%(path,box,box)
 
 
@@ -589,27 +589,39 @@ razorBoxes = {
         "LeptonSixJet" : [3,6],
         "LeptonFourJet" : [4,7],
         "LeptonJet" : [5,8],
+        "LeptonJet_0b" : [5,8],
+        "LeptonJet_1b" : [5,8],
+        "LeptonJet_2b" : [5,8],
         "LooseLeptonSixJet" : [9],
         "LooseLeptonFourJet" : [10],
         "LooseLeptonDiJet" : [13],
         "SixJet" : [11],
         "FourJet" : [12],
         "DiJet" : [14],	  
+        "DiJet_0b" : [14],	  
+        "DiJet_1b" : [14],	  
+        "DiJet_2b" : [14],	  
         "MuMultiJet" : [3,4,18],
         "EleMultiJet" : [6,7,19],
         "LeptonMultiJet" : [3,4,18,6,7,19],
+        "LeptonMultiJet_0b" : [3,4,18,6,7,19],
+        "LeptonMultiJet_1b" : [3,4,18,6,7,19],
+        "LeptonMultiJet_2b" : [3,4,18,6,7,19],
         "LooseLeptonMultiJet" : [9,10,20],
         "MultiJet" : [11,12,21],
+        "MultiJet_0b" : [11,12,21],
+        "MultiJet_1b" : [11,12,21],
+        "MultiJet_2b" : [11,12,21],
         "FourToSixJet" : [11,12,21],
         "SevenJet" : [11,12,21],
         }
 
-hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet", "FourToSixJet", "SevenJet"]
+hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet", "FourToSixJet", "SevenJet","DiJet_0b","DiJet_1b","DiJet_2b","MultiJet_0b","MultiJet_1b","MultiJet_2b"]
 looseLeptonRazorBoxes = ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]
-leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet", "LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet"]
+leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet", "LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
 electronRazorBoxes = ["EleJet", "EleFourJet", "EleSixJet", "EleMultiJet"]
 muonRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet"]
-leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet"]
+leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
 dileptonSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
@@ -768,9 +780,10 @@ razorBinning["SusySync"] = {
         }
 
 ### Signal region
-signalConfig = "config/run2_2017_01_07_Run2016G_SUSYUnblind_Sep23ReReco.config"
+signalConfig = "config/run2_2017_03_13_SeparateBtagFits.config"
+#signalConfig = "config/run2_2017_01_07_Run2016G_SUSYUnblind_Sep23ReReco.config"
 cfg = Config.Config(signalConfig)
-for box in ["MultiJet", "DiJet", "LeptonMultiJet", "LeptonJet"]:
+for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
     razorBinning[box] = {
             "MR" : cfg.getBinning(box)[0],
             "Rsq" : cfg.getBinning(box)[1],
@@ -822,7 +835,25 @@ xbinsSignal["DiJet"] = xbinsSignal["MultiJet"]
 xbinsSignal["MuJet"] = xbinsSignal["MuMultiJet"]
 xbinsSignal["EleJet"] = xbinsSignal["EleMultiJet"]
 xbinsSignal["LeptonMultiJet"] = xbinsSignal["MuMultiJet"]
+
 xbinsSignal["LeptonJet"] = xbinsSignal["LeptonMultiJet"]
+
+xbinsSignal["LeptonJet_0b"] = xbinsSignal["LeptonJet"]
+xbinsSignal["LeptonJet_1b"] = xbinsSignal["LeptonJet"]
+xbinsSignal["LeptonJet_2b"] = xbinsSignal["LeptonJet"]
+
+xbinsSignal["LeptonMultiJet_0b"] = xbinsSignal["LeptonMultiJet"]
+xbinsSignal["LeptonMultiJet_1b"] = xbinsSignal["LeptonMultiJet"]
+xbinsSignal["LeptonMultiJet_2b"] = xbinsSignal["LeptonMultiJet"]
+
+xbinsSignal["MultiJet_0b"] = xbinsSignal["MultiJet"]
+xbinsSignal["MultiJet_1b"] = xbinsSignal["MultiJet"]
+xbinsSignal["MultiJet_2b"] = xbinsSignal["MultiJet"]
+
+xbinsSignal["DiJet_0b"] = xbinsSignal["DiJet"]
+xbinsSignal["DiJet_1b"] = xbinsSignal["DiJet"]
+xbinsSignal["DiJet_2b"] = xbinsSignal["DiJet"]
+
 
 colsSignal["MultiJet"]["0B"] = [
         [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
@@ -940,6 +971,22 @@ colsSignal["MuJet"] = colsSignal["MuMultiJet"]
 colsSignal["EleJet"] = colsSignal["EleMultiJet"]
 colsSignal["LeptonMultiJet"] = colsSignal["MuMultiJet"]
 colsSignal["LeptonJet"] = colsSignal["LeptonMultiJet"]
+
+colsSignal["LeptonJet_0b"] = colsSignal["LeptonJet"]
+colsSignal["LeptonJet_1b"] = colsSignal["LeptonJet"]
+colsSignal["LeptonJet_2b"] = colsSignal["LeptonJet"]
+
+colsSignal["LeptonMultiJet_0b"] = colsSignal["LeptonMultiJet"]
+colsSignal["LeptonMultiJet_1b"] = colsSignal["LeptonMultiJet"]
+colsSignal["LeptonMultiJet_2b"] = colsSignal["LeptonMultiJet"]
+
+colsSignal["MultiJet_0b"] = colsSignal["MultiJet"]
+colsSignal["MultiJet_1b"] = colsSignal["MultiJet"]
+colsSignal["MultiJet_2b"] = colsSignal["MultiJet"]
+
+colsSignal["DiJet_0b"] = colsSignal["DiJet"]
+colsSignal["DiJet_1b"] = colsSignal["DiJet"]
+colsSignal["DiJet_2b"] = colsSignal["DiJet"]
 
 xbinsSignal["SevenJet"]["0B"] = [ 500, 600, 700, 900, 1200, 4000 ]
 xbinsSignal["SevenJet"]["1B"] = [ 500, 600, 700, 900, 1200, 4000 ]
