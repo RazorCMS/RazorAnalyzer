@@ -50,8 +50,8 @@ void makepaperplots_dijet() {
   Float_t ybins[nbiny+1] = {ymin, 600, 800, 1000, ymax};
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
 
-  TString pname = "npf_vs_mr_dijet_fit.pdf";
-  TString pname2 = "npf_vs_mr_dijet_fit.C";
+  TString pname = "npf_vs_mr_dijet_2b_fit.pdf";
+  TString pname2 = "npf_vs_mr_dijet_2b_fit.C";
 
   // for rsq
   //Int_t binIn=rsq;
@@ -78,9 +78,9 @@ void makepaperplots_dijet() {
   //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_WJets_1pb_weighted.root","read");
   //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_ZInv_1pb_weighted.root","read");
 
-    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
-    TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)";
-    TString cut_str_mc="*weight*35900";
+    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(nBTaggedJets>1)";
+    TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)*(nBTaggedJets>1)";
+    TString cut_str_mc="*weight*35800";
 
 
 
@@ -124,7 +124,9 @@ void makepaperplots_dijet() {
   }
 
   TF1 *qcd_fxn = new TF1("qcd_fxn","[0]", 400, 2500);
-  qcd_fxn->SetParameter(0,0.102603);
+  //qcd_fxn->SetParameter(0,0.043);
+  //qcd_fxn->SetParameter(0,0.048);
+  qcd_fxn->SetParameter(0,0.068);
 
   //qcd_fxn->SetParameter(0,3.1e7);
   //qcd_fxn->SetParameter(1,-3.1);
@@ -247,6 +249,8 @@ void makepaperplots_dijet() {
 
   qcd_fxn->SetLineColor(kBlue+1);
 
+  //dat_with_mr[i]->Fit("qcd_fxn");
+
   qcd_with_mr[i]->SetMarkerStyle(24);
   //qcd_with_mr[i]->SetMarkerStyle(20);
   //qcd_with_mr[i]->SetLineColor(kRed);
@@ -295,7 +299,9 @@ void makepaperplots_dijet() {
   tex->SetTextSize(0.035);
   tex->SetTextFont(42);
   tex->SetTextColor(kBlack);
-  tex->DrawLatex(0.485, 0.66, "#zeta = 0.103");
+  //tex->DrawLatex(0.485, 0.66, "#zeta = 0.043");
+  //tex->DrawLatex(0.485, 0.66, "#zeta = 0.048");
+  tex->DrawLatex(0.485, 0.66, "#zeta = 0.068");
 
   leg->Draw();
 
@@ -304,7 +310,7 @@ void makepaperplots_dijet() {
   tex->SetTextFont(62);   tex->SetTextSize(0.065);
   tex->SetLineWidth(2);
   tex->Draw();
-  tex = new TLatex(0.71,0.93,"2.6 fb^{-1} (13 TeV)");
+  tex = new TLatex(0.71,0.93,"35.8 fb^{-1} (13 TeV)");
   tex->SetNDC();
   tex->SetTextFont(42);   tex->SetTextSize(0.05);
   tex->SetLineWidth(2);

@@ -39,13 +39,13 @@ void get_contributions_JJ() {
   TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root","read");
   TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root","read");
 
-    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
+    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(nBTaggedJets==0)";
 
   TString cut_str_rsq="*(Rsq<0.25)";
 
   TString cut_str_dat=cut_str+cut_str_rsq;
 
-  TString cut_str_mc="*weight*35900";
+  TString cut_str_mc="*weight*35800";
 
   TString cut_str_mr1="*(MR>500 && MR<600)";
   TString cut_str_mr2="*(MR>600 && MR<700)";
