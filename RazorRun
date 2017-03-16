@@ -20,6 +20,6 @@ else
     
     ./Run$2 $1 ${@:3}
     rm Run$2
-    rm *csv *tgz *dat JetResolutionInputAK5PF.txt
+    #rm CSVv2_Moriond17_*csv *tgz *dat JetResolutionInputAK5PF.txt
     /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select -b fuse umount eos
 fi
