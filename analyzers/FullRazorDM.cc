@@ -37,6 +37,7 @@ class RazorVarCollection {
             box = RazorAnalyzer::NONE;
 
             MetXCorr = 0; MetYCorr = 0;
+            metOverCaloMet = 0;
             leadingTightMu = TLorentzVector(); leadingTightEle = TLorentzVector();
             GoodJets = vector<TLorentzVector>();
             GoodLeptons = vector<TLorentzVector>();
@@ -46,6 +47,7 @@ class RazorVarCollection {
             if (tag == "") { conn = ""; } // remove underscore if not needed
             t->Branch(("MR"+conn+tag).c_str(), &MR, ("MR"+conn+tag+"/F").c_str());
             t->Branch(("Rsq"+conn+tag).c_str(), &Rsq, ("Rsq"+conn+tag+"/F").c_str());
+            t->Branch(("metOverCaloMet"+conn+tag).c_str(), &metOverCaloMet, ("metOverCaloMet"+conn+tag+"/F").c_str());
             t->Branch(("dPhiRazor"+conn+tag).c_str(), &dPhiRazor, ("dPhiRazor"+conn+tag+"/F").c_str());
             t->Branch(("leadingJetPt"+conn+tag).c_str(), &leadingJetPt, 
                     ("leadingJetPt"+conn+tag+"/F").c_str());
@@ -79,6 +81,7 @@ class RazorVarCollection {
         float MR,Rsq,dPhiRazor,leadingJetPt,subleadingJetPt,leadingTightMuPt,leadingTightElePt,mT,mTLoose;
         int nSelectedJets,nBTaggedJets,nJets80;
         int nVetoMuons, nTightMuons, nVetoElectrons, nTightElectrons;
+        float metOverCaloMet;
         RazorAnalyzer::RazorBox box;
         // Non-tree variables
         float MetXCorr, MetYCorr;
@@ -99,12 +102,12 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
     //Output file
     if (outFileName.empty()){
         cout << "FullRazorDM: Output filename not specified!" << endl << "Using default output name FullRazorDM.root" << endl;
-	outFileName = "FullRazorDM.root";
+        outFileName = "FullRazorDM.root";
     }
     TFile *outFile = new TFile(outFileName.c_str(), "RECREATE");
 
     //Output tree
-    TTree *razorTree = new TTree("RazorDM", "Info on selected razor inclusive events");
+    TTree *razorTree = new TTree("RazorDM", "Info on selected razor DM events");
 
     //For signal samples, create one output file and tree per signal mass point
     map<pair<int,int>, TFile*> smsFiles;
@@ -143,7 +146,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
     }
     else {
         varCollectionNames = { "", "JESUp", "JESDown", "MESUp", "MESDown", 
-                               "EESUp", "EESDown", "JERUp", "JERDown" };
+            "EESUp", "EESDown", "JERUp", "JERDown" };
     }
     for (auto &str : varCollectionNames) {
         mainVars[str] = new RazorVarCollection(str);
@@ -194,12 +197,13 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
+    bool Flag_hasEcalGainSwitch;
 
     //Set branches
     for (auto &vars : mainVars) {
         vars.second->setBranches(razorTree);
     }
-        
+
     razorTree->Branch("nVtx", &nVtx, "nVtx/I");
     razorTree->Branch("nLooseTaus", &nLooseTaus, "nLooseTaus/I");
     razorTree->Branch("HT", &HT, "HT/F");
@@ -212,6 +216,8 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
     razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
     razorTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
     razorTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
+    razorTree->Branch("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter, "Flag_badGlobalMuonFilter/O");
+    razorTree->Branch("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter, "Flag_duplicateMuonFilter/O");
     razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
     razorTree->Branch("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, "Flag_hcalLaserEventFilter/O");
     razorTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/O");
@@ -224,6 +230,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
     razorTree->Branch("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, "Flag_trkPOG_toomanystripclus53X/O");
     razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
     razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
+    razorTree->Branch("Flag_hasEcalGainSwitch", &Flag_hasEcalGainSwitch, "Flag_hasEcalGainSwitch/O");
 
     if (!isData) {    
         razorTree->Branch("genWeight", &genWeight, "genWeight/F");
@@ -236,15 +243,15 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         razorTree->Branch("btagCorrFactor", &btagCorrFactor, "btagCorrFactor/F");
         razorTree->Branch("topPtWeight", &topPtWeight, "topPtWeight/F");
         razorTree->Branch("NPU", &NPU, "NPU/I");
-	razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
-	razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
-	razorTree->Branch("leadingGenLeptonType", &leadingGenLeptonType, "leadingGenLeptonType/I");
-	razorTree->Branch("subLeadingGenLeptonPt", &subLeadingGenLeptonPt, "subLeadingGenLeptonPt/F");
-	razorTree->Branch("subLeadingGenLeptonEta", &subLeadingGenLeptonEta, "subLeadingGenLeptonEta/F");
-	razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
-	razorTree->Branch("NGenBJets", &NGenBJets, "NGenBJets/I");
- 	razorTree->Branch("genHT", &genHT, "genHT/F");
- 	razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
+        razorTree->Branch("leadingGenLeptonPt", &leadingGenLeptonPt, "leadingGenLeptonPt/F");
+        razorTree->Branch("leadingGenLeptonEta", &leadingGenLeptonEta, "leadingGenLeptonEta/F");
+        razorTree->Branch("leadingGenLeptonType", &leadingGenLeptonType, "leadingGenLeptonType/I");
+        razorTree->Branch("subLeadingGenLeptonPt", &subLeadingGenLeptonPt, "subLeadingGenLeptonPt/F");
+        razorTree->Branch("subLeadingGenLeptonEta", &subLeadingGenLeptonEta, "subLeadingGenLeptonEta/F");
+        razorTree->Branch("subLeadingGenLeptonType", &subLeadingGenLeptonType, "subLeadingGenLeptonType/I");
+        razorTree->Branch("NGenBJets", &NGenBJets, "NGenBJets/I");
+        razorTree->Branch("genHT", &genHT, "genHT/F");
+        razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
         razorTree->Branch("sf_muonEffUp", &sf_muonEffUp, "sf_muonEffUp/F");
         razorTree->Branch("sf_muonEffDown", &sf_muonEffDown, "sf_muonEffDown/F");
         razorTree->Branch("sf_vetoMuonEffUp", &sf_vetoMuonEffUp, "sf_vetoMuonEffUp/F");
@@ -312,7 +319,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
 
-	nb = fChain->GetEntry(jentry);
+        nb = fChain->GetEntry(jentry);
 
         //Reset tree variables
         for (auto &vars : mainVars) {
@@ -325,22 +332,22 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         nLooseTaus = 0;
         if(!isData){
             NPU = -1;
-	    leadingGenLeptonPt = -9;
-	    leadingGenLeptonEta = -9;
-	    leadingGenLeptonType = 0;
-	    subLeadingGenLeptonPt = -9;
-	    subLeadingGenLeptonEta = -9;
-	    subLeadingGenLeptonType = 0;
-	    NGenBJets = 0;
-	    genHT = 0;
+            leadingGenLeptonPt = -9;
+            leadingGenLeptonEta = -9;
+            leadingGenLeptonType = 0;
+            subLeadingGenLeptonPt = -9;
+            subLeadingGenLeptonEta = -9;
+            subLeadingGenLeptonType = 0;
+            NGenBJets = 0;
+            genHT = 0;
             NISRJets = 0;
-  	    ISRSystWeightUp = 1.0;
-  	    ISRSystWeightDown = 1.0;
-	    pileupWeight = 1.0;
-	    pileupWeightUp = 1.0;
-	    pileupWeightDown = 1.0;
-	    btagCorrFactor = 1.0;
-	    topPtWeight = 1.0;
+            ISRSystWeightUp = 1.0;
+            ISRSystWeightDown = 1.0;
+            pileupWeight = 1.0;
+            pileupWeightUp = 1.0;
+            pileupWeightDown = 1.0;
+            btagCorrFactor = 1.0;
+            topPtWeight = 1.0;
             sf_muonEffUp = 1.0;
             sf_muonEffDown = 1.0;
             sf_vetoMuonEffUp = 1.0;
@@ -378,178 +385,178 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             if(isFastsimSMS){
                 mGluino = -1;
                 mLSP = -1;
-		nCharginoFromGluino = 0;
-		ntFromGluino = 0;
+                nCharginoFromGluino = 0;
+                ntFromGluino = 0;
             }
         }
 
         /////////////////////////////////
         //MC particles
         /////////////////////////////////
-	genHT = getGenHT();
+        genHT = getGenHT();
         NISRJets = getNISR( JetCorrector, JetCorrectorIOV );
         float ptTop = -1;
         float ptAntitop = -1;
-	if(!isData) {
-	  for(int j = 0; j < nGenParticle; j++){
-	    
-	    //electron or muon
-	    if ( gParticleStatus[j] == 1 &&
-		 (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13)
-		 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23 || abs(gParticleMotherId[j]) == 15)
-		 ) {
-	      if (gParticlePt[j] > leadingGenLeptonPt) {
-		subLeadingGenLeptonPt = leadingGenLeptonPt;
-		subLeadingGenLeptonEta = leadingGenLeptonEta;
-		subLeadingGenLeptonType = leadingGenLeptonType;
-		leadingGenLeptonPt = gParticlePt[j];
-		leadingGenLeptonEta = gParticleEta[j];
-		leadingGenLeptonType = gParticleId[j];
-	      } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
-		subLeadingGenLeptonPt = gParticlePt[j];
-		subLeadingGenLeptonEta = gParticleEta[j];
-		subLeadingGenLeptonType = gParticleId[j];
-	      }
-	    }
+        if(!isData) {
+            for(int j = 0; j < nGenParticle; j++){
 
-	    //hadronic tau
-	    if ( gParticleStatus[j] == 2 && abs(gParticleId[j]) == 15
-		 && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)
-		 ) {
-	      bool isLeptonicTau = false;
-	      for(int k = 0; k < nGenParticle; k++){
-		if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == j) {
-		  isLeptonicTau = true;
-		  break;
-		}
-	      }
-	      if (isLeptonicTau) continue;
-		
-	      if (gParticlePt[j] > leadingGenLeptonPt) {
-		subLeadingGenLeptonPt = leadingGenLeptonPt;
-		subLeadingGenLeptonEta = leadingGenLeptonEta;
-		subLeadingGenLeptonType = leadingGenLeptonType;
-		leadingGenLeptonPt = gParticlePt[j];
-		leadingGenLeptonEta = gParticleEta[j];
-		leadingGenLeptonType = gParticleId[j];
-	      } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
-		subLeadingGenLeptonPt = gParticlePt[j];
-		subLeadingGenLeptonEta = gParticleEta[j];
-		subLeadingGenLeptonType = gParticleId[j];
-	      }
-	    }
+                //electron or muon
+                if ( gParticleStatus[j] == 1 &&
+                        (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13)
+                        && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23 || abs(gParticleMotherId[j]) == 15)
+                   ) {
+                    if (gParticlePt[j] > leadingGenLeptonPt) {
+                        subLeadingGenLeptonPt = leadingGenLeptonPt;
+                        subLeadingGenLeptonEta = leadingGenLeptonEta;
+                        subLeadingGenLeptonType = leadingGenLeptonType;
+                        leadingGenLeptonPt = gParticlePt[j];
+                        leadingGenLeptonEta = gParticleEta[j];
+                        leadingGenLeptonType = gParticleId[j];
+                    } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
+                        subLeadingGenLeptonPt = gParticlePt[j];
+                        subLeadingGenLeptonEta = gParticleEta[j];
+                        subLeadingGenLeptonType = gParticleId[j];
+                    }
+                }
 
-            //top
-            if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && ptTop < 0 ) {
-                ptTop = gParticlePt[j];
+                //hadronic tau
+                if ( gParticleStatus[j] == 2 && abs(gParticleId[j]) == 15
+                        && (abs(gParticleMotherId[j]) == 24 || abs(gParticleMotherId[j]) == 23)
+                   ) {
+                    bool isLeptonicTau = false;
+                    for(int k = 0; k < nGenParticle; k++){
+                        if ( (abs(gParticleId[k]) == 11 || abs(gParticleId[k]) == 13) && gParticleMotherIndex[k] == j) {
+                            isLeptonicTau = true;
+                            break;
+                        }
+                    }
+                    if (isLeptonicTau) continue;
+
+                    if (gParticlePt[j] > leadingGenLeptonPt) {
+                        subLeadingGenLeptonPt = leadingGenLeptonPt;
+                        subLeadingGenLeptonEta = leadingGenLeptonEta;
+                        subLeadingGenLeptonType = leadingGenLeptonType;
+                        leadingGenLeptonPt = gParticlePt[j];
+                        leadingGenLeptonEta = gParticleEta[j];
+                        leadingGenLeptonType = gParticleId[j];
+                    } else if ( gParticlePt[j] > subLeadingGenLeptonPt) {
+                        subLeadingGenLeptonPt = gParticlePt[j];
+                        subLeadingGenLeptonEta = gParticleEta[j];
+                        subLeadingGenLeptonType = gParticleId[j];
+                    }
+                }
+
+                //top
+                if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && ptTop < 0 ) {
+                    ptTop = gParticlePt[j];
+                }
+                //antitop
+                if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && ptAntitop < 0 ) {
+                    ptAntitop = gParticlePt[j];
+                }
+
+            } //loop over gen particles
+            // get top pt weight
+            if ( ptTop > 0 && ptAntitop > 0 ) {
+                topPtWeight = helper->getTopPtWeight( ptTop, ptAntitop );
             }
-            //antitop
-            if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && ptAntitop < 0 ) {
-                ptAntitop = gParticlePt[j];
+        } //if !isData
+
+        if(isFastsimSMS){
+
+            //Count gluino to b quark decays and gluino to top quark decays
+            int tmp_nbFromGluino = 0;
+            int tmp_ntopFromGluino = 0;
+            int tmp_nCharginoFromGluino = 0;
+            for(int j = 0; j < nGenParticle; j++){
+                //cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " : " << gParticleMotherIndex[j] << " " << gParticleMotherId[j] << "\n";
+
+                if ( abs(gParticleId[j]) == 5 && gParticleMotherIndex[j] >= 0 
+                        && gParticleId[gParticleMotherIndex[j]] == 1000021 
+                        && gParticleStatus[gParticleMotherIndex[j]] == 22
+                   ) tmp_nbFromGluino++;
+
+                if ( abs(gParticleId[j]) == 6 && gParticleMotherIndex[j] >= 0 
+                        && gParticleId[gParticleMotherIndex[j]] == 1000021 
+                        && gParticleStatus[gParticleMotherIndex[j]] == 22
+                   ) tmp_ntopFromGluino++;														    
+
+                if ( abs(gParticleId[j]) == 1000024 && gParticleMotherIndex[j] >= 0 
+                        && gParticleId[gParticleMotherIndex[j]] == 1000021 
+                        && gParticleStatus[gParticleMotherIndex[j]] == 22
+                   ) tmp_nCharginoFromGluino++;														    
+            }
+            ntFromGluino = tmp_ntopFromGluino;
+            nCharginoFromGluino = tmp_nCharginoFromGluino;	  
+
+
+            //Get Gen level info for ISR systematics
+            TLorentzVector *gluino1PreShowering = 0;
+            TLorentzVector *gluino2PreShowering = 0;
+            TLorentzVector *gluino1PostShowering = 0;
+            TLorentzVector *gluino2PostShowering = 0;
+            for(int j = 0; j < nGenParticle; j++){
+
+                if (gParticleId[j] == 1000021 && gParticleStatus[j] == 22) {
+                    if (!gluino1PreShowering) {
+                        gluino1PreShowering = new TLorentzVector;
+                        gluino1PreShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+                    } else if (!gluino2PreShowering) {
+                        gluino2PreShowering = new TLorentzVector;
+                        gluino2PreShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+                    } else {
+                        cout << "Warning More than 2 status 22 gluinos\n";
+                    }
+                }
+
+                if (gParticleId[j] == 1000021 && gParticleStatus[j] == 62) {
+                    if (!gluino1PostShowering) {
+                        gluino1PostShowering = new TLorentzVector;
+                        gluino1PostShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+                    } else if (!gluino2PostShowering) {
+                        gluino2PostShowering = new TLorentzVector;
+                        gluino2PostShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
+                    } else {
+                        cout << "Warning More than 2 status 62 gluinos\n";
+                    }
+                }
+
+                if (gluino1PreShowering && gluino2PreShowering && gluino1PostShowering && gluino2PostShowering) break;
             }
 
-	  } //loop over gen particles
-          // get top pt weight
-          if ( ptTop > 0 && ptAntitop > 0 ) {
-              topPtWeight = helper->getTopPtWeight( ptTop, ptAntitop );
-          }
-	} //if !isData
-	
-	if(isFastsimSMS){
+            if (gluino1PreShowering && gluino2PreShowering) {
+                // cout << "PreShowering Gluino Pair System: " 
+                // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Pt() << " "
+                // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Eta() << " "
+                // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Phi() << " "
+                // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).M() << " "
+                // 	 << " \n";	    
+            }
+            if (gluino1PostShowering && gluino2PostShowering) {
+                // cout << "PostShowering Gluino Pair System: " 
+                // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() << " "
+                // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Eta() << " "
+                // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Phi() << " "
+                // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).M() << " "
+                // 	 << " \n";	 
 
-	  //Count gluino to b quark decays and gluino to top quark decays
-	  int tmp_nbFromGluino = 0;
-	  int tmp_ntopFromGluino = 0;
-	  int tmp_nCharginoFromGluino = 0;
-	  for(int j = 0; j < nGenParticle; j++){
-	    //cout << "Particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " << gParticlePt[j] << " " << gParticleEta[j] << " " << gParticlePhi[j] << " : " << gParticleMotherIndex[j] << " " << gParticleMotherId[j] << "\n";
-	    
-	    if ( abs(gParticleId[j]) == 5 && gParticleMotherIndex[j] >= 0 
-		 && gParticleId[gParticleMotherIndex[j]] == 1000021 
-		 && gParticleStatus[gParticleMotherIndex[j]] == 22
-		 ) tmp_nbFromGluino++;
-														    
-	    if ( abs(gParticleId[j]) == 6 && gParticleMotherIndex[j] >= 0 
-		 && gParticleId[gParticleMotherIndex[j]] == 1000021 
-		 && gParticleStatus[gParticleMotherIndex[j]] == 22
-		 ) tmp_ntopFromGluino++;														    
+                ISRSystWeightUp = 1.0; 
+                if ( ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() > 400 && 
+                        ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() <= 600 ) {
+                    ISRSystWeightUp = 1.15;
+                    ISRSystWeightDown = 0.85;
+                } else if ( ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() > 600) {
+                    ISRSystWeightUp = 1.30;
+                    ISRSystWeightDown = 0.70;
+                }		 
+            }
 
-	    if ( abs(gParticleId[j]) == 1000024 && gParticleMotherIndex[j] >= 0 
-		 && gParticleId[gParticleMotherIndex[j]] == 1000021 
-		 && gParticleStatus[gParticleMotherIndex[j]] == 22
-		 ) tmp_nCharginoFromGluino++;														    
-	  }
-	  ntFromGluino = tmp_ntopFromGluino;
-	  nCharginoFromGluino = tmp_nCharginoFromGluino;	  
+            if (gluino1PreShowering) delete gluino1PreShowering;
+            if (gluino2PreShowering) delete gluino2PreShowering;
+            if (gluino1PostShowering) delete gluino1PostShowering;
+            if (gluino2PostShowering) delete gluino2PostShowering;	 
+        } // end if fastsim signals
 
-
-	  //Get Gen level info for ISR systematics
-	  TLorentzVector *gluino1PreShowering = 0;
-	  TLorentzVector *gluino2PreShowering = 0;
-	  TLorentzVector *gluino1PostShowering = 0;
-	  TLorentzVector *gluino2PostShowering = 0;
-	  for(int j = 0; j < nGenParticle; j++){
-	  
-	    if (gParticleId[j] == 1000021 && gParticleStatus[j] == 22) {
-	      if (!gluino1PreShowering) {
-		gluino1PreShowering = new TLorentzVector;
-		gluino1PreShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
-	      } else if (!gluino2PreShowering) {
-		gluino2PreShowering = new TLorentzVector;
-		gluino2PreShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
-	      } else {
-		cout << "Warning More than 2 status 22 gluinos\n";
-	      }
-	    }
-	    
-	    if (gParticleId[j] == 1000021 && gParticleStatus[j] == 62) {
-	      if (!gluino1PostShowering) {
-		gluino1PostShowering = new TLorentzVector;
-		gluino1PostShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
-	      } else if (!gluino2PostShowering) {
-		gluino2PostShowering = new TLorentzVector;
-		gluino2PostShowering->SetPtEtaPhiE(gParticlePt[j],gParticleEta[j],gParticlePhi[j],gParticleE[j]);
-	      } else {
-		cout << "Warning More than 2 status 62 gluinos\n";
-	      }
-	    }
-
-	    if (gluino1PreShowering && gluino2PreShowering && gluino1PostShowering && gluino2PostShowering) break;
-	  }
-	
-	  if (gluino1PreShowering && gluino2PreShowering) {
-	    // cout << "PreShowering Gluino Pair System: " 
-	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Pt() << " "
-	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Eta() << " "
-	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).Phi() << " "
-	    // 	 << ((*gluino1PreShowering) + (*gluino2PreShowering)).M() << " "
-	    // 	 << " \n";	    
-	  }
-	  if (gluino1PostShowering && gluino2PostShowering) {
-	    // cout << "PostShowering Gluino Pair System: " 
-	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() << " "
-	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Eta() << " "
-	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).Phi() << " "
-	    // 	 << ((*gluino1PostShowering) + (*gluino2PostShowering)).M() << " "
-	    // 	 << " \n";	 
-
-	    ISRSystWeightUp = 1.0; 
-	    if ( ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() > 400 && 
-		 ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() <= 600 ) {
-	      ISRSystWeightUp = 1.15;
-	      ISRSystWeightDown = 0.85;
-	    } else if ( ((*gluino1PostShowering) + (*gluino2PostShowering)).Pt() > 600) {
-	      ISRSystWeightUp = 1.30;
-	      ISRSystWeightDown = 0.70;
-	    }		 
-	  }
-
-	  if (gluino1PreShowering) delete gluino1PreShowering;
-	  if (gluino2PreShowering) delete gluino2PreShowering;
-	  if (gluino1PostShowering) delete gluino1PostShowering;
-	  if (gluino2PostShowering) delete gluino2PostShowering;	 
-	} // end if fastsim signals
-	
         /////////////////////////////////
         //Trigger
         /////////////////////////////////
@@ -581,11 +588,11 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         }
         //ignore trigger for Fastsim, and for 80X MC
         if(isFastsimSMS || 
-	   ((analysisTag == "Razor2016_MoriondRereco" 
-	     || analysisTag == "Razor2016_80X" 
-	     || analysisTag == "Razor2016G_80X" 
-	     || analysisTag == "Razor2016G_SUSYUnblind_80X") && !isData)
-	   ){
+                ((analysisTag == "Razor2016_MoriondRereco" 
+                  || analysisTag == "Razor2016_80X" 
+                  || analysisTag == "Razor2016G_80X" 
+                  || analysisTag == "Razor2016G_SUSYUnblind_80X") && !isData)
+          ){
             passedDileptonTrigger = true;
             passedSingleLeptonTrigger = true;
             passedHadronicTrigger = true;
@@ -597,17 +604,17 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
 
         pileupWeight = 1.0;
         if(!isData){
-	  //Get number of PU interactions
-	  for (int i = 0; i < nBunchXing; i++) {
-	    if (BunchXing[i] == 0) {
-	      NPU = nPUmean[i];
-	    }
-	  }
-          pileupWeight = helper->getPileupWeight(NPU);
-          pileupWeightUp = helper->getPileupWeightUp(NPU) / pileupWeight;
-          pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;
+            //Get number of PU interactions
+            for (int i = 0; i < nBunchXing; i++) {
+                if (BunchXing[i] == 0) {
+                    NPU = nPUmean[i];
+                }
+            }
+            pileupWeight = helper->getPileupWeight(NPU);
+            pileupWeightUp = helper->getPileupWeightUp(NPU) / pileupWeight;
+            pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;
         }
-	
+
 
 
 
@@ -694,11 +701,11 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             if (muonPt[i] < MUON_VETO_CUT) continue;
 
             //Trigger scale factor
-	    //Note: The current scheme for applying the trigger scale factor is only correct for the 1-lepton box
-	    //For the 2-lepton boxes, the way we apply these scale factors now is wrong.
+            //Note: The current scheme for applying the trigger scale factor is only correct for the 1-lepton box
+            //For the 2-lepton boxes, the way we apply these scale factors now is wrong.
             if(!isData && muonPt[i] >= MUON_TIGHT_CUT){
-	      helper->updateSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
-							 passedSingleLeptonTrigger, muonTrigCorrFactor, sf_muonTrigUp, sf_muonTrigDown );
+                helper->updateSingleMuTriggerScaleFactors( muonPt[i], muonEta[i], isTightMuon(i), 
+                        passedSingleLeptonTrigger, muonTrigCorrFactor, sf_muonTrigUp, sf_muonTrigDown );
             }
             //Veto selection
             if (isVetoMuon(i)){
@@ -807,11 +814,11 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             if (elePt[i] < ELE_VETO_CUT) continue;
 
             //Trigger scale factor
-	    //Note: The current scheme for applying the trigger scale factor is only correct for the 1-lepton box
-	    //For the 2-lepton boxes, the way we apply these scale factors now is wrong.
+            //Note: The current scheme for applying the trigger scale factor is only correct for the 1-lepton box
+            //For the 2-lepton boxes, the way we apply these scale factors now is wrong.
             if(!isData && elePt[i] > ELE_TIGHT_CUT){
-	      helper->updateSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
-							  passedSingleLeptonTrigger, eleTrigCorrFactor, sf_eleTrigUp, sf_eleTrigDown );
+                helper->updateSingleEleTriggerScaleFactors( elePt[i], eleEta[i], isTightElectron(i), 
+                        passedSingleLeptonTrigger, eleTrigCorrFactor, sf_eleTrigUp, sf_eleTrigDown );
             }
             //Veto selection
             if (isVetoElectron(i)){
@@ -836,91 +843,91 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         }
 
 
-	/////////////////////////////////////////////////////////////////////////////////////
-        //Compute Electron and Muon Selection Efficiency Correction Factors
-	//Use Gen-Level Leptons as denominator
         /////////////////////////////////////////////////////////////////////////////////////
-	if (!isData) {
-	  for(int j = 0; j < nGenParticle; j++){
-	  
-	    //look for electrons or muons
-	    if ( (abs(gParticleId[j]) == 11 ||abs(gParticleId[j]) == 13) 
-		 && gParticleStatus[j] == 1 	      
-		 && ( (abs(gParticleId[j]) == 11 && abs(gParticleEta[j]) < 2.5) ||  
-		      (abs(gParticleId[j]) == 13 && abs(gParticleEta[j]) < 2.4))
-		 && gParticlePt[j] > 5
-		 &&
-		 ( abs(gParticleMotherId[j]) == 24 
-		   || abs(gParticleMotherId[j]) == 23 
-		   || ( (abs(gParticleMotherId[j]) == 15 || abs(gParticleMotherId[j]) == 13 || abs(gParticleMotherId[j]) == 11 )
-			&& gParticleMotherIndex[j] >= 0 
-			&& (abs(gParticleMotherId[gParticleMotherIndex[j]]) == 24 || 
-			    abs(gParticleMotherId[gParticleMotherIndex[j]]) == 23)
-			)
-		   )
-		 )  {	      
-	      
-	      //match to tight or veto ele
-	      if (abs(gParticleId[j]) == 11) {
-		bool isSelectedTight = false;
-		bool isSelectedVeto = false;
-		for (int i = 0; i < nElectrons; i++){
-		  if (fabs(eleEta[i]) > 2.5) continue;
-		  if (elePt[i] < ELE_VETO_CUT) continue;
-		  if (deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) > 0.1) continue;
-		  if (elePt[i] > ELE_TIGHT_CUT && isTightElectron(i)) isSelectedTight = true;
-		  if (isVetoElectron(i)) isSelectedVeto = true;
-		}
+        //Compute Electron and Muon Selection Efficiency Correction Factors
+        //Use Gen-Level Leptons as denominator
+        /////////////////////////////////////////////////////////////////////////////////////
+        if (!isData) {
+            for(int j = 0; j < nGenParticle; j++){
 
-		//if event passes single lepton trigger, apply correction factor for tight
-		if (passedSingleLeptonTrigger && gParticlePt[j] > ELE_TIGHT_CUT) {
-		  helper->updateTightElectronScaleFactors(gParticlePt[j], gParticleEta[j], isSelectedTight,
-							  eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
-							  sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
-		}
+                //look for electrons or muons
+                if ( (abs(gParticleId[j]) == 11 ||abs(gParticleId[j]) == 13) 
+                        && gParticleStatus[j] == 1 	      
+                        && ( (abs(gParticleId[j]) == 11 && abs(gParticleEta[j]) < 2.5) ||  
+                            (abs(gParticleId[j]) == 13 && abs(gParticleEta[j]) < 2.4))
+                        && gParticlePt[j] > 5
+                        &&
+                        ( abs(gParticleMotherId[j]) == 24 
+                          || abs(gParticleMotherId[j]) == 23 
+                          || ( (abs(gParticleMotherId[j]) == 15 || abs(gParticleMotherId[j]) == 13 || abs(gParticleMotherId[j]) == 11 )
+                              && gParticleMotherIndex[j] >= 0 
+                              && (abs(gParticleMotherId[gParticleMotherIndex[j]]) == 24 || 
+                                  abs(gParticleMotherId[gParticleMotherIndex[j]]) == 23)
+                             )
+                        )
+                   )  {	      
 
-		//if event passes hadronic Trigger, apply correction factor for veto
-		if (passedHadronicTrigger) {
-		  //for pT below 10 GeV, use the correction for 10 GeV
-		  helper->updateVetoElectronScaleFactors( fmax( gParticlePt[j], 10.01) , gParticleEta[j], isSelectedVeto,
-							  vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
-							  sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
-		}
-		
-	      } //end if electrons
+                    //match to tight or veto ele
+                    if (abs(gParticleId[j]) == 11) {
+                        bool isSelectedTight = false;
+                        bool isSelectedVeto = false;
+                        for (int i = 0; i < nElectrons; i++){
+                            if (fabs(eleEta[i]) > 2.5) continue;
+                            if (elePt[i] < ELE_VETO_CUT) continue;
+                            if (deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) > 0.1) continue;
+                            if (elePt[i] > ELE_TIGHT_CUT && isTightElectron(i)) isSelectedTight = true;
+                            if (isVetoElectron(i)) isSelectedVeto = true;
+                        }
 
-	      //match to tight or veto muon
-	      if (abs(gParticleId[j]) == 13) {
-		bool isSelectedTight = false;
-		bool isSelectedVeto = false;
-		for (int i = 0; i < nMuons; i++){
-		  if (fabs(muonEta[i]) > 2.4) continue;
-		  if (muonPt[i] < MUON_VETO_CUT) continue;
-		  if (deltaR( muonEta[i], muonPhi[i], gParticleEta[j], gParticlePhi[j]) > 0.1) continue;
-		  if (muonPt[i] > MUON_TIGHT_CUT && isTightMuon(i)) isSelectedTight = true;
-		  if (isVetoMuon(i)) isSelectedVeto = true;
-		}		
-	      
-		//if event passes single lepton trigger, apply correction factor for tight
-		if (passedSingleLeptonTrigger && gParticlePt[j] > MUON_TIGHT_CUT) {
-		  helper->updateTightMuonScaleFactors( gParticlePt[j], gParticleEta[j], isSelectedTight,
-						       muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, 
-						       sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
-		}
-		
-		//if event passes hadronic Trigger, apply correction factor for veto
-		if (passedHadronicTrigger) {
-		  //for pT below 10 GeV, use the correction for 10 GeV
-		  helper->updateVetoMuonScaleFactors( fmax( gParticlePt[j], 10.01) , gParticleEta[j], isSelectedVeto,
-						      vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
-						      sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );	
-		}
+                        //if event passes single lepton trigger, apply correction factor for tight
+                        if (passedSingleLeptonTrigger && gParticlePt[j] > ELE_TIGHT_CUT) {
+                            helper->updateTightElectronScaleFactors(gParticlePt[j], gParticleEta[j], isSelectedTight,
+                                    eleEffCorrFactor, sf_eleEffUp, sf_eleEffDown, 
+                                    sf_eleEffFastsimSFUp, sf_eleEffFastsimSFDown);
+                        }
 
-	      } //end if muons
-	  
-	    }//match gen leptons
-	  }//loop over gen particles
-	}//end if data
+                        //if event passes hadronic Trigger, apply correction factor for veto
+                        if (passedHadronicTrigger) {
+                            //for pT below 10 GeV, use the correction for 10 GeV
+                            helper->updateVetoElectronScaleFactors( fmax( gParticlePt[j], 10.01) , gParticleEta[j], isSelectedVeto,
+                                    vetoEleEffCorrFactor, sf_vetoEleEffUp, sf_vetoEleEffDown, 
+                                    sf_vetoEleEffFastsimSFUp, sf_vetoEleEffFastsimSFDown);
+                        }
+
+                    } //end if electrons
+
+                    //match to tight or veto muon
+                    if (abs(gParticleId[j]) == 13) {
+                        bool isSelectedTight = false;
+                        bool isSelectedVeto = false;
+                        for (int i = 0; i < nMuons; i++){
+                            if (fabs(muonEta[i]) > 2.4) continue;
+                            if (muonPt[i] < MUON_VETO_CUT) continue;
+                            if (deltaR( muonEta[i], muonPhi[i], gParticleEta[j], gParticlePhi[j]) > 0.1) continue;
+                            if (muonPt[i] > MUON_TIGHT_CUT && isTightMuon(i)) isSelectedTight = true;
+                            if (isVetoMuon(i)) isSelectedVeto = true;
+                        }		
+
+                        //if event passes single lepton trigger, apply correction factor for tight
+                        if (passedSingleLeptonTrigger && gParticlePt[j] > MUON_TIGHT_CUT) {
+                            helper->updateTightMuonScaleFactors( gParticlePt[j], gParticleEta[j], isSelectedTight,
+                                    muonEffCorrFactor, sf_muonEffUp, sf_muonEffDown, 
+                                    sf_muonEffFastsimSFUp, sf_muonEffFastsimSFDown);
+                        }
+
+                        //if event passes hadronic Trigger, apply correction factor for veto
+                        if (passedHadronicTrigger) {
+                            //for pT below 10 GeV, use the correction for 10 GeV
+                            helper->updateVetoMuonScaleFactors( fmax( gParticlePt[j], 10.01) , gParticleEta[j], isSelectedVeto,
+                                    vetoMuonEffCorrFactor, sf_vetoMuonEffUp, sf_vetoMuonEffDown, 
+                                    sf_vetoMuonEffFastsimSFUp, sf_vetoMuonEffFastsimSFDown );	
+                        }
+
+                    } //end if muons
+
+                }//match gen leptons
+            }//loop over gen particles
+        }//end if data
 
 
 
@@ -974,17 +981,17 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             //Get jet energy correction
             double tmpRho = fixedGridRhoFastjetAll;
             double JEC = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-						   tmpRho, jetJetArea[i], 
-						   runNum,
-						   JetCorrectorIOV,JetCorrector);   
+                    tmpRho, jetJetArea[i], 
+                    runNum,
+                    JetCorrectorIOV,JetCorrector);   
             //Get jet energy resolution correction, with up/down variants
             double jetEnergySmearFactor = 1.0;
             double jetEnergySmearFactorUp = 1.0;
             double jetEnergySmearFactorDown = 1.0;
             //Get L1-only jet energy correction
             double JECLevel1 = JetEnergyCorrectionFactor(jetPt[i], jetEta[i], jetPhi[i], jetE[i], 
-							 tmpRho, jetJetArea[i], runNum, 
-							 JetCorrectorIOV,JetCorrector, 0);   
+                    tmpRho, jetJetArea[i], runNum, 
+                    JetCorrectorIOV,JetCorrector, 0);   
             //TLorentzVector for this jet
             double jetCorrPt = jetPt[i]*JEC*jetEnergySmearFactor;
             double jetCorrE = jetE[i]*JEC*jetEnergySmearFactor;
@@ -1008,7 +1015,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
                         vars.second->MetYCorr += -1 * (thisJet.Py() - L1CorrJet.Py());
                     }
                     if (vars.first != "JESUp" && vars.first != "JESDown" && 
-                        vars.first != "JERUp" && vars.first != "JERDown") { //these ones are handled below
+                            vars.first != "JERUp" && vars.first != "JERDown") { //these ones are handled below
                         if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)){
                             // count it as a b-jet
                             vars.second->nBTaggedJets++;
@@ -1028,20 +1035,20 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             //Remove overlaps
             if (matchesLepton) continue;
 
-	    //Count Number of Gen-Level Matched BJets
-	    if (abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 40 && fabs(jetEta[i]) < 2.4) NGenBJets++;
+            //Count Number of Gen-Level Matched BJets
+            if (abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 40 && fabs(jetEta[i]) < 2.4) NGenBJets++;
 
             //Apply b-tagging correction factor 
             if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
-	      helper->updateBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),
-					      btagCorrFactor, sf_btagUp, sf_btagDown, sf_btagFastsimSFUp, sf_btagFastsimSFDown,
-					      sf_bmistagUp, sf_bmistagDown );
+                helper->updateBTagScaleFactors( jetCorrPt, jetEta[i], jetPartonFlavor[i], isCSVM(i),
+                        btagCorrFactor, sf_btagUp, sf_btagDown, sf_btagFastsimSFUp, sf_btagFastsimSFDown,
+                        sf_bmistagUp, sf_bmistagDown );
             }
             //Cut on jet eta
             if (fabs(jetEta[i]) > 3.0) continue;
             //Get uncertainty on JEC and JER
             if(!isData){
-	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 as default
+                double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 as default
                 double jetPtJESUp = jetCorrPt*(1+unc);
                 double jetPtJESDown = jetCorrPt/(1+unc);
                 double jetPtJERUp = jetPt[i]*JEC*jetEnergySmearFactorUp;
@@ -1145,6 +1152,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             vars.second->MR = computeMR(hemispheres[0], hemispheres[1]); 
             vars.second->Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
             vars.second->dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
+            vars.second->metOverCaloMet = MyMET.Pt()/metCaloPt;
             // Compute transverse mass 
             if (vars.second->nTightMuons + vars.second->nTightElectrons > 0){
                 TLorentzVector leadingLepton;
@@ -1178,6 +1186,23 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             if (vars.first == "") {
                 met = MyMET.Pt();
                 mjj_hemispheres = (hemispheres[0] + hemispheres[1]).M();
+            }
+        }
+
+        //////////////////////////////////////////////////////
+        //Check for any photons with Ecal Gain Switch
+        //////////////////////////////////////////////////////
+        Flag_hasEcalGainSwitch = false;
+        for (int i = 0; i < nPhotons; i++){
+            if (phoPt[i] > 50
+                    && 
+                    (pho_seedRecHitSwitchToGain6[i] || 
+                     pho_seedRecHitSwitchToGain1[i] || 
+                     pho_anyRecHitSwitchToGain6[i] || 
+                     pho_anyRecHitSwitchToGain1[i]  
+                    )
+               ) {
+                Flag_hasEcalGainSwitch = true;
             }
         }
 
@@ -1255,7 +1280,7 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
         /////////////////////////////////
         //Scale and PDF variations
         /////////////////////////////////
-         
+
         if ((*scaleWeights).size() >= 9) {
             sf_facScaleUp = (*scaleWeights)[1]/genWeight;
             sf_facScaleDown = (*scaleWeights)[2]/genWeight;
@@ -1285,43 +1310,43 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
             weight *= pileupWeight; 
 
             if (passedSingleLeptonTrigger && 
-		(mainVars[""]->box == MuEle || mainVars[""]->box == MuMu || mainVars[""]->box == EleEle || 
-		 mainVars[""]->box == MuSixJet || mainVars[""]->box == MuFourJet || mainVars[""]->box == MuJet 
-		 || mainVars[""]->box == EleSixJet || mainVars[""]->box == EleFourJet || mainVars[""]->box == EleJet
-		 )
-		) {
-	      weight *= muonEffCorrFactor;
-	      weight *= muonTrigCorrFactor;
-	      weight *= eleEffCorrFactor;
-	      weight *= eleTrigCorrFactor;
+                    (mainVars[""]->box == MuEle || mainVars[""]->box == MuMu || mainVars[""]->box == EleEle || 
+                     mainVars[""]->box == MuSixJet || mainVars[""]->box == MuFourJet || mainVars[""]->box == MuJet 
+                     || mainVars[""]->box == EleSixJet || mainVars[""]->box == EleFourJet || mainVars[""]->box == EleJet
+                    )
+               ) {
+                weight *= muonEffCorrFactor;
+                weight *= muonTrigCorrFactor;
+                weight *= eleEffCorrFactor;
+                weight *= eleTrigCorrFactor;
             }
             else if(passedHadronicTrigger &&
-		    (mainVars[""]->box == LooseLeptonSixJet || mainVars[""]->box == LooseLeptonFourJet 
-		     || mainVars[""]->box == SixJet || mainVars[""]->box == FourJet
-		     ||  mainVars[""]->box == LooseLeptonDiJet || mainVars[""]->box == DiJet
-		     )
-		    ) {
-	      weight *= vetoMuonEffCorrFactor;
-	      weight *= vetoEleEffCorrFactor;
-	      weight *= tauEffCorrFactor;
-	      weight *= hadronicTrigCorrFactor;
+                    (mainVars[""]->box == LooseLeptonSixJet || mainVars[""]->box == LooseLeptonFourJet 
+                     || mainVars[""]->box == SixJet || mainVars[""]->box == FourJet
+                     ||  mainVars[""]->box == LooseLeptonDiJet || mainVars[""]->box == DiJet
+                    )
+                   ) {
+                weight *= vetoMuonEffCorrFactor;
+                weight *= vetoEleEffCorrFactor;
+                weight *= tauEffCorrFactor;
+                weight *= hadronicTrigCorrFactor;
             }
             weight *= btagCorrFactor;   
 
             // if (weight < 0.1) {
-              // cout << "weight: " << weight << " | "
-              // 	   << pileupWeight << " " << NPU << " | "
-              // 	   << passedSingleLeptonTrigger << " / " << passedHadronicTrigger << " | "
-              // 	   << muonEffCorrFactor << " "
-              // 	   << muonTrigCorrFactor << " "
-              // 	   << eleEffCorrFactor << " " 
-              // 	   << eleTrigCorrFactor << " "
-              // 	   << vetoMuonEffCorrFactor << " "
-              // 	   << vetoEleEffCorrFactor << " "
-              // 	   << tauEffCorrFactor << " "
-              // 	   << hadronicTrigCorrFactor << " "
-              // 	   << btagCorrFactor << " "
-              // 	   << "\n";
+            // cout << "weight: " << weight << " | "
+            // 	   << pileupWeight << " " << NPU << " | "
+            // 	   << passedSingleLeptonTrigger << " / " << passedHadronicTrigger << " | "
+            // 	   << muonEffCorrFactor << " "
+            // 	   << muonTrigCorrFactor << " "
+            // 	   << eleEffCorrFactor << " " 
+            // 	   << eleTrigCorrFactor << " "
+            // 	   << vetoMuonEffCorrFactor << " "
+            // 	   << vetoEleEffCorrFactor << " "
+            // 	   << tauEffCorrFactor << " "
+            // 	   << hadronicTrigCorrFactor << " "
+            // 	   << btagCorrFactor << " "
+            // 	   << "\n";
             // }
 
         }
@@ -1337,8 +1362,8 @@ void FullRazorDM::Analyze(bool isData, int option, string outFileName, string la
 
         bool parsedLHE = false;
         if(isFastsimSMS && lheComments){
-	    //parse lhe comment string to get gluino and LSP masses
-	    stringstream parser(*lheComments);
+            //parse lhe comment string to get gluino and LSP masses
+            stringstream parser(*lheComments);
             string item;
             getline(parser, item, '_'); //prefix
             if(getline(parser, item, '_')){ //gluino mass 
