@@ -41,30 +41,31 @@ void makepaperplots_dijet() {
 
   // for mr
 
-  Int_t binIn=mr;
-  const Int_t nbinx=1, nbiny=4, nbinz=2;
-  Float_t xmin=0.15, xmax=0.25; 
-  Float_t ymin=400,  ymax=3000;
-  Float_t zmin=0,    zmax=2;
-  Float_t xbins[nbinx+1] = {xmin, xmax};
-  Float_t ybins[nbiny+1] = {ymin, 600, 800, 1000, ymax};
-  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-
-  TString pname = "npf_vs_mr_dijet_2b_fit.pdf";
-  TString pname2 = "npf_vs_mr_dijet_2b_fit.C";
-
-  // for rsq
-  //Int_t binIn=rsq;
-  ////const Int_t nbinx=1, nbiny=10, nbinz=2;
-  //const Int_t nbinx=1, nbiny=8, nbinz=2;
-  //Float_t xmin=400, xmax=3000; 
-  //Float_t ymin=0.15,  ymax=0.35; 
+  //Int_t binIn=mr;
+  //const Int_t nbinx=1, nbiny=4, nbinz=2;
+  //Float_t xmin=0.15, xmax=0.25; 
+  //Float_t ymin=400,  ymax=3000;
   //Float_t zmin=0,    zmax=2;
   //Float_t xbins[nbinx+1] = {xmin, xmax};
-  ////Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
-  //Float_t ybins[nbiny+1] = { ymin, 0.16, 0.17, 0.18, 0.19, 0.20, 0.225, 0.25, ymax};
+  //Float_t ybins[nbiny+1] = {ymin, 600, 800, 1000, ymax};
   //Float_t zbins[nbinz+1] = {zmin, 1, zmax};
-  //TString pname = "npf_vs_rsq_razor.png";
+  //
+  //TString pname = "npf_vs_mr_dijet_2b_fit.pdf";
+  //TString pname2 = "npf_vs_mr_dijet_2b_fit.C";
+
+  // for rsq
+  Int_t binIn=rsq;
+  //const Int_t nbinx=1, nbiny=10, nbinz=2;
+  const Int_t nbinx=1, nbiny=8, nbinz=2;
+  Float_t xmin=400, xmax=3000; 
+  Float_t ymin=0.15,  ymax=0.35; 
+  Float_t zmin=0,    zmax=2;
+  Float_t xbins[nbinx+1] = {xmin, xmax};
+  //Float_t ybins[nbiny+1] = { ymin, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29, 0.31, 0.33, ymax};
+  Float_t ybins[nbiny+1] = { ymin, 0.16, 0.17, 0.18, 0.19, 0.20, 0.225, 0.25, ymax};
+  Float_t zbins[nbinz+1] = {zmin, 1, zmax};
+  TString pname = "npf_vs_rsq_dijet_0b.pdf";
+  TString pname2 = "npf_vs_rsq_dijet_0b.C";
 
   TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root","read");
   TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_QCD_1pb_weighted.root","read");
@@ -78,8 +79,8 @@ void makepaperplots_dijet() {
   //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_WJets_1pb_weighted.root","read");
   //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2_JEC2015V6/FullRazorInclusive_ZInv_1pb_weighted.root","read");
 
-    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(nBTaggedJets>1)";
-    TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)*(nBTaggedJets>1)";
+    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(nBTaggedJets==0)";
+    TString cut_str_dat="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(Rsq<0.25)*(nBTaggedJets==0)";
     TString cut_str_mc="*weight*35800";
 
 
@@ -301,7 +302,7 @@ void makepaperplots_dijet() {
   tex->SetTextColor(kBlack);
   //tex->DrawLatex(0.485, 0.66, "#zeta = 0.043");
   //tex->DrawLatex(0.485, 0.66, "#zeta = 0.048");
-  tex->DrawLatex(0.485, 0.66, "#zeta = 0.068");
+  //tex->DrawLatex(0.485, 0.66, "#zeta = 0.068");
 
   leg->Draw();
 
