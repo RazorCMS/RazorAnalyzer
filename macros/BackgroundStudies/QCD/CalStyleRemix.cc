@@ -137,6 +137,8 @@ void SetStyle()
   TStyle *CalStyle = new TStyle("Caltech-Style","The Even Perfecter Style for Plots ;-)");
   gStyle = CalStyle;
 
+  CalStyle->SetPalette(109);
+
   // Canvas
   CalStyle->SetCanvasColor     (0);
   CalStyle->SetCanvasBorderSize(10);
@@ -206,6 +208,7 @@ void SetStyle()
 
   CalStyle->SetTextSize   (0.055);
   CalStyle->SetTextFont   (42);
+  CalStyle->SetPaintTextFormat("4.2f");
 
   CalStyle->SetStatFont   (42);
   CalStyle->SetTitleFont  (42);
