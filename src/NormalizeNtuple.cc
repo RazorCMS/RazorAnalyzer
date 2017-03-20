@@ -125,6 +125,7 @@ int main(int argc, char* argv[]) {
 
         //loop over all TTrees in the file and add the weight branch to each of them
         TFile *inputFile = TFile::Open(fileName.c_str(), "READ");
+	cout << "input: " << fileName << "\n";
         assert(inputFile);
         inputFile->cd();
         TIter nextkey(inputFile->GetListOfKeys());
@@ -137,7 +138,8 @@ int main(int argc, char* argv[]) {
                 cout << "Skipping key (not a TTree)" << endl;
                 outputFile->cd();
                 TObject *outObj = key->ReadObj();
-                outObj->Write();
+		cout << "Name: " << outObj->GetName() << " " << outObj->GetTitle() << "\n";
+                outObj->Write(outObj->GetTitle());
                 inputFile->cd();
                 continue;
             }
