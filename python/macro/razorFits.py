@@ -81,7 +81,7 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
         else:
             nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
             #nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(False))
-
+            
         m2 = rt.RooMinimizer(nll)
         m2.setMinimizerType('Minuit2')
         m2.setStrategy(2)
@@ -92,7 +92,14 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
         hesse_status = 3
         migrad_status = 3
 
-        if box=='MultiJet':
+        if box=='MultiJet' or box=='MultiJet_0b' or box=='MultiJet_1b' or box=='MultiJet_2b':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
@@ -100,43 +107,45 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
-        elif box=='DiJet':
-            if w is not None:
-                scan_status = scanParams('bn', 2, w, m2)
+        elif box=='DiJet'or box=='DiJet_0b' or box=='DiJet_1b' or box=='DiJet_2b':
+            #if w is not None:
+            #    scan_status = scanParams('bn', 2, w, m2)
             scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
-        elif box=='LeptonMultiJet':
+        elif box=='LeptonMultiJet' or box=='LeptonMultiJet_0b' or box=='LeptonMultiJet_1b' or box=='LeptonMultiJet_2b':
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
-            if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
-        elif box=='LeptonJet':
+        elif box=='LeptonJet'  or box=='LeptonJet_0b' or box=='LeptonJet_1b' or box=='LeptonJet_2b':
             scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
+            #if w is not None:
+            #    scan_status = scanParams('bn', 0, w, m2)
+            migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
@@ -373,6 +382,7 @@ class FitInstance(object):
     def setDefaultFitParams(self):
         """Gets the default fit parameters from the config and applies
             them to the variables in the current workspace"""
+        print self.config.getVariables(self.analysis.region,"combine_parameters")
         for param in self.config.getVariables(self.analysis.region, 
                 "combine_parameters"):
             name,rest = param.replace(']','').split('[')
@@ -653,7 +663,8 @@ class FitInstance(object):
                 self.dirname+"/h_Rsq_%s.pdf"%self.analysis.region,"R^{2}",
                 eventsLabel,lumiLabel,boxLabel,plotLabel,self.isData,False,None,
                 None,h_Rsq_components,h_colors,h_labels)
-        if len(self.z)>2:
+        #if len(self.z)>2:
+        if len(self.z)>1:
             for k in range(0,len(self.z)-1):
                 newBoxLabel = "razor %s %s %s Fit"%(self.analysis.region,
                     h_labels[k],self.fitRegion.replace('LowMR,LowRsq','Sideband'))

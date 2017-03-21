@@ -124,6 +124,83 @@ double getMuonEff( double pt, double eta, TH2F* muonEffHist, TH1F *linearDensity
 }
 
 
+double getPhoEffFactor( double pt, double eta, TH1F *linearDensityHist, bool WithBarrelTiming = false, bool WithEndcapTiming = false) {
+
+  double sf = 0.0;
+  double countBins = 0;
+
+  for (int i=1; i<linearDensityHist->GetXaxis()->GetNbins()+1; i++) {
+    double density = linearDensityHist->GetXaxis()->GetBinCenter(i);
+
+    double tmpsf = 0;
+    double pileupDegradationFactorWithoutTiming = (0.95 - (density - 0.3)*(0.95-0.79)/(1.5-0.3)) / 0.95;
+    double pileupDegradationFactorWithTiming = (0.95 - (density - 0.3)*(0.95-0.91)/(1.5-0.3)) / 0.95;
+  
+    double pileupDegradationFactor = pileupDegradationFactorWithoutTiming;
+    if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+    if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+
+    tmpsf = pileupDegradationFactor;
+
+    sf += linearDensityHist->GetBinContent(i) * tmpsf;
+    //cout << i << " " << density << " : " << linearDensityHist->GetBinContent(i) << " " << computeAvergeMuonEff( pt, eta, muonEffHist, density, WithBarrelTiming, WithEndcapTiming) << "\n";
+  }
+  //cout << "int sf: " << sf << "\n";
+
+  return sf;
+}
+
+double getBTagEffFactor( double pt, double eta, TH1F *linearDensityHist, bool WithBarrelTiming = false, bool WithEndcapTiming = false) {
+
+  double sf = 0.0;
+  double countBins = 0;
+
+  for (int i=1; i<linearDensityHist->GetXaxis()->GetNbins()+1; i++) {
+    double density = linearDensityHist->GetXaxis()->GetBinCenter(i);
+
+    double tmpsf = 0;
+    double pileupDegradationFactor = 1;
+
+    if (fabs(eta) < 1.8) {
+      double pileupDegradationFactorWithoutTiming = 1.0;
+      double pileupDegradationFactorWithTiming = 1.0;
+      if (density < 0.85) {
+	pileupDegradationFactorWithoutTiming = (0.78 - (density - 0.3)*(0.78-0.76)/(0.85-0.3)) / 0.78;
+      } else {
+	pileupDegradationFactorWithoutTiming = (0.76 - (density - 0.85)*(0.76-0.75)/(1.34-0.85)) / 0.78;
+      }
+
+      pileupDegradationFactor = pileupDegradationFactorWithoutTiming;
+      if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+      if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+
+    } else if (fabs(eta) < 2.4) {
+      double pileupDegradationFactorWithoutTiming = 1.0;
+      double pileupDegradationFactorWithTiming = 1.0;
+      if (density < 0.85) {
+	pileupDegradationFactorWithoutTiming = (0.62 - (density - 0.3)*(0.62-0.59)/(0.85-0.3)) / 0.62;
+      } else {
+	pileupDegradationFactorWithoutTiming = (0.59 - (density - 0.85)*(0.59-0.55)/(1.34-0.85)) / 0.62;
+      }
+  
+      pileupDegradationFactor = pileupDegradationFactorWithoutTiming;
+      if (WithBarrelTiming && fabs(eta) < 1.5) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+      if (WithEndcapTiming && fabs(eta) > 1.5 && fabs(eta) < 2.4) pileupDegradationFactor = pileupDegradationFactorWithTiming;
+    }
+
+    tmpsf = pileupDegradationFactor;
+
+    sf += linearDensityHist->GetBinContent(i) * tmpsf;
+    //cout << i << " " << density << " : " << linearDensityHist->GetBinContent(i) << " " <<  tmpsf << "\n";
+  }
+  //cout << "int sf: " << sf << "\n";
+
+  return sf;
+}
+
+
+
+
 
 void PlotData( TH1F* hist , string dataLabel, string varName, string label, string latexlabel, bool setLogy = false ) {
 
@@ -1043,6 +1120,335 @@ void MakeHMMPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,
  }
 
 
+//------------------------------------------------------------------------------
+// PlotHiggsRes_LP
+//------------------------------------------------------------------------------
+void MakeHHbbggPlots ( string datafile, string dataLabel,  vector<string> bkgfiles,vector<string> bkgLabels, vector<int> bkgColors, int boxOption = 0, int option = -1, string label = "", string latexlabel = "") {
+
+  string Label  = "";
+  if(label != "") Label = "_"+label;
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Settings 
+  //============================================================================================================== 
+  TFile *pileupDensityFile = TFile::Open("lineDensity.root","READ");
+  TH1F *pileupDensityHist140 = (TH1F*)pileupDensityFile->Get("hL140");
+  TH1F *pileupDensityHist200 = (TH1F*)pileupDensityFile->Get("hL200");
+
+  vector<string> inputfiles;
+  vector<string> processLabels;
+  vector<int> color;
+
+  bool hasData = false;
+  if (datafile != "") {
+    hasData = true;
+    inputfiles.push_back(datafile);
+    processLabels.push_back(dataLabel);
+    color.push_back(kBlack);
+  } else {
+    hasData = false;
+    // inputfiles.push_back("");
+    // processLabels.push_back("");    
+    // color.push_back(kBlack);
+  }
+  assert(bkgfiles.size() == bkgLabels.size());
+  for (int i=0; i < bkgfiles.size(); ++i) {
+     inputfiles.push_back(bkgfiles[i]);
+     processLabels.push_back(bkgLabels[i]);
+     color.push_back(bkgColors[i]);
+  }
+
+
+  //*******************************************************************************************
+  //Define Histograms
+  //*******************************************************************************************
+  vector<double> EventCount;
+  vector<double> EventCountErrSqr;
+  vector<TH1F*> histM4l;
+  vector<TH1F*> histMR;
+  vector<TH1F*> histRsq;
+
+  TH1F *hybbgg_140PU = makeNewHist( "hybbgg_140PU", ";y_{HH} [GeV/c^{2}];Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hybbggBarrelEndcapTiming_140PU = makeNewHist( "hybbggBarrelEndcapTiming_140PU", ";y_{HH} [GeV/c^{2}];Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hybbggBarrelTiming_140PU = makeNewHist( "hybbggBarrelTiming_140PU", ";y_{HH} [GeV/c^{2}];Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hybbgg_200PU = makeNewHist( "hybbgg_200PU", ";y_{HH} [GeV/c^{2}];Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hybbggBarrelEndcapTiming_200PU = makeNewHist( "hybbggBarrelEndcapTiming_200PU", ";y_{HH} [GeV/c^{2}];Number of Events", 20, -3, 3, kBlue, false );
+  TH1F *hybbggBarrelTiming_200PU = makeNewHist( "hybbggBarrelTiming_200PU", ";y_{HH} [GeV/c^{2}];Number of Events", 20, -3, 3, kBlue, false );
+
+
+  //*******************************************************************************************
+  //Define Counts
+  //*******************************************************************************************
+  double TotalCounts_140PU = 0;
+  double TotalCounts_140PU_BarrelTiming = 0;
+  double TotalCounts_140PU_BarrelEndcapTiming = 0;
+  double TotalCounts_200PU = 0;
+  double TotalCounts_200PU_BarrelTiming = 0;
+  double TotalCounts_200PU_BarrelEndcapTiming = 0;
+
+
+  //*******************************************************************************************
+  //Read files
+  //*******************************************************************************************
+  for (uint i=0; i < inputfiles.size(); ++i) {
+
+    TFile* inputFile = new TFile(inputfiles[i].c_str(),"READ");
+    assert(inputFile);
+    TTree* tree = 0;
+    tree = (TTree*)inputFile->Get("HHbbgg");    
+    assert(tree);
+
+    float mbb = 0;
+    float mgg = 0;
+    float mbbgg = 0;
+    float ybbgg = 0;
+    float ptbbgg = 0;
+    float pho1Pt = 0;
+    float pho1Eta = 0;
+    float pho2Pt = 0;
+    float pho2Eta = 0;
+    float bjet1Pt = 0;
+    float bjet1Eta = 0;
+    float bjet2Pt = 0;
+    float bjet2Eta = 0;
+
+    tree->SetBranchAddress("mbb",&mbb);
+    tree->SetBranchAddress("mgg",&mgg);
+    tree->SetBranchAddress("mbbgg",&mbbgg);
+    tree->SetBranchAddress("ybbgg",&ybbgg);
+    tree->SetBranchAddress("ptbbgg",&ptbbgg);
+    tree->SetBranchAddress("pho1Pt",&pho1Pt);
+    tree->SetBranchAddress("pho1Eta",&pho1Eta);
+    tree->SetBranchAddress("pho2Pt",&pho2Pt);
+    tree->SetBranchAddress("pho2Eta",&pho2Eta);
+    tree->SetBranchAddress("bjet1Pt",&bjet1Pt);
+    tree->SetBranchAddress("bjet1Eta",&bjet1Eta);
+    tree->SetBranchAddress("bjet2Pt",&bjet2Pt);
+    tree->SetBranchAddress("bjet2Eta",&bjet2Eta);
+
+    cout << "Process : " << processLabels[i] << " : Total Events: " << tree->GetEntries() << "\n";
+
+    for (int n=0;n<tree->GetEntries();n++) { 
+    
+      tree->GetEntry(n);
+      if (n % 100000 == 0) cout << "Processing Event " << n << "\n";       
+      
+      if (!(mbb>0)) continue;
+
+      double weight_140PU = 1.0;
+      double weightBarrelTiming_140PU = 1.0;      double weightBarrelEndcapTiming_140PU = 1.0;
+      double weight_200PU = 1.0;
+      double weightBarrelTiming_200PU = 1.0;
+      double weightBarrelEndcapTiming_200PU = 1.0;
+
+      //cout <<  pho1Eta << " " << pho2Eta << " " << bjet1Eta << " " << bjet2Eta << "\n";
+
+      weight_140PU = weight_140PU * getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist140, false, false);
+      weight_140PU = weight_140PU * getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist140, false, false);
+
+      //cout << "no timing: " << getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist140, false, false) << " " << getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist140, false, false) << " " << getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist140, false, false) << " " << getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist140, false, false) << "\n";
+
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist140, true, false);
+      weightBarrelTiming_140PU = weightBarrelTiming_140PU * getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist140, true, false);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist140, true, true);
+      weightBarrelEndcapTiming_140PU = weightBarrelEndcapTiming_140PU * getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist140, true, true);
+
+      //cout << "timing: " << getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist140, true, true) << " " << getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist140, true, true) << " " << getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist140, true, true) << " " << getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist140, true, true) << "\n";
+
+      TotalCounts_140PU += weight_140PU;
+      TotalCounts_140PU_BarrelTiming += weightBarrelTiming_140PU;
+      TotalCounts_140PU_BarrelEndcapTiming += weightBarrelEndcapTiming_140PU;
+      //cout << weight_140PU << "\n";
+     
+      weight_200PU = weight_200PU * getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist200, false, false);
+      weight_200PU = weight_200PU * getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist200, false, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist200, true, false);
+      weightBarrelTiming_200PU = weightBarrelTiming_200PU * getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist200, true, false);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getPhoEffFactor( pho1Pt, pho1Eta, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getPhoEffFactor( pho2Pt, pho2Eta, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getBTagEffFactor( bjet1Pt, bjet1Eta, pileupDensityHist200, true, true);
+      weightBarrelEndcapTiming_200PU = weightBarrelEndcapTiming_200PU * getBTagEffFactor( bjet2Pt, bjet2Eta, pileupDensityHist200, true, true);
+
+      TotalCounts_200PU += weight_200PU;
+      TotalCounts_200PU_BarrelTiming += weightBarrelTiming_200PU;
+      TotalCounts_200PU_BarrelEndcapTiming += weightBarrelEndcapTiming_200PU;
+      //cout << weight_140PU << "\n";
+
+      hybbgg_140PU->Fill(ybbgg, weight_140PU); 
+      hybbggBarrelTiming_140PU->Fill(ybbgg, weightBarrelTiming_140PU); 
+      hybbggBarrelEndcapTiming_140PU->Fill(ybbgg, weightBarrelEndcapTiming_140PU); 
+      hybbgg_200PU->Fill(ybbgg, weight_200PU); 
+      hybbggBarrelTiming_200PU->Fill(ybbgg, weightBarrelTiming_200PU); 
+      hybbggBarrelEndcapTiming_200PU->Fill(ybbgg, weightBarrelEndcapTiming_200PU);    
+
+    }
+
+    inputFile->Close();
+    delete inputFile;
+  
+  }
+  
+  cout << "Total: " << "\n";
+  cout << TotalCounts_140PU << " : " << TotalCounts_140PU_BarrelTiming << " " << TotalCounts_140PU_BarrelEndcapTiming<< "\n";
+  cout << TotalCounts_200PU << " : " << TotalCounts_200PU_BarrelTiming << " " << TotalCounts_200PU_BarrelEndcapTiming<< "\n";
+
+  //*******************************************************************************************
+  //Normalize Hists
+  //*******************************************************************************************
+  hybbgg_140PU->Scale(1/TotalCounts_140PU);
+  hybbggBarrelTiming_140PU->Scale(1/TotalCounts_140PU);
+  hybbggBarrelEndcapTiming_140PU->Scale(1/TotalCounts_140PU);
+
+  hybbgg_200PU->Scale(1/TotalCounts_200PU);
+  hybbggBarrelTiming_200PU->Scale(1/TotalCounts_200PU);
+  hybbggBarrelEndcapTiming_200PU->Scale(1/TotalCounts_200PU);
+
+  //*******************************************************************************************
+  //Draw Plots
+  //*******************************************************************************************
+  TCanvas *cv = 0;
+  TLegend *legend = 0;
+  bool firstdrawn = false;
+  TLatex *tex = 0;
+
+
+
+  //*******************************************************************************************
+  //Higgs->bb mass
+  //*******************************************************************************************
+ 
+  cv = new TCanvas("cv","cv", 800,800);
+  cv->SetLeftMargin(0.15);
+  cv->SetBottomMargin(0.12);
+
+  legend = new TLegend(0.18,0.75,0.58,0.88);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(1);
+  legend->SetFillStyle(0);
+  legend->AddEntry(hybbgg_140PU, "No Timing");
+  legend->AddEntry(hybbggBarrelTiming_140PU, "Barrel Timing Only");
+  legend->AddEntry(hybbggBarrelEndcapTiming_140PU, "Barrel+Endcap Timing");
+
+ 
+  hybbggBarrelEndcapTiming_140PU->Draw("hist");
+  hybbggBarrelTiming_140PU->Draw("samehist");
+  hybbgg_140PU->Draw("samehist");
+
+  hybbggBarrelEndcapTiming_140PU->GetYaxis()->SetTitle("Fraction of Events");
+  hybbggBarrelEndcapTiming_140PU->GetYaxis()->SetRangeUser(0,0.4);
+  hybbggBarrelEndcapTiming_140PU->GetYaxis()->SetTitleOffset(1.8);
+  hybbggBarrelEndcapTiming_140PU->GetXaxis()->SetTitleOffset(1.3);
+  hybbgg_140PU->SetLineColor(kBlack);
+  hybbggBarrelTiming_140PU->SetLineColor(kRed);
+  hybbggBarrelEndcapTiming_140PU->SetLineColor(kBlue);
+
+  legend->Draw();
+
+  tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.028);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  //tex->DrawLatex(0.5, 0.5, "test");
+  tex->DrawLatex(0.18, 0.70, "Increase in HH#rightarrow bb#gamma#gamma Yield");
+  tex->SetTextColor(kRed);
+  tex->DrawLatex(0.18, 0.66, (string(Form("Barrel Timing Only : %.0f", 100*(TotalCounts_140PU_BarrelTiming/TotalCounts_140PU - 1))) + "%").c_str());
+  tex->SetTextColor(kBlue);
+  tex->DrawLatex(0.18, 0.62, (string(Form("Barrel+Endcap Timing : %.0f", 100*(TotalCounts_140PU_BarrelEndcapTiming/TotalCounts_140PU - 1)))+"%").c_str());
+
+  tex->SetTextSize(0.040);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.18, 0.94, "HH #rightarrow bb#gamma#gamma ( 140 Pileup Distribution )");
+
+  tex->SetTextSize(0.026);
+  tex->DrawLatex(0.18, 0.55, "Normalized to");
+  tex->DrawLatex(0.18, 0.52, "\"No Timing\" distribution");
+
+  //tex->Draw();
+
+  cv->SaveAs("HHbbgg_ybbgg_TimingStudy_140PU.gif");
+  cv->SaveAs("HHbbgg_ybbgg_TimingStudy_140PU.pdf");
+
+
+
+
+  cv = new TCanvas("cv","cv", 800,800);
+  cv->SetLeftMargin(0.15);
+  cv->SetBottomMargin(0.12);
+
+  legend = new TLegend(0.18,0.75,0.58,0.88);
+  legend->SetTextSize(0.03);
+  legend->SetBorderSize(1);
+  legend->SetFillStyle(0);
+  legend->AddEntry(hybbgg_200PU, "No Timing");
+  legend->AddEntry(hybbggBarrelTiming_200PU, "Barrel Timing Only");
+  legend->AddEntry(hybbggBarrelEndcapTiming_200PU, "Barrel+Endcap Timing");
+
+ 
+  hybbggBarrelEndcapTiming_200PU->Draw("hist");
+  hybbggBarrelTiming_200PU->Draw("samehist");
+  hybbgg_200PU->Draw("samehist");
+
+  hybbggBarrelEndcapTiming_200PU->GetYaxis()->SetTitle("Fraction of Events");
+  hybbggBarrelEndcapTiming_200PU->GetYaxis()->SetRangeUser(0,0.4);
+  hybbggBarrelEndcapTiming_200PU->GetYaxis()->SetTitleOffset(1.8);
+  hybbggBarrelEndcapTiming_200PU->GetXaxis()->SetTitleOffset(1.3);
+  hybbgg_200PU->SetLineColor(kBlack);
+  hybbggBarrelTiming_200PU->SetLineColor(kRed);
+  hybbggBarrelEndcapTiming_200PU->SetLineColor(kBlue);
+
+  legend->Draw();
+
+  tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(0.028);
+  tex->SetTextFont(42);
+  tex->SetTextColor(kBlack);
+  //tex->DrawLatex(0.5, 0.5, "test");
+  tex->DrawLatex(0.18, 0.70, "Increase in HH#rightarrow bb#gamma#gamma Yield");
+  tex->SetTextColor(kRed);
+  tex->DrawLatex(0.18, 0.66, (string(Form("Barrel Timing Only : %.0f", 100*(TotalCounts_200PU_BarrelTiming/TotalCounts_200PU - 1))) + "%").c_str());
+  tex->SetTextColor(kBlue);
+  tex->DrawLatex(0.18, 0.62, (string(Form("Barrel+Endcap Timing : %.0f", 100*(TotalCounts_200PU_BarrelEndcapTiming/TotalCounts_200PU - 1)))+"%").c_str());
+
+  tex->SetTextSize(0.040);
+  tex->SetTextColor(kBlack);
+  tex->DrawLatex(0.18, 0.94, "HH #rightarrow bb#gamma#gamma ( 200 Pileup Distribution )");
+
+  tex->SetTextSize(0.026);
+  tex->DrawLatex(0.18, 0.55, "Normalized to");
+  tex->DrawLatex(0.18, 0.52, "\"No Timing\" distribution");
+
+  //tex->Draw();
+
+  cv->SaveAs("HHbbgg_ybbgg_TimingStudy_200PU.gif");
+  cv->SaveAs("HHbbgg_ybbgg_TimingStudy_200PU.pdf");
+
+  
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open(("TimingStudyPlots"+Label+".root").c_str(), "UPDATE");
+  file->cd();
+  
+  file->WriteTObject(hybbgg_200PU, Form("hybbgg%s",Label.c_str()), "WriteDelete");
+ 
+ 
+ }
+
+
+
+
 void MakeHiggsImprovementVsPileupPlot() {
 
   const int nPoints = 20;
@@ -1196,11 +1602,30 @@ void RunMakeHMMPlots() {
  
  }
  
+void RunMakeHHbbggPlots() {
+
+   string datafile = "";
+   string dataLabel = "";  
+
+   vector<string> bkgfiles;
+   vector<string> bkgLabels;
+   vector<int> bkgColors;
+
+   bkgfiles.push_back("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HHbbgg/HHbbgg_GluGluToHHTo2B2G_node_SM_13TeV-madgraph.root");
+   bkgLabels.push_back("HH");
+   bkgColors.push_back(kBlue);
+
+   MakeHHbbggPlots(datafile,dataLabel,bkgfiles,bkgLabels,bkgColors,0,1,"HH","HH");
+ 
+ }
+ 
 
 void MakeTimingStudyPlots() {
-  RunMakeHZZPlots();
-  RunMakeHMMPlots();  
+  // RunMakeHZZPlots();
+  // RunMakeHMMPlots();  
 
-  MakeHiggsImprovementVsPileupPlot();
+  RunMakeHHbbggPlots();
+
+  // MakeHiggsImprovementVsPileupPlot();
 
 }

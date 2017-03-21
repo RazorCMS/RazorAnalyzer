@@ -4,6 +4,22 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
     echo "RazorRun <list of input files> <analyzer name> <options>"
 else
     cp ${CMSSW_BASE}/src/RazorAnalyzer/bin/Run$2 .
+
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_B_H.csv ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_G_H.csv ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_ichep.csv ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/fastsim_csvv2_ttbar_26_1_2017.csv ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSV_13TEV_Combined_20_11_2015.csv ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JEC_Summer16_23Sep2016V3.tgz ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Spring16_FastSimV1.tgz ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JetResolutionInputAK5PF.txt ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_smearings.dat ./
+    /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_scales.dat ./
+
+    tar vxzf JEC_Summer16_23Sep2016V3.tgz
+    tar vxzf Spring16_FastSimV1.tgz
+
     ./Run$2 $1 ${@:3}
     rm Run$2
+  
 fi

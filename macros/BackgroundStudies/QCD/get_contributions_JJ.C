@@ -33,37 +33,20 @@ void get_contributions_JJ() {
 
   TCanvas *c = MakeCanvas("c","c",800,600);
 
-  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/JetHT_2016B_PRv2_Golden.root","read");
-  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016withBadTracks/HTMHT_2016B_PRv2_Golden.root","read");
-  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root","read");
-  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/ZJetsToNuNu_13TeV-madgraph_1pb_weighted.root","read");
+  TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root","read");
+  TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_QCD_1pb_weighted.root","read");
+  TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJetsInclusive_1pb_weighted.root","read");
+  TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root","read");
+  TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p8_03Feb2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root","read");
 
-  //TFile *fD = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/JetHT_2016B_PRv2_Golden.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/RazorQCDStudy/2016DataV2/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root","read");
-
-  //TFile *fT = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_TTJets_1pb_weighted.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_WJets_1pb_weighted.root","read");
-  //TFile *fZ = TFile::Open("root://eoscms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p2/FullRazorInclusive_ZInv_1pb_weighted.root","read");
-
-  //TFile *fD = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/JetHT_Run2015D_PRv4_Golden_skim.root","read");
-  //TFile *fQ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/QCD_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fT = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_2137pb_skim.root","read");
-  //TFile *fW = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_2137pb_skim.root","read");
-  //TFile *fZ = TFile::Open("root://eoscms//store/user/jlawhorn/RazorQCD_Dijet/ZJetsToNuNu_13TeV-madgraph_2137pb_skim.root","read");
+    TString cut_str="(box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)*(nBTaggedJets==0)";
 
   TString cut_str_rsq="*(Rsq<0.25)";
-  TString cut_str="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)";
-  TString cut_str_dat="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter)";
-  //TString cut_str="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
-  //TString cut_str_dat="(box==14)*(MR>500 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)";
-  //TString cut_str_mc="*2600*(!TMath::IsNaN(weight))";
-  //  TString cut_str_mc="*(weight && !TMath::IsNaN(weight))";
-  TString cut_str_mc="*(weight)*2600";
 
-  //TString cut_str="weight*2061*(box==14)*(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)*(MR>300)";
- 
+  TString cut_str_dat=cut_str+cut_str_rsq;
+
+  TString cut_str_mc="*weight*35800";
+
   TString cut_str_mr1="*(MR>500 && MR<600)";
   TString cut_str_mr2="*(MR>600 && MR<700)";
   TString cut_str_mr3="*(MR>700 && MR<800)";
@@ -242,11 +225,11 @@ void get_contributions_JJ() {
   TH1F *hDPhiR_mr5_Z = new TH1F("hDPhiR_mr5_Z", "hDPhiR_mr5_Z", nbin, &xbins[0]); hDPhiR_mr5_Z->Sumw2();
 
   // open trees
-  TTree *tD = (TTree*) fD->Get("QCDTree");
-  TTree *tQ = (TTree*) fQ->Get("QCDTree");
-  TTree *tT = (TTree*) fT->Get("QCDTree");
-  TTree *tW = (TTree*) fW->Get("QCDTree");
-  TTree *tZ = (TTree*) fZ->Get("QCDTree");
+  TTree *tD = (TTree*) fD->Get("RazorInclusive");
+  TTree *tQ = (TTree*) fQ->Get("RazorInclusive");
+  TTree *tT = (TTree*) fT->Get("RazorInclusive");
+  TTree *tW = (TTree*) fW->Get("RazorInclusive");
+  TTree *tZ = (TTree*) fZ->Get("RazorInclusive");
 
   //--------------------------------------------------------------
   //
