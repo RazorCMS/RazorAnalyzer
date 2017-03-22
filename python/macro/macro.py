@@ -716,7 +716,6 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode"""
 
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
-    print ("Cuts: "+cuts)
     #make TTreeFormulas for variables not found in the tree
     formulas = {}
     for var in hists:
@@ -785,6 +784,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     if errorOpt is not None:
         if debugLevel > 0: print "Error option is:",errorOpt
         cuts = transformVarString(tree, cuts, errorOpt, process=process, debugLevel=debugLevel+1)
+    print ("Cuts: "+cuts)
     #create histograms for scale factor systematics
     sysErrSquaredHists = {}
     if not statErrOnly:

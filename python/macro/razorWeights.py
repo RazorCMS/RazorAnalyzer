@@ -10,15 +10,22 @@ import sys
 
 #QCD systematic error
 QCDNORMERRFRACTION_DIJET = 1.00
-QCDNORMERRFRACTION_MULTIJET = 0.80
+QCDNORMERRFRACTION_MULTIJET = 1.00
 #QCDNORMERRFRACTION = 0.87 #used in 2015
 
-def getQCDExtrapolationFactor(MR,region='multijet'):
+def getQCDExtrapolationFactor(event,wHists,region='multijet'):
     """Get QCD extrapolation factor as a function of MR"""
-    if region.lower() == 'dijet':
-        return 0.05
-    else:
-        return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
+    slopeHist = wHists['qcdslopes'+region]
+    interHist = wHists['qcdinters'+region]
+    xbin = slopeHist.GetXaxis().FindFixBin(event.MR)
+    slope = slopeHist.GetBinContent(xbin, min(3, event.nBTaggedJets+1))
+    inter = interHist.GetBinContent(xbin, min(3, event.nBTaggedJets+1))
+    sf = inter + event.Rsq * slope
+    return sf
+    #if region.lower() == 'dijet':
+    #    return 0.05
+    #else:
+    #    return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
 
 WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
 LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
@@ -290,12 +297,14 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
 
         #QCD extrapolation weight
         if 'datadrivenqcddijet' in lweightOpts: 
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(
+                    event,wHists,region='dijet')
             if debugLevel > 1:
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
         elif 'datadrivenqcdmultijet' in lweightOpts: 
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(
+                    event,wHists,region='multijet')
             if debugLevel > 1:
                 print "QCD extrapolation factor:",qcdExtrapolationFactor
             eventWeight *= qcdExtrapolationFactor
@@ -450,9 +459,11 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
         return scale * getTTBarDileptonWeight(event)
     else: #data-driven QCD estimate
         if 'datadrivenqcddijet' in lweightOpts:
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='dijet')
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(
+                    event,wHists,region='dijet')
         elif 'datadrivenqcdmultijet' in lweightOpts:
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(event.MR,region='multijet')
+            qcdExtrapolationFactor = getQCDExtrapolationFactor(
+                    event,wHists,region='multijet')
         else:
             qcdExtrapolationFactor = 1.0
             print "Warning: data weight options",lweightOpts,"may not make sense; see macro.razorWeights.weight_data"

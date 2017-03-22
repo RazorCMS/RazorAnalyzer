@@ -48,10 +48,14 @@ razorWeightHists = {
             #"eleeff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightElectronSelectionEffDenominatorReco"),
             #"muontrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
             #"eletrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
+            "qcdslopesmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_MultiJet"),
+            "qcdintersmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_MultiJet"),
+            "qcdslopesdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_DiJet"),
+            "qcdintersdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_DiJet"),
                 }
         }
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
-razorWeightHists["Razor2016_MoriondRereco"] = {}
+razorWeightHists["Razor2016_MoriondRereco"] = copy.copy(razorWeightHists['Razor2016'])
 razorWeightHists["Razor2016_80X"] = {}
 razorWeightHists["Razor2016_ICHEP_80X"] = {}
 
@@ -310,6 +314,7 @@ for tag in sampleTags2016:
             "DYJets"   : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_DYJets_1pb_weighted"+skimstr+".root",
             "Other"    : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Other_1pb_weighted"+skimstr+".root",
             "ZInv"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_ZInv_1pb_weighted"+skimstr+".root",
+            #"QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_QCD_1pb_weighted"+skimstr+".root",
             #QCD predicted using data driven method
             "QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",
             "Data"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
@@ -337,7 +342,7 @@ for tag in sampleTags2016:
 
 razorFitDirs = { 
         "Razor2016G_SUSYUnblind_80X":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/CMSSW_7_1_5/src/RazorAnalyzer/fits_2017_01_09/ReReco2016_02Jan/",
-        "Razor2016_MoriondRereco":"/afs/cern.ch/work/d/duanders/public/RazorSidebandPlots/10Feb2017/"
+        "Razor2016_MoriondRereco":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/Plots/Razor2016_MoriondRereco"
         }
 razorFitFiles = { tag:{} for tag in razorFitDirs }
 for tag,path in razorFitDirs.iteritems():
@@ -412,7 +417,10 @@ triggerNames["Dilepton"]["MC"]["Razor2015"] = copy.copy(triggerNames["Dilepton"]
 
 # 2016 trigger
 # Data
-triggerNames["Razor"]["Data"]["Razor2016"] = copy.copy(triggerNames["Razor"]["Data"]["Razor2015"])
+triggerNames["Razor"]["Data"]["Razor2016"] = [
+        'HLT_RsqMR270_Rsq0p09_MR200',
+        'HLT_RsqMR270_Rsq0p09_MR200_4jet',
+        ]
 triggerNames["SingleLepton"]["Data"]["Razor2016"] = [
         "HLT_IsoMu20", 
         "HLT_IsoTkMu20", 
@@ -522,8 +530,8 @@ recommendedNoiseFilters = [
         "Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter",
         "Flag_goodVertices", "Flag_eeBadScFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
-        "Flag_badChargedCandidateFilter","Flag_badMuonFilter"
-        #"Flag_badGlobalMuonFilter", "Flag_duplicateMuonFilter"
+        "Flag_badChargedCandidateFilter","Flag_badMuonFilter",
+        "!Flag_badGlobalMuonFilter", "!Flag_duplicateMuonFilter"
         ]
 def appendNoiseFilters(cuts, tree=None):
     ret = copy.copy(cuts)
@@ -657,6 +665,9 @@ razorBinning["SingleLepton"] = {
         "MET" : range(0, 500, 50),
         "lep1.Pt()" : [20,30,40,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
+        "dPhiRazor":[ 0.2*x for x in range(16) ],
+        "lep1MT":range(0,300,10),
+        "NJets80" : [0, 1, 2, 3, 4, 5, 6],
         }
 razorBinning["SingleLeptonInv"] = {
         "MR_NoW" : [300, 400, 500, 600, 700, 900, 1200, 4000],

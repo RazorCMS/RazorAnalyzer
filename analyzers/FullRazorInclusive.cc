@@ -981,6 +981,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Jet cuts
         const int JET_CUT = 40;
         const int BJET_CUT = 40;
+        const float JET_ETA_CUT = 3.0;
         //Loop jets
         for (int i = 0; i < nJets; i++){
             //Apply Jet ID only on fullsim. fastsim jet ID is broken. 
@@ -1025,11 +1026,11 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                     }
                     if (vars.first != "JESUp" && vars.first != "JESDown" && 
                         vars.first != "JERUp" && vars.first != "JERDown") { //these ones are handled below
-                        if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)){
+                        if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 2.4 && isCSVM(i)){
                             // count it as a b-jet
                             vars.second->nBTaggedJets++;
                         }
-                        if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < 3.0) {
+                        if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < JET_ETA_CUT) {
                             // add to good jets list
                             vars.second->GoodJets.push_back(thisJet);
                             vars.second->nSelectedJets++;
@@ -1054,7 +1055,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 					      sf_bmistagUp, sf_bmistagDown );
             }
             //Cut on jet eta
-            if (fabs(jetEta[i]) > 3.0) continue;
+            if (fabs(jetEta[i]) > JET_ETA_CUT) continue;
             //Get uncertainty on JEC and JER
             if(!isData){
 	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 as default
