@@ -48,10 +48,14 @@ razorWeightHists = {
             #"eleeff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightElectronSelectionEffDenominatorReco"),
             #"muontrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
             #"eletrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
+            "qcdslopesmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_MultiJet"),
+            "qcdintersmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_MultiJet"),
+            "qcdslopesdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_DiJet"),
+            "qcdintersdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_DiJet"),
                 }
         }
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
-razorWeightHists["Razor2016_MoriondRereco"] = {}
+razorWeightHists["Razor2016_MoriondRereco"] = copy.copy(razorWeightHists['Razor2016'])
 razorWeightHists["Razor2016_80X"] = {}
 razorWeightHists["Razor2016_ICHEP_80X"] = {}
 
@@ -338,7 +342,7 @@ for tag in sampleTags2016:
 
 razorFitDirs = { 
         "Razor2016G_SUSYUnblind_80X":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/CMSSW_7_1_5/src/RazorAnalyzer/fits_2017_01_09/ReReco2016_02Jan/",
-        "Razor2016_MoriondRereco":"/afs/cern.ch/work/d/duanders/public/RazorSidebandPlots/10Feb2017/"
+        "Razor2016_MoriondRereco":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/Plots/Razor2016_MoriondRereco"
         }
 razorFitFiles = { tag:{} for tag in razorFitDirs }
 for tag,path in razorFitDirs.iteritems():
