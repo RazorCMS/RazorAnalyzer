@@ -19,6 +19,10 @@ if __name__ == "__main__":
     parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
     parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
             dest='noFill')
+    parser.add_argument('--delta-phi-cut', help='cut on delta phi variable', action='store_true',
+            dest='deltaPhiCut')
+    parser.add_argument('--njets80-cut', help='require two jets of 80 GeV', action='store_true',
+            dest='njets80Cut')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -45,6 +49,10 @@ if __name__ == "__main__":
         outdir = 'Plots/'+tag+'/'+region
         if args.noSave:
             outdir += '_Test'
+        if args.deltaPhiCut:
+            outdir += '_DPhiCut'
+        if args.njets80Cut:
+            outdir += '_NJets80Cut'
         os.system('mkdir -p '+outdir)
         #get correct variable names
         sfVars = ("MR","Rsq")
@@ -58,6 +66,19 @@ if __name__ == "__main__":
         else:
             dataDrivenQCD = False
             auxSFs = {}
+        #optionally cut on dPhi
+        if args.deltaPhiCut:
+            dPhiVar = "dPhiRazor"
+            if region == 'GJetsInv':
+                dPhiVar += '_NoPho'
+            analysis.cutsData += " && abs(%s) < 2.8"%(dPhiVar)
+            analysis.cutsMC += " && abs(%s) < 2.8"%(dPhiVar)
+        if args.njets80Cut:
+            njets80Var = "NJets80"
+            if region == 'GJetsInv':
+                njets80Var += '_NoPho'
+            analysis.cutsData += " && %s >= 2"%(njets80Var)
+            analysis.cutsMC += " && %s >= 2"%(njets80Var)
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 sfHists=sfHists, sfVars=sfVars, printdir=outdir, debugLevel=debugLevel, 
@@ -72,7 +93,12 @@ if __name__ == "__main__":
 
     #write scale factors
     if not args.noSave:
-        outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), "RECREATE")
+        outname = "data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
+        if args.deltaPhiCut:
+            outname = outname.replace('.root','_DPhiCut.root')
+        if args.njets80Cut:
+            outname = outname.replace('.root','_NJets80Cut.root')
+        outfile = rt.TFile(outname, "RECREATE")
         for name in sfHists:
             print "Writing scale factor histogram",sfHists[name].GetName(),"to file"
             sfHists[name].Write(sfHists[name].GetName().replace("Poly",""))
