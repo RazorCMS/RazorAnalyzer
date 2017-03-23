@@ -609,6 +609,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
         /////////////////////////////////
         //Pileup reweighting
+	//For 2016 Fastsim, do not do pileup reweighting; use alternative procedure
         /////////////////////////////////
 
         pileupWeight = 1.0;
