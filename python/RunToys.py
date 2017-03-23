@@ -276,9 +276,9 @@ def runToys(w,options,cfg,seed):
     #c.Print(varName+varName2+'.2pdf')
     #sys.exit()
                 
-    if options.box in ['MultiJet','DiJet']:
+    if options.box in ['MultiJet','DiJet','MultiJet_0b','MultiJet_1b','MultiJet_2b','DiJet_0b','DiJet_1b','DiJet_2b']:
         xFactor = [1.8, 1.4, 1.4, 1.4] #xFactor for each b-tag bin
-    elif options.box in ['MuMultiJet', 'LeptonMultiJet', 'LeptonJet']:
+    elif options.box in ['MuMultiJet', 'LeptonMultiJet', 'LeptonJet','LeptonJet_0b','LeptonJet_1b','LeptonJet_2b','LeptonMultiJet_0b','LeptonMultiJet_1b','LeptonMultiJet_2b']:
         xFactor = [2.0, 2.0, 2.0, 2.0] #xFactor for each b-tag bin
     elif options.box == 'EleMultiJet':
         xFactor = [2.0, 1.8, 1.2, 1.2] #xFactor for each b-tag bin

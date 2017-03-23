@@ -625,7 +625,7 @@ leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJe
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
 dileptonSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
-leptonicSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && mT > 120"
+leptonicSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && mT > 120 && nSelectedJets >= 2"
 looseLeptonSignalRegionCuts = "MR > 500.000000 && MR < 4000 && Rsq > 0.250000 && Rsq < 1.5 && mTLoose > 100 && nJets80 >= 2"
 hadronicSignalRegionCuts = "MR > 500.000000 && MR < 4000 && Rsq > 0.250000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 
@@ -640,6 +640,22 @@ for box in razorBoxes:
         razorCuts[box] = appendBoxCuts(dileptonSignalRegionCuts, razorBoxes[box])
 razorCuts['FourToSixJet'] += ' && nSelectedJets < 7'
 razorCuts['SevenJet'] += ' && nSelectedJets >= 7'
+
+zeroBjetBoxes = ["MultiJet_0b", "LeptonJet_0b","LeptonMultiJet_0b","DiJet_0b"]
+oneBjetBoxes  = ["MultiJet_1b", "LeptonJet_1b","LeptonMultiJet_1b","DiJet_1b"]
+twoBjetBoxes  = ["MultiJet_2b", "LeptonJet_2b","LeptonMultiJet_2b","DiJet_2b"]
+
+zeroBjetCut = "nBTaggedJets==0"
+oneBjetCut  = "nBTaggedJets==1"
+twoBjetCut  = "nBTaggedJets>=2"
+
+for box in razorBoxes:
+    if box in zeroBjetBoxes:
+        razorCuts[box] += ' && nBTaggedJets==0'
+    elif box in oneBjetBoxes:
+        razorCuts[box] += ' && nBTaggedJets==1'
+    elif box in twoBjetBoxes:
+        razorCuts[box] += ' && nBTaggedJets>=2'
 
 #####################################
 ### BINNING
