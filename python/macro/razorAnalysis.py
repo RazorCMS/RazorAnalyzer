@@ -633,7 +633,7 @@ leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJe
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
 dileptonSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
-leptonicSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && mT > 120"
+leptonicSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && mT > 120 && nSelectedJets >= 2"
 looseLeptonSignalRegionCuts = "MR > 500.000000 && MR < 4000 && Rsq > 0.250000 && Rsq < 1.5 && mTLoose > 100 && nJets80 >= 2"
 hadronicSignalRegionCuts = "MR > 500.000000 && MR < 4000 && Rsq > 0.250000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 
