@@ -96,7 +96,8 @@ def getFitCorrelationMatrix(config, box, fitToyFile, debugLevel=0):
     corrMatrix = getCorrelationMatrix(toyTree,'yx',0,len(x)-1,0,len(y)-1,0,len(z)-1,x,y,z)
     return corrMatrix
 
-def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btags=-1, btagsMax=3, debugLevel=0, noStat=False):
+def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btags=-1, btagsMax=3, debugLevel=0, noStat=False,
+        force=False):
     FIT_SCALE_FACTOR = 1.0
     print "Loading fit histograms"
     if noStat: 
@@ -104,7 +105,7 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
         if 'noStat' not in fitToyFile:
             fitToyFile = fitToyFile.replace('Bayes','Bayes_varyN_noStat')
     #sanity check
-    if "Fit" in hists:
+    if "Fit" in hists and not force:
         print "Error in import2DFitHistograms: fit histogram already exists!"
         return
     #make histogram for fit result
@@ -140,9 +141,11 @@ def import2DRazorFitHistograms(hists, bins, fitToyFile, c, dataName="Data", btag
 
     #store best fit and uncertainty in each bin
     #1D
-    print bins
+    if debugLevel > 0:
+        print bins
     binSumDict = getBinSumDicts('x', 0,len(bins['MR'])-1,0,len(bins['Rsq'])-1,zmin,zmax,bins['MR'],bins['Rsq'],z)
-    print binSumDict
+    if debugLevel > 0:
+        print binSumDict
     for i,sumName in binSumDict.iteritems():
         if dataName in hists: nObs = hists[dataName]["MR"].GetBinContent(i)
         else: nObs = 0

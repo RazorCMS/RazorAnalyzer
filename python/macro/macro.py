@@ -49,15 +49,18 @@ def exportHists(hists, outFileName='hists.root', outDir='.', useDirectoryStructu
                     path = path.replace(str(varName),'').replace('//','/')
             tdir = outFile.GetDirectory(path)
             if tdir==None:
-                print "Making directory",path
+                if debugLevel > 0:
+                    print "Making directory",path
                 outFile.mkdir(path)
                 tdir = outFile.GetDirectory(path)
                 tdir.cd()
-                print "Writing histogram",pair[1].GetName(),"to directory",path
+                if debugLevel > 0:
+                    print "Writing histogram",pair[1].GetName(),"to directory",path
                 pair[1].Write()
                 if delete: pair[1].Delete()
         else:
-            print "Writing histogram",pair[1].GetName()
+            if debugLevel > 0:
+                print "Writing histogram",pair[1].GetName()
             pair[1].Write()
             if delete: pair[1].Delete()
     outFile.Close()
