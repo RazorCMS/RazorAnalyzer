@@ -17,6 +17,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
                                 action="store_true")
     parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016")
+    parser.add_argument("--tight-cuts", action='store_true', dest='tightCuts',
+            help="Cut on delta phi and number of 80 GeV jets, and cut tighter on MR and Rsq")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -60,14 +62,17 @@ if __name__ == "__main__":
             "TTJetsForNJetsCorrected":"NJets40",
             "WJetsInvForNJets":"NJets_NoW",
             }
-    outfile = rt.TFile(
-            "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag), 
-            "UPDATE")
+    outfile_name = "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag)
+    if args.tightCuts:
+        outfile_name = outfile_name.replace(".root", "_TightCuts.root")
+    outfile = rt.TFile(outfile_name, "UPDATE")
 
     for region in regionsOrder:
         analysis = regions[region]
         #make output directory
         outdir = 'Plots/'+tag+'/'+region
+        if args.tightCuts:
+            outdir += "_TightCuts"
         os.system('mkdir -p '+outdir)
         #set up analysis
         process = sfNames[region]
@@ -92,6 +97,12 @@ if __name__ == "__main__":
             razorWeights.loadPhotonPurityHists(sfHists, tag, debugLevel)
         else:
             dataDrivenQCD = False
+        if args.tightCuts:
+            if (region == "GJetsInvForNJets" or region == "WJetsInvForNJets"
+                    or region == "TTJetsForNJetsCorrected"):
+                continue
+            analysis.cutsData += " && MR > 500 && Rsq > 0.25 && NJets80 >= 2"
+            analysis.cutsMC += " && MR > 500 && Rsq > 0.25 && NJets80 >= 2"
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 sfHists=sfHists, sfVars=sfVarsToUse, 
@@ -118,7 +129,7 @@ if __name__ == "__main__":
         macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
                 outDir=outdir, debugLevel=debugLevel )
         #write out scale factors
-        if region != "TTJetsForNJets":
+        if args.tightCuts or region != "TTJetsForNJets":
             print "Writing scale factor histogram",sfHistsCopy[process].GetName(),"to file"
             outfile.cd()
             sfHistsCopy[process].Write( sfHistsCopy[process].GetName() )

@@ -49,15 +49,18 @@ def exportHists(hists, outFileName='hists.root', outDir='.', useDirectoryStructu
                     path = path.replace(str(varName),'').replace('//','/')
             tdir = outFile.GetDirectory(path)
             if tdir==None:
-                print "Making directory",path
+                if debugLevel > 0:
+                    print "Making directory",path
                 outFile.mkdir(path)
                 tdir = outFile.GetDirectory(path)
                 tdir.cd()
-                print "Writing histogram",pair[1].GetName(),"to directory",path
+                if debugLevel > 0:
+                    print "Writing histogram",pair[1].GetName(),"to directory",path
                 pair[1].Write()
                 if delete: pair[1].Delete()
         else:
-            print "Writing histogram",pair[1].GetName()
+            if debugLevel > 0:
+                print "Writing histogram",pair[1].GetName()
             pair[1].Write()
             if delete: pair[1].Delete()
     outFile.Close()
@@ -716,7 +719,6 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
         debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode"""
 
     if debugLevel > 0: print ("Looping tree "+tree.GetName())
-    print ("Cuts: "+cuts)
     #make TTreeFormulas for variables not found in the tree
     formulas = {}
     for var in hists:
@@ -785,6 +787,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     if errorOpt is not None:
         if debugLevel > 0: print "Error option is:",errorOpt
         cuts = transformVarString(tree, cuts, errorOpt, process=process, debugLevel=debugLevel+1)
+    print ("Cuts: "+cuts)
     #create histograms for scale factor systematics
     sysErrSquaredHists = {}
     if not statErrOnly:

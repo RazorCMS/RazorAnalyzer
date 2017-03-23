@@ -184,7 +184,9 @@ class RazorHelper {
         TFile *vetoEleEffSFFile;
         TFile *eleGSFTrackEffSFFile;
         TFile *eleGSFTrackEffFile;
-        TH2D *eleTightEfficiencyHist;
+	TFile *eleTightEffFastsimSFFile;
+        TFile *eleVetoEffFastsimSFFile;
+	TH2D *eleTightEfficiencyHist;
         TH2D *eleVetoEfficiencyHist;
         TH2D *eleTightEffFastsimSFHist;
         TH2D *eleVetoEffFastsimSFHist;
@@ -201,6 +203,8 @@ class RazorHelper {
         TFile *vetoMuEffSFFile;
         TFile *muTrackEffSFFile;
         TFile *muTrackEffFile;
+	TFile *muTightEffFastsimSFFile;
+        TFile *muVetoEffFastsimSFFile;
         TH2D *muTightEfficiencyHist;
         TH2D *muVetoEfficiencyHist;
         TH2D *muTightEffFastsimSFHist;

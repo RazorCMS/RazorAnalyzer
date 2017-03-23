@@ -29,9 +29,11 @@ class RazorVarCollection {
         // Member functions 
         void resetVars() { //call for each event
             MR = -1; Rsq = -1; dPhiRazor = -9;
+	    RsqGenMet = -1;
             leadingJetPt = -1; subleadingJetPt = -1; 
             leadingTightMuPt = -1; leadingTightElePt = -1;
             mT = -1; mTLoose = -1;
+            mTGenMet = -1; mTLooseGenMet = -1;
             nSelectedJets = 0; nBTaggedJets = 0; nJets80 = 0;
             nVetoMuons = 0; nTightMuons = 0; nVetoElectrons = 0; nTightElectrons = 0;
             box = RazorAnalyzer::NONE;
@@ -47,6 +49,7 @@ class RazorVarCollection {
             if (tag == "") { conn = ""; } // remove underscore if not needed
             t->Branch(("MR"+conn+tag).c_str(), &MR, ("MR"+conn+tag+"/F").c_str());
             t->Branch(("Rsq"+conn+tag).c_str(), &Rsq, ("Rsq"+conn+tag+"/F").c_str());
+            t->Branch(("RsqGenMet"+conn+tag).c_str(), &RsqGenMet, ("RsqGenMet"+conn+tag+"/F").c_str());
             t->Branch(("metOverCaloMet"+conn+tag).c_str(), &metOverCaloMet, ("metOverCaloMet"+conn+tag+"/F").c_str());
             t->Branch(("dPhiRazor"+conn+tag).c_str(), &dPhiRazor, ("dPhiRazor"+conn+tag+"/F").c_str());
             t->Branch(("leadingJetPt"+conn+tag).c_str(), &leadingJetPt, 
@@ -59,6 +62,8 @@ class RazorVarCollection {
                     ("leadingTightElePt"+conn+tag+"/F").c_str());
             t->Branch(("mT"+conn+tag).c_str(), &mT, ("mT"+conn+tag+"/F").c_str());
             t->Branch(("mTLoose"+conn+tag).c_str(), &mTLoose, ("mTLoose"+conn+tag+"/F").c_str());
+	    t->Branch(("mTGenMet"+conn+tag).c_str(), &mTGenMet, ("mTGenMet"+conn+tag+"/F").c_str());
+            t->Branch(("mTLooseGenMet"+conn+tag).c_str(), &mTLooseGenMet, ("mTLooseGenMet"+conn+tag+"/F").c_str());
             t->Branch(("nSelectedJets"+conn+tag).c_str(), &nSelectedJets, 
                     ("nSelectedJets"+conn+tag+"/I").c_str());
             t->Branch(("nBTaggedJets"+conn+tag).c_str(), &nBTaggedJets, 
@@ -78,7 +83,7 @@ class RazorVarCollection {
         }
 
         // List of variables
-        float MR,Rsq,dPhiRazor,leadingJetPt,subleadingJetPt,leadingTightMuPt,leadingTightElePt,mT,mTLoose;
+  float MR,Rsq,RsqGenMet,dPhiRazor,leadingJetPt,subleadingJetPt,leadingTightMuPt,leadingTightElePt,mT,mTLoose,mTGenMet, mTLooseGenMet;
         int nSelectedJets,nBTaggedJets,nJets80;
         int nVetoMuons, nTightMuons, nVetoElectrons, nTightElectrons;
         float metOverCaloMet;
@@ -116,13 +121,17 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     map<pair<int,int>, TH1F*> smsSumWeights;
     map<pair<int,int>, TH1F*> smsSumScaleWeights;
     map<pair<int,int>, TH1F*> smsSumPdfWeights;
-
+    map<pair<int,int>, TH1F*> smsNISRJets2D;
+    map<pair<int,int>, TH1F*> smsNPV2D;
+ 
     //Histogram containing total number of processed events (for normalization)
     TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 0.5, 1.5);
     TH1F *SumTopPtWeights = new TH1F("SumTopPtWeights", "SumTopPtWeights", 1, 0.5, 1.5);
     TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
     TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
     TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
+    TH1F *histNISRJets = new TH1F("NISRJets", "NISRJets", 7, -0.5, 6.5);
+    TH1F *histNPV = new TH1F("NPV", "NPV", 2, -0.5, 1.5);
 
     //Initialize helper
     RazorHelper *helper = 0;
@@ -600,10 +609,11 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
         /////////////////////////////////
         //Pileup reweighting
+	//For 2016 Fastsim, do not do pileup reweighting; use alternative procedure
         /////////////////////////////////
 
         pileupWeight = 1.0;
-        if(!isData){
+        if(!isData && !isFastsimSMS){
 	  //Get number of PU interactions
 	  for (int i = 0; i < nBunchXing; i++) {
 	    if (BunchXing[i] == 0) {
@@ -972,6 +982,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Jet cuts
         const int JET_CUT = 40;
         const int BJET_CUT = 40;
+        const float JET_ETA_CUT = 3.0;
         //Loop jets
         for (int i = 0; i < nJets; i++){
             //Apply Jet ID only on fullsim. fastsim jet ID is broken. 
@@ -1016,11 +1027,11 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                     }
                     if (vars.first != "JESUp" && vars.first != "JESDown" && 
                         vars.first != "JERUp" && vars.first != "JERDown") { //these ones are handled below
-                        if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 3.0 && isCSVM(i)){
+                        if (jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 2.4 && isCSVM(i)){
                             // count it as a b-jet
                             vars.second->nBTaggedJets++;
                         }
-                        if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < 3.0) {
+                        if (jetCorrPt > JET_CUT && fabs(jetEta[i]) < JET_ETA_CUT) {
                             // add to good jets list
                             vars.second->GoodJets.push_back(thisJet);
                             vars.second->nSelectedJets++;
@@ -1045,7 +1056,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 					      sf_bmistagUp, sf_bmistagDown );
             }
             //Cut on jet eta
-            if (fabs(jetEta[i]) > 3.0) continue;
+            if (fabs(jetEta[i]) > JET_ETA_CUT) continue;
             //Get uncertainty on JEC and JER
             if(!isData){
 	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 as default
@@ -1151,25 +1162,37 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             
 	    //previous version did not have Jet-energy corrected MET saved in big ntuples.
 	    //therefore use corrections
-	    //PFMetX = metPt*cos(metPhi) + vars.second->MetXCorr;
-            //PFMetY = metPt*sin(metPhi) + vars.second->MetYCorr;
+	    PFMetX = metPt*cos(metPhi) + vars.second->MetXCorr;
+            PFMetY = metPt*sin(metPhi) + vars.second->MetYCorr;
 
 	    //Starting from V3p13 run on Feb03 2017 reMiniAOD, metMuEGCleanCorr does have jet energy corrected MET
 	    //So for systematics need to subtract nominal type1 correction and add shifted type 1 corrections
-	    if (vars.first == "") {
-	      PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi);
-	      PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi);
-	    } else {
-	      PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi) + (vars.second->MetXCorr - Type1MetXCorr);
-	      PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi) + (vars.second->MetYCorr - Type1MetYCorr);
-	    }
+	    if (isData) {
+	      if (vars.first == "") {
+		PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi);
+		PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi);
+	      } else {
+		PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi) + (vars.second->MetXCorr - Type1MetXCorr);
+		PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi) + (vars.second->MetYCorr - Type1MetYCorr);
+	      }
+	    } 
 	    
             TLorentzVector MyMET;
             MyMET.SetPxPyPzE( PFMetX, PFMetY, 0, sqrt( PFMetX*PFMetX + PFMetY*PFMetY ) );
+	    TLorentzVector GenMET;
+	    double GenMetX = genMetPt*cos(genMetPhi);
+	    double GenMetY = genMetPt*sin(genMetPhi);
+	    GenMET.SetPxPyPzE( GenMetX, GenMetY, 0, sqrt( GenMetX*GenMetX + GenMetY*GenMetY ) );	      
+
             // Compute MR, Rsq, dPhiRazor
             vector<TLorentzVector> hemispheres = getHemispheres(vars.second->GoodJets);
             vars.second->MR = computeMR(hemispheres[0], hemispheres[1]); 
             vars.second->Rsq = computeRsq(hemispheres[0], hemispheres[1], MyMET);
+
+	    if (vars.first == "") {
+	      vars.second->RsqGenMet = computeRsq(hemispheres[0], hemispheres[1], GenMET);
+	    }
+
             vars.second->dPhiRazor = deltaPhi(hemispheres[0].Phi(),hemispheres[1].Phi());
 	    vars.second->metOverCaloMet = MyMET.Pt()/metCaloPt;
             // Compute transverse mass 
@@ -1183,6 +1206,11 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                 }
                 float deltaPhiLepMet = leadingLepton.DeltaPhi(MyMET);
                 vars.second->mT = sqrt(2*leadingLepton.Pt()*MyMET.Pt()*(1.0 - cos(deltaPhiLepMet))); 
+		if (vars.first == "") {
+		  float deltaPhiLepGenMet = leadingLepton.DeltaPhi(GenMET);
+		  vars.second->mTGenMet = sqrt(2*leadingLepton.Pt()*GenMET.Pt()*(1.0 - cos(deltaPhiLepGenMet)));
+		}
+		
             }
             // Transverse mass with leading lepton, regardless of quality
             if (vars.second->GoodLeptons.size() > 0){
@@ -1199,6 +1227,11 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                     float deltaPhiLepMet = vars.second->GoodLeptons[maxLepIndex].DeltaPhi(MyMET);
                     vars.second->mTLoose = sqrt(2*vars.second->GoodLeptons[maxLepIndex].Pt()*MyMET.Pt()*(1.0 
                                 - cos(deltaPhiLepMet)));
+		    if (vars.first == "") {
+		      float deltaPhiLepGenMet = vars.second->GoodLeptons[maxLepIndex].DeltaPhi(GenMET);
+		      vars.second->mTLooseGenMet = sqrt(2*vars.second->GoodLeptons[maxLepIndex].Pt()*GenMET.Pt()*(1.0 
+				- cos(deltaPhiLepGenMet)));
+		    }
                 }
             }
             // Additional quantities
@@ -1408,11 +1441,15 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                         smsSumWeights[smsPair] = new TH1F(Form("SumWeights%d%d", mGluino, mLSP), "SumWeights", 1,0.5,1.5);
                         smsSumScaleWeights[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mGluino, mLSP), "SumScaleWeights", 6,-0.5,5.5);
                         smsSumPdfWeights[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mGluino, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
-                        cout << "Created new output file " << thisFileName << endl;
+                      	smsNISRJets2D[smsPair] = new TH1F(Form("NISRJets%d%d", mGluino, mLSP), "NISRJets", 7,-0.5,6.5);
+			smsNPV2D[smsPair] = new TH1F(Form("NPV%d%d", mGluino, mLSP), "NPV", 2,-0.5,1.5);
+			cout << "Created new output file " << thisFileName << endl;
                     }
                     //Fill NEvents hist 
                     smsNEvents[smsPair]->Fill(1.0, genWeight);
                     smsSumWeights[smsPair]->Fill(1.0, weight);
+		    smsNISRJets2D[smsPair]->Fill(min(NISRJets,6), genWeight);
+		    smsNPV2D[smsPair]->Fill( (nPV >= 20)?1:0 , genWeight);
 
                     smsSumScaleWeights[smsPair]->Fill(0.0, sf_facScaleUp);
                     smsSumScaleWeights[smsPair]->Fill(1.0, sf_facScaleDown);
@@ -1477,6 +1514,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         SumWeights->Write();
         SumScaleWeights->Write();
         SumPdfWeights->Write();
+	histNISRJets->Write();
+	histNPV->Write();
     }
     else{
         for(auto &filePtr : smsFiles){
@@ -1487,6 +1526,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             smsSumWeights[filePtr.first]->Write("SumWeights");
             smsSumScaleWeights[filePtr.first]->Write("SumScaleWeights");
             smsSumPdfWeights[filePtr.first]->Write("SumPdfWeights");
+	    smsNISRJets2D[filePtr.first]->Write("NISRJets");
+	    smsNPV2D[filePtr.first]->Write("NPV");
         }
     }
 

@@ -20,6 +20,7 @@ const int NUM_PDF_WEIGHTS = 60;
 
 const int JET_PT_CUT = 40;
 const int BJET_PT_CUT = 40;
+const float JET_ETA_CUT = 3.0;
 
 struct greater_than_pt{
     inline bool operator() (const TLorentzVector& p1, const TLorentzVector& p2){
@@ -1241,7 +1242,7 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
 	      }
 	  }
 	
-	if(fabs(jetEta[i]) > 3.0) continue;
+	if(fabs(jetEta[i]) > JET_ETA_CUT) continue;
 	 
 	numJetsAbove40GeV++;
 	if(jetPt[i]*JEC*jetEnergySmearFactor > 80) numJetsAbove80GeV++;	  
