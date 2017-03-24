@@ -30,19 +30,32 @@
 
 #include <CalStyleRemix.hh>
 
+void doTheThing(int box, int nBtags);
+
 void getQCDTranslationFactors2D() {
+
+  doTheThing(0,0);
+  doTheThing(0,1);
+  doTheThing(0,2);
+
+  doTheThing(1,0);
+  doTheThing(1,1);
+  doTheThing(1,2);
+
+}
+void doTheThing(int box, int nBtags) {
 
   enum {multijet=0, dijet};
 
-  int box=dijet;
-  int nBtags=2;
+  //int box=dijet;
+  //int nBtags=2;
 
   const Int_t nbinx=5, nbiny=5, nbinz=2;
   Float_t xmin=400, xmax=3000; 
-  Float_t ymin=0.15,  ymax=1.0; 
+  Float_t ymin=0.15,  ymax=0.25; 
   Float_t zmin=0,    zmax=2;
   Float_t xbins[nbinx+1] = {xmin, 500, 600, 800, 1000, xmax};
-  Float_t ybins[nbiny+1] = { ymin, 0.2, 0.25, 0.3, 0.5, ymax};
+  Float_t ybins[nbiny+1] = { ymin, 0.16, 0.18, 0.20, 0.225, ymax};
   Float_t zbins[nbinz+1] = {zmin, 1, zmax};
   char pname[100];
 
@@ -157,6 +170,7 @@ void getQCDTranslationFactors2D() {
       dnP_Z=dPhiPF_Z->GetBinError(dPhiPF_Z->GetBin(i+1,j+1,1))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1));
       dnF_Z=dPhiPF_Z->GetBinError(dPhiPF_Z->GetBin(i+1,j+1,2))/dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,2));
 
+      cout << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1)) << ", " << dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,2)) << endl;
 
       nPass=dPhiPF_D->GetBinContent(dPhiPF_D->GetBin(i+1,j+1,1)) - dPhiPF_T->GetBinContent(dPhiPF_T->GetBin(i+1,j+1,1)) 
 	- dPhiPF_W->GetBinContent(dPhiPF_W->GetBin(i+1,j+1,1)) - dPhiPF_Z->GetBinContent(dPhiPF_Z->GetBin(i+1,j+1,1));

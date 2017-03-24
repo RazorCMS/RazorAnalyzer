@@ -27,7 +27,7 @@ def convertTree2Dataset(tree, cfg, box, workspace, useWeight,
     btagCutoff = 3
     if box in ["MuEle", "MuMu", "EleEle"]:
         btagCutoff = 1
-    elif box in ["DiJet","LeptonJet","EleJet","MuJet"]:
+    elif box in ["DiJet","LeptonJet","EleJet","MuJet", "DiJet_2b", "LeptonJet_2b"]:
         btagCutoff = 2
 
     # Use the Analysis object to store cuts
