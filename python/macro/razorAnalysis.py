@@ -649,6 +649,22 @@ for box in razorBoxes:
 razorCuts['FourToSixJet'] += ' && nSelectedJets < 7'
 razorCuts['SevenJet'] += ' && nSelectedJets >= 7'
 
+zeroBjetBoxes = ["MultiJet_0b", "LeptonJet_0b","LeptonMultiJet_0b","DiJet_0b"]
+oneBjetBoxes  = ["MultiJet_1b", "LeptonJet_1b","LeptonMultiJet_1b","DiJet_1b"]
+twoBjetBoxes  = ["MultiJet_2b", "LeptonJet_2b","LeptonMultiJet_2b","DiJet_2b"]
+
+zeroBjetCut = "nBTaggedJets==0"
+oneBjetCut  = "nBTaggedJets==1"
+twoBjetCut  = "nBTaggedJets>=2"
+
+for box in razorBoxes:
+    if box in zeroBjetBoxes:
+        razorCuts[box] += ' && nBTaggedJets==0'
+    elif box in oneBjetBoxes:
+        razorCuts[box] += ' && nBTaggedJets==1'
+    elif box in twoBjetBoxes:
+        razorCuts[box] += ' && nBTaggedJets>=2'
+
 #####################################
 ### BINNING
 #####################################
