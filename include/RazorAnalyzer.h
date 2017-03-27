@@ -43,8 +43,10 @@ class RazorAnalyzer: public RazorEvents {
         void EnableMC();
         void EnableGenParticles();
         void EnableRazor();
+        void EnableEcalRechits();
 
         void EnableAll();
+        void EnableAllWithEcalRechits();
 
         //------ LIST OF ANALYSES ------//
         virtual void Analyze(bool isData, int option, string outputFileName, string label);

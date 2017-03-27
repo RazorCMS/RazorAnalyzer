@@ -37,6 +37,22 @@ void RazorAnalyzer::EnableAll(){
     EnableGenParticles();
 }
 
+void RazorAnalyzer::EnableAllWithEcalRechits(){
+    EnableEventInfo();
+    EnablePVAll();
+    EnableMuons();
+    EnableElectrons();
+    EnableTaus();
+    EnablePhotons();
+    EnableJets();
+    EnableFatJets();
+    EnableMet();
+    EnablePileup();
+    EnableMC();
+    EnableGenParticles();
+    EnableEcalRechits();
+}
+
 void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("nPV", 1);
     fChain->SetBranchStatus("pvX", 1);
@@ -391,6 +407,19 @@ void RazorAnalyzer::EnableGenParticles(){
     fChain->SetBranchStatus("gParticleEta", 1);
     fChain->SetBranchStatus("gParticlePhi", 1);
 }
+
+void RazorAnalyzer::EnableEcalRechits(){
+    fChain->SetBranchStatus("nEcalRechits", 1);
+    fChain->SetBranchStatus("ecalRechit_Eta", 1);
+    fChain->SetBranchStatus("ecalRechit_Phi", 1);
+    fChain->SetBranchStatus("ecalRechit_X", 1);
+    fChain->SetBranchStatus("ecalRechit_Y", 1);
+    fChain->SetBranchStatus("ecalRechit_Z", 1);
+    fChain->SetBranchStatus("ecalRechit_E", 1);
+    fChain->SetBranchStatus("ecalRechit_T", 1);
+    fChain->SetBranchStatus("ecalRechit_ID", 1);
+}
+
 
 //////////////////////////////
 //ELECTRON
