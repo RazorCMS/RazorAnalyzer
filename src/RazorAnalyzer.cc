@@ -166,6 +166,9 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_passTPOneProbeFilter", 1); 
     fChain->SetBranchStatus("ele_passTPTwoProbeFilter", 1); 
     fChain->SetBranchStatus("ele_passHLTFilter", 1); 
+    fChain->SetBranchStatus("ele_NEcalRechitID", 1); 
+    fChain->SetBranchStatus("ele_EcalRechitID", 1); 
+
 }
 
 void RazorAnalyzer::EnableTaus(){
@@ -252,6 +255,8 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_seedRecHitSwitchToGain1", 1);
     fChain->SetBranchStatus("pho_anyRecHitSwitchToGain6", 1);
     fChain->SetBranchStatus("pho_anyRecHitSwitchToGain1", 1);
+    fChain->SetBranchStatus("pho_NEcalRechitID", 1);
+    fChain->SetBranchStatus("pho_EcalRechitID", 1);
 
 }
 

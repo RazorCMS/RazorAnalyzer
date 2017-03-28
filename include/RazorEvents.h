@@ -124,7 +124,7 @@ public :
    Bool_t          ele_passTPTwoProbeFilter[700];   //[nElectrons]
    Bool_t          ele_passHLTFilter[700][100];   //[nElectrons]
    UInt_t          ele_NEcalRechitID[700];   //[nElectrons]
-   UInt_t          ele_EcalRechitID[10][700];   //[nElectrons]
+   UInt_t          ele_EcalRechitID[700][500];   //[nElectrons]
    Int_t           nTaus;
    Float_t         tauE[700];   //[nTaus]
    Float_t         tauPt[700];   //[nTaus]
@@ -204,7 +204,7 @@ public :
    Float_t         pho_anyRecHitSwitchToGain6[700];   //[nPhotons]
    Float_t         pho_anyRecHitSwitchToGain1[700];   //[nPhotons]
    UInt_t          pho_NEcalRechitID[700];   //[nPhotons]
-   UInt_t          pho_EcalRechitID[8][700];   //[nPhotons]
+   UInt_t          pho_EcalRechitID[700][500];   //[nPhotons]
    Int_t           nJets;
    Float_t         jetE[900];   //[nJets]
    Float_t         jetPt[900];   //[nJets]
