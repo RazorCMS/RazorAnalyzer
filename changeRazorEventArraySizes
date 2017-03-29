@@ -24,7 +24,8 @@ cp RazorEventsNew.h RazorEventsNewTemp.h
 sed "s/pho_vtxSumPy\[.*\]\[700\]/pho_vtxSumPy[700][200]/" < RazorEventsNewTemp.h > RazorEventsNew.h
 
 cp RazorEventsNew.h RazorEventsNewTemp.h
-sed "s/vector</std::vector</" < RazorEventsNewTemp.h > RazorEventsNew.h
+sed "s/vector</std::vector</g" < RazorEventsNewTemp.h > RazorEventsNew.h
+
 
 
 rm RazorEventsNewTemp.h
