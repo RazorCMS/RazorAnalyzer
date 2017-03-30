@@ -38,8 +38,11 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float mass;
   float t1, t2;
   float t1_seed, t2_seed;
+  float t1raw_seed, t2raw_seed;
+  float ele1E, ele1Pt, ele1Eta, ele1Phi;
+  float ele2E, ele2Pt, ele2Eta, ele2Phi;
   int NPU;
-  int nPV;
+  //int nPV;
   unsigned int run, lumi, event;
 
 
@@ -57,7 +60,17 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t2", &t2, "t2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
   outputTree->Branch("t2_seed", &t2_seed, "t2_seed/F");
-  
+  outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
+  outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
+  outputTree->Branch("ele1E", &ele1E, "ele1E/F");
+  outputTree->Branch("ele1Pt", &ele1Pt, "ele1Pt/F");
+  outputTree->Branch("ele1Eta", &ele1Eta, "ele1Eta/F");
+  outputTree->Branch("ele1Phi", &ele1Phi, "ele1Phi/F");
+  outputTree->Branch("ele2E", &ele2E, "ele2E/F");
+  outputTree->Branch("ele2Pt", &ele2Pt, "ele2Pt/F");
+  outputTree->Branch("ele2Eta", &ele2Eta, "ele2Eta/F");
+  outputTree->Branch("ele2Phi", &ele2Phi, "ele2Phi/F");
+
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
 
@@ -94,10 +107,12 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     int nEle = 0;
     TLorentzVector ele1 = makeTLorentzVector(0,0,0,0);
     TLorentzVector ele2 = makeTLorentzVector(0,0,0,0);
-    double ele1_time;
-    double ele2_time;
-    double ele1_seedtime;
-    double ele2_seedtime;
+    double ele1_time = 0;
+    double ele2_time = 0;
+    double ele1_seedtime = 0;
+    double ele2_seedtime = 0;
+    double ele1_seedtimeraw = 0;
+    double ele2_seedtimeraw = 0;
     for(int i = 0; i < nElectrons; i++){
       // if(elePt[i] < 35) continue;
       // if(fabs(eleEta[i]) > 2.5) continue;
@@ -107,57 +122,56 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << "\n";
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       double time = 0;
-      double timeSeedHit = 0;
+    
       
-      double maxHitEnergy = 0;
-      
+      uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
+      double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
+      double timeSeedHit = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;;
+
       // cout << ele_NEcalRechitID[i] << "\n";
-      for (int k=0; k<ele_NEcalRechitID[i]; ++k) {
+      for (int k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
       	
-	uint tmpID = ele_EcalRechitID[i][k];
-	// cout << "ele " << k << " hit: " << tmpID << " ";
-	bool found = false;
-	uint foundIndex = 0;
-	for (int l=0; l < nEcalRechits; ++l) {
-	  if (ecalRechit_ID[l] == tmpID) {
-	    found = true;
-	    foundIndex = l;
-	    break;
-	  }
-	}	
-	if (found) {
-	  // cout << ecalRechit_E[foundIndex] << " " << ecalRechit_T[foundIndex] << " ";
-	  //find the max energy hit as seed...for now
-	  if (ecalRechit_E[foundIndex] > maxHitEnergy) {
-	    maxHitEnergy = ecalRechit_E[foundIndex];
-	    
-	    double rawT = ecalRechit_T[foundIndex];
-	    //correct for TOF
-	    timeSeedHit = rawT + (std::sqrt(pow(ecalRechit_X[foundIndex],2)+pow(ecalRechit_Y[foundIndex],2)+pow(ecalRechit_Z[foundIndex],2))-std::sqrt(pow(ecalRechit_X[foundIndex]-pvX,2)+pow(ecalRechit_Y[foundIndex]-pvY,2)+pow(ecalRechit_Z[foundIndex]-pvZ,2)))/SPEED_OF_LIGHT;
-	    timeSeedHit = rawT;
-	  }
-	}
+	uint rechitIndex = (*ele_EcalRechitIndex)[i][k];
+		  
+	double rawT = (*ecalRechit_T)[rechitIndex];
+
+	//correct for TOF
+	double corrT = rawT + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+	 	
 	// cout << "\n";
       }
- 
+            
       if (thisElectron.Pt() > ele1.Pt()) {
 	ele1 = thisElectron;
 	ele1_time = time;
 	ele1_seedtime = timeSeedHit;
+	ele1_seedtimeraw = rawSeedHitTime;
       } else if (thisElectron.Pt() > ele2.Pt()) {
 	ele2 = thisElectron;
 	ele2_time = time;
 	ele2_seedtime = timeSeedHit; 
-      }	
+ 	ele2_seedtimeraw = rawSeedHitTime;
+     }	
     }
     
     if (nEle >= 2) {
+      ele1E = ele1.E();
+      ele1Pt = ele1.Pt();
+      ele1Eta = ele1.Eta();
+      ele1Phi = ele1.Phi();
+      ele2E = ele2.E();
+      ele2Pt = ele2.Pt();
+      ele2Eta = ele2.Eta();
+      ele2Phi = ele2.Phi();
+
       mass = (ele1+ele2).M();
       t1 = ele1_time;
       t2 = ele2_time;
       t1_seed = ele1_seedtime;
       t2_seed = ele2_seedtime;
-      //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
+      t1raw_seed = ele1_seedtimeraw;
+      t2raw_seed = ele2_seedtimeraw;
+       //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
     }
 
     //Fill Event
