@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Mar 27 20:56:59 2017 by ROOT version 6.06/01
+// Wed Mar 29 20:35:52 2017 by ROOT version 6.06/01
 // from TTree RazorEvents/selected miniAOD information
-// found on file: /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v1/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v1_v1/170321_024445/0000/razorNtuple_281.root
+// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -123,8 +123,8 @@ public :
    Bool_t          ele_passTPOneProbeFilter[700];   //[nElectrons]
    Bool_t          ele_passTPTwoProbeFilter[700];   //[nElectrons]
    Bool_t          ele_passHLTFilter[700][100];   //[nElectrons]
-   UInt_t          ele_NEcalRechitID[700];   //[nElectrons]
-   UInt_t          ele_EcalRechitID[700][500];   //[nElectrons]
+   std::vector<std::vector<unsigned int> > *ele_EcalRechitIndex;
+   std::vector<unsigned int> *ele_SeedRechitIndex;
    Int_t           nTaus;
    Float_t         tauE[700];   //[nTaus]
    Float_t         tauPt[700];   //[nTaus]
@@ -203,8 +203,8 @@ public :
    Float_t         pho_seedRecHitSwitchToGain1[700];   //[nPhotons]
    Float_t         pho_anyRecHitSwitchToGain6[700];   //[nPhotons]
    Float_t         pho_anyRecHitSwitchToGain1[700];   //[nPhotons]
-   UInt_t          pho_NEcalRechitID[700];   //[nPhotons]
-   UInt_t          pho_EcalRechitID[700][500];   //[nPhotons]
+   std::vector<std::vector<unsigned int> > *pho_EcalRechitIndex;
+   std::vector<unsigned int> *pho_SeedRechitIndex;
    Int_t           nJets;
    Float_t         jetE[900];   //[nJets]
    Float_t         jetPt[900];   //[nJets]
@@ -319,15 +319,17 @@ public :
    Bool_t          Flag_METFilters;
    Bool_t          HLTDecision[300];
    Int_t           HLTPrescale[300];
-   Int_t           nEcalRechits;
-   Float_t         ecalRechit_Eta[719];   //[nEcalRechits]
-   Float_t         ecalRechit_Phi[719];   //[nEcalRechits]
-   Float_t         ecalRechit_X[719];   //[nEcalRechits]
-   Float_t         ecalRechit_Y[719];   //[nEcalRechits]
-   Float_t         ecalRechit_Z[719];   //[nEcalRechits]
-   Float_t         ecalRechit_E[719];   //[nEcalRechits]
-   Float_t         ecalRechit_T[719];   //[nEcalRechits]
-   UInt_t          ecalRechit_ID[719];   //[nEcalRechits]
+   std::vector<float>   *ecalRechit_Eta;
+   std::vector<float>   *ecalRechit_Phi;
+   std::vector<float>   *ecalRechit_X;
+   std::vector<float>   *ecalRechit_Y;
+   std::vector<float>   *ecalRechit_Z;
+   std::vector<float>   *ecalRechit_E;
+   std::vector<float>   *ecalRechit_T;
+   std::vector<unsigned int> *ecalRechit_ID;
+   std::vector<bool>    *ecalRechit_FlagOOT;
+   std::vector<bool>    *ecalRechit_GainSwitch1;
+   std::vector<bool>    *ecalRechit_GainSwitch6;
    Int_t           nGenJets;
    Float_t         genJetE[50];   //[nGenJets]
    Float_t         genJetPt[50];   //[nGenJets]
@@ -456,8 +458,8 @@ public :
    TBranch        *b_ele_passTPOneProbeFilter;   //!
    TBranch        *b_ele_passTPTwoProbeFilter;   //!
    TBranch        *b_ele_passHLTFilter;   //!
-   TBranch        *b_ele_NEcalRechitID;   //!
-   TBranch        *b_ele_EcalRechitID;   //!
+   TBranch        *b_ele_EcalRechitIndex;   //!
+   TBranch        *b_ele_SeedRechitIndex;   //!
    TBranch        *b_nTaus;   //!
    TBranch        *b_tauE;   //!
    TBranch        *b_tauPt;   //!
@@ -536,8 +538,8 @@ public :
    TBranch        *b_pho_seedRecHitSwitchToGain1;   //!
    TBranch        *b_pho_anyRecHitSwitchToGain6;   //!
    TBranch        *b_pho_anyRecHitSwitchToGain1;   //!
-   TBranch        *b_pho_NEcalRechitID;   //!
-   TBranch        *b_pho_EcalRechitID;   //!
+   TBranch        *b_pho_EcalRechitIndex;   //!
+   TBranch        *b_pho_SeedRechitIndex;   //!
    TBranch        *b_nJets;   //!
    TBranch        *b_jetE;   //!
    TBranch        *b_jetPt;   //!
@@ -652,7 +654,6 @@ public :
    TBranch        *b_Flag_METFilters;   //!
    TBranch        *b_HLTDecision;   //!
    TBranch        *b_HLTPrescale;   //!
-   TBranch        *b_nEcalRechits;   //!
    TBranch        *b_ecalRechit_Eta;   //!
    TBranch        *b_ecalRechit_Phi;   //!
    TBranch        *b_ecalRechit_X;   //!
@@ -661,6 +662,9 @@ public :
    TBranch        *b_ecalRechit_E;   //!
    TBranch        *b_ecalRechit_T;   //!
    TBranch        *b_ecalRechit_ID;   //!
+   TBranch        *b_ecalRechit_FlagOOT;   //!
+   TBranch        *b_ecalRechit_GainSwitch1;   //!
+   TBranch        *b_ecalRechit_GainSwitch6;   //!
    TBranch        *b_nGenJets;   //!
    TBranch        *b_genJetE;   //!
    TBranch        *b_genJetPt;   //!
@@ -707,11 +711,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v1/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v1_v1/170321_024445/0000/razorNtuple_281.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v1/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v1_v1/170321_024445/0000/razorNtuple_281.root");
+         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v1/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v1_v1/170321_024445/0000/razorNtuple_281.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -755,6 +759,21 @@ void RazorEvents::Init(TTree *tree)
 
    // Set object pointer
    lheComments = 0;
+   ele_EcalRechitIndex = 0;
+   ele_SeedRechitIndex = 0;
+   pho_EcalRechitIndex = 0;
+   pho_SeedRechitIndex = 0;
+   ecalRechit_Eta = 0;
+   ecalRechit_Phi = 0;
+   ecalRechit_X = 0;
+   ecalRechit_Y = 0;
+   ecalRechit_Z = 0;
+   ecalRechit_E = 0;
+   ecalRechit_T = 0;
+   ecalRechit_ID = 0;
+   ecalRechit_FlagOOT = 0;
+   ecalRechit_GainSwitch1 = 0;
+   ecalRechit_GainSwitch6 = 0;
    scaleWeights = 0;
    pdfWeights = 0;
    alphasWeights = 0;
@@ -864,8 +883,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("ele_passTPOneProbeFilter", ele_passTPOneProbeFilter, &b_ele_passTPOneProbeFilter);
    fChain->SetBranchAddress("ele_passTPTwoProbeFilter", ele_passTPTwoProbeFilter, &b_ele_passTPTwoProbeFilter);
    fChain->SetBranchAddress("ele_passHLTFilter", ele_passHLTFilter, &b_ele_passHLTFilter);
-   fChain->SetBranchAddress("ele_NEcalRechitID", ele_NEcalRechitID, &b_ele_NEcalRechitID);
-   fChain->SetBranchAddress("ele_EcalRechitID", ele_EcalRechitID, &b_ele_EcalRechitID);
+   fChain->SetBranchAddress("ele_EcalRechitIndex", &ele_EcalRechitIndex, &b_ele_EcalRechitIndex);
+   fChain->SetBranchAddress("ele_SeedRechitIndex", &ele_SeedRechitIndex, &b_ele_SeedRechitIndex);
    fChain->SetBranchAddress("nTaus", &nTaus, &b_nTaus);
    fChain->SetBranchAddress("tauE", tauE, &b_tauE);
    fChain->SetBranchAddress("tauPt", tauPt, &b_tauPt);
@@ -944,8 +963,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_seedRecHitSwitchToGain1", pho_seedRecHitSwitchToGain1, &b_pho_seedRecHitSwitchToGain1);
    fChain->SetBranchAddress("pho_anyRecHitSwitchToGain6", pho_anyRecHitSwitchToGain6, &b_pho_anyRecHitSwitchToGain6);
    fChain->SetBranchAddress("pho_anyRecHitSwitchToGain1", pho_anyRecHitSwitchToGain1, &b_pho_anyRecHitSwitchToGain1);
-   fChain->SetBranchAddress("pho_NEcalRechitID", pho_NEcalRechitID, &b_pho_NEcalRechitID);
-   fChain->SetBranchAddress("pho_EcalRechitID", pho_EcalRechitID, &b_pho_EcalRechitID);
+   fChain->SetBranchAddress("pho_EcalRechitIndex", &pho_EcalRechitIndex, &b_pho_EcalRechitIndex);
+   fChain->SetBranchAddress("pho_SeedRechitIndex", &pho_SeedRechitIndex, &b_pho_SeedRechitIndex);
    fChain->SetBranchAddress("nJets", &nJets, &b_nJets);
    fChain->SetBranchAddress("jetE", jetE, &b_jetE);
    fChain->SetBranchAddress("jetPt", jetPt, &b_jetPt);
@@ -1060,15 +1079,17 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
    fChain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
    fChain->SetBranchAddress("HLTPrescale", HLTPrescale, &b_HLTPrescale);
-   fChain->SetBranchAddress("nEcalRechits", &nEcalRechits, &b_nEcalRechits);
-   fChain->SetBranchAddress("ecalRechit_Eta", ecalRechit_Eta, &b_ecalRechit_Eta);
-   fChain->SetBranchAddress("ecalRechit_Phi", ecalRechit_Phi, &b_ecalRechit_Phi);
-   fChain->SetBranchAddress("ecalRechit_X", ecalRechit_X, &b_ecalRechit_X);
-   fChain->SetBranchAddress("ecalRechit_Y", ecalRechit_Y, &b_ecalRechit_Y);
-   fChain->SetBranchAddress("ecalRechit_Z", ecalRechit_Z, &b_ecalRechit_Z);
-   fChain->SetBranchAddress("ecalRechit_E", ecalRechit_E, &b_ecalRechit_E);
-   fChain->SetBranchAddress("ecalRechit_T", ecalRechit_T, &b_ecalRechit_T);
-   fChain->SetBranchAddress("ecalRechit_ID", ecalRechit_ID, &b_ecalRechit_ID);
+   fChain->SetBranchAddress("ecalRechit_Eta", &ecalRechit_Eta, &b_ecalRechit_Eta);
+   fChain->SetBranchAddress("ecalRechit_Phi", &ecalRechit_Phi, &b_ecalRechit_Phi);
+   fChain->SetBranchAddress("ecalRechit_X", &ecalRechit_X, &b_ecalRechit_X);
+   fChain->SetBranchAddress("ecalRechit_Y", &ecalRechit_Y, &b_ecalRechit_Y);
+   fChain->SetBranchAddress("ecalRechit_Z", &ecalRechit_Z, &b_ecalRechit_Z);
+   fChain->SetBranchAddress("ecalRechit_E", &ecalRechit_E, &b_ecalRechit_E);
+   fChain->SetBranchAddress("ecalRechit_T", &ecalRechit_T, &b_ecalRechit_T);
+   fChain->SetBranchAddress("ecalRechit_ID", &ecalRechit_ID, &b_ecalRechit_ID);
+   fChain->SetBranchAddress("ecalRechit_FlagOOT", &ecalRechit_FlagOOT, &b_ecalRechit_FlagOOT);
+   fChain->SetBranchAddress("ecalRechit_GainSwitch1", &ecalRechit_GainSwitch1, &b_ecalRechit_GainSwitch1);
+   fChain->SetBranchAddress("ecalRechit_GainSwitch6", &ecalRechit_GainSwitch6, &b_ecalRechit_GainSwitch6);
    fChain->SetBranchAddress("nGenJets", &nGenJets, &b_nGenJets);
    fChain->SetBranchAddress("genJetE", &genJetE, &b_genJetE);
    fChain->SetBranchAddress("genJetPt", &genJetPt, &b_genJetPt);

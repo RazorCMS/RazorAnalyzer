@@ -166,8 +166,8 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_passTPOneProbeFilter", 1); 
     fChain->SetBranchStatus("ele_passTPTwoProbeFilter", 1); 
     fChain->SetBranchStatus("ele_passHLTFilter", 1); 
-    fChain->SetBranchStatus("ele_NEcalRechitID", 1); 
-    fChain->SetBranchStatus("ele_EcalRechitID", 1); 
+    fChain->SetBranchStatus("ele_EcalRechitIndex", 1); 
+    fChain->SetBranchStatus("ele_SeedRechitIndex", 1); 
 
 }
 
@@ -255,8 +255,8 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_seedRecHitSwitchToGain1", 1);
     fChain->SetBranchStatus("pho_anyRecHitSwitchToGain6", 1);
     fChain->SetBranchStatus("pho_anyRecHitSwitchToGain1", 1);
-    fChain->SetBranchStatus("pho_NEcalRechitID", 1);
-    fChain->SetBranchStatus("pho_EcalRechitID", 1);
+    fChain->SetBranchStatus("pho_EcalRechitIndex", 1);
+    fChain->SetBranchStatus("pho_SeedRechitIndex", 1);
 
 }
 
@@ -414,7 +414,6 @@ void RazorAnalyzer::EnableGenParticles(){
 }
 
 void RazorAnalyzer::EnableEcalRechits(){
-    fChain->SetBranchStatus("nEcalRechits", 1);
     fChain->SetBranchStatus("ecalRechit_Eta", 1);
     fChain->SetBranchStatus("ecalRechit_Phi", 1);
     fChain->SetBranchStatus("ecalRechit_X", 1);
@@ -423,6 +422,9 @@ void RazorAnalyzer::EnableEcalRechits(){
     fChain->SetBranchStatus("ecalRechit_E", 1);
     fChain->SetBranchStatus("ecalRechit_T", 1);
     fChain->SetBranchStatus("ecalRechit_ID", 1);
+    fChain->SetBranchStatus("ecalRechit_FlagOOT", 1);
+    fChain->SetBranchStatus("ecalRechit_GainSwitch1", 1);
+    fChain->SetBranchStatus("ecalRechit_GainSwitch6", 1);
 }
 
 
