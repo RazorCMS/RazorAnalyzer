@@ -847,7 +847,9 @@ class FitInstance(object):
         if doFit:
             self.fit(inputFitFile=inputFitFile)
             self.plotCorrelationMatrix()
-        elif inputFitFile is not None:
+        else:
+            if inputFitFile is None:
+                inputFitFile = self.filename
             self.loadFitParamsFromFile(inputFitFile)
             self.loadFitResultFromFile(inputFitFile)
         if runToys:

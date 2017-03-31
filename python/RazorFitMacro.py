@@ -38,7 +38,7 @@ if __name__ == '__main__':
     weights = {}
     fitter = FitInstance(args.box, tag=args.tag, isData=not args.mc, 
             weights=weights, full=args.full, configFile=args.config)
-    fitter.doFitSequence(load=(args.load or args.loadFit), 
+    fitter.doFitSequence(load=args.load, 
             doFit=(not (args.loadFit or args.noFit)), plot=(not args.noPlot), 
             unblind=args.unblind, runToys=args.runToys, loadToys=args.loadToys, 
             inputFitFile=args.inputFitFile)
