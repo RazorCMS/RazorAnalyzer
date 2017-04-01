@@ -186,7 +186,7 @@ void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.ro
    factory->AddVariable( "var3",                "Variable 3", "units", 'F' );
    factory->AddVariable( "var4",                "Variable 4", "units", 'F' );
    */
-   factory->AddVariable( "chi2_pho_vtx",	'F');
+//   factory->AddVariable( "logchi2_pho_vtx",	'F');
    factory->AddVariable( "ptasym",	'F');
    factory->AddVariable( "ptbal",	'F');
    factory->AddVariable( "logsumpt2",	'F');
@@ -276,8 +276,8 @@ void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.ro
    factory->SetBackgroundWeightExpression( "weight" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycuts = "chi2_pho_vtx<1000"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = "chi2_pho_vtx<1000"; // for example: TCut mycutb = "abs(var1)<0.5";
+   TCut mycuts = ""; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycutb = ""; // for example: TCut mycutb = "abs(var1)<0.5";
 
    // Tell the factory how to use the training and testing events
    //
@@ -449,7 +449,8 @@ void TMVA_vtx(TString inputFilename = "HggRazorUpgradeTiming_PU0_NoTiming_vtx.ro
 
    if (Use["BDT"])  // Adaptive Boost
       factory->BookMethod( TMVA::Types::kBDT, "BDT",
-                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+                           //"!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+                           "!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:nCuts=2000:MaxDepth=3" );
 
    if (Use["BDTB"]) // Bagging
       factory->BookMethod( TMVA::Types::kBDT, "BDTB",

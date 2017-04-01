@@ -123,15 +123,12 @@ void TMVA_ROC_bdt()
 
 	getEff("HggRazorUpgradeTiming_PU140_NoTiming_vtx.root", "weights_PU140_NoTiming/TMVAClassification_BDT.weights.xml");
 	TGraph *gr_1 = new TGraph(nEffBin,BkgEff,SigEff);
-	//TGraphErrors *gr_1 = new TGraphErrors(nEffBin, BkgEff, SigEff, errBkgEff, errSigEff);			
-	gr_1->SetLineColor(2);
 	gr_1->SetLineWidth(2);
 	gr_1->GetXaxis()->SetTitle("non-gen-matched vtx Eff");
 	gr_1->GetYaxis()->SetTitle("gen-matched vtx Eff");
 	gr_1->GetXaxis()->SetRangeUser(0.0,1.05);
 	gr_1->GetYaxis()->SetRangeUser(0.0,1.05);
 	gr_1->SetTitle("");
-	//gr_1->GetYaxis()->SetNdivisions(505);
 	gr_1->GetYaxis()->SetTitleOffset(1.0);
 	gr_1->GetYaxis()->SetTitleSize(0.06);
 	gr_1->GetYaxis()->SetLabelSize(0.042);

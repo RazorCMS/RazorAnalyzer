@@ -29,7 +29,7 @@ def setCombinedTreeStruct(s1, trees, x, y, z):
         into the combined tree in the correct order"""
     # For 3b case the results are stored in the 2b tree
     has3b = False
-    if len(z) > 3:
+    if len(z) > 4:
         has3b = True
     # This keeps track of each tree's bin numbers
     curTreeBins = [ -1 for _ in range(len(trees)) ] 
@@ -65,7 +65,9 @@ if __name__ == '__main__':
     trees = []
     for btags in range(btagsMax+1):
         subBox = "{}_{}b".format(args.box, btags)
-        toysFile = rt.TFile.Open( razorFitFiles[args.tag][subBox] )
+        fitFile = razorFitFiles[args.tag][subBox]
+        print "Opening file",fitFile
+        toysFile = rt.TFile.Open(fitFile)
         trees.append(toysFile.Get("myTree"))
 
     # The combined tree will not include the function parameters,

@@ -37,27 +37,14 @@ void RazorAnalyzer::EnableAll(){
     EnableGenParticles();
 }
 
-void RazorAnalyzer::EnableAllWithEcalRechits(){
-    EnableEventInfo();
-    EnablePVAll();
-    EnableMuons();
-    EnableElectrons();
-    EnableTaus();
-    EnablePhotons();
-    EnableJets();
-    EnableFatJets();
-    EnableMet();
-    EnablePileup();
-    EnableMC();
-    EnableGenParticles();
-    EnableEcalRechits();
-}
-
 void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("nPV", 1);
     fChain->SetBranchStatus("pvX", 1);
     fChain->SetBranchStatus("pvY", 1);
     fChain->SetBranchStatus("pvZ", 1);
+    fChain->SetBranchStatus("pvZ_New_dzt", 1);
+    fChain->SetBranchStatus("pvdZ_New_dzt", 1);
+    fChain->SetBranchStatus("pvdT_New_dzt", 1);
     fChain->SetBranchStatus("isData", 1);
     fChain->SetBranchStatus("runNum", 1);
     fChain->SetBranchStatus("lumiNum", 1);
@@ -75,6 +62,8 @@ void RazorAnalyzer::EnableEventInfo(){
 
 void RazorAnalyzer::EnablePVAll() {
     fChain->SetBranchStatus("nPVAll",1);
+    fChain->SetBranchStatus("isFakePV",1);
+    fChain->SetBranchStatus("PV_ndof",1);
     fChain->SetBranchStatus("pvAllX",1);
     fChain->SetBranchStatus("pvAllY",1);
     fChain->SetBranchStatus("pvAllZ",1);
@@ -166,9 +155,6 @@ void RazorAnalyzer::EnableElectrons(){
     fChain->SetBranchStatus("ele_passTPOneProbeFilter", 1); 
     fChain->SetBranchStatus("ele_passTPTwoProbeFilter", 1); 
     fChain->SetBranchStatus("ele_passHLTFilter", 1); 
-    fChain->SetBranchStatus("ele_EcalRechitIndex", 1); 
-    fChain->SetBranchStatus("ele_SeedRechitIndex", 1); 
-
 }
 
 void RazorAnalyzer::EnableTaus(){
@@ -223,6 +209,17 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("phoR9", 1);
     fChain->SetBranchStatus("pho_HoverE", 1);
     fChain->SetBranchStatus("pho_sumChargedHadronPt", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_NoTiming", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing50_TrkVtx", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing80_TrkVtx", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing100_TrkVtx", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing120_TrkVtx", 1);
+
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing50_TrkPho", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing80_TrkPho", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing100_TrkPho", 1);
+    fChain->SetBranchStatus("pho_sumChargedHadronPt_NewPV_Timing120_TrkPho", 1);
+ 
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
     fChain->SetBranchStatus("pho_sumWorstVertexChargedHadronPt", 1);
@@ -255,8 +252,6 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_seedRecHitSwitchToGain1", 1);
     fChain->SetBranchStatus("pho_anyRecHitSwitchToGain6", 1);
     fChain->SetBranchStatus("pho_anyRecHitSwitchToGain1", 1);
-    fChain->SetBranchStatus("pho_EcalRechitIndex", 1);
-    fChain->SetBranchStatus("pho_SeedRechitIndex", 1);
 
 }
 
@@ -407,26 +402,13 @@ void RazorAnalyzer::EnableGenParticles(){
     fChain->SetBranchStatus("gParticleMotherIndex", 1);
     fChain->SetBranchStatus("gParticleId", 1);
     fChain->SetBranchStatus("gParticleStatus", 1);
+    fChain->SetBranchStatus("gParticle_isPromptFinalState", 1);
+    fChain->SetBranchStatus("gParticle_isPromptDecayed", 1);
     fChain->SetBranchStatus("gParticleE", 1);
     fChain->SetBranchStatus("gParticlePt", 1);
     fChain->SetBranchStatus("gParticleEta", 1);
     fChain->SetBranchStatus("gParticlePhi", 1);
 }
-
-void RazorAnalyzer::EnableEcalRechits(){
-    fChain->SetBranchStatus("ecalRechit_Eta", 1);
-    fChain->SetBranchStatus("ecalRechit_Phi", 1);
-    fChain->SetBranchStatus("ecalRechit_X", 1);
-    fChain->SetBranchStatus("ecalRechit_Y", 1);
-    fChain->SetBranchStatus("ecalRechit_Z", 1);
-    fChain->SetBranchStatus("ecalRechit_E", 1);
-    fChain->SetBranchStatus("ecalRechit_T", 1);
-    fChain->SetBranchStatus("ecalRechit_ID", 1);
-    fChain->SetBranchStatus("ecalRechit_FlagOOT", 1);
-    fChain->SetBranchStatus("ecalRechit_GainSwitch1", 1);
-    fChain->SetBranchStatus("ecalRechit_GainSwitch6", 1);
-}
-
 
 //////////////////////////////
 //ELECTRON
@@ -3052,66 +3034,4 @@ double RazorAnalyzer::calcMT2(float testMass, bool massive, vector<TLorentzVecto
   delete mt2;
   return MT2;
 };
-
-////conversion between DetId <-> ieta/ix/iphi/iy
-
-int RazorAnalyzer::detID_from_iEtaiPhi(int iEta_or_iX=1, int iPhi_or_iY=1, bool isEB = true, bool isEEMinus = false)
-{
-	uint32_t detID = 0;
-	int Ecal = 3;
-	int EcalBarrel=1;
-	int EcalEndcap=2;
-	int iz = isEEMinus?-1:1;
-
-	if(isEB) 
-	{
-		detID = ((Ecal&0xF)<<28)|((EcalBarrel&0x7)<<25);
-		detID |= ((iEta_or_iX>0)?(0x10000|(iEta_or_iX<<9)):((-iEta_or_iX)<<9))|(iPhi_or_iY&0x1FF);
-	}
-	else
-	{
-		detID = ((Ecal&0xF)<<28)|((EcalEndcap&0x7)<<25);
-		
-		detID |=(iPhi_or_iY&0x7f)|((iEta_or_iX&0x7f)<<7)|((iz>0)?(0x4000):(0));
-	}
-
-	return int(detID);	
-};
-
-
-int RazorAnalyzer::iEta_or_iX_from_detID(int detID=1, bool isEB = true)
-{
-	int iEta_or_iX = 0;
-	uint32_t id_ = uint32_t(detID);
-	if(isEB)
-	{
-		int zside = (id_&0x10000)?(1):(-1);
-		int ietaAbs = (id_>>9)&0x7F;
-		iEta_or_iX =  zside*ietaAbs;
-	}
-	else
-	{
-		iEta_or_iX = (id_>>7)&0x7F;
-	}
-	return iEta_or_iX;
-	
-};
-
-int RazorAnalyzer::iPhi_or_iY_from_detID(int detID=1, bool isEB = true)
-{
-	int iPhi_or_iY = 0;
-	uint32_t id_ = uint32_t(detID);
-	if(isEB)
-	{
-		iPhi_or_iY =  id_&0x1FF;
-	}
-	else
-	{
-		iPhi_or_iY = id_&0x7F;
-	}
-	return iPhi_or_iY;
-};
-
-
-
 

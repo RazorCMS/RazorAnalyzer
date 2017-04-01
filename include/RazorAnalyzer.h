@@ -211,6 +211,12 @@ class RazorAnalyzer: public RazorEvents {
 	//Added to src/RazorAuxGenLevel.cc
 	int findClosestGenJet(double eta, double phi);
 	
+	//conversion between DetId <-> ieta/ix/iphi/iy
+	
+	int detID_from_iEtaiPhi(int iEta_or_iX, int iPhi_or_iY, bool isEB, bool isEEMinus);
+	int iEta_or_iX_from_detID(int detID, bool isEB);
+	int iPhi_or_iY_from_detID(int detID, bool isEB);
+		
         //enums
 	// OLD Categories without 6jet category
         /* enum RazorBox { //boxes for razor inclusive analysis */

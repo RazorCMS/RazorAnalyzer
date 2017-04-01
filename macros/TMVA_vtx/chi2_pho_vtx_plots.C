@@ -61,6 +61,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_virtualVtxdZ->Draw();
    myC->SetLogy(0);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/virtualVtxdZ_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/virtualVtxdZ_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/virtualVtxdZ_"+plot_suffix+".png").c_str());
 
    double int_smallEta_middle = h_virtualVtxdZ_smalldEta->Integral(17,21);
@@ -105,6 +106,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_chi2_pho_vtx_smalldEta->Draw();
    myC->SetLogy(1);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_pho_vtx_smalldEta_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_pho_vtx_smalldEta_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_pho_vtx_smalldEta_"+plot_suffix+".png").c_str());
 
 
@@ -141,6 +143,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_chi2_pho_vtx_largedEta->Draw();
    myC->SetLogy(1);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_pho_vtx_largedEta_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_pho_vtx_largedEta_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_pho_vtx_largedEta_"+plot_suffix+".png").c_str());
 
    TH1F * h_chi2_min_pho_vtx_smalldEta_Sig = new TH1F("h_chi2_min_pho_vtx_smalldEta_Sig","h_chi2_min_pho_vtx_smalldEta_Sig",100,0,50);
@@ -176,6 +179,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_chi2_min_pho_vtx_smalldEta->Draw();
    myC->SetLogy(1);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_min_pho_vtx_smalldEta_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_min_pho_vtx_smalldEta_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_min_pho_vtx_smalldEta_"+plot_suffix+".png").c_str());
 
 
@@ -212,6 +216,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_chi2_min_pho_vtx_largedEta->Draw();
    myC->SetLogy(1);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_min_pho_vtx_largedEta_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_min_pho_vtx_largedEta_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/chi2_min_pho_vtx_largedEta_"+plot_suffix+".png").c_str());
 
   //chi2 rank
@@ -301,6 +306,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_vertex_rank_fraction->Draw();
    myC->SetLogy(0);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/vertex_rank_fraction_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/vertex_rank_fraction_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/vertex_rank_fraction_"+plot_suffix+".png").c_str());
 
    h_vertex_min_rank_fraction_largedEta->SetLineColor(2);
@@ -325,6 +331,7 @@ void chi2_pho_vtx_plots(string inputFilename="../../HggRazorUpgradeTiming_PU0_Ti
         leg_vertex_min_rank_fraction->Draw();
    myC->SetLogy(0);
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/vertex_min_rank_fraction_"+plot_suffix+".pdf").c_str());
+   myC->SaveAs(("~/www/sharebox/tomyself/tmp/vertex_min_rank_fraction_"+plot_suffix+".C").c_str());
    myC->SaveAs(("~/www/sharebox/tomyself/tmp/vertex_min_rank_fraction_"+plot_suffix+".png").c_str());
 
 

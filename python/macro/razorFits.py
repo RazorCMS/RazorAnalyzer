@@ -92,15 +92,31 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
         hesse_status = 3
         migrad_status = 3
 
-        if box=='MultiJet' or box=='MultiJet_0b' or box=='MultiJet_1b':
-            print "MultiJet"
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
+        if box=='MultiJet' or box=='MultiJet_0b':
+            print "MultiJet_0b"
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+                scan_status = scanParams('m', 0, w, m2)
+                scan_status = scanParams('r', 0, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        if box=='MultiJet_1b':
+            print "MultiJet_1b"
+            if w is not None:
+                scan_status = scanParams('bn', 1, w, m2)
+                scan_status = scanParams('m', 1, w, m2)
+                scan_status = scanParams('r', 1, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
@@ -109,32 +125,18 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             hesse_status = m2.minimize('Minuit2','hesse')
 
         elif box=='MultiJet_2b':
-            print "MultiJet"
+            print "MultiJet_2b"
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
+                scan_status = scanParams('m', 2, w, m2)
+                scan_status = scanParams('r', 2, w, m2)
             scan_status = m2.minimize('Minuit2', 'scan')
             scan_status = m2.minimize('Minuit2', 'scan')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
-            #scan_status = m2.minimize('Minuit2', 'scan')
-            #scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            #improve_status = m2.minimize('Minuit2','improve')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #improve_status = m2.minimize('Minuit2','improve')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        elif box=='DiJet'or box=='DiJet_2b' or box=='DiJet_1b':
-            print "DiJet"
-            #if w is not None:
-            #    scan_status = scanParams('bn', 2, w, m2)
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')#
-            migrad_status = m2.minimize('Minuit2','migrad')#
-            improve_status = m2.minimize('Minuit2','improve')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
@@ -142,56 +144,152 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
 
-        elif box=='DiJet_0b':
+        if box=='LeptonMultiJet' or box=='LeptonMultiJet_0b':
+            print "LeptonMultiJet_0b"
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+                scan_status = scanParams('m', 0, w, m2)
+                scan_status = scanParams('r', 0, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        if box=='LeptonMultiJet_1b':
+            print "LeptonMultiJet_1b"
+            if w is not None:
+                scan_status = scanParams('bn', 1, w, m2)
+                scan_status = scanParams('m', 1, w, m2)
+                scan_status = scanParams('r', 1, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='LeptonMultiJet_2b':
+            print "LeptonMultiJet_2b"
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
+                scan_status = scanParams('m', 2, w, m2)
+                scan_status = scanParams('r', 2, w, m2)
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'scan')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='DiJet_2b':
+            print "DiJet_2b"
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
+                scan_status = scanParams('m', 2, w, m2)
+                scan_status = scanParams('r', 2, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='DiJet_1b':
+            print "DiJet_1b"
+            if w is not None:
+                scan_status = scanParams('bn', 1, w, m2)
+                scan_status = scanParams('m', 1, w, m2)
+                scan_status = scanParams('r', 1, w, m2)
+                scan_status = scanParams('bn', 1, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            improve_status = m2.minimize('Minuit2','improve')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            hesse_status = m2.minimize('Minuit2','hesse')
+
+        elif box=='DiJet_0b' or box=='DiJet':
             print "DiJet_0b"
-            #if w is not None:
-            #    scan_status = scanParams('bn', 2, w, m2)
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+                scan_status = scanParams('m', 0, w, m2)
+                scan_status = scanParams('r', 0, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')#
+
+        elif box=='LeptonJet' or box=='LeptonJet_0b':
+            print "LeptonJet_0b"
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+                scan_status = scanParams('m', 0, w, m2)
+                scan_status = scanParams('r', 0, w, m2)
+                scan_status = scanParams('bn', 0, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            if w is not None:
+                scan_status = scanParams('bn', 0, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')#
             migrad_status = m2.minimize('Minuit2','migrad')#
-            #improve_status = m2.minimize('Minuit2','improve')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #improve_status = m2.minimize('Minuit2','improve')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #improve_status = m2.minimize('Minuit2','improve')
-            #migrad_status = m2.minimize('Minuit2','migrad')
-            #migrad_status = m2.minimize('Minuit2','migrad')
+
+        elif box=='LeptonJet_1b':
+            print "LeptonJet_1b"
+            if w is not None:
+                scan_status = scanParams('bn', 1, w, m2)
+                scan_status = scanParams('m', 1, w, m2)
+                scan_status = scanParams('r', 1, w, m2)
+                scan_status = scanParams('bn', 1, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            improve_status = m2.minimize('Minuit2','improve')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
             hesse_status = m2.minimize('Minuit2','hesse')
 
-        elif box=='LeptonMultiJet' or box=='LeptonMultiJet_0b' or box=='LeptonMultiJet_1b' or box=='LeptonMultiJet_2b':
-            print "LeptonMultiJet"
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
+        elif box=='LeptonJet_2b':
+            print "LeptonJet_2b"
+            if w is not None:
+                scan_status = scanParams('bn', 2, w, m2)
+                scan_status = scanParams('m', 2, w, m2)
+                scan_status = scanParams('r', 2, w, m2)
+                scan_status = scanParams('bn', 2, w, m2)
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            scan_status = m2.minimize('Minuit2', 'simplex')
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            improve_status = m2.minimize('Minuit2','improve')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
             hesse_status = m2.minimize('Minuit2','hesse')
 
-        elif box=='LeptonJet' or box=='LeptonJet_1b' or box=='LeptonJet_2b' or box=='LeptonJet_0b':
-            print "LeptonJet"
-            m2.setStrategy(1)
-            scan_status = m2.minimize('Minuit2', 'scan')
-            scan_status = m2.minimize('Minuit2', 'scan')
-            #if w is not None:
-            #    scan_status = scanParams('bn', 0, w, m2)
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            improve_status = m2.minimize('Minuit2','improve')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            migrad_status = m2.minimize('Minuit2','migrad')
-            hesse_status = m2.minimize('Minuit2','hesse')
-
-        fr = m2.save()
-
+    fr = m2.save()
     if fr.covQual() != 3:
         print ""
         print "CAUTION: COVARIANCE QUALITY < 3"
@@ -749,7 +847,9 @@ class FitInstance(object):
         if doFit:
             self.fit(inputFitFile=inputFitFile)
             self.plotCorrelationMatrix()
-        elif inputFitFile is not None:
+        else:
+            if inputFitFile is None:
+                inputFitFile = self.filename
             self.loadFitParamsFromFile(inputFitFile)
             self.loadFitResultFromFile(inputFitFile)
         if runToys:
