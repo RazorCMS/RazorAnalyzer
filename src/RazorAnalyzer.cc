@@ -62,6 +62,7 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("runNum", 1);
     fChain->SetBranchStatus("lumiNum", 1);
     fChain->SetBranchStatus("eventNum", 1);
+    fChain->SetBranchStatus("eventTime", 1);
     fChain->SetBranchStatus("nSlimmedSecondV", 1);
     fChain->SetBranchStatus("fixedGridRhoAll", 1);
     fChain->SetBranchStatus("fixedGridRhoFastjetAll", 1);
@@ -78,9 +79,9 @@ void RazorAnalyzer::EnablePVAll() {
     fChain->SetBranchStatus("pvAllX",1);
     fChain->SetBranchStatus("pvAllY",1);
     fChain->SetBranchStatus("pvAllZ",1);
-    fChain->SetBranchStatus("pvAllLogSumPtSq",1);
-    fChain->SetBranchStatus("pvAllSumPx",1);
-    fChain->SetBranchStatus("pvAllSumPy",1);
+    // fChain->SetBranchStatus("pvAllLogSumPtSq",1);
+    // fChain->SetBranchStatus("pvAllSumPx",1);
+    // fChain->SetBranchStatus("pvAllSumPy",1);
 }
 
 void RazorAnalyzer::EnablePileup(){
@@ -203,13 +204,13 @@ void RazorAnalyzer::EnableTaus(){
 }
 
 void RazorAnalyzer::EnableIsoPFCandidates(){
-    fChain->SetBranchStatus("nIsoPFCandidates", 1);
-    fChain->SetBranchStatus("isoPFCandidatePt", 1);
-    fChain->SetBranchStatus("isoPFCandidateEta", 1);
-    fChain->SetBranchStatus("isoPFCandidatePhi", 1);
-    fChain->SetBranchStatus("isoPFCandidateIso04", 1);
-    fChain->SetBranchStatus("isoPFCandidateD0", 1);
-    fChain->SetBranchStatus("isoPFCandidatePdgId", 1);  
+    // fChain->SetBranchStatus("nIsoPFCandidates", 1);
+    // fChain->SetBranchStatus("isoPFCandidatePt", 1);
+    // fChain->SetBranchStatus("isoPFCandidateEta", 1);
+    // fChain->SetBranchStatus("isoPFCandidatePhi", 1);
+    // fChain->SetBranchStatus("isoPFCandidateIso04", 1);
+    // fChain->SetBranchStatus("isoPFCandidateD0", 1);
+    // fChain->SetBranchStatus("isoPFCandidatePdgId", 1);  
 }
 
 void RazorAnalyzer::EnablePhotons(){
@@ -291,14 +292,15 @@ void RazorAnalyzer::EnableJets(){
     fChain->SetBranchStatus("jetAllMuonEta", 1);
     fChain->SetBranchStatus("jetAllMuonPhi", 1);
     fChain->SetBranchStatus("jetAllMuonM", 1);
+    fChain->SetBranchStatus("jetPtWeightedDZ", 1);
 }
 
 void RazorAnalyzer::EnableFatJets(){
-    fChain->SetBranchStatus("nFatJets", 1);
-    fChain->SetBranchStatus("fatJetE", 1);
-    fChain->SetBranchStatus("fatJetPt", 1);
-    fChain->SetBranchStatus("fatJetEta", 1);
-    fChain->SetBranchStatus("fatJetPhi", 1);
+    // fChain->SetBranchStatus("nFatJets", 1);
+    // fChain->SetBranchStatus("fatJetE", 1);
+    // fChain->SetBranchStatus("fatJetPt", 1);
+    // fChain->SetBranchStatus("fatJetEta", 1);
+    // fChain->SetBranchStatus("fatJetPhi", 1);
 }
 
 void RazorAnalyzer::EnableMet(){
@@ -346,34 +348,34 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_trkPOG_logErrorTooManyClusters", 1);
     fChain->SetBranchStatus("Flag_METFilters", 1);    
 
-    fChain->SetBranchStatus("metType1PtJetResUp", 1);
-    fChain->SetBranchStatus("metType1PtJetResDown", 1);
-    fChain->SetBranchStatus("metType1PtJetEnUp", 1);
-    fChain->SetBranchStatus("metType1PtJetEnDown", 1);
-    fChain->SetBranchStatus("metType1PtMuonEnUp", 1);
-    fChain->SetBranchStatus("metType1PtMuonEnDown", 1);
-    fChain->SetBranchStatus("metType1PtElectronEnUp", 1);
-    fChain->SetBranchStatus("metType1PtElectronEnDown", 1);
-    fChain->SetBranchStatus("metType1PtTauEnUp", 1);
-    fChain->SetBranchStatus("metType1PtTauEnDown", 1);
-    fChain->SetBranchStatus("metType1PtUnclusteredEnUp", 1);
-    fChain->SetBranchStatus("metType1PtUnclusteredEnDown", 1);
-    fChain->SetBranchStatus("metType1PtPhotonEnUp", 1);
-    fChain->SetBranchStatus("metType1PtPhotonEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiJetResUp", 1);
-    fChain->SetBranchStatus("metType1PhiJetResDown", 1);
-    fChain->SetBranchStatus("metType1PhiJetEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiJetEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiMuonEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiMuonEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiElectronEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiElectronEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiTauEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiTauEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiUnclusteredEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiUnclusteredEnDown", 1);
-    fChain->SetBranchStatus("metType1PhiPhotonEnUp", 1);
-    fChain->SetBranchStatus("metType1PhiPhotonEnDown", 1);
+    // fChain->SetBranchStatus("metType1PtJetResUp", 1);
+    // fChain->SetBranchStatus("metType1PtJetResDown", 1);
+    // fChain->SetBranchStatus("metType1PtJetEnUp", 1);
+    // fChain->SetBranchStatus("metType1PtJetEnDown", 1);
+    // fChain->SetBranchStatus("metType1PtMuonEnUp", 1);
+    // fChain->SetBranchStatus("metType1PtMuonEnDown", 1);
+    // fChain->SetBranchStatus("metType1PtElectronEnUp", 1);
+    // fChain->SetBranchStatus("metType1PtElectronEnDown", 1);
+    // fChain->SetBranchStatus("metType1PtTauEnUp", 1);
+    // fChain->SetBranchStatus("metType1PtTauEnDown", 1);
+    // fChain->SetBranchStatus("metType1PtUnclusteredEnUp", 1);
+    // fChain->SetBranchStatus("metType1PtUnclusteredEnDown", 1);
+    // fChain->SetBranchStatus("metType1PtPhotonEnUp", 1);
+    // fChain->SetBranchStatus("metType1PtPhotonEnDown", 1);
+    // fChain->SetBranchStatus("metType1PhiJetResUp", 1);
+    // fChain->SetBranchStatus("metType1PhiJetResDown", 1);
+    // fChain->SetBranchStatus("metType1PhiJetEnUp", 1);
+    // fChain->SetBranchStatus("metType1PhiJetEnDown", 1);
+    // fChain->SetBranchStatus("metType1PhiMuonEnUp", 1);
+    // fChain->SetBranchStatus("metType1PhiMuonEnDown", 1);
+    // fChain->SetBranchStatus("metType1PhiElectronEnUp", 1);
+    // fChain->SetBranchStatus("metType1PhiElectronEnDown", 1);
+    // fChain->SetBranchStatus("metType1PhiTauEnUp", 1);
+    // fChain->SetBranchStatus("metType1PhiTauEnDown", 1);
+    // fChain->SetBranchStatus("metType1PhiUnclusteredEnUp", 1);
+    // fChain->SetBranchStatus("metType1PhiUnclusteredEnDown", 1);
+    // fChain->SetBranchStatus("metType1PhiPhotonEnUp", 1);
+    // fChain->SetBranchStatus("metType1PhiPhotonEnDown", 1);
 }
 
 void RazorAnalyzer::EnableRazor(){

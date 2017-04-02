@@ -228,20 +228,20 @@ void RazorZAnalysis::Analyze(bool isData, int option, string outFileName, string
       if (isLooseElectron(i) && elePt[i] > 10 ) LooseLeptons.push_back(thisElectron);
     }
 
-    for(uint i = 0; i < nIsoPFCandidates; i++){
+    // for(uint i = 0; i < nIsoPFCandidates; i++){
 
-      //remove overlaps
-      bool overlap = false;
-      for(auto& lep : GoodLeptons){
-	if (RazorAnalyzer::deltaR(isoPFCandidateEta[i],isoPFCandidatePhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
-      }
-      if(overlap) continue;
+    //   //remove overlaps
+    //   bool overlap = false;
+    //   for(auto& lep : GoodLeptons){
+    // 	if (RazorAnalyzer::deltaR(isoPFCandidateEta[i],isoPFCandidatePhi[i],lep.Eta(),lep.Phi()) < 0.4) overlap = true;
+    //   }
+    //   if(overlap) continue;
       
-      if (isoPFCandidatePt[i] > 20 && fabs(isoPFCandidateEta[i]) < 2.4 
-	  && isoPFCandidateIso04[i] / isoPFCandidatePt[i] < 0.4) {
-	nIsoChargedPFCandidate++;
-      }
-    }
+    //   if (isoPFCandidatePt[i] > 20 && fabs(isoPFCandidateEta[i]) < 2.4 
+    // 	  && isoPFCandidateIso04[i] / isoPFCandidatePt[i] < 0.4) {
+    // 	nIsoChargedPFCandidate++;
+    //   }
+    // }
     
 
       

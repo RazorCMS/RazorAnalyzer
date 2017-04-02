@@ -366,13 +366,13 @@ void RazorVetoLeptonStudy::Analyze(bool isData, int option, string outputfilenam
 	  }
         }
         
-	for(uint i = 0; i < nIsoPFCandidates; i++){
-	  if (isoPFCandidatePt[i] > 20 && fabs(isoPFCandidateEta[i]) < 2.4 
-	      //&& fabs(isoPFCandidateD0[i]) < 0.025 
-	      && isoPFCandidateIso04[i] / isoPFCandidatePt[i] < 0.4) {
-	    nIsoChargedPFCandidate++;
-	  }
-	}
+	// for(uint i = 0; i < nIsoPFCandidates; i++){
+	//   if (isoPFCandidatePt[i] > 20 && fabs(isoPFCandidateEta[i]) < 2.4 
+	//       //&& fabs(isoPFCandidateD0[i]) < 0.025 
+	//       && isoPFCandidateIso04[i] / isoPFCandidatePt[i] < 0.4) {
+	//     nIsoChargedPFCandidate++;
+	//   }
+	// }
 
         vector<TLorentzVector> GoodJets;
         int numJetsAbove80GeV = 0;

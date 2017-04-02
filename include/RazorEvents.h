@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Mar 29 20:35:52 2017 by ROOT version 6.06/01
+// Sun Apr  2 19:45:35 2017 by ROOT version 6.02/05
 // from TTree RazorEvents/selected miniAOD information
-// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root
+// found on file: root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/Rereco2016_EcalRechits/v3/sixie/DoubleEG/Run2RazorNtuplerV3p14_ToCERN_Data_Rereco2016_EcalRH_Run2016E-03Feb2017-v1_v3_v1/170402_035926/0000/razorNtuple_97.root
 //////////////////////////////////////////////////////////
 
 #ifndef RazorEvents_h
@@ -13,6 +13,9 @@
 #include <TFile.h>
 
 // Header file for the classes stored in the TTree if any.
+#include "vector"
+#include "vector"
+#include "vector"
 #include "vector"
 
 class RazorEvents {
@@ -29,6 +32,7 @@ public :
    UInt_t          nSlimmedSecondV;
    UInt_t          lumiNum;
    UInt_t          eventNum;
+   UInt_t          eventTime;
    Float_t         pvX;
    Float_t         pvY;
    Float_t         pvZ;
@@ -153,13 +157,6 @@ public :
    Int_t           tau_leadCandID[700];   //[nTaus]
    Float_t         tau_leadChargedHadrCandPt[700];   //[nTaus]
    Int_t           tau_leadChargedHadrCandID[700];   //[nTaus]
-   UInt_t          nIsoPFCandidates;
-   Float_t         isoPFCandidatePt[700];   //[nIsoPFCandidates]
-   Float_t         isoPFCandidateEta[700];   //[nIsoPFCandidates]
-   Float_t         isoPFCandidatePhi[700];   //[nIsoPFCandidates]
-   Float_t         isoPFCandidateIso04[700];   //[nIsoPFCandidates]
-   Float_t         isoPFCandidateD0[700];   //[nIsoPFCandidates]
-   Int_t           isoPFCandidatePdgId[700];   //[nIsoPFCandidates]
    Int_t           nPhotons;
    Float_t         phoE[700];   //[nPhotons]
    Float_t         phoPt[700];   //[nPhotons]
@@ -235,17 +232,7 @@ public :
    Float_t         jetAllMuonEta[900];   //[nJets]
    Float_t         jetAllMuonPhi[900];   //[nJets]
    Float_t         jetAllMuonM[900];   //[nJets]
-   UInt_t          nFatJets;
-   Float_t         fatJetE[40];   //[nFatJets]
-   Float_t         fatJetPt[40];   //[nFatJets]
-   Float_t         fatJetEta[40];   //[nFatJets]
-   Float_t         fatJetPhi[40];   //[nFatJets]
-   Float_t         fatJetPrunedM[40];   //[nFatJets]
-   Float_t         fatJetTrimmedM[40];   //[nFatJets]
-   Float_t         fatJetFilteredM[40];   //[nFatJets]
-   Float_t         fatJetTau1[40];   //[nFatJets]
-   Float_t         fatJetTau2[40];   //[nFatJets]
-   Float_t         fatJetTau3[40];   //[nFatJets]
+   Float_t         jetPtWeightedDZ[900];   //[nJets]
    Float_t         metPt;
    Float_t         metPhi;
    Float_t         sumMET;
@@ -364,6 +351,7 @@ public :
    TBranch        *b_nSlimmedSecondV;   //!
    TBranch        *b_lumiNum;   //!
    TBranch        *b_eventNum;   //!
+   TBranch        *b_eventTime;   //!
    TBranch        *b_pvX;   //!
    TBranch        *b_pvY;   //!
    TBranch        *b_pvZ;   //!
@@ -488,13 +476,6 @@ public :
    TBranch        *b_tau_leadCandID;   //!
    TBranch        *b_tau_leadChargedHadrCandPt;   //!
    TBranch        *b_tau_leadChargedHadrCandID;   //!
-   TBranch        *b_nIsoPFCandidates;   //!
-   TBranch        *b_isoPFCandidatePt;   //!
-   TBranch        *b_isoPFCandidateEta;   //!
-   TBranch        *b_isoPFCandidatePhi;   //!
-   TBranch        *b_isoPFCandidateIso04;   //!
-   TBranch        *b_isoPFCandidateD0;   //!
-   TBranch        *b_isoPFCandidatePdgId;   //!
    TBranch        *b_nPhotons;   //!
    TBranch        *b_phoE;   //!
    TBranch        *b_phoPt;   //!
@@ -570,17 +551,7 @@ public :
    TBranch        *b_jetAllMuonEta;   //!
    TBranch        *b_jetAllMuonPhi;   //!
    TBranch        *b_jetAllMuonM;   //!
-   TBranch        *b_nFatJets;   //!
-   TBranch        *b_fatJetE;   //!
-   TBranch        *b_fatJetPt;   //!
-   TBranch        *b_fatJetEta;   //!
-   TBranch        *b_fatJetPhi;   //!
-   TBranch        *b_fatJetPrunedM;   //!
-   TBranch        *b_fatJetTrimmedM;   //!
-   TBranch        *b_fatJetFilteredM;   //!
-   TBranch        *b_fatJetTau1;   //!
-   TBranch        *b_fatJetTau2;   //!
-   TBranch        *b_fatJetTau3;   //!
+   TBranch        *b_jetPtWeightedDZ;   //!
    TBranch        *b_metPt;   //!
    TBranch        *b_metPhi;   //!
    TBranch        *b_sumMET;   //!
@@ -711,11 +682,11 @@ RazorEvents::RazorEvents(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/Rereco2016_EcalRechits/v3/sixie/DoubleEG/Run2RazorNtuplerV3p14_ToCERN_Data_Rereco2016_EcalRH_Run2016E-03Feb2017-v1_v3_v1/170402_035926/0000/razorNtuple_97.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root");
+         f = new TFile("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/Rereco2016_EcalRechits/v3/sixie/DoubleEG/Run2RazorNtuplerV3p14_ToCERN_Data_Rereco2016_EcalRH_Run2016E-03Feb2017-v1_v3_v1/170402_035926/0000/razorNtuple_97.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/PromptReco2016_EcalRechits/v2/sixie/DoubleEG/Run2RazorNtuplerV3p14_Data_PromptReco2016_EcalRH_Run2016H-03Feb2017_ver2-v1_v2_v1/170329_034920/0000/razorNtuple_91.root:/ntuples");
+      TDirectory * dir = (TDirectory*)f->Get("root://eoscms//eos/cms/store/group/phys_susy/razor/run2/Run2RazorNtupleV3.14/Data/Rereco2016_EcalRechits/v3/sixie/DoubleEG/Run2RazorNtuplerV3p14_ToCERN_Data_Rereco2016_EcalRH_Run2016E-03Feb2017-v1_v3_v1/170402_035926/0000/razorNtuple_97.root:/ntuples");
       dir->GetObject("RazorEvents",tree);
 
    }
@@ -789,6 +760,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("nSlimmedSecondV", &nSlimmedSecondV, &b_nSlimmedSecondV);
    fChain->SetBranchAddress("lumiNum", &lumiNum, &b_lumiNum);
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
+   fChain->SetBranchAddress("eventTime", &eventTime, &b_eventTime);
    fChain->SetBranchAddress("pvX", &pvX, &b_pvX);
    fChain->SetBranchAddress("pvY", &pvY, &b_pvY);
    fChain->SetBranchAddress("pvZ", &pvZ, &b_pvZ);
@@ -913,13 +885,6 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("tau_leadCandID", tau_leadCandID, &b_tau_leadCandID);
    fChain->SetBranchAddress("tau_leadChargedHadrCandPt", tau_leadChargedHadrCandPt, &b_tau_leadChargedHadrCandPt);
    fChain->SetBranchAddress("tau_leadChargedHadrCandID", tau_leadChargedHadrCandID, &b_tau_leadChargedHadrCandID);
-   fChain->SetBranchAddress("nIsoPFCandidates", &nIsoPFCandidates, &b_nIsoPFCandidates);
-   fChain->SetBranchAddress("isoPFCandidatePt", isoPFCandidatePt, &b_isoPFCandidatePt);
-   fChain->SetBranchAddress("isoPFCandidateEta", isoPFCandidateEta, &b_isoPFCandidateEta);
-   fChain->SetBranchAddress("isoPFCandidatePhi", isoPFCandidatePhi, &b_isoPFCandidatePhi);
-   fChain->SetBranchAddress("isoPFCandidateIso04", isoPFCandidateIso04, &b_isoPFCandidateIso04);
-   fChain->SetBranchAddress("isoPFCandidateD0", isoPFCandidateD0, &b_isoPFCandidateD0);
-   fChain->SetBranchAddress("isoPFCandidatePdgId", isoPFCandidatePdgId, &b_isoPFCandidatePdgId);
    fChain->SetBranchAddress("nPhotons", &nPhotons, &b_nPhotons);
    fChain->SetBranchAddress("phoE", phoE, &b_phoE);
    fChain->SetBranchAddress("phoPt", phoPt, &b_phoPt);
@@ -995,17 +960,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("jetAllMuonEta", jetAllMuonEta, &b_jetAllMuonEta);
    fChain->SetBranchAddress("jetAllMuonPhi", jetAllMuonPhi, &b_jetAllMuonPhi);
    fChain->SetBranchAddress("jetAllMuonM", jetAllMuonM, &b_jetAllMuonM);
-   fChain->SetBranchAddress("nFatJets", &nFatJets, &b_nFatJets);
-   fChain->SetBranchAddress("fatJetE", fatJetE, &b_fatJetE);
-   fChain->SetBranchAddress("fatJetPt", fatJetPt, &b_fatJetPt);
-   fChain->SetBranchAddress("fatJetEta", fatJetEta, &b_fatJetEta);
-   fChain->SetBranchAddress("fatJetPhi", fatJetPhi, &b_fatJetPhi);
-   fChain->SetBranchAddress("fatJetPrunedM", fatJetPrunedM, &b_fatJetPrunedM);
-   fChain->SetBranchAddress("fatJetTrimmedM", fatJetTrimmedM, &b_fatJetTrimmedM);
-   fChain->SetBranchAddress("fatJetFilteredM", fatJetFilteredM, &b_fatJetFilteredM);
-   fChain->SetBranchAddress("fatJetTau1", fatJetTau1, &b_fatJetTau1);
-   fChain->SetBranchAddress("fatJetTau2", fatJetTau2, &b_fatJetTau2);
-   fChain->SetBranchAddress("fatJetTau3", fatJetTau3, &b_fatJetTau3);
+   fChain->SetBranchAddress("jetPtWeightedDZ", jetPtWeightedDZ, &b_jetPtWeightedDZ);
    fChain->SetBranchAddress("metPt", &metPt, &b_metPt);
    fChain->SetBranchAddress("metPhi", &metPhi, &b_metPhi);
    fChain->SetBranchAddress("sumMET", &sumMET, &b_sumMET);
