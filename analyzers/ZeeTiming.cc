@@ -10,6 +10,34 @@
 using namespace std;
 const double SPEED_OF_LIGHT = 29.9792458; // speed of light in cm / ns
 
+
+float ZeeTiming::getTimeCalibConstant(TTree *tree, vector <uint> & start_run, vector <uint> & end_run, uint run, uint detID) {
+  float timeCalib = 1.0;
+  
+  int N_entries = tree->GetEntries();
+  int i_entry=0;
+  for(uint i=0;i<start_run.size();i++)
+    {
+      if(run>= start_run[i] && run<= end_run[i])
+	{
+	  i_entry = i;
+	  break;
+	}
+    }
+  
+  if(i_entry> N_entries) return timeCalib;
+  tree->GetEntry(i_entry);
+  std::vector<int>::iterator p_id;
+  p_id = std::find(detID_all->begin(), detID_all->end(), detID);
+  if (p_id == detID_all->end()) return timeCalib;
+  int idx = std::distance(detID_all->begin(), p_id);
+  
+  if(idx<=IC_time_all->size()) timeCalib = IC_time_all->at(idx);	
+  
+  return timeCalib;
+};
+
+
 void ZeeTiming::Analyze(bool isData, int option, string outFileName, string label)
 {
 
@@ -22,11 +50,57 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
   
+
+  //*****************************************************************************
+  //Load Intercalibration constants
+  //*****************************************************************************
+  vector <uint> start_run;//start run of all IOV 
+  vector <uint> end_run;//end run of all IOV
+  start_run_tmp=0; 
+  end_run_tmp=0;
+  IC_time_all=0;
+  detID_all=0 ;
+
+  TFile f_timeCalib("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ");
+  TTree *tree_timeCalib = (TTree*)f_timeCalib.Get("timeCalib");
+  
+  tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
+  tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
+  tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
+  tree_timeCalib->SetBranchAddress("detID", &detID_all);
+  
+  int N_entries_timeCalib = tree_timeCalib->GetEntries();
+  
+  for(int i=0;i<N_entries_timeCalib;i++) {
+    tree_timeCalib->GetEntry(i);
+    start_run.push_back(start_run_tmp);
+    end_run.push_back(end_run_tmp);
+  }
+  
+  // //test 
+  // uint test_run = 273158;
+  // //cout<<"EB test..."<<endl;
+  // for(int ieta=-85;ieta<=85 && ieta!=0;ieta++) {
+  //   for(int iphi=1;iphi<=360;iphi++) {
+  //     int detID = detID_from_iEtaiPhi(ieta, iphi, true, false);
+  //     //cout<<test_run<<"  "<<ieta<<"  "<<iphi<<"  "<<detID;			
+  //     float time_calib = getTimeCalibConstant(tree_timeCalib, start_run,end_run,test_run, detID);
+  //     //cout<<"   "<<time_calib<<endl;			
+  //   }
+  // }
+  
+  
+  //*****************************************************************************
+  //Open Output File
+  //*****************************************************************************
   if ( outFileName.empty() ) {
     std::cout << "HggRazor: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
     outFileName = "HggRazor.root";
   }
   TFile* outFile = new TFile( outFileName.c_str(), "RECREATE" );
+
+
+
 
   //---------------------------
   //one tree to hold all events
@@ -38,6 +112,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float mass;
   float t1, t2;
   float t1_seed, t2_seed;
+  float t1calib_seed, t2calib_seed;
   float t1raw_seed, t2raw_seed;
   float ele1E, ele1Pt, ele1Eta, ele1Phi;
   float ele2E, ele2Pt, ele2Eta, ele2Phi;
@@ -60,6 +135,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t2", &t2, "t2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
   outputTree->Branch("t2_seed", &t2_seed, "t2_seed/F");
+  outputTree->Branch("t1calib_seed", &t1calib_seed, "t1calib_seed/F");
+  outputTree->Branch("t2calib_seed", &t2calib_seed, "t2calib_seed/F");
   outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
   outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
   outputTree->Branch("ele1E", &ele1E, "ele1E/F");
@@ -111,6 +188,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     double ele2_time = 0;
     double ele1_seedtime = 0;
     double ele2_seedtime = 0;
+    double ele1_seedtimeCalib = 0;
+    double ele2_seedtimeCalib = 0;
     double ele1_seedtimeraw = 0;
     double ele2_seedtimeraw = 0;
     for(int i = 0; i < nElectrons; i++){
@@ -119,14 +198,23 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       // if(!(isEGammaPOGTightElectron(i))) continue;
 
       nEle++;
-      // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << "\n";
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
       double time = 0;
-    
-      
+          
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
-      double timeSeedHit = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;;
+
+      //apply intercalibration
+      double calibratedSeedHitTime = rawSeedHitTime + getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]);
+
+      //apply TOF correction
+      double TOFCorrectedSeedHitTime = calibratedSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+
+
+      cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : " 
+	   << (*ecalRechit_ID)[seedhitIndex] << " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
+	   << "\n";
+ 
 
       // cout << ele_NEcalRechitID[i] << "\n";
       for (int k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
@@ -144,12 +232,14 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       if (thisElectron.Pt() > ele1.Pt()) {
 	ele1 = thisElectron;
 	ele1_time = time;
-	ele1_seedtime = timeSeedHit;
+	ele1_seedtime = TOFCorrectedSeedHitTime;
+	ele1_seedtimeCalib = calibratedSeedHitTime;
 	ele1_seedtimeraw = rawSeedHitTime;
       } else if (thisElectron.Pt() > ele2.Pt()) {
 	ele2 = thisElectron;
 	ele2_time = time;
-	ele2_seedtime = timeSeedHit; 
+	ele2_seedtime = TOFCorrectedSeedHitTime; 
+	ele2_seedtimeCalib = calibratedSeedHitTime;
  	ele2_seedtimeraw = rawSeedHitTime;
      }	
     }
@@ -169,6 +259,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       t2 = ele2_time;
       t1_seed = ele1_seedtime;
       t2_seed = ele2_seedtime;
+      t1calib_seed = ele1_seedtimeCalib;
+      t2calib_seed = ele2_seedtimeCalib;
       t1raw_seed = ele1_seedtimeraw;
       t2raw_seed = ele2_seedtimeraw;
        //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
