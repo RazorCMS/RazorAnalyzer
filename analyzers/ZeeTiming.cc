@@ -30,12 +30,58 @@ float ZeeTiming::getTimeCalibConstant(TTree *tree, vector <uint> & start_run, ve
   std::vector<int>::iterator p_id;
   p_id = std::find(detID_all->begin(), detID_all->end(), detID);
   if (p_id == detID_all->end()) return timeCalib;
-  int idx = std::distance(detID_all->begin(), p_id);
+  uint idx = std::distance(detID_all->begin(), p_id);
   
   if(idx<=IC_time_all->size()) timeCalib = IC_time_all->at(idx);	
   
   return timeCalib;
 };
+
+float ZeeTiming::getPedestalNoise(TTree *tree, vector <uint> & start_time, vector <uint> & end_time, uint time, uint detID) {
+  float pedestalNoise = 1.0;
+  
+  int N_entries = tree->GetEntries();
+  int i_entry=0;
+  for(uint i=0;i<start_time.size();i++)
+    {
+      if(time>= start_time[i] && time<= end_time[i])
+	{
+	  i_entry = i;
+	  break;
+	}
+    }
+  
+  if(i_entry> N_entries) return pedestalNoise;
+  tree->GetEntry(i_entry);
+  std::vector<int>::iterator p_id;
+  p_id = std::find(detID_all->begin(), detID_all->end(), detID);
+  if (p_id == detID_all->end()) return pedestalNoise;
+  uint idx = std::distance(detID_all->begin(), p_id);
+  
+  if(idx<=rms_G12_all->size()) pedestalNoise = rms_G12_all->at(idx);	
+  
+  return pedestalNoise;
+};
+
+
+float ZeeTiming::getADCToGeV( uint run, int isEBOrEE) {
+  double ADCToGeV = 0;
+  //EB
+  if (isEBOrEE == 0) {
+    if (run >= 1 && run <= 271950) ADCToGeV = 0.039680;
+    else if (run >= 271951 && run <= 277366) ADCToGeV = 0.039798;
+    else if (run >= 277367 && run <= 281825) ADCToGeV = 0.039436;
+    else if (run >= 281826 && run <= 999999) ADCToGeV = 0.039298;
+  }   
+  //EE
+  else if (isEBOrEE == 1) {
+    if (run >= 1 && run <= 271950) ADCToGeV = 0.067230;
+    else if (run >= 271951 && run <= 277366) ADCToGeV = 0.067370;
+    else if (run >= 277367 && run <= 281825) ADCToGeV = 0.066764;
+    else if (run >= 281826 && run <= 999999) ADCToGeV = 0.065957;
+  }
+  return ADCToGeV;
+}
 
 
 void ZeeTiming::Analyze(bool isData, int option, string outFileName, string label)
@@ -45,7 +91,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   //Settings
   //*****************************************************************************
   TRandom3 random(3003);
-  bool doPhotonScaleCorrection = true;
+  //bool doPhotonScaleCorrection = true;
 
   string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
@@ -76,16 +122,44 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     start_run.push_back(start_run_tmp);
     end_run.push_back(end_run_tmp);
   }
+
+  //*****************************************************************************
+  //Load Pedestals
+  //*****************************************************************************
+  vector <uint> start_time;//start run of all IOV 
+  vector <uint> end_time;//end run of all IOV
+  start_time_tmp=0; 
+  end_time_tmp=0;
+  rms_G12_all=0;
+  detID_all=0 ;
+
+  TFile f_pedestal("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ");
+  TTree *tree_pedestal = (TTree*)f_pedestal.Get("pedestal");
   
+  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
+  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
+  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
+  tree_pedestal->SetBranchAddress("detID", &detID_all);
+  
+  int N_entries_pedestal = tree_pedestal->GetEntries();
+  
+  cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
+  for(int i=0;i<N_entries_pedestal;i++) {
+    cout << "Loading Pedestal IOV " << i << "\n";
+    tree_pedestal->GetEntry(i);
+    start_time.push_back(start_time_tmp);
+    end_time.push_back(end_time_tmp);
+  }
+
   // //test 
-  // uint test_run = 273158;
+  // uint test_time = 1464000000;
   // //cout<<"EB test..."<<endl;
   // for(int ieta=-85;ieta<=85 && ieta!=0;ieta++) {
   //   for(int iphi=1;iphi<=360;iphi++) {
   //     int detID = detID_from_iEtaiPhi(ieta, iphi, true, false);
-  //     //cout<<test_run<<"  "<<ieta<<"  "<<iphi<<"  "<<detID;			
-  //     float time_calib = getTimeCalibConstant(tree_timeCalib, start_run,end_run,test_run, detID);
-  //     //cout<<"   "<<time_calib<<endl;			
+  //     cout<<test_time<<"  "<<ieta<<"  "<<iphi<<"  "<<detID;			
+  //     float pedestalRMS = getPedestalNoise(tree_pedestal, start_time,end_time,test_time, detID);
+  //     cout << "   " << pedestalRMS << endl;			
   //   }
   // }
   
@@ -185,7 +259,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     TLorentzVector ele1 = makeTLorentzVector(0,0,0,0);
     TLorentzVector ele2 = makeTLorentzVector(0,0,0,0);
     double ele1_time = 0;
-    double ele2_time = 0;
+    double ele2_time= 0;
     double ele1_seedtime = 0;
     double ele2_seedtime = 0;
     double ele1_seedtimeCalib = 0;
@@ -193,14 +267,16 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     double ele1_seedtimeraw = 0;
     double ele2_seedtimeraw = 0;
     for(int i = 0; i < nElectrons; i++){
-      // if(elePt[i] < 35) continue;
-      // if(fabs(eleEta[i]) > 2.5) continue;
-      // if(!(isEGammaPOGTightElectron(i))) continue;
-
+      if(elePt[i] < 35) continue;
+      if(fabs(eleEta[i]) > 2.5) continue;
+      if(!(isEGammaPOGTightElectron(i))) continue;
+      
       nEle++;
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-      double time = 0;
           
+      //rough definition
+      bool isEBOrEE = bool( eleEta_SC[i] < 1.5 );
+
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
@@ -211,33 +287,45 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       double TOFCorrectedSeedHitTime = calibratedSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
 
-      cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : " 
-	   << (*ecalRechit_ID)[seedhitIndex] << " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
-	   << "\n";
+      // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : " 
+      // 	   << (*ecalRechit_ID)[seedhitIndex] << " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
+      // 	   << "\n";
  
 
       // cout << ele_NEcalRechitID[i] << "\n";
-      for (int k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
+
+      double tmpSumWeightedTime = 0;
+      double tmpSumWeight = 0;
+
+      for (uint k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
       	
 	uint rechitIndex = (*ele_EcalRechitIndex)[i][k];
 		  
 	double rawT = (*ecalRechit_T)[rechitIndex];
-
-	//correct for TOF
+	//apply intercalibration
+	//apply TOF correction
 	double corrT = rawT + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
-	 	
+
+	double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]);
+	double ADCToGeV = getADCToGeV(runNum, isEBOrEE);
+	double sigmaE = pedNoise * ADCToGeV;
+	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
+	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
+	tmpSumWeight += ( 1.0 / (sigmaT*sigmaT) );
 	// cout << "\n";
       }
+      double weightedTime = tmpSumWeightedTime / tmpSumWeight;
+
             
       if (thisElectron.Pt() > ele1.Pt()) {
 	ele1 = thisElectron;
-	ele1_time = time;
+	ele1_time = weightedTime;
 	ele1_seedtime = TOFCorrectedSeedHitTime;
 	ele1_seedtimeCalib = calibratedSeedHitTime;
 	ele1_seedtimeraw = rawSeedHitTime;
       } else if (thisElectron.Pt() > ele2.Pt()) {
 	ele2 = thisElectron;
-	ele2_time = time;
+	ele2_time = weightedTime;
 	ele2_seedtime = TOFCorrectedSeedHitTime; 
 	ele2_seedtimeCalib = calibratedSeedHitTime;
  	ele2_seedtimeraw = rawSeedHitTime;
