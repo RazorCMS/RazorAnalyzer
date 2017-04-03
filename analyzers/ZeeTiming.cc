@@ -190,6 +190,10 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float t1raw_seed, t2raw_seed;
   float ele1E, ele1Pt, ele1Eta, ele1Phi;
   float ele2E, ele2Pt, ele2Eta, ele2Phi;
+  int  ele1SeedIEta, ele1SeedIPhi, ele1SeedIX, ele1SeedIY;
+  bool ele1IsEB;
+  int  ele2SeedIEta, ele2SeedIPhi, ele2SeedIX, ele2SeedIY; 
+  bool ele2IsEB;
   int NPU;
   //int nPV;
   unsigned int run, lumi, event;
@@ -213,14 +217,24 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t2calib_seed", &t2calib_seed, "t2calib_seed/F");
   outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
   outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
-  outputTree->Branch("ele1E", &ele1E, "ele1E/F");
+  // outputTree->Branch("ele1E", &ele1E, "ele1E/F");
   outputTree->Branch("ele1Pt", &ele1Pt, "ele1Pt/F");
-  outputTree->Branch("ele1Eta", &ele1Eta, "ele1Eta/F");
-  outputTree->Branch("ele1Phi", &ele1Phi, "ele1Phi/F");
-  outputTree->Branch("ele2E", &ele2E, "ele2E/F");
+  // outputTree->Branch("ele1Eta", &ele1Eta, "ele1Eta/F");
+  // outputTree->Branch("ele1Phi", &ele1Phi, "ele1Phi/F");
+  outputTree->Branch("ele1IsEB", &ele1IsEB, "ele1IsEB/O");
+  outputTree->Branch("ele1SeedIEta", &ele1SeedIEta, "ele1SeedIEta/I");
+  outputTree->Branch("ele1SeedIPhi", &ele1SeedIPhi, "ele1SeedIPhi/I");
+  outputTree->Branch("ele1SeedIX", &ele1SeedIX, "ele1SeedIX/I");
+  outputTree->Branch("ele1SeedIY", &ele1SeedIY, "ele1SeedIY/I");
+  // outputTree->Branch("ele2E", &ele2E, "ele2E/F");
   outputTree->Branch("ele2Pt", &ele2Pt, "ele2Pt/F");
-  outputTree->Branch("ele2Eta", &ele2Eta, "ele2Eta/F");
-  outputTree->Branch("ele2Phi", &ele2Phi, "ele2Phi/F");
+  // outputTree->Branch("ele2Eta", &ele2Eta, "ele2Eta/F");
+  // outputTree->Branch("ele2Phi", &ele2Phi, "ele2Phi/F");
+  outputTree->Branch("ele2IsEB", &ele2IsEB, "ele2IsEB/O");
+  outputTree->Branch("ele2SeedIEta", &ele2SeedIEta, "ele2SeedIEta/I");
+  outputTree->Branch("ele2SeedIPhi", &ele2SeedIPhi, "ele2SeedIPhi/I");
+  outputTree->Branch("ele2SeedIX", &ele2SeedIX, "ele2SeedIX/I");
+  outputTree->Branch("ele2SeedIY", &ele2SeedIY, "ele2SeedIY/I");
 
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
@@ -269,6 +283,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     for(int i = 0; i < nElectrons; i++){
       if(elePt[i] < 35) continue;
       if(fabs(eleEta[i]) > 2.5) continue;
+      if(fabs(eleEta[i]) > 1.4442 && fabs(eleEta[i]) < 1.566) continue;
       if(!(isEGammaPOGTightElectron(i))) continue;
       
       nEle++;
@@ -292,8 +307,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       // 	   << "\n";
  
 
-      // cout << ele_NEcalRechitID[i] << "\n";
-
+   
       double tmpSumWeightedTime = 0;
       double tmpSumWeight = 0;
 
@@ -323,13 +337,39 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	ele1_seedtime = TOFCorrectedSeedHitTime;
 	ele1_seedtimeCalib = calibratedSeedHitTime;
 	ele1_seedtimeraw = rawSeedHitTime;
+	ele1IsEB = bool( eleEta_SC[i] < 1.5 );
+	if (ele1IsEB) {
+	  ele1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele1SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele1SeedIX = -999;
+	  ele1SeedIY = -999;
+	} else {
+	  ele1SeedIEta = -999;
+	  ele1SeedIPhi = -999;
+	  ele1SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele1SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	}
+
       } else if (thisElectron.Pt() > ele2.Pt()) {
 	ele2 = thisElectron;
 	ele2_time = weightedTime;
 	ele2_seedtime = TOFCorrectedSeedHitTime; 
 	ele2_seedtimeCalib = calibratedSeedHitTime;
  	ele2_seedtimeraw = rawSeedHitTime;
-     }	
+ 	ele2IsEB = bool( eleEta_SC[i] < 1.5 );
+	if (ele2IsEB) {
+	  ele2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele2SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele2SeedIX = -999;
+	  ele2SeedIY = -999;
+	} else {
+	  ele2SeedIEta = -999;
+	  ele2SeedIPhi = -999;
+	  ele2SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	}
+
+      }	
     }
     
     if (nEle >= 2) {
