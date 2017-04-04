@@ -133,23 +133,23 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   rms_G12_all=0;
   detID_all=0 ;
 
-  TFile f_pedestal("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ");
-  TTree *tree_pedestal = (TTree*)f_pedestal.Get("pedestal");
+  // TFile f_pedestal("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ");
+  // TTree *tree_pedestal = (TTree*)f_pedestal.Get("pedestal");
   
-  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
-  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
-  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
-  tree_pedestal->SetBranchAddress("detID", &detID_all);
+  // tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
+  // tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
+  // tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
+  // tree_pedestal->SetBranchAddress("detID", &detID_all);
   
-  int N_entries_pedestal = tree_pedestal->GetEntries();
+  // int N_entries_pedestal = tree_pedestal->GetEntries();
   
-  cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
-  for(int i=0;i<N_entries_pedestal;i++) {
-    cout << "Loading Pedestal IOV " << i << "\n";
-    tree_pedestal->GetEntry(i);
-    start_time.push_back(start_time_tmp);
-    end_time.push_back(end_time_tmp);
-  }
+  // cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
+  // for(int i=0;i<N_entries_pedestal;i++) {
+  //   cout << "Loading Pedestal IOV " << i << "\n";
+  //   tree_pedestal->GetEntry(i);
+  //   start_time.push_back(start_time_tmp);
+  //   end_time.push_back(end_time_tmp);
+  // }
 
   // //test 
   // uint test_time = 1464000000;
@@ -251,6 +251,41 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
+
+    //initialize branches
+    weight = 0;
+    pileupWeight = 0;
+    pileupWeightUp = 0;
+    pileupWeightDown = 0;
+    mass = 0;
+    t1 = -999;
+    t2 = -999;
+    t1_seed = -999;
+    t2_seed = -999;
+    t1calib_seed = -999;
+    t2calib_seed = -999;
+    t1raw_seed = -999;
+    t2raw_seed = -999;
+    ele1E = -999; 
+    ele1Pt = -999;
+    ele1Eta = -999;
+    ele1Phi = -999;
+    ele2E = -999;
+    ele2Pt = -999;
+    ele2Eta = -999;
+    ele2Phi = -999;
+    ele1SeedIEta = -999;
+    ele1SeedIPhi = -999;
+    ele1SeedIX = -999;
+    ele1SeedIY = -999;
+    ele1IsEB = 0;
+    ele2SeedIEta = -999;
+    ele2SeedIPhi = -999;
+    ele2SeedIX = -999;
+    ele2SeedIY = -999; 
+    ele2IsEB = 0;
+    NPU = 0;   
+
     //fill normalization histogram
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
@@ -290,9 +325,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
           
       //rough definition
-      bool isEBOrEE = bool( eleEta_SC[i] < 1.5 );
-
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
+      bool isEBOrEE = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
       //apply intercalibration
@@ -320,7 +354,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	//apply TOF correction
 	double corrT = rawT + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
-	double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]);
+	// double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]);
+	double pedNoise = 1;
 	double ADCToGeV = getADCToGeV(runNum, isEBOrEE);
 	double sigmaE = pedNoise * ADCToGeV;
 	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
