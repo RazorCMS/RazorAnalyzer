@@ -21,6 +21,7 @@
 #include <TH1F.h>                
 #include <TCanvas.h>                
 #include <TLegend.h>                
+#include <TStyle.h>                
 #include <TGraphAsymmErrors.h>                
 
 #include "RazorAnalyzer/macros/ObjectStudies/EfficiencyUtils.hh"
@@ -47,10 +48,23 @@ bool PassSelection( PhotonTree* PhoTree , int wp = 0 ) {
     pass = true;
   }
 
+  // //**********************************
+  // //Loose Selection
+  // //**********************************
+  // if (wp == 0 && PhoTree->fPhoPassLooseID 
+  //     && PhoTree->fPhoPassEleVeto 
+  //     && PhoTree->fPhoPassLooseIso 
+  //     ) {
+  //   pass = true;
+  // }
+
   //**********************************
-  //Loose Selection
+  //Loose Selection with Pixel Seed Veto
   //**********************************
-  if (wp == 0 && PhoTree->fPhoIsLoose ) {
+  if (wp == 0 && PhoTree->fPhoPassLooseID 
+      && !PhoTree->fPhoHasPixelSeed
+      && PhoTree->fPhoPassLooseIso 
+      ) {
     pass = true;
   }
  
@@ -76,33 +90,33 @@ TGraphAsymmErrors* getEffGraph( string filename, string graphname) {
 
 void plotPhotonEfficiency() {
 
-  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Loose.root","Efficiency_Pt");
-  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_Medium = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Medium.root","Efficiency_Pt");
-  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_Tight = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Tight.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Loose_NotCloseToParton.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_Medium = getEffGraph("Efficiency_GJetFlat_50ns_Medium_NotCloseToParton.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_Tight = getEffGraph("Efficiency_GJetFlat_50ns_Tight_NotCloseToParton.root","Efficiency_Pt");
 
-  TGraphAsymmErrors* effVsPt_ttH_25ns_Loose = getEffGraph("Efficiency_ttH_25ns_Spring15_Loose.root","Efficiency_Pt");
-  TGraphAsymmErrors* effVsPt_ttH_25ns_Medium = getEffGraph("Efficiency_ttH_25ns_Spring15_Medium.root","Efficiency_Pt");
-  TGraphAsymmErrors* effVsPt_ttH_25ns_Tight = getEffGraph("Efficiency_ttH_25ns_Spring15_Tight.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_ttH_50ns_Loose = getEffGraph("Efficiency_ttH_50ns_Loose_NotCloseToParton.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_ttH_50ns_Medium = getEffGraph("Efficiency_ttH_50ns_Medium_NotCloseToParton.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_ttH_50ns_Tight = getEffGraph("Efficiency_ttH_50ns_Tight_NotCloseToParton.root","Efficiency_Pt");
 
-  TGraphAsymmErrors* effVsEta_GJetFlat_50ns_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Loose.root","Efficiency_Eta");
-  TGraphAsymmErrors* effVsEta_GJetFlat_50ns_Medium = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Medium.root","Efficiency_Eta");
-  TGraphAsymmErrors* effVsEta_GJetFlat_50ns_Tight = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Tight.root","Efficiency_Eta");
+  TGraphAsymmErrors* effVsEta_GJetFlat_50ns_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Loose_NotCloseToParton.root","Efficiency_Eta");
+  TGraphAsymmErrors* effVsEta_GJetFlat_50ns_Medium = getEffGraph("Efficiency_GJetFlat_50ns_Medium_NotCloseToParton.root","Efficiency_Eta");
+  TGraphAsymmErrors* effVsEta_GJetFlat_50ns_Tight = getEffGraph("Efficiency_GJetFlat_50ns_Tight_NotCloseToParton.root","Efficiency_Eta");
 
-  TGraphAsymmErrors* effVsEta_ttH_25ns_Loose = getEffGraph("Efficiency_ttH_25ns_Spring15_Loose.root","Efficiency_Eta");
-  TGraphAsymmErrors* effVsEta_ttH_25ns_Medium = getEffGraph("Efficiency_ttH_25ns_Spring15_Medium.root","Efficiency_Eta");
-  TGraphAsymmErrors* effVsEta_ttH_25ns_Tight = getEffGraph("Efficiency_ttH_25ns_Spring15_Tight.root","Efficiency_Eta");
+  TGraphAsymmErrors* effVsEta_ttH_50ns_Loose = getEffGraph("Efficiency_ttH_50ns_Loose_NotCloseToParton.root","Efficiency_Eta");
+  TGraphAsymmErrors* effVsEta_ttH_50ns_Medium = getEffGraph("Efficiency_ttH_50ns_Medium_NotCloseToParton.root","Efficiency_Eta");
+  TGraphAsymmErrors* effVsEta_ttH_50ns_Tight = getEffGraph("Efficiency_ttH_50ns_Tight_NotCloseToParton.root","Efficiency_Eta");
 
-  TGraphAsymmErrors* effVsNPV_GJetFlat_50ns_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Loose.root","Efficiency_NPV");
-  TGraphAsymmErrors* effVsNPV_GJetFlat_50ns_Medium = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Medium.root","Efficiency_NPV");
-  TGraphAsymmErrors* effVsNPV_GJetFlat_50ns_Tight = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Tight.root","Efficiency_NPV");
+  TGraphAsymmErrors* effVsNPV_GJetFlat_50ns_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Loose_NotCloseToParton.root","Efficiency_NPV");
+  TGraphAsymmErrors* effVsNPV_GJetFlat_50ns_Medium = getEffGraph("Efficiency_GJetFlat_50ns_Medium_NotCloseToParton.root","Efficiency_NPV");
+  TGraphAsymmErrors* effVsNPV_GJetFlat_50ns_Tight = getEffGraph("Efficiency_GJetFlat_50ns_Tight_NotCloseToParton.root","Efficiency_NPV");
 
-  TGraphAsymmErrors* effVsNPV_ttH_25ns_Loose = getEffGraph("Efficiency_ttH_25ns_Spring15_Loose.root","Efficiency_NPV");
-  TGraphAsymmErrors* effVsNPV_ttH_25ns_Medium = getEffGraph("Efficiency_ttH_25ns_Spring15_Medium.root","Efficiency_NPV");
-  TGraphAsymmErrors* effVsNPV_ttH_25ns_Tight = getEffGraph("Efficiency_ttH_25ns_Spring15_Tight.root","Efficiency_NPV");
+  TGraphAsymmErrors* effVsNPV_ttH_50ns_Loose = getEffGraph("Efficiency_ttH_50ns_Loose_NotCloseToParton.root","Efficiency_NPV");
+  TGraphAsymmErrors* effVsNPV_ttH_50ns_Medium = getEffGraph("Efficiency_ttH_50ns_Medium_NotCloseToParton.root","Efficiency_NPV");
+  TGraphAsymmErrors* effVsNPV_ttH_50ns_Tight = getEffGraph("Efficiency_ttH_50ns_Tight_NotCloseToParton.root","Efficiency_NPV");
 
 
-  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_NotCloseToParton_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Spring15_Loose_NotCloseToParton.root","Efficiency_Pt");
-  TGraphAsymmErrors* effVsPt_ttH_25ns_NotCloseToParton_Loose = getEffGraph("Efficiency_ttH_25ns_Spring15_Loose_NotCloseToParton.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_GJetFlat_50ns_NotCloseToParton_Loose = getEffGraph("Efficiency_GJetFlat_50ns_Loose_NotCloseToParton.root","Efficiency_Pt");
+  TGraphAsymmErrors* effVsPt_ttH_50ns_NotCloseToParton_Loose = getEffGraph("Efficiency_ttH_50ns_Loose_NotCloseToParton.root","Efficiency_Pt");
 
 
 
@@ -224,7 +238,7 @@ void plotPhotonEfficiency() {
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(effVsPt_GJetFlat_50ns_Loose, "#gamma+Jet Flat Loose WP", "LP");
-  legend->AddEntry(effVsPt_ttH_25ns_Loose, "ttH#rightarrow#gamma#gamma Loose WP", "LP");
+  legend->AddEntry(effVsPt_ttH_50ns_Loose, "ttH#rightarrow#gamma#gamma Loose WP", "LP");
 
   effVsPt_GJetFlat_50ns_Loose->SetLineWidth(3);
   effVsPt_GJetFlat_50ns_Loose->SetLineColor(kBlack);
@@ -234,11 +248,11 @@ void plotPhotonEfficiency() {
 
   effVsPt_GJetFlat_50ns_Loose->SetLineWidth(3);
   effVsPt_GJetFlat_50ns_Loose->SetLineColor(kRed);
-  effVsPt_ttH_25ns_Loose->SetLineWidth(3);
-  effVsPt_ttH_25ns_Loose->SetLineColor(kBlue);
+  effVsPt_ttH_50ns_Loose->SetLineWidth(3);
+  effVsPt_ttH_50ns_Loose->SetLineColor(kBlue);
 
   effVsPt_GJetFlat_50ns_Loose->Draw("AP");
-  effVsPt_ttH_25ns_Loose->Draw("Psame");
+  effVsPt_ttH_50ns_Loose->Draw("Psame");
   
   legend->Draw();  
   cv->SaveAs("PhotonEfficiencyVsPt_GJetVsTTH_Loose.gif");
@@ -253,7 +267,7 @@ void plotPhotonEfficiency() {
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->AddEntry(effVsPt_GJetFlat_50ns_NotCloseToParton_Loose, "#gamma+Jet Flat Loose WP", "LP");
-  legend->AddEntry(effVsPt_ttH_25ns_NotCloseToParton_Loose, "ttH#rightarrow#gamma#gamma Loose WP", "LP");
+  legend->AddEntry(effVsPt_ttH_50ns_NotCloseToParton_Loose, "ttH#rightarrow#gamma#gamma Loose WP", "LP");
 
   effVsPt_GJetFlat_50ns_NotCloseToParton_Loose->SetLineWidth(3);
   effVsPt_GJetFlat_50ns_NotCloseToParton_Loose->SetLineColor(kBlack);
@@ -263,11 +277,11 @@ void plotPhotonEfficiency() {
 
   effVsPt_GJetFlat_50ns_NotCloseToParton_Loose->SetLineWidth(3);
   effVsPt_GJetFlat_50ns_NotCloseToParton_Loose->SetLineColor(kRed);
-  effVsPt_ttH_25ns_NotCloseToParton_Loose->SetLineWidth(3);
-  effVsPt_ttH_25ns_NotCloseToParton_Loose->SetLineColor(kBlue);
+  effVsPt_ttH_50ns_NotCloseToParton_Loose->SetLineWidth(3);
+  effVsPt_ttH_50ns_NotCloseToParton_Loose->SetLineColor(kBlue);
 
   effVsPt_GJetFlat_50ns_NotCloseToParton_Loose->Draw("AP");
-  effVsPt_ttH_25ns_NotCloseToParton_Loose->Draw("Psame");
+  effVsPt_ttH_50ns_NotCloseToParton_Loose->Draw("Psame");
   
   legend->Draw();  
   cv->SaveAs("PhotonEfficiencyVsPt_GJetVsTTH_NotCloseToParton_Loose.gif");
@@ -279,10 +293,50 @@ void plotPhotonEfficiency() {
  return;
 
 
+}
 
 
 
+void MakeFastsimToFullSimCorrectionFactors() {
+  TCanvas *cv =0;
+  TLegend *legend =0;
 
+  TFile *fileFullsimLoose = new TFile("Efficiency_GJetFlat_25ns_Loose_Fullsim.root","READ");
+  TFile *fileFastsimLoose = new TFile("Efficiency_GJetFlat_25ns_Loose_Fastsim.root","READ");
+
+
+  TH2F* histFullsimLoose = (TH2F*)fileFullsimLoose->Get("Efficiency_PtEta");
+  TH2F* histFastsimLoose = (TH2F*)fileFastsimLoose->Get("Efficiency_PtEta");
+
+  TH2F* histSFLoose = (TH2F*)histFullsimLoose->Clone("ElectronLoose_FastsimScaleFactor");
+  histSFLoose->GetXaxis()->SetTitle("Electron p_{T} [GeV/c]");
+  histSFLoose->GetYaxis()->SetTitle("Electron #eta");
+
+  //Loose WP
+  for (int b=1; b<histSFLoose->GetXaxis()->GetNbins()+1 ; ++b) {
+    for (int c=1; c<histSFLoose->GetYaxis()->GetNbins()+1 ; ++c) {
+      double sf = histFullsimLoose->GetBinContent(b,c) / histFastsimLoose->GetBinContent(b,c);
+      double sferr = 0;
+      if ( histFullsimLoose->GetBinContent(b,c) > 0 && histFastsimLoose->GetBinContent(b,c) > 0) {
+	sferr = sf*sqrt( pow(histFullsimLoose->GetBinError(b,c)/histFullsimLoose->GetBinContent(b,c),2) +
+				pow(histFastsimLoose->GetBinError(b,c)/histFastsimLoose->GetBinContent(b,c),2) );
+      }
+      histSFLoose->SetBinContent(b,c,sf);
+      histSFLoose->SetBinError(b,c,sferr);
+    }
+  }
+
+
+   //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.root", "UPDATE");
+  file->cd();
+  file->WriteTObject(histSFLoose, "ElectronLoose_FastsimScaleFactor", "WriteDelete");  
+  file->WriteTObject(histFullsimLoose, "ElectronEff_Loose_Fullsim", "WriteDelete");
+  file->WriteTObject(histFastsimLoose, "ElectronEff_Loose_Fastsim", "WriteDelete");
+  file->Close();
+  delete file;      
 
 }
 
@@ -304,12 +358,14 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
   //============================================================================================================== 
   bool printdebug = false;
 
+  TFile *inputFile = new TFile("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/EGM_PhotonLoose_SF.root","READ");
+  TH2F *histSF = (TH2F*)inputFile->Get("EGamma_SF2D");
 
   //*****************************************************************************************
   //Make some histograms
   //*****************************************************************************************
-  TH1F *histDenominatorPt = new TH1F ("histDenominatorPt",";Photon p_{T} [GeV/c^{2}]; Number of Events", 50, 0 , 300);
-  TH1F *histNumeratorPt = new TH1F ("histNumeratorPt",";Photon p_{T} [GeV/c^{2}]; Number of Events", 50, 0 , 300);
+  TH1F *histDenominatorPt = new TH1F ("histDenominatorPt",";Photon p_{T} [GeV/c^{2}]; Number of Events", 50, 0 , 200);
+  TH1F *histNumeratorPt = new TH1F ("histNumeratorPt",";Photon p_{T} [GeV/c^{2}]; Number of Events", 50, 0 , 200);
   TH1F *histDenominatorEta = new TH1F ("histDenominatorEta",";Photon #eta; Number of Events", 50, -2.5 , 2.5);
   TH1F *histNumeratorEta = new TH1F ("histNumeratorEta",";Photon #eta; Number of Events", 50, -2.5 , 2.5);
   TH1F *histDenominatorPhi = new TH1F ("histDenominatorPhi",";Photon #phi; Number of Events", 50, 0 , 3.2);
@@ -321,11 +377,22 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
   TH1F *histDenominatorNpu = new TH1F ("histDenominatorNpu",";Number of Pileup Interactions; Number of Events", 50, 0 , 100);
   TH1F *histNumeratorNpu = new TH1F ("histNumeratorNpu",";Number of Pileup Interactions; Number of Events", 50, 0 , 100);
 
-  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
-  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 50, 0 , 200, 50, -3.0, 3.0);
+  // TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 56, 20 , 300, 100, 0.0, 2.5);
+  // TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 56, 20 , 300, 100, 0.0, 2.5);
+  //   TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 28, 20 , 300, 25, 0.0, 2.5);
+   // TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", 28, 20 , 300, 25, 0.0, 2.5);
+
+  //For SUSY/EGM Public Results
+  const int NPtBins = 4;
+  const int NEtaBins = 10;
+  double ptBins[NPtBins+1] = {20, 35, 50, 90, 500};
+  double etaBins[NEtaBins+1] = {-2.5, -2.0, -1.566, -1.4442, -0.8, 0, 0.8, 1.4442, 1.566, 2.0, 2.5};
+
+  TH2F *histDenominatorPtEta = new TH2F ("histDenominatorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", NEtaBins, etaBins, NPtBins, ptBins);
+  TH2F *histNumeratorPtEta = new TH2F ("histNumeratorPtEta",";Photon p_{T} [GeV/c] ; Photon #eta; Number of Events", NEtaBins, etaBins, NPtBins, ptBins);
 
   //*******************************************************************************************
-  //Read file
+  //READ file
   //*******************************************************************************************                
   PhotonTree *PhoTree = new PhotonTree;
   PhoTree->LoadTree(inputfile.c_str());
@@ -339,10 +406,12 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
     if (ientry % 100000 == 0) cout << "Event " << ientry << endl;
 
     //Cuts
-    if (PhoTree->fPhoGenPt < 5) continue;
+    if (PhoTree->fPhoGenPt < 20) continue;
     if (abs(PhoTree->fPhoGenEta) > 2.5) continue;
+    //if (abs(PhoTree->fPhoGenEta) <= 1.566) continue;
+    //if (abs(PhoTree->fPhoGenEta) >= 1.4442) continue;
 
-    if (!(PhoTree->fPhoPt > 20)) continue;
+    //if (!(PhoTree->fPhoPt > 25)) continue;
 
     if (usePhotonNotNearParton) {
       if (PhoTree->fDRToClosestParton < 1.0) continue;
@@ -355,11 +424,18 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
       
 
       //**** PT - ETA ****
-      histDenominatorPtEta->Fill(PhoTree->fPhoGenPt,PhoTree->fPhoGenEta);
+      //For Internal Plot
+      // histDenominatorPtEta->Fill(PhoTree->fPhoGenPt,fabs(PhoTree->fPhoGenEta));
+      // if(PassSelection(PhoTree, wp)) {
+      // 	histNumeratorPtEta->Fill(PhoTree->fPhoGenPt,fabs(PhoTree->fPhoGenEta));
+      // }
+      //For Public Plot
+      histDenominatorPtEta->Fill(PhoTree->fPhoGenEta,PhoTree->fPhoGenPt);
       if(PassSelection(PhoTree, wp)) {
-	histNumeratorPtEta->Fill(PhoTree->fPhoGenPt,PhoTree->fPhoGenEta);
-      }
-
+	histNumeratorPtEta->Fill(PhoTree->fPhoGenEta,PhoTree->fPhoGenPt);
+      }									
+      
+  
 
       //**** PT ****
       histDenominatorPt->Fill(PhoTree->fPhoGenPt);
@@ -435,7 +511,6 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
 	histNumeratorPtEta->Fill(PhoTree->fPhoPt,PhoTree->fPhoEta);
       }
 
-
       //**** PT ****
       histDenominatorPt->Fill(PhoTree->fPhoPt);
 
@@ -485,16 +560,9 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
 	if(PassSelection(PhoTree, wp)) {
 	  histNumeratorNpv->Fill(PhoTree->fNVertices);        
 	}
-
       }
-
-    
     }
-
-
-
   }
-
 
   //--------------------------------------------------------------------------------------------------------------
   // Make Efficiency Plots
@@ -508,6 +576,101 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
   TGraphAsymmErrors *efficiency_npu = createEfficiencyGraph(histNumeratorNpu, histDenominatorNpu, "Efficiency_Npu" , vector<double>() ,  -99, -99, 0, 1);  
   TH2F *efficiency_pteta = createEfficiencyHist2D(histNumeratorPtEta, histDenominatorPtEta, "Efficiency_PtEta" , vector<double>() ,vector<double>());  
 
+
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Make Public Efficiency Plot
+  // Apply Data to MC Corrections
+  //==============================================================================================================
+  TH2F *corrEffHist = new TH2F ("PhotonEfficiency",";Photon |#eta|; Photon E_{T} [GeV/c] ; Efficiency", 5, 0 , 5, 4, 0, 4);
+  corrEffHist->GetXaxis()->SetTitle( "Photon |#eta|");
+  corrEffHist->GetXaxis()->SetTitleSize( 0.05);
+  corrEffHist->GetXaxis()->SetLabelSize( 0.05);
+  corrEffHist->GetXaxis()->SetBinLabel(1, "(0.0, 0.8)");
+  corrEffHist->GetXaxis()->SetBinLabel(2, "(0.8,1.4442)");
+  corrEffHist->GetXaxis()->SetBinLabel(3, "(1.4442,1.566)");
+  corrEffHist->GetXaxis()->SetBinLabel(4, "(1.566,2.0)");
+  corrEffHist->GetXaxis()->SetBinLabel(5, "(2.0,2.5)");
+
+  corrEffHist->GetYaxis()->SetTitle( "Photon E_{T} (GeV)");
+  corrEffHist->GetYaxis()->SetTitleSize( 0.05);
+  corrEffHist->GetYaxis()->SetLabelSize( 0.05);
+  corrEffHist->GetYaxis()->SetBinLabel(1, "20 - 35");
+  corrEffHist->GetYaxis()->SetBinLabel(2, "35 - 50");
+  corrEffHist->GetYaxis()->SetBinLabel(3, "50 - 90");
+  corrEffHist->GetYaxis()->SetBinLabel(4, "90 - 500");
+
+  for (int i=1; i< corrEffHist->GetXaxis()->GetNbins()+1; i++) {
+    for (int j=1; j< corrEffHist->GetYaxis()->GetNbins()+1; j++) {
+
+      double tmpPt = efficiency_pteta->GetYaxis()->GetBinCenter(j);
+      double tmpEta = 0.5;
+      if (i==2) tmpEta = 1.221;
+      if (i==3) tmpEta = 1.5;
+      if (i==4) tmpEta = 1.75;
+      if (i==5) tmpEta = 2.25;
+
+      double EleVetoCorr = 1.0;
+      double EleVetoCorrErr = 0.0;
+      //CSEV Scale factors
+      // if (fabs(tmpEta) < 1.4442) {
+      // 	EleVetoCorr = 0.9983;
+      // 	EleVetoCorrErr = 0.0119;
+      // } else {
+      // 	EleVetoCorr = 0.9875;
+      // 	EleVetoCorrErr = 0.0044;
+      // }
+
+      //Pixel Veto Scale factors
+      if (fabs(tmpEta) < 1.4442) {
+      	EleVetoCorr = 0.9978;
+      	EleVetoCorrErr = 0.0134;
+      } else {
+      	EleVetoCorr = 0.9931;
+      	EleVetoCorrErr = 0.0245;
+      }
+
+      double corrEff = 0.5*( efficiency_pteta->GetBinContent(efficiency_pteta->GetXaxis()->FindFixBin(tmpEta), efficiency_pteta->GetYaxis()->FindFixBin(tmpPt))*
+  	histSF->GetBinContent( histSF->GetXaxis()->FindFixBin(tmpEta), histSF->GetYaxis()->FindFixBin(tmpPt)) 
+  			 +
+  			 efficiency_pteta->GetBinContent(efficiency_pteta->GetXaxis()->FindFixBin(-1*tmpEta), efficiency_pteta->GetYaxis()->FindFixBin(tmpPt))*
+  			 histSF->GetBinContent( histSF->GetXaxis()->FindFixBin(-1*tmpEta), histSF->GetYaxis()->FindFixBin(tmpPt)) 
+  			 )
+  	*EleVetoCorr;
+      double corrEffErr = corrEff*sqrt( pow( efficiency_pteta->GetBinError(efficiency_pteta->GetXaxis()->FindFixBin(tmpEta), efficiency_pteta->GetYaxis()->FindFixBin(tmpPt))/efficiency_pteta->GetBinContent(efficiency_pteta->GetXaxis()->FindFixBin(tmpEta), efficiency_pteta->GetYaxis()->FindFixBin(tmpPt)),2) +
+  					pow( histSF->GetBinError( histSF->GetXaxis()->FindFixBin(tmpEta), histSF->GetYaxis()->FindFixBin(tmpPt)) / histSF->GetBinContent( histSF->GetXaxis()->FindFixBin(tmpEta),  histSF->GetYaxis()->FindFixBin(tmpPt)), 2) + 
+  					pow(EleVetoCorrErr / EleVetoCorr, 2));
+
+      corrEffHist->SetBinContent(i,j,corrEff);
+      corrEffHist->SetBinError(i,j,corrEffErr);
+
+      //zero out the gap
+      if (i==3) {
+	corrEffHist->SetBinContent(i,j,0);
+	corrEffHist->SetBinError(i,j,0);
+      }
+
+      cout << "Bin " << i << " " << j << " : " 
+  	   << tmpEta << " " 
+  	   << tmpPt << " | "
+  	   << efficiency_pteta->GetXaxis()->FindFixBin(tmpEta) << " , " << efficiency_pteta->GetYaxis()->FindFixBin(tmpPt) << " | "
+  	   << efficiency_pteta->GetBinContent(efficiency_pteta->GetXaxis()->FindFixBin(tmpEta),efficiency_pteta->GetYaxis()->FindFixBin(tmpPt)) << " +/- " << efficiency_pteta->GetBinError(efficiency_pteta->GetXaxis()->FindFixBin(tmpEta),efficiency_pteta->GetYaxis()->FindFixBin(tmpPt)) << " | " 
+  	   << efficiency_pteta->GetBinContent(efficiency_pteta->GetXaxis()->FindFixBin(-1*tmpEta),efficiency_pteta->GetYaxis()->FindFixBin(tmpPt)) << " +/- " << efficiency_pteta->GetBinError(efficiency_pteta->GetXaxis()->FindFixBin(-1*tmpEta),efficiency_pteta->GetYaxis()->FindFixBin(tmpPt)) << " | " 
+  	   << histSF->GetXaxis()->FindFixBin(efficiency_pteta->GetXaxis()->GetBinCenter(i)) << ","
+  	   << histSF->GetYaxis()->FindFixBin(efficiency_pteta->GetYaxis()->GetBinCenter(j)) << " | " 
+  	   << histSF->GetBinContent( histSF->GetXaxis()->FindFixBin(efficiency_pteta->GetXaxis()->GetBinCenter(i)),
+  	    			     histSF->GetYaxis()->FindFixBin(efficiency_pteta->GetYaxis()->GetBinCenter(j))) 
+  	   << " +/- " 
+  	   << histSF->GetBinError( histSF->GetXaxis()->FindFixBin(efficiency_pteta->GetXaxis()->GetBinCenter(i)),
+  				   histSF->GetYaxis()->FindFixBin(efficiency_pteta->GetYaxis()->GetBinCenter(j))) 
+  	   << " | " 
+  	   << EleVetoCorr << " +/- " << EleVetoCorrErr << " | "
+  	   << corrEff << " +/- " << corrEffErr << " "
+  	   << "\n";
+    }
+  }
+
+ 
 
   //--------------------------------------------------------------------------------------------------------------
   // Draw
@@ -550,6 +713,22 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
   efficiency_npu->GetYaxis()->SetRangeUser(0.0,1.0);
   cv->SaveAs(("Efficiency"+Label+"_Npu.gif").c_str());
 
+  //TStyle myStyle;
+  cv = new TCanvas("cv","cv",800,600);
+  gStyle->SetPaintTextFormat(".3f");
+  cv->SetBottomMargin(0.12);
+  cv->SetLeftMargin(0.15);
+  cv->SetRightMargin(0.12);
+  corrEffHist->SetTitle("Efficiency");
+  corrEffHist->SetMarkerSize(1.5);
+  corrEffHist->SetStats(0);
+  corrEffHist->GetYaxis()->SetTitleOffset(1.5);
+  corrEffHist->GetZaxis()->SetTitleOffset(1.0);
+  corrEffHist->GetZaxis()->SetTitleSize(0.0);
+  corrEffHist->SetMinimum(0.0);
+  corrEffHist->SetMaximum(1.0);
+  corrEffHist->Draw("colztexte1");
+  cv->SaveAs("PhotonEfficiency.pdf");
 
   //--------------------------------------------------------------------------------------------------------------
   // Output
@@ -563,9 +742,16 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
   file->WriteTObject(efficiency_npv, "Efficiency_NPV", "WriteDelete");
   file->WriteTObject(efficiency_npu, "Efficiency_NPU", "WriteDelete");
   file->WriteTObject(efficiency_pteta, "Efficiency_PtEta", "WriteDelete");
+  // file->WriteTObject(corrEffHist, "PhotonEfficiency", "WriteDelete");
 
   file->Close();
   delete file;       
+
+  file = TFile::Open("PhotonEfficiencyPublic.root","RECREATE");
+  file->cd();
+  file->WriteTObject(corrEffHist, "PhotonEfficiency", "WriteDelete");
+  file->Close();
+  delete file;
 
 }
 
@@ -575,25 +761,33 @@ void ProducePhotonEfficiencyPlots(const string inputfile, int wp = 0, int option
 void MakePhotonEfficiencyPlots( int option = 0) {
 
   if (option == 1) {
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8_Spring15_25ns.root", 0, 0, false, "ttH_25ns_Spring15_Loose");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8_Spring15_25ns.root", 1, 0, false, "ttH_25ns_Spring15_Medium");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8_Spring15_25ns.root", 2, 0, false, "ttH_25ns_Spring15_Tight");
+      
+    //Fullsim
+    //ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V3p8/PhotonNtuple_PromptGenLevel_Fullsim_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 0, 0, true, "GJetFlat_25ns_Loose_Fullsim");
+    // ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V1p17/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 1, 0, true, "GJetFlat_25ns_Medium_NotCloseToParton");
+    // ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V1p17/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 2, 0, true, "GJetFlat_25ns_Tight_NotCloseToParton");
 
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8_Spring15_25ns.root", 0, 0, true, "ttH_25ns_Spring15_Loose_NotCloseToParton");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8_Spring15_25ns.root", 1, 0, true, "ttH_25ns_Spring15_Medium_NotCloseToParton");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_ttHJetToGG_M130_13TeV_amcatnloFXFX_madspin_pythia8_Spring15_25ns.root", 2, 0, true, "ttH_25ns_Spring15_Tight_NotCloseToParton");
+    //Fastsim
+    //ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V3p8/PhotonNtuple_PromptGenLevel_Fastsim_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 0, 0, true, "GJetFlat_25ns_Loose_Fastsim");
 
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_PHYS14_50ns.root", 0, 0, false, "GJetFlat_50ns_Spring15_Loose");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_PHYS14_50ns.root", 1, 0, false, "GJetFlat_50ns_Spring15_Medium");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_PHYS14_50ns.root", 2, 0, false, "GJetFlat_50ns_Spring15_Tight");
+    //Fake Photons
+    // ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V1p17/PhotonNtuple_Fake_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 0, 0, false, "GJetFlat_Fake_25ns_Loose");
+    // ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V1p17/PhotonNtuple_Fake_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 1, 0, false, "GJetFlat_Fake_25ns_Medium");
+    // ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V1p17/PhotonNtuple_Fake_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 2, 0, false, "GJetFlat_Fake_25ns_Tight");
 
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_PHYS14_50ns.root", 0, 0, true, "GJetFlat_50ns_Spring15_Loose_NotCloseToParton");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_PHYS14_50ns.root", 1, 0, true, "GJetFlat_50ns_Spring15_Medium_NotCloseToParton");
-    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/PhotonNtuple_PromptGenLevel_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_PHYS14_50ns.root", 2, 0, true, "GJetFlat_50ns_Spring15_Tight_NotCloseToParton");
+    
+    //Used to Produce Public Photon Efficiency Plot for ICHEP dataset
+    // ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V3p4/PhotonNtuple_PromptGenLevel_HiggsCombined.root", 0, 0, false, "Photon_LooseID");
+
+
+    //Used to Produce Public Photon Efficiency Plot for Moriond dataset
+    ProducePhotonEfficiencyPlots("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/PhotonNtuple/V3p8/PhotonNtuple_PromptGenLevel_Fullsim_GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8_25ns.root", 0, 0, false, "Photon_LooseID");
+  
   }	
 
 
 
-  plotPhotonEfficiency();
+  // plotPhotonEfficiency();
+  //MakeFastsimToFullSimCorrectionFactors();
 
 }
