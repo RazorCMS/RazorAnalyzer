@@ -335,6 +335,11 @@ for tag in sampleTags2016:
             files[tag]["Data"] = files[tag]["Data"].replace(
                     '/'+versionMC2016+'/','/'+versionData2016+'/')
 
+    #Signal ntuples
+    razorSignalDirs = {
+            "Razor2016_MoriondRereco": "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/FastsimSMS/"
+            }
+
 
 #####################################
 ### FITS
@@ -347,7 +352,8 @@ razorFitDirs = {
 razorFitFiles = { tag:{} for tag in razorFitDirs }
 for tag,path in razorFitDirs.iteritems():
     for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
-        razorFitFiles[tag][box] = "%s/Fits_%s/toys_Bayes_noStat_%s.root"%(path,box,box)
+        razorFitFiles[tag][box] = "%s/toys_Bayes_noStat_%s_combinedBtags.root"%(path,box)
+        #razorFitFiles[tag][box] = "%s/Fits_%s/toys_Bayes_noStat_%s_combinedBtags.root"%(path,box,box)
 
 
 #####################################
@@ -665,6 +671,11 @@ for box in razorBoxes:
     elif box in twoBjetBoxes:
         razorCuts[box] += ' && nBTaggedJets>=2'
 
+razorCuts["SingleLeptonForSignal"] = "MR > 300 && Rsq > 0.15 && (leadingTightMuPt > 25 || leadingTightElePt > 30) && met > 30 && mT > 30 && mT < 100"
+razorCuts["SingleLeptonForSignal"] = appendBoxCuts(
+        razorCuts["SingleLeptonForSignal"], 
+        razorBoxes['LeptonJet']+razorBoxes['LeptonMultiJet'])
+
 #####################################
 ### BINNING
 #####################################
@@ -808,7 +819,6 @@ razorBinning["SusySync"] = {
 
 ### Signal region
 signalConfig = "config/run2_2017_03_13_SeparateBtagFits.config"
-#signalConfig = "config/run2_2017_01_07_Run2016G_SUSYUnblind_Sep23ReReco.config"
 cfg = Config.Config(signalConfig)
 for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
     razorBinning[box] = {
@@ -817,6 +827,13 @@ for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_
             }
 for box in ['LooseLeptonDiJet', 'LooseLeptonMultiJet']:
     razorBinning[box] = razorBinning[box.replace('LooseLepton','')].copy()
+
+# Config for control regions
+controlConfig = "config/razorControlRegions_Razor2016_MoriondRereco.config"
+razorBinning["SingleLeptonForSignal"] = {
+        "MR" : razorBinning["SingleLepton"]["MR"],
+        "Rsq": razorBinning["SingleLepton"]["Rsq"],
+        }
 
 ### Add 2D razor binning to each region
 for region,binning in razorBinning.iteritems():
@@ -1377,6 +1394,30 @@ class Analysis:
             self.cuts = razorCuts[self.region]
             self.binning = razorBinning[self.region]
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
+
+        elif self.region == "TTJetsSingleLeptonForSignal":
+            self.trigType = "SingleLepton"
+            self.jetVar = "nSelectedJets"
+            self.bjetVar = "nBTaggedJets"
+            self.filenames = razorNtuples["SignalLepton"][self.tag]
+            self.samples = razorSamples["SignalLeptonic"]
+            self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
+            self.cuts = razorCuts["SingleLeptonForSignal"]
+            self.binning = razorBinning["SingleLeptonForSignal"]
+            self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], 
+                    colsSignal["TTJetsSingleLepton"]["0B"])
+
+        elif self.region == "WJetsSingleLeptonForSignal":
+            self.trigType = "SingleLepton"
+            self.jetVar = "nSelectedJets"
+            self.bjetVar = "nBTaggedJets"
+            self.filenames = razorNtuples["SignalLepton"][self.tag]
+            self.samples = razorSamples["SignalLeptonic"]
+            self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
+            self.cuts = razorCuts["SingleLeptonForSignal"]
+            self.binning = razorBinning["SingleLeptonForSignal"]
+            self.unrollBins = (xbinsSignal["WJetsSingleLepton"]["0B"], 
+                    colsSignal["WJetsSingleLepton"]["0B"])
 
         else: 
             sys.exit("Error: analysis region "+self.region+" is not implemented!")
