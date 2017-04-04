@@ -14,10 +14,11 @@ args = parser.parse_args()
 hists = macro.importHists(args.fname)
 var = ('MR','Rsq')
 
-tmp = plotting.unroll2DHistograms([hists["Data"][var]])[0]
+tmp = plotting.unroll2DHistograms([hists[hists.iterkeys().next()][var]])[0]
 tot = tmp.Clone("tot")
 tot.Reset()
 sys_dict = {}
+qcdHist = None
 for proc in hists:
     if proc == 'Sys':
         for sys_proc in hists[proc]:
@@ -38,8 +39,16 @@ for proc in hists:
         tot.Add(tmp)
         if args.print_all:
             tmp.Print("all")
+        if proc == 'QCD':
+            qcdHist = tmp
 print "Total MC"
 tot.Print("all")
+
+print "QCD fraction"
+if qcdHist is not None:
+    qcdFraction = qcdHist.Clone("qcdFraction")
+    qcdFraction.Divide(tot)
+    qcdFraction.Print("all")
 
 # Compute the size of each systematic uncertainty,
 # averaged across all analysis bins

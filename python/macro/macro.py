@@ -118,7 +118,7 @@ def stitch(th1s = []):
     #concatenate hist names
     name = 'and'.join([th1.GetName() for th1 in th1s])
     #make output hist
-    out = rt.TH1F(name, name, totalNBins, 0, totalNBins)
+    out = rt.TH1F(name+"stitched", name, totalNBins, 0, totalNBins)
     out.SetDirectory(0)
     bn = 1
     for i,th1 in enumerate(th1s):

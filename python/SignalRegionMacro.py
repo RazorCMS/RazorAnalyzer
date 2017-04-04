@@ -60,6 +60,8 @@ if __name__ == "__main__":
             dest='bInclusive')
     parser.add_argument("--tag", dest="tag", default="Razor2016",
             help="Analysis tag, e.g. Razor2015")
+    parser.add_argument('--qcd-mc', dest='qcdMC', help='make qcd prediction using MC',
+            action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -96,6 +98,8 @@ if __name__ == "__main__":
         dirSuffix += 'NoSys'
     if args.bInclusive:
         dirSuffix += 'BInclusive'
+    if args.qcdMC:
+        dirSuffix += 'QCDMC'
 
     regionsOrder = []
     regions = {}
@@ -209,9 +213,14 @@ if __name__ == "__main__":
                 for y in range(2,len(analysis.binning["Rsq"])+1)]
 
         #apply options
+        dataDrivenQCD = True
         if args.unblind: blindBins = None
         if args.noQCD and 'QCD' in analysis.samples:
             analysis.samples.remove('QCD')
+        elif args.qcdMC:
+            analysis.filenames['QCD'] = "Backgrounds/Signal/FullRazorInclusive_%s_QCD_1pb_weighted.root"%tag
+            dataDrivenQCD = False
+
         if args.noMC: analysis.samples = []
         if analysis.samples is None or len(analysis.samples) == 0:
             analysis.filenames = {"Data":analysis.filenames["Data"]}
@@ -260,7 +269,7 @@ if __name__ == "__main__":
                 sfHists=sfHistsToUse, treeName="RazorInclusive", 
                 shapeErrors=shapesToUse, fitToyFiles=toysToUse, boxName=boxName, 
                 blindBins=blindBins, btags=btags, debugLevel=debugLevel, 
-                auxSFs=auxSFsToUse, dataDrivenQCD=True, printdir=outdir, 
+                auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, printdir=outdir, 
                 plotOpts=plotOpts, noFill=args.noFill, exportShapeErrs=True, 
                 propagateScaleFactorErrs=False)
         #export histograms

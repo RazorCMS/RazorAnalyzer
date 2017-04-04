@@ -1,67 +1,50 @@
 from optparse import OptionParser
 import ROOT as rt
 import sys
+import os
 from array import *
 
 #local imports
-import rootTools
 from framework import Config
-from DustinTuple2RooDataSet import initializeWorkspace
-from DustinTuples2DataCard import convertTree2TH1, uncorrelate
-from RunCombine import exec_me
-from macro.razorAnalysis import xbinsSignal, colsSignal
+from SMSTemplates import makeSMSTemplates
+from macro.razorAnalysis import Analysis, razorSignalDirs
 from macro.macro import importHists, makeTH2PolyFromColumns, fillTH2PolyFromTH2, stitch
-import os
-import WriteRazorMADDCard
+from WriteRazorMADDCard import BACKGROUND_DIR, getModelName, getBranchingFracsFromModelName
 
-#SIGNAL_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/V1p24_ForMoriond20160124/combined"
-#SIGNAL_DIR = "Signals"
-BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2015"
-#BACKGROUND_DIR = "Moriond2016"
-
-def checkSignalContamination(config, outDir, lumi, box, model, mLSP, mGluino=-1, mStop=-1, mergeBins=False, treeName="RazorInclusive", noPathologies=False, noPileupWeights=False, privateFullsim=False):
+def checkSignalContamination(config, outDir, lumi, box, model, mLSP, 
+        mGluino=-1, mStop=-1, mergeBins=False, debugLevel=0,
+        treeName="RazorInclusive", tag='Razor2016_MoriondRereco'):
     cfg = Config.Config(config)
     x = array('d', cfg.getBinning(box)[0]) # MR binning
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
 
-    dirToUse = WriteRazorMADDCard.SIGNAL_DIR
-    if noPathologies:
-        dirToUse = WriteRazorMADDCard.NOPATHOLOGIES_SIGNAL_DIR
-    elif noPileupWeights:
-        dirToUse = WriteRazorMADDCard.NOPILEUPWEIGHTS_SIGNAL_DIR
-    elif privateFullsim:
-        dirToUse = WriteRazorMADDCard.PRIVATEFULLSIM_SIGNAL_DIR
+    dirToUse = razorSignalDirs[tag]+'/'+model+'/combined' 
 
-    unrollBins = None
+    unrollBins = []
+    analyses = []
     if mergeBins:
         btagBins = cfg.getBinning(box)[2][:-1]
-        unrollBins = [(xbinsSignal[box][str(int(btags))+'B'], colsSignal[box][str(int(btags))+'B']) for btags in btagBins]
+        for btags in btagBins:
+            analyses.append(Analysis(box, tag, nbMin=btags))
+            unrollBins.append(analyses[-1].unrollBins)
     
-    mergeBinsString = ''
-    if mergeBins:
-        mergeBinsString = '--merge-bins'
-
-    brString = ""
+    xBR = yBR = -1
     if 'T1x' in model:
-        xBR = float(model[model.find('x')+1:model.find('y')].replace('p','.'))
-        yBR = float(model[model.find('y')+1:].replace('p','.'))
-        brString = '--xBR %.2f --yBR %.2f'%(xBR,yBR)
-        modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
+        xBR, yBR = getBranchingFracsFromModelName(model)
         fileName = dirToUse+'/SMS-T1ttbb_%i_%i.root'%(mGluino,mLSP)
     elif 'T2' in model:
-        modelName = 'SMS-%s_%i_%i'%(model,mStop,mLSP)
+        modelName = getModelName(model, mStop, mLSP)
         fileName = dirToUse+'/%s.root'%(modelName)
     else:
-        modelName = 'SMS-%s_%i_%i'%(model,mGluino,mLSP)
+        modelName = getModelName(model, mGluino, mLSP)
         fileName = dirToUse+'/%s.root'%(modelName)
         
-    os.system('python python/SMSTemplates.py %s -c %s -d %s/ --lumi %s --box %s --no-signal-sys %s %s'%(mergeBinsString,config,outDir,lumi,box,brString,fileName))
-        
-    signalFile = rt.TFile.Open('%s/%s_lumi-%.3f_%i-%ibtag_%s.root'%(outDir,modelName,lumi*1./1000.,z[0],z[-1]-1,box))
-    sigTH1 = signalFile.Get('%s_%s'%(box,model))
+    sigTH1 = makeSMSTemplates(box, fileName, xBR=xBR, yBR=yBR, 
+            debugLevel=debugLevel, tag=tag)['Signal']
     
-    bkgdHistDict = importHists('%s/controlHistograms%s.root'%(BACKGROUND_DIR,box.replace('ControlRegion','').replace('WJet','WJetsSingleLepton')))
+    bkgdHistDict = importHists('%s/controlHistograms%s.root'%(
+        BACKGROUND_DIR,box))
     tempTH2 = bkgdHistDict['Data'][('MR','Rsq')]
     
     #unroll into TH1F

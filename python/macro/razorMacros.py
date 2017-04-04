@@ -637,7 +637,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=("MR","Rsq"), 
         treeName="ControlSampleEvent", shapeErrors=[], fitToyFiles=None, boxName=None, btags=-1, 
         blindBins=None, makePlots=True, printdir=".", auxSFs={}, dataDrivenQCD=False, noFill=False, 
-        exportShapeErrs=False, propagateScaleFactorErrs=True, debugLevel=0):
+        exportShapeErrs=False, propagateScaleFactorErrs=True, lumiMC=1, debugLevel=0):
     """This is the function that should be used to fill histograms for an 
         analysis control/signal region.
         Arguments:
@@ -698,7 +698,7 @@ def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=
             unrollBins=analysis.unrollBins, noFill=noFill, exportShapeErrs=exportShapeErrs, 
             extraCuts=analysis.extraCuts, extraWeightOpts=analysis.extraWeightOpts, 
             dataWeightOpts=analysis.dataWeightOpts, propagateScaleFactorErrs=propagateScaleFactorErrs, 
-            sfVars=sfVars, debugLevel=debugLevel)
+            sfVars=sfVars, lumiMC=lumiMC, debugLevel=debugLevel)
 
 def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):
     """Loads the output of makeControlSampleHists from a file and creates plots"""
@@ -1236,54 +1236,46 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING
 #########################################
 
-def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data", var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, noSys=False, addStatUnc=True, addMCVsFit=False, signalContaminationHists=None, sfHistsForSignalContamination=None):
-    """
-    Loads the output of makeControlSampleHists, unrolls each histogram, and pieces together the different b-tag bins to get the histograms used for limit setting.
-    If signalContaminationHists are provided, the level of signal contamination in the control regions is used to propagate extra uncertainties on the scale factor histograms.
-    """
+def getMaxBtags(boxName):
+    maxBtags = 3
+    if boxName in ['DiJet','LeptonJet']:
+        maxBtags = 2
+    return maxBtags
 
-    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
-
-    #get information from each b-tag bin
+def unrollHistsForDataCard(hists, samples=[], noSys=False,
+        var=('MR','Rsq'), debugLevel=0, unrollBins=None):
+    """
+    Unrolls each histogram.
+    hists: list of dictionaries, 
+        each the output of, eg, makeControlSampleHists.
+    samples: list of MC sample names
+    Returns: unrolled MC, data, fit, and shape histograms.
+        Data and fit histograms are returned as lists,
+        while MC and shape uncertainty hists are returned
+        as dictionaries of lists, indexed by sample name.
+    """
     unrolledMC = {s:[] for s in samples}
     unrolledData = []
     unrolledFit = []
     unrolledShapeHists = {s:{} for s in samples}
-    for i,f in enumerate(filenames):
-        #bins for unrolling
-        unrollRows = unrollBins[i][0]
-        unrollCols = unrollBins[i][1]
-
-        #load the histograms
-        hists = macro.importHists(f, debugLevel)
+    for i, curHists in enumerate(hists):
+        unrollRows = unrollCols = None
+        if unrollBins is not None:
+            unrollRows, unrollCols = unrollBins[i]
 
         #get shape histograms
-        if 'Sys' in hists: 
-            shapeHists = hists['Sys']
-            miscErrors = []
-            del hists['Sys']
+        if 'Sys' in curHists: 
+            shapeHists = curHists['Sys']
+            del curHists['Sys']
         elif not noSys:
-            print "Error in unrollAndWriteDataCard: no shape histograms were found in the input file",f
-            return
-
-        #noSys option
+            raise KeyError("No shape unc. histograms were found!")
         if noSys: 
             shapeHists = {s:{} for s in samples}
-        #signal contamination systematic
-        elif signalContaminationHists is not None:
-            sfStat = { 'TTJets1L':'sfstatttjets', 'TTJets2L':'sfstatttjets', 'TTJets':'sfstatttjets', 'WJets':'sfstatwjets', 'ZInv':'sfstatzinv' }
-            for proc in signalContaminationHists:
-                if proc not in sfStat:
-                    print "WARNING: scale factor uncertainty for process",proc,"is not implemented in macro.unrollAndStitch!"
-                    continue
-                sfStatName = sfStat[proc]
-                try:
-                    macro.correctScaleFactorUncertaintyForSignalContamination(centralHist=hists[proc][var], upHist=shapeHists[proc][sfStatName+'Up'][var], downHist=shapeHists[proc][sfStatName+'Down'][var], sfHist=sfHistsForSignalContamination[proc], contamHist=signalContaminationHists[proc], debugLevel=debugLevel)
-                except KeyError:
-                    print "unrollAndStitch: unable to process signal contamination for",proc,"-- histogram not found!"
 
         #unroll each MC histogram
-        unrolledMCs = plotting.unroll2DHistograms([hists[s][var] for s in samples], unrollRows, unrollCols)
+        unrolledMCs = plotting.unroll2DHistograms(
+                [curHists[s][var] for s in samples], 
+                unrollRows, unrollCols, suffix="_%d"%(i))
         for n,s in enumerate(samples):
             unrolledMC[s].append(unrolledMCs[n])
             for shape in shapeHists[s]:
@@ -1292,13 +1284,24 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
                     continue
                 if shape not in unrolledShapeHists[s]:
                     unrolledShapeHists[s][shape] = []
-                unrolledShapeHists[s][shape].append(plotting.unroll2DHistograms([shapeHists[s][shape][var]], unrollRows, unrollCols)[0])
-        #unroll data
-        unrolledData.append(plotting.unroll2DHistograms([hists[dataName][var]], unrollRows, unrollCols)[0])
-        if addMCVsFit:
-            unrolledFit.append(plotting.unroll2DHistograms([hists['Fit'][var]], unrollRows, unrollCols)[0])
+                unrolledShapeHists[s][shape].append(
+                        plotting.unroll2DHistograms(
+                            [shapeHists[s][shape][var]], 
+                            unrollRows, unrollCols, suffix="_%d"%(i))[0])
+        #unroll data and fit
+        if 'Data' in curHists:
+            unrolledData.append(plotting.unroll2DHistograms(
+                [curHists['Data'][var]], unrollRows, unrollCols, 
+                suffix="_%d"%(i))[0])
+        if 'Fit' in curHists:
+            unrolledFit.append(plotting.unroll2DHistograms(
+                [curHists['Fit'][var]], unrollRows, unrollCols, 
+                suffix="_%d"%(i))[0])
 
+    return unrolledMC, unrolledData, unrolledFit, unrolledShapeHists
 
+def stitchHistsForDataCard(unrolledMC, unrolledData, 
+    unrolledShapeHists, samples=[]): 
     #piece together histograms from different b-tag bins
     histsForDataCard = {}
     for s in samples:
@@ -1314,63 +1317,123 @@ def unrollAndStitch(boxName, samples=[], inDir=".", outDir=".", dataName="Data",
                 print "Warning: empty shape histograms for",s,shape
                 continue
             #create histogram
-            histsForDataCard[s+'_'+shape] = macro.stitch(unrolledShapeHists[s][shape])
-    histsForDataCard['data_obs'] = macro.stitch(unrolledData)
+            histsForDataCard[s+'_'+shape] = macro.stitch(
+                    unrolledShapeHists[s][shape])
+    if len(unrolledData) > 0:
+        histsForDataCard['data_obs'] = macro.stitch(unrolledData)
+    return histsForDataCard
 
-    #make MC vs Fit systematic
+def addMCVsFitUncertainty(histsForDataCard, unrolledFit, samples=[]):
+    fitTotal = macro.stitch(unrolledFit)
+
+    #make total MC histogram to compare with fit
+    mcTotal = histsForDataCard[samples[0]].Clone('mcTotal')
+    mcTotal.Reset()
+    for s in samples:
+        mcTotal.Add(histsForDataCard[s])
+        histsForDataCard[s+'_fitmccrosscheckUp'] = histsForDataCard[s].Clone()
+        histsForDataCard[s+'_fitmccrosscheckDown'] = histsForDataCard[s].Clone()
+        histsForDataCard[s+'_fitmccrosscheckUp'].SetName(s+'_fitmccrosscheckUp')
+        histsForDataCard[s+'_fitmccrosscheckDown'].SetName(s+'_fitmccrosscheckDown')
+        histsForDataCard[s+'_fitmccrosscheckUp'].SetTitle(s+'_fitmccrosscheckUp')
+        histsForDataCard[s+'_fitmccrosscheckDown'].SetTitle(s+'_fitmccrosscheckDown')
+    
+    #get fit/MC and propagate to individual MC processes
+    for bx in range(1, histsForDataCard[samples[0]].GetNbinsX()+1):
+        if mcTotal.GetBinContent(bx) > 0:
+            fitOverMC = fitTotal.GetBinContent(bx) / mcTotal.GetBinContent(bx)
+
+            for s in samples:
+                histsForDataCard[s+'_fitmccrosscheckUp'].SetBinContent(bx, 
+                        histsForDataCard[s].GetBinContent(bx) * fitOverMC)
+                histsForDataCard[s+'_fitmccrosscheckDown'].SetBinContent(bx, 
+                        histsForDataCard[s].GetBinContent(bx) / fitOverMC)
+
+def addStatUncertainty(histsForDataCard, boxName, samples):
+    for sample in samples:
+        histsForDataCard[sample+'_stat'+boxName+sample+'Up'] = (
+                histsForDataCard[sample].Clone())
+        histsForDataCard[sample+'_stat'+boxName+sample+'Down'] = (
+                histsForDataCard[sample].Clone())
+        for bx in range(1, histsForDataCard[sample].GetNbinsX()+1):
+            histsForDataCard[
+                sample+'_stat'+boxName+sample+'Up'].SetBinContent(
+                    bx, histsForDataCard[sample].GetBinContent(bx) 
+                    + histsForDataCard[sample].GetBinError(bx))
+            histsForDataCard[
+                sample+'_stat'+boxName+sample+'Down'].SetBinContent(
+                    bx, histsForDataCard[sample].GetBinContent(bx) 
+                    - histsForDataCard[sample].GetBinError(bx))
+        histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetName(
+            sample+'_stat'+boxName+sample+'Up')
+        histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetName(
+            sample+'_stat'+boxName+sample+'Down')
+        histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetTitle(
+            sample+'_stat'+boxName+sample+'Up')
+        histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetTitle(
+            sample+'_stat'+boxName+sample+'Down')
+
+def unrollAndStitch(hists, boxName, samples=[], var=('MR','Rsq'),
+        debugLevel=0, unrollBins=None, noSys=False, addStatUnc=True,
+        addMCVsFit=False):
+    """
+    Unrolls each histogram and pieces together the different
+    b-tag bins.
+    """
+    unrolledMC, unrolledData, unrolledFit, unrolledShapeHists = (
+            unrollHistsForDataCard(hists, samples, noSys,
+            var, debugLevel, unrollBins))
+
+    histsForDataCard = stitchHistsForDataCard(unrolledMC,
+            unrolledData, unrolledShapeHists, samples)
+
     if addMCVsFit:
-        fitTotal = macro.stitch(unrolledFit)
-
-        #make total MC histogram to compare with fit
-        mcTotal = histsForDataCard[samples[0]].Clone('mcTotal')
-        mcTotal.Reset()
-        for s in samples:
-            mcTotal.Add(histsForDataCard[s])
-            histsForDataCard[s+'_fitmccrosscheckUp'] = histsForDataCard[s].Clone()
-            histsForDataCard[s+'_fitmccrosscheckDown'] = histsForDataCard[s].Clone()
-            histsForDataCard[s+'_fitmccrosscheckUp'].SetName(s+'_fitmccrosscheckUp')
-            histsForDataCard[s+'_fitmccrosscheckDown'].SetName(s+'_fitmccrosscheckDown')
-            histsForDataCard[s+'_fitmccrosscheckUp'].SetTitle(s+'_fitmccrosscheckUp')
-            histsForDataCard[s+'_fitmccrosscheckDown'].SetTitle(s+'_fitmccrosscheckDown')
-        
-        #get fit/MC and propagate to individual MC processes
-        for bx in range(1, histsForDataCard[samples[0]].GetNbinsX()+1):
-            if mcTotal.GetBinContent(bx) > 0:
-                fitOverMC = fitTotal.GetBinContent(bx) / mcTotal.GetBinContent(bx)
-
-                for s in samples:
-                    histsForDataCard[s+'_fitmccrosscheckUp'].SetBinContent(bx, 
-                            histsForDataCard[s].GetBinContent(bx) * fitOverMC)
-                    histsForDataCard[s+'_fitmccrosscheckDown'].SetBinContent(bx, 
-                            histsForDataCard[s].GetBinContent(bx) / fitOverMC)
-
-
-    #make statistical uncertainty up/down histograms
+        addMCVsFitUncertainty(histsForDataCard, unrolledFit, samples)
     if addStatUnc:
-        for sample in samples:
-            histsForDataCard[sample+'_stat'+boxName+sample+'Up'] = histsForDataCard[sample].Clone()
-            histsForDataCard[sample+'_stat'+boxName+sample+'Down'] = histsForDataCard[sample].Clone()
-            for bx in range(1, histsForDataCard[sample].GetNbinsX()+1):
-                histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) + histsForDataCard[sample].GetBinError(bx))
-                histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetBinContent(bx, histsForDataCard[sample].GetBinContent(bx) - histsForDataCard[sample].GetBinError(bx))
-            histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetName(sample+'_stat'+boxName+sample+'Up')
-            histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetName(sample+'_stat'+boxName+sample+'Down')
-            histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetTitle(sample+'_stat'+boxName+sample+'Up')
-            histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetTitle(sample+'_stat'+boxName+sample+'Down')
+        addStatUncertainty(histsForDataCard, boxName, samples)
 
     #set names on histograms
-    histsForDataCard['data_obs'].SetName('data_obs')
-    histsForDataCard['data_obs'].SetTitle('data_obs')
+    if 'data_obs' in histsForDataCard:
+        histsForDataCard['data_obs'].SetName('data_obs')
+        histsForDataCard['data_obs'].SetTitle('data_obs')
     for sample in samples:
         histsForDataCard[sample].SetName(sample)
         histsForDataCard[sample].SetTitle(sample)
         for shape in unrolledShapeHists[sample]:
             if sample+'_'+shape in histsForDataCard:
-                histsForDataCard[sample+'_'+shape].SetName(sample+'_'+shape)
-                histsForDataCard[sample+'_'+shape].SetTitle(sample+'_'+shape)
+                histsForDataCard[sample+'_'+shape].SetName(
+                    sample+'_'+shape)
+                histsForDataCard[sample+'_'+shape].SetTitle(
+                    sample+'_'+shape)
+
+    return histsForDataCard
+         
+def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".", 
+        var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, 
+        noSys=False, addStatUnc=True, addMCVsFit=False):
+    """
+    Loads the output of makeControlSampleHists, unrolls each 
+    histogram, and pieces together the different b-tag bins 
+    to get the histograms used for limit setting.
+    """
+
+    maxBtags = getMaxBtags(boxName)
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"B.root" 
+            for b in range(maxBtags+1)]
+
+    hists = []
+    for f in filenames:
+        hists.append(macro.importHists(f, debugLevel))
+
+    histsForDataCard = unrollAndStitch(hists, boxName, samples, 
+            var, debugLevel, unrollBins, noSys, addStatUnc, 
+            addMCVsFit)
 
     if export:
-        macro.exportHists(histsForDataCard, outFileName='razorBackgroundHists'+boxName+'.root', outDir=outDir, useDirectoryStructure=False, delete=False, debugLevel=debugLevel)
+        macro.exportHists(histsForDataCard, 
+            outFileName='razorBackgroundHists'+boxName+'.root', 
+            outDir=outDir, useDirectoryStructure=False, delete=False, 
+            debugLevel=debugLevel)
 
     return histsForDataCard
 
