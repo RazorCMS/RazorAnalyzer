@@ -1472,7 +1472,9 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Razor
         bool passCuts = false;
         for (auto &vars : mainVars) {
-            if (vars.second->MR > 300 && vars.second->Rsq > 0.15 && vars.second->box != NONE) passCuts = true;
+            if (vars.second->MR > 300 && 
+		(vars.second->Rsq > 0.15 || (isFastsimSMS && vars.second->RsqGenMet > 0.15)) && 
+		vars.second->box != NONE) passCuts = true;
         }
         if (!passCuts) continue;
 
