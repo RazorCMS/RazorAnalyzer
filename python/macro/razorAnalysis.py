@@ -14,16 +14,7 @@ from framework import Config
 
 razorWeightOpts = {
         "Razor2015":[],
-        "Razor2016":[
-                     #"reapplyNPUWeights", #remove pileup weight and multiply by new PU weight
-                     #"nbjets", #apply an extra btag correction
-                     #'toppt', #apply top pt weight
-                     #'reapplyLepWeights', #remove lepton efficiency weights and multiply by new weight
-                     #'reapplyTrigWeights', #remove lepton trigger weights and multiply by new weight
-                     #'removeTrigWeights', #divide event weight by trigger weight 
-                     #'removePileupWeights', #divide event weight by pileup weight
-                     #'removeBtagWeights', #divide event weight by btag weight
-                     ], 
+        "Razor2016":[], 
         }
 razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]
@@ -43,15 +34,12 @@ razorExtraWeightOpts["Razor2016_ICHEP_80X"] = razorExtraWeightOpts["Razor2016G_S
 razorWeightHists = {
         "Razor2015":{},
         "Razor2016":{ 
-            #"pileup": #("/afs/cern.ch/work/s/sixie/public/releases/run2/CMSSW_7_4_2/src/RazorAnalyzer/data/PileupWeights/PileupReweight2016G_partial.root", "PileupReweight"),
-            #"muoneff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightMuonSelectionEffDenominatorReco"),
-            #"eleeff":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root", "ScaleFactor_TightElectronSelectionEffDenominatorReco"),
-            #"muontrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
-            #"eletrig":("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root", "hEffEtaPt"),
             "qcdslopesmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_MultiJet"),
             "qcdintersmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_MultiJet"),
+            "qcdcovarsmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_MultiJet"),
             "qcdslopesdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_DiJet"),
             "qcdintersdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_DiJet"),
+            "qcdcovarsdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_DiJet"),
                 }
         }
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
@@ -818,7 +806,7 @@ razorBinning["SusySync"] = {
         }
 
 ### Signal region
-signalConfig = "config/run2_2017_03_13_SeparateBtagFits.config"
+signalConfig = "config/run2_2017_03_13_SeparateBtagFits_forToys.config"
 cfg = Config.Config(signalConfig)
 for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
     razorBinning[box] = {

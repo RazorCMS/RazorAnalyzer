@@ -23,21 +23,36 @@ if __name__ == "__main__":
     #initialize
     plotOpts = { 'comment':False, "SUS15004CR":True }
     regions = {}
+    regionsOrder = []
     #define all tests
     for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
         regionName = "GJetsInv"+name+"ClosureTest"
         regions[regionName] = Analysis("GJetsInv",tag=tag,
                 njetsMin=jets[0], njetsMax=jets[1])
+        regionsOrder.append(regionName)
+        maxB = 3
+        if name == 'DiJet':
+            maxB = 2
+        for nb in range(maxB+1):
+            nbMax = nb
+            if nb == maxB:
+                nbMax = -1
+            regionName = "GJetsInv"+name+"ClosureTest"+str(nb)+"B"
+            regionsOrder.append(regionName)
+            regions[regionName] = Analysis("GJetsInv",tag=tag,
+                    njetsMin=jets[0], njetsMax=jets[1], nbMin=nb,
+                    nbMax=nbMax)
 
     sfHists = macro.loadScaleFactorHists(
-            sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
+            sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s_Uncorr.root"%(tag), 
             processNames=regions.itervalues().next().samples, debugLevel=debugLevel)
     sfVars = ("MR_NoPho","Rsq_NoPho")
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
     razorWeights.loadPhotonPurityHists(sfHists, tag, debugLevel)
-    for region,analysis in regions.iteritems():
+    for region in regionsOrder:
+        analysis = regions[region]
         print "\nRegion:",region,"\n"
         #make output directory
         outdir = 'Plots/'+tag+'/'+region
@@ -51,8 +66,10 @@ if __name__ == "__main__":
                 sfVars=sfVars, printdir=outdir, auxSFs=auxSFs, btags=analysis.nbMin,
                 dataDrivenQCD=True, debugLevel=debugLevel )
         #compute scale factors
-        appendScaleFactors( region+"NBJets", hists, sfHists, lumiData=analysis.lumi, 
-                var="NBJetsMedium", debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir )
+        appendScaleFactors( region+"MR", hists, sfHists, lumiData=analysis.lumi, 
+                var="MR_NoPho", debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir )
+        appendScaleFactors( region+"Rsq", hists, sfHists, lumiData=analysis.lumi, 
+                var="Rsq_NoPho", debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir )
         #export histograms
         macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
                 outDir=outdir, debugLevel=debugLevel )
@@ -60,7 +77,9 @@ if __name__ == "__main__":
         outfile = rt.TFile(
                 "data/ScaleFactors/RazorMADD2015/RazorGJetsBTagClosureTests_%s.root"%(tag),
                 "UPDATE")
-        print "Writing scale factor histogram",sfHists[region+"NBJets"].GetName(),"to file"
+        print "Writing scale factor histogram",sfHists[region+"MR"].GetName(),"to file"
+        print "Writing scale factor histogram",sfHists[region+"Rsq"].GetName(),"to file"
         outfile.cd()
-        sfHists[region+"NBJets"].Write( sfHists[region+"NBJets"].GetName() )
+        sfHists[region+"MR"].Write( sfHists[region+"MR"].GetName() )
+        sfHists[region+"Rsq"].Write( sfHists[region+"Rsq"].GetName() )
         outfile.Close()

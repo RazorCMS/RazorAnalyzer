@@ -378,7 +378,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, dataWeightOpts=[]):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}):
     """Basic function for filling histograms and making plots.
         NOTE: for most purposes please call makeControlSampleHistsForAnalysis.
         Arguments:
@@ -396,6 +396,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             weightOpts: list of strings with directives for applying weights to the MC
             miscErrors: currently unused
             fitToyFiles: optional -- dictionary of boxName:toyFile pairs for loading razor fit results
+            doDataShapeUnc: create shape uncertainty histograms for data
     """
     # this is used to customize histogram titles 
     # for certain kinematic variables
@@ -422,20 +423,22 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         cutsForQCDData = cutsData.replace('abs(dPhiRazor) <','abs(dPhiRazor) >')
         samplesForQCD = copy.copy(samples)
         samplesForQCD.remove('QCD')
-        # TODO: replace this mechanism. qcd option should be 
-        # specified as an argument to makeControlSampleHists
-        # to avoid ad-hoc reliance on boxName
-        if boxName is not None and 'DiJet' in boxName:
-            qcdOption = 'datadrivenqcddijet'
-        elif 'GJets' in regionName:
-            qcdOption = 'qcdphoton'
-        else:
-            qcdOption = 'datadrivenqcdmultijet'
+        weightOptsForQCD = copy.copy(weightOpts)
+        if 'GJets' in regionName:
+            weightOptsForQCD.append('qcdphoton')
         #recursion
-        histsForQCD = makeControlSampleHists(regionName=regionName+"QCDControlRegion", filenames=filenames, samples=samplesForQCD, cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, bins=bins, plotOpts=plotOpts, lumiMC=lumiMC, lumiData=lumiData, weightHists=weightHists, sfHists=sfHists, treeName=treeName, dataName="QCD", weightOpts=weightOpts+[qcdOption], boxName=boxName, btags=btags, debugLevel=debugLevel, printdir=printdir, sfVars=sfVars, auxSFs=auxSFs, makePlots=False, dataDrivenQCD=False, noFill=noFill, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts, dataWeightOpts=copy.copy(dataWeightOpts))
-        #backgrounds are subtracted from QCD prediction in signal region only
-        if qcdOption == 'datadrivenqcddijet' or qcdOption == 'datadrivenqcdmultijet':
-            macro.subtractBkgsInData(process='QCD', hists=histsForQCD, dataName='QCD', debugLevel=debugLevel)
+        histsForQCD = makeControlSampleHists(
+                regionName=regionName+"QCDControlRegion", 
+                filenames=filenames, samples=samplesForQCD, 
+                cutsMC=cutsForQCDBkg, cutsData=cutsForQCDData, 
+                bins=bins, lumiMC=lumiMC, lumiData=lumiData, 
+                weightHists=weightHists, sfHists=sfHists, 
+                treeName=treeName, dataName="QCD", 
+                weightOpts=weightOptsForQCD, boxName=boxName, 
+                btags=btags, debugLevel=debugLevel, 
+                sfVars=sfVars, auxSFs=auxSFs, makePlots=False, 
+                noFill=noFill, extraCuts=extraCuts, 
+                extraWeightOpts=extraWeightOpts, exportShapeErrs=True)
         print "Now back to our signal region..."
     else:
         histsForQCD = None
@@ -503,53 +506,34 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     print weightOpts
 
     #define histograms to fill
-    hists,shapeHists = macro.setupHistograms(regionName, inputs, samples, bins, titles, shapeErrors, dataName)
+    hists,shapeHists = macro.setupHistograms(regionName, inputs, 
+            samples, bins, titles, shapeErrors, dataName)
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     
     samplesToUse = copy.copy(samples) #MC samples to process
     if dataDrivenQCD:
         #do not process QCD as a MC sample
         samplesToUse.remove('QCD')
-        #store QCD result from above and do QCD up/down systematic
-        if histsForQCD is None:
-            print "Error in makeControlSampleHists: QCD hist was not filled.  Check the code!"
-            return
-        for var in hists['QCD']:
-            if debugLevel > 0:
-                print "\nStoring QCD histogram for",var
-            hists['QCD'][var] = histsForQCD['QCD'][var].Clone()
-            hists['QCD'][var].SetDirectory(0)
-            if 'qcdnormUp' in shapeHists['QCD']:
-                if 'DiJet' in boxName:
-                    qcdNormErrFrac = QCDNORMERRFRACTION_DIJET
-                else:
-                    qcdNormErrFrac = QCDNORMERRFRACTION_MULTIJET
-                if debugLevel > 0:
-                    print "Including fractional up/down systematic error (%.2f) on QCD for"%(qcdNormErrFrac),var
-                shapeHists['QCD']['qcdnormUp'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Up')
-                shapeHists['QCD']['qcdnormUp'][var].Scale(qcdNormErrFrac)
-                shapeHists['QCD']['qcdnormUp'][var].SetDirectory(0)
-                shapeHists['QCD']['qcdnormDown'][var] = histsForQCD['QCD'][var].Clone(histsForQCD['QCD'][var].GetName()+'Down')
-                shapeHists['QCD']['qcdnormDown'][var].Scale(1.0/qcdNormErrFrac)
-                shapeHists['QCD']['qcdnormDown'][var].SetDirectory(0)
-        for name in histsForQCD:
-            for var in histsForQCD[name]:
-                histsForQCD[name][var].Delete()
+        #store QCD result from above 
+        postprocessQCDHists(hists, shapeHists,
+                histsForQCD, weightHists, regionName, btags, debugLevel)
     #use QCD extrapolation on data
     auxSFsData = {}
     auxSFHistsData={}
-    if 'datadrivenqcddijet' in map(str.lower, weightOpts): 
-        dataWeightOpts.append('datadrivenqcddijet')
-    elif 'datadrivenqcdmultijet' in map(str.lower, weightOpts): 
-        dataWeightOpts.append('datadrivenqcdmultijet')
-    elif 'qcdphoton' in map(str.lower, weightOpts):
+    if 'qcdphoton' in map(str.lower, weightOpts):
         auxSFsData = auxSFs["QCD"]
         samplesToUse = [] #skip running MC samples
         del auxSFs["QCD"] 
         auxSFHistsData = {name:sfHists[name] for name in auxSFsData}
             
-    print "\n These event reweighting options will be used for data:"
-    print dataWeightOpts
+    #sum of weights histograms are needed to compute 
+    #factorization/renormalization scale uncertainties
+    if ('facscale' in shapeErrors or 'renscale' in shapeErrors
+            or 'facrenscale' in shapeErrors):
+        print "Loading sum of weights histograms for all processes"
+        weightHistsPerProcess = makeWeightHistDict(files, debugLevel)
+    else:
+        weightHistsPerProcess = {}
     print "\n These scale factors will be used for data:"
     print auxSFsData
 
@@ -557,14 +541,15 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     if dataName in trees:
         print("\nData:")
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, 
-                hists=hists[dataName], weightHists=weightHists, weightOpts=dataWeightOpts, 
-                auxSFs=auxSFsData, auxSFHists=auxSFHistsData, noFill=noFill, debugLevel=debugLevel) 
+                hists=hists[dataName], weightHists=weightHists, 
+                auxSFs=auxSFsData, auxSFHists=auxSFHistsData, noFill=noFill, 
+                debugLevel=debugLevel) 
 
     print("\nMC:")
     if debugLevel > 0:
         print "\nMisc SF hists to use:"
         print auxSFs
-    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts) 
+    macro.loopTrees(trees, weightF=weight_mc, cuts=cutsMC, hists={name:hists[name] for name in samplesToUse}, weightHists=weightHists, sfHists=sfHists, scale=lumiData*1.0/lumiMC, weightOpts=weightOpts, sfVars=sfVars, statErrOnly=False, auxSFs=auxSFs, shapeHists=shapeHists, shapeNames=sfShapes, shapeAuxSFs=shapeAuxSFs, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel, extraCuts=extraCuts, extraWeightOpts=extraWeightOpts, weightHistsPerProcess=weightHistsPerProcess) 
 
     #Some shape uncertainties cannot easily be computed in the same pass as
     #the central histogram values (usually because the selection cuts are different).
@@ -697,8 +682,50 @@ def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=
             printdir=printdir, auxSFs=auxSFs, dataDrivenQCD=dataDrivenQCD, 
             unrollBins=analysis.unrollBins, noFill=noFill, exportShapeErrs=exportShapeErrs, 
             extraCuts=analysis.extraCuts, extraWeightOpts=analysis.extraWeightOpts, 
-            dataWeightOpts=analysis.dataWeightOpts, propagateScaleFactorErrs=propagateScaleFactorErrs, 
+            propagateScaleFactorErrs=propagateScaleFactorErrs, 
             sfVars=sfVars, lumiMC=lumiMC, debugLevel=debugLevel)
+
+def postprocessQCDHists(hists, shapeHists,
+        qcdHists, wHists, region, btags, debugLevel=0):
+    """Performs extrapolation of QCD prediction to signal region
+       and stores results in histogram dictionary.
+       -hists: dictionary in which to store histograms
+       -shapeHists: dictionary to store up/down histograms
+       -qcdHists: histograms to process and store
+       -wHists: dictionary of histograms for weighting
+       -region: name of the analysis region"""
+    # We subtract the backgrounds in data in order to isolate
+    # the QCD component. This is not relevant for the gamma+jets
+    # case because we already apply the photon purity calculation
+    # event by event. 
+    isSignalRegion = not ('GJets' in region)
+    if isSignalRegion:
+        macro.subtractBkgsInData(process='QCD', hists=qcdHists, 
+                dataName='QCD', debugLevel=debugLevel)
+
+    # Merge the two sets of histograms
+    for var in hists['QCD']:
+        if debugLevel > 0:
+            print "\nStoring QCD histogram for",var
+        hists['QCD'][var] = qcdHists['QCD'][var].Clone()
+        hists['QCD'][var].SetDirectory(0)
+
+    # Note: for signal regions, the histograms produced 
+    # here are only guaranteed to be correct for the 2D MR-Rsq
+    # distribution. The extrapolation is not done on 1D hists.
+    if isSignalRegion:
+        var = ('MR','Rsq')
+        qcd2DHist = qcdHists['QCD'][var]
+        hists['QCD'][var] = (
+                makeQCDExtrapolation(qcd2DHist, 
+                wHists, region, btags, debugLevel))
+        if 'QCD' in shapeHists and 'qcdnormUp' in shapeHists['QCD']:
+            shapeHists['QCD']['qcdnormUp'][var] = (
+                    makeQCDExtrapolation(qcd2DHist, wHists, region, 
+                        btags, debugLevel, errOpt='qcdnormUp'))
+            shapeHists['QCD']['qcdnormDown'][var] = (
+                    makeQCDExtrapolation(qcd2DHist, wHists, region, 
+                        btags, debugLevel, errOpt='qcdnormDown'))
 
 def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):
     """Loads the output of makeControlSampleHists from a file and creates plots"""

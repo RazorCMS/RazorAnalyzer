@@ -552,6 +552,21 @@ def transformVarString(event, string, errorOpt, process="", debugLevel=0):
         outstring = transformVarsInString(string, JETVARS, "_JERUp")
     elif errorOpt == "jerDown":
         outstring = transformVarsInString(string, JETVARS, "_JERDown")
+    elif errorOpt == "npvextrapUp":
+        if '&&' in string: # only applies to cut string
+            outstring = string + " && nVtx >= 20"
+    elif errorOpt == "npvextrapDown":
+        if '&&' in string: # only applies to cut string
+            outstring = string + " && nVtx < 20"
+    # use gen-level MET instead of PF MET
+    elif errorOpt == "genmetvspfmetUp":
+        outstring = transformVarsInString(string, ['Rsq', 'mT'], 'GenMet')
+    # 'down' option does not exist for this option; select no events
+    elif errorOpt == "genmetvspfmetDown": 
+        if '&&' in string:
+            print ("This 'down' histogram will be filled manually "
+                    "during postprocessing; skipping for now")
+            outstring = "0"
 
     if debugLevel > 1:
         if outstring != string: print "For option",errorOpt,"Replacing string '",string,"' with '",outstring,"'"
@@ -879,7 +894,7 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
-def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, debugLevel=0):
+def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, scale=1.0, weightOpts=[], errorOpt=None, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, boxName="NONE", auxSFs={}, shapeHists={}, shapeNames=[], shapeAuxSFs={}, noFill=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, debugLevel=0, weightHistsPerProcess={}):
     """calls loopTree on each tree in the dictionary.  
     Arguments:
         treeDict: dictionary { "process1":tree1, "process2":tree2, ... }
@@ -916,6 +931,8 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         extraCuts: additional per-process cuts to apply: 
             { "proc1":"cuts1", ... }
         debugLevel: 0 for standard mode, 1 for verbose mode, 2 for debug mode
+        weightHistsPerProcess: dictionary { "proc1":{<weight histograms>}, ...}
+            used for NEvents and SumScaleWeights histograms
     """
     sumweights=0.0
     for name in treeDict: 
@@ -934,6 +951,10 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
         print "Also using scale factors",auxSFsToUse
         #get appropriate scale factor histograms for misc reweightings
         auxSFHists = {name:sfHists[name] for name in auxSFsToUse} 
+        #get correct weight histograms
+        weightHistsToUse = copy.copy(weightHists)
+        if name in weightHistsPerProcess:
+            weightHistsToUse.update(weightHistsPerProcess[name])
         #get correct variables for scale factor reweighting.
         #if sfVars is a dictionary, get the appropriate value from it.  otherwise use sfVars directly.
         sfVarsToUse = sfVars
@@ -987,7 +1008,7 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             print "Will fill histograms for these shape uncertainties:"
             print shapeNamesToUse
 
-        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHists, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
+        sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHistsToUse, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
     print "Sum of event weights for all processes:",sumweights
 
 def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, downHist, sfHist, contamHist, debugLevel=0):

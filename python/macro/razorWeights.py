@@ -8,41 +8,53 @@ import sys
 ### WEIGHT AND TRIGGER INFO
 #####################################
 
-#QCD systematic error
-QCDNORMERRFRACTION_DIJET = 1.00
-QCDNORMERRFRACTION_MULTIJET = 1.00
-#QCDNORMERRFRACTION = 0.87 #used in 2015
-
-def getQCDExtrapolationFactor(event,wHists,region='multijet'):
+def getQCDExtrapolationFactor(MR, Rsq, NBtags, wHists,region='multijet',
+        errorOpt=None, debugLevel=0):
     """Get QCD extrapolation factor as a function of MR"""
     slopeHist = wHists['qcdslopes'+region]
     interHist = wHists['qcdinters'+region]
-    xbin = slopeHist.GetXaxis().FindFixBin(event.MR)
-    slope = slopeHist.GetBinContent(xbin, min(3, event.nBTaggedJets+1))
-    inter = interHist.GetBinContent(xbin, min(3, event.nBTaggedJets+1))
-    sf = inter + event.Rsq * slope
-    return sf
-    #if region.lower() == 'dijet':
-    #    return 0.05
-    #else:
-    #    return 3.1e+7*(MR**(-3.1)) + 0.062 #power law + constant (MultiJet 2015)
+    xbin = slopeHist.GetXaxis().FindFixBin(
+            min(slopeHist.GetXaxis().GetXmax()*0.99, MR))
+    btags = min(3, NBtags+1)
+    slope = slopeHist.GetBinContent(xbin, btags)
+    inter = interHist.GetBinContent(xbin, btags)
+    sf = inter + Rsq * slope
 
-WEIGHTDIR_DEFAULT = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors"
-LEPTONWEIGHTDIR_DEFAULT = "LeptonEfficiencies/20151013_PR_2015D_Golden_1264"
-weightfilenames_DEFAULT = {
-        "muon": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_TightMuonSelectionEffDenominatorReco_2015D_Golden.root",
-        "ele": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_TightElectronSelectionEffDenominatorReco_2015D_Golden.root",
-        "muontrig": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015D_Golden.root",
-        "eletrig": WEIGHTDIR_DEFAULT+"/"+LEPTONWEIGHTDIR_DEFAULT+"/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015D_Golden.root",
-        "pileup": WEIGHTDIR_DEFAULT+"/PileupWeights/NVtxReweight_ZToMuMu_2015D_1264ipb.root",
-        }
-weighthistnames_DEFAULT = {
-        "muon": "ScaleFactor_TightMuonSelectionEffDenominatorReco",
-        "ele": "ScaleFactor_TightElectronSelectionEffDenominatorReco",
-        "muontrig": "ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight",
-        "eletrig": "ScaleFactor_EleTriggerEleCombinedEffDenominatorTight",
-        "pileup": "NVtxReweight",
-        }
+    if errorOpt is not None:
+        covarHist = wHists['qcdcovars'+region]
+        slopeerr = slopeHist.GetBinError(xbin, btags)
+        intererr = interHist.GetBinError(xbin, btags)
+        covar = covarHist.GetBinContent(xbin, btags)
+        sfErr = math.sqrt( Rsq*Rsq*slopeerr*slopeerr 
+                + intererr*intererr + 2*Rsq*covar )
+        if errorOpt == 'qcdnormUp':
+            return sf + sfErr
+        elif errorOpt == 'qcdnormDown':
+            return max(0., sf - sfErr)
+
+    return sf
+
+def makeQCDExtrapolation(qcd2DHist, wHists, region, btags,
+        debugLevel=0, errOpt=None):
+    """Performs extrapolation from high to low delta phi region
+        for QCD prediction in the signal region.
+        Returns corrected histogram with same shape as qcd2DHist"""
+    newHist = qcd2DHist.Clone()
+    newHist.SetDirectory(0)
+    for bx in range(1, qcd2DHist.GetNbinsX()+1):
+        for by in range(1, qcd2DHist.GetNbinsY()+1):
+            MR = qcd2DHist.GetXaxis().GetBinLowEdge(bx) 
+            Rsq = qcd2DHist.GetYaxis().GetBinLowEdge(by) 
+            extrapFactor = getQCDExtrapolationFactor(MR, Rsq, btags,
+                    wHists, region.lower(), errOpt, debugLevel)
+            if debugLevel > 0:
+                print "QCD extrapolation factor in bin with center",MR,Rsq,"is",extrapFactor,"( error option",errOpt,")"
+            newHist.SetBinContent(bx, by, qcd2DHist.GetBinContent(
+                bx, by) * extrapFactor)
+            newHist.SetBinError(bx, by, qcd2DHist.GetBinError(
+                bx, by) * extrapFactor)
+    return newHist
+
 
 def getNISRCorrection(event):
     """Computes a weight according to the number of ISR jets in the (ttbar) event.
@@ -316,9 +328,12 @@ weightTable = {
         "facscaleDown":"sf_facScaleDown",
         "renscaleUp":"sf_renScaleUp",
         "renscaleDown":"sf_renScaleDown",
-        "facRenscaleUp":"sf_facRenScaleUp",
-        "facRenscaleDown":"sf_facRenScaleDown",
+        "facrenscaleUp":"sf_facRenScaleUp",
+        "facrenscaleDown":"sf_facRenScaleDown",
         }
+
+scaleWeights = ['facscaleUp','facscaleDown','renscaleUp','renscaleDown',
+        'facrenscaleUp','facrenscaleDown']
 
 def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel=0):
     """Apply pileup weights and other known MC correction factors"""
@@ -333,20 +348,6 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
         print "Scale by:",scale
 
     if len(lweightOpts) > 0:
-
-        #QCD extrapolation weight
-        if 'datadrivenqcddijet' in lweightOpts: 
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(
-                    event,wHists,region='dijet')
-            if debugLevel > 1:
-                print "QCD extrapolation factor:",qcdExtrapolationFactor
-            eventWeight *= qcdExtrapolationFactor
-        elif 'datadrivenqcdmultijet' in lweightOpts: 
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(
-                    event,wHists,region='multijet')
-            if debugLevel > 1:
-                print "QCD extrapolation factor:",qcdExtrapolationFactor
-            eventWeight *= qcdExtrapolationFactor
 
         #reweighting in number of b-jets
         if 'nbjets' in lweightOpts:
@@ -406,6 +407,18 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
             eventWeight /= (1+normErrFraction)
             if debugLevel > 1: print errorOpt,"scale factor:",1/(1+normErrFraction)
 
+        # renormalize weights as needed
+        if errorOpt in scaleWeights:
+            if not ('nevents' in wHists and 'sumscaleweights' in wHists):
+                print "Warning: missing weight normalization histograms"
+            else:
+                weightRescale = (wHists['nevents'].Integral() /
+                        wHists['sumscaleweights'].GetBinContent(
+                            scaleWeights.index(errorOpt)+1))
+                if debugLevel > 1:
+                    print "For",errorOpt,"rescaling weight by",weightRescale
+                eventWeight *= weightRescale
+
     if debugLevel > 1: 
         print "event weight:",eventWeight
     return eventWeight
@@ -419,21 +432,9 @@ def weight_data(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLev
         return eventWeight
     elif 'ttbardileptonmt' in lweightOpts:
         return scale * getTTBarDileptonWeight(event)
-    else: #data-driven QCD estimate
-        if 'datadrivenqcddijet' in lweightOpts:
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(
-                    event,wHists,region='dijet')
-        elif 'datadrivenqcdmultijet' in lweightOpts:
-            qcdExtrapolationFactor = getQCDExtrapolationFactor(
-                    event,wHists,region='multijet')
-        else:
-            qcdExtrapolationFactor = 1.0
-            print "Warning: data weight options",lweightOpts,"may not make sense; see macro.razorWeights.weight_data"
-        eventWeight = qcdExtrapolationFactor*scale
-        if debugLevel > 1:
-            print "QCD extrapolation factor:",qcdExtrapolationFactor
-            print "Scale by:",scale
-            print "event weight:",eventWeight
+    else: 
+        print("Warning: data weight options",lweightOpts,
+                "may not make sense; see macro.razorWeights.weight_data")
         return eventWeight
 
 def getMTRelUncertainty(MR, bkg, box):
@@ -645,7 +646,7 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt="", auxSFsPerProcess=False):
             histNames.append('ZInvBUp')
         elif 'Down' in errorOpt:
             histNames.append('ZInvBDown')
-        varNames.append('nBTaggedJets')
+        varNames.append('MR')
         cuts.append('1')
 
     #return dictionary with needed information
@@ -662,6 +663,8 @@ def splitShapeErrorsByType(shapeErrors):
         'jes':False,
         'ees':False,
         'mes':False,
+        'npvextrap':False,
+        'genmetvspfmet':False,
         'btag':True,
         'pileup':True,
         'bmistag':True,
@@ -756,3 +759,35 @@ def getPhotonPuritySFs(auxSFs={}):
     auxSFs["QCD"]['PhotonPurityEB'] = (('MR_NoPho','Rsq_NoPho'),'abs(pho1.Eta()) < 1.479')
     auxSFs["QCD"]['PhotonPurityEE'] = (('MR_NoPho','Rsq_NoPho'),'abs(pho1.Eta()) >= 1.479')
     return auxSFs
+
+def getNPVHist(tag):
+    """Loads the NPV histogram from the file corresponding to the given
+        analysis tag, and returns it."""
+    filenames = {
+            "Razor2016_MoriondRereco":
+                "data/PileupWeights/NPVTarget_2016_35p9ifb.root"
+                }   
+    if tag not in filenames:
+        sys.exit("tag %s is not supported for NPV reweighting"%(tag))
+    inFile = rt.TFile.Open(filenames[tag])
+    npvHist = inFile.Get("NPV_2016")
+    assert npvHist
+    npvHist.SetDirectory(0)
+    return npvHist
+
+def makeWeightHistDict(fileDict, debugLevel=0):
+    """Gets NEvents and SumScaleWeights hists from each file"""
+    hists = {}
+    for name,f in fileDict.iteritems():
+        if debugLevel > 0: 
+            print "Loading weight histograms for process",name
+        nevents = f.Get("NEvents")
+        if nevents:
+            nevents.SetDirectory(0)
+        sumScaleWeights = f.Get("SumScaleWeights")
+        if sumScaleWeights:
+            sumScaleWeights.SetDirectory(0)
+        hists[name] = {'nevents':nevents, 
+                'sumscaleweights':sumScaleWeights}
+    return hists
+
