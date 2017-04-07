@@ -8,7 +8,7 @@ from macro import macro
 from macro.razorAnalysis import Analysis, razorSignalDirs, signalConfig, controlConfig
 from macro.razorMacros import unrollAndStitch, unrollAndStitchFromFiles, getMaxBtags
 from RunCombine import exec_me
-from SMSTemplates import makeSMSTemplates, signalShapeUncerts
+from SMSTemplates import makeSMSTemplates, signalShapeUncerts, SMSOpts
 from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 from framework import Config
 import CheckSignalContamination as contam
@@ -159,9 +159,11 @@ if __name__ == "__main__":
                 uncerts.remove(u)
 
         # call SMS template maker
+        smsOpts = SMSOpts(xBR=xBR, yBR=yBR, doNPVExtrap=True,
+                doGenMetVsPFMet=True)
         signalHists = makeSMSTemplates(curBox, signalFilename,
                 uncertainties=uncerts, debugLevel=debugLevel,
-                xBR=xBR, yBR=yBR, tag=args.tag)
+                tag=args.tag, opts=smsOpts)
     
         # reduced efficiency method -- corrects for signal contamination
         if not args.noSignalContam:
@@ -177,7 +179,6 @@ if __name__ == "__main__":
 
         # treat appropriate uncertainties as uncorrelated bin to bin
         toUncorrelate = ['stat'+curBox+sample for sample in samples]
-        toUncorrelate.append('stat'+curBox+'Signal')
         for sys in toUncorrelate:
             if 'stat' in sys:
                 if args.noStat: continue

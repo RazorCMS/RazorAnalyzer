@@ -6,7 +6,7 @@ from array import *
 
 #local imports
 from framework import Config
-from SMSTemplates import makeSMSTemplates
+from SMSTemplates import makeSMSTemplates, SMSOpts
 from macro.razorAnalysis import Analysis, razorSignalDirs
 from macro.macro import importHists, makeTH2PolyFromColumns, fillTH2PolyFromTH2, stitch
 from WriteRazorMADDCard import BACKGROUND_DIR, getModelName, getBranchingFracsFromModelName
@@ -40,7 +40,9 @@ def checkSignalContamination(config, outDir, lumi, box, model, mLSP,
         modelName = getModelName(model, mGluino, mLSP)
         fileName = dirToUse+'/%s.root'%(modelName)
         
-    sigTH1 = makeSMSTemplates(box, fileName, xBR=xBR, yBR=yBR, 
+    smsOpts = SMSOpts(xBR=xBR, yBR=yBR, doNPVExtrap=False,
+            doGenMetVsPFMet=False)
+    sigTH1 = makeSMSTemplates(box, fileName, opts=smsOpts,
             debugLevel=debugLevel, tag=tag)['Signal']
     
     bkgdHistDict = importHists('%s/controlHistograms%s.root'%(
