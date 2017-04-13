@@ -738,6 +738,218 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       mChi = 0;
       mLSP = 0;
 
+
+      //--------------------------------------------------------------
+      //Extract SUSY model parameters from lheComment variable
+      //--------------------------------------------------------------
+       bool parsedLHE = false;
+      if(isFastsimSMS && lheComments){
+	//cout << lheComments << " " << *lheComments << "\n";
+
+	//Save some information on signal particles
+	bool foundV1 = false;
+	bool foundV2 = false;
+	TLorentzVector v1;
+	TLorentzVector v2;
+	for(int g = 0; g < nGenParticle; g++){
+	  //cout << gParticleId[g] << " " << gParticleStatus[g] << " " << gParticlePt[g] << " " << gParticleEta[g] << " | " << gParticleMotherId[g] << "\n";
+	  if (gParticleStatus[g]  == 62) {
+	    if (!foundV1) {
+	      v1.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
+	      foundV1 = true;
+	    } else if(!foundV2) {
+	      v2.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
+	      foundV2 = true;
+	    } else {
+	      cout << "Warning: found more than two status=62 particles\n";
+	    }
+	  }	  
+	}
+	if ( foundV1 && foundV2) {
+	  ptISR = (v1+v2).Pt();
+	}
+	
+	
+	if (!is2DMassScan) {
+	  
+
+	  //Save some information on signal particles
+	  for(int g = 0; g < nGenParticle; g++){
+	   
+	    // original N2 produced
+	    if (gParticleId[g] == 1000023 && gParticleStatus[g]  == 62) {
+	      N2Pt = gParticlePt[g];
+	      N2Eta = gParticleEta[g];
+	      N2Phi = gParticlePhi[g];	 
+	      N2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+
+
+	    }
+	    // original N3 produced
+	    if (gParticleId[g] == 1000025 && gParticleStatus[g]  == 62) {
+	      N3Pt = gParticlePt[g];
+	      N3Eta = gParticleEta[g];
+	      N3Phi = gParticlePhi[g];	 
+	      N3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+
+
+	    // H from N2 -> H N1 decay
+	    if (gParticleId[g] == 25 && gParticleMotherId[g]  == 1000023) {
+	      HPt = gParticlePt[g];
+	      HEta = gParticleEta[g];
+	      HPhi = gParticlePhi[g];	 
+	      HMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+	    //N1 from N2 -> H N1 decay
+	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000023) {
+	      N1FromN2Pt = gParticlePt[g];
+	      N1FromN2Eta = gParticleEta[g];
+	      N1FromN2Phi = gParticlePhi[g];	 
+	      N1FromN2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+	    // Z from N3 -> Z N1 decay
+	    if (gParticleId[g] == 23 && gParticleMotherId[g]  == 1000025) {
+	      ZPt = gParticlePt[g];
+	      ZEta = gParticleEta[g];
+	      ZPhi = gParticlePhi[g];	 
+	      ZMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	      //cout << "foudn Z : " << ZPt << " " << ZMass << "\n";
+	    }
+	    //N1 from N3 -> Z N1 decay
+	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000025) {
+	      N1FromN3Pt = gParticlePt[g];
+	      N1FromN3Eta = gParticleEta[g];
+	      N1FromN3Phi = gParticlePhi[g];	 
+	      N1FromN3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+
+	  }
+
+
+
+
+
+	  //parse lhe comment string to get Chargino/Neutralino2 masses
+	  stringstream parser(*lheComments);
+	  string item;
+	  getline(parser, item, '_'); //prefix
+	  if(getline(parser, item, '_')){ //gluino mass 
+	    mChi = atoi(item.c_str());
+	    if(mChi == 0) { //fix for the case where the model name contains an underscore
+	      if(getline(parser, item, '_')){
+		mChi = atoi(item.c_str());
+	      }
+
+	      parsedLHE = true;
+
+
+	      if (fabs( mChi - N2Mass ) > 1) {
+		cout << "Weird: " << mChi << " | " << N2Mass << " " << N3Mass << " " << N1FromN2Mass << " " << N1FromN3Mass << " " << HMass << " " << ZMass << " : " << *lheComments << "\n";
+		cout << "Throwing the event out. \n";
+		continue;
+	      }      
+
+	      if (smsFiles.count(mChi) == 0){ //create file and tree
+		//format file name
+		string thisFileName = outFileName;
+		thisFileName.erase(thisFileName.end()-5, thisFileName.end());
+		thisFileName += "_" + to_string(mChi) + ".root";
+
+		smsFiles[mChi] = new TFile(thisFileName.c_str(), "recreate");
+		smsTrees[mChi] = razorTree->CloneTree(0);
+		smsNEvents[mChi] = new TH1F(Form("NEvents%d", mChi), "NEvents", 1,0.5,1.5);
+		smsSumWeights[mChi] = new TH1F(Form("SumWeights%d", mChi), "SumWeights", 1,0.5,1.5);
+		smsSumScaleWeights[mChi] = new TH1F(Form("SumScaleWeights%d", mChi), "SumScaleWeights", 6,-0.5,5.5);
+		smsSumPdfWeights[mChi] = new TH1F(Form("SumPdfWeights%d", mChi), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
+		smsNISRJets[mChi] = new TH1F(Form("NISRJets%d", mChi), "NISRJets", 7,-0.5,6.5);
+		smsPtISR[mChi] = new TH1F(Form("PtISR%d", mChi), "PtISR", 8, PtISRBins);
+		smsNPV[mChi] = new TH1F(Form("NPV%d", mChi), "NPV", 2,-0.5,1.5);
+		cout << "Created new output file " << thisFileName << endl;
+	      }
+	      //Fill NEvents hist 
+	      smsNEvents[mChi]->Fill(1.0, genWeight);
+	      smsSumWeights[mChi]->Fill(1.0, weight);
+	      smsNISRJets[mChi]->Fill(min(NISRJets,6), genWeight);
+	      smsPtISR[mChi]->Fill(fmin( ptISR , 6999.0), genWeight);
+	      smsNPV[mChi]->Fill( (nPV >= 20)?1:0 , genWeight);
+	      smsSumScaleWeights[mChi]->Fill(0.0, sf_facScaleUp);
+	      smsSumScaleWeights[mChi]->Fill(1.0, sf_facScaleDown);
+	      smsSumScaleWeights[mChi]->Fill(2.0, sf_renScaleUp);
+	      smsSumScaleWeights[mChi]->Fill(3.0, sf_renScaleDown);
+	      smsSumScaleWeights[mChi]->Fill(4.0, sf_facRenScaleUp);
+	      smsSumScaleWeights[mChi]->Fill(5.0, sf_facRenScaleDown);
+
+	      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+		smsSumPdfWeights[mChi]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	      } 
+
+	    }	
+	  }
+	} else {
+
+	  //parse lhe comment string to get gluino and LSP masses
+	  stringstream parser(*lheComments);
+	  string item;
+	  getline(parser, item, '_'); //prefix
+	  if(getline(parser, item, '_')){ //gluino mass 
+	    mChi = atoi(item.c_str());
+	    if(mChi == 0) { //fix for the case where the model name contains an underscore
+	      if(getline(parser, item, '_')){
+		mChi = atoi(item.c_str());
+		if(mChi == 0) { //fix for the case where the model name contains an underscore
+		  if(getline(parser, item, '_')){
+		    mChi = atoi(item.c_str());
+		  }
+		}
+	      }
+	    }
+	    if(getline(parser, item, '_')){ //LSP mass 
+	      mLSP = atoi(item.c_str());
+	      pair<int,int> smsPair = make_pair(mChi, mLSP);
+
+	      parsedLHE = true;
+	      if (smsFiles2D.count(smsPair) == 0){ //create file and tree
+		//format file name
+		string thisFileName = outFileName;
+		thisFileName.erase(thisFileName.end()-5, thisFileName.end());
+		thisFileName += "_" + to_string(mChi) + "_" + to_string(mLSP) + ".root";
+
+		smsFiles2D[smsPair] = new TFile(thisFileName.c_str(), "recreate");
+		smsTrees2D[smsPair] = razorTree->CloneTree(0);
+		smsNEvents2D[smsPair] = new TH1F(Form("NEvents%d%d", mChi, mLSP), "NEvents", 1,0.5,1.5);
+		smsSumWeights2D[smsPair] = new TH1F(Form("SumWeights%d%d", mChi, mLSP), "SumWeights", 1,0.5,1.5);
+		smsSumScaleWeights2D[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mChi, mLSP), "SumScaleWeights", 6,-0.5,5.5);
+		smsSumPdfWeights2D[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mChi, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);		
+		smsNISRJets2D[smsPair] = new TH1F(Form("NISRJets%d%d", mChi, mLSP), "NISRJets", 7,-0.5,6.5);
+		smsPtISR2D[smsPair] = new TH1F(Form("PtISR%d%d", mChi, mLSP), "PtISR", 8,PtISRBins);
+		smsNPV2D[smsPair] = new TH1F(Form("NPV%d%d", mChi, mLSP), "NPV", 2,-0.5,1.5);
+
+		cout << "Created new output file " << thisFileName << endl;
+	      }
+	      //Fill NEvents hist 
+	      smsNEvents2D[smsPair]->Fill(1.0, genWeight);
+	      smsSumWeights2D[smsPair]->Fill(1.0, weight);
+	      smsNISRJets2D[smsPair]->Fill(min(NISRJets,6), genWeight);
+	      smsPtISR2D[smsPair]->Fill(fmin( ptISR , 6999.0), genWeight);
+	      smsNPV2D[smsPair]->Fill( (nPV >= 20)?1:0 , genWeight);
+
+	      smsSumScaleWeights2D[smsPair]->Fill(0.0, sf_facScaleUp);
+	      smsSumScaleWeights2D[smsPair]->Fill(1.0, sf_facScaleDown);
+	      smsSumScaleWeights2D[smsPair]->Fill(2.0, sf_renScaleUp);
+	      smsSumScaleWeights2D[smsPair]->Fill(3.0, sf_renScaleDown);
+	      smsSumScaleWeights2D[smsPair]->Fill(4.0, sf_facRenScaleUp);
+	      smsSumScaleWeights2D[smsPair]->Fill(5.0, sf_facRenScaleDown);
+
+	      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
+		smsSumPdfWeights2D[smsPair]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	      }
+	    }
+	  }
+	}
+      } // end if fastsim
+
+
       //------------------
       //Pileup reweighting
       //------------------
@@ -1682,216 +1894,6 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //I n v a ri a n t   m a s s   r e s o l u t i o n
       //------------------------------------------------
       sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
-
-      //--------------------------------------------------------------
-      //Extract SUSY model parameters from lheComment variable
-      //--------------------------------------------------------------
-       bool parsedLHE = false;
-      if(isFastsimSMS && lheComments){
-	//cout << lheComments << " " << *lheComments << "\n";
-
-	//Save some information on signal particles
-	bool foundV1 = false;
-	bool foundV2 = false;
-	TLorentzVector v1;
-	TLorentzVector v2;
-	for(int g = 0; g < nGenParticle; g++){
-	  //cout << gParticleId[g] << " " << gParticleStatus[g] << " " << gParticlePt[g] << " " << gParticleEta[g] << " | " << gParticleMotherId[g] << "\n";
-	  if (gParticleStatus[g]  == 62) {
-	    if (!foundV1) {
-	      v1.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
-	      foundV1 = true;
-	    } else if(!foundV2) {
-	      v2.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
-	      foundV2 = true;
-	    } else {
-	      cout << "Warning: found more than two status=62 particles\n";
-	    }
-	  }	  
-	}
-	if ( foundV1 && foundV2) {
-	  ptISR = (v1+v2).Pt();
-	}
-	
-	
-	if (!is2DMassScan) {
-	  
-
-	  //Save some information on signal particles
-	  for(int g = 0; g < nGenParticle; g++){
-	   
-	    // original N2 produced
-	    if (gParticleId[g] == 1000023 && gParticleStatus[g]  == 62) {
-	      N2Pt = gParticlePt[g];
-	      N2Eta = gParticleEta[g];
-	      N2Phi = gParticlePhi[g];	 
-	      N2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
-
-
-	    }
-	    // original N3 produced
-	    if (gParticleId[g] == 1000025 && gParticleStatus[g]  == 62) {
-	      N3Pt = gParticlePt[g];
-	      N3Eta = gParticleEta[g];
-	      N3Phi = gParticlePhi[g];	 
-	      N3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
-	    }
-
-
-	    // H from N2 -> H N1 decay
-	    if (gParticleId[g] == 25 && gParticleMotherId[g]  == 1000023) {
-	      HPt = gParticlePt[g];
-	      HEta = gParticleEta[g];
-	      HPhi = gParticlePhi[g];	 
-	      HMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
-	    }
-	    //N1 from N2 -> H N1 decay
-	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000023) {
-	      N1FromN2Pt = gParticlePt[g];
-	      N1FromN2Eta = gParticleEta[g];
-	      N1FromN2Phi = gParticlePhi[g];	 
-	      N1FromN2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
-	    }
-	    // Z from N3 -> Z N1 decay
-	    if (gParticleId[g] == 23 && gParticleMotherId[g]  == 1000025) {
-	      ZPt = gParticlePt[g];
-	      ZEta = gParticleEta[g];
-	      ZPhi = gParticlePhi[g];	 
-	      ZMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
-	      //cout << "foudn Z : " << ZPt << " " << ZMass << "\n";
-	    }
-	    //N1 from N3 -> Z N1 decay
-	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000025) {
-	      N1FromN3Pt = gParticlePt[g];
-	      N1FromN3Eta = gParticleEta[g];
-	      N1FromN3Phi = gParticlePhi[g];	 
-	      N1FromN3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
-	    }
-
-	  }
-
-
-
-
-
-	  //parse lhe comment string to get Chargino/Neutralino2 masses
-	  stringstream parser(*lheComments);
-	  string item;
-	  getline(parser, item, '_'); //prefix
-	  if(getline(parser, item, '_')){ //gluino mass 
-	    mChi = atoi(item.c_str());
-	    if(mChi == 0) { //fix for the case where the model name contains an underscore
-	      if(getline(parser, item, '_')){
-		mChi = atoi(item.c_str());
-	      }
-
-	      parsedLHE = true;
-
-
-	      if (fabs( mChi - N2Mass ) > 1) {
-		cout << "Weird: " << mChi << " | " << N2Mass << " " << N3Mass << " " << N1FromN2Mass << " " << N1FromN3Mass << " " << HMass << " " << ZMass << " : " << *lheComments << "\n";
-		cout << "Throwing the event out. \n";
-		continue;
-	      }      
-
-	      if (smsFiles.count(mChi) == 0){ //create file and tree
-		//format file name
-		string thisFileName = outFileName;
-		thisFileName.erase(thisFileName.end()-5, thisFileName.end());
-		thisFileName += "_" + to_string(mChi) + ".root";
-
-		smsFiles[mChi] = new TFile(thisFileName.c_str(), "recreate");
-		smsTrees[mChi] = razorTree->CloneTree(0);
-		smsNEvents[mChi] = new TH1F(Form("NEvents%d", mChi), "NEvents", 1,0.5,1.5);
-		smsSumWeights[mChi] = new TH1F(Form("SumWeights%d", mChi), "SumWeights", 1,0.5,1.5);
-		smsSumScaleWeights[mChi] = new TH1F(Form("SumScaleWeights%d", mChi), "SumScaleWeights", 6,-0.5,5.5);
-		smsSumPdfWeights[mChi] = new TH1F(Form("SumPdfWeights%d", mChi), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);
-		smsNISRJets[mChi] = new TH1F(Form("NISRJets%d", mChi), "NISRJets", 7,-0.5,6.5);
-		smsPtISR[mChi] = new TH1F(Form("PtISR%d", mChi), "PtISR", 8, PtISRBins);
-		smsNPV[mChi] = new TH1F(Form("NPV%d", mChi), "NPV", 2,-0.5,1.5);
-		cout << "Created new output file " << thisFileName << endl;
-	      }
-	      //Fill NEvents hist 
-	      smsNEvents[mChi]->Fill(1.0, genWeight);
-	      smsSumWeights[mChi]->Fill(1.0, weight);
-	      smsNISRJets[mChi]->Fill(min(NISRJets,6), genWeight);
-	      smsPtISR[mChi]->Fill(fmin( ptISR , 6999.0), genWeight);
-	      smsNPV[mChi]->Fill( (nPV >= 20)?1:0 , genWeight);
-	      smsSumScaleWeights[mChi]->Fill(0.0, sf_facScaleUp);
-	      smsSumScaleWeights[mChi]->Fill(1.0, sf_facScaleDown);
-	      smsSumScaleWeights[mChi]->Fill(2.0, sf_renScaleUp);
-	      smsSumScaleWeights[mChi]->Fill(3.0, sf_renScaleDown);
-	      smsSumScaleWeights[mChi]->Fill(4.0, sf_facRenScaleUp);
-	      smsSumScaleWeights[mChi]->Fill(5.0, sf_facRenScaleDown);
-
-	      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
-		smsSumPdfWeights[mChi]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-	      } 
-
-	    }	
-	  }
-	} else {
-
-	  //parse lhe comment string to get gluino and LSP masses
-	  stringstream parser(*lheComments);
-	  string item;
-	  getline(parser, item, '_'); //prefix
-	  if(getline(parser, item, '_')){ //gluino mass 
-	    mChi = atoi(item.c_str());
-	    if(mChi == 0) { //fix for the case where the model name contains an underscore
-	      if(getline(parser, item, '_')){
-		mChi = atoi(item.c_str());
-		if(mChi == 0) { //fix for the case where the model name contains an underscore
-		  if(getline(parser, item, '_')){
-		    mChi = atoi(item.c_str());
-		  }
-		}
-	      }
-	    }
-	    if(getline(parser, item, '_')){ //LSP mass 
-	      mLSP = atoi(item.c_str());
-	      pair<int,int> smsPair = make_pair(mChi, mLSP);
-
-	      parsedLHE = true;
-	      if (smsFiles2D.count(smsPair) == 0){ //create file and tree
-		//format file name
-		string thisFileName = outFileName;
-		thisFileName.erase(thisFileName.end()-5, thisFileName.end());
-		thisFileName += "_" + to_string(mChi) + "_" + to_string(mLSP) + ".root";
-
-		smsFiles2D[smsPair] = new TFile(thisFileName.c_str(), "recreate");
-		smsTrees2D[smsPair] = razorTree->CloneTree(0);
-		smsNEvents2D[smsPair] = new TH1F(Form("NEvents%d%d", mChi, mLSP), "NEvents", 1,0.5,1.5);
-		smsSumWeights2D[smsPair] = new TH1F(Form("SumWeights%d%d", mChi, mLSP), "SumWeights", 1,0.5,1.5);
-		smsSumScaleWeights2D[smsPair] = new TH1F(Form("SumScaleWeights%d%d", mChi, mLSP), "SumScaleWeights", 6,-0.5,5.5);
-		smsSumPdfWeights2D[smsPair] = new TH1F(Form("SumPdfWeights%d%d", mChi, mLSP), "SumPdfWeights", NUM_PDF_WEIGHTS,-0.5,NUM_PDF_WEIGHTS-0.5);		
-		smsNISRJets2D[smsPair] = new TH1F(Form("NISRJets%d%d", mChi, mLSP), "NISRJets", 7,-0.5,6.5);
-		smsPtISR2D[smsPair] = new TH1F(Form("PtISR%d%d", mChi, mLSP), "PtISR", 8,PtISRBins);
-		smsNPV2D[smsPair] = new TH1F(Form("NPV%d%d", mChi, mLSP), "NPV", 2,-0.5,1.5);
-
-		cout << "Created new output file " << thisFileName << endl;
-	      }
-	      //Fill NEvents hist 
-	      smsNEvents2D[smsPair]->Fill(1.0, genWeight);
-	      smsSumWeights2D[smsPair]->Fill(1.0, weight);
-	      smsNISRJets2D[smsPair]->Fill(min(NISRJets,6), genWeight);
-	      smsPtISR2D[smsPair]->Fill(fmin( ptISR , 6999.0), genWeight);
-	      smsNPV2D[smsPair]->Fill( (nPV >= 20)?1:0 , genWeight);
-
-	      smsSumScaleWeights2D[smsPair]->Fill(0.0, sf_facScaleUp);
-	      smsSumScaleWeights2D[smsPair]->Fill(1.0, sf_facScaleDown);
-	      smsSumScaleWeights2D[smsPair]->Fill(2.0, sf_renScaleUp);
-	      smsSumScaleWeights2D[smsPair]->Fill(3.0, sf_renScaleDown);
-	      smsSumScaleWeights2D[smsPair]->Fill(4.0, sf_facRenScaleUp);
-	      smsSumScaleWeights2D[smsPair]->Fill(5.0, sf_facRenScaleDown);
-
-	      for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
-		smsSumPdfWeights2D[smsPair]->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-	      }
-	    }
-	  }
-	}
-      } // end if fastsim
 
 
 
