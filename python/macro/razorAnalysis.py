@@ -335,7 +335,7 @@ for tag in sampleTags2016:
 
 razorFitDirs = { 
         "Razor2016G_SUSYUnblind_80X":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/CMSSW_7_1_5/src/RazorAnalyzer/fits_2017_01_09/ReReco2016_02Jan/",
-        "Razor2016_MoriondRereco":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/Plots/Razor2016_MoriondRereco"
+        "Razor2016_MoriondRereco":"/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/newFitFxn/CMSSW_7_1_5/src/RazorAnalyzer/Plots/Razor2016_MoriondRereco"
         }
 razorFitFiles = { tag:{} for tag in razorFitDirs }
 for tag,path in razorFitDirs.iteritems():
