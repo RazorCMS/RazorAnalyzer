@@ -32,6 +32,7 @@ if __name__ == '__main__':
 
         slopes = makeQCDHist("QCDSlopes_{}".format(box), xbins)
         inters = makeQCDHist("QCDInters_{}".format(box), xbins)
+        covars = makeQCDHist("QCDCovars_{}".format(box), xbins)
 
         for btags in range(3):
             inHist = inFile.Get("npf_2d_{}_{}b".format(box.lower(), btags))
@@ -44,13 +45,16 @@ if __name__ == '__main__':
                 if histSlice.Integral() == 0:
                     print "Slice has no data"
                 else:
-                    result = histSlice.Fit("pol1", "s")
+                    result = histSlice.Fit("pol1", "smf")
                     params = result.GetParams()
                     errors = result.GetErrors()
+                    covar   = result.GetCovarianceMatrix()(0,1)
                     inters.SetBinContent(ibin, btags+1, params[0])
                     inters.SetBinError(ibin, btags+1, errors[0])
                     slopes.SetBinContent(ibin, btags+1, params[1])
                     slopes.SetBinError(ibin, btags+1, errors[1])
+                    covars.SetBinContent(ibin, btags+1, covar)
+                    covars.SetBinError(ibin, 0.)
         print "Slopes"
         slopes.Print("all")
         slopes.Draw("colztext")
@@ -59,8 +63,12 @@ if __name__ == '__main__':
         inters.Print("all")
         inters.Draw("colztext")
         c.Print("QCDIntercepts_{}.pdf".format(box))
-
+        print "Covariances"
+        covars.Print("all")
+        covars.Draw("colztext")
+        c.Print("QCDCovariances_{}.pdf".format(box))
 
         outFile.cd()
         slopes.Write()
         inters.Write()
+        covars.Write()

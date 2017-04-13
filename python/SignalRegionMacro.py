@@ -185,9 +185,11 @@ if __name__ == "__main__":
             sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get(
                     'OneLepton'+jtype+'ClosureTest'+bs+'BRsqScaleFactors')
             sfHists['Rsq'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+jtype+bs+'BUp'])
-        #get ZInv b-tag cross check histogram
-        sfHists['ZInvB'+jtype+'Up'] = gjetsbtagTFile.Get('GJetsInv'+jtype+'ClosureTestNBJetsScaleFactors')
-        sfHists['ZInvB'+jtype+'Down'] = macro.invertHistogram(sfHists['ZInvB'+jtype+'Up'])
+            #get ZInv b-tag cross check histogram
+            sfHists['ZInv'+jtype+bs+'BUp'] = gjetsbtagTFile.Get(
+                    'GJetsInv'+jtype+'ClosureTest'+bs+'BMRScaleFactors')
+            sfHists['ZInv'+jtype+bs+'BDown'] = macro.invertHistogram(
+                    sfHists['ZInv'+jtype+bs+'BUp'])
 
     #check that everything came out correctly
     for h,hist in sfHists.iteritems():
@@ -245,13 +247,15 @@ if __name__ == "__main__":
                 for updown in ['Up','Down']:
                     sfHistsToUse[ltype+pteta+updown] = sfHistsToUse[ltype+jtype+pteta+updown]
         ##ttbar dilepton, dyjets dilepton, and zinv b-tag
-        for name in ['TTJetsDilepton','DYJetsInv','ZInvB']:
+        for name in ['TTJetsDilepton','DYJetsInv']:
             for updown in ['Up','Down']:
                 sfHistsToUse[name+updown] = sfHistsToUse[name+jtype+updown]
         #b-tag closure tests
         for updown in ['BUp','BDown']:
             for mrrsq in ['MR','Rsq']:
                 sfHistsToUse[mrrsq+updown] = sfHistsToUse[mrrsq+jtype+str(btags)+updown]
+            sfHistsToUse['ZInv'+updown] = sfHistsToUse[
+                    'ZInv'+jtype+str(btags)+updown]
 
         #option to disable scale factors
         if args.noSFs:

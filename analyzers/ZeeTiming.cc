@@ -102,6 +102,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   //*****************************************************************************
   vector <uint> start_run;//start run of all IOV 
   vector <uint> end_run;//end run of all IOV
+  vector <uint> start_run_rereco;// for SepRereco tags
+  vector <uint> end_run_rereco;// for SepRereco tags
   start_run_tmp=0; 
   end_run_tmp=0;
   IC_time_all=0;
@@ -122,6 +124,26 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     start_run.push_back(start_run_tmp);
     end_run.push_back(end_run_tmp);
   }
+
+
+  TFile f_timeCalib_rereco("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ");
+  TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco.Get("timeCalib");
+  
+  tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
+  tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
+  tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
+  tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
+  
+  int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
+  
+  for(int i=0;i<N_entries_timeCalib_rereco;i++) {
+    tree_timeCalib_rereco->GetEntry(i);
+    start_run_rereco.push_back(start_run_tmp);
+    end_run_rereco.push_back(end_run_tmp);
+  }
+
+
+
 
   //*****************************************************************************
   //Load Pedestals
@@ -330,15 +352,18 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
       //apply intercalibration
-      double calibratedSeedHitTime = rawSeedHitTime + getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]);
+      double IC_time_SeptRereco = getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]);
+      double IC_time_LagacyRereco = getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]);
+      double calibratedSeedHitTime = rawSeedHitTime + IC_time_LagacyRereco - IC_time_SeptRereco;
 
       //apply TOF correction
       double TOFCorrectedSeedHitTime = calibratedSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
 
-      // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : " 
-      // 	   << (*ecalRechit_ID)[seedhitIndex] << " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
-      // 	   << "\n";
+      // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : \n" 
+      //	<< "  runNum: " << runNum << "  detID: " << (*ecalRechit_ID)[seedhitIndex] << "  IC_time_SeptRereco: " << IC_time_SeptRereco << "  IC_time_LagacyRereco: " << IC_time_LagacyRereco << " \n"
+      //   	<< " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
+      //	<< "\n";
  
 
    
