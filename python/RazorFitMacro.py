@@ -2,6 +2,7 @@ import argparse
 import ROOT as rt
 
 from macro.razorFits import FitInstance
+from macro.razorAnalysis import signalConfig
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -10,7 +11,7 @@ if __name__ == '__main__':
     parser.add_argument('--tag', help='Analysis tag', 
             default='Razor2016_MoriondRereco')
     parser.add_argument('--config', help='Fit config to use', 
-            default='config/run2_2017_01_07_Run2016G_SUSYUnblind_Sep23ReReco.config')
+            default=signalConfig)
     # Fit types
     parser.add_argument('--mc', help='fit MC',
             action='store_true')

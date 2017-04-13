@@ -54,7 +54,7 @@ protected:
      //std::cout << "Gamma(N=" << N << ",BN[(x-X0)(y-Y0)]^(1/N)=" << B*N*pow(x-X0,1/N)*pow(y-Y0,1/N) <<") = " <<  Gamma(N,B*N*pow(x-X0,1/N)*pow(y-Y0,1/N)) << std::endl;
      //Double_t X0 = xMin - AR;
      //Double_t Y0 = yMin - BR;
-     return Gamma(N,B*N*pow((x-xMin+AR)*(y-yMin+BR),1/N));
+     return Gamma(N,(B+1)*N*pow((x-xMin+AR)*(y-yMin+BR)/(AR*BR),1/N));
    }
 
    RooRealProxy th1x;        // dependent variable
