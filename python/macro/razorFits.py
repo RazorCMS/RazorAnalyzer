@@ -246,6 +246,11 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            migrad_status = m2.minimize('Minuit2','migrad')#
+            hesse_status = m2.minimize('Minuit2','hesse')#
 
         elif box=='LeptonJet' or box=='LeptonJet_0b':
             print "LeptonJet_0b"
