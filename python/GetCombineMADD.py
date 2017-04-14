@@ -4,15 +4,10 @@ import sys
 import glob
 from math import *
 import os
-from array import *
 
 #local imports 
-import rootTools
-from framework import Config
 from GChiPairs import gchipairs
-from SidebandMacro import config
 from GetCombine import writeXsecTree
-from RunCombine import exec_me
 from macro.plotting import draw2DHist
 
 def plotSignificance(boxInput, model, sigHist, outDir):
@@ -53,7 +48,6 @@ if __name__ == '__main__':
     doSignificance = options.doSignificance
 
     #configuration
-    cfg = Config.Config(config)
     boxes = boxInput.split('_')
     btag = ''
 
