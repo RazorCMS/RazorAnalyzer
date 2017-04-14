@@ -129,8 +129,7 @@ if __name__ == "__main__":
         if args.noCombine: continue #if not setting a limit, we are done
 
         # get file name for signal input
-        signalDir = '/'.join([razorSignalDirs[args.tag], args.model, 
-                             'combined'])
+        signalDir = '/'.join([razorSignalDirs[args.tag], args.model])
         isGluinos = ('T1' in args.model or 'T5' in args.model)
         if isGluinos:
             modelName = getModelName(args.model, args.mGluino, args.mLSP)
