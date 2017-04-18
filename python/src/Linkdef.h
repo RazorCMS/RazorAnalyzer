@@ -18,7 +18,6 @@
 #pragma link C++ defined_in "RooRazor3DBinMRSlopeErrorPdf.h";
 #pragma link C++ defined_in "RooBTagMult.h";
 #pragma link C++ defined_in "RooSigmoid.h";
-#pragma link C++ defined_in "PdfDiagonalizer.h";
 #pragma link C++ defined_in "MLMixedSample.h";
 
 #endif

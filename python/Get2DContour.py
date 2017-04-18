@@ -308,7 +308,7 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 25+12.5
         smoothing = 50
-    elif model=="T2tt":
+    elif model=="T2tt" or model=="T2bb":
         mgMin = 100.-12.5
         mgMax = 950.+12.5
         mchiMin = 0.-12.5

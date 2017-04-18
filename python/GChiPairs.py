@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 import glob
 
-from macro.razorAnalysis import razorSignalDirs
+razorSignalDirs = {
+        "Razor2016_MoriondRereco": "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/FastsimSMS/"
+        }
 
 def parsePair(f):
     pair = f.replace('.root','').split('_')[-2:]
