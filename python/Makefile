@@ -42,7 +42,7 @@ $(INCLUDEDIR)/RooSigmoid.o:
 	$(CXX) $(INCLUDEDIR)/RooSigmoid.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
 
 $(INCLUDEDIR)/PdfDiagonalizer.o:
-        $(CXX) $(INCLUDEDIR)/PdfDiagonalizer.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
+	$(CXX) $(INCLUDEDIR)/PdfDiagonalizer.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
 
 $(INCLUDEDIR)/MLMixedSample.o:
 	$(CXX) $(INCLUDEDIR)/MLMixedSample.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
