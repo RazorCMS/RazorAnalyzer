@@ -443,13 +443,17 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     useKDE = ((xmax-xmin)>40) and (mean>10)
     useKDE = False
     if useKDE:
+        #print "useKDE"
         if (xmax-xmin)%20:
             xmax = xmax + 20-(xmax-xmin)%20
         nbins=20
     #no-stat bins should be much smaller (to avoid having too many nsigma=0 bins)
     elif options.noStat and ('nsigma' not in plotName):
-        nbins = (xmax-xmin)*50
+        #print "noStat and noNsigma"
+        #nbins = (xmax-xmin)*50
+        nbins = (xmax-xmin)
     else:
+        #print "else"
         nbins = xmax-xmin
 
     myTree.Draw('%s>>htemp%s(%i,%f,%f)'%(sumName,myTree.GetName()+sumName.replace('+',''),nbins,xmin,xmax))
@@ -479,7 +483,7 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
         else:
             nsigma = (nObs-bestFit)/rms
         pvalue = 2.*rt.Math.gaussian_cdf_c(abs(nsigma))
-    print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma)
+    print '%s, bestFit %f, mean %.1f, mode %.1f, rms %.1f, pvalue %f, nsigma %.1f, range68 %.1f, %.1f'%(sumName, bestFit,mean,mode,rms,pvalue,nsigma,rangeMax,rangeMin)
 
     if options.printErrors:
         if htemp.Integral()>0.: 
@@ -812,9 +816,10 @@ def print1DProjNs(c,rootFile,h,h_data,h_ns,printName,xTitle,yTitle,lumiLabel="",
     hClone.Draw("e2same")
 
     
-    nBinsMR = 6
-    if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel or 'LeptonMultiJet' in boxLabel or 'EleJet' in boxLabel or 'MuJet' in boxLabel or 'LeptonJet' in boxLabel:
-        nBinsMR = 7
+    nBinsMR = 8
+    #nBinsMR = 6
+    #if 'MuMultiJet' in boxLabel or 'EleMultiJet' in boxLabel or 'LeptonMultiJet' in boxLabel or 'EleJet' in boxLabel or 'MuJet' in boxLabel or 'LeptonJet' in boxLabel:
+    #    nBinsMR = 7
     
     
     if 'th1x' in h.GetName():
@@ -1461,8 +1466,10 @@ def getErrors1D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
     d = rt.TCanvas('d','d',500,400)
     for i, sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i)
+        #print "---- geterrors1d"
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i.pdf"%(h.GetName(),i))
         h.SetBinError(i,rms)
+        #print "i,rms=", i, rms
     return h
 
 def getErrors2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, minZ, maxZ, x, y, z):
@@ -1471,7 +1478,9 @@ def getErrors2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
     d = rt.TCanvas('d','d',500,400)
     for (i,j), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i, j)
+        #print "---- geterrors2d"
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
+        #print "i, j, rms=", i, j, rms
         h.SetBinError(i,j,rms)
     return h
 
@@ -1481,7 +1490,9 @@ def getErrors3D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
     d = rt.TCanvas('d','d',500,400)
     for (i,j, k), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i, j, k)
+        #print "---- geterrors3d"
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i_%i.pdf"%(h.GetName(),i,j,k))
+        #print "i, j, k, rms=", i, j, k, rms
         h.SetBinError(i,j,k,rms)
     return h
 
@@ -1491,8 +1502,10 @@ def getNsigma2D(h, h_data,  myTree, options, sumType,minX, maxX, minY, maxY, min
     d = rt.TCanvas('d','d',500,400)
     for (i,j), sumName in binSumDict.iteritems():
         nObs = h_data.GetBinContent(i,j)
+        #print "---- getnsigma2d"
         bestFit, rms, pvalue, nsigma, d = getBestFitRms(myTree,sumName,nObs,d,options,"%s_error_%i_%i.pdf"%(h.GetName(),i,j))
         h.SetBinContent(i,j,nsigma)
+        #print "i, j, rms=", i, j, rms
         #if abs(nsigma)==0 and bestFit<1 and nObs==0:
         #    h.SetBinContent(i,j,-999)
     return h
