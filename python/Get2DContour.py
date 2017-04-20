@@ -83,7 +83,8 @@ def fix_hist_byhand(hist, model, box, clsType):
                     toFix.append((mg,mchi))
 
         if model == "T1tttt" and box == "MultiJet":
-             hist.SetBinContent(hist.FindBin(975,700),0)            
+             #hist.SetBinContent(hist.FindBin(975,700),0)            
+             pass
         if model == "T1tttt" and box == "MuMultiJet_EleMultiJet_MultiJet":
              #hist.SetBinContent(hist.FindBin(1650,650),0)
              #hist.SetBinContent(hist.FindBin(1600,200),0)
@@ -100,16 +101,17 @@ def fix_hist_byhand(hist, model, box, clsType):
         #for x in range(600,2000,25):
         #    hist.SetBinContent(hist.FindBin(x,0),hist.GetBinContent(hist.FindBin(x,100)))
         #    hist.SetBinContent(hist.FindBin(x,50),hist.GetBinContent(hist.FindBin(x,100)))
-        hist.SetBinContent(hist.FindBin(1650,550),0)
-        hist.SetBinContent(hist.FindBin(1700,500),0)
-        hist.SetBinContent(hist.FindBin(1700,600),0)
-        hist.SetBinContent(hist.FindBin(1600,600),0)
+        #hist.SetBinContent(hist.FindBin(1650,550),0)
+        #hist.SetBinContent(hist.FindBin(1700,500),0)
+        #hist.SetBinContent(hist.FindBin(1700,600),0)
+        #hist.SetBinContent(hist.FindBin(1600,600),0)
         if model == "T1x0p00y0p50":
-            hist.SetBinContent(hist.FindBin(1500,0),0)
-            hist.SetBinContent(hist.FindBin(1550,0),0)
+            #hist.SetBinContent(hist.FindBin(1500,0),0)
+            #hist.SetBinContent(hist.FindBin(1550,0),0)
             #for mg in range(1000,1300,25):
             #    for mchi in range(0,mg,25):
             #        hist.SetBinContent(hist.FindBin(mg,mchi),0)
+            pass
         
         
                         
@@ -306,7 +308,7 @@ def getModelSettings(model):
         xsecMax = 10.
         diagonalOffset = 25+12.5
         smoothing = 50
-    elif model=="T2tt":
+    elif model=="T2tt" or model=="T2bb":
         mgMin = 100.-12.5
         mgMax = 950.+12.5
         mchiMin = 0.-12.5

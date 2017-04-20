@@ -310,9 +310,9 @@ def runToys(w,options,cfg,seed):
             if w.var('b_%s_%s'%(bkgd,options.box))!=None:                                
                 badPars.append(w.var('b_%s_%s'%(bkgd,options.box)).getVal() <= 0)
             if w.var('MR0_%s_%s'%(bkgd,options.box))!=None:                                
-                badPars.append(w.var('MR0_%s_%s'%(bkgd,options.box)).getVal() >= w.var('MR').getMin())
+                badPars.append(w.var('MR0_%s_%s'%(bkgd,options.box)).getVal() <= 0)
             if w.var('R0_%s_%s'%(bkgd,options.box))!=None:                   
-                badPars.append(w.var('R0_%s_%s'%(bkgd,options.box)).getVal()  >=  w.var('Rsq').getMin())
+                badPars.append(w.var('R0_%s_%s'%(bkgd,options.box)).getVal() <= 0)
         if any(badPars):
             nBadPars+=1
             #print "bad pars toy=%i"%iToy
