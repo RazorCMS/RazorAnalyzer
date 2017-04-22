@@ -406,7 +406,8 @@ class FitInstance(object):
         self.dirname = os.path.dirname(self.filename)
         self.toysFile = self.getToysFilename(noStat=False, doFreq=False)
         self.sysFile = self.getToysFilename(noStat=True, doFreq=False)
-        self.freqFile = self.getToysFilename(noStat=False, doFreq=True)
+        self.freqToysFile = self.getToysFilename(noStat=False, doFreq=True)
+        self.freqSysFile = self.getToysFilename(noStat=True, doFreq=True)
         if not os.path.isdir(self.dirname):
             os.makedirs(self.dirname)
         self.config = Config.Config(configFile)
@@ -450,8 +451,10 @@ class FitInstance(object):
 
     def getToysFilename(self, noStat=False, doFreq=False):
         """Gets the appropriate toys filename"""
-        if doFreq:
-            unc = "Freq"
+        if doFreq and noStat:
+            unc = "Freq_noStat"
+        elif doFreq:
+            unc = "Freq_varyN"
         elif noStat:
             unc = "Bayes_noStat"
         else:
@@ -873,13 +876,14 @@ class FitInstance(object):
             self.runToys(sysPlusStat=False, doFreq=False)
         elif runToys:
             self.runToys(sysPlusStat=True, doFreq=True)
+            self.runToys(sysPlusStat=False, doFreq=True)
         if plot:
             toysFile = None
             sysFile = None
             if runToys or loadToys:
                 if doFreq:
-                    toysFile = self.freqFile
-                    sysFile = self.freqFile
+                    toysFile = self.freqToysFile
+                    sysFile = self.freqSysFile
                 else:
                     toysFile = self.toysFile
                     sysFile = self.sysFile

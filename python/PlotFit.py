@@ -450,8 +450,8 @@ def getBestFitRms(myTree, sumName, nObs, d, options, plotName):
     #no-stat bins should be much smaller (to avoid having too many nsigma=0 bins)
     elif options.noStat and ('nsigma' not in plotName):
         #print "noStat and noNsigma"
-        #nbins = (xmax-xmin)*50
-        nbins = (xmax-xmin)
+        nbins = (xmax-xmin)*50
+        #nbins = (xmax-xmin)
     else:
         #print "else"
         nbins = xmax-xmin

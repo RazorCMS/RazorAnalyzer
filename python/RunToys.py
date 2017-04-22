@@ -120,7 +120,9 @@ def runToys(w,options,cfg,seed):
     elif options.noStat: unc = "Bayes_noStat"
     elif options.noSys: unc = "Bayes_noSys"
     elif options.oneSigma: unc = 'oneSigma'
-    if options.freq: unc = 'Freq'
+
+    if options.freq and options.noStat: unc = 'Freq_noStat'
+    elif options.freq: unc = 'Freq_varyN'
         
     if options.r>-1:
         rString = str('%.3f'%options.r).replace(".","p")
@@ -348,7 +350,13 @@ def runToys(w,options,cfg,seed):
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()        
         #print "start generating toy=%i"%iToy
-        if options.noStat:         
+        if options.freq:
+            if options.r>-1:
+                w.var('r').setVal(options.r)
+                asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Extended(True))
+            else:
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Extended(True))
+        elif options.noStat:         
             if options.r>-1:
                 w.var('r').setVal(options.r)            
                 asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
@@ -389,12 +397,15 @@ def runToys(w,options,cfg,seed):
                 value = setattr(s1,'hesse_%s'%options.box, hesse_status)
                 value = setattr(s1,'minos_%s'%options.box, minos_status)
             else:                
+                #print "yes"
                 nll_func_toy = extRazorPdf.createNLL(asimov,rt.RooFit.Extended(True),rt.RooFit.Range(fitband))               
                 m = rt.RooMinimizer(nll_func_toy)
                 m.setStrategy(0)
                 m.setPrintLevel(-1)
                 m.setPrintEvalErrors(-1)
                 migrad_status = m.minimize('Minuit2','migrad')
+                #migrad_status = m.minimize('Minuit2','migrad')
+                #migrad_status = m.minimize('Minuit2','migrad')
                 fr_toy = m.save()
             value = setattr(s1,'covQual_%s'%options.box, fr_toy.covQual())   
             value = setattr(s1,'migrad_%s'%options.box, migrad_status)   
@@ -461,8 +472,12 @@ def runToys(w,options,cfg,seed):
                     if options.oneSigma:
                         toy = observed # to get nll with respect to original dataset
                         value = setattr(s1, 'b%i'%iBinX, expected) #save expected yield
+                    elif options.freq and options.noStat:
+                        #print "expected = ", expected, toy, observed
+                        value = setattr(s1, 'b%i'%iBinX, expected) 
                     elif options.freq:
                         withStat = rt.RooRandom.randomGenerator().Poisson(expected)
+                        #print "with stats = ", withStat
                         value = setattr(s1, 'b%i'%iBinX, withStat) 
                     else:          
                         value = setattr(s1, 'b%i'%iBinX, toy)
