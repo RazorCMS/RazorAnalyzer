@@ -119,8 +119,10 @@ def runToys(w,options,cfg,seed):
     elif options.varyN: unc = "Bayes_varyN"
     elif options.noStat: unc = "Bayes_noStat"
     elif options.noSys: unc = "Bayes_noSys"
-    elif options.freq: unc = 'Freq'
     elif options.oneSigma: unc = 'oneSigma'
+
+    if options.freq and options.noStat: unc = 'Freq_noStat'
+    elif options.freq: unc = 'Freq_varyN'
         
     if options.r>-1:
         rString = str('%.3f'%options.r).replace(".","p")
@@ -311,11 +313,14 @@ def runToys(w,options,cfg,seed):
                 badPars.append(w.var('b_%s_%s'%(bkgd,options.box)).getVal() <= 0)
             if w.var('MR0_%s_%s'%(bkgd,options.box))!=None:                                
                 badPars.append(w.var('MR0_%s_%s'%(bkgd,options.box)).getVal() <= 0)
+                #badPars.append(w.var('MR0_%s_%s'%(bkgd,options.box)).getVal() >= w.var('MR').getMin())
             if w.var('R0_%s_%s'%(bkgd,options.box))!=None:                   
                 badPars.append(w.var('R0_%s_%s'%(bkgd,options.box)).getVal() <= 0)
+                #badPars.append(w.var('R0_%s_%s'%(bkgd,options.box)).getVal() >= w.var('Rsq').getMin())
         if any(badPars):
             nBadPars+=1
             #print "bad pars toy=%i"%iToy
+            #print badPars
             continue
 
         #print "good pars"                        
@@ -339,13 +344,19 @@ def runToys(w,options,cfg,seed):
         
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore:            
-            #print "can't evaulate pdf toy=%i"%iToy
+            print "can't evaulate pdf toy=%i"%iToy
             continue
         
         
         errorCountBefore = rt.RooMsgService.instance().errorCount()        
         #print "start generating toy=%i"%iToy
-        if options.noStat:         
+        if options.freq:
+            if options.r>-1:
+                w.var('r').setVal(options.r)
+                asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Extended(True))
+            else:
+                asimov = extRazorPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Extended(True))
+        elif options.noStat:         
             if options.r>-1:
                 w.var('r').setVal(options.r)            
                 asimov = extSpBPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('toy'),rt.RooFit.Asimov())
@@ -361,11 +372,11 @@ def runToys(w,options,cfg,seed):
         #print "toy entries = %.2f"%asimov.sumEntries()
         errorCountAfter = rt.RooMsgService.instance().errorCount()
         if errorCountAfter > errorCountBefore:
-            #print "can't generate toy=%i"%iToy
+            print "can't generate toy=%i"%iToy
             continue
 
         #print "SUCCESS: generated toy=%i"%iToy
-
+        
         pSetSave = pSet
         migrad_status = -1
         hesse_status = -1
@@ -386,12 +397,15 @@ def runToys(w,options,cfg,seed):
                 value = setattr(s1,'hesse_%s'%options.box, hesse_status)
                 value = setattr(s1,'minos_%s'%options.box, minos_status)
             else:                
+                #print "yes"
                 nll_func_toy = extRazorPdf.createNLL(asimov,rt.RooFit.Extended(True),rt.RooFit.Range(fitband))               
                 m = rt.RooMinimizer(nll_func_toy)
                 m.setStrategy(0)
                 m.setPrintLevel(-1)
                 m.setPrintEvalErrors(-1)
                 migrad_status = m.minimize('Minuit2','migrad')
+                #migrad_status = m.minimize('Minuit2','migrad')
+                #migrad_status = m.minimize('Minuit2','migrad')
                 fr_toy = m.save()
             value = setattr(s1,'covQual_%s'%options.box, fr_toy.covQual())   
             value = setattr(s1,'migrad_%s'%options.box, migrad_status)   
@@ -458,8 +472,18 @@ def runToys(w,options,cfg,seed):
                     if options.oneSigma:
                         toy = observed # to get nll with respect to original dataset
                         value = setattr(s1, 'b%i'%iBinX, expected) #save expected yield
+                    elif options.freq and options.noStat:
+                        #print "expected = ", expected, toy, observed
+                        value = setattr(s1, 'b%i'%iBinX, expected) 
+                    elif options.freq:
+                        withStat = rt.RooRandom.randomGenerator().Poisson(expected)
+                        #print "with stats = ", withStat
+                        value = setattr(s1, 'b%i'%iBinX, withStat) 
                     else:          
                         value = setattr(s1, 'b%i'%iBinX, toy)
+
+                        #print "observed, expected, toy = ", observed, expected, toy
+
                     if expected>0:
                         chi2_toy += ( toy - expected ) * ( toy - expected ) / ( expected )
                         chi2_toy_btag[k-1] += ( toy - expected ) * ( toy - expected ) / ( expected )

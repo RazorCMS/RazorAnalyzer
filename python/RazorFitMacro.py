@@ -34,6 +34,8 @@ if __name__ == '__main__':
             help='File to load existing fit from')
     parser.add_argument('--no-fit', dest='noFit', action='store_true',
             help='Do not perform fit')
+    parser.add_argument('--do-freq', dest='doFreq', action='store_true',
+            help='Run frequentist toys (default Bayesian)')
     args = parser.parse_args()
 
     weights = {}
@@ -42,4 +44,4 @@ if __name__ == '__main__':
     fitter.doFitSequence(load=args.load, 
             doFit=(not (args.loadFit or args.noFit)), plot=(not args.noPlot), 
             unblind=args.unblind, runToys=args.runToys, loadToys=args.loadToys, 
-            inputFitFile=args.inputFitFile)
+            doFreq=args.doFreq, inputFitFile=args.inputFitFile)

@@ -404,8 +404,10 @@ class FitInstance(object):
         self.analysis = Analysis(box, tag=tag)
         self.filename = self.getFilename()
         self.dirname = os.path.dirname(self.filename)
-        self.toysFile = self.getToysFilename(noStat=False)
-        self.sysFile = self.getToysFilename(noStat=True)
+        self.toysFile = self.getToysFilename(noStat=False, doFreq=False)
+        self.sysFile = self.getToysFilename(noStat=True, doFreq=False)
+        self.freqToysFile = self.getToysFilename(noStat=False, doFreq=True)
+        self.freqSysFile = self.getToysFilename(noStat=True, doFreq=True)
         if not os.path.isdir(self.dirname):
             os.makedirs(self.dirname)
         self.config = Config.Config(configFile)
@@ -447,13 +449,17 @@ class FitInstance(object):
                 "RazorFitInstance_%s_"%self.analysis.tag,""))
         return dirname
 
-    def getToysFilename(self, noStat=False):
+    def getToysFilename(self, noStat=False, doFreq=False):
         """Gets the appropriate toys filename"""
-        if noStat:
-            unc = "noStat"
+        if doFreq and noStat:
+            unc = "Freq_noStat"
+        elif doFreq:
+            unc = "Freq_varyN"
+        elif noStat:
+            unc = "Bayes_noStat"
         else:
-            unc = "varyN"
-        fname = "toys_Bayes_%s_%s.root"%(unc, self.analysis.region)
+            unc = "Bayes_varyN"
+        fname = "toys_%s_%s.root"%(unc, self.analysis.region)
         return self.dirname+"/"+fname
 
     def getTrees(self):
@@ -628,7 +634,7 @@ class FitInstance(object):
             sideband = [mrSide, rsqSide]
         return sideband
 
-    def runToys(self, sysPlusStat=True, numToys=1000):
+    def runToys(self, sysPlusStat=True, doFreq=False, numToys=1000):
         """Call the toy-generation machinery"""
         # This is a dummy class to hold options for runToys()
         class Options(object):
@@ -640,7 +646,7 @@ class FitInstance(object):
         opts.varyN = sysPlusStat
         opts.noStat = (not sysPlusStat)
         opts.noSys = False
-        opts.freq = False
+        opts.freq = doFreq
         opts.oneSigma = False
         opts.outDir = self.dirname
         opts.nToys = numToys
@@ -850,7 +856,7 @@ class FitInstance(object):
         f.Close()
 
     def doFitSequence(self, load=False, doFit=True, plot=True, unblind=False,
-            runToys=False, loadToys=False, inputFitFile=None):
+            runToys=False, loadToys=False, doFreq=False, inputFitFile=None):
         """Performs all steps needed to build and fit the dataset"""
         if load:
             self.loadWorkspace()
@@ -865,15 +871,23 @@ class FitInstance(object):
                 inputFitFile = self.filename
             self.loadFitParamsFromFile(inputFitFile)
             self.loadFitResultFromFile(inputFitFile)
-        if runToys:
-            self.runToys(sysPlusStat=True)
-            self.runToys(sysPlusStat=False)
+        if runToys and not doFreq:
+            self.runToys(sysPlusStat=True, doFreq=False)
+            self.runToys(sysPlusStat=False, doFreq=False)
+        elif runToys:
+            self.runToys(sysPlusStat=True, doFreq=True)
+            self.runToys(sysPlusStat=False, doFreq=True)
         if plot:
             toysFile = None
             sysFile = None
             if runToys or loadToys:
-                toysFile = self.toysFile
-                sysFile = self.sysFile
+                if doFreq:
+                    toysFile = self.freqToysFile
+                    sysFile = self.freqSysFile
+                else:
+                    toysFile = self.toysFile
+                    sysFile = self.sysFile
+
             self.restoreFitParams()
             self.plot(unblind=unblind, toysFile=toysFile,
                     sysFile=sysFile)
