@@ -111,9 +111,19 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   float minDRJetToLep3;
   float minDRJetToLep4;
 
-  float MET, MET_JESUp, MET_JESDown;  
+  float MET, MET_JESUp, MET_JESDown; 
+  float METPhi;
   unsigned int run, lumi, event;
   
+  float GenZLepton1Pt,GenZLepton1Eta;
+  float GenZLepton2Pt,GenZLepton2Eta;
+  float GenZPt,GenZEta;
+  float GenWPlusLeptonPt,GenWPlusLeptonEta;
+  float GenWPlusPt,GenWPlusEta;
+  float GenWMinusLeptonPt,GenWMinusLeptonEta;
+  float GenWMinusPt,GenWMinusEta;
+  float GenMET;
+
   //------------------------
   //set branches on big tree
   //------------------------
@@ -133,6 +143,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("MET", &MET, "MET/F");
   outputTree->Branch("MET_JESUp", &MET_JESUp, "MET_JESUp/F");
   outputTree->Branch("MET_JESDown", &MET_JESDown, "MET_JESDown/F");
+  outputTree->Branch("METPhi", &METPhi, "METPhi/F");
   outputTree->Branch("NJet20", &NJet20, "NJet20/I");
   outputTree->Branch("NJet30", &NJet30, "NJet30/I");
   outputTree->Branch("NBJet20", &NBJet20, "NBJet20/I");
@@ -160,6 +171,23 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("lep34MT", &lep34MT, "lep34MT/F");
   outputTree->Branch("minDRJetToLep3", &minDRJetToLep3, "minDRJetToLep3/F");
   outputTree->Branch("minDRJetToLep4", &minDRJetToLep4, "minDRJetToLep4/F");
+  outputTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[300]/O");
+
+  // outputTree->Branch("GenZLepton1Pt", &GenZLepton1Pt, "GenZLepton1Pt/F");
+  // outputTree->Branch("GenZLepton1Eta", &GenZLepton1Eta, "GenZLepton1Eta/F");
+  // outputTree->Branch("GenZLepton2Pt", &GenZLepton2Pt, "GenZLepton2Pt/F");
+  // outputTree->Branch("GenZLepton2Eta", &GenZLepton2Eta, "GenZLepton2Eta/F");
+  // outputTree->Branch("GenZPt", &GenZPt, "GenZPt/F");
+  // outputTree->Branch("GenZEta", &GenZEta, "GenZEta/F");
+  // outputTree->Branch("GenWPlusLeptonPt", &GenWPlusLeptonPt, "GenWPlusLeptonPt/F");
+  // outputTree->Branch("GenWPlusLeptonEta", &GenWPlusLeptonEta, "GenWPlusLeptonEta/F");
+  // outputTree->Branch("GenWPlusPt", &GenWPlusPt, "GenWPlusPt/F");
+  // outputTree->Branch("GenWPlusEta", &GenWPlusEta, "GenWPlusEta/F");
+  // outputTree->Branch("GenWMinusLeptonPt", &GenWMinusLeptonPt, "GenWMinusLeptonPt/F");
+  // outputTree->Branch("GenWMinusLeptonEta", &GenWMinusLeptonEta, "GenWMinusLeptonEta/F");
+  // outputTree->Branch("GenWMinusPt", &GenWMinusPt, "GenWMinusPt/F");
+  // outputTree->Branch("GenWMinusEta", &GenWMinusEta, "GenWMinusEta/F");
+  // outputTree->Branch("GenMET", &GenMET, "GenMET/F");
 
 
   //begin loop
@@ -217,6 +245,21 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       NBJet30 = 0;     
       minDRJetToLep3 = 9999;
       minDRJetToLep4 = 9999;
+      GenZLepton1Pt = -999;
+      GenZLepton1Eta = -999;
+      GenZLepton2Pt = -999;
+      GenZLepton2Eta = -999;
+      GenZPt = -999;
+      GenZEta = -999;
+      GenWPlusLeptonPt = -999;
+      GenWPlusLeptonEta = -999;
+      GenWPlusPt = -999;
+      GenWPlusEta = -999;
+      GenWMinusLeptonPt = -999;
+      GenWMinusLeptonEta = -999;
+      GenWMinusPt = -999;
+      GenWMinusEta = -999;
+      GenMET = -999;
 
       //------------------
       //Pileup reweighting
@@ -264,7 +307,66 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
 	}
       
- 
+      //*************************************************************************
+      //MC objects
+      //*************************************************************************
+      GenMET = genMetPt;
+      for(int j = 0; j < nGenParticle; j++){
+	// cout << "particle: " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " 
+	//      << gParticlePt[j] << " " 
+	//      << gParticleEta[j] << " " 
+	//      << gParticlePhi[j] << " " 
+	//      << " | " << gParticleMotherId[j] << "\n";
+
+	//Z Boson
+	if (gParticleStatus[j] == 22 && gParticleId[j] == 23) {
+	  GenZPt = gParticlePt[j];
+	  GenZEta = gParticleEta[j];	 
+	}
+
+	//WPlus Boson
+	if (gParticleStatus[j] == 22 && gParticleId[j] == 24) {
+	  GenWPlusPt = gParticlePt[j];
+	  GenWPlusEta = gParticleEta[j];	 
+	}
+
+	//WMinus Boson
+	if (gParticleStatus[j] == 22 && gParticleId[j] == -24) {
+	  GenWMinusPt = gParticlePt[j];
+	  GenWMinusEta = gParticleEta[j];	 
+	}
+
+	//if leptons
+	if ( (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15)
+	     && gParticleStatus[j] == 1
+	     ) {	   	    
+
+	  //ZLepton1
+	  if (gParticleMotherId[j] == 23 && gParticleId[j] > 0) {
+	    GenZLepton1Pt = gParticlePt[j];
+	    GenZLepton1Eta = gParticleEta[j];	   
+	  }
+	  //ZLepton1
+	  if (gParticleMotherId[j] == 23 && gParticleId[j] < 0) {
+	    GenZLepton2Pt = gParticlePt[j];
+	    GenZLepton2Eta = gParticleEta[j];	   
+	  }
+	  //WPlus Lepton
+	  if (gParticleMotherId[j] == 24) {
+	    GenWPlusLeptonPt = gParticlePt[j];
+	    GenWPlusLeptonEta = gParticleEta[j];	   
+	  }
+	  //WMinus Lepton
+	  if (gParticleMotherId[j] == -24) {
+	    GenWMinusLeptonPt = gParticlePt[j];
+	    GenWMinusLeptonEta = gParticleEta[j];	   
+	  }
+
+	} // endif leptons
+
+      }//loop over gen particles
+
+
       //*************************************************************************
       //Start Object Selection
       //*************************************************************************
@@ -315,7 +417,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	Leptons.push_back(tmpElectron);
 	LeptonsId.push_back(11 * -1 * eleCharge[i]);	  	
 	LeptonsIndex.push_back(i);
-   }
+      }
       
 
       //*************************************************************************
@@ -450,6 +552,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 					   sqrt( pow(PFMetCustomType1CorrectedX,2) + pow(PFMetCustomType1CorrectedY,2)));      
       TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
       MET = MyMET.Pt();
+      METPhi = MyMET.Phi();
 
       TLorentzVector DileptonWW;
       if (lep3Index >= 0) {
@@ -469,6 +572,12 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       triggerEffSFWeight = 1.0;
    
     
+      //******************************************************
+      //Filters
+      //******************************************************
+      //4-L filter
+      if (!(lep1Pt > 10 && lep2Pt > 10  && lep3Pt > 10  && lep4Pt > 10)) continue;
+
       //Fill Event
       outputTree->Fill();
 
