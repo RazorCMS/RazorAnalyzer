@@ -2,7 +2,7 @@ include ../Makefile.inc
 
 INCLUDEDIR= src
 SHARED = lib/libRazorRun2.so
-INCLUDELIST= RooRazor2DTail_SYS.h RooRazor3DBinPdf.h RooRazor3DBinReparamPdf.h RooRazor3DBinErrorPdf.h RooRazor3DBinNumericRsqTurnOffPdf.h RooRazor3DBinNumericMRSlopePdf.h RooRazor3DBinMRSlopePdf.h RooRazor3DBinMRSlopeErrorPdf.h MLMixedSample.h RooBTagMult.h RooSigmoid.h Linkdef.h
+INCLUDELIST= RooRazor2DTail_SYS.h RooRazor3DBinPdf.h RooRazor3DBinReparamPdf.h RooRazor3DBinErrorPdf.h RooRazor3DBinNumericRsqTurnOffPdf.h RooRazor3DBinNumericMRSlopePdf.h RooRazor3DBinMRSlopePdf.h RooRazor3DBinMRSlopeErrorPdf.h MLMixedSample.h RooBTagMult.h RooSigmoid.h RooRazorGenTail.h RooRazorGenTailBin.h Linkdef.h
 
 .PHONY: clean all
 
@@ -16,7 +16,13 @@ $(INCLUDEDIR)/RooRazor2DTail_SYS.o:
 
 $(INCLUDEDIR)/RooRazor3DBinPdf.o:
 	$(CXX) $(INCLUDEDIR)/RooRazor3DBinPdf.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
-	
+
+$(INCLUDEDIR)/RooRazorGenTail.o:
+	$(CXX) $(INCLUDEDIR)/RooRazorGenTail.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
+
+$(INCLUDEDIR)/RooRazorGenTailBin.o:
+	$(CXX) $(INCLUDEDIR)/RooRazorGenTailBin.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
+
 $(INCLUDEDIR)/RooRazor3DBinReparamPdf.o:
 	$(CXX) $(INCLUDEDIR)/RooRazor3DBinReparamPdf.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
 
@@ -44,7 +50,7 @@ $(INCLUDEDIR)/RooSigmoid.o:
 $(INCLUDEDIR)/MLMixedSample.o:
 	$(CXX) $(INCLUDEDIR)/MLMixedSample.cc $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $@ -I$(INCLUDEDIR) -c
 
-$(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/RooRazor3DBinPdf.o $(INCLUDEDIR)/RooRazor3DBinReparamPdf.o $(INCLUDEDIR)/RooRazor3DBinErrorPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericRsqTurnOffPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopeErrorPdf.o $(INCLUDEDIR)/RooBTagMult.o $(INCLUDEDIR)/RooSigmoid.o $(INCLUDEDIR)/MLMixedSample.o
+$(SHARED): $(INCLUDEDIR)/rootdict.o $(INCLUDEDIR)/RooRazor2DTail_SYS.o $(INCLUDEDIR)/RooRazor3DBinPdf.o $(INCLUDEDIR)/RooRazor3DBinReparamPdf.o $(INCLUDEDIR)/RooRazor3DBinErrorPdf.o $(INCLUDEDIR)/RooRazorGenTail.o $(INCLUDEDIR)/RooRazorGenTailBin.o  $(INCLUDEDIR)/RooRazor3DBinNumericRsqTurnOffPdf.o $(INCLUDEDIR)/RooRazor3DBinNumericMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopePdf.o $(INCLUDEDIR)/RooRazor3DBinMRSlopeErrorPdf.o $(INCLUDEDIR)/RooBTagMult.o $(INCLUDEDIR)/RooSigmoid.o $(INCLUDEDIR)/MLMixedSample.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^
 
 clean:
