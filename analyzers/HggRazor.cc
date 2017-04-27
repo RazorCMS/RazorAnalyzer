@@ -1125,8 +1125,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //--------------
       for( int i = 0; i < nMuons; i++ )
 	{
-	  if(!isLooseMuon(i)) continue;  
-	  if(muonPt[i] < 10) continue;
+	  if(!isVetoMuon(i)) continue;  
+	  if(muonPt[i] < 15) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
 	  nLooseMuons++;
 	  if( isTightMuon(i) ) nTightMuons++;
@@ -1136,8 +1136,8 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
       //------------------
       for( int i = 0; i < nElectrons; i++ )
 	{
-	  if( !isLooseElectron(i) ) continue; 
-	  if( elePt[i] < 10 ) continue;
+	  if( !isVetoElectron(i) ) continue; 
+	  if( elePt[i] < 20 ) continue;
 	  if( abs(eleEta[i]) > 2.5 ) continue;
 	  nLooseElectrons++;
       	  if( isTightElectron(i) ) nTightElectrons++;
