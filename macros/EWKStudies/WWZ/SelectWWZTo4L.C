@@ -242,6 +242,11 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
   vector<TH1D*> histNBJet20;
   vector<TH1D*> histNJet30;
   vector<TH1D*> histNJet20;
+  vector<TH1D*> histPhi0;
+  vector<TH1D*> histTheta0;
+  vector<TH1D*> histPhi;
+  vector<TH1D*> histTheta1;
+  vector<TH1D*> histTheta2;
 
   assert (inputfiles.size() == processLabels.size());
   for (uint i=0; i < inputfiles.size(); ++i) {
@@ -292,6 +297,22 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
   
     histNJet30.push_back(new TH1D(Form("histNJet30_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 6, -0.5, 5.5));   
     histNJet30[i]->Sumw2();    
+
+    histPhi0.push_back(new TH1D(Form("histPhi0_%s",processLabels[i].c_str()), ";  #Phi_{0}; Number of Events", 6, 0, 2*3.142));   
+    histPhi0[i]->Sumw2();    
+
+    histTheta0.push_back(new TH1D(Form("histTheta0_%s",processLabels[i].c_str()), ";  #Theta_{0}; Number of Events", 6, 0, 3.142));   
+    histTheta0[i]->Sumw2();    
+
+    histPhi.push_back(new TH1D(Form("histPhi_%s",processLabels[i].c_str()), ";  #Phi; Number of Events", 6, 0, 2*3.142));   
+    histPhi[i]->Sumw2();    
+
+    histTheta1.push_back(new TH1D(Form("histTheta1_%s",processLabels[i].c_str()), ";  #Theta_{1}; Number of Events", 6, 0, 3.142));   
+    histTheta1[i]->Sumw2();    
+
+    histTheta2.push_back(new TH1D(Form("histTheta2_%s",processLabels[i].c_str()), ";  #Theta_{2}; Number of Events", 6, 0, 3.142));   
+    histTheta2[i]->Sumw2();    
+
   }
  
   double dataYield = 0;
@@ -339,6 +360,7 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
       float MET, MET_JESUp, MET_JESDown; 
       float METPhi;
       unsigned int run, lumiSec, event;
+      float phi0, theta0, phi, theta1, theta2, phiH;
       bool HLTDecision[300];
 
       tree->SetBranchAddress("weight", &eventweight);
@@ -383,6 +405,12 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
       tree->SetBranchAddress("lep34MT", &lep34MT);
       // tree->SetBranchAddress("minDRJetToLep3", &minDRJetToLep3);
       // tree->SetBranchAddress("minDRJetToLep4", &minDRJetToLep4);
+      tree->SetBranchAddress("phi0", &phi0);
+      tree->SetBranchAddress("theta0", &theta0);
+      tree->SetBranchAddress("phi", &phi);
+      tree->SetBranchAddress("theta1", &theta1);
+      tree->SetBranchAddress("theta2", &theta2);
+      tree->SetBranchAddress("phiH", &phiH);
       tree->SetBranchAddress("HLTDecision", &HLTDecision);
 
 
@@ -544,6 +572,12 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
 	  histNBJet30[i]->Fill(NBJet30,weight);
 	  histNJet20[i]->Fill(NJet20,weight);
 	  histNJet30[i]->Fill(NJet30,weight);
+	  histPhi0[i]->Fill(phi0,weight);
+	  histTheta0[i]->Fill(theta0,weight);
+	  histPhi[i]->Fill(phi,weight);
+	  histTheta1[i]->Fill(theta1,weight);
+	  histTheta2[i]->Fill(theta2,weight);
+
 	}
       }
     }
@@ -577,7 +611,12 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
   PlotDataAndStackedBkg( histNBJet30, processLabels, color, false, "NBJet30", Label);
   PlotDataAndStackedBkg( histNJet20, processLabels, color, false, "NJet20", Label);
   PlotDataAndStackedBkg( histNJet30, processLabels, color, false, "NJet30", Label);
- 
+  PlotDataAndStackedBkg( histPhi0, processLabels, color, false, "Phi0", Label);
+  PlotDataAndStackedBkg( histTheta0, processLabels, color, false, "Theta0", Label);
+  PlotDataAndStackedBkg( histPhi, processLabels, color, false, "Phi", Label);
+  PlotDataAndStackedBkg( histTheta1, processLabels, color, false, "Theta1", Label);
+  PlotDataAndStackedBkg( histTheta2, processLabels, color, false, "Theta2", Label);
+
   //--------------------------------------------------------------------------------------------------------------
   // Tables
   //==============================================================================================================
@@ -641,11 +680,11 @@ void SelectWWZTo4L( int option = 0) {
   vector<string> bkgfiles_WZ;  
   vector<string> bkgfiles_ttW; 
 
-  bkgfiles_WWZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/WWZAnalysis_WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted_4LSkim.root");
-  bkgfiles_ttZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/WWZAnalysis_ttZJets_13TeV_madgraphMLM_1pb_weighted_4LSkim.root");
-  bkgfiles_ZZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/WWZAnalysis_ZZTo4L_13TeV-amcatnloFXFX-pythia8_1pb_weighted_4LSkim.root");
-  bkgfiles_WZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/WWZAnalysis_WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted_4LSkim.root");
-  bkgfiles_ttW.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/WWZAnalysis_ttWJets_13TeV_madgraphMLM_1pb_weighted_4LSkim.root");
+  bkgfiles_WWZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
+  bkgfiles_ttZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ttZJets_13TeV_madgraphMLM_1pb_weighted.root");
+  bkgfiles_ZZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ZZTo4L_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+  bkgfiles_WZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+  bkgfiles_ttW.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ttWJets_13TeV_madgraphMLM_1pb_weighted.root");
 
 
   bkgfiles.push_back(bkgfiles_WWZ);
