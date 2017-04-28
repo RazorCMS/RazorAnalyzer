@@ -15,6 +15,7 @@
 #include <TH1F.h>
 #include <TH2D.h>
 #include "TRandom3.h"
+#include "AngleConversion.h"
 
 using namespace std;
 
@@ -96,6 +97,8 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   int lep4Id;
   float lep4Pt, lep4Eta, lep4Phi;
 
+  float phi0, theta0, phi, theta1, theta2, phiH;
+
   //PDF SF
   std::vector<float> sf_pdf;
   
@@ -169,6 +172,16 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("lep3MT", &lep3MT, "lep3MT/F");
   outputTree->Branch("lep4MT", &lep4MT, "lep4MT/F");
   outputTree->Branch("lep34MT", &lep34MT, "lep34MT/F");
+
+  outputTree->Branch("phi0", &phi0, "phi0/F");
+  outputTree->Branch("theta0", &theta0, "theta0/F");
+  outputTree->Branch("phi", &phi, "phi/F");
+  outputTree->Branch("theta1", &theta1, "theta1/F");
+  outputTree->Branch("theta2", &theta2, "theta2/F");
+  outputTree->Branch("phiH", &phiH, "phiH/F");
+
+
+
   outputTree->Branch("minDRJetToLep3", &minDRJetToLep3, "minDRJetToLep3/F");
   outputTree->Branch("minDRJetToLep4", &minDRJetToLep4, "minDRJetToLep4/F");
   outputTree->Branch("HLTDecision", &HLTDecision, "HLTDecision[300]/O");
@@ -235,7 +248,13 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       ZMass = -999;
       ZPt = -999;
       lep3MT = -999;
-      lep4MT = -999;      
+      lep4MT = -999;   
+      phi0 = -999;
+      theta0 = -999;
+      phi = -999;
+      theta1 = -999;
+      theta2 = -999;   
+      phiH = -999;
       MET = -999;
       MET_JESUp = -999;
       MET_JESDown = -999;
@@ -564,6 +583,54 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	}
       }
 
+      //*************************************************************************
+      //Angular Variables
+      //*************************************************************************
+      LeptonVectors vLeptons;
+
+      double lep1Mass = 0;
+      if (abs(lep1Id) == 11) lep1Mass = 0.000511;
+      else if (abs(lep1Id) == 13) lep1Mass = 0.1057;
+      if ( lep1Id > 0 ) {
+	vLeptons.Lepton11.SetPtEtaPhiMass(lep1Pt, lep1Eta, lep1Phi, lep1Mass);
+      } else {
+	vLeptons.Lepton12.SetPtEtaPhiMass(lep1Pt, lep1Eta, lep1Phi, lep1Mass);
+      }
+      
+      double lep2Mass = 0;
+      if (abs(lep2Id) == 11) lep2Mass = 0.000511;
+      else if (abs(lep2Id) == 13) lep2Mass = 0.1057;
+      if (lep2Id > 0) {
+	vLeptons.Lepton11.SetPtEtaPhiMass(lep2Pt, lep2Eta, lep2Phi, lep2Mass);
+      } else {
+	vLeptons.Lepton12.SetPtEtaPhiMass(lep2Pt, lep2Eta, lep2Phi, lep2Mass);
+      }
+      
+      double lep3Mass = 0;
+      if (abs(lep3Id) == 11) lep3Mass = 0.000511;
+      else if (abs(lep3Id) == 13) lep3Mass = 0.1057;
+      if (lep3Id > 0) {
+	vLeptons.Lepton21.SetPtEtaPhiMass(lep3Pt, lep3Eta, lep3Phi, lep3Mass);
+      } else {
+	vLeptons.Lepton22.SetPtEtaPhiMass(lep3Pt, lep3Eta, lep3Phi, lep3Mass);
+      }
+      
+      double lep4Mass = 0;
+      if (abs(lep4Id) == 11) lep4Mass = 0.000511;
+      else if (abs(lep4Id) == 13) lep4Mass = 0.1057;
+      if (lep4Id > 0) {
+	vLeptons.Lepton21.SetPtEtaPhiMass(lep4Pt, lep4Eta, lep4Phi, lep4Mass);
+      } else {
+	vLeptons.Lepton22.SetPtEtaPhiMass(lep4Pt, lep4Eta, lep4Phi, lep4Mass);
+      }
+      
+      EventParameters eventParameters = ConvertVectorsToAngles( vLeptons );
+      phi0 = eventParameters.Phi0;
+      theta0 = eventParameters.Theta0;
+      phi = eventParameters.Phi;
+      theta1 = eventParameters.Theta1;
+      theta2 = eventParameters.Theta2;
+      phiH = eventParameters.PhiH;
 
       //******************************************************
       //compute trigger efficiency weights for MC
