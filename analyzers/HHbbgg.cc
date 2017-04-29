@@ -15,6 +15,7 @@
 #include <TH1F.h>
 #include <TH2D.h>
 #include "TRandom3.h"
+#include "TMVA/Reader.h"
 
 using namespace std;
 
@@ -24,8 +25,13 @@ struct PhotonCandidate
   int   Index;
   TLorentzVector photon;
   TLorentzVector photonSC;
+  float scE;
+  float scPt;
   float scEta;
   float scPhi;
+  float scX;
+  float scY;
+  float scZ;
   float SigmaIetaIeta;                                                                        
   float R9;                                                                                  
   float HoverE;                                                                        
@@ -35,6 +41,11 @@ struct PhotonCandidate
   float sigmaEOverE;
   bool  _passEleVeto;
   bool  _passIso;
+  int convType;
+  float convTrkZ;
+  float convTrkClusZ;
+  float vtxSumPx[200];
+  float vtxSumPy[200];
 };
 
 struct evt
@@ -53,6 +64,34 @@ const double EE_Z = 317.0;
 const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
+const float SIGMATRKZ[12] = { 0.0125255,
+                              0.0178107,
+                              0.0581667,
+                              0.152157,
+                              0.716301,
+                              1.3188,
+                              0.38521,
+                              0.702755,
+                              3.17615,
+                              2.23662,
+                              1.67937,
+                              2.46599
+                            };
+                            
+const float SIGMATRKCLUSZ[12] = { 0.0298574,
+                                  0.0935307,
+                                  0.180419,
+                                  0.577081,
+                                  0.414393,
+                                  0.756568,
+                                  0.494722,
+                                  0.892751,
+                                  1.06805,
+                                  0.62143,
+                                  1.21941,
+                                  1.56638
+                                };
+
 //Testing branching and merging
 void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
 {
@@ -62,6 +101,7 @@ void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
   bool isFastsimSMS = false;
+  bool doMVAVertex = true;
 
   string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
@@ -115,6 +155,31 @@ void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
   } else {
     photonCorrector->doScale = true; 
     photonCorrector->doSmearings = false;
+  }
+
+
+  //--------------------------------
+  //MVA Vertex Selection
+  //--------------------------------
+  float ptasym = 0.;
+  float ptbal = 0.;
+  float logsumpt2 = 0.;
+  float pull_conv = 0.;
+  float nConv = 0.;
+  
+  
+  TMVA::Reader *vtxmvareader = 0;
+  if (doMVAVertex) {
+    vtxmvareader = new TMVA::Reader( "!Color:Silent" );
+    vtxmvareader->AddVariable("ptasym", &ptasym );
+    vtxmvareader->AddVariable("ptbal", &ptbal );
+    vtxmvareader->AddVariable("logsumpt2", &logsumpt2 );
+    vtxmvareader->AddVariable("limPullToConv", &pull_conv );
+    vtxmvareader->AddVariable("nConv", &nConv );
+    
+    std::string vtxpathname;
+    if ( cmsswPath != NULL ) vtxpathname = string(cmsswPath) + "/src/RazorAnalyzer/data/";
+    vtxmvareader->BookMVA("BDT",Form("%s/TMVAClassification_BDTVtxId_SL_2015.xml",vtxpathname.c_str()));
   }
 
   //--------------------------------
@@ -255,7 +320,7 @@ void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
       vector<TLorentzVector> GoodPhotons;
       vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
       vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
-      std::vector< PhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
+      std::vector< PhotonCandidate> phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
       int nPhotonsAbove40GeV = 0;
       for(int i = 0; i < nPhotons; i++) {
 	  
@@ -372,6 +437,115 @@ void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
 	    {
 	      PhotonCandidate pho1 = phoCand[i];
 	      PhotonCandidate pho2 = phoCand[j];
+
+
+	      if (doMVAVertex) {
+
+		float pho1E = pho1.photon.E();
+		float pho2E = pho2.photon.E();
+              
+		float maxbdtval = -99.;
+		int ipvmax = 0;
+                            
+		for (int ipv=0; ipv<nPVAll; ++ipv) {
+		  float vtxX = pvAllX[ipv];
+		  float vtxY = pvAllY[ipv];
+		  float vtxZ = pvAllZ[ipv];
+                
+		  TVector3 pho1dir(pho1.scX-vtxX,pho1.scY-vtxY,pho1.scZ-vtxZ);
+		  TVector3 pho2dir(pho2.scX-vtxX,pho2.scY-vtxY,pho2.scZ-vtxZ);
+		  TVector3 diphomom = pho1E*pho1dir.Unit() + pho2E*pho2dir.Unit();
+		  TVector3 diphoPt(diphomom.x(), diphomom.y(), 0.);
+                
+		  TVector3 vtxSumPt(pvAllSumPx[ipv]-pho1.vtxSumPx[ipv]-pho2.vtxSumPx[ipv], pvAllSumPy[ipv]-pho1.vtxSumPy[ipv]-pho2.vtxSumPy[ipv],0.);
+                
+
+		  if (_debug) {
+		    std::cout << " Pho Debug: " << pho1E << " " << pho2E << " : " 
+			      << diphoPt.Eta() << " " << diphoPt.Phi() << " "
+			      << "\n";
+		  }
+
+		  logsumpt2 = pvAllLogSumPtSq[ipv];
+		  ptbal = -vtxSumPt.Dot(diphoPt.Unit()); 
+		  ptasym = (vtxSumPt.Mag() - diphoPt.Mag())/(vtxSumPt.Mag() + diphoPt.Mag());
+                
+		  bool hasconv1 = pho1.convType>=0;
+		  bool hasconv2 = pho2.convType>=0;
+                
+		  float convz1 = -99.;
+		  float convsz1 = -99.;
+		  float convz2 = -99.;
+		  float convsz2 = -99.;
+                                
+		  nConv = 0.;
+		  float convz = -99.;
+		  float convsz = -99.;
+		  if (hasconv1) {
+		    convz1 = SIGMATRKZ[pho1.convType] < SIGMATRKCLUSZ[pho1.convType] ? pho1.convTrkZ : pho1.convTrkClusZ;
+		    convsz1 = std::min(SIGMATRKZ[pho1.convType],SIGMATRKCLUSZ[pho1.convType]);                  
+                  
+		    convz = convz1;
+		    convsz = convsz1;
+		    nConv = 1;
+		  }
+		  if (hasconv2) {
+		    convz2 = SIGMATRKZ[pho2.convType] < SIGMATRKCLUSZ[pho2.convType] ? pho2.convTrkZ : pho2.convTrkClusZ;
+		    convsz2 = std::min(SIGMATRKZ[pho2.convType],SIGMATRKCLUSZ[pho2.convType]);
+                  
+		    convz = convz2;
+		    convsz = convsz2;
+		    nConv = 1;
+		  }
+		  if (hasconv1 && hasconv2) {
+		    double w1 = 1./convsz1/convsz1;
+		    double w2 = 1./convsz2/convsz2;
+		    convz = (w1*convz1 + w2*convz2)/(w1+w2);
+		    convsz = sqrt(1./(w1+w2));
+		    nConv = 2;
+		  }
+                
+		  if (hasconv1 || hasconv2) {
+		    pull_conv = std::abs(convz-vtxZ)/convsz;
+		    pull_conv = std::min(10.f,pull_conv); 
+		  }
+		  else {
+		    pull_conv = 10.;
+		  }
+                
+		  float bdtval = vtxmvareader->EvaluateMVA("BDT");
+
+		  if (_debug) std::cout << "Vertex: " << ipv << " " << pvAllZ[ipv] << " : " 
+					<< ptasym << " " << ptbal << " " << logsumpt2 << " " << pull_conv << " " << nConv << " : "
+					<< bdtval << "\n";
+                              
+		  if (bdtval > maxbdtval) {
+		    maxbdtval = bdtval;
+		    ipvmax = ipv;
+		  }
+                
+		}
+
+		if (_debug) std::cout << "Vertex Selected: " << ipvmax << "\n\n";
+	      
+		//vtxIndex = ipvmax;
+		//vtxZCoordinate =  pvAllZ[ipvmax];
+
+		float vtxX = pvAllX[ipvmax];
+		float vtxY = pvAllY[ipvmax];
+		float vtxZ = pvAllZ[ipvmax];
+              
+		TVector3 pho1dir(pho1.scX-vtxX,pho1.scY-vtxY,pho1.scZ-vtxZ);
+		pho1dir = pho1dir.Unit();
+		pho1.photon.SetPxPyPzE(pho1dir.x()*pho1E,pho1dir.y()*pho1E,pho1dir.z()*pho1E,pho1E);
+              
+		TVector3 pho2dir(pho2.scX-vtxX,pho2.scY-vtxY,pho2.scZ-vtxZ);
+		pho2dir = pho2dir.Unit();
+		pho2.photon.SetPxPyPzE(pho2dir.x()*pho2E,pho2dir.y()*pho2E,pho2dir.z()*pho2E,pho2E);
+              
+	      } //end if do MVA Vertex
+            
+
 	      if ( _debug )
 		{
 		  std::cout << "[DEBUG]: pho1-> " << pho1.photon.Pt()
@@ -391,7 +565,7 @@ void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
 		  std::cout << "[DEBUG] Diphoton Sum pT: " << pho1.photon.Pt() + pho2.photon.Pt() << std::endl;
 		}
 	    
-	      if( diphotonMass < 50 )
+	      if( diphotonMass < 100 )
 		{
 		  if ( _debug ) std::cout << "[DEBUG]: Diphoton mass < 50 GeV: mgg-> " << diphotonMass << std::endl;
 		  if ( _debug ) std::cout << "... pho1Pt: " << pho1.photon.Pt()  << " pho2Pt: " << pho2.photon.Pt()  << std::endl;
@@ -424,8 +598,8 @@ void HHbbgg::Analyze(bool isData, int option, string outFileName, string label)
 		      HiggsPhoIndex2 = pho1.Index;
 		    }
 		}//best pt if
-	    }
-	}
+	    } //second photon loop
+	}//first photon loop
     
     
       //---------------------------------------
