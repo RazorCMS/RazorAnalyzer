@@ -520,16 +520,22 @@ def appendBoxCuts(cuts, boxNums):
     """Append a string of the form "(box == b1 || box == b2 || ... || box == bN) && " to the provided cut string, where b1...bN are the desired box numbers"""
     return '('+(' || '.join(['box == '+str(n) for n in boxNums])) + ") && " + cuts
 
-recommendedNoiseFilters = [
+recommendedNoiseFilters = {
+        "Razor2016_MoriondRereco":[
         "Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter",
         "Flag_goodVertices", "Flag_eeBadScFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
         "Flag_badChargedCandidateFilter","Flag_badMuonFilter",
         "!Flag_badGlobalMuonFilter", "!Flag_duplicateMuonFilter"
-        ]
-def appendNoiseFilters(cuts, tree=None):
+        ],
+        "Razor2015":[
+        "Flag_HBHENoiseFilter","Flag_HBHEIsoNoiseFilter",
+        "Flag_goodVertices", "Flag_eeBadScFilter",
+        "Flag_EcalDeadCellTriggerPrimitiveFilter","Flag_CSCTightHaloFilter",
+        ] }
+def appendNoiseFilters(cuts, tree=None, tag="Razor2016_MoriondRereco"):
     ret = copy.copy(cuts)
-    for bit in recommendedNoiseFilters:
+    for bit in recommendedNoiseFilters[tag]:
         if (tree is None) or hasattr(tree, bit):
             ret += " && " + bit
     return ret
@@ -1411,7 +1417,6 @@ class Analysis:
             sys.exit("Error: analysis region "+self.region+" is not implemented!")
 
         #add jet and bjet and trigger requirements to cuts
-        #self.cuts = appendNoiseFilters(self.cuts) # MC does not have all noise filters yet -- just add filter cuts to data
         self.addJetCuts()
         self.addTriggerCuts()
 
@@ -1429,7 +1434,8 @@ class Analysis:
         self.trigInfoMC = TriggerUtils(self.trigType, self.tag, isData=False)
         self.trigInfoData = TriggerUtils(self.trigType, self.tag, isData=True)
         self.cutsMC = self.trigInfoMC.appendTriggerCuts( self.cuts )+' && TMath::Finite(weight) && (!TMath::IsNaN(weight))'
-        self.cutsData = appendNoiseFilters( self.trigInfoData.appendTriggerCuts( self.cuts ) )
+        self.cutsData = appendNoiseFilters( self.trigInfoData.appendTriggerCuts( self.cuts ),
+                tag=self.tag )
         if self.region == 'GJetsInv':
             self.cutsData += ' && pho1HLTFilter[36]'
 

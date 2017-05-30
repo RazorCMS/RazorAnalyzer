@@ -13,6 +13,7 @@
 #pragma link C++ defined_in "RooRazor3DBinReparamPdf.h";
 #pragma link C++ defined_in "RooRazor3DBinErrorPdf.h";
 #pragma link C++ defined_in "RooRazor3DBinNumericRsqTurnOffPdf.h";
+#pragma link C++ defined_in "RooRazor3DBinNumericPdf.h";
 #pragma link C++ defined_in "RooRazor3DBinNumericMRSlopePdf.h";
 #pragma link C++ defined_in "RooRazor3DBinMRSlopePdf.h";
 #pragma link C++ defined_in "RooRazor3DBinMRSlopeErrorPdf.h";

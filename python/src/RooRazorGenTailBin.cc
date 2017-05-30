@@ -225,7 +225,7 @@ Double_t RooRazorGenTailBin::evaluate() const
 
 // //---------------------------------------------------------------------------
 Int_t RooRazorGenTailBin::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
-  //if (matchArgs(allVars, analVars, th1x)) return 1;
+  if (matchArgs(allVars, analVars, th1x)) return 1;
   return 0;
 }
 
@@ -316,7 +316,6 @@ Double_t RooRazorGenTailBin::analyticalIntegral(Int_t code, const char* rangeNam
    }
 
    if (total_integral>0.0) {
-     std::cout << integral << std::endl;
      return integral;
    } else return 1.0;
 }

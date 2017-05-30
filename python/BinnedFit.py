@@ -70,7 +70,8 @@ if __name__ == '__main__':
             rootFile = rt.TFile(f)
             workspace = rootFile.Get('w'+box)
             data = workspace.data('RMRTree')
-            lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
+            lumi_in = 35900
+            #lumi_in = 1000.*float([g.replace('lumi-','') for g in f.split('_') if g.find('lumi')!=-1][0])
     if data is None:
         print "give a root file as input"
   

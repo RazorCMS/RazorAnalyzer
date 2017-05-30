@@ -1,3 +1,4 @@
+import sys
 import os
 import numpy as np
 import ROOT as rt 
@@ -95,25 +96,39 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
         if box=='MultiJet' or box=='MultiJet_0b':
             print "MultiJet_0b"
             if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
+                scan_status = scanParams('b', 0, w, m2)
                 scan_status = scanParams('m', 0, w, m2)
+                scan_status = scanParams('bn', 0, w, m2)
                 scan_status = scanParams('r', 0, w, m2)
-            scan_status = m2.minimize('Minuit2', 'simplex')
-            scan_status = m2.minimize('Minuit2', 'simplex')
-            scan_status = m2.minimize('Minuit2', 'simplex')
+                scan_status = scanParams('m', 0, w, m2)
+                scan_status = scanParams('bn', 0, w, m2)
+                #scan_status = scanParams('r', 0, w, m2)
+            #scan_status = m2.minimize('Minuit2', 'simplex')
+            #scan_status = m2.minimize('Minuit2', 'simplex')
+            #scan_status = m2.minimize('Minuit2', 'simplex')
+            #w.var('n_TTj0b_MultiJet_0b').setConstant()
+            #w.var('R0_TTj0b_MultiJet_0b').setConstant()
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            migrad_status = m2.minimize('Minuit2','migrad')
+            improve_status = m2.minimize('Minuit2','improve')
+            migrad_status = m2.minimize('Minuit2','migrad')
             hesse_status = m2.minimize('Minuit2','hesse')
+            #w.var('n_TTj0b_MultiJet_0b').setConstant(False)
+            #w.var('R0_TTj0b_MultiJet_0b').setConstant(False)
 
         if box=='MultiJet_1b':
             print "MultiJet_1b"
-            if w is not None:
-                scan_status = scanParams('bn', 1, w, m2)
-                scan_status = scanParams('m', 1, w, m2)
-                scan_status = scanParams('r', 1, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 1, w, m2)
+                #scan_status = scanParams('m', 1, w, m2)
+                #scan_status = scanParams('r', 1, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -126,10 +141,10 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         elif box=='MultiJet_2b':
             print "MultiJet_2b"
-            if w is not None:
-                scan_status = scanParams('bn', 2, w, m2)
-                scan_status = scanParams('m', 2, w, m2)
-                scan_status = scanParams('r', 2, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 2, w, m2)
+                #scan_status = scanParams('m', 2, w, m2)
+                #scan_status = scanParams('r', 2, w, m2)
             scan_status = m2.minimize('Minuit2', 'scan')
             scan_status = m2.minimize('Minuit2', 'scan')
             #scan_status = m2.minimize('Minuit2', 'simplex')
@@ -146,10 +161,10 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         if box=='LeptonMultiJet' or box=='LeptonMultiJet_0b':
             print "LeptonMultiJet_0b"
-            if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
-                scan_status = scanParams('m', 0, w, m2)
-                scan_status = scanParams('r', 0, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 0, w, m2)
+                #scan_status = scanParams('m', 0, w, m2)
+                #scan_status = scanParams('r', 0, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -162,10 +177,10 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         if box=='LeptonMultiJet_1b':
             print "LeptonMultiJet_1b"
-            if w is not None:
-                scan_status = scanParams('bn', 1, w, m2)
-                scan_status = scanParams('m', 1, w, m2)
-                scan_status = scanParams('r', 1, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 1, w, m2)
+                #scan_status = scanParams('m', 1, w, m2)
+                #scan_status = scanParams('r', 1, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -180,17 +195,17 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
             print "LeptonMultiJet_2b"
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
-            if w is not None:
-                scan_status = scanParams('bn', 2, w, m2)
-                scan_status = scanParams('m', 2, w, m2)
-                scan_status = scanParams('r', 2, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 2, w, m2)
+                #scan_status = scanParams('m', 2, w, m2)
+                #scan_status = scanParams('r', 2, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
             migrad_status = m2.minimize('Minuit2','migrad')
-            if w is not None:
-                scan_status = scanParams('bn', 2, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 2, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
-            if w is not None:
-                scan_status = scanParams('n', 2, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('n', 2, w, m2)
             migrad_status = m2.minimize('Minuit2','migrad')
             improve_status = m2.minimize('Minuit2','improve')
             migrad_status = m2.minimize('Minuit2','migrad')
@@ -205,10 +220,10 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         elif box=='DiJet_2b':
             print "DiJet_2b"
-            if w is not None:
-                scan_status = scanParams('bn', 2, w, m2)
-                scan_status = scanParams('m', 2, w, m2)
-                scan_status = scanParams('r', 2, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 2, w, m2)
+                #scan_status = scanParams('m', 2, w, m2)
+                #scan_status = scanParams('r', 2, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -221,11 +236,11 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         elif box=='DiJet_1b':
             print "DiJet_1b"
-            if w is not None:
-                scan_status = scanParams('bn', 1, w, m2)
-                scan_status = scanParams('m', 1, w, m2)
-                scan_status = scanParams('r', 1, w, m2)
-                scan_status = scanParams('bn', 1, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 1, w, m2)
+                #scan_status = scanParams('m', 1, w, m2)
+                #scan_status = scanParams('r', 1, w, m2)
+                #scan_status = scanParams('bn', 1, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -238,27 +253,32 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         elif box=='DiJet_0b' or box=='DiJet':
             print "DiJet_0b"
-            if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
-                scan_status = scanParams('m', 0, w, m2)
-                scan_status = scanParams('r', 0, w, m2)
-            scan_status = m2.minimize('Minuit2', 'simplex')
-            scan_status = m2.minimize('Minuit2', 'simplex')
-            scan_status = m2.minimize('Minuit2', 'simplex')
+            #if w is not None:
+                #scan_status = scanParams('bn', 0, w, m2)
+                #scan_status = scanParams('m', 0, w, m2)
+                #scan_status = scanParams('r', 0, w, m2)
+            #scan_status = m2.minimize('Minuit2', 'simplex')
+            #scan_status = m2.minimize('Minuit2', 'simplex')
+            #scan_status = m2.minimize('Minuit2', 'simplex')
+            print "FIRST MIGRAD"
             migrad_status = m2.minimize('Minuit2','migrad')#
+            print "SECOND MIGRAD"
             migrad_status = m2.minimize('Minuit2','migrad')#
+            print "THIRD MIGRAD"
             migrad_status = m2.minimize('Minuit2','migrad')#
+            print "FIRST IMPROVE"
+            improve_status = m2.minimize('Minuit2','improve')#
             migrad_status = m2.minimize('Minuit2','migrad')#
             migrad_status = m2.minimize('Minuit2','migrad')#
             hesse_status = m2.minimize('Minuit2','hesse')#
 
         elif box=='LeptonJet' or box=='LeptonJet_0b':
             print "LeptonJet_0b"
-            if w is not None:
-                scan_status = scanParams('bn', 0, w, m2)
-                scan_status = scanParams('m', 0, w, m2)
-                scan_status = scanParams('r', 0, w, m2)
-                scan_status = scanParams('bn', 0, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 0, w, m2)
+                #scan_status = scanParams('m', 0, w, m2)
+                #scan_status = scanParams('r', 0, w, m2)
+                #scan_status = scanParams('bn', 0, w, m2)
             #scan_status = m2.minimize('Minuit2', 'simplex')
             #scan_status = m2.minimize('Minuit2', 'simplex')
             #if w is not None:
@@ -270,11 +290,11 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         elif box=='LeptonJet_1b':
             print "LeptonJet_1b"
-            if w is not None:
-                scan_status = scanParams('bn', 1, w, m2)
-                scan_status = scanParams('m', 1, w, m2)
-                scan_status = scanParams('r', 1, w, m2)
-                scan_status = scanParams('bn', 1, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 1, w, m2)
+                #scan_status = scanParams('m', 1, w, m2)
+                #scan_status = scanParams('r', 1, w, m2)
+                #scan_status = scanParams('bn', 1, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -287,11 +307,11 @@ def binnedFit(pdf, data, fitRange='Full',useWeight=False, box='MultiJet', w=None
 
         elif box=='LeptonJet_2b':
             print "LeptonJet_2b"
-            if w is not None:
-                scan_status = scanParams('bn', 2, w, m2)
-                scan_status = scanParams('m', 2, w, m2)
-                scan_status = scanParams('r', 2, w, m2)
-                scan_status = scanParams('bn', 2, w, m2)
+            #if w is not None:
+                #scan_status = scanParams('bn', 2, w, m2)
+                #scan_status = scanParams('m', 2, w, m2)
+                #scan_status = scanParams('r', 2, w, m2)
+                #scan_status = scanParams('bn', 2, w, m2)
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
             scan_status = m2.minimize('Minuit2', 'simplex')
@@ -556,18 +576,29 @@ class FitInstance(object):
             print "Resetting fit parameter %s to %d"%(par, entries)
             self.workspace.var(par).setVal(entries)
 
+    def getFitResultFromWorkspace(self, w):
+        possible_names = [
+                "fitresult_extRazorPdf_data_obs",
+                "nll_extRazorPdf_data_obs",
+                "fitresult_extRazorPdf_data_obs_with_constr",
+                "nll_extRazorPdf_data_obs_with_constr"]
+        for name in possible_names:
+            if w.obj(name):
+                return w.obj(name)
+        raise FitError("No fit result found in workspace!")
+
     def loadFitParamsFromFile(self, fitFile):
         """Loads the workspace from the given file and takes the fit parameters 
            (except normalizations) from the fit result in the workspace"""
         w = self.getWorkspaceFromFile(fitFile)
-        self.restoreFitParams(fitResult=w.obj("nll_extRazorPdf_data_obs"))
+        self.restoreFitParams(fitResult=self.getFitResultFromWorkspace(w))
         print "Loaded fit parameters from file",fitFile
 
     def loadFitResultFromFile(self, fitFile):
         """Loads the fit result from the given file and saves it in 
             the current file."""
         w = self.getWorkspaceFromFile(fitFile)
-        fr = w.obj("nll_extRazorPdf_data_obs")
+        fr = self.getFitResultFromWorkspace(w)
         if not fr:
             raise FitError("Fit result not found in %s"%fitFile)
         self.addToWorkspace(fr, tobject=True)
@@ -593,7 +624,7 @@ class FitInstance(object):
             current workspace will be used."""
         w = self.workspace
         if fitResult is None:
-            fitResult = w.obj("nll_extRazorPdf_data_obs")
+            fitResult = self.getFitResultFromWorkspace(w)
         for p in RootIterator.RootIterator(fitResult.floatParsFinal()):
             w.var(p.GetName()).setVal(p.getVal())
             w.var(p.GetName()).setError(p.getError())
@@ -601,7 +632,8 @@ class FitInstance(object):
     def plotCorrelationMatrix(self):
         """Plots the correlation matrix of the fit parameters"""
         c = rt.TCanvas('c','c',400,300)
-        self.workspace.obj("nll_extRazorPdf_data_obs").correlationHist(
+        self.workspace.Print()
+        self.getFitResultFromWorkspace(self.workspace).correlationHist(
                 ).Draw("colz")
         c.Print(self.dirname+"/correlationHist.pdf")
 

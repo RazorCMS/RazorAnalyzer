@@ -14,25 +14,24 @@
 #include "Math/IFunction.h"
 #include "Math/Integrator.h"
 #include "Math/GSLIntegrator.h"
+#include "Math/IntegratorMultiDim.h"
 
 using namespace std;
 
 ClassImp(RooRazor3DBinNumericPdf)
 //---------------------------------------------------------------------------
-RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(const char *name, const char *title,
-				   RooAbsReal& _th1x,  
-				   RooAbsReal& _x0, RooAbsReal& _y0, 
-				   RooAbsReal& _b, RooAbsReal& _n,
-				   RooAbsReal& _y1, RooAbsReal& _y2,
-				   RooAbsReal& _xCut, RooAbsReal& _yCut, RooAbsReal& _zCut) : RooAbsPdf(name, title), 
-//TH3* _Hnominal) : RooAbsPdf(name, title), 
+RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(
+        const char *name, const char *title, 
+        RooAbsReal& _th1x, RooAbsReal &_p0, 
+        RooAbsReal &_p1, RooAbsReal &_p2, 
+        RooAbsReal &_p3, RooAbsReal& _xCut, 
+        RooAbsReal& _yCut, RooAbsReal& _zCut
+        ) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
-  X0("X0", "X Offset", this, _x0),
-  Y0("Y0", "Y Offset", this, _y0),
-  B("B", "B Shape parameter", this, _b),
-  N("N", "N Shape parameter", this, _n),
-  Y1("Y1", "Y turn-off offset", this, _y1),
-  Y2("Y2", "Y turn-off width", this, _y2),
+  p0("p0", "parameter 0", this, _p0),
+  p1("p1", "parameter 1", this, _p1),
+  p2("p2", "parameter 2", this, _p2),
+  p3("p3", "parameter 3", this, _p3),
   xCut("xCut", "X Cut parameter",this, _xCut),
   yCut("yCut", "Y Cut parameter",this, _yCut),
   zCut("zCut", "Z Cut parameter",this, _zCut),
@@ -55,13 +54,11 @@ RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(const char *name, const char *t
 //---------------------------------------------------------------------------
 RooRazor3DBinNumericPdf::RooRazor3DBinNumericPdf(const RooRazor3DBinNumericPdf& other, const char* name) :
    RooAbsPdf(other, name), 
-   th1x("th1x", this, other.th1x),  
-   X0("X0", this, other.X0),
-   Y0("Y0", this, other.Y0),
-   B("B", this, other.B),
-   N("N", this, other.N),
-   Y1("Y1", this, other.Y1),
-   Y2("Y2", this, other.Y2),
+   th1x("th1x", this, other.th1x),   
+   p0("p0", this, other.p0),
+   p1("p1", this, other.p1),
+   p2("p2", this, other.p2),
+   p3("p3", this, other.p3),
    xCut("xCut", this, other.xCut),
    yCut("yCut", this, other.yCut),
    zCut("zCut", this, other.zCut),
@@ -126,15 +123,11 @@ void RooRazor3DBinNumericPdf::setAbsTol(double _absTol){
 Double_t RooRazor3DBinNumericPdf::evaluate() const
 {
   Double_t integral = 0.0;
-  Double_t total_integral = 1.0;
-  
-  if(B <= 0. || N <= 0. || X0 >= xMin || Y0 >= yMin) return 0.0;
 
   Int_t nBins = xBins*yBins*zBins;
 
   Int_t iBin = (Int_t) th1x;
   if(iBin < 0 || iBin >= nBins) {
-    //cout << "in bin " << iBin << " which is outside of range" << endl;
     return 0.0;
   }
 
@@ -143,9 +136,6 @@ Double_t RooRazor3DBinNumericPdf::evaluate() const
   Int_t yBin = ( (iBin - zBin)/(zBins) ) % (yBins);
   Int_t xBin =  (iBin - zBin - yBin*zBins ) / (zBins*yBins);
 
-  //cout << "in bin " << iBin << " which is in range" << endl;
-  //cout << "(" << xBin+1 << "," << yBin+1 << "," << zBin+1 << ")" << endl;
-
   Double_t zLow = zArray[zBin];
   Double_t zHigh = zArray[zBin+1];
   if (zCut >= zLow and zCut < zHigh){
@@ -153,51 +143,53 @@ Double_t RooRazor3DBinNumericPdf::evaluate() const
     Double_t xHigh = xArray[xBin+1];
     Double_t yLow = yArray[yBin];
     Double_t yHigh = yArray[yBin+1];
-
     
     // define the function to be integrated numerically
-    RazorFunctionErf func;
-    double params[8];
-    params[0] = X0;    params[1] = Y0;
-    params[2] = B;     params[3] = N;
-    params[4] = Y1;    params[5] = Y2;
+    RazorFunctionNoPrefactor func;
+    double params[6];    
+    params[0] = p0;
+    params[1] = p1;
+    params[2] = p2;
+    params[3] = p3;
+    params[4] = xMin;
+    params[5] = yMin;
     func.SetParameters(params);
-    ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
-    ig.SetFunction(func,false);
-      
-    total_integral = (N/pow(B*N,N))*(-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut)) ;
+    ROOT::Math::IntegratorMultiDim ig(ROOT::Math::IntegrationMultiDim::kADAPTIVE);
+    ig.SetFunction(func);
+    
+    double a[2] = {0,0}; // (x, y) low point
+    double b[2] = {0,0}; // (x, y) high point
 
     if(xHigh <= xCut && yHigh <= yCut) {
       return 0.0;
     }
     else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {
-      //integral = (N/pow(B*N,N))*(Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
-      params[6] = xCut;  params[7] = xHigh;
-      integral = ig.Integral(yLow,yHigh);
+      a[0] = xCut;  a[1] = yLow;
+      b[0] = xHigh; b[1] = yHigh;
+      integral = ig.Integral(a,b);
     }
-    else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {
-      //integral = (N/pow(B*N,N))*(Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh));
-      params[6] = xLow;  params[7] = xHigh;
-      integral = ig.Integral(yCut,yHigh);
+    else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {      
+      a[0] = xLow;  a[1] = yCut;
+      b[0] = xHigh; b[1] = yHigh;
+      integral = ig.Integral(a,b);
     }
-    else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {
-      //integral = (N/pow(B*N,N))*(-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut));
-      params[6] = xLow;  params[7] = xHigh;
-      integral = ig.Integral(yLow,yHigh);
-      params[6] = xLow;  params[7] = xCut;
-      integral -= ig.Integral(yLow,yCut);
+    else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {            
+      a[0] = xLow;  a[1] = yLow;
+      b[0] = xHigh; b[1] = yHigh;
+      integral = ig.Integral(a,b);     
+      a[0] = xLow;  a[1] = yLow;
+      b[0] = xCut; b[1] = yCut;
+      integral -= ig.Integral(a,b);
     }
     else {
-      //integral = (N/pow(B*N,N))*(Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
-      params[6] = xLow;  params[7] = xHigh;
-      integral = ig.Integral(yLow,yHigh);
+      a[0] = xLow;  a[1] = yLow;
+      b[0] = xHigh; b[1] = yHigh;
+      integral = ig.Integral(a,b);
     }
       
   }
 
-  if (total_integral>0.0) {
-    return integral;
-  } else return 0;
+  return integral;
 
 }
 
@@ -213,33 +205,27 @@ Double_t RooRazor3DBinNumericPdf::analyticalIntegral(Int_t code, const char* ran
    Double_t th1xMin = th1x.min(rangeName); Double_t th1xMax = th1x.max(rangeName);
    Int_t iBinMin = (Int_t) th1xMin; Int_t iBinMax = (Int_t) th1xMax;
 
-   
-   if(B <= 0. || N <= 0. || X0 >= xMin || Y0 >= yMin) return 1.;
-
    Double_t integral = 0.0;
-   Double_t total_integral =  1.0;
       
-   //cout <<  "iBinMin = " << iBinMin << ",iBinMax = " << iBinMax << endl;
    Int_t nBins =  xBins*yBins*zBins;
 
-   
-   // define the function to be integrated numerically
-   RazorFunctionErf func;
-   double params[8];
-   params[0] = X0;    params[1] = Y0;
-   params[2] = B;     params[3] = N;
-   params[4] = Y1;    params[5] = Y2;
-   func.SetParameters(params);
-   ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kNONADAPTIVE,absTol,relTol);
-   ig.SetFunction(func,false);
+    // define the function to be integrated numerically
+    RazorFunctionNoPrefactor func;
+    double params[6];    
+    params[0] = p0;
+    params[1] = p1;
+    params[2] = p2;
+    params[3] = p3;
+    params[4] = xMin;
+    params[5] = yMin;
+    func.SetParameters(params);
+    ROOT::Math::IntegratorMultiDim ig(ROOT::Math::IntegrationMultiDim::kADAPTIVE);
+    ig.SetFunction(func);
     
+    double a[2] = {0,0};
+    double b[2] = {0,0};
 
-   if (code==1 && iBinMin<=0 && iBinMax>=nBins){
-     integral = (N/pow(B*N,N))*(-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax)+Gfun(xMin,yCut)+Gfun(xCut,yMin)-Gfun(xCut,yCut));
-     
-   }
-   else if(code==1) { 
-     total_integral = Gfun(xMin,yMin)-Gfun(xMin,yMax)-Gfun(xMax,yMin)+Gfun(xMax,yMax);
+   if(code==1) { 
      for (Int_t iBin=iBinMin; iBin<iBinMax; iBin++){
        Int_t zBin = iBin % zBins;
        Int_t yBin = ( (iBin - zBin)/(zBins) ) % (yBins);
@@ -247,6 +233,7 @@ Double_t RooRazor3DBinNumericPdf::analyticalIntegral(Int_t code, const char* ran
  
        Double_t zLow = zArray[zBin];
        Double_t zHigh = zArray[zBin+1];
+       
        
        if(iBin < 0 || iBin >= nBins) {
 	 integral += 0.0;
@@ -257,28 +244,33 @@ Double_t RooRazor3DBinNumericPdf::analyticalIntegral(Int_t code, const char* ran
 	   Double_t xHigh = xArray[xBin+1];
 	   Double_t yLow = yArray[yBin];
 	   Double_t yHigh = yArray[yBin+1];
-	   if(xHigh <= xCut && yHigh <= yCut) integral += 0.0;
+	   
+
+	   if(xHigh <= xCut && yHigh <= yCut) {
+	     integral += 0.0;
+	   }
 	   else if(xLow < xCut && xHigh > xCut && yHigh <= yCut) {
-	     //integral += (N/pow(B*N,N))*(Gfun(xCut,yLow)-Gfun(xCut,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
-	     params[6] = xCut;  params[7] = xHigh;
-	     integral += ig.Integral(yLow,yHigh);
+	     a[0] = xCut;  a[1] = yLow;
+	     b[0] = xHigh; b[1] = yHigh;
+	     integral += ig.Integral(a,b);
 	   }
-	   else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {
-	     //integral += (N/pow(B*N,N))*(Gfun(xLow,yCut)-Gfun(xLow,yHigh)-Gfun(xHigh,yCut)+Gfun(xHigh,yHigh));
-	     params[6] = xLow;  params[7] = xHigh;
-	     integral += ig.Integral(yCut,yHigh);
+	   else if(yLow < yCut && yHigh > yCut && xHigh <= xCut) {      
+	     a[0] = xLow;  a[1] = yCut;
+	     b[0] = xHigh; b[1] = yHigh;
+	     integral += ig.Integral(a,b);
 	   }
-	   else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {
-	     //integral += (N/pow(B*N,N))*(-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh)+Gfun(xLow,yCut)+Gfun(xCut,yLow)-Gfun(xCut,yCut));
-	     params[6] = xLow;  params[7] = xHigh;
-	     integral += ig.Integral(yLow,yHigh);
-	     params[6] = xLow;  params[7] = xCut;
-	     integral -= ig.Integral(yLow,yCut);
+	   else if(xLow < xCut && xHigh > xCut && yLow < yCut && yHigh > yCut) {            
+	     a[0] = xLow;  a[1] = yLow;
+	     b[0] = xHigh; b[1] = yHigh;
+	     integral += ig.Integral(a,b);      
+	     a[0] = xLow;  a[1] = yLow;
+	     b[0] = xCut; b[1] = yCut;
+	     integral -= ig.Integral(a,b);
 	   }
 	   else {
-	     //integral += (N/pow(B*N,N))*(Gfun(xLow,yLow)-Gfun(xLow,yHigh)-Gfun(xHigh,yLow)+Gfun(xHigh,yHigh));
-	     params[6] = xLow;  params[7] = xHigh;
-	     integral += ig.Integral(yLow,yHigh);
+	     a[0] = xLow;  a[1] = yLow;
+	     b[0] = xHigh; b[1] = yHigh;
+	     integral += ig.Integral(a,b);
 	   }
 	 }
        }
@@ -289,10 +281,7 @@ Double_t RooRazor3DBinNumericPdf::analyticalIntegral(Int_t code, const char* ran
      return 1.0;
    }
 
-   if (total_integral>0.0) {
-     
-     return integral;
-   } else return 1.0;
+   return integral;
 }
 // //---------------------------------------------------------------------------
 

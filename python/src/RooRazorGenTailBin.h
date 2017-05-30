@@ -89,13 +89,13 @@ private:
 public:
    double DoEvalPar(const double* x,const double* p) const
    {     
-     double myexp = pow(p[0]*x[0]/1.E+3 + p[1]*x[1] + p[2]*x[0]*x[0]/1.E+6 + p[3]*x[0]*x[1]/1.E+3 + p[4]*x[1]*x[1], p[5]);
+     double myexp = pow(fabs(p[0]*x[0]/1.E+3 + p[1]*x[1] + p[2]*x[0]*x[0]/1.E+6 + p[3]*x[0]*x[1]/1.E+3 + p[4]*x[1]*x[1]), p[5]);
      return exp(-myexp);
    }
    
    double DoEval(const double* x) const
    {
-     double myexp = pow(pars[0]*x[0]/1.E+3 + pars[1]*x[1] + pars[2]*x[0]*x[0]/1.E+6 + pars[3]*x[0]*x[1]/1.E+3 + pars[4]*x[1]*x[1], pars[5]);
+     double myexp = pow(fabs(pars[0]*x[0]/1.E+3 + pars[1]*x[1] + pars[2]*x[0]*x[0]/1.E+6 + pars[3]*x[0]*x[1]/1.E+3 + pars[4]*x[1]*x[1]), pars[5]);
      return exp(-myexp);
    }
  
