@@ -367,6 +367,30 @@ SMS-TChiWH_625_HToGG                                    0.0165706*2.27e-03
 SMS-TChiWH_650_HToGG                                    0.0137303*2.27e-03
 SMS-TChiWH_675_HToGG                                    0.0113975*2.27e-03
 SMS-TChiWH_700_HToGG                                    0.00951032*2.27e-03
+SMS-TChiWH_BRToH50_127_HToGG                            0.5*9.6465*2.27e-03
+SMS-TChiWH_BRToH50_150_HToGG                            0.5*5.18086*2.27e-03
+SMS-TChiWH_BRToH50_175_HToGG                            0.5*2.95328*2.27e-03
+SMS-TChiWH_BRToH50_200_HToGG                            0.5*1.80739*2.27e-03
+SMS-TChiWH_BRToH50_225_HToGG                            0.5*1.16509*2.27e-03
+SMS-TChiWH_BRToH50_250_HToGG                            0.5*0.782487*2.27e-03
+SMS-TChiWH_BRToH50_275_HToGG                            0.5*0.54303*2.27e-03
+SMS-TChiWH_BRToH50_300_HToGG                            0.5*0.386936*2.27e-03
+SMS-TChiWH_BRToH50_325_HToGG                            0.5*0.281911*2.27e-03
+SMS-TChiWH_BRToH50_350_HToGG                            0.5*0.209439*2.27e-03
+SMS-TChiWH_BRToH50_375_HToGG                            0.5*0.15806*2.27e-03
+SMS-TChiWH_BRToH50_400_HToGG                            0.5*0.121013*2.27e-03
+SMS-TChiWH_BRToH50_425_HToGG                            0.5*0.093771*2.27e-03
+SMS-TChiWH_BRToH50_450_HToGG                            0.5*0.0734361*2.27e-03
+SMS-TChiWH_BRToH50_475_HToGG                            0.5*0.0580811*2.27e-03
+SMS-TChiWH_BRToH50_500_HToGG                            0.5*0.0463533*2.27e-03
+SMS-TChiWH_BRToH50_525_HToGG                            0.5*0.0372636*2.27e-03
+SMS-TChiWH_BRToH50_550_HToGG                            0.5*0.0301656*2.27e-03
+SMS-TChiWH_BRToH50_575_HToGG                            0.5*0.0245798*2.27e-03
+SMS-TChiWH_BRToH50_600_HToGG                            0.5*0.0201372*2.27e-03
+SMS-TChiWH_BRToH50_625_HToGG                            0.5*0.0165706*2.27e-03
+SMS-TChiWH_BRToH50_650_HToGG                            0.5*0.0137303*2.27e-03
+SMS-TChiWH_BRToH50_675_HToGG                            0.5*0.0113975*2.27e-03
+SMS-TChiWH_BRToH50_700_HToGG                            0.5*0.00951032*2.27e-03
 
 
 # Bacon
