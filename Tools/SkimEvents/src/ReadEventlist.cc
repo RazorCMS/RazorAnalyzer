@@ -48,7 +48,7 @@ void SkimTree( std::map< std::string, RunAndEvent > mymap, std::string list_name
   //int run;
   //unsigned long long event;
   //unsigned int run, event;
-  int run, event;
+  UInt_t run, event;
 
   int ctr = 1;//file counter
   TChain* chain = new TChain( tree_name.c_str() );
