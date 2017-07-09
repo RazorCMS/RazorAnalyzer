@@ -72,6 +72,8 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
     fChain->SetBranchStatus("HLTDecision", 1);
     fChain->SetBranchStatus("HLTPrescale", 1);
+    fChain->SetBranchStatus("HLTMR", 1);
+    fChain->SetBranchStatus("HLTRSQ", 1);   
 }
 
 void RazorAnalyzer::EnablePVAll() {
