@@ -203,6 +203,10 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float mass;
   float t1, t2;
   float t1_seed, t2_seed;
+  float TOF_neu1, TOF_neu2;
+  float TOF_neu1_RF, TOF_neu2_RF;
+  float TOF_pho1, TOF_pho2;
+  float TOF_pho1_RF, TOF_pho2_RF;
   float t1calib_seed, t2calib_seed;
   float t1raw_seed, t2raw_seed;
   float phoNumber;
@@ -253,6 +257,14 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("t2calib_seed", &t2calib_seed, "t2calib_seed/F");
   outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
   outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
+  outputTree->Branch("TOF_neu1", &TOF_neu1, "TOF_neu1/F");
+  outputTree->Branch("TOF_neu1_RF", &TOF_neu1_RF, "TOF_neu1_RF/F");
+  outputTree->Branch("TOF_neu2", &TOF_neu2, "TOF_neu2/F");
+  outputTree->Branch("TOF_neu2_RF", &TOF_neu2_RF, "TOF_neu2_RF/F");
+  outputTree->Branch("TOF_pho1", &TOF_pho1, "TOF_pho1/F");
+  outputTree->Branch("TOF_pho1_RF", &TOF_pho1_RF, "TOF_pho1_RF/F");
+  outputTree->Branch("TOF_pho2", &TOF_pho2, "TOF_pho2/F");
+  outputTree->Branch("TOF_pho2_RF", &TOF_pho2_RF, "TOF_pho2_RF/F");
 
   outputTree->Branch("phoNumber", &phoNumber, "phoNumber/F");
   outputTree->Branch("pho1Energy", &pho1Energy, "pho1Energy/F");
@@ -304,6 +316,17 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     t2calib_seed = -999;
     t1raw_seed = -999;
     t2raw_seed = -999;
+
+    TOF_neu1 = -999;
+    TOF_neu2 = -999;
+    TOF_pho1 = -999;
+    TOF_pho2 = -999;
+
+    TOF_neu1_RF = -999;
+    TOF_neu2_RF = -999;
+    TOF_pho1_RF = -999;
+    TOF_pho2_RF = -999;
+
 
     phoNumber = -999;
     pho1Energy = -999;
@@ -361,9 +384,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
     for(int i = 0; i < nPhotons; i++) {
       // apply cuts
-      if(phoPt[i] < 25) continue; 
-      if(fabs(phoEta[i]) > 2.5) continue;
-      if(fabs(phoEta[i]) > 1.4442 && fabs(phoEta[i]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
+//      if(phoPt[i] < 25) continue; 
+//      if(fabs(phoEta[i]) > 2.5) continue;
+//      if(fabs(phoEta[i]) > 1.4442 && fabs(phoEta[i]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
       //if(!(isEGammaPOGTightElectron(i))) continue;
       
       nPho++;
@@ -502,10 +525,119 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
   }
 
+
+// TOF of neutralino and photon
+  bool foundN1 = 0;
+  bool foundN2 = 0; 
+  int pho1_index = 0;
+  int pho2_index = 0;
+  int neu1_index = 0;
+  int neu2_index = 0;
+
+  for(unsigned int i = 0; i < nGenParticle; i++){ //this is gen particle loop within event loop
+	if ( foundN1 == 0 && gParticleId[i] == 1000022 &&  gParticleMotherIndex[i]==0){
+          neu1_index = i;
+          foundN1 = 1;
+          for(unsigned int j = 0; j < nGenParticle; j++){
+	  	if ( gParticleId[j] == 22 && gParticleMotherIndex[j] == neu1_index ){
+                pho1_index = j;
+                cout << "neutralino 1 index  "<<neu1_index<< "  photon 1 index  "<<pho1_index<<endl;
+                }
+          }
+      }
+ 	else if ( foundN1 == 1 && foundN2 == 0 && gParticleId[i] == 1000022 &&  gParticleMotherIndex[i]==0 ){
+          neu2_index = i;
+          foundN2 = 1;
+          for(unsigned int j = 0; j < nGenParticle; j++){
+		if ( gParticleId[j] == 22 && gParticleMotherIndex[j] == neu2_index ){
+                pho2_index = j;
+                cout << "neutralino 2 index  "<<neu2_index<< "  photon 2 index  "<<pho2_index<<endl;
+                }
+          }
+      }
+    }
+
+if(foundN1==1 && foundN2==1){
+
+  float decay_x1;
+  float decay_y1;
+  float decay_z1;
+  float decay_x2;
+  float decay_y2;
+  float decay_z2;
+
+  decay_x1 = gParticleDecayVertexX[neu1_index];
+  decay_y1 = gParticleDecayVertexY[neu1_index];
+  decay_z1 = gParticleDecayVertexZ[neu1_index];
+
+  decay_x2 = gParticleDecayVertexX[neu2_index];
+  decay_y2 = gParticleDecayVertexY[neu2_index];
+  decay_z2 = gParticleDecayVertexZ[neu2_index];
+
+  float primary_x1;
+  float primary_y1;
+  float primary_z1;
+  float NeutraPt1;
+  float NeutraPt2;
+  float NeutraEta1;
+  float NeutraEta2;
+
+  primary_x1 = genVertexX;
+  primary_y1 = genVertexY; 
+  primary_z1 = genVertexZ;
+  NeutraPt1 = gParticlePt[neu1_index]; // transverse momentum of neutralino particles when created
+  NeutraPt2 = gParticlePt[neu2_index]; // transverse momentum of neutralino particles when created
+  NeutraEta1 = gParticleEta[neu1_index]; // eta value used to find momentum
+  NeutraEta2 = gParticleEta[neu2_index]; // eta value used to find momentum
+  
+  float distanceX1;
+  float distanceX2;
+  float distanceY1;
+  float distanceY2;
+  float distanceZ1;
+  float distanceZ2;
+
+  distanceX1 = decay_x1 - primary_x1;
+  distanceX2 = decay_x2 - primary_x1;
+
+  distanceY1 = decay_y1 - primary_y1;
+  distanceY2 = decay_y2 - primary_y1;
+
+  distanceZ1 = decay_z1 - primary_z1;
+  distanceZ2 = decay_z2 - primary_z1;
+
+  // now do the calculation for the time of flight for the neutralino
+  // find the total distance the particle traveled
+   float distance1 = pow( pow(distanceX1,2) + pow(distanceY1,2) + pow(distanceZ1,2),0.5) ;
+  float distance2 = pow( pow(distanceX2,2) + pow(distanceY2,2) + pow(distanceZ2,2),0.5) ;
+  // find the momentum from the transverse momentum and the eta value
+  float momentum1 = NeutraPt1 * cosh(NeutraEta1);
+  float momentum2 = NeutraPt2 * cosh(NeutraEta2);
+
+  float mass = 1000;
+
+  const float speed_of_light = 29.9792; //cm/ns
+
+  float time1 = distance1 / (speed_of_light*momentum1) * pow((pow(mass,2) + pow(momentum1,2)),0.5);
+  float time2 = distance2 / (speed_of_light*momentum2) * pow((pow(mass,2) + pow(momentum2,2)),0.5);
+  TOF_neu1 = time1; // fill the ROOT branch histogram with the TOF of first neutralino
+  TOF_neu2 = time2;
+	
+  TOF_neu1_RF = time1*mass*pow((pow(mass,2) + pow(momentum1,2)),-0.5);
+  TOF_neu2_RF = time2*mass*pow((pow(mass,2) + pow(momentum2,2)),-0.5);
+	cout<<"momentum1: "<<momentum1<<" momentum2: "<<momentum2<<endl; 
+      //cout<<"px1: "<<primary_x1<<"  dx1: "<<decay_x1<<"py1: "<<primary_y1<<"  dy1: "<<decay_y1<<"pz1: "<<primary_z1<<"  dz1: "<<decay_z1<<endl;
+      //cout<<"NeutraPt: "<<NeutraPt<<"  NeutraEta: "<<NeutraEta<<endl;
+      //cout<<"distances: "<<distanceY1<<"  x direction:"<<distanceX1<<endl;
+      //cout << "distance: "<<distance1<<"  momentum: "<<momentum<<"time of flight: " << time1 << endl;
+}
+
+
   //Fill Event
   //if (mass > 60 && mass < 120) {
-  if ( t1_seed > 0 && t2_seed > 0) {
-    outputTree->Fill();
+//  if ( t1_seed > 0 && t2_seed > 0) {
+  {
+  outputTree->Fill();
   }
 
 }//end of event loop
