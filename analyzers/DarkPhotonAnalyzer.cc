@@ -40,7 +40,7 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
   //Initialize Output
   //--------------------------------
   string outfilename = outputFilename;
-  if (outfilename == "") outfilename = "PhotonNtuple.root";
+  if (outfilename == "") outfilename = "DarkPhoton.root";
   TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
 
   cout << "Run With Option = " << Option << "\n";
@@ -67,7 +67,7 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
   float MT;
 
 
-  TTree *outputTree = new TTree("HggRazor", "Info on selected razor inclusive events");
+  TTree *outputTree = new TTree("event", "Info on selected razor inclusive events");
 
   outputTree->Branch("weight", &weight, "weight/F");
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
@@ -100,10 +100,9 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-    double leadingPhotonPt = -999;
-    double leadingPhotonEta = -999;
-    double leadingPhotonPhi = -999;
-
+    // define variables for finding the highest PT photon
+    int i_best=0;
+    
     //Select highest pT photon
     for(int i = 0; i < nPhotons; i++){
 
@@ -111,14 +110,21 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
       if (!isMediumPhoton(i)) continue;
 
       //find the highest pT photon here
-      
-
-
+      //***********************************
+      if (phoPt[i] > phoPt[i_best]) {
+      	  i_best = i;
+      }
+      //***********************************
     }
 
     //Fill MET, MetPhi, MT here
+    MET = metPt;
+    METPhi = metPhi;
+    PhotonPt = phoPt[i_best];
+    PhotonEta = phoEta[i_best];
+    PhotonPhi = phoPhi[i_best];
+    MT = sqrt(2*MET*PhotonPt*(1 - cos(PhotonPhi - METPhi)));
     
-
     //fill normalization histogram    
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
@@ -172,7 +178,7 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
       }
     }
     
- 
+    // Put Trigger stuff here ?
       
     outputTree->Fill();
 
