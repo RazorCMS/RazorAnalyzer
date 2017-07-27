@@ -326,6 +326,8 @@ public :
    Float_t         genJetPhi[50];   //[nGenJets]
    Float_t         genMetPt;
    Float_t         genMetPhi;
+   Float_t         genVertexX;
+   Float_t         genVertexY;
    Float_t         genVertexZ;
    Float_t         genWeight;
    UInt_t          genSignalProcessID;
@@ -345,6 +347,9 @@ public :
    Float_t         gParticlePt[4000];   //[nGenParticle]
    Float_t         gParticleEta[4000];   //[nGenParticle]
    Float_t         gParticlePhi[4000];   //[nGenParticle]
+   Float_t         gParticleDecayVertexX[4000];   //[nGenParticle]
+   Float_t         gParticleDecayVertexY[4000];   //[nGenParticle]
+   Float_t         gParticleDecayVertexZ[4000];   //[nGenParticle]
 
    // List of branches
    TBranch        *b_isData;   //!
@@ -647,6 +652,8 @@ public :
    TBranch        *b_genJetPhi;   //!
    TBranch        *b_genMetPt;   //!
    TBranch        *b_genMetPhi;   //!
+   TBranch        *b_genVertexX;   //!
+   TBranch        *b_genVertexY;   //!
    TBranch        *b_genVertexZ;   //!
    TBranch        *b_genWeight;   //!
    TBranch        *b_genSignalProcessID;   //!
@@ -666,6 +673,9 @@ public :
    TBranch        *b_gParticlePt;   //!
    TBranch        *b_gParticleEta;   //!
    TBranch        *b_gParticlePhi;   //!
+   TBranch        *b_gParticleDecayVertexX;   //!
+   TBranch        *b_gParticleDecayVertexY;   //!
+   TBranch        *b_gParticleDecayVertexZ;   //!
 
    RazorEvents(TTree *tree=0);
    virtual ~RazorEvents();
@@ -1058,6 +1068,8 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genJetPhi", genJetPhi, &b_genJetPhi);
    fChain->SetBranchAddress("genMetPt", &genMetPt, &b_genMetPt);
    fChain->SetBranchAddress("genMetPhi", &genMetPhi, &b_genMetPhi);
+   fChain->SetBranchAddress("genVertexX", &genVertexX, &b_genVertexX);
+   fChain->SetBranchAddress("genVertexY", &genVertexY, &b_genVertexY);
    fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
    fChain->SetBranchAddress("genSignalProcessID", &genSignalProcessID, &b_genSignalProcessID);
@@ -1077,6 +1089,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("gParticlePt", gParticlePt, &b_gParticlePt);
    fChain->SetBranchAddress("gParticleEta", gParticleEta, &b_gParticleEta);
    fChain->SetBranchAddress("gParticlePhi", gParticlePhi, &b_gParticlePhi);
+   fChain->SetBranchAddress("gParticleDecayVertexX", gParticleDecayVertexX, &b_gParticleDecayVertexX);
+   fChain->SetBranchAddress("gParticleDecayVertexY", gParticleDecayVertexY, &b_gParticleDecayVertexY);
+   fChain->SetBranchAddress("gParticleDecayVertexZ", gParticleDecayVertexZ, &b_gParticleDecayVertexZ);
    Notify();
 }
 
