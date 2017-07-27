@@ -35,7 +35,7 @@ for i in range(mytree.GetEntries()/10):
     mytree.GetEntry(i)
     if (i%10000==0): print("Get entry %d" %(i))
     #if ((mytree.HLTDecision[150] or mytree.HLTDecision[151] or mytree.HLTDecision[152] or mytree.HLTDecision[153] or mytree.HLTDecision[154])):
-    if (mytree.HLTDecision[27] or mytree.HLTDecision[29] or mytree.HLTDecision[34] or mytree.HLTDecision[36] or mytree.HLTDecision[37] or mytree.HLTDecision[38] or mytree.HLTDecision[39] or mytree.HLTDecision[42]) and mytree.MR > 0 and mytree.Rsq > 0: # 1L and 2L
+    if (mytree.HLTDecision[27] or mytree.HLTDecision[29] or mytree.HLTDecision[34] or mytree.HLTDecision[36] or mytree.HLTDecision[37] or mytree.HLTDecision[38] or mytree.HLTDecision[39] or mytree.HLTDecision[42]) and mytree.MR > 0 and mytree.Rsq > 0: # Ele
     #if (mytree.HLTDecision[4] or mytree.HLTDecision[13] or mytree.HLTDecision[18] or mytree.HLTDecision[20] or mytree.HLTDecision[24] or mytree.HLTDecision[29] or mytree.HLTDecision[29] or mytree.HLTDecision[34] or mytree.HLTDecision[36] or mytree.HLTDecision[37] or mytree.HLTDecision[38] or mytree.HLTDecision[39] or mytree.HLTDecision[42]) and mytree.NJets80 > 1: # 1L and 2L
     #if (mytree.HLTDecision[150] or mytree.HLTDecision[151]): #PFHT125 || PFHT200
         if mytree.MR > 200:
