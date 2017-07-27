@@ -107,25 +107,15 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
   float PUWeight, PUWeightUp, PUWeightDown;
   float weight;
 
-  float met, metPhi, sumEt, u1, u2;
-  float tkMet, tkMetPhi, tkSumEt, tkU1, tkU2;
-  float mvaMet, mvaMetPhi, mvaSumEt, mvaU1, mvaU2;
-  float puppiMet, puppiMetPhi, puppiSumEt, puppiU1, puppiU2;
+  int genLep1Id, genLep2Id;
+  TLorentzVector *genLep1;
+  TLorentzVector *genLep2;
+  TLorentzVector *genZ;
 
   int q1, q2;
   TLorentzVector *dilep;
   TLorentzVector *lep1;
   TLorentzVector *lep2;
-
-  float trkIso1, emIso1, hadIso1, pfChIso1, pfGamIso1, pfNeuIso1, pfCombIso1; 
-  float d01, dz1;
-  float muNchi21, nPixHits1, nTkLayers1, nMatch1, nValidHits1, typeBits1;
-  TLorentzVector *sta1;
-
-  float trkIso2, emIso2, hadIso2, pfChIso2, pfGamIso2, pfNeuIso2, pfCombIso2;  
-  float d02, dz2;
-  float muNchi22, nPixHits2, nTkLayers2, nMatch2, nValidHits2, typeBits2;
-  TLorentzVector *sta2;
 
   //PDF SF
   std::vector<float> sf_pdf;
@@ -150,75 +140,23 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
     // outTree->Branch("weightPDF",   &weightPDF,  "weightPDF/d");   // PDF info -- PDF weight
     outTree->Branch("npv",         &nPV,        "npv/i");         // number of primary vertices
     outTree->Branch("npu",         &NPU,        "npu/i");         // number of in-time PU events (MC)
-    outTree->Branch("genV",        "TLorentzVector",  &genV);     // GEN boson 4-vector (signal MC)
-    outTree->Branch("genVPt",      &genVPt,     "genVPt/F");      // GEN boson pT (signal MC)
-    outTree->Branch("genVPhi",     &genVPhi,    "genVPhi/F");     // GEN boson phi (signal MC)
-    outTree->Branch("genVy",       &genVy,      "genVy/F");       // GEN boson rapidity (signal MC)
-    outTree->Branch("genVMass",    &genVMass,   "genVMass/F");    // GEN boson mass (signal MC)
     outTree->Branch("genWeight",   &genWeight,  "genWeight/F");
     outTree->Branch("PUWeight",    &PUWeight,   "PUWeight/F");
     outTree->Branch("PUWeightUp",  &PUWeightUp, "PUWeightUp/F");
     outTree->Branch("PUWeightDown",  &PUWeightDown, "PUWeightDown/F");
-    outTree->Branch("weight",      &weight,     "weight/F");    // event weight per 1/fb (MC)
-    outTree->Branch("met",         &met,        "met/F");         // MET
-    outTree->Branch("metPhi",      &metPhi,     "metPhi/F");      // phi(MET)
-    outTree->Branch("sumEt",       &sumEt,      "sumEt/F");       // Sum ET
-    outTree->Branch("u1",          &u1,         "u1/F");          // parallel component of recoil
-    outTree->Branch("u2",          &u2,         "u2/F");          // perpendicular component of recoil
-    outTree->Branch("tkMet",       &tkMet,      "tkMet/F");       // MET (track MET)
-    outTree->Branch("tkMetPhi",    &tkMetPhi,   "tkMetPhi/F");    // phi(MET) (track MET)
-    outTree->Branch("tkSumEt",     &tkSumEt,    "tkSumEt/F");     // Sum ET (track MET)
-    outTree->Branch("tkU1",        &tkU1,       "tkU1/F");        // parallel component of recoil (track MET)
-    outTree->Branch("tkU2",        &tkU2,       "tkU2/F");        // perpendicular component of recoil (track MET)
-    outTree->Branch("mvaMet",      &mvaMet,     "mvaMet/F");      // MVA MET
-    outTree->Branch("mvaMetPhi",   &mvaMetPhi,  "mvaMetPhi/F");   // phi(MVA MET)
-    outTree->Branch("mvaSumEt",    &mvaSumEt,   "mvaSumEt/F");    // Sum ET (mva MET)
-    outTree->Branch("mvaU1",       &mvaU1,      "mvaU1/F");       // parallel component of recoil (mva MET)
-    outTree->Branch("mvaU2",       &mvaU2,      "mvaU2/F");       // perpendicular component of recoil (mva MET) 
-    outTree->Branch("puppiMet",    &puppiMet,   "puppiMet/F");      // Puppi MET
-    outTree->Branch("puppiMetPhi", &puppiMetPhi,"puppiMetPhi/F");   // phi(Puppi MET)
-    outTree->Branch("puppiSumEt",  &puppiSumEt, "puppiSumEt/F");    // Sum ET (Puppi MET)
-    outTree->Branch("puppiU1",     &puppiU1,    "puppiU1/F");       // parallel component of recoil (Puppi MET)
-    outTree->Branch("puppiU2",     &puppiU2,    "puppiU2/F");       // perpendicular component of recoil (Puppi MET)
+    outTree->Branch("weight",      &weight,     "weight/F");      // event weight per 1/fb (MC)
+
+    outTree->Branch("genLep1Id",   &genLep1Id,  "genLep1Id/I");  
+    outTree->Branch("genLep2Id",   &genLep2Id,  "genLep2Id/I");  
+    outTree->Branch("genZ",        "TLorentzVector", &genZ);      // di-lepton 4-vector
+    outTree->Branch("genLep1",     "TLorentzVector", &genLep1);   // tag lepton 4-vector
+    outTree->Branch("genLep2",     "TLorentzVector", &genLep2);   // tag lepton 4-vector
+
     outTree->Branch("q1",          &q1,         "q1/I");          // charge of tag lepton
     outTree->Branch("q2",          &q2,         "q2/I");          // charge of probe lepton
-    outTree->Branch("dilep",       "TLorentzVector", &dilep);     // di-lepton 4-vector
+    outTree->Branch("dilep",       "TLorentzVector", &dilep);     // tag lepton 4-vector
     outTree->Branch("lep1",        "TLorentzVector", &lep1);      // tag lepton 4-vector
-    outTree->Branch("lep2",        "TLorentzVector", &lep2);      // probe lepton 4-vector
-    ///// muon specific /////
-    outTree->Branch("trkIso1",     &trkIso1,     "trkIso1/F");       // track isolation of tag lepton
-    outTree->Branch("trkIso2",     &trkIso2,     "trkIso2/F");       // track isolation of probe lepton
-    outTree->Branch("emIso1",      &emIso1,      "emIso1/F");        // ECAL isolation of tag lepton
-    outTree->Branch("emIso2",      &emIso2,      "emIso2/F");        // ECAL isolation of probe lepton
-    outTree->Branch("hadIso1",     &hadIso1,     "hadIso1/F");       // HCAL isolation of tag lepton
-    outTree->Branch("hadIso2",     &hadIso2,     "hadIso2/F");       // HCAL isolation of probe lepton
-    outTree->Branch("pfChIso1",    &pfChIso1,    "pfChIso1/F");      // PF charged hadron isolation of tag lepton
-    outTree->Branch("pfChIso2",    &pfChIso2,    "pfChIso2/F");      // PF charged hadron isolation of probe lepton
-    outTree->Branch("pfGamIso1",   &pfGamIso1,   "pfGamIso1/F");     // PF photon isolation of tag lepton
-    outTree->Branch("pfGamIso2",   &pfGamIso2,   "pfGamIso2/F");     // PF photon isolation of probe lepton
-    outTree->Branch("pfNeuIso1",   &pfNeuIso1,   "pfNeuIso1/F");     // PF neutral hadron isolation of tag lepton
-    outTree->Branch("pfNeuIso2",   &pfNeuIso2,   "pfNeuIso2/F");     // PF neutral hadron isolation of probe lepton
-    outTree->Branch("pfCombIso1",  &pfCombIso1,  "pfCombIso1/F");    // PF combined isolation of tag lepton
-    outTree->Branch("pfCombIso2",  &pfCombIso2,  "pfCombIso2/F");    // PF combined isolation of probe lepton    
-    outTree->Branch("d01",         &d01,         "d01/F");           // transverse impact parameter of tag lepton
-    outTree->Branch("d02",         &d02,         "d02/F");           // transverse impact parameter of probe lepton	 
-    outTree->Branch("dz1",         &dz1,         "dz1/F");           // longitudinal impact parameter of tag lepton
-    outTree->Branch("dz2",         &dz2,         "dz2/F");           // longitudinal impact parameter of probe lepton	 
-    outTree->Branch("muNchi21",    &muNchi21,    "muNchi21/F");      // muon fit normalized chi^2 of tag lepton
-    outTree->Branch("muNchi22",    &muNchi22,    "muNchi22/F");      // muon fit normalized chi^2 of probe lepton
-    outTree->Branch("nPixHits1",   &nPixHits1,	 "nPixHits1/i");     // number of pixel hits of tag muon
-    outTree->Branch("nPixHits2",   &nPixHits2,	 "nPixHits2/i");     // number of pixel hits of probe muon
-    outTree->Branch("nTkLayers1",  &nTkLayers1,  "nTkLayers1/i");    // number of tracker layers of tag muon
-    outTree->Branch("nTkLayers2",  &nTkLayers2,  "nTkLayers2/i");    // number of tracker layers of probe muon
-    outTree->Branch("nMatch1",     &nMatch1,	 "nMatch1/i");       // number of matched segments of tag muon
-    outTree->Branch("nMatch2",     &nMatch2,	 "nMatch2/i");       // number of matched segments of probe muon 
-    outTree->Branch("nValidHits1", &nValidHits1, "nValidHits1/i");   // number of valid muon hits of tag muon
-    outTree->Branch("nValidHits2", &nValidHits2, "nValidHits2/i");   // number of valid muon hits of probe muon
-    outTree->Branch("typeBits1",   &typeBits1,   "typeBits1/i");     // muon type of tag muon
-    outTree->Branch("typeBits2",   &typeBits2,   "typeBits2/i");     // muon type of probe muon
-    outTree->Branch("sta1",        "TLorentzVector", &sta1);         // tag standalone muon 4-vector
-    outTree->Branch("sta2",        "TLorentzVector", &sta2);         // probe standalone muon 4-vector
-
+    outTree->Branch("lep2",        "TLorentzVector", &lep2);      // tag lepton 4-vector
 
   //begin loop
   if ( fChain == 0 ) return;
@@ -254,73 +192,21 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
       // weightPDF = -999;
       nPV = -999;
       NPU = -999;
-      genV = 0;
-      genVPt = -999;
-      genVPhi = -999;
-      genVy = -999;
-      genVMass = -999;
       genWeight = -999;
       PUWeight = -999;
       weight = 0;
-      met = -999;
-      metPhi = -999;
-      sumEt = -999;
-      u1 = -999;
-      u2 = -999;
-      tkMet = -999;
-      tkMetPhi = -999;
-      tkSumEt = -999;
-      tkU1 = -999;
-      tkU2 = -999;
-      mvaMet = -999;
-      mvaMetPhi = -999;
-      mvaSumEt = -999;
-      mvaU1 = -999;
-      mvaU2 = -999;
-      puppiMet = -999;
-      puppiMetPhi = -999;
-      puppiSumEt = -999;
-      puppiU1 = -999;
-      puppiU2 = -999;
+      genLep1Id = -999;
+      genLep2Id = -999;
+      genZ = 0;
+      genLep1 = 0;
+      genLep2 = 0;
       q1 = -999;
       q2 = -999;
       dilep = 0;
       lep1 = 0;
       lep2 = 0;
-      trkIso1 = -999;
-      trkIso2 = -999;
-      emIso1 = -999;
-      emIso2 = -999;
-      hadIso1 = -999;
-      hadIso2 = -999;
-      pfChIso1 = -999;
-      pfChIso2 = -999;
-      pfGamIso1 = -999;
-      pfGamIso2 = -999;
-      pfNeuIso1 = -999;
-      pfNeuIso2 = -999;
-      pfCombIso1 = -999;
-      pfCombIso2 = -999;
-      d01 = -999;
-      d02 = -999;
-      dz1 = -999;
-      dz2 = -999;
-      muNchi21 = -999;
-      muNchi22 = -999;
-      nPixHits1 = -999;
-      nPixHits2 = -999;
-      nTkLayers1 = -999;
-      nTkLayers2 = -999;
-      nMatch1 = -999;
-      nMatch2 = -999;
-      nValidHits1 = -999;
-      nValidHits2 = -999;
-      typeBits1 = -999;
-      typeBits2 = -999;
-      sta1 = 0;
-      sta2 = 0;
 
- 
+
 
       //------------------
       //Pileup reweighting
@@ -367,6 +253,56 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
 	SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
       }
       
+      //*************************************************************************
+      //Gen-Level information
+      //*************************************************************************
+      double genZPt, genZEta, genZPhi, genZEnergy;
+      double genLep1Pt, genLep1Eta, genLep1Phi, genLep1Energy;
+      double genLep2Pt, genLep2Eta, genLep2Phi, genLep2Energy;
+      for(int j = 0; j < nGenParticle; j++){
+	// cout << "particle: " << j << " : " << gParticleId[j] << " " << gParticleStatus[j] << " : " 
+	//      << gParticlePt[j] << " " 
+	//      << gParticleEta[j] << " " 
+	//      << gParticlePhi[j] << " " 
+	//      << " | " << gParticleMotherId[j] << "\n";
+
+	//Z Boson
+	if (gParticleStatus[j] == 22 && gParticleId[j] == 23) {
+	  genZPt = gParticlePt[j];
+	  genZEta = gParticleEta[j];	 
+	  genZPhi = gParticlePhi[j];
+	  genZEnergy = gParticleE[j];
+	}
+
+	//if leptons
+	if ( (abs(gParticleId[j]) == 11 || abs(gParticleId[j]) == 13 || abs(gParticleId[j]) == 15)
+	     && gParticleStatus[j] == 1
+	     ) {	   	    
+
+	  //ZLepton1
+	  if (gParticleMotherId[j] == 23 && gParticleId[j] > 0) {
+	    genLep1Id = gParticleId[j];
+	    genLep1Pt = gParticlePt[j];
+	    genLep1Eta = gParticleEta[j];	   
+	    genLep1Phi = gParticlePhi[j];	   
+	    genLep1Energy = gParticleE[j];	   
+	  }
+	  //ZLepton2
+	  if (gParticleMotherId[j] == 23 && gParticleId[j] < 0) {
+	    genLep2Id = gParticleId[j];
+	    genLep2Pt = gParticlePt[j];
+	    genLep2Eta = gParticleEta[j];	   
+	    genLep2Phi = gParticlePhi[j];	   
+	    genLep2Energy = gParticleE[j];   
+	  }
+	 
+
+	} // endif leptons
+
+      }//loop over gen particles
+
+
+
 
       //*************************************************************************
       //Start Object Selection
@@ -386,39 +322,52 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
 
       double bestDiMuonMass = 0;
       TLorentzVector ZCandidate;
+      int NumberOfVetoLeptons = 0;
       for( int i = 0; i < nMuons; i++ )	{
-	  if(!isMuonPOGLooseMuon(i)) continue;  
-	  if(muonPt[i] < 15) continue;
-	  if(abs(muonEta[i]) > 2.4) continue;
-	  for( int j = i+1; j < nMuons; j++ )	{
-	    if(!isVetoMuon(j)) continue;  
-	    if(muonPt[j] < 15) continue;
-	    if(abs(muonEta[j]) > 2.4) continue;
-	    
-	    TLorentzVector tmpMuon1;
-	    tmpMuon1.SetPtEtaPhiM(muonPt[i],muonEta[i], muonPhi[i],0.1057);
-	    TLorentzVector tmpMuon2;
-	    tmpMuon2.SetPtEtaPhiM(muonPt[j],muonEta[j], muonPhi[j],0.1057);
-	    double tmpMass = (tmpMuon1+tmpMuon2).M();	    
 
-
-	    if ( fabs(tmpMass - 91.2) < fabs(bestDiMuonMass - 91.2))  {
-	      bestDiMuonMass = tmpMass;
-	      category = eMuMu;
-	      lep1Type = 13 * -1 * muonCharge[i];
-	      lep1Pt = muonPt[i];
-	      lep1Eta = muonEta[i];
-	      lep1Phi = muonPhi[i];
-	      lep2Type = 13 * -1 * muonCharge[j];
-	      lep2Pt = muonPt[j];
-	      lep2Eta = muonEta[j];
-	      lep2Phi = muonPhi[j];
-	      ZCandidate = tmpMuon1 + tmpMuon2;
-	      matchGen = matchesGenMuon(lep1Eta,lep1Phi) && matchesGenMuon(lep2Eta,lep2Phi);	      
-	    } //if better Z mass match
-	  }// loop 2nd muon
+	// Count number of Veto Leptons so that events with 
+	// more than 2 veto leptons can be rejected
+	if( isMuonPOGLooseMuon(i, true, false) && 
+	    ((muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.15)
+	    ) NumberOfVetoLeptons++;
+	
+        //Muon Selection Requirements
+	if(!( isMuonPOGMediumMuon(i, true, false) && 
+	      ((muon_chargedIso[i] + fmax(0.0,  muon_photonIso[i] + muon_neutralHadIso[i] - 0.5*muon_pileupIso[i])) / muonPt[i] < 0.15)	  
+	      )) continue;  
+	if(muonPt[i] < 20) continue;
+	if(abs(muonEta[i]) > 2.4) continue;
+	
+	for( int j = i+1; j < nMuons; j++ )	{	  
+	  if(!( isMuonPOGMediumMuon(j, true, false) && 
+		((muon_chargedIso[j] + fmax(0.0,  muon_photonIso[j] + muon_neutralHadIso[j] - 0.5*muon_pileupIso[j])) / muonPt[j] < 0.15)
+		)) continue;  
+	  if(muonPt[j] < 20) continue;
+	  if(abs(muonEta[j]) > 2.4) continue;
+	
+	  TLorentzVector tmpMuon1;
+	  tmpMuon1.SetPtEtaPhiM(muonPt[i],muonEta[i], muonPhi[i],0.1057);
+	  TLorentzVector tmpMuon2;
+	  tmpMuon2.SetPtEtaPhiM(muonPt[j],muonEta[j], muonPhi[j],0.1057);
+	  double tmpMass = (tmpMuon1+tmpMuon2).M();	    	  
+	  
+	  if ( muonPt[j] > lep2Pt ) {
+	    bestDiMuonMass = tmpMass;
+	    category = eMuMu;
+	    lep1Type = 13 * -1 * muonCharge[i];
+	    lep1Pt = muonPt[i];
+	    lep1Eta = muonEta[i];
+	    lep1Phi = muonPhi[i];
+	    lep2Type = 13 * -1 * muonCharge[j];
+	    lep2Pt = muonPt[j];
+	    lep2Eta = muonEta[j];
+	    lep2Phi = muonPhi[j];
+	    ZCandidate = tmpMuon1 + tmpMuon2;
+	    matchGen = matchesGenMuon(lep1Eta,lep1Phi) && matchesGenMuon(lep2Eta,lep2Phi);	      
+	  } //if better Z candidate
+	}// loop 2nd muon
       } //loop 1st muon
-
+      
 
       //-------------------------------
       //2) Look for Zee Candidate
@@ -426,13 +375,15 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
       if (category == eNone) {
 	double bestDielectronMass = 0;
 	for( int i = 0; i < nElectrons; i++ )	{
-	  if(!isVetoElectron(i)) continue;  
+	  if (isEGammaPOGVetoElectron(i,true,true,true,"Summer16")) NumberOfVetoLeptons++;
+
+	  if(!isEGammaPOGMediumElectron(i,true,true,true,"Summer16")) continue;  
 	  if(elePt[i] < 20) continue;
-	  if(abs(eleEta[i]) > 2.4) continue;
+	  if(abs(eleEta[i]) > 2.5) continue;
 	  for( int j = i+1; j < nElectrons; j++ )	{
-	    if(!isVetoElectron(j)) continue;  
+	    if(!isEGammaPOGMediumElectron(i,true,true,true,"Summer16")) continue; 
 	    if(elePt[j] < 20) continue;
-	    if(abs(eleEta[j]) > 2.4) continue;
+	    if(abs(eleEta[j]) > 2.5) continue;
 	    
 	    TLorentzVector tmpElectron1;
 	    tmpElectron1.SetPtEtaPhiM(elePt[i],eleEta[i], elePhi[i],0.000511);
@@ -440,8 +391,7 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
 	    tmpElectron2.SetPtEtaPhiM(elePt[j],eleEta[j], elePhi[j],0.000511);
 	    double tmpMass = (tmpElectron1+tmpElectron2).M();	    
 
-
-	    if ( fabs(tmpMass - 91.2) < fabs(bestDielectronMass - 91.2)){
+	    if ( elePt[j] > lep2Pt ) {
 	      bestDielectronMass = tmpMass;
 	      category = eEleEle;
 	      lep1Type = 11 * -1 * eleCharge[i];
@@ -459,6 +409,9 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
 	} //loop 1st electron
       }
 
+      //-------------------------------
+      // Save Reco Lepton Information
+      //-------------------------------
       lep1 = new TLorentzVector;
       lep2 = new TLorentzVector;
       dilep = new TLorentzVector;
@@ -473,19 +426,8 @@ void ZAnalysis::Analyze(bool isData, int option, string outFileName, string labe
       q1 = -1 * lep1Type / abs(lep1Type);
       q2 = -1 * lep2Type / abs(lep2Type);
 
-      //*************************************************************************
-      //MET Variables
-      //*************************************************************************
-      met = metType1Pt;
-      metPhi = metType1Phi;
 
- 
-      //******************************************************
-      //Filters
-      //******************************************************
-      //2-L filter
-      if (category == eNone) continue;
-
+    
       //Fill Event
       outTree->Fill();
 

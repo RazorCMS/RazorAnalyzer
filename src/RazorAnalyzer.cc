@@ -72,6 +72,8 @@ void RazorAnalyzer::EnableEventInfo(){
     fChain->SetBranchStatus("fixedGridRhoFastjetCentralNeutral", 1);
     fChain->SetBranchStatus("HLTDecision", 1);
     fChain->SetBranchStatus("HLTPrescale", 1);
+    fChain->SetBranchStatus("HLTMR", 1);
+    fChain->SetBranchStatus("HLTRSQ", 1);   
 }
 
 void RazorAnalyzer::EnablePVAll() {
@@ -534,10 +536,10 @@ float RazorAnalyzer::GetElectronEffectiveArea90(int i){
   return effArea;
 }
 
-bool RazorAnalyzer::isEGammaPOGVetoElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isEGammaPOGVetoElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   if (applyID) {
-    if (!passEGammaPOGVetoElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGVetoElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!passEGammaPOGVetoElectronIso(i,use25nsCuts)) pass = false;
@@ -545,10 +547,10 @@ bool RazorAnalyzer::isEGammaPOGVetoElectron(int i, bool applyID, bool applyIso, 
   return pass;
 }
 
-bool RazorAnalyzer::isEGammaPOGLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isEGammaPOGLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   if (applyID) {
-    if (!passEGammaPOGLooseElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGLooseElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!passEGammaPOGLooseElectronIso(i,use25nsCuts)) pass = false;
@@ -556,10 +558,10 @@ bool RazorAnalyzer::isEGammaPOGLooseElectron(int i, bool applyID, bool applyIso,
   return pass;
 }
 
-bool RazorAnalyzer::isEGammaPOGMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isEGammaPOGMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   if (applyID) {
-    if (!passEGammaPOGMediumElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGMediumElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!passEGammaPOGMediumElectronIso(i,use25nsCuts)) pass = false;
@@ -567,10 +569,10 @@ bool RazorAnalyzer::isEGammaPOGMediumElectron(int i, bool applyID, bool applyIso
   return pass;
 }
 
-bool RazorAnalyzer::isEGammaPOGTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isEGammaPOGTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   if (applyID) {
-    if (!passEGammaPOGTightElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGTightElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!passEGammaPOGTightElectronIso(i,use25nsCuts)) pass = false;
@@ -630,154 +632,163 @@ bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso)
   return pass;
 }
 
-bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts){
+bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts, string EraName){
     if (!use25nsCuts) {
         std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
         return false;
     }
     bool pass = false;
 
-    //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0152
-	   && fabs(ele_dPhi[i]) < 0.216
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0114
-	   && ele_HoverE[i] < 0.181
-	   && fabs(ele_d0[i]) < 0.0564
-	   && fabs(ele_dZ[i]) < 0.472
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.207
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.0113
-	  && fabs(ele_dPhi[i]) < 0.237
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0352
-	  && ele_HoverE[i] < 0.116
-	  && fabs(ele_d0[i]) < 0.222
-	  && fabs(ele_dZ[i]) < 0.921
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.174
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 3
-	  ) {
-	pass = true;
-      }
-    } 
+    if (EraName == "Spring15") {
+      //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.0152
+	     && fabs(ele_dPhi[i]) < 0.216
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0114
+	     && ele_HoverE[i] < 0.181
+	     && fabs(ele_d0[i]) < 0.0564
+	     && fabs(ele_dZ[i]) < 0.472
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.207
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 2
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.0113
+	    && fabs(ele_dPhi[i]) < 0.237
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0352
+	    && ele_HoverE[i] < 0.116
+	    && fabs(ele_d0[i]) < 0.222
+	    && fabs(ele_dZ[i]) < 0.921
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.174
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 3
+	    ) {
+	  pass = true;
+	}
+      } 
+    }
 
-    // // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
-    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    //
-    // if(fabs(eleEta_SC[i]) < 1.479) {
-    //     if ( fabs(ele_dEta[i]) < 0.00749
-    //             && fabs(ele_dPhi[i]) < 0.228
-    //             && eleFull5x5SigmaIetaIeta[i] < 0.0115
-    //             && ele_HoverE[i] < 0.356
-    //             && fabs(ele_d0[i]) < 0.05
-    //             && fabs(ele_dZ[i]) < 0.10
-    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.299
-    //             && ele_PassConvVeto[i]
-    //             && ele_MissHits[i] <= 2
-    //        ) {
-    //         pass = true;
-    //     }
-    // } else {
-    //     if (fabs(ele_dEta[i]) < 0.00895
-    //             && fabs(ele_dPhi[i]) < 0.213
-    //             && eleFull5x5SigmaIetaIeta[i] < 0.037
-    //             && ele_HoverE[i] < 0.211
-    //             && fabs(ele_d0[i]) < 0.1
-    //             && fabs(ele_dZ[i]) < 0.2
-    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.15
-    //             && ele_PassConvVeto[i]
-    //             && ele_MissHits[i] <= 3
-    //        ) {
-    //         pass = true;
-    //     }
-    // } 
+    else if (EraName == "Summer16") {
 
+      // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
+      // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    
+      if(fabs(eleEta_SC[i]) < 1.479) {
+        if ( fabs(ele_dEta[i]) < 0.00749
+	     && fabs(ele_dPhi[i]) < 0.228
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0115
+	     && ele_HoverE[i] < 0.356
+	     && fabs(ele_d0[i]) < 0.05
+	     && fabs(ele_dZ[i]) < 0.10
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.299
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 2
+	     ) {
+	  pass = true;
+        }
+      } else {
+        if (fabs(ele_dEta[i]) < 0.00895
+	    && fabs(ele_dPhi[i]) < 0.213
+	    && eleFull5x5SigmaIetaIeta[i] < 0.037
+	    && ele_HoverE[i] < 0.211
+	    && fabs(ele_d0[i]) < 0.1
+	    && fabs(ele_dZ[i]) < 0.2
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.15
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 3
+	    ) {
+	  pass = true;
+        }
+      } 
+    }
 
     return pass;
 }
 
-bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts){
+bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts, string EraName){
     if (!use25nsCuts) {
         std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
         return false;
     }
     bool pass = false;
 
-    //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.0105
-	   && fabs(ele_dPhi[i]) < 0.115
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0103
-	   && ele_HoverE[i] < 0.104
-	   && fabs(ele_d0[i]) < 0.0261
-	   && fabs(ele_dZ[i]) < 0.41
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.102
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
-      }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.00814
-	  && fabs(ele_dPhi[i]) < 0.182
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0301
-	  && ele_HoverE[i] < 0.0897
-	  && fabs(ele_d0[i]) < 0.118
-	  && fabs(ele_dZ[i]) < 0.822
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.126
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 1
-	  ) {
-	pass = true;
-      }
-    } 
+    if (EraName == "Spring15") {
+      //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.0105
+	     && fabs(ele_dPhi[i]) < 0.115
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0103
+	     && ele_HoverE[i] < 0.104
+	     && fabs(ele_d0[i]) < 0.0261
+	     && fabs(ele_dZ[i]) < 0.41
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.102
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 2
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.00814
+	    && fabs(ele_dPhi[i]) < 0.182
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0301
+	    && ele_HoverE[i] < 0.0897
+	    && fabs(ele_d0[i]) < 0.118
+	    && fabs(ele_dZ[i]) < 0.822
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.126
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 1
+	    ) {
+	  pass = true;
+	}
+      } 
+    }
+    else if (EraName == "Summer16") {
 
-    // // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
-    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    // //
-    // if(fabs(eleEta_SC[i]) < 1.479) {
-    //   if ( fabs(ele_dEta[i]) < 0.00477
-    // 	   && fabs(ele_dPhi[i]) < 0.222
-    // 	   && eleFull5x5SigmaIetaIeta[i] < 0.011
-    // 	   && ele_HoverE[i] < 0.298
-    // 	   && fabs(ele_d0[i]) < 0.05
-    // 	   && fabs(ele_dZ[i]) < 0.10
-    // 	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.241
-    // 	   && ele_PassConvVeto[i]
-    // 	   && ele_MissHits[i] <= 1
-    //        ) {
-    // 	pass = true;
-    //   }
-    // } else {
-    //   if (fabs(ele_dEta[i]) < 0.00868
-    // 	  && fabs(ele_dPhi[i]) < 0.213
-    // 	  && eleFull5x5SigmaIetaIeta[i] < 0.0314
-    // 	  && ele_HoverE[i] < 0.101
-    // 	  && fabs(ele_d0[i]) < 0.1
-    // 	  && fabs(ele_dZ[i]) < 0.2
-    // 	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
-    // 	  && ele_PassConvVeto[i]
-    // 	  && ele_MissHits[i] <= 1
-    // 	  ) {
-    // 	pass = true;
-    //   }
-    // } 
+      // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
+      // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+      //
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.00477
+	     && fabs(ele_dPhi[i]) < 0.222
+	     && eleFull5x5SigmaIetaIeta[i] < 0.011
+	     && ele_HoverE[i] < 0.298
+	     && fabs(ele_d0[i]) < 0.05
+	     && fabs(ele_dZ[i]) < 0.10
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.241
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 1
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.00868
+	    && fabs(ele_dPhi[i]) < 0.213
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0314
+	    && ele_HoverE[i] < 0.101
+	    && fabs(ele_d0[i]) < 0.1
+	    && fabs(ele_dZ[i]) < 0.2
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 1
+	    ) {
+	  pass = true;
+	}
+      } 
+    }
 
     return pass;
 }
 
-bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
-    if (!use25nsCuts) {
-        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
-        return false;
-    }
-    bool pass = false;
+bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts, string EraName){
+  if (!use25nsCuts) {
+    std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+    return false;
+  }
+  bool pass = false;
 
+  if (EraName == "Spring15") {
     //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
     if(fabs(eleEta_SC[i]) < 1.479) {
       if ( fabs(ele_dEta[i]) < 0.0103
@@ -806,48 +817,50 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts){
 	pass = true;
       }
     }
-
-    // // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
-    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    //
-    // if(fabs(eleEta_SC[i]) < 1.479) {
-    //   if ( fabs(ele_dEta[i]) < 0.00311
-    // 	   && fabs(ele_dPhi[i]) < 0.103
-    // 	   && eleFull5x5SigmaIetaIeta[i] < 0.00998
-    // 	   && ele_HoverE[i] < 0.253
-    // 	   && fabs(ele_d0[i]) < 0.05
-    // 	   && fabs(ele_dZ[i]) < 0.10
-    // 	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.134
-    // 	   && ele_PassConvVeto[i]
-    // 	   && ele_MissHits[i] <= 1
-    //        ) {
-    // 	pass = true;
-    //   }
-    // } else {
-    //   if (fabs(ele_dEta[i]) < 0.00609
-    // 	  && fabs(ele_dPhi[i]) < 0.045
-    // 	  && eleFull5x5SigmaIetaIeta[i] < 0.0298
-    // 	  && ele_HoverE[i] < 0.0878
-    // 	  && fabs(ele_d0[i]) < 0.1
-    // 	  && fabs(ele_dZ[i]) < 0.2
-    // 	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.13
-    // 	  && ele_PassConvVeto[i]
-    // 	  && ele_MissHits[i] <= 1
-    // 	  ) {
-    // 	pass = true;
-    //   }
-    // } 
-
-    return pass;
+  }
+  else if (EraName == "Summer16") {
+    // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.00311
+    	   && fabs(ele_dPhi[i]) < 0.103
+    	   && eleFull5x5SigmaIetaIeta[i] < 0.00998
+    	   && ele_HoverE[i] < 0.253
+    	   && fabs(ele_d0[i]) < 0.05
+    	   && fabs(ele_dZ[i]) < 0.10
+    	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.134
+    	   && ele_PassConvVeto[i]
+    	   && ele_MissHits[i] <= 1
+           ) {
+    	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00609
+    	  && fabs(ele_dPhi[i]) < 0.045
+    	  && eleFull5x5SigmaIetaIeta[i] < 0.0298
+    	  && ele_HoverE[i] < 0.0878
+    	  && fabs(ele_d0[i]) < 0.1
+    	  && fabs(ele_dZ[i]) < 0.2
+    	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.13
+    	  && ele_PassConvVeto[i]
+    	  && ele_MissHits[i] <= 1
+    	  ) {
+    	pass = true;
+      }
+    } 
+  }
+  return pass;
 }
 
-bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
-    if (!use25nsCuts) {
-        std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
-        return false;
-    }
-    bool pass = false;
+bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts, string EraName){
+  if (!use25nsCuts) {
+    std::cerr << "Error: 50ns cuts are not implemented for this electron ID" << std::endl;
+    return false;
+  }
+  bool pass = false;
 
+  if (EraName == "Spring15") {
     //For Moriond 2017, SUSY group decided to keep using Spring15 cut-based ID
     if(fabs(eleEta_SC[i]) < 1.479) {
       if ( fabs(ele_dEta[i]) < 0.00926
@@ -876,39 +889,40 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts){
 	pass = true;
       }
     } 
-
-    // // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
-    // // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    //
-    // if(fabs(eleEta_SC[i]) < 1.479) {
-    //     if ( fabs(ele_dEta[i]) < 0.00308
-    //             && fabs(ele_dPhi[i]) < 0.0816
-    //             && eleFull5x5SigmaIetaIeta[i] < 0.00998
-    //             && ele_HoverE[i] < 0.0414
-    //             && fabs(ele_d0[i]) < 0.05
-    //             && fabs(ele_dZ[i]) < 0.10
-    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
-    //             && ele_PassConvVeto[i]
-    //             && ele_MissHits[i] <= 1
-    //        ) {
-    //         pass = true;
-    //     }
-    // } else {
-    //     if (fabs(ele_dEta[i]) < 0.00605
-    //             && fabs(ele_dPhi[i]) < 0.0394
-    //             && eleFull5x5SigmaIetaIeta[i] < 0.0292
-    //             && ele_HoverE[i] < 0.0641
-    //             && fabs(ele_d0[i]) < 0.1
-    //             && fabs(ele_dZ[i]) < 0.2
-    //             && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
-    //             && ele_PassConvVeto[i]
-    //             && ele_MissHits[i] <= 1
-    //        ) {
-    //         pass = true;
-    //     }
-    // } 
-
-    return pass;
+  }
+  else if (EraName == "Summer16") {
+    // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.00308
+	   && fabs(ele_dPhi[i]) < 0.0816
+	   && eleFull5x5SigmaIetaIeta[i] < 0.00998
+	   && ele_HoverE[i] < 0.0414
+	   && fabs(ele_d0[i]) < 0.05
+	   && fabs(ele_dZ[i]) < 0.10
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 1
+           ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00605
+	  && fabs(ele_dPhi[i]) < 0.0394
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0292
+	  && ele_HoverE[i] < 0.0641
+	  && fabs(ele_d0[i]) < 0.1
+	  && fabs(ele_dZ[i]) < 0.2
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0129
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
+      }
+    } 
+  }
+  return pass;
 }
 
 bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){

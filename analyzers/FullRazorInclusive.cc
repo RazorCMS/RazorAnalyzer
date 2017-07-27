@@ -241,6 +241,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
     razorTree->Branch("Flag_hasEcalGainSwitch", &Flag_hasEcalGainSwitch, "Flag_hasEcalGainSwitch/O");
 
+
+    razorTree->Branch("HLTMR", &HLTMR, "HLTMR/F");
+    razorTree->Branch("HLTRSQ", &HLTRSQ, "HLTRSQ/F");
+
     if (!isData) {    
         razorTree->Branch("genWeight", &genWeight, "genWeight/F");
         razorTree->Branch("weight", &weight, "weight/F");
@@ -1332,15 +1336,16 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         /////////////////////////////////
         //Scale and PDF variations
         /////////////////////////////////
-         
-        if ((*scaleWeights).size() >= 9) {
+	if (scaleWeights) {
+	  if ((*scaleWeights).size() >= 9) {
             sf_facScaleUp = (*scaleWeights)[1]/genWeight;
             sf_facScaleDown = (*scaleWeights)[2]/genWeight;
             sf_renScaleUp = (*scaleWeights)[3]/genWeight;
             sf_renScaleDown = (*scaleWeights)[6]/genWeight;
             sf_facRenScaleUp = (*scaleWeights)[4]/genWeight;
             sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
-        }
+	  }
+	}
 
         SumScaleWeights->Fill(0.0, sf_facScaleUp);
         SumScaleWeights->Fill(1.0, sf_facScaleDown);
@@ -1493,6 +1498,9 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             if(!Flag_goodVertices) continue;
             if(!Flag_eeBadScFilter) continue;
         }
+
+	//Emulate the 2017 trigger
+	//if (!(HLTMR>200 && HLTRSQ>0.09 && (HLTMR+300)*(HLTRSQ+0.25)>200)) continue;
 
         //Fill tree
         if(!isFastsimSMS){

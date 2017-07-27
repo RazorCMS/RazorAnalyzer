@@ -3,6 +3,7 @@ SHELL = /bin/sh
 CXX           = g++
 CXXFLAGS      = -O -Wall -fPIC -g -ansi -Wextra
 CXX11FLAGS    = -std=c++0x
+CXX14FLAGS    = -std=c++14
 LD            = g++
 LDFLAGS       = -O
 LIBDIR       = $(WORKDIR)
