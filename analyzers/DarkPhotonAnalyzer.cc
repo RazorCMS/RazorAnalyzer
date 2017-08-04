@@ -21,7 +21,7 @@ using namespace std;
 
 const int NUM_PDF_WEIGHTS = 60;
 
-void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, string label)
+void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename, string label)
 {
   cout << "Initializing..." << endl;
 

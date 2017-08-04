@@ -17,7 +17,7 @@ echo " "; echo "Initialize CMSSW"; echo " "
 set workDir=`pwd`
 
 setenv SCRAM_ARCH slc6_amd64_gcc491
-cd    /afs/cern.ch/work/z/zhicaiz/public/release/CMSSW_7_6_3/src/ 
+cd    /afs/cern.ch/work/z/zhicaiz/public/release/CMSSW_9_2_5/src/ 
 eval `scramv1 runtime -csh`
 cd -
 
@@ -56,8 +56,10 @@ echo $outputfile
 echo $outputDirectory
 
 #Do below only for output to CERN EOS
-cmsMkdir $outputDirectory
-cmsStage -f $outputfile $outputDirectory
+#cmsMkdir $outputDirectory
+mkdir -p $outputDirectory
+#cmsStage -f $outputfile $outputDirectory
+cp $outputfile $outputDirectory
 #cmsStage -f ${outputfile}.log $outputDirectory
 
 set status=`echo $?`
