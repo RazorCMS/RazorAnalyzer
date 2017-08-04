@@ -13,6 +13,7 @@
 #include <assert.h> 
 //ROOT INCLUDES
 #include <TH1F.h>
+#include <TMath.h>
 #include <TH2D.h>
 #include "TRandom3.h"
 
@@ -40,7 +41,7 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
   //Initialize Output
   //--------------------------------
   string outfilename = outputFilename;
-  if (outfilename == "") outfilename = "DarkPhoton.root";
+  if (outfilename == "") outfilename = "/afs/cern.ch/user/j/jbamber/scratch1/CMSSW_7_4_15/src/ROOT_outputs/DarkPhoton.root";
   TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
 
   cout << "Run With Option = " << Option << "\n";
@@ -65,9 +66,12 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
   float MET, METPhi;
   float PhotonPt, PhotonEta, PhotonPhi;
   float MT;
+  float j1_Eta;
+  float j2_Eta;
+  // working variables:
+  float Copy_Jet_PT[900];
 
-
-  TTree *outputTree = new TTree("event", "Info on selected razor inclusive events");
+  TTree *outputTree = new TTree("HggRazor", "Info on selected razor inclusive events");
 
   outputTree->Branch("weight", &weight, "weight/F");
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
@@ -86,7 +90,8 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
   outputTree->Branch("PhotonEta", &PhotonEta, "PhotonEta/F");
   outputTree->Branch("PhotonPhi", &PhotonPhi, "PhotonPhi/F");
   outputTree->Branch("MT", &MT, "MT/F");
-
+  outputTree->Branch("j1_Eta", &j1_Eta, "j1_Eta/F");
+  outputTree->Branch("j2_Eta", &j2_Eta, "j2_Eta/F");
 
   //begin loop
   if (fChain == 0) return;
@@ -100,6 +105,10 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
+    double leadingPhotonPt = -999;
+    double leadingPhotonEta = -999;
+    double leadingPhotonPhi = -999;
+
     // define variables for finding the highest PT photon
     int i_best=0;
     
@@ -110,11 +119,11 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
       if (!isMediumPhoton(i)) continue;
 
       //find the highest pT photon here
-      //***********************************
+      //*******
       if (phoPt[i] > phoPt[i_best]) {
       	  i_best = i;
       }
-      //***********************************
+      //*******
     }
 
     //Fill MET, MetPhi, MT here
@@ -123,7 +132,23 @@ void PhotonNtupler::Analyze(bool isData, int Option, string outputFilename, stri
     PhotonPt = phoPt[i_best];
     PhotonEta = phoEta[i_best];
     PhotonPhi = phoPhi[i_best];
+    
     MT = sqrt(2*MET*PhotonPt*(1 - cos(PhotonPhi - METPhi)));
+    
+    //Fill j1, j2 eta values here
+    
+    // ## Find two jets with highest pT: j1, j2 with j1_pT > j2_pT
+	// make array copy of Jet
+	for(int i=0; i<900; i++) {
+		Copy_Jet_PT[i] = jetPt[i];	
+	}
+	// find indices
+	int j1_index = TMath::LocMax(900,jetPt);	// find j1 index
+	Copy_Jet_PT[j1_index] = 0;				// set j1 value in Copy to zero
+	int j2_index = TMath::LocMax(900,Copy_Jet_PT);	// find j2 index
+	// assign variables
+	j1_Eta = jetEta[j1_index];
+	j2_Eta = jetEta[j2_index];
     
     //fill normalization histogram    
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
