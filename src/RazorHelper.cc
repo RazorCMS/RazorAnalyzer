@@ -25,7 +25,7 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2015_76X();
     }
 
-    // tag for 2016 80X PromptReco data
+    // tag for 2016 80X Moriond Rereco
     else if (tag == "Razor2016_MoriondRereco") {
         loadTag_Razor2016_MoriondRereco();
     }
@@ -45,6 +45,11 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
     // tag for 2016 ICHEP 80X data
     else if (tag == "Razor2016_ICHEP_80X") {
         loadTag_Razor2016_ICHEP_80X();
+    }
+
+    // tag for 2017 Prompt Reco
+    else if (tag == "Razor2017_PromptReco") {
+        loadTag_Razor2017_PromptReco();
     }
 
     // tag not found
@@ -1376,6 +1381,54 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     singleLeptonTriggerNums = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43 };
     hadronicTriggerNums = { 164,165,166,167,168,169,170,171,172,173,174,175,176 };
 }
+
+
+////////////////////////////////////////////////
+//  2017 PromptReco
+////////////////////////////////////////////////
+void RazorHelper::loadTag_Razor2017_PromptReco() {
+  loadPileup_Razor2016_MoriondRereco();
+  loadLepton_Razor2016_MoriondRereco();
+  loadPhoton_Razor2016_MoriondRereco();
+  loadBTag_Razor2016_MoriondRereco();
+  loadTrigger_Razor2017_PromptReco();
+  loadJECs_Razor2016_MoriondRereco();
+}
+
+void RazorHelper::loadTrigger_Razor2017_PromptReco() {
+    // single lepton trigger scale factors
+    // LAST UPDATED: 30 July 2017
+    std::cout << "RazorHelper: loading 2016 trigger efficiency histograms" << std::endl;
+    eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root");
+    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
+
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root"); 
+    muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+    
+    eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016_Rereco_Golden.root");
+    eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
+
+    muTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016_Rereco_Golden.root");
+    muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
+
+    //diphoton trigger scale factors
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
+
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("ScaleFactor_PhoHLTLeadingLegEffDenominatorLoose");
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("ScaleFactor_PhoHLTTrailingLegEffDenominatorLoose");
+
+    //get trigger index numbers
+    std::cout << "RazorHelper: loading 2017 trigger indices" << std::endl;
+    dileptonTriggerNums = { 16, 17,18, 19, 20, 21, 22, 23,24 };
+    singleLeptonTriggerNums = { 1,2,3,4,5,6,7,12,13,14,15 };
+    hadronicTriggerNums = { 106, 107, 108, 109, 110, 111 };
+}
+
 
 
 ////////////////////////////////////////////////

@@ -630,14 +630,6 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         }
 	
 
-
-
-
-
-
-
-
-
         /////////////////////////////////
         //Muon selection
         /////////////////////////////////
@@ -780,7 +772,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                 if (fabs(eleEta[i]) < 1.5) {
                     sfUp = 1.006;
                     sfDown = 0.994;
-                }
+                } 
                 else {
                     sfUp = 1.015;
                     sfDown = 0.985;
@@ -1171,7 +1163,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
 	    //Starting from V3p13 run on Feb03 2017 reMiniAOD, metMuEGCleanCorr does have jet energy corrected MET
 	    //So for systematics need to subtract nominal type1 correction and add shifted type 1 corrections
-	    if (isData) {
+	    if (isData && analysisTag == "Razor2016_MoriondRereco") {
 	      if (vars.first == "") {
 		PFMetX = metMuEGCleanCorrPt*cos(metMuEGCleanCorrPhi);
 		PFMetY = metMuEGCleanCorrPt*sin(metMuEGCleanCorrPhi);
@@ -1474,6 +1466,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Baseline cuts
         /////////////////////////////////
 
+
         //Razor
         bool passCuts = false;
         for (auto &vars : mainVars) {
@@ -1492,7 +1485,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Noise filters
         /////////////////////////////////
 
-        if(!isFastsimSMS){
+       if(!isFastsimSMS){
             if(!Flag_HBHENoiseFilter) continue;
             if(!Flag_HBHEIsoNoiseFilter) continue;
             if(!Flag_goodVertices) continue;
@@ -1504,7 +1497,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
         //Fill tree
         if(!isFastsimSMS){
-            razorTree->Fill();
+	  razorTree->Fill();
         }
         else if(parsedLHE){
             pair<int,int> smsPair = make_pair(mGluino, mLSP);
