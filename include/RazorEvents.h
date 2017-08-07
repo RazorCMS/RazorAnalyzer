@@ -329,6 +329,7 @@ public :
    Float_t         genVertexX;
    Float_t         genVertexY;
    Float_t         genVertexZ;
+   Float_t	   genVertexT;
    Float_t         genWeight;
    UInt_t          genSignalProcessID;
    Float_t         genQScale;
@@ -345,6 +346,9 @@ public :
    Int_t           gParticleStatus[4000];   //[nGenParticle]
    Float_t         gParticleE[4000];   //[nGenParticle]
    Float_t         gParticlePt[4000];   //[nGenParticle]
+   Float_t         gParticlePx[4000];   //[nGenParticle]
+   Float_t         gParticlePy[4000];   //[nGenParticle]
+   Float_t         gParticlePz[4000];   //[nGenParticle]
    Float_t         gParticleEta[4000];   //[nGenParticle]
    Float_t         gParticlePhi[4000];   //[nGenParticle]
    Float_t         gParticleDecayVertexX[4000];   //[nGenParticle]
@@ -655,6 +659,7 @@ public :
    TBranch        *b_genVertexX;   //!
    TBranch        *b_genVertexY;   //!
    TBranch        *b_genVertexZ;   //!
+   TBranch	  *b_genVertexT;
    TBranch        *b_genWeight;   //!
    TBranch        *b_genSignalProcessID;   //!
    TBranch        *b_genQScale;   //!
@@ -671,6 +676,9 @@ public :
    TBranch        *b_gParticleStatus;   //!
    TBranch        *b_gParticleE;   //!
    TBranch        *b_gParticlePt;   //!
+   TBranch        *b_gParticlePx;   //!
+   TBranch        *b_gParticlePy;   //!
+   TBranch        *b_gParticlePz;   //!
    TBranch        *b_gParticleEta;   //!
    TBranch        *b_gParticlePhi;   //!
    TBranch        *b_gParticleDecayVertexX;   //!
@@ -1071,6 +1079,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("genVertexX", &genVertexX, &b_genVertexX);
    fChain->SetBranchAddress("genVertexY", &genVertexY, &b_genVertexY);
    fChain->SetBranchAddress("genVertexZ", &genVertexZ, &b_genVertexZ);
+   fChain->SetBranchAddress("genVertexT", &genVertexT, &b_genVertexT);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
    fChain->SetBranchAddress("genSignalProcessID", &genSignalProcessID, &b_genSignalProcessID);
    fChain->SetBranchAddress("genQScale", &genQScale, &b_genQScale);
@@ -1087,6 +1096,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("gParticleStatus", gParticleStatus, &b_gParticleStatus);
    fChain->SetBranchAddress("gParticleE", gParticleE, &b_gParticleE);
    fChain->SetBranchAddress("gParticlePt", gParticlePt, &b_gParticlePt);
+   fChain->SetBranchAddress("gParticlePx", gParticlePx, &b_gParticlePx);
+   fChain->SetBranchAddress("gParticlePy", gParticlePy, &b_gParticlePy);
+   fChain->SetBranchAddress("gParticlePz", gParticlePz, &b_gParticlePz);
    fChain->SetBranchAddress("gParticleEta", gParticleEta, &b_gParticleEta);
    fChain->SetBranchAddress("gParticlePhi", gParticlePhi, &b_gParticlePhi);
    fChain->SetBranchAddress("gParticleDecayVertexX", gParticleDecayVertexX, &b_gParticleDecayVertexX);
