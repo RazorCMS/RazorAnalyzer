@@ -1243,10 +1243,9 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  if(elePt[i] < 20) continue;
 	  if(abs(eleEta[i]) > 2.4) continue;
 
-	  // If electron passes initial cuts add:
+	  // Check that the electron doesn't match any of the good muons
 	  TLorentzVector tmpGoodEle;
           tmpGoodEle.SetPtEtaPhiM(elePt[i], eleEta[i], elePhi[i], 0.000511);
-          // Check that it does not match any of the good muons
           for ( int i = 0; i < goodMu.size(); i ++ ) {
 	      Double_t deltaR;
               deltaR = tmpGoodEle.DeltaR(goodMu[i]);
