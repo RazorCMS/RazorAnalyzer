@@ -393,7 +393,10 @@ void RazorAnalyzer::EnableMC(){
     fChain->SetBranchStatus("genJetPhi", 1);
     fChain->SetBranchStatus("genMetPt", 1);
     fChain->SetBranchStatus("genMetPhi", 1);
+    fChain->SetBranchStatus("genVertexX", 1);
+    fChain->SetBranchStatus("genVertexY", 1);
     fChain->SetBranchStatus("genVertexZ", 1);
+    fChain->SetBranchStatus("genVertexT", 1);
     fChain->SetBranchStatus("genWeight", 1);
     fChain->SetBranchStatus("genSignalProcessID", 1);
     fChain->SetBranchStatus("genQScale", 1);
@@ -413,8 +416,14 @@ void RazorAnalyzer::EnableGenParticles(){
     fChain->SetBranchStatus("gParticleStatus", 1);
     fChain->SetBranchStatus("gParticleE", 1);
     fChain->SetBranchStatus("gParticlePt", 1);
+    fChain->SetBranchStatus("gParticlePx", 1);
+    fChain->SetBranchStatus("gParticlePy", 1);
+    fChain->SetBranchStatus("gParticlePz", 1);
     fChain->SetBranchStatus("gParticleEta", 1);
     fChain->SetBranchStatus("gParticlePhi", 1);
+    fChain->SetBranchStatus("gParticleDecayVertexX", 1);
+    fChain->SetBranchStatus("gParticleDecayVertexY", 1);
+    fChain->SetBranchStatus("gParticleDecayVertexZ", 1);
 }
 
 void RazorAnalyzer::EnableEcalRechits(){
