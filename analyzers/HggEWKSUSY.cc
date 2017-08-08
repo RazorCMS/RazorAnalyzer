@@ -1246,11 +1246,17 @@ void HggRazor::Analyze(bool isData, int option, string outFileName, string label
 	  // Check that the electron doesn't match any of the good muons
 	  TLorentzVector tmpGoodEle;
           tmpGoodEle.SetPtEtaPhiM(elePt[i], eleEta[i], elePhi[i], 0.000511);
+          bool matchedMuon = false;
           for ( int i = 0; i < goodMu.size(); i ++ ) {
 	      Double_t deltaR;
               deltaR = tmpGoodEle.DeltaR(goodMu[i]);
-              if (deltaR < 0.3) goodEle.push_back(tmpGoodEle); 
-	  }
+              if (deltaR < 0.3)
+	      {
+		matchedMuon = true;
+                break;
+              }
+	   }
+          if ( matchedMuon ) continue; 
 
 	  for( int j = i+1; j < nElectrons; j++ )	{
 	    if(!isVetoElectron(j)) continue;  
