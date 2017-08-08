@@ -207,8 +207,13 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float weight;
   float pileupWeight, pileupWeightUp, pileupWeightDown;
   float mass;
+  float t1_TOF2, t2_TOF2;
   float t1, t2;
   float t1_seed, t2_seed;
+  float seed1_TC_lagacy, seed2_TC_lagacy;
+  float seed1_TC_sept, seed2_TC_sept;
+  float seed1_pedestal, seed2_pedestal;
+  float seed1_transpCorr, seed2_transpCorr;
   float t1calib_seed, t2calib_seed;
   float t1calib_seed_sept, t2calib_seed_sept;
   float t1raw_seed, t2raw_seed;
@@ -219,6 +224,23 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   int  ele2SeedIEta, ele2SeedIPhi, ele2SeedIX, ele2SeedIY; 
   bool ele2IsEB;
   int NPU;
+  vector<float> *ecalElectronRechit_E;
+  vector<float> *ecalElectronRechit_rawT;
+  vector<float> *ecalElectronRechit_calibT_sept;
+  vector<float> *ecalElectronRechit_calibT_lagacy;
+  vector<float> *ecalElectronRechit_calibT_lagacy_TOF;
+  vector<float> *ecalElectronRechit_Eta;
+  vector<float> *ecalElectronRechit_Phi;
+  vector<float> *ecalElectronRechit_transpCorr;
+	
+  ecalElectronRechit_E = new std::vector<float>; ecalElectronRechit_E->clear();
+  ecalElectronRechit_rawT = new std::vector<float>; ecalElectronRechit_rawT->clear();
+  ecalElectronRechit_calibT_sept = new std::vector<float>; ecalElectronRechit_calibT_sept->clear();
+  ecalElectronRechit_calibT_lagacy = new std::vector<float>; ecalElectronRechit_calibT_lagacy->clear();
+  ecalElectronRechit_calibT_lagacy_TOF = new std::vector<float>; ecalElectronRechit_calibT_lagacy_TOF->clear();
+  ecalElectronRechit_Eta = new std::vector<float>; ecalElectronRechit_Eta->clear();
+  ecalElectronRechit_Phi = new std::vector<float>; ecalElectronRechit_Phi->clear();
+  ecalElectronRechit_transpCorr = new std::vector<float>; ecalElectronRechit_transpCorr->clear();
   //int nPV;
   unsigned int run, lumi, event;
 
@@ -230,13 +252,24 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("run", &run, "run/i");
   outputTree->Branch("lumi", &lumi, "lumi/i");
   outputTree->Branch("event", &event, "event/i");
+  outputTree->Branch("eventTime", &eventTime, "eventTime/i");
   outputTree->Branch("NPU", &NPU, "npu/i");
   outputTree->Branch("nPV", &nPV, "nPV/i");
   outputTree->Branch("mass", &mass, "mass/F");
   outputTree->Branch("t1", &t1, "t1/F");
   outputTree->Branch("t2", &t2, "t2/F");
+  outputTree->Branch("t1_TOF2", &t1_TOF2, "t1_TOF2/F");
+  outputTree->Branch("t2_TOF2", &t2_TOF2, "t2_TOF2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
   outputTree->Branch("t2_seed", &t2_seed, "t2_seed/F");
+  outputTree->Branch("seed1_TC_lagacy", &seed1_TC_lagacy, "seed1_TC_lagacy/F");
+  outputTree->Branch("seed2_TC_lagacy", &seed2_TC_lagacy, "seed2_TC_lagacy/F");
+  outputTree->Branch("seed2_TC_sept", &seed2_TC_sept, "seed2_TC_sept/F");
+  outputTree->Branch("seed1_TC_sept", &seed1_TC_sept, "seed1_TC_sept/F");
+  outputTree->Branch("seed1_pedestal", &seed1_pedestal, "seed1_pedestal/F");
+  outputTree->Branch("seed2_pedestal", &seed2_pedestal, "seed2_pedestal/F");
+  outputTree->Branch("seed1_transpCorr", &seed1_transpCorr, "seed1_transpCorr/F");
+  outputTree->Branch("seed2_transpCorr", &seed2_transpCorr, "seed2_transpCorr/F");
   outputTree->Branch("t1calib_seed", &t1calib_seed, "t1calib_seed/F");
   outputTree->Branch("t2calib_seed", &t2calib_seed, "t2calib_seed/F");
   outputTree->Branch("t1calib_seed_sept", &t1calib_seed_sept, "t1calib_seed_sept/F");
@@ -261,6 +294,14 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("ele2SeedIPhi", &ele2SeedIPhi, "ele2SeedIPhi/I");
   outputTree->Branch("ele2SeedIX", &ele2SeedIX, "ele2SeedIX/I");
   outputTree->Branch("ele2SeedIY", &ele2SeedIY, "ele2SeedIY/I");
+  outputTree->Branch("ecalElectronRechit_E", "std::vector<float>",&ecalElectronRechit_E);
+  outputTree->Branch("ecalElectronRechit_rawT", "std::vector<float>",&ecalElectronRechit_rawT);
+  outputTree->Branch("ecalElectronRechit_calibT_sept", "std::vector<float>",&ecalElectronRechit_calibT_sept);
+  outputTree->Branch("ecalElectronRechit_calibT_lagacy", "std::vector<float>",&ecalElectronRechit_calibT_lagacy);
+  outputTree->Branch("ecalElectronRechit_calibT_lagacy_TOF", "std::vector<float>",&ecalElectronRechit_calibT_lagacy_TOF);
+  outputTree->Branch("ecalElectronRechit_Eta", "std::vector<float>",&ecalElectronRechit_Eta);
+  outputTree->Branch("ecalElectronRechit_Phi", "std::vector<float>",&ecalElectronRechit_Phi);
+  outputTree->Branch("ecalElectronRechit_transpCorr", "std::vector<float>",&ecalElectronRechit_transpCorr);
 
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
@@ -286,8 +327,18 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     mass = 0;
     t1 = -999;
     t2 = -999;
+    t1_TOF2 = -999;
+    t2_TOF2 = -999;
     t1_seed = -999;
     t2_seed = -999;
+    seed1_TC_lagacy = -999;
+    seed2_TC_lagacy = -999;
+    seed1_TC_sept = -999;
+    seed2_TC_sept = -999;
+    seed1_pedestal = -999;
+    seed2_pedestal = -999;
+    seed1_transpCorr = -999;
+    seed2_transpCorr = -999;
     t1calib_seed = -999;
     t2calib_seed = -999;
     t1calib_seed_sept = -999;
@@ -313,6 +364,15 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     ele2SeedIY = -999; 
     ele2IsEB = 0;
     NPU = 0;   
+    ecalElectronRechit_E->clear();
+    ecalElectronRechit_rawT->clear();
+    ecalElectronRechit_calibT_sept->clear();
+    ecalElectronRechit_calibT_lagacy->clear();
+    ecalElectronRechit_calibT_lagacy_TOF->clear();
+    ecalElectronRechit_Eta->clear();
+    ecalElectronRechit_Phi->clear();
+    ecalElectronRechit_transpCorr->clear();
+
 
     //fill normalization histogram
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
@@ -337,6 +397,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     TLorentzVector ele2 = makeTLorentzVector(0,0,0,0);
     double ele1_time = 0;
     double ele2_time= 0;
+    double ele1_time_TOF2 = 0;
+    double ele2_time_TOF2 = 0;
     double ele1_seedtime = 0;
     double ele2_seedtime = 0;
     double ele1_seedtimeCalib = 0;
@@ -376,14 +438,18 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       //	<< "\n";
  
 
+
+      double seedPedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]);
    
       double tmpSumWeightedTime = 0;
+      double tmpSumWeightedTime_TOF2 = 0;
       double tmpSumWeight = 0;
+      double tmpSumWeight_TOF2 = 0;
 
-      for (uint k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
-      	
+      for (uint k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {	
 	uint rechitIndex = (*ele_EcalRechitIndex)[i][k];
-		  
+    
+      	  
 	double rawT_this = (*ecalRechit_T)[rechitIndex];
 	//apply intercalibration
 	double IC_time_SeptRereco_this = getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[rechitIndex]);
@@ -393,21 +459,38 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	//apply TOF correction
 	double corrT = calibratedSeedHitTime_this + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
-	double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]);
+  	ecalElectronRechit_E->push_back((*ecalRechit_E)[rechitIndex]); 
+        ecalElectronRechit_Eta->push_back((*ecalRechit_Eta)[rechitIndex]); 
+        ecalElectronRechit_Phi->push_back((*ecalRechit_Phi)[rechitIndex]); 
+        ecalElectronRechit_transpCorr->push_back((*ecalRechit_transpCorr)[rechitIndex]); 
+        ecalElectronRechit_rawT->push_back(rawT_this - IC_time_SeptRereco_this); 
+        ecalElectronRechit_calibT_sept->push_back(rawT_this); 
+        ecalElectronRechit_calibT_lagacy->push_back(calibratedSeedHitTime_this); 
+        ecalElectronRechit_calibT_lagacy_TOF->push_back(corrT); 
+
+	double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]);
 	//double pedNoise = 1;
 	double ADCToGeV = getADCToGeV(runNum, isEBOrEE);
 	double sigmaE = pedNoise * ADCToGeV;
 	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
 	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
+	tmpSumWeightedTime_TOF2 += calibratedSeedHitTime_this * ( 1.0 / (sigmaT*sigmaT) );
 	tmpSumWeight += ( 1.0 / (sigmaT*sigmaT) );
+	tmpSumWeight_TOF2 += ( 1.0 / (sigmaT*sigmaT) );
 	// cout << "\n";
       }
       double weightedTime = tmpSumWeightedTime / tmpSumWeight;
+      double weightedTime_TOF2 = tmpSumWeightedTime_TOF2 / tmpSumWeight_TOF2 + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
             
       if (thisElectron.Pt() > ele1.Pt()) {
 	ele1 = thisElectron;
+	seed1_TC_lagacy = IC_time_LagacyRereco;
+	seed1_TC_sept = IC_time_SeptRereco;
+	seed1_pedestal = seedPedNoise; 
+	seed1_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
 	ele1_time = weightedTime;
+	ele1_time_TOF2 = weightedTime_TOF2;
 	ele1_seedtime = TOFCorrectedSeedHitTime;
 	ele1_seedtimeCalib = calibratedSeedHitTime;
 	ele1_seedtimeCalib_sept = calibratedSeedHitTime_sept;
@@ -427,7 +510,12 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
       } else if (thisElectron.Pt() > ele2.Pt()) {
 	ele2 = thisElectron;
+	seed2_TC_lagacy = IC_time_LagacyRereco;
+	seed2_TC_sept = IC_time_SeptRereco;
+	seed2_pedestal = seedPedNoise; 
+	seed2_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
 	ele2_time = weightedTime;
+	ele2_time_TOF2 = weightedTime_TOF2;
 	ele2_seedtime = TOFCorrectedSeedHitTime; 
 	ele2_seedtimeCalib = calibratedSeedHitTime;
  	ele2_seedtimeraw = rawSeedHitTime_no_sept;
@@ -459,7 +547,9 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
       mass = (ele1+ele2).M();
       t1 = ele1_time;
+      t1_TOF2 = ele1_time_TOF2;
       t2 = ele2_time;
+      t2_TOF2 = ele2_time_TOF2;
       t1_seed = ele1_seedtime;
       t2_seed = ele2_seedtime;
       t1calib_seed = ele1_seedtimeCalib;

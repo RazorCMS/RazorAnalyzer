@@ -23,6 +23,7 @@ class DelayedPhotonAnalyzer: public RazorAnalyzer {
 	float getTimeCalibConstant(TTree *tree, vector <uint> & start_run, vector <uint> & end_run, uint run, uint detID);
 	float getPedestalNoise(TTree *tree, vector <uint> & start_run, vector <uint> & end_run, uint run, uint detID);
 	float getADCToGeV( uint run, int isEBOrEE);
+ 	TLorentzVector intersectPoint (float x0,float y0,float z0,float px,float py,float pz,float R);
 
 };
 
