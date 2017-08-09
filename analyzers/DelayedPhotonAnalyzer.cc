@@ -59,9 +59,6 @@ float DelayedPhotonAnalyzer::getTimeCalibConstant(TTree *tree, vector <uint> & s
   float timeCalib = 1.0;
 
   // accessing variables for the seed hit information
-  std::vector<float> *ecalRechit_X;
-  std::vector<float> *ecalRechit_Y;
-  std::vector<float> *ecalRechit_Z;
   
   int N_entries = tree->GetEntries(); 
   int i_entry=0;
@@ -132,6 +129,8 @@ float DelayedPhotonAnalyzer::getADCToGeV( uint run, int isEBOrEE) {
 
 
 void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName, string label) {
+
+  isData = false;//////remember to delete this when we are dealing with data.....
 
   //*****************************************************************************
   //Settings
@@ -271,13 +270,21 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float met_Pt, met_Phi, sum_MET;
   float diff_gpt1, diff_gpt2;
   float deltaR_gpt1, deltaR_gpt2;
-  float deltaE_gpt1, deltaE_gpt2;
+  float deltaEta_gpt1, deltaEta_gpt2;
   float deltaPhi_gpt1, deltaPhi_gpt2;
   float reco_eta1, reco_eta2;
   float gen_eta1, gen_eta2;
   float R1, R2;
   float ZD1, ZD2;
 
+  float pho1SeedE;
+  float pho1SeedEta;
+  float pho1SeedPhi;
+  float pho2SeedE;
+  float pho2SeedEta;
+  float pho2SeedPhi;
+
+/*
   float pho2SeedIY;
   float pho2SeedIX;
   float pho1SeedIY;
@@ -286,10 +293,10 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float pho2SeedIEta;
   float pho1SeedIPhi;
   float pho1SeedIEta;
+*/
   float phoEta_SC[1000];
   bool pho2IsEB;
   bool pho1IsEB;
-  float calibratedSeedHitTime;
 
 
   //pho_hasPixelSeed, pho_passHLTFilter, pho_convType, pho_convTrkZ, pho_convTrkClusZ, pho_vtxSumPx, pho_vtxSumPy, pho_seedRecHitSwitchToGain6, pho_seedRecHitSwitchToGain1, pho_anyRecHitSwitchToGain6, 
@@ -344,11 +351,17 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   outputTree->Branch("phoNumber", &phoNumber, "phoNumber/F");
   outputTree->Branch("pho1Energy", &pho1Energy, "pho1Energy/F");
+  outputTree->Branch("pho1SeedE", &pho1SeedE, "pho1SeedE/F");
+  outputTree->Branch("pho1SeedEta", &pho1SeedEta, "pho1SeedEta/F");
+  outputTree->Branch("pho1SeedPhi", &pho1SeedPhi, "pho1SeedPhi/F");
   outputTree->Branch("pho1_Pt", &pho1_Pt, "pho1_Pt/F");
   outputTree->Branch("pho1_Eta", &pho1_Eta, "pho1_Eta/F");
   outputTree->Branch("pho1_Phi", &pho1_Phi, "pho1_Phi/F");  
 
   outputTree->Branch("pho2Energy", &pho2Energy, "pho2Energy/F");
+  outputTree->Branch("pho2SeedE", &pho2SeedE, "pho2SeedE/F");
+  outputTree->Branch("pho2SeedEta", &pho2SeedEta, "pho2SeedEta/F");
+  outputTree->Branch("pho2SeedPhi", &pho2SeedPhi, "pho2SeedPhi/F");
   outputTree->Branch("pho2_Pt", &pho2_Pt, "pho2_Pt/F");
   outputTree->Branch("pho2_Eta", &pho2_Eta, "pho2_Eta/F");
   outputTree->Branch("pho2_Phi", &pho2_Phi, "pho2_Phi/F");  
@@ -366,8 +379,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("diff_gpt2", &diff_gpt2, "diff_gpt2/F");
   outputTree->Branch("deltaR_gpt1", &deltaR_gpt1, "deltaR_gpt1/F");
   outputTree->Branch("deltaR_gpt2", &deltaR_gpt2, "deltaR_gpt2/F");
-  outputTree->Branch("deltaE_gpt1", &deltaE_gpt1, "deltaE_gpt1/F");
-  outputTree->Branch("deltaE_gpt2", &deltaE_gpt2, "deltaE_gpt2/F");
+  outputTree->Branch("deltaEta_gpt1", &deltaEta_gpt1, "deltaEta_gpt1/F");
+  outputTree->Branch("deltaEta_gpt2", &deltaEta_gpt2, "deltaEta_gpt2/F");
   outputTree->Branch("deltaPhi_gpt1", &deltaPhi_gpt1, "deltaPhi_gpt1/F");
   outputTree->Branch("deltaPhi_gpt2", &deltaPhi_gpt2, "deltaPhi_gpt2/F");
   outputTree->Branch("reco_eta1", &reco_eta1, "reco_eta1/F");
@@ -383,7 +396,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
   float matched = 0;
-  float unmatched = 0;
 
 
   //begin loop
@@ -393,7 +405,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     //begin event
-    if(jentry % 10000 == 0) cout << "Processing entry " << jentry << endl;
+    if(jentry % 1000 == 0) cout << "Processing entry " << jentry << endl;
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
@@ -434,11 +446,17 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
     phoNumber = -999;
     pho1Energy = -999;
+    pho1SeedE = -999;
+    pho1SeedEta = -999;
+    pho1SeedPhi = -999;
     pho1_Pt = -999;
     pho1_Eta = -999;
     pho1_Phi = -999;
     
     pho2Energy = -999;
+    pho2SeedE = -999;
+    pho2SeedEta = -999;
+    pho2SeedPhi = -999;
     pho2_Pt = -999;
     pho2_Eta = -999;
     pho2_Phi = -999;
@@ -456,8 +474,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     diff_gpt2 = -999;
     deltaR_gpt1 = -999;
     deltaR_gpt2 = -999;
-    deltaE_gpt1 = -999;
-    deltaE_gpt2 = -999;
+    deltaEta_gpt1 = -999;
+    deltaEta_gpt2 = -999;
     deltaPhi_gpt1 = -999;
     deltaPhi_gpt2 = -999;
     reco_eta1 = -999;
@@ -498,8 +516,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     double pho2_seedtime = 0;
     double pho1_seedtime_genV = 0;
     double pho2_seedtime_genV = 0;
-    double pho1_seedtime_recoV = 0;
-    double pho2_seedtime_recoV = 0;
     double pho1_seedtimeCalib = 0;
     double pho2_seedtimeCalib = 0;
     double pho1_seedtimeraw = 0;
@@ -519,9 +535,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
     for(int i = 0; i < nPhotons; i++) { //photon loop
       // apply cuts
-//      if(phoPt[i] < 25) continue; 
-//      if(fabs(phoEta[i]) > 2.5) continue;
-//      if(fabs(phoEta[i]) > 1.4442 && fabs(phoEta[i]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
+      if(phoPt[i] < 25) continue; 
+      if(fabs(phoEta[i]) > 2.5) continue;
+      if(fabs(phoEta[i]) > 1.4442 && fabs(phoEta[i]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
       //if(!(isEGammaPOGTightElectron(i))) continue;
       
       nPho++;
@@ -539,16 +555,16 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       bool isEBOrEE = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 ); //barrel vs. endcap
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
-      //apply intercalibration
-      double IC_time_SeptRereco = getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]);
-      double IC_time_LagacyRereco = getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]);
+      //apply intercalibration2      
+      double IC_time_SeptRereco = isData ? getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
+      double IC_time_LagacyRereco = isData ? getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
       double calibratedSeedHitTime = rawSeedHitTime + IC_time_LagacyRereco - IC_time_SeptRereco;
 
       //apply TOF correction
       double TOFCorrectedSeedHitTime = calibratedSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
       
 
-      double TOFrawSeedHitTime = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT; //this is TOF correction with reco V
+      //double TOFrawSeedHitTime = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT; //this is TOF correction with reco V
 
       //generator xyz information
       float primary_x1;
@@ -559,7 +575,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       primary_y1 = genVertexY; 
       primary_z1 = genVertexZ;
 
-      double TOFrawSeedHitTime_genV = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-primary_x1,2)+pow((*ecalRechit_Y)[seedhitIndex]-primary_y1,2)+pow((*ecalRechit_Z)[seedhitIndex]-primary_z1,2)))/SPEED_OF_LIGHT;
+      double TOFCorrectedSeedHitTime_genV = calibratedSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-primary_x1,2)+pow((*ecalRechit_Y)[seedhitIndex]-primary_y1,2)+pow((*ecalRechit_Z)[seedhitIndex]-primary_z1,2)))/SPEED_OF_LIGHT;
 
       // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : \n" 
       //  << "  runNum: " << runNum << "  detID: " << (*ecalRechit_ID)[seedhitIndex] << "  IC_time_SeptRereco: " << IC_time_SeptRereco << "  IC_time_LagacyRereco: " << IC_time_LagacyRereco << " \n"
@@ -587,10 +603,10 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
         // double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]);
         double pedNoise = 1;
-        double ADCToGeV = getADCToGeV(runNum, isEBOrEE);
+        double ADCToGeV = isData ? getADCToGeV(runNum, isEBOrEE) : 1;
         double sigmaE = pedNoise * ADCToGeV;
   
-        float C_EB = 1;
+        float C_EB = isData ? 1 : 0;
         float N_EB = 1;
   
         double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
@@ -607,28 +623,32 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   	pho1SeedX = (*ecalRechit_X)[seedhitIndex];
   	pho1SeedY = (*ecalRechit_Y)[seedhitIndex];
   	pho1SeedZ = (*ecalRechit_Z)[seedhitIndex];
+  	
+	pho1SeedE = (*ecalRechit_E)[seedhitIndex];
+	pho1SeedEta = (*ecalRechit_Eta)[seedhitIndex];
+	pho1SeedPhi = (*ecalRechit_Phi)[seedhitIndex];
 
         pho1_time = weightedTime;
-        //pho1_seedtime = TOFCorrectedSeedHitTime;
-        pho1_seedtime = TOFrawSeedHitTime;
-        pho1_seedtime_genV = TOFrawSeedHitTime_genV;
+        pho1_seedtime = TOFCorrectedSeedHitTime;
+        //pho1_seedtime = TOFrawSeedHitTime;
+        pho1_seedtime_genV = TOFCorrectedSeedHitTime_genV;
         pho1_seedtimeCalib = calibratedSeedHitTime;
         pho1_seedtimeraw = rawSeedHitTime;
         pho1IsEB = bool( phoEta_SC[i] < 1.5 );
 	if (pho1IsEB) { //if the photon is in the barrel
-        	pho1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-        	pho1SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-        	pho1SeedIX = -999;
-        	pho1SeedIY = -999;
+        	//pho1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+        	//pho1SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+        	//pho1SeedIX = -999;
+        	//pho1SeedIY = -999;
 
 		//cout << "rawSeedHitTime:  " << rawSeedHitTime << "  TOFrawSeedHitTime:  " << TOFrawSeedHitTime << endl;
 	}
 
       else {
-        pho1SeedIEta = -999;
-        pho1SeedIPhi = -999;
-        pho1SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
-        pho1SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+        //pho1SeedIEta = -999;
+        //pho1SeedIPhi = -999;
+        //pho1SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+        //pho1SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
       }
     } 
     else if (thisPhoton.Pt() > pho2.Pt()) {
@@ -637,23 +657,28 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       pho2SeedY = (*ecalRechit_Y)[seedhitIndex];
       pho2SeedZ = (*ecalRechit_Z)[seedhitIndex];
 
+	pho2SeedE = (*ecalRechit_E)[seedhitIndex];
+	pho2SeedEta = (*ecalRechit_Eta)[seedhitIndex];
+	pho2SeedPhi = (*ecalRechit_Phi)[seedhitIndex];
+
+
       pho2_time = weightedTime;
-      //pho2_seedtime = TOFCorrectedSeedHitTime; 
-      pho2_seedtime = TOFrawSeedHitTime; 
+      pho2_seedtime = TOFCorrectedSeedHitTime; 
+      //pho2_seedtime = TOFrawSeedHitTime; 
       pho2_seedtimeCalib = calibratedSeedHitTime;
       pho2_seedtimeraw = rawSeedHitTime;
       pho2IsEB = bool( phoEta_SC[i] < 1.5 );
       if (pho2IsEB) {
-        pho2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-        pho2SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-        pho2SeedIX = -999;
-        pho2SeedIY = -999;
+        //pho2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+        //pho2SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+        //pho2SeedIX = -999;
+        //pho2SeedIY = -999;
       } 
       else {
-        pho2SeedIEta = -999;
-        pho2SeedIPhi = -999;
-        pho2SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
-        pho2SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+        //pho2SeedIEta = -999;
+        //pho2SeedIPhi = -999;
+        //pho2SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+        //pho2SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
       }
     } 
   } //end photon loop
@@ -717,8 +742,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   if(foundN1==1 && foundN2==1){
 
-  cout<<"photon1  "<< pho1_index <<"  photon2  "<<pho2_index<<endl;
-  cout<<"neutralino1  "<< neu1_index <<"  neutralino2  "<<neu2_index<<endl;
+  //cout<<"photon1  "<< pho1_index <<"  photon2  "<<pho2_index<<endl;
+  //cout<<"neutralino1  "<< neu1_index <<"  neutralino2  "<<neu2_index<<endl;
 
   float decay_x1;
   float decay_y1;
@@ -751,7 +776,10 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   ZD1 = decay_z1;
   ZD2 = decay_z2;
 
-  cout <<"  decay_x1  "<< decay_x1 <<"  decay_y1  "<< decay_y1 <<"  decay_z1  "<< decay_z1 <<"  decay_x2  "<< decay_x2 <<"  decay_y2  "<< decay_y2 <<"  decay_z2  "<< decay_z2 << endl;
+  
+//  if(R1>129.7*129.7 || R2>129.7*129.7 || fabs(ZD1)>300.0 || fabs(ZD2)>300.0 ) continue;
+
+  //cout <<"  decay_x1  "<< decay_x1 <<"  decay_y1  "<< decay_y1 <<"  decay_z1  "<< decay_z1 <<"  decay_x2  "<< decay_x2 <<"  decay_y2  "<< decay_y2 <<"  decay_z2  "<< decay_z2 << endl;
 
 
   // need to match up the photon index and the reco photon - this is done based on momentum
@@ -770,20 +798,20 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   TLorentzVector genSeed2;
 
   float norm1 = pow((pow(gParticlePx[pho1_index],2)+pow(gParticlePy[pho1_index],2)+pow(gParticlePz[pho1_index],2)),0.5);
-  cout << "norm1  "<<norm1<<endl;
+  //cout << "norm1  "<<norm1<<endl;
  
   float px1 = (gParticlePx[pho1_index]) / norm1;
   float py1 = (gParticlePy[pho1_index]) / norm1;
   float pz1 = (gParticlePz[pho1_index]) / norm1;
 
-  cout<<"px  "<<px1<<"  py  "<<py1<<"  pz  "<<pz1<<endl;
+  //cout<<"px  "<<px1<<"  py  "<<py1<<"  pz  "<<pz1<<endl;
 
   genSeed1 = intersectPoint(decay_x1, decay_y1, decay_z1, px1, py1, pz1, 129.0); // using intersection function written above, radius as 129 cm
 //  genSeed1 = intersectPoint(decay_x1, decay_y1, decay_z1, gParticlePx[pho1_index]/pow(gParticlePx[pho1_index]*gParticlePx[pho1_index] + gParticlePy[pho1_index]+gParticlePy[pho1_index]+gParticlePz[pho1_index]*gParticlePz[pho1_index],0.5), gParticlePy[pho1_index]/pow(gParticlePx[pho1_index]*gParticlePx[pho1_index] + gParticlePy[pho1_index]+gParticlePy[pho1_index]+gParticlePz[pho1_index]*gParticlePz[pho1_index],0.5), gParticlePz[pho1_index]/pow(gParticlePx[pho1_index]*gParticlePx[pho1_index] + gParticlePy[pho1_index]+gParticlePy[pho1_index]+gParticlePz[pho1_index]*gParticlePz[pho1_index],0.5),129.0); // using intersection function written above, radius as 129 cm
 
 
-  cout<<"genSeed1: input : "<<decay_x1<<"   "<<decay_y1<<"   "<<decay_z1<<"   "<<px1<<"  "<<py1<<"   "<<pz1<<"   "<<" particle px  "<<gParticlePx[pho1_index]<<" particle py  "<<gParticlePy[pho1_index]<<" particle pz  "<<gParticlePz[pho1_index]<<
-	"  output "<<genSeed1.X()<<"  "<<genSeed1.Y()<<"   "<<genSeed1.Z()<<endl;
+  //cout<<"genSeed1: input : "<<decay_x1<<"   "<<decay_y1<<"   "<<decay_z1<<"   "<<px1<<"  "<<py1<<"   "<<pz1<<"   "<<" particle px  "<<gParticlePx[pho1_index]<<" particle py  "<<gParticlePy[pho1_index]<<" particle pz  "<<gParticlePz[pho1_index]<<
+//	"  output "<<genSeed1.X()<<"  "<<genSeed1.Y()<<"   "<<genSeed1.Z()<<endl;
 
 
   float norm2 = pow((pow(gParticlePx[pho2_index],2)+pow(gParticlePy[pho2_index],2)+pow(gParticlePz[pho2_index],2)),0.5);
@@ -792,13 +820,13 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float py2 = (gParticlePy[pho2_index]) / norm2;
   float pz2 = (gParticlePz[pho2_index]) / norm2;
  
-  cout<<"norm2  "<<norm2<<endl;
-  cout<<"px  "<<px2<<"  py  "<<py2<<"  pz  "<<pz2<<endl;
+  //cout<<"norm2  "<<norm2<<endl;
+  //cout<<"px  "<<px2<<"  py  "<<py2<<"  pz  "<<pz2<<endl;
 
   genSeed2 = intersectPoint(decay_x2, decay_y2, decay_z2, px2, py2, pz2, 129.0); // using intersection function written above, radius as 129 cm
 
- cout<<"genSeed2: input : "<<decay_x2<<"   "<<decay_y2<<"   "<<decay_z2<<"   "<<px2<<"  "<<py2<<"   "<<pz2<<"   "<<" particle px  "<<gParticlePx[pho2_index]<<" particle py  "<<gParticlePy[pho2_index]<<" particle pz  "<<gParticlePz[pho2_index]<<
-	"  output "<<genSeed2.X()<<"  "<<genSeed2.Y()<<"   "<<genSeed2.Z()<<endl;
+ //cout<<"genSeed2: input : "<<decay_x2<<"   "<<decay_y2<<"   "<<decay_z2<<"   "<<px2<<"  "<<py2<<"   "<<pz2<<"   "<<" particle px  "<<gParticlePx[pho2_index]<<" particle py  "<<gParticlePy[pho2_index]<<" particle pz  "<<gParticlePz[pho2_index]<<
+//	"  output "<<genSeed2.X()<<"  "<<genSeed2.Y()<<"   "<<genSeed2.Z()<<endl;
 
  
   
@@ -820,10 +848,10 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   //float diff11_Phi = pho1_Phi - gpho1_Phi;
   //float diff12_Phi = pho2_Phi - gpho1_Phi;
 
-  cout <<recoPho1LV.Eta() << "  reco1 eta  "<<genSeed1.Eta()<<"  gen1 eta  "<<recoPho2LV.Eta() << "  reco2 eta  "<<genSeed2.Eta()<<"  gen2 eta  "<< endl;
-  cout <<recoPho1LV.Phi() << "  reco1 phi  "<<genSeed1.Phi()<<"  gen1 phi  "<<recoPho2LV.Phi() << "  reco2 phi  "<<genSeed2.Phi()<<"  gen2 phi  "<< endl;
-  cout <<genSeed1.X()<<"  gen1 X  "<<genSeed1.Y()<<"  gen1 Y  "<<genSeed1.Z()<<"  gen1 Z  "<< endl;
-  cout <<genSeed2.X()<<"  gen2 X  "<<genSeed2.Y()<<"  gen2 Y  "<<genSeed2.Z()<<"  gen2 Z  "<< endl;
+  //cout <<recoPho1LV.Eta() << "  reco1 eta  "<<genSeed1.Eta()<<"  gen1 eta  "<<recoPho2LV.Eta() << "  reco2 eta  "<<genSeed2.Eta()<<"  gen2 eta  "<< endl;
+  //cout <<recoPho1LV.Phi() << "  reco1 phi  "<<genSeed1.Phi()<<"  gen1 phi  "<<recoPho2LV.Phi() << "  reco2 phi  "<<genSeed2.Phi()<<"  gen2 phi  "<< endl;
+  //cout <<genSeed1.X()<<"  gen1 X  "<<genSeed1.Y()<<"  gen1 Y  "<<genSeed1.Z()<<"  gen1 Z  "<< endl;
+  //cout <<genSeed2.X()<<"  gen2 X  "<<genSeed2.Y()<<"  gen2 Y  "<<genSeed2.Z()<<"  gen2 Z  "<< endl;
 
 
   float diffR11 = pow(pow(recoPho1LV.Eta()-genSeed1.Eta(),2.0)+pow(recoPho1LV.Phi()-genSeed1.Phi(),2.0),0.5);
@@ -832,15 +860,15 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float diffR21 = pow(pow(recoPho1LV.Eta()-genSeed2.Eta(),2.0)+pow(recoPho1LV.Phi()-genSeed2.Phi(),2.0),0.5);
   float diffR22 = pow(pow(recoPho2LV.Eta()-genSeed2.Eta(),2.0)+pow(recoPho2LV.Phi()-genSeed2.Phi(),2.0),0.5); 
 
-  float deltaE_11 = recoPho1LV.Eta()-genSeed1.Eta();
-  float deltaP_11 = recoPho1LV.Phi()-genSeed1.Phi();
-  float deltaE_12 = recoPho2LV.Eta()-genSeed1.Eta();
-  float deltaP_12 = recoPho2LV.Phi()-genSeed1.Phi();
+  float deltaEta_11 = recoPho1LV.Eta()-genSeed1.Eta();
+  float deltaPhi_11 = recoPho1LV.Phi()-genSeed1.Phi();
+  float deltaEta_12 = recoPho2LV.Eta()-genSeed1.Eta();
+  float deltaPhi_12 = recoPho2LV.Phi()-genSeed1.Phi();
 
-  float deltaE_21 = recoPho1LV.Eta()-genSeed2.Eta();
-  float deltaP_21 = recoPho1LV.Phi()-genSeed2.Phi();
-  float deltaE_22 = recoPho2LV.Eta()-genSeed2.Eta();
-  float deltaP_22 = recoPho2LV.Phi()-genSeed2.Phi();
+  float deltaEta_21 = recoPho1LV.Eta()-genSeed2.Eta();
+  float deltaPhi_21 = recoPho1LV.Phi()-genSeed2.Phi();
+  float deltaEta_22 = recoPho2LV.Eta()-genSeed2.Eta();
+  float deltaPhi_22 = recoPho2LV.Phi()-genSeed2.Phi();
 
   reco_eta1 = recoPho1LV.Eta();
   reco_eta2 = recoPho2LV.Eta();
@@ -855,15 +883,12 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float distanceZ_1p;
   float distanceZ_2p;
 
-  float distance1_p;
-  float distance2_p;
+  float distance1_p = 0;
+  float distance2_p = 0;
 
-  cout << "diffR11  "<<diffR11<<"  diffR12  "<<diffR12<<"  diffR21  "<<diffR21<<"  diffR22  "<<diffR22<<endl;
+  //cout << "diffR11  "<<diffR11<<"  diffR12  "<<diffR12<<"  diffR21  "<<diffR21<<"  diffR22  "<<diffR22<<endl;
 
-  //if ( diffR11 < diffR12 && 0 < diffR11 && diffR11 <0.400 && 0 < diffR22 && diffR22 < 0.400 ){ // cut made on diffRerence between momenta
   if ( diffR11 < diffR12 ){ 
-	cout << "passed diff cuts"<< endl;
-  //if ( diff11_Eta < diff12_Eta && diff11_Phi < diff12_Phi ) {
   	// then gpho1 and pho1 are matched up - find distance photon travels
         distanceX_1p = pho1SeedX - decay_x1;
   	distanceY_1p = pho1SeedY - decay_y1;
@@ -877,16 +902,18 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	deltaR_gpt1 = diffR11;//pow(pow(recoPho1LV.Eta()-genSeed1.Eta(),2.0)+pow(recoPho1LV.Phi()-genSeed1.Phi(),2.0),0.5);
 	deltaR_gpt2 = diffR22;//pow(pow(recoPho2LV.Eta()-genSeed2.Eta(),2.0)+pow(recoPho2LV.Phi()-genSeed2.Phi(),2.0),0.5);
 
-	deltaE_gpt1 = deltaE_11;
-	deltaE_gpt2 = deltaE_22;
+	deltaEta_gpt1 = deltaEta_11;
+	deltaEta_gpt2 = deltaEta_22;
+
+	deltaPhi_gpt1 = deltaPhi_11;
+	deltaPhi_gpt2 = deltaPhi_22;
+
 
 	distance1_p = pow( (pow(distanceX_1p,2) + pow(distanceY_1p,2) + pow(distanceZ_1p,2)),0.5) ;
 	distance2_p = pow( (pow(distanceX_2p,2) + pow(distanceY_2p,2) + pow(distanceZ_2p,2)),0.5) ;
 	matched += 1;
   }
-  //else if ( diffR12 < diffR11 && 0 < diffR12 && diffR12 < 0.100 && 0 < diffR21 && diffR21 <0.100 ) {
-  else if ( diffR11 > diffR12 ){ 
-  //if ( diff11_Eta > diff12_Eta && diff11_Phi > diff12_Phi ) {
+  else { 
   	// then gpho1 and pho2 are matched up - find distance photon travels
         distanceX_1p = pho2SeedX - decay_x1;
   	distanceY_1p = pho2SeedY - decay_y1;
@@ -900,22 +927,18 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
         deltaR_gpt1 = diffR12;//pow(pow(recoPho2LV.Eta()-genSeed1.Eta(),2.0)+pow(recoPho2LV.Phi()-genSeed1.Phi(),2.0),0.5);
 	deltaR_gpt2 = diffR21;//pow(pow(recoPho1LV.Eta()-genSeed2.Eta(),2.0)+pow(recoPho1LV.Phi()-genSeed2.Phi(),2.0),0.5);
 
-	deltaE_gpt1 = deltaE_12;
-	deltaE_gpt2 = deltaE_21;
+	deltaEta_gpt1 = deltaEta_12;
+	deltaEta_gpt2 = deltaEta_21;
+
+	deltaPhi_gpt1 = deltaPhi_12;
+	deltaPhi_gpt2 = deltaPhi_21;
+
 
 	distance1_p = pow( pow(distanceX_1p,2) + pow(distanceY_1p,2) + pow(distanceZ_1p,2),0.5) ;
 	distance2_p = pow( pow(distanceX_2p,2) + pow(distanceY_2p,2) + pow(distanceZ_2p,2),0.5) ;
 	matched += 1;
   }
-  else {
-	unmatched += 1;  // find efficiency of matching gen photons
-  }
 
-
-  if (diff_gpt1 == -999 && diff_gpt2 == -999 ) {
-	unmatched += 1;
-  }
- 
   float time1_p = distance1_p / (SPEED_OF_LIGHT) ;
   float time2_p = distance2_p / (SPEED_OF_LIGHT) ;
 
@@ -935,7 +958,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float NeutraEta1;
   float NeutraEta2;
 
-  float creation_time; // this will be genVertexT, time the neutralino is created
 
   primary_x1 = genVertexX;
   primary_y1 = genVertexY; 
@@ -948,10 +970,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   //cout << genVertexT << "   generated time vertex" << endl;
   //cout << genVertexZ << "   generated vertex Z" << endl;
 
-  //creation_time = genVertexT;
 
   // creation time is added to neutralino TOF and photon TOF to find total hit time
-  //TOF_initial = creation_time;
+  TOF_initial = genVertexT;
    
   //cout << TOF_initial << "   TOF_initial value" << endl;
   
@@ -1012,14 +1033,14 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   //if( diffR11 < diffR12 && 0 < diffR11 && diffR11 < 0.100 && 0 < diffR22 && diffR22 < 0.100 ) { // pt matching, photon1 and photon1
   if( diffR11 < diffR12 ) {
-	cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed1.X() <<"  "<< genSeed1.Y() <<"  "<<genSeed1.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt1<<" genPhoPt: "<<gpho1_Pt<<" pT diff  "<< diffpt11 <<"  genPhoPx: "<<gParticlePx[pho1_index]<< "  genPhoPy: "<<gParticlePy[pho1_index]<< "  genPhoPz: "<<gParticlePz[pho1_index]<<"  genPhoE: "<<gParticleE[pho1_index]<<"    pho1 - gen vertex:  " << creation_time << "  neutralino dist:  "<<distance1<< "  neutralino TOF:  " << time1 << "  photon dist:  "<<distance1_p<< "  photon TOF:  " << time1_p << "  initialTOF:  " << TOF_initial << "  TOF_neu1:  " << TOF_neu1 << "  TOF_pho1:  " << TOF_pho1 << "  TOF_total1:  "<< TOF_initial + TOF_neu1 + TOF_pho1 <<"  TOF_total1-L/c:  " << TOF_total1 <<"  TOF_total1-L/c (gen):  " << TOF_total1_genV <<"  neutralino decay x (gen):  "<<decay_x1<< "  neutralino decay y (gen):  "<<decay_y1<< "  neutralino decay z (gen):  "<<decay_z1<< "  Length gen to crystal:  " <<L_gen_crys1 <<"  RECO  seedHitRawTime:   "<<t1raw_seed <<"  seedHitTimeTOF: "<<t1_seed<<"  seedHitTimeTOF genV: "<<t1_seed_genV<< "  pho1SeedX:  "<<pho1SeedX<<"  pho1SeedY:  "<<pho1SeedY<<"  pho1SeedZ:  "<<pho1SeedZ<< endl; 
-	cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed2.X() <<"  "<< genSeed2.Y() <<"  "<<genSeed2.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt2<<" genPhoPt: "<<gpho2_Pt<<" pT diff  "<< diffpt22 <<"  genPhoPx: "<<gParticlePx[pho2_index]<< "  genPhoPy: "<<gParticlePy[pho2_index]<< "  genPhoPz: "<<gParticlePz[pho2_index]<< "  genPhoE: "<<gParticleE[pho2_index]<<"   pho2 - gen vertex:  " << creation_time << "  neutralino dist:  "<<distance2<< "  neutralino TOF:  " << time2 << "  photon dist:  "<<distance2_p<< "  photon TOF:  " << time2_p << "  initialTOF:  " << TOF_initial << "  TOF_neu2:  " << TOF_neu2 << "  TOF_pho2:  " << TOF_pho2 << "TOF_total2:  "<< TOF_initial + TOF_neu2 + TOF_pho2 <<"  TOF_total2-L/c:  " << TOF_total2 <<"  TOF_total2-L/c (gen):  " << TOF_total2_genV <<"  neutralino decay x (gen):  "<<decay_x2<< "  neutralino decay y (gen):  "<<decay_y2<< "  neutralino decay z (gen):  "<<decay_z2 << "  Length gen to crystal:  " <<L_gen_crys2<<"  RECO  seedHitRawTime:   "<<t2raw_seed <<"  seedHitTimeTOF: "<<t2_seed<<"  seedHitTimeTOF genV: "<<t2_seed_genV<< "  pho2SeedX:  "<<pho2SeedX<<"  pho2SeedY:  "<<pho2SeedY<<"  pho2SeedZ:  "<<pho2SeedZ<< endl; 
+//	cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed1.X() <<"  "<< genSeed1.Y() <<"  "<<genSeed1.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt1<<" genPhoPt: "<<gpho1_Pt<<" pT diff  "<< diffpt11 <<"  genPhoPx: "<<gParticlePx[pho1_index]<< "  genPhoPy: "<<gParticlePy[pho1_index]<< "  genPhoPz: "<<gParticlePz[pho1_index]<<"  genPhoE: "<<gParticleE[pho1_index]<<"    pho1 - gen vertex:  " << genVertexT << "  neutralino dist:  "<<distance1<< "  neutralino TOF:  " << time1 << "  photon dist:  "<<distance1_p<< "  photon TOF:  " << time1_p << "  initialTOF:  " << TOF_initial << "  TOF_neu1:  " << TOF_neu1 << "  TOF_pho1:  " << TOF_pho1 << "  TOF_total1:  "<< TOF_initial + TOF_neu1 + TOF_pho1 <<"  TOF_total1-L/c:  " << TOF_total1 <<"  TOF_total1-L/c (gen):  " << TOF_total1_genV <<"  neutralino decay x (gen):  "<<decay_x1<< "  neutralino decay y (gen):  "<<decay_y1<< "  neutralino decay z (gen):  "<<decay_z1<< "  Length gen to crystal:  " <<L_gen_crys1 <<"  RECO  seedHitRawTime:   "<<t1raw_seed <<"  seedHitTimeTOF: "<<t1_seed<<"  seedHitTimeTOF genV: "<<t1_seed_genV<< "  pho1SeedX:  "<<pho1SeedX<<"  pho1SeedY:  "<<pho1SeedY<<"  pho1SeedZ:  "<<pho1SeedZ<< endl; 
+//	cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed2.X() <<"  "<< genSeed2.Y() <<"  "<<genSeed2.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt2<<" genPhoPt: "<<gpho2_Pt<<" pT diff  "<< diffpt22 <<"  genPhoPx: "<<gParticlePx[pho2_index]<< "  genPhoPy: "<<gParticlePy[pho2_index]<< "  genPhoPz: "<<gParticlePz[pho2_index]<< "  genPhoE: "<<gParticleE[pho2_index]<<"   pho2 - gen vertex:  " << genVertexT << "  neutralino dist:  "<<distance2<< "  neutralino TOF:  " << time2 << "  photon dist:  "<<distance2_p<< "  photon TOF:  " << time2_p << "  initialTOF:  " << TOF_initial << "  TOF_neu2:  " << TOF_neu2 << "  TOF_pho2:  " << TOF_pho2 << "TOF_total2:  "<< TOF_initial + TOF_neu2 + TOF_pho2 <<"  TOF_total2-L/c:  " << TOF_total2 <<"  TOF_total2-L/c (gen):  " << TOF_total2_genV <<"  neutralino decay x (gen):  "<<decay_x2<< "  neutralino decay y (gen):  "<<decay_y2<< "  neutralino decay z (gen):  "<<decay_z2 << "  Length gen to crystal:  " <<L_gen_crys2<<"  RECO  seedHitRawTime:   "<<t2raw_seed <<"  seedHitTimeTOF: "<<t2_seed<<"  seedHitTimeTOF genV: "<<t2_seed_genV<< "  pho2SeedX:  "<<pho2SeedX<<"  pho2SeedY:  "<<pho2SeedY<<"  pho2SeedZ:  "<<pho2SeedZ<< endl; 
   }
 
   //else if ( diffR12 < diffR11 && 0 < diffR12 && diffR12 < 0.100 && 0 < diffR21 && diffR21 < 0.100 ) { // matching photon1 (gen) and photon2 (reco)
   else if( diffR11 > diffR12 ) {
-	cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed1.X() <<"  "<< genSeed1.Y() <<"  "<<genSeed1.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt1<<" genPhoPt: "<<gpho1_Pt<<" pT diff  "<< diffpt12 <<"  genPhoPx: "<<gParticlePx[pho1_index]<< "  genPhoPy: "<<gParticlePy[pho1_index]<< "  genPhoPz: "<<gParticlePz[pho1_index]<< "  genPhoE: "<<gParticleE[pho1_index]<<" pho1 - gen vertex:  " << creation_time << "  neutralino dist:  "<<distance1<< "  neutralino TOF:  " << time1 << "  photon dist:  "<<distance1_p<< "  photon TOF:  " << time1_p << "  initialTOF:  " << TOF_initial << "  TOF_neu1:  " << TOF_neu1 << "  TOF_pho1:  " << TOF_pho1 <<  "TOF_total1:  "<< TOF_initial + TOF_neu1 + TOF_pho1 <<"  TOF_total1-L/c:  " << TOF_total1  <<"  TOF_total1-L/c (gen):  " << TOF_total1_genV <<"  neutralino decay x (gen):  "<<decay_x1<< "  neutralino decay y (gen):  "<<decay_y1<< "  neutralino decay z (gen):  "<<decay_z1<< "  Length gen to crystal:  " <<L_gen_crys2<<"  RECO  seedHitRawTime:   "<<t2raw_seed <<"  seedHitTimeTOF: "<<t2_seed<<"  seedHitTimeTOF genV: "<<t2_seed_genV<< "  pho2SeedX:  "<<pho2SeedX<<"  pho2SeedY:  "<<pho2SeedY<<"  pho2SeedZ:  "<<pho2SeedZ<< endl; 
-	cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed2.X() <<"  "<< genSeed2.Y() <<"  "<<genSeed2.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt2<<" genPhoPt: "<<gpho2_Pt<<" pT diff  "<< diffpt21 <<"  genPhoPx: "<<gParticlePx[pho2_index]<< "  genPhoPy: "<<gParticlePy[pho2_index]<< "  genPhoPz: "<<gParticlePz[pho2_index]<< "  genPhoE: "<<gParticleE[pho2_index]<<" pho2 - gen vertex:  " << creation_time << "  neutralino dist:  "<<distance2<< "  neutralino TOF:  " << time2 << "  photon dist:  "<<distance2_p<< "  photon TOF:  " << time2_p << "  initialTOF:  " << TOF_initial << "  TOF_neu2:  " << TOF_neu2 << "  TOF_pho2:  " << TOF_pho2 <<  "TOF_total2:  "<< TOF_initial + TOF_neu2 + TOF_pho2 <<"  TOF_total2-L/c:  " << TOF_total2  <<"  TOF_total2-L/c (gen):  " << TOF_total2_genV <<"  neutralino decay x (gen):  "<<decay_x2<< "  neutralino decay y (gen):  "<<decay_y2<< "  neutralino decay z (gen):  "<<decay_z2<< "  Length gen to crystal:  " <<L_gen_crys1<<"  RECO  seedHitRawTime:   "<<t1raw_seed <<"  seedHitTimeTOF: "<<t1_seed<<"  seedHitTimeTOF genV: "<<t1_seed_genV<< "  pho1SeedX:  "<<pho1SeedX<<"  pho1SeedY:  "<<pho1SeedY<<"  pho1SeedZ:  "<<pho1SeedZ<< endl; 
+	//cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed1.X() <<"  "<< genSeed1.Y() <<"  "<<genSeed1.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt1<<" genPhoPt: "<<gpho1_Pt<<" pT diff  "<< diffpt12 <<"  genPhoPx: "<<gParticlePx[pho1_index]<< "  genPhoPy: "<<gParticlePy[pho1_index]<< "  genPhoPz: "<<gParticlePz[pho1_index]<< "  genPhoE: "<<gParticleE[pho1_index]<<" pho1 - gen vertex:  " << genVertexT << "  neutralino dist:  "<<distance1<< "  neutralino TOF:  " << time1 << "  photon dist:  "<<distance1_p<< "  photon TOF:  " << time1_p << "  initialTOF:  " << TOF_initial << "  TOF_neu1:  " << TOF_neu1 << "  TOF_pho1:  " << TOF_pho1 <<  "TOF_total1:  "<< TOF_initial + TOF_neu1 + TOF_pho1 <<"  TOF_total1-L/c:  " << TOF_total1  <<"  TOF_total1-L/c (gen):  " << TOF_total1_genV <<"  neutralino decay x (gen):  "<<decay_x1<< "  neutralino decay y (gen):  "<<decay_y1<< "  neutralino decay z (gen):  "<<decay_z1<< "  Length gen to crystal:  " <<L_gen_crys2<<"  RECO  seedHitRawTime:   "<<t2raw_seed <<"  seedHitTimeTOF: "<<t2_seed<<"  seedHitTimeTOF genV: "<<t2_seed_genV<< "  pho2SeedX:  "<<pho2SeedX<<"  pho2SeedY:  "<<pho2SeedY<<"  pho2SeedZ:  "<<pho2SeedZ<< endl; 
+	//cout <<"EVENT -GEN  genSeedXYZ: "<<genSeed2.X() <<"  "<< genSeed2.Y() <<"  "<<genSeed2.Z() <<"   deltaR(gen,reco): "<<deltaR_gpt2<<" genPhoPt: "<<gpho2_Pt<<" pT diff  "<< diffpt21 <<"  genPhoPx: "<<gParticlePx[pho2_index]<< "  genPhoPy: "<<gParticlePy[pho2_index]<< "  genPhoPz: "<<gParticlePz[pho2_index]<< "  genPhoE: "<<gParticleE[pho2_index]<<" pho2 - gen vertex:  " << genVertexT << "  neutralino dist:  "<<distance2<< "  neutralino TOF:  " << time2 << "  photon dist:  "<<distance2_p<< "  photon TOF:  " << time2_p << "  initialTOF:  " << TOF_initial << "  TOF_neu2:  " << TOF_neu2 << "  TOF_pho2:  " << TOF_pho2 <<  "TOF_total2:  "<< TOF_initial + TOF_neu2 + TOF_pho2 <<"  TOF_total2-L/c:  " << TOF_total2  <<"  TOF_total2-L/c (gen):  " << TOF_total2_genV <<"  neutralino decay x (gen):  "<<decay_x2<< "  neutralino decay y (gen):  "<<decay_y2<< "  neutralino decay z (gen):  "<<decay_z2<< "  Length gen to crystal:  " <<L_gen_crys1<<"  RECO  seedHitRawTime:   "<<t1raw_seed <<"  seedHitTimeTOF: "<<t1_seed<<"  seedHitTimeTOF genV: "<<t1_seed_genV<< "  pho1SeedX:  "<<pho1SeedX<<"  pho1SeedY:  "<<pho1SeedY<<"  pho1SeedZ:  "<<pho1SeedZ<< endl; 
   }
 
       //<<"time1: "<<time1<<" time2: "<<time2<<endl; 
