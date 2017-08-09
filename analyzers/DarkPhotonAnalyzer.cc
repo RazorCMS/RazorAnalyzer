@@ -13,6 +13,7 @@
 #include <assert.h> 
 //ROOT INCLUDES
 #include <TH1F.h>
+#include <TMath.h>
 #include <TH2D.h>
 #include "TRandom3.h"
 
@@ -40,7 +41,7 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   //Initialize Output
   //--------------------------------
   string outfilename = outputFilename;
-  if (outfilename == "") outfilename = "DarkPhoton.root";
+  if (outfilename == "") outfilename = "/afs/cern.ch/user/j/jbamber/scratch1/CMSSW_7_4_15/src/ROOT_outputs/DarkPhoton.root";
   TFile *outFile = new TFile(outfilename.c_str(), "RECREATE");
 
   cout << "Run With Option = " << Option << "\n";
@@ -65,9 +66,21 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   float MET, METPhi;
   float PhotonPt, PhotonEta, PhotonPhi;
   float MT;
-
-
-  TTree *outputTree = new TTree("event", "Info on selected razor inclusive events");
+  float j1_Eta;
+  float j2_Eta;
+  float l1_PT;
+  float l1_Eta;
+  float l1_Phi;
+  float l2_PT;
+  float l2_Eta;
+  float l2_Phi;
+  int Iso_lepton;
+  // working variables:
+  float Copy_Jet_PT[900];
+  float Copy_Electron_PT[700];
+  float Copy_Muon_PT[700];
+  
+  TTree *outputTree = new TTree("VBFTree", "Info on selected razor inclusive events");
 
   outputTree->Branch("weight", &weight, "weight/F");
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
@@ -86,7 +99,15 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   outputTree->Branch("PhotonEta", &PhotonEta, "PhotonEta/F");
   outputTree->Branch("PhotonPhi", &PhotonPhi, "PhotonPhi/F");
   outputTree->Branch("MT", &MT, "MT/F");
-
+  outputTree->Branch("j1_Eta", &j1_Eta, "j1_Eta/F");
+  outputTree->Branch("j2_Eta", &j2_Eta, "j2_Eta/F");
+  outputTree->Branch("l1_PT", &l1_PT, "l1_PT/F");
+  outputTree->Branch("l1_Eta", &l1_Eta, "l1_Eta/F");
+  outputTree->Branch("l1_Phi", &l1_Phi, "l1_Phi/F");
+  outputTree->Branch("l2_PT", &l2_PT, "l2_PT/F");
+  outputTree->Branch("l2_Eta", &l2_Eta, "l2_Eta/F");
+  outputTree->Branch("l2_Phi", &l2_Phi, "l2_Phi/F");
+  outputTree->Branch("Iso_lepton", &Iso_lepton, "Iso_lepton/i");	// is there an isolated lepton? (defined according to cuts standards) 1=YES, 0=NO
 
   //begin loop
   if (fChain == 0) return;
@@ -100,6 +121,10 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
+    double leadingPhotonPt = -999;
+    double leadingPhotonEta = -999;
+    double leadingPhotonPhi = -999;
+
     // define variables for finding the highest PT photon
     int i_best=0;
     
@@ -110,11 +135,11 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
       if (!isMediumPhoton(i)) continue;
 
       //find the highest pT photon here
-      //***********************************
+      //*******
       if (phoPt[i] > phoPt[i_best]) {
       	  i_best = i;
       }
-      //***********************************
+      //*******
     }
 
     //Fill MET, MetPhi, MT here
@@ -123,8 +148,95 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
     PhotonPt = phoPt[i_best];
     PhotonEta = phoEta[i_best];
     PhotonPhi = phoPhi[i_best];
+    
     MT = sqrt(2*MET*PhotonPt*(1 - cos(PhotonPhi - METPhi)));
     
+    //Fill j1, j2 eta values here
+    
+    // ## Find two jets with highest pT: j1, j2 with j1_pT > j2_pT
+	// make array copy of Jet
+	for(int i=0; i<900; i++) {
+		Copy_Jet_PT[i] = jetPt[i];	
+	}
+	// find indices
+	int j1_index = TMath::LocMax(900,jetPt);	// find j1 index
+	Copy_Jet_PT[j1_index] = 0;				// set j1 value in Copy to zero
+	int j2_index = TMath::LocMax(900,Copy_Jet_PT);	// find j2 index
+	// assign variables
+	j1_Eta = jetEta[j1_index];
+	j2_Eta = jetEta[j2_index];
+	
+	//Fill & select lepton PT, Eta and Phi for the two highest PT leptons here
+	// copy arrays
+	for(int i=0; i<700; i++) {
+		Copy_Electron_PT[i] = elePt[i];	
+	}
+	for(int i=0; i<700; i++) {
+		Copy_Muon_PT[i] = muonPt[i];	
+	}
+	// find indices
+	int e1_index = TMath::LocMax(700,elePt);	// find e1 index
+	Copy_Electron_PT[e1_index] = 0;				// set e1 value in Copy to zero
+	int e2_index = TMath::LocMax(700,Copy_Electron_PT);	// find e2 index
+	//
+	int m1_index = TMath::LocMax(700,muonPt);	// find m1 index
+	Copy_Muon_PT[m1_index] = 0;				// set m1 value in Copy to zero
+	int m2_index = TMath::LocMax(700,Copy_Muon_PT);	// find m2 index
+	//	 	
+	if ( (muonPt[m2_index]<20) && (elePt[e2_index]>20) ) {
+		// select the two electrons
+		l1_PT=elePt[e1_index];
+		l1_Eta=eleEta[e1_index];
+		l1_Phi=elePhi[e1_index];
+		l2_PT=elePt[e2_index];
+		l2_Eta=eleEta[e2_index];
+		l2_Phi=elePhi[e2_index];
+	} else if ( (muonPt[m2_index]>20) && (elePt[e2_index]<20) ) {
+		// select the two muons
+		l1_PT=muonPt[m1_index];
+		l1_Eta=muonEta[m1_index];
+		l1_Phi=muonPhi[m1_index];
+		l2_PT=muonPt[m2_index];
+		l2_Eta=muonEta[m2_index];
+		l2_Phi=muonPhi[m2_index];
+	} else if ( (muonPt[m2_index]<20) && (elePt[e2_index]<20) ) {
+		continue;
+	} else if ( (muonPt[m2_index]>20) && (elePt[e2_index]>20) ) {				// not sure how to deal with both muons and electrons being possible candidate leptons
+		// select the two muons
+		l1_PT=muonPt[m1_index];
+		l1_Eta=muonEta[m1_index];
+		l1_Phi=muonPhi[m1_index];
+		l2_PT=muonPt[m2_index];
+		l2_Eta=muonEta[m2_index];
+		l2_Phi=muonPhi[m2_index];	// default to selecting the muons at the moment
+	}
+    
+	// Isolated lepton criterion
+	Iso_lepton = 0;
+	Float_t Phi_l;
+	Float_t Eta_l;
+	Float_t DR;
+	Float_t Pi = TMath::Pi();
+	for (Int_t j=0; j<700; j++) {	
+		Phi_l = TMath::Abs(elePhi[j] - PhotonPhi);
+		if (Phi_l > Pi) {
+			Phi_l = 2*Pi - Phi_l;
+		}
+		Eta_l = TMath::Abs(eleEta[j] - PhotonEta);
+		DR = sqrt(pow(Phi_l,2) + pow((Eta_l - PhotonEta),2));
+		if (DR > 0.3) {									// Isolated electron criterion
+			Iso_lepton = 1;
+		}
+	}
+	for (Int_t j=0; j<700; j++) {	
+		Phi_l = TMath::Abs(muonPhi[j] - PhotonPhi);
+		Eta_l = TMath::Abs(muonEta[j] - PhotonEta);
+		DR = sqrt(pow(Phi_l,2) + pow(Eta_l,2));
+		if (DR > 0.3) {									// Isolated muon criterion
+			Iso_lepton = 1;
+		}
+	}
+	
     //fill normalization histogram    
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
