@@ -266,6 +266,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float phoNumber;
   float pho1Energy, pho1_Pt, pho1_Eta, pho1_Phi;
   float pho2Energy, pho2_Pt, pho2_Eta, pho2_Phi;
+  bool pho1_isStandardPhoton, pho2_isStandardPhoton;
   float jetEnergy, jet_Pt, jet_Eta, jet_Phi;
   float met_Pt, met_Phi, sum_MET;
   float diff_gpt1, diff_gpt2;
@@ -354,6 +355,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pho1SeedE", &pho1SeedE, "pho1SeedE/F");
   outputTree->Branch("pho1SeedEta", &pho1SeedEta, "pho1SeedEta/F");
   outputTree->Branch("pho1SeedPhi", &pho1SeedPhi, "pho1SeedPhi/F");
+  outputTree->Branch("pho1_isStandardPhoton", &pho1_isStandardPhoton, "pho1_isStandardPhoton/O");
   outputTree->Branch("pho1_Pt", &pho1_Pt, "pho1_Pt/F");
   outputTree->Branch("pho1_Eta", &pho1_Eta, "pho1_Eta/F");
   outputTree->Branch("pho1_Phi", &pho1_Phi, "pho1_Phi/F");  
@@ -362,6 +364,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pho2SeedE", &pho2SeedE, "pho2SeedE/F");
   outputTree->Branch("pho2SeedEta", &pho2SeedEta, "pho2SeedEta/F");
   outputTree->Branch("pho2SeedPhi", &pho2SeedPhi, "pho2SeedPhi/F");
+  outputTree->Branch("pho2_isStandardPhoton", &pho2_isStandardPhoton, "pho2_isStandardPhoton/O");
   outputTree->Branch("pho2_Pt", &pho2_Pt, "pho2_Pt/F");
   outputTree->Branch("pho2_Eta", &pho2_Eta, "pho2_Eta/F");
   outputTree->Branch("pho2_Phi", &pho2_Phi, "pho2_Phi/F");  
@@ -450,6 +453,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pho1SeedEta = -999;
     pho1SeedPhi = -999;
     pho1_Pt = -999;
+    pho1_isStandardPhoton = true;
     pho1_Eta = -999;
     pho1_Phi = -999;
     
@@ -458,6 +462,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pho2SeedEta = -999;
     pho2SeedPhi = -999;
     pho2_Pt = -999;
+    pho2_isStandardPhoton = true;
     pho2_Eta = -999;
     pho2_Phi = -999;
 
@@ -627,7 +632,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	pho1SeedE = (*ecalRechit_E)[seedhitIndex];
 	pho1SeedEta = (*ecalRechit_Eta)[seedhitIndex];
 	pho1SeedPhi = (*ecalRechit_Phi)[seedhitIndex];
-
+        
+        pho1_isStandardPhoton = pho_isStandardPhoton[i];
+        
         pho1_time = weightedTime;
         pho1_seedtime = TOFCorrectedSeedHitTime;
         //pho1_seedtime = TOFrawSeedHitTime;
@@ -657,10 +664,11 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       pho2SeedY = (*ecalRechit_Y)[seedhitIndex];
       pho2SeedZ = (*ecalRechit_Z)[seedhitIndex];
 
-	pho2SeedE = (*ecalRechit_E)[seedhitIndex];
-	pho2SeedEta = (*ecalRechit_Eta)[seedhitIndex];
-	pho2SeedPhi = (*ecalRechit_Phi)[seedhitIndex];
+      pho2SeedE = (*ecalRechit_E)[seedhitIndex]; 
+      pho2SeedEta = (*ecalRechit_Eta)[seedhitIndex];
+      pho2SeedPhi = (*ecalRechit_Phi)[seedhitIndex];
 
+      pho2_isStandardPhoton = pho_isStandardPhoton[i];
 
       pho2_time = weightedTime;
       pho2_seedtime = TOFCorrectedSeedHitTime; 
