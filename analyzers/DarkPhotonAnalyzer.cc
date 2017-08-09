@@ -97,7 +97,7 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   
   HggRazorLeptonsBox razorbox = None;
   
-  TTree *outputTree = new TTree("VBFTree", "Info on selected razor inclusive events");
+  TTree *outputTree = new TTree("BkgTree", "Info on selected razor inclusive events");
 
   outputTree->Branch("weight", &weight, "weight/F");
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
