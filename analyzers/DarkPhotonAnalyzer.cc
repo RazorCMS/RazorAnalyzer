@@ -19,6 +19,14 @@
 
 using namespace std;
 
+enum HggRazorLeptonsBox {
+  Zmm = 0,
+  Zee = 1,
+  OneMu = 2,
+  OneEle = 3,
+  None = 10
+};
+
 const int NUM_PDF_WEIGHTS = 60;
 
 void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename, string label)
@@ -68,17 +76,26 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   float MT;
   float j1_Eta;
   float j2_Eta;
-  float l1_PT;
-  float l1_Eta;
-  float l1_Phi;
-  float l2_PT;
-  float l2_Eta;
-  float l2_Phi;
+  //selected lepton variables
+  int lep1Type = 0;
+  int lep1PassSelection = 0;
+  float lep1Pt = -999;
+  float lep1Eta = -999;
+  float lep1Phi = -999;  
+  int lep2Type = 0;
+  int lep2PassSelection = 0;
+  float lep2Pt = -999;
+  float lep2Eta = -999;
+  float lep2Phi = -999;
+  float dileptonMass = -999;
+  float lep1MT = -999;
+  float lep1GenMetMT = -999;
+  //
   int Iso_lepton;
   // working variables:
   float Copy_Jet_PT[900];
-  float Copy_Electron_PT[700];
-  float Copy_Muon_PT[700];
+  
+  HggRazorLeptonsBox razorbox = None;
   
   TTree *outputTree = new TTree("VBFTree", "Info on selected razor inclusive events");
 
@@ -101,12 +118,23 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   outputTree->Branch("MT", &MT, "MT/F");
   outputTree->Branch("j1_Eta", &j1_Eta, "j1_Eta/F");
   outputTree->Branch("j2_Eta", &j2_Eta, "j2_Eta/F");
-  outputTree->Branch("l1_PT", &l1_PT, "l1_PT/F");
-  outputTree->Branch("l1_Eta", &l1_Eta, "l1_Eta/F");
-  outputTree->Branch("l1_Phi", &l1_Phi, "l1_Phi/F");
-  outputTree->Branch("l2_PT", &l2_PT, "l2_PT/F");
-  outputTree->Branch("l2_Eta", &l2_Eta, "l2_Eta/F");
-  outputTree->Branch("l2_Phi", &l2_Phi, "l2_Phi/F");
+  // lepton stuff
+  outputTree->Branch("lep1Type", &lep1Type, "lep1Type/I");
+  outputTree->Branch("lep1PassSelection", &lep1PassSelection, "lep1PassSelection/I");
+  outputTree->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
+  outputTree->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
+  outputTree->Branch("lep1Phi", &lep1Phi, "lep1Phi/F");
+  outputTree->Branch("lep2Type", &lep2Type, "lep2Type/I");
+  outputTree->Branch("lep2PassSelection", &lep2PassSelection, "lep2PassSelection/I");
+  outputTree->Branch("lep2Pt", &lep2Pt, "lep2Pt/F");
+  outputTree->Branch("lep2Eta", &lep2Eta, "lep2Eta/F");
+  outputTree->Branch("lep2Phi", &lep2Phi, "lep2Phi/F");
+  outputTree->Branch("dileptonMass", &dileptonMass, "dileptonMass/F");
+  outputTree->Branch("lep1MT", &lep1MT, "lep1MT/F");
+  outputTree->Branch("lep1GenMetMT", &lep1GenMetMT, "lep1GenMetMT/F");
+  //
+  outputTree->Branch("box", &razorbox, "box/I");
+  //
   outputTree->Branch("Iso_lepton", &Iso_lepton, "Iso_lepton/i");	// is there an isolated lepton? (defined according to cuts standards) 1=YES, 0=NO
 
   //begin loop
@@ -166,49 +194,106 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
 	j1_Eta = jetEta[j1_index];
 	j2_Eta = jetEta[j2_index];
 	
-	//Fill & select lepton PT, Eta and Phi for the two highest PT leptons here
-	// copy arrays
-	for(int i=0; i<700; i++) {
-		Copy_Electron_PT[i] = elePt[i];	
+	//Fill & select lepton PT, Eta and Phi for the best Z->2lepton leptons
+	
+	float Mz = 91.188;
+	razorbox = None;
+	//-------------------------------
+	//1) Look for Zmm Candidate
+	//-------------------------------
+	double bestDimuonPt = -1;
+	TLorentzVector ZCandidate;
+	for( int i = 0; i < nMuons; i++ )	{
+		//if(!isVetoMuon(i)) continue;  
+		if(muonPt[i] < 20) continue;
+		if(abs(muonEta[i]) > 2.4) continue;
+		for( int j = i+1; j < nMuons; j++ )	{
+			//if(!isVetoMuon(j)) continue;  
+			if(muonPt[j] < 20) continue;
+			if(abs(muonEta[j]) > 2.4) continue;
+		
+			TLorentzVector tmpMuon1;
+			tmpMuon1.SetPtEtaPhiM(muonPt[i],muonEta[i], muonPhi[i],0.1057);
+			TLorentzVector tmpMuon2;
+			tmpMuon2.SetPtEtaPhiM(muonPt[j],muonEta[j], muonPhi[j],0.1057);
+			double tmpMass = (tmpMuon1+tmpMuon2).M();	    
+			double tmpDileptonPt = (tmpMuon1+tmpMuon2).Pt();
+			
+			//if ( _debug ) cout << "Zmm candidate: " << tmpMass << " " << tmpDileptonPt << "\n";
+			
+			if ( tmpMass > (Mz-15) && tmpMass < (Mz+15) && tmpDileptonPt > bestDimuonPt)  {
+				bestDimuonPt = tmpDileptonPt;
+				razorbox = Zmm;
+				lep1Type = 13 * -1 * muonCharge[i];
+				lep1Pt = muonPt[i];
+				lep1Eta = muonEta[i];
+				lep1Phi = muonPhi[i];
+				//lep1PassSelection = 1 + 2 * isTightMuon(i);
+				lep2Type = 13 * -1 * muonCharge[j];
+				lep2Pt = muonPt[j];
+				lep2Eta = muonEta[j];
+				lep2Phi = muonPhi[j];
+				//lep2PassSelection = 1 + 2 * isTightMuon(j);
+				dileptonMass = tmpMass;
+				ZCandidate = tmpMuon1 + tmpMuon2;
+			
+				//for MC apply lepton eff scale factor
+				/*if (!isData ) {
+					if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+					if ( matchesGenMuon(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep2Pt, lep2Eta, true);			
+				}*/
+			}
+		}
 	}
-	for(int i=0; i<700; i++) {
-		Copy_Muon_PT[i] = muonPt[i];	
-	}
-	// find indices
-	int e1_index = TMath::LocMax(700,elePt);	// find e1 index
-	Copy_Electron_PT[e1_index] = 0;				// set e1 value in Copy to zero
-	int e2_index = TMath::LocMax(700,Copy_Electron_PT);	// find e2 index
-	//
-	int m1_index = TMath::LocMax(700,muonPt);	// find m1 index
-	Copy_Muon_PT[m1_index] = 0;				// set m1 value in Copy to zero
-	int m2_index = TMath::LocMax(700,Copy_Muon_PT);	// find m2 index
-	//	 	
-	if ( (muonPt[m2_index]<20) && (elePt[e2_index]>20) ) {
-		// select the two electrons
-		l1_PT=elePt[e1_index];
-		l1_Eta=eleEta[e1_index];
-		l1_Phi=elePhi[e1_index];
-		l2_PT=elePt[e2_index];
-		l2_Eta=eleEta[e2_index];
-		l2_Phi=elePhi[e2_index];
-	} else if ( (muonPt[m2_index]>20) && (elePt[e2_index]<20) ) {
-		// select the two muons
-		l1_PT=muonPt[m1_index];
-		l1_Eta=muonEta[m1_index];
-		l1_Phi=muonPhi[m1_index];
-		l2_PT=muonPt[m2_index];
-		l2_Eta=muonEta[m2_index];
-		l2_Phi=muonPhi[m2_index];
-	} else if ( (muonPt[m2_index]<20) && (elePt[e2_index]<20) ) {
-		continue;
-	} else if ( (muonPt[m2_index]>20) && (elePt[e2_index]>20) ) {				// not sure how to deal with both muons and electrons being possible candidate leptons
-		// select the two muons
-		l1_PT=muonPt[m1_index];
-		l1_Eta=muonEta[m1_index];
-		l1_Phi=muonPhi[m1_index];
-		l2_PT=muonPt[m2_index];
-		l2_Eta=muonEta[m2_index];
-		l2_Phi=muonPhi[m2_index];	// default to selecting the muons at the moment
+
+
+	//-------------------------------
+	//2) Look for Zee Candidate
+	//-------------------------------
+	if (razorbox == None) {
+		double bestDielectronPt = -1;
+		for( int i = 0; i < nElectrons; i++ )	{
+			//if(!isVetoElectron(i)) continue;  
+			if(elePt[i] < 20) continue;
+			if(abs(eleEta[i]) > 2.4) continue;
+			for( int j = i+1; j < nElectrons; j++ )	{
+				//if(!isVetoElectron(j)) continue;  
+				if(elePt[j] < 20) continue;
+				if(abs(eleEta[j]) > 2.4) continue;
+			
+				TLorentzVector tmpElectron1;
+				tmpElectron1.SetPtEtaPhiM(elePt[i],eleEta[i], elePhi[i],0.000511);
+				TLorentzVector tmpElectron2;
+				tmpElectron2.SetPtEtaPhiM(elePt[j],eleEta[j], elePhi[j],0.000511);
+				double tmpMass = (tmpElectron1+tmpElectron2).M();	    
+				double tmpDileptonPt = (tmpElectron1+tmpElectron2).Pt();
+		
+				//if ( _debug ) cout << "Zee candidate: " << tmpMass << " " << tmpDileptonPt << "\n";
+		
+				if ( tmpMass > (Mz-15) && tmpMass < (Mz+15) && tmpDileptonPt > bestDielectronPt)  {
+					bestDielectronPt = tmpDileptonPt;
+					razorbox = Zee;
+					lep1Type = 11 * -1 * eleCharge[i];
+					lep1Pt = elePt[i];
+					lep1Eta = eleEta[i];
+					lep1Phi = elePhi[i];
+					//lep1PassSelection = 1 + 2 * isTightElectron(i);
+					lep2Type = 11 * -1 * eleCharge[j];
+					lep2Pt = elePt[j];
+					lep2Eta = eleEta[j];
+					lep2Phi = elePhi[j];
+					//lep2PassSelection = 1 + 2 * isTightElectron(j);
+					dileptonMass = tmpMass;
+					ZCandidate = tmpElectron1 + tmpElectron2;
+		
+					//for MC apply lepton eff scale factor
+					/*if (!isData ) {
+						if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
+						if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);			
+					}*/
+				}
+			}
+		}
 	}
     
 	// Isolated lepton criterion
