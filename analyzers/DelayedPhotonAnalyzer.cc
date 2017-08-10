@@ -641,145 +641,153 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     	met_Phi =  MET_Phi_event;
     	sum_MET = MET_event;
 
-    	bool foundN1 = false;
-    	bool foundN2 = false; 
-    	int pho1_index = 0;
-    	int pho2_index = 0;
-    	int neu1_index = 0;
-    	int neu2_index = 0;
 
-    	// finding the neutralino and photon index
-    	for(unsigned int i = 0; i < nGenParticle; i++)
-	{ //this is gen particle loop within event and photon loop
-		if ( !foundN1 && gParticleId[i] == 22 && gParticleMotherId[i] == 1000022 )
-		{ //finds a photon from a neutralino
-			pho1_index = i;
-			neu1_index = gParticleMotherIndex[i];
-			foundN1 = true;
-		}
-		else if ( foundN1 && !foundN2 && gParticleId[i] == 22 && gParticleMotherId[i] == 1000022 ) 
-		{
-			pho2_index = i;
-			neu2_index = gParticleMotherIndex[i];
-			foundN2 = true;
-		}
-    	}
-
-  	if(foundN1==1 && foundN2==1)
+	if(!isData)
 	{
+		bool foundN1 = false;
+		bool foundN2 = false; 
+		int pho1_index = 0;
+		int pho2_index = 0;
+		int neu1_index = 0;
+		int neu2_index = 0;
 
-  		R1 = pow(gParticleDecayVertexX[neu1_index]*gParticleDecayVertexX[neu1_index] + gParticleDecayVertexY[neu1_index]*gParticleDecayVertexY[neu1_index] + gParticleDecayVertexZ[neu1_index]*gParticleDecayVertexZ[neu1_index],0.5);
-  		R2 = pow(gParticleDecayVertexX[neu2_index]*gParticleDecayVertexX[neu2_index] + gParticleDecayVertexY[neu2_index]*gParticleDecayVertexY[neu2_index] + gParticleDecayVertexZ[neu2_index]*gParticleDecayVertexZ[neu2_index],0.5);
- 
-  		float decay_x1 = gParticleDecayVertexX[neu1_index];
-  		float decay_y1 = gParticleDecayVertexY[neu1_index];
-  		float decay_z1 = gParticleDecayVertexZ[neu1_index];
-  		float decay_x2 = gParticleDecayVertexX[neu2_index];
-  		float decay_y2 = gParticleDecayVertexY[neu2_index];
-  		float decay_z2 = gParticleDecayVertexZ[neu2_index];
-
-  		ZD1 = decay_z1;
-  		ZD2 = decay_z2;
-
-  		// need to match up the photon index and the reco photon - this is done based on momentum
-  		// pho1_Pt is reco level, gpho1_Pt is gen level information
-  		float gpho1_Pt = gParticlePt[pho1_index];
-  		float gpho2_Pt = gParticlePt[pho2_index];
-  		float deltaPt11 = fabs(pho1_Pt - gpho1_Pt);
-  		float deltaPt21 = fabs(pho1_Pt - gpho2_Pt);
-  		float deltaPt12 = fabs(pho2_Pt - gpho1_Pt);
-  		float deltaPt22 = fabs(pho2_Pt - gpho2_Pt);
-
-  		TVector3 genSeed1;
-  		TVector3 genSeed2;
-
-  		float norm1 = pow((pow(gParticlePx[pho1_index],2)+pow(gParticlePy[pho1_index],2)+pow(gParticlePz[pho1_index],2)),0.5);
-  		float px1 = (gParticlePx[pho1_index]) / norm1;
-  		float py1 = (gParticlePy[pho1_index]) / norm1;
-  		float pz1 = (gParticlePz[pho1_index]) / norm1;
-  		genSeed1 = intersectPoint(decay_x1, decay_y1, decay_z1, px1, py1, pz1, 129.7); // using intersection function written above, radius as 129.7 cm
-  		float norm2 = pow((pow(gParticlePx[pho2_index],2)+pow(gParticlePy[pho2_index],2)+pow(gParticlePz[pho2_index],2)),0.5);
-  		float px2 = (gParticlePx[pho2_index]) / norm2;
-  		float py2 = (gParticlePy[pho2_index]) / norm2;
-  		float pz2 = (gParticlePz[pho2_index]) / norm2;
-  		genSeed2 = intersectPoint(decay_x2, decay_y2, decay_z2, px2, py2, pz2, 129.0); // using intersection function written above, radius as 129 cm
-
-  		TVector3 recoSeed1(pho1SeedX,pho1SeedY,pho1SeedZ);
-  		TVector3 recoSeed2(pho2SeedX,pho2SeedY,pho2SeedZ);
-
-  		float deltaR11 = genSeed1.DeltaR(recoSeed1); 
-  		float deltaR12 = genSeed1.DeltaR(recoSeed2);
-  		float deltaR21 = genSeed2.DeltaR(recoSeed1);
-  		float deltaR22 = genSeed2.DeltaR(recoSeed2);
-
-  		float deltaEta11 = recoSeed1.Eta()-genSeed1.Eta();
-  		float deltaPhi11 = recoSeed1.Phi()-genSeed1.Phi();
-  		float deltaEta12 = recoSeed2.Eta()-genSeed1.Eta();
-  		float deltaPhi12 = recoSeed2.Phi()-genSeed1.Phi();
-
-  		float deltaEta21 = recoSeed1.Eta()-genSeed2.Eta();
-  		float deltaPhi21 = recoSeed1.Phi()-genSeed2.Phi();
-  		float deltaEta22 = recoSeed2.Eta()-genSeed2.Eta();
-  		float deltaPhi22 = recoSeed2.Phi()-genSeed2.Phi();
-
-  		reco_eta1 = recoSeed1.Eta();
-  		reco_eta2 = recoSeed2.Eta();
-  		
-		bool is1To1 = false;
-  //cout << "deltaR11  "<<deltaR11<<"  deltaR12  "<<deltaR12<<"  deltaR21  "<<deltaR21<<"  deltaR22  "<<deltaR22<<endl;
-
-  		if ( deltaR11 < deltaR12 && deltaPt11 < deltaPt12) 
-		{
-			is1To1 = true;
-			isMatched = true;
+		// finding the neutralino and photon index
+		for(int ind_gen = 0; ind_gen < nGenParticle; ind_gen++)
+		{ //this is gen particle loop within event and photon loop
+			if ( !foundN1 && gParticleId[ind_gen] == 22 && gParticleMotherId[ind_gen] == 1000022 )
+			{ //finds a photon from a neutralino
+				pho1_index = ind_gen;
+				neu1_index = gParticleMotherIndex[ind_gen];
+				foundN1 = true;
+			}
+			else if ( foundN1 && !foundN2 && gParticleId[ind_gen] == 22 && gParticleMotherId[ind_gen] == 1000022 ) 
+			{
+				pho2_index = ind_gen;
+				neu2_index = gParticleMotherIndex[ind_gen];
+				foundN2 = true;
+			}
 		}
-  		else if(deltaR12 < deltaR11 && deltaPt12 < deltaPt11)
+
+		if(foundN1==1 && foundN2==1)
 		{
-			is1To1 = false;
-			isMatched = true;
-		}
-		
-		if(isMatched)
-		{
-			gen_eta1 = is1To1 ? genSeed1.Eta() : genSeed2.Eta();
-			gen_eta2 = is1To1 ? genSeed2.Eta() : genSeed1.Eta();
-			deltaR_pho1 = is1To1 ? deltaR11 : deltaR21;
-			deltaEta_pho1 = is1To1 ? deltaEta11 : deltaEta21;
-			deltaPhi_pho1 = is1To1 ? deltaPhi11 : deltaPhi21;
-			deltaPt_pho1 = is1To1 ? deltaPt11 : deltaPt21;
-			deltaR_pho2 = is1To1 ? deltaR22 : deltaR12;
-			deltaEta_pho2 = is1To1 ? deltaEta22 : deltaEta12;
-			deltaPhi_pho2 = is1To1 ? deltaPhi22 : deltaPhi12;
-			deltaPt_pho2 = is1To1 ? deltaPt22 : deltaPt12;
 
-			float mass = 1000.0;
-			float p_neu1 = is1To1 ? gParticlePt[neu1_index]/cosh(gParticleEta[neu1_index]) : gParticlePt[neu2_index]/cosh(gParticleEta[neu2_index]) ;
-			float p_neu2 = is1To1 ? gParticlePt[neu2_index]/cosh(gParticleEta[neu2_index]) : gParticlePt[neu1_index]/cosh(gParticleEta[neu1_index]) ;
-		
-			TVector3 point_genPV(genVertexX,genVertexY,genVertexZ);	
-			TVector3 point_decayV1(is1To1 ? decay_x1: decay_x2,is1To1 ? decay_y1: decay_y2, is1To1 ? decay_z1: decay_z2);
-			TVector3 point_decayV2(is1To1 ? decay_x2: decay_x1,is1To1 ? decay_y2: decay_y1, is1To1 ? decay_z2: decay_z1);
+			R1 = pow(gParticleDecayVertexX[neu1_index]*gParticleDecayVertexX[neu1_index] + gParticleDecayVertexY[neu1_index]*gParticleDecayVertexY[neu1_index] + gParticleDecayVertexZ[neu1_index]*gParticleDecayVertexZ[neu1_index],0.5);
+			R2 = pow(gParticleDecayVertexX[neu2_index]*gParticleDecayVertexX[neu2_index] + gParticleDecayVertexY[neu2_index]*gParticleDecayVertexY[neu2_index] + gParticleDecayVertexZ[neu2_index]*gParticleDecayVertexZ[neu2_index],0.5);
+	 
+			float decay_x1 = gParticleDecayVertexX[neu1_index];
+			float decay_y1 = gParticleDecayVertexY[neu1_index];
+			float decay_z1 = gParticleDecayVertexZ[neu1_index];
+			float decay_x2 = gParticleDecayVertexX[neu2_index];
+			float decay_y2 = gParticleDecayVertexY[neu2_index];
+			float decay_z2 = gParticleDecayVertexZ[neu2_index];
 
-			TOF_neu1 = (point_decayV1-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu1) * pow((pow(mass,2) + pow(p_neu1,2)),0.5);
-			TOF_neu2 = (point_decayV2-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu2) * pow((pow(mass,2) + pow(p_neu2,2)),0.5);
-			TOF_neu1_RF = TOF_neu1*mass*pow((pow(mass,2) + pow(p_neu1,2)),-0.5);
-			TOF_neu2_RF = TOF_neu2*mass*pow((pow(mass,2) + pow(p_neu2,2)),-0.5);
+			ZD1 = decay_z1;
+			ZD2 = decay_z2;
 
-			TOF_pho1 = (recoSeed1 - point_decayV1).Mag() / SPEED_OF_LIGHT ;
-			TOF_pho2 = (recoSeed2 - point_decayV2).Mag() / SPEED_OF_LIGHT ;
+			// need to match up the photon index and the reco photon - this is done based on momentum
+			// pho1_Pt is reco level, gpho1_Pt is gen level information
+			float gpho1_Pt = gParticlePt[pho1_index];
+			float gpho2_Pt = gParticlePt[pho2_index];
+			float deltaPt11 = fabs(pho1_Pt - gpho1_Pt);
+			float deltaPt21 = fabs(pho1_Pt - gpho2_Pt);
+			float deltaPt12 = fabs(pho2_Pt - gpho1_Pt);
+			float deltaPt22 = fabs(pho2_Pt - gpho2_Pt);
 
-			TOF_total1 = genVertexT + TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
-			TOF_total1_genV = genVertexT + TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
-			TOF_total2 = genVertexT + TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
-			TOF_total2_genV = genVertexT + TOF_neu2 + TOF_pho2 - (recoSeed2 - point_genPV).Mag() / SPEED_OF_LIGHT;
+			TVector3 genSeed1;
+			TVector3 genSeed2;
+
+			float norm1 = pow((pow(gParticlePx[pho1_index],2)+pow(gParticlePy[pho1_index],2)+pow(gParticlePz[pho1_index],2)),0.5);
+			float px1 = (gParticlePx[pho1_index]) / norm1;
+			float py1 = (gParticlePy[pho1_index]) / norm1;
+			float pz1 = (gParticlePz[pho1_index]) / norm1;
+			genSeed1 = intersectPoint(decay_x1, decay_y1, decay_z1, px1, py1, pz1, 129.7); // using intersection function written above, radius as 129.7 cm
+			float norm2 = pow((pow(gParticlePx[pho2_index],2)+pow(gParticlePy[pho2_index],2)+pow(gParticlePz[pho2_index],2)),0.5);
+			float px2 = (gParticlePx[pho2_index]) / norm2;
+			float py2 = (gParticlePy[pho2_index]) / norm2;
+			float pz2 = (gParticlePz[pho2_index]) / norm2;
+			genSeed2 = intersectPoint(decay_x2, decay_y2, decay_z2, px2, py2, pz2, 129.0); // using intersection function written above, radius as 129 cm
+
+			TVector3 recoSeed1(pho1SeedX,pho1SeedY,pho1SeedZ);
+			TVector3 recoSeed2(pho2SeedX,pho2SeedY,pho2SeedZ);
+
+			float deltaR11 = genSeed1.DeltaR(recoSeed1); 
+			float deltaR12 = genSeed1.DeltaR(recoSeed2);
+			float deltaR21 = genSeed2.DeltaR(recoSeed1);
+			float deltaR22 = genSeed2.DeltaR(recoSeed2);
+
+			float deltaEta11 = recoSeed1.Eta()-genSeed1.Eta();
+			float deltaPhi11 = recoSeed1.Phi()-genSeed1.Phi();
+			float deltaEta12 = recoSeed2.Eta()-genSeed1.Eta();
+			float deltaPhi12 = recoSeed2.Phi()-genSeed1.Phi();
+
+			float deltaEta21 = recoSeed1.Eta()-genSeed2.Eta();
+			float deltaPhi21 = recoSeed1.Phi()-genSeed2.Phi();
+			float deltaEta22 = recoSeed2.Eta()-genSeed2.Eta();
+			float deltaPhi22 = recoSeed2.Phi()-genSeed2.Phi();
+
+			reco_eta1 = recoSeed1.Eta();
+			reco_eta2 = recoSeed2.Eta();
 			
-			pho1_angle_xtal = recoSeed1.Angle(recoSeed1 - point_decayV1); 
-			pho2_angle_xtal = recoSeed2.Angle(recoSeed2 - point_decayV2); 
+			bool is1To1 = false;
+	  //cout << "deltaR11  "<<deltaR11<<"  deltaR12  "<<deltaR12<<"  deltaR21  "<<deltaR21<<"  deltaR22  "<<deltaR22<<endl;
+
+			if ( deltaR11 < deltaR12 && deltaPt11 < deltaPt12) 
+			{
+				is1To1 = true;
+				isMatched = true;
+			}
+			else if(deltaR12 < deltaR11 && deltaPt12 < deltaPt11)
+			{
+				is1To1 = false;
+				isMatched = true;
+			}
 			
-			outputTree->Fill();		
-		}//if isMatched
-	}//if gen found
-  }//if nPho>=2
+			if(isMatched)
+			{
+				gen_eta1 = is1To1 ? genSeed1.Eta() : genSeed2.Eta();
+				gen_eta2 = is1To1 ? genSeed2.Eta() : genSeed1.Eta();
+				deltaR_pho1 = is1To1 ? deltaR11 : deltaR21;
+				deltaEta_pho1 = is1To1 ? deltaEta11 : deltaEta21;
+				deltaPhi_pho1 = is1To1 ? deltaPhi11 : deltaPhi21;
+				deltaPt_pho1 = is1To1 ? deltaPt11 : deltaPt21;
+				deltaR_pho2 = is1To1 ? deltaR22 : deltaR12;
+				deltaEta_pho2 = is1To1 ? deltaEta22 : deltaEta12;
+				deltaPhi_pho2 = is1To1 ? deltaPhi22 : deltaPhi12;
+				deltaPt_pho2 = is1To1 ? deltaPt22 : deltaPt12;
+
+				float mass = 1000.0;
+				float p_neu1 = is1To1 ? gParticlePt[neu1_index]*cosh(gParticleEta[neu1_index]) : gParticlePt[neu2_index]*cosh(gParticleEta[neu2_index]) ;
+				float p_neu2 = is1To1 ? gParticlePt[neu2_index]*cosh(gParticleEta[neu2_index]) : gParticlePt[neu1_index]*cosh(gParticleEta[neu1_index]) ;
+			
+				TVector3 point_genPV(genVertexX,genVertexY,genVertexZ);	
+				TVector3 point_decayV1(is1To1 ? decay_x1: decay_x2,is1To1 ? decay_y1: decay_y2, is1To1 ? decay_z1: decay_z2);
+				TVector3 point_decayV2(is1To1 ? decay_x2: decay_x1,is1To1 ? decay_y2: decay_y1, is1To1 ? decay_z2: decay_z1);
+
+				TOF_neu1 = (point_decayV1-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu1) * pow((pow(mass,2) + pow(p_neu1,2)),0.5);
+				TOF_neu2 = (point_decayV2-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu2) * pow((pow(mass,2) + pow(p_neu2,2)),0.5);
+				TOF_neu1_RF = TOF_neu1*mass*pow((pow(mass,2) + pow(p_neu1,2)),-0.5);
+				TOF_neu2_RF = TOF_neu2*mass*pow((pow(mass,2) + pow(p_neu2,2)),-0.5);
+
+				TOF_pho1 = (recoSeed1 - point_decayV1).Mag() / SPEED_OF_LIGHT ;
+				TOF_pho2 = (recoSeed2 - point_decayV2).Mag() / SPEED_OF_LIGHT ;
+
+				TOF_total1 = genVertexT + TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
+				TOF_total1_genV = genVertexT + TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
+				TOF_total2 = genVertexT + TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
+				TOF_total2_genV = genVertexT + TOF_neu2 + TOF_pho2 - (recoSeed2 - point_genPV).Mag() / SPEED_OF_LIGHT;
+				
+				pho1_angle_xtal = recoSeed1.Angle(recoSeed1 - point_decayV1); 
+				pho2_angle_xtal = recoSeed2.Angle(recoSeed2 - point_decayV2); 
+				
+				outputTree->Fill();		
+			}//if isMatched
+		}//if gen found
+	}//if !isData
+	else
+	{
+		outputTree->Fill();
+	}
+   }//if nPho>=2
 }//event loop
 
 cout << "Writing output trees..." << endl;
