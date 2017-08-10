@@ -671,18 +671,12 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 		if(foundN1==1 && foundN2==1)
 		{
 
-			R1 = pow(gParticleDecayVertexX[neu1_index]*gParticleDecayVertexX[neu1_index] + gParticleDecayVertexY[neu1_index]*gParticleDecayVertexY[neu1_index] + gParticleDecayVertexZ[neu1_index]*gParticleDecayVertexZ[neu1_index],0.5);
-			R2 = pow(gParticleDecayVertexX[neu2_index]*gParticleDecayVertexX[neu2_index] + gParticleDecayVertexY[neu2_index]*gParticleDecayVertexY[neu2_index] + gParticleDecayVertexZ[neu2_index]*gParticleDecayVertexZ[neu2_index],0.5);
-	 
 			float decay_x1 = gParticleDecayVertexX[neu1_index];
 			float decay_y1 = gParticleDecayVertexY[neu1_index];
 			float decay_z1 = gParticleDecayVertexZ[neu1_index];
 			float decay_x2 = gParticleDecayVertexX[neu2_index];
 			float decay_y2 = gParticleDecayVertexY[neu2_index];
 			float decay_z2 = gParticleDecayVertexZ[neu2_index];
-
-			ZD1 = decay_z1;
-			ZD2 = decay_z2;
 
 			// need to match up the photon index and the reco photon - this is done based on momentum
 			// pho1_Pt is reco level, gpho1_Pt is gen level information
@@ -744,6 +738,11 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 			
 			if(isMatched)
 			{
+				R1 = is1To1 ? pow(decay_x1+decay_x1 + decay_y1*decay_y1, 0.5) : pow(decay_x2+decay_x2 + decay_y2*decay_y2, 0.5) ; 
+				R2 = is1To1 ? pow(decay_x2+decay_x2 + decay_y2*decay_y2, 0.5) : pow(decay_x1+decay_x1 + decay_y1*decay_y1, 0.5) ; 
+				ZD1 = is1To1 ? decay_z1 : decay_z2 ;
+				ZD2 = is1To1 ? decay_z2 : decay_z1 ;
+
 				gen_eta1 = is1To1 ? genSeed1.Eta() : genSeed2.Eta();
 				gen_eta2 = is1To1 ? genSeed2.Eta() : genSeed1.Eta();
 				deltaR_pho1 = is1To1 ? deltaR11 : deltaR21;
