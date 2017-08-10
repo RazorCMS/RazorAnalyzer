@@ -248,6 +248,7 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_superClusterY", 1);
     fChain->SetBranchStatus("pho_superClusterZ", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
+    fChain->SetBranchStatus("pho_isStandardPhoton", 1);
     fChain->SetBranchStatus("pho_passHLTFilter", 1);
     fChain->SetBranchStatus("pho_convType", 1);
     fChain->SetBranchStatus("pho_convTrkZ", 1);

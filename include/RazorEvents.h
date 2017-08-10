@@ -190,6 +190,7 @@ public :
    Float_t         pho_superClusterY[700];   //[nPhotons]
    Float_t         pho_superClusterZ[700];   //[nPhotons]
    Bool_t          pho_hasPixelSeed[700];   //[nPhotons]
+   Bool_t          pho_isStandardPhoton[700];   //[nPhotons]
    Bool_t          pho_passHLTFilter[700][100];   //[nPhotons]
    Int_t           pho_convType[700];   //[nPhotons]
    Float_t         pho_convTrkZ[700];   //[nPhotons]
@@ -521,6 +522,7 @@ public :
    TBranch        *b_pho_superClusterY;   //!
    TBranch        *b_pho_superClusterZ;   //!
    TBranch        *b_pho_hasPixelSeed;   //!
+   TBranch        *b_pho_isStandardPhoton;   //!
    TBranch        *b_pho_passHLTFilter;   //!
    TBranch        *b_pho_convType;   //!
    TBranch        *b_pho_convTrkZ;   //!
@@ -943,6 +945,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_superClusterY", pho_superClusterY, &b_pho_superClusterY);
    fChain->SetBranchAddress("pho_superClusterZ", pho_superClusterZ, &b_pho_superClusterZ);
    fChain->SetBranchAddress("pho_hasPixelSeed", pho_hasPixelSeed, &b_pho_hasPixelSeed);
+   fChain->SetBranchAddress("pho_isStandardPhoton", pho_isStandardPhoton, &b_pho_isStandardPhoton);
    fChain->SetBranchAddress("pho_passHLTFilter", pho_passHLTFilter, &b_pho_passHLTFilter);
    fChain->SetBranchAddress("pho_convType", pho_convType, &b_pho_convType);
    fChain->SetBranchAddress("pho_convTrkZ", pho_convTrkZ, &b_pho_convTrkZ);
