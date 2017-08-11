@@ -1,5 +1,5 @@
 //LOCAL INCLUDES
-#include "SusyEwkHgg.h"
+#include "HggRazor.h"
 #include "RazorHelper.h"
 #include "JetCorrectorParameters.h"
 #include "JetCorrectionUncertainty.h"
@@ -18,14 +18,17 @@
 
 using namespace std;
 
-enum SusyEwkHggBox {
+enum HggRazorBox {
   Zmm = 0,
   Zee = 1,
-  Zme = 2, 
-  OneMu = 3,
-  OneEle = 4,
-  HggRazor = 5,
-  None = 10 
+  OneMu = 2,
+  OneEle = 3,
+  HighPt = 4,
+  Hbb = 5,
+  Zbb = 6,
+  HighRes = 7,
+  LowRes = 8,
+  None = 10
 };
 
 struct PhotonCandidate
@@ -46,22 +49,6 @@ struct PhotonCandidate
   bool  _passIso;
 };
 
-struct MuonCandidate
-{                                                  
-  int   Index;
-  TLorentzVector muon;
-  int muonCharge;
-  int isTightMuon;
-};
-
-struct ElectronCandidate
-{                                                  
-  int   Index;
-  TLorentzVector electron;
-  int eleCharge;
-  int isTightElectron;
-};
-
 struct evt
 {
   std::string run;
@@ -79,7 +66,7 @@ const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
 //Testing branching and merging
-void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string label)
+void HggRazor::Analyze(bool isData, int option, string outFileName, string label)
 {
   //*****************************************************************************
   //Settings
@@ -139,14 +126,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   
   if ( outFileName.empty() )
     {
-      if ( _info ) std::cout << "SusyEwkHgg: Output filename not specified!" << endl << "Using default output name SusyEwkHgg.root" << std::endl;
-      outFileName = "SusyEwkHgg.root";
+      if ( _info ) std::cout << "HggRazor: Output filename not specified!" << endl << "Using default output name HggRazor.root" << std::endl;
+      outFileName = "HggRazor.root";
     }
   TFile* outFile = new TFile( outFileName.c_str(), "RECREATE" );
   //---------------------------
   //one tree to hold all events
   //---------------------------
-  TTree *razorTree = new TTree("HggRazorLeptons", "Info on selected razor inclusive events");
+  TTree *razorTree = new TTree("HggRazor", "Info on selected razor inclusive events");
   
   //For signal samples, create one output file and tree per signal mass point
   map<int, TFile*> smsFiles;
@@ -274,7 +261,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     }
   }
 
-  //Medium WP (b-tagging workpoint)
+  //Medium WP
   BTagCalibrationReader btagreaderM(btagcalib,           //calibration instance
 				    BTagEntry::OP_MEDIUM, //operating point
 				    effMeasType.Data(),             //measurement type
@@ -310,6 +297,24 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //pu histo
   //----------
   TH1D* puhisto = new TH1D("pileup", "", 50, 0, 50);
+  
+  //separate trees for individual boxes
+  map<string, TTree*> razorBoxes;
+  vector<string> boxNames;
+  boxNames.push_back("HighPt");
+  boxNames.push_back("Hbb");
+  boxNames.push_back("Zbb");
+  boxNames.push_back("HighRes");
+  boxNames.push_back("LowRes");
+  boxNames.push_back("Zmm");
+  boxNames.push_back("Zee");
+  boxNames.push_back("OneMu");
+  boxNames.push_back("OneEle");
+  boxNames.push_back("None");
+  for ( size_t i = 0; i < boxNames.size(); i++)
+    {
+      razorBoxes[boxNames[i]] = new TTree(boxNames[i].c_str(), boxNames[i].c_str());
+    }
   
   //histogram containing total number of processed events (for normalization)
   TH1F *histNPV = new TH1F("NPV", "NPV", 2, -0.5, 1.5);
@@ -357,10 +362,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
   float mbbZ, mbbZ_L, mbbH, mbbH_L;
   bool passedDiphotonTrigger;
-  SusyEwkHggBox razorbox = None;
+  HggRazorBox razorbox = None;
   
   unsigned int run, lumi, event;
-  
+ 
   //selected lepton variables
   int lep1Type = 0;
   int lep1PassSelection = 0;
@@ -375,7 +380,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   float dileptonMass = -999;
   float lep1MT = -999;
   float lep1GenMetMT = -999;
-
+ 
   //selected photon variables
   float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
   float PhoSC_E[2], PhoSC_Pt[2], PhoSC_Eta[2], PhoSC_Phi[2];
@@ -458,7 +463,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("triggerEffWeight", &triggerEffWeight, "triggerEffWeight/F");
   razorTree->Branch("triggerEffSFWeight", &triggerEffSFWeight, "triggerEffSFWeight/F");
   razorTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
-  razorTree->Branch("leptonEffSF", &leptonEffSF, "leptonEffSF/F");
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
   razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
@@ -531,14 +535,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("t1MET_JESDown", &t1MET_JESDown, "t1MET_JESDown/F");
   razorTree->Branch("HT", &HT, "HT/F");
 
-  razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
-  razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
-  razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
-  razorTree->Branch("mGammaGammaSC", &mGammaGammaSC, "mGammaGammaSC/F");
-  razorTree->Branch("pTGammaGammaSC", &pTGammaGammaSC, "pTGammaGammaSC/F");
-  razorTree->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
-  razorTree->Branch("box", &razorbox, "box/I");
-      
   razorTree->Branch("lep1Type", &lep1Type, "lep1Type/I");
   razorTree->Branch("lep1PassSelection", &lep1PassSelection, "lep1PassSelection/I");
   razorTree->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
@@ -552,6 +548,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("dileptonMass", &dileptonMass, "dileptonMass/F");
   razorTree->Branch("lep1MT", &lep1MT, "lep1MT/F");
   razorTree->Branch("lep1GenMetMT", &lep1GenMetMT, "lep1GenMetMT/F");
+
+  razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
+  razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
+  razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
+  razorTree->Branch("mGammaGammaSC", &mGammaGammaSC, "mGammaGammaSC/F");
+  razorTree->Branch("pTGammaGammaSC", &pTGammaGammaSC, "pTGammaGammaSC/F");
+  razorTree->Branch("sigmaMoverM", &sigmaMoverM, "sigmaMoverM/F");
+  razorTree->Branch("box", &razorbox, "box/I");
       
   razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
   razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
@@ -686,8 +690,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       pileupWeightDown  = 1.0;
       triggerEffWeight  = 1.0;
       triggerEffSFWeight  = 1.0;
-      leptonEffSF       = 1.0;
-      photonEffSF       = 1.0;
       
       btagCorrFactor    = 1.0;
       sf_btagUp         = 1.0;
@@ -753,7 +755,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       lep1MT = -999;
       lep1GenMetMT = -999;
 
-      //selected photons  and two leptons variables
+      //selected photons variables
       for ( int i = 0; i < 2; i++ )
 	{
 	  Pho_E[i]                  = -99.;
@@ -807,7 +809,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	for(int g = 0; g < nGenParticle; g++){
 	  //cout << gParticleId[g] << " " << gParticleStatus[g] << " " << gParticlePt[g] << " " << gParticleEta[g] << " | " << gParticleMotherId[g] << "\n";
 	  if (gParticleStatus[g]  == 62) {
-            //62: outgoing subprocess particle with primordial kT included
 	    if (!foundV1) {
 	      v1.SetPtEtaPhiE( gParticlePt[g], gParticleEta[g], gParticlePhi[g], gParticleE[g]);
 	      foundV1 = true;
@@ -884,7 +885,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 
 
-	  //parse lhe comment string to get Chargino/Neutralino2 masses, LHE:  Les Houches Event file format 
+	  //parse lhe comment string to get Chargino/Neutralino2 masses
 	  stringstream parser(*lheComments);
 	  string item;
 	  getline(parser, item, '_'); //prefix
@@ -1172,64 +1173,213 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //*************************************************************************
       //Start Object Selection
       //*************************************************************************
-      razorbox = None;
+      razorbox = LowRes;
       
+      //-------------------------------
+      //1) Look for Zmm Candidate
+      //-------------------------------
+      
+      double bestDimuonPt = -1;
+      TLorentzVector ZCandidate;
+      list<TLorentzVector> goodMu;   // list of good muons
+      for( int i = 0; i < nMuons; i++ ) {
+          if(!isVetoMuon(i)) continue;
+          if(muonPt[i] < 15) continue;
+     	  if(abs(muonEta[i]) > 2.4) continue;
+          
+	  // If the muon passes the initial checks, add it to list of good muons
+          TLorentzVector tmpGoodMu;
+          tmpGoodMu.SetPtEtaPhiM(muonPt[i], muonEta[i], muonPhi[i], 0.1057);
+          goodMu.push_back(tmpGoodMu);
+
+	  for( int j = i+1; j < nMuons; j++ )   {
+            if(!isVetoMuon(j)) continue;
+            if(muonPt[j] < 15) continue;
+            if(abs(muonEta[j]) > 2.4) continue;
+
+	    TLorentzVector tmpMuon1;
+            tmpMuon1.SetPtEtaPhiM(muonPt[i],muonEta[i], muonPhi[i],0.1057);
+            TLorentzVector tmpMuon2;
+            tmpMuon2.SetPtEtaPhiM(muonPt[j],muonEta[j], muonPhi[j],0.1057);
+            double tmpMass = (tmpMuon1+tmpMuon2).M();
+            double tmpDileptonPt = (tmpMuon1+tmpMuon2).Pt();
+
+	   if ( _debug ) cout << "Zmm candidate: " << tmpMass << " " << tmpDileptonPt << "\n";
+
+            if ( tmpMass > 76 && tmpMass < 106 && tmpDileptonPt > bestDimuonPt)  {
+              bestDimuonPt = tmpDileptonPt;
+              razorbox = Zmm;
+              lep1Type = 13 * -1 * muonCharge[i];
+              lep1Pt = muonPt[i];
+              lep1Eta = muonEta[i];
+              lep1Phi = muonPhi[i];
+              lep1PassSelection = 1 + 2 * isTightMuon(i);
+              lep2Type = 13 * -1 * muonCharge[j];
+              lep2Pt = muonPt[j];
+              lep2Eta = muonEta[j];
+              lep2Phi = muonPhi[j];
+              lep2PassSelection = 1 + 2 * isTightMuon(j);
+              dileptonMass = tmpMass;
+              ZCandidate = tmpMuon1 + tmpMuon2;
+
+              //for MC apply lepton eff scale factor
+              if (!isData ) {
+                if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);
+                if ( matchesGenMuon(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep2Pt, lep2Eta, true);
+              }
+
+            }
+          }
+      }
+
+      //-------------------------------
+      //2) Look for Zee Candidate
+      //-------------------------------
+      if (razorbox == None) {
+	double bestDielectronPt = -1;
+	list<TLorentzVector> goodEle;    // Create list of good electrons
+	for( int i = 0; i < nElectrons; i++ )	{
+	  if(!isVetoElectron(i)) continue;  
+	  if(elePt[i] < 20) continue;
+	  if(abs(eleEta[i]) > 2.4) continue;
+
+	  // Check that the electron doesn't match any of the good muons
+	  TLorentzVector tmpGoodEle;
+          tmpGoodEle.SetPtEtaPhiM(elePt[i], eleEta[i], elePhi[i], 0.000511);
+          bool matchedMuon = false;
+          for ( int i = 0; i < goodMu.size(); i ++ ) {
+	      Double_t deltaR;
+              deltaR = tmpGoodEle.DeltaR(goodMu[i]);
+              if (deltaR < 0.3)
+	      {
+		matchedMuon = true;
+                break;
+              }
+	   }
+          if ( matchedMuon ) continue; 
+
+	  for( int j = i+1; j < nElectrons; j++ )	{
+	    if(!isVetoElectron(j)) continue;  
+	    if(elePt[j] < 20) continue;
+	    if(abs(eleEta[j]) > 2.4) continue;
+	    
+	    TLorentzVector tmpElectron1;
+	    tmpElectron1.SetPtEtaPhiM(elePt[i],eleEta[i], elePhi[i],0.000511);
+	    TLorentzVector tmpElectron2;
+	    tmpElectron2.SetPtEtaPhiM(elePt[j],eleEta[j], elePhi[j],0.000511);
+	    double tmpMass = (tmpElectron1+tmpElectron2).M();	    
+	    double tmpDileptonPt = (tmpElectron1+tmpElectron2).Pt();
+
+	    if ( _debug ) cout << "Zee candidate: " << tmpMass << " " << tmpDileptonPt << "\n";
+
+	    if ( tmpMass > 76 && tmpMass < 106 && tmpDileptonPt > bestDielectronPt)  {
+	      bestDielectronPt = tmpDileptonPt;
+	      razorbox = Zee;
+	      lep1Type = 11 * -1 * eleCharge[i];
+	      lep1Pt = elePt[i];
+	      lep1Eta = eleEta[i];
+	      lep1Phi = elePhi[i];
+	      lep1PassSelection = 1 + 2 * isTightElectron(i);
+	      lep2Type = 11 * -1 * eleCharge[j];
+	      lep2Pt = elePt[j];
+	      lep2Eta = eleEta[j];
+	      lep2Phi = elePhi[j];
+	      lep2PassSelection = 1 + 2 * isTightElectron(j);
+	      dileptonMass = tmpMass;
+	      ZCandidate = tmpElectron1 + tmpElectron2;
+
+	      //for MC apply lepton eff scale factor
+  	      if (!isData ) {
+		if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
+		if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);			
+	      }
+
+	    }
+	  }
+	}
+      }
+
+      
+      //-------------------------------
+      //3) Look for Highest Pt Lepton
+      //-------------------------------
+      TLorentzVector LeptonCandidate;
+      if (razorbox == None) {
+        double bestLeptonPt = -1;
+
+	for( int i = 0; i < nMuons; i++ ) {
+          if(!isVetoMuon(i)) continue;
+          if(muonPt[i] < 15) continue;
+          if(abs(muonEta[i]) > 2.4) continue;
+          nLooseMuons++;
+          if( isTightMuon(i) ) nTightMuons++;
+
+          if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
+          if (muonPt[i] > bestLeptonPt) {
+            bestLeptonPt = muonPt[i];
+            razorbox = OneMu;
+            lep1Type = 13 * -1 * muonCharge[i];
+            lep1Pt = muonPt[i];
+            lep1Eta = muonEta[i];
+            lep1Phi = muonPhi[i];
+            lep1PassSelection = 1 + 2 * isTightMuon(i);
+            LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.1057);
+
+            if (!isData ) {
+              if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);
+            }
+          }
+        }
+
+        for( int i = 0; i < nElectrons; i++ ) {
+          if(!isVetoElectron(i)) continue;
+          if(elePt[i] < 20) continue;
+          if(abs(eleEta[i]) > 2.5) continue;
+          nLooseElectrons++;
+          if( isTightElectron(i) ) nTightElectrons++;
+
+      	  if ( _debug ) cout << "Ele candidate: " << elePt[i] << " " << bestLeptonPt << "\n";
+          if (elePt[i] > bestLeptonPt) {
+            bestLeptonPt = elePt[i];
+            razorbox = OneEle;
+            lep1Type = 11 * -1 * eleCharge[i];
+            lep1Pt = elePt[i];
+            lep1Eta = eleEta[i];
+            lep1Phi = elePhi[i];
+            lep1PassSelection = 1 + 2 * isTightElectron(i);
+            LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.000511);
+
+            if (!isData ) {
+              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
+            }
+
+          }
+        }
+      }
+ 
+
       //--------------
-      //good muon selection
+      //muon selection
       //--------------
-      vector<TLorentzVector> GoodMuons;
-      std::vector< MuonCandidate > muCand;
       for( int i = 0; i < nMuons; i++ )
 	{
-          //TLorentzVector for this muon
-          TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]); 
 	  if(!isVetoMuon(i)) continue;  
 	  if(muonPt[i] < 15) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
 	  nLooseMuons++;
-          GoodMuons.push_back(thisMuon);
 	  if( isTightMuon(i) ) nTightMuons++;
-	  //Filling Muon Candidate
-	  MuonCandidate tmp_muCand;
-	  tmp_muCand.Index = i;
-	  tmp_muCand.muon = thisMuon;
-	  tmp_muCand.muonCharge = muonCharge[i];
-	  tmp_muCand.isTightMuon = isTightMuon(i);
-          muCand.push_back( tmp_muCand );
 	}
-
       //------------------
-      //good electron selection
+      //electron selection
       //------------------
-      vector<TLorentzVector> GoodElectrons;
-      std::vector< ElectronCandidate > eleCand;
       for( int i = 0; i < nElectrons; i++ )
 	{
-          //Remove overlaps
-          bool overlap = false;
-          for(int j = 0; j < int(GoodMuons.size()); j++){
-                  TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],mu.Eta(),mu.Phi()) < 0.4)  overlap = true;
-          }
-          if (overlap) continue;
-          //TLorentzVector for this electron
-          TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
 	  if( !isVetoElectron(i) ) continue; 
 	  if( elePt[i] < 20 ) continue;
 	  if( abs(eleEta[i]) > 2.5 ) continue;
 	  nLooseElectrons++;
-          GoodElectrons.push_back(thisElectron);
       	  if( isTightElectron(i) ) nTightElectrons++;
-	  //Filling Electron Candidate
-	  ElectronCandidate tmp_eleCand;
-	  tmp_eleCand.Index = i;
-	  tmp_eleCand.electron = thisElectron;
-	  tmp_eleCand.eleCharge = eleCharge[i];
-	  tmp_eleCand.isTightElectron = isTightElectron(i);
-          eleCand.push_back( tmp_eleCand );
 	}
-
-    
       //-------------
       //tau selection
       //-------------
@@ -1239,10 +1389,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  nTightTaus++;
 	}
       
-    
-      //------------------
-      //good photon selection
-      //------------------
+      //photon selection
       vector<TLorentzVector> GoodPhotons;
       vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
       vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
@@ -1277,24 +1424,15 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      continue;
 	    }
 	  }
-	  
-	  //*****************************************************************************
-	  //Photons must be separated from any selected leptons
-	  //*****************************************************************************
-          //Remove overlaps
-          bool overlapm = false;
-          for(int j = 0; j < int(GoodMuons.size()); j++){
-                  TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.4)  overlapm = true;
-          }
-          if (overlapm) continue;
-          bool overlape = false;
-          for(int k = 0; k < int(GoodElectrons.size()); k++){
-                  TLorentzVector ele = GoodElectrons.at(k);
-                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 0.4) overlape = true;
-          }
-          if (overlape) continue;
 
+	//*****************************************************************************
+	//Photons must be separated from any selected leptons
+	//*****************************************************************************
+	if ( deltaR( phoEta[i], phoPhi[i], lep1Eta, lep1Phi) < 0.4 ) continue; 
+          if (razorbox == Zmm || razorbox == Zee) {
+            if ( deltaR( phoEta[i], phoPhi[i], lep2Eta, lep2Phi) < 0.4 ) continue;
+          }	  
+	
 	  //**********************************************************
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
@@ -1387,9 +1525,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  phoCand.push_back( tmp_phoCand );
 	
 	  nSelectedPhotons++;
-          GoodPhotons.push_back(thisPhoton);
-	}//end of loop over photons
-
+	}
+    
       //------------------------------------------------------------
       //if there is no photon with pT above 40 GeV, reject the event
       //------------------------------------------------------------
@@ -1616,381 +1753,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
        // }
        // cout << "\n\n";
 
-      
-      //-------------------------------
-      //1) Look for Zmm Candidate
-      //-------------------------------
-      
-      //Find two muons with the highest pt
-      TLorentzVector ZCandidate(0,0,0,0);
-      int ZMuIndex1 = -1;
-      int ZMuIndex2 = -1;
-      double bestDimuonPt = -1;
-      std::vector< MuonCandidate > muSelectedCand;
-      MuonCandidate bestMuCand[2];
-      if(muCand.size()>1){ 
-              for ( size_t i = 0; i < muCand.size(); i++ )
-              {
-                      for ( size_t j = i+1; j < muCand.size(); j++ )
-                      {
-                              MuonCandidate mu1 = muCand[i];
-                              MuonCandidate mu2 = muCand[j];
-                              if ( _debug )
-                              {
-                                      std::cout << "[DEBUG]: mu1-> " << mu1.muon.Pt()
-                                              << "\n[DEBUG]: mu2->" << mu2.muon.Pt() 
-                                              << std::endl;
-                              }
-                              //need dimuon mass between [76, 106] GeV
-                              double dimuonMass = (mu1.muon + mu2.muon).M();
-                              if ( _debug )
-                              {
-                                      std::cout << "[DEBUG] Dimuon Sum pT: " << mu1.muon.Pt() + mu2.muon.Pt() << std::endl;
-                              }
-
-                              if( dimuonMass < 76 || dimuonMass > 106 )
-                              {
-                                      if ( _debug ) std::cout << "[DEBUG]: Dimuon mass is out of range [76, 106]  GeV: dimuon masss-> " << dimuonMass << std::endl;
-                                      if ( _debug ) std::cout << "... mu1Pt: " << mu1.muon.Pt()  << " mu2Pt: " << mu2.muon.Pt()  << std::endl;
-                                      continue;
-                              }
-                              //---------------------------------------------
-                              //if the sum of the muon pT's is larger than 
-                              //that of the current Z candidate, 
-                              //make this the Z candidate
-                              //---------------------------------------------
-                              if( mu1.muon.Pt() + mu2.muon.Pt() > bestDimuonPt )
-                              {
-                                      bestDimuonPt = mu1.muon.Pt() + mu2.muon.Pt();
-                                      ZCandidate = mu1.muon + mu2.muon;
-                                      if ( mu1.muon.Pt() >= mu2.muon.Pt() )
-                                      {
-                                              if ( _debug ) std::cout << "assign muon candidate, mu1Pt > mu2Pt" << std::endl;
-                                              bestMuCand[0] = mu1;
-                                              bestMuCand[1] = mu2;
-                                              ZMuIndex1 = mu1.Index;
-                                              ZMuIndex2 = mu2.Index;  
-                                      }
-                                      else
-                                      {
-                                              if ( _debug ) std::cout << "assign muon candidate, mu2Pt > mu1Pt" << std::endl;
-                                              bestMuCand[0] = mu2;
-                                              bestMuCand[1] = mu1;
-                                              ZMuIndex1 = mu2.Index;
-                                              ZMuIndex2 = mu1.Index;
-                                      }
-                              }//best pt if
-                      }
-              }
-
-              //---------------------------------------
-              //just use this container for convenience
-              //to parse the data into TTree
-              //---------------------------------------
-              muSelectedCand.push_back(bestMuCand[0]);
-              muSelectedCand.push_back(bestMuCand[1]);
-
-              //Fill in selected muon info
-              razorbox = Zmm;
-              lep1Type = 13 * -1 * bestMuCand[0].muonCharge;
-              lep1Pt = bestMuCand[0].muon.Pt();
-              lep1Eta = bestMuCand[0].muon.Eta();
-              lep1Phi = bestMuCand[0].muon.Phi();
-              lep1PassSelection = 1 + 2 * bestMuCand[0].isTightMuon;
-              lep2Type = 13 * -1 * bestMuCand[1].muonCharge;
-              lep2Pt = bestMuCand[1].muon.Pt();
-              lep2Eta = bestMuCand[1].muon.Eta();
-              lep2Phi = bestMuCand[1].muon.Phi();
-              lep2PassSelection = 1 + 2 * bestMuCand[1].isTightMuon;
-
-              //for MC apply lepton eff scale factor
-              if (!isData ) {
-                      if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
-                      if ( matchesGenMuon(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep2Pt, lep2Eta, true);			
-              }
-
-              if ( _debug )
-              {
-                      std::cout << "[DEBUG]: best muon pair: " 
-                              << "\n-> mu1Pt: " << lep1Pt 
-                              << "\n-> mu2Pt: " << lep2Pt 
-                              << std::endl;
-              }
-
-
-              //record Z candidate info
-              dileptonMass   = ZCandidate.M();
-              bestDimuonPt   = ZCandidate.Pt();
-              if ( _debug ) std::cout << "[DEBUG]: dimuon mass-> " << dileptonMass << " dimuon pT->" << bestDimuonPt << std::endl;
-      }//end if muCand.size()>1
-
-
-
-      //-------------------------------
-      //2) Look for Zee Candidate
-      //-------------------------------
-      
-      if (razorbox == None) {
-              //Find two electrons with the highest pt
-              int ZEleIndex1 = -1;
-              int ZEleIndex2 = -1;
-              double bestDielectronPt = -1;
-              std::vector< ElectronCandidate > eleSelectedCand;
-              ElectronCandidate bestEleCand[2];
-              if(eleCand.size()>1){ 
-                      for ( size_t i = 0; i < eleCand.size(); i++ )
-                      {
-                              for ( size_t j = i+1; j < eleCand.size(); j++ )
-                              {
-                                      ElectronCandidate ele1 = eleCand[i];
-                                      ElectronCandidate ele2 = eleCand[j];
-                                      if ( _debug )
-                                      {
-                                              std::cout << "[DEBUG]: ele1-> " << ele1.electron.Pt()
-                                                      << "\n[DEBUG]: ele2->" << ele2.electron.Pt() 
-                                                      << std::endl;
-                                      }
-                                      //need dielectron mass between [76, 106] GeV
-                                      double dielectronMass = (ele1.electron + ele2.electron).M();
-                                      if ( _debug )
-                                      {
-                                              std::cout << "[DEBUG] Dielectron Sum pT: " << ele1.electron.Pt() + ele2.electron.Pt() << std::endl;
-                                      }
-
-                                      if( dielectronMass < 76 || dielectronMass > 106 )
-                                      {
-                                              if ( _debug ) std::cout << "[DEBUG]: Dielectron mass is out of range [76, 106]  GeV: dielectron masss-> " << dielectronMass << std::endl;
-                                              if ( _debug ) std::cout << "... ele1Pt: " << ele1.electron.Pt()  << " ele2Pt: " << ele2.electron.Pt()  << std::endl;
-                                              continue;
-                                      }
-                                      //---------------------------------------------
-                                      //if the sum of the electron pT's is larger than 
-                                      //that of the current Z candidate, 
-                                      //make this the Z candidate
-                                      //---------------------------------------------
-                                      if( ele1.electron.Pt() + ele2.electron.Pt() > bestDielectronPt )
-                                      {
-                                              bestDielectronPt = ele1.electron.Pt() + ele2.electron.Pt();
-                                              ZCandidate = ele1.electron + ele2.electron;
-                                              if ( ele1.electron.Pt() >= ele2.electron.Pt() )
-                                              {
-                                                      if ( _debug ) std::cout << "assign electron candidate, ele1Pt > ele2Pt" << std::endl;
-                                                      bestEleCand[0] = ele1;
-                                                      bestEleCand[1] = ele2;
-                                                      ZEleIndex1 = ele1.Index;
-                                                      ZEleIndex2 = ele2.Index;  
-                                              }
-                                              else
-                                              {
-                                                      if ( _debug ) std::cout << "assign electron candidate, ele2Pt > ele1Pt" << std::endl;
-                                                      bestEleCand[0] = ele2;
-                                                      bestEleCand[1] = ele1;
-                                                      ZEleIndex1 = ele2.Index;
-                                                      ZEleIndex2 = ele1.Index;
-                                              }
-                                      }//best pt if
-                              }
-                      }
-
-                      //---------------------------------------
-                      //just use this container for convenience
-                      //to parse the data into TTree
-                      //---------------------------------------
-                      eleSelectedCand.push_back(bestEleCand[0]);
-                      eleSelectedCand.push_back(bestEleCand[1]);
-
-                      //Fill in selected electron info
-                      razorbox = Zee;
-                      lep1Type = 11 * -1 * bestEleCand[0].eleCharge;
-                      lep1Pt = bestEleCand[0].electron.Pt();
-                      lep1Eta = bestEleCand[0].electron.Eta();
-                      lep1Phi = bestEleCand[0].electron.Phi();
-                      lep1PassSelection = 1 + 2 * bestEleCand[0].isTightElectron;
-                      lep2Type = 11 * -1 * bestEleCand[1].eleCharge;
-                      lep2Pt = bestEleCand[1].electron.Pt();
-                      lep2Eta = bestEleCand[1].electron.Eta();
-                      lep2Phi = bestEleCand[1].electron.Phi();
-                      lep2PassSelection = 1 + 2 * bestEleCand[1].isTightElectron;
-
-                      //for MC apply lepton eff scale factor
-                      if (!isData ) {
-                              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
-                              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);			
-                      }
-
-                      if ( _debug )
-                      {
-                              std::cout << "[DEBUG]: best electron pair: " 
-                                      << "\n-> ele1Pt: " << lep1Pt 
-                                      << "\n-> ele2Pt: " << lep2Pt 
-                                      << std::endl;
-                      }
-
-
-                      //record Z candidate info
-                      dileptonMass   = ZCandidate.M();
-                      bestDielectronPt   = ZCandidate.Pt();
-                      if ( _debug ) std::cout << "[DEBUG]: dielectron mass-> " << dileptonMass << " dielectron pT->" << bestDielectronPt << std::endl;
-              }//end if eleCand.size()>1
-      }
-
-	//-------------------------------
-	//3) Look for Zme candidate
-	//-------------------------------
-	if (razorbox == None) {
-              //Find two electrons with the highest pt
-              int ZmeMuonIndex = -1;
-	      int ZmeEleIndex = -1;
-	      double bestDileptonPt = -1;
-	      std::vector< ElectronCandidate > eleSelectedCandZme;
-	      std::vector< MuonCandidate > muSelectedCandZme;
-	      ElectronCandidate bestZmeEleCand;
-	      MuonCandidate bestZmeMuCand;
-	      if ( eleCand.size() > 0 && muCand.size() > 0) {
-		for ( size_t i = 0; i < eleCand.size(); i++ )
-                {
-	   	  for ( size_t j = i+1; j < muCand.size(); j++ )
-		  {
-		    MuonCandidate mu = muCand[i];
-		    ElectronCandidate ele = eleCand[j];
-		    if ( _debug )
-		    {
-		 	std::cout << "[DEBUG]: ele-> " << ele.electron.Pt()
-                                   << "\n[DEBUG]: mu->" << mu.muon.Pt()
-                                                      << std::endl;
-                    }
-		    // need dilepton mass between [76, 106] GeV
-		    double dileptonMass = (mu.muon + ele.electron).M();
-		    if ( _debug )
-		    {
-			std::cout << "[DEBUG] Dilepton Sum pT: " << mu.muon.Pt() + ele.electron.Pt() << std::endl;
-		    }
-
-		    if ( dileptonMass < 76 || dileptonMass > 106 )
-		    {
-			if ( _debug ) std::cout << "[DEBUG]: Dilepton mass is out of range [76, 106]  GeV: dilepton masss-> " << dileptonMass << std::endl;
-                        if ( _debug ) std::cout << "... muPt: " << mu.muon.Pt()  << " muPt: " << mu.muon.Pt()  << std::endl;
-                        continue;
-		    }
-		   //---------------------------------------------
-		   //if the sum of the leptons pT's is larger than 
-		   //that of the current Z candidate, 
-		   //make this the Z candidate
-		   //---------------------------------------------		  
-		   if ( mu.muon.Pt() + ele.electron.Pt() > bestDileptonPt )
-		   {
-			bestDileptonPt = mu.muon.Pt() + ele.electron.Pt();
-			ZCandidate = mu.muon + ele.electron;
-			if ( _debug ) std::cout << "assign electron and muon candidates" << std::endl;
-			bestZmeMuCand = mu;
-			bestZmeEleCand = ele;
-			ZmeMuonIndex = mu.Index;
-			ZmeEleIndex = ele.Index;
-	
-		   } //best pt if
- 
-		  } // finish muon loop
-		} // finish electron loop
-
-	//---------------------------------------
-	//just use this container for convenience
-	//to parse the data into TTree
-	//---------------------------------------
-	muSelectedCandZme.push_back(bestZmeMuCand);
-	eleSelectedCandZme.push_back(bestZmeEleCand);
-
-	//Fill in selected lepton info
-	razorbox = Zme;
-	lep1Type = 13 * -1 * bestZmeMuCand.muonCharge;
-	lep1Pt = bestZmeMuCand.muon.Pt();
-	lep1Eta = bestZmeMuCand.muon.Eta();
-	lep1Phi = bestZmeMuCand.muon.Phi();
-	lep1PassSelection = 1 + 2 * bestZmeMuCand.isTightMuon;
-	lep2Type = 11 * -1 * bestZmeEleCand.eleCharge;
-	lep2Pt = bestZmeEleCand.electron.Pt();
-	lep2Eta = bestZmeEleCand.electron.Eta();
-	lep2Phi = bestZmeEleCand.electron.Phi();
-	lep2PassSelection = 1 + 2 * bestZmeEleCand.isTightElectron;
-
-	//for MC apply lepton eff scale factor
-	 if (!isData ) {
-                              if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
-                              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);			
-                      }
-
-	if ( _debug )
-        {
-          std::cout << "[DEBUG]: best electron pair: " 
-          << "\n-> muPt: " << lep1Pt 
-          << "\n-> elePt: " << lep2Pt 
-          << std::endl;
-        }
-
-	//record Z candidate info
-	dileptonMass   = ZCandidate.M();
-	bestDileptonPt = ZCandidate.Pt();
-	if ( _debug ) std::cout << "[DEBUG]: dilepton mass-> " << dileptonMass << "dilepton pT->" << bestDileptonPt << std::endl;
-	
-	} // end if eleCand > 0 and muCand > 0
-}	// end of Zme loop
-
-
-      //-------------------------------
-      //4) Look for Highest Pt Lepton
-      //-------------------------------
-      TLorentzVector LeptonCandidate;
-      if (razorbox == None) {
-	double bestLeptonPt = -1;
-   
-	for( int i = 0; i < nMuons; i++ ) {
-	  if(!isVetoMuon(i)) continue;  
-	  if(muonPt[i] < 15) continue;
-	  if(abs(muonEta[i]) > 2.4) continue;
-	  nLooseMuons++;
-	  if( isTightMuon(i) ) nTightMuons++;
-
-	  if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
-	  if (muonPt[i] > bestLeptonPt) {
-	    bestLeptonPt = muonPt[i];
-	    razorbox = OneMu;
-	    lep1Type = 13 * -1 * muonCharge[i];
-	    lep1Pt = muonPt[i];
-	    lep1Eta = muonEta[i];
-	    lep1Phi = muonPhi[i];
-	    lep1PassSelection = 1 + 2 * isTightMuon(i);
-	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.1057);
-
-	    if (!isData ) {
-	      if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
-	    }
-	  }	  
-	}
-
-	for( int i = 0; i < nElectrons; i++ ) {
-	  if(!isVetoElectron(i)) continue;  
-	  if(elePt[i] < 20) continue;
-	  if(abs(eleEta[i]) > 2.5) continue;
-	  nLooseElectrons++;
-	  if( isTightElectron(i) ) nTightElectrons++;
-
-	  if ( _debug ) cout << "Ele candidate: " << elePt[i] << " " << bestLeptonPt << "\n";
-	  if (elePt[i] > bestLeptonPt) {
-	    bestLeptonPt = elePt[i];
-	    razorbox = OneEle;
-	    lep1Type = 11 * -1 * eleCharge[i];
-	    lep1Pt = elePt[i];
-	    lep1Eta = eleEta[i];
-	    lep1Phi = elePhi[i];
-	    lep1PassSelection = 1 + 2 * isTightElectron(i);
-	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.000511);
-
-	    if (!isData ) {
-	      if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
-	    }
-
-	  }
-	}
-      }
 
 
       //----
@@ -2025,21 +1787,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    if ( !jetPassIDLoose[i] ) continue;
 	  }
 
-	  //Exclude selected leptons from the jet collection
-          for(int j = 0; j < int(GoodMuons.size()); j++){
-                  TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) continue;	  
+          //Exclude selected leptons from the jet collection
+	  if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep1Eta, lep1Phi) < 0.4 ) continue;  
+          if (razorbox == Zmm || razorbox == Zee) {
+            if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep2Eta, lep2Phi) < 0.4 ) continue;
           }
-          for(int k = 0; k < int(GoodElectrons.size()); k++){
-                  TLorentzVector ele = GoodElectrons.at(k);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) continue;	  
-          }
-/*
-          if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep1Eta, lep1Phi) < 0.4 ) continue;	  
-	  if (razorbox == Zmm || razorbox == Zee) {
-	    if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep2Eta, lep2Phi) < 0.4 ) continue;	  
-	  }
-*/
 	
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
@@ -2284,17 +2036,16 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
       MET = metPt;
       t1MET = metType1Pt;
-    
+     
       //need to implement the custom type1 MET corrections
       //Note: need to compute lep1MT at this point
-      if (razorbox == OneMu) {
-	lep1MT = sqrt(0.1057*0.1057 + 2*t1PFMET.Pt()*lep1Pt*(1 - cos(deltaPhi(t1PFMET.Phi(),lep1Phi))));
-	lep1GenMetMT = sqrt(0.1057*0.1057 + 2*genMET.Pt()*lep1Pt*(1 - cos(deltaPhi(genMET.Phi(),lep1Phi))));
+       if (razorbox == OneMu) {
+        lep1MT = sqrt(0.1057*0.1057 + 2*t1PFMET.Pt()*lep1Pt*(1 - cos(deltaPhi(t1PFMET.Phi(),lep1Phi))));
+        lep1GenMetMT = sqrt(0.1057*0.1057 + 2*genMET.Pt()*lep1Pt*(1 - cos(deltaPhi(genMET.Phi(),lep1Phi))));
       } else if (razorbox == OneEle) {
-	lep1MT = sqrt(0.000511*0.000511 + 2*t1PFMET.Pt()*lep1Pt*(1 - cos(deltaPhi(t1PFMET.Phi(),lep1Phi))));
-	lep1GenMetMT = sqrt(0.000511*0.000511 + 2*genMET.Pt()*lep1Pt*(1 - cos(deltaPhi(genMET.Phi(),lep1Phi))));
-      }
-    
+        lep1MT = sqrt(0.000511*0.000511 + 2*t1PFMET.Pt()*lep1Pt*(1 - cos(deltaPhi(t1PFMET.Phi(),lep1Phi))));
+        lep1GenMetMT = sqrt(0.000511*0.000511 + 2*genMET.Pt()*lep1Pt*(1 - cos(deltaPhi(genMET.Phi(),lep1Phi))));
+
       vector<TLorentzVector> hemispheres = getHemispheres(ObjectCandidates);
       theMR  = computeMR(hemispheres[0], hemispheres[1]); 
       if ( theMR > 0 )
@@ -2406,33 +2157,35 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //------------------------------------------------
       sigmaMoverM = 0.5*sqrt( Pho_sigmaEOverE[0]*Pho_sigmaEOverE[0] + Pho_sigmaEOverE[1]*Pho_sigmaEOverE[1] );
 
-
-
-
       //******************************************************
       //If no leptons were found, don't fill the event
       //******************************************************
       if ( razorbox == None ) continue;
-      
+
       if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
 
       //Fill Event
       if (!isFastsimSMS) {
-	razorTree->Fill();
+        razorTree->Fill();
       } else if (parsedLHE) {
-	if (!is2DMassScan) {
-	  smsTrees[mChi]->Fill();
-	} else {
-	  pair<int,int> smsPair = make_pair(mChi, mLSP);
-	  smsTrees2D[smsPair]->Fill();
-	}
+        if (!is2DMassScan) {
+          smsTrees[mChi]->Fill();
+        } else {
+          pair<int,int> smsPair = make_pair(mChi, mLSP);
+          smsTrees2D[smsPair]->Fill();
+        }
       }
 
-      //inclusive HggRazor
-      if( ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) razorbox = HggRazor;
+      //end of event loop
+    }
 
-/*
+
+
       //Writing output to tree
+      //1- and 2- lepton events have razorbox defined already
+      //Assign inclusive search bins to remaining events
+      if (razorbox == None)
+      {
       //HighPt Box
       if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
 
@@ -2447,7 +2200,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
       //LowRes Box
       else razorbox = LowRes;
-*/
+      }
+
       //Fill Event
       if (!isFastsimSMS) {
 	razorTree->Fill();

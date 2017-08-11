@@ -303,6 +303,7 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
 	Float_t Phi_l;
 	Float_t Eta_l;
 	Float_t DR;
+	Float_t e_Eta;
 	Float_t Pi = TMath::Pi();
 	for (Int_t j=0; j<700; j++) {	
 		Phi_l = TMath::Abs(elePhi[j] - PhotonPhi);
@@ -313,7 +314,8 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
 		DR = sqrt(pow(Phi_l,2) + pow(Eta_l,2));
 		if (DR > 0.3) {									// Isolated electron criterion
 			Iso_lepton1 = 1;
-			if ((elePt[j]>10) && (TMath::Abs(eleEta[j])<2.5)) {
+			e_Eta = TMath::Abs(eleEta[j]);
+			if ((elePt[j]>10) && ( ((e_Eta < 1.4442) || (e_Eta > 1.566)) && (e_Eta<2.5))) {
 				Iso_lepton2 = 1;
 			}
 		}
