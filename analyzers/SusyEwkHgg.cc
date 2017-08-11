@@ -1941,31 +1941,44 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       TLorentzVector LeptonCandidate;
       if (razorbox == None) {
 	double bestLeptonPt = -1;
-   
-	for( int i = 0; i < nMuons; i++ ) {
-	  if(!isVetoMuon(i)) continue;  
-	  if(muonPt[i] < 15) continue;
-	  if(abs(muonEta[i]) > 2.4) continue;
-	  nLooseMuons++;
-	  if( isTightMuon(i) ) nTightMuons++;
+  
+	std::vector< MuonCandidate > muSelectedCandOneMu;
+	std::vector< ElectronCandidate > eleSelectedCandOneEle;
+	MuonCandidate bestMuCandOneMu;
+	ElectronCandidate bestEleCandOneEle;
 
-	  if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
-	  if (muonPt[i] > bestLeptonPt) {
-	    bestLeptonPt = muonPt[i];
-	    razorbox = OneMu;
-	    lep1Type = 13 * -1 * muonCharge[i];
-	    lep1Pt = muonPt[i];
-	    lep1Eta = muonEta[i];
-	    lep1Phi = muonPhi[i];
-	    lep1PassSelection = 1 + 2 * isTightMuon(i);
-	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.1057);
-
-	    if (!isData ) {
-	      if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+	if (muCand.size() > 0 ) {
+	  for( int i = 0; i < muCand.size(); i++ ) {
+	    MuonCandidate mu = muCand[i];
+	    if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
+	    //-----------------------------------------
+	    //if the muon's pT is larger than that of
+	    //the current best Lepton pT, make it the
+	    //best lepton candidate
+	    //-----------------------------------------
+	    if (mu.muon.Pt() > bestLeptonPt) {
+	      bestLeptonPt = mu.muon.Pt();
+	      bestCandOneMu = mu;
 	    }
-	  }	  
-	}
+	  } // end of muCand loop
+	      razorbox = OneMu;
+	      lep1Type = 13 * -1 * bestCandOneMu.muonCharge();
+	      lep1Pt = bestCandOneMu.muon.Pt();
+	      lep1Eta = bestCandOneMu.muon.Eta();
+	      lep1Phi = muonPhi[i];
+	      lep1PassSelection = 1 + 2 * bestCandOneMu.isTightMuon();
+	      LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.1057 ); 
 
+	      if (!isData ) {
+	        if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+	        if ( _debug ) std::cout < "[DEBUG]: best muon: " << "\n-> muPt: " << lep1Pt << std::endl;
+	      }
+
+	} // end if muCand.size() > 0 loop
+
+	//-----------
+	//Not edited yet
+	//-----------
 	for( int i = 0; i < nElectrons; i++ ) {
 	  if(!isVetoElectron(i)) continue;  
 	  if(elePt[i] < 20) continue;
