@@ -20,10 +20,10 @@ using namespace std;
 
 enum SusyEwkHggBox {
   Zmm = 0,
-  Zee = 1, 
-  OneMu =2,
-  OneEle = 3,
-  OneEleOneMu = 4,
+  Zee = 1,
+  Zme = 2, 
+  OneMu = 3,
+  OneEle = 4,
   HggRazor = 5,
   None = 10 
 };
@@ -1834,10 +1834,109 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               }//end if eleCand.size()>1
       }
 
+	//-------------------------------
+	//3) Look for Zme candidate
+	//-------------------------------
+	if (razorbox == None) {
+              //Find two electrons with the highest pt
+              int ZmeMuonIndex = -1;
+	      int ZmeEleIndex = -1;
+	      double bestDileptonPt = -1;
+	      std::vector< ElectronCandidate > eleSelectedCandZme;
+	      std::vector< MuonCandidate > muSelectedCandZme;
+	      ElectronCandidate bestZmeEleCand;
+	      MuonCandidate bestZmeMuCand;
+	      if ( eleCand.size() > 0 && muCand.size() > 0) {
+		for ( size_t i = 0; i < eleCand.size(); i++ )
+                {
+	   	  for ( size_t j = i+1; j < muCand.size(); j++ )
+		  {
+		    MuonCandidate mu = muCand[i];
+		    ElectronCandidate ele = eleCand[j];
+		    if ( _debug )
+		    {
+		 	std::cout << "[DEBUG]: ele-> " << ele.electron.Pt()
+                                   << "\n[DEBUG]: mu->" << mu.muon.Pt()
+                                                      << std::endl;
+                    }
+		    // need dilepton mass between [76, 106] GeV
+		    double dileptonMass = (mu.muon + ele.electron).M();
+		    if ( _debug )
+		    {
+			std::cout << "[DEBUG] Dilepton Sum pT: " << mu.muon.Pt() + ele.electron.Pt() << std::endl;
+		    }
+
+		    if ( dileptonMass < 76 || dileptonMass > 106 )
+		    {
+			if ( _debug ) std::cout << "[DEBUG]: Dilepton mass is out of range [76, 106]  GeV: dilepton masss-> " << dileptonMass << std::endl;
+                        if ( _debug ) std::cout << "... muPt: " << mu.muon.Pt()  << " muPt: " << mu.muon.Pt()  << std::endl;
+                        continue;
+		    }
+		   //---------------------------------------------
+		   //if the sum of the leptons pT's is larger than 
+		   //that of the current Z candidate, 
+		   //make this the Z candidate
+		   //---------------------------------------------		  
+		   if ( mu.muon.Pt() + ele.electron.Pt() > bestDileptonPt )
+		   {
+			bestDileptonPt = mu.muon.Pt() + ele.electron.Pt();
+			ZCandidate = mu.muon + ele.electron;
+			if ( _debug ) std::cout << "assign electron and muon candidates" << std::endl;
+			bestZmeMuCand = mu;
+			bestZmeEleCand = ele;
+			ZmeMuonIndex = mu.Index;
+			ZmeEleIndex = ele.Index;
+	
+		   } //best pt if
+ 
+		  } // finish muon loop
+		} // finish electron loop
+
+	//---------------------------------------
+	//just use this container for convenience
+	//to parse the data into TTree
+	//---------------------------------------
+	muSelectedCandZme.push_back(bestZmeMuCand);
+	eleSelectedCandZme.push_back(bestZmeEleCand);
+
+	//Fill in selected lepton info
+	razorbox = Zme;
+	lep1Type = 13 * -1 * bestZmeMuCand.muonCharge;
+	lep1Pt = bestZmeMuCand.muon.Pt();
+	lep1Eta = bestZmeMuCand.muon.Eta();
+	lep1Phi = bestZmeMuCand.muon.Phi();
+	lep1PassSelection = 1 + 2 * bestZmeMuCand.isTightMuon;
+	lep2Type = 11 * -1 * bestZmeEleCand.eleCharge;
+	lep2Pt = bestZmeEleCand.electron.Pt();
+	lep2Eta = bestZmeEleCand.electron.Eta();
+	lep2Phi = bestZmeEleCand.electron.Phi();
+	lep2PassSelection = 1 + 2 * bestZmeEleCand.isTightElectron;
+
+	//for MC apply lepton eff scale factor
+	 if (!isData ) {
+                              if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
+                              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);			
+                      }
+
+	if ( _debug )
+        {
+          std::cout << "[DEBUG]: best electron pair: " 
+          << "\n-> muPt: " << lep1Pt 
+          << "\n-> elePt: " << lep2Pt 
+          << std::endl;
+        }
+
+	//record Z candidate info
+	dileptonMass   = ZCandidate.M();
+	bestDileptonPt = ZCandidate.Pt();
+	if ( _debug ) std::cout << "[DEBUG]: dilepton mass-> " << dileptonMass << "dilepton pT->" << bestDileptonPt << std::endl;
+	
+	} // end if eleCand > 0 and muCand > 0
+}	// end of Zme loop
 
 
       //-------------------------------
-      //3) Look for Highest Pt Lepton
+      //4) Look for Highest Pt Lepton
       //-------------------------------
       TLorentzVector LeptonCandidate;
       if (razorbox == None) {
