@@ -1944,13 +1944,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   
 	std::vector< MuonCandidate > muSelectedCandOneMu;
 	std::vector< ElectronCandidate > eleSelectedCandOneEle;
-	MuonCandidate bestMuCandOneMu;
-	ElectronCandidate bestEleCandOneEle;
+	MuonCandidate bestCandOneMu;
+	ElectronCandidate bestCandOneEle;
 
 	if (muCand.size() > 0 ) {
 	  for( int i = 0; i < muCand.size(); i++ ) {
 	    MuonCandidate mu = muCand[i];
-	    if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
+	    if ( _debug ) cout << "Muon candidate: " << mu.muon.Pt() << " " << bestLeptonPt << "\n";
 	    //-----------------------------------------
 	    //if the muon's pT is larger than that of
 	    //the current best Lepton pT, make it the
@@ -1977,35 +1977,30 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	} // end if muCand.size() > 0 loop
 
 	//-----------
-	//Not edited yet
+	//Currently editing
 	//-----------
-	for( int i = 0; i < nElectrons; i++ ) {
-	  if(!isVetoElectron(i)) continue;  
-	  if(elePt[i] < 20) continue;
-	  if(abs(eleEta[i]) > 2.5) continue;
-	  nLooseElectrons++;
-	  if( isTightElectron(i) ) nTightElectrons++;
+	if ( eleCand.size() > 0 ) {
+	  for( int i = 0; i < eleCand.size(); i++ ) {
+	     ElectronCandidate ele = eleCand[i];
+	     if ( _debug ) cout << "Ele candidate: " << ele.electron.Pt() << " " << bestLeptonPt << "\n";
+	     if (ele.electron.Pt() > bestLeptonPt) {
+	    	bestLeptonPt = ele.electron.Pt();
+		bestCandOneEle = ele;
+	     }
+	  } // end of eleCand loop
 
-	  if ( _debug ) cout << "Ele candidate: " << elePt[i] << " " << bestLeptonPt << "\n";
-	  if (elePt[i] > bestLeptonPt) {
-	    bestLeptonPt = elePt[i];
-	    razorbox = OneEle;
-	    lep1Type = 11 * -1 * eleCharge[i];
-	    lep1Pt = elePt[i];
-	    lep1Eta = eleEta[i];
-	    lep1Phi = elePhi[i];
-	    lep1PassSelection = 1 + 2 * isTightElectron(i);
-	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.000511);
+    	  lep1Type = 11 * -1 * bestCandOneEle.eleCharge();
+	  lep1Pt = bestCandOneEle.electron.Pt();
+	  lep1Eta = bestCandOneEle.electron.Eta();
+	  lep1Phi = bestCandOneEle.electron.Phi();
+	  lep1PassSelection = 1 + 2 * bestCandOneEle.isTightElectron();
+	  LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.000511 );
 
 	    if (!isData ) {
 	      if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
 	    }
 
-	  }
-	}
-      }
-
-
+	  } // end of if eleCand.size() > 0 loop
       //----
       //Jets
       //----
