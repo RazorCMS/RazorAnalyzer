@@ -606,6 +606,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
       		pho2_time = weightedTime;
       		pho2_seedtime = TOFCorrectedSeedHitTime; 
+        	pho2_seedtime_genV = TOFCorrectedSeedHitTime_genV;
       		pho2_seedtimeCalib = calibratedSeedHitTime;
       		pho2_seedtimeraw = rawSeedHitTime;
 	}    
@@ -738,8 +739,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 			
 			if(isMatched)
 			{
-				R1 = is1To1 ? pow(decay_x1+decay_x1 + decay_y1*decay_y1, 0.5) : pow(decay_x2+decay_x2 + decay_y2*decay_y2, 0.5) ; 
-				R2 = is1To1 ? pow(decay_x2+decay_x2 + decay_y2*decay_y2, 0.5) : pow(decay_x1+decay_x1 + decay_y1*decay_y1, 0.5) ; 
+				R1 = is1To1 ? pow(decay_x1*decay_x1 + decay_y1*decay_y1, 0.5) : pow(decay_x2*decay_x2 + decay_y2*decay_y2, 0.5) ; 
+				R2 = is1To1 ? pow(decay_x2*decay_x2 + decay_y2*decay_y2, 0.5) : pow(decay_x1*decay_x1 + decay_y1*decay_y1, 0.5) ; 
 				ZD1 = is1To1 ? decay_z1 : decay_z2 ;
 				ZD2 = is1To1 ? decay_z2 : decay_z1 ;
 
