@@ -91,13 +91,14 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   float lep1MT = -999;
   float lep1GenMetMT = -999;
   //
-  int Iso_lepton;
+  int Iso_lepton1;
+  int Iso_lepton2;
   // working variables:
   float Copy_Jet_PT[900];
   
   HggRazorLeptonsBox razorbox = None;
   
-  TTree *outputTree = new TTree("VBFTree", "Info on selected razor inclusive events");
+  TTree *outputTree = new TTree("BkgTree", "Info on selected razor inclusive events");
 
   outputTree->Branch("weight", &weight, "weight/F");
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
@@ -135,8 +136,8 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
   //
   outputTree->Branch("box", &razorbox, "box/I");
   //
-  outputTree->Branch("Iso_lepton", &Iso_lepton, "Iso_lepton/i");	// is there an isolated lepton? (defined according to cuts standards) 1=YES, 0=NO
-
+  outputTree->Branch("Iso_lepton1", &Iso_lepton1, "Iso_lepton1/i");	// isolated lepton? (no add. requirements on Eta/PT) 1=YES, 0=NO
+  outputTree->Branch("Iso_lepton2", &Iso_lepton2, "Iso_lepton2/i");	// isolated lepton? (WITH add. requirements on Eta/PT) 1=YES, 0=NO
   //begin loop
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntriesFast();
@@ -297,10 +298,12 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
 	}
     
 	// Isolated lepton criterion
-	Iso_lepton = 0;
+	Iso_lepton1 = 0;
+	Iso_lepton2 = 0;
 	Float_t Phi_l;
 	Float_t Eta_l;
 	Float_t DR;
+	Float_t e_Eta;
 	Float_t Pi = TMath::Pi();
 	for (Int_t j=0; j<700; j++) {	
 		Phi_l = TMath::Abs(elePhi[j] - PhotonPhi);
@@ -308,17 +311,27 @@ void DarkPhotonAnalyzer::Analyze(bool isData, int Option, string outputFilename,
 			Phi_l = 2*Pi - Phi_l;
 		}
 		Eta_l = TMath::Abs(eleEta[j] - PhotonEta);
-		DR = sqrt(pow(Phi_l,2) + pow((Eta_l - PhotonEta),2));
+		DR = sqrt(pow(Phi_l,2) + pow(Eta_l,2));
 		if (DR > 0.3) {									// Isolated electron criterion
-			Iso_lepton = 1;
+			Iso_lepton1 = 1;
+			e_Eta = TMath::Abs(eleEta[j]);
+			if ((elePt[j]>10) && ( ((e_Eta < 1.4442) || (e_Eta > 1.566)) && (e_Eta<2.5))) {
+				Iso_lepton2 = 1;
+			}
 		}
 	}
 	for (Int_t j=0; j<700; j++) {	
 		Phi_l = TMath::Abs(muonPhi[j] - PhotonPhi);
+		if (Phi_l > Pi) {
+			Phi_l = 2*Pi - Phi_l;
+		}
 		Eta_l = TMath::Abs(muonEta[j] - PhotonEta);
 		DR = sqrt(pow(Phi_l,2) + pow(Eta_l,2));
 		if (DR > 0.3) {									// Isolated muon criterion
-			Iso_lepton = 1;
+			Iso_lepton1 = 1;
+			if ((muonPt[j]>10) && (TMath::Abs(muonEta[j])<2.1)) {
+				Iso_lepton2 = 1;
+			}
 		}
 	}
 	
