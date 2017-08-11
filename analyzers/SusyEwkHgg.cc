@@ -2441,6 +2441,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	}
       }
 
+      //inclusive HggRazor
+      if( ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) razorbox = HggRazor;
 
 /*
       //Writing output to tree
