@@ -1945,58 +1945,66 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       TLorentzVector LeptonCandidate;
       if (razorbox == None) {
 	double bestLeptonPt = -1;
-   
-	for( int i = 0; i < nMuons; i++ ) {
-	  if(!isVetoMuon(i)) continue;  
-	  if(muonPt[i] < 15) continue;
-	  if(abs(muonEta[i]) > 2.4) continue;
-	  nLooseMuons++;
-	  if( isTightMuon(i) ) nTightMuons++;
+  
+	std::vector< MuonCandidate > muSelectedCandOneMu;
+	std::vector< ElectronCandidate > eleSelectedCandOneEle;
+	MuonCandidate bestCandOneMu;
+	ElectronCandidate bestCandOneEle;
 
-	  if ( _debug ) cout << "Muon candidate: " << muonPt[i] << " " << bestLeptonPt << "\n";
-	  if (muonPt[i] > bestLeptonPt) {
-	    bestLeptonPt = muonPt[i];
-	    razorbox = OneMu;
-	    lep1Type = 13 * -1 * muonCharge[i];
-	    lep1Pt = muonPt[i];
-	    lep1Eta = muonEta[i];
-	    lep1Phi = muonPhi[i];
-	    lep1PassSelection = 1 + 2 * isTightMuon(i);
-	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.1057);
-
-	    if (!isData ) {
-	      if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+	if (muCand.size() > 0 ) {
+	  for( int i = 0; i < muCand.size(); i++ ) {
+	    MuonCandidate mu = muCand[i];
+	    if ( _debug ) cout << "Muon candidate: " << mu.muon.Pt() << " " << bestLeptonPt << "\n";
+	    //-----------------------------------------
+	    //if the muon's pT is larger than that of
+	    //the current best Lepton pT, make it the
+	    //best lepton candidate
+	    //-----------------------------------------
+	    if (mu.muon.Pt() > bestLeptonPt) {
+	      bestLeptonPt = mu.muon.Pt();
+	      bestCandOneMu = mu;
 	    }
-	  }	  
-	}
+	  } // end of muCand loop
+	      razorbox = OneMu;
+	      lep1Type = 13 * -1 * bestCandOneMu.muonCharge();
+	      lep1Pt = bestCandOneMu.muon.Pt();
+	      lep1Eta = bestCandOneMu.muon.Eta();
+	      lep1Phi = muonPhi[i];
+	      lep1PassSelection = 1 + 2 * bestCandOneMu.isTightMuon();
+	      LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.1057 ); 
 
-	for( int i = 0; i < nElectrons; i++ ) {
-	  if(!isVetoElectron(i)) continue;  
-	  if(elePt[i] < 20) continue;
-	  if(abs(eleEta[i]) > 2.5) continue;
-	  nLooseElectrons++;
-	  if( isTightElectron(i) ) nTightElectrons++;
+	      if (!isData ) {
+	        if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
+	        if ( _debug ) std::cout < "[DEBUG]: best muon: " << "\n-> muPt: " << lep1Pt << std::endl;
+	      }
 
-	  if ( _debug ) cout << "Ele candidate: " << elePt[i] << " " << bestLeptonPt << "\n";
-	  if (elePt[i] > bestLeptonPt) {
-	    bestLeptonPt = elePt[i];
-	    razorbox = OneEle;
-	    lep1Type = 11 * -1 * eleCharge[i];
-	    lep1Pt = elePt[i];
-	    lep1Eta = eleEta[i];
-	    lep1Phi = elePhi[i];
-	    lep1PassSelection = 1 + 2 * isTightElectron(i);
-	    LeptonCandidate.SetPtEtaPhiM( muonPt[i],muonEta[i],muonPhi[i],0.000511);
+	} // end if muCand.size() > 0 loop
+
+	//-----------
+	//Currently editing
+	//-----------
+	if ( eleCand.size() > 0 ) {
+	  for( int i = 0; i < eleCand.size(); i++ ) {
+	     ElectronCandidate ele = eleCand[i];
+	     if ( _debug ) cout << "Ele candidate: " << ele.electron.Pt() << " " << bestLeptonPt << "\n";
+	     if (ele.electron.Pt() > bestLeptonPt) {
+	    	bestLeptonPt = ele.electron.Pt();
+		bestCandOneEle = ele;
+	     }
+	  } // end of eleCand loop
+
+    	  lep1Type = 11 * -1 * bestCandOneEle.eleCharge();
+	  lep1Pt = bestCandOneEle.electron.Pt();
+	  lep1Eta = bestCandOneEle.electron.Eta();
+	  lep1Phi = bestCandOneEle.electron.Phi();
+	  lep1PassSelection = 1 + 2 * bestCandOneEle.isTightElectron();
+	  LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.000511 );
 
 	    if (!isData ) {
 	      if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
 	    }
 
-	  }
-	}
-      }
-
-
+	  } // end of if eleCand.size() > 0 loop
       //----
       //Jets
       //----
