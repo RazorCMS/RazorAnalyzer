@@ -87,7 +87,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
 
-  string analysisTag = "Razor2016_80X";
+  string analysisTag = "Razor2016_MoriondRereco";
+  //string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
 
   //***************************************************
@@ -180,6 +181,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   RazorHelper *helper = 0;
   if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, isFastsimSMS);
   else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, isFastsimSMS);
+  else if (analysisTag == "Razor2017_PromptReco") helper = new RazorHelper("Razor2017_PromptReco", isData, isFastsimSMS);
   else helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
   
 
@@ -187,7 +189,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //Photon Energy Scale and Resolution Corrections
   //--------------------------------
   std::string photonCorrectionPath = "./";
-  // if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
+   if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
 
   EnergyScaleCorrection_class *photonCorrector = 0;
   if (analysisTag == "Razor2015_76X") {
@@ -196,6 +198,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+  } else if (analysisTag == "Razor2017_PromptReco") {
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/2017_PromptReco", photonCorrectionPath.c_str()));
   }
 
   if(!isData) {
@@ -262,7 +266,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="comb";
-  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" ) {
+  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" || analysisTag == "Razor2017_PromptReco" ) {
     if(isFastsimSMS) {
       btagcalib = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
       effMeasType="fastsim";
@@ -2408,9 +2412,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 
 
+      //inclusive HggRazor
+      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) razorbox = HggRazor;
+
 
       //******************************************************
-      //If no leptons were found, don't fill the event
+      //If not fill in any box, don't fill the event
       //******************************************************
       if ( razorbox == None ) continue;
       
@@ -2427,9 +2434,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  smsTrees2D[smsPair]->Fill();
 	}
       }
-
-      //inclusive HggRazor
-      if( ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) razorbox = HggRazor;
 
 /*
       //Writing output to tree
