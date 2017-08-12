@@ -1966,17 +1966,22 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    }
 	  } // end of muCand loop
 	      razorbox = OneMu;
-	      lep1Type = 13 * -1 * bestCandOneMu.muonCharge();
+	      lep1Type = 13 * -1 * bestCandOneMu.muonCharge;
 	      lep1Pt = bestCandOneMu.muon.Pt();
 	      lep1Eta = bestCandOneMu.muon.Eta();
-	      lep1Phi = muonPhi[i];
-	      lep1PassSelection = 1 + 2 * bestCandOneMu.isTightMuon();
+	      lep1Phi = bestCandOneMu.muon.Phi();
+	      lep1PassSelection = 1 + 2 * bestCandOneMu.isTightMuon;
 	      LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.1057 ); 
 
 	      if (!isData ) {
 	        if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
-	        if ( _debug ) std::cout < "[DEBUG]: best muon: " << "\n-> muPt: " << lep1Pt << std::endl;
-	      }
+                if ( _debug )
+                {
+                        std::cout << "[DEBUG]: best muon: " 
+                                << "\n-> muPt: " << lep1Pt 
+                                << std::endl;
+                }
+              }
 
 	} // end if muCand.size() > 0 loop
 
@@ -1993,11 +1998,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	     }
 	  } // end of eleCand loop
 
-    	  lep1Type = 11 * -1 * bestCandOneEle.eleCharge();
+    	  lep1Type = 11 * -1 * bestCandOneEle.eleCharge;
 	  lep1Pt = bestCandOneEle.electron.Pt();
 	  lep1Eta = bestCandOneEle.electron.Eta();
 	  lep1Phi = bestCandOneEle.electron.Phi();
-	  lep1PassSelection = 1 + 2 * bestCandOneEle.isTightElectron();
+	  lep1PassSelection = 1 + 2 * bestCandOneEle.isTightElectron;
 	  LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.000511 );
 
 	    if (!isData ) {
@@ -2005,6 +2010,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    }
 
 	  } // end of if eleCand.size() > 0 loop
+      }//end of one lepton category
+
+
       //----
       //Jets
       //----
