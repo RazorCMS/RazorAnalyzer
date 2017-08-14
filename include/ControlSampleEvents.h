@@ -136,6 +136,10 @@ class ControlSampleEvents {
   Bool_t                  jet2PassCSVLoose;
   Bool_t                  jet2PassCSVMedium;
   Bool_t                  jet2PassCSVTight;
+  Int_t                   nWTags;
+  Int_t                   nTopTags;
+  Float_t                 wTagScaleFactor;
+  Float_t                 topTagScaleFactor;
   Float_t                 MR;
   Float_t                 Rsq;
   Float_t                 RsqnoHF;
@@ -400,6 +404,10 @@ class ControlSampleEvents {
     jet2PassCSVLoose     = 0.0;
     jet2PassCSVMedium    = 0.0;
     jet2PassCSVTight     = 0.0;
+    nWTags               = 0;
+    nTopTags             = 0;
+    wTagScaleFactor      = 1.0; 
+    topTagScaleFactor    = 1.0;
     MR                   = 0.0;
     Rsq                  = 0.0;
     RsqnoHF              = 0.0;
@@ -594,7 +602,10 @@ class ControlSampleEvents {
     tree_->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
     tree_->Branch("genHT",&genHT,"genHT/F");
     tree_->Branch("NISRJets",&NISRJets,"NISRJets/I");
-
+    tree_->Branch("nWTags", &nWTags, "nWTags/I");
+    tree_->Branch("nTopTags", &nTopTags, "nTopTags/I");
+    tree_->Branch("wTagScaleFactor", &wTagScaleFactor, "wTagScaleFactor/F");
+    tree_->Branch("topTagScaleFactor", &topTagScaleFactor, "topTagScaleFactor/F");
     // noise filters
     tree_->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter,"Flag_HBHENoiseFilter/O");
     tree_->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter,"Flag_HBHEIsoNoiseFilter/O");
