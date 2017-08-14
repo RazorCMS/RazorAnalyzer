@@ -233,6 +233,21 @@ public :
    Float_t         jetAllMuonPhi[900];   //[nJets]
    Float_t         jetAllMuonM[900];   //[nJets]
    Float_t         jetPtWeightedDZ[900];   //[nJets]
+   UInt_t          nFatJets;
+   Float_t         fatJetE[900];
+   Float_t         fatJetPt[900];
+   Float_t         fatJetEta[900];
+   Float_t         fatJetPhi[900];
+   Float_t         fatJetCorrectedPt[900];
+   Float_t         fatJetPrunedM[900];
+   Float_t         fatJetTrimmedM[900];
+   Float_t         fatJetFilteredM[900];
+   Float_t         fatJetSoftDropM[900];
+   Float_t         fatJetCorrectedSoftDropM[900];
+   Float_t         fatJetUncorrectedSoftDropM[900];
+   Float_t         fatJetTau1[900];
+   Float_t         fatJetTau2[900];
+   Float_t         fatJetTau3[900];
    Float_t         metPt;
    Float_t         metPhi;
    Float_t         sumMET;
@@ -564,6 +579,21 @@ public :
    TBranch        *b_jetAllMuonPhi;   //!
    TBranch        *b_jetAllMuonM;   //!
    TBranch        *b_jetPtWeightedDZ;   //!
+   TBranch        *b_nFatJets;
+   TBranch        *b_fatJetE;
+   TBranch        *b_fatJetPt;
+   TBranch        *b_fatJetEta;
+   TBranch        *b_fatJetPhi;
+   TBranch        *b_fatJetCorrectedPt;
+   TBranch        *b_fatJetPrunedM;
+   TBranch        *b_fatJetTrimmedM;
+   TBranch        *b_fatJetFilteredM;
+   TBranch        *b_fatJetSoftDropM;
+   TBranch        *b_fatJetCorrectedSoftDropM;
+   TBranch        *b_fatJetUncorrectedSoftDropM;
+   TBranch        *b_fatJetTau1;
+   TBranch        *b_fatJetTau2;
+   TBranch        *b_fatJetTau3;
    TBranch        *b_metPt;   //!
    TBranch        *b_metPhi;   //!
    TBranch        *b_sumMET;   //!
@@ -986,6 +1016,21 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("jetAllMuonPhi", jetAllMuonPhi, &b_jetAllMuonPhi);
    fChain->SetBranchAddress("jetAllMuonM", jetAllMuonM, &b_jetAllMuonM);
    fChain->SetBranchAddress("jetPtWeightedDZ", jetPtWeightedDZ, &b_jetPtWeightedDZ);
+   fChain->SetBranchAddress("nFatJets", &nFatJets, &b_nFatJets);
+   fChain->SetBranchAddress("fatJetE", fatJetE, &b_fatJetE);
+   fChain->SetBranchAddress("fatJetPt", fatJetPt, &b_fatJetPt);
+   fChain->SetBranchAddress("fatJetEta", fatJetEta, &b_fatJetEta);
+   fChain->SetBranchAddress("fatJetPhi", fatJetPhi, &b_fatJetPhi);
+   fChain->SetBranchAddress("fatJetCorrectedPt", fatJetCorrectedPt, &b_fatJetCorrectedPt);
+   fChain->SetBranchAddress("fatJetPrunedM", fatJetPrunedM, &b_fatJetPrunedM);
+   fChain->SetBranchAddress("fatJetTrimmedM", fatJetTrimmedM, &b_fatJetTrimmedM);
+   fChain->SetBranchAddress("fatJetFilteredM", fatJetFilteredM, &b_fatJetFilteredM);
+   fChain->SetBranchAddress("fatJetSoftDropM", fatJetSoftDropM, &b_fatJetSoftDropM);
+   fChain->SetBranchAddress("fatJetCorrectedSoftDropM", fatJetCorrectedSoftDropM, &b_fatJetCorrectedSoftDropM);
+   fChain->SetBranchAddress("fatJetUncorrectedSoftDropM", fatJetUncorrectedSoftDropM, &b_fatJetUncorrectedSoftDropM);
+   fChain->SetBranchAddress("fatJetTau1", fatJetTau1, &b_fatJetTau1);
+   fChain->SetBranchAddress("fatJetTau2", fatJetTau2, &b_fatJetTau2);
+   fChain->SetBranchAddress("fatJetTau3", fatJetTau3, &b_fatJetTau3);
    fChain->SetBranchAddress("metPt", &metPt, &b_metPt);
    fChain->SetBranchAddress("metPhi", &metPhi, &b_metPhi);
    fChain->SetBranchAddress("sumMET", &sumMET, &b_sumMET);
