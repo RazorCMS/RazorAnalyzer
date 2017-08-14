@@ -21,10 +21,14 @@ using namespace std;
 enum SusyEwkHggBox {
   Zmm = 0,
   Zee = 1,
-  Zme = 2, 
+  Emu = 2, 
   OneMu = 3,
   OneEle = 4,
-  HggRazor = 5,
+  HighPt = 5,
+  Hbb = 6,
+  Zbb = 7,
+  HighRes = 8,
+  LowRes = 9,
   None = 10 
 };
 
@@ -1839,17 +1843,17 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       }
 
 	//-------------------------------
-	//3) Look for Zme candidate
+	//3) Look for Emu candidate
 	//-------------------------------
 	if (razorbox == None) {
               //Find two electrons with the highest pt
-              int ZmeMuonIndex = -1;
-	      int ZmeEleIndex = -1;
+              int EmuMuonIndex = -1;
+	      int EmuEleIndex = -1;
 	      double bestDileptonPt = -1;
-	      std::vector< ElectronCandidate > eleSelectedCandZme;
-	      std::vector< MuonCandidate > muSelectedCandZme;
-	      ElectronCandidate bestZmeEleCand;
-	      MuonCandidate bestZmeMuCand;
+	      std::vector< ElectronCandidate > eleSelectedCandEmu;
+	      std::vector< MuonCandidate > muSelectedCandEmu;
+	      ElectronCandidate bestEmuEleCand;
+	      MuonCandidate bestEmuMuCand;
 	      if ( eleCand.size() > 0 && muCand.size() > 0) {
 		for ( size_t i = 0; i < eleCand.size(); i++ )
                 {
@@ -1886,10 +1890,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			bestDileptonPt = mu.muon.Pt() + ele.electron.Pt();
 			ZCandidate = mu.muon + ele.electron;
 			if ( _debug ) std::cout << "assign electron and muon candidates" << std::endl;
-			bestZmeMuCand = mu;
-			bestZmeEleCand = ele;
-			ZmeMuonIndex = mu.Index;
-			ZmeEleIndex = ele.Index;
+			bestEmuMuCand = mu;
+			bestEmuEleCand = ele;
+			EmuMuonIndex = mu.Index;
+			EmuEleIndex = ele.Index;
 	
 		   } //best pt if
  
@@ -1900,21 +1904,21 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	//just use this container for convenience
 	//to parse the data into TTree
 	//---------------------------------------
-	muSelectedCandZme.push_back(bestZmeMuCand);
-	eleSelectedCandZme.push_back(bestZmeEleCand);
+	muSelectedCandEmu.push_back(bestEmuMuCand);
+	eleSelectedCandEmu.push_back(bestEmuEleCand);
 
 	//Fill in selected lepton info
-	razorbox = Zme;
-	lep1Type = 13 * -1 * bestZmeMuCand.muonCharge;
-	lep1Pt = bestZmeMuCand.muon.Pt();
-	lep1Eta = bestZmeMuCand.muon.Eta();
-	lep1Phi = bestZmeMuCand.muon.Phi();
-	lep1PassSelection = 1 + 2 * bestZmeMuCand.isTightMuon;
-	lep2Type = 11 * -1 * bestZmeEleCand.eleCharge;
-	lep2Pt = bestZmeEleCand.electron.Pt();
-	lep2Eta = bestZmeEleCand.electron.Eta();
-	lep2Phi = bestZmeEleCand.electron.Phi();
-	lep2PassSelection = 1 + 2 * bestZmeEleCand.isTightElectron;
+	razorbox = Emu;
+	lep1Type = 13 * -1 * bestEmuMuCand.muonCharge;
+	lep1Pt = bestEmuMuCand.muon.Pt();
+	lep1Eta = bestEmuMuCand.muon.Eta();
+	lep1Phi = bestEmuMuCand.muon.Phi();
+	lep1PassSelection = 1 + 2 * bestEmuMuCand.isTightMuon;
+	lep2Type = 11 * -1 * bestEmuEleCand.eleCharge;
+	lep2Pt = bestEmuEleCand.electron.Pt();
+	lep2Eta = bestEmuEleCand.electron.Eta();
+	lep2Phi = bestEmuEleCand.electron.Phi();
+	lep2PassSelection = 1 + 2 * bestEmuEleCand.isTightElectron;
 
 	//for MC apply lepton eff scale factor
 	 if (!isData ) {
@@ -1936,7 +1940,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	if ( _debug ) std::cout << "[DEBUG]: dilepton mass-> " << dileptonMass << "dilepton pT->" << bestDileptonPt << std::endl;
 	
 	} // end if eleCand > 0 and muCand > 0
-}	// end of Zme loop
+}	// end of Emu loop
 
 
       //-------------------------------
@@ -2429,7 +2433,23 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 
       //inclusive HggRazor
-      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) razorbox = HggRazor;
+      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) {
+              //HighPt Box
+              if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
+
+              //Hbb Box
+              else if ( mbbH > 110.0 && mbbH < 140.0 ) razorbox = Hbb;
+
+              //Zbb Box
+              else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
+
+              //HighRes Box
+              else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 ) razorbox = HighRes;
+
+              //LowRes Box
+              else razorbox = LowRes;
+      }
+//razorbox = HggRazor;
 
 
       //******************************************************
