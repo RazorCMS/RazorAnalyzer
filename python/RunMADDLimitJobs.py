@@ -58,6 +58,7 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += ' --dir %s --model %s %s %i --mLSP %i %s\n'%(
             submitDir, model, particleString, mg, mchi, optString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
+    script += 'cp %s/RazorInclusiveMADD_* %s/\n'%(submitDir,combineDir) 
     script += 'cd ../..\n'
     script += 'rm -rf $TWD\n'
     
