@@ -861,10 +861,10 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 }
 
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
-    //puppiSoftDropCorrFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
-    //puppiSoftDropCorr_Gen = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_gen");
-    //puppiSoftDropCorr_RecoCentral = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_0eta1v3");
-    //puppiSoftDropCorr_RecoForward = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
+    puppiSoftDropCorrFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
+    puppiSoftDropCorr_Gen = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_gen");
+    puppiSoftDropCorr_RecoCentral = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_0eta1v3");
+    puppiSoftDropCorr_RecoForward = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
 }
 
 
@@ -1985,15 +1985,13 @@ float RazorHelper::getSoftDropMassCorrectionForWTag(float pt, float eta) {
     // The mass correction is explained here:
     // https://github.com/cms-jet/PuppiSoftdropMassCorr
 
-    // NOTE: disabling the correction for now due to a ROOT dictionary issue in CMSSW_7
-    //float genCorr = puppiSoftDropCorr_Gen->Eval(pt);
-    float genCorr = 1.0;
+    float genCorr = puppiSoftDropCorr_Gen->Eval(pt);
     float recoCorr = 1.0;
     if( fabs(eta) < 1.3 ) {
-        //recoCorr = puppiSoftDropCorr_RecoCentral->Eval(pt);
+        recoCorr = puppiSoftDropCorr_RecoCentral->Eval(pt);
     }
     else {
-        //recoCorr = puppiSoftDropCorr_RecoForward->Eval(pt);
+        recoCorr = puppiSoftDropCorr_RecoForward->Eval(pt);
     }
     return genCorr * recoCorr;
 }
