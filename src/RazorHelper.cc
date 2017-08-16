@@ -2088,6 +2088,9 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Note: only consider hadronic Ws
         if (matchesGenW && ra->isHadronicDecay(genWIndex)) { 
             float genWPt = ra->gParticlePt[genWIndex];
+            if ( genWPt > wTagEffFullsim->GetXaxis()->GetXmax() ) {
+                genWPt = wTagEffFullsim->GetXaxis()->GetXmax() * 0.999;
+            }
             float eff = wTagEffFullsim->GetBinContent(
                     wTagEffFullsim->FindFixBin(genWPt));
             jetInfo.wTagScaleFactor *= getPassOrFailScaleFactor(
@@ -2118,6 +2121,9 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Note: consider tops regardless of decay mode
         if (matchesGenTop) {
             float genTopPt = ra->gParticlePt[genTopIndex];
+            if ( genTopPt > topTagEffFullsim->GetXaxis()->GetXmax() ) {
+                genTopPt = topTagEffFullsim->GetXaxis()->GetXmax() * 0.999;
+            }
             float eff = topTagEffFullsim->GetBinContent(
                     topTagEffFullsim->FindFixBin(genTopPt));
             jetInfo.topTagScaleFactor *= getPassOrFailScaleFactor(
