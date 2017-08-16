@@ -249,6 +249,9 @@ public :
    Float_t         fatJetTau1[900];
    Float_t         fatJetTau2[900];
    Float_t         fatJetTau3[900];
+   Float_t         fatJetMaxSubjetCSV[900];
+   Bool_t          fatJetPassIDLoose[900];
+   Bool_t          fatJetPassIDTight[900];
    Float_t         metPt;
    Float_t         metPhi;
    Float_t         sumMET;
@@ -596,6 +599,9 @@ public :
    TBranch        *b_fatJetTau1;
    TBranch        *b_fatJetTau2;
    TBranch        *b_fatJetTau3;
+   TBranch        *b_fatJetMaxSubjetCSV;
+   TBranch        *b_fatJetPassIDLoose;
+   TBranch        *b_fatJetPassIDTight;
    TBranch        *b_metPt;   //!
    TBranch        *b_metPhi;   //!
    TBranch        *b_sumMET;   //!
@@ -1034,6 +1040,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("fatJetTau1", fatJetTau1, &b_fatJetTau1);
    fChain->SetBranchAddress("fatJetTau2", fatJetTau2, &b_fatJetTau2);
    fChain->SetBranchAddress("fatJetTau3", fatJetTau3, &b_fatJetTau3);
+   fChain->SetBranchAddress("fatJetMaxSubjetCSV", fatJetMaxSubjetCSV, &b_fatJetMaxSubjetCSV);
+   fChain->SetBranchAddress("fatJetPassIDLoose", fatJetPassIDLoose, &b_fatJetPassIDLoose);
+   fChain->SetBranchAddress("fatJetPassIDTight", fatJetPassIDTight, &b_fatJetPassIDTight);
    fChain->SetBranchAddress("metPt", &metPt, &b_metPt);
    fChain->SetBranchAddress("metPhi", &metPhi, &b_metPhi);
    fChain->SetBranchAddress("sumMET", &sumMET, &b_sumMET);

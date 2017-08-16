@@ -314,6 +314,9 @@ void RazorAnalyzer::EnableFatJets(){
     fChain->SetBranchStatus("fatJetTau1", 1);
     fChain->SetBranchStatus("fatJetTau2", 1);
     fChain->SetBranchStatus("fatJetTau3", 1);
+    fChain->SetBranchStatus("fatJetMaxSubjetCSV", 1);
+    fChain->SetBranchStatus("fatJetPassIDLoose", 1);
+    fChain->SetBranchStatus("fatJetPassIDTight", 1);
 }
 
 void RazorAnalyzer::EnableMet(){

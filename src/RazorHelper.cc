@@ -2037,11 +2037,10 @@ bool RazorHelper::isWTaggedAK8Jet(RazorAnalyzer *ra, uint iJet, bool isData, int
 
 bool RazorHelper::isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet) {
     // See comments at CalcAK8JetInfo()
-    if (ra->fatJetCorrectedPt[iJet] < 400) return false;
     float softDropMass = ra->fatJetCorrectedSoftDropM[iJet];
     if (softDropMass < 105 || softDropMass > 210) return false;
     if (ra->fatJetTau3[iJet] / ra->fatJetTau2[iJet] > 0.46) return false;
-    // TODO -- require max subjet b-tag CSV > .5426
+    if (ra->fatJetMaxSubjetCSV[iJet] < 0.5426) return false;
     return true;
 }
 
@@ -2063,6 +2062,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
     const float W_TAG_SF_UP = 1.06;
     const float W_TAG_SF_DOWN = 0.94;
 
+    const int TOP_TAG_PT_CUT = 400;
     const float TOP_TAG_SF = 1.05;
     const float TOP_TAG_SF_UP = 1.12;
     const float TOP_TAG_SF_DOWN = 1.01;
@@ -2074,6 +2074,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Baseline cuts on pt and eta
         if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue; 
         if ( fabs(ra->fatJetEta[iJet]) > AK8_ETA_CUT ) continue;
+        if ( !ra->fatJetPassIDLoose[iJet] ) continue;
 
         // W tagging
         bool isWTagged = isWTaggedAK8Jet(ra, iJet, isData);
@@ -2105,6 +2106,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         }
 
         // Top tagging
+        if ( ra->fatJetCorrectedPt[iJet] < TOP_TAG_PT_CUT ) continue;
         bool isTopTagged = isTopTaggedAK8Jet(ra, iJet);
         if ( isTopTagged ) {
             jetInfo.nTopTags++;    
