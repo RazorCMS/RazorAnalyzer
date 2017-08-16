@@ -548,6 +548,7 @@ void RazorHelper::loadTag_Razor2016_MoriondRereco() {
     loadBTag_Razor2016_MoriondRereco();
     loadTrigger_Razor2016_MoriondRereco();
     loadJECs_Razor2016_MoriondRereco();
+    loadAK8JetTag_Razor2016_MoriondRereco();
 }
 
 
@@ -859,6 +860,12 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
   
 }
 
+void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
+    puppiSoftDropCorrFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
+    puppiSoftDropCorr_Gen = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_gen");
+    puppiSoftDropCorr_RecoCentral = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_0eta1v3");
+    puppiSoftDropCorr_RecoForward = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
+}
 
 
 ////////////////////////////////////////////////
@@ -1973,3 +1980,110 @@ float RazorHelper::getElectronResCorrection( float eta ) {
 float RazorHelper::getCorrectedElectronPt( float pt, float eta ) {
     return gRandom->Gaus( pt*getElectronScaleCorrection(eta), getElectronResCorrection(eta) );
 }
+
+float RazorHelper::getSoftDropMassCorrectionForWTag(float pt, float eta) {
+    // The mass correction is explained here:
+    // https://github.com/cms-jet/PuppiSoftdropMassCorr
+
+    float genCorr = puppiSoftDropCorr_Gen->Eval(pt);
+    float recoCorr = 1.0;
+    if( fabs(eta) < 1.3 ) {
+        recoCorr = puppiSoftDropCorr_RecoCentral->Eval(pt);
+    }
+    else {
+        recoCorr = puppiSoftDropCorr_RecoForward->Eval(pt);
+    }
+    return genCorr * recoCorr;
+}
+
+bool RazorHelper::isWTaggedAK8Jet(RazorAnalyzer *ra, uint iJet, bool isData, int updown) {
+    // updown: int indicating upward/downward variation to apply.
+    //  if positive, will vary soft drop mass upward according to the uncertainty.
+    //  if negative, will vary it downward.
+    //  if zero, will use the nominal mass
+
+    // See comments at CalcAK8JetInfo()
+    float softDropMass = ra->fatJetUncorrectedSoftDropM[iJet];
+    if (!isData) {
+        softDropMass *= getSoftDropMassCorrectionForWTag(
+                ra->fatJetCorrectedPt[iJet], ra->fatJetEta[iJet]);
+        if (updown > 0) {
+            softDropMass *= 1.0094;
+        }
+        else if (updown < 0) {
+            softDropMass /= 1.0094;
+        }
+    }
+    if (softDropMass < 65 || softDropMass > 105) return false;
+    if (ra->fatJetTau2[iJet] / ra->fatJetTau1[iJet] > 0.4) return false;
+    return true;
+}
+
+bool RazorHelper::isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet) {
+    // See comments at CalcAK8JetInfo()
+    if (ra->fatJetCorrectedPt[iJet] < 400) return false;
+    float softDropMass = ra->fatJetCorrectedSoftDropM[iJet];
+    if (softDropMass < 105 || softDropMass > 210) return false;
+    if (ra->fatJetTau3[iJet] / ra->fatJetTau2[iJet] > 0.46) return false;
+    // TODO -- require max subjet b-tag CSV > .5426
+    return true;
+}
+
+
+RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isData) {
+    // For the 2016 inclusive razor analysis,
+    // we use the top/W tagging guidelines listed here:
+    // https://twiki.cern.ch/twiki/bin/view/CMS/JetWtagging
+    // https://twiki.cern.ch/twiki/bin/view/CMS/JetTopTagging
+    // I'm hard-coding the cuts and scale factor/uncertainty
+    // values here for now; if they change often in the future
+    // it might be worth breaking them out into a separate struct
+    // that is passed into this function.
+
+    const int AK8_PT_CUT = 200;
+    const float AK8_ETA_CUT = 2.4;
+
+    const float W_TAG_SF = 1.0;
+    const float W_TAG_SF_UP = 1.06;
+    const float W_TAG_SF_DOWN = 0.94;
+
+    const float TOP_TAG_SF = 1.05;
+    const float TOP_TAG_SF_UP = 1.12;
+    const float TOP_TAG_SF_DOWN = 1.01;
+
+    AK8JetInfo jetInfo;
+
+    // Loop over AK8 jets to count tags and update scale factors
+    for (unsigned int iJet = 0; iJet < ra->nFatJets; iJet++) {
+        // Baseline cuts on pt and eta
+        if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue; 
+        if ( fabs(ra->fatJetEta[iJet]) > AK8_ETA_CUT ) continue;
+
+        // W tagging
+        if ( isWTaggedAK8Jet(ra, iJet, isData) ) {
+            jetInfo.nWTags++;
+            jetInfo.wTagScaleFactor *= W_TAG_SF;
+            jetInfo.wTagScaleFactor_Tau21Up *= W_TAG_SF_UP;
+            jetInfo.wTagScaleFactor_Tau21Down *= W_TAG_SF_DOWN;
+        }
+        if ( isWTaggedAK8Jet(ra, iJet, isData, 1) ) {
+            jetInfo.nWTags_SDMassUp++;
+        }
+        if ( isWTaggedAK8Jet(ra, iJet, isData, -1) ) {
+            jetInfo.nWTags_SDMassDown++;
+        }
+        // TODO: apply appropriate SF for failing jets
+
+        // top tagging
+        if ( isTopTaggedAK8Jet(ra, iJet) ) {
+            jetInfo.nTopTags++;    
+            jetInfo.topTagScaleFactor *= TOP_TAG_SF;
+            jetInfo.topTagScaleFactor_Tau32Up *= TOP_TAG_SF_UP;
+            jetInfo.topTagScaleFactor_Tau32Down *= TOP_TAG_SF_DOWN;
+        }
+        // TODO: apply appropriate SF for failing jets
+    }
+
+    return jetInfo;
+}
+

@@ -1255,6 +1255,15 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       std::cout << "btagW_up:  " << events->btagW_up << std::endl;
       std::cout << "btag_down:  " << events->btagW_down << std::endl;
       */
+
+      //***************************************************************
+      //W/top tagging
+      //***************************************************************
+      RazorHelper::AK8JetInfo jetInfo = helper.CalcAK8JetInfo(this, isData);
+      events->nWTags = jetInfo.nWTags;
+      events->nTopTags = jetInfo.nTopTags;
+      events->wTagScaleFactor = jetInfo.wTagScaleFactor;
+      events->topTagScaleFactor = jetInfo.topTagScaleFactor;
       
       events->MHT = sqrt(mhx*mhx + mhy*mhy);
       events->MHTnoHF = sqrt(mhx_nohf*mhx_nohf + mhy_nohf*mhy_nohf);
@@ -1329,8 +1338,13 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       TLorentzVector PFMETnoHFType1;
       PFMETnoHFType1.SetPxPyPzE(PFMetnoHFX, PFMetnoHFY, 0, sqrt(PFMetnoHFX*PFMetnoHFX + PFMetnoHFY*PFMetnoHFY));
       
-      //TLorentzVector MyMET = PFMETCustomType1;
-      TLorentzVector MyMET = PFMETMuEGCleanCorr; //Using this for V3.13 ntuples run on 2017 Feb 03 reMiniAOD
+      TLorentzVector MyMET;
+      if(isData) {
+          MyMET = PFMETMuEGCleanCorr; //Using this for V3.13 ntuples run on 2017 Feb 03 reMiniAOD
+      }
+      else {
+          MyMET = PFMETCustomType1;
+      }
 	
       if (printSyncDebug) {
 	cout << "UnCorrectedMET: " << PFMETUnCorr.Pt() << " " << PFMETUnCorr.Phi() << "\n";

@@ -248,6 +248,7 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_superClusterY", 1);
     fChain->SetBranchStatus("pho_superClusterZ", 1);
     fChain->SetBranchStatus("pho_hasPixelSeed", 1);
+    fChain->SetBranchStatus("pho_isStandardPhoton", 1);
     fChain->SetBranchStatus("pho_passHLTFilter", 1);
     fChain->SetBranchStatus("pho_convType", 1);
     fChain->SetBranchStatus("pho_convTrkZ", 1);
@@ -298,11 +299,21 @@ void RazorAnalyzer::EnableJets(){
 }
 
 void RazorAnalyzer::EnableFatJets(){
-    // fChain->SetBranchStatus("nFatJets", 1);
-    // fChain->SetBranchStatus("fatJetE", 1);
-    // fChain->SetBranchStatus("fatJetPt", 1);
-    // fChain->SetBranchStatus("fatJetEta", 1);
-    // fChain->SetBranchStatus("fatJetPhi", 1);
+    fChain->SetBranchStatus("nFatJets", 1);
+    fChain->SetBranchStatus("fatJetE", 1);
+    fChain->SetBranchStatus("fatJetPt", 1);
+    fChain->SetBranchStatus("fatJetEta", 1);
+    fChain->SetBranchStatus("fatJetPhi", 1);
+    fChain->SetBranchStatus("fatJetCorrectedPt", 1);
+    fChain->SetBranchStatus("fatJetPrunedM", 1);
+    fChain->SetBranchStatus("fatJetTrimmedM", 1);
+    fChain->SetBranchStatus("fatJetFilteredM", 1);
+    fChain->SetBranchStatus("fatJetSoftDropM", 1);
+    fChain->SetBranchStatus("fatJetCorrectedSoftDropM", 1);
+    fChain->SetBranchStatus("fatJetUncorrectedSoftDropM", 1);
+    fChain->SetBranchStatus("fatJetTau1", 1);
+    fChain->SetBranchStatus("fatJetTau2", 1);
+    fChain->SetBranchStatus("fatJetTau3", 1);
 }
 
 void RazorAnalyzer::EnableMet(){

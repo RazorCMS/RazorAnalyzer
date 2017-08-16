@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p13_05Mar2017"
+VERSION = "V3p15_11Aug2017"
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -9,11 +9,6 @@ TREETYPES = { '1L':'OneLeptonFull',
               'VetoTau':'VetoTau',
               'Photon':'PhotonAddToMET',
               'Signal':'',
-              '2LNoSkim':'DileptonFull_Inclusive',
-              '2LAbsolutelyNoSkim':'DileptonFull_NoEventSelection',
-              'LiteZEle':'',
-              'LiteZMu':'',
-              '1LSusySync':'OneLeptonFull',
               }
 ANALYZERS = { '1L':'RazorControlRegions',
               '1LInv':'RazorControlRegions',
@@ -23,11 +18,6 @@ ANALYZERS = { '1L':'RazorControlRegions',
               'VetoTau':'RazorControlRegions',
               'Photon':'RazorControlRegions',
               'Signal':'FullRazorInclusive',
-              '2LNoSkim':'RazorControlRegions',
-              '2LAbsolutelyNoSkim':'RazorControlRegions',
-              'LiteZEle':'RazorLiteZ',
-              'LiteZMu':'RazorLiteZ',
-              '1LSusySync':'RazorControlRegions',
               }
 #adapt to Si's file naming system
 TREETYPEEXT = TREETYPES.copy()
@@ -44,18 +34,10 @@ SKIMS = { '1L':'SingleLeptonSkim',
           'VetoTau':'',
           'Photon':'',
           'Signal':'',
-          '2LNoSkim':'DileptonSkim',
-          '2LAbsolutelyNoSkim':'',
-          'LiteZEle':'',
-          'LiteZMu':'',
-          '1LSusySync':'SingleLeptonSkim',
           }
 DIR = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/'+VERSION
 DIRS = { tag:DIR+'/'+TREETYPES[tag] for tag in TREETYPES }
 DIRS['Signal'] = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION+'/Signal'
-DIRS['LiteZEle'] = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorLiteZ/2016/'+VERSION+'/Electron'
-DIRS['LiteZMu'] = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorLiteZ/2016/'+VERSION+'/Muon'
-DIRS['1LSusySync'] = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/'+VERSION+'/'+TREETYPES['1LSusySync']
 
 OPTIONS = { '1L':1101,
             '1LInv':2102,
@@ -65,11 +47,6 @@ OPTIONS = { '1L':1101,
             'VetoTau':1009,
             'Photon':5505,
             'Signal':10,
-            '2LNoSkim':203,
-            '2LAbsolutelyNoSkim':3,
-            'LiteZEle':1,
-            'LiteZMu':2,
-            '1LSusySync':101,
           }
 
 SUFFIXES = { '1L':'',
@@ -80,11 +57,6 @@ SUFFIXES = { '1L':'',
              'VetoTau':'',
              'Photon':'_NoPho',
              'Signal':'',
-             '2LNoSkim':'',
-             '2LAbsolutelyNoSkim':'',
-             'LiteZEle':'',
-             'LiteZMu':'',
-             '1LSusySync':'',
              }
 
 SAMPLES = {}
@@ -167,22 +139,9 @@ SAMPLES['1L'] = {
                 'ZJetsToNuNu_HT-1200To2500_13TeV-madgraph',
                 'ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph',
             ],
-        "TTJetsInclusive":[
-                #'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-            ],
         }
 SAMPLES['1LInv'] = SAMPLES['1L'].copy()
 SAMPLES['2L'] = SAMPLES['1L'].copy()
-SAMPLES['2LNoSkim'] = { "DYJets":['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'] }
-SAMPLES['2LNoSkim']['TTJets'] = SAMPLES['1L']['TTJets']
-SAMPLES['2LNoSkim']['Other'] = SAMPLES['1L']['Other']
-SAMPLES['2LAbsolutelyNoSkim'] = { 
-                "DYJets":['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
-                "DYJetsNLO":['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'] }
 SAMPLES['2LInv'] = SAMPLES['1L'].copy()
 SAMPLES['VetoL'] = SAMPLES['1L'].copy()
 SAMPLES['VetoTau'] = SAMPLES['1L'].copy()
@@ -226,12 +185,6 @@ SAMPLES['Signal']['TTJets2L'] = [
                 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ]
 del SAMPLES['Signal']['TTJets']
-SAMPLES['LiteZEle'] = SAMPLES['2LAbsolutelyNoSkim'].copy()
-SAMPLES['LiteZMu'] = SAMPLES['2LAbsolutelyNoSkim'].copy()
-SAMPLES['1LSusySync'] = {}
-SAMPLES['1LSusySync']["TTJets"] = SAMPLES['1L']['TTJets']
-SAMPLES['1LSusySync']["WJets"] = SAMPLES['1L']['WJets']
-SAMPLES['1LSusySync']["SingleTop"] = SAMPLES['1L']['SingleTop']
 
 DATA = {}
 DATA['1L'] = {
@@ -258,8 +211,6 @@ DATA['1L'] = {
         }
 DATA['1LInv'] = DATA['1L'].copy()
 DATA['2L'] = DATA['1L'].copy()
-DATA['2LNoSkim'] = DATA['1L'].copy()
-DATA['2LAbsolutelyNoSkim'] = DATA['1L'].copy()
 DATA['2LInv'] = DATA['1L'].copy()
 DATA['VetoL'] = { 'HTMHT':[
                 'HTMHT_2016B_03Feb2017',
@@ -286,9 +237,3 @@ DATA['Photon'] = {
         }
 DATA['Signal'] = DATA['1L'].copy()
 DATA['Signal']["HTMHT"] = copy.copy(DATA['VetoL']['HTMHT'])
-DATA['LiteZEle'] = {}
-DATA['LiteZEle']['SingleElectron'] = copy.copy(DATA['1L']['SingleElectron'])
-DATA['LiteZMu'] = {}
-DATA['LiteZMu']['SingleMuon'] = copy.copy(DATA['1L']['SingleMuon'])
-DATA['1LSusySync'] = {}
-DATA['1LSusySync']['HTMHT'] = copy.copy(DATA['VetoL']['HTMHT'])

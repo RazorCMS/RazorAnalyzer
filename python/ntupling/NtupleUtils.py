@@ -9,7 +9,7 @@ import glob
 import argparse
 from subprocess import call, check_output
 
-from ControlRegionNtuples2016_V3p13 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
@@ -40,6 +40,8 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
     filesperjob = 3
+    if isData:
+        filesperjob = 9
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
@@ -63,7 +65,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
                     cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
-                        DIRS[tag].replace('eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src',
+                        DIRS[tag].replace('/eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src',
                         label]
                     print ' '.join(cmd)
                     if submit:
@@ -269,13 +271,6 @@ if __name__ == '__main__':
     skim = not args.noSkim
     label = args.label
 
-    #check if EOS is mounted
-    if not os.path.isdir('eos/cms/store'):
-#        sys.exit("Please mount EOS under ./eos before using this tool.")
-        cmdeos = ['/afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select','-b','fuse','mount','eos']
-        call(cmdeos)
-
-
     print "Analyzer:",analyzer
     print "Tag:",tag
 
@@ -323,6 +318,3 @@ if __name__ == '__main__':
     if args.copyLocal:
         print "Copy files locally..."
         copyLocal(analyzer,tag,isData,skim,label=label)
-
-    unmount = ['/afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select','-b','fuse','umount','eos']
-    call(unmount)

@@ -17,6 +17,8 @@
 #include "SimpleJetResolution.h"
 #include "BTagCalibrationStandalone.h"
 
+#include "RazorAnalyzer.h"
+
 class RazorHelper {
 
     public:
@@ -90,6 +92,41 @@ class RazorHelper {
         // electron scale corrections
         float getCorrectedElectronPt( float pt, float eta );
 
+        // top/W tagging
+
+        // This struct holds a summary of top/W tags
+        // in a RazorAnalyzer event.  See these twikis for
+        // details on the tagging procedure:
+        // https://twiki.cern.ch/twiki/bin/view/CMS/JetWtagging
+        // https://twiki.cern.ch/twiki/bin/view/CMS/JetTopTagging
+        struct AK8JetInfo {
+            // Number of W-tagged AK8 jets
+            int nWTags = 0;
+            // Number of tags under variation of the softdrop mass scale
+            int nWTags_SDMassUp = 0;
+            int nWTags_SDMassDown = 0;
+
+            // MC event weight to correct W-tag efficiency
+            float wTagScaleFactor = 1.0;
+            // With tau_21 efficiency varied
+            float wTagScaleFactor_Tau21Up = 1.0;
+            float wTagScaleFactor_Tau21Down = 1.0;
+
+            // Number of top-tagged AK8 jets
+            int nTopTags = 0;
+            
+            // MC event weight to correct top-tag efficiency
+            float topTagScaleFactor = 1.0;
+            // With tau_32 efficiency varied
+            float topTagScaleFactor_Tau32Up = 1.0;
+            float topTagScaleFactor_Tau32Down = 1.0;
+        };
+
+        float getSoftDropMassCorrectionForWTag(float pt, float eta);
+        bool isWTaggedAK8Jet(RazorAnalyzer *ra, uint iJet, bool isData, int updown=0);
+        bool isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet);
+        AK8JetInfo CalcAK8JetInfo(RazorAnalyzer *ra, bool isData);
+
     private:
         // member functions
         void loadTag_Razor2015(); // Final set of files used in 2015
@@ -149,6 +186,7 @@ class RazorHelper {
 	void loadTrigger_Razor2016_MoriondRereco();
 	void loadJECs_Razor2016_MoriondRereco();
         void loadBTag_Razor2016_MoriondRereco();
+        void loadAK8JetTag_Razor2016_MoriondRereco();
 
         // for Razor2016G 80X tag
         void loadPileup_Razor2016G();
@@ -280,6 +318,12 @@ class RazorHelper {
         BTagCalibrationReader *btagreaderfastsim;
         BTagCalibrationReader *btagreaderfastsim_up;
         BTagCalibrationReader *btagreaderfastsim_do;
+
+        // for AK8 jet tags
+        TFile *puppiSoftDropCorrFile;
+        TF1 *puppiSoftDropCorr_Gen;
+        TF1 *puppiSoftDropCorr_RecoCentral;
+        TF1 *puppiSoftDropCorr_RecoForward;
 };
 
 #endif

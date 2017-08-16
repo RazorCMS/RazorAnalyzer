@@ -13,7 +13,7 @@ from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 from framework import Config
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -25,6 +25,10 @@ def getBranchingFracsFromModelName(model):
     yBR = float(model[model.find('y')+1:].replace(
         'p','.'))
     return xBR, yBR
+
+def getCardName(modelName, box, outDir):
+    return outDir+'/RazorInclusiveMADD_%s_%s.txt'%(
+                modelName, box)
 
 
 if __name__ == "__main__":
@@ -196,8 +200,8 @@ if __name__ == "__main__":
                     curBox, unrollBins=unrollBins)
 
         # write histograms to ROOT file
-        outFileName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.root'%(
-                lumi*1.0/1000.,curBox)
+        cardName = getCardName(modelName, curBox, outDir)
+        outFileName = cardName.replace('.txt', '.root')
         outFile = rt.TFile(outFileName, 'recreate')
         sortedKeys = sorted(hists.keys())
         for key in sortedKeys:
@@ -208,8 +212,6 @@ if __name__ == "__main__":
             hists[key].Write()
         outFile.Close()
 
-        # write combine card
-        cardName = outFileName.replace('.root','.txt')
         writeDataCard_th1(curBox,cardName,hists,samples)
 
     if args.noCombine: 
@@ -227,8 +229,7 @@ if __name__ == "__main__":
 
     # run combine 
     if len(boxList) == 1:
-        cardName = outDir+'/RazorInclusiveMADD_lumi-%.1f_%s.txt'%(
-                lumi*1.0/1000.,boxList[0])
+        cardName = getCardName(modelName, boxList[0], outDir)
         combineName = 'MADD_'+boxList[0]+'_'+modelName
         exec_me('combine -M %s %s -n %s %s'%(
             combineMethod,cardName,combineName,combineFlags), False)
@@ -238,11 +239,10 @@ if __name__ == "__main__":
         cardNames = []
         combineName = 'MADD_'+('_'.join(boxList))+'_'+modelName
         for curBox in boxList:
-            cardName = 'RazorInclusiveMADD_lumi-%.1f_%s.txt'%(
-                    lumi*1.0/1000.,curBox)
-            cardNames.append(cardName)
-        combinedCardName = ('RazorInclusiveMADD_'+('_'.join(boxList))
-                            +'.txt')
+            cardName = getCardName(modelName, curBox, outDir)
+            cardNames.append(os.path.basename(cardName))
+        combinedCardName = ('RazorInclusiveMADD_%s_%s.txt'%(
+            modelName, '_'.join(boxList)))
         exec_me('cd '+outDir+'; combineCards.py '+(' '.join(cardNames))
                 +' > '+combinedCardName+'; cd ..', False)
         exec_me('combine -M '+combineMethod+' '+outDir+'/'

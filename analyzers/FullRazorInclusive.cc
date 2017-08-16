@@ -203,6 +203,11 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     int NGenBJets;
     float genHT;
     int NISRJets;
+    // W/top tags
+    int nWTags, nTopTags;
+    int nWTags_SDMassUp, nWTags_SDMassDown;
+    float wTagScaleFactor, wTagScaleFactor_Tau21Up, wTagScaleFactor_Tau21Down;
+    float topTagScaleFactor, topTagScaleFactor_Tau32Up, topTagScaleFactor_Tau32Down;
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
@@ -244,7 +249,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 
     razorTree->Branch("HLTMR", &HLTMR, "HLTMR/F");
     razorTree->Branch("HLTRSQ", &HLTRSQ, "HLTRSQ/F");
-
+    razorTree->Branch("nWTags", &nWTags, "nWTags/I");
+    razorTree->Branch("nTopTags", &nTopTags, "nTopTags/I");
     if (!isData) {    
         razorTree->Branch("genWeight", &genWeight, "genWeight/F");
         razorTree->Branch("weight", &weight, "weight/F");
@@ -300,6 +306,14 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         razorTree->Branch("sf_facRenScaleUp", &sf_facRenScaleUp, "sf_facRenScaleUp/F");
         razorTree->Branch("sf_facRenScaleDown", &sf_facRenScaleDown, "sf_facRenScaleDown/F");
         razorTree->Branch("pdfWeights", "std::vector<float>",&pdfWeights); //get PDF weights directly from RazorEvents
+        razorTree->Branch("nWTags_SDMassUp", &nWTags_SDMassUp, "nWTags_SDMassUp/I");
+        razorTree->Branch("nWTags_SDMassDown", &nWTags_SDMassDown, "nWTags_SDMassDown/I");
+        razorTree->Branch("wTagScaleFactor", &wTagScaleFactor, "wTagScaleFactor/F"); 
+        razorTree->Branch("wTagScaleFactor_Tau21Up", &wTagScaleFactor_Tau21Up, "wTagScaleFactor_Tau21Up/F"); 
+        razorTree->Branch("wTagScaleFactor_Tau21Down", &wTagScaleFactor_Tau21Down, "wTagScaleFactor_Tau21Down/F");
+        razorTree->Branch("topTagScaleFactor", &topTagScaleFactor, "topTagScaleFactor/F"); 
+        razorTree->Branch("topTagScaleFactor_Tau32Up", &topTagScaleFactor_Tau32Up, "topTagScaleFactor_Tau32Up/F"); 
+        razorTree->Branch("topTagScaleFactor_Tau32Down", &topTagScaleFactor_Tau32Down, "topTagScaleFactor_Tau32Down/F");
         if(isFastsimSMS){
             razorTree->Branch("mGluino", &mGluino, "mGluino/I");
             razorTree->Branch("mLSP", &mLSP, "mLSP/I");
@@ -343,6 +357,8 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         mjj_hemispheres = -1;
         weight = genWeight;
         nLooseTaus = 0;
+        nWTags = 0;
+        nTopTags = 0;
         if(!isData){
             NPU = -1;
 	    leadingGenLeptonPt = -9;
@@ -395,6 +411,14 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             sf_vetoEleEffFastsimSFDown = 1.0;
             sf_btagFastsimSFUp = 1.0;
             sf_btagFastsimSFDown = 1.0;
+            nWTags_SDMassUp = 0;
+            nWTags_SDMassDown = 0;
+            wTagScaleFactor = 1.0; 
+            wTagScaleFactor_Tau21Up = 1.0 ;
+            wTagScaleFactor_Tau21Down = 1.0;
+            topTagScaleFactor = 1.0;
+            topTagScaleFactor_Tau32Up = 1.0;
+            topTagScaleFactor_Tau32Down = 1.0;
             if(isFastsimSMS){
                 mGluino = -1;
                 mLSP = -1;
@@ -1132,6 +1156,21 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             }
             if (vars.first == "") mjj_leadingJets = (leadingJet + subleadingJet).M();
         }
+
+        /////////////////////////////////
+        //Jet W/Top Tags
+        /////////////////////////////////
+        RazorHelper::AK8JetInfo jetInfo = helper->CalcAK8JetInfo(this, isData);
+        nWTags = jetInfo.nWTags;
+        nWTags_SDMassUp = jetInfo.nWTags_SDMassUp;
+        nWTags_SDMassDown = jetInfo.nWTags_SDMassDown;
+        nTopTags = jetInfo.nTopTags;
+        wTagScaleFactor = jetInfo.wTagScaleFactor;
+        wTagScaleFactor_Tau21Up = jetInfo.wTagScaleFactor_Tau21Up;
+        wTagScaleFactor_Tau21Down = jetInfo.wTagScaleFactor_Tau21Down;
+        topTagScaleFactor = jetInfo.topTagScaleFactor;
+        topTagScaleFactor_Tau32Up = jetInfo.topTagScaleFactor_Tau32Up;
+        topTagScaleFactor_Tau32Down = jetInfo.topTagScaleFactor_Tau32Down;
 
         /////////////////////////////////
         //Compute razor variables and mT
