@@ -197,6 +197,11 @@ class RazorAnalyzer: public RazorEvents {
 	//functions in src/RazorAuxGenLevel.cc
 	bool matchesGenMuon(double eta, double phi);
 	bool matchesGenElectron(double eta, double phi);
+        bool isHadronicDecay(int index, int daughterStatus=23);
+        int getMatchingHardProcessParticleIndex(double eta, double phi, 
+                int id, int status=22, double r=0.8);
+        int getMatchingGenWIndex(double eta, double phi, double r=0.8);
+        int getMatchingGenTopIndex(double eta, double phi, double r=0.8);
 	bool isGenTau(int index);
 	bool isGenLeptonicTau(int index);
 	int findClosestGenElectron(double eta, double phi);

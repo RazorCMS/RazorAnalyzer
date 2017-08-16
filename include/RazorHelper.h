@@ -321,9 +321,14 @@ class RazorHelper {
 
         // for AK8 jet tags
         TFile *puppiSoftDropCorrFile;
+        TFile *wTopTagEffFile;
         TF1 *puppiSoftDropCorr_Gen;
         TF1 *puppiSoftDropCorr_RecoCentral;
         TF1 *puppiSoftDropCorr_RecoForward;
+        TH1F *wTagEffFullsim;
+        TH1F *wTagEffFastsimSF;
+        TH1F *topTagEffFullsim;
+        TH1F *topTagEffFastsimSF;
 };
 
 #endif

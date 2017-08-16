@@ -2580,6 +2580,53 @@ bool RazorAnalyzer::matchesGenElectron(double eta, double phi){
   return result;
 };
 
+// Returns true if the gen particle at the specified index
+// decays hadronically into a quark with the specified status code.
+bool RazorAnalyzer::isHadronicDecay(int index, int status) {
+    for ( int j = 0; j < nGenParticle; j++ ) {
+        if ( gParticleMotherIndex[j] == index && gParticleStatus[j] == status ) {
+            if ( abs(gParticleId[j]) > 0 && abs(gParticleId[j]) < 5 ) return true;
+        }
+    }
+    return false;
+}
+
+// Generic matching to hard process particles by deltaR
+// eta, phi: coordinates of reco-level particle
+// id: MC ID of the gen-level particle to match
+// status: pythia status code of the gen-level particle (default 22)
+// r: maximum deltaR needed for match
+// returns the index of the matched particle in the gen particles collection, 
+// or -1 if no match
+int RazorAnalyzer::getMatchingHardProcessParticleIndex(double eta, double phi,
+        int id, int status, double r) {
+    int matchedIndex = -1;
+    float minDeltaR = -1;
+    for ( int j = 0; j < nGenParticle; j++ ) {
+        if (abs(gParticleId[j]) != abs(id)) continue;
+        if (gParticleStatus[j] != status) continue;
+        float dR = deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]);
+        if (dR > r) continue;
+        if (minDeltaR < 0 || dR < minDeltaR) {
+            minDeltaR = dR;
+            matchedIndex = j;
+        }
+    }
+    return matchedIndex;
+}
+
+// Gets index of matching gen W, if any
+int RazorAnalyzer::getMatchingGenWIndex(double eta, double phi, double r) {
+    int index = getMatchingHardProcessParticleIndex(eta, phi, 24, 22, r);
+    return index;
+}
+
+// Gets index of matching gen top, if any
+int RazorAnalyzer::getMatchingGenTopIndex(double eta, double phi, double r) {
+    int index = getMatchingHardProcessParticleIndex(eta, phi, 6, 22, r);
+    return index;
+}
+
 
 //Computed the genHT variable
 double RazorAnalyzer::getGenHT(){
