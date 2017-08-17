@@ -260,7 +260,8 @@ if __name__ == '__main__':
     parser.add_argument('--copy-local',dest='copyLocal',action='store_true',help='Copy files locally')
     parser.add_argument('--reHLT',action='store_true',help='Process reHLT samples')
     parser.add_argument('--no-skim',dest='noSkim',action='store_true',help='Do not assume skimmed data')
-    parser.add_argument('--label', help='label for RazorRun',default='') 
+    parser.add_argument('--label', help='label for RazorRun',
+            default='Razor2016_MoriondRereco') 
     args = parser.parse_args()
     tag = args.tag
     analyzer = ANALYZERS[tag]

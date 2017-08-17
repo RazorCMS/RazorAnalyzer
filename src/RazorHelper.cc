@@ -146,6 +146,14 @@ RazorHelper::~RazorHelper() {
     if (btagreaderfastsim) delete btagreaderfastsim;
     if (btagreaderfastsim_up) delete btagreaderfastsim_up;
     if (btagreaderfastsim_do) delete btagreaderfastsim_do;
+    if (puppiSoftDropCorrFile) {
+        puppiSoftDropCorrFile->Close();
+        delete puppiSoftDropCorrFile;
+    }
+    if (wTopTagEffFile) {
+        wTopTagEffFile->Close();
+        delete wTopTagEffFile;
+    }
 }
 
 // Retrieves CMSSW_BASE and stores in variable cmsswPath
@@ -861,10 +869,18 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 }
 
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
+    cout << "RazorHelper: loading 2016 top/W-tagging TF1s and histograms" << endl;
     puppiSoftDropCorrFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
     puppiSoftDropCorr_Gen = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_gen");
     puppiSoftDropCorr_RecoCentral = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_0eta1v3");
     puppiSoftDropCorr_RecoForward = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
+
+    wTopTagEffFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/AK8WTopTagEff.root");
+    wTagEffFullsim = (TH1F*)wTopTagEffFile->Get("WTagEffFullsim");
+    wTagEffFastsim = (TH1F*)wTopTagEffFile->Get("WTagEffFastsim");
+
+    topTagEffFullsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFullsim");
+    topTagEffFastsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFastsim");
 }
 
 
@@ -2021,14 +2037,41 @@ bool RazorHelper::isWTaggedAK8Jet(RazorAnalyzer *ra, uint iJet, bool isData, int
 
 bool RazorHelper::isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet) {
     // See comments at CalcAK8JetInfo()
-    if (ra->fatJetCorrectedPt[iJet] < 400) return false;
     float softDropMass = ra->fatJetCorrectedSoftDropM[iJet];
     if (softDropMass < 105 || softDropMass > 210) return false;
     if (ra->fatJetTau3[iJet] / ra->fatJetTau2[iJet] > 0.46) return false;
-    // TODO -- require max subjet b-tag CSV > .5426
+    if (ra->fatJetMaxSubjetCSV[iJet] < 0.5426) return false;
     return true;
 }
 
+// Retrieve efficiency for W/top tag.  updown controls systematic variations for fastsim:
+// updown > 0: vary efficiency up
+// updown < 0: vary efficiency down
+// updown = 0: use nominal efficiency
+float RazorHelper::getTagEfficiency(TH1F *effHist, float genPt, int updown) {
+    if ( genPt > effHist->GetXaxis()->GetXmax() ) {
+        genPt = effHist->GetXaxis()->GetXmax() * 0.999;
+    }
+    float eff = effHist->GetBinContent(effHist->FindFixBin(genPt));
+    float effErr = effHist->GetBinError(effHist->FindFixBin(genPt));
+    if (updown > 0) eff += effErr;
+    else if (updown < 0) eff -= effErr;
+    return eff;
+}
+
+float RazorHelper::getWTagEfficiency(float genWPt, int updown) {
+    if ( isFastsim ) {
+        return getTagEfficiency(wTagEffFastsim, genWPt, updown);
+    }
+    return getTagEfficiency(wTagEffFullsim, genWPt, updown);
+}
+
+float RazorHelper::getTopTagEfficiency(float genTopPt, int updown) {
+    if ( isFastsim ) {
+        return getTagEfficiency(topTagEffFastsim, genTopPt, updown);
+    }
+    return getTagEfficiency(topTagEffFullsim, genTopPt, updown);
+}
 
 RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isData) {
     // For the 2016 inclusive razor analysis,
@@ -2047,6 +2090,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
     const float W_TAG_SF_UP = 1.06;
     const float W_TAG_SF_DOWN = 0.94;
 
+    const int TOP_TAG_PT_CUT = 400;
     const float TOP_TAG_SF = 1.05;
     const float TOP_TAG_SF_UP = 1.12;
     const float TOP_TAG_SF_DOWN = 1.01;
@@ -2058,30 +2102,73 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Baseline cuts on pt and eta
         if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue; 
         if ( fabs(ra->fatJetEta[iJet]) > AK8_ETA_CUT ) continue;
+        if ( !ra->fatJetPassIDLoose[iJet] ) continue;
 
         // W tagging
-        if ( isWTaggedAK8Jet(ra, iJet, isData) ) {
+        bool isWTagged = isWTaggedAK8Jet(ra, iJet, isData);
+        if ( isWTagged ) {
             jetInfo.nWTags++;
-            jetInfo.wTagScaleFactor *= W_TAG_SF;
-            jetInfo.wTagScaleFactor_Tau21Up *= W_TAG_SF_UP;
-            jetInfo.wTagScaleFactor_Tau21Down *= W_TAG_SF_DOWN;
         }
+        // Apply scale factor if it matches a gen W
+        int genWIndex = ra->getMatchingGenWIndex(
+                ra->fatJetEta[iJet], ra->fatJetPhi[iJet]);
+        bool matchesGenW = (genWIndex >= 0);
+        // Note: only consider hadronic Ws
+        if (matchesGenW && ra->isHadronicDecay(genWIndex)) { 
+            float genWPt = ra->gParticlePt[genWIndex];
+            float eff = getWTagEfficiency(genWPt);
+            jetInfo.wTagScaleFactor *= getPassOrFailScaleFactor(
+                    eff, W_TAG_SF, isWTagged);
+            jetInfo.wTagScaleFactor_Tau21Up *= getPassOrFailScaleFactor(
+                    eff, W_TAG_SF_UP, isWTagged);
+            jetInfo.wTagScaleFactor_Tau21Down *= getPassOrFailScaleFactor(
+                    eff, W_TAG_SF_DOWN, isWTagged);
+            if (isFastsim) {
+                float effUp = getWTagEfficiency(genWPt, 1);
+                float effDown = getWTagEfficiency(genWPt, -1);
+                jetInfo.wTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        effUp, W_TAG_SF, isWTagged);
+                jetInfo.wTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        effDown, W_TAG_SF, isWTagged);
+            }
+        }
+        // Up/down variations of PUPPI soft drop mass
         if ( isWTaggedAK8Jet(ra, iJet, isData, 1) ) {
             jetInfo.nWTags_SDMassUp++;
         }
         if ( isWTaggedAK8Jet(ra, iJet, isData, -1) ) {
             jetInfo.nWTags_SDMassDown++;
         }
-        // TODO: apply appropriate SF for failing jets
 
-        // top tagging
-        if ( isTopTaggedAK8Jet(ra, iJet) ) {
+        // Top tagging
+        if ( ra->fatJetCorrectedPt[iJet] < TOP_TAG_PT_CUT ) continue;
+        bool isTopTagged = isTopTaggedAK8Jet(ra, iJet);
+        if ( isTopTagged ) {
             jetInfo.nTopTags++;    
-            jetInfo.topTagScaleFactor *= TOP_TAG_SF;
-            jetInfo.topTagScaleFactor_Tau32Up *= TOP_TAG_SF_UP;
-            jetInfo.topTagScaleFactor_Tau32Down *= TOP_TAG_SF_DOWN;
         }
-        // TODO: apply appropriate SF for failing jets
+        // Apply scale factor if it matches a gen top
+        int genTopIndex = ra->getMatchingGenTopIndex(
+                ra->fatJetEta[iJet], ra->fatJetPhi[iJet]);
+        bool matchesGenTop = (genTopIndex >= 0);
+        // Note: consider tops regardless of decay mode
+        if (matchesGenTop) {
+            float genTopPt = ra->gParticlePt[genTopIndex];
+            float eff = getTopTagEfficiency(genTopPt);
+            jetInfo.topTagScaleFactor *= getPassOrFailScaleFactor(
+                    eff, TOP_TAG_SF, isTopTagged);
+            jetInfo.topTagScaleFactor_Tau32Up *= getPassOrFailScaleFactor(
+                    eff, TOP_TAG_SF_UP, isTopTagged);
+            jetInfo.topTagScaleFactor_Tau32Down *= getPassOrFailScaleFactor(
+                    eff, TOP_TAG_SF_DOWN, isTopTagged);
+            if (isFastsim) {
+                float effUp = getTopTagEfficiency(genTopPt, 1);
+                float effDown = getTopTagEfficiency(genTopPt, -1);
+                jetInfo.topTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        effUp, TOP_TAG_SF, isTopTagged);
+                jetInfo.topTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        effDown, TOP_TAG_SF, isTopTagged);
+            }
+        }
     }
 
     return jetInfo;
