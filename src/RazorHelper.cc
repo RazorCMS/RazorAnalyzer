@@ -877,10 +877,10 @@ void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
 
     wTopTagEffFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/AK8WTopTagEff.root");
     wTagEffFullsim = (TH1F*)wTopTagEffFile->Get("WTagEffFullsim");
-    wTagEffFastsimSF = (TH1F*)wTopTagEffFile->Get("WTagEffFastsimSF");
+    wTagEffFastsim = (TH1F*)wTopTagEffFile->Get("WTagEffFastsim");
 
     topTagEffFullsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFullsim");
-    topTagEffFastsimSF = (TH1F*)wTopTagEffFile->Get("TopTagEffFastsimSF");
+    topTagEffFastsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFastsim");
 }
 
 
@@ -2044,6 +2044,34 @@ bool RazorHelper::isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet) {
     return true;
 }
 
+// Retrieve efficiency for W/top tag.  updown controls systematic variations for fastsim:
+// updown > 0: vary efficiency up
+// updown < 0: vary efficiency down
+// updown = 0: use nominal efficiency
+float RazorHelper::getTagEfficiency(TH1F *effHist, float genPt, int updown) {
+    if ( genPt > effHist->GetXaxis()->GetXmax() ) {
+        genPt = effHist->GetXaxis()->GetXmax() * 0.999;
+    }
+    float eff = effHist->GetBinContent(effHist->FindFixBin(genPt));
+    float effErr = effHist->GetBinError(effHist->FindFixBin(genPt));
+    if (updown > 0) eff += effErr;
+    else if (updown < 0) eff -= effErr;
+    return eff;
+}
+
+float RazorHelper::getWTagEfficiency(float genWPt, int updown) {
+    if ( isFastsim ) {
+        return getTagEfficiency(wTagEffFastsim, genWPt, updown);
+    }
+    return getTagEfficiency(wTagEffFullsim, genWPt, updown);
+}
+
+float RazorHelper::getTopTagEfficiency(float genTopPt, int updown) {
+    if ( isFastsim ) {
+        return getTagEfficiency(topTagEffFastsim, genTopPt, updown);
+    }
+    return getTagEfficiency(topTagEffFullsim, genTopPt, updown);
+}
 
 RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isData) {
     // For the 2016 inclusive razor analysis,
@@ -2088,17 +2116,21 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Note: only consider hadronic Ws
         if (matchesGenW && ra->isHadronicDecay(genWIndex)) { 
             float genWPt = ra->gParticlePt[genWIndex];
-            if ( genWPt > wTagEffFullsim->GetXaxis()->GetXmax() ) {
-                genWPt = wTagEffFullsim->GetXaxis()->GetXmax() * 0.999;
-            }
-            float eff = wTagEffFullsim->GetBinContent(
-                    wTagEffFullsim->FindFixBin(genWPt));
+            float eff = getWTagEfficiency(genWPt);
             jetInfo.wTagScaleFactor *= getPassOrFailScaleFactor(
                     eff, W_TAG_SF, isWTagged);
             jetInfo.wTagScaleFactor_Tau21Up *= getPassOrFailScaleFactor(
                     eff, W_TAG_SF_UP, isWTagged);
             jetInfo.wTagScaleFactor_Tau21Down *= getPassOrFailScaleFactor(
                     eff, W_TAG_SF_DOWN, isWTagged);
+            if (isFastsim) {
+                float effUp = getWTagEfficiency(genWPt, 1);
+                float effDown = getWTagEfficiency(genWPt, -1);
+                jetInfo.wTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        effUp, W_TAG_SF, isWTagged);
+                jetInfo.wTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        effDown, W_TAG_SF, isWTagged);
+            }
         }
         // Up/down variations of PUPPI soft drop mass
         if ( isWTaggedAK8Jet(ra, iJet, isData, 1) ) {
@@ -2121,17 +2153,21 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Note: consider tops regardless of decay mode
         if (matchesGenTop) {
             float genTopPt = ra->gParticlePt[genTopIndex];
-            if ( genTopPt > topTagEffFullsim->GetXaxis()->GetXmax() ) {
-                genTopPt = topTagEffFullsim->GetXaxis()->GetXmax() * 0.999;
-            }
-            float eff = topTagEffFullsim->GetBinContent(
-                    topTagEffFullsim->FindFixBin(genTopPt));
+            float eff = getTopTagEfficiency(genTopPt);
             jetInfo.topTagScaleFactor *= getPassOrFailScaleFactor(
                     eff, TOP_TAG_SF, isTopTagged);
             jetInfo.topTagScaleFactor_Tau32Up *= getPassOrFailScaleFactor(
                     eff, TOP_TAG_SF_UP, isTopTagged);
             jetInfo.topTagScaleFactor_Tau32Down *= getPassOrFailScaleFactor(
                     eff, TOP_TAG_SF_DOWN, isTopTagged);
+            if (isFastsim) {
+                float effUp = getTopTagEfficiency(genTopPt, 1);
+                float effDown = getTopTagEfficiency(genTopPt, -1);
+                jetInfo.topTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        effUp, TOP_TAG_SF, isTopTagged);
+                jetInfo.topTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        effDown, TOP_TAG_SF, isTopTagged);
+            }
         }
     }
 
