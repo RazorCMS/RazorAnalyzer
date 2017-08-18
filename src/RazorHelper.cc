@@ -870,12 +870,12 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
     cout << "RazorHelper: loading 2016 top/W-tagging TF1s and histograms" << endl;
-    puppiSoftDropCorrFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
+    puppiSoftDropCorrFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
     puppiSoftDropCorr_Gen = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_gen");
     puppiSoftDropCorr_RecoCentral = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_0eta1v3");
     puppiSoftDropCorr_RecoForward = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
 
-    wTopTagEffFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/AK8WTopTagEff.root");
+    wTopTagEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/AK8WTopTagEff.root");
     wTagEffFullsim = (TH1F*)wTopTagEffFile->Get("WTagEffFullsim");
     wTagEffFastsim = (TH1F*)wTopTagEffFile->Get("WTagEffFastsim");
 
