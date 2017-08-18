@@ -25,19 +25,6 @@ cd -
 pwd
 
 cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_B_H.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_G_H.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_ichep.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/fastsim_csvv2_ttbar_26_1_2017.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSV_13TEV_Combined_20_11_2015.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JEC_Summer16_23Sep2016V3.tgz ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Spring16_FastSimV1.tgz ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JetResolutionInputAK5PF.txt ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_smearings.dat ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_scales.dat ./
-tar vxzf JEC_Summer16_23Sep2016V3.tgz
-tar vxzf Spring16_FastSimV1.tgz
-
 
 echo " "; echo "Show where we are"; echo " "
 hostname
@@ -70,11 +57,11 @@ echo $outputfile
 echo $outputDirectory
 
 #Do below only for output to CERN EOS
-#cmsMkdir $outputDirectory
-#cmsStage -f $outputfile $outputDirectory
+eos mkdir -p $outputDirectory
+eos cp $outputfile /eos/cms/$outputDirectory/
 
-mkdir -p /eos/cms/$outputDirectory
-cp -v $outputfile /eos/cms/$outputDirectory
+#mkdir -p /eos/cms/$outputDirectory
+#cp -v $outputfile /eos/cms/$outputDirectory
 
 set status=`echo $?`
 echo "Status: $status"

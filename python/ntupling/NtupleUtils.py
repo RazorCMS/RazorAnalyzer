@@ -42,7 +42,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
     filesperjob = 3
     if isData:
         filesperjob = 9
-    script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
+    script=basedir+'/scripts/runRazorJob_NoAFS.sh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
@@ -65,7 +65,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
                     cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
-                        DIRS[tag].replace('/eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src',
+                        DIRS[tag].replace('/eos/cms','')+jobssuffix, 'CMSSW_8_0_26',
                         label]
                     print ' '.join(cmd)
                     if submit:

@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# This script runs razor analyzers that are stored on EOS
+# rather than in a local RazorAnalyzer repository. It will 
+# only work for analyzers that have been manually copied into
+# /eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/.
+
+if [ "$1" == "" ] || [ "$2" == "" ]; then
+    echo "RazorRun <list of input files> <analyzer name> <options>"
+else
+    # Stage out the executable file from EOS to avoid AFS copy
+    eos cp /eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/Run$2 ./
+    chmod a+x Run$2
+
+    # Retrieving the files from Dropbox avoids possible slowdown from EOS copy
+    wget https://www.dropbox.com/s/jjyvt89mvz4gcpf/RazorRunAuxFiles.tar.gz
+    tar vxzf RazorRunAuxFiles.tar.gz
+    tar vxzf JEC_Summer16_23Sep2016V3.tgz
+    tar vxzf Spring16_FastSimV1.tgz
+
+    ./Run$2 $1 ${@:3}
+fi
