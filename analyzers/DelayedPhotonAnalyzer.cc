@@ -668,7 +668,10 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 				foundN2 = true;
 			}
 		}
-
+	
+		//bool insideECAL = false;
+		//if((gParticleDecayVertexX[neu1_index]*gParticleDecayVertexX[neu1_index]+gParticleDecayVertexY[neu1_index]*gParticleDecayVertexY[neu1_index] < 129.0*129.0) && abs(gParticleDecayVertexZ[neu1_index])<300.0 && (gParticleDecayVertexX[neu2_index]*gParticleDecayVertexX[neu2_index]+gParticleDecayVertexY[neu2_index]*gParticleDecayVertexY[neu2_index] < 129.0*129.0) && abs(gParticleDecayVertexZ[neu2_index])<300.0 ) insideECAL = true;
+		//if(foundN1==1 && foundN2==1 && insideECAL)
 		if(foundN1==1 && foundN2==1)
 		{
 
@@ -755,26 +758,38 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 				deltaPhi_pho2 = is1To1 ? deltaPhi22 : deltaPhi12;
 				deltaPt_pho2 = is1To1 ? deltaPt22 : deltaPt12;
 
-				float mass = 1000.0;
-				float p_neu1 = is1To1 ? gParticlePt[neu1_index]*cosh(gParticleEta[neu1_index]) : gParticlePt[neu2_index]*cosh(gParticleEta[neu2_index]) ;
-				float p_neu2 = is1To1 ? gParticlePt[neu2_index]*cosh(gParticleEta[neu2_index]) : gParticlePt[neu1_index]*cosh(gParticleEta[neu1_index]) ;
+				float massNeu = 1000.0;
+				//float p_neu1 = is1To1 ? (gParticlePt[neu1_index]*cosh(gParticleEta[neu1_index])) : (gParticlePt[neu2_index]*cosh(gParticleEta[neu2_index]) );
+				float p_neu1 = is1To1 ? pow(gParticlePx[neu1_index]*gParticlePx[neu1_index]+gParticlePy[neu1_index]*gParticlePy[neu1_index]+gParticlePz[neu1_index]*gParticlePz[neu1_index],0.5) : pow(gParticlePx[neu2_index]*gParticlePx[neu2_index]+gParticlePy[neu2_index]*gParticlePy[neu2_index]+gParticlePz[neu2_index]*gParticlePz[neu2_index],0.5);
+				//float p_neu2 = is1To1 ? (gParticlePt[neu2_index]*cosh(gParticleEta[neu2_index])) : (gParticlePt[neu1_index]*cosh(gParticleEta[neu1_index]) );
+				float p_neu2 = is1To1 ? pow(gParticlePx[neu2_index]*gParticlePx[neu2_index]+gParticlePy[neu2_index]*gParticlePy[neu2_index]+gParticlePz[neu2_index]*gParticlePz[neu2_index],0.5) : pow(gParticlePx[neu1_index]*gParticlePx[neu1_index]+gParticlePy[neu1_index]*gParticlePy[neu1_index]+gParticlePz[neu1_index]*gParticlePz[neu1_index],0.5);
 			
 				TVector3 point_genPV(genVertexX,genVertexY,genVertexZ);	
 				TVector3 point_decayV1(is1To1 ? decay_x1: decay_x2,is1To1 ? decay_y1: decay_y2, is1To1 ? decay_z1: decay_z2);
 				TVector3 point_decayV2(is1To1 ? decay_x2: decay_x1,is1To1 ? decay_y2: decay_y1, is1To1 ? decay_z2: decay_z1);
 
-				TOF_neu1 = (point_decayV1-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu1) * pow((pow(mass,2) + pow(p_neu1,2)),0.5);
-				TOF_neu2 = (point_decayV2-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu2) * pow((pow(mass,2) + pow(p_neu2,2)),0.5);
-				TOF_neu1_RF = TOF_neu1*mass*pow((pow(mass,2) + pow(p_neu1,2)),-0.5);
-				TOF_neu2_RF = TOF_neu2*mass*pow((pow(mass,2) + pow(p_neu2,2)),-0.5);
+				TOF_neu1 = (point_decayV1-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu1) * pow((pow(massNeu,2) + pow(p_neu1,2)),0.5);
+				TOF_neu2 = (point_decayV2-point_genPV).Mag() / (SPEED_OF_LIGHT*p_neu2) * pow((pow(massNeu,2) + pow(p_neu2,2)),0.5);
+				TOF_neu1_RF = TOF_neu1*massNeu*pow((pow(massNeu,2) + pow(p_neu1,2)),-0.5);
+				TOF_neu2_RF = TOF_neu2*massNeu*pow((pow(massNeu,2) + pow(p_neu2,2)),-0.5);
 
 				TOF_pho1 = (recoSeed1 - point_decayV1).Mag() / SPEED_OF_LIGHT ;
 				TOF_pho2 = (recoSeed2 - point_decayV2).Mag() / SPEED_OF_LIGHT ;
 
-				TOF_total1 = genVertexT + TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
-				TOF_total1_genV = genVertexT + TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
-				TOF_total2 = genVertexT + TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
+				if(abs(genVertexT) < 100.)
+				{
+					TOF_total1 = genVertexT + TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
+					TOF_total1_genV = genVertexT + TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
+					TOF_total2 = genVertexT + TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
 				TOF_total2_genV = genVertexT + TOF_neu2 + TOF_pho2 - (recoSeed2 - point_genPV).Mag() / SPEED_OF_LIGHT;
+				}
+				else
+				{
+					TOF_total1 = TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
+					TOF_total1_genV = TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
+					TOF_total2 = TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
+					TOF_total2_genV = TOF_neu2 + TOF_pho2 - (recoSeed2 - point_genPV).Mag() / SPEED_OF_LIGHT;
+				}
 				
 				pho1_angle_xtal = recoSeed1.Angle(recoSeed1 - point_decayV1); 
 				pho2_angle_xtal = recoSeed2.Angle(recoSeed2 - point_decayV2); 

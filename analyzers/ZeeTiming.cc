@@ -518,6 +518,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	ele2_time_TOF2 = weightedTime_TOF2;
 	ele2_seedtime = TOFCorrectedSeedHitTime; 
 	ele2_seedtimeCalib = calibratedSeedHitTime;
+	ele2_seedtimeCalib_sept = calibratedSeedHitTime_sept;
  	ele2_seedtimeraw = rawSeedHitTime_no_sept;
  	ele2IsEB = bool( eleEta_SC[i] < 1.5 );
 	if (ele2IsEB) {
