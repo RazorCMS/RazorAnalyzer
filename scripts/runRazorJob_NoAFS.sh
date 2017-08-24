@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# This run script wraps RazorRun_NoAFS and is 
+# designed to be executed via HTCondor. It 
+# does not read any files from AFS and interacts
+# with EOS only to access the input files and
+# stage out the output file.
+
 hostname
 
 echo "Arguments: $*"
@@ -25,9 +31,6 @@ cd -
 
 pwd
 
-eos cp /eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/RazorRun_NoAFS ./
-chmod a+x RazorRun_NoAFS
-
 echo " "; echo "Show where we are"; echo " "
 hostname
 pwd
@@ -52,7 +55,7 @@ fi
 # Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
 echo ./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label}
-./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
+./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} 
 
 ls -ltr 
 

@@ -1,0 +1,358 @@
+#!/bin/env python
+
+### Sequence for data: submit --> hadd --> skim --> hadd-final --> remove-duplicates --> good-lumi --> copy-local
+### Sequence for MC: submit --> hadd --> normalize --> hadd-final --> copy-local
+
+import math
+import os,sys
+import glob
+import argparse
+from subprocess import call, check_output
+
+from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+
+def getSamplePrefix(analyzer,tag,label=''):
+    return analyzer.replace('RazorControl','RunTwoRazorControl')+(
+            (TREETYPEEXT[tag]!='')*('_'+TREETYPEEXT[tag]))+(
+            (SKIMS[tag]!='')*('_'+SKIMS[tag]))+(
+            (label != '')*('_'+label))
+
+def getJobFileName(analyzer,tag,sample,ijob,maxjob,label=''):
+    prefix = getSamplePrefix(analyzer,tag,label)
+    return '%s_%s.Job%dof%d.root'%(prefix,sample,ijob,maxjob)
+
+def getFileName(analyzer,tag,sample,label=''):
+    prefix = getSamplePrefix(analyzer,tag,label)
+    return '%s_%s.root'%(prefix,sample)
+
+def getSubFileName(datasetname):
+    return "condor/"+datasetname+"/condor_"+datasetname+".cmd"
+
+def getCondorSubmitFile(executable, datasetname, infile):
+    """
+    Creates submission file and fills in header info common to all jobs.
+    Returns the open file object.
+    """
+    subfile = getSubFileName(datasetname)
+    f = open(subfile,"w")
+    f.write("Universe = vanilla\n")
+    f.write("Executable = "+executable+"\n")
+    f.write("Should_Transfer_Files = YES\n")
+    f.write("Transfer_Input_Files = "+infile+"\n")
+    f.write('Transfer_Output_Files = ""\n')
+    f.write("Notification = Never\n")
+    return f
+
+def writeCondorSubmitFragment(f, datasetname, jobname, options):
+    """
+    Generates the part of the config file for the current job
+    and appends it to the file f.
+    """
+    f.write("\nArguments = "+(' '.join(options))+"\n")
+    f.write("Output = condor/"+datasetname+"/"+jobname+".out\n")
+    f.write("Log = condor/"+datasetname+"/"+jobname+".log\n")
+    f.write("Error = condor/"+datasetname+"/"+jobname+".err\n")
+    f.write("Queue\n")
+    return f
+
+def submitCondorJobsForSample(f, datasetname, submit=False):
+    """
+    Submits the condor jobs for the specified dataset
+    """
+    f.close()
+    subfile = getSubFileName(datasetname)
+    cmd = "condor_submit "+subfile
+    print cmd
+    if submit:
+        os.system(cmd)
+
+def submitJobs(analyzer,tag,isData=False,submit=False,label=''):
+    # parameters
+    local_dir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer/'
+    samples = SAMPLES
+    listdir = local_dir+'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'
+    jobssuffix = '/jobs'
+    if isData:
+        listdir = listdir.replace('/MC_Summer16','/data')
+        samples = DATA
+    filesperjob = 3
+    script=local_dir+'scripts/runRazorJob_NoAFS.sh'
+    infiles = [local_dir+'bin/Run%s'%(analyzer), 
+               local_dir+'RazorRun_NoAFS', 
+               local_dir+'RazorRunAuxFiles_Expanded.tar.gz']
+    #samples loop
+    call(['mkdir','-p',DIRS[tag]+'/jobs'])
+    for process in samples[tag]:
+        for sample in samples[tag][process]:
+            call(['mkdir','-p','condor/'+sample])
+            inlist = os.path.join(listdir,sample+'.cern.txt')
+            infiles_sample = ','.join(infiles + [inlist])
+            if not os.path.isfile(inlist):
+                print "Warning: list file",inlist,"not found!"
+                continue
+            nfiles = sum([1 for line in open(inlist)])
+            maxjob = int(math.ceil( nfiles*1.0/filesperjob ))-1
+            print "Sample:",sample," maxjob =",maxjob
+            f = getCondorSubmitFile(script, sample, infiles_sample)
+            for ijob in range(maxjob+1):
+                outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob,label)
+                if not os.path.isfile( DIRS[tag]+jobssuffix+'/'+outfile ):
+                    print "Job %d of %d"%(ijob,maxjob)
+                    jobname = '_'.join([analyzer,sample,label,str(ijob)])
+                    options = [analyzer,inlist,str(int(isData)),str(OPTIONS[tag]),
+                            str(filesperjob),str(ijob),outfile,
+                            DIRS[tag].replace('/eos/cms','')+jobssuffix,'CMSSW_8_0_26',
+                            label]
+                    print "Command: %s %s"%(script, ' '.join(options))
+                    # remove absolute paths from argument list
+                    options = [opt.replace(local_dir, '') for opt in options]
+                    options[1] = os.path.basename(options[1])
+                    writeCondorSubmitFragment(f, sample, jobname, options)
+            submitCondorJobsForSample(f, sample, submit=submit)
+
+def findZombies(analyzer,tag,isData=False,label=''):
+    """Looks through job files and searches for Zombies.  Prints out a list of bad files."""
+    import ROOT as rt
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    zombieFileName = "Zombies_%s_%s.txt"%(tag, label)
+    if isData:
+        zombieFileName = zombieFileName.replace(".txt","_Data.txt")
+    with open(zombieFileName,'w') as zombieFile:
+        for process in samples[tag]:
+            for sample in samples[tag][process]:
+                print "Sample:",sample
+                query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,label).replace('.root','*.Job*.root'))
+                jobfiles = glob.glob( query )
+                if len(jobfiles) > 0:
+                    for f in jobfiles:
+                        curFile = rt.TFile.Open(f)
+                        if not curFile:
+                            print "\nZOMBIE:",f,"\n"
+                            zombieFile.write(f+"\n")
+                else:
+                    print "Warning: no files found (",query,")"
+
+def haddFiles(analyzer,tag,isData=False,force=False,label=''):
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    for process in samples[tag]:
+        for sample in samples[tag][process]:
+            print "Sample:",sample
+            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,label)
+            query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,label).replace('.root','*.Job*.root'))
+            jobfiles = glob.glob( query )
+            if os.path.isfile( fname ) and not force:
+                print "File",fname,"exists; skipping"
+            elif len(jobfiles) > 0:
+                if force:
+                    call(['hadd','-f',fname]+jobfiles)
+                else:
+                    call(['hadd',fname]+jobfiles)
+            else:
+                print "Warning: no files found (",query,")"
+
+def normalizeFiles(analyzer,tag,force=False,label=''):
+    #make list file for normalizing
+    paths = glob.glob( DIRS[tag]+'/*.root' )
+    with open('ntuples_'+tag+'.txt','w') as normfile:
+        for f in paths:
+            #check if normalized file exists
+            if (not force) and os.path.isfile( f.replace('.root','_1pb_weighted.root') ): continue
+            sample = os.path.basename(f).replace('.root','').replace(
+                    getSamplePrefix(analyzer,tag,label)+'_','')
+            #check if we need this sample
+            for process in SAMPLES[tag]:
+                if sample in SAMPLES[tag][process]:
+                    normfile.write(sample+' '+f+'\n')
+                    break
+    call(['./NormalizeNtuple','ntuples_'+tag+'.txt'])
+
+def haddNormalizedFiles(analyzer,tag,force=False,label=''):
+    for process in SAMPLES[tag]:
+        print "Process:",process
+        haddList = []
+        for sample in SAMPLES[tag][process]:
+            print "Sample:",sample,
+            fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,label).replace(
+                    '.root','_1pb_weighted.root')
+            if os.path.isfile( fname ):
+                print "found!"
+                haddList.append( fname )
+            else:
+                print "not found..."
+        outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label)+'_'+process+'_1pb_weighted.root'
+        if len(haddList) > 0:
+            if force:
+                call(['hadd','-f',outName]+haddList)
+            else:
+                call(['hadd',outName]+haddList)
+        else:
+            print "Skipping process",process,"because no input files were found!"
+            print "Failed to create file",outName
+
+def combineData(analyzer,tag,force=False,skim=True,label=''):
+    haddList = []
+    for process in DATA[tag]:
+        print "Dataset:",process
+        for sample in DATA[tag][process]:
+            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_'+sample+'.root'
+            if skim:
+                fname = fname.replace('.root','_RazorSkim.root')
+            print fname,
+            if os.path.isfile( fname ):
+                print "found!"
+                haddList.append( fname )
+            else:
+                print "not found..."
+    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data.root'
+    if skim:
+        outName = outName.replace('.root','_RazorSkim.root')
+    if len(haddList) > 0:
+        if force:
+            call(['hadd','-f',outName]+haddList)
+        else:
+            call(['hadd',outName]+haddList)
+    else:
+        print "No input files were found!"
+        return
+
+def skimNtuples(analyzer,tag,isData=False,label=''):
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    #make list file for skimming
+    with open('skim_'+tag+'.txt','w') as skimfile:
+        for process in samples[tag]:
+            for sample in samples[tag][process]:
+                fname = DIRS[tag]+'/'+getFileName(analyzer,tag,sample,label=label)
+                if not isData: fname = fname.replace('.root','_1pb_weighted.root')
+                if os.path.isfile( fname ):
+                    print "Adding",sample,"to skim file"
+                    skimfile.write(fname+'\n')
+                else:
+                    print "Input file for",sample,"not found!"
+                    print "( looking for",fname,")"
+    skimString = 'MR%s > 300 && Rsq%s > 0.15'%(SUFFIXES[tag],SUFFIXES[tag])
+    print "Skimming with",skimString
+    call(['./SkimNtuple','skim_'+tag+'.txt',DIRS[tag],'RazorSkim',skimString])
+
+def removeDuplicates(analyzer,tag,skim=True,label=''):
+    outName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data.root'
+    if skim:
+        outName = outName.replace('.root','_RazorSkim.root')
+    outNameNoDuplicates = outName.replace('_Data','_Data_NoDuplicates')
+    dupMacro = 'macros/RemoveDuplicateEvents.C'
+    macroCall = "root -l '%s(\"%s\",\"%s\")'"%(dupMacro,outName,outNameNoDuplicates)
+    print macroCall
+    call(macroCall,shell=True)
+
+def goodLumi(analyzer,tag,skim=True,label=''):
+    #get location of good lumi script and python file containing JSON link
+    script = check_output(['which', 'FWLiteGoodLumi'])
+    pythonFile = os.path.join(os.environ['CMSSW_BASE'],'src','RazorCommon','Tools','python','loadJson.py')
+    #copy file locally
+    inName = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data_NoDuplicates.root'
+    if skim:
+        inName = inName.replace('.root','_RazorSkim.root')
+    outName = inName.replace('.root','_GoodLumiGolden.root')
+    #call script
+    print "FWLiteGoodLumi %s %s %s"%(pythonFile,inName,outName)
+    call(['FWLiteGoodLumi',pythonFile,inName,outName])
+
+def copyLocal(analyzer,tag,isData=False,skim=True,label=''):
+    samples = SAMPLES
+    if isData:
+        samples = DATA
+    #make directory
+    localdir = 'Backgrounds/'+tag
+    call(['mkdir','-p',localdir])
+    if isData:
+        fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_Data_NoDuplicates_GoodLumiGolden.root'
+        if skim:
+            fname = fname.replace('GoodLumiGolden.root','RazorSkim_GoodLumiGolden.root')
+        print "cp",fname,localdir
+        call(['cp',fname,localdir])
+    else:
+        for process in samples[tag]:
+            fname = DIRS[tag]+'/'+getSamplePrefix(analyzer,tag,label=label)+'_'+process+'_1pb_weighted.root'
+            print "cp",fname,localdir
+            call(['cp',fname,localdir])
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('tag',help='1L, 2L, ...')
+    parser.add_argument('--data',action='store_true',help='Run on data (MC otherwise)')
+    parser.add_argument('--submit',action='store_true',help='Submit batch jobs')
+    parser.add_argument('--no-sub', dest='noSub',action='store_true', 
+            help='Print commands but do not submit')
+    parser.add_argument('--force', action='store_true', help='Force HADD to recreate files')
+    parser.add_argument('--hadd',action='store_true',help='Combine ntuple files')
+    parser.add_argument('--normalize',action='store_true',help='Normalize ntuple files')
+    parser.add_argument('--hadd-final',dest='haddFinal',action='store_true',help='Combine normalized ntuple files')
+    parser.add_argument('--skim',action='store_true',help='Apply razor skim to final ntuples')
+    parser.add_argument('--remove-duplicates',dest='removeDuplicates',action='store_true',help='Remove duplicates')
+    parser.add_argument('--good-lumi',dest='goodLumi',action='store_true',help='Apply good lumi selection')
+    parser.add_argument('--find-zombies',dest='findZombies',action='store_true',help='Find zombie files')
+    parser.add_argument('--copy-local',dest='copyLocal',action='store_true',help='Copy files locally')
+    parser.add_argument('--no-skim',dest='noSkim',action='store_true',help='Do not assume skimmed data')
+    parser.add_argument('--label', help='label for RazorRun',
+            default='Razor2016_MoriondRereco') 
+    args = parser.parse_args()
+    tag = args.tag
+    analyzer = ANALYZERS[tag]
+    isData = args.data
+    noSub = args.noSub
+    force = args.force
+    skim = not args.noSkim
+    label = args.label
+
+    print "Analyzer:",analyzer
+    print "Tag:",tag
+
+    if args.submit:
+        print "Submit batch jobs..."
+        submitJobs(analyzer,tag,isData,submit=(not noSub),label=label)
+
+    if args.findZombies:
+        print "Searching for zombie files..."
+        findZombies(analyzer,tag,isData,label=label)
+
+    if args.hadd:
+        print "Combine ntuples..."
+        haddFiles(analyzer,tag,isData,force,label=label)
+
+    if args.normalize:
+        print "Normalize ntuples..."
+        if isData:
+            sys.exit("Error: options --data and --normalize do not make sense together!")
+        normalizeFiles(analyzer,tag,force,label=label)
+
+    if args.haddFinal:
+        print "Combine normalized files..."
+        if isData:
+            combineData(analyzer,tag,force,skim,label=label)
+        else:
+            haddNormalizedFiles(analyzer,tag,force,label=label)
+
+    if args.skim:
+        print "Skim finished ntuples..."
+        skimNtuples(analyzer,tag,isData,label=label)
+
+    if args.removeDuplicates:
+        print "Remove duplicate events..."
+        if not isData:
+            print "--data was not specified, but I assume you want to use data."
+        removeDuplicates(analyzer,tag,skim,label=label)
+
+    if args.goodLumi:
+        print "Apply good lumi selection..."
+        if not isData:
+            print "--data was not specified, but I assume you want to use data."
+        goodLumi(analyzer,tag,skim,label=label)
+
+    if args.copyLocal:
+        print "Copy files locally..."
+        copyLocal(analyzer,tag,isData,skim,label=label)
