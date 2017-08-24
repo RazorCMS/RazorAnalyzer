@@ -24,7 +24,10 @@ cd -
 
 pwd
 
-cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun ./
+wget http://cmsdoc.cern.ch/~duanders/RazorRunAuxFiles_Expanded.tar.gz
+
+cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun_NoAFS ./
+cp $CMSSW_BASE/src/RazorAnalyzer/bin/Run${analysisType} ./
 
 echo " "; echo "Show where we are"; echo " "
 hostname
@@ -48,8 +51,8 @@ endif
 
 # Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
+echo ./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
+./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
 
 ls -ltr 
 

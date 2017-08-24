@@ -26,10 +26,9 @@ def getFileName(analyzer,tag,sample,reHLT=False,label=''):
     prefix = getSamplePrefix(analyzer,tag,reHLT,label)
     return '%s_%s.root'%(prefix,sample)
 
-def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
+def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',queue='8nm'):
     # parameters
     samples = SAMPLES
-    queue = '1nh'
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
     if not os.path.isdir(basedir+'/output/'):
         os.mkdir(basedir+'/output/')
@@ -40,9 +39,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
     filesperjob = 3
-    if isData:
-        filesperjob = 9
-    script=basedir+'/scripts/runRazorJob_NoAFS.sh'
+    script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
@@ -65,7 +62,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label=''):
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
                     cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
-                        DIRS[tag].replace('/eos/cms','')+jobssuffix, 'CMSSW_8_0_26',
+                        DIRS[tag].replace('/eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src',
                         label]
                     print ' '.join(cmd)
                     if submit:
@@ -242,7 +239,7 @@ def copyLocal(analyzer,tag,isData=False,skim=True,label=''):
             print "cp",fname,localdir
             call(['cp',fname,localdir])
 
-if __name__ == '__main__':
+def makeParser():
     parser = argparse.ArgumentParser()
     parser.add_argument('tag',help='1L, 2L, ...')
     parser.add_argument('--data',action='store_true',help='Run on data (MC otherwise)')
@@ -262,6 +259,12 @@ if __name__ == '__main__':
     parser.add_argument('--no-skim',dest='noSkim',action='store_true',help='Do not assume skimmed data')
     parser.add_argument('--label', help='label for RazorRun',
             default='Razor2016_MoriondRereco') 
+    return parser
+
+
+if __name__ == '__main__':
+    parser = makeParser()
+    parser.add_argument('--queue', default='8nm', help='batch queue')
     args = parser.parse_args()
     tag = args.tag
     analyzer = ANALYZERS[tag]
@@ -277,7 +280,8 @@ if __name__ == '__main__':
 
     if args.submit:
         print "Submit batch jobs..."
-        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,label=label)
+        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,
+                label=label,queue=args.queue)
 
     if args.findZombies:
         print "Searching for zombie files..."

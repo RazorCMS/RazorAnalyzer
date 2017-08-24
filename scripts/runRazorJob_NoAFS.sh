@@ -37,6 +37,14 @@ pwd
 
 klist
 
+# Copy executable and auxiliary files from EOS
+eosdir="/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/"
+eos cp ${eosdir}/RazorRun_NoAFS ./
+eos cp ${eosdir}/Run${analysisType} ./
+eos cp ${eosdir}/RazorRunAuxFiles_Expanded.tar.gz ./
+chmod a+x RazorRun_NoAFS
+chmod a+x Run${analysisType}
+
 #Do Job splitting and make input file list
 cat $inputfilelist | awk "NR > ($jobnumber*$filePerJob) && NR <= (($jobnumber+1)*$filePerJob)" > inputfilelistForThisJob_${jobnumber}.txt
 echo ""
