@@ -62,11 +62,6 @@ int main( int argc, char** argv )
 
   TFile* fin[n]; 
   TTree* tree[n]; 
-  TH1F* hist_MR[n];
-  TH1F* hist_Rsq[n]; 
-  TH1F* hist_HPt[n]; //Higgs Pt
-  TH1F* hist_HT[n];  //HT = sum of photon pT  + jet pT
-  TH1F* hist_MET[n]; 
 
   int i = 0;
   std::string process, rootFileName;
@@ -97,6 +92,15 @@ int main( int argc, char** argv )
   std::string outputFile = argv[2];
   TFile* fout = new TFile( outputFile.c_str(), "RECREATE");
 
+  int m = 2*n;
+  std::cout << "m = " << m << "\n" << std::endl;
+
+  TH1F* hist_MR[m];
+  TH1F* hist_Rsq[m]; 
+  TH1F* hist_HPt[m]; //Higgs Pt
+  TH1F* hist_HT[m];  //HT = sum of photon pT  + jet pT
+  TH1F* hist_MET[m];
+
   //MR
   TCanvas* c_MR = new TCanvas( "c_MR", "c_MR", 800, 700 );
   TLegend* leg_MR = new TLegend(0.7,0.7,0.9,0.9);
@@ -114,15 +118,28 @@ int main( int argc, char** argv )
           ostringstream Convert;
           Convert<<i;
           std::string hist_MR_str = "hist_MR_"+Convert.str();
-          hist_MR[i] = new TH1F(hist_MR_str.c_str(),"",100,0,3000);
+          hist_MR[i] = new TH1F(hist_MR_str.c_str(),"",100,0,2500);
           std::string draw_MR_str = "MR>>"+hist_MR_str;
-          tree[i]->Draw(draw_MR_str.c_str(),"","SAME");
+          tree[i]->Draw(draw_MR_str.c_str(),"box > -1 && box <5","SAME");
           hist_MR[i]->SetLineColor(i+1);
-          leg_MR->AddEntry(hist_MR[i],labelProcess[i].c_str(),"l");
-          //std::cout << "i = " << i << "\n" << std::endl;
+          std::string add_entry_str = labelProcess[i]+" leptons";
+          leg_MR->AddEntry(hist_MR[i],add_entry_str.c_str(),"l");
+          std::cout << "i = " << i << "\n" << std::endl;
+  }
+  for(int i = n; i < m; i++){
+          ostringstream Convert;
+          Convert<<i;
+          std::string hist_MR_str = "hist_MR_"+Convert.str();
+          hist_MR[i] = new TH1F(hist_MR_str.c_str(),"",100,0,2500);
+          std::string draw_MR_str = "MR>>"+hist_MR_str;
+          tree[i-n]->Draw(draw_MR_str.c_str(),"box > 4 && box < 10","SAME");
+          hist_MR[i]->SetLineColor(i+1);
+          std::string add_entry_str = labelProcess[i-n]+" inclusive";
+          leg_MR->AddEntry(hist_MR[i],add_entry_str.c_str(),"l");
+          std::cout << "i = " << i << "\n" << std::endl;
   }
   hist_MR[0]->SetTitle(";MR;#Events");
-  //hist_MR[0]->GetYaxis()->SetRangeUser(0,300);
+  hist_MR[0]->GetYaxis()->SetRangeUser(0,3000);
   leg_MR->SetBorderSize(0);
   leg_MR->Draw("SAME");
   leg_MR->Write();
@@ -147,15 +164,28 @@ int main( int argc, char** argv )
           ostringstream Convert;
           Convert<<i;
           std::string hist_Rsq_str = "hist_Rsq_"+Convert.str();
-          hist_Rsq[i] = new TH1F(hist_Rsq_str.c_str(),"",100,0,1);
+          hist_Rsq[i] = new TH1F(hist_Rsq_str.c_str(),"",100,0,1.3);
           std::string draw_Rsq_str = "Rsq>>"+hist_Rsq_str;
-          tree[i]->Draw(draw_Rsq_str.c_str(),"","SAME");
+          tree[i]->Draw(draw_Rsq_str.c_str(),"box > -1 && box < 5","SAME");
           hist_Rsq[i]->SetLineColor(i+1);
-          leg_Rsq->AddEntry(hist_Rsq[i],labelProcess[i].c_str(),"l");
+          std::string add_entry_str = labelProcess[i]+" leptons";
+          leg_Rsq->AddEntry(hist_Rsq[i],add_entry_str.c_str(),"l");
+          //std::cout << "i = " << i << "\n" << std::endl;
+  }
+  for(int i = n; i < m; i++){
+          ostringstream Convert;
+          Convert<<i;
+          std::string hist_Rsq_str = "hist_Rsq_"+Convert.str();
+          hist_Rsq[i] = new TH1F(hist_Rsq_str.c_str(),"",100,0,1.3);
+          std::string draw_Rsq_str = "Rsq>>"+hist_Rsq_str;
+          tree[i-n]->Draw(draw_Rsq_str.c_str(),"box > 4 && box < 10","SAME");
+          hist_Rsq[i]->SetLineColor(i+1);
+          std::string add_entry_str = labelProcess[i-n]+" inclusive";
+          leg_Rsq->AddEntry(hist_Rsq[i],add_entry_str.c_str(),"l");
           //std::cout << "i = " << i << "\n" << std::endl;
   }
   hist_Rsq[0]->SetTitle(";Rsq;#Events");
-  //hist_Rsq[0]->GetYaxis()->SetRangeUser(0,300);
+  hist_Rsq[0]->GetYaxis()->SetRangeUser(0,2500);
   leg_Rsq->SetBorderSize(0);
   leg_Rsq->Draw("SAME");
   leg_Rsq->Write();
@@ -180,15 +210,28 @@ int main( int argc, char** argv )
           ostringstream Convert;
           Convert<<i;
           std::string hist_HPt_str = "hist_HPt_"+Convert.str();
-          hist_HPt[i] = new TH1F(hist_HPt_str.c_str(),"",100,0,1500);
+          hist_HPt[i] = new TH1F(hist_HPt_str.c_str(),"",100,0,1000);
           std::string draw_HPt_str = "HPt>>"+hist_HPt_str;
-          tree[i]->Draw(draw_HPt_str.c_str(),"","SAME");
+          tree[i]->Draw(draw_HPt_str.c_str(),"box > -1 && box < 5","SAME");
           hist_HPt[i]->SetLineColor(i+1);
-          leg_HPt->AddEntry(hist_HPt[i],labelProcess[i].c_str(),"l");
+          std::string add_entry_str = labelProcess[i]+" leptons";
+          leg_HPt->AddEntry(hist_HPt[i],add_entry_str.c_str(),"l");
+          //std::cout << "i = " << i << "\n" << std::endl;
+  }
+  for(int i = n; i < m; i++){
+          ostringstream Convert;
+          Convert<<i;
+          std::string hist_HPt_str = "hist_HPt_"+Convert.str();
+          hist_HPt[i] = new TH1F(hist_HPt_str.c_str(),"",100,0,1000);
+          std::string draw_HPt_str = "HPt>>"+hist_HPt_str;
+          tree[i-n]->Draw(draw_HPt_str.c_str(),"box > 4 && box < 10","SAME");
+          hist_HPt[i]->SetLineColor(i+1);
+          std::string add_entry_str = labelProcess[i-n]+" inclusive";
+          leg_HPt->AddEntry(hist_HPt[i],add_entry_str.c_str(),"l");
           //std::cout << "i = " << i << "\n" << std::endl;
   }
   hist_HPt[0]->SetTitle(";HPt;#Events");
-  //hist_HPt[0]->GetYaxis()->SetRangeUser(0,300);
+  hist_HPt[0]->GetYaxis()->SetRangeUser(0,2600);
   leg_HPt->SetBorderSize(0);
   leg_HPt->Draw("SAME");
   leg_HPt->Write();
@@ -215,13 +258,26 @@ int main( int argc, char** argv )
           std::string hist_HT_str = "hist_HT_"+Convert.str();
           hist_HT[i] = new TH1F(hist_HT_str.c_str(),"",100,0,2000);
           std::string draw_HT_str = "HT>>"+hist_HT_str;
-          tree[i]->Draw(draw_HT_str.c_str(),"","SAME");
+          tree[i]->Draw(draw_HT_str.c_str(),"box > -1 && box < 5","SAME");
           hist_HT[i]->SetLineColor(i+1);
-          leg_HT->AddEntry(hist_HT[i],labelProcess[i].c_str(),"l");
+          std::string add_entry_str = labelProcess[i]+" leptons";
+          leg_HT->AddEntry(hist_HT[i],add_entry_str.c_str(),"l");
+          //std::cout << "i = " << i << "\n" << std::endl;
+  }
+  for(int i = n; i < m; i++){
+          ostringstream Convert;
+          Convert<<i;
+          std::string hist_HT_str = "hist_HT_"+Convert.str();
+          hist_HT[i] = new TH1F(hist_HT_str.c_str(),"",100,0,2000);
+          std::string draw_HT_str = "HT>>"+hist_HT_str;
+          tree[i-n]->Draw(draw_HT_str.c_str(),"box > 4 && box < 10","SAME");
+          hist_HT[i]->SetLineColor(i+1);
+          std::string add_entry_str = labelProcess[i-n]+" inclusive";
+          leg_HT->AddEntry(hist_HT[i],add_entry_str.c_str(),"l");
           //std::cout << "i = " << i << "\n" << std::endl;
   }
   hist_HT[0]->SetTitle(";HT;#Events");
-  //hist_HT[0]->GetYaxis()->SetRangeUser(0,300);
+  hist_HT[0]->GetYaxis()->SetRangeUser(0,3700);
   leg_HT->SetBorderSize(0);
   leg_HT->Draw("SAME");
   leg_HT->Write();
@@ -248,13 +304,26 @@ int main( int argc, char** argv )
           std::string hist_MET_str = "hist_MET_"+Convert.str();
           hist_MET[i] = new TH1F(hist_MET_str.c_str(),"",100,0,1000);
           std::string draw_MET_str = "MET>>"+hist_MET_str;
-          tree[i]->Draw(draw_MET_str.c_str(),"","SAME");
+          tree[i]->Draw(draw_MET_str.c_str(),"box > -1 && box < 5","SAME");
           hist_MET[i]->SetLineColor(i+1);
-          leg_MET->AddEntry(hist_MET[i],labelProcess[i].c_str(),"l");
+          std::string add_entry_str = labelProcess[i]+" leptons";
+          leg_MET->AddEntry(hist_MET[i],add_entry_str.c_str(),"l");
+          //std::cout << "i = " << i << "\n" << std::endl;
+  }
+  for(int i = n; i < m; i++){
+          ostringstream Convert;
+          Convert<<i;
+          std::string hist_MET_str = "hist_MET_"+Convert.str();
+          hist_MET[i] = new TH1F(hist_MET_str.c_str(),"",100,0,1000);
+          std::string draw_MET_str = "MET>>"+hist_MET_str;
+          tree[i-n]->Draw(draw_MET_str.c_str(),"box > 4 && box < 10","SAME");
+          hist_MET[i]->SetLineColor(i+1);
+          std::string add_entry_str = labelProcess[i-n]+" inclusive";
+          leg_MET->AddEntry(hist_MET[i],add_entry_str.c_str(),"l");
           //std::cout << "i = " << i << "\n" << std::endl;
   }
   hist_MET[0]->SetTitle(";MET;#Events");
-  //hist_MET[0]->GetYaxis()->SetRangeUser(0,300);
+  hist_MET[0]->GetYaxis()->SetRangeUser(0,4100);
   leg_MET->SetBorderSize(0);
   leg_MET->Draw("SAME");
   leg_MET->Write();
