@@ -12,13 +12,15 @@ from subprocess import call, check_output
 from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 import NtupleUtils as nt
 
+RAZOR_EOS_DIR = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/'
+
 def getSubDirName(tag, datasetname):
     return os.path.join("condor", tag, datasetname)
 
 def getSubFileName(subdir):
     return subdir+'/condorsubmit.cmd'
 
-def getCondorSubmitFile(subdir, executable, infile, flavor='espresso'):
+def getCondorSubmitFile(subdir, executable, flavor='espresso'):
     """
     Creates submission file and fills in header info common to all jobs.
     Returns the open file object.
@@ -27,9 +29,7 @@ def getCondorSubmitFile(subdir, executable, infile, flavor='espresso'):
     f = open(subfile,"w")
     f.write("Universe = vanilla\n")
     f.write("Executable = "+executable+"\n")
-    f.write("Should_Transfer_Files = YES\n")
-    f.write("Transfer_Input_Files = "+infile+"\n")
-    f.write('Transfer_Output_Files = ""\n')
+    f.write("Should_Transfer_Files = NO\n")
     f.write("Notification = Never\n")
     f.write("+JobFlavour = "+flavor+"\n")
     return f
@@ -67,31 +67,30 @@ def submitJobs(analyzer,tag,isData=False,submit=False,label='',
     local_dir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer/'
     samples = SAMPLES
     listdir = local_dir+'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'
+    eos_list_dir = '{}/lists/{}/'.format(RAZOR_EOS_DIR, VERSION)
     jobssuffix = '/jobs'
     if isData:
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
     filesperjob = 6
     script=local_dir+'scripts/runRazorJob_NoAFS.sh'
-    infiles = [#local_dir+'bin/Run%s'%(analyzer), 
-               #local_dir+'RazorRun_NoAFS', 
-               #local_dir+'RazorRunAuxFiles_Expanded.tar.gz'
-               ]
-    #samples loop
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
+    call(['mkdir','-p',eos_list_dir])
+    #samples loop
     for process in samples[tag]:
         for sample in samples[tag][process]:
             subdir = getSubDirName(tag, sample)
             call(['mkdir','-p',subdir])
             inlist = os.path.join(listdir,sample+'.cern.txt')
-            infiles_sample = ','.join(infiles + [inlist])
             if not os.path.isfile(inlist):
                 print "Warning: list file",inlist,"not found!"
                 continue
             nfiles = sum([1 for line in open(inlist)])
             maxjob = int(math.ceil( nfiles*1.0/filesperjob ))-1
-            print "Sample:",sample,"--",maxjob+1,"files"
-            f = getCondorSubmitFile(subdir, script, infiles_sample, flavor)
+            print "Sample:",sample
+            call(['cp', inlist, eos_list_dir])
+            inlist = eos_list_dir+'/'+os.path.basename(inlist)
+            f = getCondorSubmitFile(subdir, script, flavor)
             njobs = 0
             for ijob in range(maxjob+1):
                 outfile = nt.getJobFileName(analyzer,tag,sample,ijob,maxjob,label=label)
@@ -107,9 +106,9 @@ def submitJobs(analyzer,tag,isData=False,submit=False,label='',
                         print "Command: %s %s"%(script, ' '.join(options))
                     # remove absolute paths from argument list
                     options = [opt.replace(local_dir, '') for opt in options]
-                    options[1] = os.path.basename(options[1])
                     writeCondorSubmitFragment(f, subdir, jobname, options)
-            print "Number of jobs:",njobs
+            if njobs > 0:
+                print "Number of jobs: {} / {}".format(njobs, maxjob+1)
             submitCondorJobsForSample(f, subdir, submit=(submit and njobs), 
                     spool=spool, verbose=verbose)
 

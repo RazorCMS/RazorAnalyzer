@@ -42,11 +42,12 @@ eosdir="/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/"
 eos cp ${eosdir}/RazorRun_NoAFS ./
 eos cp ${eosdir}/Run${analysisType} ./
 eos cp ${eosdir}/RazorRunAuxFiles_Expanded.tar.gz ./
+eos cp ${inputfilelist} ./
 chmod a+x RazorRun_NoAFS
 chmod a+x Run${analysisType}
 
 #Do Job splitting and make input file list
-cat $inputfilelist | awk "NR > ($jobnumber*$filePerJob) && NR <= (($jobnumber+1)*$filePerJob)" > inputfilelistForThisJob_${jobnumber}.txt
+cat $( basename "$inputfilelist" ) | awk "NR > ($jobnumber*$filePerJob) && NR <= (($jobnumber+1)*$filePerJob)" > inputfilelistForThisJob_${jobnumber}.txt
 echo ""
 echo "************************************"
 echo "Running on these input files:"

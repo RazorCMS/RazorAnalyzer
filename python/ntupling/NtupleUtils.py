@@ -26,7 +26,8 @@ def getFileName(analyzer,tag,sample,reHLT=False,label=''):
     prefix = getSamplePrefix(analyzer,tag,reHLT,label)
     return '%s_%s.root'%(prefix,sample)
 
-def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',queue='8nm'):
+def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
+        queue='8nm', filesperjob=6):
     # parameters
     samples = SAMPLES
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
@@ -38,7 +39,6 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',queue
     if isData:
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
-    filesperjob = 3
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
@@ -85,6 +85,10 @@ def findZombies(analyzer,tag,isData=False,reHLT=False,label=''):
                 jobfiles = glob.glob( query )
                 if len(jobfiles) > 0:
                     for f in jobfiles:
+                        if os.path.getsize(f) < 1000:
+                            print "\nNO KEYS:",f,"\n"
+                            zombieFile.write(f+"\n")
+                            continue
                         curFile = rt.TFile.Open(f)
                         if not curFile:
                             print "\nZOMBIE:",f,"\n"
@@ -265,6 +269,7 @@ def makeParser():
 if __name__ == '__main__':
     parser = makeParser()
     parser.add_argument('--queue', default='8nm', help='batch queue')
+    parser.add_argument('--files-per-job', default=6, type=int)
     args = parser.parse_args()
     tag = args.tag
     analyzer = ANALYZERS[tag]
@@ -281,7 +286,7 @@ if __name__ == '__main__':
     if args.submit:
         print "Submit batch jobs..."
         submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,
-                label=label,queue=args.queue)
+                label=label,queue=args.queue,filesperjob=args.files_per_job)
 
     if args.findZombies:
         print "Searching for zombie files..."
