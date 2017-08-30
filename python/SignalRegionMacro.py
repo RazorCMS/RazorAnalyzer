@@ -1,8 +1,8 @@
-import sys,os,argparse,copy
+import sys,os,copy
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis, razorFitFiles
+from macro.razorAnalysis import Analysis, razorFitFiles, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis
 
 commonShapeErrors = [
@@ -32,12 +32,7 @@ shapes = { 'MultiJet':hadShapeErrors, 'LeptonMultiJet':lepShapeErrors,
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
-    #parse args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
+    parser = make_parser()
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
     parser.add_argument('--no-mc', help="do not process MC, do data and fit only", 
             action='store_true', dest="noMC")
@@ -50,32 +45,24 @@ if __name__ == "__main__":
             action="store_true", dest='noSys')
     parser.add_argument('--no-qcd', help="do not include QCD prediction", action="store_true", 
             dest='noQCD')
-    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
-            dest='noFill')
     parser.add_argument('--no-sfs', help="ignore MC scale factors", action="store_true", 
             dest="noSFs")
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--btags', type=int, help="choose a number of btags")
     parser.add_argument('--b-inclusive', help='do not bin in btags', action='store_true',
             dest='bInclusive')
-    parser.add_argument("--tag", dest="tag", default="Razor2016",
-            help="Analysis tag, e.g. Razor2015")
     parser.add_argument('--qcd-mc', dest='qcdMC', help='make qcd prediction using MC',
             action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
+    boostCuts = not args.noBoostCuts
 
     #initialize
     plotOpts = {"SUS15004":True}
 
-    #doSideband=(not args.full)
     dirSuffix = ""
     plotOpts['sideband'] = True
-    #if not doSideband:
-    #    toysToUse = FULL_TOYS_FILES
-    #    dirSuffix += 'Full'
-    #    plotOpts['sideband'] = False
     if not args.unblind:
         dirSuffix += 'Blinded'
     if args.noFit: 
@@ -123,7 +110,8 @@ if __name__ == "__main__":
             #define analysis region
             extBox = '%s%dB%s'%(box,btags,dirSuffix)
             regionsOrder.append(extBox)
-            regions[extBox] = Analysis(box, tag=tag, nbMin=btags, nbMax=nbMax)
+            regions[extBox] = Analysis(box, tag=tag, boostCuts=boostCuts,
+                    nbMin=btags, nbMax=nbMax)
 
     ####LOAD ALL SCALE FACTOR HISTOGRAMS
 
@@ -276,6 +264,7 @@ if __name__ == "__main__":
                 auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, printdir=outdir, 
                 plotOpts=plotOpts, noFill=args.noFill, exportShapeErrs=True, 
                 propagateScaleFactorErrs=False)
-        #export histograms
-        macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', outDir=outdir, 
-                debugLevel=debugLevel)
+        if not args.noSave:
+            #export histograms
+            macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', outDir=outdir, 
+                    debugLevel=debugLevel)

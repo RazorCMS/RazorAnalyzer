@@ -1,4 +1,5 @@
 ## Inclusive razor analysis definitions
+import argparse
 import ROOT as rt
 from array import array
 import sys
@@ -7,6 +8,23 @@ import csv
 
 #local imports
 from framework import Config
+
+def make_parser():
+    """
+    Gets a basic command line parser with common arguments needed for
+    razor analysis scripts
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", help="display detailed output messages",
+                                action="store_true")
+    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
+                                action="store_true")
+    parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016_MoriondRereco")
+    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
+            dest='noFill')
+    parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
+    parser.add_argument('--no-boost-cuts', dest='noBoostCuts', action='store_true')
+    return parser
 
 #####################################
 ### WEIGHTS NEEDED
@@ -17,7 +35,7 @@ razorWeightOpts = {
         "Razor2016":[], 
         }
 razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
-razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]
+razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]+['boost']
 razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorExtraWeightOpts = {
@@ -189,8 +207,8 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p8_1Dec2016"
-versionData2016 = "V3p8_1Dec2016"
+versionMC2016 = "V3p15_11Aug2017"
+versionData2016 = "V3p15_11Aug2017"
 
 sampleTags2016 = { "Razor2016":"",
                "Razor2016_80X":"_Razor2016_80X",
@@ -216,9 +234,8 @@ skimstr = ""
 #dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
 #dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
 #dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
-#dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLeptonRazorSkim'
-#dirVetoL2016 = dirCR2016+'/V3p6_25October2016_CustomType1MET_TestTightVeto/VetoLepton'
-#dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
+dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLepton'
+dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTau'
 #dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
 #dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
@@ -228,8 +245,8 @@ dir1L2016 = 'Backgrounds/1L'
 dir2L2016 = 'Backgrounds/2L'
 dir1LInv2016 = 'Backgrounds/1LInv'
 dir2LInv2016 = 'Backgrounds/2LInv'
-dirVetoL2016 = 'Backgrounds/VetoL'
-dirVetoTau2016 = 'Backgrounds/VetoTau'
+#dirVetoL2016 = 'Backgrounds/VetoL'
+#dirVetoTau2016 = 'Backgrounds/VetoTau'
 dirSignal2016 = 'Backgrounds/Signal'
 dirPhoton2016 = 'Backgrounds/Photon'    
 
@@ -1110,13 +1127,15 @@ for box in ['LooseLeptonMultiJet','LooseLeptonDiJet']:
 
 class Analysis:
     """Class to hold analysis cuts, binning, input files, and trigger info"""
-    def __init__(self, region, tag, njetsMin=-1, njetsMax=-1, nbMin=-1, nbMax=-1):
+    def __init__(self, region, tag, njetsMin=-1, njetsMax=-1, nbMin=-1, nbMax=-1,
+            boostCuts=True):
         self.region = region
         self.tag = tag
         self.njetsMin = njetsMin
         self.njetsMax = njetsMax
         self.nbMin = nbMin
         self.nbMax = nbMax
+        self.boostCuts = boostCuts
 
         if tag == "Razor2015":
             self.lumi = 2300
@@ -1412,8 +1431,13 @@ class Analysis:
 
         #add jet and bjet and trigger requirements to cuts
         #self.cuts = appendNoiseFilters(self.cuts) # MC does not have all noise filters yet -- just add filter cuts to data
+        if self.boostCuts:
+            self.addBoostCuts()
         self.addJetCuts()
         self.addTriggerCuts()
+
+    def addBoostCuts(self):
+        self.cuts += ' && nWTags == 0 && nTopTags == 0'
 
     def addJetCuts(self):
         if self.njetsMin >= 0:
@@ -1435,6 +1459,8 @@ class Analysis:
 
     def getWeightOpts(self):
         self.weightOpts = copy.copy(razorWeightOpts[self.tag])
+        if not self.boostCuts and 'boost' in self.weightOpts:
+            self.weightOpts.remove('boost')
         self.dataWeightOpts = []
         self.weightFiles = {}
         self.weightHists = {}

@@ -1,26 +1,20 @@
-import sys, os, argparse, copy
+import sys, os, copy
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis
+from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
-    #parse args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
-    parser.add_argument("--tag", dest="tag", default="Razor2016",
-                                help="Analysis tag, e.g. Razor2015")
+    parser = make_parser()
     parser.add_argument("--closure", action="store_true", help="include uncertainties from scale factor cross check")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
     closure = args.closure
+    boostCuts = not args.noBoostCuts
 
     #initialize
     plotOpts = { "comment":False, 'SUS15004CR':True } 
@@ -34,13 +28,17 @@ if __name__ == "__main__":
                 "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr",
                 "DYJetsDileptonInvNoSFs"]
     regions = {
-            "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag),
-            "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag),
-            "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3),
-            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
-            "DYJetsDileptonInvDiJetWJetsCorr":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3),
-            "DYJetsDileptonInvMultiJetWJetsCorr":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4),
-            "DYJetsDileptonInvNoSFs":Analysis("DYJetsDileptonInv",tag=tag),
+            "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
+            "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
+            "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3,
+                boostCuts=boostCuts),
+            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4,
+                boostCuts=boostCuts),
+            "DYJetsDileptonInvDiJetWJetsCorr":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3,
+                boostCuts=boostCuts),
+            "DYJetsDileptonInvMultiJetWJetsCorr":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4,
+                boostCuts=boostCuts),
+            "DYJetsDileptonInvNoSFs":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
     #make two dictionaries of scale factor histograms, one with GJets and one with WJets corrections
@@ -58,8 +56,9 @@ if __name__ == "__main__":
         d['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
         d['NJetsWJetsInv'] = sfNJetsFile.Get("WJetsInvScaleFactors")
     sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
-    outfile = rt.TFile(
-        "data/ScaleFactors/RazorMADD2015/RazorDYJetsDileptonInvCrossCheck_%s.root"%(tag), "RECREATE")
+    if not args.noSave:
+        outfile = rt.TFile(
+            "data/ScaleFactors/RazorMADD2015/RazorDYJetsDileptonInvCrossCheck_%s.root"%(tag), "RECREATE")
     #optionally inflate scale factor uncertainties to cover difference between G+jets and W+jets SFs
     if args.closure:
         sfFile = rt.TFile.Open(sfFilename)
@@ -92,16 +91,17 @@ if __name__ == "__main__":
             sfHistsToUse = sfHists
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHistsToUse,
-            sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel )
+            sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
         #record discrepancies > 1 sigma
         tmpSFHists = copy.copy(sfHists)
         del tmpSFHists["DYJetsInv"]
         appendScaleFactors("DYJetsInv", hists, tmpSFHists, lumiData=analysis.lumi, 
             debugLevel=debugLevel, var=sfVars["DYJetsInv"], signifThreshold=1.0, printdir=outdir)
-        #write out scale factors
-        print "Writing histogram",tmpSFHists["DYJetsInv"].GetName(),"to file"
-        outfile.cd()
-        tmpSFHists["DYJetsInv"].Write(region+"ScaleFactors")
+        if not args.noSave:
+            #write out scale factors
+            print "Writing histogram",tmpSFHists["DYJetsInv"].GetName(),"to file"
+            outfile.cd()
+            tmpSFHists["DYJetsInv"].Write(region+"ScaleFactors")
 
         #in the first pass, update the normalization of the G+jets scale factor histogram
         if updateNorm:
@@ -116,12 +116,13 @@ if __name__ == "__main__":
             normUpdate = dataNorm / mcNorm
             normUpdateErr = ( (dataNormErr/mcNorm)**2 + (dataNorm*mcNormErr/(mcNorm*mcNorm))**2 )**(0.5)
 
-            sfFilenameUncorr="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s_Uncorr.root"%(tag)
-            print "Writing old G+jets scale factor histogram to",sfFilenameUncorr
-            sfFileUncorr = rt.TFile.Open(sfFilenameUncorr, "RECREATE")
-            sfHistUncorr = sfHists["DYJetsInv"].Clone()
-            sfFileUncorr.WriteTObject(sfHistUncorr, "GJetsInvScaleFactors", "WriteDelete")
-            sfFileUncorr.Close()
+            if not args.noSave:
+                sfFilenameUncorr="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s_Uncorr.root"%(tag)
+                print "Writing old G+jets scale factor histogram to",sfFilenameUncorr
+                sfFileUncorr = rt.TFile.Open(sfFilenameUncorr, "RECREATE")
+                sfHistUncorr = sfHists["DYJetsInv"].Clone()
+                sfFileUncorr.WriteTObject(sfHistUncorr, "GJetsInvScaleFactors", "WriteDelete")
+                sfFileUncorr.Close()
             print "Scaling G+jets scale factor histogram by",normUpdate,"( = %.3f / %.3f )"%(dataNorm,mcNorm)
             print "Propagating error on scale factor:",normUpdateErr
             for bn in range(sfHists["DYJetsInv"].GetNumberOfBins()+1):
@@ -130,15 +131,18 @@ if __name__ == "__main__":
                 sfHists["DYJetsInv"].SetBinError( bn-1, 
                         ( ( sfHists["DYJetsInv"].GetBinError(bn))**2 + normUpdateErr*normUpdateErr )**(0.5) )
             sfHistCorr = sfHists["DYJetsInv"].Clone()
-            #Write the corrected G+jets scale factor file over the old one
-            sfFile = rt.TFile.Open(sfFilename, "UPDATE")
-            sfFile.WriteTObject(sfHistCorr, "GJetsInvScaleFactors", "WriteDelete")
-            sfFile.Close()
+            if not args.noSave:
+                #Write the corrected G+jets scale factor file over the old one
+                sfFile = rt.TFile.Open(sfFilename, "UPDATE")
+                sfFile.WriteTObject(sfHistCorr, "GJetsInvScaleFactors", "WriteDelete")
+                sfFile.Close()
             updateNorm = False
 
-        #export histograms
-        macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
-                outDir=outdir, debugLevel=debugLevel )
+        if not args.noSave:
+            #export histograms
+            macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
+                    outDir=outdir, debugLevel=debugLevel )
 
-    outfile.Close()
+    if not args.noSave:
+        outfile.Close()
 

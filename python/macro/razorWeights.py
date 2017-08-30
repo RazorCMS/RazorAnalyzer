@@ -348,6 +348,9 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
         print "Scale by:",scale
 
     if len(lweightOpts) > 0:
+        #top/W tag weighting
+        if 'boost' in lweightOpts:
+            eventWeight *= event.wTagScaleFactor * event.topTagScaleFactor
 
         #reweighting in number of b-jets
         if 'nbjets' in lweightOpts:

@@ -1,32 +1,26 @@
-import sys, os, argparse, copy
+import sys, os, copy
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis
+from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
-    #parse args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
-    parser.add_argument("--tag", dest="tag", default="Razor2016",
-                                help="Analysis tag, e.g. Razor2015")
+    parser = make_parser()
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
+    boostCuts = not args.noBoostCuts
 
     #initialize
     plotOpts = { "comment":False, 'SUS15004CR':True } 
     regionsOrder = ["TTJetsDilepton","TTJetsDileptonMultiJet","TTJetsDileptonDiJet"]
     regions = {
-            "TTJetsDilepton":Analysis("TTJetsDilepton",tag=tag),
-            "TTJetsDileptonDiJet":Analysis("TTJetsDilepton",tag=tag,njetsMin=2,njetsMax=3),
-            "TTJetsDileptonMultiJet":Analysis("TTJetsDileptonMultiJet",tag=tag,njetsMin=4),
+            "TTJetsDilepton":Analysis("TTJetsDilepton",tag=tag,boostCuts=boostCuts),
+            "TTJetsDileptonDiJet":Analysis("TTJetsDilepton",tag=tag,njetsMin=2,njetsMax=3,boostCuts=boostCuts),
+            "TTJetsDileptonMultiJet":Analysis("TTJetsDileptonMultiJet",tag=tag,njetsMin=4,boostCuts=boostCuts),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
     sfHists = macro.loadScaleFactorHists( sfFilename=sfFilename,
@@ -35,8 +29,9 @@ if __name__ == "__main__":
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
     sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
-    outfile = rt.TFile(
-        "data/ScaleFactors/RazorMADD2015/RazorTTJetsDileptonCrossCheck_%s.root"%(tag), "RECREATE")
+    if not args.noSave:
+        outfile = rt.TFile(
+            "data/ScaleFactors/RazorMADD2015/RazorTTJetsDileptonCrossCheck_%s.root"%(tag), "RECREATE")
     
     for region in regionsOrder:
         analysis = regions[region]
@@ -49,7 +44,7 @@ if __name__ == "__main__":
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets40')
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
-            printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel )
+            printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
         #record discrepancies > 1 sigma
         tmpSFHists = copy.copy(sfHists)
         if 'TTJets2L' in tmpSFHists: del tmpSFHists["TTJets2L"]
@@ -57,11 +52,13 @@ if __name__ == "__main__":
             debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir)
         #write out scale factors
         print "Writing histogram",tmpSFHists["TTJets2L"].GetName(),"to file"
-        outfile.cd()
-        tmpSFHists["TTJets2L"].Write(region+"ScaleFactors")
-        #export histograms
-        macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
-                outDir=outdir, debugLevel=debugLevel )
+        if not args.noSave:
+            outfile.cd()
+            tmpSFHists["TTJets2L"].Write(region+"ScaleFactors")
+            #export histograms
+            macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
+                    outDir=outdir, debugLevel=debugLevel )
 
-    outfile.Close()
+    if not args.noSave:
+        outfile.Close()
 

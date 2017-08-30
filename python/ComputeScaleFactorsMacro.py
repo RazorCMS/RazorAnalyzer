@@ -1,24 +1,15 @@
 #!/usr/bin/env python
-import sys, os, argparse
+import sys, os
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis
+from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
-    #parse args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
-    parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016")
-    parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
-    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
-            dest='noFill')
+    parser = make_parser()
     parser.add_argument('--delta-phi-cut', help='cut on delta phi variable', action='store_true',
             dest='deltaPhiCut')
     parser.add_argument('--njets80-cut', help='require two jets of 80 GeV', action='store_true',
@@ -26,6 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
+    boostCuts = not args.noBoostCuts
 
     #initialize
     sfHists = {}
@@ -35,10 +27,10 @@ if __name__ == "__main__":
     if tag != "Razor2015":
         regionsOrder.insert(0, "GJetsInv")
     regions = {
-            "TTJetsSingleLepton":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1),
-            "WJetsSingleLepton":Analysis("WJetsSingleLepton",tag=tag,nbMax=0),
-            "WJetsSingleLeptonInv":Analysis("WJetsSingleLeptonInv",tag=tag,nbMax=0),
-            "GJetsInv":Analysis("GJetsInv",tag=tag)
+            "TTJetsSingleLepton":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1,boostCuts=boostCuts),
+            "WJetsSingleLepton":Analysis("WJetsSingleLepton",tag=tag,nbMax=0,boostCuts=boostCuts),
+            "WJetsSingleLeptonInv":Analysis("WJetsSingleLeptonInv",tag=tag,nbMax=0,boostCuts=boostCuts),
+            "GJetsInv":Analysis("GJetsInv",tag=tag,boostCuts=boostCuts)
             }
 
     for region in regionsOrder:

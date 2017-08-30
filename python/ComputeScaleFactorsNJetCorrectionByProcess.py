@@ -1,27 +1,22 @@
 ### This script is like ComputeScaleFactorsNJetsCorrection.py except that it 
 ### computes the NJets correction separately for TT+jets and W+jets
-import sys, os, argparse
+import sys, os
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis
+from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
-    #parse args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
-    parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016")
+    parser = make_parser()
     parser.add_argument("--tight-cuts", action='store_true', dest='tightCuts',
             help="Cut on delta phi and number of 80 GeV jets, and cut tighter on MR and Rsq")
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
+    boostCuts = not args.noBoostCuts
 
     # 0) compute the GJets scale factors for all bins
     # 1) compute the TTJets scale factor for the 2-3 and >=4 jet bins
@@ -31,11 +26,11 @@ if __name__ == "__main__":
     regionsOrder = ["GJetsInvForNJets", "TTJetsForNJets", 
             "WJetsForNJets", "TTJetsForNJetsCorrected", "WJetsInvForNJets"]
     regions = {
-            "GJetsInvForNJets":Analysis("GJetsInv",tag=tag),
-            "TTJetsForNJets":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1),
-            "TTJetsForNJetsCorrected":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1),
-            "WJetsForNJets":Analysis("WJetsSingleLepton",tag=tag,nbMax=0),
-            "WJetsInvForNJets":Analysis("WJetsSingleLeptonInv",tag=tag,nbMax=0),
+            "GJetsInvForNJets":Analysis("GJetsInv",tag=tag,boostCuts=boostCuts),
+            "TTJetsForNJets":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1,boostCuts=boostCuts),
+            "TTJetsForNJetsCorrected":Analysis("TTJetsSingleLepton",tag=tag,nbMin=1,boostCuts=boostCuts),
+            "WJetsForNJets":Analysis("WJetsSingleLepton",tag=tag,nbMax=0,boostCuts=boostCuts),
+            "WJetsInvForNJets":Analysis("WJetsSingleLeptonInv",tag=tag,nbMax=0,boostCuts=boostCuts),
             }
     sfVars = {
             "GJetsInvForNJets":("MR_NoPho","Rsq_NoPho"),
@@ -106,7 +101,7 @@ if __name__ == "__main__":
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 sfHists=sfHists, sfVars=sfVarsToUse, 
-                printdir=outdir, auxSFs=auxSFs, 
+                printdir=outdir, auxSFs=auxSFs, noFill=args.noFill,
                 dataDrivenQCD=dataDrivenQCD, debugLevel=debugLevel )
         #compute scale factors
         sfHistsCopy = sfHists.copy()
@@ -125,13 +120,14 @@ if __name__ == "__main__":
             for i in [2,3]:
                 sfHistsCopy["TTJets"].SetBinContent(i, tmpTTJets.GetBinContent(i))
                 sfHistsCopy["TTJets"].SetBinError(i, tmpTTJets.GetBinError(i))
-        #export histograms
-        macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
-                outDir=outdir, debugLevel=debugLevel )
-        #write out scale factors
-        if args.tightCuts or region != "TTJetsForNJets":
-            print "Writing scale factor histogram",sfHistsCopy[process].GetName(),"to file"
-            outfile.cd()
-            sfHistsCopy[process].Write( sfHistsCopy[process].GetName() )
+        if not args.noSave:
+            #export histograms
+            macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
+                    outDir=outdir, debugLevel=debugLevel )
+            #write out scale factors
+            if args.tightCuts or region != "TTJetsForNJets":
+                print "Writing scale factor histogram",sfHistsCopy[process].GetName(),"to file"
+                outfile.cd()
+                sfHistsCopy[process].Write( sfHistsCopy[process].GetName() )
 
     outfile.Close()
