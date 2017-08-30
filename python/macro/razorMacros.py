@@ -378,7 +378,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
 ###########################################
 
-def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}):
+def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, samples=[], cutsMC="", cutsData="", bins={}, plotOpts={}, lumiMC=1, lumiData=3000, weightHists={}, sfHists={}, treeName="ControlSampleEvent",dataName="Data", weightOpts=[], shapeErrors=[], miscErrors=[], fitToyFiles=None, boxName=None, btags=-1, blindBins=None, makePlots=True, debugLevel=0, printdir=".", plotDensity=True, sfVars = ("MR","Rsq"), auxSFs={}, dataDrivenQCD=False, unrollBins=(None,None), noFill=False, exportShapeErrs=False, propagateScaleFactorErrs=True, extraWeightOpts={}, extraCuts={}, dataWeightOpts=[]):
     """Basic function for filling histograms and making plots.
         NOTE: for most purposes please call makeControlSampleHistsForAnalysis.
         Arguments:
@@ -438,7 +438,8 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
                 btags=btags, debugLevel=debugLevel, 
                 sfVars=sfVars, auxSFs=auxSFs, makePlots=False, 
                 noFill=noFill, extraCuts=extraCuts, 
-                extraWeightOpts=extraWeightOpts, exportShapeErrs=True)
+                extraWeightOpts=extraWeightOpts, exportShapeErrs=True,
+                dataWeightOpts=copy.copy(dataWeightOpts))
         print "Now back to our signal region..."
     else:
         histsForQCD = None
@@ -543,7 +544,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         macro.loopTree(trees[dataName], weightF=weight_data, cuts=cutsData, 
                 hists=hists[dataName], weightHists=weightHists, 
                 auxSFs=auxSFsData, auxSFHists=auxSFHistsData, noFill=noFill, 
-                debugLevel=debugLevel) 
+                debugLevel=debugLevel, weightOpts=dataWeightOpts) 
 
     print("\nMC:")
     if debugLevel > 0:
@@ -683,7 +684,8 @@ def makeControlSampleHistsForAnalysis(analysis, plotOpts={}, sfHists={}, sfVars=
             unrollBins=analysis.unrollBins, noFill=noFill, exportShapeErrs=exportShapeErrs, 
             extraCuts=analysis.extraCuts, extraWeightOpts=analysis.extraWeightOpts, 
             propagateScaleFactorErrs=propagateScaleFactorErrs, 
-            sfVars=sfVars, lumiMC=lumiMC, debugLevel=debugLevel)
+            sfVars=sfVars, lumiMC=lumiMC, debugLevel=debugLevel,
+            dataWeightOpts=analysis.dataWeightOpts)
 
 def postprocessQCDHists(hists, shapeHists,
         qcdHists, wHists, region, btags, debugLevel=0):
