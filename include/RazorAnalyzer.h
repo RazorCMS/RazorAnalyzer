@@ -184,6 +184,7 @@ class RazorAnalyzer: public RazorEvents {
 	double GetMTEnergy( TLorentzVector visible, TLorentzVector met );
 	double GetDphi( TLorentzVector visible, TVector3 met );
 	double GetDphi( TLorentzVector visible, TLorentzVector met );
+        bool matchesVetoLepton(float eta, float phi, float dR=0.4);
 	
     double GetAlphaT(vector<TLorentzVector> jets) ;
     double GetDPhiMin(vector<TLorentzVector> jets);

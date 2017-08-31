@@ -2103,6 +2103,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue; 
         if ( fabs(ra->fatJetEta[iJet]) > AK8_ETA_CUT ) continue;
         if ( !ra->fatJetPassIDLoose[iJet] ) continue;
+        if ( ra->matchesVetoLepton(ra->fatJetEta[iJet], ra->fatJetPhi[iJet], 0.8) ) continue;
 
         // W tagging
         bool isWTagged = isWTaggedAK8Jet(ra, iJet, isData);

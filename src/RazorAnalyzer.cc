@@ -2736,6 +2736,24 @@ TLorentzVector RazorAnalyzer::makeTLorentzVectorPtEtaPhiM(double pt, double eta,
     return vec;
 }
 
+// Returns true if a muon or electron passing the veto selection
+// is within deltaR < dR of the given eta and phi coordinates
+bool RazorAnalyzer::matchesVetoLepton(float eta, float phi, float dR) {
+    for ( int i = 0; i < nMuons; i++ ) {
+        if ( muonPt[i] < 5 || fabs(muonEta[i]) > 2.4 ) continue;
+        if ( isVetoMuon(i) && deltaR(eta, phi, muonEta[i], muonPhi[i]) < dR ) {
+            return true;
+        }
+    }
+    for ( int i = 0; i < nElectrons; i++ ) {
+        if ( elePt[i] < 5 || fabs(eleEta[i]) > 2.5 ) continue;
+        if ( isVetoElectron(i) && deltaR(eta, phi, eleEta[i], elePhi[i]) < dR ) {
+            return true;
+        }
+    }
+    return false;
+}
+
 double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets) 
 {   
     int nJets = jets.size();
