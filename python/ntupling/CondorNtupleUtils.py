@@ -2,6 +2,7 @@
 
 ### Sequence for data: submit --> hadd --> skim --> hadd-final --> remove-duplicates --> good-lumi --> copy-local
 ### Sequence for MC: submit --> hadd --> normalize --> hadd-final --> copy-local
+### Sequence for fastsim signal samples: submit --> hadd
 
 import math
 import os,sys
@@ -29,9 +30,9 @@ def getCondorSubmitFile(subdir, executable, flavor='espresso'):
     f = open(subfile,"w")
     f.write("Universe = vanilla\n")
     f.write("Executable = "+executable+"\n")
-    f.write("Should_Transfer_Files = NO\n")
+    f.write('Transfer_Output_Files = ""\n')
     f.write("Notification = Never\n")
-    f.write("+JobFlavour = "+flavor+"\n")
+    f.write('+JobFlavour = "'+flavor+'"\n')
     return f
 
 def writeCondorSubmitFragment(f, subdir, jobname, options):
@@ -62,7 +63,7 @@ def submitCondorJobsForSample(f, subdir, submit=False, spool=False,
         os.system(cmd)
 
 def submitJobs(analyzer,tag,isData=False,submit=False,label='',
-        flavor='espresso', spool=False, verbose=False):
+        flavor='espresso', spool=False, verbose=False, fastsim=False):
     # parameters
     local_dir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer/'
     samples = SAMPLES
@@ -72,10 +73,17 @@ def submitJobs(analyzer,tag,isData=False,submit=False,label='',
     if isData:
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
+    elif fastsim:
+        listdir = listdir.replace('/MC_Summer16', '/MCFastsim')
     filesperjob = 6
     script=local_dir+'scripts/runRazorJob_NoAFS.sh'
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
     call(['mkdir','-p',eos_list_dir])
+    # transfer needed files to EOS
+    for f in [local_dir+'/RazorRun_NoAFS', 
+              local_dir+'/bin/Run'+analyzer,
+              local_dir+'/RazorRunAuxFiles_Expanded.tar.gz']:
+        call(['cp', f, RAZOR_EOS_DIR])
     #samples loop
     for process in samples[tag]:
         for sample in samples[tag][process]:
@@ -122,6 +130,8 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', action='store_true', help='Print job commands')
     args = parser.parse_args()
     tag = args.tag
+    if args.fastsim:
+        tag += 'Fastsim'
     analyzer = ANALYZERS[tag]
     isData = args.data
     noSub = args.noSub
@@ -136,7 +146,8 @@ if __name__ == '__main__':
     if args.submit:
         print "Submit batch jobs..."
         submitJobs(analyzer,tag,isData,submit=(not noSub),label=label,
-                flavor=args.flavor, spool=args.spool, verbose=args.verbose)
+                flavor=args.flavor, spool=args.spool, fastsim=args.fastsim,
+                verbose=args.verbose)
 
     if args.findZombies:
         print "Searching for zombie files..."
@@ -144,7 +155,10 @@ if __name__ == '__main__':
 
     if args.hadd:
         print "Combine ntuples..."
-        nt.haddFiles(analyzer,tag,isData,force,label=label)
+        if args.fastsim:
+            nt.haddFastsimJobs(analyzer,tag,label=label,dryRun=noSub)
+        else:
+            nt.haddFiles(analyzer,tag,isData,force,label=label)
 
     if args.normalize:
         print "Normalize ntuples..."

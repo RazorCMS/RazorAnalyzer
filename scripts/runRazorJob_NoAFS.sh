@@ -76,6 +76,13 @@ eos mkdir -p $outputDirectory
 eos cp $outputfile /eos/cms/$outputDirectory/
 echo "/eos/cms/$outputDirectory/$outputfile"
 
+# For fastsim ntupling
+tempOutputFile=$( echo $outputfile | sed 's/.root//' )
+for f in ${tempOutputFile}_*.root
+do
+    eos cp $f /eos/cms/$outputDirectory/
+done
+
 status=`echo $?`
 echo "Status: $status"
 

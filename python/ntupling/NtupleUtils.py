@@ -1,7 +1,13 @@
 #!/bin/env python
 
-### Sequence for data: submit --> hadd --> skim --> hadd-final --> remove-duplicates --> good-lumi --> copy-local
-### Sequence for MC: submit --> hadd --> normalize --> hadd-final --> copy-local
+### Sequence for data: submit --> find-zombies --> hadd --> skim --> hadd-final --> remove-duplicates --> good-lumi --> copy-local
+### Sequence for MC: submit --> find-zombies --> hadd --> normalize --> hadd-final --> copy-local
+### Sequence for fastsim signal samples: submit --> hadd
+
+# Note: finding zombie files is prohibitively slow for fastsim.
+# If using lxbatch for submission, make sure to use a long enough queue (e.g. 8nh)
+# so that jobs do not time out and create zombie files.
+# Even better, find a way to stop these zombies from being created when jobs time out.
 
 import math
 import os,sys
@@ -9,6 +15,8 @@ import glob
 import argparse
 from subprocess import call, check_output
 
+sys.path.append(os.path.dirname(__file__)+'/..')
+from haddFastsimSMS import makeFileLists, haddFastsimFiles
 from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
@@ -27,7 +35,7 @@ def getFileName(analyzer,tag,sample,reHLT=False,label=''):
     return '%s_%s.root'%(prefix,sample)
 
 def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
-        queue='8nm', filesperjob=6):
+        queue='8nm', filesperjob=6, fastsim=False):
     # parameters
     samples = SAMPLES
     basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
@@ -39,6 +47,8 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
     if isData:
         listdir = listdir.replace('/MC_Summer16','/data')
         samples = DATA
+    elif fastsim:
+        listdir = listdir.replace('/MC_Summer16','/MCFastsim')
     script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
     os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
     #samples loop
@@ -68,7 +78,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
                     if submit:
                         call(cmd)
 
-def findZombies(analyzer,tag,isData=False,reHLT=False,label=''):
+def findZombies(analyzer,tag,isData=False,reHLT=False,label='',fastsim=False):
     """Looks through job files and searches for Zombies.  Prints out a list of bad files."""
     import ROOT as rt
     samples = SAMPLES
@@ -77,15 +87,30 @@ def findZombies(analyzer,tag,isData=False,reHLT=False,label=''):
     zombieFileName = "Zombies_%s_%s.txt"%(tag, label)
     if isData:
         zombieFileName = zombieFileName.replace(".txt","_Data.txt")
+    # get all file names ahead of time to avoid repeated expensive ls calls
+    allFiles = glob.glob(DIRS[tag]+'/jobs/*.Job*.root')
+    allFilesDict = {}
+    for f in allFiles:
+        sample = os.path.basename(f.split('.')[0])
+        if sample not in allFilesDict:
+            allFilesDict[sample] = []
+        allFilesDict[sample].append(f)
     with open(zombieFileName,'w') as zombieFile:
         for process in samples[tag]:
             for sample in samples[tag][process]:
                 print "Sample:",sample
-                query = DIRS[tag]+'/jobs/'+(getFileName(analyzer,tag,sample,reHLT,label).replace('.root','*.Job*.root'))
-                jobfiles = glob.glob( query )
+                matchStr = getFileName(analyzer, tag, sample, reHLT, label).replace('.root', '')
+                try:
+                    jobfiles = allFilesDict[matchStr]
+                except KeyError:
+                    print "Warning: no files found for {}".format(sample)
+                    continue
                 if len(jobfiles) > 0:
                     for f in jobfiles:
                         if os.path.getsize(f) < 1000:
+                            if fastsim and '_' not in f.split('.')[1]:
+                                print "skipping",f
+                                continue # this is the empty placeholder file for this signal sample
                             print "\nNO KEYS:",f,"\n"
                             zombieFile.write(f+"\n")
                             continue
@@ -94,7 +119,7 @@ def findZombies(analyzer,tag,isData=False,reHLT=False,label=''):
                             print "\nZOMBIE:",f,"\n"
                             zombieFile.write(f+"\n")
                 else:
-                    print "Warning: no files found (",query,")"
+                    print "Warning: no files found (",matchStr,")"
 
 def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
     samples = SAMPLES
@@ -115,6 +140,12 @@ def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
                     call(['hadd',fname]+jobfiles)
             else:
                 print "Warning: no files found (",query,")"
+
+def haddFastsimJobs(analyzer,tag,label='',dryRun=True):
+    for process in SAMPLES[tag]:
+        fileLists = makeFileLists(DIRS[tag]+'/jobs/', process)
+        outDir = DIRS[tag]
+        haddFastsimFiles(fileLists, process, DIRS[tag]+'/jobs/', outDir, dryRun=dryRun)
 
 def normalizeFiles(analyzer,tag,force=False,reHLT=False,label=''):
     #make list file for normalizing
@@ -261,6 +292,7 @@ def makeParser():
     parser.add_argument('--copy-local',dest='copyLocal',action='store_true',help='Copy files locally')
     parser.add_argument('--reHLT',action='store_true',help='Process reHLT samples')
     parser.add_argument('--no-skim',dest='noSkim',action='store_true',help='Do not assume skimmed data')
+    parser.add_argument('--fastsim', action='store_true', help='process fastsim SMS ntuples')
     parser.add_argument('--label', help='label for RazorRun',
             default='Razor2016_MoriondRereco') 
     return parser
@@ -272,6 +304,8 @@ if __name__ == '__main__':
     parser.add_argument('--files-per-job', default=6, type=int)
     args = parser.parse_args()
     tag = args.tag
+    if args.fastsim:
+        tag += 'Fastsim'
     analyzer = ANALYZERS[tag]
     isData = args.data
     noSub = args.noSub
@@ -285,16 +319,19 @@ if __name__ == '__main__':
 
     if args.submit:
         print "Submit batch jobs..."
-        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,
+        submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,fastsim=args.fastsim,
                 label=label,queue=args.queue,filesperjob=args.files_per_job)
 
     if args.findZombies:
         print "Searching for zombie files..."
-        findZombies(analyzer,tag,isData,reHLT=reHLT,label=label)
+        findZombies(analyzer,tag,isData,reHLT=reHLT,label=label,fastsim=args.fastsim)
 
     if args.hadd:
         print "Combine ntuples..."
-        haddFiles(analyzer,tag,isData,force,reHLT=reHLT,label=label)
+        if args.fastsim:
+            haddFastsimJobs(analyzer,tag,label=label,dryRun=noSub)
+        else:
+            haddFiles(analyzer,tag,isData,force,reHLT=reHLT,label=label)
 
     if args.normalize:
         print "Normalize ntuples..."

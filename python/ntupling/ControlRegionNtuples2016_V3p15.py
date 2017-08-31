@@ -1,6 +1,7 @@
 import copy
 
-VERSION = "V3p15_11Aug2017"
+VERSION = "V3p15_29Aug2017"
+
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
               '2L':'DileptonFull',
@@ -9,6 +10,7 @@ TREETYPES = { '1L':'OneLeptonFull',
               'VetoTau':'VetoTau',
               'Photon':'PhotonAddToMET',
               'Signal':'',
+              'SignalFastsim':'',
               }
 ANALYZERS = { '1L':'RazorControlRegions',
               '1LInv':'RazorControlRegions',
@@ -18,6 +20,7 @@ ANALYZERS = { '1L':'RazorControlRegions',
               'VetoTau':'RazorControlRegions',
               'Photon':'RazorControlRegions',
               'Signal':'FullRazorInclusive',
+              'SignalFastsim':'FullRazorInclusive',
               }
 #adapt to Si's file naming system
 TREETYPEEXT = TREETYPES.copy()
@@ -34,10 +37,12 @@ SKIMS = { '1L':'SingleLeptonSkim',
           'VetoTau':'',
           'Photon':'',
           'Signal':'',
+          'SignalFastsim':'',
           }
 DIR = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/'+VERSION
 DIRS = { tag:DIR+'/'+TREETYPES[tag] for tag in TREETYPES }
 DIRS['Signal'] = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION+'/Signal'
+DIRS['SignalFastsim'] = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/'+VERSION+'/SignalFastsim'
 
 OPTIONS = { '1L':1101,
             '1LInv':2102,
@@ -47,6 +52,7 @@ OPTIONS = { '1L':1101,
             'VetoTau':1009,
             'Photon':5505,
             'Signal':10,
+            'SignalFastsim':1,
           }
 
 SUFFIXES = { '1L':'',
@@ -57,6 +63,7 @@ SUFFIXES = { '1L':'',
              'VetoTau':'',
              'Photon':'_NoPho',
              'Signal':'',
+             'SignalFastsim':'',
              }
 
 SAMPLES = {}
@@ -185,6 +192,40 @@ SAMPLES['Signal']['TTJets2L'] = [
                 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ]
 del SAMPLES['Signal']['TTJets']
+
+FASTSIM_SUFFIX = '_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'
+FASTSIM_SAMPLES = [
+        'SMS-T1bbbb',
+        'SMS-T1qqqq',
+        'SMS-T1tbs_RPV_mGluino1000to1200',
+        'SMS-T1tbs_RPV_mGluino1300to1400',
+        'SMS-T1tbs_RPV_mGluino1500',
+        'SMS-T1tbs_RPV_mGluino750',
+        'SMS-T1ttbb',
+        'SMS-T1tttt',
+        'SMS-T2bW',
+        'SMS-T2bb',
+        'SMS-T2bt',
+        'SMS-T2cc_genHT-160_genMET-80',
+        'SMS-T2qq',
+        'SMS-T2tt_dM-10to80_genHT-160_genMET-80',
+        'SMS-T2tt_mStop-150to250',
+        'SMS-T2tt_mStop-250to350',
+        'SMS-T2tt_mStop-350to400',
+        'SMS-T2tt_mStop-400to1200',
+        'SMS-T5Wg',
+        'SMS-T5ZZ',
+        'SMS-T5qqqqVV',
+        'SMS-T5qqqqVV_dM20',
+        'SMS-T5ttcc',
+        'SMS-T5tttt_dM175',
+        'SMS-T6Wg',
+        'SMS-T6bbllslepton_mSbottom-400To575_mLSP-150To550',
+        'SMS-T6bbllslepton_mSbottom-600To775_mLSP-150To725',
+        'SMS-T6bbllslepton_mSbottom-800To950_mLSP-150To900',
+        'SMS-T6ttWW',
+        ]
+SAMPLES['SignalFastsim'] = { sample:[sample+FASTSIM_SUFFIX] for sample in FASTSIM_SAMPLES }
 
 DATA = {}
 DATA['1L'] = {

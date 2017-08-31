@@ -63,8 +63,10 @@ echo $outputDirectory
 eos mkdir -p $outputDirectory
 eos cp $outputfile /eos/cms/$outputDirectory/
 
-#mkdir -p /eos/cms/$outputDirectory
-#cp -v $outputfile /eos/cms/$outputDirectory
+set tempOutputfile = `echo $outputfile | sed 's/.root//'`
+foreach f ( ${tempOutputfile}_*.root )
+   eos cp $f /eos/cms/$outputDirectory/
+end
 
 set status=`echo $?`
 echo "Status: $status"
