@@ -122,4 +122,4 @@ if __name__ == '__main__':
     outDir = inDir+'/combined'
     exec_me('mkdir '+outDir, dryRun)
 
-    haddFastsimFiles(fileLists, smsName, inDir, outDir, oneDScan, dryRun=dryRun)
+    haddFastsimFiles(fileLists, smsName, inDir, outDir, OneDScan, dryRun=dryRun)
