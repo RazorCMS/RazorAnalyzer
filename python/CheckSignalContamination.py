@@ -19,7 +19,7 @@ def checkSignalContamination(config, outDir, lumi, box, model, mLSP,
     y = array('d', cfg.getBinning(box)[1]) # Rsq binning
     z = array('d', cfg.getBinning(box)[2]) # nBtag binning
 
-    dirToUse = razorSignalDirs[tag]+'/'+model
+    dirToUse = razorSignalDirs[tag]
 
     unrollBins = []
     analyses = []

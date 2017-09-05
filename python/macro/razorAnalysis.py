@@ -342,7 +342,7 @@ for tag in sampleTags2016:
 
     #Signal ntuples
     razorSignalDirs = {
-            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/FastsimSMS/"
+            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_11Aug2017/SignalFastsim/"
             }
 
 

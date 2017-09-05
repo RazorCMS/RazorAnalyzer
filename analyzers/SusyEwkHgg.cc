@@ -950,6 +950,68 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  }
 	} else {
 
+                cout << "======================================================================\n";
+                cout << " HPt = " << HPt << " \n";
+                cout << "======================================================================\n";
+
+	  //Save some information on signal particles
+	  for(int g = 0; g < nGenParticle; g++){
+	   
+	    // original N2 produced
+	    if (gParticleId[g] == 1000023 && gParticleStatus[g]  == 62) {
+	      N2Pt = gParticlePt[g];
+	      N2Eta = gParticleEta[g];
+	      N2Phi = gParticlePhi[g];	 
+	      N2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+
+
+	    }
+	    // original N3 produced
+	    if (gParticleId[g] == 1000025 && gParticleStatus[g]  == 62) {
+	      N3Pt = gParticlePt[g];
+	      N3Eta = gParticleEta[g];
+	      N3Phi = gParticlePhi[g];	 
+	      N3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+
+
+	    // H from N2 -> H N1 decay
+	    if (gParticleId[g] == 25 && gParticleMotherId[g]  == 1000023) {
+	      HPt = gParticlePt[g];
+	      HEta = gParticleEta[g];
+	      HPhi = gParticlePhi[g];	 
+	      HMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+	    //N1 from N2 -> H N1 decay
+	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000023) {
+	      N1FromN2Pt = gParticlePt[g];
+	      N1FromN2Eta = gParticleEta[g];
+	      N1FromN2Phi = gParticlePhi[g];	 
+	      N1FromN2Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+	    // Z from N3 -> Z N1 decay
+	    if (gParticleId[g] == 23 && gParticleMotherId[g]  == 1000025) {
+	      ZPt = gParticlePt[g];
+	      ZEta = gParticleEta[g];
+	      ZPhi = gParticlePhi[g];	 
+	      ZMass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	      //cout << "foudn Z : " << ZPt << " " << ZMass << "\n";
+	    }
+	    //N1 from N3 -> Z N1 decay
+	    if (gParticleId[g] == 1000022 && gParticleMotherId[g]  == 1000025) {
+	      N1FromN3Pt = gParticlePt[g];
+	      N1FromN3Eta = gParticleEta[g];
+	      N1FromN3Phi = gParticlePhi[g];	 
+	      N1FromN3Mass = sqrt( gParticleE[g]*gParticleE[g] - pow(gParticlePt[g]*cosh(gParticleEta[g]),2));
+	    }
+
+	  }
+
+
+                cout << "======================================================================\n";
+                cout << " HPt = " << HPt << " \n";
+                cout << "======================================================================\n";
+
 	  //parse lhe comment string to get gluino and LSP masses
 	  stringstream parser(*lheComments);
 	  string item;
@@ -1874,12 +1936,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			std::cout << "[DEBUG] Dilepton Sum pT: " << mu.muon.Pt() + ele.electron.Pt() << std::endl;
 		    }
 
-		    if ( dileptonMass < 76 || dileptonMass > 106 )
-		    {
-			if ( _debug ) std::cout << "[DEBUG]: Dilepton mass is out of range [76, 106]  GeV: dilepton masss-> " << dileptonMass << std::endl;
-                        if ( _debug ) std::cout << "... muPt: " << mu.muon.Pt()  << " muPt: " << mu.muon.Pt()  << std::endl;
-                        continue;
-		    }
 		   //---------------------------------------------
 		   //if the sum of the leptons pT's is larger than 
 		   //that of the current Z candidate, 
@@ -1888,7 +1944,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		   if ( mu.muon.Pt() + ele.electron.Pt() > bestDileptonPt )
 		   {
 			bestDileptonPt = mu.muon.Pt() + ele.electron.Pt();
-			ZCandidate = mu.muon + ele.electron;
+			//ZCandidate = mu.muon + ele.electron;
 			if ( _debug ) std::cout << "assign electron and muon candidates" << std::endl;
 			bestEmuMuCand = mu;
 			bestEmuEleCand = ele;
@@ -1935,8 +1991,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         }
 
 	//record Z candidate info
-	dileptonMass   = ZCandidate.M();
-	bestDileptonPt = ZCandidate.Pt();
+	//dileptonMass   = ZCandidate.M();
+	//bestDileptonPt = ZCandidate.Pt();
 	if ( _debug ) std::cout << "[DEBUG]: dilepton mass-> " << dileptonMass << "dilepton pT->" << bestDileptonPt << std::endl;
 	
 	} // end if eleCand > 0 and muCand > 0
@@ -2001,7 +2057,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		bestCandOneEle = ele;
 	     }
 	  } // end of eleCand loop
-
+	  razorbox = OneEle;
     	  lep1Type = 11 * -1 * bestCandOneEle.eleCharge;
 	  lep1Pt = bestCandOneEle.electron.Pt();
 	  lep1Eta = bestCandOneEle.electron.Eta();
@@ -2459,35 +2515,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       
       if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
 
-      //Fill Event
-      if (!isFastsimSMS) {
-	razorTree->Fill();
-      } else if (parsedLHE) {
-	if (!is2DMassScan) {
-	  smsTrees[mChi]->Fill();
-	} else {
-	  pair<int,int> smsPair = make_pair(mChi, mLSP);
-	  smsTrees2D[smsPair]->Fill();
-	}
-      }
-
-/*
-      //Writing output to tree
-      //HighPt Box
-      if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
-
-      //Hbb Box
-      else if ( mbbH > 110.0 && mbbH < 140.0 ) razorbox = Hbb;
-
-      //Zbb Box
-      else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
-
-      //HighRes Box
-      else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 ) razorbox = HighRes;
-
-      //LowRes Box
-      else razorbox = LowRes;
-*/
       //Fill Event
       if (!isFastsimSMS) {
 	razorTree->Fill();

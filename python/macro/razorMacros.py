@@ -1338,16 +1338,25 @@ def stitchHistsForDataCard(unrolledMC, unrolledData,
         for shape in unrolledShapeHists[s]:
             #protect against empty histograms (for QCD)
             isEmpty = True
+            needsTempPatch = False
             for hist in unrolledShapeHists[s][shape]:
                 if hist.Integral() > 0:
                     isEmpty = False
                     break
             if isEmpty: 
                 print "Warning: empty shape histograms for",s,shape
-                continue
+                if s == 'SingleTop' and (shape == 'renscaleUp' or shape == 'facrenscaleUp'):
+                    print "Ignoring empty shape histogram for now -- PLEASE FIX THOUGH"
+                    needsTempPatch = True
+                else:
+                    continue
             #create histogram
             histsForDataCard[s+'_'+shape] = macro.stitch(
                     unrolledShapeHists[s][shape])
+            if needsTempPatch:
+                print "WARNING: USING DOWN HISTOGRAM INSTEAD OF UP, DUE TO ISSUE WITH WEIGHTS NORMALIZATION."
+                histsForDataCard[s+'_'+shape] = macro.stitch(
+                        unrolledShapeHists[s][shape.replace('Up','Down')])
     if len(unrolledData) > 0:
         histsForDataCard['data_obs'] = macro.stitch(unrolledData)
     return histsForDataCard
