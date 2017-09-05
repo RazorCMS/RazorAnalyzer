@@ -19,6 +19,8 @@ sys.path.append(os.path.dirname(__file__)+'/..')
 from haddFastsimSMS import makeFileLists, haddFastsimFiles
 from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
 
+RAZOR_EOS_DIR = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/'
+
 def getSamplePrefix(analyzer,tag,reHLT=False,label=''):
     return analyzer.replace('RazorControl','RunTwoRazorControl')+(
             (TREETYPEEXT[tag]!='')*('_'+TREETYPEEXT[tag]))+(
@@ -35,13 +37,12 @@ def getFileName(analyzer,tag,sample,reHLT=False,label=''):
     return '%s_%s.root'%(prefix,sample)
 
 def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
-        queue='8nm', filesperjob=6, fastsim=False):
+        queue='8nm', filesperjob=6, fastsim=False, verbose=False):
     # parameters
+    local_dir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer/'
     samples = SAMPLES
-    basedir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer'
-    if not os.path.isdir(basedir+'/output/'):
-        os.mkdir(basedir+'/output/')
-    listdir = 'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'
+    listdir = local_dir+'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'
+    eos_list_dir = '{}/lists/{}/'.format(RAZOR_EOS_DIR, VERSION)
     if reHLT: listdir += 'reHLT'
     jobssuffix = '/jobs'
     if isData:
@@ -49,34 +50,49 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
         samples = DATA
     elif fastsim:
         listdir = listdir.replace('/MC_Summer16','/MCFastsim')
-    script=basedir+'/scripts/runRazorJob_CERN_EOS_Dustin.csh'
-    os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
-    #samples loop
+    script=local_dir+'scripts/runRazorJob_NoAFS.sh'
     call(['mkdir','-p',DIRS[tag]+'/jobs'])
+    call(['mkdir','-p',eos_list_dir])
+    # transfer needed files to EOS
+    for f in [local_dir+'/RazorRun_NoAFS', 
+              local_dir+'/bin/Run'+analyzer,
+              local_dir+'/RazorRunAuxFiles_Expanded.tar.gz']:
+        call(['cp', f, RAZOR_EOS_DIR])
+    # LSF specific configuration
+    os.environ['LSB_JOB_REPORT_MAIL'] = 'N'
+    if not os.path.isdir(local_dir+'/output/'):
+        os.mkdir(local_dir+'/output/')
+    #samples loop
     for process in samples[tag]:
         for sample in samples[tag][process]:
-            inlist = os.path.join(basedir,listdir,sample+'.cern.txt')
+            inlist = os.path.join(listdir,sample+'.cern.txt')
             if not os.path.isfile(inlist):
                 print "Warning: list file",inlist,"not found!"
                 continue
             nfiles = sum([1 for line in open(inlist)])
             maxjob = int(math.ceil( nfiles*1.0/filesperjob ))-1
-            print "Sample:",sample," maxjob =",maxjob
-            #submit
+            print "Sample:",sample
+            call(['cp', inlist, eos_list_dir])
+            inlist = eos_list_dir+'/'+os.path.basename(inlist)
+            njobs = 0
             for ijob in range(maxjob+1):
                 outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT,label)
                 if not os.path.isfile( DIRS[tag]+jobssuffix+'/'+outfile ):
-                    print "Job %d of %d"%(ijob,maxjob)
-                    logfile = os.path.join(basedir,'output','%s_%s_%s_%d.out'%(
-                            analyzer,sample,label,ijob))
+                    njobs += 1
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
-                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
+                    logfile = os.path.join(local_dir,'output','%s_%s_%s_%d.out'%(
+                            analyzer,sample,label,ijob))
+                    cmd = ['bsub','-q',queue,'-oo',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
-                        DIRS[tag].replace('/eos/cms','')+jobssuffix, os.environ['CMSSW_BASE']+'/src',
+                        DIRS[tag].replace('/eos/cms','')+jobssuffix, 'CMSSW_8_0_26',
                         label]
-                    print ' '.join(cmd)
+                    if verbose:
+                        print "Job %d of %d"%(ijob,maxjob)
+                        print ' '.join(cmd)
                     if submit:
                         call(cmd)
+            if njobs > 0:
+                print "Number of jobs: {} / {}".format(njobs, maxjob+1)
 
 def findZombies(analyzer,tag,isData=False,reHLT=False,label='',fastsim=False):
     """Looks through job files and searches for Zombies.  Prints out a list of bad files."""
@@ -295,6 +311,7 @@ def makeParser():
     parser.add_argument('--fastsim', action='store_true', help='process fastsim SMS ntuples')
     parser.add_argument('--label', help='label for RazorRun',
             default='Razor2016_MoriondRereco') 
+    parser.add_argument('--verbose', action='store_true', help='Print job commands')
     return parser
 
 
@@ -320,7 +337,7 @@ if __name__ == '__main__':
     if args.submit:
         print "Submit batch jobs..."
         submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,fastsim=args.fastsim,
-                label=label,queue=args.queue,filesperjob=args.files_per_job)
+                label=label,queue=args.queue,filesperjob=args.files_per_job, verbose=args.verbose)
 
     if args.findZombies:
         print "Searching for zombie files..."

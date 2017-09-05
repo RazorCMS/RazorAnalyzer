@@ -127,7 +127,6 @@ if __name__ == '__main__':
         'Options are espresso, microcentury, longlunch, workday, tomorrow, testmatch, nextweek'))
     parser.add_argument('--spool', action='store_true', help=('Spool job input files to submit host.'
         '  Note that no log files are available in this case.'))
-    parser.add_argument('--verbose', action='store_true', help='Print job commands')
     args = parser.parse_args()
     tag = args.tag
     if args.fastsim:
