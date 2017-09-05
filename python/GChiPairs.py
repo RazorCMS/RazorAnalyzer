@@ -2,7 +2,7 @@
 import glob
 
 razorSignalDirs = {
-        "Razor2016_MoriondRereco": "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/FastsimSMS/"
+        "Razor2016_MoriondRereco": "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_11Aug2017/SignalFastsim/"
         }
 
 def parsePair(f):
@@ -10,7 +10,7 @@ def parsePair(f):
     return int(pair[0]), int(pair[1])
 
 def getGChiPairs(signalDir, model):
-    pattern = "%s/%s/SMS-*_*_*.root"%(signalDir, model)
+    pattern = "%s/SMS-%s_*_*.root"%(signalDir, model)
     files = glob.glob(pattern)
     pairs = []
     for f in files:
