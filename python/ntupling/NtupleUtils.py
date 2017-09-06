@@ -83,9 +83,10 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
                     njobs += 1
                     totalJobs += 1
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
-                    logfile = os.path.join(local_dir,'output','%s_%s_%s_%d.out'%(
-                            analyzer,sample,label,ijob))
-                    cmd = ['bsub','-q',queue,'-oo',logfile,'-J',jobname,script,analyzer,inlist,
+                    logfile = '/dev/null'
+                    #logfile = os.path.join(local_dir,'output','%s_%s_%s_%d.out'%(
+                            #analyzer,sample,label,ijob))
+                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
                         DIRS[tag].replace('/eos/cms','')+jobssuffix, 'CMSSW_8_0_26',
                         label]
