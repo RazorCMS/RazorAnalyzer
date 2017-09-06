@@ -37,7 +37,8 @@ def getFileName(analyzer,tag,sample,reHLT=False,label=''):
     return '%s_%s.root'%(prefix,sample)
 
 def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
-        queue='8nm', filesperjob=6, fastsim=False, verbose=False):
+        queue='8nm', filesperjob=6, fastsim=False, 
+        jobsLimit=-1, verbose=False):
     # parameters
     local_dir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer/'
     samples = SAMPLES
@@ -63,6 +64,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
     if not os.path.isdir(local_dir+'/output/'):
         os.mkdir(local_dir+'/output/')
     #samples loop
+    totalJobs = 0
     for process in samples[tag]:
         for sample in samples[tag][process]:
             inlist = os.path.join(listdir,sample+'.cern.txt')
@@ -79,6 +81,7 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
                 outfile = getJobFileName(analyzer,tag,sample,ijob,maxjob,reHLT,label)
                 if not os.path.isfile( DIRS[tag]+jobssuffix+'/'+outfile ):
                     njobs += 1
+                    totalJobs += 1
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
                     logfile = os.path.join(local_dir,'output','%s_%s_%s_%d.out'%(
                             analyzer,sample,label,ijob))
@@ -91,6 +94,9 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
                         print ' '.join(cmd)
                     if submit:
                         call(cmd)
+                    if jobsLimit >= 0 and totalJobs >= jobsLimit:
+                        print "Submitted total of {} jobs; stopping".format(totalJobs)
+                        return
             if njobs > 0:
                 print "Number of jobs: {} / {}".format(njobs, maxjob+1)
 
@@ -319,6 +325,8 @@ if __name__ == '__main__':
     parser = makeParser()
     parser.add_argument('--queue', default='8nm', help='batch queue')
     parser.add_argument('--files-per-job', default=6, type=int)
+    parser.add_argument('--limit', default=-1, type=int,
+            help='Max number of jobs to submit')
     args = parser.parse_args()
     tag = args.tag
     if args.fastsim:
@@ -337,7 +345,8 @@ if __name__ == '__main__':
     if args.submit:
         print "Submit batch jobs..."
         submitJobs(analyzer,tag,isData,submit=(not noSub),reHLT=reHLT,fastsim=args.fastsim,
-                label=label,queue=args.queue,filesperjob=args.files_per_job, verbose=args.verbose)
+                label=label,queue=args.queue,filesperjob=args.files_per_job, 
+                jobsLimit=args.limit, verbose=args.verbose)
 
     if args.findZombies:
         print "Searching for zombie files..."
