@@ -113,12 +113,14 @@ int main( int argc, char* argv[] )
   vector<string> cut_name;
   vector<string> cut_name1;
   vector<string> cut_name2;
+  vector<string> cut_name3;
   //baseline cut
   string baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25.";
   cut.push_back(baseline);
   cut_name.push_back("Baseline");
   cut_name1.push_back("Baseline");
   cut_name2.push_back("Baseline");
+  cut_name3.push_back("Baseline");
   
   //MR>150 cut
   string MR150 = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150";
@@ -126,6 +128,7 @@ int main( int argc, char* argv[] )
   cut_name.push_back("MR150");
   cut_name1.push_back("MR150");
   cut_name2.push_back("MR150");
+  cut_name3.push_back("MR150");
   //box=0 Zmm
   string Zmm = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 0 ";
   cut.push_back(Zmm);
@@ -135,11 +138,13 @@ int main( int argc, char* argv[] )
   cut.push_back(Zee);
   cut_name.push_back("Zee");
   cut_name1.push_back("TwoLeptons");
+  cut_name3.push_back("TwoLeptons");
   //box=2 Emu
   string Emu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 2 ";
   cut.push_back(Emu);
   cut_name.push_back("Emu");
   cut_name1.push_back("Emu");
+  cut_name3.push_back("Emu");
   //box=3 OneMu
   string OneMu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 3 ";
   cut.push_back(OneMu);
@@ -150,11 +155,14 @@ int main( int argc, char* argv[] )
   cut_name.push_back("OneEle");
   cut_name1.push_back("OneLepton");
   cut_name2.push_back("Leptons");
+  cut_name3.push_back("OneLeptonHighPt");
+  cut_name3.push_back("OneLeptonLowPt");
   //box=5 HighPt
   string HighPt = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 5 ";
   cut.push_back(HighPt);
   cut_name.push_back("HighPt");
   cut_name1.push_back("HighPt");
+  cut_name3.push_back("HighPt");
   //box=6 Hbb
   string Hbb = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 6 ";
   cut.push_back(Hbb);
@@ -163,7 +171,8 @@ int main( int argc, char* argv[] )
   string Zbb = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 7 ";
   cut.push_back(Zbb);
   cut_name.push_back("Zbb");
-  cut_name1.push_back("H/Zbb");
+  cut_name1.push_back("HZbb");
+  cut_name3.push_back("HZbb");
   //box=8 HighRes
   string HighRes = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 8 ";
   cut.push_back(HighRes);
@@ -174,7 +183,27 @@ int main( int argc, char* argv[] )
   cut_name.push_back("LowRes");
   cut_name1.push_back("LowPt");
   cut_name2.push_back("Inclusive");
-  
+  cut_name3.push_back("LowPt");
+
+/*  
+  //Spilt OneLepton by pTGammaGamma cut at 110GeV
+  //Remember to use cut_name3 in line 301
+  cut.clear();
+  cut.push_back(baseline);
+  cut.push_back(MR150);
+  string TwoLeptons = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && (box == 0 || box == 1) ";
+  cut.push_back(TwoLeptons);
+  cut.push_back(Emu);
+  string OneLeptonHighPt = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && (box == 3 || box ==4) && pTGammaGamma>110.";
+  string OneLeptonLowPt = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && (box == 3 || box == 4) && pTGammaGamma<110.";
+  cut.push_back(OneLeptonHighPt);
+  cut.push_back(OneLeptonLowPt);
+  cut.push_back(HighPt);
+  string HZbb = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && (box == 6 || box == 7) ";
+  cut.push_back(HZbb);
+  string LowPt = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && (box == 8 || box == 9) ";
+  cut.push_back(LowPt);
+*/
 
   int m = cut.size();
   TH1F* h[n][m];
@@ -205,6 +234,7 @@ int main( int argc, char* argv[] )
   //j = box+2 : 2/3,4....
   double ratio_1[n][8]; // Baseline, MR150, twoLeptons...
   double ratio_2[n][4]; // Baseline, MR150, leptons, inclusive
+  double ratio_3[n][9]; // Spilit One Lepton category by pTGammaGamma cut at 110
   for(int i = 0; i < n; i++)
   {
           ratio_1[i][0] = ratio[i][0];
@@ -238,6 +268,7 @@ int main( int argc, char* argv[] )
 
   //TABLE 1
 
+  std::cout << "\n\n";
   std::cout << "\\begin{table*}[htb]\n\\begin{center}\n\\caption{Signal efficiency of all categories\\label{tab:categories}}\n\\def\\arraystretch{1.5}";
   std::cout << "\n\\begin{tabular}{|c|c|c|c|c|c|c|c|}\n\\hline\n \\multirow{}{}{Cut} & \\multicolumn{" << n << "}{c|}{SignalEfficiency \(\\%\)} \\\\";
   std::cout << "\n\\cline{2-" << n+1 << "}\n";
@@ -267,6 +298,7 @@ int main( int argc, char* argv[] )
   double tmp = 0.;
   for(int j = 0; j < m; j++)
   {
+          //tmp0 = cut_name3.at(j);
           tmp0 = cut_name.at(j);
           for(int i = 0; i < n; i++)
           {
