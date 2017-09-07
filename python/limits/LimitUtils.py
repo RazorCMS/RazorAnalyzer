@@ -16,6 +16,10 @@ def do_command(cmd, no_exec=True):
     if not no_exec:
         sp.call(cmd)
 
+def get_limit_dir(model):
+    return '/afs/cern.ch/work/{}/{}/RAZORRUN2/Limits/{}/{}'.format(
+            os.environ['USER'][0], os.environ['USER'], VERSION, model)
+
 def submit(model, tag, sms, no_sub=True):
     """
     Submits the limit jobs for one SMS scan.
@@ -28,14 +32,20 @@ def submit(model, tag, sms, no_sub=True):
     out_dir = VERSION
     queue = '8nh'
     for box in sms.boxes:
+        # get list of done jobs
+        done_jobs = glob.glob(get_limit_dir(model)
+                +'/higgsCombineMADD_{}_*.root'.format(box))
+        done_file_name = 'done_limits_{}_{}.txt'.format(model, box)
+        with open(done_file_name, 'w') as done_file:
+            for f in done_jobs:
+                done_file.write(os.path.basename(f)+'\n')
         print "Box {}".format(box)
         command = ['python', script, '--box', box, '--model', model, 
-                '--dir', out_dir, '--queue', queue]
-        do_command(command, no_sub)
-
-def get_limit_dir(model):
-    return '/afs/cern.ch/work/{}/{}/RAZORRUN2/Limits/{}/{}'.format(
-            os.environ['USER'][0], os.environ['USER'], VERSION, model)
+                '--dir', out_dir, '--queue', queue, 
+                '--done-file', done_file_name]
+        if no_sub:
+            command.append('--no-sub')
+        do_command(command, False)
 
 def get_plot_dir():
     return 'PlotsSMS/plots/{}'.format(VERSION)
