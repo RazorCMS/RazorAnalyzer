@@ -59,7 +59,7 @@ if __name__ == '__main__':
         refXsecFile = './data/stop13TeV.txt'
 
     #get theory cross sections and errors
-    for mg in range(100,2025,25):
+    for mg in range(100,3000,25):
         for line in open(refXsecFile,'r'):
             line = line.replace('\n','')
             if str(mg)==line.split(',')[0]:

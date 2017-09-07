@@ -73,14 +73,14 @@ echo $outputDirectory
 
 #Do below only for output to CERN EOS
 eos mkdir -p $outputDirectory
-eos cp $outputfile /eos/cms/$outputDirectory/
+eos cp --atomic $outputfile /eos/cms/$outputDirectory/
 echo "/eos/cms/$outputDirectory/$outputfile"
 
 # For fastsim ntupling
 tempOutputFile=$( echo $outputfile | sed 's/.root//' )
 for f in ${tempOutputFile}_*.root
 do
-    eos cp $f /eos/cms/$outputDirectory/
+    eos cp --atomic $f /eos/cms/$outputDirectory/
 done
 
 status=`echo $?`
