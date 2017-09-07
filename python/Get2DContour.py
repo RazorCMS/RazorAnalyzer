@@ -198,6 +198,8 @@ if __name__ == '__main__':
                   help="for toys instead of asymptotic")
     parser.add_option('--xsec-file',dest="refXsecFile",default="./data/gluino13TeV.txt",type="string",
                   help="Input directory")
+    parser.add_option('--no-smooth', dest='noSmooth', action='store_true', 
+                  help='Draw grid without interpolation')
     
     (options,args) = parser.parse_args()
     
@@ -334,8 +336,9 @@ if __name__ == '__main__':
             rebinXsecUL[clsType] = rt.swissCrossRebin(rebinXsecUL[clsType],"NE")
 
         # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
-        xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
+        if not options.noSmooth:
+            xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+            xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # fix axes
         xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))

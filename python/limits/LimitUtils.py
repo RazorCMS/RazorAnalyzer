@@ -53,9 +53,11 @@ def get_plot_dir():
 def get_config_dir():
     return 'PlotsSMS/config/{}'.format(VERSION)
 
-def get(model, tag, sms, no_exec=True):
+def get(model, tag, sms, no_smooth=False, no_exec=True):
     """
     Retrieves limit results.  Args are the same as submit()
+    except:
+    no_smooth: do not fill gaps between points
     """
     get_script = 'python/GetCombineMADD.py'
     contour_script = 'python/Get2DContour.py'
@@ -70,6 +72,8 @@ def get(model, tag, sms, no_exec=True):
                 '--dir', out_dir]
         if not sms.isGluino:
             command += ['--xsec-file', 'data/stop13TeV.txt']
+        if no_smooth:
+            command.append('--no-smooth')
         do_command(command, no_exec)
 
 def get_box_str(box):
@@ -107,7 +111,7 @@ def write_plot_config(model, box, blind=True, preliminary=True,
     if preliminary:
         text += " preliminary\n"
     else:
-        text += "\n"
+        text += " \n"
     text += "LUMI {}\n".format(lumi)
     text += "ENERGY 13\n"
     box_str = get_box_str(box)
@@ -128,9 +132,13 @@ def write_plot_config(model, box, blind=True, preliminary=True,
         print "Plot config written to {}".format(out_f)
     return out_f
 
-def plot(model, tag, sms, blind=True, preliminary=True, no_exec=True):
+def plot(model, tag, sms, blind=True, preliminary=True, no_smooth=False,
+        no_exec=True):
     """
-    Plots limit results.  Args are the same as submit()
+    Plots limit results.  Args are the same as submit() except for:
+    blind: do not draw observed limit
+    preliminary: write 'preliminary' on plots
+    no_smooth: filename indicates that points were not smoothed.
     """
     plot_dir = get_plot_dir()
     do_command(['mkdir', '-p', plot_dir], no_exec)
@@ -143,6 +151,8 @@ def plot(model, tag, sms, blind=True, preliminary=True, no_exec=True):
             name += 'Blinded_'
         if preliminary:
             name += 'Preliminary_'
+        if no_smooth:
+            name += 'NoSmooth_'
         script = 'PlotsSMS/python/makeSMSplots.py'
         command = ['python', script, config, name]
         do_command(command, no_exec)
@@ -162,8 +172,14 @@ if __name__ == '__main__':
             help='same as --no-exec')
     parser.add_argument('--blind', action='store_true')
     parser.add_argument('--preliminary', action='store_true')
+    parser.add_argument('--no-smooth', action='store_true',
+            help='do not fill gaps between plotted points')
     args = parser.parse_args()
     no_exec = (args.no_exec or args.no_sub)
+
+    # avoid looking at unblinded limits yet
+    args.blind = True
+    args.preliminary = True
 
     print "Model: {}".format(args.model)
     print "Analysis tag: {}".format(args.tag)
@@ -179,9 +195,11 @@ if __name__ == '__main__':
 
     if args.get or args.finish:
         print "Get limit results for {}\n".format(args.model)
-        get(args.model, args.tag, sms, no_exec)
+        get(args.model, args.tag, sms, no_smooth=args.no_smooth, 
+                no_exec=no_exec)
 
     if args.plot or args.finish:
         print "Plot limit for {}\n".format(args.model)
         plot(args.model, args.tag, sms, blind=args.blind,
-                preliminary=args.preliminary, no_exec=no_exec)
+                preliminary=args.preliminary, no_smooth=args.no_smooth,
+                no_exec=no_exec)
