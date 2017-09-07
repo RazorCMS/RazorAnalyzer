@@ -25,18 +25,21 @@ def writeXsecTree(box, model, directory, mg, mchi, xsecULObs, xsecULExpPlus2, xs
     fileOut = rt.TFile.Open(outputFileName, "recreate")
     
     xsecTree = rt.TTree("xsecTree", "xsecTree")
-    myStructCmd = "struct MyStruct{Double_t mg;Double_t mchi; Double_t x; Double_t y;"
-    ixsecUL = 0
-    myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+0)
-    myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+1)
-    myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+2)
-    myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+3)
-    myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+4)
-    myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+5)
-    ixsecUL+=6
-    myStructCmd += "}"
-    rt.gROOT.ProcessLine(myStructCmd)
-    from ROOT import MyStruct
+    try:
+        from ROOT import MyStruct
+    except ImportError:
+        myStructCmd = "struct MyStruct{Double_t mg;Double_t mchi; Double_t x; Double_t y;"
+        ixsecUL = 0
+        myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+0)
+        myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+1)
+        myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+2)
+        myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+3)
+        myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+4)
+        myStructCmd+= "Double_t xsecUL%i;"%(ixsecUL+5)
+        ixsecUL+=6
+        myStructCmd += "}"
+        rt.gROOT.ProcessLine(myStructCmd)
+        from ROOT import MyStruct
 
     s = MyStruct()
     xsecTree.Branch("mg", rt.AddressOf(s,"mg"),'mg/D')
