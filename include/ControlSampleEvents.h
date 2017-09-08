@@ -25,8 +25,8 @@ class ControlSampleEvents {
 		  kTreeType_Dilepton_Reduced = 6,             // lepton NOT added to MET
 		  kTreeType_DileptonAdd2MET_Full = 7,         // lepton added to MET
 		  kTreeType_DileptonAdd2MET_Reduced = 8,      // lepton added to MET
-		  kTreeType_Photon_Full = 9,                  // photon added to MET
-		  kTreeType_Photon_Reduced = 10,              // photon added to MET
+		  kTreeType_PhotonAdd2MET_Full = 9,           // photon added to MET
+		  kTreeType_Photon_Full = 10,                 // photon NOT added to MET
 		  kTreeType_ZeroLepton_Full = 11,             // No Leptons, No Photons
 		  kTreeType_ZeroLepton_Reduced = 12,          // No Leptons, No Photons
 		  kTreeType_OneVetoLepton_Full = 13,          // lepton NOT added to MET
@@ -896,8 +896,8 @@ class ControlSampleEvents {
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
     }
     
-    // fill the photon tree
-    if (treeType == kTreeType_Photon_Full) {
+    // fill the invisible photon tree
+    if (treeType == kTreeType_PhotonAdd2MET_Full) {
       tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
       tree_->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[300]/I");
       tree_->Branch("pho1HLTFilter",&pho1HLTFilter,"HLTDecision[50]/O");
@@ -918,6 +918,31 @@ class ControlSampleEvents {
       tree_->Branch("nSelectedPhotons",&nSelectedPhotons,"nSelectedPhotons/i");
       tree_->Branch("NJets_NoPho",&NJets_NoPho,"NJets_NoPho/i");
       tree_->Branch("NJets80_NoPho",&NJets80_NoPho,"NJets80_NoPho/i");
+      tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
+      tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
+      tree_->Branch("pho1_chargediso",&pho1_chargediso,"pho1_chargediso/F");
+      tree_->Branch("pho1_photoniso",&pho1_photoniso,"pho1_photoniso/F");
+      tree_->Branch("pho1_neutralhadroniso",&pho1_neutralhadroniso,"pho1_neutralhadroniso/F");
+      tree_->Branch("pho1_hOverE",&pho1_hOverE,"pho1_hOverE/F");
+      tree_->Branch("pho1_pfiso",&pho1_pfiso,"pho1_pfiso/F");
+      tree_->Branch("pho1PassTight",&pho1PassTight,"pho1PassTight/O");
+      tree_->Branch("minDRGenPhotonToParton",&minDRGenPhotonToParton,"minDRGenPhotonToParton/F");
+
+      tree_->Branch("genJetHT",&genJetHT,"genJetHT/F");
+      tree_->Branch("genJetMR",&genJetMR,"genJetMR/F");
+    }  
+    
+    // fill the visible photon tree
+    if (treeType == kTreeType_Photon_Full) {
+      tree_->Branch("HLTDecision",&HLTDecision,"HLTDecision[300]/O");
+      tree_->Branch("HLTPrescale",&HLTPrescale,"HLTPrescale[300]/I");
+      tree_->Branch("pho1HLTFilter",&pho1HLTFilter,"HLTDecision[50]/O");
+      tree_->Branch("pho1","TLorentzVector", &pho1Ptr);
+      tree_->Branch("pho2","TLorentzVector", &pho2Ptr);
+      tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
+      tree_->Branch("jet2",    "TLorentzVector", &jet2Ptr);
+      
+      tree_->Branch("nSelectedPhotons",&nSelectedPhotons,"nSelectedPhotons/i");
       tree_->Branch("pho1_motherID",&pho1_motherID,"pho1_motherID/I");
       tree_->Branch("pho1_sigmaietaieta",&pho1_sigmaietaieta,"pho1_sigmaietaieta/F");
       tree_->Branch("pho1_chargediso",&pho1_chargediso,"pho1_chargediso/F");
@@ -1247,8 +1272,8 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
     }
     
-    // fill the photon tree
-    if (treeType == kTreeType_Photon_Full) {
+    // fill the invisble photon tree
+    if (treeType == kTreeType_PhotonAdd2MET_Full) {
       tree_->SetBranchAddress("HLTDecision",&HLTDecision);
       tree_->SetBranchAddress("HLTPrescale",&HLTPrescale);
       tree_->SetBranchAddress("pho1HLTFilter",&pho1HLTFilter);
@@ -1269,6 +1294,30 @@ class ControlSampleEvents {
       tree_->SetBranchAddress("nSelectedPhotons",&nSelectedPhotons);
       tree_->SetBranchAddress("NJets_NoPho",&NJets_NoPho);
       tree_->SetBranchAddress("NJets80_NoPho",&NJets80_NoPho);
+      tree_->SetBranchAddress("pho1_motherID",&pho1_motherID);
+      tree_->SetBranchAddress("pho1_sigmaietaieta",&pho1_sigmaietaieta);
+      tree_->SetBranchAddress("pho1_chargediso",&pho1_chargediso);
+      tree_->SetBranchAddress("pho1_photoniso",&pho1_photoniso);
+      tree_->SetBranchAddress("pho1_neutralhadroniso",&pho1_neutralhadroniso);
+      tree_->SetBranchAddress("pho1_hOverE",&pho1_hOverE);
+      tree_->SetBranchAddress("pho1_pfiso",&pho1_pfiso);
+      tree_->SetBranchAddress("pho1PassTight",&pho1PassTight);
+      tree_->SetBranchAddress("minDRGenPhotonToParton",&minDRGenPhotonToParton);
+      tree_->SetBranchAddress("genJetMR",&genJetMR);
+      tree_->SetBranchAddress("genJetHT",&genJetHT);     
+    }
+    
+    // fill the visble photon tree
+    if (treeType == kTreeType_Photon_Full) {
+      tree_->SetBranchAddress("HLTDecision",&HLTDecision);
+      tree_->SetBranchAddress("HLTPrescale",&HLTPrescale);
+      tree_->SetBranchAddress("pho1HLTFilter",&pho1HLTFilter);
+      tree_->SetBranchAddress("pho1", &pho1Ptr);
+      tree_->SetBranchAddress("pho2", &pho2Ptr);
+      tree_->SetBranchAddress("jet1" ,&jet1Ptr);
+      tree_->SetBranchAddress("jet2" ,&jet2Ptr);
+      
+      tree_->SetBranchAddress("nSelectedPhotons",&nSelectedPhotons);
       tree_->SetBranchAddress("pho1_motherID",&pho1_motherID);
       tree_->SetBranchAddress("pho1_sigmaietaieta",&pho1_sigmaietaieta);
       tree_->SetBranchAddress("pho1_chargediso",&pho1_chargediso);
