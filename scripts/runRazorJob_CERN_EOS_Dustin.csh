@@ -73,8 +73,8 @@ echo $outputDirectory
 #cmsMkdir $outputDirectory
 #cmsStage -f $outputfile $outputDirectory
 
-mkdir -p /eos/cms/$outputDirectory
-cp -v $outputfile /eos/cms/$outputDirectory
+mkdir -p $outputDirectory
+cp -v $outputfile $outputDirectory
 
 set status=`echo $?`
 echo "Status: $status"
