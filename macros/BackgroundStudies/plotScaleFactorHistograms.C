@@ -10,6 +10,7 @@
 #include "TApplication.h"
 #include "TPad.h"
 #include <iostream>
+
 void plotScaleFactor(string label) {
 
   TFile *inf = new TFile(Form("data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root",label.c_str()),"READ");
@@ -109,7 +110,7 @@ void plotScaleFactor(string label) {
   cv->SaveAs(Form("GJetsInvScaleFactorUncertainty_%s.png",label.c_str()));
   cv->SaveAs(Form("GJetsInvScaleFactorUncertainty_%s.pdf",label.c_str()));
 
-
+  delete cv;
 
   //****************************************************
   //Plot WJetsInv Scale Factors
@@ -117,7 +118,7 @@ void plotScaleFactor(string label) {
   cv = new TCanvas("cv","cv", 800,600);
   gStyle->SetPalette(53);
   gStyle->SetPaintTextFormat("4.2f");
-  wInvNominal->Draw("colztexte1");
+  wInvNominal->Draw("colz text e1");
   cv->SetLogx();
   cv->SetLogy();
   cv->SetRightMargin(0.175);
@@ -150,6 +151,7 @@ void plotScaleFactor(string label) {
 
 
 
+  delete cv;
 
  //****************************************************
   //Plot WJets Scale Factors
@@ -231,6 +233,7 @@ void plotScaleFactor(string label) {
   cv->SaveAs(Form("WJetsScaleFactorUncertainty_%s.pdf",label.c_str()));
 
 
+  delete cv;
 
 
  //****************************************************
@@ -318,6 +321,7 @@ void plotScaleFactor(string label) {
 
 
 
+  delete cv;
   
 
 
