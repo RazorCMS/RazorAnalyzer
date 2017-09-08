@@ -1472,7 +1472,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             getline(parser, item, '_'); //prefix
             if(getline(parser, item, '_')){ //gluino mass 
                 mGluino = atoi(item.c_str());
-                if(mGluino == 0) { //fix for the case where the model name contains an underscore
+                // in case model name contains underscores, keep trying
+                int tries = 0;
+                while (mGluino == 0 && tries < 10) {
+                    tries++;
                     if(getline(parser, item, '_')){
                         mGluino = atoi(item.c_str());
                     }
