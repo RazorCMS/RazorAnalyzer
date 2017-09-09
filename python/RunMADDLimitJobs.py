@@ -27,11 +27,10 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
             +massPoint+box+".src")
         
     ffDir = 'Limits/'+submitDir+"/logs_"+model+"_"+massPoint+"_"+box
-    user = os.environ['USER']
     cmsswBase = os.environ['CMSSW_BASE']
 
-    combineDir = "/afs/cern.ch/work/%s/%s/RAZORRUN2/Limits/%s/%s/"%(
-            user[0],user,submitDir,model) 
+    combineDir = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/Limits/RazorInclusive2016/%s/%s/"%(
+            submitDir,model) 
 
     script =  '#!/usr/bin/env bash -x\n'
     script += 'mkdir -p %s\n'%combineDir
@@ -50,7 +49,7 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20170904\n' 
+    script += 'git checkout -b Limits LimitsMADD20170908\n' 
     script += 'make\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py'

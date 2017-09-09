@@ -10,6 +10,24 @@ from GChiPairs import gchipairs
 from GetCombine import writeXsecTree
 from macro.plotting import draw2DHist
 
+def interpolateXsec(xsecs, mg):
+    """
+    Performs linear interpolation of the cross section
+    between the two points closest to mg.
+    Inputs: dictionary {mass:xsection, ...}, target mass (int)
+    Returns: the interpolated cross section as well as
+    the mass points used for the linear interpolation.
+    """
+    mg_low = -1
+    mg_high = 1000000
+    for m in xsecs:
+        if m <= mg and m > mg_low:
+            mg_low = m
+        elif m >= mg and m < mg_high:
+            mg_high = m
+    interp_xsec = (xsecs[mg_low] + xsecs[mg_high])/2.0
+    return interp_xsec, mg_low, mg_high
+
 def plotSignificance(boxInput, model, sigHist, outDir):
     c = rt.TCanvas("c","c",800,600)
     if 'T2' in model:
@@ -74,7 +92,13 @@ if __name__ == '__main__':
     #get combine results
     for mg, mchi in gchipairs(model):
         print "Looking for",mg,mchi
-        refXsec = 1.e3*thyXsec[mg]
+        try:
+            refXsec = 1.e3*thyXsec[mg]
+        except KeyError:
+            refXsec, interpLow, interpHigh = interpolateXsec(thyXsec, mg)
+            print ("Warning: couldn't find cross section for mass {} GeV."
+                    "Interpolating between {} and {}.".format(
+                        mg, interpLow, interpHigh))
         modelName = 'SMS-'+('_'.join([model, str(mg), str(mchi)]))
         
         #open file if present
