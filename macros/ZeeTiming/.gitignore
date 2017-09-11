@@ -6,5 +6,7 @@
 .__afs*
 All2016.root
 outputAll2016.root
-plots/
+*.pdf
+*.png
+*.C
 #*#
