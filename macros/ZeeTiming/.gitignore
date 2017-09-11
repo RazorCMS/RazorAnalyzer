@@ -1,0 +1,10 @@
+*.~
+*.o
+*.so
+*.d
+*.pcm
+.__afs*
+All2016.root
+outputAll2016.root
+plots/
+#*#
