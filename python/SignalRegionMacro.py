@@ -9,20 +9,21 @@ commonShapeErrors = [
         ('singletopnorm',"SingleTop"),
         ('othernorm',"Other"),
         ('qcdnorm','QCD'),
-        'btag', 'pileup', 'facscale', 'renscale', 'facrenscale',
+        'btag', 'bmistag', 'pileup', 'facscale', 'renscale', 'facrenscale',
         ('btaginvcrosscheck',['ZInv']),
         ('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),
         ('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),
         ('sfstatzinv',['ZInv']),
         ('sfsyszinv',['ZInv']), 'jes',
         ('ttcrosscheck',['TTJets2L']),
+        ('zllcrosscheck',['ZInv']),
         ('sfstatttjets',['TTJets1L','TTJets2L']),
         ('sfsysttjets',['TTJets1L','TTJets2L']),
         ('sfstatwjets',['WJets']),
         ('sfsyswjets',['WJets'])
         ]
 lepShapeErrors = commonShapeErrors+['tightmuoneff','tighteleeff','muontrig','eletrig']
-hadShapeErrors = commonShapeErrors+['vetolepptcrosscheck','vetotauptcrosscheck',
+hadShapeErrors = commonShapeErrors+['wtag', 'vetolepptcrosscheck','vetotauptcrosscheck',
         'vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'LeptonMultiJet':lepShapeErrors, 
            'DiJet':hadShapeErrors, 'LeptonJet':lepShapeErrors, 
@@ -254,6 +255,15 @@ if __name__ == "__main__":
             shapesToUse = [s for s in shapesToUse if s not in toRemove]
             #this removes scale factor uncertainties that are listed as tuples
             shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
+
+        #adjust baseline cuts
+        print "Adjust baseline cuts to exclude sideband"
+        if boxName in ['DiJet', 'MultiJet']:
+            analysis.cutsData = analysis.cutsData.replace('MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
+            analysis.cutsMC = analysis.cutsMC.replace('MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
+        else:
+            analysis.cutsData = analysis.cutsData.replace('MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
+            analysis.cutsMC = analysis.cutsMC.replace('MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
 
         #run analysis
         hists = makeControlSampleHistsForAnalysis( analysis,
