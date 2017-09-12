@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p15_29Aug2017"
+VERSION = "V3p15_12Sep2017"
 
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
@@ -69,7 +69,6 @@ SUFFIXES = { '1L':'',
 SAMPLES = {}
 SAMPLES['1L'] = {
         "DYJets":[
-             #'DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
@@ -83,7 +82,6 @@ SAMPLES['1L'] = {
              'DYJetsToLL_M-5to50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              ],
         "QCD":[
-             #'QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
@@ -104,16 +102,6 @@ SAMPLES['1L'] = {
              'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
              'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-             #'TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',
-             #'TTJets_SingleLeptFromT_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',
-             #'TTJets_SingleLeptFromTbar_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',
-            ],
-        "TTJetsHTBinned":[
-                'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', # needs additional skim HT < 600
-                'TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
             ],
         "Other":[
                 'WWTo2L2Nu_13TeV-powheg',
@@ -128,10 +116,8 @@ SAMPLES['1L'] = {
                 'ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8',
                 'ZZTo4L_13TeV_powheg_pythia8',
                 'ZZTo4Q_13TeV_amcatnloFXFX_madspin_pythia8',
-                'TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
-                'TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
-                'TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
-                'TTZToQQ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
+                'ttZJets_13TeV_madgraphMLM',
+                'ttWJets_13TeV_madgraphMLM',
                 'WWW_4F_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
@@ -154,6 +140,29 @@ SAMPLES['1L'] = {
                 'ZJetsToNuNu_HT-1200To2500_13TeV-madgraph',
                 'ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph',
             ],
+        "TTJetsHTBinned":[
+                'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', # needs additional skim HT < 600
+                'TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+            ],
+        'ZInvPtBinned':[
+                'DYJetsToNuNu_Zpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToNuNu_PtZ-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToNuNu_PtZ-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToNuNu_PtZ-250To400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToNuNu_PtZ-400To650_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToNuNu_PtZ-650ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+            ],
+        'DYJetsPtBinned':[
+                'DYJetsToLL_Zpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToLL_Pt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToLL_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToLL_Pt-250To400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToLL_Pt-400To650_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+                'DYJetsToLL_Pt-650ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
+            ],
         }
 SAMPLES['1LInv'] = SAMPLES['1L'].copy()
 SAMPLES['1LInv']['WJets'] = [
@@ -165,6 +174,7 @@ SAMPLES['1LInv']['WJets'] = [
         'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
         'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
         ]
+SAMPLES['1LInv']['WJetsPtBinned'] = copy.copy(SAMPLES['1L']['WJets'])
 SAMPLES['2L'] = SAMPLES['1L'].copy()
 SAMPLES['2LInv'] = SAMPLES['1L'].copy()
 SAMPLES['VetoL'] = SAMPLES['1L'].copy()
@@ -204,12 +214,9 @@ SAMPLES['Signal'] = SAMPLES['1L'].copy()
 SAMPLES['Signal']['TTJets1L'] = [
                 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                #'TTJets_SingleLeptFromT_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',
-                #'TTJets_SingleLeptFromTbar_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',
             ]
 SAMPLES['Signal']['TTJets2L'] = [
                 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                #'TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8',
             ]
 del SAMPLES['Signal']['TTJets']
 
@@ -227,17 +234,15 @@ FASTSIM_SAMPLES = [
         'SMS-T2tt_mStop-350to400',
         'SMS-T2tt_mStop-400to1200',
         'SMS-T2qq',
-        #'SMS-T1tbs_RPV_mGluino1000to1200',
-        #'SMS-T1tbs_RPV_mGluino1300to1400',
-        #'SMS-T1tbs_RPV_mGluino1500',
-        #'SMS-T1tbs_RPV_mGluino750',
-        #'SMS-T2bW',
-        #'SMS-T2cc_genHT-160_genMET-80',
-        #'SMS-T5qqqqVV',
-        #'SMS-T5qqqqVV_dM20',
-        #'SMS-T5ttcc',
+        'SMS-T2bW',
+        'SMS-T2cc_genHT-160_genMET-80',
+        'SMS-T5ttcc',
         ]
 SAMPLES['SignalFastsim'] = { sample:[sample+FASTSIM_SUFFIX] for sample in FASTSIM_SAMPLES }
+
+EXTRASKIMS = {
+        'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8':'genHT < 600',
+        }
 
 DATA = {}
 DATA['1L'] = {
@@ -291,6 +296,3 @@ DATA['Photon'] = {
 DATA['Signal'] = DATA['1L'].copy()
 DATA['Signal']["HTMHT"] = copy.copy(DATA['VetoL']['HTMHT'])
 
-EXTRASKIMS = {
-        'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8':'genHT < 600',
-        }
