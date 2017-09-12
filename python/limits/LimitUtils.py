@@ -281,7 +281,7 @@ if __name__ == '__main__':
             submit(args.model, args.tag, sms, no_exec)
         sys.exit()
 
-    if args.aggregate or args.finish:
+    if (args.aggregate or args.finish) and not args.combined:
         if sms.submodels is not None:
             print "Combine limit jobs from all datasets for {}".format(
                     args.model)
