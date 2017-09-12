@@ -36,11 +36,11 @@ void PhotonControlSample_MakeTemplatesPrompt(int option) {
   // The template for prompts in barrel was made with this snippet on command line
   
   TChain * chain = new TChain("ControlSampleEvent");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDCuts/RunTwoRazorControlRegions_PhotonFull_GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root");
 
 
   double sigmaietaieta_bins_EB[100] = {0.};
@@ -86,12 +86,12 @@ void PhotonControlSample_MakeTemplatesFake(int option) {
   // The template for prompts in barrel was made with this snippet on command line
   
   TChain * chain = new TChain("ControlSampleEvent");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016C_PRv2_GoodLumiGolden.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016D_PRv2_GoodLumiGolden.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016E_PRv2_GoodLumiGolden.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016F_PRv1_GoodLumiGolden.root");
-  chain->Add("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016G_PRv1_GoodLumiGolden.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016B_PRv2_GoodLumiGolden.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016C_PRv2_GoodLumiGolden.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016D_PRv2_GoodLumiGolden.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016E_PRv2_GoodLumiGolden.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016F_PRv1_GoodLumiGolden.root");
+  chain->Add("/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p6_25October2016_CustomType1MET/PhotonAddToMETNoIDIsoCuts/RunTwoRazorControlRegions_PhotonFull_SinglePhoton_2016G_PRv1_GoodLumiGolden.root");
 
  
 
@@ -159,9 +159,9 @@ void PhotonControlSample_MakeTemplatesFake(int option) {
     
 }
 
-void PhotonControlSample_MakeTemplates(int option) {
+void PhotonControlSample_MakeTemplates() {
 
-  PhotonControlSample_MakeTemplatesPrompt(option);
-  //PhotonControlSample_MakeTemplatesFake(option);
+  //PhotonControlSample_MakeTemplatesPrompt(5);
+  PhotonControlSample_MakeTemplatesFake(12);
 
 }
