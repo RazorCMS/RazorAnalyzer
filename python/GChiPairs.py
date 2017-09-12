@@ -2,7 +2,7 @@
 import glob
 
 razorSignalDirs = {
-        "Razor2016_MoriondRereco": "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_11Aug2017/SignalFastsim/"
+        "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_29Aug2017/SignalFastsim/"
         }
 
 def parsePair(f):

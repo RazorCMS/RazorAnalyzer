@@ -207,8 +207,8 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p15_11Aug2017"
-versionData2016 = "V3p15_11Aug2017"
+versionMC2016 = "V3p15_29Aug2017"
+versionData2016 = "V3p15_29Aug2017"
 
 sampleTags2016 = { "Razor2016":"",
                "Razor2016_80X":"_Razor2016_80X",
@@ -230,8 +230,8 @@ for tag, suffix in sampleTags2016.iteritems():
 skimstr = ""
 
 #on EOS
-#dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
-#dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
+dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
+dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
 #dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
 #dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
 dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLepton'
@@ -241,9 +241,9 @@ dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTau'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
-dir1L2016 = 'Backgrounds/1L'
+#dir1L2016 = 'Backgrounds/1L'
 dir2L2016 = 'Backgrounds/2L'
-dir1LInv2016 = 'Backgrounds/1LInv'
+#dir1LInv2016 = 'Backgrounds/1LInv'
 dir2LInv2016 = 'Backgrounds/2LInv'
 #dirVetoL2016 = 'Backgrounds/VetoL'
 #dirVetoTau2016 = 'Backgrounds/VetoTau'
@@ -342,7 +342,7 @@ for tag in sampleTags2016:
 
     #Signal ntuples
     razorSignalDirs = {
-            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_11Aug2017/SignalFastsim/"
+            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_29Aug2017/SignalFastsim/"
             }
 
 

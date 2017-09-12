@@ -11,6 +11,7 @@ from scipy.interpolate import Rbf, interp1d
 import itertools
 from GChiPairs import gchipairs
 import operator
+from limits.SMSConfig import sms_models
 
 toFix = []
 def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0,fixLSP0=False,refHist=None):
@@ -33,9 +34,9 @@ def interpolate2D(hist,epsilon=1,smooth=0,diagonalOffset=0,fixLSP0=False,refHist
                     z.append(rt.TMath.Log(hist.GetBinContent(i,j)))
 
     mgMin = hist.GetXaxis().GetBinCenter(1)
-    mgMax = hist.GetXaxis().GetBinCenter(hist.GetNbinsX())#+hist.GetXaxis().GetBinWidth(hist.GetNbinsX())
+    mgMax = hist.GetXaxis().GetBinCenter(hist.GetNbinsX())
     mchiMin = hist.GetYaxis().GetBinCenter(1)
-    mchiMax = hist.GetYaxis().GetBinCenter(hist.GetNbinsY())#+hist.GetYaxis().GetBinWidth(hist.GetNbinsY())
+    mchiMax = hist.GetYaxis().GetBinCenter(hist.GetNbinsY())
     
     myX = np.linspace(mgMin, mgMax,int((mgMax-mgMin)/binWidth+1))
     myY = np.linspace(mchiMin, mchiMax, int((mchiMax-mchiMin)/binWidth+1))
@@ -78,42 +79,9 @@ def fix_hist_byhand(hist, model, box, clsType):
                     toFix.append((mg,mchi))
             elif obs<expPlus2 or obs>expMinus2:
                 hist.SetBinContent(hist.FindBin(mg,mchi),exp)
-                #hist.SetBinContent(hist.FindBin(mg,mchi),0)
                 if (mg,mchi) not in toFix:
                     toFix.append((mg,mchi))
 
-        if model == "T1tttt" and box == "MultiJet":
-             #hist.SetBinContent(hist.FindBin(975,700),0)            
-             pass
-        if model == "T1tttt" and box == "MuMultiJet_EleMultiJet_MultiJet":
-             #hist.SetBinContent(hist.FindBin(1650,650),0)
-             #hist.SetBinContent(hist.FindBin(1600,200),0)
-             #hist.SetBinContent(hist.FindBin(1600,50),0)
-             #hist.SetBinContent(hist.FindBin(1550,200),0)
-             #for mg in range(1450,1550,50):
-             #    for mchi in range(650,800,50):       
-             #       hist.SetBinContent(hist.FindBin(mg,mchi),0)
-                    
-             #hist.SetBinContent(hist.FindBin(975,725),0)
-             pass
-                
-    if model == "T1ttbb" or model=="T1bri" or "T1x" in model:
-        #for x in range(600,2000,25):
-        #    hist.SetBinContent(hist.FindBin(x,0),hist.GetBinContent(hist.FindBin(x,100)))
-        #    hist.SetBinContent(hist.FindBin(x,50),hist.GetBinContent(hist.FindBin(x,100)))
-        #hist.SetBinContent(hist.FindBin(1650,550),0)
-        #hist.SetBinContent(hist.FindBin(1700,500),0)
-        #hist.SetBinContent(hist.FindBin(1700,600),0)
-        #hist.SetBinContent(hist.FindBin(1600,600),0)
-        if model == "T1x0p00y0p50":
-            #hist.SetBinContent(hist.FindBin(1500,0),0)
-            #hist.SetBinContent(hist.FindBin(1550,0),0)
-            #for mg in range(1000,1300,25):
-            #    for mchi in range(0,mg,25):
-            #        hist.SetBinContent(hist.FindBin(mg,mchi),0)
-            pass
-        
-        
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:
@@ -215,139 +183,6 @@ def set_palette(name="default", ncontours=255):
     rt.TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
     rt.gStyle.SetNumberContours(ncontours)
 
-def getLogHist(hist):
-    logHist = hist.Clone("log"+hist.GetName())
-    for i in xrange(1,hist.GetNbinsX()+1):
-        for j in xrange(1,hist.GetNbinsY()+1):
-            if hist.GetBinContent(i,j) > 0.: logHist.SetBinContent(i,j,rt.TMath.Log(hist.GetBinContent(i,j)))
-    return logHist
-
-def getExpHist(logHist):
-    hist = logHist.Clone("exp"+logHist.GetName())
-    for i in xrange(1,hist.GetNbinsX()+1):
-        for j in xrange(1,hist.GetNbinsY()+1):
-            if logHist.GetBinContent(i,j) != 0.: hist.SetBinContent(i,j,rt.TMath.Exp(logHist.GetBinContent(i,j)))
-    return hist
-
-def getModelSettings(model):
-    fixLSP0 = False
-    if model=="T1bbbb":
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 25+12.5
-        smoothing = 50
-    elif model=="T1tttt":
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 225+12.5
-        smoothing = 200
-    elif model=="T5ttttDM175" or model=="T5ttttDM175T2tt":
-        mgMin = 600.-12.5
-        mgMax = 1700.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 225+12.5
-        smoothing = 0
-    elif model=="T5tttt_degen":
-        mgMin = 600.-12.5
-        mgMax = 1700.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 125+12.5
-        smoothing = 200
-    elif model=="T1ttbb":
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 225+12.5
-        smoothing = 200
-    elif model=="T1qqqq":
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1250.+12.5
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 25+12.5
-        smoothing = 50
-    elif model=="T5qqqqVV":
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1250.+12.5
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 25+12.5
-        smoothing = 50
-    elif model=="T2tt" or model=="T2bb":
-        mgMin = 100.-12.5
-        mgMax = 950.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 475.+12.5
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-2
-        xsecMax = 100.
-        diagonalOffset = 75+12.5
-        smoothing = 50
-    elif model=="T1ttbb" or 'T1x' in model:
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 225+12.5
-        smoothing = 200
-        if model=="T1x0p50y0p50":
-            fixLSP0 = False
-        else:
-            fixLSP0 = True
-    elif model=='T1bri':
-        mgMin = 600.-12.5
-        mgMax = 2000.+12.5
-        mchiMin = 0.-12.5
-        mchiMax = 1450.+12.5 
-        binWidth = 25
-        nRebins = 0
-        xsecMin = 1.e-3
-        xsecMax = 10.
-        diagonalOffset = 225+12.5
-        smoothing = 50
-        fixLSP0 = True
-        
-    return mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing, fixLSP0
 
 if __name__ == '__main__':
     
@@ -363,6 +198,8 @@ if __name__ == '__main__':
                   help="for toys instead of asymptotic")
     parser.add_option('--xsec-file',dest="refXsecFile",default="./data/gluino13TeV.txt",type="string",
                   help="Input directory")
+    parser.add_option('--no-smooth', dest='noSmooth', action='store_true', 
+                  help='Draw grid without interpolation')
     
     (options,args) = parser.parse_args()
     
@@ -379,7 +216,21 @@ if __name__ == '__main__':
     rt.gROOT.ProcessLine(".L macros/swissCrossInterpolate.h+")
     rt.gSystem.Load("macros/swissCrossInterpolate_h.so")
 
-    mgMin, mgMax, mchiMin, mchiMax, binWidth, nRebins, xsecMin, xsecMax, diagonalOffset, smoothing, fixLSP0 = getModelSettings(model)
+    try:
+        sms = sms_models[model]
+    except KeyError:
+        sys.exit("Model {} is not implemented!".format(model))
+    mgMin = sms.mgMin
+    mgMax = sms.mgMax
+    mchiMin = sms.mchiMin
+    mchiMax = sms.mchiMax 
+    binWidth = sms.binWidth
+    nRebins = sms.nRebins
+    xsecMin = sms.xsecMin
+    xsecMax = sms.xsecMax
+    diagonalOffset = sms.diagonalOffset
+    smoothing = sms.smoothing
+    fixLSP0 = sms.fixLSP0
 
     if model=="T1bri":
         xsecFile = rt.TFile.Open("%s/smoothXsecUL_%s.root"%(directory,box))
@@ -403,21 +254,14 @@ if __name__ == '__main__':
     titleMap = {"Exp":"Expected","ExpMinus":"Expected-1#sigma","ExpPlus":"Expected+1#sigma",
                 "ExpMinus2":"Expected-2#sigma","ExpPlus2":"Expected+2#sigma",
                 "ObsMinus":"Observed-1#sigma", "ObsPlus":"Observed+1#sigma","Obs":"Observed"}
-    if model=="T1bri":
-        
-        whichCLsVar = {"Obs":"xsecULObs_%s"%(box),"ObsPlus":"xsecULObs_%s"%(box),"ObsMinus":"xsecULObs_%s"%(box),
-                    "Exp":"xsecULExp_%s"%(box),"ExpPlus":"xsecULExpMinus_%s"%(box),"ExpMinus":"xsecULExpPlus_%s"%(box),
-                    "ExpPlus2":"xsecULExpMinus2_%s"%(box),"ExpMinus2":"xsecULExpPlus2_%s"%(box)}
-    else:
-        whichCLsVar = {"Obs":"xsecULObs_%s"%(box),"ObsPlus":"xsecULObs_%s"%(box),"ObsMinus":"xsecULObs_%s"%(box),
-                    "Exp":"xsecULExp_%s"%(box),"ExpPlus":"xsecULExpMinus_%s"%(box),"ExpMinus":"xsecULExpPlus_%s"%(box),
-                    "ExpPlus2":"xsecULExpMinus2_%s"%(box),"ExpMinus2":"xsecULExpPlus2_%s"%(box)}
+    whichCLsVar = {"Obs":"xsecULObs_%s"%(box),"ObsPlus":"xsecULObs_%s"%(box),"ObsMinus":"xsecULObs_%s"%(box),
+                "Exp":"xsecULExp_%s"%(box),"ExpPlus":"xsecULExpMinus_%s"%(box),"ExpMinus":"xsecULExpPlus_%s"%(box),
+                "ExpPlus2":"xsecULExpMinus2_%s"%(box),"ExpMinus2":"xsecULExpPlus2_%s"%(box)}
                    
     xsecUL = {}
     logXsecUL = {}
     rebinXsecUL = {}
     subXsecUL = {}
-
     contourFinal = {}
 
     
@@ -434,18 +278,9 @@ if __name__ == '__main__':
                     if str(mg)==line.split(',')[0]:
                         thyXsec[mg,mchi] = float(line.split(',')[1]) #pb
                         thyXsecErr[mg,mchi] = 0.01*float(line.split(',')[2])               
-                if model=="T5ttttDM175T2tt":                    
-                    for line in open('data/stop13TeV.txt','r'):
-                        line = line.replace('\n','')
-                        if str(mchi+175)==line.split(',')[0]:
-                            thyXsecStop = float(line.split(',')[1]) #pb
-                    thyXsec[mg,mchi]+=thyXsecStop                    
     else: 
         print "ERROR: no xsec file; exiting"
         sys.exit()  
-    
-
-    
     
     for i in xrange(1,xsecGluino.GetNbinsX()+1):
         xLow = xsecGluino.GetXaxis().GetBinCenter(i)
@@ -501,8 +336,9 @@ if __name__ == '__main__':
             rebinXsecUL[clsType] = rt.swissCrossRebin(rebinXsecUL[clsType],"NE")
 
         # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
-        xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-        xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
+        if not options.noSmooth:
+            xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
+            xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # fix axes
         xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))
@@ -545,8 +381,6 @@ if __name__ == '__main__':
         conts = rt.gROOT.GetListOfSpecials().FindObject("contours")
 
         xsecUL[clsType].Draw("COLZ")
-        #subXsecUL[clsType].Draw("COLZ")
-        #xsecGluino.Draw("colz")
         
         contour0 = conts.At(0)
         curv = contour0.First()

@@ -17,7 +17,7 @@ from subprocess import call, check_output
 
 sys.path.append(os.path.dirname(__file__)+'/..')
 from haddFastsimSMS import makeFileLists, haddFastsimFiles
-from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS, EXTRASKIMS
 
 RAZOR_EOS_DIR = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/'
 
@@ -83,9 +83,10 @@ def submitJobs(analyzer,tag,isData=False,submit=False,reHLT=False,label='',
                     njobs += 1
                     totalJobs += 1
                     jobname = '_'.join([analyzer,sample,label,str(ijob)])
-                    logfile = os.path.join(local_dir,'output','%s_%s_%s_%d.out'%(
-                            analyzer,sample,label,ijob))
-                    cmd = ['bsub','-q',queue,'-oo',logfile,'-J',jobname,script,analyzer,inlist,
+                    logfile = '/dev/null'
+                    #logfile = os.path.join(local_dir,'output','%s_%s_%s_%d.out'%(
+                            #analyzer,sample,label,ijob))
+                    cmd = ['bsub','-q',queue,'-o',logfile,'-J',jobname,script,analyzer,inlist,
                             str(int(isData)),str(OPTIONS[tag]),str(filesperjob),str(ijob),outfile,
                         DIRS[tag].replace('/eos/cms','')+jobssuffix, 'CMSSW_8_0_26',
                         label]
@@ -156,6 +157,15 @@ def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
             if os.path.isfile( fname ) and not force:
                 print "File",fname,"exists; skipping"
             elif len(jobfiles) > 0:
+                if sample in EXTRASKIMS:
+                    skim_str = EXTRASKIMS[sample]
+                    print "Performing additional skim {} before hadd".format(skim_str)
+                    skimfilename = 'skim_{}.txt'.format(sample)
+                    with open(skimfilename, 'w') as skimfile:
+                        for f in jobfiles:
+                            skimfile.write(f+'\n')
+                    call(['./SkimNtuple', skimfilename, DIRS[tag]+'/jobs', 'ExtraSkim', skim_str])
+                    jobfiles = [f.replace('.root', '_ExtraSkim.root') for f in jobfiles]
                 if force:
                     call(['hadd','-f',fname]+jobfiles)
                 else:

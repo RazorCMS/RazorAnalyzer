@@ -15,40 +15,25 @@ set cmsswDir=$9
 set label=$10
 
 echo " "; echo "Initialize CMSSW"; echo " "
-#setenv KRB5CCNAME /home/sixie/.krb5/ticket
 set workDir=`pwd`
 
-setenv SCRAM_ARCH slc6_amd64_gcc491
+setenv SCRAM_ARCH slc6_amd64_gcc481
 cd    $cmsswDir
-#cd    /afs/cern.ch/work/j/jmao/public/releases/CMSSW_7_4_7/src/
 eval `scramv1 runtime -csh`
 cd -
 
 pwd
-# env
 
-cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_B_H.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_G_H.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_ichep.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/fastsim_csvv2_ttbar_26_1_2017.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSV_13TEV_Combined_20_11_2015.csv ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JEC_Summer16_23Sep2016V3.tgz ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Spring16_FastSimV1.tgz ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JetResolutionInputAK5PF.txt ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_smearings.dat ./
-cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_scales.dat ./
-tar vxzf JEC_Summer16_23Sep2016V3.tgz
-tar vxzf Spring16_FastSimV1.tgz
+eosdir="/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/"
+eos cp ${eosdir}/RazorRunAuxFiles_Expanded.tar.gz ./
+eos cp ${eosdir}/RazorRun_NoAFS ./
+eos cp ${eosdir}/Run${analysisType} ./
 
 echo " "; echo "Show where we are"; echo " "
 hostname
 pwd
-## env
 
 klist
-
-#setenv STAGE_SVCCLASS cmsprod
 
 #Do Job splitting and make input file list
 cat $inputfilelist | awk "NR > ($jobnumber*$filePerJob) && NR <= (($jobnumber+1)*$filePerJob)" >! inputfilelistForThisJob_${jobnumber}.txt
@@ -59,18 +44,15 @@ cat inputfilelistForThisJob_${jobnumber}.txt
 echo "************************************"
 echo ""
 
-
-# Get ready to run in your home directory
 set datastring=""
 if (${isData} == 1) then
     set datastring="--isData "
 endif
 
+# Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
-#echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${isData} ${outputfile} ${option}
-#./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -f=${outputfile} -n=${option} |& tee ${outputfile}.log
+echo ./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
+./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
 
 ls -ltr 
 
@@ -78,17 +60,13 @@ echo $outputfile
 echo $outputDirectory
 
 #Do below only for output to CERN EOS
-mkdir -p /eos/cms/$outputDirectory
-cp -v $outputfile /eos/cms/$outputDirectory
+eos mkdir -p $outputDirectory
+eos cp $outputfile /eos/cms/$outputDirectory/
 
 set tempOutputfile = `echo $outputfile | sed 's/.root//'`
 foreach f ( ${tempOutputfile}_*.root )
-   cp -v $f /eos/cms/$outputDirectory
+   eos cp $f /eos/cms/$outputDirectory/
 end
-
-#cmsMkdir $outputDirectory
-#cmsStage -f $outputfile $outputDirectory
-#cmsStage -f ${outputfile}.log $outputDirectory
 
 set status=`echo $?`
 echo "Status: $status"

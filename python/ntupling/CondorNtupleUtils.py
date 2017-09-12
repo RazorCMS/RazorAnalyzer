@@ -41,9 +41,10 @@ def writeCondorSubmitFragment(f, subdir, jobname, options):
     and appends it to the file f.
     """
     f.write("\nArguments = "+(' '.join(options))+"\n")
-    f.write("Output = {}/{}.out\n".format(subdir, jobname))
-    f.write("Log = {}/{}.log\n".format(subdir, jobname))
-    f.write("Error = {}/{}.err\n".format(subdir, jobname))
+    # log files should be omitted to avoid job IO issues
+    #f.write("Output = {}/{}.out\n".format(subdir, jobname))
+    #f.write("Log = {}/{}.log\n".format(subdir, jobname))
+    #f.write("Error = {}/{}.err\n".format(subdir, jobname))
     f.write("Queue\n")
     return f
 
@@ -64,7 +65,6 @@ def submitCondorJobsForSample(f, subdir, submit=False, spool=False,
 
 def submitJobs(analyzer,tag,isData=False,submit=False,label='',
         flavor='espresso', spool=False, verbose=False, fastsim=False):
-    # parameters
     local_dir = os.environ['CMSSW_BASE']+'/src/RazorAnalyzer/'
     samples = SAMPLES
     listdir = local_dir+'lists/Run2/razorNtupler'+(VERSION.split('_')[0])+'/MC_Summer16'

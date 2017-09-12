@@ -2631,26 +2631,17 @@ int RazorAnalyzer::getMatchingGenTopIndex(double eta, double phi, double r) {
 }
 
 
-//Computed the genHT variable
+//Compute the genHT variable
 double RazorAnalyzer::getGenHT(){
   double genHT = 0;
   for(int j = 0; j < nGenParticle; j++){
-    //cout << j << " : " << gParticleStatus[j] << " " << gParticleId[j] << " " << gParticleMotherIndex[j] 
-    //	 << " \n";
-    if ( (gParticleStatus[j] == 23 ||gParticleStatus[j] == 22)  &&
-	 ( gParticleId[j] == 21 || ( abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 6)) &&
+    if ( (gParticleStatus[j] == 23 || gParticleStatus[j] == 22)  &&
+	 ( gParticleId[j] == 21 || ( abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) < 6 )) &&
 	 ( gParticleMotherIndex[j] == -1 || (gParticleMotherIndex[j] >= 0 && gParticleStatus[gParticleMotherIndex[j]] == 21))
 	 ) {
-      //cout << "add: " <<  gParticlePt[j] << " --> " << genHT << "\n";
       genHT += gParticlePt[j];
     }
   }
-
-  // if (genHT == 0) {
-  //   for(int j = 0; j < nGenParticle; j++){
-  //     cout << j << " : " << gParticleStatus[j] << " " << gParticleId[j] << " " << gParticleMotherIndex[j] << " " << gParticlePt[j] << "\n";
-  //   }
-  // }
 
   return genHT;
 };
