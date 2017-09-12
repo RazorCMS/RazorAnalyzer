@@ -169,13 +169,13 @@ razorNtuples["VetoTau"]["Razor2015"] = {
 
 ### Signal region
 razorNtuples["SignalHadronic"]["Razor2015"] = {
-        "TTJets1L" : dirSignalMC2015+"/FullRazorInclusive_TTJets1L_1pb_weighted.root",
-        "TTJets2L" : dirSignalMC2015+"/FullRazorInclusive_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
-        "WJets"    : dirSignalMC2015+"/FullRazorInclusive_WJetsToLNu_HTBinned_1pb_weighted.root",
-        "SingleTop": dirSignalMC2015+"/FullRazorInclusive_SingleTop_1pb_weighted.root",
-        "Other"    : dirSignalMC2015+"/FullRazorInclusive_Other_1pb_weighted.root",
-        "DYJets"   : dirSignalMC2015+"/FullRazorInclusive_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted.root",
-        "ZInv"     : dirSignalMC2015+"/FullRazorInclusive_ZJetsToNuNu_HTBinned_1pb_weighted.root",
+        "TTJets1L" : dirSignalMC2015+"/FullRazorDM_TTJets1L_1pb_weighted.root",
+        "TTJets2L" : dirSignalMC2015+"/FullRazorDM_TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_1pb_weighted.root",
+        "WJets"    : dirSignalMC2015+"/FullRazorDM_WJetsToLNu_HTBinned_1pb_weighted.root",
+        "SingleTop": dirSignalMC2015+"/FullRazorDM_SingleTop_1pb_weighted.root",
+        "Other"    : dirSignalMC2015+"/FullRazorDM_Other_1pb_weighted.root",
+        "DYJets"   : dirSignalMC2015+"/FullRazorDM_DYJetsToLL_M-5toInf_HTBinned_1pb_weighted.root",
+        "ZInv"     : dirSignalMC2015+"/FullRazorDM_ZJetsToNuNu_HTBinned_1pb_weighted.root",
         #data-driven QCD prediction for MultiJet
         "QCD"      : dirSignalData2015+"/RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter.root", 
         "Data"     : dirSignalData2015+"/RazorInclusive_HTMHT_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter.root"
@@ -194,10 +194,10 @@ razorNtuples["SignalLepton"]["Razor2015"] = razorNtuples["SignalHadronic"]["Razo
 razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorInclusive_SingleLepton_Run2015D_GoodLumiGolden_RazorSkim_CSCBadTrackFilter.root"
 
 ### 2016 ntuples
-dirCR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
-dirSR2016 = "root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p8_19Jan2017_DM"
-versionData2016 = "V3p8_19Jan2017_DM"
+dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
+dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
+versionMC2016 = "V3p8_10Feb2017_DM"
+versionData2016 = "V3p8_10Feb2017_DM"
 
 sampleTags2016 = { "Razor2016":"",
                "Razor2016_80X":"_Razor2016_80X",
@@ -214,31 +214,31 @@ for tag, suffix in sampleTags2016.iteritems():
     prefixes2016[tag]["VetoLepton"] = "RunTwoRazorControlRegions_VetoLeptonFull"+suffix
     prefixes2016[tag]["VetoTau"] = "RunTwoRazorControlRegions_VetoTauFull_RazorSkim"+suffix
     prefixes2016[tag]["Photon"] = "RunTwoRazorControlRegions_PhotonFull"+suffix
-    prefixes2016[tag]["Signal"] = "FullRazorInclusive"+suffix
+    prefixes2016[tag]["Signal"] = "FullRazorDM"+suffix
     prefixes2016[tag]["SusySync2016"] = "RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim"+suffix
 skimstr = ""
 
 #on EOS
-#dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
-#dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
-#dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
-#dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
-#dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLeptonRazorSkim'
+dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
+dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
+dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
+dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
+dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLepton'
 #dirVetoL2016 = dirCR2016+'/V3p6_25October2016_CustomType1MET_TestTightVeto/VetoLepton'
-#dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
-#dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
-#dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
+dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTau'
+dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
+dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
-dir1L2016 = 'Backgrounds/1L'
-dir2L2016 = 'Backgrounds/2L'
-dir1LInv2016 = 'Backgrounds/1LInv'
-dir2LInv2016 = 'Backgrounds/2LInv'
-dirVetoL2016 = 'Backgrounds/VetoL'
-dirVetoTau2016 = 'Backgrounds/VetoTau'
-dirSignal2016 = 'Backgrounds/Signal'
-dirPhoton2016 = 'Backgrounds/Photon'    
+#dir1L2016 = 'Backgrounds/1L'
+#dir2L2016 = 'Backgrounds/2L'
+#dir1LInv2016 = 'Backgrounds/1LInv'
+#dir2LInv2016 = 'Backgrounds/2LInv'
+#dirVetoL2016 = 'Backgrounds/VetoL'
+#dirVetoTau2016 = 'Backgrounds/VetoTau'
+#dirSignal2016 = 'Backgrounds/Signal'
+#dirPhoton2016 = 'Backgrounds/Photon'    
 
 for tag in sampleTags2016:
     razorNtuples["SingleLepton"][tag] = {
@@ -528,28 +528,28 @@ def appendNoiseFilters(cuts, tree=None):
     return ret
 
 # 1-lepton control region
-razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 150 && Rsq > 0.4"
+razorCuts["SingleLepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && MR > 200 && Rsq > 0.5"
 
 # 1-lepton invisible control region
-razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 150 && Rsq_NoW > 0.4 && ( weight < 0.01 || weight == 1)"
+razorCuts["SingleLeptonInv"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && ((abs(lep1Type) == 11 && lep1.Pt() > 30) || (abs(lep1Type) == 13 && lep1.Pt() > 25)) && MET > 30 && lep1MT > 30 && lep1MT < 100 && NJets80_NoW >= 2 && MR_NoW > 200 && Rsq_NoW > 0.5 && ( weight < 0.01 || weight == 1)"
 
 # TTJets 2-lepton control region
-razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 150 && Rsq > 0.4 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter"
+razorCuts["TTJetsDilepton"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && (abs(lep2Type) == 11 || abs(lep2Type) == 13) && lep1PassTight && lep2PassTight && lep1.Pt() > 30 && lep2.Pt() > 30 && mll > 20 && ((abs(lep1Type) != abs(lep2Type)) || (mll < 76 || mll > 106)) && NBJetsMedium > 0 && MET > 40 && MR > 200 && Rsq > 0.5 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter"
 
 # DYJets 2-lepton invisible control region
-razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 150 && Rsq_NoZ > 0.4"
+razorCuts["DYJetsDileptonInv"] = "((abs(lep1Type) == 11 && abs(lep2Type) == 11) || (abs(lep1Type) == 13 && abs(lep2Type) == 13)) && lep1.Pt() > 30 && lep2.Pt() > 20 && recoZmass > 80 && recoZmass < 110 && NBJetsMedium == 0 && NJets80_NoZ >= 2 && MR_NoZ > 200 && Rsq_NoZ > 0.5"
 
 # Veto lepton control region
-razorCuts["VetoLepton"]  = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 150 && Rsq > 0.4"
+razorCuts["VetoLepton"]  = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 200 && Rsq > 0.5"
 
-razorCuts["VetoElectron"] = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 150 && Rsq > 0.4"
+razorCuts["VetoElectron"] = "(abs(lep1Type) == 11) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 200 && Rsq > 0.5"
 
-razorCuts["VetoMuon"] = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 150 && Rsq > 0.4"
+razorCuts["VetoMuon"] = "(abs(lep1Type) == 13) && lep1PassVeto && lep1.Pt() > 5 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 200 && Rsq > 0.5"
 
-razorCuts["VetoTau"] = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 150 && Rsq > 0.4"
+razorCuts["VetoTau"] = "(abs(lep1Type) == 15) && lep1PassLoose && lep1.Pt() > 20 && lep1MT > 30 && lep1MT < 100 && NJets80 >= 2 && MR > 200 && Rsq > 0.5"
 
 # Photon control region
-razorCuts["Photon"] = "pho1.Pt() > 185 && pho1_chargediso < 2.5 && ((abs(pho1.Eta()) < 1.5 && pho1_sigmaietaieta < 0.01031) || (abs(pho1.Eta()) >= 1.5 && pho1_sigmaietaieta < 0.03013)) && NJets80_NoPho >= 2 && MR_NoPho > 150 && Rsq_NoPho > 0.4 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
+razorCuts["Photon"] = "pho1.Pt() > 185 && pho1_chargediso < 2.5 && ((abs(pho1.Eta()) < 1.5 && pho1_sigmaietaieta < 0.01031) || (abs(pho1.Eta()) >= 1.5 && pho1_sigmaietaieta < 0.03013)) && NJets80_NoPho >= 2 && MR_NoPho > 200 && Rsq_NoPho > 0.5 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
 razorExtraCuts["Photon"] = {
         "GJetsInv":"!(abs(pho1_motherID) > 5 && pho1_motherID != 21 && pho1_motherID != 2212) && minDRGenPhotonToParton >= 0.4",
         "GJetsFrag":"!(abs(pho1_motherID) > 5 && pho1_motherID != 21 && pho1_motherID != 2212) && minDRGenPhotonToParton < 0.4",
@@ -559,8 +559,8 @@ razorExtraCuts["Photon"] = {
 razorCuts["SusySync"] = "(abs(lep1Type) == 11 || abs(lep1Type) == 13) && lep1PassTight && lep1.Pt() > 25 && abs(lep1.Eta()) < 2.4 && MET > 250 && HT > 250 && NJets40 >= 2 && Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter"
 
 # Hadronic boxes with inverted lepton veto
-cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 150.000000 && Rsq > 0.40000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
-cutsDiJetForVeto = "(box == 14) && MR > 150.000000 && Rsq > 0.40000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+cutsMultiJetForVeto = "(box == 11 || box == 12 || box == 21) && MR > 200.000000 && Rsq > 0.5000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+cutsDiJetForVeto = "(box == 14) && MR > 200.000000 && Rsq > 0.50000 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 
 razorCuts["MultiJetForVetoLepton"] = cutsMultiJetForVeto+" && ( abs(leadingGenLeptonType) == 11 || abs(leadingGenLeptonType) == 13 ) && leadingGenLeptonPt > 5"
 
@@ -607,10 +607,10 @@ muonRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet"]
 leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet"]
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
-dileptonSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 2.5"
-leptonicSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 2.5 && mT > 120"
-looseLeptonSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 2.5 && mTLoose > 100 && nJets80 >= 2"
-hadronicSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 2.5 && nJets80 >= 2"
+dileptonSignalRegionCuts = "MR > 200.000000 && MR < 4000 && Rsq > 0.50000 && Rsq < 2.5 && abs(dPhiRazor) < 2.8"
+leptonicSignalRegionCuts = "MR > 200.000000 && MR < 4000 && Rsq > 0.50000 && Rsq < 2.5 && mT > 120"
+looseLeptonSignalRegionCuts = "MR > 200.000000 && MR < 4000 && Rsq > 0.50000 && Rsq < 2.5 && mTLoose > 100 && nJets80 >= 2"
+hadronicSignalRegionCuts = "MR > 200.000000 && MR < 4000 && Rsq > 0.50000 && Rsq < 2.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 #dileptonSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
 #leptonicSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 1.5 && mT > 120"
 #looseLeptonSignalRegionCuts = "MR > 150.000000 && MR < 4000 && Rsq > 0.40000 && Rsq < 1.5 && mTLoose > 100 && nJets80 >= 2"
@@ -636,8 +636,8 @@ razorBinning = {}
 
 ### Single Lepton Control Region
 razorBinning["SingleLepton"] = {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "NJets40" : [1,2,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT" : range(0, 2000, 200),
@@ -646,8 +646,8 @@ razorBinning["SingleLepton"] = {
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
 razorBinning["SingleLeptonInv"] = {
-        "MR_NoW" : [150, 200, 300, 400, 600, 3500],
-        "Rsq_NoW" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR_NoW" : [200, 250, 350, 450,2000],
+        "Rsq_NoW" : [0.5,0.65,0.7,0.85,2.5],
         "NJets_NoW" : [1,2,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT_NoW" : range(0, 2000, 200),
@@ -656,16 +656,16 @@ razorBinning["SingleLeptonInv"] = {
 
 ### Veto lepton control region
 razorBinning["VetoLepton"] =  {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "NJets40" : [1,2,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "lep1.Pt()" : [5, 10, 15, 20.,30.,40.,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
 razorBinning["SignalRegionForVetoLepton"] =  {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "nSelectedJets" : [1,2,4,20],
         "leadingGenLeptonPt" : [5, 10, 15, 20.,30.,40.,100,1000],
         "abs(leadingGenLeptonEta)" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -673,16 +673,16 @@ razorBinning["SignalRegionForVetoLepton"] =  {
 
 ### Veto Tau Control Region
 razorBinning["VetoTau"] = {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "NJets40" : [1,2,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "lep1.Pt()" : [20,30,40,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
 razorBinning["SignalRegionForVetoTau"] = {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "nSelectedJets" : [1,2,4,20],
         "leadingGenLeptonPt" : [20,30,40,100,1000],
         "abs(leadingGenLeptonEta)" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -690,8 +690,8 @@ razorBinning["SignalRegionForVetoTau"] = {
 
 ### DYJets Dilepton Invisible Control Region
 razorBinning["TTJetsDilepton"] = {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "NJets40" : [1,2,3,4,5,6,20],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
         "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -699,8 +699,8 @@ razorBinning["TTJetsDilepton"] = {
         "NBJetsMedium" : [0,1,2,3,4],
         }
 razorBinning["TTJetsDileptonReduced"] = {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "NJets40" : [4,5,6,20],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
         "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -710,8 +710,8 @@ razorBinning["TTJetsDileptonReduced"] = {
 
 ### DYJets Dilepton Invisible Control Region
 razorBinning["DYJetsDileptonInv"] = {
-        "MR_NoZ" : [150, 200, 300, 400, 600, 3500],
-        "Rsq_NoZ" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR_NoZ" : [200, 250, 350, 450,2000],
+        "Rsq_NoZ" : [0.5,0.65,0.7,0.85,2.5],
         "NJets_NoZ" : [1,2,4,20],
         "1" : [0.5, 1.5],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
@@ -723,8 +723,8 @@ razorBinning["DYJetsDileptonInv"] = {
         "MET_NoZ" : range(0, 1000, 100),
         }
 razorBinning["DYJetsDileptonInvReduced"] = {
-        "MR_NoZ" : [150, 200, 300, 400, 600, 3500],
-        "Rsq_NoZ" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR_NoZ" : [200, 250, 350, 450,2000],
+        "Rsq_NoZ" : [0.5,0.65,0.7,0.85,2.5],
         "NJets_NoZ" : [1,2,4,20],
         "1" : [0.5, 1.5],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
@@ -738,8 +738,8 @@ razorBinning["DYJetsDileptonInvReduced"] = {
 
 ### Photon control region
 razorBinning["Photon"] = {
-        "MR_NoPho" : [150, 200, 300, 400, 600, 3500],
-        "Rsq_NoPho" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR_NoPho" : [200, 250, 350, 450,2000],
+        "Rsq_NoPho" : [0.5,0.65,0.7,0.85,2.5],
         "NJets_NoPho" : [0,4,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT_NoPho" : range(0, 2000, 200),
@@ -755,8 +755,8 @@ razorBinning["Photon"] = {
 
 ### For October 2016 SUSY Synchronization exercise 
 razorBinning["SusySync"] = {
-        "MR" : [150, 200, 300, 400, 600, 3500],
-        "Rsq" : [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
+        "MR" : [200, 250, 350, 450,2000],
+        "Rsq" : [0.5,0.65,0.7,0.85,2.5],
         "NJets40" : [2,3,4,5,6,7,8,9,10],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT" : range(250, 2050, 200),
@@ -796,22 +796,22 @@ xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJe
 colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
                 "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
 
-xbinsSignal["MultiJet"]["0B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["MultiJet"]["1B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["MultiJet"]["2B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["MultiJet"]["3B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["MultiJet"]["0B"] = [200, 250, 350, 450,2000]
+xbinsSignal["MultiJet"]["1B"] = [200, 250, 350, 450,2000]
+xbinsSignal["MultiJet"]["2B"] = [200, 250, 350, 450,2000]
+xbinsSignal["MultiJet"]["3B"] = [200, 250, 350, 450,2000]
 
 xbinsSignal["FourToSixJet"] = xbinsSignal["MultiJet"]
 
-xbinsSignal["MuMultiJet"]["0B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["MuMultiJet"]["1B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["MuMultiJet"]["2B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["MuMultiJet"]["3B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["MuMultiJet"]["0B"] = [200, 250, 350, 450,2000]
+xbinsSignal["MuMultiJet"]["1B"] = [200, 250, 350, 450,2000]
+xbinsSignal["MuMultiJet"]["2B"] = [200, 250, 350, 450,2000]
+xbinsSignal["MuMultiJet"]["3B"] = [200, 250, 350, 450,2000]
 
-xbinsSignal["EleMultiJet"]["0B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["EleMultiJet"]["1B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["EleMultiJet"]["2B"] = [150, 200, 300, 400, 600, 3500]
-xbinsSignal["EleMultiJet"]["3B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["EleMultiJet"]["0B"] = [200, 250, 350, 450,2000]
+xbinsSignal["EleMultiJet"]["1B"] = [200, 250, 350, 450,2000]
+xbinsSignal["EleMultiJet"]["2B"] = [200, 250, 350, 450,2000]
+xbinsSignal["EleMultiJet"]["3B"] = [200, 250, 350, 450,2000]
 
 xbinsSignal["DiJet"] = xbinsSignal["MultiJet"]
 xbinsSignal["MuJet"] = xbinsSignal["MuMultiJet"]
@@ -820,88 +820,76 @@ xbinsSignal["LeptonMultiJet"] = xbinsSignal["MuMultiJet"]
 xbinsSignal["LeptonJet"] = xbinsSignal["LeptonMultiJet"]
 
 colsSignal["MultiJet"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MultiJet"]["1B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MultiJet"]["2B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MultiJet"]["3B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MuMultiJet"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MuMultiJet"]["1B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MuMultiJet"]["2B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["MuMultiJet"]["3B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["EleMultiJet"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["EleMultiJet"]["1B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["EleMultiJet"]["2B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["EleMultiJet"]["3B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 
 colsSignal["FourToSixJet"] = colsSignal["MultiJet"]
@@ -918,77 +906,69 @@ xbinsSignal["SevenJet"]["2B"] = [150, 200, 300, 400, 600, 3500]
 xbinsSignal["SevenJet"]["3B"] = [150, 200, 300, 400, 600, 3500]
 
 colsSignal["SevenJet"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["SevenJet"]["1B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["SevenJet"]["2B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 colsSignal["SevenJet"]["3B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
         ]
 
 #binning for scale factor histograms
 xbinsSignal["TTJetsSingleLepton"] = {}
 colsSignal["TTJetsSingleLepton"] = {}
-xbinsSignal["TTJetsSingleLepton"]["0B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["TTJetsSingleLepton"]["0B"] = [200, 250, 350, 450,2000]
 colsSignal["TTJetsSingleLepton"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
     ]
 
 xbinsSignal["WJetsSingleLepton"] = {}
 colsSignal["WJetsSingleLepton"] = {}
-xbinsSignal["WJetsSingleLepton"]["0B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["WJetsSingleLepton"]["0B"] = [200, 250, 350, 450,2000]
 colsSignal["WJetsSingleLepton"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
     ]
 
 xbinsSignal["WJetsSingleLeptonInv"] = {}
 colsSignal["WJetsSingleLeptonInv"] = {}
-xbinsSignal["WJetsSingleLeptonInv"]["0B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["WJetsSingleLeptonInv"]["0B"] = [200, 250, 350, 450,2000]
 colsSignal["WJetsSingleLeptonInv"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
     ]
 
 xbinsSignal["GJetsInv"] = {}
 colsSignal["GJetsInv"] = {}
-xbinsSignal["GJetsInv"]["0B"] = [150, 200, 300, 400, 600, 3500]
+xbinsSignal["GJetsInv"]["0B"] = [200, 250, 350, 450,2000]
 colsSignal["GJetsInv"]["0B"] = [
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.55,0.60,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.575,0.65,0.75,0.85,0.95,2.5],
-        [0.40,0.5,0.6,0.60,0.7,0.95,2.5],
+        [0.5,0.65,0.85,2.5], 
+        [0.5,0.7,0.85,2.5], 
+        [0.5,2.5], 
+        [0.5,2.5] 
     ]
 
 class Analysis:
