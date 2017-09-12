@@ -17,7 +17,7 @@ from subprocess import call, check_output
 
 sys.path.append(os.path.dirname(__file__)+'/..')
 from haddFastsimSMS import makeFileLists, haddFastsimFiles
-from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS
+from ControlRegionNtuples2016_V3p15 import SAMPLES, TREETYPES, TREETYPEEXT, SKIMS, DIRS, OPTIONS, VERSION, DATA, SUFFIXES, ANALYZERS, EXTRASKIMS
 
 RAZOR_EOS_DIR = '/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/'
 
@@ -157,6 +157,15 @@ def haddFiles(analyzer,tag,isData=False,force=False,reHLT=False,label=''):
             if os.path.isfile( fname ) and not force:
                 print "File",fname,"exists; skipping"
             elif len(jobfiles) > 0:
+                if sample in EXTRASKIMS:
+                    skim_str = EXTRASKIMS[sample]
+                    print "Performing additional skim {} before hadd".format(skim_str)
+                    skimfilename = 'skim_{}.txt'.format(sample)
+                    with open(skimfilename, 'w') as skimfile:
+                        for f in jobfiles:
+                            skimfile.write(f+'\n')
+                    call(['./SkimNtuple', skimfilename, DIRS[tag]+'/jobs', 'ExtraSkim', skim_str])
+                    jobfiles = [f.replace('.root', '_ExtraSkim.root') for f in jobfiles]
                 if force:
                     call(['hadd','-f',fname]+jobfiles)
                 else:

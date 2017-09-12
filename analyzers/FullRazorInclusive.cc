@@ -1394,12 +1394,12 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	  }
 	}
 
-        SumScaleWeights->Fill(0.0, sf_facScaleUp);
-        SumScaleWeights->Fill(1.0, sf_facScaleDown);
-        SumScaleWeights->Fill(2.0, sf_renScaleUp);
-        SumScaleWeights->Fill(3.0, sf_renScaleDown);
-        SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
-        SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+        SumScaleWeights->Fill(0.0, sf_facScaleUp*genWeight);
+        SumScaleWeights->Fill(1.0, sf_facScaleDown*genWeight);
+        SumScaleWeights->Fill(2.0, sf_renScaleUp*genWeight);
+        SumScaleWeights->Fill(3.0, sf_renScaleDown*genWeight);
+        SumScaleWeights->Fill(4.0, sf_facRenScaleUp*genWeight);
+        SumScaleWeights->Fill(5.0, sf_facRenScaleDown*genWeight);
 
         for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
             SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
