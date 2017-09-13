@@ -330,6 +330,8 @@ weightTable = {
         "renscaleDown":"sf_renScaleDown",
         "facrenscaleUp":"sf_facRenScaleUp",
         "facrenscaleDown":"sf_facRenScaleDown",
+        "wtagUp:":"wTagScaleFactor_Tau21Up",
+        "wtagDown":"wTagScaleFactor_Tau21Down",
         }
 
 scaleWeights = ['facscaleUp','facscaleDown','renscaleUp','renscaleDown',
@@ -400,9 +402,10 @@ def weight_mc(event, wHists, scale=1.0, weightOpts=[], errorOpt=None, debugLevel
     if errorOpt is not None:
         if errorOpt in weightTable:
             errorWeight = getattr(event, weightTable[errorOpt])
-            eventWeight *= errorWeight
-            if debugLevel > 1: 
-                print "%s scale factor: %.2f"%(errorOpt, errorWeight)
+            if not rt.TMath.IsNaN(errorWeight):
+                eventWeight *= errorWeight
+                if debugLevel > 1: 
+                    print "%s scale factor: %.2f"%(errorOpt, errorWeight)
         elif 'normUp' in errorOpt:
             eventWeight *= (1+normErrFraction)
             if debugLevel > 1: print errorOpt,"scale factor:",1+normErrFraction

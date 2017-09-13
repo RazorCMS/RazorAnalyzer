@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument('--btags', help="choose number of b-tags", type=int, required=True)
     parser.add_argument('--no-sfs', help='Uncertainties from scale factor cross checks will be ignored', action='store_true',dest='noSFs')
     parser.add_argument('--no-sys', help='Do not propagate systematic uncertainties', action='store_true',dest='noSys')
-    parser.add_argument("--tag", dest="tag", required=True,
+    parser.add_argument("--tag", dest="tag", default='Razor2016_MoriondRereco',
             help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--dir", help="Specify input/output directory")
     args = parser.parse_args()
@@ -60,10 +60,6 @@ if __name__ == "__main__":
         #this removes scale factor uncertainties that are listed as tuples
         shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
         dirName += 'NoSFs'
-    ###### TEMPORARY UNTIL MISTAG WEIGHTS ARE FIXED #######
-    if 'bmistag' in shapesToUse:
-        shapesToUse.remove('bmistag')
-    #######################################################
     #option to disable systematics
     if args.noSys:
         print "Ignoring systematic uncertainties."

@@ -612,7 +612,7 @@ bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso, bool use
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGLooseElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGLooseElectronID(i,use25nsCuts, "Spring15")) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -624,7 +624,7 @@ bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso, bool us
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGMediumElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGMediumElectronID(i,use25nsCuts, "Spring15")) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -636,7 +636,7 @@ bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso, bool use
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGTightElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGTightElectronID(i,use25nsCuts, "Spring15")) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -2631,26 +2631,17 @@ int RazorAnalyzer::getMatchingGenTopIndex(double eta, double phi, double r) {
 }
 
 
-//Computed the genHT variable
+//Compute the genHT variable
 double RazorAnalyzer::getGenHT(){
   double genHT = 0;
   for(int j = 0; j < nGenParticle; j++){
-    //cout << j << " : " << gParticleStatus[j] << " " << gParticleId[j] << " " << gParticleMotherIndex[j] 
-    //	 << " \n";
-    if ( (gParticleStatus[j] == 23 ||gParticleStatus[j] == 22)  &&
-	 ( gParticleId[j] == 21 || ( abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 6)) &&
+    if ( (gParticleStatus[j] == 23 || gParticleStatus[j] == 22)  &&
+	 ( gParticleId[j] == 21 || ( abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) < 6 )) &&
 	 ( gParticleMotherIndex[j] == -1 || (gParticleMotherIndex[j] >= 0 && gParticleStatus[gParticleMotherIndex[j]] == 21))
 	 ) {
-      //cout << "add: " <<  gParticlePt[j] << " --> " << genHT << "\n";
       genHT += gParticlePt[j];
     }
   }
-
-  // if (genHT == 0) {
-  //   for(int j = 0; j < nGenParticle; j++){
-  //     cout << j << " : " << gParticleStatus[j] << " " << gParticleId[j] << " " << gParticleMotherIndex[j] << " " << gParticlePt[j] << "\n";
-  //   }
-  // }
 
   return genHT;
 };

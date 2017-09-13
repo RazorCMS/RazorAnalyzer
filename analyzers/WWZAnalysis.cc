@@ -108,6 +108,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   float lep34MT;
 
   int NJet20;
+  float jet1Pt, jet2Pt, jet3Pt, jet4Pt;
   int NJet30;
   int NBJet20;
   int NBJet30;
@@ -148,6 +149,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("MET_JESDown", &MET_JESDown, "MET_JESDown/F");
   outputTree->Branch("METPhi", &METPhi, "METPhi/F");
   outputTree->Branch("NJet20", &NJet20, "NJet20/I");
+  outputTree->Branch("jet1Pt", &jet1Pt, "jet1Pt/F");
+  outputTree->Branch("jet2Pt", &jet2Pt, "jet2Pt/F");
+  outputTree->Branch("jet3Pt", &jet3Pt, "jet3Pt/F");
+  outputTree->Branch("jet4Pt", &jet4Pt, "jet4Pt/F");
   outputTree->Branch("NJet30", &NJet30, "NJet30/I");
   outputTree->Branch("NBJet20", &NBJet20, "NBJet20/I");
   outputTree->Branch("NBJet30", &NBJet30, "NBJet30/I");
@@ -259,6 +264,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       MET_JESUp = -999;
       MET_JESDown = -999;
       NJet20 = 0;
+      jet1Pt = -999.;
+      jet2Pt = -999.;
+      jet3Pt = -999.;
+      jet4Pt = -999.;
       NJet30 = 0;
       NBJet20 = 0;
       NBJet30 = 0;     
@@ -512,6 +521,9 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       //***********************************************
       //Select Jets
       //***********************************************
+      std::vector<double> jetPtVector;
+      auto ptOrder = [](auto a, auto b) { return a > b; };
+      
       for(int i = 0; i < nJets; i++){
 	
 	//*****************************************************************
@@ -541,6 +553,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	if ( !jetPassIDLoose[i] ) continue;
 
 	NJet20++;
+	jetPtVector.push_back(thisJet.Pt());
 	if (thisJet.Pt() > 30) {
 	  NJet30++;
 	  if (lep3Index >= 0) {
@@ -558,6 +571,12 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	
 
       }
+      
+      sort(jetPtVector.begin(), jetPtVector.end(), ptOrder);
+      jet1Pt = jetPtVector.at(0);
+      jet2Pt = jetPtVector.at(1);
+      jet3Pt = jetPtVector.at(2);
+      jet4Pt = jetPtVector.at(3);
       
       //cout << "NJet: " << NJet20 << " " << NJet30 << " " << NBJet20 << " " << NBJet30 << "\n";
       
