@@ -58,7 +58,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   //--------------------------------
   RazorHelper *helper = 0;
   if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, false);
-  else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
+  else if (analysisTag == "Razor2016_MoriondRereco") helper = new RazorHelper("Razor2016_MoriondRereco", isData, false);
   else helper = new RazorHelper(analysisTag, isData, false);
   
 
