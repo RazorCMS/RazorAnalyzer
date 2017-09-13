@@ -310,30 +310,34 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       //Scale and PDF variations
       /////////////////////////////////
 
-      if ( (*scaleWeights).size() >= 9 ) 
-	{
-	  // sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
-	  // sf_facScaleDown    = (*scaleWeights)[2]/genWeight;
-	  // sf_renScaleUp      = (*scaleWeights)[3]/genWeight;
-	  // sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
-	  // sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
-	  // sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+      if (scaleWeights) {
+	if ( (*scaleWeights).size() >= 9 ) 
+	  {
+	    // sf_facScaleUp      = (*scaleWeights)[1]/genWeight;
+	    // sf_facScaleDown    = (*scaleWeights)[2]/genWeight;
+	    // sf_renScaleUp      = (*scaleWeights)[3]/genWeight;
+	    // sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
+	    // sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
+	    // sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	    
+	    
+	    SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
+	    SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
+	    SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
+	    SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
+	    SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
+	    SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
+	  }
+      }
 
-	  
-	  SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
-	  SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
-	  SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
-	  SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
-	  SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
-	  SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
-	}
-      
-      sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
-      for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
-	{
-	  sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
-	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
-	}
+      if (pdfWeights) {      
+	sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
+	for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
+	  {
+	    sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
+	    SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
+	  }
+      }
       
       //*************************************************************************
       //MC objects
