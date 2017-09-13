@@ -24,10 +24,14 @@ cd -
 
 pwd
 
-eosdir="/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/"
-eos cp ${eosdir}/RazorRunAuxFiles_Expanded.tar.gz ./
-eos cp ${eosdir}/RazorRun_NoAFS ./
-eos cp ${eosdir}/Run${analysisType} ./
+wget http://cmsdoc.cern.ch/~duanders/RazorRunAuxFiles_Expanded.tar.gz
+
+cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun_NoAFS ./
+cp $CMSSW_BASE/src/RazorAnalyzer/bin/Run${analysisType} ./
+#eosdir="/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/"
+#eos cp ${eosdir}/RazorRunAuxFiles_Expanded.tar.gz ./
+#eos cp ${eosdir}/RazorRun_NoAFS ./
+#eos cp ${eosdir}/Run${analysisType} ./
 
 echo " "; echo "Show where we are"; echo " "
 hostname
