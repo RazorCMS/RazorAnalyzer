@@ -111,6 +111,8 @@ class RazorHelper {
             // With tau_21 efficiency varied
             float wTagScaleFactor_Tau21Up = 1.0;
             float wTagScaleFactor_Tau21Down = 1.0;
+            float wTagScaleFactor_FastsimEffUp = 1.0;
+            float wTagScaleFactor_FastsimEffDown = 1.0;
 
             // Number of top-tagged AK8 jets
             int nTopTags = 0;
@@ -120,11 +122,16 @@ class RazorHelper {
             // With tau_32 efficiency varied
             float topTagScaleFactor_Tau32Up = 1.0;
             float topTagScaleFactor_Tau32Down = 1.0;
+            float topTagScaleFactor_FastsimEffUp = 1.0;
+            float topTagScaleFactor_FastsimEffDown = 1.0;
         };
 
         float getSoftDropMassCorrectionForWTag(float pt, float eta);
         bool isWTaggedAK8Jet(RazorAnalyzer *ra, uint iJet, bool isData, int updown=0);
         bool isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet);
+        float getTagEfficiency(TH1F *effHist, float genPt, int updown=0);
+        float getWTagEfficiency(float genWPt, int updown=0);
+        float getTopTagEfficiency(float genTopPt, int updown=0);
         AK8JetInfo CalcAK8JetInfo(RazorAnalyzer *ra, bool isData);
 
     private:
@@ -321,9 +328,14 @@ class RazorHelper {
 
         // for AK8 jet tags
         TFile *puppiSoftDropCorrFile;
+        TFile *wTopTagEffFile;
         TF1 *puppiSoftDropCorr_Gen;
         TF1 *puppiSoftDropCorr_RecoCentral;
         TF1 *puppiSoftDropCorr_RecoForward;
+        TH1F *wTagEffFullsim;
+        TH1F *wTagEffFastsim;
+        TH1F *topTagEffFullsim;
+        TH1F *topTagEffFastsim;
 };
 
 #endif

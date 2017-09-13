@@ -82,7 +82,9 @@ int main(int argc, char* argv[]) {
             if(className.compare("TTree") != 0){
                 cout << "Skipping key (not a TTree)" << endl;
                 outputFile->cd();
-                key->Write();
+                TObject *outObj = key->ReadObj();
+		cout << "Name: " << outObj->GetName() << " " << outObj->GetTitle() << "\n";
+                outObj->Write(outObj->GetTitle());
                 inputFile->cd();
                 continue;
             }

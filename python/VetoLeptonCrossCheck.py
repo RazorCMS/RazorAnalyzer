@@ -1,27 +1,21 @@
-import sys, os, argparse, copy
+import sys, os, copy
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis
+from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors, makeVetoLeptonCorrectionHist
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
-    #parse args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
-    parser.add_argument("--tag", dest="tag", default="Razor2016",
-                                help="Analysis tag, e.g. Razor2015")
+    parser = make_parser()
     parser.add_argument("--muons", help="require muons", action='store_true')
     parser.add_argument("--electrons", help="require electrons", action='store_true')
     parser.add_argument("--tight", help="require tight leptons", action='store_true')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
+    boostCuts = not args.noBoostCuts
 
     #load the MT cut efficiency as a function of lepton pt
     mtHists = {}
@@ -55,24 +49,24 @@ if __name__ == "__main__":
             #veto lepton/tau control region
             regionsOrder.append(ltype+jtype) 
             regions[ltype+jtype] = Analysis(ltype+"ControlRegion",tag=tag,
-                    njetsMin=jets[0],njetsMax=jets[1])
+                    njetsMin=jets[0],njetsMax=jets[1],boostCuts=boostCuts)
             #corresponding signal region 
             sigR = jtype+"For"+ltype
             regionsOrder.append(sigR) 
             regions[jtype+"For"+ltype] = Analysis(sigR+"ControlRegion",
-                    tag=tag,njetsMin=jets[0],njetsMax=jets[1])
+                    tag=tag,njetsMin=jets[0],njetsMax=jets[1],boostCuts=boostCuts)
             regionsCorrespondence[sigR] = ltype+jtype
             regionMtHists[sigR] = mtHists[ltype+"Pt"]
             regionDphiHists[sigR] = dphiHists[ltype+"Pt"]
             #veto lepton/tau control region
             regionsOrder.append(ltype+jtype+"PtCorr") 
             regions[ltype+jtype+"PtCorr"] = Analysis(ltype+"ControlRegion",tag=tag,
-                    njetsMin=jets[0],njetsMax=jets[1])
+                    njetsMin=jets[0],njetsMax=jets[1],boostCuts=boostCuts)
             #corresponding signal region 
             sigRPtCorr = jtype+"For"+ltype+"PtCorr"
             regionsOrder.append(sigRPtCorr) 
             regions[sigRPtCorr] = Analysis(sigR+"ControlRegion",
-                    tag=tag,njetsMin=jets[0],njetsMax=jets[1])
+                    tag=tag,njetsMin=jets[0],njetsMax=jets[1],boostCuts=boostCuts)
             regionsCorrespondence[sigRPtCorr] = ltype+jtype+"PtCorr"
             regionMtHists[sigRPtCorr] = mtHists[ltype+"Eta"]
             regionDphiHists[sigRPtCorr] = dphiHists[ltype+"Eta"]
@@ -91,9 +85,10 @@ if __name__ == "__main__":
         h['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
         h['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
     sfVars = ("MR","Rsq")
-    #recreate output file to avoid confusion
-    outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
-    outfile.Close()
+    if not args.noSave:
+        #recreate output file to avoid confusion
+        outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "RECREATE")
+        outfile.Close()
 
     hists = {}
     for region in regionsOrder:
@@ -157,10 +152,11 @@ if __name__ == "__main__":
         #perform analysis
         hists[region] = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, 
                 sfHists=sfHistsToUse, sfVars=sfVars, printdir=outdir, auxSFs=auxSFsToUse, 
-                treeName=treeName, debugLevel=debugLevel )
-        #export histograms
-        macro.exportHists(hists[region], outFileName='controlHistograms'+region+'.root', 
-                outDir=outdir, debugLevel=debugLevel, delete=False)
+                treeName=treeName, debugLevel=debugLevel, noFill=args.noFill )
+        if not args.noSave:
+            #export histograms
+            macro.exportHists(hists[region], outFileName='controlHistograms'+region+'.root', 
+                    outDir=outdir, debugLevel=debugLevel, delete=False)
         #compute correction factors
         if region.startswith('Veto'):
             #make control region scale factors
@@ -183,9 +179,10 @@ if __name__ == "__main__":
             sfHistsSignal[region] = sfHists[region]
             #write out to file
             sfHistClone = sfHists[region].Clone()
-            print "Writing scale factor histogram",sfHistClone.GetName(),"to file"
-            outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "UPDATE")
-            outfile.Append(sfHistClone)
-            outfile.Write()
-            outfile.Close()
+            if not args.noSave:
+                print "Writing scale factor histogram",sfHistClone.GetName(),"to file"
+                outfile = rt.TFile("data/ScaleFactors/RazorMADD2015/RazorVetoLeptonClosureTests_%s.root"%(tag), "UPDATE")
+                outfile.Append(sfHistClone)
+                outfile.Write()
+                outfile.Close()
 

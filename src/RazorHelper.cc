@@ -146,6 +146,14 @@ RazorHelper::~RazorHelper() {
     if (btagreaderfastsim) delete btagreaderfastsim;
     if (btagreaderfastsim_up) delete btagreaderfastsim_up;
     if (btagreaderfastsim_do) delete btagreaderfastsim_do;
+    if (puppiSoftDropCorrFile) {
+        puppiSoftDropCorrFile->Close();
+        delete puppiSoftDropCorrFile;
+    }
+    if (wTopTagEffFile) {
+        wTopTagEffFile->Close();
+        delete wTopTagEffFile;
+    }
 }
 
 // Retrieves CMSSW_BASE and stores in variable cmsswPath
@@ -558,13 +566,13 @@ void RazorHelper::loadPileup_Razor2016_MoriondRereco() {
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
 
     if (!isFastsim) {
-      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_Summer16_2016_36p2ifb.root");
+      pileupWeightFile = TFile::Open("PileupReweight_Summer16_2016_36p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
       std::cout << "PileupReweight_Summer16_2016_36p2ifb.root\n";
     } else {
-      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_2016_36p2ifb.root");
+      pileupWeightFile = TFile::Open("PileupReweight_2016_36p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -579,14 +587,14 @@ void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
     // electron efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 electron efficiency histograms" << std::endl;
-    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
-    vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
-    eleGSFTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiencySF_muEleTracking_2016_average.root");
-    eleGSFTrackEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
-    eleTightEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
-    eleVetoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root"); 
+    eleVetoEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root"); 
+    eleEffSFFile = TFile::Open("efficiency_results_TightElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
+    vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
+    eleGSFTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    eleGSFTrackEffFile = TFile::Open("Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
+    eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
 
     eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
     eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
@@ -604,14 +612,14 @@ void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 muon efficiency histograms" << std::endl;
-    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root"); 
-    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root"); 
-    muTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiencySF_muEleTracking_2016_average.root");
-    muTrackEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
-    muTightEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2016.root");
-    muVetoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muTightEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root"); 
+    muVetoEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root"); 
+    muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root"); 
+    vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root"); 
+    muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
+    muTightEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muVetoEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
 
     muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
     muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim"); 
@@ -628,7 +636,7 @@ void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
 
     // tau efficiencies and scale factors
     std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
-    tauEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.2016.root");
+    tauEfficiencyFile = TFile::Open("TauEffFastsimToFullsimCorrectionFactors.2016.root");
     tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
 
 }
@@ -637,10 +645,10 @@ void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
 void RazorHelper::loadPhoton_Razor2016_MoriondRereco(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
-    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco.root");
+    phoEffSFFile = TFile::Open("efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco.root");
     phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");   
 
-    phoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
+    phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
     phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
@@ -648,9 +656,9 @@ void RazorHelper::loadPhoton_Razor2016_MoriondRereco(){
 void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
     // b-tag efficiencies and scale factors
     std::cout << "RazorHelper: loading btag efficiency histograms" << std::endl;
-    btagEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
-    btagCharmEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVM_Fullsim_80X.root");
-    btagLightJetsEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root");
+    btagEfficiencyFile = TFile::Open("Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
+    btagCharmEfficiencyFile = TFile::Open("Efficiency_CJets_25ns_CSVM_Fullsim_80X.root");
+    btagLightJetsEfficiencyFile = TFile::Open("Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root");
     btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("Efficiency_PtEta");
     btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
     btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
@@ -678,27 +686,27 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
     // single lepton trigger scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 trigger efficiency histograms" << std::endl;
-    eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root");
+    eleTrigSFFile = TFile::Open("efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
 
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root"); 
+    muTrigSFFile = TFile::Open("efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root"); 
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
     
-    eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016_Rereco_Golden.root");
+    eleTrigEffFile = TFile::Open("SingleElectronTriggerEfficiency_2016_Rereco_Golden.root");
     eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
 
-    muTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016_Rereco_Golden.root");
+    muTrigEffFile = TFile::Open("SingleMuonTriggerEfficiency_2016_Rereco_Golden.root");
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffFile = TFile::Open("PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
     diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffFile = TFile::Open("PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
     diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
 
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
     diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("ScaleFactor_PhoHLTLeadingLegEffDenominatorLoose");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
     diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("ScaleFactor_PhoHLTTrailingLegEffDenominatorLoose");
 
     //get trigger numbers
@@ -861,10 +869,18 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 }
 
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
-    puppiSoftDropCorrFile = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root");
+    cout << "RazorHelper: loading 2016 top/W-tagging TF1s and histograms" << endl;
+    puppiSoftDropCorrFile = TFile::Open("puppiCorr.root");
     puppiSoftDropCorr_Gen = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_gen");
     puppiSoftDropCorr_RecoCentral = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_0eta1v3");
     puppiSoftDropCorr_RecoForward = (TF1*)puppiSoftDropCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
+
+    wTopTagEffFile = TFile::Open("AK8WTopTagEff.root");
+    wTagEffFullsim = (TH1F*)wTopTagEffFile->Get("WTagEffFullsim");
+    wTagEffFastsim = (TH1F*)wTopTagEffFile->Get("WTagEffFastsim");
+
+    topTagEffFullsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFullsim");
+    topTagEffFastsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFastsim");
 }
 
 
@@ -2021,14 +2037,41 @@ bool RazorHelper::isWTaggedAK8Jet(RazorAnalyzer *ra, uint iJet, bool isData, int
 
 bool RazorHelper::isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet) {
     // See comments at CalcAK8JetInfo()
-    if (ra->fatJetCorrectedPt[iJet] < 400) return false;
     float softDropMass = ra->fatJetCorrectedSoftDropM[iJet];
     if (softDropMass < 105 || softDropMass > 210) return false;
     if (ra->fatJetTau3[iJet] / ra->fatJetTau2[iJet] > 0.46) return false;
-    // TODO -- require max subjet b-tag CSV > .5426
+    if (ra->fatJetMaxSubjetCSV[iJet] < 0.5426) return false;
     return true;
 }
 
+// Retrieve efficiency for W/top tag.  updown controls systematic variations for fastsim:
+// updown > 0: vary efficiency up
+// updown < 0: vary efficiency down
+// updown = 0: use nominal efficiency
+float RazorHelper::getTagEfficiency(TH1F *effHist, float genPt, int updown) {
+    if ( genPt > effHist->GetXaxis()->GetXmax() ) {
+        genPt = effHist->GetXaxis()->GetXmax() * 0.999;
+    }
+    float eff = effHist->GetBinContent(effHist->FindFixBin(genPt));
+    float effErr = effHist->GetBinError(effHist->FindFixBin(genPt));
+    if (updown > 0) eff += effErr;
+    else if (updown < 0) eff -= effErr;
+    return eff;
+}
+
+float RazorHelper::getWTagEfficiency(float genWPt, int updown) {
+    if ( isFastsim ) {
+        return getTagEfficiency(wTagEffFastsim, genWPt, updown);
+    }
+    return getTagEfficiency(wTagEffFullsim, genWPt, updown);
+}
+
+float RazorHelper::getTopTagEfficiency(float genTopPt, int updown) {
+    if ( isFastsim ) {
+        return getTagEfficiency(topTagEffFastsim, genTopPt, updown);
+    }
+    return getTagEfficiency(topTagEffFullsim, genTopPt, updown);
+}
 
 RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isData) {
     // For the 2016 inclusive razor analysis,
@@ -2047,6 +2090,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
     const float W_TAG_SF_UP = 1.06;
     const float W_TAG_SF_DOWN = 0.94;
 
+    const int TOP_TAG_PT_CUT = 400;
     const float TOP_TAG_SF = 1.05;
     const float TOP_TAG_SF_UP = 1.12;
     const float TOP_TAG_SF_DOWN = 1.01;
@@ -2058,30 +2102,74 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         // Baseline cuts on pt and eta
         if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue; 
         if ( fabs(ra->fatJetEta[iJet]) > AK8_ETA_CUT ) continue;
+        if ( !ra->fatJetPassIDLoose[iJet] ) continue;
+        if ( ra->matchesVetoLepton(ra->fatJetEta[iJet], ra->fatJetPhi[iJet], 0.8) ) continue;
 
         // W tagging
-        if ( isWTaggedAK8Jet(ra, iJet, isData) ) {
+        bool isWTagged = isWTaggedAK8Jet(ra, iJet, isData);
+        if ( isWTagged ) {
             jetInfo.nWTags++;
-            jetInfo.wTagScaleFactor *= W_TAG_SF;
-            jetInfo.wTagScaleFactor_Tau21Up *= W_TAG_SF_UP;
-            jetInfo.wTagScaleFactor_Tau21Down *= W_TAG_SF_DOWN;
         }
+        // Apply scale factor if it matches a gen W
+        int genWIndex = ra->getMatchingGenWIndex(
+                ra->fatJetEta[iJet], ra->fatJetPhi[iJet]);
+        bool matchesGenW = (genWIndex >= 0);
+        // Note: only consider hadronic Ws
+        if (matchesGenW && ra->isHadronicDecay(genWIndex)) { 
+            float genWPt = ra->gParticlePt[genWIndex];
+            float eff = getWTagEfficiency(genWPt);
+            jetInfo.wTagScaleFactor *= getPassOrFailScaleFactor(
+                    eff, W_TAG_SF, isWTagged);
+            jetInfo.wTagScaleFactor_Tau21Up *= getPassOrFailScaleFactor(
+                    eff, W_TAG_SF_UP, isWTagged);
+            jetInfo.wTagScaleFactor_Tau21Down *= getPassOrFailScaleFactor(
+                    eff, W_TAG_SF_DOWN, isWTagged);
+            if (isFastsim) {
+                float effUp = getWTagEfficiency(genWPt, 1);
+                float effDown = getWTagEfficiency(genWPt, -1);
+                jetInfo.wTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        effUp, W_TAG_SF, isWTagged);
+                jetInfo.wTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        effDown, W_TAG_SF, isWTagged);
+            }
+        }
+        // Up/down variations of PUPPI soft drop mass
         if ( isWTaggedAK8Jet(ra, iJet, isData, 1) ) {
             jetInfo.nWTags_SDMassUp++;
         }
         if ( isWTaggedAK8Jet(ra, iJet, isData, -1) ) {
             jetInfo.nWTags_SDMassDown++;
         }
-        // TODO: apply appropriate SF for failing jets
 
-        // top tagging
-        if ( isTopTaggedAK8Jet(ra, iJet) ) {
+        // Top tagging
+        if ( ra->fatJetCorrectedPt[iJet] < TOP_TAG_PT_CUT ) continue;
+        bool isTopTagged = isTopTaggedAK8Jet(ra, iJet);
+        if ( isTopTagged ) {
             jetInfo.nTopTags++;    
-            jetInfo.topTagScaleFactor *= TOP_TAG_SF;
-            jetInfo.topTagScaleFactor_Tau32Up *= TOP_TAG_SF_UP;
-            jetInfo.topTagScaleFactor_Tau32Down *= TOP_TAG_SF_DOWN;
         }
-        // TODO: apply appropriate SF for failing jets
+        // Apply scale factor if it matches a gen top
+        int genTopIndex = ra->getMatchingGenTopIndex(
+                ra->fatJetEta[iJet], ra->fatJetPhi[iJet]);
+        bool matchesGenTop = (genTopIndex >= 0);
+        // Note: consider tops regardless of decay mode
+        if (matchesGenTop) {
+            float genTopPt = ra->gParticlePt[genTopIndex];
+            float eff = getTopTagEfficiency(genTopPt);
+            jetInfo.topTagScaleFactor *= getPassOrFailScaleFactor(
+                    eff, TOP_TAG_SF, isTopTagged);
+            jetInfo.topTagScaleFactor_Tau32Up *= getPassOrFailScaleFactor(
+                    eff, TOP_TAG_SF_UP, isTopTagged);
+            jetInfo.topTagScaleFactor_Tau32Down *= getPassOrFailScaleFactor(
+                    eff, TOP_TAG_SF_DOWN, isTopTagged);
+            if (isFastsim) {
+                float effUp = getTopTagEfficiency(genTopPt, 1);
+                float effDown = getTopTagEfficiency(genTopPt, -1);
+                jetInfo.topTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        effUp, TOP_TAG_SF, isTopTagged);
+                jetInfo.topTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        effDown, TOP_TAG_SF, isTopTagged);
+            }
+        }
     }
 
     return jetInfo;

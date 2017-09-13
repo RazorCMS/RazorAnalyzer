@@ -1,4 +1,5 @@
 ## Inclusive razor analysis definitions
+import argparse
 import ROOT as rt
 from array import array
 import sys
@@ -7,6 +8,23 @@ import csv
 
 #local imports
 from framework import Config
+
+def make_parser():
+    """
+    Gets a basic command line parser with common arguments needed for
+    razor analysis scripts
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", help="display detailed output messages",
+                                action="store_true")
+    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
+                                action="store_true")
+    parser.add_argument("--tag", help="Analysis tag, e.g. Razor2015", default="Razor2016_MoriondRereco")
+    parser.add_argument('--no-fill', help="dry run -- do not fill histograms", action="store_true", 
+            dest='noFill')
+    parser.add_argument("--no-save", dest="noSave", action="store_true", help="Do not save SFs or histograms")
+    parser.add_argument('--no-boost-cuts', dest='noBoostCuts', action='store_true')
+    return parser
 
 #####################################
 ### WEIGHTS NEEDED
@@ -17,7 +35,7 @@ razorWeightOpts = {
         "Razor2016":[], 
         }
 razorWeightOpts["Razor2016G_SUSYUnblind_80X"] = razorWeightOpts["Razor2016"]
-razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]
+razorWeightOpts["Razor2016_MoriondRereco"] = razorWeightOpts["Razor2016"]+['boost']
 razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorExtraWeightOpts = {
@@ -189,8 +207,8 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p8_1Dec2016"
-versionData2016 = "V3p8_1Dec2016"
+versionMC2016 = "V3p15_29Aug2017"
+versionData2016 = "V3p15_29Aug2017"
 
 sampleTags2016 = { "Razor2016":"",
                "Razor2016_80X":"_Razor2016_80X",
@@ -212,24 +230,23 @@ for tag, suffix in sampleTags2016.iteritems():
 skimstr = ""
 
 #on EOS
-#dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
-#dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
+dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
+dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
 #dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
 #dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
-#dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLeptonRazorSkim'
-#dirVetoL2016 = dirCR2016+'/V3p6_25October2016_CustomType1MET_TestTightVeto/VetoLepton'
-#dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTauRazorSkim'
+dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLepton'
+dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTau'
 #dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
 #dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
-dir1L2016 = 'Backgrounds/1L'
+#dir1L2016 = 'Backgrounds/1L'
 dir2L2016 = 'Backgrounds/2L'
-dir1LInv2016 = 'Backgrounds/1LInv'
+#dir1LInv2016 = 'Backgrounds/1LInv'
 dir2LInv2016 = 'Backgrounds/2LInv'
-dirVetoL2016 = 'Backgrounds/VetoL'
-dirVetoTau2016 = 'Backgrounds/VetoTau'
+#dirVetoL2016 = 'Backgrounds/VetoL'
+#dirVetoTau2016 = 'Backgrounds/VetoTau'
 dirSignal2016 = 'Backgrounds/Signal'
 dirPhoton2016 = 'Backgrounds/Photon'    
 
@@ -325,7 +342,7 @@ for tag in sampleTags2016:
 
     #Signal ntuples
     razorSignalDirs = {
-            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p13_05Mar2017/FastsimSMS/"
+            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_29Aug2017/SignalFastsim/"
             }
 
 
@@ -806,7 +823,7 @@ razorBinning["SusySync"] = {
         }
 
 ### Signal region
-signalConfig = "config/run2_2017_03_13_SeparateBtagFits_forToys.config"
+signalConfig = "config/run2_MADD.config"
 cfg = Config.Config(signalConfig)
 for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
     razorBinning[box] = {
@@ -844,23 +861,23 @@ xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJe
 colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
                 "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
 
-xbinsSignal["MultiJet"]["0B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
-xbinsSignal["MultiJet"]["1B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
-xbinsSignal["MultiJet"]["2B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
-xbinsSignal["MultiJet"]["3B"] = [ 500, 575, 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["0B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["1B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["2B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
+xbinsSignal["MultiJet"]["3B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
 
 xbinsSignal["FourToSixJet"] = xbinsSignal["MultiJet"]
 
-xbinsSignal["MuMultiJet"]["0B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MuMultiJet"]["1B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MuMultiJet"]["2B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["MuMultiJet"]["3B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["0B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["1B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["2B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["MuMultiJet"]["3B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
 
 
-xbinsSignal["EleMultiJet"]["0B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["EleMultiJet"]["1B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["EleMultiJet"]["2B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
-xbinsSignal["EleMultiJet"]["3B"] = [ 400, 475, 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["0B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["1B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["2B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["EleMultiJet"]["3B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
 
 
 xbinsSignal["DiJet"] = xbinsSignal["MultiJet"]
@@ -888,112 +905,88 @@ xbinsSignal["DiJet_2b"] = xbinsSignal["DiJet"]
 
 
 colsSignal["MultiJet"]["0B"] = [
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         ]
 colsSignal["MultiJet"]["1B"] = [
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         ]
 colsSignal["MultiJet"]["2B"] = [
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.30, 0.41, 0.52, 1.5 ],
         ]
 colsSignal["MultiJet"]["3B"] = [
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
         ]
 colsSignal["MuMultiJet"]["0B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
         ]
 colsSignal["MuMultiJet"]["1B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
         ]
 colsSignal["MuMultiJet"]["2B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
         ]
 colsSignal["MuMultiJet"]["3B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
         ]
 colsSignal["EleMultiJet"]["0B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
         ]
 colsSignal["EleMultiJet"]["1B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
         ]
 colsSignal["EleMultiJet"]["2B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
         ]
 colsSignal["EleMultiJet"]["3B"] = [
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15,0.20, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
-        [ 0.15, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
+        [ 0.20, 0.25, 1.5 ],
         ]
 
 colsSignal["FourToSixJet"] = colsSignal["MultiJet"]
@@ -1110,13 +1103,15 @@ for box in ['LooseLeptonMultiJet','LooseLeptonDiJet']:
 
 class Analysis:
     """Class to hold analysis cuts, binning, input files, and trigger info"""
-    def __init__(self, region, tag, njetsMin=-1, njetsMax=-1, nbMin=-1, nbMax=-1):
+    def __init__(self, region, tag, njetsMin=-1, njetsMax=-1, nbMin=-1, nbMax=-1,
+            boostCuts=True):
         self.region = region
         self.tag = tag
         self.njetsMin = njetsMin
         self.njetsMax = njetsMax
         self.nbMin = nbMin
         self.nbMax = nbMax
+        self.boostCuts = boostCuts
 
         if tag == "Razor2015":
             self.lumi = 2300
@@ -1412,8 +1407,13 @@ class Analysis:
 
         #add jet and bjet and trigger requirements to cuts
         #self.cuts = appendNoiseFilters(self.cuts) # MC does not have all noise filters yet -- just add filter cuts to data
+        if self.boostCuts:
+            self.addBoostCuts()
         self.addJetCuts()
         self.addTriggerCuts()
+
+    def addBoostCuts(self):
+        self.cuts += ' && nWTags == 0 && nTopTags == 0'
 
     def addJetCuts(self):
         if self.njetsMin >= 0:
@@ -1435,6 +1435,8 @@ class Analysis:
 
     def getWeightOpts(self):
         self.weightOpts = copy.copy(razorWeightOpts[self.tag])
+        if not self.boostCuts and 'boost' in self.weightOpts:
+            self.weightOpts.remove('boost')
         self.dataWeightOpts = []
         self.weightFiles = {}
         self.weightHists = {}

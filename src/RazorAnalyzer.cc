@@ -314,6 +314,9 @@ void RazorAnalyzer::EnableFatJets(){
     fChain->SetBranchStatus("fatJetTau1", 1);
     fChain->SetBranchStatus("fatJetTau2", 1);
     fChain->SetBranchStatus("fatJetTau3", 1);
+    fChain->SetBranchStatus("fatJetMaxSubjetCSV", 1);
+    fChain->SetBranchStatus("fatJetPassIDLoose", 1);
+    fChain->SetBranchStatus("fatJetPassIDTight", 1);
 }
 
 void RazorAnalyzer::EnableMet(){
@@ -609,7 +612,7 @@ bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso, bool use
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGLooseElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGLooseElectronID(i,use25nsCuts, "Spring15")) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -621,7 +624,7 @@ bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso, bool us
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGMediumElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGMediumElectronID(i,use25nsCuts, "Spring15")) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -633,7 +636,7 @@ bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso, bool use
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGTightElectronID(i,use25nsCuts)) pass = false;
+    if (!passEGammaPOGTightElectronID(i,use25nsCuts, "Spring15")) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -2580,27 +2583,65 @@ bool RazorAnalyzer::matchesGenElectron(double eta, double phi){
   return result;
 };
 
+// Returns true if the gen particle at the specified index
+// decays hadronically into a quark with the specified status code.
+bool RazorAnalyzer::isHadronicDecay(int index, int status) {
+    for ( int j = 0; j < nGenParticle; j++ ) {
+        if ( gParticleMotherIndex[j] == index && gParticleStatus[j] == status ) {
+            if ( abs(gParticleId[j]) > 0 && abs(gParticleId[j]) < 5 ) return true;
+        }
+    }
+    return false;
+}
 
-//Computed the genHT variable
+// Generic matching to hard process particles by deltaR
+// eta, phi: coordinates of reco-level particle
+// id: MC ID of the gen-level particle to match
+// status: pythia status code of the gen-level particle (default 22)
+// r: maximum deltaR needed for match
+// returns the index of the matched particle in the gen particles collection, 
+// or -1 if no match
+int RazorAnalyzer::getMatchingHardProcessParticleIndex(double eta, double phi,
+        int id, int status, double r) {
+    int matchedIndex = -1;
+    float minDeltaR = -1;
+    for ( int j = 0; j < nGenParticle; j++ ) {
+        if (abs(gParticleId[j]) != abs(id)) continue;
+        if (gParticleStatus[j] != status) continue;
+        float dR = deltaR(eta, phi, gParticleEta[j], gParticlePhi[j]);
+        if (dR > r) continue;
+        if (minDeltaR < 0 || dR < minDeltaR) {
+            minDeltaR = dR;
+            matchedIndex = j;
+        }
+    }
+    return matchedIndex;
+}
+
+// Gets index of matching gen W, if any
+int RazorAnalyzer::getMatchingGenWIndex(double eta, double phi, double r) {
+    int index = getMatchingHardProcessParticleIndex(eta, phi, 24, 22, r);
+    return index;
+}
+
+// Gets index of matching gen top, if any
+int RazorAnalyzer::getMatchingGenTopIndex(double eta, double phi, double r) {
+    int index = getMatchingHardProcessParticleIndex(eta, phi, 6, 22, r);
+    return index;
+}
+
+
+//Compute the genHT variable
 double RazorAnalyzer::getGenHT(){
   double genHT = 0;
   for(int j = 0; j < nGenParticle; j++){
-    //cout << j << " : " << gParticleStatus[j] << " " << gParticleId[j] << " " << gParticleMotherIndex[j] 
-    //	 << " \n";
-    if ( (gParticleStatus[j] == 23 ||gParticleStatus[j] == 22)  &&
-	 ( gParticleId[j] == 21 || ( abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) <= 6)) &&
+    if ( (gParticleStatus[j] == 23 || gParticleStatus[j] == 22)  &&
+	 ( gParticleId[j] == 21 || ( abs(gParticleId[j]) >= 1 && abs(gParticleId[j]) < 6 )) &&
 	 ( gParticleMotherIndex[j] == -1 || (gParticleMotherIndex[j] >= 0 && gParticleStatus[gParticleMotherIndex[j]] == 21))
 	 ) {
-      //cout << "add: " <<  gParticlePt[j] << " --> " << genHT << "\n";
       genHT += gParticlePt[j];
     }
   }
-
-  // if (genHT == 0) {
-  //   for(int j = 0; j < nGenParticle; j++){
-  //     cout << j << " : " << gParticleStatus[j] << " " << gParticleId[j] << " " << gParticleMotherIndex[j] << " " << gParticlePt[j] << "\n";
-  //   }
-  // }
 
   return genHT;
 };
@@ -2684,6 +2725,24 @@ TLorentzVector RazorAnalyzer::makeTLorentzVectorPtEtaPhiM(double pt, double eta,
     TLorentzVector vec;
     vec.SetPtEtaPhiM(pt, eta, phi, mass);
     return vec;
+}
+
+// Returns true if a muon or electron passing the veto selection
+// is within deltaR < dR of the given eta and phi coordinates
+bool RazorAnalyzer::matchesVetoLepton(float eta, float phi, float dR) {
+    for ( int i = 0; i < nMuons; i++ ) {
+        if ( muonPt[i] < 5 || fabs(muonEta[i]) > 2.4 ) continue;
+        if ( isVetoMuon(i) && deltaR(eta, phi, muonEta[i], muonPhi[i]) < dR ) {
+            return true;
+        }
+    }
+    for ( int i = 0; i < nElectrons; i++ ) {
+        if ( elePt[i] < 5 || fabs(eleEta[i]) > 2.5 ) continue;
+        if ( isVetoElectron(i) && deltaR(eta, phi, eleEta[i], elePhi[i]) < dR ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 double RazorAnalyzer::GetAlphaT(vector<TLorentzVector> jets) 

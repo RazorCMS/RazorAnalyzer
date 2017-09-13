@@ -207,7 +207,9 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
     int nWTags, nTopTags;
     int nWTags_SDMassUp, nWTags_SDMassDown;
     float wTagScaleFactor, wTagScaleFactor_Tau21Up, wTagScaleFactor_Tau21Down;
+    float wTagScaleFactor_FastsimEffUp, wTagScaleFactor_FastsimEffDown;
     float topTagScaleFactor, topTagScaleFactor_Tau32Up, topTagScaleFactor_Tau32Down;
+    float topTagScaleFactor_FastsimEffUp, topTagScaleFactor_FastsimEffDown;
     //SMS parameters 
     int mGluino, mLSP;
     int nCharginoFromGluino, ntFromGluino;
@@ -319,6 +321,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             razorTree->Branch("mLSP", &mLSP, "mLSP/I");
             razorTree->Branch("nCharginoFromGluino", &nCharginoFromGluino, "nCharginoFromGluino/I");
             razorTree->Branch("ntFromGluino", &ntFromGluino, "ntFromGluino/I");
+            razorTree->Branch("wTagScaleFactor_FastsimEffUp", &wTagScaleFactor_FastsimEffUp, "wTagScaleFactor_FastsimEffUp/F"); 
+            razorTree->Branch("wTagScaleFactor_FastsimEffDown", &wTagScaleFactor_FastsimEffDown, "wTagScaleFactor_FastsimEffDown/F"); 
+            razorTree->Branch("topTagScaleFactor_FastsimEffUp", &topTagScaleFactor_FastsimEffUp, "topTagScaleFactor_FastsimEffUp/F"); 
+            razorTree->Branch("topTagScaleFactor_FastsimEffDown", &topTagScaleFactor_FastsimEffDown, "topTagScaleFactor_FastsimEffDown/F"); 
         }
     } 
     else {
@@ -424,6 +430,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
                 mLSP = -1;
 		nCharginoFromGluino = 0;
 		ntFromGluino = 0;
+                wTagScaleFactor_FastsimEffUp = 1.0;
+                wTagScaleFactor_FastsimEffDown = 1.0;
+                topTagScaleFactor_FastsimEffUp = 1.0;
+                topTagScaleFactor_FastsimEffDown = 1.0;
             }
         }
 
@@ -1171,6 +1181,12 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         topTagScaleFactor = jetInfo.topTagScaleFactor;
         topTagScaleFactor_Tau32Up = jetInfo.topTagScaleFactor_Tau32Up;
         topTagScaleFactor_Tau32Down = jetInfo.topTagScaleFactor_Tau32Down;
+        if (isFastsimSMS) {
+            wTagScaleFactor_FastsimEffUp = jetInfo.wTagScaleFactor_FastsimEffUp;
+            wTagScaleFactor_FastsimEffDown = jetInfo.wTagScaleFactor_FastsimEffDown;
+            topTagScaleFactor_FastsimEffUp = jetInfo.topTagScaleFactor_FastsimEffUp;
+            topTagScaleFactor_FastsimEffDown = jetInfo.topTagScaleFactor_FastsimEffDown;
+        }
 
         /////////////////////////////////
         //Compute razor variables and mT
@@ -1378,12 +1394,12 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
 	  }
 	}
 
-        SumScaleWeights->Fill(0.0, sf_facScaleUp);
-        SumScaleWeights->Fill(1.0, sf_facScaleDown);
-        SumScaleWeights->Fill(2.0, sf_renScaleUp);
-        SumScaleWeights->Fill(3.0, sf_renScaleDown);
-        SumScaleWeights->Fill(4.0, sf_facRenScaleUp);
-        SumScaleWeights->Fill(5.0, sf_facRenScaleDown);
+        SumScaleWeights->Fill(0.0, sf_facScaleUp*genWeight);
+        SumScaleWeights->Fill(1.0, sf_facScaleDown*genWeight);
+        SumScaleWeights->Fill(2.0, sf_renScaleUp*genWeight);
+        SumScaleWeights->Fill(3.0, sf_renScaleDown*genWeight);
+        SumScaleWeights->Fill(4.0, sf_facRenScaleUp*genWeight);
+        SumScaleWeights->Fill(5.0, sf_facRenScaleDown*genWeight);
 
         for (unsigned int iwgt=0; iwgt<pdfWeights->size(); ++iwgt) {
             SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
@@ -1456,7 +1472,10 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             getline(parser, item, '_'); //prefix
             if(getline(parser, item, '_')){ //gluino mass 
                 mGluino = atoi(item.c_str());
-                if(mGluino == 0) { //fix for the case where the model name contains an underscore
+                // in case model name contains underscores, keep trying
+                int tries = 0;
+                while (mGluino == 0 && tries < 10) {
+                    tries++;
                     if(getline(parser, item, '_')){
                         mGluino = atoi(item.c_str());
                     }
