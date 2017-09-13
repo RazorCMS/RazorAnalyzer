@@ -1439,9 +1439,10 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     leg.Draw()
 
     if commentstr != "":
-        commentstr = commentstr.replace("EleMultiJet","Electron Multi-Jet")
-        commentstr = commentstr.replace("MuMultiJet","Muon Multi-Jet")
-        commentstr = commentstr.replace("MultiJet","Multi-Jet")
+        commentstr = commentstr.replace("LeptonMultiJet","Lepton Multijet")
+        commentstr = commentstr.replace("LeptonJet","Lepton Jet")
+        commentstr = commentstr.replace("MultiJet","Multijet")
+        commentstr = commentstr.replace("DiJet","Dijet")
         t3 = rt.TLatex(0.40, 0.85, commentstr)
         t3.SetNDC()
         t3.SetTextSize(0.05)

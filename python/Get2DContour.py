@@ -78,9 +78,10 @@ def fix_hist_byhand(hist, model, box, clsType):
                 if (mg,mchi) not in toFix:                
                     toFix.append((mg,mchi))
             elif obs<expPlus2 or obs>expMinus2:
-                hist.SetBinContent(hist.FindBin(mg,mchi),exp)
-                if (mg,mchi) not in toFix:
-                    toFix.append((mg,mchi))
+                #hist.SetBinContent(hist.FindBin(mg,mchi),exp)
+                #if (mg,mchi) not in toFix:
+                #    toFix.append((mg,mchi))
+                pass
 
                         
 def set_palette(name="default", ncontours=255):
