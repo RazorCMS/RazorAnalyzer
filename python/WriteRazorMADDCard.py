@@ -45,6 +45,8 @@ if __name__ == "__main__":
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--dir', help="output directory",
             default="SignalRegionPlots", dest='outDir')
+    parser.add_argument('--bkg-dir', default=BACKGROUND_DIR, dest='bkgDir',
+            help='name of directory containing background histograms')
     # Customization
     parser.add_argument('--no-limit', dest='noCombine', 
             action='store_true', 
@@ -125,7 +127,7 @@ if __name__ == "__main__":
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
         backgroundHists = unrollAndStitchFromFiles(curBox, 
-                samples=samples, inDir=BACKGROUND_DIR, 
+                samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
                 addStatUnc=(not args.noStat), 
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)

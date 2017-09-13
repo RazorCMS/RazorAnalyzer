@@ -8,7 +8,7 @@ from array import array
 from GChiPairs import gchipairs
     
 def writeBashScript(tag, box, model, mg, mchi, submitDir, 
-        noSys, saveWorkspace=False):
+        noSys, bkgDir=None, saveWorkspace=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -49,11 +49,13 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20170908\n' 
+    script += 'git checkout -b Limits LimitsMADD20170913\n' 
     script += 'make\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py'
     script += ' --tag %s --box %s'%(tag, box)
+    if bkgDir is not None:
+        script += ' --bkg-dir %s'%(bkgDir)
     script += ' --dir %s --model %s %s %i --mLSP %i %s\n'%(
             submitDir, model, particleString, mg, mchi, optString)
     script += 'cp %s/higgsCombine* %s/\n'%(submitDir,combineDir) 
@@ -75,6 +77,8 @@ if __name__ == '__main__':
     parser.add_argument('--model',help="signal model name",required=True)
     parser.add_argument('--dir',dest="outDir",default="./",
               help="Output directory to store cards")
+    parser.add_argument('--bkg-dir', dest='bkgDir',
+              help="Directory containing background histograms")
     parser.add_argument('--no-sub',dest="noSub",action='store_true',
               help="no submission")
     parser.add_argument('--queue',default="1nh",
@@ -128,7 +132,7 @@ if __name__ == '__main__':
         pwd = os.environ['PWD']
         os.system("mkdir -p "+pwd+"/Limits/"+args.outDir)
         outputname,ffDir = writeBashScript(args.tag, args.box, 
-                args.model, mg, mchi, args.outDir, args.noSys, 
+                args.model, mg, mchi, args.outDir, args.noSys, args.bkgDir, 
                 args.saveWorkspace)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
