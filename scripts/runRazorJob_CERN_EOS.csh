@@ -58,9 +58,10 @@ if (${isData} == 1) then
 endif
 
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
-
+echo $datastring
+echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring} -f=${outputfile} -n=${option}
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring} -f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
+ 
 ls -ltr 
 
 echo $outputfile 
