@@ -64,6 +64,8 @@ if __name__ == "__main__":
             action='store_true', help="add MC vs fit systematic")
     parser.add_argument('--save-workspace', dest='saveWorkspace', action='store_true',
             help='save combine workspace in output file')
+    parser.add_argument('--no-boost-cuts', dest='noBoostCuts',
+            action='store_true')
     # Signal model
     parser.add_argument('-m','--model', default="T1bbbb", 
             help="signal model name")
@@ -78,6 +80,7 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
     outDir = args.outDir
     cfg = Config.Config(signalConfig)
+    boostCuts = not args.noBoostCuts
 
     if args.box is None:
         print "Please choose an analysis box with --box"
@@ -168,7 +171,7 @@ if __name__ == "__main__":
                 doGenMetVsPFMet=True)
         signalHists = makeSMSTemplates(curBox, signalFilename,
                 uncertainties=uncerts, debugLevel=debugLevel,
-                tag=args.tag, opts=smsOpts)
+                tag=args.tag, opts=smsOpts, boostCuts=boostCuts)
     
         # reduced efficiency method -- corrects for signal contamination
         if not args.noSignalContam:
