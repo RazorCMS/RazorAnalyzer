@@ -170,7 +170,7 @@ def doGenMetVsPFMetSystematic(hists):
                     * central/pfmetYield)
 
 def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
-        tag="Razor2016_MoriondRereco", opts=None):
+        tag="Razor2016_MoriondRereco", opts=None, boostCuts=True):
     """Returns a dictionary of histograms representing predicted
         yields for the indicated signal sample.
         'opts' should be an SMSOpts instance containing desired
@@ -219,7 +219,8 @@ def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
         # special case: 1L control regions
         if box == "WJetsSingleLeptonForSignal":
             nbMax = 0
-        analysis = Analysis(box, tag, nbMin=nb, nbMax=nbMax)
+        analysis = Analysis(box, tag, nbMin=nb, nbMax=nbMax,
+                boostCuts=boostCuts)
         unrollBins.append(analysis.unrollBins)
 
         # modify for signal sample

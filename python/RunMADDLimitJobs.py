@@ -8,7 +8,7 @@ from array import array
 from GChiPairs import gchipairs
     
 def writeBashScript(tag, box, model, mg, mchi, submitDir, 
-        noSys, bkgDir=None, saveWorkspace=False):
+        noSys, bkgDir=None, saveWorkspace=False, noBoostCuts=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -17,6 +17,8 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
         optString += '--no-sys --no-stat'
     if saveWorkspace:
         optString += ' --save-workspace'
+    if noBoostCuts:
+        optString += ' --no-boost-cuts'
 
     particleString = '--mStop'
     if 'T1' in model or 'T5' in model:
@@ -49,7 +51,7 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20170913\n' 
+    script += 'git checkout -b Limits LimitsMADD20170915\n' 
     script += 'make\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py'
@@ -95,6 +97,8 @@ if __name__ == '__main__':
               help="no shape systematic uncertainties")
     parser.add_argument('--save-workspace',dest='saveWorkspace', 
               action='store_true',help='save workspace in output file')
+    parser.add_argument('--no-boost-cuts', dest='noBoostCuts',
+            action='store_true')
 
     args = parser.parse_args()
     boxes = args.box.split('_')
@@ -133,7 +137,7 @@ if __name__ == '__main__':
         os.system("mkdir -p "+pwd+"/Limits/"+args.outDir)
         outputname,ffDir = writeBashScript(args.tag, args.box, 
                 args.model, mg, mchi, args.outDir, args.noSys, args.bkgDir, 
-                args.saveWorkspace)
+                args.saveWorkspace, noBoostCuts=args.noBoostCuts)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+args.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        
