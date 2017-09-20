@@ -203,7 +203,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_PromptReco") {
-    photonCorrector = new EnergyScaleCorrection_class(Form("%s/2017_PromptReco", photonCorrectionPath.c_str()));
+    photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   }
 
   if(!isData) {
@@ -1329,9 +1329,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    Flag_hasEcalGainSwitch = true;
 	  }
 	  
-
-	  double scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
-	  double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+	  double scale = 1;
+	  double smear = 0;
+	  if (analysisTag != "Razor2017_PromptReco") {
+	    scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+	    smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+	  }
 
 	  //ID cuts -- apply isolation after candidate pair selection
 	  if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
