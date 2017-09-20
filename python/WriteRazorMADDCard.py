@@ -13,7 +13,7 @@ from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 from framework import Config
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_20Sep2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)

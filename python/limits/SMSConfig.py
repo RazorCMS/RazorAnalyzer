@@ -1,6 +1,6 @@
 import copy
 
-VERSION = '04Sep2017'
+VERSION = '20Sep2017'
 
 DISP_OFFSET = 12.5 # Extra offset needed for display purposes
 
@@ -50,6 +50,8 @@ sms_models = {
         'T1ttbb':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
             diagonalOffset=225),
         'T1tttt':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
+            diagonalOffset=225),
+        'T5ttcc':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
             diagonalOffset=225),
         'T1qqqq':SMS(600, 2300, 0, 1650, boxes=HADRONIC_BOXES),
         'T2bb':SMS(100, 1500, 0, 800, boxes=HADRONIC_BOXES,
