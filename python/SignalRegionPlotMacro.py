@@ -28,6 +28,8 @@ if __name__ == "__main__":
     parser.add_argument("--tag", dest="tag", default='Razor2016_MoriondRereco',
             help="Analysis tag, e.g. Razor2015")
     parser.add_argument("--dir", help="Specify input/output directory")
+    parser.add_argument('--nlo-zinv', dest='nloZInv', action='store_true',
+            help='use NLO sample for Z->nu nu prediction')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -65,6 +67,9 @@ if __name__ == "__main__":
         print "Ignoring systematic uncertainties."
         shapesToUse = []
         dirName += 'NoSys'
+    
+    if args.nloZInv:
+        dirName += 'NLOZInv'
 
     print "\n---",box,"Box,",btags,"B-tags ---"
 
@@ -78,6 +83,8 @@ if __name__ == "__main__":
         inFile = inFile.replace('.root','NoSFs.root')
     if args.noSys:
         inFile = inFile.replace('.root','NoSys.root')
+    if args.nloZInv:
+        inFile = inFile.replace('.root','NLOZInv.root')
     lumi = analysis.lumi
 
     plotControlSampleHists(box, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
