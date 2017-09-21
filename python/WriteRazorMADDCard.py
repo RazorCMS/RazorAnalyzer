@@ -13,7 +13,7 @@ from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 from framework import Config
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_20Sep2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -45,6 +45,8 @@ if __name__ == "__main__":
     parser.add_argument('--box', help="choose a box")
     parser.add_argument('--dir', help="output directory",
             default="SignalRegionPlots", dest='outDir')
+    parser.add_argument('--bkg-dir', default=BACKGROUND_DIR, dest='bkgDir',
+            help='name of directory containing background histograms')
     # Customization
     parser.add_argument('--no-limit', dest='noCombine', 
             action='store_true', 
@@ -62,6 +64,8 @@ if __name__ == "__main__":
             action='store_true', help="add MC vs fit systematic")
     parser.add_argument('--save-workspace', dest='saveWorkspace', action='store_true',
             help='save combine workspace in output file')
+    parser.add_argument('--no-boost-cuts', dest='noBoostCuts',
+            action='store_true')
     # Signal model
     parser.add_argument('-m','--model', default="T1bbbb", 
             help="signal model name")
@@ -76,6 +80,7 @@ if __name__ == "__main__":
     debugLevel = args.verbose + 2*args.debug
     outDir = args.outDir
     cfg = Config.Config(signalConfig)
+    boostCuts = not args.noBoostCuts
 
     if args.box is None:
         print "Please choose an analysis box with --box"
@@ -125,7 +130,7 @@ if __name__ == "__main__":
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
         backgroundHists = unrollAndStitchFromFiles(curBox, 
-                samples=samples, inDir=BACKGROUND_DIR, 
+                samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
                 addStatUnc=(not args.noStat), 
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
@@ -166,7 +171,7 @@ if __name__ == "__main__":
                 doGenMetVsPFMet=True)
         signalHists = makeSMSTemplates(curBox, signalFilename,
                 uncertainties=uncerts, debugLevel=debugLevel,
-                tag=args.tag, opts=smsOpts)
+                tag=args.tag, opts=smsOpts, boostCuts=boostCuts)
     
         # reduced efficiency method -- corrects for signal contamination
         if not args.noSignalContam:

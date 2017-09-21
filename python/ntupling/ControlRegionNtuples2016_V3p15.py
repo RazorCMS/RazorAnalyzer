@@ -140,13 +140,6 @@ SAMPLES['1L'] = {
                 'ZJetsToNuNu_HT-1200To2500_13TeV-madgraph',
                 'ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph',
             ],
-        "TTJetsHTBinned":[
-                'TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', # needs additional skim HT < 600
-                'TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-            ],
         'ZInvPtBinned':[
                 'DYJetsToNuNu_Zpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                 'DYJetsToNuNu_PtZ-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',

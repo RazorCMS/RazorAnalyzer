@@ -53,6 +53,8 @@ if __name__ == "__main__":
             dest='bInclusive')
     parser.add_argument('--qcd-mc', dest='qcdMC', help='make qcd prediction using MC',
             action='store_true')
+    parser.add_argument('--nlo-zinv', dest='nloZInv', action='store_true',
+            help='use NLO sample for Z->nu nu prediction')
     args = parser.parse_args()
     debugLevel = args.verbose + 2*args.debug
     tag = args.tag
@@ -87,6 +89,8 @@ if __name__ == "__main__":
         dirSuffix += 'BInclusive'
     if args.qcdMC:
         dirSuffix += 'QCDMC'
+    if args.nloZInv:
+        dirSuffix += 'NLOZInv'
 
     regionsOrder = []
     regions = {}
@@ -124,6 +128,7 @@ if __name__ == "__main__":
     dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck_%s.root'%(tag)
     btagFile = sfdir+'/RazorBTagClosureTests_%s.root'%(tag)
     gjetsbtagFile = sfdir+'/RazorGJetsBTagClosureTests_%s.root'%(tag)
+    dynloFile = sfdir+'/RazorDYJetsDileptonInvNLOCrossCheck_%s.root'%(tag)
 
     #get MR-Rsq scale factor histograms
     sfNames={
@@ -151,11 +156,17 @@ if __name__ == "__main__":
     dyTFile = rt.TFile.Open(dyFile)
     btagTFile = rt.TFile.Open(btagFile)
     gjetsbtagTFile = rt.TFile.Open(gjetsbtagFile)
+    dynloTFile = rt.TFile.Open(dynloFile)
+    if args.nloZInv:
+        sfHists['ZInv'] = dynloTFile.Get("WJetsSingleLeptonInvNLOScaleFactors")
+        sfHists['NJetsInv'] = dynloTFile.Get("WJetsSingleLeptonInvNLOForNJetsScaleFactors")
     for jtype in ['DiJet','MultiJet']:
         sfHists['TTJetsDilepton'+jtype+'Up'] = ttTFile.Get("TTJetsDilepton"+jtype+"ScaleFactors")
         sfHists['TTJetsDilepton'+jtype+'Down'] = macro.invertHistogram(
                 sfHists['TTJetsDilepton'+jtype+'Up'])
         sfHists['DYJetsInv'+jtype+'Up'] = dyTFile.Get('DYJetsDileptonInv'+jtype+'ScaleFactors')
+        if args.nloZInv:
+            sfHists['DYJetsInv'+jtype+'Up'] = dynloTFile.Get("DYJetsDileptonInvNLO"+jtype+"ScaleFactors")
         sfHists['DYJetsInv'+jtype+'Down'] = macro.invertHistogram(
                 sfHists['DYJetsInv'+jtype+'Up'])
         for ltype in ['VetoLepton','VetoTau']:
@@ -210,6 +221,8 @@ if __name__ == "__main__":
         elif args.qcdMC:
             analysis.filenames['QCD'] = "Backgrounds/Signal/FullRazorInclusive_%s_QCD_1pb_weighted.root"%tag
             dataDrivenQCD = False
+        if args.nloZInv:
+            analysis.filenames['ZInv'] = analysis.filenames['ZInv'].replace('ZInv_', 'ZInvPtBinned_')
 
         if args.noMC: analysis.samples = []
         if analysis.samples is None or len(analysis.samples) == 0:

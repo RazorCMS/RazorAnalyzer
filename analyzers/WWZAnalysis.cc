@@ -58,7 +58,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   //--------------------------------
   RazorHelper *helper = 0;
   if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, false);
-  else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, false);
+  else if (analysisTag == "Razor2016_MoriondRereco") helper = new RazorHelper("Razor2016_MoriondRereco", isData, false);
   else helper = new RazorHelper(analysisTag, isData, false);
   
 
@@ -309,7 +309,6 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       /////////////////////////////////
       //Scale and PDF variations
       /////////////////////////////////
-
       if (scaleWeights) {
 	if ( (*scaleWeights).size() >= 9 ) 
 	  {
@@ -329,7 +328,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	    SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
 	  }
       }
-
+ 
       if (pdfWeights) {      
 	sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
 	for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt ) 
@@ -338,7 +337,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	    SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
 	  }
       }
-      
+ 
       //*************************************************************************
       //MC objects
       //*************************************************************************
@@ -577,10 +576,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       }
       
       sort(jetPtVector.begin(), jetPtVector.end(), ptOrder);
-      jet1Pt = jetPtVector.at(0);
-      jet2Pt = jetPtVector.at(1);
-      jet3Pt = jetPtVector.at(2);
-      jet4Pt = jetPtVector.at(3);
+      if (jetPtVector.size() >= 1) jet1Pt = jetPtVector.at(0);
+      if (jetPtVector.size() >= 2) jet2Pt = jetPtVector.at(1);
+      if (jetPtVector.size() >= 3) jet3Pt = jetPtVector.at(2);
+      if (jetPtVector.size() >= 4) jet4Pt = jetPtVector.at(3);
       
       //cout << "NJet: " << NJet20 << " " << NJet30 << " " << NBJet20 << " " << NBJet30 << "\n";
       

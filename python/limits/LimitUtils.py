@@ -33,7 +33,8 @@ def write_done_file(model, box):
             done_file.write(os.path.basename(f)+'\n')
     return done_file_name
 
-def submit_box(model, box, no_sub=True):
+def submit_box(model, box, bkg_dir=None, no_boost_cuts=False,
+        no_sub=True):
     """
     Submit jobs for a single box.
     Do not resubmit done jobs.
@@ -45,16 +46,22 @@ def submit_box(model, box, no_sub=True):
     command = ['python', script, '--box', box, '--model', model,
             '--dir', out_dir, '--queue', queue, 
             '--done-file', done_file_name]
+    if bkg_dir is not None:
+        command += ['--bkg-dir', bkg_dir]
     if no_sub:
         command.append('--no-sub')
+    if no_boost_cuts:
+        command.append('--no-boost-cuts')
     do_command(command, False)
 
-def submit(model, tag, sms, no_sub=True):
+def submit(model, tag, sms, bkg_dir=None, no_boost_cuts=False,
+        no_sub=True):
     """
     Submits the limit jobs for one SMS scan.
     model: string - name of model (without 'SMS-')
     tag: e.g. Razor2016_MoriondRereco
     sms: SMS object containing scan information
+    no_boost_cuts: do not cut on number of t/w tags
     no_sub: if True, do not submit jobs
     """
     for box in sms.boxes:
@@ -62,9 +69,10 @@ def submit(model, tag, sms, no_sub=True):
         if sms.submodels is not None:
             for submodel in sms.submodels:
                 print "Submitting jobs for {}".format(submodel)
-                submit_box(submodel, box, no_sub)
+                submit_box(submodel, box, bkg_dir, no_boost_cuts,
+                        no_sub)
         else:
-            submit_box(model, box, no_sub)
+            submit_box(model, box, bkg_dir, no_boost_cuts, no_sub)
 
 def submit_combine(model, tag, sms, no_sub=True):
     """
@@ -258,6 +266,8 @@ if __name__ == '__main__':
     parser.add_argument('--preliminary', action='store_true')
     parser.add_argument('--no-smooth', action='store_true',
             help='do not fill gaps between plotted points')
+    parser.add_argument('--bkg-dir', help='Specify background histogram location')
+    parser.add_argument('--no-boost-cuts', action='store_true')
 
     args = parser.parse_args()
     no_exec = (args.no_exec or args.no_sub)
@@ -278,7 +288,8 @@ if __name__ == '__main__':
         if args.combined:
             submit_combine(args.model, args.tag, sms, no_exec)
         else:
-            submit(args.model, args.tag, sms, no_exec)
+            submit(args.model, args.tag, sms, args.bkg_dir, 
+                    args.no_boost_cuts, no_exec)
         sys.exit()
 
     if (args.aggregate or args.finish) and not args.combined:

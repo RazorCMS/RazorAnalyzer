@@ -207,7 +207,7 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p15_29Aug2017"
+versionMC2016 = "V3p15_12Sep2017"
 versionData2016 = "V3p15_29Aug2017"
 
 sampleTags2016 = { "Razor2016":"",
@@ -232,23 +232,23 @@ skimstr = ""
 #on EOS
 dir1L2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonFull'
 dir1LInv2016 = dirCR2016+'/'+versionMC2016+'/OneLeptonAddToMET'
-#dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
-#dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
+dir2L2016 = dirCR2016+'/'+versionMC2016+'/DileptonFull'
+dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
 dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLepton'
 dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTau'
-#dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
-#dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
+dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
+dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
 #dir1L2016 = 'Backgrounds/1L'
-dir2L2016 = 'Backgrounds/2L'
+#dir2L2016 = 'Backgrounds/2L'
 #dir1LInv2016 = 'Backgrounds/1LInv'
-dir2LInv2016 = 'Backgrounds/2LInv'
+#dir2LInv2016 = 'Backgrounds/2LInv'
 #dirVetoL2016 = 'Backgrounds/VetoL'
 #dirVetoTau2016 = 'Backgrounds/VetoTau'
-dirSignal2016 = 'Backgrounds/Signal'
-dirPhoton2016 = 'Backgrounds/Photon'    
+#dirSignal2016 = 'Backgrounds/Signal'
+#dirPhoton2016 = 'Backgrounds/Photon'    
 
 for tag in sampleTags2016:
     razorNtuples["SingleLepton"][tag] = {
@@ -339,6 +339,9 @@ for tag in sampleTags2016:
         if "Razor2016" in files:
             files[tag]["Data"] = files[tag]["Data"].replace(
                     '/'+versionMC2016+'/','/'+versionData2016+'/')
+            if 'QCD' in files[tag] and 'Data' in files[tag]['QCD']:
+                files[tag]['QCD'] = files[tag]['QCD'].replace(
+                        '/'+versionMC2016+'/', '/'+versionData2016+'/')
 
     #Signal ntuples
     razorSignalDirs = {
@@ -1355,6 +1358,8 @@ class Analysis:
             self.cuts = razorCuts[self.region]
             self.binning = razorBinning[self.region]
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
+            self.boostCuts = False
+            print "Note: disabling W/top tag cuts for box {}".format(self.region)
 
         elif self.region in looseLeptonRazorBoxes:
             self.trigType = "Razor"
