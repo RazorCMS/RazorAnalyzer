@@ -59,7 +59,7 @@ endif
 
 echo " "; echo "Starting razor run job now"; echo " ";
 echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
-./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring} -f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
 
 ls -ltr 
 

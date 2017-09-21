@@ -2511,7 +2511,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //******************************************************
       //If not fill in any box, don't fill the event
       //******************************************************
-      if ( razorbox == None ) continue;
+      //if ( razorbox == None ) continue;
       
       if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
 
