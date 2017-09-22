@@ -283,6 +283,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   int NPU;
   unsigned int run, lumi, event;
+   
+  float genVertexTime = 0.0;//genVertexT;
 
   outputTree->Branch("weight", &weight, "weight/F");
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
@@ -314,7 +316,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("TOF_total2", &TOF_total2, "TOF_total2/F");
   outputTree->Branch("TOF_total1_genV", &TOF_total1_genV, "TOF_total1_genV/F");
   outputTree->Branch("TOF_total2_genV", &TOF_total2_genV, "TOF_total2_genV/F");
-  outputTree->Branch("genVertexT", &genVertexT, "genVertexT/F");
+  outputTree->Branch("genVertexTime", &genVertexTime, "genVertexTime/F");
   outputTree->Branch("TOF_neu1", &TOF_neu1, "TOF_neu1/F");
   outputTree->Branch("TOF_neu1_RF", &TOF_neu1_RF, "TOF_neu1_RF/F");
   outputTree->Branch("TOF_neu2", &TOF_neu2, "TOF_neu2/F");
@@ -387,6 +389,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
     //initialize branches
+    genVertexTime = 0.0;//genVertexT
     weight = 0;
     pileupWeight = 0;
     pileupWeightUp = 0;
@@ -776,12 +779,12 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 				TOF_pho1 = (recoSeed1 - point_decayV1).Mag() / SPEED_OF_LIGHT ;
 				TOF_pho2 = (recoSeed2 - point_decayV2).Mag() / SPEED_OF_LIGHT ;
 
-				if(abs(genVertexT) < 100.)
+				if(abs(genVertexTime) < 100.)
 				{
-					TOF_total1 = genVertexT + TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
-					TOF_total1_genV = genVertexT + TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
-					TOF_total2 = genVertexT + TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
-				TOF_total2_genV = genVertexT + TOF_neu2 + TOF_pho2 - (recoSeed2 - point_genPV).Mag() / SPEED_OF_LIGHT;
+					TOF_total1 = genVertexTime + TOF_neu1 + TOF_pho1 - recoSeed1.Mag() / SPEED_OF_LIGHT;
+					TOF_total1_genV = genVertexTime + TOF_neu1 + TOF_pho1 - (recoSeed1 - point_genPV).Mag() / SPEED_OF_LIGHT;
+					TOF_total2 = genVertexTime + TOF_neu2 + TOF_pho2 - recoSeed2.Mag() / SPEED_OF_LIGHT;
+				TOF_total2_genV = genVertexTime + TOF_neu2 + TOF_pho2 - (recoSeed2 - point_genPV).Mag() / SPEED_OF_LIGHT;
 				}
 				else
 				{
