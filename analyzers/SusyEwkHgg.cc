@@ -1469,7 +1469,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       if( nPhotonsAbove40GeV == 0 ) {
       	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " 
       				<< phoCand.size() << std::endl;
-      	continue;
+      	//continue;
       }
 
       //--------------------------------------
@@ -2492,7 +2492,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 
       //inclusive HggRazor
-      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) {
+      //if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) && ( GoodJets.size() > 0 ) ) {
+      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) {
               //HighPt Box
               if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
 
