@@ -64,17 +64,17 @@ float ZeeTiming::getPedestalNoise(TTree *tree, vector <uint> & start_time, vecto
 };
 
 
-float ZeeTiming::getADCToGeV( uint run, int isEBOrEE) {
+float ZeeTiming::getADCToGeV( uint run, int isFromEB) {
   double ADCToGeV = 0;
   //EB
-  if (isEBOrEE == 0) {
+  if (isFromEB == 1) {
     if (run >= 1 && run <= 271950) ADCToGeV = 0.039680;
     else if (run >= 271951 && run <= 277366) ADCToGeV = 0.039798;
     else if (run >= 277367 && run <= 281825) ADCToGeV = 0.039436;
     else if (run >= 281826 && run <= 999999) ADCToGeV = 0.039298;
   }   
   //EE
-  else if (isEBOrEE == 1) {
+  else if (isFromEB == 0) {
     if (run >= 1 && run <= 271950) ADCToGeV = 0.067230;
     else if (run >= 271951 && run <= 277366) ADCToGeV = 0.067370;
     else if (run >= 277367 && run <= 281825) ADCToGeV = 0.066764;
@@ -426,7 +426,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
           
       //rough definition
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
-      bool isEBOrEE = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
+      bool isFromEB = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
       //apply intercalibration
@@ -487,7 +487,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
 	double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]);
 	//double pedNoise = 1;
-	double ADCToGeV = getADCToGeV(runNum, isEBOrEE);
+	double ADCToGeV = getADCToGeV(runNum, isFromEB);
 	double sigmaE = pedNoise * ADCToGeV;
 	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
 	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
