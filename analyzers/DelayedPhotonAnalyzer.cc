@@ -222,6 +222,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
  
   if(isData)
   { 
+/*
 	  cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
 	  for(int i=0;i<N_entries_pedestal;i++) {
 	    cout << "Loading Pedestal IOV " << i << "\n";
@@ -229,7 +230,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	    start_time.push_back(start_time_tmp);
 	    end_time.push_back(end_time_tmp);
 	  }
-  }
+*/ 
+}
 
   // //test 
   // uint test_time = 1464000000;
@@ -412,6 +414,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 //  outputTree->Branch("t1MET_JESDown", &t1MET_JESDown, "t1MET_JESDown/F");
   outputTree->Branch("HT", &HT, "HT/F");
 
+  outputTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
+//  outputTree->Branch("HLTPrescale", HLTPrescale,"HLTPrescale[300]/I");
+
   outputTree->Branch("deltaPt_pho1", &deltaPt_pho1, "deltaPt_pho1/F");
   outputTree->Branch("deltaPt_pho2", &deltaPt_pho2, "deltaPt_pho2/F");
   outputTree->Branch("deltaR_pho1", &deltaR_pho1, "deltaR_pho1/F");
@@ -525,9 +530,11 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   for(int ind_pho = 0; ind_pho < nPhotons; ind_pho++) 
   { //photon loop
       	// apply cuts
-      	if(phoPt[ind_pho] < 25) continue; // basic Pt cut
+      	if(phoPt[ind_pho] < 40) continue; // basic Pt cut
       	if(fabs(phoEta[ind_pho]) > 2.5) continue; // tracker region
       	if(fabs(phoEta[ind_pho]) > 1.4442 && fabs(phoEta[ind_pho]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
+	if(!photonPassLooseIso(ind_pho)) continue;
+	if(!pho_passEleVeto[ind_pho]) continue;
       	//if(!(isEGammaPOGTightElectron(i))) continue;
       	
 	nPho++;
@@ -592,14 +599,15 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	
       	for (uint k=0; k<(*pho_EcalRechitIndex)[ind_pho].size(); ++k) 
 	{
-		//cout << metPt << endl;
         	uint rechitIndex = (*pho_EcalRechitIndex)[ind_pho][k];
+
+		if((*ecalRechit_E)[rechitIndex] < 1.0) continue;	
       
         	double rawT = (*ecalRechit_T)[rechitIndex];
         	//apply intercalibration
         	double corrT = rawT + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
-        	double pedNoise = isData ? (getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex])) : 1.0;
+        	double pedNoise = 1.0;//isData ? (getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex])) : 1.0;
         	//double pedNoise = 1;
         	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1;
         	double sigmaE = pedNoise * ADCToGeV;
@@ -618,6 +626,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	for (uint k=0; k<(*pho_EcalRechitIndex)[ind_pho].size(); ++k)
         {
 		uint rechitIndex = (*pho_EcalRechitIndex)[ind_pho][k];
+		if((*ecalRechit_E)[rechitIndex] < 1.0) continue;	
 		double thisWeight = max(4.2+log(((*ecalRechit_E)[rechitIndex])/tmpSumE),0.0);
 		mTotalWeight += thisWeight;
 		//float thisIEtaIX = (*ecalRechit_Eta)[rechitIndex];
@@ -633,10 +642,14 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	phiAverage = phiAverage / mTotalWeight;
 
 	//cout<<"DEBUG rechit: ";	
+	//int tmp_Nxtal = 0;
+	//cout<<"\n  etaAverage = "<<etaAverage<<endl;
 	for (uint k=0; k<(*pho_EcalRechitIndex)[ind_pho].size(); ++k)
         {
                 uint rechitIndex = (*pho_EcalRechitIndex)[ind_pho][k];
+		if((*ecalRechit_E)[rechitIndex] < 1.0) continue;	
                 double thisWeight = max(4.2+log(((*ecalRechit_E)[rechitIndex])/tmpSumE),0.0);
+		//if(thisWeight > 0) tmp_Nxtal ++;
 		//float thisIEtaIX = (*ecalRechit_Eta)[rechitIndex];
 		//float thisIPhiIY = (*ecalRechit_Phi)[rechitIndex];
 		float thisIPhiIY =  1.0 * iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , isFromEB);
@@ -644,7 +657,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
 
 		//computing the moments of eta and phi
-		//cout<<" [ i "<<k<<" w "<<thisWeight<<" dd "<<(thisIEtaIX - etaAverage) * (thisIEtaIX - etaAverage)<<"  s  "<<thisWeight * (thisIEtaIX - etaAverage) * (thisIEtaIX - etaAverage)<<" ] ";
+		//if(thisWeight > 0) cout<<" [ i "<<k<<"  E/Et "<<((*ecalRechit_E)[rechitIndex])/tmpSumE<<" w "<<thisWeight<<" iEta "<<thisIEtaIX<<"  dd "<<(thisIEtaIX - etaAverage) * (thisIEtaIX - etaAverage)<<"  s  "<<thisWeight * (thisIEtaIX - etaAverage) * (thisIEtaIX - etaAverage)<<" ] "<<endl;
 		phoSetaeta += thisWeight * (thisIEtaIX - etaAverage) * (thisIEtaIX - etaAverage);
 		phoSphiphi += thisWeight * (thisIPhiIY - phiAverage) * (thisIPhiIY - phiAverage);
 		phoSetaphi += thisWeight * (thisIEtaIX - etaAverage) * (thisIPhiIY - phiAverage);
@@ -655,6 +668,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
 	if(tmpSumE>0.0)
 	{
+		//cout<<"phoSetaeta = "<<phoSetaeta<<"  totalWeight = "<<mTotalWeight <<"  S/w = "<<phoSetaeta / mTotalWeight<<"   Nxtal = "<<tmp_Nxtal<<endl;
 		phoSetaeta = phoSetaeta / mTotalWeight;	
 		phoSphiphi = phoSphiphi / mTotalWeight;	
 		phoSetaphi = phoSetaphi / mTotalWeight;	
@@ -785,6 +799,9 @@ for(int i = 0; i < nJets; i++)
 	n_Jets++;
 	HT += thisJet.Pt();
 }
+
+ //apply nJets cut
+ if(n_Jets<2) continue;
 
  MET = metPt;
  t1MET = metType1Pt;
