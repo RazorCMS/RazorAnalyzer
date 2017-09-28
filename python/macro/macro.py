@@ -311,7 +311,8 @@ def propagateShapeSystematics(hists, samples, varList, shapeHists, shapeErrors, 
                     sysErr = abs(shapeHists[name][curShape+'Up'][var].GetBinContent(bx) - shapeHists[name][curShape+'Down'][var].GetBinContent(bx))/2.0
                     #add in quadrature with existing error
                     oldErr = hists[name][var].GetBinError(bx)
-                    hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
+                    if not rt.TMath.IsNaN(sysErr):
+                        hists[name][var].SetBinError(bx, (oldErr**2 + sysErr**2)**(0.5))
                     if debugLevel > 0 and sysErr > 0: print curShape,": Error on bin ",bx,"increases from",oldErr,"to",hists[name][var].GetBinError(bx),"after adding",sysErr,"in quadrature"
             for source in miscErrors:
                 #MT uncertainty (deprecated)
@@ -359,7 +360,46 @@ def cleanVarName(var):
     toremove = '(){}<>#$%+-=*&|[]'
     return out.translate(None,toremove)
 
-def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}, debugLevel=0):
+def computeEmptyBinErrs(hists, unrollBins, aggregate=True):
+    """
+    For each MC histogram, assign an uncertainty on each empty bin equal to
+    1.83/2 (symmetrized Poisson confidence interval)
+    times the average event weight in the histogram.
+    If aggregate is True, returns a dictionary {binNum:uncertainty}
+    If it's False, returns a dictionary {process:{binNum:uncertainty}}
+    """
+    toExclude = [ # processes with low stats but not expected to contribute
+            "WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8",
+            "WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8",
+            ]
+    print "Computing uncertainties to apply to empty bins"
+    errs = {}
+    for proc, hs in hists.iteritems():
+        if proc in ['Data', 'Fit', 'Sys']: continue
+        curDict = errs
+        if not aggregate:
+            errs[proc] = {}
+            curDict = errs[proc]
+        hist = hs[('MR','Rsq')]
+        if hist.GetEntries() > 0: 
+            avgWeight = hist.Integral() / hist.GetEntries()
+        else:
+            avgWeight = 0.0
+        err = 1.83/2 * avgWeight
+        unrolled = plotting.unroll2DHistograms([hist], 
+                unrollBins[0], unrollBins[1])[0]
+        for ix in range(1, unrolled.GetSize()-1):
+            if ix not in curDict:
+                curDict[ix] = 0.0
+            if unrolled.GetBinContent(ix) == 0 and proc not in toExclude and err > 0:
+                curDict[ix] = (curDict[ix]*curDict[ix] + err*err)**(0.5)
+    if aggregate:
+        print "Overall uncertainties on empty bins:"
+        for b in sorted(errs.keys()):
+            print "{} : {}".format(b, errs[b])
+    return errs
+
+def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data", logx=False, ymin=0.1, lumistr="40 pb^{-1}", boxName=None, btags=None, comment=True, blindBins=None, nsigmaFitData=None, nsigmaFitMC=None, doDensity=False, printdir=".", special="", unrollBins=(None,None), vartitles={}, debugLevel=0, emptyBinErrs=None):
     """Make stacked plots of quantities of interest, with data overlaid"""
     print "Preparing histograms for plotting..."
     #format MC histograms
@@ -444,7 +484,7 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
             if 'SUS15004' in special:
                 plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
-                        unrollBins=unrollBinsToUse, printdir=printdir)
+                        unrollBins=unrollBinsToUse, printdir=printdir, emptyBinErrs=emptyBinErrs)
                 #do MC total (no stack)
                 plotting.plot_SUS15004_FitVsMCTotal(c, mcTotal=mcPrediction, fit=fitPrediction, 
                         printstr=printstr+'MCTotal', lumistr=lumistr, commentstr=commentstr, 

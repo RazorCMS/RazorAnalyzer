@@ -1177,8 +1177,11 @@ def getUnrollBinsFromHistogram(hist):
             cols[-1].append(hist.GetYaxis().GetBinLowEdge(by))
             if by == hist.GetNbinsY(): cols[-1].append(hist.GetYaxis().GetBinUpEdge(by)) #last bin edge
     return (xbins,cols)
-            
-def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", commentstr="", mcDict=None, mcSamples=None, unrollBins=(None,None), printdir=".", ratiomin=0, ratiomax=5, controlRegion=False):
+
+def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", 
+        commentstr="", mcDict=None, mcSamples=None, unrollBins=(None,None), 
+        printdir=".", ratiomin=0, ratiomax=5, controlRegion=False,
+        emptyBinErrs=None):
     if mcDict is None or mcSamples is None:
         print "Error in plot_SUS15004: please provide list of MC samples and associated histograms!"
         return
@@ -1212,7 +1215,7 @@ def plot_SUS15004(c, data=0, fit=0, printstr="hist", lumistr="", commentstr="", 
             printstr=printstr+"UnrolledDataMC", lumistr=lumistr, 
             commentstr=commentstr, ratiomin=ratiomin, ratiomax=ratiomax, 
             printdir=printdir, unrollBins=unrollBins, 
-            controlRegion=controlRegion)
+            controlRegion=controlRegion, emptyBinErrs=emptyBinErrs)
     mcStack.Delete()
     leg.Delete()
 
@@ -1331,7 +1334,7 @@ def makeRatioTGraphAsymmErrorsTH1(num, denom, xtitle="", ratiomin=0.25, ratiomax
         applyPad2RatioStyle(ratio, xtitle, ratiomin, ratiomax, logx)
     return ratio
 
-def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None), controlRegion=False, signalHist=None, isPreliminary=False):
+def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, printstr="hist", lumistr="", commentstr="", ratiomin=0.5, ratiomax=1.5, pad2Opt="Ratio", printdir='.', unrollBins=(None,None), controlRegion=False, signalHist=None, isPreliminary=False, emptyBinErrs=None):
     #setup
     c.Clear()
     c.cd()
@@ -1361,6 +1364,12 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
         h.SetLineWidth(0)
         h.SetMarkerColor(rt.kBlack)
         h.SetLineColor(rt.kBlack)
+    if emptyBinErrs is not None:
+        for ix, err in emptyBinErrs.iteritems():
+            oldErr = mcTotal.GetBinError(ix)
+            mcTotal.SetBinError(ix,
+                    (oldErr*oldErr + err*err)**(0.5))
+            print "Error on bin {} increases from {} to {}".format(ix, oldErr, mcTotal.GetBinError(ix))
     mcTotal.SetFillColor(rt.kBlack)
     mc.Draw('hist')
     if ymin is not None: mc.SetMinimum(ymin)

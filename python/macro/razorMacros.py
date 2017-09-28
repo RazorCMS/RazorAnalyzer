@@ -729,7 +729,7 @@ def postprocessQCDHists(hists, shapeHists,
                     makeQCDExtrapolation(qcd2DHist, wHists, region, 
                         btags, debugLevel, errOpt='qcdnormDown'))
 
-def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[]):
+def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[], doEmptyBinErrs=False):
     """Loads the output of makeControlSampleHists from a file and creates plots"""
 
     titles = {
@@ -781,6 +781,11 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
         miscErrors = []
         del hists['Sys']
         macro.propagateShapeSystematics(hists, samples, listOfVars, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
+    emptyBinErrs = None
+    if doEmptyBinErrs:
+        if unrollBins is None or unrollBins[0] is None or unrollBins[1] is None:
+            raise ValueError("Need to specify binning in order to compute empty bin errors")
+        emptyBinErrs = macro.computeEmptyBinErrs(hists, unrollBins)
     #optionally combine some background processes
     if 'combineBackgrounds' in plotOpts:
         macro.combineBackgroundHists(hists, plotOpts['combineBackgrounds'], listOfVars, debugLevel=debugLevel)
@@ -812,7 +817,13 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
 
     #print histograms
     rt.SetOwnership(c, False)
-    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=None, nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles, debugLevel=debugLevel)
+    macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, 
+            printName=regionName, logx=logx, dataName=dataName, ymin=ymin, 
+            comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", 
+            boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=None, 
+            nsigmaFitMC=None, printdir=printdir, doDensity=plotDensity, 
+            special=special, unrollBins=unrollBins, vartitles=titles, 
+            emptyBinErrs=emptyBinErrs, debugLevel=debugLevel)
 
 
 #######################################
@@ -1387,8 +1398,33 @@ def addMCVsFitUncertainty(histsForDataCard, unrolledFit, samples=[]):
                 histsForDataCard[s+'_fitmccrosscheckDown'].SetBinContent(bx, 
                         histsForDataCard[s].GetBinContent(bx) / fitOverMC)
 
-def addStatUncertainty(histsForDataCard, boxName, samples):
+def stitchEmptyBinErrs(emptyBinErrs):
+    """
+    Converts a list of empty bin dictionaries into a single one 
+    in which the bin numbers are indexed according to the
+    corresponding stitched-together histogram 
+    """
+    combinedDict = {}
+    globalCounters = {}
+    for curBinErrs in emptyBinErrs:
+        for proc, procBinErrs in curBinErrs.iteritems():
+            if proc not in globalCounters:
+                globalCounters[proc] = 0
+            if proc not in combinedDict:
+                combinedDict[proc] = {}
+            localCounter = 0
+            for ibin in sorted(procBinErrs):
+                globalCounters[proc] += 1
+                localCounter += 1
+                if ibin != localCounter:
+                    raise ValueError(
+                            "Missing bin {} in empty bin dictionary".format(localCounter))
+                combinedDict[proc][globalCounters[proc]] = procBinErrs[ibin]
+    return combinedDict
+
+def addStatUncertainty(histsForDataCard, boxName, samples, emptyBinErrs=None):
     for sample in samples:
+        print "Adding stat uncertainty for {}".format(sample)
         histsForDataCard[sample+'_stat'+boxName+sample+'Up'] = (
                 histsForDataCard[sample].Clone())
         histsForDataCard[sample+'_stat'+boxName+sample+'Down'] = (
@@ -1402,6 +1438,17 @@ def addStatUncertainty(histsForDataCard, boxName, samples):
                 sample+'_stat'+boxName+sample+'Down'].SetBinContent(
                     bx, histsForDataCard[sample].GetBinContent(bx) 
                     - histsForDataCard[sample].GetBinError(bx))
+            if emptyBinErrs is not None:
+                # Increase up uncertainty equal to twice the error assigned
+                # by computeEmptyBinErrs, because that function assumes a 
+                # symmetrical error while we want to add the whole thing to the 
+                # 'up' uncertainty
+                histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetBinContent(
+                        bx, histsForDataCard[
+                            sample+'_stat'+boxName+sample+'Up'].GetBinContent(
+                                bx) + 2 * emptyBinErrs[sample][bx])
+                print "Increasing error on bin {} by {}".format(
+                        bx, emptyBinErrs[sample][bx])
         histsForDataCard[sample+'_stat'+boxName+sample+'Up'].SetName(
             sample+'_stat'+boxName+sample+'Up')
         histsForDataCard[sample+'_stat'+boxName+sample+'Down'].SetName(
@@ -1413,7 +1460,7 @@ def addStatUncertainty(histsForDataCard, boxName, samples):
 
 def unrollAndStitch(hists, boxName, samples=[], var=('MR','Rsq'),
         debugLevel=0, unrollBins=None, noSys=False, addStatUnc=True,
-        addMCVsFit=False):
+        addMCVsFit=False, emptyBinErrs=None):
     """
     Unrolls each histogram and pieces together the different
     b-tag bins.
@@ -1425,10 +1472,13 @@ def unrollAndStitch(hists, boxName, samples=[], var=('MR','Rsq'),
     histsForDataCard = stitchHistsForDataCard(unrolledMC,
             unrolledData, unrolledShapeHists, samples)
 
+    if emptyBinErrs is not None:
+        emptyBinErrs = stitchEmptyBinErrs(emptyBinErrs)
     if addMCVsFit:
         addMCVsFitUncertainty(histsForDataCard, unrolledFit, samples)
     if addStatUnc:
-        addStatUncertainty(histsForDataCard, boxName, samples)
+        addStatUncertainty(histsForDataCard, boxName, samples,
+                emptyBinErrs=emptyBinErrs)
 
     #set names on histograms
     if 'data_obs' in histsForDataCard:
@@ -1448,7 +1498,7 @@ def unrollAndStitch(hists, boxName, samples=[], var=('MR','Rsq'),
          
 def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".", 
         var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, 
-        noSys=False, addStatUnc=True, addMCVsFit=False):
+        noSys=False, addStatUnc=True, addMCVsFit=False, doEmptyBinErrs=False):
     """
     Loads the output of makeControlSampleHists, unrolls each 
     histogram, and pieces together the different b-tag bins 
@@ -1460,12 +1510,18 @@ def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".",
             for b in range(maxBtags+1)]
 
     hists = []
-    for f in filenames:
+    emptyBinErrs = None
+    for ifile, f in enumerate(filenames):
         hists.append(macro.importHists(f, debugLevel))
+        if doEmptyBinErrs:
+            if emptyBinErrs is None:
+                emptyBinErrs = []
+            emptyBinErrs.append(macro.computeEmptyBinErrs(hists[ifile],
+                unrollBins[ifile], aggregate=False))
 
     histsForDataCard = unrollAndStitch(hists, boxName, samples, 
             var, debugLevel, unrollBins, noSys, addStatUnc, 
-            addMCVsFit)
+            addMCVsFit, emptyBinErrs=emptyBinErrs)
 
     if export:
         macro.exportHists(histsForDataCard, 
