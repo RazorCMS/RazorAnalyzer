@@ -34,7 +34,7 @@ def write_done_file(model, box, name='MADD'):
     return done_file_name
 
 def submit_box(model, box, bkg_dir=None, no_boost_cuts=False,
-        no_sub=True):
+        fine_grained=True, no_sub=True):
     """
     Submit jobs for a single box.
     Do not resubmit done jobs.
@@ -52,16 +52,19 @@ def submit_box(model, box, bkg_dir=None, no_boost_cuts=False,
         command.append('--no-sub')
     if no_boost_cuts:
         command.append('--no-boost-cuts')
+    if fine_grained:
+        command.append('--fine-grained')
     do_command(command, False)
 
 def submit(model, tag, sms, bkg_dir=None, no_boost_cuts=False,
-        no_sub=True):
+        fine_grained=False, no_sub=True):
     """
     Submits the limit jobs for one SMS scan.
     model: string - name of model (without 'SMS-')
     tag: e.g. Razor2016_MoriondRereco
     sms: SMS object containing scan information
     no_boost_cuts: do not cut on number of t/w tags
+    fine_grained: run on non-aggregated MC histograms
     no_sub: if True, do not submit jobs
     """
     for box in sms.boxes:
@@ -70,9 +73,10 @@ def submit(model, tag, sms, bkg_dir=None, no_boost_cuts=False,
             for submodel in sms.submodels:
                 print "Submitting jobs for {}".format(submodel)
                 submit_box(submodel, box, bkg_dir, no_boost_cuts,
-                        no_sub)
+                        fine_grained, no_sub)
         else:
-            submit_box(model, box, bkg_dir, no_boost_cuts, no_sub)
+            submit_box(model, box, bkg_dir, no_boost_cuts, 
+                    fine_grained, no_sub)
 
 def submit_combine(model, tag, sms, no_sub=True):
     """
@@ -302,8 +306,10 @@ if __name__ == '__main__':
             help='do not fill gaps between plotted points')
     parser.add_argument('--bkg-dir', help='Specify background histogram location')
     parser.add_argument('--no-boost-cuts', action='store_true')
+    parser.add_argument('--no-fine-grained', action='store_true')
 
     args = parser.parse_args()
+    fine_grained = not args.no_fine_grained
     no_exec = (args.no_exec or args.no_sub)
 
     # avoid looking at unblinded limits yet
@@ -325,7 +331,7 @@ if __name__ == '__main__':
             submit_combine(args.model, args.tag, sms, no_exec)
         else:
             submit(args.model, args.tag, sms, args.bkg_dir, 
-                    args.no_boost_cuts, no_exec)
+                    args.no_boost_cuts, fine_grained, no_exec)
         sys.exit()
 
     if (args.aggregate or args.finish) and not (args.combined
