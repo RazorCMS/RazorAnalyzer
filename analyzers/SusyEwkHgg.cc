@@ -2504,7 +2504,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
 
               //HighRes Box
-              else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 ) razorbox = HighRes;
+              else if( sigmaMoverM < 0.085 ) razorbox = HighRes;
 
               //LowRes Box
               else razorbox = LowRes;
