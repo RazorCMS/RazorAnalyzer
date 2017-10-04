@@ -64,17 +64,17 @@ float ZeeTiming::getPedestalNoise(TTree *tree, vector <uint> & start_time, vecto
 };
 
 
-float ZeeTiming::getADCToGeV( uint run, int isEBOrEE) {
+float ZeeTiming::getADCToGeV( uint run, int isFromEB) {
   double ADCToGeV = 0;
   //EB
-  if (isEBOrEE == 0) {
+  if (isFromEB == 1) {
     if (run >= 1 && run <= 271950) ADCToGeV = 0.039680;
     else if (run >= 271951 && run <= 277366) ADCToGeV = 0.039798;
     else if (run >= 277367 && run <= 281825) ADCToGeV = 0.039436;
     else if (run >= 281826 && run <= 999999) ADCToGeV = 0.039298;
   }   
   //EE
-  else if (isEBOrEE == 1) {
+  else if (isFromEB == 0) {
     if (run >= 1 && run <= 271950) ADCToGeV = 0.067230;
     else if (run >= 271951 && run <= 277366) ADCToGeV = 0.067370;
     else if (run >= 277367 && run <= 281825) ADCToGeV = 0.066764;
@@ -230,7 +230,9 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   vector<float> *ecalElectronRechit_calibT_lagacy;
   vector<float> *ecalElectronRechit_calibT_lagacy_TOF;
   vector<float> *ecalElectronRechit_Eta;
+  vector<float> *ecalElectronRechit_IEtaIX;
   vector<float> *ecalElectronRechit_Phi;
+  vector<float> *ecalElectronRechit_IPhiIY;
   vector<float> *ecalElectronRechit_transpCorr;
 	
   ecalElectronRechit_E = new std::vector<float>; ecalElectronRechit_E->clear();
@@ -239,7 +241,9 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   ecalElectronRechit_calibT_lagacy = new std::vector<float>; ecalElectronRechit_calibT_lagacy->clear();
   ecalElectronRechit_calibT_lagacy_TOF = new std::vector<float>; ecalElectronRechit_calibT_lagacy_TOF->clear();
   ecalElectronRechit_Eta = new std::vector<float>; ecalElectronRechit_Eta->clear();
+  ecalElectronRechit_IEtaIX = new std::vector<float>; ecalElectronRechit_IEtaIX->clear();
   ecalElectronRechit_Phi = new std::vector<float>; ecalElectronRechit_Phi->clear();
+  ecalElectronRechit_IPhiIY = new std::vector<float>; ecalElectronRechit_IPhiIY->clear();
   ecalElectronRechit_transpCorr = new std::vector<float>; ecalElectronRechit_transpCorr->clear();
   //int nPV;
   unsigned int run, lumi, event;
@@ -300,7 +304,9 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("ecalElectronRechit_calibT_lagacy", "std::vector<float>",&ecalElectronRechit_calibT_lagacy);
   outputTree->Branch("ecalElectronRechit_calibT_lagacy_TOF", "std::vector<float>",&ecalElectronRechit_calibT_lagacy_TOF);
   outputTree->Branch("ecalElectronRechit_Eta", "std::vector<float>",&ecalElectronRechit_Eta);
+  outputTree->Branch("ecalElectronRechit_IEtaIX", "std::vector<float>",&ecalElectronRechit_IEtaIX);
   outputTree->Branch("ecalElectronRechit_Phi", "std::vector<float>",&ecalElectronRechit_Phi);
+  outputTree->Branch("ecalElectronRechit_IPhiIY", "std::vector<float>",&ecalElectronRechit_IPhiIY);
   outputTree->Branch("ecalElectronRechit_transpCorr", "std::vector<float>",&ecalElectronRechit_transpCorr);
 
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
@@ -370,7 +376,9 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     ecalElectronRechit_calibT_lagacy->clear();
     ecalElectronRechit_calibT_lagacy_TOF->clear();
     ecalElectronRechit_Eta->clear();
+    ecalElectronRechit_IEtaIX->clear();
     ecalElectronRechit_Phi->clear();
+    ecalElectronRechit_IPhiIY->clear();
     ecalElectronRechit_transpCorr->clear();
 
 
@@ -418,7 +426,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
           
       //rough definition
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
-      bool isEBOrEE = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
+      bool isFromEB = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
       //apply intercalibration
@@ -468,9 +476,18 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
         ecalElectronRechit_calibT_lagacy->push_back(calibratedSeedHitTime_this); 
         ecalElectronRechit_calibT_lagacy_TOF->push_back(corrT); 
 
+	bool isEBrechit = bool( abs((*ecalRechit_Eta)[rechitIndex]) < 1.5 );
+        if (isEBrechit) {
+          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true));
+          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true));
+        } else {
+          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false));
+          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false));
+        }	
+
 	double pedNoise = getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]);
 	//double pedNoise = 1;
-	double ADCToGeV = getADCToGeV(runNum, isEBOrEE);
+	double ADCToGeV = getADCToGeV(runNum, isFromEB);
 	double sigmaE = pedNoise * ADCToGeV;
 	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
 	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
@@ -495,7 +512,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	ele1_seedtimeCalib = calibratedSeedHitTime;
 	ele1_seedtimeCalib_sept = calibratedSeedHitTime_sept;
 	ele1_seedtimeraw = rawSeedHitTime_no_sept;
-	ele1IsEB = bool( eleEta_SC[i] < 1.5 );
+	ele1IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele1IsEB) {
 	  ele1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
 	  ele1SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
@@ -520,7 +537,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	ele2_seedtimeCalib = calibratedSeedHitTime;
 	ele2_seedtimeCalib_sept = calibratedSeedHitTime_sept;
  	ele2_seedtimeraw = rawSeedHitTime_no_sept;
- 	ele2IsEB = bool( eleEta_SC[i] < 1.5 );
+ 	ele2IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele2IsEB) {
 	  ele2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
 	  ele2SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);

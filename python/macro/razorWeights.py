@@ -707,6 +707,7 @@ def splitShapeErrorsByType(shapeErrors):
         'isr':True,
         'muontrig':True,
         'eletrig':True,
+        'wtag':True,
         }
     sfUncertainties = []
     otherUncertainties = []

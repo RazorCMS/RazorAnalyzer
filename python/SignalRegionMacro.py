@@ -2,8 +2,9 @@ import sys,os,copy
 import ROOT as rt
 
 from macro import macro, razorWeights
-from macro.razorAnalysis import Analysis, razorFitFiles, make_parser
+import macro.razorAnalysis as razor
 from macro.razorMacros import makeControlSampleHistsForAnalysis
+from ntupling.ControlRegionNtuples2016_V3p15 import SAMPLES
 
 commonShapeErrors = [
         ('singletopnorm',"SingleTop"),
@@ -29,16 +30,13 @@ shapes = { 'MultiJet':hadShapeErrors, 'LeptonMultiJet':lepShapeErrors,
            'DiJet':hadShapeErrors, 'LeptonJet':lepShapeErrors, 
            }
 
-if __name__ == "__main__":
-    rt.gROOT.SetBatch()
-
-    parser = make_parser()
+def makeSignalRegionParser():
+    parser = razor.make_parser()
     parser.add_argument("--unblind", help="do not blind signal sensitive region", action='store_true')
     parser.add_argument('--no-mc', help="do not process MC, do data and fit only", 
             action='store_true', dest="noMC")
     parser.add_argument('--no-fit', help="do not load fit results, process data and MC only", 
             action='store_true', dest='noFit')
-    #parser.add_argument('--full', help="do full fit (default is sideband)", action='store_true')
     parser.add_argument('--no-data', help="do not process data, do fit and MC only", 
             action='store_true', dest='noData')
     parser.add_argument('--no-sys', help="no shape unncertainties or cross check systematics", 
@@ -55,32 +53,14 @@ if __name__ == "__main__":
             action='store_true')
     parser.add_argument('--nlo-zinv', dest='nloZInv', action='store_true',
             help='use NLO sample for Z->nu nu prediction')
-    args = parser.parse_args()
-    debugLevel = args.verbose + 2*args.debug
-    tag = args.tag
-    boostCuts = not args.noBoostCuts
+    parser.add_argument('--fine-grained', dest='fineGrained', action='store_true',
+            help='Process each MC sample separately')
+    return parser
 
-    #initialize
-    plotOpts = {"SUS15004":True}
-
+def getDirSuffix(args):
     dirSuffix = ""
-    plotOpts['sideband'] = True
     if not args.unblind:
         dirSuffix += 'Blinded'
-    if args.noFit: 
-        toysToUse = {}
-        del plotOpts['sideband']
-    else:
-        toysToUse = razorFitFiles[tag]
-    boxesToUse = ["MultiJet", "LeptonMultiJet", "DiJet", "LeptonJet"]
-    if args.box is not None:
-        boxesToUse = [args.box]
-    if args.btags is not None:
-        btaglist = [args.btags]
-    elif args.bInclusive:
-        btaglist = [0]
-    else:
-        btaglist = [0,1,2,3]
     if args.noSFs:
         dirSuffix += 'NoSFs'
     if args.noSys:
@@ -91,34 +71,58 @@ if __name__ == "__main__":
         dirSuffix += 'QCDMC'
     if args.nloZInv:
         dirSuffix += 'NLOZInv'
+    if args.fineGrained:
+        dirSuffix += 'FineGrained'
+    return dirSuffix
 
-    regionsOrder = []
-    regions = {}
-    for box in boxesToUse:
-        for btags in btaglist:
-            #deal with last b-tag bin
-            if box in ["DiJet", "MuJet", "EleJet", "LeptonJet"]:
-                if btags == 3: continue
-                elif btags >= 2:
-                    nbMax = -1 #no upper limit
-                else:
-                    nbMax = btags #exclusive
-            else:
-                if btags >= 3:
-                    nbMax = -1 #no upper limit
-                else:
-                    nbMax = btags #exclusive
-            if args.bInclusive:
-                nbMin = 0
-                nbMax = -1
-            #define analysis region
-            extBox = '%s%dB%s'%(box,btags,dirSuffix)
-            regionsOrder.append(extBox)
-            regions[extBox] = Analysis(box, tag=tag, boostCuts=boostCuts,
-                    nbMin=btags, nbMax=nbMax)
+def getPlotOpts(args, analysis):
+    plotOpts = {
+            'SUS15004':True,
+            "combineBackgrounds":{ 
+                "Other":["SingleTop","DYJets","Other"], 
+                "TTJets":["TTJets1L","TTJets2L","TTJets"] },
+            "combineSamples":analysis.samplesReduced,
+            'sideband':True,
+            }
+    if args.noFit:
+        del plotOpts['sideband']
+    return plotOpts
 
-    ####LOAD ALL SCALE FACTOR HISTOGRAMS
+def getBoxesAndBtags(args):
+    """Returns list of boxes to process
+        and list of b-tag categories"""
+    boxlist = ["MultiJet", "LeptonMultiJet", "DiJet", "LeptonJet"]
+    if args.box is not None:
+        boxlist = [args.box]
+    if args.btags is not None:
+        btaglist = [args.btags]
+    elif args.bInclusive:
+        btaglist = [0]
+    else:
+        btaglist = [0,1,2,3]
+    return boxlist, btaglist
 
+def getNBMinMax(box, btags, args=None):
+    """Returns appropriate min and max number of b-tags"""
+    if args is not None and args.bInclusive:
+        return 0, -1
+
+    nbMin = btags
+
+    btagCap = 3
+    if box in ["DiJet", "MuJet", "EleJet", "LeptonJet"]:
+        btagCap = 2
+    
+    if btags > btagCap: 
+        raise ValueError("Too many b-tags for box {}".format(box))
+    elif btags == btagCap:
+        nbMax = -1 #no upper limit
+    else:
+        nbMax = btags #exclusive
+
+    return nbMin, nbMax
+
+def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
     #scale factor file names
     sfdir = "data/ScaleFactors/RazorMADD2015/"
     sfFile = sfdir+'/RazorScaleFactors_%s.root'%(tag)
@@ -136,7 +140,6 @@ if __name__ == "__main__":
             "TTJets1L":"TTJets",
             "TTJets2L":"TTJets",
             }
-    processNames = regions.itervalues().next().samples
     sfHists = macro.loadScaleFactorHists(sfFilename=sfFile, processNames=processNames, 
             scaleFactorNames=sfNames, debugLevel=debugLevel)
     #reopen the file and grab the ZNuNu up/down histograms
@@ -195,14 +198,249 @@ if __name__ == "__main__":
         if debugLevel > 0:
             print "Checking scale factor histogram:",h
         assert hist
+        hist.SetDirectory(0)
+    return sfHists
 
-    #estimate yields in signal region
+def applyAnalysisOptions(analysis, args, boxName=None):
+    """
+    Changes Analysis object attributes according to specified options"""
+    if args.noQCD and 'QCD' in analysis.samples:
+        analysis.samples.remove('QCD')
+    elif args.qcdMC:
+        analysis.filenames['QCD'] = "Backgrounds/Signal/FullRazorInclusive_%s_QCD_1pb_weighted.root"%tag
+    if args.nloZInv:
+        analysis.filenames['ZInv'] = analysis.filenames['ZInv'].replace('ZInv_', 'ZInvPtBinned_')
+    if args.noMC: analysis.samples = []
+    if analysis.samples is None or len(analysis.samples) == 0:
+        analysis.filenames = {"Data":analysis.filenames["Data"]}
+    if args.noData: 
+        del analysis.filenames['Data']
+    if boxName is not None:
+        print "Adjust baseline cuts to exclude sideband"
+        if boxName in ['DiJet', 'MultiJet']:
+            analysis.cutsData = analysis.cutsData.replace(
+                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
+            analysis.cutsMC = analysis.cutsMC.replace(
+                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
+        else:
+            analysis.cutsData = analysis.cutsData.replace(
+                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
+            analysis.cutsMC = analysis.cutsMC.replace(
+                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
+
+def getScaleFactorHistsForBox(sfHists, boxName, btags):
+    sfHistsToUse = sfHists.copy()
+    if 'MultiJet' in boxName:
+        jtype = 'MultiJet'
+    else:
+        jtype = 'DiJet'
+    #veto lepton/tau
+    for ltype in ['VetoLepton','VetoTau']:
+        for pteta in ['Pt','Eta']:
+            for updown in ['Up','Down']:
+                sfHistsToUse[ltype+pteta+updown] = sfHistsToUse[ltype+jtype+pteta+updown]
+    ##ttbar dilepton, dyjets dilepton, and zinv b-tag
+    for name in ['TTJetsDilepton','DYJetsInv']:
+        for updown in ['Up','Down']:
+            sfHistsToUse[name+updown] = sfHistsToUse[name+jtype+updown]
+    #b-tag closure tests
+    for updown in ['BUp','BDown']:
+        for mrrsq in ['MR','Rsq']:
+            sfHistsToUse[mrrsq+updown] = sfHistsToUse[mrrsq+jtype+str(btags)+updown]
+        sfHistsToUse['ZInv'+updown] = sfHistsToUse[
+                'ZInv'+jtype+str(btags)+updown]
+    return sfHistsToUse
+
+def removeSFShapes(shapes):
+    toRemove = ['btaginvcrosscheck','btagcrosscheckrsq',
+            'btagcrosscheckmr','sfsyszinv','ttcrosscheck',
+            'zllcrosscheck','sfsysttjets','sfsyswjets',
+            'vetolepptcrosscheck','vetotauptcrosscheck',
+            'vetolepetacrosscheck','vetotauetacrosscheck']
+    #remove scale factor cross check uncertainties
+    shapes = [s for s in shapes if s not in toRemove]
+    #this removes scale factor uncertainties that are listed as tuples
+    shapes = [s for s in shapes if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
+    return shapes
+
+def getSubprocs(proc):
+    """
+    Returns a list of all subprocesses associated with 
+    the given physics process.
+    """
+    if proc == 'QCD':
+        # QCD is data driven and should not be split into processes
+        return ['QCD']
+    return SAMPLES['Signal'][proc]
+
+def makeFineGrainedShapeErrors(shapes):
+    """
+    Breaks each MC process into its component processes
+    and assigns appropriate uncertainties to each component.
+    Input: shape uncertainty dictionary of the form
+    { box:[unc1, unc2, ...], ... }
+    where each uncertainty is either 1) a string,
+    2) a pair of strings (unc name, process name), or
+    3) a pair (unc name, [process1, process2, ...])
+    Output: a shape uncertainty dictionary in which each
+    process name has been replaced by a list of its component processes.
+    """
+    outShapes = []
+    for unc in shapes:
+        try:
+            uncName, uncProcs = unc
+            outProcs = []
+            if isinstance(uncProcs, basestring):
+                # there is only one process for this uncertainty
+                outProcs += getSubprocs(uncProcs)
+            else:
+                # there are multiple top-level processes
+                for proc in uncProcs:
+                    outProcs += getSubprocs(proc)
+            outShapes.append((uncName, outProcs))
+        except ValueError:
+            # this uncertainty applies to all processes
+            outShapes.append(unc)
+    return outShapes
+
+def getProcFilename(proc, analysis):
+    """
+    Returns the path to the MC sample file for the given process.
+    """
+    if proc == 'QCD':
+        # QCD is data driven and should not be split into subprocesses
+        return analysis.filenames[proc]
+    return "{}/{}_{}_1pb_weighted{}.root".format(razor.dirSignal2016,
+            razor.prefixes2016[analysis.tag]['Signal'], proc, razor.skimstr)
+
+def adjustForFineGrainedMCPred(analysis, sfHists, auxSFs, shapes, plotOpts):
+    """
+    Modifies the analysis to run on each MC sample individually
+    rather than processing aggregated groups of samples.
+    analysis: Analysis object
+    sfHists: dictionary of scale factor histograms
+    auxSFs: dictionary of auxiliary scale factor specifications
+    shapes: dictionary of uncertainty options
+    plotOpts: dictionary of plotting options
+    """
+    newSamples = []
+    newFilenames = {'Data':analysis.filenames['Data']}
+    newExtraWeightOpts = {}
+    newSFHists = {}
+    newAuxSFs = {}
+    for proc in analysis.samples:
+        for subproc in getSubprocs(proc):
+            newSamples.append(subproc)
+            newFilenames[subproc] = getProcFilename(subproc, analysis)
+            if proc in auxSFs:
+                newAuxSFs[subproc] = auxSFs[proc]
+            if proc in analysis.extraWeightOpts:
+                newExtraWeightOpts[subproc] = analysis.extraWeightOpts[proc]
+    for name, hist in sfHists.iteritems():
+        isProcessSFHist = False
+        for proc in analysis.samples:
+            if name == proc:
+                isProcessSFHist = True
+                for subproc in getSubprocs(proc):
+                    newSFHists[subproc] = hist
+            elif name == proc+'Up':
+                isProcessSFHist = True
+                for subproc in getSubprocs(proc):
+                    newSFHists[subproc+'Up'] = hist
+            elif name == proc+'Down':
+                isProcessSFHist = True
+                for subproc in getSubprocs(proc):
+                    newSFHists[subproc+'Down'] = hist
+        if not isProcessSFHist:
+            newSFHists[name] = hist
+    if 'combineBackgrounds' in plotOpts:
+        combBkgs = plotOpts['combineBackgrounds']
+        newCombBkgs = {}
+        for proc in combBkgs:
+            bkgs = []
+            for p in combBkgs[proc]:
+                try:
+                    bkgs += getSubprocs(p)
+                except KeyError:
+                    # this happens when the process is not used
+                    continue
+            newCombBkgs[proc] = bkgs
+        for proc in analysis.samples:
+            alreadyDone = False
+            for _, procs in combBkgs.iteritems():
+                if proc in procs: 
+                    alreadyDone = True
+                    break
+            if not alreadyDone:
+                newCombBkgs[proc] = getSubprocs(proc)
+        plotOpts['combineBackgrounds'] = newCombBkgs
+    analysis.samples = newSamples
+    analysis.filenames = newFilenames
+    analysis.extraWeightOpts = newExtraWeightOpts
+    newShapes = makeFineGrainedShapeErrors(shapes)
+    return analysis, newSFHists, newAuxSFs, newShapes, plotOpts
+
+if __name__ == "__main__":
+    rt.gROOT.SetBatch()
+    parser = makeSignalRegionParser()
+    args = parser.parse_args()
+    debugLevel = args.verbose + 2*args.debug
+    tag = args.tag
+    boostCuts = not args.noBoostCuts
+    dirSuffix = getDirSuffix(args)
+    if not args.noFit:
+        print "Disabling fit option until needed again"
+        args.noFit = True
+    if args.noFit: 
+        toysToUse = {}
+    else:
+        toysToUse = razor.razorFitFiles[tag]
+    boxesToUse, btaglist = getBoxesAndBtags(args)
+
+    regionsOrder = []
+    regions = {}
+    for box in boxesToUse:
+        for btags in btaglist:
+            if box in ['DiJet', 'LeptonJet'] and btags > 2: continue
+            nbMin, nbMax = getNBMinMax(box, btags, args)
+            extBox = '%s%dB%s'%(box,btags,dirSuffix)
+            regionsOrder.append(extBox)
+            regions[extBox] = razor.Analysis(box, tag=tag, boostCuts=boostCuts,
+                    nbMin=nbMin, nbMax=nbMax)
+    processNames = regions.itervalues().next().samples
+    sfHists = loadAllScaleFactorHists(tag, args, 
+            processNames, debugLevel=debugLevel)
+
     for region in regionsOrder:
         analysis = regions[region]
+        plotOpts = getPlotOpts(args, analysis)
         boxName = region.replace(dirSuffix,'')[:-2]
         btags = int(region.replace(dirSuffix,'')[-2])
-        #get correct NJets scale factors
+        shapesToUse = copy.copy(shapes[boxName])
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
+        dataDrivenQCD = True
+        blindBins = [(x,y) for x in range(1,len(analysis.binning["MR"])+1) 
+                for y in range(1,len(analysis.binning["Rsq"])+1)]
+        sfHistsToUse = getScaleFactorHistsForBox(sfHists, boxName, btags)
+        auxSFsToUse = auxSFs.copy()
+
+        # modify analysis according to options
+        applyAnalysisOptions(analysis, args, boxName)
+        if args.unblind: 
+            blindBins = None
+        if args.qcdMC:
+            dataDrivenQCD = False
+        if args.noSys:
+            shapesToUse = []
+        if args.noSFs:
+            print "Ignoring all Data/MC scale factors"
+            sfHistsToUse = {}
+            auxSFsToUse = {}
+            shapesToUse = removeSFShapes(shapesToUse)
+        if args.fineGrained:
+            (analysis, sfHistsToUse, auxSFsToUse, shapesToUse, 
+                    plotOpts) = adjustForFineGrainedMCPred(
+                            analysis, sfHistsToUse, auxSFsToUse, shapesToUse, plotOpts)
 
         print "\nBox:",region,"("+boxName,str(btags),"B-tag)"
 
@@ -210,76 +448,8 @@ if __name__ == "__main__":
         outdir = "Plots/"+tag+"/"+region
         os.system('mkdir -p '+outdir)
 
-        blindBins = [(x,y) for x in range(2,len(analysis.binning["MR"])+1) 
-                for y in range(2,len(analysis.binning["Rsq"])+1)]
-
-        #apply options
-        dataDrivenQCD = True
-        if args.unblind: blindBins = None
-        if args.noQCD and 'QCD' in analysis.samples:
-            analysis.samples.remove('QCD')
-        elif args.qcdMC:
-            analysis.filenames['QCD'] = "Backgrounds/Signal/FullRazorInclusive_%s_QCD_1pb_weighted.root"%tag
-            dataDrivenQCD = False
-        if args.nloZInv:
-            analysis.filenames['ZInv'] = analysis.filenames['ZInv'].replace('ZInv_', 'ZInvPtBinned_')
-
-        if args.noMC: analysis.samples = []
-        if analysis.samples is None or len(analysis.samples) == 0:
-            analysis.filenames = {"Data":analysis.filenames["Data"]}
-        if args.noData: 
-            del analysis.filenames['Data']
-        shapesToUse = copy.copy(shapes[boxName])
-        if args.noSys:
-            shapesToUse = []
-        if (boxName not in toysToUse or toysToUse[boxName] is None) and 'sideband' in plotOpts:
-            del plotOpts['sideband']
-
-        ##### get correct set of scale factor histograms
-        sfHistsToUse = sfHists.copy()
-        auxSFsToUse = auxSFs.copy()
-        if 'MultiJet' in boxName:
-            jtype = 'MultiJet'
-        else:
-            jtype = 'DiJet'
-        #veto lepton/tau
-        for ltype in ['VetoLepton','VetoTau']:
-            for pteta in ['Pt','Eta']:
-                for updown in ['Up','Down']:
-                    sfHistsToUse[ltype+pteta+updown] = sfHistsToUse[ltype+jtype+pteta+updown]
-        ##ttbar dilepton, dyjets dilepton, and zinv b-tag
-        for name in ['TTJetsDilepton','DYJetsInv']:
-            for updown in ['Up','Down']:
-                sfHistsToUse[name+updown] = sfHistsToUse[name+jtype+updown]
-        #b-tag closure tests
-        for updown in ['BUp','BDown']:
-            for mrrsq in ['MR','Rsq']:
-                sfHistsToUse[mrrsq+updown] = sfHistsToUse[mrrsq+jtype+str(btags)+updown]
-            sfHistsToUse['ZInv'+updown] = sfHistsToUse[
-                    'ZInv'+jtype+str(btags)+updown]
-
-        #option to disable scale factors
-        if args.noSFs:
-            print "Ignoring all scale factor histograms and uncertainties from scale factor cross checks."
-            sfHistsToUse = {}
-            auxSFsToUse = {}
-            toRemove = ['btaginvcrosscheck','btagcrosscheckrsq','btagcrosscheckmr','sfsyszinv','ttcrosscheck','zllcrosscheck','sfsysttjets','sfsyswjets','vetolepptcrosscheck','vetotauptcrosscheck','vetolepetacrosscheck','vetotauetacrosscheck']
-            #remove scale factor cross check uncertainties
-            shapesToUse = [s for s in shapesToUse if s not in toRemove]
-            #this removes scale factor uncertainties that are listed as tuples
-            shapesToUse = [s for s in shapesToUse if not (hasattr(s, '__getitem__') and s[0] in toRemove)] 
-
-        #adjust baseline cuts
-        print "Adjust baseline cuts to exclude sideband"
-        if boxName in ['DiJet', 'MultiJet']:
-            analysis.cutsData = analysis.cutsData.replace('MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
-            analysis.cutsMC = analysis.cutsMC.replace('MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
-        else:
-            analysis.cutsData = analysis.cutsData.replace('MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
-            analysis.cutsMC = analysis.cutsMC.replace('MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
-
         #run analysis
-        hists = makeControlSampleHistsForAnalysis( analysis,
+        hists = makeControlSampleHistsForAnalysis(analysis,
                 sfHists=sfHistsToUse, treeName="RazorInclusive", 
                 shapeErrors=shapesToUse, fitToyFiles=toysToUse, boxName=boxName, 
                 blindBins=blindBins, btags=btags, debugLevel=debugLevel, 
@@ -288,5 +458,5 @@ if __name__ == "__main__":
                 propagateScaleFactorErrs=False)
         if not args.noSave:
             #export histograms
-            macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', outDir=outdir, 
-                    debugLevel=debugLevel)
+            macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', 
+                    outDir=outdir, debugLevel=debugLevel)

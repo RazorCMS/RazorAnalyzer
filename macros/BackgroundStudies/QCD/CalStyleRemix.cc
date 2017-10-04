@@ -137,7 +137,7 @@ void SetStyle()
   TStyle *CalStyle = new TStyle("Caltech-Style","The Even Perfecter Style for Plots ;-)");
   gStyle = CalStyle;
 
-  CalStyle->SetPalette(109);
+  CalStyle->SetPalette(56);
 
   // Canvas
   CalStyle->SetCanvasColor     (0);
