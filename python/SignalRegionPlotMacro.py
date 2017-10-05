@@ -19,6 +19,8 @@ def adjustFilenameForOptions(fName, args):
         fName = fName.replace('.root','NLOZInv.root')
     if args.fineGrained:
         fName = fName.replace('.root', 'FineGrained.root')
+    if args.sideband:
+        fName = fName.replace('.root', 'Sideband.root')
     return fName
 
 if __name__ == "__main__":
@@ -35,6 +37,7 @@ if __name__ == "__main__":
     dirName = 'Plots/%s/%s%dB'%(tag,box,btags)+sig.getDirSuffix(args)
 
     analysis = Analysis(box, tag=tag, nbMin=btags, nbMax=btags)
+    sig.applyAnalysisOptions(analysis, args, box)
     plotOpts = sig.getPlotOpts(args, analysis)
 
     blindBins = [(x,y) for x in range(1,len(analysis.binning["MR"])+1) 
@@ -59,11 +62,11 @@ if __name__ == "__main__":
     print "\n---",box,"Box,",btags,"B-tags ---"
 
     extbox = box+str(btags)+"B"
-    unrollBins = analysis.unrollBins
     lumi = analysis.lumi
     samples = analysis.samples
     inFile = dirName+'/razorHistograms'+extbox+'.root'
     inFile = adjustFilenameForOptions(inFile, args)
+    unrollBins = analysis.unrollBins
     print "Input file: {}".format(inFile)
 
     plotControlSampleHists(box, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 

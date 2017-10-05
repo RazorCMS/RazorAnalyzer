@@ -1,6 +1,7 @@
 import sys,os,copy
 import ROOT as rt
 
+from framework import Config
 from macro import macro, razorWeights
 import macro.razorAnalysis as razor
 from macro.razorMacros import makeControlSampleHistsForAnalysis
@@ -55,6 +56,8 @@ def makeSignalRegionParser():
             help='use NLO sample for Z->nu nu prediction')
     parser.add_argument('--fine-grained', dest='fineGrained', action='store_true',
             help='Process each MC sample separately')
+    parser.add_argument('--sideband', action='store_true',
+            help='Process sideband instead of extrapolation region')
     return parser
 
 def getDirSuffix(args):
@@ -73,6 +76,8 @@ def getDirSuffix(args):
         dirSuffix += 'NLOZInv'
     if args.fineGrained:
         dirSuffix += 'FineGrained'
+    if args.sideband:
+        dirSuffix += 'Sideband'
     return dirSuffix
 
 def getPlotOpts(args, analysis):
@@ -201,9 +206,49 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
         hist.SetDirectory(0)
     return sfHists
 
+def adjustCuts(analysis, boxName, sideband=False):
+    if not sideband:
+        print "Adjust baseline cuts to exclude sideband"
+        if boxName in ['DiJet', 'MultiJet']:
+            analysis.cutsData = analysis.cutsData.replace(
+                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
+            analysis.cutsMC = analysis.cutsMC.replace(
+                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
+        else:
+            analysis.cutsData = analysis.cutsData.replace(
+                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
+            analysis.cutsMC = analysis.cutsMC.replace(
+                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
+    else:
+        print "Adjust baseline cuts to select only sideband"
+        if boxName in ['DiJet', 'MultiJet']:
+            minMR = 500
+            maxMR = 650
+            minRsq = 0.25
+            maxRsq = 0.30
+        else:
+            minMR = 400
+            maxMR = 550
+            minRsq = 0.15
+            maxRsq = 0.20
+        # quick hack, not very stable
+        replaceStr = 'MR > {} && MR < 4000 && Rsq > {} && Rsq < 1.5'.format(minMR, minRsq)
+        newStr = 'MR > {} && Rsq > {} && (MR < {} || Rsq < {})'.format(
+                    minMR, minRsq, maxMR, maxRsq)
+        analysis.cutsData = analysis.cutsData.replace(replaceStr, newStr)
+        analysis.cutsMC = analysis.cutsMC.replace(replaceStr, newStr)
+        analysis.unrollBins = (
+                razor.xbinsSignalSideband[boxName]["{}B".format(analysis.nbMin)],
+                razor.colsSignalSideband[boxName]["{}B".format(analysis.nbMin)])
+        # need binning that extends down into sideband region
+        cfg = Config.Config("config/run2_2017_03_13_SeparateBtagFits_forToys.config")
+        analysis.binning['MR'] = cfg.getBinning(boxName)[0]
+        analysis.binning['Rsq'] = cfg.getBinning(boxName)[1]
+
 def applyAnalysisOptions(analysis, args, boxName=None):
     """
     Changes Analysis object attributes according to specified options"""
+    print "Applying options to {}".format(boxName)
     if args.noQCD and 'QCD' in analysis.samples:
         analysis.samples.remove('QCD')
     elif args.qcdMC:
@@ -216,17 +261,7 @@ def applyAnalysisOptions(analysis, args, boxName=None):
     if args.noData: 
         del analysis.filenames['Data']
     if boxName is not None:
-        print "Adjust baseline cuts to exclude sideband"
-        if boxName in ['DiJet', 'MultiJet']:
-            analysis.cutsData = analysis.cutsData.replace(
-                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
-            analysis.cutsMC = analysis.cutsMC.replace(
-                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
-        else:
-            analysis.cutsData = analysis.cutsData.replace(
-                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
-            analysis.cutsMC = analysis.cutsMC.replace(
-                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
+        adjustCuts(analysis, boxName, sideband=args.sideband)
 
 def getScaleFactorHistsForBox(sfHists, boxName, btags):
     sfHistsToUse = sfHists.copy()
@@ -455,7 +490,7 @@ if __name__ == "__main__":
                 blindBins=blindBins, btags=btags, debugLevel=debugLevel, 
                 auxSFs=auxSFsToUse, dataDrivenQCD=dataDrivenQCD, printdir=outdir, 
                 plotOpts=plotOpts, noFill=args.noFill, exportShapeErrs=True, 
-                propagateScaleFactorErrs=False)
+                propagateScaleFactorErrs=False, makePlots=False)
         if not args.noSave:
             #export histograms
             macro.exportHists(hists, outFileName='razorHistograms'+region+'.root', 
