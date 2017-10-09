@@ -1506,7 +1506,7 @@ def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".",
     """
 
     maxBtags = getMaxBtags(boxName)
-    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"B.root" 
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BFineGrained.root" 
             for b in range(maxBtags+1)]
 
     hists = []
