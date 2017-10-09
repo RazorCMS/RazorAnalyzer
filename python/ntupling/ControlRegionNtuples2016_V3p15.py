@@ -99,9 +99,8 @@ SAMPLES['1L'] = {
              'ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1',
              ],
         "TTJets":[
-             'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-             'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-             'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+             'TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
+             'TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
             ],
         "Other":[
                 'WWTo2L2Nu_13TeV-powheg',
@@ -156,10 +155,6 @@ SAMPLES['1L'] = {
                 'DYJetsToLL_Pt-400To650_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                 'DYJetsToLL_Pt-650ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
             ],
-        'TTJetsPowheg':[
-                'TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
-                'TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
-            ]
         }
 SAMPLES['1LInv'] = SAMPLES['1L'].copy()
 SAMPLES['1LInv']['WJets'] = [
@@ -209,11 +204,10 @@ SAMPLES['Photon'] = {
         }
 SAMPLES['Signal'] = SAMPLES['1L'].copy()
 SAMPLES['Signal']['TTJets1L'] = [
-                'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
             ]
 SAMPLES['Signal']['TTJets2L'] = [
-                'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
             ]
 del SAMPLES['Signal']['TTJets']
 
