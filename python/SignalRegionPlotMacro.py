@@ -35,6 +35,10 @@ if __name__ == "__main__":
     box = args.box
     btags = args.btags
     dirName = 'Plots/%s/%s%dB'%(tag,box,btags)+sig.getDirSuffix(args)
+    if 'Blinded' in dirName:
+        # allow making blinded plots even when histograms 
+        # were filled with unblind option
+        dirName = dirName.replace('Blinded', '')
 
     analysis = Analysis(box, tag=tag, nbMin=btags, nbMax=btags)
     sig.applyAnalysisOptions(analysis, args, box)
