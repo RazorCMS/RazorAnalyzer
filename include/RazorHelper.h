@@ -131,7 +131,9 @@ class RazorHelper {
         bool isTopTaggedAK8Jet(RazorAnalyzer *ra, uint iJet);
         float getTagEfficiency(TH1F *effHist, float genPt, int updown=0);
         float getWTagEfficiency(float genWPt, int updown=0);
+        float getWTagFastsimSF(float genWPt, int updown=0);
         float getTopTagEfficiency(float genTopPt, int updown=0);
+        float getTopTagFastsimSF(float genTopPt, int updown=0);
         AK8JetInfo CalcAK8JetInfo(RazorAnalyzer *ra, bool isData);
 
     private:
@@ -334,8 +336,10 @@ class RazorHelper {
         TF1 *puppiSoftDropCorr_RecoForward;
         TH1F *wTagEffFullsim;
         TH1F *wTagEffFastsim;
+        TH1F *wTagEffFastsimSF;
         TH1F *topTagEffFullsim;
         TH1F *topTagEffFastsim;
+        TH1F *topTagEffFastsimSF;
 };
 
 #endif

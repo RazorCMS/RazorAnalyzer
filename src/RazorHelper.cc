@@ -878,9 +878,11 @@ void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
     wTopTagEffFile = TFile::Open("AK8WTopTagEff.root");
     wTagEffFullsim = (TH1F*)wTopTagEffFile->Get("WTagEffFullsim");
     wTagEffFastsim = (TH1F*)wTopTagEffFile->Get("WTagEffFastsim");
+    wTagEffFastsimSF = (TH1F*)wTopTagEffFile->Get("WTagEffFastsimSF");
 
     topTagEffFullsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFullsim");
     topTagEffFastsim = (TH1F*)wTopTagEffFile->Get("TopTagEffFastsim");
+    topTagEffFastsimSF = (TH1F*)wTopTagEffFile->Get("TopTagEffFastsimSF");
 }
 
 
@@ -1946,12 +1948,13 @@ void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool i
 
 // top pt reweighting from https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
 float RazorHelper::getTopPtWeight( float ptT, float ptTbar ) {
-    // do not extrapolate correction beyond pt = 400 GeV
-    if( ptT > 400 ) ptT = 400;
-    if( ptTbar > 400 ) ptTbar = 400;
+    // do not extrapolate correction beyond pt = 800 GeV
+    if( ptT > 800 ) ptT = 800;
+    if( ptTbar > 800 ) ptTbar = 800;
 
-    float a = 0.156; // from 8 TeV, still recommended for 13 TeV use
-    float b = -0.00137; //from 8 TeV, still recommended for 13 TeV use
+    // fit parameters recommended for 13 TeV data
+    float a = 0.0615; 
+    float b = -0.0005;
 
     // weight from top
     float weightT = exp( a + b*ptT );
@@ -2066,11 +2069,19 @@ float RazorHelper::getWTagEfficiency(float genWPt, int updown) {
     return getTagEfficiency(wTagEffFullsim, genWPt, updown);
 }
 
+float RazorHelper::getWTagFastsimSF(float genWPt, int updown) {
+    return getTagEfficiency(wTagEffFastsimSF, genWPt, updown);
+}
+
 float RazorHelper::getTopTagEfficiency(float genTopPt, int updown) {
     if ( isFastsim ) {
         return getTagEfficiency(topTagEffFastsim, genTopPt, updown);
     }
     return getTagEfficiency(topTagEffFullsim, genTopPt, updown);
+}
+
+float RazorHelper::getTopTagFastsimSF(float genTopPt, int updown) {
+    return getTagEfficiency(topTagEffFastsimSF, genTopPt, updown);
 }
 
 RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isData) {
@@ -2125,12 +2136,21 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
             jetInfo.wTagScaleFactor_Tau21Down *= getPassOrFailScaleFactor(
                     eff, W_TAG_SF_DOWN, isWTagged);
             if (isFastsim) {
-                float effUp = getWTagEfficiency(genWPt, 1);
-                float effDown = getWTagEfficiency(genWPt, -1);
                 jetInfo.wTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
-                        effUp, W_TAG_SF, isWTagged);
+                        eff, W_TAG_SF, isWTagged);
                 jetInfo.wTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
-                        effDown, W_TAG_SF, isWTagged);
+                        eff, W_TAG_SF, isWTagged);
+
+                float fastsimSF = getWTagFastsimSF(genWPt);
+                jetInfo.wTagScaleFactor *= getPassOrFailScaleFactor(
+                        eff*fastsimSF, fastsimSF, isWTagged);
+
+                float fastsimSFUp = getWTagFastsimSF(genWPt, 1);
+                float fastsimSFDown = getWTagFastsimSF(genWPt, -1);
+                jetInfo.wTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        eff*fastsimSFUp, fastsimSFUp, isWTagged);
+                jetInfo.wTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        eff*fastsimSFDown, fastsimSFDown, isWTagged);
             }
         }
         // Up/down variations of PUPPI soft drop mass
@@ -2162,12 +2182,21 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
             jetInfo.topTagScaleFactor_Tau32Down *= getPassOrFailScaleFactor(
                     eff, TOP_TAG_SF_DOWN, isTopTagged);
             if (isFastsim) {
-                float effUp = getTopTagEfficiency(genTopPt, 1);
-                float effDown = getTopTagEfficiency(genTopPt, -1);
                 jetInfo.topTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
-                        effUp, TOP_TAG_SF, isTopTagged);
+                        eff, TOP_TAG_SF, isTopTagged);
                 jetInfo.topTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
-                        effDown, TOP_TAG_SF, isTopTagged);
+                        eff, TOP_TAG_SF, isTopTagged);
+
+                float fastsimSF = getTopTagFastsimSF(genTopPt);
+                jetInfo.topTagScaleFactor *= getPassOrFailScaleFactor(
+                        eff*fastsimSF, fastsimSF, isTopTagged);
+
+                float fastsimSFUp = getTopTagFastsimSF(genTopPt, 1);
+                float fastsimSFDown = getTopTagFastsimSF(genTopPt, -1);
+                jetInfo.topTagScaleFactor_FastsimEffUp *= getPassOrFailScaleFactor(
+                        eff*fastsimSFUp, fastsimSFUp, isTopTagged);
+                jetInfo.topTagScaleFactor_FastsimEffDown *= getPassOrFailScaleFactor(
+                        eff*fastsimSFDown, fastsimSFDown, isTopTagged);
             }
         }
     }
