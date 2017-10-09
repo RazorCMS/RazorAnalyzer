@@ -212,21 +212,21 @@ void RazorControlRegions::Analyze(bool isData, int option, string outputfilename
       }
 
       //Find ttbar pair
-      float ptTop = -1;
-      float ptAntitop = -1;
+      events->ptTop = -1;
+      events->ptAntitop = -1;
       for(int j = 0; j < nGenParticle; j++){
           //top
-          if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && ptTop < 0 ) {
-              ptTop = gParticlePt[j];
+          if ( gParticleStatus[j] == 22 && gParticleId[j] == 6  && events->ptTop < 0 ) {
+              events->ptTop = gParticlePt[j];
           }
           //antitop
-          if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && ptAntitop < 0 ) {
-              ptAntitop = gParticlePt[j];
+          if ( gParticleStatus[j] == 22 && gParticleId[j] == -6 && events->ptAntitop < 0 ) {
+              events->ptAntitop = gParticlePt[j];
           }
       }
       // get top pt weight
-      if ( ptTop > 0 && ptAntitop > 0 ) {
-          events->topPtWeight = helper.getTopPtWeight( ptTop, ptAntitop );
+      if ( events->ptTop > 0 && events->ptAntitop > 0 ) {
+          events->topPtWeight = helper.getTopPtWeight( events->ptTop, events->ptAntitop );
           // fill sum of top pt weights
           SumTopPtWeights->SetBinContent( 1, SumTopPtWeights->GetBinContent(1) + events->topPtWeight);
       }
