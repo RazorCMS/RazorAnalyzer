@@ -1,7 +1,6 @@
 import copy
 
-VERSION = "V3p15_29Aug2017"
-#VERSION = "V3p15_12Sep2017"
+VERSION = "V3p15_05Oct2017"
 
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
@@ -157,6 +156,10 @@ SAMPLES['1L'] = {
                 'DYJetsToLL_Pt-400To650_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                 'DYJetsToLL_Pt-650ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
             ],
+        'TTJetsPowheg':[
+                'TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
+                'TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
+            ]
         }
 SAMPLES['1LInv'] = SAMPLES['1L'].copy()
 SAMPLES['1LInv']['WJets'] = [
