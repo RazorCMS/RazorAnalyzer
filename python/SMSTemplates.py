@@ -8,7 +8,7 @@ from array import array
 from DustinTuples2DataCard import uncorrelate, getTheoryCrossSectionAndError
 from macro.razorAnalysis import Analysis
 from macro.razorMacros import makeControlSampleHistsForAnalysis, getMaxBtags, unrollAndStitch
-from macro.razorWeights import getNPVHist
+from macro.razorWeights import getNPVHist, getNISRScaleFactor
 
 signalShapeUncerts = ['tightmuoneff','tighteleeff','vetomuoneff',
         'vetoeleeff','jes','muontrig','eletrig','btag',
@@ -169,6 +169,22 @@ def doGenMetVsPFMetSystematic(hists):
             hist.SetBinContent(ibin, hist.GetBinContent(ibin)
                     * central/pfmetYield)
 
+def getGlobalNISRScaleFactor(f):
+    """
+    Gets the scale factor needed to avoid
+    the NISR weights changing the overall
+    signal cross section
+    """
+    nisr = f.Get("NISRJets") 
+    numUnweighted = 0
+    numWeighted = 0
+    for nisrJets in range(nisr.GetNbinsX()):
+        nisrEvents = nisr.GetBinContent(nisrJets+1)
+        nisrWeight = getNISRScaleFactor(nisrJets)
+        numUnweighted += nisrEvents
+        numWeighted += nisrEvents * nisrWeight
+    return numUnweighted / numWeighted
+
 def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
         tag="Razor2016_MoriondRereco", opts=None, boostCuts=True):
     """Returns a dictionary of histograms representing predicted
@@ -232,8 +248,11 @@ def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
         f = rt.TFile.Open(inFile)
         nEvents = f.Get('NEvents').Integral()
         globalScaleFactor = thyXsec/nEvents 
+        nisrFactor = getGlobalNISRScaleFactor(f)
+        globalScaleFactor *= nisrFactor
         print "Number of events: %d"%nEvents
         print "Integrated luminosity: %d /pb"%analysis.lumi
+        print "Overall NISR scale factor: {}".format(nisrFactor)
         print "Overall scale factor: %.3f"%(
                 analysis.lumi * globalScaleFactor)
 
