@@ -109,6 +109,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 
   int NJet20;
   float jet1Pt, jet2Pt, jet3Pt, jet4Pt;
+  float jet1CISV, jet2CISV, jet3CISV, jet4CISV;
   int NJet30;
   int NBJet20;
   int NBJet30;
@@ -153,6 +154,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("jet2Pt", &jet2Pt, "jet2Pt/F");
   outputTree->Branch("jet3Pt", &jet3Pt, "jet3Pt/F");
   outputTree->Branch("jet4Pt", &jet4Pt, "jet4Pt/F");
+  outputTree->Branch("jet1CISV", &jet1CISV, "jet1CISV/F");
+  outputTree->Branch("jet2CISV", &jet2CISV, "jet2CISV/F");
+  outputTree->Branch("jet3CISV", &jet3CISV, "jet3CISV/F");
+  outputTree->Branch("jet4CISV", &jet4CISV, "jet4CISV/F");
   outputTree->Branch("NJet30", &NJet30, "NJet30/I");
   outputTree->Branch("NBJet20", &NBJet20, "NBJet20/I");
   outputTree->Branch("NBJet30", &NBJet30, "NBJet30/I");
@@ -268,6 +273,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       jet2Pt = -999.;
       jet3Pt = -999.;
       jet4Pt = -999.;
+      jet1CISV = -999.;
+      jet2CISV = -999.;
+      jet3CISV = -999.;
+      jet4CISV = -999.;
       NJet30 = 0;
       NBJet20 = 0;
       NBJet30 = 0;     
@@ -525,6 +534,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       //Select Jets
       //***********************************************
       std::vector<double> jetPtVector;
+      std::vector<double> jetCISVVector;
       auto ptOrder = [](auto a, auto b) { return a > b; };
       
       for(int i = 0; i < nJets; i++){
@@ -557,6 +567,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 
 	NJet20++;
 	jetPtVector.push_back(thisJet.Pt());
+	jetCISVVector.push_back( jetCISV[i] );
 	if (thisJet.Pt() > 30) {
 	  NJet30++;
 	  if (lep3Index >= 0) {
@@ -580,6 +591,13 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       if (jetPtVector.size() >= 2) jet2Pt = jetPtVector.at(1);
       if (jetPtVector.size() >= 3) jet3Pt = jetPtVector.at(2);
       if (jetPtVector.size() >= 4) jet4Pt = jetPtVector.at(3);
+      
+      sort(jetCISVVector.begin(), jetCISVVector.end(), ptOrder);
+      if (jetCISVVector.size() >= 1) jet1CISV = jetCISVVector.at(0);
+      if (jetCISVVector.size() >= 2) jet2CISV = jetCISVVector.at(1);
+      if (jetCISVVector.size() >= 3) jet3CISV = jetCISVVector.at(2);
+      if (jetCISVVector.size() >= 4) jet4CISV = jetCISVVector.at(3);
+      
       
       //cout << "NJet: " << NJet20 << " " << NJet30 << " " << NBJet20 << " " << NBJet30 << "\n";
       
