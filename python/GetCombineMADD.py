@@ -55,6 +55,10 @@ if __name__ == '__main__':
                   help="for significance instead of limit")
     parser.add_option('--toys',dest="doHybridNew",default=False,action='store_true',
                   help="for toys instead of asymptotic")
+    parser.add_option('--combine-name', dest='combineName',
+            help='Name prefix used for combine files')
+    parser.add_option('--in-dir', dest='inDir', 
+            help='Input directory (if different from output directory)')
 
     (options,args) = parser.parse_args()
 
@@ -62,6 +66,10 @@ if __name__ == '__main__':
     boxInput = options.box
     model = options.model
     directory = options.outDir
+    if options.inDir is not None:
+        inDir = options.inDir
+    else:
+        inDir = directory
     doHybridNew = options.doHybridNew
     doSignificance = options.doSignificance
 
@@ -102,7 +110,10 @@ if __name__ == '__main__':
         modelName = 'SMS-'+('_'.join([model, str(mg), str(mchi)]))
         
         #open file if present
-        combineName = 'MADD_'+options.box+'_'+modelName
+        if options.combineName is not None:
+            combineName = options.combineName+'_'+modelName
+        else:
+            combineName = 'MADD_'+options.box+'_'+modelName
         if doSignificance and doHybridNew:
             prefix = 'higgsCombineSignif'
             suffix = 'HybridNew'
@@ -115,7 +126,7 @@ if __name__ == '__main__':
         else:
             prefix = 'higgsCombine'
             suffix = 'Asymptotic'
-        filename = directory+'/'+prefix+combineName+'.'+suffix+'.mH120.root'
+        filename = inDir+'/'+prefix+combineName+'.'+suffix+'.mH120.root'
         if not glob.glob(filename): 
             print "Didn't find file",filename
             continue

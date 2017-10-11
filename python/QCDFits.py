@@ -23,7 +23,7 @@ def makeQCDHist(name, xbins):
 if __name__ == '__main__':
     rt.gROOT.SetBatch()
 
-    inFile = rt.TFile.Open("/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/macros/BackgroundStudies/QCD/qcdTranslationFactors.root")
+    inFile = rt.TFile.Open("/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/macros/BackgroundStudies/QCD/qcdTranslationFactors_final.root")
     outFile = rt.TFile.Open("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root", "recreate")
     c = rt.TCanvas("c","c",800,600)
     for box in ['MultiJet','DiJet']:

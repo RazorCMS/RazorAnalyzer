@@ -1,6 +1,6 @@
 import copy
 
-VERSION = "V3p15_12Sep2017"
+VERSION = "V3p15_05Oct2017"
 
 TREETYPES = { '1L':'OneLeptonFull',
               '1LInv':'OneLeptonAddToMET',
@@ -95,13 +95,12 @@ SAMPLES['1L'] = {
              'ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1',
              'ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1',
              'ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1',
-             'ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
-             'ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1',
+             'ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1',
+             'ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1',
              ],
         "TTJets":[
-             'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-             'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-             'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+             'TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
+             'TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
             ],
         "Other":[
                 'WWTo2L2Nu_13TeV-powheg',
@@ -205,11 +204,10 @@ SAMPLES['Photon'] = {
         }
 SAMPLES['Signal'] = SAMPLES['1L'].copy()
 SAMPLES['Signal']['TTJets1L'] = [
-                'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
-                'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
             ]
 SAMPLES['Signal']['TTJets2L'] = [
-                'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                'TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8',
             ]
 del SAMPLES['Signal']['TTJets']
 

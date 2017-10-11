@@ -1366,7 +1366,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                   TLorentzVector ele = GoodElectrons.at(k);
                   if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 0.4) overlape = true;
           }
-          
+
 	  if( doEleVeto && overlape ) continue;
 
 	  //**********************************************************
@@ -2505,7 +2505,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
 
               //HighRes Box
-              else if( Pho_sigmaEOverE[0] < 0.015 && Pho_sigmaEOverE[1] < 0.015 ) razorbox = HighRes;
+              else if( sigmaMoverM < 0.0085 ) razorbox = HighRes;
 
               //LowRes Box
               else razorbox = LowRes;

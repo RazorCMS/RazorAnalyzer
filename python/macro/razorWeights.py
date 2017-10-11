@@ -55,26 +55,28 @@ def makeQCDExtrapolation(qcd2DHist, wHists, region, btags,
                 bx, by) * extrapFactor)
     return newHist
 
+def getNISRScaleFactor(nisr, d=1.071):
+    """See comments at getNISRCorrection()"""
+    if nisr == 0:
+        return d
+    if nisr == 1:
+        return d * 0.920
+    if nisr == 2:
+        return d * 0.821
+    if nisr == 3:
+        return d * 0.715
+    if nisr == 4:
+        return d * 0.662
+    if nisr == 5:
+        return d * 0.561
+    return d * 0.511
 
-def getNISRCorrection(event):
+def getNISRCorrection(event, d=1.071):
     """Computes a weight according to the number of ISR jets in the (ttbar) event.
         Details at https://indico.cern.ch/event/592621/contributions/2398559/
         attachments/1383909/2105089/16-12-05_ana_manuelf_isr.pdf"""
-    d = 1.071
     n = event.NISRJets
-    if n == 0:
-        return d
-    if n == 1:
-        return d * 0.920
-    if n == 2:
-        return d * 0.821
-    if n == 3:
-        return d * 0.715
-    if n == 4:
-        return d * 0.662
-    if n == 5:
-        return d * 0.561
-    return d * 0.511
+    return getNISRScaleFactor(n, d)
 
 def passTrigger(event, triggerNumList):
     """Checks if the event passed any trigger in the list"""
@@ -707,6 +709,7 @@ def splitShapeErrorsByType(shapeErrors):
         'isr':True,
         'muontrig':True,
         'eletrig':True,
+        'wtag':True,
         }
     sfUncertainties = []
     otherUncertainties = []

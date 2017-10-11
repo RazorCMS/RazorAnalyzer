@@ -40,9 +40,10 @@ razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorExtraWeightOpts = {
         "Razor2016G_SUSYUnblind_80X":{
-            'TTJets':['nisr'], # weight ttbar sample according to number of ISR jets
-            'TTJets1L':['nisr'], 
-            'TTJets2L':['nisr'],
+            'TTJets':['toppt'], 
+            'TTJets1L':['toppt'], 
+            'TTJets2L':['toppt'],
+            'Signal':['nisr'],
                  }
         }
 razorExtraWeightOpts["Razor2016_MoriondRereco"] = razorExtraWeightOpts["Razor2016G_SUSYUnblind_80X"]
@@ -252,7 +253,7 @@ dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/201
 
 for tag in sampleTags2016:
     razorNtuples["SingleLepton"][tag] = {
-            "TTJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
             "WJets"    : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -260,7 +261,7 @@ for tag in sampleTags2016:
             "Data"     : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["Dilepton"][tag] = {
-            "TTJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
             "WJets"    : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -268,7 +269,7 @@ for tag in sampleTags2016:
             "Data"     : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["SingleLeptonInv"][tag] = {
-            "TTJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
             "WJetsInv"    : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -276,7 +277,7 @@ for tag in sampleTags2016:
             "Data"     : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["DileptonInv"][tag] = {
-            "TTJets"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
             "WJets"    : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJetsInv"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -284,7 +285,7 @@ for tag in sampleTags2016:
             "Data"     : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["VetoLepton"][tag] = {
-            "TTJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
             "WJets"    : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -294,7 +295,7 @@ for tag in sampleTags2016:
             "Data"     : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["VetoTau"][tag] = {
-            "TTJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_TTJets_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
             "WJets"    : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -345,7 +346,7 @@ for tag in sampleTags2016:
 
     #Signal ntuples
     razorSignalDirs = {
-            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_29Aug2017/SignalFastsim/"
+            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/SignalFastsim/"
             }
 
 
@@ -646,10 +647,10 @@ muonRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet"]
 leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
-dileptonSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
-leptonicSignalRegionCuts = "MR > 400.000000 && MR < 4000 && Rsq > 0.150000 && Rsq < 1.5 && mT > 120 && nSelectedJets >= 2"
-looseLeptonSignalRegionCuts = "MR > 500.000000 && MR < 4000 && Rsq > 0.250000 && Rsq < 1.5 && mTLoose > 100 && nJets80 >= 2"
-hadronicSignalRegionCuts = "MR > 500.000000 && MR < 4000 && Rsq > 0.250000 && Rsq < 1.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+dileptonSignalRegionCuts = "MR > 400 && MR < 4000 && Rsq > 0.15 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
+leptonicSignalRegionCuts = "MR > 400 && MR < 4000 && Rsq > 0.15 && Rsq < 1.5 && mT > 120 && nSelectedJets >= 2"
+looseLeptonSignalRegionCuts = "MR > 500 && MR < 4000 && Rsq > 0.25 && Rsq < 1.5 && mTLoose > 100 && nJets80 >= 2"
+hadronicSignalRegionCuts = "MR > 500 && MR < 4000 && Rsq > 0.25 && Rsq < 1.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 
 for box in razorBoxes:
     if box in hadronicRazorBoxes: 
@@ -864,6 +865,11 @@ xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJe
 colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
                 "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
 
+xbinsSignalSideband = { "MultiJet":{}, "LeptonMultiJet":{},
+                "DiJet":{}, "LeptonJet":{} }
+colsSignalSideband = { "MultiJet":{}, "LeptonMultiJet":{},
+                "DiJet":{}, "LeptonJet":{} }
+
 xbinsSignal["MultiJet"]["0B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["1B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["2B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
@@ -881,7 +887,6 @@ xbinsSignal["EleMultiJet"]["0B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["1B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["2B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
 xbinsSignal["EleMultiJet"]["3B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
-
 
 xbinsSignal["DiJet"] = xbinsSignal["MultiJet"]
 xbinsSignal["MuJet"] = xbinsSignal["MuMultiJet"]
@@ -906,6 +911,12 @@ xbinsSignal["DiJet_0b"] = xbinsSignal["DiJet"]
 xbinsSignal["DiJet_1b"] = xbinsSignal["DiJet"]
 xbinsSignal["DiJet_2b"] = xbinsSignal["DiJet"]
 
+for box in ['MultiJet', 'DiJet']:
+    xbinsSignalSideband[box] = { btags:[500, 575]+bins 
+            for btags, bins in xbinsSignal[box].iteritems() }
+for box in ['LeptonMultiJet', 'LeptonJet']:
+    xbinsSignalSideband[box] = { btags:[400, 475]+bins 
+            for btags, bins in xbinsSignal[box].iteritems() }
 
 colsSignal["MultiJet"]["0B"] = [
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
@@ -1015,6 +1026,21 @@ colsSignal["MultiJet_2b"] = colsSignal["MultiJet"]
 colsSignal["DiJet_0b"] = colsSignal["DiJet"]
 colsSignal["DiJet_1b"] = colsSignal["DiJet"]
 colsSignal["DiJet_2b"] = colsSignal["DiJet"]
+
+for box in ['MultiJet', 'DiJet']:
+    for btags, bins in colsSignal[box].iteritems():
+        colsSignalSideband[box][btags] = [
+                [0.25]+bins[0],
+                [0.25]+bins[1]
+                ]
+        colsSignalSideband[box][btags] += [[0.25, 0.30] for _ in range(len(bins))]
+for box in ['LeptonMultiJet', 'LeptonJet']:
+    for btags, bins in colsSignal[box].iteritems():
+        colsSignalSideband[box][btags] = [
+                [0.15]+bins[0],
+                [0.15]+bins[1]
+                ]
+        colsSignalSideband[box][btags] += [[0.15, 0.20] for _ in range(len(bins))]
 
 xbinsSignal["SevenJet"]["0B"] = [ 500, 600, 700, 900, 1200, 4000 ]
 xbinsSignal["SevenJet"]["1B"] = [ 500, 600, 700, 900, 1200, 4000 ]

@@ -8,7 +8,8 @@ from array import array
 from GChiPairs import gchipairs
     
 def writeBashScript(tag, box, model, mg, mchi, submitDir, 
-        noSys, bkgDir=None, saveWorkspace=False, noBoostCuts=False):
+        noSys, bkgDir=None, saveWorkspace=False, noBoostCuts=False,
+        fineGrained=False):
     
     massPoint = "%i_%i"%(mg, mchi)
 
@@ -19,6 +20,8 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
         optString += ' --save-workspace'
     if noBoostCuts:
         optString += ' --no-boost-cuts'
+    if fineGrained:
+        optString += ' --fine-grained'
 
     particleString = '--mStop'
     if 'T1' in model or 'T5' in model:
@@ -51,7 +54,7 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20170920\n' 
+    script += 'git checkout -b Limits LimitsMADD20171009\n' 
     script += 'make\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py'
@@ -99,6 +102,8 @@ if __name__ == '__main__':
               action='store_true',help='save workspace in output file')
     parser.add_argument('--no-boost-cuts', dest='noBoostCuts',
             action='store_true')
+    parser.add_argument('--fine-grained', dest='fineGrained', action='store_true',
+            help='Use fineGrained option for WriteRazorMADDCard')
 
     args = parser.parse_args()
     boxes = args.box.split('_')
@@ -137,7 +142,8 @@ if __name__ == '__main__':
         os.system("mkdir -p "+pwd+"/Limits/"+args.outDir)
         outputname,ffDir = writeBashScript(args.tag, args.box, 
                 args.model, mg, mchi, args.outDir, args.noSys, args.bkgDir, 
-                args.saveWorkspace, noBoostCuts=args.noBoostCuts)
+                args.saveWorkspace, noBoostCuts=args.noBoostCuts,
+                fineGrained=args.fineGrained)
         
         os.system("mkdir -p "+pwd+"/"+ffDir)
         os.system("echo bsub -q "+args.queue+" -o "+pwd+"/"+ffDir+"/log.log source "+pwd+"/"+outputname)        

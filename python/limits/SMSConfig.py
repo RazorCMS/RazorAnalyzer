@@ -1,12 +1,15 @@
 import copy
 
-VERSION = '20Sep2017'
+VERSION = '09Oct2017'
+BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_09_20"
+BOOST_LOCAL_DIR = "syst_results/run_2017_08_28_syst_combined/cards"
 
 DISP_OFFSET = 12.5 # Extra offset needed for display purposes
 
 ALL_BOXES = ['DiJet', 'MultiJet', 'LeptonJet', 'LeptonMultiJet']
 HADRONIC_BOXES = ['DiJet', 'MultiJet']
 GLUINO_BOXES = ['MultiJet', 'LeptonMultiJet']
+BOOST_BOXES = ['WAna_nj35', 'WAna_nj6', 'TopAna']
 
 class SMS(object):
 
@@ -51,8 +54,7 @@ sms_models = {
             diagonalOffset=225),
         'T1tttt':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
             diagonalOffset=225),
-        'T5ttcc':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
-            diagonalOffset=225),
+        'T5ttcc':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES),
         'T1qqqq':SMS(600, 2300, 0, 1650, boxes=HADRONIC_BOXES),
         'T2bb':SMS(100, 1500, 0, 800, boxes=HADRONIC_BOXES,
             isGluino=False),

@@ -11,9 +11,10 @@ from RunCombine import exec_me
 from SMSTemplates import makeSMSTemplates, signalShapeUncerts, SMSOpts
 from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
 from framework import Config
+from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_20Sep2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_09Oct2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -30,6 +31,58 @@ def getCardName(modelName, box, outDir):
     return outDir+'/RazorInclusiveMADD_%s_%s.txt'%(
                 modelName, box)
 
+def consolidateBackgroundHists(hists, origProcs):
+    """
+    Input: a dictionary of histograms, and a list of sample names
+    Output: a dictionary of histograms in which the histograms
+        belonging to a common MC process are aggregated together.
+        Ex: histograms from all HT bins of W+jets will be combined
+    """
+    # reverse lookup table to speed up find/replaces
+    lookup = {}
+    for proc in origProcs:
+        for subproc in getSubprocs(proc):
+            lookup[subproc] = proc
+    newHists = {'data_obs': hists['data_obs']}
+    for name, hist in hists.iteritems():
+        if '_stat' in name:
+            continue
+        for subproc, proc in lookup.iteritems():
+            # note: assumes that no sample name is a substring of any other
+            if subproc in name:
+                newName = name.replace(subproc, proc)
+                if newName not in newHists:
+                    newHists[newName] = hist.Clone(newName)
+                else:
+                    newHists[newName].Add(hist)
+                break
+    # stat uncertainties need to be treated separately
+    # because they add in quadrature
+    for name, hist in hists.iteritems():
+        if '_stat' not in name:
+            continue
+        for subproc, proc in lookup.iteritems():
+            if subproc in name:
+                newName = name.replace(subproc, proc)
+                central = hists[subproc]
+                combinedCentral = newHists[proc]
+                if newName not in newHists:
+                    newHists[newName] = combinedCentral.Clone(newName)
+                for bx in range(1, central.GetNbinsX()+1):
+                    base = combinedCentral.GetBinContent(bx)
+                    oldErr = newHists[newName].GetBinContent(bx) - base
+                    curBase = central.GetBinContent(bx)
+                    curErr = hist.GetBinContent(bx) - curBase
+                    newErr = (oldErr*oldErr + curErr*curErr)**(0.5)
+                    if name.endswith('Up'):
+                        newHists[newName].SetBinContent(bx, base + newErr)
+                    elif name.endswith('Down'):
+                        newHists[newName].SetBinContent(bx, 
+                                max(0, base - newErr))
+                    else:
+                        raise ValueError("Histogram name should end with Up or Down")
+                break
+    return newHists
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -48,6 +101,8 @@ if __name__ == "__main__":
     parser.add_argument('--bkg-dir', default=BACKGROUND_DIR, dest='bkgDir',
             help='name of directory containing background histograms')
     # Customization
+    parser.add_argument('--fine-grained', dest='fineGrained',
+            action='store_true', help='Use un-aggregated MC process list')
     parser.add_argument('--no-limit', dest='noCombine', 
             action='store_true', 
             help='do not call combine, make template histograms only')
@@ -101,7 +156,6 @@ if __name__ == "__main__":
             analyses.append(Analysis(curBox, args.tag, nbMin=nb))
             unrollBins.append(analyses[-1].unrollBins)
         lumi = analyses[0].lumi
-        samples = analyses[0].samples
         sfNames = { "TTJets1L":"TTJets", "TTJets2L":"TTJets", 
                 "ZInv":"GJetsInv" }
         sfHists = macro.loadScaleFactorHists(
@@ -127,12 +181,19 @@ if __name__ == "__main__":
             contamHists = { "TTJets1L":ttContamHist, 
                     "TTJets2L":ttContamHist, "WJets":wContamHist }
 
+        if args.fineGrained:
+            origProcs = analyses[0].samples
+            origSFHists = sfHists
+            analyses[0], sfHists, contamHists, _, _ = adjustForFineGrainedMCPred(
+                    analyses[0], sfHists, contamHists, {}, {})
+        samples = analyses[0].samples
+
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
         backgroundHists = unrollAndStitchFromFiles(curBox, 
                 samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
-                addStatUnc=(not args.noStat), 
+                addStatUnc=(not args.noStat), doEmptyBinErrs=args.fineGrained,
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
 
         if args.noCombine: continue #if not setting a limit, we are done
@@ -182,6 +243,11 @@ if __name__ == "__main__":
                     unrollBins=unrollBins, debugLevel=debugLevel)
 
         # combine signal and background dictionaries
+        if args.fineGrained:
+            backgroundHists = consolidateBackgroundHists(
+                    backgroundHists, origProcs)
+            samples = origProcs
+            sfHists = origSFHists
         hists = backgroundHists.copy()
         hists.update(signalHists)
 

@@ -127,6 +127,8 @@ TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8                            
 TTJets_SingleLeptFromT_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8                  146.34
 TTJets_SingleLeptFromTbar_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8               146.34
 TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8                            70.14
+TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8                            87.31 
+TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8                      320.1
 ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1                    3.36
 ST_t-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1                   70.69
 ST_t-channel_4f_scaledown_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1         70.69
