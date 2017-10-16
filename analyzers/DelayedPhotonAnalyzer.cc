@@ -864,7 +864,7 @@ for(int i = 0; i < nJets; i++)
 	jetEta_all.push_back(thisJet.Eta());
 	jetPhi_all.push_back(thisJet.Phi());
 	
-	if(thisJet.E() > jet1E)
+	if(thisJet.Pt() > jet1Pt)
 	{
 		jet1E = thisJet.E();	
 		jet1Pt = thisJet.Pt();	
@@ -876,9 +876,9 @@ for(int i = 0; i < nJets; i++)
  //apply nJets cut
  if(n_Jets<2) continue;
 
- for(int i=0;i<jetE_all.size();i++)
+ for(int i=0;i<jetPt_all.size();i++)
  {
-	if(jetE_all[i]>jet2E && jetE_all[i]<jet1E)
+	if(jetPt_all[i]>jet2Pt && jetPt_all[i]<jet1Pt)
 	{
 		jet2E = jetE_all[i];	
 		jet2Pt = jetPt_all[i];	
