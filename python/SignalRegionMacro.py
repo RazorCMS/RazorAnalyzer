@@ -6,6 +6,7 @@ from macro import macro, razorWeights
 import macro.razorAnalysis as razor
 from macro.razorMacros import makeControlSampleHistsForAnalysis
 from ntupling.ControlRegionNtuples2016_V3p15 import SAMPLES
+import BTagClosureTestMacro as bclosure
 
 commonShapeErrors = [
         ('singletopnorm',"SingleTop"),
@@ -14,7 +15,6 @@ commonShapeErrors = [
         'btag', 'bmistag', 'pileup', 'facscale', 'renscale', 'facrenscale',
         ('btaginvcrosscheck',['ZInv']),
         ('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),
-        ('btagcrosscheckmr',['TTJets1L','TTJets2L','WJets']),
         ('sfstatzinv',['ZInv']),
         ('sfsyszinv',['ZInv']), 'jes',
         ('ttcrosscheck',['TTJets2L']),
@@ -135,8 +135,7 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
     vetolepFile = sfdir+'/RazorVetoLeptonClosureTests_%s.root'%(tag)
     ttFile = sfdir+'/RazorTTJetsDileptonCrossCheck_%s.root'%(tag)
     dyFile = sfdir+'/RazorDYJetsDileptonInvCrossCheck_%s.root'%(tag)
-    btagFile = sfdir+'/RazorBTagClosureTests_%s.root'%(tag)
-    gjetsbtagFile = sfdir+'/RazorGJetsBTagClosureTests_%s.root'%(tag)
+    btagFile = sfdir+'/RazorBTagScaleFactors_%s.root'%(tag)
     dynloFile = sfdir+'/RazorDYJetsDileptonInvNLOCrossCheck_%s.root'%(tag)
 
     #get MR-Rsq scale factor histograms
@@ -147,6 +146,8 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
             }
     sfHists = macro.loadScaleFactorHists(sfFilename=sfFile, processNames=processNames, 
             scaleFactorNames=sfNames, debugLevel=debugLevel)
+    bclosure.loadScaleFactors(sfHists, tag=tag)
+    bclosure.loadScaleFactors(sfHists, tag=tag, gjets=True)
     #reopen the file and grab the ZNuNu up/down histograms
     #down scale factors are (gjets - (wjets-gjets))
     sfTFile = rt.TFile.Open(sfFile)
@@ -163,7 +164,6 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
     ttTFile = rt.TFile.Open(ttFile)
     dyTFile = rt.TFile.Open(dyFile)
     btagTFile = rt.TFile.Open(btagFile)
-    gjetsbtagTFile = rt.TFile.Open(gjetsbtagFile)
     dynloTFile = rt.TFile.Open(dynloFile)
     if args.nloZInv:
         sfHists['ZInv'] = dynloTFile.Get("WJetsSingleLeptonInvNLOScaleFactors")
@@ -186,15 +186,11 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
         for b in range(4):
             if jtype == 'DiJet' and b > 2: continue
             bs = str(b)
-            sfHists['MR'+jtype+bs+'BUp'] = btagTFile.Get(
-                    'OneLepton'+jtype+'ClosureTest'+bs+'BMRScaleFactors')
-            sfHists['MR'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['MR'+jtype+bs+'BUp'])
             sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get(
-                    'OneLepton'+jtype+'ClosureTest'+bs+'BRsqScaleFactors')
+                    'Rsq'+jtype+bs+'BScaleFactors')
             sfHists['Rsq'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+jtype+bs+'BUp'])
-            #get ZInv b-tag cross check histogram
-            sfHists['ZInv'+jtype+bs+'BUp'] = gjetsbtagTFile.Get(
-                    'GJetsInv'+jtype+'ClosureTest'+bs+'BMRScaleFactors')
+            sfHists['ZInv'+jtype+bs+'BUp'] = btagTFile.Get(
+                    'RsqInv'+jtype+bs+'BScaleFactors')
             sfHists['ZInv'+jtype+bs+'BDown'] = macro.invertHistogram(
                     sfHists['ZInv'+jtype+bs+'BUp'])
 
@@ -280,8 +276,8 @@ def getScaleFactorHistsForBox(sfHists, boxName, btags):
             sfHistsToUse[name+updown] = sfHistsToUse[name+jtype+updown]
     #b-tag closure tests
     for updown in ['BUp','BDown']:
-        for mrrsq in ['MR','Rsq']:
-            sfHistsToUse[mrrsq+updown] = sfHistsToUse[mrrsq+jtype+str(btags)+updown]
+        sfHistsToUse['Rsq'+updown] = sfHistsToUse[
+                'Rsq'+jtype+str(btags)+updown]
         sfHistsToUse['ZInv'+updown] = sfHistsToUse[
                 'ZInv'+jtype+str(btags)+updown]
     return sfHistsToUse
@@ -453,9 +449,13 @@ if __name__ == "__main__":
         btags = int(region.replace(dirSuffix,'')[-2])
         shapesToUse = copy.copy(shapes[boxName])
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
+        auxSFs = razorWeights.addBTagSFs(analysis, auxSFs)
+        auxSFs = razorWeights.addBTagSFs(analysis, auxSFs, gjets=True)
         dataDrivenQCD = True
         blindBins = [(x,y) for x in range(1,len(analysis.binning["MR"])+1) 
                 for y in range(1,len(analysis.binning["Rsq"])+1)]
+        bclosure.adjustForRegion(analysis, sfHists, auxSFs)
+        bclosure.adjustForRegion(analysis, sfHists, auxSFs, gjets=True)
         sfHistsToUse = getScaleFactorHistsForBox(sfHists, boxName, btags)
         auxSFsToUse = auxSFs.copy()
 

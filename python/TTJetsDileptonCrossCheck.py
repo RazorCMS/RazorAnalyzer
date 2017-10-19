@@ -4,6 +4,7 @@ import ROOT as rt
 from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
+import BTagClosureTestMacro as bclosure
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -16,19 +17,19 @@ if __name__ == "__main__":
 
     #initialize
     plotOpts = { "comment":False, 'SUS15004CR':True } 
-    regionsOrder = ["TTJetsDilepton","TTJetsDileptonMultiJet","TTJetsDileptonDiJet"]
+    regionsOrder = ["TTJetsDileptonMultiJet","TTJetsDileptonDiJet"]
     regions = {
-            "TTJetsDilepton":Analysis("TTJetsDilepton",tag=tag,boostCuts=boostCuts),
             "TTJetsDileptonDiJet":Analysis("TTJetsDilepton",tag=tag,njetsMin=2,njetsMax=3,boostCuts=boostCuts),
             "TTJetsDileptonMultiJet":Analysis("TTJetsDileptonMultiJet",tag=tag,njetsMin=4,boostCuts=boostCuts),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
     sfHists = macro.loadScaleFactorHists( sfFilename=sfFilename,
-            processNames=regions["TTJetsDilepton"].samples, debugLevel=debugLevel )
+            processNames=regions["TTJetsDileptonDiJet"].samples, debugLevel=debugLevel )
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
     sfHists['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
+    bclosure.loadScaleFactors(sfHists, tag=tag)
     if not args.noSave:
         outfile = rt.TFile(
             "data/ScaleFactors/RazorMADD2015/RazorTTJetsDileptonCrossCheck_%s.root"%(tag), "RECREATE")
@@ -42,6 +43,8 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #prepare analysis
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets40')
+        auxSFs = razorWeights.addAllBTagSFs(analysis, auxSFs)
+        bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs)
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHists,
             printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
