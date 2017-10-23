@@ -9,12 +9,13 @@ from macro.razorAnalysis import Analysis, razorSignalDirs, signalConfig, control
 from macro.razorMacros import unrollAndStitch, unrollAndStitchFromFiles, getMaxBtags
 from RunCombine import exec_me
 from SMSTemplates import makeSMSTemplates, signalShapeUncerts, SMSOpts
-from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, writeDataCard_th1
+from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, uncorrelateSFs1D, writeDataCard_th1
 from framework import Config
 from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
+import BTagClosureTestMacro as bclosure
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_09Oct2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_17Oct2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -162,6 +163,17 @@ if __name__ == "__main__":
             "data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(args.tag), 
             processNames=["TTJets1L","TTJets2L","WJets","ZInv"], 
             scaleFactorNames=sfNames, debugLevel=debugLevel)
+        sfFileNameBClosure = 'data/ScaleFactors/RazorMADD2015/RazorBTagScaleFactors_%s.root'%(args.tag)
+        sfFileBClosure = rt.TFile.Open(sfFileNameBClosure)
+        sfHistsBClosure = {}
+        jets = 'MultiJet'
+        if curBox in ['DiJet', 'LeptonJet']:
+            jets = 'DiJet'
+        for name in ['TTJets1L', 'TTJets2L', 'WJets']:
+            sfHistsBClosure[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
+            assert(sfHistsBClosure[name])
+        sfHistsBClosure['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
+        assert(sfHistsBClosure['ZInv'])
 
         # assess signal contamination in control regions
         contamHists = None
@@ -269,6 +281,9 @@ if __name__ == "__main__":
         for sys in toUncorrelateSF:
             uncorrelateSFs(hists, sys, sfHists, cfg, 
                     curBox, unrollBins=unrollBins)
+        toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
+        for sys in toUncorrelateSF1D:
+            uncorrelateSFs1D(hists, sys, sfHistsBClosure, unrollBins)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)
@@ -276,10 +291,6 @@ if __name__ == "__main__":
         outFile = rt.TFile(outFileName, 'recreate')
         sortedKeys = sorted(hists.keys())
         for key in sortedKeys:
-            # b mistag systematic is currently messed up -- ignore
-            if 'bmistag' in key.lower():
-                del hists[key]
-                continue
             hists[key].Write()
         outFile.Close()
 

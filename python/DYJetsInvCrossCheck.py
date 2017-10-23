@@ -4,6 +4,7 @@ import ROOT as rt
 from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors
+import BTagClosureTestMacro as bclosure
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -24,9 +25,7 @@ if __name__ == "__main__":
         regionsOrder = ["DYJetsDileptonInv", "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet"]
     else:
         regionsOrder = ["DYJetsDileptonInvUncorr", "DYJetsDileptonInv", 
-                "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet",
-                "DYJetsDileptonInvDiJetWJetsCorr", "DYJetsDileptonInvMultiJetWJetsCorr",
-                "DYJetsDileptonInvNoSFs"]
+                "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet"]
     regions = {
             "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
             "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
@@ -55,6 +54,8 @@ if __name__ == "__main__":
         d['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
         d['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
         d['NJetsWJetsInv'] = sfNJetsFile.Get("WJetsInvScaleFactors")
+        bclosure.loadScaleFactors(d, tag=tag)
+        bclosure.loadScaleFactors(d, tag=tag, gjets=True)
     sfVars = { "WJets":("MR","Rsq"), "TTJets":("MR","Rsq"), "DYJetsInv":("MR_NoZ","Rsq_NoZ") }
     if not args.noSave:
         outfile = rt.TFile(
@@ -80,6 +81,10 @@ if __name__ == "__main__":
         os.system('mkdir -p '+outdir)
         #prepare analysis
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets_NoZ')
+        auxSFs = razorWeights.addAllBTagSFs(analysis, auxSFs)
+        auxSFs = razorWeights.addAllBTagSFs(analysis, auxSFs, var='MR_NoZ', gjets=True)
+        bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs)
+        bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs, gjets=True)
         #use the correct set of scale factors
         if 'WJetsCorr' in region:
             sfHistsToUse = sfHistsForWCorr

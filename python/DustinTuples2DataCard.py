@@ -101,15 +101,19 @@ def makeNewHistogramForUncorrelateSFs(name, centerName, systName, number, hists)
     hists[newHistName].SetDirectory(0)
     return newHistName
 
-def setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN, sigBN, sysHist, newHist, referenceHist):
+def setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN, sigBN, sysHist, newHist, referenceHist, oneD=False):
     """If the signal bin is inside the reference bin, perturb the signal bin"""
     #correct MR or Rsq if they lie outside the reference histogram
     if mrCenter > referenceHist.GetXaxis().GetXmax(): 
         mrCenter = referenceHist.GetXaxis().GetXmax() - 1
-    if rsqCenter > referenceHist.GetYaxis().GetXmax():
+    if not oneD and rsqCenter > referenceHist.GetYaxis().GetXmax():
         rsqCenter = referenceHist.GetYaxis().GetXmax() - 0.01
     #if the bin matches the current reference histogram bin, update the contents
-    if referenceHist.FindBin(mrCenter, rsqCenter) == refBN: #bin matches
+    if oneD:
+        matches = (referenceHist.FindBin(mrCenter) == refBN)
+    else:
+        matches = (referenceHist.FindBin(mrCenter, rsqCenter) == refBN)
+    if matches:
         newHist.SetBinContent(sigBN, sysHist.GetBinContent(sigBN)) #new hist has the unperturbed value in every bin except one
         newHist.SetBinError(sigBN, sysHist.GetBinError(sigBN))
         return True
@@ -235,6 +239,51 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
                         del hists[newHistName]
 
         #remove the original histogram
+        del hists[name]
+
+def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins):
+    """
+    Same as uncorrelateSFs except that the reference histogram is assumed to
+    be a 1D Rsq histogram instead of a 2D MR-Rsq histogram.
+    """
+    toUncorrelate = [name for name in hists if sysName in name]
+    print "Uncorrelate SFs:",sysName
+    print("Treating the following distributions as uncorrelated: ")
+    for name in toUncorrelate: print name
+    for name in toUncorrelate:
+        print("Using reference histogram to determine bin correlations for "+name)
+        centerName = name.split("_")[:-1]
+        centerName = '_'.join(centerName)
+        systName = name.split("_")[-1].replace("Up","").replace("Down","")
+        print("Central values taken from "+centerName)
+        referenceHist = referenceHists[centerName]
+        ibin = 0
+        for bx in range(1,referenceHist.GetNbinsX()+1):
+            sigBNGlobal = 0
+            for bz in range(len(unrollBins)):
+                ibin += 1
+                newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
+                matchedAtLeastOneBin = False
+                unrollRows = unrollBins[bz][0]
+                unrollCols = unrollBins[bz][1]
+                poly = macro.makeTH2PolyFromColumns("poly"+str(bz)+name, 'poly', unrollRows, unrollCols)
+                polyBins = poly.GetBins()
+                for sigBN in range(1, poly.GetNumberOfBins()+1):
+                    sigBNGlobal += 1
+                    thisSigBin = polyBins.At(sigBN-1)
+                    binCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
+                    # Note that binCenter is an Rsq value but it is being passed
+                    # into the mrCenter field of setBinContentsForUncorrelateSFs.  
+                    # This is just for convenience -- that function assumes
+                    # that MR values are on the x-axis and Rsq is on y (not true here)
+                    if setBinContentsForUncorrelateSFs(binCenter, -1, refBN=bx,
+                            sigBN=sigBNGlobal, sysHist=hists[name], newHist=hists[newHistName],
+                            referenceHist=referenceHist, oneD=True):
+                        matchedAtLeastOneBin = True
+                poly.Delete()
+                #don't save the histogram if there is no change from the nominal
+                if not matchedAtLeastOneBin:
+                    del hists[newHistName]
         del hists[name]
 
 def writeDataCard_th1(box,txtfileName,hists,bkgs):

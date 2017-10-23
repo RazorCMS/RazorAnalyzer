@@ -1366,7 +1366,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                   TLorentzVector ele = GoodElectrons.at(k);
                   if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 0.4) overlape = true;
           }
-	  if (doEleVeto && overlape) continue;
+
+	  if( doEleVeto && overlape ) continue;
 
 	  //**********************************************************
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
