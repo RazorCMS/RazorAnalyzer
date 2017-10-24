@@ -1,4 +1,5 @@
-import sys,os
+import os
+from sys import exit
 import argparse
 import copy
 import ROOT as rt
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 
     if args.box is None:
         print "Please choose an analysis box with --box"
-        sys.exit()
+        exit()
     box = args.box
     boxList = box.split('_') # list of boxes to combine, separated by _
 
@@ -207,8 +208,6 @@ if __name__ == "__main__":
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
                 addStatUnc=(not args.noStat), doEmptyBinErrs=args.fineGrained,
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
-
-        if args.noCombine: continue #if not setting a limit, we are done
 
         # get file name for signal input
         signalDir = razorSignalDirs[args.tag]
@@ -297,7 +296,7 @@ if __name__ == "__main__":
         writeDataCard_th1(curBox,cardName,hists,samples)
 
     if args.noCombine: 
-        sys.exit()
+        exit()
 
     # get combine parameters
     if args.signif:
