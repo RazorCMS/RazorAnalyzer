@@ -174,28 +174,13 @@ def def_slides(plot_dir):
                             ["%s/NJets40_%s.pdf" % (veto_dir,veto_region),
                              "%s/NBJetsMedium_%s.pdf" % (veto_dir,veto_region)]),
                             ]
-    for box in ["MultiJet","LeptonMultiJet"]:
+    for box in ["MultiJet","LeptonMultiJet",'DiJet','LeptonJet']:
         for nb in range(4):
+            if (box == 'DiJet' or box == 'LeptonJet') and nb == 3: continue
             slides += [
-                    Slide("%s (%d b-tags)"%(box,nb),
-                         ["%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
-    for box in ["DiJet","LeptonJet"]:
-        for nb in range(3):
-            slides += [
-                    Slide("%s (%d b-tags)"%(box,nb),
-                         ["%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
-    #for box in ["MultiJet","LeptonMultiJet"]:
-    #    for nb in range(4):
-    #        slides += [
-    #                Slide("%s (%d b-tags)"%(box,nb),
-    #                    ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
-    #                     "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
-    #for box in ["DiJet","LeptonJet"]:
-    #    for nb in range(3):
-    #        slides += [
-    #                Slide("%s (%d b-tags)"%(box,nb),
-    #                    ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"B",box),
-    #                     "%s/MRRsq_%sMCTotalUnrolledMCFit.pdf" % (box+str(nb)+"B",box)])]
+                    Slide("%s (%d b-tags) sideband and signal region"%(box,nb),
+                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrainedSideband",box),
+                         "%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrained",box)])]
 
     for slide in slides:
         slide.append_dir_prefix(plot_dir)

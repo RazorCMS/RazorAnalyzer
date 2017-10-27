@@ -245,7 +245,7 @@ def makeRazor3DTable(hist, boxName, signalHist=None, signalName="T1bbbb"):
         cols.append(signal)
     plotting.table_basic(headers, cols, caption="Fit prediction for the "+boxName+" box", printstr="razorFitTable"+boxName)
 
-def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, unrollBins=None, useMCFitSys=False, printdir='.', listAllMC=False):
+def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[], btags=-1, unrollBins=None, useMCFitSys=False, printdir='.', emptyBinErrs=None, listAllMC=False):
     """Print latex table with prediction and uncertainty in each bin"""
     xbinLowEdges = []
     xbinUpEdges = []
@@ -322,9 +322,13 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
                 totalMC = 0.0
                 totalMCErr = 0.0
                 for i in range(len(mcNames)):
-                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)),mergedMCs[i].GetBinError(bx)))
+                    mcErr = mergedMCs[i].GetBinError(bx)
+                    if emptyBinErrs is not None:
+                        emptyErr = emptyBinErrs[mcNames[i]][bx]
+                        mcErr = (mcErr*mcErr + emptyErr*emptyErr)**(0.5)
+                    mcs[i].append('%.3f $\\pm$ %.3f' % (max(0,mergedMCs[i].GetBinContent(bx)), mcErr))
                     totalMC += mergedMCs[i].GetBinContent(bx)
-                    totalMCErr = ( totalMCErr**2 + (mergedMCs[i].GetBinError(bx))**2 )**(0.5)
+                    totalMCErr = ( totalMCErr**2 + mcErr**2 )**(0.5)
                 if len(mcNames) > 0:
                     if useMCFitSys and pred is not None: #add (MC-fit) in quadrature with MC error
                         totalMCErr = ( totalMCErr**2 + (totalMC-prediction)**2 )**(0.5)
@@ -701,6 +705,7 @@ def postprocessQCDHists(hists, shapeHists,
     # case because we already apply the photon purity calculation
     # event by event. 
     isSignalRegion = not ('GJets' in region)
+    macro.exportHists(qcdHists, 'qcdHists.root', delete=False)
     if isSignalRegion:
         macro.subtractBkgsInData(process='QCD', hists=qcdHists, 
                 dataName='QCD', debugLevel=debugLevel)
@@ -782,13 +787,19 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
         del hists['Sys']
         macro.propagateShapeSystematics(hists, samples, listOfVars, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
     emptyBinErrs = None
+    emptyBinErrsByProcess = None
     if doEmptyBinErrs:
         if unrollBins is None or unrollBins[0] is None or unrollBins[1] is None:
             raise ValueError("Need to specify binning in order to compute empty bin errors")
         emptyBinErrs = macro.computeEmptyBinErrs(hists, unrollBins)
+        emptyBinErrsByProcess = macro.computeEmptyBinErrs(hists, unrollBins, 
+                aggregate=False)
     #optionally combine some background processes
     if 'combineBackgrounds' in plotOpts:
         macro.combineBackgroundHists(hists, plotOpts['combineBackgrounds'], listOfVars, debugLevel=debugLevel)
+        if emptyBinErrsByProcess is not None:
+            emptyBinErrsByProcess = macro.combineEmptyBinErrs(
+                    emptyBinErrsByProcess, plotOpts['combineBackgrounds'])
         if 'combineSamples' in plotOpts:
             samples = plotOpts['combineSamples']
         else: #get new list of samples, possibly not keeping the same ordering
@@ -810,10 +821,11 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
         makeRazor2DTable(pred=fitForTable,obs=dataForTable,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, 
-                useMCFitSys=False, printdir=printdir)
+                useMCFitSys=False, printdir=printdir, emptyBinErrs=emptyBinErrsByProcess)
         makeRazor2DTable(pred=fitForTable,obs=None,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
-                boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
+                boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, 
+                emptyBinErrs=emptyBinErrsByProcess, listAllMC=True)
 
     #print histograms
     rt.SetOwnership(c, False)

@@ -34,6 +34,11 @@ def writeBashScript(boxes, model, mg, mchi, inDir, subDir):
     boostInputFiles = ['RazorBoost_SMS-{}_{}_{}.root'.format(
         model, boostMassPoint, box) for box in BOOST_BOXES]
 
+    if len(boxes) == 1:
+        # This is to allow combining razor boost with individual 
+        # razor inclusive boxes without breaking the naming convention
+        # from before (which by default doesn't use the box name).
+        name = boxes[0]+'_'+name
     combinedName = "RazorInclusiveBoostCombined_{}.txt".format(name)
     combinedResult = "higgsCombineRazorInclusiveBoost_{}.Asymptotic.mH120.root".format(name)
 

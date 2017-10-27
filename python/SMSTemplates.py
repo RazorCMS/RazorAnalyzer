@@ -7,7 +7,7 @@ from array import array
 #local imports
 from DustinTuples2DataCard import uncorrelate, getTheoryCrossSectionAndError
 from macro.razorAnalysis import Analysis
-from macro.razorMacros import makeControlSampleHistsForAnalysis, getMaxBtags, unrollAndStitch
+from macro.razorMacros import makeControlSampleHistsForAnalysis, getMaxBtags, unrollAndStitch, makeRazor2DTable
 from macro.razorWeights import getNPVHist, getNISRScaleFactor
 
 signalShapeUncerts = ['tightmuoneff','tighteleeff','vetomuoneff',
@@ -262,6 +262,12 @@ def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
                 boxName=box, btags=nb, makePlots=False, 
                 exportShapeErrs=True, propagateScaleFactorErrs=False,
                 lumiMC=1./globalScaleFactor, debugLevel=debugLevel))
+
+        makeRazor2DTable(pred=None, 
+                boxName='{}-{}-{}-{}-'.format(box, model, m1, m2), 
+                mcNames=['{} {} {}'.format(model, m1, m2)], 
+                mcHists=[hists[-1]['Signal'][('MR','Rsq')]], 
+                btags=nb, unrollBins=unrollBins[-1], listAllMC=True)
             
     signalHists = unrollAndStitch(hists, box, samples=analysis.samples,
             debugLevel=debugLevel, unrollBins=unrollBins, 

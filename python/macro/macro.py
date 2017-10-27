@@ -735,6 +735,35 @@ def propagateScaleFactorStatErrors(sysErrSquaredHists, upHists, downHists, debug
                     percentChange = (upHists[var].GetBinContent(bx) - centralValue)/centralValue
                     downHists[var].SetBinContent(bx, centralValue/(1+percentChange))
 
+def isCustomBadEvent(event):
+    """
+    Returns True if this event needs to be removed.
+    (nothing personal)
+    """
+    # These are ECAL spike events listed on
+    # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2
+    if not hasattr(event, 'event'):
+        return False
+    if not hasattr(event, 'run'):
+        return False
+    badEvents = [(597707687, 274244),
+                 (1018772012, 274338),
+                 (352051316, 274200),
+                 (21612513, 274338)]
+    r = event.run
+    e = event.event
+    # Event numbers are stored in the tree as unsigned 32-bit ints.
+    # When pyROOT reads the tree it casts the number into a signed int
+    # so if the event number is too large it will show as negative.
+    # Fix this by adding 2^32 to the event number.
+    if e < 0:
+        e = e + 2**32
+    for badE, badR in badEvents:
+        if e == badE and r == badR:
+            print "Bad event: {} {}".format(e, r)
+            return True
+    return False
+
 def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scale=1.0, fillF=basicFill, sfVars=("MR","Rsq"), statErrOnly=False, weightOpts=[], errorOpt=None, process="", auxSFs={}, auxSFHists={}, shapeHists={}, shapeNames=[], shapeSFHists={}, shapeAuxSFs={}, shapeAuxSFHists={}, propagateScaleFactorErrs=True, noFill=False, debugLevel=0):
     """Loop over a single tree and fill histograms.
     Returns the sum of the weights of selected events.
@@ -865,6 +894,8 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             elif debugLevel > 0 and count % 10000 == 0: print "Processing entry",count
             elif debugLevel > 1: print "Processing entry",count
             tree.GetEntry(entry)
+            if isCustomBadEvent(tree):
+                continue
             w = weightF(tree, weightHists, scale, weightOpts, errorOpt, debugLevel=debugLevel)
 
             err = 0.0
@@ -1166,6 +1197,22 @@ def doDeltaBForReducedEfficiencyMethod(backgroundHists, signalHists, contamHists
                             signal.SetBinContent( bn, max(0, signal.GetBinContent(bn) - deltaB) )
                             if debugLevel > 0:
                                 print "to",signal.GetBinContent(bn)
+
+def combineEmptyBinErrs(emptyBinErrs, combineBkgs):
+    """
+    Combine empty bin uncertainties on subprocesses sharing the same umbrella process.
+    Inputs and outputs are both dictionaries of the form
+    { process:{ bin1:err1, bin2:err2, ... }, ... }
+    combineBkgs is of the form
+    { proc1:[subproc1, ...], ... }
+    """
+    newEmptyBinErrs = { proc:{} for proc in combineBkgs }
+    for proc, subprocs in combineBkgs.iteritems():
+        for subproc in subprocs:
+            for bx, err in emptyBinErrs[subproc].iteritems():
+                curErr = newEmptyBinErrs[proc].get(bx, 0.0)
+                newEmptyBinErrs[proc][bx] = (curErr*curErr + err*err)**(0.5)
+    return newEmptyBinErrs
 
 def combineBackgroundHists(hists, combineBackgrounds, listOfVars, debugLevel=0):
     """Combine many background histograms into one, for plotting purposes.

@@ -4,6 +4,7 @@ import ROOT as rt
 from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis, make_parser
 from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors, makeVetoLeptonCorrectionHist
+import BTagClosureTestMacro as bclosure
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -84,6 +85,7 @@ if __name__ == "__main__":
         h['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
         h['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
         h['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
+        bclosure.loadScaleFactors(h, tag=tag)
     sfVars = ("MR","Rsq")
     if not args.noSave:
         #recreate output file to avoid confusion
@@ -119,10 +121,14 @@ if __name__ == "__main__":
             sfHistsToUse = sfHists
             auxSFsToUse = razorWeights.getNJetsSFs(analysis,jetName='NJets40')
             treeName = "ControlSampleEvent"
+            bjetsName = 'NBJetsMedium'
         else:
             sfHistsToUse = sfHistsSignal
             auxSFsToUse = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
             treeName = "RazorInclusive"
+            bjetsName = 'nBTaggedJets'
+        auxSFsToUse = razorWeights.addAllBTagSFs(analysis, auxSFsToUse, bjetsName=bjetsName)
+        bclosure.adjustForRegionBInclusive(analysis, sfHistsToUse, auxSFsToUse)
         #set up lepton pt correction
         varForCorrection = "lep1.Pt()"
         sigVarForCorrection = "leadingGenLeptonPt"

@@ -82,6 +82,7 @@ class RazorAnalyzer: public RazorEvents {
         bool passEGammaPOGMediumElectronID(int i, bool use25nsCuts = true, string EraName = "Spring15");
         bool passEGammaPOGTightElectronID(int i, bool use25nsCuts = true, string EraName = "Spring15");
 	bool passMVANonTrigVetoElectronID(int i);
+	bool passMVALooseElectronID(int i);
         bool passEGammaPOGVetoElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGLooseElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGMediumElectronIso(int i, bool use25nsCuts = true);
@@ -106,16 +107,16 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	void getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90);
+        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF = false);
 	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassLooseID(int i, bool use25nsCuts = true);
 	bool photonPassMediumID(int i, bool use25nsCuts = true);
 	bool photonPassTightID(int i, bool use25nsCuts = true);
-	bool photonPassLooseIso(int i, bool use25nsCuts = true);
-	bool photonPassMediumIso(int i, bool use25nsCuts = true);
-	bool photonPassTightIso(int i, bool use25nsCuts = true);
+	bool photonPassLooseIso(int i, bool use25nsCuts = true, bool usePrivatePF = false);
+	bool photonPassMediumIso(int i, bool use25nsCuts = true, bool usePrivatePF = false);
+	bool photonPassTightIso(int i, bool use25nsCuts = true, bool usePrivatePF = false);
         bool isLoosePhoton(int i, bool use25nsCuts = true);
         bool isMediumPhoton(int i, bool use25nsCuts = true);
         bool isTightPhoton(int i, bool use25nsCuts = true);

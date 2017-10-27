@@ -1018,6 +1018,56 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 
 }
 
+bool RazorAnalyzer::passMVALooseElectronID(int i){
+
+  //Tuned to match signal efficiency of the EGM Cut-based Veto Working Point
+  //pT < 10 bin should use "HZZ" MVA
+  //pT > 10 bin should use "GeneralPurpose" MVA
+  //
+  Int_t subdet = 0;
+  if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
+  else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
+  else subdet = 2;
+  Int_t ptBin = 0;
+  if (elePt[i] > 10.0 && elePt[i] <= 15.0) ptBin = 1;
+  if (elePt[i] > 15.0 && elePt[i] <= 25.0) ptBin = 2;
+  if (elePt[i] > 25.0 ) ptBin = 3;
+
+  double MVACut = -999;
+  //pt 5-10
+  if (subdet == 0 && ptBin == 0) MVACut = 0.83;
+  if (subdet == 1 && ptBin == 0) MVACut = 0.76;
+  if (subdet == 2 && ptBin == 0) MVACut = 0.80;
+  //For pT 10-15
+  if (subdet == 0 && ptBin == 1) MVACut = 0.67;
+  if (subdet == 1 && ptBin == 1) MVACut = 0.47;
+  if (subdet == 2 && ptBin == 1) MVACut = 0.52;
+  //For pT 15-25
+  if (subdet == 0 && ptBin == 2) MVACut = 0.67 - 0.061 * ( elePt[i] - 15);
+  if (subdet == 1 && ptBin == 2) MVACut = 0.47 - 0.055 * ( elePt[i] - 15);
+  if (subdet == 2 && ptBin == 2) MVACut = 0.52 - 0.024 * ( elePt[i] - 15);
+  //For pT>25
+  if (subdet == 0 && ptBin == 3) MVACut = 0.06;
+  if (subdet == 1 && ptBin == 3) MVACut = -0.08;
+  if (subdet == 2 && ptBin == 3) MVACut = 0.28;
+
+  double mvaVar = ele_IDMVAGeneralPurpose[i];
+  if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
+
+  //cout << ptBin << " " << subdet << " : " << ele_IDMVAGeneralPurpose[i] << " " << ele_IDMVAHZZ[i] << " --> " << mvaVar << " : cut = " <<  MVACut << " | pass = ";
+
+  bool pass = false;
+  if (mvaVar > MVACut
+      && fabs(ele_ip3dSignificance[i]) < 4
+      ) {
+    pass = true;
+  }
+  //cout << pass << "\n";
+
+  return pass;
+
+}
+
 bool RazorAnalyzer::passEGammaPOGVetoElectronIso(int i, bool use25nsCuts){
     // Recommended for analyses performed on 2016 data using 8XX releases.
     if (!use25nsCuts) {
@@ -2045,7 +2095,7 @@ void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double&
 
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
-bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90){
+bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF){
     //get effective area for isolation calculations
     double effAreaChargedHadrons = 0.0;
     double effAreaNeutralHadrons = 0.0;
@@ -2063,14 +2113,17 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
 
     //Rho corrected PF charged hadron isolation
     double PFIsoCorrected_ChHad = fmax(pho_pfIsoChargedHadronIso[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    if(usePrivatePF) PFIsoCorrected_ChHad = fmax(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
     if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
     
     //Rho corrected PF neutral hadron isolation
     double PFIsoCorrected_NeuHad = fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    if(usePrivatePF) PFIsoCorrected_NeuHad = fmax(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
     
     //Rho corrected PF photon isolation
     double PFIsoCorrected_Photons = fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    if(usePrivatePF) PFIsoCorrected_Photons = fmax(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
 
     //photon passed all cuts
@@ -2173,13 +2226,13 @@ bool RazorAnalyzer::photonPassTightID(int i, bool use25nsCuts){
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
+bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true );
+      return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true, usePrivatePF );
     } else {
-      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true, usePrivatePF);
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2190,13 +2243,13 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts){
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
+bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivatePF){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 0.441, 2.725 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.571 + 0.0047*phoPt[i], true);
+      return photonPassesIsolation(i, 0.441, 2.725 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.571 + 0.0047*phoPt[i], true, usePrivatePF);
     } else {
-      return photonPassesIsolation(i, 0.442, 1.715 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.863 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 0.442, 1.715 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 3.863 + 0.0034*phoPt[i], true, usePrivatePF);
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2207,13 +2260,13 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts){
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts){
+bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true);
+        return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true, usePrivatePF);
     } else {
-      return photonPassesIsolation(i, 0.034, 0.586 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.617 + 0.0034*phoPt[i], true);
+      return photonPassesIsolation(i, 0.034, 0.586 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.617 + 0.0034*phoPt[i], true, usePrivatePF);
     }
   }  else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";

@@ -654,7 +654,7 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt="", auxSFsPerProcess=False):
             histNames.append('ZInvBUp')
         elif 'Down' in errorOpt:
             histNames.append('ZInvBDown')
-        varNames.append('MR')
+        varNames.append('Rsq')
         cuts.append('1')
 
     #return dictionary with needed information
@@ -740,6 +740,45 @@ def getNJetsSFs(analysis,jetName='NJets40'):
     for name in ['WJetsInv','DYJetsInv','ZInv','GJetsInv']:
         if name in analysis.samples:
             auxSFs[name] = {"NJetsInv":(jetName,"1")}
+    return auxSFs
+
+def addBTagSFs(analysis, auxSFs={}, var='MR', gjets=False):
+    procs = ['WJets', 'TTJets', 'TTJets1L', 'TTJets2L']
+    sfKey = 'MR'
+    if gjets:
+        procs = ['WJetsInv','DYJetsInv','ZInv','GJetsInv']
+        sfKey = 'MRInv'
+    for proc in procs:
+        if proc in analysis.samples:
+            if proc not in auxSFs:
+                auxSFs[proc] = {}
+            auxSFs[proc][sfKey] = (var, '1')
+    return auxSFs
+
+def addAllBTagSFs(analysis, auxSFs={}, var='MR', gjets=False, 
+        bjetsName='NBJetsMedium'):
+    """
+    Gets scale factor directives for each b-tag bin separately.
+    Use to process a sample inclusive in the number of btags.
+    """
+    procs = ['WJets', 'TTJets', 'TTJets1L', 'TTJets2L']
+    sfKey = 'MR'
+    if gjets:
+        procs = ['WJetsInv','DYJetsInv','ZInv','GJetsInv']
+        sfKey = 'MRInv'
+    for proc in procs:
+        if proc in analysis.samples:
+            if proc not in auxSFs:
+                auxSFs[proc] = {}
+            nbMax = 2
+            if (analysis.njetsMin >= 4 or 'MultiJet' in analysis.region) and not gjets:
+                nbMax = 3
+            for nb in range(nbMax+1):
+                rel = '=='
+                if nb == nbMax:
+                    rel = '>='
+                auxSFs[proc]['{}{}B'.format(sfKey, nb)] = (var, 
+                        '{} {} {}'.format(bjetsName, rel, nb))
     return auxSFs
 
 def loadPhotonPurityHists(sfHists={}, tag="Razor2016", debugLevel=0):
