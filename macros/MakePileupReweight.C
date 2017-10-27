@@ -56,17 +56,34 @@ void MakePileupReweight(int option = 0) {
 
 
   TFile *pileupTargetFile = 0;
-  if (option == 0) pileupTargetFile = new TFile("PileupTarget_2016_ICHEP.root", "READ");
-  else if (option == 1) pileupTargetFile = new TFile("PileupTarget_2016_ICHEP_SysUp.root", "READ");
-  else if (option == 2) pileupTargetFile = new TFile("PileupTarget_2016_ICHEP_SysDown.root", "READ");
+  TFile *pileupSourceFile = 0;
+  TFile *file = 0 ;
+
+  //For 2016 Data
+  // pileupSourceFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupSource_MC80X_Summer16.root", "READ");
+  // if (option == 0) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb.root", "READ");
+  // else if (option == 1) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb_SysUp.root", "READ");
+  // else if (option == 2) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb_SysDown.root", "READ");
+  // else {
+  //   return;
+  // }
+  // file = TFile::Open("PileupReweight_Summer16_2016_36p2ifb.root", "UPDATE");
+
+  //For 2017 Data
+  pileupSourceFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupSource_MC80X_Summer16.root", "READ");
+  if (option == 0) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_29p0.root", "READ");
+  else if (option == 1) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb_SysUp.root", "READ");
+  else if (option == 2) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb_SysDown.root", "READ");
   else {
     return;
   }
+  file = TFile::Open("PileupReweight_Summer16_2017_29p0ifb.root", "UPDATE");
+
+
   TH1F *pileupTargetHist = (TH1F*)pileupTargetFile->Get("pileup");
   assert(pileupTargetHist);
   std::cout << "pileupTargetHist " << pileupTargetHist->Integral() << std::endl;
 
-  TFile *pileupSourceFile = new TFile("data/PileupWeights/PileupSource_MC80X.root", "READ");
   //TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PileupSourceHist");
   TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PUMean"); 
   assert(pileupSourceHist);
@@ -78,7 +95,7 @@ void MakePileupReweight(int option = 0) {
   TH1F *PileupTargetNormalized = NormalizeHist( pileupTargetHist );
   TH1F *PileupSourceNormalized = NormalizeHist( pileupSourceHist );
   std::cout << "HISTOS NORMALIZED" << std::endl;
-  TH1F *PileupReweight = new TH1F ("PileupReweight",";NPU;Weight",50,0,50);
+  TH1F *PileupReweight = new TH1F ("PileupReweight",";NPU;Weight",100,0,100);
 
   for (int i=0; i<PileupReweight->GetXaxis()->GetNbins()+2; i++) {
 
@@ -108,7 +125,6 @@ void MakePileupReweight(int option = 0) {
   }
   cout << "int = " << k << "\n";
 
-  TFile *file = TFile::Open("PileupReweight2016_ICHEP.root", "UPDATE");
   file->cd();
   if (option == 0) file->WriteTObject(PileupReweight, "PileupReweight", "WriteDelete");
   else if (option == 1) file->WriteTObject(PileupReweight, "PileupReweightSysUp", "WriteDelete");
