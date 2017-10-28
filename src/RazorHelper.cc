@@ -1412,12 +1412,35 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
 //  2017 PromptReco
 ////////////////////////////////////////////////
 void RazorHelper::loadTag_Razor2017_PromptReco() {
-  loadPileup_Razor2016_MoriondRereco();
+  //loadPileup_Razor2016_MoriondRereco();
+  loadPileup_Razor2017_PromptReco();
   loadLepton_Razor2016_MoriondRereco();
   loadPhoton_Razor2016_MoriondRereco();
   loadBTag_Razor2016_MoriondRereco();
   loadTrigger_Razor2017_PromptReco();
   loadJECs_Razor2016_MoriondRereco();
+}
+
+void RazorHelper::loadPileup_Razor2017_PromptReco() {
+    // pileup weights
+    // LAST UPDATED: 28 October 2017
+    std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
+
+    if (!isFastsim) {
+      pileupWeightFile = TFile::Open("PileupReweight_Summer16_2016_36p2ifb.root");
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      std::cout << "PileupReweight_Summer16_2016_36p2ifb.root\n";
+    } else {
+      pileupWeightFile = TFile::Open("PileupReweight_Summer16_2017_29p0ifb.root");
+      pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
+      pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
+      pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
+      std::cout << "PileupReweight_Summer16_2017_29p0ifb.root\n";
+    }
+
+
 }
 
 void RazorHelper::loadTrigger_Razor2017_PromptReco() {
