@@ -73,7 +73,7 @@ struct evt
 };
 
 #define _phodebug 0
-#define _debug    0
+#define _debug    0 
 #define _info     1
 
 const double EB_R = 129.0;
@@ -2039,12 +2039,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 	      if (!isData ) {
 	        if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);		
-                if ( _debug )
-                {
-                        std::cout << "[DEBUG]: best muon: " 
-                                << "\n-> muPt: " << lep1Pt 
-                                << std::endl;
-                }
+              }
+              if ( _debug )
+              {
+                      std::cout << "[DEBUG]: best muon: " 
+                              << "\n-> muPt: " << lep1Pt 
+                              << std::endl;
               }
 
 	} // end if muCand.size() > 0 loop
@@ -2072,6 +2072,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    if (!isData ) {
 	      if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);		
 	    }
+            if ( _debug )
+            {
+                    std::cout << "[DEBUG]: best ele: " 
+                            << "\n-> elePt: " << lep1Pt 
+                            << std::endl;
+            }
 
 	  } // end of if eleCand.size() > 0 loop
       }//end of one lepton category
@@ -2510,6 +2516,15 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               //LowRes Box
               else razorbox = LowRes;
       }
+      if ( _debug )
+      {
+              std::cout << "[DEBUG]: pTGammaGamma [110,inf]->5 : " << pTGammaGamma << " GeV"
+                      << "\n-> mbbH [110,140]->6 : " << mbbH << " GeV"
+                      << "\n-> mbbZ [76,106]->7 : " << mbbZ << " GeV"
+                      << "\n-> sigmaMoverM [0,0.0085]->8 : " << sigmaMoverM  << "\n"
+                      << std::endl;
+      }
+      if (_debug) cout << "razorbox = : " << razorbox << "\n";
 //razorbox = HggRazor;
 
 

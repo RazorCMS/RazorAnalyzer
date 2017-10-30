@@ -214,6 +214,7 @@ class RazorHelper {
 	void loadTrigger_Razor2016G_SUSYUnblind();
 
         // for Razor2016 80X tag
+        void loadPileup_Razor2017_PromptReco();
         void loadTrigger_Razor2017_PromptReco();
 
         // member data
