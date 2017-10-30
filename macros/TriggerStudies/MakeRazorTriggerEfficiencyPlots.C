@@ -35,39 +35,63 @@
 
 
 
-bool PassSelection( bool *HLTDecision, int wp ) {
+bool PassSelection( bool *HLTDecision, int year, int wp, double HLTMR, double HLTRSQ ) {
 
     bool pass = false;
 
-    //trigger
-    if (wp == 1) {
+    //***********************************
+    //2016 Trigger Bits
+    //***********************************
+    if (year == 2016) {
+      //trigger
+      if (wp == 1) {
         pass = HLTDecision[163]; // PFHT900
-    }
-    if (wp == 2) {
+      }
+      if (wp == 2) {
         pass = HLTDecision[151]; // PFHT200
-    }
-    if (wp == 3) {
+      }
+      if (wp == 3) {
         pass = HLTDecision[172]; // Rsq0p25
-    }
-    if (wp == 4) {
+      }
+      if (wp == 4) {
         pass = HLTDecision[166];  // RsqMR270
-    }
-    if (wp == 5) {
+      }
+      if (wp == 5) {
         pass = HLTDecision[168];
-    }
-    if (wp == 7) {
+      }
+      if (wp == 7) {
         pass = HLTDecision[170];
-    }
-    if (wp == 13) {
+      }
+      if (wp == 13) {
         pass = HLTDecision[164] || HLTDecision[166];
-    }
-    if (wp == 16) {
-        pass = HLTDecision[166] || HLTDecision[164] || HLTDecision[165];
+      }
+      if (wp == 16) {
+        pass = HLTDecision[166] || HLTDecision[164] || HLTDecision[165] || HLTDecision[167];
+      }
+      if (wp == 20) {
+        pass = HLTDecision[166] || HLTDecision[164] || HLTDecision[165] || HLTDecision[167] || HLTDecision[162] || HLTDecision[163]	 
+	  || HLTDecision[125] || HLTDecision[126] ||  HLTDecision[134] || HLTDecision[135]
+	  ;
+      }
     }
 
+    //***********************************
+    //2017 Trigger Bits
+    //***********************************
+    if (year == 2017) {
+      if (wp == 6) {
+	pass = HLTDecision[108] || HLTDecision[110] ;
+      }
+      if (wp == 7) {
+	pass = HLTDecision[109] || HLTDecision[111] ;
+      }
+      if (wp == 8) {
+	pass = bool(HLTMR>200 && HLTRSQ>0.09 && (HLTMR+300)*(HLTRSQ+0.25)>300);
+      }    
+    }
+    
     return pass;  
 }
-
 
 
 
@@ -276,7 +300,9 @@ void plotRazorTriggerEfficiency() {
 
 //=== MAIN MACRO ================================================================================================= 
 
-void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int option = -1, string label = "") {
+void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp, int option = -1, string label = "") {
+
+  cout << "TEST\n\n";
 
     string Label = "";
     if (label != "") Label = "_" + label;
@@ -353,8 +379,8 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     TFile* inputFile = TFile::Open(inputfile.c_str(),"READ");
     assert(inputFile);
     inputFile->ls();
-    //  TTree* tree = (TTree*)inputFile->Get("RazorInclusive");
-    TTree* tree = (TTree*)inputFile->Get("ControlSampleEvent");
+    TTree* tree = (TTree*)inputFile->Get("RazorInclusive");
+    //TTree* tree = (TTree*)inputFile->Get("ControlSampleEvent");
     assert(tree);
 
     float weight = 0;
@@ -362,7 +388,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     int box = -1;
     int nBTaggedJets = 0;
     int nSelectedJets = 0;
-    UInt_t NJets80 = 0;
+    int NJets80 = 0;
     float dPhiRazor = 0;
     float MR = 0;
     float Rsq = 0;
@@ -376,17 +402,19 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     bool Flag_eeBadScFilter = false;
     float leadingMuonPt = 0;
     float allMuonPt = 0;
+    float HLTMR = 0;
+    float HLTRSQ = 0;
 
     tree->SetBranchAddress("weight",&weight);
     tree->SetBranchAddress("box",&box);
     tree->SetBranchAddress("nVtx",&nvtx);
     tree->SetBranchAddress("nBTaggedJets",&nBTaggedJets);
     tree->SetBranchAddress("nSelectedJets",&nSelectedJets);
-    tree->SetBranchAddress("NJets80",&NJets80);
+    tree->SetBranchAddress("nJets80",&NJets80);
     tree->SetBranchAddress("dPhiRazor",&dPhiRazor);
     tree->SetBranchAddress("MR",&MR);
     tree->SetBranchAddress("Rsq",&Rsq);
-    tree->SetBranchAddress("MET",&MET);
+    tree->SetBranchAddress("met",&MET);
     tree->SetBranchAddress("HLTDecision",&HLTDecision);
     tree->SetBranchAddress("run",&run);
     tree->SetBranchAddress("lumi",&lumi);
@@ -394,10 +422,14 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     tree->SetBranchAddress("Flag_HBHENoiseFilter",&Flag_HBHENoiseFilter);
     tree->SetBranchAddress("Flag_goodVertices",&Flag_goodVertices);
     tree->SetBranchAddress("Flag_eeBadScFilter",&Flag_eeBadScFilter);
+    tree->SetBranchAddress("HLTMR",&HLTMR);
+    tree->SetBranchAddress("HLTRSQ",&HLTRSQ);
     //  tree->SetBranchAddress("leadingMuonPt",&leadingMuonPt);
     //  tree->SetBranchAddress("allMuonPt",&allMuonPt);
 
     cout << "Total Entries: " << tree->GetEntries() << "\n";
+
+    cout << "TEST\n\n\n\nTEST\n";
 
     //for duplicate event checking
     //  map<pair<uint,uint>, bool > processedRunEvents;
@@ -408,86 +440,48 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
         //Cuts
         if (!(NJets80 >= 2)) continue;
 
-        //Select Hadronic boxes
-        if (option == 0) {
-            //hadronic boxes
-            //if (!(box == 9 || box == 10 || box == 11 || box == 12 || box == 13 || box == 14)) continue;
-
-            //leptonic boxes
-            // if (!(box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;      
-            if (!(box == 6 || box == 7 || box ==  8)) continue;      
-        }
-
-        //Select 1L and 2L boxes
+       
+        //Select Electron Triggered Events
         if (option == 1 || option == 11) {
-            //1L and 2L boxes
-            // bool passedDileptonTrigger = bool( HLTDecision[41] || HLTDecision[43] 
-            // 				    || HLTDecision[30] || HLTDecision[31] 
-            // 				    || HLTDecision[47] || HLTDecision[48] || HLTDecision[49] || HLTDecision[50] );
-            //bool passedSingleLeptonTrigger = bool(HLTDecision[12] || HLTDecision[19] || HLTDecision[15] || HLTDecision[22] 
-            //			    || HLTDecision[35] || HLTDecision[37]);
-            bool passedSingleLeptonTrigger = bool(HLTDecision[4] || HLTDecision[13] || HLTDecision[18] || HLTDecision[20] 
-                    || HLTDecision[24] || HLTDecision[29] || HLTDecision[34] || HLTDecision[36] || HLTDecision[37]
-                    || HLTDecision[38] || HLTDecision[39] || HLTDecision[42] || HLTDecision[42]);
+            
+	  bool passedSingleLeptonTrigger = false;
 
-            if (!(passedSingleLeptonTrigger)) continue;
-            // if (!(box == 0 || box == 1 || box == 2 || box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;
-
-            //only 1L boxes
-            //if (!(box == 3 || box == 4 || box == 5 || box == 6 || box == 7 || box ==  8)) continue;
-
-            // if (!(box == 6 || box == 7 || box ==  8)) continue;
-
+	  if (year == 2016) {
+	    passedSingleLeptonTrigger = bool(HLTDecision[4] || HLTDecision[13] || HLTDecision[18] || HLTDecision[20] 
+		 || HLTDecision[24] || HLTDecision[29] || HLTDecision[34] || HLTDecision[36] || HLTDecision[37]
+		 || HLTDecision[38] || HLTDecision[39] || HLTDecision[42] || HLTDecision[42]);
+	  } else if (year == 2017) {
+	    passedSingleLeptonTrigger = bool(HLTDecision[12] || HLTDecision[13] || HLTDecision[14] || HLTDecision[15]);
+	  }
+	  if (!(passedSingleLeptonTrigger)) continue;
+        
+	  //Only Select Electron Boxes
+	    if (!(box == 6 || box == 7 || box ==  8)) continue;
 
         }
 
-        //Use events triggered by low HT
-        if (option == 2) {
-            if (!(HLTDecision[150] || HLTDecision[151] || HLTDecision[152] || HLTDecision[153] || HLTDecision[154] || HLTDecision[155])) continue;      
-        }
-
-        //Use events triggered by HT
-        if (option == 3) {
-            if (!(HLTDecision[98] || HLTDecision[99] || HLTDecision[100])) continue;      
-        }
-
-        //Use events triggered by MET
-        if (option == 4) {
-            if (!(HLTDecision[85] )) continue;      
-        }
-
-
+       
         //Cleaning Cuts
         if (!(Flag_HBHENoiseFilter && Flag_goodVertices && Flag_eeBadScFilter)) continue;
-        //    if (leadingMuonPt > 100) continue;
-        //    if (allMuonPt > 100) continue;
         //    if (fabs(dPhiRazor) > 2.8) continue;
 
+
         //**** MR - Rsq ****
-        if (!(MR > 150 && Rsq > 0.15)) continue;
+        //if (!(MR > 150 && Rsq > 0.15)) continue;
         //if (!(MR > 600)) continue;
         histDenominatorMRRsq->Fill(MR,Rsq);
-        if(PassSelection(HLTDecision,wp)) {
+        if(PassSelection(HLTDecision,year,wp,HLTMR, HLTRSQ)) {
             // cout << MR << " " << Rsq << " " << weight << "\n";
             histNumeratorMRRsq->Fill(MR,Rsq);
         }
-
-        //Cuts
-
-        //Remove double counted events        
-        //    if(!(processedRunEvents.find(make_pair(run, event)) == processedRunEvents.end())) {
-        //      continue;
-        //    } else {
-        //      processedRunEvents[make_pair(run, event)] = true;
-        //    }
-
+      
 
         //**** MR ****
-        if (Rsq>0.4) 
+        if (Rsq>0.25) 
         { 
             histDenominatorMR->Fill(MR);
             //Numerator
-            if(PassSelection(HLTDecision,wp)) {
+            if(PassSelection(HLTDecision,year,wp,HLTMR, HLTRSQ)) {
                 histNumeratorMR->Fill(MR);
             } else {
                 if (MR > 700) {
@@ -497,11 +491,11 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
         }
 
         //**** Rsq ****
-        if (MR>200) 
+        if (MR>1600) 
         {
             histDenominatorRsq->Fill(Rsq);      
             //Numerator
-            if(PassSelection(HLTDecision,wp)) {
+            if(PassSelection(HLTDecision,year,wp,HLTMR, HLTRSQ)) {
                 histNumeratorRsq->Fill(Rsq);
             } else {
                 if (Rsq > 0.6) { 
@@ -539,17 +533,20 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int wp, int opti
     MRBins.push_back(900);
     MRBins.push_back(950);
     MRBins.push_back(1000);
-    //  MRBins.push_back(1050);
-    //  MRBins.push_back(1100);
-    //  MRBins.push_back(1200);
-    //  MRBins.push_back(1300);
-    //  MRBins.push_back(1400);
-    //  MRBins.push_back(1600);
-    //  MRBins.push_back(1900);
+    // MRBins.push_back(1050);
+    // MRBins.push_back(1100);
+    // MRBins.push_back(1200);
+    // MRBins.push_back(1300);
+    // MRBins.push_back(1400);
+    // MRBins.push_back(1600);
+    // MRBins.push_back(1900);
     vector<double> RsqBins; 
     RsqBins.push_back(0.0);
+    RsqBins.push_back(0.025);
     RsqBins.push_back(0.05);
+    RsqBins.push_back(0.075);
     RsqBins.push_back(0.10);
+    RsqBins.push_back(0.125);
     RsqBins.push_back(0.15);
     RsqBins.push_back(0.20);
     RsqBins.push_back(0.30);
@@ -705,33 +702,36 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
 
     if (option == 2) {
 
-        //2015 Data    
-        //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForARCReview20151129/RazorSkim/RazorInclusive_SingleLepton_Run2015D_2093pb_GoodLumiGolden_RazorSkim.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");
-        //2016 Data
-        ProduceRazorTriggerEfficiencyPlots("root://eoscms.cern.ch//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p8_9Feb2017_MeasureSFs/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root", 3, 11, "RazorTrigger_Rsq0p25_All_SingleLeptonData");
-        //ProduceRazorTriggerEfficiencyPlots("root://eoscms.cern.ch//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p8_9Feb2017_MeasureSFs/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root", 4, 11, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_SingleLeptonData");
-        //ProduceRazorTriggerEfficiencyPlots("root://eoscms.cern.ch//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p8_9Feb2017_MeasureSFs/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root", 1, 11, "HTTrigger_PFHT900_All_SingleLeptonData");
-        //ProduceRazorTriggerEfficiencyPlots("root://eoscms.cern.ch//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p8_18Feb2017_Trigger/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root", 1, 2, "HTTrigger_PFHT900_All_SingleLeptonData");
-        //ProduceRazorTriggerEfficiencyPlots("root://eoscms.cern.ch//store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/V3p8_18Feb2017_Trigger/OneLeptonFull/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root", 2, 11, "HTTrigger_PFHT200_All_SingleLeptonData");
-        //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/work/q/qnguyen/public/DMAnalysis/CMSSW_8_0_20/src/RazorAnalyzer/Backgrounds/1L/RunTwoRazorControlRegions_OneLeptonFull_SingleLeptonSkim_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root", 13, 11, "RazorTrigger_RsqMR240or270_Rsq0p09_MR200_All_SingleLeptonData");
+      //**************************************************************************
+      //2015 Data    
+      //**************************************************************************
+      //ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/V1p23_ForARCReview20151129/RazorSkim/RazorInclusive_SingleLepton_Run2015D_2093pb_GoodLumiGolden_RazorSkim.root", 15, 11, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_AllLeptonData_2015D");
+
+      //**************************************************************************
+      //2016 Data (with Razor Hadronic Triggers)
+      //**************************************************************************
+      //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_29Aug2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_RazorSkim.root", 2016, 16, 11, "RazorTrigger_RsqMR270_All_SingleElectronData");
+
+      //**************************************************************************
+      //2016 Data (with Razor Hadronic Triggers OR PFHT triggers OR PFJet triggers)
+      //**************************************************************************     
+      ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_03Oct2017_NoCuts/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_GoodLumiGolden.root", 2016, 20, 11, "RazorTrigger_RsqMR270ORPFHT900ORPFJet450_All_SingleElectronData");
+
+      //**************************************************************************
+      //2017 Data (For Razor Hadronic Triggers
+      //**************************************************************************
+      // //wp=6 main trigger
+      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017C_PRv1_25ns_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleEkectronData_2017C");
+      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017D_PRv1_25ns_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleEkectronData_2017D");
+      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017CD_PRv1_25ns_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleEkectronData_2017CD");
+      // //wp=7 backup trigger
+      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017C_PRv1_25ns_GoodLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleEkectronData_2017C");
+      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017D_PRv1_25ns_GoodLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleEkectronData_2017D");
+      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017CD_PRv1_25ns_GoodLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleEkectronData_2017CD");
 
 
     }
-
-    if (option == 3) {
-        ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_JetHT_Run2015B_GoodLumi.root", 15, 2, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_HT800Data_2015B");   
-        ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_JetHT_Run2015B_GoodLumi.root", 16, 2, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_HT800Data_2015B");   
-    }
-
-    if (option == 4) {
-        ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_HTMHT_Run2015B_GoodLumi.root", 15, 3, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_RsqData_2015B");   
-        ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_HTMHT_Run2015B_GoodLumi.root", 16, 3, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_RsqData_2015B");   
-    }
-
-    if (option == 5) {
-        ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_MET_Run2015B_GoodLumi.root", 15, 4, "RazorTrigger_RsqMR240_Rsq0p09_MR200_All_METData_2015B");   
-        ProduceRazorTriggerEfficiencyPlots("/afs/cern.ch/user/q/qnguyen/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorInclusive/Run2015B/RazorInclusive_MET_Run2015B_GoodLumi.root", 16, 4, "RazorTrigger_RsqMR270_Rsq0p09_MR200_All_METData_2015B");   
-    }
+   
 
     if (option == 0) {
         plotRazorTriggerEfficiency();
