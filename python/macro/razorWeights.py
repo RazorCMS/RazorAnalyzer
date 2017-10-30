@@ -771,7 +771,7 @@ def addAllBTagSFs(analysis, auxSFs={}, var='MR', gjets=False,
             if proc not in auxSFs:
                 auxSFs[proc] = {}
             nbMax = 2
-            if (analysis.njetsMin >= 4 or 'MultiJet' in analysis.region) and not gjets:
+            if (analysis.njetsMin >= 4 or 'MultiJet' in analysis.region or 'SevenJet' in analysis.region) and not gjets:
                 nbMax = 3
             for nb in range(nbMax+1):
                 rel = '=='

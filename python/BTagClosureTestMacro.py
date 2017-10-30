@@ -13,7 +13,8 @@ def loadScaleFactors(sfHists={}, tag='Razor2016_MoriondRereco', gjets=False):
     sfKey = 'MR'
     if gjets:
         sfKey = 'MRInv'
-    for jets in ['DiJet', 'MultiJet']:
+    for jets in ['SevenJet']:
+    #for jets in ['DiJet', 'MultiJet', 'SevenJet']:
         for btags in range(4):
             if (jets == 'DiJet' or gjets) and btags > 2:
                 continue
@@ -25,12 +26,17 @@ def loadScaleFactors(sfHists={}, tag='Razor2016_MoriondRereco', gjets=False):
     return sfHists
 
 def isMultiJet(analysis):
-    return analysis.njetsMin >= 4 or 'MultiJet' in analysis.region
+    return (analysis.njetsMin >= 4 and analysis.njetsMin < 7) or 'MultiJet' in analysis.region
+
+def isSevenJet(analysis):
+    return analysis.njetsMin >= 7 or 'SevenJet' in analysis.region
 
 def getSFHistName(analysis, gjets=False):
     jetName = 'DiJet'
     if isMultiJet(analysis):
         jetName = 'MultiJet'
+    if isSevenJet(analysis):
+        jetName = 'SevenJet'
     nbtags = max(0, analysis.nbMin)
     sfKey = 'MR'
     if gjets:
@@ -77,6 +83,10 @@ def adjustForRegionBInclusive(analysis, sfHists, auxSFs, gjets=False):
         if not gjets:
             nbMax = 3
         jets = 'MultiJet'
+    if isSevenJet(analysis):
+        if not gjets:
+            nbMax = 3
+        jets = 'SevenJet'
     for nb in range(nbMax + 1):
         thisSFKey = sfKey+str(nb)+'B'
         if thisSFKey in sfHists:
@@ -109,8 +119,10 @@ if __name__ == "__main__":
     regionsOrder = []
 
     #define all tests
-    jetsOrder = ["DiJet","MultiJet"]
-    jetsLimit = [(2,3),(4,-1)]
+    jetsOrder = ["SevenJet"]
+    jetsLimit = [(7,-1)]
+    #jetsOrder = ["DiJet","MultiJet","SevenJet"]
+    #jetsLimit = [(2,3),(4,6),(7,-1)]
     for name,jets in zip(jetsOrder, jetsLimit):
         for nb in range(4):
             if nb >= 3 and name == 'DiJet': 

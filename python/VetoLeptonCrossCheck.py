@@ -46,7 +46,11 @@ if __name__ == "__main__":
     regionMtHists = {}
     regionDphiHists = {}
     for ltype in ["VetoLepton","VetoTau"]:
-        for jtype,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
+        for jtype,jets in {
+                #"DiJet":(2,3),
+                #"MultiJet":(4,6),
+                "SevenJet":(7,-1)
+                }.iteritems():
             #veto lepton/tau control region
             regionsOrder.append(ltype+jtype) 
             regions[ltype+jtype] = Analysis(ltype+"ControlRegion",tag=tag,
@@ -74,11 +78,11 @@ if __name__ == "__main__":
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 
-            processNames=regions["VetoLeptonDiJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
+            processNames=regions["VetoLeptonSevenJet"].samples, scaleFactorNames={ "ZInv":"GJetsInv" },
             debugLevel=debugLevel)
     sfHistsSignal = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag),
-            processNames=regions["DiJetForVetoLepton"].samples, scaleFactorNames={ "ZInv":"GJetsInv", "TTJets1L":"TTJets", "TTJets2L":"TTJets" }, debugLevel=debugLevel)
+            processNames=regions["SevenJetForVetoLepton"].samples, scaleFactorNames={ "ZInv":"GJetsInv", "TTJets1L":"TTJets", "TTJets2L":"TTJets" }, debugLevel=debugLevel)
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     for h in [sfHists, sfHistsSignal]:
