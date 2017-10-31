@@ -13,8 +13,7 @@ def loadScaleFactors(sfHists={}, tag='Razor2016_MoriondRereco', gjets=False):
     sfKey = 'MR'
     if gjets:
         sfKey = 'MRInv'
-    for jets in ['SevenJet']:
-    #for jets in ['DiJet', 'MultiJet', 'SevenJet']:
+    for jets in ['DiJet', 'MultiJet', 'SevenJet']:
         for btags in range(4):
             if (jets == 'DiJet' or gjets) and btags > 2:
                 continue
@@ -67,6 +66,15 @@ def adjustForRegion(analysis, sfHists, auxSFs, gjets=False):
             if sfKey in sfs:
                 print "Omitting {} scale factors for {}".format(sfKey, proc)
                 del sfs[sfKey]
+    # Reduce the SevenJet binning due to low stats
+    if isSevenJet(analysis):
+        print "Using reduced binning for seven jet category"
+        if gjets:
+            analysis.binning['MR_NoPho'] = [400, 600, 900, 4000]
+            analysis.binning['Rsq_NoPho'] = [0.25, 0.30, 0.41, 1.5]
+        else:
+            analysis.binning['MR'] = [300, 500, 700, 900, 4000]
+            analysis.binning['Rsq'] = [0.15, 0.20, 0.25, 0.30, 0.41, 1.5]
 
 def adjustForRegionBInclusive(analysis, sfHists, auxSFs, gjets=False):
     """
@@ -103,6 +111,14 @@ def adjustForRegionBInclusive(analysis, sfHists, auxSFs, gjets=False):
                 if thisSFKey in sfs:
                     print "Omitting {} scale factors for {}".format(thisSFKey, proc)
                     del sfs[thisSFKey]
+    if isSevenJet(analysis):
+        print "Using reduced binning for seven jet category"
+        if "MR_NoZ" in analysis.binning:
+            analysis.binning["MR_NoZ"] = [400, 4000]
+            analysis.binning["Rsq_NoZ"] = [0.25, 1.5]
+        if "MR" in analysis.binning:
+            analysis.binning["MR"] = [300, 4000]
+            analysis.binning["Rsq"] = [0.15, 1.5]
 
 
 if __name__ == "__main__":
@@ -119,10 +135,8 @@ if __name__ == "__main__":
     regionsOrder = []
 
     #define all tests
-    jetsOrder = ["SevenJet"]
-    jetsLimit = [(7,-1)]
-    #jetsOrder = ["DiJet","MultiJet","SevenJet"]
-    #jetsLimit = [(2,3),(4,6),(7,-1)]
+    jetsOrder = ["SevenJet", "MultiJet", "DiJet"]
+    jetsLimit = [(7,-1),(4,6),(2,3)]
     for name,jets in zip(jetsOrder, jetsLimit):
         for nb in range(4):
             if nb >= 3 and name == 'DiJet': 

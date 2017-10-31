@@ -19,8 +19,8 @@ if __name__ == "__main__":
     plotOpts = { "comment":False, 'SUS15004CR':True } 
     regionsOrder = [
             "TTJetsDileptonSevenJet",
-            #"TTJetsDileptonMultiJet",
-            #"TTJetsDileptonDiJet"]
+            "TTJetsDileptonMultiJet",
+            "TTJetsDileptonDiJet"]
     regions = {
             "TTJetsDileptonDiJet":Analysis(
                 "TTJetsDilepton",tag=tag,njetsMin=2,njetsMax=3,

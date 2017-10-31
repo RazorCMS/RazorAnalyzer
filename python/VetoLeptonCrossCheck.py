@@ -47,8 +47,8 @@ if __name__ == "__main__":
     regionDphiHists = {}
     for ltype in ["VetoLepton","VetoTau"]:
         for jtype,jets in {
-                #"DiJet":(2,3),
-                #"MultiJet":(4,6),
+                "DiJet":(2,3),
+                "MultiJet":(4,6),
                 "SevenJet":(7,-1)
                 }.iteritems():
             #veto lepton/tau control region

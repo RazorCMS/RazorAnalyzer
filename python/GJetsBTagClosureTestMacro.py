@@ -22,8 +22,8 @@ if __name__ == "__main__":
 
     #define all tests
     for name,jets in {
-            #"DiJet":(2,3),
-            #"MultiJet":(4,6),
+            "DiJet":(2,3),
+            "MultiJet":(4,6),
             "SevenJet":(7,-1)
             }.iteritems():
         for nb in range(4):

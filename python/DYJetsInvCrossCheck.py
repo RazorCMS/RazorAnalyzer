@@ -23,16 +23,16 @@ if __name__ == "__main__":
     #and the second pass will be a rerun with the corrected normalization
     if closure:
         regionsOrder = [
-                #"DYJetsDileptonInv", 
-                #"DYJetsDileptonInvDiJet",
-                #"DYJetsDileptonInvMultiJet",
+                "DYJetsDileptonInv", 
+                "DYJetsDileptonInvDiJet",
+                "DYJetsDileptonInvMultiJet",
                 "DYJetsDileptonInvSevenJet"]
     else:
         regionsOrder = [
                 "DYJetsDileptonInvUncorr", 
-                #"DYJetsDileptonInv", 
-                #"DYJetsDileptonInvDiJet", 
-                #"DYJetsDileptonInvMultiJet", 
+                "DYJetsDileptonInv", 
+                "DYJetsDileptonInvDiJet", 
+                "DYJetsDileptonInvMultiJet", 
                 "DYJetsDileptonInvSevenJet"
                 ]
     regions = {

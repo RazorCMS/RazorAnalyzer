@@ -1068,10 +1068,10 @@ xbinsSignal["SevenJet"]["0B"] = [ 650, 900, 1200, 1600, 4000 ]
 xbinsSignal["SevenJet"]["1B"] = [ 650, 900, 1200, 1600, 4000 ]
 xbinsSignal["SevenJet"]["2B"] = [ 650, 900, 1200, 1600, 4000 ]
 xbinsSignal["SevenJet"]["3B"] = [ 650, 1600, 4000 ]
-xbinsSignal["LeptonSevenJet"]["0B"] = [ 550, 650, 900, 1200, 1600, 4000 ]
-xbinsSignal["LeptonSevenJet"]["1B"] = [ 550, 650, 900, 1200, 1600, 4000 ]
-xbinsSignal["LeptonSevenJet"]["2B"] = [ 550, 650, 900, 1200, 1600, 4000 ]
-xbinsSignal["LeptonSevenJet"]["3B"] = [ 550, 650, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["0B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["1B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["2B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["3B"] = [ 550, 700, 1600, 4000 ]
 
 colsSignal["SevenJet"]["0B"] = [
         [ 0.30, 0.41, 1.5 ],
@@ -1229,7 +1229,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsSingleLepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsSingleLepton"]
             self.cuts = razorCuts["SingleLepton"]
-            self.binning = razorBinning["SingleLepton"]
+            self.binning = copy.copy(razorBinning["SingleLepton"])
             self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], colsSignal["TTJetsSingleLepton"]["0B"])
 
         elif self.region == "SingleLeptonInv":
@@ -1240,7 +1240,7 @@ class Analysis:
             self.samples = razorSamples["WJetsSingleLeptonInv"]
             self.samplesReduced = razorSamplesReduced["WJetsSingleLeptonInv"]
             self.cuts = razorCuts["SingleLeptonInv"]
-            self.binning = razorBinning["SingleLeptonInv"]
+            self.binning = copy.copy(razorBinning["SingleLeptonInv"])
             self.unrollBins = (xbinsSignal["WJetsSingleLeptonInv"]["0B"], colsSignal["WJetsSingleLeptonInv"]["0B"])
 
         elif self.region == "TTJetsSingleLepton":
@@ -1251,7 +1251,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsSingleLepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsSingleLepton"]
             self.cuts = razorCuts["SingleLepton"]
-            self.binning = razorBinning["SingleLepton"]
+            self.binning = copy.copy(razorBinning["SingleLepton"])
             self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], colsSignal["TTJetsSingleLepton"]["0B"])
 
         elif self.region == "WJetsSingleLepton":
@@ -1262,7 +1262,7 @@ class Analysis:
             self.samples = razorSamples["WJetsSingleLepton"]
             self.samplesReduced = razorSamplesReduced["WJetsSingleLepton"]
             self.cuts = razorCuts["SingleLepton"]
-            self.binning = razorBinning["SingleLepton"]
+            self.binning = copy.copy(razorBinning["SingleLepton"])
             self.unrollBins = (xbinsSignal["WJetsSingleLepton"]["0B"], colsSignal["WJetsSingleLepton"]["0B"])
 
         elif self.region == "WJetsSingleLeptonInv":
@@ -1273,7 +1273,7 @@ class Analysis:
             self.samples = razorSamples["WJetsSingleLeptonInv"]
             self.samplesReduced = razorSamplesReduced["WJetsSingleLeptonInv"]
             self.cuts = razorCuts["SingleLeptonInv"]
-            self.binning = razorBinning["SingleLeptonInv"]
+            self.binning = copy.copy(razorBinning["SingleLeptonInv"])
             self.unrollBins = (xbinsSignal["WJetsSingleLeptonInv"]["0B"], colsSignal["WJetsSingleLeptonInv"]["0B"])
 
         elif self.region == "TTJetsDilepton":
@@ -1284,7 +1284,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsDilepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsDilepton"]
             self.cuts = razorCuts["TTJetsDilepton"]
-            self.binning = razorBinning["TTJetsDilepton"]
+            self.binning = copy.copy(razorBinning["TTJetsDilepton"])
             self.unrollBins = (None,None)
 
         elif self.region == "TTJetsDileptonMultiJet":
@@ -1295,7 +1295,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsDilepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsDilepton"]
             self.cuts = razorCuts["TTJetsDilepton"]
-            self.binning = razorBinning["TTJetsDileptonReduced"]
+            self.binning = copy.copy(razorBinning["TTJetsDileptonReduced"])
             self.unrollBins = (None,None)
 
         elif self.region == "DYJetsDileptonInv":
@@ -1306,7 +1306,7 @@ class Analysis:
             self.samples = razorSamples["DYJetsDileptonInv"]
             self.samplesReduced = razorSamplesReduced["DYJetsDileptonInv"]
             self.cuts = razorCuts["DYJetsDileptonInv"]
-            self.binning = razorBinning["DYJetsDileptonInv"]
+            self.binning = copy.copy(razorBinning["DYJetsDileptonInv"])
             self.unrollBins = (None,None)
 
         elif self.region == "DYJetsDileptonInvMultiJet":
@@ -1317,7 +1317,7 @@ class Analysis:
             self.samples = razorSamples["DYJetsDileptonInv"]
             self.samplesReduced = razorSamplesReduced["DYJetsDileptonInv"]
             self.cuts = razorCuts["DYJetsDileptonInv"]
-            self.binning = razorBinning["DYJetsDileptonInvReduced"]
+            self.binning = copy.copy(razorBinning["DYJetsDileptonInvReduced"])
             self.unrollBins = (None,None)
 
         elif self.region == "GJetsInv":
@@ -1328,7 +1328,7 @@ class Analysis:
             self.samples = razorSamples["Photon"]
             self.samplesReduced = razorSamplesReduced["Photon"]
             self.cuts = razorCuts["Photon"]
-            self.binning = razorBinning["Photon"]
+            self.binning = copy.copy(razorBinning["Photon"])
             self.unrollBins = (xbinsSignal["GJetsInv"]["0B"],colsSignal["GJetsInv"]["0B"])
             self.extraCuts = razorExtraCuts["Photon"]
 
@@ -1340,7 +1340,7 @@ class Analysis:
             self.samples = razorSamples["SusySync"]
             self.samplesReduced = razorSamplesReduced["SusySync"]
             self.cuts = razorCuts["SusySync"]
-            self.binning = razorBinning["SusySync"]
+            self.binning = copy.copy(razorBinning["SusySync"])
             self.unrollBins = (None,None)
 
         elif self.region == "VetoLeptonControlRegion":
@@ -1351,7 +1351,7 @@ class Analysis:
             self.samples = razorSamples["VetoLepton"]
             self.samplesReduced = razorSamplesReduced["VetoLepton"]
             self.cuts = razorCuts["VetoLepton"]
-            self.binning = razorBinning["VetoLepton"]
+            self.binning = copy.copy(razorBinning["VetoLepton"])
             self.unrollBins = (None,None)
 
         elif (self.region == "MultiJetForVetoLeptonControlRegion"
@@ -1363,7 +1363,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["MultiJetForVetoLepton"]
-            self.binning = razorBinning["SignalRegionForVetoLepton"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoLepton"])
             self.unrollBins = (None,None)
         
         elif self.region == "DiJetForVetoLeptonControlRegion":
@@ -1374,7 +1374,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["DiJetForVetoLepton"]
-            self.binning = razorBinning["SignalRegionForVetoLepton"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoLepton"])
             self.unrollBins = (None,None)
 
         elif self.region == "VetoTauControlRegion":
@@ -1385,7 +1385,7 @@ class Analysis:
             self.samples = razorSamples["VetoTau"]
             self.samplesReduced = razorSamplesReduced["VetoTau"]
             self.cuts = razorCuts["VetoTau"]
-            self.binning = razorBinning["VetoTau"]
+            self.binning = copy.copy(razorBinning["VetoTau"])
             self.unrollBins = (None,None)
 
         elif (self.region == "MultiJetForVetoTauControlRegion"
@@ -1397,7 +1397,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["MultiJetForVetoTau"]
-            self.binning = razorBinning["SignalRegionForVetoTau"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoTau"])
             self.unrollBins = (None,None)
 
         elif self.region == "DiJetForVetoTauControlRegion":
@@ -1408,7 +1408,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["DiJetForVetoTau"]
-            self.binning = razorBinning["SignalRegionForVetoTau"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoTau"])
             self.unrollBins = (None,None)
 
         elif self.region in electronRazorBoxes:
@@ -1419,7 +1419,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning["SignalLeptonic"]
+            self.binning = copy.copy(razorBinning["SignalLeptonic"])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in muonRazorBoxes:
@@ -1430,7 +1430,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning["SignalLeptonic"]
+            self.binning = copy.copy(razorBinning["SignalLeptonic"])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in leptonRazorBoxes:
@@ -1441,7 +1441,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning[self.region]
+            self.binning = copy.copy(razorBinning[self.region])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
             self.boostCuts = False
             print "Note: disabling W/top tag cuts for box {}".format(self.region)
@@ -1454,7 +1454,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning[self.region]
+            self.binning = copy.copy(razorBinning[self.region])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in hadronicRazorBoxes:
@@ -1465,7 +1465,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning[self.region]
+            self.binning = copy.copy(razorBinning[self.region])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region == "TTJetsSingleLeptonForSignal":
@@ -1476,7 +1476,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts["SingleLeptonForSignal"]
-            self.binning = razorBinning["SingleLeptonForSignal"]
+            self.binning = copy.copy(razorBinning["SingleLeptonForSignal"])
             self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], 
                     colsSignal["TTJetsSingleLepton"]["0B"])
 
@@ -1488,7 +1488,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts["SingleLeptonForSignal"]
-            self.binning = razorBinning["SingleLeptonForSignal"]
+            self.binning = copy.copy(razorBinning["SingleLeptonForSignal"])
             self.unrollBins = (xbinsSignal["WJetsSingleLepton"]["0B"], 
                     colsSignal["WJetsSingleLepton"]["0B"])
 
