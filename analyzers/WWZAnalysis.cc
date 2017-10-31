@@ -15,6 +15,7 @@
 #include <TH1F.h>
 #include <TH2D.h>
 #include "TRandom3.h"
+#include "TVector2.h"
 #include "AngleConversion.h"
 
 using namespace std;
@@ -90,16 +91,20 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   float triggerEffSFWeight;
   int lep1Id;
   bool lep1IsPrompt;
-  float lep1Pt, lep1Eta, lep1Phi;
+  bool lep1PassLooseMVAID;
+  float lep1Pt, lep1Eta, lep1Phi, lep1dZ;
   int lep2Id;
   bool lep2IsPrompt;
-  float lep2Pt, lep2Eta, lep2Phi;
+  bool lep2PassLooseMVAID;
+  float lep2Pt, lep2Eta, lep2Phi, lep2dZ;
   int lep3Id;
   bool lep3IsPrompt;
-  float lep3Pt, lep3Eta, lep3Phi;
+  bool lep3PassLooseMVAID;
+ float lep3Pt, lep3Eta, lep3Phi, lep3dZ;
   int lep4Id;
   bool lep4IsPrompt;
-  float lep4Pt, lep4Eta, lep4Phi;
+  bool lep4PassLooseMVAID;
+  float lep4Pt, lep4Eta, lep4Phi, lep4dZ;
 
   float phi0, theta0, phi, theta1, theta2, phiH;
 
@@ -122,6 +127,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 
   float MET, MET_JESUp, MET_JESDown; 
   float METPhi;
+  float METPuppiPt;
+  float METPuppiPhi;
+  float pt_zeta;
+  float pt_zeta_vis;
   unsigned int run, lumi, event;
   
   float GenZLepton1Pt,GenZLepton1Eta;
@@ -153,6 +162,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("MET_JESUp", &MET_JESUp, "MET_JESUp/F");
   outputTree->Branch("MET_JESDown", &MET_JESDown, "MET_JESDown/F");
   outputTree->Branch("METPhi", &METPhi, "METPhi/F");
+  outputTree->Branch("METPuppiPt", &METPuppiPt, "METPuppiPt/F");
+  outputTree->Branch("METPuppiPhi", &METPuppiPhi, "METPuppiPhi/F");
+  outputTree->Branch("pt_zeta", &pt_zeta, "pt_zeta/F");
+  outputTree->Branch("pt_zeta_vis", &pt_zeta_vis, "pt_zeta_vis/F");
   outputTree->Branch("NJet20", &NJet20, "NJet20/I");
   outputTree->Branch("jet1Pt", &jet1Pt, "jet1Pt/F");
   outputTree->Branch("jet2Pt", &jet2Pt, "jet2Pt/F");
@@ -169,22 +182,30 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
   outputTree->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
   outputTree->Branch("lep1Eta", &lep1Eta, "lep1Eta/F");
   outputTree->Branch("lep1Phi", &lep1Phi, "lep1Phi/F");
+  outputTree->Branch("lep1dZ", &lep1dZ, "lep1dZ/F");
   outputTree->Branch("lep1IsPrompt", &lep1IsPrompt, "lep1IsPrompt/O");
+  outputTree->Branch("lep1PassLooseMVAID", &lep1PassLooseMVAID, "lep1PassLooseMVAID/O");
   outputTree->Branch("lep2Id", &lep2Id, "lep2Id/I");
   outputTree->Branch("lep2Pt", &lep2Pt, "lep2Pt/F");
   outputTree->Branch("lep2Eta", &lep2Eta, "lep2Eta/F");
   outputTree->Branch("lep2Phi", &lep2Phi, "lep2Phi/F");
+  outputTree->Branch("lep2dZ", &lep2dZ, "lep2dZ/F");
   outputTree->Branch("lep2IsPrompt", &lep2IsPrompt, "lep2IsPrompt/O");
+  outputTree->Branch("lep2PassLooseMVAID", &lep2PassLooseMVAID, "lep2PassLooseMVAID/O");
   outputTree->Branch("lep3Id", &lep3Id, "lep3Id/I");
   outputTree->Branch("lep3Pt", &lep3Pt, "lep3Pt/F");
   outputTree->Branch("lep3Eta", &lep3Eta, "lep3Eta/F");
   outputTree->Branch("lep3Phi", &lep3Phi, "lep3Phi/F");
+  outputTree->Branch("lep3dZ", &lep3dZ, "lep3dZ/F");
   outputTree->Branch("lep3IsPrompt", &lep3IsPrompt, "lep3IsPrompt/O");
+  outputTree->Branch("lep3PassLooseMVAID", &lep3PassLooseMVAID, "lep3PassLooseMVAID/O");
   outputTree->Branch("lep4Id", &lep4Id, "lep4Id/I");
   outputTree->Branch("lep4Pt", &lep4Pt, "lep4Pt/F");
   outputTree->Branch("lep4Eta", &lep4Eta, "lep4Eta/F");
   outputTree->Branch("lep4Phi", &lep4Phi, "lep4Phi/F");
+  outputTree->Branch("lep4dZ", &lep4dZ, "lep4dZ/F");
   outputTree->Branch("lep4IsPrompt", &lep4IsPrompt, "lep4IsPrompt/O");
+  outputTree->Branch("lep4PassLooseMVAID", &lep4PassLooseMVAID, "lep4PassLooseMVAID/O");
   outputTree->Branch("ZMass", &ZMass, "ZMass/F");
   outputTree->Branch("ZPt", &ZPt, "ZPt/F");
   outputTree->Branch("lep3MT", &lep3MT, "lep3MT/F");
@@ -251,22 +272,30 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       lep1Pt = -999;
       lep1Eta = -999;
       lep1Phi = -999;  
+      lep1dZ = -999;
       lep1IsPrompt = false;
+      lep1PassLooseMVAID = false;
       lep2Id = 0;
       lep2Pt = -999;
       lep2Eta = -999;
       lep2Phi = -999;  
+      lep2dZ = -999;
       lep2IsPrompt = false;
+      lep2PassLooseMVAID = false;
       lep3Id = 0;
       lep3Pt = -999;
       lep3Eta = -999;
       lep3Phi = -999;  
+      lep3dZ = -999;
       lep3IsPrompt = false;
+      lep3PassLooseMVAID = false;
       lep4Id = 0;
       lep4Pt = -999;
       lep4Eta = -999;
       lep4Phi = -999;   
+      lep4dZ = -999;
       lep4IsPrompt = false;
+      lep4PassLooseMVAID = false;
       ZMass = -999;
       ZPt = -999;
       lep3MT = -999;
@@ -309,6 +338,8 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       GenWMinusPt = -999;
       GenWMinusEta = -999;
       GenMET = -999;
+      pt_zeta = -999;
+      pt_zeta_vis = -999.;
 
       //------------------
       //Pileup reweighting
@@ -425,6 +456,9 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       vector<TLorentzVector> Leptons;
       vector<int> LeptonsId;
       vector<int> LeptonsIndex;
+      vector<float> LeptonsdZ;
+      vector<bool> LeptonsPassLooseMVAID;
+
 
       //-------------------------------
       //Muons
@@ -446,14 +480,16 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	  tmpMuon.SetPtEtaPhiM(muonPt[i],muonEta[i], muonPhi[i],0.1057);
 	  Leptons.push_back(tmpMuon);
 	  LeptonsId.push_back(13 * -1 * muonCharge[i]);	  
+	  LeptonsdZ.push_back(muon_dZ[i]);
 	  LeptonsIndex.push_back(i);
+	  LeptonsPassLooseMVAID.push_back(true);
       }
 
       //-------------------------------
       //Electrons
       //-------------------------------
       for( int i = 0; i < nElectrons; i++ )	{
-	if(!isEGammaPOGVetoElectron(i)) continue;  
+	if(!(passMVANonTrigVetoElectronID(i) && passEGammaPOGVetoElectronIso(i))) continue;  
 	if(elePt[i] < 10) continue;
 	if(abs(eleEta[i]) > 2.4) continue;
 	
@@ -468,7 +504,9 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	tmpElectron.SetPtEtaPhiM(elePt[i],eleEta[i], elePhi[i],0.000511);	
 	Leptons.push_back(tmpElectron);
 	LeptonsId.push_back(11 * -1 * eleCharge[i]);	  	
+	LeptonsdZ.push_back(ele_dZ[i]);
 	LeptonsIndex.push_back(i);
+	LeptonsPassLooseMVAID.push_back(passMVALooseElectronID(i));
       }
       
 
@@ -504,10 +542,14 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	lep1Pt = Leptons[ZCandidateLeptonIndex.first].Pt();
 	lep1Eta = Leptons[ZCandidateLeptonIndex.first].Eta();
 	lep1Phi = Leptons[ZCandidateLeptonIndex.first].Phi();
+	lep1dZ  = LeptonsdZ[ZCandidateLeptonIndex.first];
+	lep1PassLooseMVAID = LeptonsPassLooseMVAID[ZCandidateLeptonIndex.first];
 	lep2Id = LeptonsId[ZCandidateLeptonIndex.second];
 	lep2Pt = Leptons[ZCandidateLeptonIndex.second].Pt();
 	lep2Eta = Leptons[ZCandidateLeptonIndex.second].Eta();
 	lep2Phi = Leptons[ZCandidateLeptonIndex.second].Phi();
+	lep2dZ  = LeptonsdZ[ZCandidateLeptonIndex.second];
+	lep2PassLooseMVAID = LeptonsPassLooseMVAID[ZCandidateLeptonIndex.second];
 
 	//match to gen leptons
 	if (abs(lep1Id) == 11) lep1IsPrompt = matchesGenElectron(lep1Eta,lep1Phi);
@@ -558,12 +600,15 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	  lep4Phi = lep3Phi;
 	  lep4Index = lep3Index;
 	  lep4IsPrompt = lep3IsPrompt;
+	  lep4PassLooseMVAID = lep3PassLooseMVAID;
 
 	  lep3Id = LeptonsId[i];
 	  lep3Pt = Leptons[i].Pt();
 	  lep3Eta = Leptons[i].Eta();
 	  lep3Phi = Leptons[i].Phi();
-	  lep3Index = i;	  
+	  lep3dZ  = LeptonsdZ[i];
+	  lep3PassLooseMVAID = LeptonsPassLooseMVAID[i];
+	  lep3Index = i;
 
 	  //match to gen leptons
 	  if (abs(lep3Id) == 11) lep3IsPrompt = matchesGenElectron(lep3Eta,lep3Phi);
@@ -574,6 +619,8 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	  lep4Pt = Leptons[i].Pt();
 	  lep4Eta = Leptons[i].Eta();
 	  lep4Phi = Leptons[i].Phi();
+	  lep4dZ  = LeptonsdZ[i];
+	  lep4PassLooseMVAID = LeptonsPassLooseMVAID[i];
 	  lep4Index = i;
 	  
 	  //match to gen leptons
@@ -667,7 +714,26 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       TLorentzVector MyMET = PFMETCustomType1Corrected; //This is the MET that will be used below.
       MET = MyMET.Pt();
       METPhi = MyMET.Phi();
+      METPuppiPt = metPuppiPt;
+      METPuppiPhi = metPuppiPhi;
 
+      // PT_zeta
+      if(foundZ) {	  
+	TVector3 lep1, lep2, metv3, zeta;
+	
+	metv3.SetPtEtaPhi(MET, 0., METPhi);
+	lep1.SetPtEtaPhi(Leptons[ZCandidateLeptonIndex.first].Pt(), 0,  Leptons[ZCandidateLeptonIndex.first].Phi());
+	lep2.SetPtEtaPhi(Leptons[ZCandidateLeptonIndex.second].Pt(), 0,  Leptons[ZCandidateLeptonIndex.second].Phi());
+	
+	zeta = lep1*lep2.Mag() + lep2*lep1.Mag(); // find bisector
+	
+	TVector3 sum = lep1 + lep2 + metv3;
+	TVector3 sum_vis = lep1 + lep2;
+	
+	pt_zeta = sum.Dot(zeta.Unit());
+	pt_zeta_vis = sum_vis.Dot(zeta.Unit());
+      }
+      
       TLorentzVector DileptonWW;
       if (lep3Index >= 0) {
 	lep3MT = sqrt(2*lep3Pt*MyMET.Pt()*( 1.0 - cos(  Leptons[lep3Index].DeltaPhi(MyMET) ) ) ); 
