@@ -106,6 +106,7 @@ if __name__ == '__main__':
     parser.add_option('--mStop',default=-1,type=int, help="mass of stop")
     parser.add_option('--mLSP',default=-1,type=int, help="mass of LSP")
     (options,args) = parser.parse_args()
+    model = options.model
 
     rt.gROOT.SetBatch()
 
