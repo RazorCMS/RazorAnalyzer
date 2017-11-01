@@ -27,12 +27,15 @@
 //enum {WJet=0, ZJet, TTJet};
 void processFile(TString inputFileName, TString outputFileName, int physProc);
 void calculateMCScaleFactors() {
+  //TFile *fT = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets1L_1pb_weighted.root","read");
+  //TFile *fT2 = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets2L_1pb_weighted.root","read");
+  //TFile *fZ = TFile::Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root","read");
+  //processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root", "WJets.root", 0);
 
-  //processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_12Sep2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root", "WJets.root", 0);
+  //processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root", "ZInv.root", 1);
 
-  //processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_12Sep2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root", "ZInv.root", 1);
-
-  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_12Sep2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets_1pb_weighted.root", "TTJets.root", 2);
+  //processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets1L_1pb_weighted.root", "TTJets1L.root", 2);
+  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets2L_1pb_weighted.root", "TTJets2L.root", 2);
 
 
 	      
@@ -64,10 +67,10 @@ void processFile(TString inputFileName, TString outputFileName, int physProc) {
 
   inputTree->GetEntry(0);
 
-  TString cut="(box==11||box==12||box==14)*(MR>400 && Rsq>0.15)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
+  TString cut="(box==11||box==12||box==14)*(MR>400 && Rsq>0.1)*(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_CSCTightHaloFilter && Flag_badChargedCandidateFilter && Flag_badMuonFilter)";
 
-  TFile *fScaleFactors = TFile::Open("RazorScaleFactors_Razor2016_MoriondRereco.root");
-  TFile *fNJetScaleFactors = TFile::Open("RazorNJetsScaleFactors_Razor2016_MoriondRereco.root");
+  TFile *fScaleFactors = TFile::Open("/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016.root");
+  TFile *fNJetScaleFactors = TFile::Open("/afs/cern.ch/work/j/jlawhorn/public/Razor_Moriond2017/clean/CMSSW_7_1_5/src/RazorAnalyzer/data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2016_MoriondRereco.root");
 
   TH2Poly *hScaleFactors=0; 
   TH1F *hNJetScaleFactors=0; 
