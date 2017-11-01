@@ -467,7 +467,7 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       for( int i = 0; i < nMuons; i++ )	{
 	  if(!isMuonPOGLooseMuon(i)) continue;  
 	  if(muonPt[i] < 10) continue;
-	  if(abs(muonEta[i]) > 2.4) continue;
+	  if(fabs(muonEta[i]) > 2.4) continue;
 	
 	  //remove overlaps
 	  bool overlap = false;
@@ -489,9 +489,12 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
       //Electrons
       //-------------------------------
       for( int i = 0; i < nElectrons; i++ )	{
-	if(!(passMVANonTrigVetoElectronID(i) && passEGammaPOGVetoElectronIso(i))) continue;  
+	if(!(passMVAVetoElectronID(i) && 
+	     ( (fabs(eleEta[i]) < 1.5 && fabs(ele_d0[i]) < 0.0564) ||
+	       (fabs(eleEta[i]) >= 1.5 && fabs(ele_d0[i]) < 0.222))
+	     && passEGammaPOGVetoElectronIso(i))) continue;  
 	if(elePt[i] < 10) continue;
-	if(abs(eleEta[i]) > 2.4) continue;
+	if(fabs(eleEta[i]) > 2.4) continue;
 	
 	//remove overlaps
 	bool overlap = false;
@@ -506,7 +509,10 @@ void WWZAnalysis::Analyze(bool isData, int option, string outFileName, string la
 	LeptonsId.push_back(11 * -1 * eleCharge[i]);	  	
 	LeptonsdZ.push_back(ele_dZ[i]);
 	LeptonsIndex.push_back(i);
-	LeptonsPassLooseMVAID.push_back(passMVALooseElectronID(i));
+	LeptonsPassLooseMVAID.push_back(
+					passMVALooseElectronID(i)
+					&& passEGammaPOGLooseElectronIso(i)
+					);
       }
       
 
