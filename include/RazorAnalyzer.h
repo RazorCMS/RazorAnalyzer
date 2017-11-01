@@ -82,6 +82,7 @@ class RazorAnalyzer: public RazorEvents {
         bool passEGammaPOGMediumElectronID(int i, bool use25nsCuts = true, string EraName = "Spring15");
         bool passEGammaPOGTightElectronID(int i, bool use25nsCuts = true, string EraName = "Spring15");
 	bool passMVANonTrigVetoElectronID(int i);
+	bool passMVAVetoElectronID(int i);
 	bool passMVALooseElectronID(int i);
         bool passEGammaPOGVetoElectronIso(int i, bool use25nsCuts = true);
         bool passEGammaPOGLooseElectronIso(int i, bool use25nsCuts = true);

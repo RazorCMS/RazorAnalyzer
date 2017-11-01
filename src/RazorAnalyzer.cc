@@ -1018,6 +1018,55 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 
 }
 
+bool RazorAnalyzer::passMVAVetoElectronID(int i){
+
+  //Giovanni Zevi Della Porta
+  //tried to match working points of 80X electron MVA with 74X electron MVA
+  //pT < 10 bin should use "HZZ" MVA
+  //pT > 10 bin should use "GeneralPurpose" MVA
+  //https://indico.cern.ch/event/590228/contributions/2380031/attachments/1375541/2088587/EGMSUS_newIDs_17Nov16.pdf
+  Int_t subdet = 0;
+  if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
+  else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
+  else subdet = 2;
+  Int_t ptBin = 0;
+  if (elePt[i] > 10.0 && elePt[i] <= 15.0) ptBin = 1;
+  if (elePt[i] > 15.0 && elePt[i] <= 25.0) ptBin = 2;
+  if (elePt[i] > 25.0 ) ptBin = 3;
+
+  double MVACut = -999;
+  //pt 5-10
+  if (subdet == 0 && ptBin == 0) MVACut = 0.46;
+  if (subdet == 1 && ptBin == 0) MVACut = -0.03;
+  if (subdet == 2 && ptBin == 0) MVACut = 0.06;
+  //For pT 10-15
+  if (subdet == 0 && ptBin == 1) MVACut = -0.48;
+  if (subdet == 1 && ptBin == 1) MVACut = -0.67;
+  if (subdet == 2 && ptBin == 1) MVACut = -0.49;
+  //For pT 15-25
+  if (subdet == 0 && ptBin == 2) MVACut = -0.48 - 0.037 * ( elePt[i] - 15);
+  if (subdet == 1 && ptBin == 2) MVACut = -0.67 - 0.024 * ( elePt[i] - 15);
+  if (subdet == 2 && ptBin == 2) MVACut = -0.49 - 0.034 * ( elePt[i] - 15);
+  //For pT>25
+  if (subdet == 0 && ptBin == 3) MVACut = -0.85;
+  if (subdet == 1 && ptBin == 3) MVACut = -0.91;
+  if (subdet == 2 && ptBin == 3) MVACut = -0.83;
+
+  double mvaVar = ele_IDMVAGeneralPurpose[i];
+  if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
+
+  //cout << ptBin << " " << subdet << " : " << ele_IDMVAGeneralPurpose[i] << " " << ele_IDMVAHZZ[i] << " --> " << mvaVar << " : cut = " <<  MVACut << " | pass = ";
+
+  bool pass = false;
+  if (mvaVar > MVACut ) {
+    pass = true;
+  }
+  //cout << pass << "\n";
+
+  return pass;
+
+}
+
 bool RazorAnalyzer::passMVALooseElectronID(int i){
 
   //Tuned to match signal efficiency of the EGM Cut-based Veto Working Point
@@ -1039,17 +1088,17 @@ bool RazorAnalyzer::passMVALooseElectronID(int i){
   if (subdet == 1 && ptBin == 0) MVACut = 0.76;
   if (subdet == 2 && ptBin == 0) MVACut = 0.80;
   //For pT 10-15
-  if (subdet == 0 && ptBin == 1) MVACut = 0.67;
-  if (subdet == 1 && ptBin == 1) MVACut = 0.47;
-  if (subdet == 2 && ptBin == 1) MVACut = 0.52;
+  if (subdet == 0 && ptBin == 1) MVACut = 0.66;
+  if (subdet == 1 && ptBin == 1) MVACut = 0.44;
+  if (subdet == 2 && ptBin == 1) MVACut = 0.49;
   //For pT 15-25
-  if (subdet == 0 && ptBin == 2) MVACut = 0.67 - 0.061 * ( elePt[i] - 15);
-  if (subdet == 1 && ptBin == 2) MVACut = 0.47 - 0.055 * ( elePt[i] - 15);
-  if (subdet == 2 && ptBin == 2) MVACut = 0.52 - 0.024 * ( elePt[i] - 15);
+  if (subdet == 0 && ptBin == 2) MVACut = 0.66 - 0.064 * ( elePt[i] - 15);
+  if (subdet == 1 && ptBin == 2) MVACut = 0.44 - 0.057 * ( elePt[i] - 15);
+  if (subdet == 2 && ptBin == 2) MVACut = 0.49 - 0.030 * ( elePt[i] - 15);
   //For pT>25
-  if (subdet == 0 && ptBin == 3) MVACut = 0.06;
-  if (subdet == 1 && ptBin == 3) MVACut = -0.08;
-  if (subdet == 2 && ptBin == 3) MVACut = 0.28;
+  if (subdet == 0 && ptBin == 3) MVACut = 0.02;
+  if (subdet == 1 && ptBin == 3) MVACut = -0.13;
+  if (subdet == 2 && ptBin == 3) MVACut = 0.19;
 
   double mvaVar = ele_IDMVAGeneralPurpose[i];
   if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
@@ -1057,9 +1106,7 @@ bool RazorAnalyzer::passMVALooseElectronID(int i){
   //cout << ptBin << " " << subdet << " : " << ele_IDMVAGeneralPurpose[i] << " " << ele_IDMVAHZZ[i] << " --> " << mvaVar << " : cut = " <<  MVACut << " | pass = ";
 
   bool pass = false;
-  if (mvaVar > MVACut
-      && fabs(ele_ip3dSignificance[i]) < 4
-      ) {
+  if (mvaVar > MVACut) {
     pass = true;
   }
   //cout << pass << "\n";
