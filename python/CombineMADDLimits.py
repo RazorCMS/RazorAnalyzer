@@ -5,7 +5,7 @@ import argparse
 import ROOT as rt
 
 from GChiPairs import gchipairs
-from limits.SMSConfig import VERSION
+from limits.SMSConfig import VERSION, sms_models
     
 def writeBashScript(boxes, model, mg, mchi, inDir, subDir):
     
@@ -77,7 +77,14 @@ if __name__ == '__main__':
                         '_'.join(args.boxes),args.model,mg,mchi,combineMethod)
                 if outputname in allFiles: donePairs.append((mg,mchi))
 
-    for (mg, mchi) in gchipairs(args.model):
+    submodels = sms_models[args.model].submodels
+    if submodels is None:
+        pairs = gchipairs(args.model)
+    else:
+        pairs = []
+        for submodel in submodels:
+            pairs += gchipairs(submodel)
+    for (mg, mchi) in pairs:
         if (mg, mchi) in donePairs: 
             print (mg,mchi),"is already done; skipping"
             continue

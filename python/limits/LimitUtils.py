@@ -127,6 +127,9 @@ def aggregate(model, tag, sms, no_exec=True):
     out_dir = get_limit_dir(model)
     do_command(['mkdir', '-p', out_dir], no_exec)
     for submodel in sms.submodels:
+        if submodel == model:
+            print "Skipping submodel {}; name change unneeded".format(submodel)
+            continue
         print "Dataset: {}".format(submodel)
         in_dir = get_limit_dir(submodel)
         in_files = glob.glob(in_dir
