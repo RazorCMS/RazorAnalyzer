@@ -128,9 +128,13 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
 	    eleTree->fEleGenEta = gParticleEta[matchedIndex];
 	    eleTree->fEleGenPhi = gParticlePhi[matchedIndex];
 	    if (abs(gParticleMotherId[matchedIndex]) > 50 || 
-		abs(gParticleMotherId[matchedIndex]) == 15) {
+		abs(gParticleMotherId[matchedIndex]) == 15 || 
+		abs(gParticleMotherId[matchedIndex]) == 13 ) {
 	      matchedID = gParticleMotherId[matchedIndex];
-	    } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
+	    } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ||
+		       (abs(gParticleMotherId[matchedIndex]) >= 1 && abs(gParticleMotherId[matchedIndex]) <= 5) ||
+		       abs(gParticleMotherId[matchedIndex]) == 21 || abs(gParticleMotherId[matchedIndex]) == 2212		       
+		       ) {
 	      matchedID = gParticleId[matchedIndex];
 	    }
 	  }
@@ -163,29 +167,37 @@ void ElectronNtupler::Analyze(bool isData, int Option, string outputfilename, st
 
 
 
-	  // if (matchedID == 0 && ele_IDMVANonTrig[i] > 0.9) {
-	  //   std::cout << "DEBUG: \n";
-	  //   std::cout << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : " <<  ele_IDMVANonTrig[i] << "\n";
-	  //   cout << "match : " << matchedIndex << " ";
-	  //   if (matchedIndex >= 0) cout << gParticleMotherId[matchedIndex];
-	  //   cout << "\n";
+	  if (
+	      //matchedID == 0 && 
+	      
+	      ele_IDMVAGeneralPurpose[i] > 0.95) {
+	    std::cout << "DEBUG: \n";
+	    std::cout << elePt[i] << " " << eleEta[i] << " " << elePhi[i] << " : " <<  ele_IDMVAGeneralPurpose[i] << " " <<  ele_IDMVAHZZ[i] << "\n";
+	    cout << "match : " << matchedIndex << " ";
+	    if (matchedIndex >= 0) cout << gParticleMotherId[matchedIndex];
+	    cout << "\n";
 
-	  //   if (abs(gParticleMotherId[matchedIndex]) > 50 || 
-	  // 	  abs(gParticleMotherId[matchedIndex]) == 15) {
-	  // 	cout << "matched HF\n";
-	  //   } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ) {
-	  // 	cout << "match prompt\n";
-	  //   } else {
-	  // 	cout << "nothing\n";
-	  //   }
+	    if (abs(gParticleMotherId[matchedIndex]) > 50 || 
+	  	  abs(gParticleMotherId[matchedIndex]) == 15 || 
+	  	  abs(gParticleMotherId[matchedIndex]) == 13) {
+	  	cout << "matched HF\n";
+	    } else if (abs(gParticleMotherId[matchedIndex]) == 23 || abs(gParticleMotherId[matchedIndex]) == 24 ||
+		       (abs(gParticleMotherId[matchedIndex]) >= 1 && abs(gParticleMotherId[matchedIndex]) <= 5) ||
+		       abs(gParticleMotherId[matchedIndex]) == 21 || abs(gParticleMotherId[matchedIndex]) == 2212		       
+		       ) {
+	  	cout << "match prompt\n";
+	    } else {
+	  	cout << "nothing\n";
+	    }
 
-	  //   for(int j = 0; j < nGenParticle; j++){
-	  // 	std::cout << "particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j]  << " " 
-	  // 		  << gParticlePt[j] << " " <<  gParticleEta[j] << " " << gParticlePhi[j] << " " 
-	  // 	     <<  deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) << "\n";
-	  //   }    
-	  //   std::cout << "\n";
-	  // }
+	    for(int j = 0; j < nGenParticle; j++){
+	  	std::cout << "particle " << j << " : " << gParticleId[j] << " " << gParticleStatus[j]  << " " 
+			  << gParticleMotherId[j] << " "
+	  		  << gParticlePt[j] << " " <<  gParticleEta[j] << " " << gParticlePhi[j] << " " 
+	  	     <<  deltaR( eleEta[i], elePhi[i], gParticleEta[j], gParticlePhi[j]) << "\n";
+	    }    
+	    std::cout << "\n";
+	  }
 	
 
 	  //***********************
