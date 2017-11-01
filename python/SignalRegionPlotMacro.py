@@ -21,6 +21,8 @@ def adjustFilenameForOptions(fName, args):
         fName = fName.replace('.root', 'FineGrained.root')
     if args.sideband:
         fName = fName.replace('.root', 'Sideband.root')
+    if args.noBoostCuts:
+        fName = fName.replace('.root', 'NoBoostCuts.root')
     return fName
 
 if __name__ == "__main__":

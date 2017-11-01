@@ -152,7 +152,8 @@ def makeTH2PolyFromColumns(name, title, xbins, cols):
     cols: 2D list indicating bin edges in the y-direction for each column
     """
     #construct TH2Poly
-    poly = rt.TH2Poly(name, title, xbins[0], xbins[-1], cols[0][0], cols[0][-1])
+    minY = min([col[0] for col in cols])
+    poly = rt.TH2Poly(name, title, xbins[0], xbins[-1], minY, cols[0][-1])
     #add bins in each column
     for i in range(len(xbins)-1):
         for j in range(len(cols[i])-1):
@@ -1386,6 +1387,9 @@ def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], s
 def invertHistogram(hist):
     """Replaces contents of each hist bin with 1/(contents).  Updates bin errors accordingly.
        For bins with no contents, does nothing."""
+    if not hist:
+        print "Warning: hist does not exist"
+        return
     ret = hist.Clone(hist.GetName()+"Inverted")
     for b in range(hist.GetSize()+1):
         if hist.GetBinContent(b) != 0:

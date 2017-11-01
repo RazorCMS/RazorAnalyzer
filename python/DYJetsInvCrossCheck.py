@@ -22,20 +22,27 @@ if __name__ == "__main__":
     #Process inclusive sample twice; the first pass will compute the overall normalization 
     #and the second pass will be a rerun with the corrected normalization
     if closure:
-        regionsOrder = ["DYJetsDileptonInv", "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet"]
+        regionsOrder = [
+                "DYJetsDileptonInv", 
+                "DYJetsDileptonInvDiJet",
+                "DYJetsDileptonInvMultiJet",
+                "DYJetsDileptonInvSevenJet"]
     else:
-        regionsOrder = ["DYJetsDileptonInvUncorr", "DYJetsDileptonInv", 
-                "DYJetsDileptonInvDiJet", "DYJetsDileptonInvMultiJet"]
+        regionsOrder = [
+                "DYJetsDileptonInvUncorr", 
+                "DYJetsDileptonInv", 
+                "DYJetsDileptonInvDiJet", 
+                "DYJetsDileptonInvMultiJet", 
+                "DYJetsDileptonInvSevenJet"
+                ]
     regions = {
             "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
             "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
             "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3,
                 boostCuts=boostCuts),
-            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4,
+            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4,njetsMax=6,
                 boostCuts=boostCuts),
-            "DYJetsDileptonInvDiJetWJetsCorr":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3,
-                boostCuts=boostCuts),
-            "DYJetsDileptonInvMultiJetWJetsCorr":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4,
+            "DYJetsDileptonInvSevenJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=7,
                 boostCuts=boostCuts),
             "DYJetsDileptonInvNoSFs":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
             }
@@ -44,12 +51,9 @@ if __name__ == "__main__":
     sfHists = macro.loadScaleFactorHists( sfFilename=sfFilename,
             processNames=regions["DYJetsDileptonInvDiJet"].samples, 
             scaleFactorNames={ "DYJetsInv":"GJetsInv" }, debugLevel=debugLevel )
-    sfHistsForWCorr = macro.loadScaleFactorHists( sfFilename=sfFilename,
-            processNames=regions["DYJetsDileptonInvDiJet"].samples, 
-            scaleFactorNames={ "DYJetsInv":"WJetsInv" }, debugLevel=debugLevel )
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
-    for d in [sfHists, sfHistsForWCorr]:
+    for d in [sfHists]:
         d['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")
         d['NJetsWJets'] = sfNJetsFile.Get("WJetsScaleFactors")
         d['NJetsInv'] = sfNJetsFile.Get("GJetsInvScaleFactors")
@@ -86,10 +90,7 @@ if __name__ == "__main__":
         bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs)
         bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs, gjets=True)
         #use the correct set of scale factors
-        if 'WJetsCorr' in region:
-            sfHistsToUse = sfHistsForWCorr
-            auxSFs['DYJetsInv'] = {'NJetsWJetsInv': ('NJets_NoZ', '1')}
-        elif 'NoSFs' in region:
+        if 'NoSFs' in region:
             sfHistsToUse = {}
             auxSFs = { proc:{} for proc in auxSFs }
         else:

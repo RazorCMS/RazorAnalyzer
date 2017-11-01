@@ -53,6 +53,9 @@ razorExtraWeightOpts["Razor2016_ICHEP_80X"] = razorExtraWeightOpts["Razor2016G_S
 razorWeightHists = {
         "Razor2015":{},
         "Razor2016":{ 
+            "qcdslopessevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_MultiJet"),
+            "qcdinterssevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_MultiJet"),
+            "qcdcovarssevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_MultiJet"),
             "qcdslopesmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_MultiJet"),
             "qcdintersmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_MultiJet"),
             "qcdcovarsmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_MultiJet"),
@@ -209,6 +212,7 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
 versionMC2016 = "V3p15_12Sep2017"
+versionMCSR2016 = "V3p15_05Oct2017"
 versionData2016 = "V3p15_29Aug2017"
 
 sampleTags2016 = { "Razor2016":"",
@@ -238,7 +242,7 @@ dir2LInv2016 = dirCR2016+'/'+versionMC2016+'/DileptonAddToMET'
 dirVetoL2016 = dirCR2016+'/'+versionMC2016+'/VetoLepton'
 dirVetoTau2016 = dirCR2016+'/'+versionMC2016+'/VetoTau'
 dirPhoton2016 = dirCR2016+'/'+versionMC2016+'/PhotonAddToMET'
-dirSignal2016 = dirSR2016+'/'+versionMC2016+'/Signal'
+dirSignal2016 = dirSR2016+'/'+versionMCSR2016+'/Signal'
 dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/2016/V3p6_25October2016_CustomType1MET/OneLeptonFull/"
 
 #local directories
@@ -322,8 +326,8 @@ for tag in sampleTags2016:
             "ZInv"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_ZInv_1pb_weighted"+skimstr+".root",
             #"QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_QCD_1pb_weighted"+skimstr+".root",
             #QCD predicted using data driven method
-            "QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",
-            "Data"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
+            "QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_GoodLumiGolden.root",
+            "Data"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_GoodLumiGolden.root"
             }
     razorNtuples["SignalLepton"][tag] = razorNtuples["SignalHadronic"][tag].copy()
     razorNtuples["SignalMuon"][tag] = razorNtuples["SignalHadronic"][tag].copy()
@@ -433,6 +437,7 @@ triggerNames["Dilepton"]["MC"]["Razor2015"] = copy.copy(triggerNames["Dilepton"]
 # 2016 trigger
 # Data
 triggerNames["Razor"]["Data"]["Razor2016"] = [
+        'HLT_PFHT900',
         'HLT_RsqMR270_Rsq0p09_MR200',
         'HLT_RsqMR270_Rsq0p09_MR200_4jet',
         ]
@@ -446,7 +451,6 @@ triggerNames["SingleLepton"]["Data"]["Razor2016"] = [
         "HLT_IsoMu27", 
         "HLT_IsoTkMu27", 
         "HLT_Mu50",
-        #"HLT_TkMu50",
         "HLT_Ele23_WPLoose_Gsf",
         "HLT_Ele27_WPLoose_Gsf",
         "HLT_Ele27_WPTight_Gsf",
@@ -627,6 +631,7 @@ razorBoxes = {
         "MuMultiJet" : [3,4,18],
         "EleMultiJet" : [6,7,19],
         "LeptonMultiJet" : [3,4,18,6,7,19],
+        "LeptonSevenJet" : [3,4,18,6,7,19],
         "LeptonMultiJet_0b" : [3,4,18,6,7,19],
         "LeptonMultiJet_1b" : [3,4,18,6,7,19],
         "LeptonMultiJet_2b" : [3,4,18,6,7,19],
@@ -641,16 +646,16 @@ razorBoxes = {
 
 hadronicRazorBoxes = ["DiJet", "FourJet", "SixJet", "MultiJet", "FourToSixJet", "SevenJet","DiJet_0b","DiJet_1b","DiJet_2b","MultiJet_0b","MultiJet_1b","MultiJet_2b"]
 looseLeptonRazorBoxes = ["LooseLeptonDiJet", "LooseLeptonFourJet", "LooseLeptonSixJet", "LooseLeptonMultiJet"]
-leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet", "LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
+leptonicRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet","EleJet", "EleFourJet", "EleSixJet", "EleMultiJet", "LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonSevenJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
 electronRazorBoxes = ["EleJet", "EleFourJet", "EleSixJet", "EleMultiJet"]
 muonRazorBoxes = ["MuJet", "MuFourJet", "MuSixJet", "MuMultiJet"]
-leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
+leptonRazorBoxes = ["LeptonJet", "LeptonFourJet", "LeptonSixJet", "LeptonMultiJet","LeptonSevenJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b"]
 dileptonRazorBoxes = ["MuEle", "MuMu", "EleEle"]
 
 dileptonSignalRegionCuts = "MR > 400 && MR < 4000 && Rsq > 0.15 && Rsq < 1.5 && abs(dPhiRazor) < 2.8"
-leptonicSignalRegionCuts = "MR > 400 && MR < 4000 && Rsq > 0.15 && Rsq < 1.5 && mT > 120 && nSelectedJets >= 2"
+leptonicSignalRegionCuts = "MR > 550 && MR < 4000 && Rsq > 0.20 && Rsq < 1.5 && mT > 120 && nSelectedJets >= 2"
 looseLeptonSignalRegionCuts = "MR > 500 && MR < 4000 && Rsq > 0.25 && Rsq < 1.5 && mTLoose > 100 && nJets80 >= 2"
-hadronicSignalRegionCuts = "MR > 500 && MR < 4000 && Rsq > 0.25 && Rsq < 1.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
+hadronicSignalRegionCuts = "MR > 650 && MR < 4000 && Rsq > 0.30 && Rsq < 1.5 && abs(dPhiRazor) < 2.8 && nJets80 >= 2"
 
 for box in razorBoxes:
     if box in hadronicRazorBoxes: 
@@ -662,7 +667,13 @@ for box in razorBoxes:
     elif box in dileptonRazorBoxes:
         razorCuts[box] = appendBoxCuts(dileptonSignalRegionCuts, razorBoxes[box])
 razorCuts['FourToSixJet'] += ' && nSelectedJets < 7'
+razorCuts['MultiJet'] += ' && nSelectedJets < 7'
+razorCuts['LeptonMultiJet'] += ' && nSelectedJets < 7'
 razorCuts['SevenJet'] += ' && nSelectedJets >= 7'
+razorCuts['LeptonSevenJet'] += ' && nSelectedJets >= 7'
+for b in ['MultiJet', 'SevenJet']:
+    razorCuts[b] = razorCuts[b].replace('Rsq > 0.30',
+            '(Rsq > 0.30 || (Rsq > 0.2 && MR > 1600))')
 
 zeroBjetBoxes = ["MultiJet_0b", "LeptonJet_0b","LeptonMultiJet_0b","DiJet_0b"]
 oneBjetBoxes  = ["MultiJet_1b", "LeptonJet_1b","LeptonMultiJet_1b","DiJet_1b"]
@@ -695,7 +706,7 @@ razorBinning = {}
 razorBinning["SingleLepton"] = {
         "MR" : [300, 400, 500, 600, 700, 900, 1200, 4000],
         "Rsq" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets40" : [1,2,4,20],
+        "NJets40" : [1,2,4,7,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT" : range(0, 2000, 200),
         "MET" : range(0, 500, 50),
@@ -708,7 +719,7 @@ razorBinning["SingleLepton"] = {
 razorBinning["SingleLeptonInv"] = {
         "MR_NoW" : [300, 400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoW" : [0.15,0.20,0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets_NoW" : [1,2,4,20],
+        "NJets_NoW" : [1,2,4,7,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT_NoW" : range(0, 2000, 200),
         "MET_NoW" : range(0, 500, 50),
@@ -718,7 +729,7 @@ razorBinning["SingleLeptonInv"] = {
 razorBinning["VetoLepton"] =  {
         "MR" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq" : [0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets40" : [1,2,4,20],
+        "NJets40" : [1,2,4,7,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "lep1.Pt()" : [5, 10, 15, 20.,30.,40.,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -726,7 +737,7 @@ razorBinning["VetoLepton"] =  {
 razorBinning["SignalRegionForVetoLepton"] =  {
         "MR" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq" : [0.25,0.30,0.41,0.52,0.64,1.5],
-        "nSelectedJets" : [1,2,4,20],
+        "nSelectedJets" : [1,2,4,7,20],
         "leadingGenLeptonPt" : [5, 10, 15, 20.,30.,40.,100,1000],
         "abs(leadingGenLeptonEta)" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
@@ -735,7 +746,7 @@ razorBinning["SignalRegionForVetoLepton"] =  {
 razorBinning["VetoTau"] = {
         "MR" : [400, 500, 600, 700, 900, 4000],
         "Rsq" : [0.25,0.30,0.41,1.5],
-        "NJets40" : [1,2,4,20],
+        "NJets40" : [1,2,4,7,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "lep1.Pt()" : [20,30,40,100,1000],
         "abs(lep1.Eta())" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -743,7 +754,7 @@ razorBinning["VetoTau"] = {
 razorBinning["SignalRegionForVetoTau"] = {
         "MR" : [400, 500, 600, 700, 900, 4000],
         "Rsq" : [0.25,0.30,0.41,1.5],
-        "nSelectedJets" : [1,2,4,20],
+        "nSelectedJets" : [1,2,4,7,20],
         "leadingGenLeptonPt" : [20,30,40,100,1000],
         "abs(leadingGenLeptonEta)" : [0, 0.5, 1.0, 1.5, 2.0, 2.5],
         }
@@ -752,7 +763,7 @@ razorBinning["SignalRegionForVetoTau"] = {
 razorBinning["TTJetsDilepton"] = {
         "MR" : [300, 400, 500, 700, 900, 4000],
         "Rsq" : [0.15, 0.20, 0.25, 0.30, 0.41, 1.5],
-        "NJets40" : [1,2,3,4,5,6,20],
+        "NJets40" : [1,2,3,4,5,6,7,20],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
         "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
         "MET" : range(250, 1000, 50),
@@ -761,7 +772,7 @@ razorBinning["TTJetsDilepton"] = {
 razorBinning["TTJetsDileptonReduced"] = {
         "MR" : [300, 400, 500, 700, 900, 4000],
         "Rsq" : [0.15, 0.20, 0.30, 1.5],
-        "NJets40" : [4,5,6,20],
+        "NJets40" : [4,5,6,7,20],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
         "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
         "MET" : range(250, 1000, 50),
@@ -772,7 +783,7 @@ razorBinning["TTJetsDileptonReduced"] = {
 razorBinning["DYJetsDileptonInv"] = {
         "MR_NoZ" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoZ" : [0.25,0.30,0.41,0.52,0.64,1.5],
-        "NJets_NoZ" : [1,2,4,20],
+        "NJets_NoZ" : [1,2,4,7,20],
         "1" : [0.5, 1.5],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
         "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -785,7 +796,7 @@ razorBinning["DYJetsDileptonInv"] = {
 razorBinning["DYJetsDileptonInvReduced"] = {
         "MR_NoZ" : [400, 500, 600, 700, 900, 4000],
         "Rsq_NoZ" : [0.25,0.30,0.41,1.5],
-        "NJets_NoZ" : [1,2,4,20],
+        "NJets_NoZ" : [1,2,4,7,20],
         "1" : [0.5, 1.5],
         "lep1.Pt()" : [20.,25.,30.,35.,40.,50.,60.,80.,100,150,200],
         "lep1.Eta()" : [-2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
@@ -800,7 +811,7 @@ razorBinning["DYJetsDileptonInvReduced"] = {
 razorBinning["Photon"] = {
         "MR_NoPho" : [400, 500, 600, 700, 900, 1200, 4000],
         "Rsq_NoPho" : [0.25, 0.30, 0.41, 0.52, 0.64, 1.5],
-        "NJets_NoPho" : [0,4,20],
+        "NJets_NoPho" : [1,2,4,7,20],
         "NBJetsMedium" : [0,1,2,3,4],
         "HT_NoPho" : range(0, 2000, 200),
         "MET_NoPho" : range(0, 500, 50),
@@ -829,7 +840,7 @@ razorBinning["SusySync"] = {
 ### Signal region
 signalConfig = "config/run2_MADD.config"
 cfg = Config.Config(signalConfig)
-for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b"]:
+for box in ["MultiJet","MultiJet_0b","MultiJet_1b","MultiJet_2b","DiJet","DiJet_0b","DiJet_1b","DiJet_2b","LeptonMultiJet","LeptonMultiJet_0b","LeptonMultiJet_1b","LeptonMultiJet_2b","LeptonJet","LeptonJet_0b","LeptonJet_1b","LeptonJet_2b","SevenJet","LeptonSevenJet"]:
     razorBinning[box] = {
             "MR" : cfg.getBinning(box)[0],
             "Rsq" : cfg.getBinning(box)[1],
@@ -860,15 +871,19 @@ for region,binning in razorBinning.iteritems():
         binning[("HT","met")] = []
 
 ### Non-grid binning 
-xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
-                "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
-colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, "LeptonMultiJet":{},
-                "DiJet":{}, "MuJet":{}, "EleJet":{}, "FourToSixJet":{}, "SevenJet":{}}
+xbinsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, 
+                "LeptonMultiJet":{}, "DiJet":{}, "MuJet":{}, 
+                "EleJet":{}, "FourToSixJet":{}, "SevenJet":{},
+                "LeptonSevenJet":{} }
+colsSignal = { "MultiJet":{}, "MuMultiJet":{}, "EleMultiJet":{}, 
+                "LeptonMultiJet":{}, "DiJet":{}, "MuJet":{}, 
+                "EleJet":{}, "FourToSixJet":{}, "SevenJet":{},
+                "LeptonSevenJet":{} }
 
 xbinsSignalSideband = { "MultiJet":{}, "LeptonMultiJet":{},
-                "DiJet":{}, "LeptonJet":{} }
+        "DiJet":{}, "LeptonJet":{}, "SevenJet":{} }
 colsSignalSideband = { "MultiJet":{}, "LeptonMultiJet":{},
-                "DiJet":{}, "LeptonJet":{} }
+        "DiJet":{}, "LeptonJet":{}, "SevenJet":{} }
 
 xbinsSignal["MultiJet"]["0B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
 xbinsSignal["MultiJet"]["1B"] = [ 650, 750, 900, 1200, 1600, 4000 ]
@@ -911,7 +926,11 @@ xbinsSignal["DiJet_0b"] = xbinsSignal["DiJet"]
 xbinsSignal["DiJet_1b"] = xbinsSignal["DiJet"]
 xbinsSignal["DiJet_2b"] = xbinsSignal["DiJet"]
 
-for box in ['MultiJet', 'DiJet']:
+for box in ['MultiJet']:
+    # don't include last bin, it's part of the signal region
+    xbinsSignalSideband[box] = { btags:[500, 575]+bins[:-1]
+            for btags, bins in xbinsSignal[box].iteritems() }
+for box in ['DiJet']:
     xbinsSignalSideband[box] = { btags:[500, 575]+bins 
             for btags, bins in xbinsSignal[box].iteritems() }
 for box in ['LeptonMultiJet', 'LeptonJet']:
@@ -923,28 +942,28 @@ colsSignal["MultiJet"]["0B"] = [
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         ]
 colsSignal["MultiJet"]["1B"] = [
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
-        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 0.64, 1.5 ],
         ]
 colsSignal["MultiJet"]["2B"] = [
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 1.5 ],
-        [ 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
         ]
 colsSignal["MultiJet"]["3B"] = [
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 1.5 ],
         [ 0.30, 0.41, 1.5 ],
-        [ 0.30, 0.41, 1.5 ],
+        [ 0.20, 0.25, 0.30, 0.41, 1.5 ],
         ]
 colsSignal["MuMultiJet"]["0B"] = [
         [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
@@ -1034,6 +1053,9 @@ for box in ['MultiJet', 'DiJet']:
                 [0.25]+bins[1]
                 ]
         colsSignalSideband[box][btags] += [[0.25, 0.30] for _ in range(len(bins))]
+        # skip last bin, it's part of the signal region
+        if box == 'MultiJet':
+            colsSignalSideband[box][btags] = colsSignalSideband[box][btags][:-1]
 for box in ['LeptonMultiJet', 'LeptonJet']:
     for btags, bins in colsSignal[box].iteritems():
         colsSignalSideband[box][btags] = [
@@ -1042,37 +1064,72 @@ for box in ['LeptonMultiJet', 'LeptonJet']:
                 ]
         colsSignalSideband[box][btags] += [[0.15, 0.20] for _ in range(len(bins))]
 
-xbinsSignal["SevenJet"]["0B"] = [ 500, 600, 700, 900, 1200, 4000 ]
-xbinsSignal["SevenJet"]["1B"] = [ 500, 600, 700, 900, 1200, 4000 ]
-xbinsSignal["SevenJet"]["2B"] = [ 500, 600, 700, 900, 1200, 4000 ]
-xbinsSignal["SevenJet"]["3B"] = [ 500, 600, 700, 4000 ]
+xbinsSignal["SevenJet"]["0B"] = [ 650, 900, 1200, 1600, 4000 ]
+xbinsSignal["SevenJet"]["1B"] = [ 650, 900, 1200, 1600, 4000 ]
+xbinsSignal["SevenJet"]["2B"] = [ 650, 900, 1200, 1600, 4000 ]
+xbinsSignal["SevenJet"]["3B"] = [ 650, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["0B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["1B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["2B"] = [ 550, 700, 900, 1200, 1600, 4000 ]
+xbinsSignal["LeptonSevenJet"]["3B"] = [ 550, 700, 1600, 4000 ]
 
 colsSignal["SevenJet"]["0B"] = [
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.20, 1.5 ],
         ]
 colsSignal["SevenJet"]["1B"] = [
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.20, 1.5 ],
         ]
 colsSignal["SevenJet"]["2B"] = [
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.30, 1.5 ],
+        [ 0.20, 1.5 ],
         ]
 colsSignal["SevenJet"]["3B"] = [
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
-        [ 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.30, 0.41, 1.5 ],
+        [ 0.20, 1.5 ],
         ]
+
+colsSignal["LeptonSevenJet"]["0B"] = [
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 1.5 ],
+        [ 0.20, 1.5 ],
+        ]
+colsSignal["LeptonSevenJet"]["1B"] = [
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 1.5 ],
+        [ 0.20, 1.5 ],
+        ]
+colsSignal["LeptonSevenJet"]["2B"] = [
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 1.5 ],
+        [ 0.20, 1.5 ],
+        ]
+colsSignal["LeptonSevenJet"]["3B"] = [
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
+        [ 0.20, 1.5 ],
+        ]
+xbinsSignalSideband['SevenJet'] = copy.copy(
+        xbinsSignalSideband['MultiJet'])
+colsSignalSideband['SevenJet'] = copy.copy(
+        colsSignalSideband['MultiJet'])
+xbinsSignalSideband['LeptonSevenJet'] = copy.copy(
+        xbinsSignalSideband['LeptonMultiJet'])
+colsSignalSideband['LeptonSevenJet'] = copy.copy(
+        colsSignalSideband['LeptonMultiJet'])
 
 #binning for scale factor histograms
 xbinsSignal["TTJetsSingleLepton"] = {}
@@ -1172,7 +1229,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsSingleLepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsSingleLepton"]
             self.cuts = razorCuts["SingleLepton"]
-            self.binning = razorBinning["SingleLepton"]
+            self.binning = copy.copy(razorBinning["SingleLepton"])
             self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], colsSignal["TTJetsSingleLepton"]["0B"])
 
         elif self.region == "SingleLeptonInv":
@@ -1183,7 +1240,7 @@ class Analysis:
             self.samples = razorSamples["WJetsSingleLeptonInv"]
             self.samplesReduced = razorSamplesReduced["WJetsSingleLeptonInv"]
             self.cuts = razorCuts["SingleLeptonInv"]
-            self.binning = razorBinning["SingleLeptonInv"]
+            self.binning = copy.copy(razorBinning["SingleLeptonInv"])
             self.unrollBins = (xbinsSignal["WJetsSingleLeptonInv"]["0B"], colsSignal["WJetsSingleLeptonInv"]["0B"])
 
         elif self.region == "TTJetsSingleLepton":
@@ -1194,7 +1251,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsSingleLepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsSingleLepton"]
             self.cuts = razorCuts["SingleLepton"]
-            self.binning = razorBinning["SingleLepton"]
+            self.binning = copy.copy(razorBinning["SingleLepton"])
             self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], colsSignal["TTJetsSingleLepton"]["0B"])
 
         elif self.region == "WJetsSingleLepton":
@@ -1205,7 +1262,7 @@ class Analysis:
             self.samples = razorSamples["WJetsSingleLepton"]
             self.samplesReduced = razorSamplesReduced["WJetsSingleLepton"]
             self.cuts = razorCuts["SingleLepton"]
-            self.binning = razorBinning["SingleLepton"]
+            self.binning = copy.copy(razorBinning["SingleLepton"])
             self.unrollBins = (xbinsSignal["WJetsSingleLepton"]["0B"], colsSignal["WJetsSingleLepton"]["0B"])
 
         elif self.region == "WJetsSingleLeptonInv":
@@ -1216,7 +1273,7 @@ class Analysis:
             self.samples = razorSamples["WJetsSingleLeptonInv"]
             self.samplesReduced = razorSamplesReduced["WJetsSingleLeptonInv"]
             self.cuts = razorCuts["SingleLeptonInv"]
-            self.binning = razorBinning["SingleLeptonInv"]
+            self.binning = copy.copy(razorBinning["SingleLeptonInv"])
             self.unrollBins = (xbinsSignal["WJetsSingleLeptonInv"]["0B"], colsSignal["WJetsSingleLeptonInv"]["0B"])
 
         elif self.region == "TTJetsDilepton":
@@ -1227,7 +1284,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsDilepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsDilepton"]
             self.cuts = razorCuts["TTJetsDilepton"]
-            self.binning = razorBinning["TTJetsDilepton"]
+            self.binning = copy.copy(razorBinning["TTJetsDilepton"])
             self.unrollBins = (None,None)
 
         elif self.region == "TTJetsDileptonMultiJet":
@@ -1238,7 +1295,7 @@ class Analysis:
             self.samples = razorSamples["TTJetsDilepton"]
             self.samplesReduced = razorSamplesReduced["TTJetsDilepton"]
             self.cuts = razorCuts["TTJetsDilepton"]
-            self.binning = razorBinning["TTJetsDileptonReduced"]
+            self.binning = copy.copy(razorBinning["TTJetsDileptonReduced"])
             self.unrollBins = (None,None)
 
         elif self.region == "DYJetsDileptonInv":
@@ -1249,7 +1306,7 @@ class Analysis:
             self.samples = razorSamples["DYJetsDileptonInv"]
             self.samplesReduced = razorSamplesReduced["DYJetsDileptonInv"]
             self.cuts = razorCuts["DYJetsDileptonInv"]
-            self.binning = razorBinning["DYJetsDileptonInv"]
+            self.binning = copy.copy(razorBinning["DYJetsDileptonInv"])
             self.unrollBins = (None,None)
 
         elif self.region == "DYJetsDileptonInvMultiJet":
@@ -1260,7 +1317,7 @@ class Analysis:
             self.samples = razorSamples["DYJetsDileptonInv"]
             self.samplesReduced = razorSamplesReduced["DYJetsDileptonInv"]
             self.cuts = razorCuts["DYJetsDileptonInv"]
-            self.binning = razorBinning["DYJetsDileptonInvReduced"]
+            self.binning = copy.copy(razorBinning["DYJetsDileptonInvReduced"])
             self.unrollBins = (None,None)
 
         elif self.region == "GJetsInv":
@@ -1271,7 +1328,7 @@ class Analysis:
             self.samples = razorSamples["Photon"]
             self.samplesReduced = razorSamplesReduced["Photon"]
             self.cuts = razorCuts["Photon"]
-            self.binning = razorBinning["Photon"]
+            self.binning = copy.copy(razorBinning["Photon"])
             self.unrollBins = (xbinsSignal["GJetsInv"]["0B"],colsSignal["GJetsInv"]["0B"])
             self.extraCuts = razorExtraCuts["Photon"]
 
@@ -1283,7 +1340,7 @@ class Analysis:
             self.samples = razorSamples["SusySync"]
             self.samplesReduced = razorSamplesReduced["SusySync"]
             self.cuts = razorCuts["SusySync"]
-            self.binning = razorBinning["SusySync"]
+            self.binning = copy.copy(razorBinning["SusySync"])
             self.unrollBins = (None,None)
 
         elif self.region == "VetoLeptonControlRegion":
@@ -1294,10 +1351,11 @@ class Analysis:
             self.samples = razorSamples["VetoLepton"]
             self.samplesReduced = razorSamplesReduced["VetoLepton"]
             self.cuts = razorCuts["VetoLepton"]
-            self.binning = razorBinning["VetoLepton"]
+            self.binning = copy.copy(razorBinning["VetoLepton"])
             self.unrollBins = (None,None)
 
-        elif self.region == "MultiJetForVetoLeptonControlRegion":
+        elif (self.region == "MultiJetForVetoLeptonControlRegion"
+            or self.region == "SevenJetForVetoLeptonControlRegion"):
             self.trigType = "Razor"
             self.jetVar = "nSelectedJets"
             self.bjetVar = "nBTaggedJets"
@@ -1305,7 +1363,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["MultiJetForVetoLepton"]
-            self.binning = razorBinning["SignalRegionForVetoLepton"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoLepton"])
             self.unrollBins = (None,None)
         
         elif self.region == "DiJetForVetoLeptonControlRegion":
@@ -1316,7 +1374,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["DiJetForVetoLepton"]
-            self.binning = razorBinning["SignalRegionForVetoLepton"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoLepton"])
             self.unrollBins = (None,None)
 
         elif self.region == "VetoTauControlRegion":
@@ -1327,10 +1385,11 @@ class Analysis:
             self.samples = razorSamples["VetoTau"]
             self.samplesReduced = razorSamplesReduced["VetoTau"]
             self.cuts = razorCuts["VetoTau"]
-            self.binning = razorBinning["VetoTau"]
+            self.binning = copy.copy(razorBinning["VetoTau"])
             self.unrollBins = (None,None)
 
-        elif self.region == "MultiJetForVetoTauControlRegion":
+        elif (self.region == "MultiJetForVetoTauControlRegion"
+            or self.region == "SevenJetForVetoTauControlRegion"):
             self.trigType = "Razor"
             self.jetVar = "nSelectedJets"
             self.bjetVar = "nBTaggedJets"
@@ -1338,7 +1397,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["MultiJetForVetoTau"]
-            self.binning = razorBinning["SignalRegionForVetoTau"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoTau"])
             self.unrollBins = (None,None)
 
         elif self.region == "DiJetForVetoTauControlRegion":
@@ -1349,7 +1408,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts["DiJetForVetoTau"]
-            self.binning = razorBinning["SignalRegionForVetoTau"]
+            self.binning = copy.copy(razorBinning["SignalRegionForVetoTau"])
             self.unrollBins = (None,None)
 
         elif self.region in electronRazorBoxes:
@@ -1360,7 +1419,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning["SignalLeptonic"]
+            self.binning = copy.copy(razorBinning["SignalLeptonic"])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in muonRazorBoxes:
@@ -1371,7 +1430,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning["SignalLeptonic"]
+            self.binning = copy.copy(razorBinning["SignalLeptonic"])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in leptonRazorBoxes:
@@ -1382,7 +1441,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning[self.region]
+            self.binning = copy.copy(razorBinning[self.region])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
             self.boostCuts = False
             print "Note: disabling W/top tag cuts for box {}".format(self.region)
@@ -1395,7 +1454,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning[self.region]
+            self.binning = copy.copy(razorBinning[self.region])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region in hadronicRazorBoxes:
@@ -1406,7 +1465,7 @@ class Analysis:
             self.samples = razorSamples["SignalHadronic"]
             self.samplesReduced = razorSamplesReduced["SignalHadronic"]
             self.cuts = razorCuts[self.region]
-            self.binning = razorBinning[self.region]
+            self.binning = copy.copy(razorBinning[self.region])
             self.unrollBins = (xbinsSignal[self.region][btag], colsSignal[self.region][btag])
 
         elif self.region == "TTJetsSingleLeptonForSignal":
@@ -1417,7 +1476,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts["SingleLeptonForSignal"]
-            self.binning = razorBinning["SingleLeptonForSignal"]
+            self.binning = copy.copy(razorBinning["SingleLeptonForSignal"])
             self.unrollBins = (xbinsSignal["TTJetsSingleLepton"]["0B"], 
                     colsSignal["TTJetsSingleLepton"]["0B"])
 
@@ -1429,7 +1488,7 @@ class Analysis:
             self.samples = razorSamples["SignalLeptonic"]
             self.samplesReduced = razorSamplesReduced["SignalLeptonic"]
             self.cuts = razorCuts["SingleLeptonForSignal"]
-            self.binning = razorBinning["SingleLeptonForSignal"]
+            self.binning = copy.copy(razorBinning["SingleLeptonForSignal"])
             self.unrollBins = (xbinsSignal["WJetsSingleLepton"]["0B"], 
                     colsSignal["WJetsSingleLepton"]["0B"])
 

@@ -170,6 +170,8 @@ if __name__ == "__main__":
         jets = 'MultiJet'
         if curBox in ['DiJet', 'LeptonJet']:
             jets = 'DiJet'
+        elif curBox in ['SevenJet', 'LeptonSevenJet']:
+            jets = 'SevenJet'
         for name in ['TTJets1L', 'TTJets2L', 'WJets']:
             sfHistsBClosure[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
             assert(sfHistsBClosure[name])
@@ -203,10 +205,11 @@ if __name__ == "__main__":
 
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
+        doEmptyBinErrs = args.fineGrained
         backgroundHists = unrollAndStitchFromFiles(curBox, 
                 samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
-                addStatUnc=(not args.noStat), doEmptyBinErrs=args.fineGrained,
+                addStatUnc=(not args.noStat), doEmptyBinErrs=doEmptyBinErrs,
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
 
         # get file name for signal input
@@ -227,7 +230,7 @@ if __name__ == "__main__":
 
         # get correct list of uncertainties for this box
         uncerts = copy.copy(signalShapeUncerts)
-        if curBox in ['DiJet','MultiJet']:
+        if curBox in ['DiJet','MultiJet','SevenJet']:
             uncertsToRemove = ['tightmuoneff','tighteleeff',
                     'muontrig','eletrig','tightmuonfastsim',
                     'tightelefastsim']
