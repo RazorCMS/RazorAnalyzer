@@ -259,13 +259,13 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
     histZPt.push_back(new TH1D(Form("histZPt_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 25, 0, 500));   
     histZPt[i]->Sumw2();
   
-    histLep3Pt.push_back(new TH1D(Form("histLep3Pt_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 15, 0, 300));   
+    histLep3Pt.push_back(new TH1D(Form("histLep3Pt_%s",processLabels[i].c_str()), "; Lepton 3 p_{T} [GeV/c]; Number of Events", 15, 0, 300));   
     histLep3Pt[i]->Sumw2();
   
     histLep4Pt.push_back(new TH1D(Form("histLep4Pt_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 15, 0, 300));   
     histLep4Pt[i]->Sumw2();
   
-    histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 10, 0, 200));   
+    histMET.push_back(new TH1D(Form("histMET_%s",processLabels[i].c_str()), ";  MET [GeV]; Number of Events", 10, 0, 200));   
     histMET[i]->Sumw2();
   
     histLep3MT.push_back(new TH1D(Form("histLep3MT_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 15, 0, 300));   
@@ -280,7 +280,7 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
     histLep1234MT.push_back(new TH1D(Form("histLep1234MT_%s",processLabels[i].c_str()), ";  m_{T} (4L,MET) [GeV/c^{2}]; Number of Events", 25, 0, 500));   
     histLep1234MT[i]->Sumw2();
   
-    histMass4L.push_back(new TH1D(Form("histMass4L_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 20, 0, 1000));   
+    histMass4L.push_back(new TH1D(Form("histMass4L_%s",processLabels[i].c_str()), ";  m_{4L} [GeV/c^{2}]; Number of Events", 20, 0, 1000));   
     histMass4L[i]->Sumw2();
   
     histLep34Mass.push_back(new TH1D(Form("histLep34Mass_%s",processLabels[i].c_str()), ";  [GeV/c^{2}]; Number of Events", 30, 0, 300));   
@@ -342,12 +342,16 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
       uint NPU, nPV;
       int lep1Id;
       float lep1Pt, lep1Eta, lep1Phi;
+      bool lep1PassLooseMVAID;
       int lep2Id;
       float lep2Pt, lep2Eta, lep2Phi;
+      bool lep2PassLooseMVAID;
       int lep3Id;
       float lep3Pt, lep3Eta, lep3Phi;
+      bool lep3PassLooseMVAID;
       int lep4Id;
       float lep4Pt, lep4Eta, lep4Phi;
+      bool lep4PassLooseMVAID;
       float ZMass, ZPt;
       float lep3MT, lep4MT;
       float lep34MT;
@@ -386,18 +390,22 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
       tree->SetBranchAddress("lep1Pt", &lep1Pt);
       tree->SetBranchAddress("lep1Eta", &lep1Eta);
       tree->SetBranchAddress("lep1Phi", &lep1Phi);
+      tree->SetBranchAddress("lep1PassLooseMVAID", &lep1PassLooseMVAID);
       tree->SetBranchAddress("lep2Id", &lep2Id);
       tree->SetBranchAddress("lep2Pt", &lep2Pt);
       tree->SetBranchAddress("lep2Eta", &lep2Eta);
       tree->SetBranchAddress("lep2Phi", &lep2Phi);
+      tree->SetBranchAddress("lep2PassLooseMVAID", &lep2PassLooseMVAID);
       tree->SetBranchAddress("lep3Id", &lep3Id);
       tree->SetBranchAddress("lep3Pt", &lep3Pt);
       tree->SetBranchAddress("lep3Eta", &lep3Eta);
       tree->SetBranchAddress("lep3Phi", &lep3Phi);
+      tree->SetBranchAddress("lep3PassLooseMVAID", &lep3PassLooseMVAID);
       tree->SetBranchAddress("lep4Id", &lep4Id);
       tree->SetBranchAddress("lep4Pt", &lep4Pt);
       tree->SetBranchAddress("lep4Eta", &lep4Eta);
       tree->SetBranchAddress("lep4Phi", &lep4Phi);
+      tree->SetBranchAddress("lep4PassLooseMVAID", &lep4PassLooseMVAID);
       tree->SetBranchAddress("ZMass", &ZMass);
       tree->SetBranchAddress("ZPt", &ZPt);
       tree->SetBranchAddress("lep3MT", &lep3MT);
@@ -521,7 +529,7 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
 	if ( fabs(vLep34.M() - 91) < 15 ) continue;
 
 	//MET 
-	if (!(MET > 30)) continue;
+	if (!(MET > 50)) continue;
 
 	//BJet Veto
 	if (!(NBJet20 == 0)) continue;
@@ -529,12 +537,17 @@ void RunSelectWWZTo4L(  vector<string> datafiles, vector<vector<string> > bkgfil
 	//Jet Veto
 	//if (!(NJet30 == 0)) continue;
  
+	// // //require lep3 and lep4 to pass a tighter electron WP
+	// if (! (lep3PassLooseMVAID && lep4PassLooseMVAID)) continue;
+
+	// // //if lep4 is an electron, require lep4 pt > 15
+	// if ( abs(lep4Id) == 11 && lep4Pt < 15) continue;
 
 	//******************************
 	//Categories
 	//******************************
-	//Difference Flavor
-	if ( abs(lep3Id) == abs(lep4Id) ) continue;
+	//Different Flavor
+	//if ( abs(lep3Id) == abs(lep4Id) ) continue;
 
 	//Same Flavor
 	//if ( abs(lep3Id) != abs(lep4Id) ) continue;
@@ -680,33 +693,33 @@ void SelectWWZTo4L( int option = 0) {
   vector<string> bkgfiles_WZ;  
   vector<string> bkgfiles_ttW; 
 
-  bkgfiles_WWZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_1pb_weighted.root");
-  bkgfiles_ttZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ttZJets_13TeV_madgraphMLM_1pb_weighted.root");
-  bkgfiles_ZZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ZZTo4L_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
-  bkgfiles_WZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
-  bkgfiles_ttW.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ttWJets_13TeV_madgraphMLM_1pb_weighted.root");
+  bkgfiles_WWZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/11012017/WWZAnalysis_WWZJetsTo4L2Nu_4f_TuneCUETP8M1_13TeV_aMCatNLOFxFx_pythia8_1pb_weighted.root");
+  // bkgfiles_ttZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ttZJets_13TeV_madgraphMLM_1pb_weighted.root");
+  // bkgfiles_ZZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ZZTo4L_13TeV_powheg_pythia8_1pb_weighted.root");
+  bkgfiles_WZ.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/11012017/WWZAnalysis_WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_1pb_weighted.root");
+  // bkgfiles_ttW.push_back("/eos/cms/store/group/phys_susy/razor/Run2Analysis/WWZAnalysis/2016/04242017/WWZAnalysis_ttWJets_13TeV_madgraphMLM_1pb_weighted.root");
 
 
   bkgfiles.push_back(bkgfiles_WWZ);
-  bkgfiles.push_back(bkgfiles_ttZ);
-   bkgfiles.push_back(bkgfiles_ZZ);
+  // bkgfiles.push_back(bkgfiles_ttZ);
+  //  bkgfiles.push_back(bkgfiles_ZZ);
     bkgfiles.push_back(bkgfiles_WZ);
-  bkgfiles.push_back(bkgfiles_ttW);
+  // bkgfiles.push_back(bkgfiles_ttW);
 
 
   processLabels.push_back("WWZ");  
-  processLabels.push_back("t#bar{t}Z");
-   processLabels.push_back("ZZ");
+  // processLabels.push_back("t#bar{t}Z");
+  //  processLabels.push_back("ZZ");
     processLabels.push_back("WZ");
-  processLabels.push_back("t#bar{t}W");
+  // processLabels.push_back("t#bar{t}W");
 
   colors.push_back(kAzure+10);
-  colors.push_back(kGreen+2);
-   colors.push_back(kGray);
+  // colors.push_back(kGreen+2);
+  //  colors.push_back(kGray);
    colors.push_back(kBlue);
-  colors.push_back(kRed);
+  // colors.push_back(kRed);
 
-  double lumi = 39500;
+  double lumi = 35900;
 
   //*********************************************************************
   //E-Mu Control Region
@@ -718,3 +731,44 @@ void SelectWWZTo4L( int option = 0) {
 
 }
 
+
+// ***********************************************
+//Baseline
+// Process Data : 0 +/- 0
+// Process WWZ : 0.835752 +/- 0.00322842
+// Process t#bar{t}Z : 0.544556 +/- 0.0362233
+// Process ZZ : 1.29373 +/- 0.0266649
+// Process WZ : 0.691432 +/- 0.202694
+// Process t#bar{t}W : 0.00523152 +/- 0.00369924
+// Total MC Event Yield: 3.3707 +/- 0.207683
+// ***********************************************
+
+// ***********************************************
+// With LooseMVAID on Lep3 and Lep4
+// Process Data : 0 +/- 0
+// Process WWZ : 0.811107 +/- 0.00317999
+// Process t#bar{t}Z : 0.525279 +/- 0.0355764
+// Process ZZ : 1.15688 +/- 0.0252152
+// Process WZ : 0.432145 +/- 0.140031
+// Process t#bar{t}W : 0.00261576 +/- 0.00261576
+// Total MC Event Yield: 2.92803 +/- 0.146721
+// ***********************************************
+
+// ***********************************************
+// Require Lep4Pt>15 if Lep4 is an electron
+// Process Data : 0 +/- 0
+// Process WWZ : 0.795551 +/- 0.00314966
+// Process t#bar{t}Z : 0.501184 +/- 0.0347509
+// Process ZZ : 1.01674 +/- 0.0236386
+// Process WZ : 0.38893 +/- 0.129643
+// Process t#bar{t}W : 0.00261576 +/- 0.00261576
+// Total MC Event Yield: 2.70502 +/- 0.136347
+// ***********************************************
+
+
+// Process WWZ : 1.42379 +/- 0.00421209
+// Process WZ : 0.842682 +/- 0.165968
+
+
+// Process WWZ : 1.49669 +/- 0.00431831
+// Process WZ : 1.44768 +/- 0.249187
