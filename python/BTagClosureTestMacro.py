@@ -68,11 +68,13 @@ def adjustForRegion(analysis, sfHists, auxSFs, gjets=False):
                 del sfs[sfKey]
     # Reduce the SevenJet binning due to low stats
     if isSevenJet(analysis):
-        print "Using reduced binning for seven jet category"
         if gjets:
-            analysis.binning['MR_NoPho'] = [400, 600, 900, 4000]
-            analysis.binning['Rsq_NoPho'] = [0.25, 0.30, 0.41, 1.5]
-        else:
+            if 'MR_NoPho' in analysis.binning:
+                print "Using reduced binning for seven jet category"
+                analysis.binning['MR_NoPho'] = [400, 600, 900, 4000]
+                analysis.binning['Rsq_NoPho'] = [0.25, 0.30, 0.41, 1.5]
+        elif analysis.jetVar == 'NJets40': # the condition is to avoid doing this for signal region
+            print "Using reduced binning for seven jet category"
             analysis.binning['MR'] = [300, 500, 700, 900, 4000]
             analysis.binning['Rsq'] = [0.15, 0.20, 0.25, 0.30, 0.41, 1.5]
 
