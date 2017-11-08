@@ -1397,3 +1397,13 @@ def invertHistogram(hist):
             ret.SetBinError( b, hist.GetBinError(b) / (hist.GetBinContent(b))**2 )
     return ret
 
+def removeVarCuts(cuts, varName):
+    """
+    Removes all cuts on the given variable 
+    from the given string.
+    """
+    while varName in cuts:
+        split = cuts.split(' && ')
+        cuts = ' && '.join([cut for cut in split if varName not in cut])
+    return cuts
+

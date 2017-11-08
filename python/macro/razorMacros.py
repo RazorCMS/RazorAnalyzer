@@ -430,6 +430,9 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
         weightOptsForQCD = copy.copy(weightOpts)
         if 'GJets' in regionName:
             weightOptsForQCD.append('qcdphoton')
+        else:
+            cutsForQCDBkg = macro.removeVarCuts(cutsForQCDBkg, 'nBTaggedJets')
+            cutsForQCDData = macro.removeVarCuts(cutsForQCDData, 'nBTaggedJets')
         #recursion
         histsForQCD = makeControlSampleHists(
                 regionName=regionName+"QCDControlRegion", 

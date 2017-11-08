@@ -205,11 +205,10 @@ if __name__ == "__main__":
 
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
-        doEmptyBinErrs = args.fineGrained
         backgroundHists = unrollAndStitchFromFiles(curBox, 
                 samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
-                addStatUnc=(not args.noStat), doEmptyBinErrs=doEmptyBinErrs,
+                addStatUnc=(not args.noStat), 
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
 
         # get file name for signal input

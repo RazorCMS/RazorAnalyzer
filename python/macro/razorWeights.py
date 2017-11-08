@@ -13,20 +13,24 @@ def getQCDExtrapolationFactor(MR, Rsq, NBtags, wHists,region='multijet',
     """Get QCD extrapolation factor as a function of MR"""
     slopeHist = wHists['qcdslopes'+region]
     interHist = wHists['qcdinters'+region]
+    btagHist = wHists['qcdbtags'+region]
     xbin = slopeHist.GetXaxis().FindFixBin(
             min(slopeHist.GetXaxis().GetXmax()*0.99, MR))
     btags = min(3, NBtags+1)
-    slope = slopeHist.GetBinContent(xbin, btags)
-    inter = interHist.GetBinContent(xbin, btags)
-    sf = inter + Rsq * slope
+    slope = slopeHist.GetBinContent(xbin)
+    inter = interHist.GetBinContent(xbin)
+    norm = btagHist.GetBinContent(btags)
+    sf = norm * (inter + Rsq * slope)
 
     if errorOpt is not None:
         covarHist = wHists['qcdcovars'+region]
-        slopeerr = slopeHist.GetBinError(xbin, btags)
-        intererr = interHist.GetBinError(xbin, btags)
-        covar = covarHist.GetBinContent(xbin, btags)
+        slopeerr = slopeHist.GetBinError(xbin) * norm
+        intererr = interHist.GetBinError(xbin) * norm
+        covar = covarHist.GetBinContent(xbin) * norm * norm
+        normerr = btagHist.GetBinError(btags)
         sfErr = math.sqrt( Rsq*Rsq*slopeerr*slopeerr 
-                + intererr*intererr + 2*Rsq*covar )
+                + intererr*intererr + 2*Rsq*covar 
+                + normerr*normerr )
         if errorOpt == 'qcdnormUp':
             return sf + sfErr
         elif errorOpt == 'qcdnormDown':
