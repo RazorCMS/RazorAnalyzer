@@ -241,10 +241,13 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
         #remove the original histogram
         del hists[name]
 
-def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins):
+def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins, 
+        useRsq=True, bInclusive=False):
     """
     Same as uncorrelateSFs except that the reference histogram is assumed to
     be a 1D Rsq histogram instead of a 2D MR-Rsq histogram.
+    (to decorrelate by MR value instead of Rsq, set useRsq to False)
+    Set bInclusive to True to keep different b-tag bins correlated
     """
     toUncorrelate = [name for name in hists if sysName in name]
     print "Uncorrelate SFs:",sysName
@@ -260,10 +263,15 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins):
         ibin = 0
         for bx in range(1,referenceHist.GetNbinsX()+1):
             sigBNGlobal = 0
-            for bz in range(len(unrollBins)):
+            if bInclusive:
                 ibin += 1
                 newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
                 matchedAtLeastOneBin = False
+            for bz in range(len(unrollBins)):
+                if not bInclusive:
+                    ibin += 1
+                    newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
+                    matchedAtLeastOneBin = False
                 unrollRows = unrollBins[bz][0]
                 unrollCols = unrollBins[bz][1]
                 poly = macro.makeTH2PolyFromColumns("poly"+str(bz)+name, 'poly', unrollRows, unrollCols)
@@ -271,7 +279,11 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins):
                 for sigBN in range(1, poly.GetNumberOfBins()+1):
                     sigBNGlobal += 1
                     thisSigBin = polyBins.At(sigBN-1)
-                    binCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
+                    if useRsq:
+                        binCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
+                    else:
+                        binCenter = (thisSigBin.GetXMax() + thisSigBin.GetXMin())/2.0
+                    print "bin center:",binCenter
                     # Note that binCenter is an Rsq value but it is being passed
                     # into the mrCenter field of setBinContentsForUncorrelateSFs.  
                     # This is just for convenience -- that function assumes
@@ -282,7 +294,11 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins):
                         matchedAtLeastOneBin = True
                 poly.Delete()
                 #don't save the histogram if there is no change from the nominal
-                if not matchedAtLeastOneBin:
+                if not bInclusive and not matchedAtLeastOneBin:
+                    print "No matches for bin {} {}".format(bx, bz)
+                    del hists[newHistName]
+            if bInclusive and not matchedAtLeastOneBin:
+                    print "No matches for bin {}".format(bx)
                     del hists[newHistName]
         del hists[name]
 

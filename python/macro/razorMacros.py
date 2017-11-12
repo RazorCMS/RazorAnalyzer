@@ -1369,7 +1369,8 @@ def stitchHistsForDataCard(unrolledMC, unrolledData,
                 if hist.Integral() > 0:
                     isEmpty = False
                     break
-            if isEmpty: 
+            # qcdnormDown histogram is occasionally all zeros due to large uncertainty
+            if isEmpty and shape != 'qcdnormDown': 
                 print "Warning: empty shape histograms for",s,shape
                 if s == 'SingleTop' and (shape == 'renscaleUp' or shape == 'facrenscaleUp'):
                     print "Ignoring empty shape histogram for now -- PLEASE FIX THOUGH"

@@ -1025,9 +1025,30 @@ colsSignal["EleMultiJet"]["3B"] = [
         [ 0.20, 0.25, 1.5 ],
         ]
 
+colsSignal["DiJet"]["0B"] = [
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        ]
+colsSignal["DiJet"]["1B"] = [
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        ]
+colsSignal["DiJet"]["2B"] = [
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
+        [ 0.30, 0.41, 0.52, 1.5 ],
+        [ 0.30, 0.41, 0.52, 1.5 ],
+        ]
+
 colsSignal["FourToSixJet"] = colsSignal["MultiJet"]
 
-colsSignal["DiJet"] = colsSignal["MultiJet"]
 colsSignal["MuJet"] = colsSignal["MuMultiJet"]
 colsSignal["EleJet"] = colsSignal["EleMultiJet"]
 colsSignal["LeptonMultiJet"] = colsSignal["MuMultiJet"]

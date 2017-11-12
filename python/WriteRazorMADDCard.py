@@ -165,18 +165,22 @@ if __name__ == "__main__":
             processNames=["TTJets1L","TTJets2L","WJets","ZInv"], 
             scaleFactorNames=sfNames, debugLevel=debugLevel)
         sfFileNameBClosure = 'data/ScaleFactors/RazorMADD2015/RazorBTagScaleFactors_%s.root'%(args.tag)
+        sfFileNameQCD = 'data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_%s.root'%(args.tag)
         sfFileBClosure = rt.TFile.Open(sfFileNameBClosure)
-        sfHistsBClosure = {}
+        sfFileQCD = rt.TFile.Open(sfFileNameQCD)
+        sfHistsForUncorrSFs1D = {}
         jets = 'MultiJet'
         if curBox in ['DiJet', 'LeptonJet']:
             jets = 'DiJet'
         elif curBox in ['SevenJet', 'LeptonSevenJet']:
             jets = 'SevenJet'
         for name in ['TTJets1L', 'TTJets2L', 'WJets']:
-            sfHistsBClosure[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
-            assert(sfHistsBClosure[name])
-        sfHistsBClosure['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
-        assert(sfHistsBClosure['ZInv'])
+            sfHistsForUncorrSFs1D[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
+            assert(sfHistsForUncorrSFs1D[name])
+        sfHistsForUncorrSFs1D['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
+        sfHistsForUncorrSFs1D['QCD'] = sfFileQCD.Get("QCDSlopes_{}".format(curBox))
+        assert(sfHistsForUncorrSFs1D['ZInv'])
+        assert(sfHistsForUncorrSFs1D['QCD'])
 
         # assess signal contamination in control regions
         contamHists = None
@@ -284,7 +288,9 @@ if __name__ == "__main__":
                     curBox, unrollBins=unrollBins)
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
-            uncorrelateSFs1D(hists, sys, sfHistsBClosure, unrollBins)
+            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
+        uncorrelateSFs1D(hists, 'qcdnorm', sfHistsForUncorrSFs1D, unrollBins,
+                useRsq=False, bInclusive=True)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)
