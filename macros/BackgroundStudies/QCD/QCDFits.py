@@ -1,7 +1,6 @@
 import numpy as np
 import ROOT as rt
 
-
 def getXbins(hist_lo, hist_hi):
     """Returns array of bin edges on x-axis for hist"""
     xbins = []
@@ -23,7 +22,7 @@ def makeQCDHist(name, xbins):
 if __name__ == '__main__':
     rt.gROOT.SetBatch()
 
-    inFile = rt.TFile.Open("qcd_data_inclusive.root")
+    inFile = rt.TFile.Open("qcd_data.root")
     outFile = rt.TFile.Open(
             "../../../data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root", 
             "recreate")
@@ -31,8 +30,8 @@ if __name__ == '__main__':
     for box in ['SevenJet','MultiJet','DiJet']:
         print "Box {}".format(box)
         boxname = box.lower()
-        inHists = [ inFile.Get("{}_lo".format(boxname)),
-                    inFile.Get("{}_hi".format(boxname))]
+        inHists = [ inFile.Get("{}_lo".format(boxname.lower())),
+                    inFile.Get("{}_hi".format(boxname).lower())]
         xbins = getXbins(inHists[0], inHists[1])
 
         slopes = makeQCDHist("QCDSlopes_{}".format(box), xbins)

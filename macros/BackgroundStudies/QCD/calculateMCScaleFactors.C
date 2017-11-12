@@ -26,8 +26,11 @@
 
 void processFile(TString inputFileName, TString outputFileName, int physProc);
 void calculateMCScaleFactors() {
+  cout << "W+jets" << endl;
   processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root", "WJets.root", 0);
+  cout << "Z+jets" << endl;
   processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root", "ZInv.root", 1);
+  cout << "tt+jets" << endl;
   processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets_1pb_weighted.root", "TTJets.root", 2);
 }
 
@@ -62,9 +65,13 @@ void processFile(TString inputFileName, TString outputFileName, int physProc) {
 
   TFile *fScaleFactors = TFile::Open("../../../data/ScaleFactors/RazorMADD2015/RazorScaleFactors_Razor2016_MoriondRereco.root");
   TFile *fNJetScaleFactors = TFile::Open("../../../data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_Razor2016_MoriondRereco.root");
+  TFile *fBTagScaleFactors = TFile::Open("../../../data/ScaleFactors/RazorMADD2015/RazorBTagScaleFactors_Razor2016_MoriondRereco.root");
 
   TH2Poly *hScaleFactors=0; 
   TH1F *hNJetScaleFactors=0; 
+  vector<TH1F*> hBTagScaleFactorsDiJet;
+  vector<TH1F*> hBTagScaleFactorsMultiJet;
+  vector<TH1F*> hBTagScaleFactorsSevenJet;
 
   if (physProc==0) {
     hScaleFactors= (TH2Poly*) fScaleFactors->Get("WJetsScaleFactors");
@@ -73,10 +80,35 @@ void processFile(TString inputFileName, TString outputFileName, int physProc) {
   else if (physProc==1) {
     hScaleFactors= (TH2Poly*) fScaleFactors->Get("GJetsInvScaleFactors");
     hNJetScaleFactors= (TH1F*) fNJetScaleFactors->Get("GJetsInvScaleFactors");
+    for (int nb = 0; nb <= 3; nb++) {
+        hBTagScaleFactorsDiJet.push_back(
+                (TH1F*)fBTagScaleFactors->Get(Form(
+                        "MRInvDiJet%dBScaleFactors", min(nb, 2))));
+        hBTagScaleFactorsMultiJet.push_back(
+                (TH1F*)fBTagScaleFactors->Get(Form(
+                        "MRInvMultiJet%dBScaleFactors", min(nb, 2))));
+        hBTagScaleFactorsSevenJet.push_back(
+                (TH1F*)fBTagScaleFactors->Get(Form(
+                        "MRInvSevenJet%dBScaleFactors", min(nb, 2))));
+    }
   }
   else if (physProc==2) {
     hScaleFactors= (TH2Poly*) fScaleFactors->Get("TTJetsScaleFactors");
     hNJetScaleFactors= (TH1F*) fNJetScaleFactors->Get("TTJetsScaleFactors");
+  }
+
+  if (physProc != 1) {
+    for (int nb = 0; nb <= 3; nb++) {
+        hBTagScaleFactorsDiJet.push_back(
+                (TH1F*)fBTagScaleFactors->Get(Form(
+                        "MRDiJet%dBScaleFactors", min(nb, 2))));
+        hBTagScaleFactorsMultiJet.push_back(
+                (TH1F*)fBTagScaleFactors->Get(Form(
+                        "MRMultiJet%dBScaleFactors", nb)));
+        hBTagScaleFactorsSevenJet.push_back(
+                (TH1F*)fBTagScaleFactors->Get(Form(
+                        "MRSevenJet%dBScaleFactors", nb)));
+    }
   }
 
   TFile *outputFile = new TFile(outputFileName,"recreate");
@@ -101,8 +133,23 @@ void processFile(TString inputFileName, TString outputFileName, int physProc) {
     double tRsq=min((double)Rsq, hScaleFactors->GetYaxis()->GetXmax()*0.999);
     tRsq=max(tRsq, hScaleFactors->GetYaxis()->GetXmin()*1.001);
 
+    int tNBtags=min(nBTaggedJets, 3);
+
     double scaleFactor = hScaleFactors->GetBinContent(hScaleFactors->FindBin(tMR, tRsq));
     double njetScaleFactor = hNJetScaleFactors->GetBinContent(hNJetScaleFactors->FindFixBin(tNJets));
+
+    TH1F *btagHist = 0;
+    if (tNJets >= 7) {
+        btagHist = hBTagScaleFactorsSevenJet[tNBtags];
+    }
+    else if (tNJets >= 4) {
+        btagHist = hBTagScaleFactorsMultiJet[tNBtags];
+    }
+    else {
+        btagHist = hBTagScaleFactorsDiJet[tNBtags];
+    }
+    double btagScaleFactor = btagHist->GetBinContent(
+            btagHist->FindFixBin(tMR));
 
     if (physProc==2) {
         scaleFactor *= topPtWeight;
@@ -117,7 +164,7 @@ void processFile(TString inputFileName, TString outputFileName, int physProc) {
       njetScaleFactor=1;
     }
 
-    mcScaleFactor=scaleFactor*njetScaleFactor;
+    mcScaleFactor=scaleFactor*njetScaleFactor*btagScaleFactor;
 
     outputTree->Fill();
   }
