@@ -372,6 +372,7 @@ def computeEmptyBinErrs(hists, unrollBins, aggregate=True):
     toExclude = [ # processes with low stats but not expected to contribute
             "WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8",
             "WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8",
+            'QCD'
             ]
     print "Computing uncertainties to apply to empty bins"
     errs = {}

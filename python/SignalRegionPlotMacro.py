@@ -76,5 +76,5 @@ if __name__ == "__main__":
     print "Input file: {}".format(inFile)
 
     plotControlSampleHists(box, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
-            btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi,
+            btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi, doEmptyBinErrs=True,
             unrollBins=unrollBins, shapeErrors=shapesToUse)

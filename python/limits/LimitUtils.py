@@ -302,6 +302,8 @@ if __name__ == '__main__':
             help='combine with razor boost analysis')
     parser.add_argument('--combined-hadronic-with-boost', action='store_true',
             help='combine hadronic box with boost analysis')
+    parser.add_argument('--combined-hadronic', action='store_true',
+            help='combine hadronic boxes only')
     parser.add_argument('--get', action='store_true')
     parser.add_argument('--plot', action='store_true')
     parser.add_argument('--aggregate', action='store_true',
@@ -323,7 +325,6 @@ if __name__ == '__main__':
     fine_grained = not args.no_fine_grained
     no_exec = (args.no_exec or args.no_sub)
 
-    # avoid looking at unblinded limits yet
     args.preliminary = True
 
     print "Model: {}".format(args.model)
@@ -333,9 +334,14 @@ if __name__ == '__main__':
     except KeyError:
         sys.exit("Model {} is not implemented!".format(args.model))
 
+    if args.combined_hadronic:
+        print "Combining hadronic boxes"
+        sms.boxes = [b for b in sms.boxes 
+                if b in ['DiJet', 'MultiJet', 'SevenJet']]
+        args.combined = True
     if args.combined_hadronic_with_boost:
-        print "Combining boost analysis with Multijet box"
-        sms.boxes = ['MultiJet']
+        print "Combining boost analysis with hadronic box"
+        sms.boxes = ['MultiJet', 'SevenJet']
         args.combined_with_boost = True
 
     if args.submit:

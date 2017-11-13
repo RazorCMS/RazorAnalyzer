@@ -209,10 +209,11 @@ if __name__ == "__main__":
 
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
+        doEmptyBinErrs = args.fineGrained
         backgroundHists = unrollAndStitchFromFiles(curBox, 
                 samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
-                addStatUnc=(not args.noStat), 
+                addStatUnc=(not args.noStat), doEmptyBinErrs=doEmptyBinErrs,
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
 
         # get file name for signal input
@@ -289,8 +290,10 @@ if __name__ == "__main__":
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
             uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
-        uncorrelateSFs1D(hists, 'qcdnorm', sfHistsForUncorrSFs1D, unrollBins,
-                useRsq=False, bInclusive=True)
+        # currently treating QCD uncertainties as correlated across bins, 
+        # so this part is not needed
+        #uncorrelateSFs1D(hists, 'qcdnorm', sfHistsForUncorrSFs1D, unrollBins,
+        #        useRsq=False, bInclusive=True)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)

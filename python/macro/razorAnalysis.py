@@ -53,20 +53,14 @@ razorExtraWeightOpts["Razor2016_ICHEP_80X"] = razorExtraWeightOpts["Razor2016G_S
 razorWeightHists = {
         "Razor2015":{},
         "Razor2016":{ 
-            "qcdslopessevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_SevenJet"),
-            "qcdinterssevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_SevenJet"),
-            "qcdcovarssevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_SevenJet"),
-            "qcdbtagssevenjet":("data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root","sevenjetbtags"),
-            "qcdslopesmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_MultiJet"),
-            "qcdintersmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_MultiJet"),
-            "qcdcovarsmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_MultiJet"),
-            "qcdbtagsmultijet":("data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root","multijetbtags"),
-            "qcdslopesdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDSlopes_DiJet"),
-            "qcdintersdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDInters_DiJet"),
-            "qcdcovarsdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_Razor2016_MoriondRereco.root","QCDCovars_DiJet"),
-            "qcdbtagsdijet":("data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root","dijetbtags"),
-                }
+            "qcdfunction{}".format(box):(
+            "macros/BackgroundStudies/QCD/qcd_best_fit_2d_{}.root".format(box),
+            "qcd{}".format(box)) for box in ['dijet', 'multijet', 'sevenjet'] }
         }
+razorWeightHists["Razor2016"].update({
+    "qcdbtags{}".format(box):(
+        "data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root",
+        "{}btags".format(box)) for box in ['dijet', 'multijet', 'sevenjet']})
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
 razorWeightHists["Razor2016_MoriondRereco"] = copy.copy(razorWeightHists['Razor2016'])
 razorWeightHists["Razor2016_80X"] = {}
@@ -966,7 +960,7 @@ colsSignal["MultiJet"]["3B"] = [
         [ 0.30, 0.41, 0.52, 0.64, 1.5 ],
         [ 0.30, 0.41, 1.5 ],
         [ 0.30, 0.41, 1.5 ],
-        [ 0.20, 0.25, 0.30, 0.41, 1.5 ],
+        [ 0.20, 0.30, 1.5 ],
         ]
 colsSignal["MuMultiJet"]["0B"] = [
         [ 0.20, 0.25, 0.30, 0.41, 0.52, 1.5 ],
