@@ -16,7 +16,7 @@ from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
 import BTagClosureTestMacro as bclosure
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_02Nov2017_SevenJetLeptonSevenJet"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_13Nov2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
