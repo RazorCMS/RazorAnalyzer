@@ -228,6 +228,8 @@ FASTSIM_SAMPLES = [
         'SMS-T2bW',
         'SMS-T2cc_genHT-160_genMET-80',
         'SMS-T5ttcc',
+        'SMS-T5ttcc_mGluino1750to2300',
+        'SMS-T5qqqqVV',
         ]
 SAMPLES['SignalFastsim'] = { sample:[sample+FASTSIM_SUFFIX] for sample in FASTSIM_SAMPLES }
 
@@ -261,7 +263,8 @@ DATA['1L'] = {
 DATA['1LInv'] = DATA['1L'].copy()
 DATA['2L'] = DATA['1L'].copy()
 DATA['2LInv'] = DATA['1L'].copy()
-DATA['VetoL'] = { 'HTMHT':[
+DATA['VetoL'] = {
+       'HTMHT':[
                 'HTMHT_2016B_03Feb2017',
                 'HTMHT_2016C_03Feb2017',
                 'HTMHT_2016D_03Feb2017',
@@ -270,8 +273,22 @@ DATA['VetoL'] = { 'HTMHT':[
                 'HTMHT_2016G_03Feb2017',
                 'HTMHT_2016H_03Feb2017v2',
                 'HTMHT_2016H_03Feb2017v3',
-                ] }
-DATA['VetoTau'] = { 'HTMHT':copy.copy(DATA['VetoL']['HTMHT']) }
+                ],
+       'JetHT':[
+                'JetHT_2016B_03Feb2017',
+                'JetHT_2016C_03Feb2017',
+                'JetHT_2016D_03Feb2017',
+                'JetHT_2016E_03Feb2017',
+                'JetHT_2016F_03Feb2017',
+                'JetHT_2016G_03Feb2017',
+                'JetHT_2016H_03Feb2017v2',
+                'JetHT_2016H_03Feb2017v3',
+                ],
+       }
+DATA['VetoTau'] = { 
+        'HTMHT':copy.copy(DATA['VetoL']['HTMHT']),
+        'JetHT':copy.copy(DATA['VetoL']['JetHT']),
+        }
 DATA['Photon'] = {
         "SinglePhoton":[
                 'SinglePhoton_2016B_03Feb2017',
@@ -286,4 +303,5 @@ DATA['Photon'] = {
         }
 DATA['Signal'] = DATA['1L'].copy()
 DATA['Signal']["HTMHT"] = copy.copy(DATA['VetoL']['HTMHT'])
+DATA['Signal']["JetHT"] = copy.copy(DATA['VetoL']['JetHT'])
 

@@ -1532,9 +1532,24 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
         //Razor
         bool passCuts = false;
         for (auto &vars : mainVars) {
-            if (vars.second->MR > 300 && 
-		(vars.second->Rsq > 0.15 || (isFastsimSMS && vars.second->RsqGenMet > 0.15)) && 
-		vars.second->box != NONE) passCuts = true;
+            if (vars.second->MR < 300) continue;
+            if (vars.second->box == NONE) continue;
+            // The Rsq cut is lowered at high MR
+            // to catch additional signal events
+            float rsqSkimCut = 0.15;
+            if (vars.second->MR > 1600) {
+                rsqSkimCut = 0.05;
+            }
+            if (vars.second->Rsq > rsqSkimCut) {
+                passCuts = true;
+                break;
+            }
+            if (isFastsimSMS) {
+                if (vars.second->RsqGenMet > rsqSkimCut) {
+                    passCuts = true;
+                    break;
+                }
+            }
         }
         if (!passCuts) continue;
 
