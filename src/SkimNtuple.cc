@@ -78,7 +78,17 @@ int main(int argc, char* argv[]) {
         while((key = (TKey*)nextkey())){
             string className = key->GetClassName();
             cout << "Getting key from file.  Class type: " << className << endl;
-            //if this key is not a TTree, we skip it
+            //I haven't found a solution to copy arbitrary objects into the new file.
+            //For now we only care about histograms and TTrees, so we 
+            //handle those as special cases.
+            if(className.find("TH1") != string::npos) {
+                outputFile->cd();
+                TH1F *outHist = (TH1F*)key->ReadObj();
+                cout << "Copying histogram " << outHist->GetName() << " into output file" << endl;
+                outHist->Write(outHist->GetName());
+                inputFile->cd();
+                continue;
+            }
             if(className.compare("TTree") != 0){
                 cout << "Skipping key (not a TTree)" << endl;
                 outputFile->cd();
