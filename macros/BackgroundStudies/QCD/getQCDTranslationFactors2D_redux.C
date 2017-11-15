@@ -4,22 +4,22 @@
 //
 //--------------------------------------------------------------
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include <TROOT.h>                        // access to gROOT, entry point to ROOT system
-#include <TSystem.h>                      // interface to OS
-#include <TStyle.h>                       // class to handle ROOT plotting styles
-#include <TFile.h>                        // file handle class
-#include <TTree.h>                        // class to access ntuples
-#include <TAxis.h>
-#include <TMath.h>
-#include <TH3F.h>
-#include <TH2D.h>
-#include <TF1.h>
-#include <TH1D.h>
-#include <TGraphAsymmErrors.h>
-#include <TCanvas.h>
-#include <TLegend.h>
-#include <TLatex.h>
-#include <TBenchmark.h>                   // class to track macro running statistics
+#include "TROOT.h"                        // access to gROOT, entry point to ROOT system
+#include "TSystem.h"                      // interface to OS
+#include "TStyle.h"                       // class to handle ROOT plotting styles
+#include "TFile.h"                        // file handle class
+#include "TTree.h"                        // class to access ntuples
+#include "TAxis.h"
+#include "TMath.h"
+#include "TH3F.h"
+#include "TH2D.h"
+#include "TF1.h"
+#include "TH1D.h"
+#include "TGraphAsymmErrors.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include "TLatex.h"
+#include "TBenchmark.h"                   // class to track macro running statistics
 #include <vector>                         // STL vector class
 #include <iostream>                       // standard I/O
 #include <iomanip>                        // functions to format standard I/O
@@ -28,7 +28,7 @@
 #include <sstream>                        // class for parsing strings
 #endif
 
-#include <CalStyleRemix.hh>
+#include "CalStyleRemix.hh"
 
 enum category {dijet=0, multijet, uberjet};
 
@@ -124,141 +124,141 @@ void getQCDTranslationFactors2D_redux() {
   //dijet low region
   doTheThing(0, 0, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
   doTheThing(0, 1, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
   doTheThing(0, 2, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
   //dijet high region
   doTheThing(0, 0, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   doTheThing(0, 1, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   doTheThing(0, 2, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   //multijet low region
   doTheThing(1, 0, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
   doTheThing(1, 1, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
   doTheThing(1, 2, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
   doTheThing(1, 3, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     "MR",  mr_lo_bins,  nbins_mr_lo,
+	     "Rsq", rsq_lo_bins, nbins_rsq_lo,
 	     outf);
 
 
   //multijet hi region
   doTheThing(1, 0, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   doTheThing(1, 1, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   doTheThing(1, 2, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   doTheThing(1, 3, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     "MR",  mr_hi_bins,  nbins_mr_hi,
+	     "Rsq", rsq_hi_bins, nbins_rsq_hi,
 	     outf);
 
   //uberjet low region
   doTheThing(2, 0, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     "MR",  mr_lo_bins2,  nbins_mr_lo2,
+	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     outf);
 
   doTheThing(2, 1, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     "MR",  mr_lo_bins2,  nbins_mr_lo2,
+	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     outf);
 
   doTheThing(2, 2, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     "MR",  mr_lo_bins2,  nbins_mr_lo2,
+	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     outf);
 
   doTheThing(2, 3, 
 	     getLoRegion, "lo_",
-	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     "MR",  mr_lo_bins2,  nbins_mr_lo2,
+	     "Rsq", rsq_lo_bins2, nbins_rsq_lo2,
 	     outf);
 
 
   //uberjet hi region
   doTheThing(2, 0, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     "MR",  mr_hi_bins2,  nbins_mr_hi2,
+	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     outf);
 
   doTheThing(2, 1, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     "MR",  mr_hi_bins2,  nbins_mr_hi2,
+	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     outf);
 
   doTheThing(2, 2, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     "MR",  mr_hi_bins2,  nbins_mr_hi2,
+	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     outf);
 
   doTheThing(2, 3, 
 	     getHiRegion, "hi_",
-	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     "MR",  mr_hi_bins2,  nbins_mr_hi2,
+	     "Rsq", rsq_hi_bins2, nbins_rsq_hi2,
 	     outf);
 
   outf->Write();

@@ -16,7 +16,7 @@ from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
 import BTagClosureTestMacro as bclosure
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_17Oct2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_13Nov2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -166,15 +166,17 @@ if __name__ == "__main__":
             scaleFactorNames=sfNames, debugLevel=debugLevel)
         sfFileNameBClosure = 'data/ScaleFactors/RazorMADD2015/RazorBTagScaleFactors_%s.root'%(args.tag)
         sfFileBClosure = rt.TFile.Open(sfFileNameBClosure)
-        sfHistsBClosure = {}
+        sfHistsForUncorrSFs1D = {}
         jets = 'MultiJet'
         if curBox in ['DiJet', 'LeptonJet']:
             jets = 'DiJet'
+        elif curBox in ['SevenJet', 'LeptonSevenJet']:
+            jets = 'SevenJet'
         for name in ['TTJets1L', 'TTJets2L', 'WJets']:
-            sfHistsBClosure[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
-            assert(sfHistsBClosure[name])
-        sfHistsBClosure['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
-        assert(sfHistsBClosure['ZInv'])
+            sfHistsForUncorrSFs1D[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
+            assert(sfHistsForUncorrSFs1D[name])
+        sfHistsForUncorrSFs1D['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
+        assert(sfHistsForUncorrSFs1D['ZInv'])
 
         # assess signal contamination in control regions
         contamHists = None
@@ -203,10 +205,11 @@ if __name__ == "__main__":
 
         # make combined unrolled histograms for background
         print "Retrieving background histograms from files"
+        doEmptyBinErrs = args.fineGrained
         backgroundHists = unrollAndStitchFromFiles(curBox, 
                 samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
-                addStatUnc=(not args.noStat), doEmptyBinErrs=args.fineGrained,
+                addStatUnc=(not args.noStat), doEmptyBinErrs=doEmptyBinErrs,
                 addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
 
         # get file name for signal input
@@ -227,7 +230,7 @@ if __name__ == "__main__":
 
         # get correct list of uncertainties for this box
         uncerts = copy.copy(signalShapeUncerts)
-        if curBox in ['DiJet','MultiJet']:
+        if curBox in ['DiJet','MultiJet','SevenJet']:
             uncertsToRemove = ['tightmuoneff','tighteleeff',
                     'muontrig','eletrig','tightmuonfastsim',
                     'tightelefastsim']
@@ -282,7 +285,7 @@ if __name__ == "__main__":
                     curBox, unrollBins=unrollBins)
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
-            uncorrelateSFs1D(hists, sys, sfHistsBClosure, unrollBins)
+            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)

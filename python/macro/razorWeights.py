@@ -1,6 +1,7 @@
 ##Weight and trigger utilities for inclusive razor analysis
 
 import math
+import numpy as np
 import ROOT as rt
 import sys
 
@@ -8,25 +9,33 @@ import sys
 ### WEIGHT AND TRIGGER INFO
 #####################################
 
-def getQCDExtrapolationFactor(MR, Rsq, NBtags, wHists,region='multijet',
-        errorOpt=None, debugLevel=0):
-    """Get QCD extrapolation factor as a function of MR"""
-    slopeHist = wHists['qcdslopes'+region]
-    interHist = wHists['qcdinters'+region]
-    xbin = slopeHist.GetXaxis().FindFixBin(
-            min(slopeHist.GetXaxis().GetXmax()*0.99, MR))
-    btags = min(3, NBtags+1)
-    slope = slopeHist.GetBinContent(xbin, btags)
-    inter = interHist.GetBinContent(xbin, btags)
-    sf = inter + Rsq * slope
+def integral_error(fun, mean, cov, *coords):
+    n_toys = 1000
+    toys = np.zeros(n_toys)
+    for itoy in range(n_toys):
+        rand = np.random.multivariate_normal(mean, cov)
+        fun.SetParameters(rand)
+        integral = fun.Integral(*coords)
+        toys[itoy] = integral
+    fun.SetParameters(mean)
+    return toys.std()
 
+def getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, nbtags,
+        fun, mean, cov, btagHist, errorOpt, debugLevel):
+    """Get QCD extrapolation factor as a function of MR and Rsq"""
+    btagBin = min(4, nbtags+1)
+    norm = btagHist.GetBinContent(btagBin)
+    area = (mrhigh-mrlow)*(rsqhigh-rsqlow)
+    integral = fun.Integral(mrlow, mrhigh, rsqlow, rsqhigh)
+    sf = norm*integral/area
+
+    print area, integral, sf, norm
     if errorOpt is not None:
-        covarHist = wHists['qcdcovars'+region]
-        slopeerr = slopeHist.GetBinError(xbin, btags)
-        intererr = interHist.GetBinError(xbin, btags)
-        covar = covarHist.GetBinContent(xbin, btags)
-        sfErr = math.sqrt( Rsq*Rsq*slopeerr*slopeerr 
-                + intererr*intererr + 2*Rsq*covar )
+        sfErr = integral_error(fun, mean, cov, 
+                mrlow, mrhigh, rsqlow, rsqhigh) / area
+        normErr = btagHist.GetBinError(btagBin)
+        sfErr = ((sfErr*norm)**2 + (sf/norm*normErr)**2)**(0.5)
+        print errorOpt, sfErr
         if errorOpt == 'qcdnormUp':
             return sf + sfErr
         elif errorOpt == 'qcdnormDown':
@@ -34,21 +43,43 @@ def getQCDExtrapolationFactor(MR, Rsq, NBtags, wHists,region='multijet',
 
     return sf
 
+def read_mean_and_cov(in_name):
+    """
+    Retrieves mean vector and covariance matrix
+    from first two lines of npz file and returns them
+    as numpy arrays.
+    """
+    with open(in_name, 'r') as in_f:
+        arrs = np.load(in_f)
+        mean = arrs['arr_0']
+        cov = arrs['arr_1']
+    return mean, cov
+
 def makeQCDExtrapolation(qcd2DHist, wHists, region, btags,
         debugLevel=0, errOpt=None):
     """Performs extrapolation from high to low delta phi region
         for QCD prediction in the signal region.
         Returns corrected histogram with same shape as qcd2DHist"""
+    region = region.lower()
     newHist = qcd2DHist.Clone()
     newHist.SetDirectory(0)
+    # Sorry, I am hard-coding this path until I have time 
+    # to implement a more flexible system for this
+    npz_file = 'macros/BackgroundStudies/QCD/qcd_best_fit_2d_{}.npz'.format(region)
+    mean, cov = read_mean_and_cov(npz_file)
+    fun = wHists['qcdfunction{}'.format(region)]
+    btagHist = wHists['qcdbtags{}'.format(region)]
     for bx in range(1, qcd2DHist.GetNbinsX()+1):
         for by in range(1, qcd2DHist.GetNbinsY()+1):
-            MR = qcd2DHist.GetXaxis().GetBinLowEdge(bx) 
-            Rsq = qcd2DHist.GetYaxis().GetBinLowEdge(by) 
-            extrapFactor = getQCDExtrapolationFactor(MR, Rsq, btags,
-                    wHists, region.lower(), errOpt, debugLevel)
+            mrlow = qcd2DHist.GetXaxis().GetBinLowEdge(bx) 
+            mrhigh = qcd2DHist.GetXaxis().GetBinUpEdge(bx) 
+            rsqlow = qcd2DHist.GetYaxis().GetBinLowEdge(by) 
+            rsqhigh = qcd2DHist.GetYaxis().GetBinUpEdge(by) 
+            extrapFactor = getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, btags,
+                    fun, mean, cov, btagHist, errOpt, debugLevel)
             if debugLevel > 0:
-                print "QCD extrapolation factor in bin with center",MR,Rsq,"is",extrapFactor,"( error option",errOpt,")"
+                print "QCD extrapolation factor in bin {} {} {} {} is {} (error opt {})".format(
+                        mrlow, mrhigh, rsqlow, rsqhigh, extrapFactor, errOpt)
             newHist.SetBinContent(bx, by, qcd2DHist.GetBinContent(
                 bx, by) * extrapFactor)
             newHist.SetBinError(bx, by, qcd2DHist.GetBinError(
@@ -771,7 +802,7 @@ def addAllBTagSFs(analysis, auxSFs={}, var='MR', gjets=False,
             if proc not in auxSFs:
                 auxSFs[proc] = {}
             nbMax = 2
-            if (analysis.njetsMin >= 4 or 'MultiJet' in analysis.region) and not gjets:
+            if (analysis.njetsMin >= 4 or 'MultiJet' in analysis.region or 'SevenJet' in analysis.region) and not gjets:
                 nbMax = 3
             for nb in range(nbMax+1):
                 rel = '=='

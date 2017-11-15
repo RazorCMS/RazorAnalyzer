@@ -19,6 +19,7 @@ const double SPEED_OF_LIGHT = 29.9792458; // speed of light in cm / ns
 const float EB_R = 129.7;
 const float EE_Z = 317.0;
 const double JET_CUT = 30.;
+const bool photonOrderByTime = true;
 
 TVector3 DelayedPhotonAnalyzer::intersectPoint(float x0,float y0,float z0,float px,float py,float pz,float R)
 {
@@ -745,10 +746,58 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	}	
 		
 	 
-      	if (thisPhoton.Pt() > pho1.Pt()) 
-	{ // find two highest momentum photons
+      	if ( ( photonOrderByTime ? ( weightedTime > pho1ClusterTime) : (thisPhoton.Pt() > pho1.Pt())  ) ) 
+	{ // find two highest momentum photons, or two largest time photons
+		pho2 = pho1;
+
+		pho2E = pho2.E();
+		pho2Pt = pho2.Pt();
+		pho2Eta = pho2.Eta();
+		pho2Phi = pho2.Phi();
+		pho2SeedE = pho1SeedE;
+		pho2SeedEta = pho2SeedEta;
+		pho2SeedPhi = pho1SeedPhi;
+		pho2SeedPt = pho1SeedPt; 
+		pho2SC_E = pho1SC_E;
+		pho2SC_Pt = pho1SC_Pt; 
+		pho2SC_Eta = pho1SC_Eta;
+		pho2SC_Phi = pho1SC_Phi;
+		pho2SigmaIetaIeta = pho1SigmaIetaIeta;
+		pho2R9 = pho1R9;
+		pho2HoverE = pho1HoverE;
+		pho2sumChargedHadronPt = pho1sumChargedHadronPt;
+		pho2PFsumChargedHadronPt = pho1PFsumChargedHadronPt;
+		pho2sumNeutralHadronEt = pho1sumNeutralHadronEt;
+		pho2PFsumNeutralHadronEt = pho1PFsumNeutralHadronEt;
+		pho2sumPhotonEt = pho1sumPhotonEt;
+		pho2PFsumPhotonEt = pho1PFsumPhotonEt;
+		pho2sigmaEOverE = pho1sigmaEOverE;
+        	pho2SeedTimeRaw = pho1SeedTimeRaw;
+        	pho2SeedTimeCalib = pho1SeedTimeCalib;
+        	pho2SeedTimeCalibTOF = pho1SeedTimeCalibTOF;
+        	pho2SeedTimeGenV = pho1SeedTimeGenV;
+        	pho2ClusterTime = pho1ClusterTime;
+		pho2Sminor = pho1Sminor;
+		pho2Smajor = pho1Smajor;
+		pho2Setaeta = pho1Setaeta;
+		pho2Sphiphi = pho1Sphiphi;
+		pho2Setaphi = pho1Setaphi;
+		pho2passEleVeto = pho1passEleVeto;
+		pho2passIsoLoose = pho1passIsoLoose;
+		pho2passIsoLoose_privatePF = pho1passIsoLoose_privatePF;
+		pho2passIsoMedium = pho1passIsoMedium;
+		pho2passIsoMedium_privatePF = pho1passIsoMedium_privatePF;
+		pho2passIsoTight = pho1passIsoTight;
+		pho2passIsoTight_privatePF = pho1passIsoTight_privatePF;
+        	pho2isStandardPhoton = pho1isStandardPhoton;
+        	pho2isPromptPhoton = pho1isPromptPhoton;
+  		pho2SeedX = pho1SeedX;
+  		pho2SeedY = pho1SeedY;
+  		pho2SeedZ = pho1SeedZ;
+		
+		//	
         	pho1 = thisPhoton;
-	
+		
 		pho1E = thisPhoton.E();
 		pho1Pt = thisPhoton.Pt();
 		pho1Eta = thisPhoton.Eta();
@@ -795,7 +844,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   		pho1SeedY = (*ecalRechit_Y)[seedhitIndex];
   		pho1SeedZ = (*ecalRechit_Z)[seedhitIndex];
     	} 
-    	else if (thisPhoton.Pt() > pho2.Pt()) 
+      	else if ( ( photonOrderByTime ? ( weightedTime > pho2ClusterTime) : (thisPhoton.Pt() > pho2.Pt())  ) ) 
 	{
       		pho2 = thisPhoton;
       	
@@ -925,6 +974,7 @@ for(int i = 0; i < nJets; i++)
     	//cout << "THIS IS THE 2 PHOTON LOOP" << endl;
  	if(nPho == 1) n_Photons = 1;
  	if(nPho > 1) n_Photons = 2;
+
 	bool isMatched = false;
 
 	if(!isData && nPho>=2) //for two neutralino -> photon + gravitino signal MC studies only

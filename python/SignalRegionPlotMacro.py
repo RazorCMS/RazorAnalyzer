@@ -21,6 +21,8 @@ def adjustFilenameForOptions(fName, args):
         fName = fName.replace('.root', 'FineGrained.root')
     if args.sideband:
         fName = fName.replace('.root', 'Sideband.root')
+    if args.noBoostCuts:
+        fName = fName.replace('.root', 'NoBoostCuts.root')
     return fName
 
 if __name__ == "__main__":
@@ -74,6 +76,5 @@ if __name__ == "__main__":
     print "Input file: {}".format(inFile)
 
     plotControlSampleHists(box, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
-            btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi,
-            unrollBins=unrollBins, shapeErrors=shapesToUse, 
-            doEmptyBinErrs=args.fineGrained)
+            btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi, doEmptyBinErrs=True,
+            unrollBins=unrollBins, shapeErrors=shapesToUse)

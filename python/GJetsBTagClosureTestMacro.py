@@ -21,7 +21,11 @@ if __name__ == "__main__":
     regionsOrder = []
 
     #define all tests
-    for name,jets in {"DiJet":(2,3),"MultiJet":(4,-1)}.iteritems():
+    for name,jets in {
+            "DiJet":(2,3),
+            "MultiJet":(4,6),
+            "SevenJet":(7,-1)
+            }.iteritems():
         for nb in range(4):
             regionName = 'GJetsInv'+name+str(nb)+'B'
             nbMax = nb
@@ -34,10 +38,10 @@ if __name__ == "__main__":
                 regions[regionName] = Analysis("GJetsInv", tag=tag,
                         njetsMin=jets[0], njetsMax=jets[1], nbMin=nb,
                         nbMax=nbMax, boostCuts=boostCuts)
-            regionsOrder.append(regionName+'MRCorr')
-            regions[regionName+'MRCorr'] = Analysis("GJetsInv", tag=tag,
-                    njetsMin=jets[0], njetsMax=jets[1], nbMin=nb,
-                    nbMax=nbMax, boostCuts=boostCuts)
+                regionsOrder.append(regionName+'MRCorr')
+                regions[regionName+'MRCorr'] = Analysis("GJetsInv", tag=tag,
+                        njetsMin=jets[0], njetsMax=jets[1], nbMin=nb,
+                        nbMax=nbMax, boostCuts=boostCuts)
 
     sfHists = macro.loadScaleFactorHists(
             sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag), 

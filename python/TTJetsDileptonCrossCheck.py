@@ -17,14 +17,24 @@ if __name__ == "__main__":
 
     #initialize
     plotOpts = { "comment":False, 'SUS15004CR':True } 
-    regionsOrder = ["TTJetsDileptonMultiJet","TTJetsDileptonDiJet"]
+    regionsOrder = [
+            "TTJetsDileptonSevenJet",
+            "TTJetsDileptonMultiJet",
+            "TTJetsDileptonDiJet"]
     regions = {
-            "TTJetsDileptonDiJet":Analysis("TTJetsDilepton",tag=tag,njetsMin=2,njetsMax=3,boostCuts=boostCuts),
-            "TTJetsDileptonMultiJet":Analysis("TTJetsDileptonMultiJet",tag=tag,njetsMin=4,boostCuts=boostCuts),
+            "TTJetsDileptonDiJet":Analysis(
+                "TTJetsDilepton",tag=tag,njetsMin=2,njetsMax=3,
+                boostCuts=boostCuts),
+            "TTJetsDileptonMultiJet":Analysis(
+                "TTJetsDileptonMultiJet",tag=tag,njetsMin=4,njetsMax=6,
+                boostCuts=boostCuts),
+            "TTJetsDileptonSevenJet":Analysis(
+                "TTJetsDileptonMultiJet",tag=tag,njetsMin=7,
+                boostCuts=boostCuts),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
     sfHists = macro.loadScaleFactorHists( sfFilename=sfFilename,
-            processNames=regions["TTJetsDileptonDiJet"].samples, debugLevel=debugLevel )
+            processNames=regions["TTJetsDileptonSevenJet"].samples, debugLevel=debugLevel )
     sfNJetsFile = rt.TFile.Open(
             "data/ScaleFactors/RazorMADD2015/RazorNJetsScaleFactors_%s.root"%(tag))
     sfHists['NJetsTTJets'] = sfNJetsFile.Get("TTJetsScaleFactors")

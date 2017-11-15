@@ -29,6 +29,7 @@ hadShapeErrors = commonShapeErrors+['wtag', 'vetolepptcrosscheck','vetotauptcros
         'vetolepetacrosscheck','vetotauetacrosscheck','vetomuoneff','vetoeleeff']
 shapes = { 'MultiJet':hadShapeErrors, 'LeptonMultiJet':lepShapeErrors, 
            'DiJet':hadShapeErrors, 'LeptonJet':lepShapeErrors, 
+           'SevenJet':hadShapeErrors, 'LeptonSevenJet':lepShapeErrors,
            }
 
 def makeSignalRegionParser():
@@ -78,6 +79,8 @@ def getDirSuffix(args):
         dirSuffix += 'FineGrained'
     if args.sideband:
         dirSuffix += 'Sideband'
+    if args.noBoostCuts:
+        dirSuffix += 'NoBoostCuts'
     return dirSuffix
 
 def getPlotOpts(args, analysis):
@@ -96,7 +99,7 @@ def getPlotOpts(args, analysis):
 def getBoxesAndBtags(args):
     """Returns list of boxes to process
         and list of b-tag categories"""
-    boxlist = ["MultiJet", "LeptonMultiJet", "DiJet", "LeptonJet"]
+    boxlist = ["SevenJet", "LeptonSevenJet", "MultiJet", "LeptonMultiJet", "DiJet"]
     if args.box is not None:
         boxlist = [args.box]
     if args.btags is not None:
@@ -168,7 +171,7 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
     if args.nloZInv:
         sfHists['ZInv'] = dynloTFile.Get("WJetsSingleLeptonInvNLOScaleFactors")
         sfHists['NJetsInv'] = dynloTFile.Get("WJetsSingleLeptonInvNLOForNJetsScaleFactors")
-    for jtype in ['DiJet','MultiJet']:
+    for jtype in ['DiJet','MultiJet','SevenJet']:
         sfHists['TTJetsDilepton'+jtype+'Up'] = ttTFile.Get("TTJetsDilepton"+jtype+"ScaleFactors")
         sfHists['TTJetsDilepton'+jtype+'Down'] = macro.invertHistogram(
                 sfHists['TTJetsDilepton'+jtype+'Up'])
@@ -189,6 +192,7 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
             sfHists['Rsq'+jtype+bs+'BUp'] = btagTFile.Get(
                     'Rsq'+jtype+bs+'BScaleFactors')
             sfHists['Rsq'+jtype+bs+'BDown'] = macro.invertHistogram(sfHists['Rsq'+jtype+bs+'BUp'])
+            if b > 2: continue
             sfHists['ZInv'+jtype+bs+'BUp'] = btagTFile.Get(
                     'RsqInv'+jtype+bs+'BScaleFactors')
             sfHists['ZInv'+jtype+bs+'BDown'] = macro.invertHistogram(
@@ -198,26 +202,18 @@ def loadAllScaleFactorHists(tag, args, processNames, debugLevel=0):
     for h,hist in sfHists.iteritems():
         if debugLevel > 0:
             print "Checking scale factor histogram:",h
-        assert hist
-        hist.SetDirectory(0)
+        #assert hist
+        #hist.SetDirectory(0)
+        if hist:
+            hist.SetDirectory(0)
+        elif 'MultiJet' not in h and 'DiJet' not in h:
+            raise ValueError("Hist {} is null".format(h))
     return sfHists
 
 def adjustCuts(analysis, boxName, sideband=False):
-    if not sideband:
-        print "Adjust baseline cuts to exclude sideband"
-        if boxName in ['DiJet', 'MultiJet']:
-            analysis.cutsData = analysis.cutsData.replace(
-                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
-            analysis.cutsMC = analysis.cutsMC.replace(
-                    'MR > 500', 'MR > 650').replace('Rsq > 0.25', 'Rsq > 0.30')
-        else:
-            analysis.cutsData = analysis.cutsData.replace(
-                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
-            analysis.cutsMC = analysis.cutsMC.replace(
-                    'MR > 400', 'MR > 550').replace('Rsq > 0.15', 'Rsq > 0.20')
-    else:
+    if sideband:
         print "Adjust baseline cuts to select only sideband"
-        if boxName in ['DiJet', 'MultiJet']:
+        if boxName in ['DiJet', 'MultiJet', 'SevenJet']:
             minMR = 500
             maxMR = 650
             minRsq = 0.25
@@ -261,7 +257,9 @@ def applyAnalysisOptions(analysis, args, boxName=None):
 
 def getScaleFactorHistsForBox(sfHists, boxName, btags):
     sfHistsToUse = sfHists.copy()
-    if 'MultiJet' in boxName:
+    if 'SevenJet' in boxName:
+        jtype = 'SevenJet'
+    elif 'MultiJet' in boxName:
         jtype = 'MultiJet'
     else:
         jtype = 'DiJet'
@@ -279,7 +277,7 @@ def getScaleFactorHistsForBox(sfHists, boxName, btags):
         sfHistsToUse['Rsq'+updown] = sfHistsToUse[
                 'Rsq'+jtype+str(btags)+updown]
         sfHistsToUse['ZInv'+updown] = sfHistsToUse[
-                'ZInv'+jtype+str(btags)+updown]
+                'ZInv'+jtype+str(min(btags, 2))+updown]
     return sfHistsToUse
 
 def removeSFShapes(shapes):

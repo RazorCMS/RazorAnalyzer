@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+import os
 import glob
 
 razorSignalDirs = {
@@ -7,13 +8,23 @@ razorSignalDirs = {
 
 def parsePair(f):
     pair = f.replace('.root','').split('_')[-2:]
-    return int(pair[0]), int(pair[1])
+    result = int(pair[0]), int(pair[1])
+    return result
 
 def getGChiPairs(signalDir, model):
     pattern = "%s/SMS-%s_*_*.root"%(signalDir, model)
     files = glob.glob(pattern)
     pairs = []
     for f in files:
+        # Some model names contain other model names.
+        # We check that the filename is actually from
+        # the model of interest, 
+        mass1Str = os.path.basename(f).replace(
+                'SMS-{}_'.format(model), '').split('_')[0]
+        try:
+            int(mass1Str)
+        except ValueError:
+            continue
         pairs.append(parsePair(f))
     return pairs
 

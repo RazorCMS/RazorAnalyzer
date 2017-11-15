@@ -152,7 +152,8 @@ def makeTH2PolyFromColumns(name, title, xbins, cols):
     cols: 2D list indicating bin edges in the y-direction for each column
     """
     #construct TH2Poly
-    poly = rt.TH2Poly(name, title, xbins[0], xbins[-1], cols[0][0], cols[0][-1])
+    minY = min([col[0] for col in cols])
+    poly = rt.TH2Poly(name, title, xbins[0], xbins[-1], minY, cols[0][-1])
     #add bins in each column
     for i in range(len(xbins)-1):
         for j in range(len(cols[i])-1):
@@ -371,6 +372,7 @@ def computeEmptyBinErrs(hists, unrollBins, aggregate=True):
     toExclude = [ # processes with low stats but not expected to contribute
             "WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8",
             "WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8",
+            'QCD'
             ]
     print "Computing uncertainties to apply to empty bins"
     errs = {}
@@ -1386,10 +1388,23 @@ def loadScaleFactorHists(sfFilename="RazorScaleFactors.root", processNames=[], s
 def invertHistogram(hist):
     """Replaces contents of each hist bin with 1/(contents).  Updates bin errors accordingly.
        For bins with no contents, does nothing."""
+    if not hist:
+        print "Warning: hist does not exist"
+        return
     ret = hist.Clone(hist.GetName()+"Inverted")
     for b in range(hist.GetSize()+1):
         if hist.GetBinContent(b) != 0:
             ret.SetBinContent( b, 1.0/hist.GetBinContent(b) )
             ret.SetBinError( b, hist.GetBinError(b) / (hist.GetBinContent(b))**2 )
     return ret
+
+def removeVarCuts(cuts, varName):
+    """
+    Removes all cuts on the given variable 
+    from the given string.
+    """
+    while varName in cuts:
+        split = cuts.split(' && ')
+        cuts = ' && '.join([cut for cut in split if varName not in cut])
+    return cuts
 
