@@ -66,12 +66,19 @@ def plot_slice(obs_hist, fit_hist):
     obs_hist.Draw()
     fit_hist.SetLineColor(rt.kRed)
     fit_hist.Draw("same")
+    leg = rt.TLegend(0.1, 0.7, 0.5, 0.9)
+    leg.AddEntry(obs_hist, "QCD Transfer Factors")
+    leg.AddEntry(fit_hist, "Fitted prediction")
+    leg.Draw()
     c.Print('njetsqcdfit_'+obs_hist.GetName()+'.pdf')
 
 def plot_slices(hist, fit, result):
     for ibin in range(1, hist.GetNbinsX()+1):
         this_slice = hist.ProjectionY("{}_bin{}".format(
             hist.GetName(), ibin), ibin, ibin, "e")
+        this_slice.GetXaxis().SetTitle("R^{2}")
+        this_slice.GetYaxis().SetTitle("QCD Transfer factor")
+        this_slice.SetTitle("")
         this_fit = this_slice.Clone("{}_fit{}".format(
             hist.GetName(), ibin))
         low = hist.GetXaxis().GetBinLowEdge(ibin)

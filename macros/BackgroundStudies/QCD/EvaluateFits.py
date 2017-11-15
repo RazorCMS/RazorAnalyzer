@@ -102,6 +102,9 @@ def make_plot(hist, pred):
     name = hist.GetName()
     c = rt.TCanvas("c"+name, "c", 800, 600)
     hist1d = hist.ProjectionY(name+'proj', 1, 1, "e")
+    hist1d.GetXaxis().SetTitle("R^{2}")
+    hist1d.GetYaxis().SetTitle("QCD Transfer Factor")
+    hist1d.SetTitle("")
     hist1d.SetStats(0)
     hist1d.SetMaximum(
             min(15, 
@@ -114,6 +117,10 @@ def make_plot(hist, pred):
     pred.SetStats(0)
     pred.SetLineColor(rt.kRed)
     pred.Draw('same')
+    leg = rt.TLegend(0.1, 0.7, 0.5, 0.9)
+    leg.AddEntry(hist1d, "QCD Transfer Factors")
+    leg.AddEntry(pred, "Fitted prediction")
+    leg.Draw()
     c.Print("closure_{}.pdf".format(name))
 
 
