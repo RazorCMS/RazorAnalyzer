@@ -165,9 +165,7 @@ if __name__ == "__main__":
             processNames=["TTJets1L","TTJets2L","WJets","ZInv"], 
             scaleFactorNames=sfNames, debugLevel=debugLevel)
         sfFileNameBClosure = 'data/ScaleFactors/RazorMADD2015/RazorBTagScaleFactors_%s.root'%(args.tag)
-        sfFileNameQCD = 'data/ScaleFactors/RazorMADD2015/RazorQCDScaleFactors_%s.root'%(args.tag)
         sfFileBClosure = rt.TFile.Open(sfFileNameBClosure)
-        sfFileQCD = rt.TFile.Open(sfFileNameQCD)
         sfHistsForUncorrSFs1D = {}
         jets = 'MultiJet'
         if curBox in ['DiJet', 'LeptonJet']:
@@ -178,9 +176,7 @@ if __name__ == "__main__":
             sfHistsForUncorrSFs1D[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
             assert(sfHistsForUncorrSFs1D[name])
         sfHistsForUncorrSFs1D['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
-        sfHistsForUncorrSFs1D['QCD'] = sfFileQCD.Get("QCDSlopes_{}".format(curBox))
         assert(sfHistsForUncorrSFs1D['ZInv'])
-        assert(sfHistsForUncorrSFs1D['QCD'])
 
         # assess signal contamination in control regions
         contamHists = None
@@ -290,10 +286,6 @@ if __name__ == "__main__":
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
             uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
-        # currently treating QCD uncertainties as correlated across bins, 
-        # so this part is not needed
-        #uncorrelateSFs1D(hists, 'qcdnorm', sfHistsForUncorrSFs1D, unrollBins,
-        #        useRsq=False, bInclusive=True)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)
