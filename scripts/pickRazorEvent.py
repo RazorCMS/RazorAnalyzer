@@ -54,10 +54,22 @@ def found_in_file(fname, run, lumi, event):
     tree.SetBranchStatus('eventNum', 1)
     draw_str = 'runNum == {} && eventNum == {} && lumiNum == {}'.format(
             run, event, lumi)
-    match = tree.Draw('', draw_str)
+    match = tree.Draw('>>elist1', draw_str)
     if match:
+        pick_event(tree, run, lumi, event)
         return True
     return False
+
+def pick_event(tree, run, lumi, event):
+    elist = rt.gDirectory.Get("elist1")
+    tree.SetBranchStatus("*", 1)
+    tree.GetEntry(elist.GetEntry(0))
+    out_f = rt.TFile.Open('razorevent_{}_{}_{}.root'.format(run, lumi, event),
+            'RECREATE')
+    out_tree = tree.GetTree().CloneTree(0)
+    out_tree.Fill()
+    out_tree.Write()
+    out_f.Close()
 
 def make_parser():
     parser = argparse.ArgumentParser()
