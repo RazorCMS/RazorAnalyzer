@@ -3,6 +3,7 @@
 import sys,os
 import copy
 from array import array
+import numpy as np
 import ROOT as rt
 from collections import namedtuple
 
@@ -779,6 +780,8 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
         special += "SUS15004"
     elif "SUS15004CR" in plotOpts and plotOpts["SUS15004CR"]:
         special += "CR15004"
+    if 'zoom' in plotOpts:
+        special += 'zoomratio'
 
     listOfVars = hists.itervalues().next().keys() #list of the variable names
     
@@ -1547,11 +1550,41 @@ def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".",
 
     return histsForDataCard
 
-def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, zmin=1e-3, debugLevel=0):
-    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+def printRazorEvidenceTable(evidenceHist, obsEvidenceHist, 
+        unrolledMCTotal, unrolledData, out_f):
+    nbins = evidenceHist.GetNbinsX()
+    evidences = np.zeros(nbins)
+    obsEvidences = np.zeros(nbins)
+    mcs  = np.zeros(nbins)
+    mcerrs  = np.zeros(nbins)
+    datas = np.zeros(nbins)
+    for ix in range(nbins):
+        evidences[ix] = max(0, evidenceHist.GetBinContent(ix+1))
+        obsEvidences[ix] = obsEvidenceHist.GetBinContent(ix+1)
+        mcs[ix] = unrolledMCTotal.GetBinContent(ix+1)
+        mcerrs[ix] = unrolledMCTotal.GetBinError(ix+1)
+        datas[ix] = unrolledData.GetBinContent(ix+1)
+    indices = np.argsort(-evidences)
+    out_f.write("\n")
+    for i, (ev, mc, err, obs, obsev) in enumerate(np.dstack((evidences[indices], 
+        mcs[indices], mcerrs[indices], datas[indices], obsEvidences[indices]))[0]):
+        if ev == 0: continue
+        out_f.write("{}: Evidence {:.3f}, Predicted {:.2f} +/- {:.2f}, Observed {:.0f}, Observed Evidence {:.3f}\n".format(
+                i, ev, mc, err, obs, obsev))
+    out_f.write("Totals: Evidence {:.3f}, Predicted {:.2f}, Observed {:.0f}, Observed Evidence {:.3f}\n".format(
+        sum(evidences), sum(mcs), sum(datas), sum(obsEvidences)))
+
+def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, 
+        zmin=1e-3, unblind=False, debugLevel=0):
+    nbMax = 3
+    if boxName == 'DiJet':
+        nbMax = 2
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BFineGrained.root" for b in range(nbMax+1)]
     c = rt.TCanvas("d", "d", 800, 600)
     
     signalBin = 0
+    if unblind:
+        out_txt = open(outDir+"/yields.txt", 'w')
     for i,f in enumerate(filenames):
         unrollRows = unrollBins[i][0]
         unrollCols = unrollBins[i][1]
@@ -1560,16 +1593,27 @@ def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outD
         #loop over bins
         evidenceHist = unrolledMCTotal.Clone("evidence"+str(i))
         evidenceHist.Reset()
+        if unblind:
+            unrolledData = macro.makeRazorMCTotalUnrolledHist(f, ['Data'], unrollRows, unrollCols, debugLevel)
+            obsEvidenceHist = unrolledData.Clone("obsevidence"+str(i))
+            obsEvidenceHist.Reset()
         for bx in range(1, evidenceHist.GetNbinsX()+1):
             signalBin += 1
             s = signalHist.GetBinContent(signalBin)
             b = unrolledMCTotal.GetBinContent(bx)
             evidence = macro.getBinEvidence(b, b, s) #expected contribution to the likelihood
+            if unblind:
+                obs = unrolledData.GetBinContent(bx)
+                obsEvidenceHist.SetBinContent(bx, 
+                        macro.getBinEvidence(obs, b, s))
             if evidence > zmin:
                 evidenceHist.SetBinContent(bx, evidence)
             else:
                 evidenceHist.SetBinContent(bx, -999)
             evidenceHist.SetBinError(bx, 0)
+        if unblind:
+            printRazorEvidenceTable(evidenceHist, obsEvidenceHist,
+                    unrolledMCTotal, unrolledData, out_txt)
 
         #plot the evidence
         plotting.plotEvidenceHist(c, evidenceHist, printstr="evidence"+boxName+str(i)+"BTag"+signalHist.GetName(), 
@@ -1583,7 +1627,10 @@ def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outD
                 numDigits=3, textSize=1.0, printdir=outDir)
 
 def makeRazorMCTotalPlusSignalPlot(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, signalString="Signal", modelName="Signal", debugLevel=0):
-    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+    nbmax = 3
+    if boxName == 'DiJet':
+        nbmax = 2
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(nbmax+1)]
     mcTotalHists = macro.makeRazorMCTotalUnrolledHists(boxName, samples, inDir, unrollBins, debugLevel)
     c = rt.TCanvas("d", "d", 800, 600)
     rt.SetOwnership(c, False)

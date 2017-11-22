@@ -483,10 +483,15 @@ def basicPrint(histDict, mcNames, varList, c, printName="Hist", dataName="Data",
                         mcDict[name].Print("all")
                 
             #make plots
+            ratioMin = 0.0
+            ratioMax = 5.0
+            if 'zoomratio' in special:
+                ratioMin = 0.5
+                ratioMax = 1.5
             if 'SUS15004' in special:
                 plotting.plot_SUS15004(c, data=obsData, fit=fitPrediction, printstr=printstr, 
                         lumistr=lumistr, commentstr=commentstr, mcDict=mcDict, mcSamples=mcNames, 
-                        unrollBins=unrollBinsToUse, printdir=printdir, emptyBinErrs=emptyBinErrs)
+                        unrollBins=unrollBinsToUse, printdir=printdir, emptyBinErrs=emptyBinErrs, ratiomax=ratioMax, ratiomin=ratioMin)
                 #do MC total (no stack)
                 plotting.plot_SUS15004_FitVsMCTotal(c, mcTotal=mcPrediction, fit=fitPrediction, 
                         printstr=printstr+'MCTotal', lumistr=lumistr, commentstr=commentstr, 
@@ -1323,7 +1328,10 @@ def makeRazorMCTotalUnrolledHist(infile, samples, unrollRows, unrollCols, debugL
 
 def makeRazorMCTotalUnrolledHists(boxName, samples, inDir='.', unrollBins=None, debugLevel=0):
     """Retrieve MC histograms, unroll, and add together"""
-    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(4)]
+    nbmax = 3
+    if boxName == 'DiJet':
+        nbmax = 2
+    filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BFineGrained.root" for b in range(nbmax+1)]
     unrolledMCs = []
     for i,f in enumerate(filenames):
         unrollRows = unrollBins[i][0]
