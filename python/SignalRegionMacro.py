@@ -59,6 +59,8 @@ def makeSignalRegionParser():
             help='Process each MC sample separately')
     parser.add_argument('--sideband', action='store_true',
             help='Process sideband instead of extrapolation region')
+    parser.add_argument('--zoom', action='store_true',
+            help='Draw restricted range on ratio plot')
     return parser
 
 def getDirSuffix(args):
@@ -94,6 +96,8 @@ def getPlotOpts(args, analysis):
             }
     if args.noFit:
         del plotOpts['sideband']
+    if args.zoom:
+        plotOpts['zoom'] = True
     return plotOpts
 
 def getBoxesAndBtags(args):

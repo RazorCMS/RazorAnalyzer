@@ -29,7 +29,7 @@ def writeBashScript(boxes, model, mg, mchi, inDir, subDir):
         boostMassPoint = "%i_0"%(mg)
         boostName = "SMS-{}_{}".format(model, boostMassPoint)
 
-    boostCard = 'RazorBoost_{}_combined.txt'.format(boostName)
+    boostCard = 'RazorBoost_{}_{}.txt'.format(boostName, '_'.join(BOOST_BOXES))
     boostDir = '{}/{}'.format(BOOST_LIMIT_DIR, model)
     boostInputFiles = ['RazorBoost_SMS-{}_{}_{}.root'.format(
         model, boostMassPoint, box) for box in BOOST_BOXES]
