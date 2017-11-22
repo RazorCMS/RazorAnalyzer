@@ -6,6 +6,7 @@ from math import *
 import os
 
 #local imports 
+from limits.SMSConfig import sms_models
 from GChiPairs import gchipairs
 from GetCombine import writeXsecTree
 from macro.plotting import draw2DHist
@@ -98,7 +99,14 @@ if __name__ == '__main__':
         sigHist = rt.TH2F('sigHist','sigHist',56,600,2000,72,0,1800)
 
     #get combine results
-    for mg, mchi in gchipairs(model):
+    submodels = sms_models[model].submodels
+    if submodels is None:
+        pairs = gchipairs(model)
+    else:
+        pairs = []
+        for submodel in submodels:
+            pairs += gchipairs(submodel)
+    for mg, mchi in pairs:
         print "Looking for",mg,mchi
         try:
             refXsec = 1.e3*thyXsec[mg]
