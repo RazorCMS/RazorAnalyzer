@@ -1,9 +1,10 @@
 import copy
 
+#VERSION = '16Nov2017_NoBoostCuts_sixie'
 VERSION = '13Nov2017'
 #VERSION = '13Nov2017_NoBoostCuts'
-BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_09_20"
-BOOST_LOCAL_DIR = "syst_results/run_2017_08_28_syst_combined/cards"
+BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_11_21/"
+BOOST_LOCAL_DIR = "syst_results/run_2017_11_13_syst/cards"
 
 DISP_OFFSET = 12.5 # Extra offset needed for display purposes
 
