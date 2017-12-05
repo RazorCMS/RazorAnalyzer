@@ -58,9 +58,6 @@ def def_slides(plot_dir):
                      "%s/%sScaleFactors.pdf" % (control_region,control_region.replace('SingleLepton',''))]),
                 Slide(titles[control_region], 
                     ["%s/NBJetsMedium_%s.pdf" % (control_region,control_region),]),
-                Slide(titles[control_region], 
-                    ["%s/HT_%s.pdf" % (control_region,control_region),
-                     "%s/MET_%s.pdf" % (control_region,control_region)]),
             ]
     control_region = "WJetsSingleLeptonInv"
     slides += [
@@ -76,26 +73,25 @@ def def_slides(plot_dir):
     slides += [
             Slide("N$_{jets}$ correction", 
                 ["TTJetsForNJets/NJets40_TTJetsSingleLepton.pdf",
-                 "WJetsForNJets/NJets40_WJetsSingleLepton.pdf",
-                 "TTJetsForNJetsCorrected/NJets40_TTJetsSingleLepton.pdf"]),
+                 "WJetsForNJets/NJets40_WJetsSingleLepton.pdf",])
             ]
-    for jets in ['DiJet','MultiJet']:
+    for jets in ['DiJet','MultiJet','SevenJet']:
         slides += [
                 Slide("1L %s region, after corrections" % jets.lower(), 
-                    ["OneLepton%sClosureTest/MRRsq_SingleLeptonUnrolledDataMC.pdf" % jets,
-                     "OneLepton%sClosureTest/NBJetsMedium_SingleLepton.pdf" % jets,
+                    ["OneLepton%s/MRRsq_SingleLeptonUnrolledDataMC.pdf" % jets,
+                     "OneLepton%s/NBJetsMedium_SingleLepton.pdf" % jets,
                         ]),
                 ]
         for B in ['0','1','2','3']:
             if jets == 'DiJet' and B == '3': continue
             slides += [
                 Slide("1L %s region, after corrections -- %s B" % (jets.lower(),B),
-                    ["OneLepton%sClosureTest%sB/MR_SingleLepton.pdf" % (jets,B),
-                     "OneLepton%sClosureTest%sB/Rsq_SingleLepton.pdf" % (jets,B)])
+                    ["OneLepton%s%sB/MR_SingleLepton.pdf" % (jets,B),
+                     "OneLepton%s%sBMRCorr/Rsq_SingleLepton.pdf" % (jets,B)])
                     ]
     tt2l_dir = "TTJetsDilepton"
-    for jets in ['DiJet','MultiJet']:
-        suffix = ("MultiJet")*(jets == "MultiJet")
+    for jets in ['DiJet','MultiJet','SevenJet']:
+        suffix = ("MultiJet")*(jets == "MultiJet" or jets == "SevenJet")
         tt2l_title = "t$\\bar{t}$ dilepton %s control region" % jets.lower()
         tt2l_this_dir = tt2l_dir+jets
         slides += [
@@ -109,8 +105,8 @@ def def_slides(plot_dir):
                      "%s/NBJetsMedium_TTJetsDilepton%s.pdf" % (tt2l_this_dir,suffix)]),
                     ]
     photon_dir = "GJetsInv"
-    suffixes = ["","ForNJets","DiJetClosureTest","MultiJetClosureTest"]
-    title_endings = [""," after razor correction",", dijet closure test",", multijet closure test"]
+    suffixes = ["","ForNJets"]
+    title_endings = [""," after razor correction"]
     for suffix,ending in zip(suffixes,title_endings):
         photon_this_dir = photon_dir+suffix
         photon_title = "photon+jets control region"+ending
@@ -129,13 +125,22 @@ def def_slides(plot_dir):
                     ["%s/NJets_NoPho_GJetsInv.pdf" % photon_this_dir,
                      "%s/NBJetsMedium_GJetsInv.pdf" % photon_this_dir]),
                     ]
+    for jets in ['DiJet','MultiJet','SevenJet']:
+        for B in ['0','1','2']:
+            if jets == 'DiJet' and B == '3': continue
+            slides += [
+                Slide("photon+jets %s region, after corrections -- %s B" % (jets.lower(),B),
+                    ["GJetsInv%s%sB/MR_NoPho_GJetsInv.pdf" % (jets,B),
+                     "GJetsInv%s%sBMRCorr/Rsq_NoPho_GJetsInv.pdf" % (jets,B)])
+                    ]
     dy_dir = "DYJetsDileptonInv"
-    suffixes = ["Uncorr","","DiJet_Closure","MultiJet_Closure"]
-    title_endings = [" before correction"," after normalization",", dijet closure test",", multijet closure test"]
+    suffixes = ["Uncorr","","DiJet_Closure","MultiJet_Closure",'SevenJet_Closure']
+    title_endings = [" before correction"," after normalization",
+            ", dijet closure test",", multijet closure test", ", seven-jet closure test"]
     for suffix,ending in zip(suffixes,title_endings):
         dy_this_dir = dy_dir+suffix
         dy_title = "DY+jets control region"+ending
-        dy_suffix = ("MultiJet")*(suffix == "MultiJet_Closure")
+        dy_suffix = ("MultiJet")*(suffix == "MultiJet_Closure" or suffix == 'SevenJet_Closure')
         if "Jet" in suffix:
             slides += [ Slide(dy_title,
                     ["%s/MR_NoZRsq_NoZ_DYJetsDileptonInv%sUnrolledDataMC.pdf" % (dy_this_dir,dy_suffix),
@@ -157,7 +162,7 @@ def def_slides(plot_dir):
                     ["%s/MR_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix),
                      "%s/Rsq_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix)])]
     for leptype in ["Lepton","Tau"]:
-        for jets in ["DiJet","MultiJet"]:
+        for jets in ["DiJet","MultiJet",'SevenJet']:
             for corr in ["","PtCorr"]:
                 veto_dir = "Veto"+leptype+jets+corr
                 veto_title = "Veto %s %s control region" % (leptype.lower(),jets.lower())
@@ -174,13 +179,12 @@ def def_slides(plot_dir):
                             ["%s/NJets40_%s.pdf" % (veto_dir,veto_region),
                              "%s/NBJetsMedium_%s.pdf" % (veto_dir,veto_region)]),
                             ]
-    for box in ["MultiJet","LeptonMultiJet",'DiJet','LeptonJet']:
-        for nb in range(4):
-            if (box == 'DiJet' or box == 'LeptonJet') and nb == 3: continue
-            slides += [
-                    Slide("%s (%d b-tags) sideband and signal region"%(box,nb),
-                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrainedSideband",box),
-                         "%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrained",box)])]
+    #for box in ['DiJet','MultiJet','SevenJet','LeptonMultiJet','LeptonSevenJet']:
+    #    for nb in range(4):
+    #        if (box == 'DiJet') and nb == 3: continue
+    #        slides += [
+    #                Slide("%s (%d b-tags) sideband and signal region"%(box,nb),
+    #                    ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrained",box)])]
 
     for slide in slides:
         slide.append_dir_prefix(plot_dir)

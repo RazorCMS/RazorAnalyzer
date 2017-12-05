@@ -377,7 +377,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         printstr='razor2DFitTableFull'+boxName+str(btags)+'btag'
     else:
         printstr='razor2DFitTable'+boxName+str(btags)+'btag'
-    plotting.table_basic(headers, cols, caption=caption, label=label, printstr=printstr, printdir=printdir, landscape=True, size='tiny')
+    plotting.table_basic(headers, cols, caption=caption, label=label, printstr=printstr, printdir=printdir, landscape=True, size='normalsize')
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
