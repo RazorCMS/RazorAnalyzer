@@ -208,9 +208,9 @@ razorNtuples["SignalLepton"]["Razor2015"]["Data"] = dirSignalData2015+"RazorIncl
 ### 2016 ntuples
 dirCR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RunTwoRazorControlRegions/2016/"
 dirSR2016 = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/"
-versionMC2016 = "V3p15_12Sep2017"
-versionMCSR2016 = "V3p15_05Oct2017"
-versionData2016 = "V3p15_29Aug2017"
+versionMC2016 = "V3p15_27Nov2017"
+versionMCSR2016 = "V3p15_27Nov2017"
+versionData2016 = "V3p15_27Nov2017"
 
 sampleTags2016 = { "Razor2016":"",
                "Razor2016_80X":"_Razor2016_80X",
@@ -254,7 +254,7 @@ dirSusySync2016 = "eos/cms/store/group/phys_susy/razor/Run2Analysis/SusySync/201
 
 for tag in sampleTags2016:
     razorNtuples["SingleLepton"][tag] = {
-            "TTJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
             "WJets"    : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -262,7 +262,7 @@ for tag in sampleTags2016:
             "Data"     : dir1L2016+"/"+prefixes2016[tag]["SingleLepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["Dilepton"][tag] = {
-            "TTJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
             "WJets"    : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -270,7 +270,7 @@ for tag in sampleTags2016:
             "Data"     : dir2L2016+"/"+prefixes2016[tag]["Dilepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["SingleLeptonInv"][tag] = {
-            "TTJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_TTJets_1pb_weighted"+skimstr+".root",
             "WJetsInv"    : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -278,7 +278,7 @@ for tag in sampleTags2016:
             "Data"     : dir1LInv2016+"/"+prefixes2016[tag]["SingleLeptonInv"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["DileptonInv"][tag] = {
-            "TTJets"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_TTJets_1pb_weighted"+skimstr+".root",
             "WJets"    : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJetsInv"   : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -286,7 +286,7 @@ for tag in sampleTags2016:
             "Data"     : dir2LInv2016+"/"+prefixes2016[tag]["DileptonInv"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["VetoLepton"][tag] = {
-            "TTJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_TTJets_1pb_weighted"+skimstr+".root",
             "WJets"    : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -296,7 +296,7 @@ for tag in sampleTags2016:
             "Data"     : dirVetoL2016+"/"+prefixes2016[tag]["VetoLepton"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["VetoTau"][tag] = {
-            "TTJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_TTJetsPowheg_1pb_weighted"+skimstr+".root",
+            "TTJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_TTJets_1pb_weighted"+skimstr+".root",
             "WJets"    : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_WJets_1pb_weighted"+skimstr+".root",
             "SingleTop": dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_SingleTop_1pb_weighted"+skimstr+".root",
             "DYJets"   : dirVetoTau2016+"/"+prefixes2016[tag]["VetoTau"]+"_DYJets_1pb_weighted"+skimstr+".root",
@@ -323,8 +323,8 @@ for tag in sampleTags2016:
             "ZInv"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_ZInv_1pb_weighted"+skimstr+".root",
             #"QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_QCD_1pb_weighted"+skimstr+".root",
             #QCD predicted using data driven method
-            "QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_GoodLumiGolden.root",
-            "Data"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_GoodLumiGolden.root"
+            "QCD"      : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root",
+            "Data"     : dirSignal2016+"/"+prefixes2016[tag]["Signal"]+"_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root"
             }
     razorNtuples["SignalLepton"][tag] = razorNtuples["SignalHadronic"][tag].copy()
     razorNtuples["SignalMuon"][tag] = razorNtuples["SignalHadronic"][tag].copy()
@@ -347,7 +347,7 @@ for tag in sampleTags2016:
 
     #Signal ntuples
     razorSignalDirs = {
-            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/SignalFastsim/"
+            "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/SignalFastsim/"
             }
 
 
