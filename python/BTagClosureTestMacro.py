@@ -178,7 +178,7 @@ if __name__ == "__main__":
         if 'MRCorr' in region:
             sfHistName = sfHistName.replace('MR', 'Rsq')
             appendScaleFactors( sfHistName, hists, sfHists, lumiData=analysis.lumi, var="Rsq",
-                    debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir )
+                    debugLevel=debugLevel, printdir=outdir )
         else:
             appendScaleFactors( sfHistName, hists, sfHists, lumiData=analysis.lumi, var="MR",
                     debugLevel=debugLevel, printdir=outdir )

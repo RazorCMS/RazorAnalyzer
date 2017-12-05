@@ -97,12 +97,12 @@ if __name__ == "__main__":
             sfHistsToUse = sfHists
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHistsToUse,
-            sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
+            sfVars=sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
         #record discrepancies > 1 sigma
         tmpSFHists = copy.copy(sfHists)
         del tmpSFHists["DYJetsInv"]
         appendScaleFactors("DYJetsInv", hists, tmpSFHists, lumiData=analysis.lumi, 
-            debugLevel=debugLevel, var=sfVars["DYJetsInv"], signifThreshold=1.0, printdir=outdir)
+            debugLevel=debugLevel, var='MR_NoZ', printdir=outdir)
         if not args.noSave:
             #write out scale factors
             print "Writing histogram",tmpSFHists["DYJetsInv"].GetName(),"to file"
