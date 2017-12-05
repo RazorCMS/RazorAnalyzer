@@ -285,7 +285,8 @@ if __name__ == "__main__":
                     curBox, unrollBins=unrollBins)
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
-            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
+            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins,
+                    xInclusive=True)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)
