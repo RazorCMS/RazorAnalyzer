@@ -186,7 +186,8 @@ def getGlobalNISRScaleFactor(f):
     return numUnweighted / numWeighted
 
 def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
-        tag="Razor2016_MoriondRereco", opts=None, boostCuts=True):
+        tag="Razor2016_MoriondRereco", opts=None, boostCuts=True,
+        doUncorrelate=True):
     """Returns a dictionary of histograms representing predicted
         yields for the indicated signal sample.
         'opts' should be an SMSOpts instance containing desired
@@ -284,7 +285,8 @@ def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
             signalHists[sysName.replace(
                 'npvextrap','npvextrap'+box)] = signalHists[sysName]
             del signalHists[sysName]
-        uncorrelate(signalHists, 'npvextrap'+box, suppressLevel=0.1)
+        if doUncorrelate:
+            uncorrelate(signalHists, 'npvextrap'+box, suppressLevel=0.1)
 
     # apply gen-MET vs PF MET systematic
     if 'Signal_genmetvspfmetUp' in signalHists:
