@@ -27,11 +27,11 @@
 void processFile(TString inputFileName, TString outputFileName, int physProc);
 void calculateMCScaleFactors() {
   cout << "W+jets" << endl;
-  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root", "WJets.root", 0);
+  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_WJets_1pb_weighted.root", "WJets.root", 0);
   cout << "Z+jets" << endl;
-  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root", "ZInv.root", 1);
+  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_ZInv_1pb_weighted.root", "ZInv.root", 1);
   cout << "tt+jets" << endl;
-  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets_1pb_weighted.root", "TTJets.root", 2);
+  processFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_TTJets_1pb_weighted.root", "TTJets.root", 2);
 }
 
 void processFile(TString inputFileName, TString outputFileName, int physProc) {

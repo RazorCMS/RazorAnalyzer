@@ -128,8 +128,6 @@ if __name__ == '__main__':
     rt.gROOT.SetBatch()
     regions = ['mrsideband']
     modes = ['dijet', 'multijet', 'sevenjet']
-    #regions = ['mrhi', 'mrsideband']
-    #modes = ['njets', 'dijet', 'multijet', 'sevenjet']
 
     # We have histograms binned in njets (for extrapolation to 7jet box)
     # and histograms for the dijet (2-3) and multijet (4-6) jet boxes.

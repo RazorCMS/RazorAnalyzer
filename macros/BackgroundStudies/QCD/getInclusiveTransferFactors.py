@@ -99,7 +99,7 @@ if __name__ == '__main__':
     draw_string = 'Rsq:MR>>'
     mc_draw_string = draw_string+'+'
     
-    fD = rt.TFile.Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_GoodLumiGolden.root","read")
+    fD = rt.TFile.Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_GoodLumiGolden.root","read")
     tree = fD.Get("RazorInclusive")
     bkg_files = {
             'ttjets':rt.TFile.Open('TTJets.root'),
@@ -123,13 +123,13 @@ if __name__ == '__main__':
                 hist_name = get_hist_name(box, region, dphiregion)
                 print "Doing {}".format(hist_name)
                 hists.append(make_hist(hist_name, binning))
-                tree.Draw(draw_string+hist_name, cuts)
+                nevents = tree.Draw(draw_string+hist_name, cuts)
                 mc_cuts = get_cuts(box, dphiregion, mc=True,
                         sideband=(region=='mrsideband'))
                 mc_hist_name = get_hist_name(box, region, dphiregion, mc=True)
                 mc_hists.append(make_hist(mc_hist_name, binning))
                 for bkg, t in bkg_trees.iteritems():
-                    t.Draw(mc_draw_string+mc_hist_name, mc_cuts)
+                    nevents = t.Draw(mc_draw_string+mc_hist_name, mc_cuts)
             for ix in range(1, hist_out.GetNbinsX()+1):
                 for iy in range(1, hist_out.GetNbinsY()+1):
                     set_tf(hist_out, hists[0], hists[1],
