@@ -11,10 +11,10 @@ from macro.razorMacros import makeControlSampleHistsForAnalysis, getMaxBtags, un
 from macro.razorWeights import getNPVHist, getNISRScaleFactor
 
 signalShapeUncerts = ['tightmuoneff','tighteleeff','vetomuoneff',
-        'vetoeleeff','jes','muontrig','eletrig','btag',
+        'vetoeleeff','jes','muontrig','eletrig','btag','bmistag',
         'tightmuonfastsim','tightelefastsim','vetomuonfastsim',
         'vetoelefastsim','btagfastsim','facscale','renscale',
-        'facrenscale','ees','mes','isr']
+        'facrenscale','isr']
 
 class SMSOpts(object):
     """
