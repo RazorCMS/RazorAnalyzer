@@ -16,7 +16,7 @@ from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
 import BTagClosureTestMacro as bclosure
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_13Nov2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_16Dec2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -173,9 +173,9 @@ if __name__ == "__main__":
         elif curBox in ['SevenJet', 'LeptonSevenJet']:
             jets = 'SevenJet'
         for name in ['TTJets1L', 'TTJets2L', 'WJets']:
-            sfHistsForUncorrSFs1D[name] = sfFileBClosure.Get("Rsq{}0BScaleFactors".format(jets))
+            sfHistsForUncorrSFs1D[name] = sfFileBClosure.Get("Rsq{}0B".format(jets))
             assert(sfHistsForUncorrSFs1D[name])
-        sfHistsForUncorrSFs1D['ZInv'] = sfFileBClosure.Get("RsqInv{}0BScaleFactors".format(jets))
+        sfHistsForUncorrSFs1D['ZInv'] = sfFileBClosure.Get("RsqInv{}0B".format(jets))
         assert(sfHistsForUncorrSFs1D['ZInv'])
 
         # assess signal contamination in control regions
@@ -285,8 +285,7 @@ if __name__ == "__main__":
                     curBox, unrollBins=unrollBins)
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
-            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins,
-                    xInclusive=True)
+            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)
