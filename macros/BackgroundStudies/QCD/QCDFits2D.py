@@ -129,8 +129,6 @@ def make_tf2(box):
     the list of parameter names, and a list of multipliers 
     for display convenience
     """
-    if box.lower() == 'sevenjet':
-        return make_tf2_sevenjet()
     names = ['Intercept', 'X slope', 'Y slope', 'XY slope']
     multipliers = [1, 1000, 1, 1000]
     num_pars = len(names)

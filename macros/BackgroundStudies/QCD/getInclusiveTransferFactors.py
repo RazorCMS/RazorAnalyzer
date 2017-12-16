@@ -35,7 +35,7 @@ def get_cuts(box=None, dphiregion=None, mc=False, sideband=False):
 def get_binning(box, region):
     if region == 'lo':
         if box == 'sevenjet':
-            return { 'MR':[550, 1600], 
+            return { 'MR':[550, 800, 1600], 
                     'Rsq':[0.20, 0.22, 0.24, 0.26, 0.28, 0.30] }
         return { 'MR': [550, 650, 800, 1000, 1200, 1400, 1600],
                 'Rsq':[0.20, 0.22, 0.24, 0.26, 0.28, 0.30] }
