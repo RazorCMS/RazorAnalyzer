@@ -27,7 +27,7 @@ if __name__ == "__main__":
             "MultiJet":(4,6),
             "SevenJet":(7,-1)
             }.iteritems():
-        for nb in range(4):
+        for nb in reversed(range(4)):
             regionName = 'GJetsInv'+name+str(nb)+'B'
             nbMax = nb
             if nb >= 2:
@@ -81,6 +81,7 @@ if __name__ == "__main__":
             #write out scale factors
             outfile = rt.TFile(bclosure.getOutputFilename(tag), 'UPDATE')
             histToWrite = sfHists[sfHistName]
+            histToWrite.SetName(sfHistName)
             print "Writing scale factor histogram",histToWrite.GetName(),"to file"
             outfile.cd()
             histToWrite.Write( histToWrite.GetName() )
