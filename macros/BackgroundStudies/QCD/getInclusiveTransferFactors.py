@@ -8,6 +8,7 @@ def get_cuts(box=None, dphiregion=None, mc=False, sideband=False):
         "MR > 550 && MR < 4000",
         "(Rsq > 0.2 || (MR > 1600 && Rsq > 0.1))",
         "(box==11||box==12||box==14)",
+        "(HLTDecision[163] || HLTDecision[166] || HLTDecision[167])",
         "Flag_HBHENoiseFilter", "Flag_HBHEIsoNoiseFilter", "Flag_goodVertices",
         "Flag_eeBadScFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", 
         "Flag_CSCTightHaloFilter", "Flag_badChargedCandidateFilter", 
@@ -35,13 +36,14 @@ def get_cuts(box=None, dphiregion=None, mc=False, sideband=False):
 def get_binning(box, region):
     if region == 'lo':
         if box == 'sevenjet':
-            return { 'MR':[550, 800, 1600], 
+            return { 'MR':[650, 800, 1600], 
                     'Rsq':[0.20, 0.22, 0.24, 0.26, 0.28, 0.30] }
-        return { 'MR': [550, 650, 800, 1000, 1200, 1400, 1600],
+        return { 'MR': [650, 800, 1000, 1200, 1400, 1600],
                 'Rsq':[0.20, 0.22, 0.24, 0.26, 0.28, 0.30] }
     elif region == 'mrsideband':
         return { 'MR': [550, 650],
-                'Rsq':[0.30, 0.41, 0.52, 0.64, 1.5] }
+                'Rsq':[0.20, 0.22, 0.24, 0.26, 0.28, 
+                    0.30, 0.41, 0.52, 0.64, 1.5] }
     else:
         if box == 'dijet':
             return { 'MR': [1600, 4000],
@@ -123,9 +125,11 @@ if __name__ == '__main__':
                 hist_name = get_hist_name(box, region, dphiregion)
                 print "Doing {}".format(hist_name)
                 hists.append(make_hist(hist_name, binning))
+                print "Cuts",cuts
                 nevents = tree.Draw(draw_string+hist_name, cuts)
                 mc_cuts = get_cuts(box, dphiregion, mc=True,
                         sideband=(region=='mrsideband'))
+                print "MC cuts",mc_cuts
                 mc_hist_name = get_hist_name(box, region, dphiregion, mc=True)
                 mc_hists.append(make_hist(mc_hist_name, binning))
                 for bkg, t in bkg_trees.iteritems():
