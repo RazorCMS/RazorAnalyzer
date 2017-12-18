@@ -1014,9 +1014,9 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             hadronicTrigCorrFactor *= 0.975;
         }
         //Jet cuts
-        const int JET_CUT = 40;
-        const int BJET_CUT = 40;
-        const float JET_ETA_CUT = 3.0;
+        const int JET_CUT = 30;
+        const int BJET_CUT = 30;
+        const float JET_ETA_CUT = 2.4;
         //Loop jets
         for (int i = 0; i < nJets; i++){
             //Apply Jet ID only on fullsim. fastsim jet ID is broken. 
@@ -1081,7 +1081,7 @@ void FullRazorInclusive::Analyze(bool isData, int option, string outFileName, st
             if (matchesLepton) continue;
 
 	    //Count Number of Gen-Level Matched BJets
-	    if (abs(jetPartonFlavor[i]) == 5 && jetCorrPt > 40 && fabs(jetEta[i]) < 2.4) NGenBJets++;
+	    if (abs(jetPartonFlavor[i]) == 5 && jetCorrPt > BJET_CUT && fabs(jetEta[i]) < 2.4) NGenBJets++;
 
             //Apply b-tagging correction factor 
             if (!isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT) { 
