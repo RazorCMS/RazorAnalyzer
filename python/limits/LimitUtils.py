@@ -16,9 +16,9 @@ def do_command(cmd, no_exec=True):
     if not no_exec:
         sp.call(cmd)
 
-def get_limit_dir(model):
+def get_limit_dir(model, version=VERSION):
     return '/eos/cms/store/group/phys_susy/razor/Run2Analysis/Limits/RazorInclusive2016/{}/{}'.format(
-            VERSION, model)
+            version, model)
 
 def write_done_file(model, box, name='MADD'):
     """
@@ -149,6 +149,26 @@ def aggregate(model, tag, sms, no_exec=True):
                     os.system(sed_cmd)
             else:
                 do_command(['cp', f, out_f], no_exec)
+        
+def copy_lepton_limits_for_no_boost_cuts(model, no_exec=True):
+    # This is supposed to work correctly whether or not
+    # the current limit directory is the no-boost-cuts or boost-cuts one
+    version = VERSION
+    if version.endswith('_NoBoostCuts'):
+        version = version.replace('_NoBoostCuts', '')
+    boost_cuts_dir = get_limit_dir(model, version)
+    no_boost_cuts_dir = get_limit_dir(model, version+'_NoBoostCuts')
+    do_command(['mkdir', '-p', no_boost_cuts_dir], no_exec)
+    lepton_boxes = ['LeptonMultiJet', 'LeptonSevenJet']
+    for box in lepton_boxes:
+        for f in glob.glob('{}/higgsCombineMADD_{}_SMS-{}_*.root'.format(
+            boost_cuts_dir, box, model)):
+            cmd = ['cp', f, no_boost_cuts_dir]
+            do_command(cmd, no_exec)
+        for f in glob.glob('{}/RazorInclusiveMADD_SMS-{}_*_*_{}.*'.format(
+            boost_cuts_dir, model, box)):
+            cmd = ['cp', f, no_boost_cuts_dir]
+            do_command(cmd, no_exec)
 
 def get_plot_dir():
     return 'PlotsSMS/plots/{}'.format(VERSION)
@@ -312,6 +332,8 @@ if __name__ == '__main__':
             help='combine datasets (for SMS split into multiple datasets')
     parser.add_argument('--finish', action='store_true',
             help='equivalent to --aggregate --get --plot')
+    parser.add_argument('--copy-lepton-limits', action='store_true',
+            help='copy lepton limit results to NoBoostCut folder')
 
     # configuration options
     parser.add_argument('--blind', action='store_true')
@@ -370,6 +392,10 @@ if __name__ == '__main__':
             aggregate(args.model, args.tag, sms, no_exec)
         else:
             print "Ignoring --aggregate, no submodels to aggregate"
+
+    if args.copy_lepton_limits:
+        print "Copy lepton limit files to NoBoostCut folder"
+        copy_lepton_limits_for_no_boost_cuts(args.model, no_exec)
 
     if args.get or args.finish:
         print "Get limit results for {}\n".format(args.model)
