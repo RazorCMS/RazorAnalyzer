@@ -290,7 +290,6 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins,
                         binCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
                     else:
                         binCenter = (thisSigBin.GetXMax() + thisSigBin.GetXMin())/2.0
-                    print "bin center:",binCenter
                     # Note that binCenter is an Rsq value but it is being passed
                     # into the mrCenter field of setBinContentsForUncorrelateSFs.  
                     # This is just for convenience -- that function assumes

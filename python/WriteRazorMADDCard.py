@@ -16,7 +16,7 @@ from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
 import BTagClosureTestMacro as bclosure
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_16Dec2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_18Dec2017"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -85,6 +85,21 @@ def consolidateBackgroundHists(hists, origProcs):
                         raise ValueError("Histogram name should end with Up or Down")
                 break
     return newHists
+
+def addHistSuffix(hists, unc, suffix):
+    """
+    Renames histograms with name *_<unc>
+    to *_<unc><suffix>. 
+    """
+    newHists = {}
+    for name, hist in hists.iteritems():
+        newName = name
+        if name.endswith(unc+'Up') or name.endswith(unc+'Down'):
+            newName = name.replace(unc, unc+suffix)
+            hist.SetName(hist.GetName().replace(unc, unc+suffix))
+        newHists[newName] = hist
+    return newHists
+
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -264,6 +279,15 @@ if __name__ == "__main__":
             sfHists = origSFHists
         hists = backgroundHists.copy()
         hists.update(signalHists)
+
+        # do not correlate closure test uncertainties between
+        # boxes with different numbers of jets
+        jet_closure_uncs = ['btagcrosscheckrsq', 'btaginvcrosscheck',
+                'qcdnorm', 'ttcrosscheck', 'vetolepetacrosscheck',
+                'vetolepptcrosscheck', 'vetotauetacrosscheck',
+                'vetotauptcrosscheck', 'zllcrosscheckmr', 'zllcrosscheckrsq']
+        for unc in jet_closure_uncs:
+            hists = addHistSuffix(hists, unc, jets)
 
         # treat appropriate uncertainties as uncorrelated bin to bin
         toUncorrelate = ['stat'+curBox+sample for sample in samples]

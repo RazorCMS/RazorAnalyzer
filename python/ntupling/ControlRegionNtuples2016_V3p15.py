@@ -121,7 +121,7 @@ SAMPLES['1L'] = {
                 'WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                 'ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
-                'TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
+                #'TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
             ],
         "WJets":[
                 'WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',

@@ -118,6 +118,7 @@ def doNPVExtrapolation(hists, npvHist, npvLowHighHist, scale):
         averageYield = max(0., averageYield)
         # Scale all signal histograms based on these weights
         nominal = hists['Signal'].GetBinContent(ibin)
+        poisson = hists['Signal'].GetBinError(ibin) # nominal error
         if nominal > 0:
             weightedOverNominal = (averageYield / nominal)
             print "In bin %d, weighted yield is %.3f of nominal"%(
@@ -129,7 +130,17 @@ def doNPVExtrapolation(hists, npvHist, npvLowHighHist, scale):
                         hist.GetBinContent(ibin) * weightedOverNominal)
 
         # Put the up/down errors from this procedure 
-        # into the npvextrap histograms
+        # into the npvextrap histograms.
+        # If the uncertainty obtained is larger than
+        # 1.6 times the statistical uncertainty from
+        # Poisson statistics, it is capped at that level.
+        # This prevents instability in limit setting
+        # due to large uncertainties from this procedure.
+        errThreshold = 1.6 * poisson
+        if averageYieldErr > errThreshold:
+            print "Reducing uncertainty on bin {} ({:.2f} events) from {:.2f} to {:.2f}".format(
+                    ibin, nominal, averageYieldErr, errThreshold)
+            averageYieldErr = errThreshold
         hists['Signal_npvextrapUp'].SetBinContent(ibin,
                 averageYield + averageYieldErr)
         hists['Signal_npvextrapDown'].SetBinContent(ibin,

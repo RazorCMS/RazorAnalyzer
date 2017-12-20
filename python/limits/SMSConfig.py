@@ -1,7 +1,7 @@
 import copy
 
-VERSION = '16Dec2017'
-#VERSION = '13Nov2017_NoBoostCuts'
+VERSION = '18Dec2017'
+#VERSION = '18Dec2017_NoBoostCuts'
 BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_11_21/"
 BOOST_LOCAL_DIR = "syst_results/run_2017_11_13_syst/cards"
 
