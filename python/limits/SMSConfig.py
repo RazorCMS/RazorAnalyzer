@@ -9,6 +9,7 @@ DISP_OFFSET = 12.5 # Extra offset needed for display purposes
 
 ALL_BOXES = ['DiJet', 'MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']
 HADRONIC_BOXES = ['DiJet', 'MultiJet', 'SevenJet']
+HAD_GLUINO_BOXES = ['MultiJet', 'SevenJet']
 GLUINO_BOXES = ['MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']
 BOOST_BOXES = ['WAna_nj35', 'WAna_nj6', 'TopAna']
 
@@ -50,7 +51,7 @@ class SMS(object):
 
 
 sms_models = {
-        'T1bbbb':SMS(600, 2300, 0, 1650, boxes=HADRONIC_BOXES),
+        'T1bbbb':SMS(600, 2300, 0, 1650, boxes=HAD_GLUINO_BOXES),
         'T1ttbb':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
             diagonalOffset=225),
         'T1tttt':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
