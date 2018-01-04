@@ -2,7 +2,7 @@ import copy
 
 VERSION = '18Dec2017'
 #VERSION = '18Dec2017_NoBoostCuts'
-BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_11_21/"
+BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_12_26/"
 BOOST_LOCAL_DIR = "syst_results/run_2017_11_13_syst/cards"
 
 DISP_OFFSET = 12.5 # Extra offset needed for display purposes
@@ -11,7 +11,7 @@ ALL_BOXES = ['DiJet', 'MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet'
 HADRONIC_BOXES = ['DiJet', 'MultiJet', 'SevenJet']
 HAD_GLUINO_BOXES = ['MultiJet', 'SevenJet']
 GLUINO_BOXES = ['MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']
-BOOST_BOXES = ['WAna_nj35', 'WAna_nj6', 'TopAna']
+BOOST_BOXES = ['WAna_nj45', 'WAna_nj6', 'TopAna']
 
 class SMS(object):
 
